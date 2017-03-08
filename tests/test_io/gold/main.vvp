@@ -1,0 +1,21 @@
+#! /usr/local/bin/vvp
+:ivl_version "0.10.0 (devel)" "(s20121218-86-gb378dcc)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "vhdl_sys";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x7f9bba7004b0 .scope module, "main" "main" 2 1;
+ .timescale 0 0;
+    .scope S_0x7f9bba7004b0;
+T_0 ;
+    %vpi_call 2 4 "$display", "Hello, World" {0 0};
+    %vpi_call 2 5 "$finish" {0 0};
+    %end;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "main.v";

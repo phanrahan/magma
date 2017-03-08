@@ -1,0 +1,7 @@
+#!/bin/sh
+ssh hanrahan@hanrahan-virtual-machine.local 'make -C build clean'
+scp build/$1.v hanrahan@hanrahan-virtual-machine.local:~/build/main.v
+scp build/$1.ucf hanrahan@hanrahan-virtual-machine.local:~/build/main.ucf
+ssh hanrahan@hanrahan-virtual-machine.local 'make -C build'
+scp hanrahan@hanrahan-virtual-machine.local:~/build/main.bit build/$1.bit
+

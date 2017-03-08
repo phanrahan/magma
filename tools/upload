@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#Script for programming Papilio One 250K/500K boards
+
+PROG=papilio-prog
+#DEVICE=${DEVICE:=xc3s250e}
+DEVICE=${DEVICE:=xc3s500e}
+BSCAN=bscan_spi_${DEVICE}.bit
+echo $BSCAN
+
+if [ ! -e $BSCAN ] ; then \
+	echo "Error! Could not find $BSCAN!"
+	exit -1	
+fi
+
+$PROG -v -f $1.bit -b $BSCAN -sa -r
+$PROG -c

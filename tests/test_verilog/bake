@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+import os, glob
+from os.path import join, exists
+from fabricate import main, autoclean, run
+
+BUILD = 'build'
+GOLD = 'gold'
+
+tests = glob.glob('*.py')
+
+def build():
+    for test in tests:
+        if not test.startswith('_'):
+            base, suffix = test.split('.')
+            compile(base)
+
+def compile(base):
+    v = base+'.v'
+    buildv, goldv = join(BUILD,v), join(GOLD,v)
+    run('python',base+'.py', join(BUILD,base))
+    if exists(goldv):
+        run('cmp',buildv,goldv)
+
+def clean():
+    autoclean()
+
+def gold():
+    os.system('cp %s/* %s' % (BUILD, GOLD))
+
+main()

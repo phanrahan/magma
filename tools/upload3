@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh hanrahan@hanrahan-virtual-machine.local 'papilio-prog -v -f build/main.bit'

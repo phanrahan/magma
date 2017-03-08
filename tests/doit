@@ -1,0 +1,3 @@
+unset MANTLE
+unset MANTLE_TARGET
+pytest

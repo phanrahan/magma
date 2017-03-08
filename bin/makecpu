@@ -1,0 +1,1 @@
+python $MAGMA_BIN/cpugen.py $1

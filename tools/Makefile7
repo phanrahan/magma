@@ -1,0 +1,21 @@
+SRC=main.v
+TARGET=main
+
+#default: ${TARGET}.bit
+
+#TODO call makefile6 .bit  (or just copy code)
+
+TARGET=blink
+TRENZ_ADDR=192.168.42.50
+ZED_ADDR=192.168.2.2
+ZED_WRITE_PATH=~
+ZED_PASS=root
+
+upload:
+	-sshpass -p $(ZED_PASS) ssh root@$(ZED_ADDR) "echo 'fclk0' > /sys/devices/amba.0/f8007000.ps7-dev-cfg/fclk_export"
+	sshpass -p $(ZED_PASS) ssh root@$(ZED_ADDR) "echo '100000000' > /sys/class/fclk/fclk0/set_rate"
+	sshpass -p $(ZED_PASS) ssh root@$(ZED_ADDR) "cat /sys/class/fclk/fclk0/set_rate"
+###### CLOCK STUFF END
+	sshpass -p $(ZED_PASS) scp $(TARGET).bit root@$(ZED_ADDR):$(ZED_WRITE_PATH)/.
+	sshpass -p $(ZED_PASS) ssh root@$(ZED_ADDR) "cat $(ZED_WRITE_PATH)/$(TARGET).bit > /dev/xdevcfg"
+#	-sshpass -p $(ZED_PASS) ssh root@$(ZED_ADDR) "echo 'fclk0' > /sys/devices/amba.0/f8007000.ps7-dev-cfg/fclk_unexport"

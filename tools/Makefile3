@@ -1,0 +1,70 @@
+# Makefile to compile and download a simple Verilog program
+
+PROG=papilio-prog
+
+DEVICE=xc3s250e
+#DEVICE=xc3s500e
+SPEED=4
+PACKAGE=vq100
+PART=${DEVICE}-${SPEED}-${PACKAGE}
+BSCAN=bscan_spi_${DEVICE}.bit
+
+TARGET=main
+
+default: ${TARGET}.bit
+
+${TARGET}.ngc: ${TARGET}.v
+	@echo 'run'                 > xst.cmd
+	@echo '-p $(PART)'         >> xst.cmd
+	@echo '-ifn $(TARGET).v'   >> xst.cmd
+	@echo '-ifmt verilog'      >> xst.cmd
+	@echo '-ofn $(TARGET).ngc' >> xst.cmd
+	@echo '-ofmt NGC' 	   >> xst.cmd
+	@echo '-opt_mode Speed'	   >> xst.cmd
+	@echo '-opt_level 1'	   >> xst.cmd
+	xst -ifn xst.cmd
+	cp ${TARGET}.ngc xst.ngc
+	netgen -ofmt verilog xst.ngc
+
+${TARGET}.ngd: ${TARGET}.ngc ${TARGET}.ucf
+	ngdbuild -p $(PART) -uc ${TARGET}.ucf ${TARGET}.ngc
+	cp ${TARGET}.ngd ngdbuild.ngd
+	netgen -w -ofmt verilog ngdbuild.ngd
+
+${TARGET}.ncd: ${TARGET}.ngd
+#	map -detail -pr b ${TARGET}.ngd
+	map -detail -c 100 -u ${TARGET}.ngd
+	cp ${TARGET}.ngc map.ngc
+	netgen -w -ofmt verilog map.ngc
+
+${TARGET}.pcf: ${TARGET}.ngd
+	map -detail -pr b ${TARGET}.ngd
+
+${TARGET}.route.ncd: ${TARGET}.ncd
+	par -w ${TARGET}.ncd ${TARGET}.route.ncd ${TARGET}.pcf
+	cp ${TARGET}.route.ncd par.ncd
+	netgen -w -ofmt verilog par.ncd
+	xdl -ncd2xdl par.ncd par.xdl
+
+${TARGET}.bit: ${TARGET}.route.ncd
+	bitgen -w -g CRC:Enable -g StartUpClk:CClk ${TARGET}.route.ncd ${TARGET}.bit ${TARGET}.pcf
+
+upload: ${TARGET}.bit
+	${PROG} -v -f ${TARGET}.bit -b ../${BSCAN} -sa -r
+	${PROG} -c
+
+clean:
+	rm -rf \
+	*.v \
+        ${TARGET}.bgn ${TARGET}.bin ${TARGET}.bit ${TARGET}.bld \
+	${TARGET}.drc ${TARGET}.map ${TARGET}_map.xrpt ${TARGET}.mrp \
+	${TARGET}.ncd ${TARGET}.ngc ${TARGET}.ngd ${TARGET}_ngdbuild.xrpt \
+	${TARGET}.ngm ${TARGET}_par.xrpt ${TARGET}.pcf ${TARGET}.prm \
+	${TARGET}_summary.xml ${TARGET}_usage.xml ${TARGET}_xst.xrpt \
+	${TARGET}.ngc_xst.xrpt \
+	${TARGET}_bitgen.xwbt \
+	netlist.lst parout.ncd parout.pad parout_pad.csv \
+	parout_pad.txt parout.par parout.ptwx parout.unroutes \
+	usage_statistics_webtalk.html  webtalk.log \
+	parout.xpi xlnx_auto_0.ise xlnx_auto_0_xdb xst _xmsgs xst.cmd xst.srp
+

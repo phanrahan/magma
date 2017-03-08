@@ -1,0 +1,4 @@
+export MANTLE='verilog'
+unset MANTLE_TARGET
+./bake clean
+./bake
