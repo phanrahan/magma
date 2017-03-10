@@ -11,13 +11,20 @@ INOUT = 'inout'
 
 def print_error(message, stack_frame):
     traceback.print_stack(f=stack_frame, limit=10)
-    print(message, file=sys.stderr)
+    sys.stderr.write(message + "\n")
 
-def get_original_wire_call():
+def get_original_wire_call_stack_frame():
     for frame in inspect.stack():
-        if frame.function not in ["wire", "connect", "get_original_wire_call"]:
+        if sys.version < (3, 5):
+            function = inspect.getframeinfo(frame[0]).function
+        else:
+            function = frame.function
+        if function not in ["wire", "connect", "get_original_wire_call_stack_frame"]:
             break
-    return frame
+    if sys.version < (3, 5):
+        return frame[0]
+    else:
+        return frame.frame
 
 def flip(direction):
     assert direction in [INPUT, OUTPUT, INOUT]
@@ -56,13 +63,13 @@ class Wire:
 
         #print(str(o), o.anon(), o.bit.isinput(), o.bit.isoutput())
         #print(str(i), i.anon(), i.bit.isinput(), i.bit.isoutput())
-        debug_info = get_original_wire_call()
 
 
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                print_error("Error: using an input as an output {}".format(str(o)), debug_info.frame)
+                print_error("Error: using an input as an output {}".format(str(o)), 
+                            get_original_wire_call_stack_frame())
                 return
 
             if o not in self.outputs:
@@ -74,7 +81,8 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                print_error("Error: using an output as an input {}".format(str(i)), debug_info.frame)
+                print_error("Error: using an output as an input {}".format(str(i)),
+                            get_original_wire_call_stack_frame())
                 return
 
             if i not in self.inputs:
