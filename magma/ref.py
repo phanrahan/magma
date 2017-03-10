@@ -3,6 +3,9 @@ from .compatibility import IntegerTypes
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
 
 class Ref:
+    def __repr__(self):
+        return self.qualifiedname()
+
     def __str__(self):
         return self.qualifiedname()
 

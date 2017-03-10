@@ -101,6 +101,9 @@ class Port:
 
         self.wires = Wire()
 
+    def __repr__(self):
+        return repr(self.bit)
+
     def __str__(self):
         return str(self.bit)
 

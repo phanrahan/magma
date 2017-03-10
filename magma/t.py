@@ -35,6 +35,9 @@ class Type(object):
     def __ne__(self, rhs):
         return not (self == rhs)
 
+    def __repr__(self):
+        return self.name.qualifiedname()
+
     def __str__(self):
         return self.name.qualifiedname()
 
