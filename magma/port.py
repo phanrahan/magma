@@ -1,3 +1,6 @@
+import inspect
+import traceback
+import sys
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
 __all__ += ['Port']
@@ -5,6 +8,16 @@ __all__ += ['Port']
 INPUT = 'input'
 OUTPUT = 'output'
 INOUT = 'inout'
+
+def print_error(message, stack_frame):
+    traceback.print_stack(f=stack_frame, limit=10)
+    print(message, file=sys.stderr)
+
+def get_original_wire_call():
+    for frame in inspect.stack():
+        if frame.function not in ["wire", "connect", "get_original_wire_call"]:
+            break
+    return frame
 
 def flip(direction):
     assert direction in [INPUT, OUTPUT, INOUT]
@@ -43,11 +56,13 @@ class Wire:
 
         #print(str(o), o.anon(), o.bit.isinput(), o.bit.isoutput())
         #print(str(i), i.anon(), i.bit.isinput(), i.bit.isoutput())
+        debug_info = get_original_wire_call()
+
 
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                print("Error: using an input as an output", str(o))
+                print_error("Error: using an input as an output {}".format(str(o)), debug_info.frame)
                 return
 
             if o not in self.outputs:
@@ -59,7 +74,7 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                print("Error: using an output as an input", str(i))
+                print_error("Error: using an output as an input {}".format(str(i)), debug_info.frame)
                 return
 
             if i not in self.inputs:
