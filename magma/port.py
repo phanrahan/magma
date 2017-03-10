@@ -10,8 +10,10 @@ OUTPUT = 'output'
 INOUT = 'inout'
 
 def print_error(message, stack_frame):
+    sys.stderr.write("="*80 + "\n")
     traceback.print_stack(f=stack_frame, limit=10)
     sys.stderr.write(message + "\n")
+    sys.stderr.write("="*80 + "\n")
 
 def get_original_wire_call_stack_frame():
     for frame in inspect.stack():

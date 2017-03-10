@@ -11,8 +11,9 @@ def test_input_as_output(capsys):
     wire(main.O, buf.I)
     out, err = capsys.readouterr()
     err_lines = err.splitlines()
-    assert err_lines[-1] == "Error: using an input as an output main.O"
-    assert err_lines[-2] == "    wire(main.O, buf.I)"
+    assert err_lines[-1] == "=" * 80
+    assert err_lines[-2] == "Error: using an input as an output main.O"
+    assert err_lines[-3] == "    wire(main.O, buf.I)"
 
 
 def test_output_as_input(capsys):
@@ -24,5 +25,6 @@ def test_output_as_input(capsys):
     wire(main.I, a.O)
     out, err = capsys.readouterr()
     err_lines = err.splitlines()
-    assert err_lines[-1] == "Error: using an output as an input inst0.O"
-    assert err_lines[-2] == "    wire(main.I, a.O)"
+    assert err_lines[-1] == "=" * 80
+    assert err_lines[-2] == "Error: using an output as an input inst0.O"
+    assert err_lines[-3] == "    wire(main.I, a.O)"
