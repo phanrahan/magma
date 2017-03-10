@@ -64,7 +64,6 @@ class Wire:
         #print(str(o), o.anon(), o.bit.isinput(), o.bit.isoutput())
         #print(str(i), i.anon(), i.bit.isinput(), i.bit.isoutput())
 
-
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
