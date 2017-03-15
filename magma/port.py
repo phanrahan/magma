@@ -1,6 +1,4 @@
-import inspect
-import traceback
-import sys
+from magma.debug import get_original_wire_call_stack_frame, print_error
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
 __all__ += ['Port']
@@ -8,25 +6,6 @@ __all__ += ['Port']
 INPUT = 'input'
 OUTPUT = 'output'
 INOUT = 'inout'
-
-def print_error(message, stack_frame):
-    sys.stderr.write("="*80 + "\n")
-    traceback.print_stack(f=stack_frame, limit=10)
-    sys.stderr.write(message + "\n")
-    sys.stderr.write("="*80 + "\n")
-
-def get_original_wire_call_stack_frame():
-    for frame in inspect.stack():
-        if sys.version < (3, 5):
-            function = inspect.getframeinfo(frame[0]).function
-        else:
-            function = frame.function
-        if function not in ["wire", "connect", "get_original_wire_call_stack_frame"]:
-            break
-    if sys.version < (3, 5):
-        return frame[0]
-    else:
-        return frame.frame
 
 def flip(direction):
     assert direction in [INPUT, OUTPUT, INOUT]
