@@ -1,3 +1,4 @@
+from magma.debug import get_original_wire_call_stack_frame, print_error
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
 __all__ += ['Port']
@@ -47,7 +48,8 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                print("Error: using an input as an output", str(o))
+                print_error("Error: using an input as an output {}".format(str(o)), 
+                            get_original_wire_call_stack_frame())
                 return
 
             if o not in self.outputs:
@@ -59,7 +61,8 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                print("Error: using an output as an input", str(i))
+                print_error("Error: using an output as an input {}".format(str(i)),
+                            get_original_wire_call_stack_frame())
                 return
 
             if i not in self.inputs:

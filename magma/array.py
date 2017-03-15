@@ -1,3 +1,4 @@
+from magma.debug import get_original_wire_call_stack_frame, print_error
 from collections import Sequence
 from .ref import ArrayRef
 from .t import Type, Kind
@@ -68,7 +69,8 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
         
         if not isinstance(o, ArrayType):
-            print('Wiring error: wiring', o, 'to', i, '(not an Array)')
+            print_error("Wiring error: wiring {} to {} (not an Array)".format(str(o), str(i)),
+                    get_original_wire_call_stack_frame())
             return
 
         #if i.T != o.T:
@@ -76,7 +78,8 @@ class ArrayType(Type):
         #    return
 
         if i.N != o.N:
-            print('Wiring error: Arrays must have the same length', i.N, o.N)
+            print_error("Wiring error: Arrays must have the same length: {} {}".format(str(i.N), str(o.N)),
+                    get_original_wire_call_stack_frame())
             return 
 
         for k in range(len(i)):

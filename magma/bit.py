@@ -1,3 +1,4 @@
+from magma.debug import get_original_wire_call_stack_frame, print_error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
@@ -36,7 +37,8 @@ class BitType(Type):
             o = HIGH if o else LOW
 
         if not isinstance(o, BitType):
-            print('Wiring error: wiring', o, 'to', i, '(not a Bit)')
+            print_error("Wiring error: wiring {} to {} (not an Bit)".format(str(o), str(i)),
+                    get_original_wire_call_stack_frame())
             return
 
         #if o.isoutput() and i.isoutput():
