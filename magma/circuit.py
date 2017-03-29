@@ -1,4 +1,5 @@
 import six
+import inspect
 from .interface import *
 from .wire import *
 
@@ -265,8 +266,11 @@ class DefineCircuitKind(CircuitKind):
         if not inst.name:
             inst.defn = cls
             inst.name = 'inst' + str(len(cls.instances))
+            # osnr's suggested name
+            #inst.name = 'inst' + str(len(cls.instances)) + '_' + inst.__class__.name
             #print('naming circuit instance', inst.name)
         #print('placing', inst, 'in', cls)
+        inst.stack = inspect.stack()
         cls.instances.append(inst)
 
 

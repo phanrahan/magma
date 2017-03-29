@@ -1,3 +1,4 @@
+from .error import error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
@@ -36,7 +37,7 @@ class BitType(Type):
             o = HIGH if o else LOW
 
         if not isinstance(o, BitType):
-            print('Wiring error: wiring', o, 'to', i, '(not a Bit)')
+            error('Wiring error: wiring', o, 'to', i, '(not a Bit)')
             return
 
         #if o.isoutput() and i.isoutput():

@@ -1,3 +1,5 @@
+from .error import error
+
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
 __all__ += ['Port']
@@ -13,17 +15,21 @@ def flip(direction):
     elif direction == INOUT:  return INOUT
 
 def mergewires(new, old):
-    for i in old.inputs:
-        if i not in new.inputs:
-            new.inputs.append(i)
-            i.wires = new
+    oldinputs = set(old.inputs)
+    newinputs = set(new.inputs)
+    oldoutputs = set(old.outputs)
+    newoutputs = set(new.outputs)
 
-    for o in old.outputs:
-        if o not in new.outputs:
-            if len(new.outputs) > 0:
-                print("Error: connecting more than one output to an input", o)
-            new.outputs.append(o)
-            o.wires = new
+    for i in oldinputs - newinputs:
+        new.inputs.append(i)
+        i.wires = new
+
+    for o in oldoutputs - newoutputs:
+        if len(new.outputs) > 0:
+            error("Error: connecting more than one output to an input", o)
+        new.outputs.append(o)
+        o.wires = new
+
 
 #
 # A Wire has a list of input and output Ports.

@@ -223,6 +223,7 @@ def braid(circuits,
     return AnonymousCircuit(args)
 
 def fork(*circuits):
+    """Wire input to all the inputs, concatenate output"""
     if len(circuits) == 1: circuits = circuits[0]
     forkargs = getargbydirection(circuits[0].interface, INPUT)
     return braid(circuits, forkargs=forkargs)
@@ -233,6 +234,7 @@ def flat(*circuits):
     return braid(circuits, flatargs=flatargs)
 
 def join(*circuits):
+    """concatenate input and concatenate output"""
     if len(circuits) == 1: circuits = circuits[0]
     return braid(circuits)
 

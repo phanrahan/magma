@@ -1,4 +1,5 @@
 from collections import Sequence
+from .error import error
 from .ref import ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
@@ -68,7 +69,7 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
         
         if not isinstance(o, ArrayType):
-            print('Wiring error: wiring', o, 'to', i, '(not an Array)')
+            error('Wiring error: wiring', o, 'to', i, '(not an Array)')
             return
 
         #if i.T != o.T:
@@ -76,7 +77,7 @@ class ArrayType(Type):
         #    return
 
         if i.N != o.N:
-            print('Wiring error: Arrays must have the same length', i.N, o.N)
+            error('Wiring error: Arrays must have the same length', i.N, o.N)
             return 
 
         for k in range(len(i)):
