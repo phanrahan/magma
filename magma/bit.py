@@ -37,7 +37,7 @@ class BitType(Type):
             o = HIGH if o else LOW
 
         if not isinstance(o, BitType):
-            error('Wiring error: wiring', o, 'to', i, '(not a Bit)')
+            error('Wiring Error: wiring {} to {} (not a Bit)'.format(o, i))
             return
 
         #if o.isoutput() and i.isoutput():

@@ -69,7 +69,7 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
         
         if not isinstance(o, ArrayType):
-            error('Wiring error: wiring', o, 'to', i, '(not an Array)')
+            error('Wiring Error: wiring {} to {} (not an Array)'.format(o, i))
             return
 
         #if i.T != o.T:
@@ -77,7 +77,7 @@ class ArrayType(Type):
         #    return
 
         if i.N != o.N:
-            error('Wiring error: Arrays must have the same length', i.N, o.N)
+            error('Wiring Error: Arrays must have the same length {} != {}'.format(i.N, o.N))
             return 
 
         for k in range(len(i)):

@@ -26,7 +26,7 @@ def mergewires(new, old):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            error("Error: connecting more than one output to an input", o)
+            error("Error: connecting more than one output to an input {}".format(o))
         new.outputs.append(o)
         o.wires = new
 
@@ -53,7 +53,7 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                print("Error: using an input as an output", str(o))
+                error("Error: using an input as an output {}".format(o))
                 return
 
             if o not in self.outputs:
@@ -65,7 +65,7 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                print("Error: using an output as an input", str(i))
+                error("Error: using an output as an input {}".format(i))
                 return
 
             if i not in self.inputs:
