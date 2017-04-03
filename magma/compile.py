@@ -1,7 +1,6 @@
 import os
 import inspect
-from . import verilog
-from . import blif
+from .backend import verilog, blif
 from . import config
 
 __all__ = ['compile']

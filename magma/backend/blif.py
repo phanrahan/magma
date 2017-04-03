@@ -1,11 +1,11 @@
 import types
 from collections import OrderedDict, Sequence
-from .bits import seq2int, fun2seq
-from .bit import VCC, GND, BitType
-from .array import ArrayType
-from .port import INPUT, OUTPUT, INOUT
-from .wire import wiredefaultclock
-from .circuit import *
+from ..bits import seq2int, fun2seq
+from ..bit import VCC, GND, BitType
+from ..array import ArrayType
+from ..port import INPUT, OUTPUT, INOUT
+from ..wire import wiredefaultclock
+from ..circuit import *
 
 __all__ = ['compile']
 

@@ -2,13 +2,13 @@ import types
 import operator
 from functools import reduce
 from collections import OrderedDict, Sequence
-from .port import INPUT, OUTPUT, INOUT, flip
-from .ref import DefnRef
-from .compatibility import IntegerTypes
-from .bit import BitType, VCC, GND
-from .array import ArrayKind, ArrayType
-from .circuit import *
-from .wire import wiredefaultclock
+from ..port import INPUT, OUTPUT, INOUT, flip
+from ..ref import DefnRef
+from ..compatibility import IntegerTypes
+from ..bit import BitType, VCC, GND
+from ..array import ArrayKind, ArrayType
+from ..circuit import *
+from ..wire import wiredefaultclock
 
 #__all__  = ['hstr', 'bstr']
 __all__  = ['hstr']

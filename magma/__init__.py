@@ -24,7 +24,7 @@ from .fpga import *
 from .board import *
 
 # verilog 
-from .verilog import *
+from .backend.verilog import *
 from .higher import *
 
 if os.getenv("MAGMA_COMPILE_STYLE") == "abstract":
