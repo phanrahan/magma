@@ -3,7 +3,7 @@ from .error import error
 from .ref import ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
-from .bit import Bit, BitOut, VCC, GND 
+from .bit import Bit, BitOut, VCC, GND, BitType
 from .bits import int2seq
 
 __all__  = ['ArrayType', 'ArrayKind', 'Array']
@@ -68,8 +68,12 @@ class ArrayType(Type):
     def wire(i, o):
         # print('Array.wire(', o, ', ', i, ')')
         
-        if not isinstance(o, ArrayType):
-            error('Wiring Error: wiring {} to {} (not an Array)'.format(o, i))
+        if isinstance(o, BitType) and i.N == 1:
+            # Support wiring Bit <-> Array(1, Bit)
+            i[0].wire(o)
+            return
+        elif not isinstance(o, ArrayType):
+            error('Wiring Error: wiring {} (Not Array) to {} (Array)'.format(o, i))
             return
 
         #if i.T != o.T:
