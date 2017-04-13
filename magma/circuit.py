@@ -92,8 +92,8 @@ class CircuitKind(type):
         # for input in cls.interface.inputs():
         s += repr( cls.interface )
 
-        s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_debug_info["filename"],
-                                              cls.end_circuit_debug_info["lineno"])
+        s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_filename,
+                                              cls.end_circuit_lineno)
 
         return s
 
@@ -399,10 +399,8 @@ def DefineCircuit(name, *decl, **args):
 
 def EndCircuit():
     callee_frame = inspect.stack()[1]
-    currentDefinition.end_circuit_debug_info = {
-        "filename" : callee_frame.filename,
-        "lineno"   : callee_frame.lineno
-    }
+    currentDefinition.end_circuit_filename = callee_frame.filename
+    currentDefinition.end_circuit_lineno = callee_frame.lineno
     popDefinition()
 
 def CopyInstance(instance):
