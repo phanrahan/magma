@@ -77,6 +77,13 @@ class BitType(Type):
     def getgpio(self):
         return self.getinst()
 
+    def __repr__(self):
+        if self is VCC: return '1'
+        if self is GND: return '0'
+
+        #assert not t.anon()
+        return self.name.qualifiedname(sep='.')
+
 
 
 class BitKind(Kind):
@@ -136,7 +143,16 @@ GND = BitOut(name="GND")
 
 HIGH = VCC
 LOW = GND
+
+
+def qualifiedname(t):
+    if t is VCC: return '1'
+    if t is GND: return '0'
+
+    #assert not t.anon()
+    return t.name.qualifiedname(sep='.')
     
+
 if __name__ == '__main__':
     assert Bit == Bit
     assert not (Bit != Bit)
