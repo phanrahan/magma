@@ -21,16 +21,16 @@ def test_print_ir():
     result = compile(main)
     assert result == """And2 = DefineCircuit("And2", "I", Array(2,In(Bit)), "O", Out(Bit))  # {filename} 9
 inst0 = And2()  # {filename} 10
-wire(And2.I[0], inst0.I0)
-wire(And2.I[1], inst0.I1)
-wire(inst0.O, And2.O)
+wire(And2.I[0], inst0.I0)  # {filename} 11
+wire(And2.I[1], inst0.I1)  # {filename} 12
+wire(inst0.O, And2.O)  # {filename} 13
 EndCircuit()  # {filename} 14
 
 main = DefineCircuit("main", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))  # {filename} 16
 inst0 = And2()  # {filename} 17
-wire(main.I0, inst0.I[0])
-wire(main.I1, inst0.I[1])
-wire(inst0.O, main.O)
+wire(main.I0, inst0.I[0])  # {filename} 18
+wire(main.I1, inst0.I[1])  # {filename} 18
+wire(inst0.O, main.O)  # {filename} 18
 EndCircuit()  # {filename} 19
 
 """.format(filename=__file__)

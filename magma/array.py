@@ -65,7 +65,7 @@ class ArrayType(Type):
     def __call__(self, o):
         return self.wire(o)
 
-    def wire(i, o):
+    def wire(i, o, debug_info):
         # print('Array.wire(', o, ', ', i, ')')
         
         if not isinstance(o, ArrayType):
@@ -81,7 +81,7 @@ class ArrayType(Type):
             return 
 
         for k in range(len(i)):
-            i[k].wire(o[k])
+            i[k].wire(o[k], debug_info)
 
     def driven(self):
         for t in self.ts:

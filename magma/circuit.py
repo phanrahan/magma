@@ -147,6 +147,8 @@ class _CircuitType(object):
         return self.interface[key]
 
     def __call__(input, *outputs, **kw):
+        callee_frame = inspect.stack()[1]
+        debug_info = callee_frame.filename, callee_frame.lineno
 
         # if the argument is a single circuit, 
         #   replace it with the circuit's outputs
@@ -167,7 +169,7 @@ class _CircuitType(object):
                         % (no, ni))
 
             for i in range(min(ni,no)):
-                wire(outputs[i], inputs[i])
+                wire(outputs[i], inputs[i], debug_info)
 
         # wire up extra arguments, name to name
         for key, value in kw.items():
@@ -176,7 +178,7 @@ class _CircuitType(object):
             if key == 'reset': key = 'RESET'
             if hasattr(input, key):
                 i = getattr(input, key)
-                wire( value, getattr(input, key) )
+                wire( value, getattr(input, key), debug_info)
             else:
                 print('Warning: circuit does not have', key)
 
