@@ -51,7 +51,8 @@ class CircuitKind(type):
 
     def __call__(cls, *largs, **kwargs):
         #print('DefineCircuitKind call:', largs, kwargs)
-        self = super(CircuitKind, cls).__call__(*largs, **kwargs)
+        callee_frame = inspect.stack()[1]
+        self = super(CircuitKind, cls).__call__(callee_frame.filename, callee_frame.lineno, *largs, **kwargs)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -86,7 +87,8 @@ class CircuitKind(type):
         # for input in cls.interface.inputs():
         s += repr( cls.interface )
 
-        s += "EndCircuit()\n"
+        s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_debug_info["filename"],
+                                              cls.end_circuit_debug_info["lineno"])
 
         return s
 
@@ -109,7 +111,7 @@ class CircuitKind(type):
 @six.add_metaclass(CircuitKind)
 class _CircuitType(object):
 
-    def __init__(self, *largs, **kwargs):
+    def __init__(self, filename, lineno, *largs, **kwargs):
         self.largs = largs
         self.kwargs = kwargs
 
@@ -123,6 +125,9 @@ class _CircuitType(object):
         self.defn = None
         self.used = False
 
+        self.filename = filename
+        self.lineno   = lineno
+
 
     def __str__(self):
         return self.name
@@ -135,7 +140,8 @@ class _CircuitType(object):
             else:
                  v = str(v)
             args.append("%s=%s"%(k, v))
-        return '%s = %s(%s)' % (str(self), str(type(self)), ', '.join(args))
+        return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+            ', '.join(args), self.filename, self.lineno)
 
     def __getitem__(self, key):
         return self.interface[key]
@@ -382,6 +388,11 @@ def DefineCircuit(name, *decl, **args):
     return currentDefinition
 
 def EndCircuit():
+    callee_frame = inspect.stack()[1]
+    currentDefinition.end_circuit_debug_info = {
+        "filename" : callee_frame.filename,
+        "lineno"   : callee_frame.lineno
+    }
     popDefinition()
 
 
