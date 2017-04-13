@@ -1,3 +1,4 @@
+import inspect
 from .error import error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
@@ -28,9 +29,11 @@ class BitType(Type):
     __hash__ = Type.__hash__
 
     def __call__(self, output):
-        return self.wire(output)
+        callee_frame = inspect.stack()[1]
+        debug_info = callee_frame.filename, callee_frame.lineno
+        return self.wire(output, debug_info)
 
-    def wire(i, o):
+    def wire(i, o, debug_info):
 
         #print('Bit.wire(', str(i), ', ', str(o), ')')
 
@@ -53,6 +56,8 @@ class BitType(Type):
             i, o = o, i
 
         i.port.wire(o.port)
+        i.debug_info = debug_info
+        o.debug_info = debug_info
 
     def driven(self):
         return self.port.driven()

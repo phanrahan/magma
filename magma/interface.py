@@ -95,11 +95,13 @@ class _Interface(Type):
                     for i in range(len(input)):
                         iname = repr( input[i] )
                         oname = repr( output[i] )
-                        s += 'wire(%s, %s)\n' % (oname, iname)
+                        assert input[i].debug_info == output[i].debug_info
+                        s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input[i].debug_info)
             else:
                 iname = repr( input )
                 oname = repr( output )
-                s += 'wire(%s, %s)\n' % (oname, iname)
+                assert input.debug_info == output.debug_info
+                s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input.debug_info)
         return s
 
     def __len__(self):

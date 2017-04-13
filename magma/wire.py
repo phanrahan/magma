@@ -1,3 +1,4 @@
+import inspect
 from collections import Sequence
 from .port import INPUT, OUTPUT, INOUT
 from .compatibility import IntegerTypes
@@ -8,7 +9,10 @@ from .tuple import TupleType
 __all__ = ['wire', 'wireclock', 'wiredefaultclock']
 
 
-def wire(o, i):
+def wire(o, i, debug_info=None):
+    if debug_info is None:
+        callee_frame = inspect.stack()[1]
+        debug_info = callee_frame.filename, callee_frame.lineno
 
     # replace output circuit with output arguments
     if hasattr(o, 'interface'):
@@ -27,7 +31,7 @@ def wire(o, i):
     if isinstance(i, Sequence) and isinstance(o, Sequence):
         assert len(i) == len(o)
         for j in range(len(o)):
-            wire(o[j], i[j])
+            wire(o[j], i[j], debug_info)
         return
 
     # we are wiring a Type to a Sequence
@@ -69,11 +73,11 @@ def wire(o, i):
     # Wire(Type, Type)
     # Support wiring Array(1, Bit) <-> Bit
     if isinstance(i, ArrayType) and len(i) == 1 and isinstance(o, BitType):
-        i[0].wire(o)
+        i[0].wire(o, debug_info)
     elif isinstance(o, ArrayType) and len(o) == 1 and isinstance(i, BitType):
-        i.wire(o[0])
+        i.wire(o[0], debug_info)
     else:
-        i.wire(o)
+        i.wire(o, debug_info)
 
 
 def wireclock(define, circuit):
