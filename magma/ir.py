@@ -9,20 +9,6 @@ from .tuple import TupleType
 # from .circuit import isdefinition
 from .wire import wiredefaultclock
 
-def hex(i):
-    if i < 10: return chr(ord('0')+i)
-    else:      return chr(ord('A')+i-10)
-
-def hstr(init, nbits):
-    bits = 1 << nbits
-    format = "0x" 
-    nformat = []
-    for i in range(bits/4):
-        nformat.append(init%16)
-        init /= 16
-    nformat.reverse()
-    return format + reduce(operator.add, map(hex, nformat))
-
 def qualifiedname(t):
     if t is VCC: return '1'
     if t is GND: return '0'
@@ -33,16 +19,6 @@ def qualifiedname(t):
 def compileclocks(cls):
     for instance in cls.instances:
         wiredefaultclock(cls, instance)
-
-def compileinstance(self):
-    args = []
-    for k, v in self.kwargs.items():
-        if isinstance(v, tuple):
-             v = hstr(v[0], v[1])
-        else:
-             v = str(v)
-        args.append("%s=%s"%(k, v))
-    return '%s = %s(%s)' % (str(self), str(type(self)), ', '.join(args))
 
 def compilewire(input):
 
