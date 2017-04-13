@@ -158,14 +158,6 @@ GND = BitOut(name="GND")
 
 HIGH = VCC
 LOW = GND
-
-
-def qualifiedname(t):
-    if t is VCC: return '1'
-    if t is GND: return '0'
-
-    #assert not t.anon()
-    return t.name.qualifiedname(sep='.')
     
 
 if __name__ == '__main__':
