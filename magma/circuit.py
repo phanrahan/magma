@@ -3,7 +3,9 @@ import inspect
 from .interface import *
 from .wire import *
 from .t import Flip
-from .ir import compilewire
+from .array import ArrayType
+from .tuple import TupleType
+from .bit import VCC, GND
 
 __all__  = ['CircuitType']
 
@@ -84,15 +86,27 @@ class CircuitKind(type):
 
         # emit wires from instances
         for instance in cls.instances:
-            for input in instance.interface.inputs():
-                s += compilewire( input )
+            s += repr(instance.interface)
 
-        for input in cls.interface.inputs():
-            s += compilewire( input )
+        # for input in cls.interface.inputs():
+        s += repr( cls.interface )
 
         s += "EndCircuit()\n"
 
         return s
+
+    def compilewire(cls, wire):
+        output = wire.value()
+        if isinstance(output, ArrayType) or isinstance(output, TupleType):
+            if not output.iswhole(output.ts):
+                s = ''
+                for i in range(len(wire)):
+                    s += cls.compilewire( wire[i] )
+                return s
+
+        iname = repr( wire )
+        oname = repr( output )
+        return 'wire(%s, %s)\n' % (oname, iname)
 
     def getarea(cls):
         return (1, cls.cells)

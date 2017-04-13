@@ -5,6 +5,7 @@ from .t import *
 from .port import *
 from .bit import *
 from .array import *
+from .tuple import TupleType
 from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']
@@ -86,7 +87,20 @@ class _Interface(Type):
         return ', '.join(I) + ' -> ' + ', '.join(O)
 
     def __repr__(self):
-        return str(self)
+        s = ""
+        for input in self.inputs():
+            output = input.value()
+            if isinstance(output, ArrayType) or isinstance(output, TupleType):
+                if not output.iswhole(output.ts):
+                    for i in range(len(input)):
+                        iname = repr( input[i] )
+                        oname = repr( output[i] )
+                        s += 'wire(%s, %s)\n' % (oname, iname)
+            else:
+                iname = repr( input )
+                oname = repr( output )
+                s += 'wire(%s, %s)\n' % (oname, iname)
+        return s
 
     def __len__(self):
         return len(self.ports.keys())
