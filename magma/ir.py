@@ -3,11 +3,10 @@ import operator
 from collections import OrderedDict, Sequence
 from .compatibility import IntegerTypes
 from .port import INPUT, OUTPUT, INOUT
-from .t import Flip
 from .bit import BitType, VCC, GND
 from .array import ArrayType
 from .tuple import TupleType
-from .circuit import *
+# from .circuit import isdefinition
 from .wire import wiredefaultclock
 
 def hex(i):
@@ -30,16 +29,6 @@ def qualifiedname(t):
 
     #assert not t.anon()
     return t.name.qualifiedname(sep='.')
-
-def find(circuit, defn):
-    name = circuit.__name__
-    if not isdefinition(circuit):
-        return defn
-    for i in circuit.instances:
-        find(type(i), defn)
-    if name not in defn:
-        defn[name] = circuit
-    return defn
 
 def compileclocks(cls):
     for instance in cls.instances:
@@ -69,44 +58,14 @@ def compilewire(input):
     oname = qualifiedname( output )
     return 'wire(%s, %s)\n' % (oname, iname)
 
-def compilecircuit(cls):
-
-    instname = cls.__name__
-
-    args = ['"%s"' % instname]
-    for k, v in cls.interface.ports.items():
-        assert v.isinput() or v.isoutput()
-        args.append('"%s"'%k)
-        args.append(str(Flip(type(v))))
-    s = ", ".join(args)
-
-
-    s = '%s = DefineCircuit(%s)\n' % (instname, s)
-
-    # emit instances
-    for instance in cls.instances:
-        s += compileinstance(instance) + '\n'
-
-    # emit wires from instances
-    for instance in cls.instances:
-        for input in instance.interface.inputs():
-            s += compilewire( input )
-
-    for input in cls.interface.inputs():
-        s += compilewire( input )
-
-    s += "EndCircuit()\n"
-
-    return s
-
 def compile(main):
 
     compileclocks(main)
 
-    defn = find(main,OrderedDict())
+    defn = main.find(OrderedDict())
 
     code = ''
     for k, v in defn.items():
          #print('compiling', k)
-         code += compilecircuit(v) + '\n'
+         code += repr(v) + '\n'
     return code
