@@ -2,6 +2,8 @@ import six
 import inspect
 from .interface import *
 from .wire import *
+from .t import Flip
+from .ir import compileinstance, compilewire
 
 __all__  = ['CircuitType']
 
@@ -58,8 +60,47 @@ class CircuitKind(type):
     def __str__(cls):
         return cls.__name__
 
+    def __repr__(cls):
+        instname = cls.__name__
+
+        args = ['"%s"' % instname]
+        for k, v in cls.interface.ports.items():
+            assert v.isinput() or v.isoutput()
+            args.append('"%s"'%k)
+            args.append(str(Flip(type(v))))
+        s = ", ".join(args)
+
+
+        s = '%s = DefineCircuit(%s)\n' % (instname, s)
+
+        # emit instances
+        for instance in cls.instances:
+            s += compileinstance(instance) + '\n'
+
+        # emit wires from instances
+        for instance in cls.instances:
+            for input in instance.interface.inputs():
+                s += compilewire( input )
+
+        for input in cls.interface.inputs():
+            s += compilewire( input )
+
+        s += "EndCircuit()\n"
+
+        return s
+
     def getarea(cls):
         return (1, cls.cells)
+
+    def find(cls, defn):
+        name = cls.__name__
+        if not isdefinition(cls):
+            return defn
+        for i in cls.instances:
+            type(i).find(defn)
+        if name not in defn:
+            defn[name] = cls
+        return defn
 
 #
 # Abstract base class for circuits
