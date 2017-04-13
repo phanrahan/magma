@@ -95,19 +95,6 @@ class CircuitKind(type):
 
         return s
 
-    def compilewire(cls, wire):
-        output = wire.value()
-        if isinstance(output, ArrayType) or isinstance(output, TupleType):
-            if not output.iswhole(output.ts):
-                s = ''
-                for i in range(len(wire)):
-                    s += cls.compilewire( wire[i] )
-                return s
-
-        iname = repr( wire )
-        oname = repr( output )
-        return 'wire(%s, %s)\n' % (oname, iname)
-
     def getarea(cls):
         return (1, cls.cells)
 
