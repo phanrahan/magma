@@ -78,7 +78,7 @@ class CircuitKind(type):
         s = ", ".join(args)
 
 
-        s = '%s = DefineCircuit(%s)\n' % (instname, s)
+        s = '{} = DefineCircuit({})  # {} {}\n'.format(instname, s, cls.filename, cls.lineno)
 
         # emit instances
         for instance in cls.instances:
@@ -374,16 +374,19 @@ class Circuit(CircuitType):
 
 # DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
+    callee_frame = inspect.stack()[1]
     global currentDefinition
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)
 
-    dct = dict(IO=decl,
-               orientation=args.get('orientation', 'vertical'), 
-               alignment=args.get('alignment', 1),
-               primitive=args.get('primitive', False),
-               stateful=args.get('stateful', False),
-               simulate=args.get('simulate'))
+    dct = dict(IO          = decl,
+               orientation = args.get('orientation', 'vertical'), 
+               alignment   = args.get('alignment', 1),
+               primitive   = args.get('primitive', False),
+               stateful    = args.get('stateful', False),
+               simulate    = args.get('simulate'),
+               filename    = callee_frame.filename,
+               lineno      = callee_frame.lineno)
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
