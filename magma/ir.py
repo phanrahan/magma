@@ -24,7 +24,7 @@ def hstr(init, nbits):
     nformat.reverse()
     return format + reduce(operator.add, map(hex, nformat))
 
-def qualifiedname(t, instname):
+def qualifiedname(t):
     if t is VCC: return '1'
     if t is GND: return '0'
 
@@ -55,18 +55,18 @@ def compileinstance(self):
         args.append("%s=%s"%(k, v))
     return '%s = %s(%s)' % (str(self), str(type(self)), ', '.join(args))
 
-def compilewire(input, instname):
+def compilewire(input):
 
     output = input.value()
     if isinstance(output, ArrayType) or isinstance(output, TupleType):
         if not output.iswhole(output.ts):
             s = ''
             for i in range(len(input)):
-                s += compilewire( input[i], instname )
+                s += compilewire( input[i] )
             return s
 
-    iname = qualifiedname( input, instname )
-    oname = qualifiedname( output, instname )
+    iname = qualifiedname( input )
+    oname = qualifiedname( output )
     return 'wire(%s, %s)\n' % (oname, iname)
 
 def compilecircuit(cls):
@@ -90,10 +90,10 @@ def compilecircuit(cls):
     # emit wires from instances
     for instance in cls.instances:
         for input in instance.interface.inputs():
-            s += compilewire( input, instname )
+            s += compilewire( input )
 
     for input in cls.interface.inputs():
-        s += compilewire( input, instname )
+        s += compilewire( input )
 
     s += "EndCircuit()\n"
 
