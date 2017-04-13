@@ -3,7 +3,7 @@ import inspect
 from .interface import *
 from .wire import *
 from .t import Flip
-from .ir import compileinstance, compilewire
+from .ir import compilewire
 
 __all__  = ['CircuitType']
 
@@ -75,7 +75,7 @@ class CircuitKind(type):
 
         # emit instances
         for instance in cls.instances:
-            s += compileinstance(instance) + '\n'
+            s += repr(instance) + '\n'
 
         # emit wires from instances
         for instance in cls.instances:
@@ -125,6 +125,16 @@ class _CircuitType(object):
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        args = []
+        for k, v in self.kwargs.items():
+            if isinstance(v, tuple):
+                 v = hstr(v[0], v[1])
+            else:
+                 v = str(v)
+            args.append("%s=%s"%(k, v))
+        return '%s = %s(%s)' % (str(self), str(type(self)), ', '.join(args))
 
     def __getitem__(self, key):
         return self.interface[key]
@@ -369,6 +379,22 @@ def DefineCircuit(name, *decl, **args):
 
 def EndCircuit():
     popDefinition()
+
+
+def hex(i):
+    if i < 10: return chr(ord('0')+i)
+    else:      return chr(ord('A')+i-10)
+
+
+def hstr(init, nbits):
+    bits = 1 << nbits
+    format = "0x" 
+    nformat = []
+    for i in range(bits/4):
+        nformat.append(init%16)
+        init /= 16
+    nformat.reverse()
+    return format + reduce(operator.add, map(hex, nformat))
 
 
 if __name__ == '__main__':
