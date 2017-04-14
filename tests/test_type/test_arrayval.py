@@ -13,7 +13,7 @@ def test():
     a1 = Array4In(name='a1')
     print(a1)
 
-    a1.wire(a0)
+    a1.wire(a0, None)
 
     b0 = a1[0]
 
