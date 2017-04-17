@@ -68,11 +68,7 @@ class ArrayType(Type):
     def wire(i, o):
         # print('Array.wire(', o, ', ', i, ')')
         
-        if isinstance(o, BitType) and i.N == 1:
-            # Support wiring Bit <-> Array(1, Bit)
-            i[0].wire(o)
-            return
-        elif not isinstance(o, ArrayType):
+        if not isinstance(o, ArrayType):
             error('Wiring Error: wiring {} (Not Array) to {} (Array)'.format(o, i))
             return
 
