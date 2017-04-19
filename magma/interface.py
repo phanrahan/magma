@@ -56,7 +56,7 @@ def parse(decl):
             print("Error:", name, "must have a direciton")
         else: 
             if portdirection is not None and direction != portdirection:
-                print('Warning: directions inconsistent', direction, portdirection)
+                print('Warning: directions inconsistent {} {}'.format(direction, portdirection))
             # direction has priority
 
         directions.append(direction)
