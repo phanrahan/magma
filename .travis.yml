@@ -1,0 +1,18 @@
+language: python
+python:
+    - "2.6"
+    - "2.7"
+    - "3.2"
+    - "3.3"
+    - "3.4"
+    - "3.5"
+
+before_install:
+    - sudo apt-get -qq update
+
+install: 
+    - "pip install -r requirements.txt"
+
+script: 
+    - export PYTHONPATH=`pwd`
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then py.test --cov=magma test;else pytest --cov=magma test; fi

@@ -1,3 +1,6 @@
+# Magma
+[![Build Status](https://travis-ci.com/phanrahan/magmacore.svg?token=BftLM4kSr1QfgPspi6aF&branch=master)](https://travis-ci.com/phanrahan/magmacore)
+
 Magma is a low-level design language (LLDL) for programming FPGAs.
 The central abstraction in Magma is a circuit.
 A circuit is a set of functional units 
