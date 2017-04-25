@@ -5,14 +5,13 @@ from .compatibility import IntegerTypes
 from .bit import BitType, LOW, HIGH
 from .array import ArrayType
 from .tuple import TupleType
+from .debug import debug_wire
 
 __all__ = ['wire', 'wireclock', 'wiredefaultclock']
 
 
-def wire(o, i, debug_info=None):
-    if debug_info is None:
-        callee_frame = inspect.stack()[1]
-        debug_info = callee_frame.filename, callee_frame.lineno
+@debug_wire
+def wire(o, i, debug_info):
 
     # replace output circuit with output arguments
     if hasattr(o, 'interface'):
