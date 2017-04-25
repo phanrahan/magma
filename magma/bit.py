@@ -3,7 +3,7 @@ from .error import error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
-from .debug import debug_wire
+from .debug import debug_wire, get_callee_frame_info
 
 __all__  = ['BitType', 'BitKind', 'Bit', 'BitIn', 'BitOut', 'BitInOut']
 
@@ -30,9 +30,7 @@ class BitType(Type):
     __hash__ = Type.__hash__
 
     def __call__(self, output):
-        callee_frame = inspect.stack()[1]
-        debug_info = callee_frame.filename, callee_frame.lineno
-        return self.wire(output, debug_info)
+        return self.wire(output, get_callee_frame_info())
 
     @debug_wire
     def wire(i, o, debug_info):
