@@ -54,7 +54,7 @@ class CircuitKind(type):
     def __call__(cls, *largs, **kwargs):
         #print('DefineCircuitKind call:', largs, kwargs)
         debug_info = get_callee_frame_info()
-        self = super(CircuitKind, cls).__call__(*debug_info, *largs, **kwargs)
+        self = super(CircuitKind, cls).__call__(debug_info[0], debug_info[1], *largs, **kwargs)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
