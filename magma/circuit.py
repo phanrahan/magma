@@ -54,7 +54,8 @@ class CircuitKind(type):
     def __call__(cls, *largs, **kwargs):
         #print('DefineCircuitKind call:', largs, kwargs)
         debug_info = get_callee_frame_info()
-        self = super(CircuitKind, cls).__call__(debug_info[0], debug_info[1], *largs, **kwargs)
+        self = super(CircuitKind, cls).__call__(*largs, **kwargs)
+        self.set_debug_info(debug_info)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -113,7 +114,7 @@ class CircuitKind(type):
 @six.add_metaclass(CircuitKind)
 class _CircuitType(object):
 
-    def __init__(self, filename, lineno, *largs, **kwargs):
+    def __init__(self, *largs, **kwargs):
         self.largs = largs
         self.kwargs = kwargs
 
@@ -127,9 +128,12 @@ class _CircuitType(object):
         self.defn = None
         self.used = False
 
-        self.filename = filename
-        self.lineno   = lineno
+        self.filename = None
+        self.lineno   = None
 
+    def set_debug_info(self, debug_info):
+        self.filename = debug_info[0]  # TODO: Change debug_info to a namedtuple
+        self.lineno   = debug_info[1]
 
     def __str__(self):
         return self.name
