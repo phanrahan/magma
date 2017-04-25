@@ -3,6 +3,7 @@ from .error import error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
+from .debug import debug_wire
 
 __all__  = ['BitType', 'BitKind', 'Bit', 'BitIn', 'BitOut', 'BitInOut']
 
@@ -33,6 +34,7 @@ class BitType(Type):
         debug_info = callee_frame.filename, callee_frame.lineno
         return self.wire(output, debug_info)
 
+    @debug_wire
     def wire(i, o, debug_info):
 
         #print('Bit.wire(', str(i), ', ', str(o), ')')
