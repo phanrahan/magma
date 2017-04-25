@@ -1,4 +1,5 @@
 import inspect
+import sys
 
 
 def debug_wire(fn):
@@ -11,6 +12,8 @@ def debug_wire(fn):
     def wire(i, o, debug_info=None):
         if debug_info is None:
             callee_frame = inspect.stack()[1]
+            if sys.version_info < (3, 5):
+                callee_frame = inspect.getframeinfo(frame)
             debug_info = callee_frame.filename, callee_frame.lineno
         return fn(i, o, debug_info)
     return wire

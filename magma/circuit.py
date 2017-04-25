@@ -1,3 +1,4 @@
+import sys
 import six
 import inspect
 from .interface import *
@@ -57,6 +58,8 @@ class CircuitKind(type):
     def __call__(cls, *largs, **kwargs):
         #print('DefineCircuitKind call:', largs, kwargs)
         callee_frame = inspect.stack()[1]
+        if sys.version_info < (3, 5):
+            callee_frame = inspect.getframeinfo(frame)
         self = super(CircuitKind, cls).__call__(callee_frame.filename, callee_frame.lineno, *largs, **kwargs)
 
         # instance interface for this instance
