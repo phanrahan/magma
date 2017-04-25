@@ -2,6 +2,15 @@ import inspect
 import sys
 
 
+def get_callee_frame_info():
+    callee_frame = inspect.stack()[2]
+    if sys.version_info < (3, 5):
+        debug_info = callee_frame[1], callee_frame[2]
+    else:
+        debug_info = callee_frame.filename, callee_frame.lineno
+    return debug_info
+
+
 def debug_wire(fn):
     """
     Automatically populates the `debug_info` argument for a wire call if it's
@@ -11,10 +20,7 @@ def debug_wire(fn):
     #       wire(i, o, debug_info)
     def wire(i, o, debug_info=None):
         if debug_info is None:
-            callee_frame = inspect.stack()[1]
-            if sys.version_info < (3, 5):
-                callee_frame = inspect.getframeinfo(frame)
-            debug_info = callee_frame.filename, callee_frame.lineno
+            debug_info = get_callee_frame_info()
         return fn(i, o, debug_info)
     return wire
 

@@ -7,6 +7,7 @@ from .t import Flip
 from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
+from .debug import get_callee_frame_info
 
 __all__  = ['CircuitType']
 
@@ -52,10 +53,8 @@ class CircuitKind(type):
 
     def __call__(cls, *largs, **kwargs):
         #print('DefineCircuitKind call:', largs, kwargs)
-        callee_frame = inspect.stack()[1]
-        if sys.version_info < (3, 5):
-            callee_frame = inspect.getframeinfo(frame)
-        self = super(CircuitKind, cls).__call__(callee_frame.filename, callee_frame.lineno, *largs, **kwargs)
+        debug_info = get_callee_frame_info()
+        self = super(CircuitKind, cls).__call__(*debug_info, *largs, **kwargs)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -150,8 +149,7 @@ class _CircuitType(object):
         return self.interface[key]
 
     def __call__(input, *outputs, **kw):
-        callee_frame = inspect.stack()[1]
-        debug_info = callee_frame.filename, callee_frame.lineno
+        debug_info = get_callee_frame_info()
 
         # if the argument is a single circuit, 
         #   replace it with the circuit's outputs
