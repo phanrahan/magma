@@ -380,7 +380,7 @@ class Circuit(CircuitType):
 
 # DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
-    callee_frame = inspect.stack()[1]
+    debug_info = get_callee_frame_info()
     global currentDefinition
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)
@@ -388,8 +388,8 @@ def DefineCircuit(name, *decl, **args):
     dct = dict(IO=decl,
                orientation=args.get('orientation', 'vertical'), 
                alignment=args.get('alignment', 1),
-               filename = callee_frame.filename,
-               lineno   = callee_frame.lineno)
+               filename = debug_info[0],
+               lineno   = debug_info[1])
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
