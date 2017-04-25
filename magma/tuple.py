@@ -3,6 +3,7 @@ from .ref import TupleRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes, StringTypes
 from .bit import BitOut, VCC, GND
+from .debug import debug_wire
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
 
@@ -52,6 +53,7 @@ class TupleType(Type):
     def __call__(self, o):
         return self.wire(o)
 
+    @debug_wire
     def wire(i, o, debug_info):
         # print('Tuple.wire(', o, ', ', i, ')')
         
