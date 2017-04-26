@@ -395,9 +395,9 @@ def DefineCircuit(name, *decl, **args):
     return currentDefinition
 
 def EndCircuit():
-    callee_frame = inspect.stack()[1]
-    currentDefinition.end_circuit_filename = callee_frame.filename
-    currentDefinition.end_circuit_lineno = callee_frame.lineno
+    debug_info = get_callee_frame_info()
+    currentDefinition.end_circuit_filename = debug_info[0]
+    currentDefinition.end_circuit_lineno   = debug_info[1]
     popDefinition()
 
 
