@@ -6,6 +6,7 @@ from .bit import BitType, LOW, HIGH
 from .array import ArrayType
 from .tuple import TupleType
 from .debug import debug_wire
+from .error import error
 
 __all__ = ['wire', 'wireclock', 'wiredefaultclock']
 
@@ -28,19 +29,33 @@ def wire(o, i, debug_info):
     #    wire(Circuit, Sequence)
     #    wire(Sequence, Circuit)
     if isinstance(i, Sequence) and isinstance(o, Sequence):
-        assert len(i) == len(o)
+        if len(i) != len(o):
+            error('Wiring Error: wiring {} (len={}) to {} (len={})'.format(o, len(o), i, len(i)))
+            return
         for j in range(len(o)):
             wire(o[j], i[j], debug_info)
         return
 
     # we are wiring a Type to a Sequence
     if isinstance(i, Sequence):
-        assert len(i) == 1
+        if isinstance(o, ArrayType) and len(i) == len(o):
+            for j in range(len(o)):
+                wire(o[j], i[j], debug_info)
+            return
+        if len(i) != 1:
+            error('Wiring Error: wiring {} (Type) to {} (Sequence of length={})'.format(o, i, len(i)))
+            return
         i = i[0]
 
     # we are wiring a Sequence to a Type
     if isinstance(o, Sequence):
-        assert len(o) == 1
+        if isinstance(i, ArrayType) and len(i) == len(o):
+            for j in range(len(o)):
+                wire(o[j], i[j], debug_info)
+            return
+        if len(o) != 1:
+            error('Wiring Error: wiring {} (Sequence of length={}) to {} (Type)'.format(o, i, len(i)))
+            return
         o = o[0]
 
     # promote integer types to LOW/HIGH
