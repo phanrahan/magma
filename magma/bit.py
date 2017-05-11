@@ -25,6 +25,8 @@ class BitType(Type):
     def __eq__(self, rhs):
         return self is rhs
 
+    __hash__ = Type.__hash__
+
     def __call__(self, output):
         return self.wire(output)
 
@@ -69,6 +71,9 @@ class BitType(Type):
         t = self.port.value()
         if t: t = t.bit
         return t
+
+    def const(self):
+        return self == VCC or self == GND
 
     def getinst(self):
         t = self.trace()

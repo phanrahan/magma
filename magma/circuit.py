@@ -10,6 +10,8 @@ __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndCircuit']
 __all__ += ['Circuit']
 __all__ += ['isdefinition']
+__all__ += ['isprimitive']
+__all__ += ['CopyInstance']
 
 __all__ += ['AnonymousCircuit']
 
@@ -178,6 +180,10 @@ def isdefinition(circuit):
     'Return whether a circuit is a module definition'
     return hasattr(circuit, "instances")
 
+# A circuit is a primitive if it is of type PrimitiveCircuit
+def isprimitive(circuit):
+    #return issubclass(circuit, PrimitiveCircuit) # FIXME no PrimitiveCircuit yet
+    return not isdefinition(circuit)
 
 # 
 # Placed circuit - instances placed in a definition
@@ -329,6 +335,11 @@ def DefineCircuit(name, *decl, **args):
 def EndCircuit():
     popDefinition()
 
+def CopyInstance(instance):
+    circuit = type(instance)
+    new_instance = circuit()
+    new_instance.kwargs = instance.kwargs
+    return new_instance
 
 if __name__ == '__main__':
     from magma.bit import Bit
