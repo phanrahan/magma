@@ -43,6 +43,8 @@ class ArrayType(Type):
         if not isinstance(rhs, ArrayType): return False
         return self.ts == rhs.ts
 
+    __hash__ = Type.__hash__
+
     def __len__(self):
         return self.N
 
@@ -50,7 +52,9 @@ class ArrayType(Type):
         if isinstance(key,slice):
             return array(*[self[i] for i in range(*key.indices(len(self)))])
         else:
-            assert 0 <= key and key < self.N, "key: %d, self.N: %d" %(key,self.N)
+            if not (0 <= key and key < self.N):
+                raise IndexError
+
             return self.ts[key]
 
     def __add__(self, other):
@@ -152,6 +156,13 @@ class ArrayType(Type):
 
         return array(*ts)
 
+    def const(self):
+        for t in self.ts:
+            if not t.const():
+                return False
+
+        return True
+
 class ArrayKind(Kind):
     def __init__(cls, name, bases, dct):
         Kind.__init__( cls, name, bases, dct)
@@ -177,7 +188,9 @@ class ArrayKind(Kind):
         if isinstance(key,slice):
             return array(*[cls[i] for i in xrange(*key.indices(len(cls)))])
         else:
-            assert 0 <= key and key < cls.N
+            if not (0 <= key and key < cls.N):
+                raise IndexError
+
             return cls.ts[key]
 
     def _isoriented(cls, direction):

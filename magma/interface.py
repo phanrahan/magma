@@ -160,6 +160,16 @@ class _Interface(Type):
             l.append(port)
         return l
 
+    def decl(self):
+        d = []
+        for name, port in self.ports.items():
+            if   port.isinput(): t = 'output'
+            elif port.isoutput(): t = 'input'
+
+            d  += [t + ' ' + name, type(port).flip()]
+
+        return d
+
     def isclocked(self):
         for name, port in self.ports.items():
             if name in ['RESET', 'SET', 'CE', 'CLK']: 

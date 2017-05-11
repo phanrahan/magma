@@ -10,6 +10,8 @@ __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndCircuit']
 __all__ += ['Circuit']
 __all__ += ['isdefinition']
+__all__ += ['isprimitive']
+__all__ += ['CopyInstance']
 
 __all__ += ['AnonymousCircuit']
 
@@ -34,6 +36,9 @@ class CircuitKind(type):
         if 'name' not in dct:
              dct['name'] = name
         name = dct['name']
+
+        if 'primitive' not in dct:
+            dct['primitive'] = False
 
         # create a new circuit class
         self = type.__new__(metacls, name, bases, dct)
@@ -178,6 +183,8 @@ def isdefinition(circuit):
     'Return whether a circuit is a module definition'
     return hasattr(circuit, "instances")
 
+def isprimitive(circuit):
+    return circuit.primitive
 
 # 
 # Placed circuit - instances placed in a definition
@@ -208,7 +215,7 @@ def AnonymousCircuit(*decl):
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
-    dct = dict(IO=decl, cells=args.get('cells', 0), alignment=1)
+    dct = dict(IO=decl, cells=args.get('cells', 0), alignment=1, primitive=args.get('primitive', True), stateful=args.get('stateful', False), simulate=args.get('simulate'))
     return CircuitKind( name, (CircuitType,), dct )
 
 
@@ -321,7 +328,10 @@ def DefineCircuit(name, *decl, **args):
 
     dct = dict(IO=decl,
                orientation=args.get('orientation', 'vertical'), 
-               alignment=args.get('alignment', 1))
+               alignment=args.get('alignment', 1),
+               primitive=args.get('primitive', False),
+               stateful=args.get('stateful', False),
+               simulate=args.get('simulate'))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
@@ -329,6 +339,11 @@ def DefineCircuit(name, *decl, **args):
 def EndCircuit():
     popDefinition()
 
+def CopyInstance(instance):
+    circuit = type(instance)
+    new_instance = circuit()
+    new_instance.kwargs = instance.kwargs
+    return new_instance
 
 if __name__ == '__main__':
     from magma.bit import Bit
