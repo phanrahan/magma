@@ -2,6 +2,7 @@ import os
 import inspect
 from .backend import verilog, blif
 from . import config
+from .simulator_interactive_frontend import simulate
 
 __all__ = ['compile']
 
@@ -45,6 +46,10 @@ def compile(basename, main, output='verilog', origin=None):
         file_name = os.path.join(file_path, basename)
     else:
         file_name = basename
+
+    if output == '--simulate': #FIXME
+        simulate(main)
+        return
 
     assert output in ['blif', 'verilog']
     if output == 'verilog':

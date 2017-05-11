@@ -25,6 +25,8 @@ class BitType(Type):
     def __eq__(self, rhs):
         return self is rhs
 
+    __hash__ = Type.__hash__
+
     def __call__(self, output):
         return self.wire(output)
 
@@ -70,6 +72,9 @@ class BitType(Type):
         if t: t = t.bit
         return t
 
+    def const(self):
+        return self == VCC or self == GND
+
     def getinst(self):
         t = self.trace()
         return t.name.inst if t else None
@@ -77,6 +82,11 @@ class BitType(Type):
     def getgpio(self):
         return self.getinst()
 
+    # return the bits driven by this bit
+    def dependencies(self):
+        assert self.isoutput(), "Trying to get dependencies from output bit"
+        deps = map(lambda i: i.bit, self.port.wires.inputs)
+        return deps
 
 
 class BitKind(Kind):
