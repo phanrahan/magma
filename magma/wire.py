@@ -43,7 +43,7 @@ def wire(o, i, debug_info):
                 wire(o[j], i[j], debug_info)
             return
         if len(i) != 1:
-            error('Wiring Error: wiring {} (Type) to {} (Sequence of length={})'.format(o, i, len(i)))
+            error('Wiring Error: wiring {} ({}) to {} (Sequence of length={})'.format(o, type(o), i, len(i)))
             return
         i = i[0]
 
@@ -54,7 +54,7 @@ def wire(o, i, debug_info):
                 wire(o[j], i[j], debug_info)
             return
         if len(o) != 1:
-            error('Wiring Error: wiring {} (Sequence of length={}) to {} (Type)'.format(o, i, len(i)))
+            error('Wiring Error: wiring {} (Sequence of length={}) to {} ({})'.format(o, len(o), i, type(i)))
             return
         o = o[0]
 
