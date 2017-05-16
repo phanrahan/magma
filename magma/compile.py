@@ -1,7 +1,7 @@
 import os
 import inspect
 from .backend import verilog, blif
-from . import config
+from .config import get_compile_dir
 from .simulator_interactive_frontend import simulate
 
 __all__ = ['compile']
@@ -40,7 +40,7 @@ def compileblif(basename, main, origin):
     file.close()
 
 def compile(basename, main, output='verilog', origin=None):
-    if config.__COMPILE_DIR == 'callee_file_dir':
+    if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
         file_name = os.path.join(file_path, basename)

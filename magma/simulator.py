@@ -1,4 +1,10 @@
-from abc import ABC, abstractmethod
+import sys
+from abc import abstractmethod
+if sys.version_info < (3, 4):
+    import abc
+    ABC = abc.ABCMeta('ABC', (object,), {})
+else:
+    from abc import ABC
 
 class CircuitSimulator(ABC):
     @abstractmethod
