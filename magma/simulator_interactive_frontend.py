@@ -1,3 +1,4 @@
+from __future__ import print_function
 from .python_simulator import PythonSimulator
 from .transforms import get_uniq_circuits
 from .circuit import *

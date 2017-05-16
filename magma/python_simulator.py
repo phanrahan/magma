@@ -1,4 +1,10 @@
-from abc import abstractmethod, ABC
+import sys
+from abc import abstractmethod
+if sys.version_info < (3, 4):
+    import abc
+    ABC = abc.ABCMeta('ABC', (object,), {})
+else:
+    from abc import ABC
 from collections import namedtuple
 from .simulator import CircuitSimulator
 from .transforms import flatten, setup_clocks
