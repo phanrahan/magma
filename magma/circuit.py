@@ -8,6 +8,7 @@ from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
 from .debug import get_callee_frame_info
+from .error import warn
 
 __all__  = ['CircuitType']
 
@@ -167,10 +168,10 @@ class _CircuitType(object):
             ni = len(inputs)
             if ni != no:
                 if no > ni:
-                    print("Warning: wiring only %d of the %d arguments"
+                    warn("Warning: wiring only %d of the %d arguments"
                         % (ni, no))
                 else:
-                    print("Warning: wiring only %d of the %d circuit inputs"
+                    warn("Warning: wiring only %d of the %d circuit inputs"
                         % (no, ni))
 
             for i in range(min(ni,no)):
