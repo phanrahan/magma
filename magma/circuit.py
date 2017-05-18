@@ -399,8 +399,6 @@ def DefineCircuit(name, *decl, **args):
                primitive   = args.get('primitive', False),
                stateful    = args.get('stateful', False),
                simulate    = args.get('simulate'),
-               orientation = args.get('orientation', 'vertical'), 
-               alignment   = args.get('alignment', 1),
                filename    = debug_info[0],
                lineno      = debug_info[1])
 
