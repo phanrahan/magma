@@ -399,6 +399,8 @@ def DefineCircuit(name, *decl, **args):
                primitive   = args.get('primitive', False),
                stateful    = args.get('stateful', False),
                simulate    = args.get('simulate'),
+               orientation = args.get('orientation', 'vertical'), 
+               alignment   = args.get('alignment', 1),
                filename    = debug_info[0],
                lineno      = debug_info[1])
 
@@ -416,6 +418,22 @@ def CopyInstance(instance):
     new_instance = circuit()
     new_instance.kwargs = instance.kwargs
     return new_instance
+
+def hex(i):
+    if i < 10: return chr(ord('0')+i)
+    else:      return chr(ord('A')+i-10)
+
+
+def hstr(init, nbits):
+    bits = 1 << nbits
+    format = "0x" 
+    nformat = []
+    for i in range(bits/4):
+        nformat.append(init%16)
+        init /= 16
+    nformat.reverse()
+    return format + reduce(operator.add, map(hex, nformat))
+
 
 def hex(i):
     if i < 10: return chr(ord('0')+i)
