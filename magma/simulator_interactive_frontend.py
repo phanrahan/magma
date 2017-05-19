@@ -6,6 +6,7 @@ from .scope import *
 from .array import ArrayType
 from .bit import BitType
 from .bits import seq2int
+from .ref import InstRef
 from code import InteractiveConsole
 import re
 
@@ -117,7 +118,7 @@ class SimulationConsole:
             print("Watchpoint hit:")
             for watchpoint in triggered_points:
                 print("  " + get_bit_full_name(watchpoint.bit) + ": ", end='')
-                self.log_val(watchpoint.bit, watchpoint.loc)
+                self.log_val(watchpoint.bit, watchpoint.scope)
 
         while True:
             prompt = str(cycles) + ": " + self.scope.value() + " >>> "
@@ -171,10 +172,10 @@ class SimulationConsole:
                     if not isinstance(watchme, BitType) and not isinstance(watchme, ArrayType):
                         print("Can only watch bits or arrays")
 
-                    self.watchpoints.append(WatchPoint(watchme, self.scope))
+                    self.watchpoints.append(WatchPoint(watchme, self.scope, self.simulator))
 
-                except:
-                    print("Failed to watch")
+                except Exception as e:
+                    print("Failed to watch {}".format(e))
 
             if in_stripped == 'r' or in_stripped == 'rerun':
                 was_command  = True
