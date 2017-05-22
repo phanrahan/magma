@@ -65,7 +65,7 @@ def lutinit(init, n=None):
         nlut = len(init)
         if n != nlut:
             assert n % nlut == 0
-            init = (n/nlut) * init
+            init = (n//nlut) * init
         init = seq2int(init)
 
     assert n is not None
