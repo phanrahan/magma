@@ -58,5 +58,5 @@ def compile(basename, main, output='verilog', origin=None):
             compileqsf(file_name, main.fpga)
         elif vendor == 'xilinx':
             compileucf(file_name, main.fpga)
-        elif vendor == 'lattice':
+        elif vendor == 'lattice' or vendor == 'silego':
             compilepcf(file_name, main.fpga)
