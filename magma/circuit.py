@@ -1,7 +1,14 @@
+import sys
 import six
 import inspect
 from .interface import *
 from .wire import *
+from .t import Flip
+from .array import ArrayType
+from .tuple import TupleType
+from .bit import VCC, GND
+from .debug import get_callee_frame_info
+from .error import warn
 
 __all__  = ['CircuitType']
 
@@ -52,7 +59,9 @@ class CircuitKind(type):
 
     def __call__(cls, *largs, **kwargs):
         #print('DefineCircuitKind call:', largs, kwargs)
+        debug_info = get_callee_frame_info()
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
+        self.set_debug_info(debug_info)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -63,8 +72,47 @@ class CircuitKind(type):
     def __str__(cls):
         return cls.__name__
 
+    def __repr__(cls):
+        instname = cls.__name__
+
+        args = ['"%s"' % instname]
+        for k, v in cls.interface.ports.items():
+            assert v.isinput() or v.isoutput()
+            args.append('"%s"'%k)
+            args.append(str(Flip(type(v))))
+        s = ", ".join(args)
+
+
+        s = '{} = DefineCircuit({})  # {} {}\n'.format(instname, s, cls.filename, cls.lineno)
+
+        # emit instances
+        for instance in cls.instances:
+            s += repr(instance) + '\n'
+
+        # emit wires from instances
+        for instance in cls.instances:
+            s += repr(instance.interface)
+
+        # for input in cls.interface.inputs():
+        s += repr( cls.interface )
+
+        s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_filename,
+                                              cls.end_circuit_lineno)
+
+        return s
+
     def getarea(cls):
         return (1, cls.cells)
+
+    def find(cls, defn):
+        name = cls.__name__
+        if not isdefinition(cls):
+            return defn
+        for i in cls.instances:
+            type(i).find(defn)
+        if name not in defn:
+            defn[name] = cls
+        return defn
 
 #
 # Abstract base class for circuits
@@ -86,14 +134,32 @@ class _CircuitType(object):
         self.defn = None
         self.used = False
 
+        self.filename = None
+        self.lineno   = None
+
+    def set_debug_info(self, debug_info):
+        self.filename = debug_info[0]  # TODO: Change debug_info to a namedtuple
+        self.lineno   = debug_info[1]
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        args = []
+        for k, v in self.kwargs.items():
+            if isinstance(v, tuple):
+                 v = hstr(v[0], v[1])
+            else:
+                 v = str(v)
+            args.append("%s=%s"%(k, v))
+        return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+            ', '.join(args), self.filename, self.lineno)
 
     def __getitem__(self, key):
         return self.interface[key]
 
     def __call__(input, *outputs, **kw):
+        debug_info = get_callee_frame_info()
 
         # if the argument is a single circuit, 
         #   replace it with the circuit's outputs
@@ -107,14 +173,14 @@ class _CircuitType(object):
             ni = len(inputs)
             if ni != no:
                 if no > ni:
-                    print("Warning: wiring only %d of the %d arguments"
+                    warn("Warning: wiring only %d of the %d arguments"
                         % (ni, no))
                 else:
-                    print("Warning: wiring only %d of the %d circuit inputs"
+                    warn("Warning: wiring only %d of the %d circuit inputs"
                         % (no, ni))
 
             for i in range(min(ni,no)):
-                wire(outputs[i], inputs[i])
+                wire(outputs[i], inputs[i], debug_info)
 
         # wire up extra arguments, name to name
         for key, value in kw.items():
@@ -123,7 +189,7 @@ class _CircuitType(object):
             if key == 'reset': key = 'RESET'
             if hasattr(input, key):
                 i = getattr(input, key)
-                wire( value, getattr(input, key) )
+                wire( value, getattr(input, key), debug_info)
             else:
                 print('Warning: circuit does not have', key)
 
@@ -322,21 +388,27 @@ class Circuit(CircuitType):
 
 # DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
+    debug_info = get_callee_frame_info()
     global currentDefinition
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)
 
-    dct = dict(IO=decl,
-               orientation=args.get('orientation', 'vertical'), 
-               alignment=args.get('alignment', 1),
-               primitive=args.get('primitive', False),
-               stateful=args.get('stateful', False),
-               simulate=args.get('simulate'))
+    dct = dict(IO          = decl,
+               orientation = args.get('orientation', 'vertical'), 
+               alignment   = args.get('alignment', 1),
+               primitive   = args.get('primitive', False),
+               stateful    = args.get('stateful', False),
+               simulate    = args.get('simulate'),
+               filename    = debug_info[0],
+               lineno      = debug_info[1])
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
 
 def EndCircuit():
+    debug_info = get_callee_frame_info()
+    currentDefinition.end_circuit_filename = debug_info[0]
+    currentDefinition.end_circuit_lineno   = debug_info[1]
     popDefinition()
 
 def CopyInstance(instance):
@@ -344,6 +416,38 @@ def CopyInstance(instance):
     new_instance = circuit()
     new_instance.kwargs = instance.kwargs
     return new_instance
+
+def hex(i):
+    if i < 10: return chr(ord('0')+i)
+    else:      return chr(ord('A')+i-10)
+
+
+def hstr(init, nbits):
+    bits = 1 << nbits
+    format = "0x" 
+    nformat = []
+    for i in range(bits/4):
+        nformat.append(init%16)
+        init /= 16
+    nformat.reverse()
+    return format + reduce(operator.add, map(hex, nformat))
+
+
+def hex(i):
+    if i < 10: return chr(ord('0')+i)
+    else:      return chr(ord('A')+i-10)
+
+
+def hstr(init, nbits):
+    bits = 1 << nbits
+    format = "0x" 
+    nformat = []
+    for i in range(bits/4):
+        nformat.append(init%16)
+        init /= 16
+    nformat.reverse()
+    return format + reduce(operator.add, map(hex, nformat))
+
 
 if __name__ == '__main__':
     from magma.bit import Bit

@@ -1,7 +1,9 @@
+import inspect
 from .error import error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
+from .debug import debug_wire, get_callee_frame_info
 
 __all__  = ['BitType', 'BitKind', 'Bit', 'BitIn', 'BitOut', 'BitInOut']
 
@@ -28,9 +30,10 @@ class BitType(Type):
     __hash__ = Type.__hash__
 
     def __call__(self, output):
-        return self.wire(output)
+        return self.wire(output, get_callee_frame_info())
 
-    def wire(i, o):
+    @debug_wire
+    def wire(i, o, debug_info):
 
         #print('Bit.wire(', str(i), ', ', str(o), ')')
 
@@ -53,6 +56,8 @@ class BitType(Type):
             i, o = o, i
 
         i.port.wire(o.port)
+        i.debug_info = debug_info
+        o.debug_info = debug_info
 
     def driven(self):
         return self.port.driven()
@@ -87,6 +92,13 @@ class BitType(Type):
         assert self.isoutput(), "Trying to get dependencies from output bit"
         deps = map(lambda i: i.bit, self.port.wires.inputs)
         return deps
+
+    def __repr__(self):
+        if self is VCC: return '1'
+        if self is GND: return '0'
+
+        #assert not t.anon()
+        return self.name.qualifiedname(sep='.')
 
 
 class BitKind(Kind):
@@ -147,6 +159,7 @@ GND = BitOut(name="GND")
 HIGH = VCC
 LOW = GND
     
+
 if __name__ == '__main__':
     assert Bit == Bit
     assert not (Bit != Bit)
