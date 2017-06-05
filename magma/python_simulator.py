@@ -15,15 +15,15 @@ from .bit import VCC, GND
 
 __all__ = ['PythonSimulator']
 
-ExecutionOrder = namedtuple('ExecutionOrder', ['before', 'stateful', 'after'])
+ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
 class SimPrimitive:
-    def __init__(self, primitive, value_map):
+    def __init__(self, primitive, value_store):
         self.primitive = primitive
         self.inputs = []
         self.outputs = []
-        self.value_map = value_map
-        self.state_storage = {}
+        self.value_store = value_store
+        self.state_store = {}
 
         for bit in self.primitive.interface.ports.values():
             if not isinstance(bit, ArrayType):
@@ -34,24 +34,12 @@ class SimPrimitive:
                 else:
                     self.outputs.append(b)
 
-        self.set_constant_inputs()
-
     def stateful(self):
         return self.primitive.stateful
 
-    def set_constant_inputs(self):
-        for i in self.inputs:
-            assert i.driven()
-            o = i.value()
-            if o.const():
-                if o is VCC:
-                    self.value_map[i] = True
-                elif o is GND:
-                    self.value_map[i] = False
-
     def inputs_satisfied(self):
         for i in self.inputs:
-            if i not in self.value_map:
+            if not self.value_store.value_initialized(i):
                 return False
 
         return True
@@ -60,37 +48,72 @@ class SimPrimitive:
         # Initializes all outputs to False, should perhaps
         # initialize based on starting inputs?
         for o in self.outputs:
-            self.value_map[o] = False
-
-    def propagate_outputs(self):
-        for out in self.outputs:
-            deps = out.dependencies()
-            cur_val = self.value_map[out]
-            for d in deps:
-                self.value_map[d] = cur_val
+            self.value_store.set_value(o, False)
 
     def simulate(self):
-        self.primitive.simulate(self.value_map, self.state_storage)
-        self.propagate_outputs()
+        self.primitive.simulate(self.value_store, self.state_store)
 
+class ValueStore:
+    def __init__(self):
+        self.value_map = {}
+
+    def value_initialized(self, bit):
+        if isinstance(bit, ArrayType):
+            for b in bit:
+                if not self.value_initialized(b):
+                    return False
+
+            return True
+
+        if bit.isinput():
+            bit = bit.value()
+
+        if bit.const():
+            return True
+
+        return bit in self.value_map
+
+    def get_value(self, bit):
+        if isinstance(bit, ArrayType):
+            return [self.get_value(b) for b in bit]
+
+        if bit.isinput():
+            bit = bit.value()
+
+        if bit.const():
+            return True if bit == VCC else False
+
+        return self.value_map[bit]
+
+    def set_value(self, bit, newval):
+        if isinstance(bit, ArrayType):
+            for b,v in zip(*bit, *newval):
+                self.set_value(b, v)
+            return
+
+        assert isinstance(newval, bool), "Can only set boolean values"
+        assert bit.isoutput()
+
+        self.value_map[bit] = newval
 
 class PythonSimulator(CircuitSimulator):
     def __setup_primitives(self):
         wrapped = []
         for primitive in self.circuit.instances:
-            wrapped.append(SimPrimitive(primitive, self.value_map))
+            wrapped.append(SimPrimitive(primitive, self.value_store))
 
         return wrapped
 
-    def __propagate_circuit_inputs(self):
-        for bit in self.circuit_inputs:
-            deps = bit.dependencies()
-            cur_val = self.value_map[bit]
-            for d in deps:
-                self.value_map[d] = cur_val
-
-    def __setup_circuit(self):
-        self.clkbit = self.circuit.interface.ports['CLKIN']
+    def __setup_circuit(self, clkbit):
+        if clkbit:
+            self.clkbit = clkbit
+        else:
+            if hasattr(self.circuit, 'CLKIN'):
+                self.clkbit = self.circuit.CLKIN
+            elif hasattr(self.circuit, 'CLK'):
+                self.clkbit = self.circuit.CLK
+            else:
+                assert False, 'No valid clock in circuit'
 
         self.circuit_inputs = []
         self.circuit_outputs = []
@@ -100,68 +123,50 @@ class PythonSimulator(CircuitSimulator):
             for b in bit:
                 if b.isoutput():
                     self.circuit_inputs.append(b)
-                    self.value_map[b] = False
+                    self.value_store.set_value(b, False)
                 else:
                     self.circuit_outputs.append(b)
 
-        self.__propagate_circuit_inputs()
-
     def __outputs_initialized(self):
         for bit in self.circuit_outputs:
-            if bit.isinput():
-                if bit not in self.value_map:
-                    return False
+            assert bit.isinput()
+            if not self.value_store.value_initialized(bit):
+                return False
 
         return True
 
     def __get_ordered_primitives(self, unordered_primitives):
-        before_state = []
         state_primitives = []
         after_state = []
-
-        while True:
-            found = False
-            for primitive in unordered_primitives:
-                if primitive.inputs_satisfied() and not primitive.stateful():
-                    primitive.initialize_outputs()
-                    primitive.propagate_outputs()
-                    before_state.append(primitive)
-                    unordered_primitives.remove(primitive)
-                    found = True
-
-            if not found:
-                break
 
         state_primitives = []
         for primitive in unordered_primitives:
             if primitive.stateful():
                 primitive.initialize_outputs()
-                primitive.propagate_outputs()
                 state_primitives.append(primitive)
 
         unordered_primitives[:] = [u for u in unordered_primitives if not u.stateful()]
 
-        after_state = []
+        combinational = []
         while len(unordered_primitives) > 0:
             found = False
             for primitive in unordered_primitives:
                 if primitive.inputs_satisfied():
                     primitive.initialize_outputs()
-                    primitive.propagate_outputs()
-                    after_state.append(primitive)
+                    combinational.append(primitive)
                     unordered_primitives.remove(primitive)
                     found = True
                     break
             assert found, "Some circuits have unsatisfied inputs"
         
-        return ExecutionOrder(before=before_state, stateful=state_primitives, after=after_state)
+        return ExecutionOrder(stateful=state_primitives, combinational=combinational)
 
-    def __init__(self, main_circuit):
+    def __init__(self, main_circuit, clkbit=None):
         setup_clocks(main_circuit)
         self.txfm = flatten(main_circuit)
         self.circuit = self.txfm.circuit
-        self.value_map = {}
-        self.__setup_circuit()
+        self.value_store = ValueStore()
+        self.__setup_circuit(clkbit)
 
         primitives = self.__setup_primitives()
 
@@ -174,33 +179,24 @@ class PythonSimulator(CircuitSimulator):
 
     def get_value(self, bit, scope):
         newbit = self.txfm.get_new_bit(bit, scope)
-        if isinstance(newbit, ArrayType):
-            arr = [self.value_map.get(b) for b in newbit]
-            for a in arr:
-                if a is None:
-                    return None
-
-            return arr
-        else:
-            return self.value_map.get(newbit)
+        try:
+            return self.value_store.get_value(newbit)
+        except KeyError:
+            return None
 
     def set_value(self, bit, scope, newval):
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit not in self.circuit_inputs:
             print("Only setting main's inputs is supported")
         else:
-            self.value_map[newbit] = newval
+            self.value_store.set_value(newbit, newval)
 
     def evaluate(self):
-        self.__propagate_circuit_inputs()
-
-        for primitive in self.execution_order.before:
-            primitive.simulate()
         for primitive in self.execution_order.stateful:
             primitive.simulate()
-        for primitive in self.execution_order.after:
+        for primitive in self.execution_order.combinational:
             primitive.simulate()
 
     def step(self):
-        cur_clock_val = self.value_map[self.clkbit]
-        self.value_map[self.clkbit] = not cur_clock_val
+        cur_clock_val = self.value_store.get_value(self.clkbit)
+        self.value_store.set_value(self.clkbit, not cur_clock_val)
