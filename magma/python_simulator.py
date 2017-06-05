@@ -87,7 +87,7 @@ class ValueStore:
 
     def set_value(self, bit, newval):
         if isinstance(bit, ArrayType):
-            for b,v in zip(*bit, *newval):
+            for b,v in zip(bit, newval):
                 self.set_value(b, v)
             return
 
@@ -179,6 +179,9 @@ class PythonSimulator(CircuitSimulator):
 
     def get_value(self, bit, scope):
         newbit = self.txfm.get_new_bit(bit, scope)
+        if newbit is None:
+            return None
+
         try:
             return self.value_store.get_value(newbit)
         except KeyError:
