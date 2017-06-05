@@ -118,6 +118,7 @@ class SimulationConsole(cmd.Cmd):
 
     def precmd(self, line):
         self.advance_clock = False
+        self.reeval = False
         self.skip_half = False
         self.skip_next = 0
         self.stepping = True
@@ -163,6 +164,9 @@ class SimulationConsole(cmd.Cmd):
                 self.step_simulator()
             else:
                 self.continue_simulator()
+
+        if self.reeval:
+            self.simulator.evaluate()
 
         self.update_prompt()
 
@@ -341,7 +345,7 @@ class SimulationConsole(cmd.Cmd):
         self.display_exprs[:] = [e for e in self.display_exprs if e.idx != idx]
 
     def do_repeat(self, arg):
-        self.advance_clock = False
+        self.reeval = True
 
     def do_up(self, arg):
         if self.scope.parent is not None:
@@ -406,6 +410,30 @@ class SimulationConsole(cmd.Cmd):
         print("Location stack: ")
         for s in scopes:
             print("  " + s.value())
+
+    def do_change_input(self, arg):
+        if arg is None:
+            print('Provide a top level input to change')
+            return
+
+        args = arg.split()
+        if len(args) != 2:
+            print('Provide a circuit input and a new value')
+            return
+
+        bit = self.top_circuit.interface.ports.get(args[0])
+        try:
+            newval = eval(args[1], None, self.vars)
+        except Exception as e:
+            print("Invalid new value".format(e))
+            return
+
+        if bit is None or not bit.isoutput():
+            print("b {}".format(bit))
+            print('Not a top level circuit input')
+            return
+
+        self.simulator.set_value(bit, self.scope, newval)
 
     def run(self):
         self.simulator.evaluate()
