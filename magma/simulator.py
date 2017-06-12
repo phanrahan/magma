@@ -1,10 +1,13 @@
 import sys
 from abc import abstractmethod
+from collections import namedtuple
 if sys.version_info < (3, 4):
     import abc
     ABC = abc.ABCMeta('ABC', (object,), {})
 else:
     from abc import ABC
+
+ExecutionState = namedtuple('ExecutionState', ['cycles', 'clock', 'triggered_points'])
 
 class CircuitSimulator(ABC):
     @abstractmethod
@@ -30,3 +33,16 @@ class CircuitSimulator(ABC):
     @abstractmethod
     def step(self):
         pass
+
+    @abstractmethod
+    def cont(self):
+        pass
+
+    @abstractmethod
+    def add_watchpoint(self, bit, scope, value=None):
+        pass
+
+    @abstractmethod
+    def delete_watchpoint(self, bit, scope, value=None):
+        pass
+
