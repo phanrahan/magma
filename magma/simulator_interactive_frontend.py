@@ -37,20 +37,6 @@ class DisplayExpr:
     def display(self, value):
         print("\t{}: {} = {}".format(self.idx, self.string, value))
 
-class WatchPoint:
-    def __init__(self, bit, scope, simulator):
-        self.bit = bit 
-        self.scope = scope
-        self.simulator = simulator
-        self.old_val = self.simulator.get_value(self.bit, self.scope)
-
-    def was_triggered(self):
-        new_val = self.simulator.get_value(self.bit, self.scope)
-        triggered = new_val != self.old_val
-        self.old_val = new_val
-
-        return triggered
-
 def describe_instance(inst):
     desc_str = type(inst).__name__ + ": "
     if inst.decl is not None:
@@ -83,17 +69,21 @@ class SimulationConsole(cmd.Cmd):
         self.vars = {}
         self.update_vars()
 
-        self.watchpoints = []
         self.display_exprs = []
 
         self.cycles = 0
-        self.downedge = False
+        self.clock_high = False
 
         self.aliases = { 'bt' : self.do_backtrace,
                          'x'  : self.do_examine } 
 
         self.update_prompt()
 
+    def print_watchpoints(self, points):
+        print("Watchpoint hit:")
+        for watchpoint in points:
+            print("  " + get_bit_full_name(watchpoint.bit) + ": ", end='')
+            self.log_val(watchpoint.bit, watchpoint.scope)
 
     def update_prompt(self):
         self.prompt = str(self.cycles) + ': ' + self.scope.value() + ' >>> '
@@ -127,36 +117,33 @@ class SimulationConsole(cmd.Cmd):
     
     def advance_simulator(self):
         self.simulator.step()
-        self.simulator.evaluate()
+        state = self.simulator.evaluate()
 
-        if not self.downedge:
-            self.cycles += 1
+        self.cycles += 1 if not state.clock else 0
 
-        self.downedge = not self.downedge
+        self.clock_high = state.clock
 
-        triggered_points = self.check_watchpoints()
-        if triggered_points:
-            print("Watchpoint hit:")
-            for watchpoint in triggered_points:
-                print("  " + get_bit_full_name(watchpoint.bit) + ": ", end='')
-                self.log_val(watchpoint.bit, watchpoint.scope)
+        if state.triggered_points:
+            self.print_watchpoints(state.triggered_points)
             return False
 
         return True
 
     def step_simulator(self):
         while self.skip_next > 0:
-            if self.downedge and self.skip_half and not self.skip_next:
+            if not self.clock_high and self.skip_half and not self.skip_next:
                 self.skip_next = 1
-            if self.skip_next and (not self.skip_half or not self.downedge):
+            if self.skip_next and (not self.skip_half or self.clock_high):
                 self.skip_next -= 1
 
             if not self.advance_simulator():
                 break
 
     def continue_simulator(self):
-        while self.advance_simulator():
-            pass
+        state = self.simulator.cont()
+        self.print_watchpoints(state.triggered_points)
+        self.clock_high = state.clock
+        self.cycles += state.cycles
 
     def postcmd(self, stop, line):
         if self.advance_clock:
@@ -203,14 +190,6 @@ class SimulationConsole(cmd.Cmd):
             self.vars[inst.name] = inst
             if inst.decl is not None:
                 self.vars[inst.decl.varname] = inst
-
-    def check_watchpoints(self):
-        triggered_points = []
-        for watchpoint in self.watchpoints:
-            if watchpoint.was_triggered():
-                triggered_points.append(watchpoint)
-
-        return triggered_points
 
     def console_evaluate(self, line):
         buf = line
@@ -298,7 +277,7 @@ class SimulationConsole(cmd.Cmd):
         if not isinstance(watchme, BitType) and not isinstance(watchme, ArrayType):
             print("Can only watch bits or arrays")
 
-        self.watchpoints.append(WatchPoint(watchme, self.scope, self.simulator))
+        self.simulator.add_watchpoint(watchme, self.scope)
 
     def do_delete(self, arg):
         if not arg:
@@ -311,12 +290,7 @@ class SimulationConsole(cmd.Cmd):
             print("Failed to delete watchpoint: {}".format(e))
             return
 
-        for idx, watchpoint in enumerate(self.watchpoints):
-            if watchpoint.bit == deleteme and watchpoint.scope == self.scope:
-                del self.watchpoints[idx]
-                return
-
-        print('No watchpoint found to delete')
+        self.simulator.delete_watchpoint(deleteme, self.scope)
 
     def do_display(self, arg):
         if not arg:

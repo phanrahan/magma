@@ -6,7 +6,7 @@ if sys.version_info < (3, 4):
 else:
     from abc import ABC
 from collections import namedtuple
-from .simulator import CircuitSimulator
+from .simulator import CircuitSimulator, ExecutionState
 from .transforms import flatten, setup_clocks
 from .circuit import *
 from .scope import *
@@ -52,6 +52,24 @@ class SimPrimitive:
 
     def simulate(self):
         self.primitive.simulate(self.value_store, self.state_store)
+
+class WatchPoint:
+    def __init__(self, bit, scope, simulator, value):
+        self.bit = bit
+        self.scope = scope
+        self.simulator = simulator
+        self.value = value
+        self.old_val = self.simulator.get_value(self.bit, self.scope)
+
+    def was_triggered(self):
+        new_val = self.simulator.get_value(self.bit, self.scope)
+        triggered = new_val != self.old_val 
+        if self.value:
+            if self.value != new_val:
+                triggered = False
+        self.old_val = new_val
+
+        return triggered
 
 class ValueStore:
     def __init__(self):
@@ -167,6 +185,7 @@ class PythonSimulator(CircuitSimulator):
         self.circuit = self.txfm.circuit
         self.value_store = ValueStore()
         self.__setup_circuit(clkbit)
+        self.watchpoints = []
 
         primitives = self.__setup_primitives()
 
@@ -200,6 +219,30 @@ class PythonSimulator(CircuitSimulator):
         for primitive in self.execution_order.combinational:
             primitive.simulate()
 
+        triggered = []
+        for watch in self.watchpoints:
+            if watch.was_triggered():
+                triggered.append(watch)
+
+        return ExecutionState(triggered_points=triggered, clock=self.value_store.get_value(self.clkbit), cycles=0)
+
     def step(self):
         cur_clock_val = self.value_store.get_value(self.clkbit)
         self.value_store.set_value(self.clkbit, not cur_clock_val)
+
+    def cont(self):
+        cycles = 0
+        while True:
+            self.step()
+            state = self.evaluate()
+            if not state.clock:
+                cycles += 1
+
+            if state.triggered_points:
+                return ExecutionState(triggered_points=state.triggered_points, clock=state.clock, cycles=cycles)
+
+    def add_watchpoint(self, bit, scope, value=None):
+        self.watchpoints.append(WatchPoint(bit, scope, self, value))
+
+    def delete_watchpoint(self, bit, scope, value=None):
+        self.watchpoints[:] = [w for w in self.watchpoints if w.bit == bit and w.scope == scope and w.value == value]
