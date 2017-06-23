@@ -43,6 +43,6 @@ class CircuitSimulator(ABC):
         pass
 
     @abstractmethod
-    def delete_watchpoint(self, bit, scope, value=None):
+    def delete_watchpoint(self, num):
         pass
 
