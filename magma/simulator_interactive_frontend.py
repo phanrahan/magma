@@ -117,7 +117,7 @@ class SimulationConsole(cmd.Cmd):
         self.simulator.step()
         state = self.simulator.evaluate()
 
-        self.cycles += 1 if not state.clock else 0
+        self.cycles += 1 if state.clock else 0
 
         self.clock_high = state.clock
 
