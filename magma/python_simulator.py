@@ -17,6 +17,11 @@ __all__ = ['PythonSimulator']
 
 ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
+
+class PythonSimulatorException(Exception):
+    pass
+
+
 class SimPrimitive:
     def __init__(self, primitive, value_store):
         self.primitive = primitive
@@ -213,7 +218,9 @@ class PythonSimulator(CircuitSimulator):
     def set_value(self, bit, scope, newval):
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit not in self.circuit_inputs:
-            print("Only setting main's inputs is supported")
+            print(self.circuit_inputs)
+            message = "Only setting main's inputs is supported (Trying to set: {})".format(bit)
+            raise PythonSimulatorException(message)
         else:
             self.value_store.set_value(newbit, newval)
 
