@@ -1,4 +1,4 @@
-from tests.test_simulator.test_primitives import *
+from .test_primitives import *
 from magma.python_simulator import PythonSimulator
 from magma import *
 from magma.scope import *

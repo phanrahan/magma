@@ -17,6 +17,11 @@ __all__ = ['PythonSimulator']
 
 ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
+
+class PythonSimulatorException(Exception):
+    pass
+
+
 class SimPrimitive:
     def __init__(self, primitive, value_store):
         self.primitive = primitive
@@ -54,12 +59,16 @@ class SimPrimitive:
         self.primitive.simulate(self.value_store, self.state_store)
 
 class WatchPoint:
+    idx = 0
     def __init__(self, bit, scope, simulator, value):
         self.bit = bit
         self.scope = scope
         self.simulator = simulator
         self.value = value
         self.old_val = self.simulator.get_value(self.bit, self.scope)
+
+        WatchPoint.idx += 1
+        self.idx = WatchPoint.idx
 
     def was_triggered(self):
         new_val = self.simulator.get_value(self.bit, self.scope)
@@ -209,7 +218,9 @@ class PythonSimulator(CircuitSimulator):
     def set_value(self, bit, scope, newval):
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit not in self.circuit_inputs:
-            print("Only setting main's inputs is supported")
+            print(self.circuit_inputs)
+            message = "Only setting main's inputs is supported (Trying to set: {})".format(bit)
+            raise PythonSimulatorException(message)
         else:
             self.value_store.set_value(newbit, newval)
 
@@ -243,6 +254,12 @@ class PythonSimulator(CircuitSimulator):
 
     def add_watchpoint(self, bit, scope, value=None):
         self.watchpoints.append(WatchPoint(bit, scope, self, value))
+        return self.watchpoints[-1].idx
 
-    def delete_watchpoint(self, bit, scope, value=None):
-        self.watchpoints[:] = [w for w in self.watchpoints if w.bit == bit and w.scope == scope and w.value == value]
+    def delete_watchpoint(self, num):
+        for w in self.watchpoints:
+            if w.idx == num:
+                del w
+                return True
+
+        return False

@@ -7,6 +7,7 @@ from .array import ArrayType
 from .bit import BitType
 from .bits import seq2int
 from .ref import InstRef
+from .compatibility import builtins
 from code import compile_command
 import re
 import readline
@@ -57,8 +58,6 @@ def get_bit_full_name(bit):
         return ""
 
 class SimulationConsole(cmd.Cmd):
-    intro = 'Magma Interactive Simulator.   Type help or ? to list commands.'
-
     def __init__(self, circuit, simulator):
         cmd.Cmd.__init__(self, completekey=None)
 
@@ -118,7 +117,7 @@ class SimulationConsole(cmd.Cmd):
         self.simulator.step()
         state = self.simulator.evaluate()
 
-        self.cycles += 1 if not state.clock else 0
+        self.cycles += 1 if state.clock else 0
 
         self.clock_high = state.clock
 
@@ -246,23 +245,29 @@ class SimulationConsole(cmd.Cmd):
             print("Can only print Bits and circuit instances")
 
     def do_quit(self, arg):
+        'quit: Exit the simulator'
         return True
 
     def do_next(self, arg):
+        'next [N]: Advance the clock for N cycles. N defaults to 1 if not provided.'
         self.skip_half = True
         self.parse_next(arg)
 
     def do_step(self, arg):
+        'step [N]: Toggle the clock N times. N defaults to 1 if not provided.'
         self.skip_half = False
         self.parse_next(arg)
 
     def do_examine(self, arg):
+        'examine BIT: prints the current value of BIT as an array of booleans. Shortcut: x BIT.'
         self.parse_print(arg, True)
 
     def do_print(self, arg):
+        'print BIT: prints the current value of BIT interpreted as an unsigned integer.'
         self.parse_print(arg, False)
 
     def do_watch(self, arg):
+        'watch BIT: sets a watchpoint on BIT.\nThe simulator will interrupt and return to the console when BIT changes value.'
         if not arg:
             print('Provide a bit to watch')
             return
@@ -276,22 +281,28 @@ class SimulationConsole(cmd.Cmd):
         if not isinstance(watchme, BitType) and not isinstance(watchme, ArrayType):
             print("Can only watch bits or arrays")
 
-        self.simulator.add_watchpoint(watchme, self.scope)
+        watch_num = self.simulator.add_watchpoint(watchme, self.scope)
+        print('Watchpoint {} on {}'.format(watch_num, arg))
 
     def do_delete(self, arg):
+        'delete N: deletes watchpoint N.'
         if not arg:
-            print('Provide a watchpoint to delete')
+            print('Please provide a watchpoint number')
             return
 
         try:
-            deleteme = eval(arg, None, self.vars)
-        except Exception as e:
-            print("Failed to delete watchpoint: {}".format(e))
+            watch_num = int(arg)
+        except:
+            print("delete requires an integer")
             return
 
-        self.simulator.delete_watchpoint(deleteme, self.scope)
+        found = self.simulator.delete_watchpoint(watch_num)
+        if not found:
+            print('No watchpoint number {}'.format(watch_num))
 
     def do_display(self, arg):
+        'display BIT: repeatedly prints the value of BIT each time the simulator stops.'
+
         if not arg:
             print('Provide an expression to display')
             return
@@ -305,6 +316,7 @@ class SimulationConsole(cmd.Cmd):
         self.display_exprs.append(display_expr)
 
     def do_undisplay(self, arg):
+        'undisplay N: stops displaying the bit at index N.'
         if not arg:
             print('Provide an index to stop displaying')
             return
@@ -315,12 +327,18 @@ class SimulationConsole(cmd.Cmd):
             print("undisplay requires an integer")
             return
 
-        self.display_exprs[:] = [e for e in self.display_exprs if e.idx != idx]
+        for e in self.display_exprs:
+            if e.idx == idx:
+                del e
+                return 
+        print('No display number {}'.format(idx))
 
     def do_repeat(self, arg):
+        'repeat: Reevaluates the circuit without changing the clock value.\nUse this after modify_input so the simulator can calculate new values.'
         self.reeval = True
 
     def do_up(self, arg):
+        "up: Change to the parent circuit's scope."
         if self.scope.parent is not None:
             self.scope = self.scope.parent
             self.update_vars()
@@ -328,6 +346,7 @@ class SimulationConsole(cmd.Cmd):
             print("Cannot go up")
 
     def do_descend(self, arg):
+        "descend INSTANCE: update the current scope to be inside INSTANCE."
         try:
             inst = eval(arg, None, self.vars)
         except Exception as e:
@@ -341,6 +360,10 @@ class SimulationConsole(cmd.Cmd):
             print("You must provide an instance to descend into")
 
     def do_info(self, arg):
+        """info instances|interface|watchpoints:
+     instances: Display all the instances in the current scope
+     interface: Display the interface bits of the current scope's outer circuit
+     watchpoints: Display currently active watchpoints"""
         if arg == 'instances':
             print("")
             for inst in self.vars['circuit'].instances:
@@ -365,26 +388,30 @@ class SimulationConsole(cmd.Cmd):
                         print("  Bit: " + name)
 
             print("")
-
+        elif arg == 'watchpoints':
+            print("TODO")
         else:
             print("I don't know how to give you info on that")
 
     def do_continue(self, arg): 
+        "continue: continue cycling the simulator's clock and evaluating until a watchpoint is hit."
         self.advance_clock = True
         self.stepping = False
 
     def do_backtrace(self, arg):
+        "backtrace: Print the trace of parent scopes of the current scope."
         scopes = []
         curscope = self.scope
         while curscope is not None:
-            locs.insert(0, curscope)
+            scopes.insert(0, curscope)
             curscope = curscope.parent
 
-        print("Location stack: ")
+        print("Scope stack: ")
         for s in scopes:
             print("  " + s.value())
 
-    def do_change_input(self, arg):
+    def do_modify_input(self, arg):
+        "modify_input BIT NEWVAL: sets BIT to NEWVAL. BIT must be an input to the top level circuit."
         if arg is None:
             print('Provide a top level input to change')
             return
@@ -410,7 +437,14 @@ class SimulationConsole(cmd.Cmd):
 
     def run(self):
         self.simulator.evaluate()
-        self.cmdloop()
+
+        print('Magma Interactive Simulator.   Type help or ? to list commands.')
+        while True:
+            try:
+                self.cmdloop()
+                break;
+            except KeyboardInterrupt:
+                print('\nKeyboardInterrupt')
 
 def add_debug_info(main):
     circuits = get_uniq_circuits(main)
