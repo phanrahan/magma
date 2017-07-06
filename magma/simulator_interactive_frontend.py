@@ -8,7 +8,6 @@ from .bit import BitType
 from .bits import seq2int
 from .ref import InstRef
 from code import compile_command
-from builtins import input
 import re
 import readline
 import cmd
@@ -201,7 +200,7 @@ class SimulationConsole(cmd.Cmd):
                 return
 
             if code is None:
-                buf += '\n' + input("."*(len(self.prompt) - 1) + " ")
+                buf += '\n' + builtins.input("."*(len(self.prompt) - 1) + " ")
             else:
                 break
         
