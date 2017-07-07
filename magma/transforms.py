@@ -26,14 +26,14 @@ class TransformedCircuit:
         if isinstance(orig_bit, ArrayType):
             arr = []
             for o in orig_bit:
-                n = self.get_new_bit(o, scope)
-                if n is None:
-                    return None
-                arr.append(n)
+                arr.append(self.get_new_bit(o, scope))
 
             return array(*arr)
         else:
-            return self.orig_to_new.get(QualifiedBit(bit=orig_bit, scope=scope))
+            try:
+                return self.orig_to_new[QualifiedBit(bit=orig_bit, scope=scope)]
+            except KeyError:
+                raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
         assert isinstance(new_bit, BitType) or isinstance(new_bit, ArrayType)
