@@ -23,6 +23,7 @@ class TransformedCircuit:
         EndCircuit()
 
     def get_new_bit(self, orig_bit, scope):
+        assert isinstance(scope, Scope), "Second argument to get_new_bit should be an instance of Scope"
         if isinstance(orig_bit, ArrayType):
             arr = []
             for o in orig_bit:

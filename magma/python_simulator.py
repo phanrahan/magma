@@ -206,6 +206,8 @@ class PythonSimulator(CircuitSimulator):
         return []
 
     def get_value(self, bit, scope):
+        if not isinstance(scope, Scope):
+            raise PythonSimulatorException("Second argument to `get_value` should be an instance of Scope")
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit is None:
             return None
@@ -216,6 +218,8 @@ class PythonSimulator(CircuitSimulator):
             return None
 
     def set_value(self, bit, scope, newval):
+        if not isinstance(scope, Scope):
+            raise PythonSimulatorException("Second argument to `set_value` should be an instance of Scope, not {}".format(type(scope)))
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit not in self.circuit_inputs:
             print(self.circuit_inputs)
