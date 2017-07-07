@@ -100,7 +100,8 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
     if isinstance(bitref, InstRef):
         # Get the primitive outbit is attached to,
         old_primitive = bitref.inst
-        assert isprimitive(type(old_primitive)), "Failed to collapse bit to primitive"
+        if not isprimitive(type(old_primitive)):
+            raise MagmaTransformException("Failed to collapse bit to primitive. bit={} type={}".format(old_primitive, type(old_primitive)))
         new_primitive = primitive_map[QualifiedInstance(instance=old_primitive, scope=scope)]
         newsource = new_primitive.interface.ports[bitref.name]
     elif isinstance(bitref, DefnRef):
