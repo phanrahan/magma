@@ -19,7 +19,6 @@ __all__ += ['VCC', 'GND', 'HIGH', 'LOW']
 #
 class BitType(Type):
     def __init__(self, *largs, **kwargs):
-        
         super(BitType, self).__init__(*largs, **kwargs)
 
         self.port = Port(self)
