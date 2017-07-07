@@ -8,6 +8,10 @@ from .ref import DefnRef, InstRef, ArrayRef
 
 __all__ = ['TransformedCircuit', 'flatten', 'setup_clocks', 'get_uniq_circuits']
 
+class MagmaTransformException(Exception):
+    pass
+
+
 # Holds the new modified circuit as well as a map from old bits and scopes to
 # new bits
 class TransformedCircuit:
@@ -127,6 +131,12 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
     new_circuit = flattened_circuit.circuit
 
     sourcebit = origbit.value()
+    if sourcebit is None:
+        if isinstance(origbit, ArrayType):
+            # TODO: Raise an exception for now, can we handle this case silently (ignore unwired ports)?
+            raise MagmaTransformException("Calling `.value()` on Array returned None. Array = {}, values = {}. Likely an unwired port.".format(origbit, [b.value() for b in origbit.ts]))
+        else:
+            raise NotImplementedError()
     source_qual = QualifiedBit(bit=sourcebit, scope=cur_scope)
     orig_qual = QualifiedBit(bit=origbit, scope=cur_scope)
     collapsed_out_bits = [source_qual]
