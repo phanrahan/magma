@@ -222,7 +222,6 @@ class PythonSimulator(CircuitSimulator):
             raise PythonSimulatorException("Second argument to `set_value` should be an instance of Scope, not {}".format(type(scope)))
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit not in self.circuit_inputs:
-            print(self.circuit_inputs)
             message = "Only setting main's inputs is supported (Trying to set: {})".format(bit)
             raise PythonSimulatorException(message)
         else:
