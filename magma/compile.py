@@ -1,11 +1,17 @@
 import os
 import inspect
-from .backend import verilog, blif
+from .backend import verilog, blif, firrtl
 from .config import get_compile_dir
 from .simulator_interactive_frontend import simulate
 
 __all__ = ['compile']
 
+
+def compilefirrtl(basename, main):
+    file = open(basename+'.fir','w')
+    code = firrtl.compile(main)
+    file.write(code)
+    file.close()
 
 def compile(basename, main, output='verilog', origin=None):
     if get_compile_dir() == 'callee_file_dir':
@@ -19,13 +25,15 @@ def compile(basename, main, output='verilog', origin=None):
         simulate(main)
         return
 
-    if output == 'verilog':
-        code = verilog.compile(main)
-        extension = 'v'
-    elif output == 'blif':
+    assert output in ['blif', 'verilog', 'firrtl']
         code = magma.blif.compile(main, origin)
         extension = 'blif'
     elif hasattr(main, 'fpga'):
+        compileblif(file_name, main, origin)
+    elif output == 'firrtl':
+        code = firrtl.compile(main)
+
+    if hasattr(main, 'fpga'):
         vendor = os.getenv('MANTLE', 'lattice')
         if   vendor == 'altera':
             code = fpga.qsf(basename.split('/')[-1])

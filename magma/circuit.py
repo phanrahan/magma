@@ -317,6 +317,8 @@ class DefineCircuitKind(CircuitKind):
         self.verilog = None
         self.verilogLib = None
 
+        self.firrtl = None
+
         self.instances = []
 
         if hasattr(self, 'IO'):
