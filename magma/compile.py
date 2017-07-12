@@ -40,5 +40,4 @@ def compile(basename, main, output='verilog', origin=None):
         raise NotImplementedError()
 
     with open("{}.{}".format(file_name, extension), 'w') as file:
-        print("{}.{}".format(file_name, extension))
         file.write(code)
