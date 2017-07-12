@@ -1,6 +1,6 @@
 import os
 import inspect
-from .backend import verilog, blif
+from .backend import verilog, blif, firrtl
 from .config import get_compile_dir
 from .simulator_interactive_frontend import simulate
 
@@ -23,8 +23,10 @@ def compile(basename, main, output='verilog', origin=None):
         code = verilog.compile(main)
         extension = 'v'
     elif output == 'blif':
-        code = magma.blif.compile(main, origin)
+        code = blif.compile(main, origin)
         extension = 'blif'
+    elif output == 'firrtl':
+        code = firrtl.compile(main)
     elif hasattr(main, 'fpga'):
         vendor = os.getenv('MANTLE', 'lattice')
         if   vendor == 'altera':
