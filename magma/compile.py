@@ -7,12 +7,6 @@ from .simulator_interactive_frontend import simulate
 __all__ = ['compile']
 
 
-def compilefirrtl(basename, main):
-    file = open(basename+'.fir','w')
-    code = firrtl.compile(main)
-    file.write(code)
-    file.close()
-
 def compile(basename, main, output='verilog', origin=None):
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
@@ -26,6 +20,7 @@ def compile(basename, main, output='verilog', origin=None):
         return
 
     assert output in ['blif', 'verilog', 'firrtl']
+    if output == 'verilog':
         code = magma.blif.compile(main, origin)
         extension = 'blif'
     elif hasattr(main, 'fpga'):
