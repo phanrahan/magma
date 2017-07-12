@@ -1,6 +1,6 @@
 from magma.circuit import DefineCircuit, EndCircuit
 from magma.array import Array
-from magma.bit import Bit, In, Out
+from magma.bit import Bit, In, Out, BitType
 
 def memoize(f):
     memo = {}
@@ -9,6 +9,18 @@ def memoize(f):
             memo[args] = f(*args)
         return memo[args]()  # TODO: Should we instance every circuit?
     return wrapped
+
+
+def type_check_binary_operator(operator):
+    """
+    For Binary Bit operations, the other argument must be a bit
+    """
+    def type_checked_operator(self, other):
+        if not isinstance(other, BitType):
+            raise TypeError("unsupported operand type(s) for {}: '{}' and"
+                    "'{}'".format(operator.__name__, type(self), type(other)))
+        return operator(self, other)
+    return type_checked_operator
 
 @memoize
 def Add(n):
@@ -129,6 +141,11 @@ def And(n):
     EndCircuit()
     return circ
 
+@type_check_binary_operator
+def __and__(self, other):
+    return And(1)(self, other)[0]
+BitType.__and__ = __and__
+
 @memoize
 def Or(n):
     circ = DefineCircuit('Or{}'.format(n), 'I0', In(Array(n, Bit)), 'I1', In(Array(n, Bit)), 'O', Out(Array(n, Bit)))
@@ -136,12 +153,22 @@ def Or(n):
     EndCircuit()
     return circ
 
+@type_check_binary_operator
+def __or__(self, other):
+    return Or(1)(self, other)[0]
+BitType.__or__ = __or__
+
 @memoize
 def Xor(n):
     circ = DefineCircuit('Xor{}'.format(n), 'I0', In(Array(n, Bit)), 'I1', In(Array(n, Bit)), 'O', Out(Array(n, Bit)))
     circ.firrtl = "O <= xor(I0, I1)"
     EndCircuit()
     return circ
+
+@type_check_binary_operator
+def __xor__(self, other):
+    return Xor(1)(self, other)[0]
+BitType.__xor__ = __xor__
 
 @memoize
 def AndR(n):

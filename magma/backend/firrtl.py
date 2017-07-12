@@ -21,6 +21,8 @@ def get_name(port):
             # the sequence of values is concantenated
             port = [get_name(i) for i in port.ts]
             port.reverse()
+            if len(port) == 1:  # FIXME: Hack to make single length bit arrays work
+                return port[0]
             return '{' + ','.join(port) + '}'
     assert not port.anon()
     return port.name.qualifiedname(sep="_")
@@ -36,11 +38,11 @@ def compileinstance(instance):
                 value = port
         else:
             value = port
-        if isinstance(port, ArrayType):
-            for index, subport in enumerate(port.ts):
-                s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
-        else:
-            s += "{}.{} <= {}\n".format(instance_name, name, get_name(value))
+        # if isinstance(value, ArrayType):
+        #     for index, subport in enumerate(value.ts):
+        #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
+        # else:
+        s += "{}.{} <= {}\n".format(instance_name, name, get_name(value))
     return s
 
 def compiledefinition(cls):
