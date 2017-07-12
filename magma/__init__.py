@@ -33,5 +33,6 @@ else:
     from .compile import *
 
 from .tests import *
+import magma.primitives
 
 print('import magma')

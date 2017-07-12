@@ -60,6 +60,7 @@ def compiledefinition(cls):
         else:
             raise NotImplementedError()  # Does FIRRTL have an inout?
         s += '{} {} : {}\n'.format(direction, name, get_type(port))
+    s += "\n"  # Newline after port declaration for readability
 
     import re
     if cls.firrtl:
@@ -83,7 +84,7 @@ def compiledefinition(cls):
             if output:
                 iname = get_name(input)
                 oname = get_name(output)
-                s += 'assign %s = %s;\n' % (iname, oname)
+                s += '%s <= %s\n' % (iname, oname)
 
     return "\n  ".join(s.splitlines())
 
