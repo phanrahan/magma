@@ -128,43 +128,44 @@ def compiledefinition(cls):
                 print('Error: Argument', port, 'must be a an Array(n,Bit)')
                 assert True
 
-    args = ', '.join(vmoduleargs(cls.interface))
-    s = 'module %s (%s);\n' % (cls.__name__, args)
 
-    import re
-    if cls.verilog:
-        s += cls.verilog + '\n'
-        if cls.verilogLib:
-            for libName in cls.verilogLib:
-                if re.search("\.v$",libName):
-                    with open(libName,'r') as libFile:
-                        s = libFile.read() + s
-                else:
-                    s = libName + s
-
-
+    if cls.verilogFile:
+       s = cls.verilogFile
     else:
-        # declare a wire for each instance output
-        for instance in cls.instances:
-            for port in instance.interface.ports.values():
-                if port.isoutput():
-                    s += 'wire %s %s;\n' % (vdecl(port), vname(port))
+        args = ', '.join(vmoduleargs(cls.interface))
+        s = 'module %s (%s);\n' % (cls.__name__, args)
+        if cls.verilog:
+            s += cls.verilog + '\n'
+            if cls.verilogLib:
+                import re
+                for libName in cls.verilogLib:
+                    if re.search("\.v$",libName):
+                        with open(libName,'r') as libFile:
+                            s = libFile.read() + s
+                    else:
+                        s = libName + s
+        else:
+            # declare a wire for each instance output
+            for instance in cls.instances:
+                for port in instance.interface.ports.values():
+                    if port.isoutput():
+                        s += 'wire %s %s;\n' % (vdecl(port), vname(port))
 
-        #print('compile instances')
-        # emit the structured verilog for each instance
-        for instance in cls.instances:
-            wiredefaultclock(cls, instance)
-            s += compileinstance(instance) + ';\n'
+            #print('compile instances')
+            # emit the structured verilog for each instance
+            for instance in cls.instances:
+                wiredefaultclock(cls, instance)
+                s += compileinstance(instance) + ';\n'
 
-        # assign to module output arguments
-        for input in cls.interface.inputs():
-            output = input.value()
-            if output:
-                iname = vname(input)
-                oname = vname(output)
-                s += 'assign %s = %s;\n' % (iname, oname)
+            # assign to module output arguments
+            for input in cls.interface.inputs():
+                output = input.value()
+                if output:
+                    iname = vname(input)
+                    oname = vname(output)
+                    s += 'assign %s = %s;\n' % (iname, oname)
 
-    s += "endmodule\n"
+        s += "endmodule\n"
 
     return s
 

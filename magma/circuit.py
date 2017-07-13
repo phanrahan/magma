@@ -315,6 +315,7 @@ class DefineCircuitKind(CircuitKind):
         self.alignment = 1
 
         self.verilog = None
+        self.verilogFile = None
         self.verilogLib = None
 
         self.instances = []
