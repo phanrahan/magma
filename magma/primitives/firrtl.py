@@ -1,5 +1,5 @@
 from magma.circuit import DefineCircuit, EndCircuit
-from magma.array import Array
+from magma.array import Array, ArrayType
 from magma.bit import Bit, In, Out, BitType
 
 def memoize(f):
@@ -13,10 +13,10 @@ def memoize(f):
 
 def type_check_binary_operator(operator):
     """
-    For Binary Bit operations, the other argument must be a bit
+    For binary operations, the other argument must be the same type
     """
     def type_checked_operator(self, other):
-        if not isinstance(other, BitType):
+        if type(self) != type(other):
             raise TypeError("unsupported operand type(s) for {}: '{}' and"
                     "'{}'".format(operator.__name__, type(self), type(other)))
         return operator(self, other)
@@ -136,39 +136,66 @@ def Not(n):
 
 @memoize
 def And(n):
-    circ = DefineCircuit('And{}'.format(n), 'I0', In(Array(n, Bit)), 'I1', In(Array(n, Bit)), 'O', Out(Array(n, Bit)))
+    if n == 1:
+        typ = Bit
+    else:
+        typ = Array(n, Bit)
+    circ = DefineCircuit('And{}'.format(n), 'I0', In(typ), 'I1', In(typ), 'O', Out(typ))
     circ.firrtl = "O <= and(I0, I1)"
     EndCircuit()
     return circ
 
 @type_check_binary_operator
 def __and__(self, other):
-    return And(1)(self, other)[0]
+    return And(1)(self, other)
 BitType.__and__ = __and__
+
+@type_check_binary_operator
+def __and__(self, other):
+    return And(len(self))(self, other)
+ArrayType.__and__ = __and__
 
 @memoize
 def Or(n):
-    circ = DefineCircuit('Or{}'.format(n), 'I0', In(Array(n, Bit)), 'I1', In(Array(n, Bit)), 'O', Out(Array(n, Bit)))
+    if n == 1:
+        typ = Bit
+    else:
+        typ = Array(n, Bit)
+    circ = DefineCircuit('Or{}'.format(n), 'I0', In(typ), 'I1', In(typ), 'O', Out(typ))
     circ.firrtl = "O <= or(I0, I1)"
     EndCircuit()
     return circ
 
 @type_check_binary_operator
 def __or__(self, other):
-    return Or(1)(self, other)[0]
+    return Or(1)(self, other)
 BitType.__or__ = __or__
+
+@type_check_binary_operator
+def __or__(self, other):
+    return Or(len(self))(self, other)
+ArrayType.__or__ = __or__
 
 @memoize
 def Xor(n):
-    circ = DefineCircuit('Xor{}'.format(n), 'I0', In(Array(n, Bit)), 'I1', In(Array(n, Bit)), 'O', Out(Array(n, Bit)))
+    if n == 1:
+        typ = Bit
+    else:
+        typ = Array(n, Bit)
+    circ = DefineCircuit('Xor{}'.format(n), 'I0', In(typ), 'I1', In(typ), 'O', Out(typ))
     circ.firrtl = "O <= xor(I0, I1)"
     EndCircuit()
     return circ
 
 @type_check_binary_operator
 def __xor__(self, other):
-    return Xor(1)(self, other)[0]
+    return Xor(1)(self, other)
 BitType.__xor__ = __xor__
+
+@type_check_binary_operator
+def __xor__(self, other):
+    return Xor(len(self))(self, other)
+ArrayType.__xor__ = __xor__
 
 @memoize
 def AndR(n):

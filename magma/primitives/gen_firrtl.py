@@ -1,5 +1,5 @@
 source = """from magma.circuit import DefineCircuit, EndCircuit
-from magma.array import Array
+from magma.array import Array, ArrayType
 from magma.bit import Bit, In, Out, BitType
 
 def memoize(f):
@@ -13,10 +13,10 @@ def memoize(f):
 
 def type_check_binary_operator(operator):
     \"\"\"
-    For Binary Bit operations, the other argument must be a bit
+    For binary operations, the other argument must be the same type
     \"\"\"
     def type_checked_operator(self, other):
-        if not isinstance(other, BitType):
+        if type(self) != type(other):
             raise TypeError("unsupported operand type(s) for {}: '{}' and"
                     "'{}'".format(operator.__name__, type(self), type(other)))
         return operator(self, other)
@@ -95,20 +95,29 @@ def Not(n):
     return circ
 """
 
-for name, op, bit_method in [("And", "and", "__and__"), ("Or", "or", "__or__"), ("Xor", "xor", "__xor__")]:
+for name, op, method in [("And", "and", "__and__"), ("Or", "or", "__or__"), ("Xor", "xor", "__xor__")]:
     source += """
 @memoize
 def {name}(n):
-    circ = DefineCircuit('{name}{{}}'.format(n), 'I0', In(Array(n, Bit)), 'I1', In(Array(n, Bit)), 'O', Out(Array(n, Bit)))
+    if n == 1:
+        typ = Bit
+    else:
+        typ = Array(n, Bit)
+    circ = DefineCircuit('{name}{{}}'.format(n), 'I0', In(typ), 'I1', In(typ), 'O', Out(typ))
     circ.firrtl = "O <= {op}(I0, I1)"
     EndCircuit()
     return circ
 
 @type_check_binary_operator
-def {bit_method}(self, other):
-    return {name}(1)(self, other)[0]
-BitType.{bit_method} = {bit_method}
-""".format(name=name, op=op, bit_method=bit_method)
+def {method}(self, other):
+    return {name}(1)(self, other)
+BitType.{method} = {method}
+
+@type_check_binary_operator
+def {method}(self, other):
+    return {name}(len(self))(self, other)
+ArrayType.{method} = {method}
+""".format(name=name, op=op, method=method)
 
 for name, op in [("AndR", "andr"), ("OrR", "orr"), ("XorR", "xorr")]:
     source += """
