@@ -7,6 +7,11 @@ from .simulator_interactive_frontend import simulate
 __all__ = ['compile']
 
 
+def write_file(file_name, extension, code):
+    with open("{}.{}".format(file_name, extension), 'w') as file:
+        file.write(code)
+
+
 def compile(basename, main, output='verilog', origin=None):
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
@@ -20,26 +25,18 @@ def compile(basename, main, output='verilog', origin=None):
         return
 
     if output == 'verilog':
-        code = verilog.compile(main)
-        extension = 'v'
+        write_file(file_name, 'v', verilog.compile(main))
     elif output == 'blif':
-        code = blif.compile(main, origin)
-        extension = 'blif'
+        write_file(file_name, 'blif', blif.compile(main))
     elif output == 'firrtl':
         code = firrtl.compile(main)
-    elif hasattr(main, 'fpga'):
+
+    if hasattr(main, 'fpga'):
+        fpga = main.fpga
         vendor = os.getenv('MANTLE', 'lattice')
         if   vendor == 'altera':
-            code = fpga.qsf(basename.split('/')[-1])
-            extension = "qsf"
+            write_file(file_name, 'qsf', fpga.qsf(basename.split('/')[-1]))
         elif vendor == 'xilinx':
-            code = fpga.ucf()
-            extension = "ucf"
+            write_file(file_name, 'ucf', fpga.ucf())
         elif vendor == 'lattice' or vendor == 'silego':
-            code = fpga.pcf()
-            extension = "pcf"
-    else:
-        raise NotImplementedError()
-
-    with open("{}.{}".format(file_name, extension), 'w') as file:
-        file.write(code)
+            write_file(file_name, 'pcf', fpga.pcf())
