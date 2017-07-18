@@ -29,7 +29,7 @@ def compile(basename, main, output='verilog', origin=None):
     elif output == 'blif':
         write_file(file_name, 'blif', blif.compile(main))
     elif output == 'firrtl':
-        code = firrtl.compile(main)
+        write_file(file_name, 'fir', firrtl.compile(main))
 
     if hasattr(main, 'fpga'):
         fpga = main.fpga
