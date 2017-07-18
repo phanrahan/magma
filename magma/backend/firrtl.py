@@ -42,7 +42,11 @@ def compileinstance(instance):
         #     for index, subport in enumerate(value.ts):
         #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
         # else:
-        s += "{}.{} <= {}\n".format(instance_name, name, get_name(value))
+        value_name = get_name(value)
+        if port.isinput():
+            s += "{}.{} <= {}\n".format(instance_name, name, value_name)
+        else:
+            s += "{} <= {}.{}\n".format(value_name, instance_name, name)
     return s
 
 def compiledefinition(cls):
