@@ -2,11 +2,15 @@ from magma import *
 from magma.backend import verilog
 
 def test_1_bit_logic():
-    main = DefineCircuit('main', "a", In(Bit), "b", In(Bit), "c", In(Bit), "d", Out(Bit))
-    d = (main.a & main.b) | (main.b ^ ~main.c)
-    wire(d, main.d)
-    assert verilog.compile(main) == """
-module main (input  a, input  b, input  c, output  d);
+    class TestCircuit(Circuit):
+        name = "test_circuit"
+        IO = ["a", In(Bit), "b", In(Bit), "c", In(Bit), "d", Out(Bit)]
+        @classmethod
+        def definition(circuit):
+            d = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c)
+            wire(d, circuit.d)
+    assert verilog.compile(TestCircuit) == """
+module test_circuit (input  a, input  b, input  c, output  d);
 wire  inst0_O;
 wire  inst1_O;
 wire  inst2_O;
@@ -17,4 +21,5 @@ Xor1 inst2 (.I0(b), .I1(inst1_O), .O(inst2_O));
 Or1 inst3 (.I0(inst0_O), .I1(inst2_O), .O(inst3_O));
 assign d = inst3_O;
 endmodule
+
 """.lstrip()
