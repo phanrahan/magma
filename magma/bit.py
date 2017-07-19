@@ -4,7 +4,6 @@ from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
-from functools import lru_cache
 
 __all__  = ['BitType', 'BitKind', 'Bit', 'BitIn', 'BitOut', 'BitInOut']
 
