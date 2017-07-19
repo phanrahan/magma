@@ -1,6 +1,6 @@
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
-from magma.array import Bits, BitsType
+from magma.array import Bits, BitsType, SInt, SIntType, UInt, UIntType
 from magma.circuit import DeclareCircuit
 from magma.compatibility import IntegerTypes
 try:
@@ -11,10 +11,11 @@ except ImportError:
 
 def type_check_binary_operator(operator):
     """
-    For binary operations, the other argument must be the same type
+    For binary operations, the other argument must be the same type or a list
+    of bits of the same length
     """
     def type_checked_operator(self, other):
-        if type(self) != type(other):
+        if not (isinstance(other, list) and len(self) == len(other)) and type(self) != type(other):
             raise TypeError("unsupported operand type(s) for {}: '{}' and"
                     "'{}'".format(operator.__name__, type(self), type(other)))
         return operator(self, other)
@@ -133,3 +134,179 @@ def __rshift__(self, other):
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(type(other)))
 BitsType.__rshift__ = __rshift__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedAddN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedAdd{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __add__(self, other):
+    return DefineSignedAddN(self.N)()(self, other)
+SIntType.__add__ = __add__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedSubN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedSub{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __sub__(self, other):
+    return DefineSignedSubN(self.N)()(self, other)
+SIntType.__sub__ = __sub__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedMulN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedMul{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __mul__(self, other):
+    return DefineSignedMulN(self.N)()(self, other)
+SIntType.__mul__ = __mul__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedDivN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedDiv{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __truediv__(self, other):
+    return DefineSignedDivN(self.N)()(self, other)
+SIntType.__truediv__ = __truediv__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedLtN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedLt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __lt__(self, other):
+    return DefineSignedLtN(self.N)()(self, other)
+SIntType.__lt__ = __lt__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedLtEN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedLtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __le__(self, other):
+    return DefineSignedLtEN(self.N)()(self, other)
+SIntType.__le__ = __le__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedGtN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedGt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __gt__(self, other):
+    return DefineSignedGtN(self.N)()(self, other)
+SIntType.__gt__ = __gt__
+
+
+@lru_cache(maxsize=None)
+def DefineSignedGtEN(N):
+    T = SInt(N)
+    return DeclareCircuit("SignedGtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __gte__(self, other):
+    return DefineSignedGtEN(self.N)()(self, other)
+SIntType.__gte__ = __gte__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedAddN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedAdd{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __add__(self, other):
+    return DefineUnsignedAddN(self.N)()(self, other)
+UIntType.__add__ = __add__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedSubN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedSub{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __sub__(self, other):
+    return DefineUnsignedSubN(self.N)()(self, other)
+UIntType.__sub__ = __sub__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedMulN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedMul{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __mul__(self, other):
+    return DefineUnsignedMulN(self.N)()(self, other)
+UIntType.__mul__ = __mul__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedDivN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedDiv{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __truediv__(self, other):
+    return DefineUnsignedDivN(self.N)()(self, other)
+UIntType.__truediv__ = __truediv__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedLtN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedLt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __lt__(self, other):
+    return DefineUnsignedLtN(self.N)()(self, other)
+UIntType.__lt__ = __lt__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedLtEN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedLtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __le__(self, other):
+    return DefineUnsignedLtEN(self.N)()(self, other)
+UIntType.__le__ = __le__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedGtN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedGt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __gt__(self, other):
+    return DefineUnsignedGtN(self.N)()(self, other)
+UIntType.__gt__ = __gt__
+
+
+@lru_cache(maxsize=None)
+def DefineUnsignedGtEN(N):
+    T = UInt(N)
+    return DeclareCircuit("UnsignedGtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
+
+@type_check_binary_operator
+def __gte__(self, other):
+    return DefineUnsignedGtEN(self.N)()(self, other)
+UIntType.__gte__ = __gte__

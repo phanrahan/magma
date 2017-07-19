@@ -120,3 +120,74 @@ assign e = inst7_O;
 endmodule
 
 """.lstrip()
+
+
+def test_sint_arithmetic():
+    class TestCircuit(Circuit):
+        name = "test_circuit"
+        IO = ["in0", In(SInt(8)), "in1", In(SInt(8)), "out", Out(Bit)]
+        @classmethod
+        def definition(circuit):
+            a = circuit.in0 + circuit.in1
+            b = a - circuit.in1
+            c = a * circuit.in0
+            d = b / c > circuit.in0
+            e = b * c < int2seq(1, 8)
+            f = a - c >= circuit.in0
+            g = b + c <= int2seq(1, 8)
+            wire(g, circuit.out)
+    assert verilog.compile(TestCircuit) == """
+module test_circuit (input [7:0] in0, input [7:0] in1, output  out);
+wire [7:0] inst0_O;
+wire [7:0] inst1_O;
+wire [7:0] inst2_O;
+wire [7:0] inst3_O;
+wire  inst4_O;
+wire [7:0] inst5_O;
+wire  inst6_O;
+wire [7:0] inst7_O;
+wire  inst8_O;
+wire [7:0] inst9_O;
+wire  inst10_O;
+SignedAdd8 inst0 (.I0(in0), .I1(in1), .O(inst0_O));
+SignedSub8 inst1 (.I0(inst0_O), .I1(in1), .O(inst1_O));
+SignedMul8 inst2 (.I0(inst0_O), .I1(in0), .O(inst2_O));
+SignedDiv8 inst3 (.I0(inst1_O), .I1(inst2_O), .O(inst3_O));
+SignedGt8 inst4 (.I0(inst3_O), .I1(in0), .O(inst4_O));
+SignedMul8 inst5 (.I0(inst1_O), .I1(inst2_O), .O(inst5_O));
+SignedLt8 inst6 (.I0(inst5_O), .I1({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b1}), .O(inst6_O));
+SignedSub8 inst7 (.I0(inst0_O), .I1(inst2_O), .O(inst7_O));
+SignedLtE8 inst8 (.I0(in0), .I1(inst7_O), .O(inst8_O));
+SignedAdd8 inst9 (.I0(inst1_O), .I1(inst2_O), .O(inst9_O));
+SignedLtE8 inst10 (.I0(inst9_O), .I1({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b1}), .O(inst10_O));
+assign out = inst10_O;
+endmodule
+
+""".lstrip()
+
+
+def test_uint_arithmetic():
+    class TestCircuit(Circuit):
+        name = "test_circuit"
+        IO = ["in0", In(UInt(8)), "in1", In(UInt(8)), "out", Out(UInt(8))]
+        @classmethod
+        def definition(circuit):
+            a = circuit.in0 + circuit.in1
+            b = a - circuit.in1
+            c = a * circuit.in0
+            d = b / c
+            wire(d, circuit.out)
+    assert verilog.compile(TestCircuit) == """
+module test_circuit (input [7:0] in0, input [7:0] in1, output [7:0] out);
+wire [7:0] inst0_O;
+wire [7:0] inst1_O;
+wire [7:0] inst2_O;
+wire [7:0] inst3_O;
+UnsignedAdd8 inst0 (.I0(in0), .I1(in1), .O(inst0_O));
+UnsignedSub8 inst1 (.I0(inst0_O), .I1(in1), .O(inst1_O));
+UnsignedMul8 inst2 (.I0(inst0_O), .I1(in0), .O(inst2_O));
+UnsignedDiv8 inst3 (.I0(inst1_O), .I1(inst2_O), .O(inst3_O));
+assign out = inst3_O;
+endmodule
+
+""".lstrip()
