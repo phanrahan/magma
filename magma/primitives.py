@@ -1,6 +1,9 @@
 from magma.bit import Bit, BitType, In, Out
 from magma.circuit import DeclareCircuit
-from functools import lru_cache
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 
 
 def type_check_binary_operator(operator):
