@@ -1,4 +1,5 @@
 from magma.bit import Bit, BitType, In, Out
+from magma.array import Bits, BitsType
 from magma.circuit import DeclareCircuit
 try:
     from functools import lru_cache
@@ -41,3 +42,48 @@ BitType.__xor__ = __xor__
 def __invert__(self):
     return BitInvert()(self)
 BitType.__invert__ = __invert__
+
+
+@lru_cache(maxsize=None)
+def DefineAndN(N):
+    T = Bits(N)
+    return DeclareCircuit("And{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+
+@type_check_binary_operator
+def __and__(self, other):
+    return DefineAndN(self.N)()(self, other)
+BitsType.__and__ = __and__
+
+
+@lru_cache(maxsize=None)
+def DefineOrN(N):
+    T = Bits(N)
+    return DeclareCircuit("Or{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+
+@type_check_binary_operator
+def __or__(self, other):
+    return DefineOrN(self.N)()(self, other)
+BitsType.__or__ = __or__
+
+
+@lru_cache(maxsize=None)
+def DefineXorN(N):
+    T = Bits(N)
+    return DeclareCircuit("Xor{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+
+@type_check_binary_operator
+def __xor__(self, other):
+    return DefineXorN(self.N)()(self, other)
+BitsType.__xor__ = __xor__
+
+
+@lru_cache(maxsize=None)
+def DefineInvertN(N):
+    T = Bits(N)
+    return DeclareCircuit("Invert{}".format(N), 'I', In(T), 'O', Out(T))
+
+def __invert__(self):
+    return DefineInvertN(self.N)()(self)
+BitsType.__invert__ = __invert__
