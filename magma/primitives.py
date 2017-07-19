@@ -1,6 +1,8 @@
+from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.array import Bits, BitsType
 from magma.circuit import DeclareCircuit
+from magma.compatibility import IntegerTypes
 try:
     from functools import lru_cache
 except ImportError:
@@ -87,3 +89,47 @@ def DefineInvertN(N):
 def __invert__(self):
     return DefineInvertN(self.N)()(self)
 BitsType.__invert__ = __invert__
+
+
+@lru_cache(maxsize=None)
+def DefineShiftLeftN(N, amount):
+    T = Bits(N)
+    return DeclareCircuit("ShiftLeft{}_{}".format(N, amount), 'I', In(T), 'O', Out(T))
+
+
+@lru_cache(maxsize=None)
+def DefineDynamicShiftLeftN(N):
+    T = Bits(N)
+    i1_type = Bits((N - 1).bit_length())
+    return DeclareCircuit("DynamicShiftLeft{}".format(N), 'I0', In(T), 'I1', In(i1_type), 'O', Out(T))
+
+def __lshift__(self, other):
+    if isinstance(other, IntegerTypes):
+        return DefineShiftLeftN(self.N, other)()(self)
+    elif isinstance(other, Type):
+        return DefineDynamicShiftLeftN(self.N)()(self, other)
+    else:
+        raise TypeError("<< not implemented for argument 2 of type {}".format(type(other)))
+BitsType.__lshift__ = __lshift__
+
+
+@lru_cache(maxsize=None)
+def DefineShiftRightN(N, amount):
+    T = Bits(N)
+    return DeclareCircuit("ShiftRight{}_{}".format(N, amount), 'I', In(T), 'O', Out(T))
+
+
+@lru_cache(maxsize=None)
+def DefineDynamicShiftRightN(N):
+    T = Bits(N)
+    i1_type = Bits((N - 1).bit_length())
+    return DeclareCircuit("DynamicShiftRight{}".format(N), 'I0', In(T), 'I1', In(i1_type), 'O', Out(T))
+
+def __rshift__(self, other):
+    if isinstance(other, IntegerTypes):
+        return DefineShiftRightN(self.N, other)()(self)
+    elif isinstance(other, Type):
+        return DefineDynamicShiftRightN(self.N)()(self, other)
+    else:
+        raise TypeError(">> not implemented for argument 2 of type {}".format(type(other)))
+BitsType.__rshift__ = __rshift__
