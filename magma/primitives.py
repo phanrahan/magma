@@ -178,6 +178,7 @@ def DefineSignedDivN(N):
 def __truediv__(self, other):
     return DefineSignedDivN(self.N)()(self, other)
 SIntType.__truediv__ = __truediv__
+SIntType.__div__ = __truediv__
 
 
 @lru_cache(maxsize=None)
@@ -266,6 +267,7 @@ def DefineUnsignedDivN(N):
 def __truediv__(self, other):
     return DefineUnsignedDivN(self.N)()(self, other)
 UIntType.__truediv__ = __truediv__
+UIntType.__div__ = __truediv__
 
 
 @lru_cache(maxsize=None)
