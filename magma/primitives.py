@@ -110,179 +110,34 @@ def __rshift__(self, other):
 BitsType.__rshift__ = __rshift__
 
 
-@lru_cache(maxsize=None)
-def DeclareSignedAddN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedAdd{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+def declare_binop(name, _type, type_type, op, out_type=None):
+    @lru_cache(maxsize=None)
+    def Declare(N):
+        T = _type(N)
+        return DeclareCircuit("{}{}".format(name, N), 'I0', In(T), 'I1', In(T), 'O', Out(out_type if out_type else T))
 
-@type_check_binary_operator
-def __add__(self, other):
-    return DeclareSignedAddN(self.N)()(self, other)
-SIntType.__add__ = __add__
+    @type_check_binary_operator
+    def func(self, other):
+        return Declare(self.N)()(self, other)
+    func.__name__ = op
+    setattr(type_type, op, func)
 
+declare_binop("SignedAdd", SInt, SIntType, "__add__")
+declare_binop("SignedSub", SInt, SIntType, "__sub__")
+declare_binop("SignedMul", SInt, SIntType, "__mul__")
+declare_binop("SignedDiv", SInt, SIntType, "__div__")
+declare_binop("SignedDiv", SInt, SIntType, "__truediv__")
+declare_binop("SignedLt",  SInt, SIntType, "__lt__", out_type=Bit)
+declare_binop("SignedLtE", SInt, SIntType, "__le__", out_type=Bit)
+declare_binop("SignedGt",  SInt, SIntType, "__gt__", out_type=Bit)
+declare_binop("SignedGtE", SInt, SIntType, "__ge__", out_type=Bit)
 
-@lru_cache(maxsize=None)
-def DeclareSignedSubN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedSub{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __sub__(self, other):
-    return DeclareSignedSubN(self.N)()(self, other)
-SIntType.__sub__ = __sub__
-
-
-@lru_cache(maxsize=None)
-def DeclareSignedMulN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedMul{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __mul__(self, other):
-    return DeclareSignedMulN(self.N)()(self, other)
-SIntType.__mul__ = __mul__
-
-
-@lru_cache(maxsize=None)
-def DeclareSignedDivN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedDiv{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __truediv__(self, other):
-    return DeclareSignedDivN(self.N)()(self, other)
-SIntType.__truediv__ = __truediv__
-SIntType.__div__ = __truediv__
-
-
-@lru_cache(maxsize=None)
-def DeclareSignedLtN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedLt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __lt__(self, other):
-    return DeclareSignedLtN(self.N)()(self, other)
-SIntType.__lt__ = __lt__
-
-
-@lru_cache(maxsize=None)
-def DeclareSignedLtEN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedLtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __le__(self, other):
-    return DeclareSignedLtEN(self.N)()(self, other)
-SIntType.__le__ = __le__
-
-
-@lru_cache(maxsize=None)
-def DeclareSignedGtN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedGt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __gt__(self, other):
-    return DeclareSignedGtN(self.N)()(self, other)
-SIntType.__gt__ = __gt__
-
-
-@lru_cache(maxsize=None)
-def DeclareSignedGtEN(N):
-    T = SInt(N)
-    return DeclareCircuit("SignedGtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __gte__(self, other):
-    return DeclareSignedGtEN(self.N)()(self, other)
-SIntType.__gte__ = __gte__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedAddN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedAdd{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __add__(self, other):
-    return DeclareUnsignedAddN(self.N)()(self, other)
-UIntType.__add__ = __add__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedSubN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedSub{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __sub__(self, other):
-    return DeclareUnsignedSubN(self.N)()(self, other)
-UIntType.__sub__ = __sub__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedMulN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedMul{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __mul__(self, other):
-    return DeclareUnsignedMulN(self.N)()(self, other)
-UIntType.__mul__ = __mul__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedDivN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedDiv{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __truediv__(self, other):
-    return DeclareUnsignedDivN(self.N)()(self, other)
-UIntType.__truediv__ = __truediv__
-UIntType.__div__ = __truediv__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedLtN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedLt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __lt__(self, other):
-    return DeclareUnsignedLtN(self.N)()(self, other)
-UIntType.__lt__ = __lt__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedLtEN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedLtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __le__(self, other):
-    return DeclareUnsignedLtEN(self.N)()(self, other)
-UIntType.__le__ = __le__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedGtN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedGt{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __gt__(self, other):
-    return DeclareUnsignedGtN(self.N)()(self, other)
-UIntType.__gt__ = __gt__
-
-
-@lru_cache(maxsize=None)
-def DeclareUnsignedGtEN(N):
-    T = UInt(N)
-    return DeclareCircuit("UnsignedGtE{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __gte__(self, other):
-    return DeclareUnsignedGtEN(self.N)()(self, other)
-UIntType.__gte__ = __gte__
+declare_binop("UnsignedAdd", UInt, UIntType, "__add__")
+declare_binop("UnsignedSub", UInt, UIntType, "__sub__")
+declare_binop("UnsignedMul", UInt, UIntType, "__mul__")
+declare_binop("UnsignedDiv", UInt, UIntType, "__div__")
+declare_binop("UnsignedDiv", UInt, UIntType, "__truediv__")
+declare_binop("UnsignedLt",  UInt, UIntType, "__lt__", out_type=Bit)
+declare_binop("UnsignedLtE", UInt, UIntType, "__le__", out_type=Bit)
+declare_binop("UnsignedGt",  UInt, UIntType, "__gt__", out_type=Bit)
+declare_binop("UnsignedGtE", UInt, UIntType, "__ge__", out_type=Bit)
