@@ -40,39 +40,20 @@ def __invert__(self):
 BitType.__invert__ = __invert__
 
 
-@lru_cache(maxsize=None)
-def DeclareAndN(N):
-    T = Bits(N)
-    return DeclareCircuit("And{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+def declare_bits_binop(name, op):
+    @lru_cache(maxsize=None)
+    def Declare(N):
+        T = Bits(N)
+        return DeclareCircuit("{}{}".format(name, N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
+    @type_check_binary_operator
+    def func(self, other):
+        return Declare(self.N)()(self, other)
+    func.__name__ = op
+    setattr(BitsType, op, func)
 
-
-@type_check_binary_operator
-def __and__(self, other):
-    return DeclareAndN(self.N)()(self, other)
-BitsType.__and__ = __and__
-
-
-@lru_cache(maxsize=None)
-def DeclareOrN(N):
-    T = Bits(N)
-    return DeclareCircuit("Or{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-
-@type_check_binary_operator
-def __or__(self, other):
-    return DeclareOrN(self.N)()(self, other)
-BitsType.__or__ = __or__
-
-
-@lru_cache(maxsize=None)
-def DeclareXorN(N):
-    T = Bits(N)
-    return DeclareCircuit("Xor{}".format(N), 'I0', In(T), 'I1', In(T), 'O', Out(T))
-
-@type_check_binary_operator
-def __xor__(self, other):
-    return DeclareXorN(self.N)()(self, other)
-BitsType.__xor__ = __xor__
+declare_bits_binop("And", "__and__")
+declare_bits_binop("Or", "__or__")
+declare_bits_binop("Xor", "__xor__")
 
 
 @lru_cache(maxsize=None)
