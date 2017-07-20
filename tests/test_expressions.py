@@ -99,7 +99,7 @@ def test_sint_logic():
             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
             wire(e, circuit.e)
     assert verilog.compile(TestCircuit) == """
-module test_circuit (input [7:0] a, input [7:0] b, input [7:0] c, input [2:0] d, output [7:0] e);
+module test_circuit (input signed [7:0] a, input signed [7:0] b, input signed [7:0] c, input signed [2:0] d, output signed [7:0] e);
 wire [7:0] inst0_O;
 wire [7:0] inst1_O;
 wire [7:0] inst2_O;
@@ -137,17 +137,17 @@ def test_sint_arithmetic():
             g = b + c <= int2seq(1, 8)
             wire(g, circuit.out)
     assert verilog.compile(TestCircuit) == """
-module test_circuit (input [7:0] in0, input [7:0] in1, output  out);
-wire [7:0] inst0_O;
-wire [7:0] inst1_O;
-wire [7:0] inst2_O;
-wire [7:0] inst3_O;
+module test_circuit (input signed [7:0] in0, input signed [7:0] in1, output  out);
+wire signed [7:0] inst0_O;
+wire signed [7:0] inst1_O;
+wire signed [7:0] inst2_O;
+wire signed [7:0] inst3_O;
 wire  inst4_O;
-wire [7:0] inst5_O;
+wire signed [7:0] inst5_O;
 wire  inst6_O;
-wire [7:0] inst7_O;
+wire signed [7:0] inst7_O;
 wire  inst8_O;
-wire [7:0] inst9_O;
+wire signed [7:0] inst9_O;
 wire  inst10_O;
 SignedAdd8 inst0 (.I0(in0), .I1(in1), .O(inst0_O));
 SignedSub8 inst1 (.I0(inst0_O), .I1(in1), .O(inst1_O));
