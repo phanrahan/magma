@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from collections import namedtuple
-#from functools import lru_cache
 
 from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef
@@ -10,14 +9,16 @@ from pyverilog.dataflow.visit import NodeVisitor
 from .t import In, Out
 from .bit import Bit
 from .array import Array
-from .circuit import DeclareCircuit, DefineCircuit, EndCircuit
+from .circuit import DeclareCircuit, DefineCircuit
 
 __all__  = ['DeclareFromVerilog']
 __all__ += ['DeclareFromVerilogFile']
-#__all__ += ['DefineFromVerilog']
-#__all__ += ['DefineFromVerilogFile']
-#__all__ += ['DefineFromTemplatedVerilog']
-#__all__ += ['DefineFromTemplatedVerilogFile']
+__all__ += ['DeclareFromTemplatedVerilog']
+__all__ += ['DeclareFromTemplatedVerilogFile']
+__all__ += ['DefineFromVerilog']
+__all__ += ['DefineFromVerilogFile']
+__all__ += ['DefineFromTemplatedVerilog']
+__all__ += ['DefineFromTemplatedVerilogFile']
 
 
 class ModuleVisitor(NodeVisitor):
@@ -50,7 +51,7 @@ def FromVerilog(source, func):
     parser = VerilogParser()
 
     ast = parser.parse(source)
-    ast.show()
+    #ast.show()
 
     v = ModuleVisitor()
     v.visit(ast)
@@ -58,48 +59,48 @@ def FromVerilog(source, func):
     modules = []
     for node in v.nodes:
          name, args = ParseVerilogModule(node)
-         print(name, args)
          modules.append(func(name, *args))
     return modules
 
 def FromVerilogFile(file, func):
     if file is None:
         return None
-    source = open(file).read()
-    return FromVerilog(source, func)
+    verilog = open(file).read()
+    return FromVerilog(verilog, func)
 
+def FromTemplatedVerilog(templatedverilog, func, **kwargs):
+    verilog = Template(templatedverilog).render(**kwargs)
+    return FromVerilog(verilog, func)
 
-#@lru_cache(maxsize=32)
-def DeclareVerilogModule(module):
-    name, args = ParseVerilogModule(module)
-    return DeclareCircuit(name, *args)
-
-def DeclareFromVerilog(source):
-    return FromVerilog(source, DeclareVerilogModule)
-
-def DeclareFromVerilogFile(file):
-    return FromVerilogFile(file, DeclareVerilogModule)
-
-
-#@lru_cache(maxsize=32)
-def DefineVerilogModule(module):
-    name, args = ParseVerilogModule(module)
-    return DefineCircuit(name, *args)
-
-def DefineFromVerilog(source):
-    return FromVerilog(source, DefineVerilogModule)
-
-def DefineFromVerilogFile(file):
-    return FromVerilogFile(source, DefineVerilogModule)
-
-
-def DefineFromTemplatedVerilogFile(file, **kwargs):
+def FromTemplatedVerilogFile(file, func, **kwargs):
     if file is None:
         return None
+    templatedverilog = open(file).read()
+    return FromTemplatedVerilog(templatedverilog, func)
 
-    source = open(file).read()
 
-    verilog = Template(source).render(**kwargs)
+def DeclareFromVerilog(source):
+    return FromVerilog(source, DeclareCircuit)
 
-    return DefineFromVerilog(verilog)
+def DeclareFromVerilogFile(file):
+    return FromVerilogFile(file, DeclareCircuit)
+
+def DeclareFromTemplatedVerilog(source, **kwargs):
+    return FromTemplatedVerilog(source, DeclareCircuit, **kwargs)
+
+def DeclareFromTemplatedVerilogFile(file, **kwargs):
+    return FromTemplatedVerilogFile(file, DeclareCircuit, **kwargs)
+
+
+def DefineFromVerilog(source):
+    return FromVerilog(source, DefineCircuit)
+
+def DefineFromVerilogFile(file):
+    return FromVerilogFile(source, DefineCircuit)
+
+def DefineFromTemplatedVerilog(source, **kwargs):
+    return FromTemplatedVerilog(source, DefineCircuit, **kwargs)
+
+def DefineFromTemplatedVerilogFile(file, **kwargs):
+    return FromTemplatedVerilogFile(file, DefineCircuit, **kwargs)
 

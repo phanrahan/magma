@@ -24,7 +24,7 @@ from .fpga import *
 from .board import *
 
 # verilog 
-from .defineverilog import *
+from .fromverilog import *
 from .backend.verilog import *
 
 from .higher import *
