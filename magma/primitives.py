@@ -21,26 +21,19 @@ def type_check_binary_operator(operator):
         return operator(self, other)
     return type_checked_operator
 
+def declare_bit_binop(name, op):
+    circ = DeclareCircuit("{}1".format(name), 'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit))
+    @type_check_binary_operator
+    def func(self, other):
+        return circ()(self, other)
+    func.__name__ = op
+    setattr(BitType, op, func)
 
-BitAnd = DeclareCircuit("And1", 'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit))
-BitOr = DeclareCircuit("Or1", 'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit))
-BitXor = DeclareCircuit("Xor1", 'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit))
+declare_bit_binop("And", "__and__")
+declare_bit_binop("Or", "__or__")
+declare_bit_binop("Xor", "__xor__")
+
 BitInvert = DeclareCircuit("Invert1", 'I', In(Bit), 'O', Out(Bit))
-
-@type_check_binary_operator
-def __and__(self, other):
-    return BitAnd()(self, other)
-BitType.__and__ = __and__
-
-@type_check_binary_operator
-def __or__(self, other):
-    return BitOr()(self, other)
-BitType.__or__ = __or__
-
-@type_check_binary_operator
-def __xor__(self, other):
-    return BitXor()(self, other)
-BitType.__xor__ = __xor__
 
 def __invert__(self):
     return BitInvert()(self)
