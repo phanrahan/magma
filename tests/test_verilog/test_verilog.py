@@ -16,6 +16,7 @@ def test():
     compile("build/verilog", main)
     assert magma_check_files_equal(__file__, "build/verilog.v", "gold/verilog.v")
 
+@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires Python3")
 def test_from_verilog():
 
     source = '''\
@@ -32,6 +33,7 @@ endmodule'''
     assert m.name == 'CSA_4'
     assert str(m.IO) == 'Interface[a, Array(4,In(Bit)), b, Array(4,In(Bit)), c, Array(4,In(Bit)), s, Array(4,Out(Bit)), co, Array(4,Out(Bit))]'
 
+@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires Python3")
 def test_from_templated_verilog():
     source = '''\
 module CSA_${N} ( input [${N-1}:0] a,b,c, output [${N-1}:0] s, co);
