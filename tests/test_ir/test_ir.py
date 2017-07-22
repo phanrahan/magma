@@ -19,7 +19,8 @@ def test_print_ir():
     EndCircuit() 
 
     result = compile(main)
-    assert result == """And2 = DefineCircuit("And2", "I", Array(2,In(Bit)), "O", Out(Bit))  # {filename} 9
+    assert result == """\
+And2 = DefineCircuit("And2", "I", Array(2,In(Bit)), "O", Out(Bit))  # {filename} 9
 inst0 = And2()  # {filename} 10
 wire(And2.I[0], inst0.I0)  # {filename} 11
 wire(And2.I[1], inst0.I1)  # {filename} 12

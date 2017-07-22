@@ -5,7 +5,6 @@ def test():
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 
     main = DefineCircuit("main", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
-    print(main.interface)
     I = array(main.I0, main.I1)
     O = main.O
 
