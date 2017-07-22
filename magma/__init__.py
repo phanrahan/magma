@@ -37,4 +37,4 @@ else:
 from .tests import *
 import magma.primitives
 
-print('import magma')
+#print('import magma')
