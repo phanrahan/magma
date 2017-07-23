@@ -1,37 +1,6 @@
-from magma import BitType, ArrayType
-from inspect import signature
-import itertools
+from testvector import generate_complete
 
-# check that number of function arguments equals number of circuit inputs
-def check(circuit, func):
-    sig = signature(func)
-    nfuncargs = len(sig.parameters)
-
-    # count circuit inputs
-    ncircargs = 0
-    for name, port in circuit.interface.ports.items():
-        if port.isoutput():
-            ncircargs += 1
-    assert nfuncargs == ncircargs
-
-def generate_tests(circuit, func):
-    args = []
-    for name, port in circuit.interface.ports.items():
-        if port.isoutput():
-            if isinstance(port, BitType):
-                args.append([0,1])
-            elif isinstance(port, ArrayType):
-                args.append(range(1<<type(port).N))
-            else:
-                assert True, "can't test Tuples"
-
-    nargs = len(args)
-    tests = []
-    for test in itertools.product(*args):
-         test = list(test)
-         tests.append(test+[func(*test)])
-
-    return tests
+__all__ = ['harness', 'compile']
 
 def harness(circuit,tests):
 
@@ -94,14 +63,10 @@ int main(int argc, char **argv, char **env) {
 
     return source
 
-def harness_complete(circuit, func):
-    check(circuit, func)
-    tests = generate_tests(circuit, func)
-    return harness(circuit, tests)
-
-
-def compile(filename, circuit, func):
-    harness = harness_complete(circuit, func)
+def compile(filename, circuit, tests):
+    if callable(tests):
+        tests = generate_complete(circuit, tests)
+    verilatorcpp = harness(circuit, tests)
 
     with open(filename, "w") as f:
-        f.write(harness)
+        f.write(verilatorcpp)
