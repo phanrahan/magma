@@ -1,4 +1,4 @@
-from testvector import generate_complete
+from function import testvectors
 
 __all__ = ['harness', 'compile']
 
@@ -22,8 +22,8 @@ int main(int argc, char **argv, char **env) {
 '''.format(len(tests), len(tests[0]))
 
     for test in tests:
-        testvector = ', '.join([str(t) for t in test])
-        #testvector += ', {}'.format(func(*test[:nargs]))
+        testvector = ', '.join([str(int(t)) for t in test])
+        #testvector += ', {}'.format(int(func(*test[:nargs])))
         source += '''\
         {{ {} }}, 
 '''.format(testvector)
@@ -67,7 +67,7 @@ int main(int argc, char **argv, char **env) {
 
 def compile(filename, circuit, tests):
     if callable(tests):
-        tests = generate_complete(circuit, tests)
+        tests = testvectors(circuit, tests)
     verilatorcpp = harness(circuit, tests)
 
     with open(filename, "w") as f:

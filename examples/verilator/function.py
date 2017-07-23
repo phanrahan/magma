@@ -14,14 +14,14 @@ def check(circuit, func):
             ncircargs += 1
     assert nfuncargs == ncircargs
 
-def generate_complete(circuit, func):
+def testvectors(circuit, func, mode='complete'):
     check(circuit, func)
 
     args = []
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
             if isinstance(port, BitType):
-                args.append([0,1])
+                args.append([False,True])
             elif isinstance(port, ArrayType):
                 args.append(range(1<<type(port).N))
             else:
@@ -34,6 +34,3 @@ def generate_complete(circuit, func):
          tests.append(test+[func(*test)])
 
     return tests
-
-def generate_random(circuit, func):
-    pass
