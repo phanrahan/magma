@@ -4,6 +4,8 @@ __all__ = ['harness', 'compile']
 
 def harness(circuit,tests):
 
+    assert len(circuit.interface.ports.keys()) == len(tests[0])
+
     source = '''\
 #include "Vmain.h"
 #include "verilated.h"
