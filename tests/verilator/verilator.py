@@ -2,21 +2,19 @@ from magma import BitType, ArrayType
 from inspect import signature
 import itertools
 
-def harness_complete(circuit, func):
+# check that number of function arguments equals number of circuit inputs
+def check(circuit, func):
     sig = signature(func)
     nfuncargs = len(sig.parameters)
 
-    # count inputs
+    # count circuit inputs
     ncircargs = 0
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
             ncircargs += 1
     assert nfuncargs == ncircargs
 
-    # all arguments
-    nargs = len(circuit.interface)
-    ntests = 1 << (nargs-1)
-
+def generate_tests(circuit, func):
     args = []
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
@@ -27,7 +25,15 @@ def harness_complete(circuit, func):
             else:
                 assert True, "can't test Tuples"
 
-    tests = itertools.product(*args)
+    nargs = len(args)
+    tests = []
+    for test in itertools.product(*args):
+         test = list(test)
+         tests.append(test+[func(*test)])
+
+    return tests
+
+def harness(circuit,tests):
 
     source = '''\
 #include "Vmain.h"
@@ -42,11 +48,11 @@ int main(int argc, char **argv, char **env) {
 
     source += '''
     int tests[{}][{}] = {{
-'''.format(ntests, nargs)
+'''.format(len(tests), len(tests[0]))
 
     for test in tests:
-        testvector = ', '.join([str(test[i]) for i in range(nfuncargs)])
-        testvector += ', {}'.format(func(*test[:nargs]))
+        testvector = ', '.join([str(t) for t in test])
+        #testvector += ', {}'.format(func(*test[:nargs]))
         source += '''\
         {{ {} }}, 
 '''.format(testvector)
@@ -57,7 +63,7 @@ int main(int argc, char **argv, char **env) {
     source += '''
     for(int i = 0; i < {}; i++) {{
         int* test = tests[i];
-'''.format(ntests)
+'''.format(len(tests))
 
     i = 0
     for name, port in circuit.interface.ports.items():
@@ -87,6 +93,12 @@ int main(int argc, char **argv, char **env) {
 }'''
 
     return source
+
+def harness_complete(circuit, func):
+    check(circuit, func)
+    tests = generate_tests(circuit, func)
+    return harness(circuit, tests)
+
 
 def compile(filename, circuit, func):
     harness = harness_complete(circuit, func)

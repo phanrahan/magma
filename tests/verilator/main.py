@@ -1,5 +1,5 @@
 from magma import *
-from mantle.verilog.gates import And, Xor
+from mantle.verilog.gates import And, XOr
 from verilator import compile as compileverilator
 
 def f(a, b, c):
@@ -7,7 +7,7 @@ def f(a, b, c):
 
 main = DefineCircuit('main', "a", In(Bit), "b", In(Bit), "c", In(Bit), "d", Out(Bit))
 t = And(2)(main.a,main.b)
-d = Xor(2)(t,main.c)
+d = XOr(2)(t,main.c)
 wire(d,main.d)
 
 compile("main", main)
