@@ -1,6 +1,9 @@
 import sys
 import six
 import inspect
+if sys.version_info > (3, 0):
+    from functools import reduce
+import operator
 from .interface import *
 from .wire import *
 from .t import Flip
@@ -426,30 +429,16 @@ def hex(i):
 
 
 def hstr(init, nbits):
-    bits = 1 << nbits
+    bits = 1 << int(nbits)
     format = "0x" 
     nformat = []
-    for i in range(bits/4):
+    for i in range(bits//4):
         nformat.append(init%16)
-        init /= 16
+        init //= 16
     nformat.reverse()
-    return format + reduce(operator.add, map(hex, nformat))
-
-
-def hex(i):
-    if i < 10: return chr(ord('0')+i)
-    else:      return chr(ord('A')+i-10)
-
-
-def hstr(init, nbits):
-    bits = 1 << nbits
-    format = "0x" 
-    nformat = []
-    for i in range(bits/4):
-        nformat.append(init%16)
-        init /= 16
-    nformat.reverse()
-    return format + reduce(operator.add, map(hex, nformat))
+    if nformat:
+        return format + functools.reduce(operator.add, map(hex, nformat))
+    return format
 
 
 if __name__ == '__main__':

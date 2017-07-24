@@ -1,5 +1,0 @@
-my_mantle=${2:-xilinx}
-my_mantle_target=${3:-spartan6}
-export MANTLE=$my_mantle
-export MANTLE_TARGET=$my_mantle_target
-python $1.py $1

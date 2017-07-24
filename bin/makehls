@@ -1,1 +1,0 @@
-python $MAGMA_BIN/hls.py $1
