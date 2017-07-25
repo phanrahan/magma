@@ -1,0 +1,93 @@
+from .function import testvectors
+import magma.config as config
+import inspect
+import os
+import subprocess
+
+__all__ = ['harness', 'compile']
+
+def harness(circuit,tests):
+
+    assert len(circuit.interface.ports.keys()) == len(tests[0])
+
+    source = '''\
+#include "V{name}.h"
+#include "verilated.h"
+#include <cassert>
+#include <iostream>
+
+int main(int argc, char **argv, char **env) {{
+    Verilated::commandArgs(argc, argv);
+    V{name}* top = new V{name};
+'''.format(name=circuit.__name__)
+
+    source += '''
+    int tests[{}][{}] = {{
+'''.format(len(tests), len(tests[0]))
+
+    for test in tests:
+        testvector = ', '.join([str(int(t)) for t in test])
+        #testvector += ', {}'.format(int(func(*test[:nargs])))
+        source += '''\
+        {{ {} }}, 
+'''.format(testvector)
+    source += '''\
+    };
+'''
+
+    source += '''
+    for(int i = 0; i < {}; i++) {{
+        int* test = tests[i];
+'''.format(len(tests))
+
+    i = 0
+    for name, port in circuit.interface.ports.items():
+        if port.isoutput():
+            source += '''\
+        top->{} = test[{}];
+'''.format(name,i)
+        i += 1
+
+    source += '''\
+        top->eval();
+'''
+
+    i = 0
+    for name, port in circuit.interface.ports.items():
+        if port.isinput():
+            source += '''\
+        assert(top->{} == test[{}]);
+    }}
+'''.format(name,i)
+        i += 1
+
+    source += '''
+    delete top;
+    std::cout << "Success" << std::endl;
+    exit(0);
+}'''
+
+    return source
+
+def compile(basename, circuit, tests):
+    if config.get_compile_dir() == 'callee_file_dir':
+        (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
+        file_path = os.path.dirname(filename)
+        filename = os.path.join(file_path, basename)
+    else:
+        filename = basename
+
+    if callable(tests):
+        tests = testvectors(circuit, tests)
+    verilatorcpp = harness(circuit, tests)
+
+    with open(filename, "w") as f:
+        f.write(verilatorcpp)
+
+def run_verilator_test(verilog_file_name, driver_name, top_module):
+    (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
+    file_path = os.path.dirname(filename)
+    build_dir = os.path.join(file_path, 'build')
+    assert not subprocess.call('verilator -Wall -Wno-DECLFILENAME --cc {}.v --exe {}.cpp --top-module {}'.format(verilog_file_name, driver_name, top_module), cwd=build_dir, shell=True)
+    assert not subprocess.call('make -C obj_dir -j -f V{0}.mk V{0}'.format(top_module), cwd=build_dir, shell=True)
+    assert not subprocess.call('./obj_dir/V{}'.format(top_module), cwd=build_dir, shell=True)

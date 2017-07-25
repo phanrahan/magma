@@ -26,7 +26,7 @@ def type_check_binary_operator(operator):
 
 def declare_bit_binop(name, op):
     circ = DeclareCircuit("{}".format(name),
-                          'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit))
+                          'in0', In(Bit), 'in1', In(Bit), 'out', Out(Bit))
 
     @type_check_binary_operator
     def func(self, other):
@@ -39,7 +39,7 @@ declare_bit_binop("coreir_and", "__and__")
 declare_bit_binop("coreir_or", "__or__")
 declare_bit_binop("coreir_xor", "__xor__")
 
-BitInvert = DeclareCircuit("coreir_not", 'I', In(Bit), 'O', Out(Bit))
+BitInvert = DeclareCircuit("coreir_not", 'in', In(Bit), 'out', Out(Bit))
 
 
 def __invert__(self):
@@ -54,7 +54,7 @@ def declare_bits_binop(name, op):
     def Declare(N):
         T = Bits(N)
         return DeclareCircuit("{}".format(name),
-                              'I0', In(T), 'I1', In(T), 'O', Out(T))
+                              'in0', In(T), 'in1', In(T), 'out', Out(T))
 
     @type_check_binary_operator
     def func(self, other):
@@ -71,7 +71,7 @@ declare_bits_binop("coreir_xor", "__xor__")
 @lru_cache(maxsize=None)
 def DeclareInvertN(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_not", 'I', In(T), 'O', Out(T))
+    return DeclareCircuit("coreir_not", 'I', In(T), 'out', Out(T))
 
 
 def __invert__(self):
@@ -84,7 +84,7 @@ BitsType.__invert__ = __invert__
 @lru_cache(maxsize=None)
 def DeclareShiftLeft(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_shl", 'I', In(T), 'O', Out(T))
+    return DeclareCircuit("coreir_shl", 'I', In(T), 'out', Out(T))
 
 
 @lru_cache(maxsize=None)
@@ -92,7 +92,7 @@ def DeclareDynamicShiftLeft(N):
     T = Bits(N)
     i1_type = Bits((N - 1).bit_length())
     return DeclareCircuit("coreir_dshl",
-                          'I0', In(T), 'I1', In(i1_type), 'O', Out(T))
+                          'in0', In(T), 'in1', In(i1_type), 'out', Out(T))
 
 
 def __lshift__(self, other):
@@ -111,7 +111,7 @@ BitsType.__lshift__ = __lshift__
 @lru_cache(maxsize=None)
 def DeclareShiftRight(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_lshr", 'I', In(T), 'O', Out(T))
+    return DeclareCircuit("coreir_lshr", 'I', In(T), 'out', Out(T))
 
 
 @lru_cache(maxsize=None)
@@ -119,7 +119,7 @@ def DeclareDynamicShiftRight(N):
     T = Bits(N)
     i1_type = Bits((N - 1).bit_length())
     return DeclareCircuit("coreir_dlshr",
-                          'I0', In(T), 'I1', In(i1_type), 'O', Out(T))
+                          'in0', In(T), 'in1', In(i1_type), 'out', Out(T))
 
 
 def __rshift__(self, other):
@@ -140,8 +140,8 @@ def declare_binop(name, _type, type_type, op, out_type=None):
     def Declare(N):
         T = _type(N)
         return DeclareCircuit("{}".format(name),
-                              'I0', In(T), 'I1', In(T),
-                              'O', Out(out_type if out_type else T))
+                              'in0', In(T), 'in1', In(T),
+                              'out', Out(out_type if out_type else T))
 
     @type_check_binary_operator
     def func(self, other):

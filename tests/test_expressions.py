@@ -1,5 +1,20 @@
 from magma import *
 from magma.backend import verilog
+from magma.verilator.verilator import compile as compileverilator
+from magma.verilator.verilator import run_verilator_test
+import subprocess
+import numpy as np
+
+def insert_coreir_stdlib_include(verilog_file):
+    file_path = os.path.dirname(__file__)
+    verilog_file = os.path.join(file_path, verilog_file)
+
+    with open(verilog_file, "r") as f:
+        contents = f.readlines()
+
+    contents.insert(0, "`include \"stdlib.v\"\n")
+    with open(verilog_file, "w") as f:
+        f.write("".join(contents))
 
 def test_1_bit_logic():
     class TestCircuit(Circuit):
@@ -7,10 +22,16 @@ def test_1_bit_logic():
         IO = ["a", In(Bit), "b", In(Bit), "c", In(Bit), "d", Out(Bit)]
         @classmethod
         def definition(circuit):
-            d = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c)
+            d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_1_bit_logic", TestCircuit)
     assert magma_check_files_equal(__file__, "build/test_1_bit_logic.v", "gold/test_1_bit_logic.v")
+    def f(a, b, c):
+        return (a & b) | (b ^ c)
+
+    compileverilator('build/sim_test_1_bit_logic_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_1_bit_logic.v")
+    run_verilator_test('test_1_bit_logic', 'sim_test_1_bit_logic_main', 'test_circuit')
 
 
 def test_bits_logic():
@@ -19,7 +40,6 @@ def test_bits_logic():
         IO = ["a", In(Bits(8)), "b", In(Bits(8)), "c", In(Bits(8)), "d", In(Bits(3)), "e", Out(Bits(8))]
         @classmethod
         def definition(circuit):
-            print(type(circuit.a))
             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
             wire(e, circuit.e)
     compile("build/test_bits_logic", TestCircuit)
@@ -32,7 +52,6 @@ def test_uint_logic():
         IO = ["a", In(UInt(8)), "b", In(UInt(8)), "c", In(UInt(8)), "d", In(UInt(3)), "e", Out(UInt(8))]
         @classmethod
         def definition(circuit):
-            print(type(circuit.a))
             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
             wire(e, circuit.e)
     compile("build/test_uint_logic", TestCircuit)
