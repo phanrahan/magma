@@ -16,4 +16,4 @@ setup(
         "magma.backend"
     ],
     install_requires=reqs
-    )
+)
