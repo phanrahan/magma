@@ -1,5 +1,9 @@
 from magma import BitType, ArrayType
-from inspect import signature
+import sys
+if sys.version_info < (3, 3):
+    from funcsigs import signature
+else:
+    from inspect import signature
 from itertools import product
 
 # check that number of function arguments equals number of circuit inputs
