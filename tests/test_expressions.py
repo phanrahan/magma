@@ -2,8 +2,6 @@ from magma import *
 from magma.backend import verilog
 from magma.verilator.verilator import compile as compileverilator
 from magma.verilator.verilator import run_verilator_test
-import subprocess
-import numpy as np
 
 def insert_coreir_stdlib_include(verilog_file):
     file_path = os.path.dirname(__file__)
