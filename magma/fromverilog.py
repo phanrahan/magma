@@ -56,10 +56,17 @@ def FromVerilog(source, func):
     v = ModuleVisitor()
     v.visit(ast)
 
+    if func == DefineCircuit:
+        # only allow a single verilog module
+        assert len(v.nodes) == 1
     modules = []
     for node in v.nodes:
          name, args = ParseVerilogModule(node)
-         modules.append(func(name, *args))
+         circuit = func(name, *args)
+         if func == DefineCircuit:
+             # inline source
+             circuit.verilogFile = source
+         modules.append(circuit)
     return modules
 
 def FromVerilogFile(file, func):
@@ -76,7 +83,7 @@ def FromTemplatedVerilogFile(file, func, **kwargs):
     if file is None:
         return None
     templatedverilog = open(file).read()
-    return FromTemplatedVerilog(templatedverilog, func)
+    return FromTemplatedVerilog(templatedverilog, func, **kwargs)
 
 
 def DeclareFromVerilog(source):
