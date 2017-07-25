@@ -9,20 +9,9 @@ def test_1_bit_logic():
         def definition(circuit):
             d = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c)
             wire(d, circuit.d)
-    assert verilog.compile(TestCircuit) == """
-module test_circuit (input  a, input  b, input  c, output  d);
-wire  inst0_O;
-wire  inst1_O;
-wire  inst2_O;
-wire  inst3_O;
-coreir_and #(.WIDTH(1)) inst0 (.I0(a), .I1(b), .O(inst0_O));
-coreir_not #(.WIDTH(1)) inst1 (.I(c), .O(inst1_O));
-coreir_xor #(.WIDTH(1)) inst2 (.I0(b), .I1(inst1_O), .O(inst2_O));
-coreir_or #(.WIDTH(1)) inst3 (.I0(inst0_O), .I1(inst2_O), .O(inst3_O));
-assign d = inst3_O;
-endmodule
+    compile("build/test_1_bit_logic", TestCircuit)
+    assert magma_check_files_equal(__file__, "build/test_1_bit_logic.v", "gold/test_1_bit_logic.v")
 
-""".lstrip()
 
 def test_bits_logic():
     class TestCircuit(Circuit):
@@ -33,28 +22,8 @@ def test_bits_logic():
             print(type(circuit.a))
             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
             wire(e, circuit.e)
-    assert verilog.compile(TestCircuit) == """
-module test_circuit (input [7:0] a, input [7:0] b, input [7:0] c, input [2:0] d, output [7:0] e);
-wire [7:0] inst0_O;
-wire [7:0] inst1_O;
-wire [7:0] inst2_O;
-wire [7:0] inst3_O;
-wire [7:0] inst4_O;
-wire [7:0] inst5_O;
-wire [7:0] inst6_O;
-wire [7:0] inst7_O;
-coreir_and #(.WIDTH(8)) inst0 (.I0(a), .I1(b), .O(inst0_O));
-coreir_not #(.WIDTH(8)) inst1 (.I(c), .O(inst1_O));
-coreir_xor #(.WIDTH(8)) inst2 (.I0(b), .I1(inst1_O), .O(inst2_O));
-coreir_lshr #(.SHIFTBITS(3), .WIDTH(8)) inst3 (.I(inst2_O), .O(inst3_O));
-coreir_dlshr #(.WIDTH(8)) inst4 (.I0(inst3_O), .I1(d), .O(inst4_O));
-coreir_shl #(.SHIFTBITS(3), .WIDTH(8)) inst5 (.I(inst4_O), .O(inst5_O));
-coreir_dshl #(.WIDTH(8)) inst6 (.I0(inst5_O), .I1(d), .O(inst6_O));
-coreir_or #(.WIDTH(8)) inst7 (.I0(inst0_O), .I1(inst6_O), .O(inst7_O));
-assign e = inst7_O;
-endmodule
-
-""".lstrip()
+    compile("build/test_bits_logic", TestCircuit)
+    assert magma_check_files_equal(__file__, "build/test_bits_logic.v", "gold/test_bits_logic.v")
 
 
 def test_uint_logic():
@@ -66,28 +35,8 @@ def test_uint_logic():
             print(type(circuit.a))
             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
             wire(e, circuit.e)
-    assert verilog.compile(TestCircuit) == """
-module test_circuit (input [7:0] a, input [7:0] b, input [7:0] c, input [2:0] d, output [7:0] e);
-wire [7:0] inst0_O;
-wire [7:0] inst1_O;
-wire [7:0] inst2_O;
-wire [7:0] inst3_O;
-wire [7:0] inst4_O;
-wire [7:0] inst5_O;
-wire [7:0] inst6_O;
-wire [7:0] inst7_O;
-coreir_and #(.WIDTH(8)) inst0 (.I0(a), .I1(b), .O(inst0_O));
-coreir_not #(.WIDTH(8)) inst1 (.I(c), .O(inst1_O));
-coreir_xor #(.WIDTH(8)) inst2 (.I0(b), .I1(inst1_O), .O(inst2_O));
-coreir_lshr #(.SHIFTBITS(3), .WIDTH(8)) inst3 (.I(inst2_O), .O(inst3_O));
-coreir_dlshr #(.WIDTH(8)) inst4 (.I0(inst3_O), .I1(d), .O(inst4_O));
-coreir_shl #(.SHIFTBITS(3), .WIDTH(8)) inst5 (.I(inst4_O), .O(inst5_O));
-coreir_dshl #(.WIDTH(8)) inst6 (.I0(inst5_O), .I1(d), .O(inst6_O));
-coreir_or #(.WIDTH(8)) inst7 (.I0(inst0_O), .I1(inst6_O), .O(inst7_O));
-assign e = inst7_O;
-endmodule
-
-""".lstrip()
+    compile("build/test_uint_logic", TestCircuit)
+    assert magma_check_files_equal(__file__, "build/test_uint_logic.v", "gold/test_uint_logic.v")
 
 
 def test_uint_arithmetic():
@@ -104,34 +53,8 @@ def test_uint_arithmetic():
             f = a - c >= circuit.in0
             g = b + c <= int2seq(1, 8)
             wire(g, circuit.out)
-    assert verilog.compile(TestCircuit) == """
-module test_circuit (input [7:0] in0, input [7:0] in1, output  out);
-wire [7:0] inst0_O;
-wire [7:0] inst1_O;
-wire [7:0] inst2_O;
-wire [7:0] inst3_O;
-wire  inst4_O;
-wire [7:0] inst5_O;
-wire  inst6_O;
-wire [7:0] inst7_O;
-wire  inst8_O;
-wire [7:0] inst9_O;
-wire  inst10_O;
-coreir_add #(.WIDTH(8)) inst0 (.I0(in0), .I1(in1), .O(inst0_O));
-coreir_sub #(.WIDTH(8)) inst1 (.I0(inst0_O), .I1(in1), .O(inst1_O));
-coreir_mul #(.WIDTH(8)) inst2 (.I0(inst0_O), .I1(in0), .O(inst2_O));
-coreir_div #(.WIDTH(8)) inst3 (.I0(inst1_O), .I1(inst2_O), .O(inst3_O));
-coreir_ugt #(.WIDTH(8)) inst4 (.I0(inst3_O), .I1(in0), .O(inst4_O));
-coreir_mul #(.WIDTH(8)) inst5 (.I0(inst1_O), .I1(inst2_O), .O(inst5_O));
-coreir_ult #(.WIDTH(8)) inst6 (.I0(inst5_O), .I1({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b1}), .O(inst6_O));
-coreir_sub #(.WIDTH(8)) inst7 (.I0(inst0_O), .I1(inst2_O), .O(inst7_O));
-coreir_uge #(.WIDTH(8)) inst8 (.I0(inst7_O), .I1(in0), .O(inst8_O));
-coreir_add #(.WIDTH(8)) inst9 (.I0(inst1_O), .I1(inst2_O), .O(inst9_O));
-coreir_ule #(.WIDTH(8)) inst10 (.I0(inst9_O), .I1({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b1}), .O(inst10_O));
-assign out = inst10_O;
-endmodule
-
-""".lstrip()
+    compile("build/test_uint_arithmetic", TestCircuit)
+    assert magma_check_files_equal(__file__, "build/test_uint_arithmetic.v", "gold/test_uint_arithmetic.v")
 
 
 # def test_sint_logic():
