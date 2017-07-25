@@ -107,6 +107,7 @@ def compileinstance(self):
            if isinstance(v, tuple):
                v = hstr(v[0], v[1])
            params.append(arg(k, v))
+    params = sorted(params)
 
     #s = '(* loc="%d,%d/%d" *)\n' % self.loc if self.loc else ""
 
