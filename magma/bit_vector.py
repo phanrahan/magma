@@ -54,5 +54,29 @@ class BitVector:
         mask = (1 << self.num_bits) - 1
         return BitVector(shift_result & mask, num_bits=self.num_bits)
 
+    def __add__(self, other):
+        assert isinstance(other, BitVector)
+        result = self._value + other._value
+        mask = (1 << self.num_bits) - 1
+        return BitVector(result & mask, num_bits=self.num_bits)
+
+    def __sub__(self, other):
+        assert isinstance(other, BitVector)
+        result = self._value - other._value
+        mask = (1 << self.num_bits) - 1
+        return BitVector(result & mask, num_bits=self.num_bits)
+
+    def __mul__(self, other):
+        assert isinstance(other, BitVector)
+        result = self._value * other._value
+        mask = (1 << self.num_bits) - 1
+        return BitVector(result & mask, num_bits=self.num_bits)
+
+    def __div__(self, other):
+        assert isinstance(other, BitVector)
+        result = self._value / other._value
+        mask = (1 << self.num_bits) - 1
+        return BitVector(result & mask, num_bits=self.num_bits)
+
     def as_int(self):
         return self._value

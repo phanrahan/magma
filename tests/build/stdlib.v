@@ -44,6 +44,14 @@ module coreir_and #(parameter WIDTH=16) (
   assign out = in0 & in1;
 endmodule
 
+module coreir_mul #(parameter WIDTH=16) (
+  input [WIDTH-1:0] in0,
+  input [WIDTH-1:0] in1,
+  output [WIDTH-1:0] out
+);
+  assign out = in0 * in1;
+endmodule
+
 module coreir_add #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
@@ -82,6 +90,14 @@ module coreir_dlshr #(parameter WIDTH=16) (
   output [WIDTH-1:0] out
 );
   assign out = in0 >> in1;
+endmodule
+
+module coreir_udiv #(parameter WIDTH=16) (
+  input [WIDTH-1:0] in0,
+  input [WIDTH-1:0] in1,
+  output [WIDTH-1:0] out
+);
+  assign out = in0 / in1;
 endmodule
 
 module coreir_dashr #(parameter WIDTH=16) (
