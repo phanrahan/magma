@@ -71,7 +71,7 @@ declare_bits_binop("coreir_xor", "__xor__")
 @lru_cache(maxsize=None)
 def DeclareInvertN(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_not", 'I', In(T), 'out', Out(T))
+    return DeclareCircuit("coreir_not", 'in', In(T), 'out', Out(T))
 
 
 def __invert__(self):
@@ -84,15 +84,15 @@ BitsType.__invert__ = __invert__
 @lru_cache(maxsize=None)
 def DeclareShiftLeft(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_shl", 'I', In(T), 'out', Out(T))
+    return DeclareCircuit("coreir_shl", 'in', In(T), 'out', Out(T))
 
 
 @lru_cache(maxsize=None)
 def DeclareDynamicShiftLeft(N):
     T = Bits(N)
-    i1_type = Bits((N - 1).bit_length())
+    # i1_type = Bits((N - 1).bit_length())
     return DeclareCircuit("coreir_dshl",
-                          'in0', In(T), 'in1', In(i1_type), 'out', Out(T))
+                          'in0', In(T), 'in1', In(T), 'out', Out(T))
 
 
 def __lshift__(self, other):
@@ -111,15 +111,15 @@ BitsType.__lshift__ = __lshift__
 @lru_cache(maxsize=None)
 def DeclareShiftRight(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_lshr", 'I', In(T), 'out', Out(T))
+    return DeclareCircuit("coreir_lshr", 'in', In(T), 'out', Out(T))
 
 
 @lru_cache(maxsize=None)
 def DeclareDynamicShiftRight(N):
     T = Bits(N)
-    i1_type = Bits((N - 1).bit_length())
+    # i1_type = Bits((N - 1).bit_length())
     return DeclareCircuit("coreir_dlshr",
-                          'in0', In(T), 'in1', In(i1_type), 'out', Out(T))
+                          'in0', In(T), 'in1', In(T), 'out', Out(T))
 
 
 def __rshift__(self, other):

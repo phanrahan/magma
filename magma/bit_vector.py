@@ -31,5 +31,23 @@ class BitVector:
         assert isinstance(other, BitVector)
         return BitVector(self._value ^ other._value, num_bits=self.num_bits)
 
+    def __lshift__(self, other):
+        if isinstance(other, int):
+            shift_result = self._value << other
+        else:
+            assert isinstance(other, BitVector)
+            shift_result = self._value << other._value
+        mask = (1 << self.num_bits) - 1
+        return BitVector(shift_result & mask, num_bits=self.num_bits)
+
+    def __rshift__(self, other):
+        if isinstance(other, int):
+            shift_result = self._value >> other
+        else:
+            assert isinstance(other, BitVector)
+            shift_result = self._value >> other._value
+        mask = (1 << self.num_bits) - 1
+        return BitVector(shift_result & mask, num_bits=self.num_bits)
+
     def as_int(self):
         return self._value

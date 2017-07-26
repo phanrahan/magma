@@ -38,8 +38,6 @@ def test_bits_logic():
         IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", In(Bits(4)), "d", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            # e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
-            # wire(e, circuit.e)
             d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_bits_logic", TestCircuit)
@@ -52,34 +50,60 @@ def test_bits_logic():
     run_verilator_test('test_bits_logic', 'sim_test_bits_logic_main', 'test_circuit')
 
 
-def test_uint_logic():
+def test_bits_shift():
     class TestCircuit(Circuit):
         name = "test_circuit"
-        IO = ["a", In(UInt(8)), "b", In(UInt(8)), "c", In(UInt(8)), "d", In(UInt(3)), "e", Out(UInt(8))]
+        IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", In(Bits(4)), "d", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
-            wire(e, circuit.e)
-    compile("build/test_uint_logic", TestCircuit)
-    assert magma_check_files_equal(__file__, "build/test_uint_logic.v", "gold/test_uint_logic.v")
+            tmp1 = circuit.a << 2
+            tmp2 = circuit.a >> 3
+            tmp3 = circuit.a << circuit.b
+            tmp4 = circuit.a >> circuit.c
+            d = tmp1 & tmp2 ^ tmp3 | tmp4
+            wire(d, circuit.d)
+    compile("build/test_bits_shift", TestCircuit)
+    assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b, c):
+        tmp1 = a << 2
+        tmp2 = a >> 3
+        tmp3 = a << b
+        tmp4 = a >> c
+        return tmp1 & tmp2 ^ tmp3 | tmp4
+
+    compileverilator('build/sim_test_bits_shift_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_bits_shift.v")
+    run_verilator_test('test_bits_shift', 'sim_test_bits_shift_main', 'test_circuit')
 
 
-def test_uint_arithmetic():
-    class TestCircuit(Circuit):
-        name = "test_circuit"
-        IO = ["in0", In(UInt(8)), "in1", In(UInt(8)), "out", Out(Bit)]
-        @classmethod
-        def definition(circuit):
-            a = circuit.in0 + circuit.in1
-            b = a - circuit.in1
-            c = a * circuit.in0
-            d = b / c > circuit.in0
-            e = b * c < int2seq(1, 8)
-            f = a - c >= circuit.in0
-            g = b + c <= int2seq(1, 8)
-            wire(g, circuit.out)
-    compile("build/test_uint_arithmetic", TestCircuit)
-    assert magma_check_files_equal(__file__, "build/test_uint_arithmetic.v", "gold/test_uint_arithmetic.v")
+# def test_uint_logic():
+#     class TestCircuit(Circuit):
+#         name = "test_circuit"
+#         IO = ["a", In(UInt(8)), "b", In(UInt(8)), "c", In(UInt(8)), "d", In(UInt(3)), "e", Out(UInt(8))]
+#         @classmethod
+#         def definition(circuit):
+#             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
+#             wire(e, circuit.e)
+#     compile("build/test_uint_logic", TestCircuit)
+#     assert magma_check_files_equal(__file__, "build/test_uint_logic.v", "gold/test_uint_logic.v")
+
+
+# def test_uint_arithmetic():
+#     class TestCircuit(Circuit):
+#         name = "test_circuit"
+#         IO = ["in0", In(UInt(8)), "in1", In(UInt(8)), "out", Out(Bit)]
+#         @classmethod
+#         def definition(circuit):
+#             a = circuit.in0 + circuit.in1
+#             b = a - circuit.in1
+#             c = a * circuit.in0
+#             d = b / c > circuit.in0
+#             e = b * c < int2seq(1, 8)
+#             f = a - c >= circuit.in0
+#             g = b + c <= int2seq(1, 8)
+#             wire(g, circuit.out)
+#     compile("build/test_uint_arithmetic", TestCircuit)
+#     assert magma_check_files_equal(__file__, "build/test_uint_arithmetic.v", "gold/test_uint_arithmetic.v")
 
 
 # def test_sint_logic():
