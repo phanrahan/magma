@@ -1,4 +1,3 @@
-import types
 from collections import OrderedDict
 from .wire import wiredefaultclock
 

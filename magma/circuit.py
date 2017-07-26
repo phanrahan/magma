@@ -437,7 +437,7 @@ def hstr(init, nbits):
         init //= 16
     nformat.reverse()
     if nformat:
-        return format + functools.reduce(operator.add, map(hex, nformat))
+        return format + reduce(operator.add, map(hex, nformat))
     return format
 
 
