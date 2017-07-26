@@ -78,5 +78,21 @@ class BitVector:
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
+    def __lt__(self, other):
+        assert isinstance(other, BitVector)
+        return BitVector(int(self._value < other._value), num_bits=1)
+
+    def __le__(self, other):
+        assert isinstance(other, BitVector)
+        return BitVector(int(self._value <= other._value), num_bits=1)
+
+    def __gt__(self, other):
+        assert isinstance(other, BitVector)
+        return BitVector(int(self._value > other._value), num_bits=1)
+
+    def __ge__(self, other):
+        assert isinstance(other, BitVector)
+        return BitVector(int(self._value >= other._value), num_bits=1)
+
     def as_int(self):
         return self._value

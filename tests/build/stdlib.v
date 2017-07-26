@@ -131,6 +131,13 @@ module coreir_shl #(parameter WIDTH=16,parameter SHIFTBITS=1) (
   assign out = in << SHIFTBITS;
 endmodule
 
+module coreir_ashr #(parameter WIDTH=16,parameter SHIFTBITS=1) (
+  input [WIDTH-1:0] in,
+  output [WIDTH-1:0] out
+);
+  assign out = in >>> SHIFTBITS;
+endmodule
+
 //binaryReduce ops
 module coreir_uge #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
@@ -164,6 +171,14 @@ module coreir_sle #(parameter WIDTH=16) (
   assign out = $signed(in0) <= $signed(in1);
 endmodule
 
+module coreir_ule #(parameter WIDTH=16) (
+  input [WIDTH-1:0] in0,
+  input [WIDTH-1:0] in1,
+  output out
+);
+  assign out = in0 <= in1;
+endmodule
+
 module coreir_eq #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
@@ -185,7 +200,7 @@ module coreir_ult #(parameter WIDTH=16) (
   input [WIDTH-1:0] in1,
   output out
 );
-  assign out = in0 <= in1;
+  assign out = in0 < in1;
 endmodule
 
 module coreir_ugt #(parameter WIDTH=16) (

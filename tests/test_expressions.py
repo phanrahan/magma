@@ -203,6 +203,78 @@ def test_uint_div():
     run_verilator_test('test_uint_div', 'sim_test_uint_div_main', 'test_uint_div')
 
 
+def test_uint_lt():
+    class TestCircuit(Circuit):
+        name = "test_uint_lt"
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a < circuit.b
+            wire(c, circuit.c)
+    compile("build/test_uint_lt", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a < b
+
+    compileverilator('build/sim_test_uint_lt_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_uint_lt.v")
+    run_verilator_test('test_uint_lt', 'sim_test_uint_lt_main', 'test_uint_lt')
+
+
+def test_uint_le():
+    class TestCircuit(Circuit):
+        name = "test_uint_le"
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a <= circuit.b
+            wire(c, circuit.c)
+    compile("build/test_uint_le", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a <= b
+
+    compileverilator('build/sim_test_uint_le_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_uint_le.v")
+    run_verilator_test('test_uint_le', 'sim_test_uint_le_main', 'test_uint_le')
+
+
+def test_uint_gt():
+    class TestCircuit(Circuit):
+        name = "test_uint_gt"
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a > circuit.b
+            wire(c, circuit.c)
+    compile("build/test_uint_gt", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a > b
+
+    compileverilator('build/sim_test_uint_gt_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_uint_gt.v")
+    run_verilator_test('test_uint_gt', 'sim_test_uint_gt_main', 'test_uint_gt')
+
+
+def test_uint_ge():
+    class TestCircuit(Circuit):
+        name = "test_uint_ge"
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a >= circuit.b
+            wire(c, circuit.c)
+    compile("build/test_uint_ge", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a >= b
+
+    compileverilator('build/sim_test_uint_ge_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_uint_ge.v")
+    run_verilator_test('test_uint_ge', 'sim_test_uint_ge_main', 'test_uint_ge')
+
+
 # def test_uint_logic():
 #     class TestCircuit(Circuit):
 #         name = "test_circuit4"
