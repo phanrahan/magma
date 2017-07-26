@@ -28,7 +28,8 @@ def testvectors(circuit, func, mode='complete'):
             if isinstance(port, BitType):
                 args.append([BitVector(0),BitVector(1)])
             elif isinstance(port, ArrayType):
-                args.append(BitVector(x) for x in range(1<<type(port).N))
+                num_bits = type(port).N
+                args.append(BitVector(x, num_bits=num_bits) for x in range(1<<num_bits))
             else:
                 assert True, "can't test Tuples"
 

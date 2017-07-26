@@ -4,3 +4,4 @@ mako
 pyverilog
 backports-functools-lru-cache; python_version < '3'
 funcsigs; python_version < '3.3'
+numpy

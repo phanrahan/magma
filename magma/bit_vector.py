@@ -1,5 +1,6 @@
 from magma.compatibility import IntegerTypes, StringTypes
 from magma.bits import seq2int, int2seq
+import numpy as np
 
 class BitVector:
     def __init__(self, value=0, num_bits=None):
@@ -41,11 +42,15 @@ class BitVector:
         return BitVector(shift_result & mask, num_bits=self.num_bits)
 
     def __rshift__(self, other):
+        """
+        numpy.right_shift is a logical right shift, Python defaults to arithmetic
+        .item() returns a python type
+        """
         if isinstance(other, int):
-            shift_result = self._value >> other
+            shift_result = np.right_shift(self._value,  other).item()
         else:
             assert isinstance(other, BitVector)
-            shift_result = self._value >> other._value
+            shift_result = np.right_shift(self._value,  other._value).item()
         mask = (1 << self.num_bits) - 1
         return BitVector(shift_result & mask, num_bits=self.num_bits)
 
