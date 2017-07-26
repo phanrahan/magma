@@ -1,4 +1,5 @@
 from magma import BitType, ArrayType
+from magma.bit_vector import BitVector
 import sys
 if sys.version_info < (3, 3):
     from funcsigs import signature
@@ -25,9 +26,9 @@ def testvectors(circuit, func, mode='complete'):
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
             if isinstance(port, BitType):
-                args.append([False,True])
+                args.append([BitVector(0),BitVector(1)])
             elif isinstance(port, ArrayType):
-                args.append(range(1<<type(port).N))
+                args.append(BitVector(x) for x in range(1<<type(port).N))
             else:
                 assert True, "can't test Tuples"
 

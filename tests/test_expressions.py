@@ -35,13 +35,21 @@ def test_1_bit_logic():
 def test_bits_logic():
     class TestCircuit(Circuit):
         name = "test_circuit"
-        IO = ["a", In(Bits(8)), "b", In(Bits(8)), "c", In(Bits(8)), "d", In(Bits(3)), "e", Out(Bits(8))]
+        IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", In(Bits(4)), "d", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
-            wire(e, circuit.e)
+            # e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
+            # wire(e, circuit.e)
+            d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
+            wire(d, circuit.d)
     compile("build/test_bits_logic", TestCircuit)
-    assert magma_check_files_equal(__file__, "build/test_bits_logic.v", "gold/test_bits_logic.v")
+    # assert magma_check_files_equal(__file__, "build/test_bits_logic.v", "gold/test_bits_logic.v")
+    def f(a, b, c):
+        return (a & b) | (b ^ c)
+
+    compileverilator('build/sim_test_bits_logic_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_bits_logic.v")
+    run_verilator_test('test_bits_logic', 'sim_test_bits_logic_main', 'test_circuit')
 
 
 def test_uint_logic():

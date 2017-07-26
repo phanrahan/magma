@@ -26,7 +26,7 @@ int main(int argc, char **argv, char **env) {{
 '''.format(len(tests), len(tests[0]))
 
     for test in tests:
-        testvector = ', '.join([str(int(t)) for t in test])
+        testvector = ', '.join([str(t.as_int()) for t in test])
         #testvector += ', {}'.format(int(func(*test[:nargs])))
         source += '''\
         {{ {} }}, 
