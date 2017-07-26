@@ -43,7 +43,7 @@ def test_bits_logic():
             d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_bits_logic", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_logic.v", "gold/test_bits_logic.v")
+    assert magma_check_files_equal(__file__, "build/test_bits_logic.v", "gold/test_bits_logic.v")
     def f(a, b, c):
         return (a & b) | (b ^ c)
 
