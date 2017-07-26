@@ -68,20 +68,6 @@ module coreir_sub #(parameter WIDTH=16) (
   assign out = in0 - in1;
 endmodule
 
-module coreir_lshr #(parameter WIDTH=16, SHIFTBITS=1) (
-  input [WIDTH-1:0] in,
-  output [WIDTH-1:0] out
-);
-  assign out = in >> SHIFTBITS;
-endmodule
-
-module coreir_shl #(parameter WIDTH=16, SHIFTBITS=1) (
-  input [WIDTH-1:0] in,
-  output [WIDTH-1:0] out
-);
-  assign out = in << SHIFTBITS;
-endmodule
-
 module coreir_dshl #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
@@ -112,6 +98,21 @@ module coreir_or #(parameter WIDTH=16) (
   output [WIDTH-1:0] out
 );
   assign out = in0 | in1;
+endmodule
+
+//static_shift ops
+module coreir_lshr #(parameter WIDTH=16,parameter SHIFTBITS=1) (
+  input [WIDTH-1:0] in,
+  output [WIDTH-1:0] out
+);
+  assign out = in >> SHIFTBITS;
+endmodule
+
+module coreir_shl #(parameter WIDTH=16,parameter SHIFTBITS=1) (
+  input [WIDTH-1:0] in,
+  output [WIDTH-1:0] out
+);
+  assign out = in << SHIFTBITS;
 endmodule
 
 //binaryReduce ops
