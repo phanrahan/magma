@@ -1,15 +1,15 @@
-from magma import *
+from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip
 
-def test():
+def test_bit():
     assert isinstance(Bit,    BitKind)
     assert isinstance(BitIn,  BitKind)
     assert isinstance(BitOut, BitKind)
 
-    assert not Bit._isinput()
-    assert not Bit._isoutput()
+    assert not Bit.isinput()
+    assert not Bit.isoutput()
 
-    assert BitIn._isinput()
-    assert BitOut._isoutput()
+    assert BitIn.isinput()
+    assert BitOut.isoutput()
 
     assert Bit == Bit
     assert BitIn == BitIn
@@ -22,3 +22,46 @@ def test():
     assert str(Bit) == 'Bit'
     assert str(BitIn) == 'In(Bit)'
     assert str(BitOut) == 'Out(Bit)'
+
+def test_bit_flip():
+    bout = Out(Bit)
+    bin = In(Bit)
+    assert bout == BitOut
+    assert bin == BitIn
+
+    bin = In(BitIn)
+    bout = Out(BitIn)
+    assert bout == BitOut
+    assert bin == BitIn
+
+    bin = In(BitOut)
+    bout = Out(BitOut)
+    assert bout == BitOut
+    assert bin == BitIn
+
+    bin = Flip(BitOut)
+    bout = Flip(BitIn)
+    assert bout == BitOut
+    assert bin == BitIn
+
+def test_bit_val():
+    b = BitIn(name="a")
+    assert isinstance(b, BitType)
+    assert isinstance(b, BitIn)
+    assert b.isinput()
+    assert str(b) == "a"
+    assert isinstance(b, BitIn)
+    assert b.isinput()
+
+    b = BitOut(name="a")
+    assert b.isoutput()
+    assert str(b) == "a"
+    assert isinstance(b, BitOut)
+    assert b.isoutput()
+
+    b = Bit(name="a")
+    assert str(b) == "a"
+    assert isinstance(b, Bit)
+    assert not b.isinput()
+    assert not b.isoutput()
+    assert not b.isinout()
