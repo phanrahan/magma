@@ -24,7 +24,6 @@ def test_1_bit_logic():
             d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_1_bit_logic", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_1_bit_logic.v", "gold/test_1_bit_logic.v")
     def f(a, b, c):
         return (a & b) | (b ^ c)
 
@@ -42,7 +41,6 @@ def test_bits_logic():
             d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_bits_logic", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_logic.v", "gold/test_bits_logic.v")
     def f(a, b, c):
         return (a & b) | (b ^ c)
 
@@ -66,7 +64,6 @@ def test_bits_lshift():
             # wire(c, circuit.c)
             wire(b, circuit.b)
     compile("build/test_bits_lshift", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a):
         return a << 2
         # tmp3 = a << b
@@ -87,7 +84,6 @@ def test_bits_dlshift():
             c = circuit.a << circuit.b
             wire(c, circuit.c)
     compile("build/test_bits_dlshift", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a << b
 
@@ -105,7 +101,6 @@ def test_bits_rshift():
             b = circuit.a >> 3
             wire(b, circuit.b)
     compile("build/test_bits_rshift", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a):
         return a >> 3
 
@@ -123,7 +118,6 @@ def test_bits_drshift():
             c = circuit.a >> circuit.b
             wire(c, circuit.c)
     compile("build/test_bits_drshift", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a >> b
 
@@ -141,7 +135,6 @@ def test_uint_add():
             c = circuit.a + circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_add", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a + b
 
@@ -159,7 +152,6 @@ def test_uint_sub():
             c = circuit.a - circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_sub", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a - b
 
@@ -177,7 +169,6 @@ def test_uint_mul():
             c = circuit.a * circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_mul", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a * b
 
@@ -195,7 +186,6 @@ def test_uint_div():
             c = circuit.a / circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_div", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a / b
 
@@ -213,7 +203,6 @@ def test_uint_lt():
             c = circuit.a < circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_lt", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a < b
 
@@ -231,7 +220,6 @@ def test_uint_le():
             c = circuit.a <= circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_le", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a <= b
 
@@ -249,7 +237,6 @@ def test_uint_gt():
             c = circuit.a > circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_gt", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a > b
 
@@ -267,7 +254,6 @@ def test_uint_ge():
             c = circuit.a >= circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_ge", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a >= b
 
@@ -285,7 +271,6 @@ def test_sint_add():
             c = circuit.a + circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_add", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a + b
 
@@ -303,7 +288,6 @@ def test_sint_sub():
             c = circuit.a - circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_sub", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a - b
 
@@ -321,7 +305,6 @@ def test_sint_mul():
             c = circuit.a * circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_mul", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a * b
 
@@ -339,7 +322,6 @@ def test_sint_div():
             c = circuit.a * circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_div", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a * b
 
@@ -357,7 +339,6 @@ def test_sint_lt():
             c = circuit.a < circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_lt", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a < b
 
@@ -375,7 +356,6 @@ def test_sint_le():
             c = circuit.a <= circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_le", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a <= b
 
@@ -393,7 +373,6 @@ def test_sint_gt():
             c = circuit.a > circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_gt", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a > b
 
@@ -411,7 +390,6 @@ def test_sint_ge():
             c = circuit.a >= circuit.b
             wire(c, circuit.c)
     compile("build/test_sint_ge", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a >= b
 
@@ -428,7 +406,6 @@ def test_sint_arithmetic_right_shift():
             b = circuit.a.arithmetic_shift_right(2)
             wire(b, circuit.b)
     compile("build/test_sint_arithmetic_right_shift", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a):
         return a.arithmetic_shift_right(2)
 
@@ -446,7 +423,6 @@ def test_sint_dynamic_arithmetic_right_shift():
             c = circuit.a.arithmetic_shift_right(circuit.b)
             wire(c, circuit.c)
     compile("build/test_sint_dynamic_arithmetic_right_shift", TestCircuit)
-    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
         return a.arithmetic_shift_right(b)
 
