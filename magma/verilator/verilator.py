@@ -69,7 +69,7 @@ int main(int argc, char **argv, char **env) {{
 
     return source
 
-def compile(basename, circuit, tests):
+def compile(basename, circuit, tests, input_range=None):
     if config.get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
@@ -78,7 +78,7 @@ def compile(basename, circuit, tests):
         filename = basename
 
     if callable(tests):
-        tests = testvectors(circuit, tests)
+        tests = testvectors(circuit, tests, input_range)
     verilatorcpp = harness(circuit, tests)
 
     with open(filename, "w") as f:

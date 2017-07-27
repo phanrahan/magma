@@ -1,4 +1,5 @@
 from magma import BitType, ArrayType
+from magma.array import SIntType
 from magma.bit_vector import BitVector
 import sys
 if sys.version_info < (3, 3):
@@ -19,7 +20,7 @@ def check(circuit, func):
             ncircargs += 1
     assert nfuncargs == ncircargs
 
-def testvectors(circuit, func, mode='complete'):
+def testvectors(circuit, func, input_range=None, mode='complete'):
     check(circuit, func)
 
     args = []
@@ -29,7 +30,16 @@ def testvectors(circuit, func, mode='complete'):
                 args.append([BitVector(0),BitVector(1)])
             elif isinstance(port, ArrayType):
                 num_bits = type(port).N
-                args.append(BitVector(x, num_bits=num_bits) for x in range(1<<num_bits))
+                if isinstance(port, SIntType):
+                    if input_range is None:
+                        start = -2**(num_bits - 1)
+                        end = 2**(num_bits - 1)  # We don't subtract one because range end is exclusive
+                        input_range = range(start, end)
+                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
+                else:
+                    if input_range is None:
+                        input_range = range(1<<num_bits)
+                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
             else:
                 assert True, "can't test Tuples"
 

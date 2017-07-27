@@ -191,14 +191,14 @@ def test_uint_div():
         IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(4))]
         @classmethod
         def definition(circuit):
-            c = circuit.a * circuit.b
+            c = circuit.a / circuit.b
             wire(c, circuit.c)
     compile("build/test_uint_div", TestCircuit)
     # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
-        return a * b
+        return a / b
 
-    compileverilator('build/sim_test_uint_div_main.cpp', TestCircuit, f)
+    compileverilator('build/sim_test_uint_div_main.cpp', TestCircuit, f, input_range=range(1, 1 << 4))
     insert_coreir_stdlib_include("build/test_uint_div.v")
     run_verilator_test('test_uint_div', 'sim_test_uint_div_main', 'test_uint_div')
 
@@ -275,113 +275,145 @@ def test_uint_ge():
     run_verilator_test('test_uint_ge', 'sim_test_uint_ge_main', 'test_uint_ge')
 
 
-# def test_uint_logic():
-#     class TestCircuit(Circuit):
-#         name = "test_circuit4"
-#         IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", In(UInt(4)), "d", Out(UInt(4))]
-#         @classmethod
-#         def definition(circuit):
-#             d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
-#             wire(d, circuit.d)
-#     compile("build/test_uint_logic", TestCircuit)
-#     # assert magma_check_files_equal(__file__, "build/test_uint_logic.v", "gold/test_uint_logic.v")
-#     def f(a, b, c):
-#         return (a & b) | (b ^ c)
-# 
-#     compileverilator('build/sim_test_uint_logic_main.cpp', TestCircuit, f)
-#     insert_coreir_stdlib_include("build/test_uint_logic.v")
-#     run_verilator_test('test_uint_logic', 'sim_test_uint_logic_main', 'test_circuit4')
+def test_sint_add():
+    class TestCircuit(Circuit):
+        name = "test_sint_add"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a + circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_add", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a + b
+
+    compileverilator('build/sim_test_sint_add_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_add.v")
+    run_verilator_test('test_sint_add', 'sim_test_sint_add_main', 'test_sint_add')
 
 
-# def test_uint_arithmetic():
-#     class TestCircuit(Circuit):
-#         name = "test_circuit"
-#         IO = ["in0", In(UInt(8)), "in1", In(UInt(8)), "out", Out(Bit)]
-#         @classmethod
-#         def definition(circuit):
-#             a = circuit.in0 + circuit.in1
-#             b = a - circuit.in1
-#             c = a * circuit.in0
-#             d = b / c > circuit.in0
-#             e = b * c < int2seq(1, 8)
-#             f = a - c >= circuit.in0
-#             g = b + c <= int2seq(1, 8)
-#             wire(g, circuit.out)
-#     compile("build/test_uint_arithmetic", TestCircuit)
-#     assert magma_check_files_equal(__file__, "build/test_uint_arithmetic.v", "gold/test_uint_arithmetic.v")
+def test_sint_sub():
+    class TestCircuit(Circuit):
+        name = "test_sint_sub"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a - circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_sub", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a - b
+
+    compileverilator('build/sim_test_sint_sub_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_sub.v")
+    run_verilator_test('test_sint_sub', 'sim_test_sint_sub_main', 'test_sint_sub')
 
 
-# def test_sint_logic():
-#     class TestCircuit(Circuit):
-#         name = "test_circuit"
-#         IO = ["a", In(SInt(8)), "b", In(SInt(8)), "c", In(SInt(8)), "d", In(SInt(3)), "e", Out(SInt(8))]
-#         @classmethod
-#         def definition(circuit):
-#             e = (circuit.a & circuit.b) | (circuit.b ^ ~circuit.c) >> 3 >> circuit.d << 3 << circuit.d
-#             wire(e, circuit.e)
-#     assert verilog.compile(TestCircuit) == """
-# module test_circuit (input signed [7:0] a, input signed [7:0] b, input signed [7:0] c, input signed [2:0] d, output signed [7:0] e);
-# wire [7:0] inst0_O;
-# wire [7:0] inst1_O;
-# wire [7:0] inst2_O;
-# wire [7:0] inst3_O;
-# wire [7:0] inst4_O;
-# wire [7:0] inst5_O;
-# wire [7:0] inst6_O;
-# wire [7:0] inst7_O;
-# And8 inst0 (.I0(a), .I1(b), .O(inst0_O));
-# Invert8 inst1 (.I(c), .O(inst1_O));
-# Xor8 inst2 (.I0(b), .I1(inst1_O), .O(inst2_O));
-# ShiftRight8_3 inst3 (.I(inst2_O), .O(inst3_O));
-# DynamicShiftRight8 inst4 (.I0(inst3_O), .I1(d), .O(inst4_O));
-# ShiftLeft8_3 inst5 (.I(inst4_O), .O(inst5_O));
-# DynamicShiftLeft8 inst6 (.I0(inst5_O), .I1(d), .O(inst6_O));
-# Or8 inst7 (.I0(inst0_O), .I1(inst6_O), .O(inst7_O));
-# assign e = inst7_O;
-# endmodule
-# 
-# """.lstrip()
-# 
-# 
-# def test_sint_arithmetic():
-#     class TestCircuit(Circuit):
-#         name = "test_circuit"
-#         IO = ["in0", In(SInt(8)), "in1", In(SInt(8)), "out", Out(Bit)]
-#         @classmethod
-#         def definition(circuit):
-#             a = circuit.in0 + circuit.in1
-#             b = a - circuit.in1
-#             c = a * circuit.in0
-#             d = b / c > circuit.in0
-#             e = b * c < int2seq(1, 8)
-#             f = a - c >= circuit.in0
-#             g = b + c <= int2seq(1, 8)
-#             wire(g, circuit.out)
-#     assert verilog.compile(TestCircuit) == """
-# module test_circuit (input signed [7:0] in0, input signed [7:0] in1, output  out);
-# wire signed [7:0] inst0_O;
-# wire signed [7:0] inst1_O;
-# wire signed [7:0] inst2_O;
-# wire signed [7:0] inst3_O;
-# wire  inst4_O;
-# wire signed [7:0] inst5_O;
-# wire  inst6_O;
-# wire signed [7:0] inst7_O;
-# wire  inst8_O;
-# wire signed [7:0] inst9_O;
-# wire  inst10_O;
-# SignedAdd8 inst0 (.I0(in0), .I1(in1), .O(inst0_O));
-# SignedSub8 inst1 (.I0(inst0_O), .I1(in1), .O(inst1_O));
-# SignedMul8 inst2 (.I0(inst0_O), .I1(in0), .O(inst2_O));
-# SignedDiv8 inst3 (.I0(inst1_O), .I1(inst2_O), .O(inst3_O));
-# SignedGt8 inst4 (.I0(inst3_O), .I1(in0), .O(inst4_O));
-# SignedMul8 inst5 (.I0(inst1_O), .I1(inst2_O), .O(inst5_O));
-# SignedLt8 inst6 (.I0(inst5_O), .I1({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b1}), .O(inst6_O));
-# SignedSub8 inst7 (.I0(inst0_O), .I1(inst2_O), .O(inst7_O));
-# SignedGtE8 inst8 (.I0(inst7_O), .I1(in0), .O(inst8_O));
-# SignedAdd8 inst9 (.I0(inst1_O), .I1(inst2_O), .O(inst9_O));
-# SignedLtE8 inst10 (.I0(inst9_O), .I1({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b1}), .O(inst10_O));
-# assign out = inst10_O;
-# endmodule
-# 
-# """.lstrip()
+def test_sint_mul():
+    class TestCircuit(Circuit):
+        name = "test_sint_mul"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a * circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_mul", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a * b
+
+    compileverilator('build/sim_test_sint_mul_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_mul.v")
+    run_verilator_test('test_sint_mul', 'sim_test_sint_mul_main', 'test_sint_mul')
+
+
+def test_sint_div():
+    class TestCircuit(Circuit):
+        name = "test_sint_div"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a * circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_div", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a * b
+
+    compileverilator('build/sim_test_sint_div_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_div.v")
+    run_verilator_test('test_sint_div', 'sim_test_sint_div_main', 'test_sint_div')
+
+
+def test_sint_lt():
+    class TestCircuit(Circuit):
+        name = "test_sint_lt"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a < circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_lt", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a < b
+
+    compileverilator('build/sim_test_sint_lt_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_lt.v")
+    run_verilator_test('test_sint_lt', 'sim_test_sint_lt_main', 'test_sint_lt')
+
+
+def test_sint_le():
+    class TestCircuit(Circuit):
+        name = "test_sint_le"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a <= circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_le", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a <= b
+
+    compileverilator('build/sim_test_sint_le_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_le.v")
+    run_verilator_test('test_sint_le', 'sim_test_sint_le_main', 'test_sint_le')
+
+
+def test_sint_gt():
+    class TestCircuit(Circuit):
+        name = "test_sint_gt"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a > circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_gt", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a > b
+
+    compileverilator('build/sim_test_sint_gt_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_gt.v")
+    run_verilator_test('test_sint_gt', 'sim_test_sint_gt_main', 'test_sint_gt')
+
+
+def test_sint_ge():
+    class TestCircuit(Circuit):
+        name = "test_sint_ge"
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a >= circuit.b
+            wire(c, circuit.c)
+    compile("build/test_sint_ge", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a >= b
+
+    compileverilator('build/sim_test_sint_ge_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_ge.v")
+    run_verilator_test('test_sint_ge', 'sim_test_sint_ge_main', 'test_sint_ge')
