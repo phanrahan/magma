@@ -21,18 +21,18 @@ def test_print_ir():
 
     result = compile(main)
     assert result == """\
-And2 = DefineCircuit("And2", "I", Array(2,In(Bit)), "O", Out(Bit))  # {filename} 11
-inst0 = And2()  # {filename} 12
-wire(And2.I[0], inst0.I0)  # {filename} 13
-wire(And2.I[1], inst0.I1)  # {filename} 14
-wire(inst0.O, And2.O)  # {filename} 15
-EndCircuit()  # {filename} 16
+And2 = DefineCircuit("And2", "I", Array(2,In(Bit)), "O", Out(Bit))  # {filename} 10
+inst0 = And2()  # {filename} 11
+wire(And2.I[0], inst0.I0)  # {filename} 12
+wire(And2.I[1], inst0.I1)  # {filename} 13
+wire(inst0.O, And2.O)  # {filename} 14
+EndCircuit()  # {filename} 15
 
-main = DefineCircuit("main", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))  # {filename} 18
-inst0 = And2()  # {filename} 19
-wire(main.I0, inst0.I[0])  # {filename} 20
-wire(main.I1, inst0.I[1])  # {filename} 20
-wire(inst0.O, main.O)  # {filename} 20
-EndCircuit()  # {filename} 21
+main = DefineCircuit("main", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))  # {filename} 17
+inst0 = And2()  # {filename} 18
+wire(main.I0, inst0.I[0])  # {filename} 19
+wire(main.I1, inst0.I[1])  # {filename} 19
+wire(inst0.O, main.O)  # {filename} 19
+EndCircuit()  # {filename} 20
 
 """.format(filename=__file__)
