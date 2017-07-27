@@ -22,11 +22,11 @@ int main(int argc, char **argv, char **env) {{
 '''.format(name=circuit.__name__)
 
     source += '''
-    int tests[{}][{}] = {{
+    unsigned int tests[{}][{}] = {{
 '''.format(len(tests), len(tests[0]))
 
     for test in tests:
-        testvector = ', '.join([str(t.as_int()) for t in test])
+        testvector = ', '.join([t.as_binary_string() for t in test])
         #testvector += ', {}'.format(int(func(*test[:nargs])))
         source += '''\
         {{ {} }}, 
@@ -37,7 +37,7 @@ int main(int argc, char **argv, char **env) {{
 
     source += '''
     for(int i = 0; i < {}; i++) {{
-        int* test = tests[i];
+        unsigned int* test = tests[i];
 '''.format(len(tests))
 
     i = 0
@@ -69,7 +69,7 @@ int main(int argc, char **argv, char **env) {{
 
     return source
 
-def compile(basename, circuit, tests, input_range=None):
+def compile(basename, circuit, tests, input_ranges=None):
     if config.get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
@@ -78,7 +78,7 @@ def compile(basename, circuit, tests, input_range=None):
         filename = basename
 
     if callable(tests):
-        tests = testvectors(circuit, tests, input_range)
+        tests = testvectors(circuit, tests, input_ranges)
     verilatorcpp = harness(circuit, tests)
 
     with open(filename, "w") as f:

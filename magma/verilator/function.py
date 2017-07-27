@@ -20,25 +20,29 @@ def check(circuit, func):
             ncircargs += 1
     assert nfuncargs == ncircargs
 
-def testvectors(circuit, func, input_range=None, mode='complete'):
+def testvectors(circuit, func, input_ranges=None, mode='complete'):
     check(circuit, func)
 
     args = []
-    for name, port in circuit.interface.ports.items():
+    for i, (name, port) in enumerate(circuit.interface.ports.items()):
         if port.isoutput():
             if isinstance(port, BitType):
                 args.append([BitVector(0),BitVector(1)])
             elif isinstance(port, ArrayType):
                 num_bits = type(port).N
                 if isinstance(port, SIntType):
-                    if input_range is None:
+                    if input_ranges is None:
                         start = -2**(num_bits - 1)
                         end = 2**(num_bits - 1)  # We don't subtract one because range end is exclusive
                         input_range = range(start, end)
+                    else:
+                        input_range = input_ranges[i]
                     args.append([BitVector(x, num_bits=num_bits) for x in input_range])
                 else:
-                    if input_range is None:
+                    if input_ranges is None:
                         input_range = range(1<<num_bits)
+                    else:
+                        input_range = input_ranges[i]
                     args.append([BitVector(x, num_bits=num_bits) for x in input_range])
             else:
                 assert True, "can't test Tuples"

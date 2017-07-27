@@ -44,20 +44,20 @@ module coreir_and #(parameter WIDTH=16) (
   assign out = in0 & in1;
 endmodule
 
-module coreir_mul #(parameter WIDTH=16) (
+module coreir_dashr #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
   output [WIDTH-1:0] out
 );
-  assign out = in0 * in1;
+  assign out = $signed(in0) >>> in1;
 endmodule
 
-module coreir_add #(parameter WIDTH=16) (
+module coreir_dlshr #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
   output [WIDTH-1:0] out
 );
-  assign out = in0 + in1;
+  assign out = in0 >> in1;
 endmodule
 
 module coreir_xor #(parameter WIDTH=16) (
@@ -76,6 +76,22 @@ module coreir_sub #(parameter WIDTH=16) (
   assign out = in0 - in1;
 endmodule
 
+module coreir_sdiv #(parameter WIDTH=16) (
+  input [WIDTH-1:0] in0,
+  input [WIDTH-1:0] in1,
+  output [WIDTH-1:0] out
+);
+  assign out = $signed(in0) / $signed(in1);
+endmodule
+
+module coreir_add #(parameter WIDTH=16) (
+  input [WIDTH-1:0] in0,
+  input [WIDTH-1:0] in1,
+  output [WIDTH-1:0] out
+);
+  assign out = in0 + in1;
+endmodule
+
 module coreir_dshl #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
@@ -84,12 +100,12 @@ module coreir_dshl #(parameter WIDTH=16) (
   assign out = in0 << in1;
 endmodule
 
-module coreir_dlshr #(parameter WIDTH=16) (
+module coreir_mul #(parameter WIDTH=16) (
   input [WIDTH-1:0] in0,
   input [WIDTH-1:0] in1,
   output [WIDTH-1:0] out
 );
-  assign out = in0 >> in1;
+  assign out = in0 * in1;
 endmodule
 
 module coreir_udiv #(parameter WIDTH=16) (
@@ -98,14 +114,6 @@ module coreir_udiv #(parameter WIDTH=16) (
   output [WIDTH-1:0] out
 );
   assign out = in0 / in1;
-endmodule
-
-module coreir_dashr #(parameter WIDTH=16) (
-  input [WIDTH-1:0] in0,
-  input [WIDTH-1:0] in1,
-  output [WIDTH-1:0] out
-);
-  assign out = $signed(in0) >>> in1;
 endmodule
 
 module coreir_or #(parameter WIDTH=16) (
@@ -135,7 +143,7 @@ module coreir_ashr #(parameter WIDTH=16,parameter SHIFTBITS=1) (
   input [WIDTH-1:0] in,
   output [WIDTH-1:0] out
 );
-  assign out = in >>> SHIFTBITS;
+  assign out = $signed(in) >>> SHIFTBITS;
 endmodule
 
 //binaryReduce ops

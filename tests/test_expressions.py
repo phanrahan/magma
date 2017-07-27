@@ -2,6 +2,7 @@ from magma import *
 from magma.backend import verilog
 from magma.verilator.verilator import compile as compileverilator
 from magma.verilator.verilator import run_verilator_test
+import itertools
 
 def insert_coreir_stdlib_include(verilog_file):
     file_path = os.path.dirname(__file__)
@@ -80,7 +81,7 @@ def test_bits_lshift():
 def test_bits_dlshift():
     class TestCircuit(Circuit):
         name = "test_dlshift"
-        IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", Out(Bits(4))]
+        IO = ["a", In(Bits(4)), "b", In(UInt(4)), "c", Out(Bits(4))]
         @classmethod
         def definition(circuit):
             c = circuit.a << circuit.b
@@ -116,15 +117,15 @@ def test_bits_rshift():
 def test_bits_drshift():
     class TestCircuit(Circuit):
         name = "test_drshift"
-        IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", Out(Bits(4))]
+        IO = ["a", In(Bits(4)), "b", In(UInt(4)), "c", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            c = circuit.a << circuit.b
+            c = circuit.a >> circuit.b
             wire(c, circuit.c)
     compile("build/test_bits_drshift", TestCircuit)
     # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
     def f(a, b):
-        return a << b
+        return a >> b
 
     compileverilator('build/sim_test_bits_drshift_main.cpp', TestCircuit, f)
     insert_coreir_stdlib_include("build/test_bits_drshift.v")
@@ -198,7 +199,7 @@ def test_uint_div():
     def f(a, b):
         return a / b
 
-    compileverilator('build/sim_test_uint_div_main.cpp', TestCircuit, f, input_range=range(1, 1 << 4))
+    compileverilator('build/sim_test_uint_div_main.cpp', TestCircuit, f, input_ranges=(range(0, 1 << 4), range(1, 1 << 4)))
     insert_coreir_stdlib_include("build/test_uint_div.v")
     run_verilator_test('test_uint_div', 'sim_test_uint_div_main', 'test_uint_div')
 
@@ -416,4 +417,39 @@ def test_sint_ge():
 
     compileverilator('build/sim_test_sint_ge_main.cpp', TestCircuit, f)
     insert_coreir_stdlib_include("build/test_sint_ge.v")
-    run_verilator_test('test_sint_ge', 'sim_test_sint_ge_main', 'test_sint_ge')
+
+
+def test_sint_arithmetic_right_shift():
+    class TestCircuit(Circuit):
+        name = "test_sint_arithmetic_right_shift"
+        IO = ["a", In(SInt(4)), "b", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            b = circuit.a.arithmetic_shift_right(2)
+            wire(b, circuit.b)
+    compile("build/test_sint_arithmetic_right_shift", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a):
+        return a.arithmetic_shift_right(2)
+
+    compileverilator('build/sim_test_sint_arithmetic_right_shift_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_arithmetic_right_shift.v")
+    run_verilator_test('test_sint_arithmetic_right_shift', 'sim_test_sint_arithmetic_right_shift_main', 'test_sint_arithmetic_right_shift')
+
+
+def test_sint_dynamic_arithmetic_right_shift():
+    class TestCircuit(Circuit):
+        name = "test_sint_dynamic_arithmetic_right_shift"
+        IO = ["a", In(SInt(4)), "b", In(UInt(4)), "c", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a.arithmetic_shift_right(circuit.b)
+            wire(c, circuit.c)
+    compile("build/test_sint_dynamic_arithmetic_right_shift", TestCircuit)
+    # assert magma_check_files_equal(__file__, "build/test_bits_shift.v", "gold/test_bits_shift.v")
+    def f(a, b):
+        return a.arithmetic_shift_right(b)
+
+    compileverilator('build/sim_test_sint_dynamic_arithmetic_right_shift_main.cpp', TestCircuit, f)
+    insert_coreir_stdlib_include("build/test_sint_dynamic_arithmetic_right_shift.v")
+    run_verilator_test('test_sint_dynamic_arithmetic_right_shift', 'sim_test_sint_dynamic_arithmetic_right_shift_main', 'test_sint_dynamic_arithmetic_right_shift')

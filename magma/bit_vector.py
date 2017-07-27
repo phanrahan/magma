@@ -37,9 +37,13 @@ class BitVector:
 
     def __lshift__(self, other):
         if isinstance(other, int):
+            if other < 0:
+                raise ValueError("Cannot shift by negative value {}".format(other))
             shift_result = self._value << other
         else:
             assert isinstance(other, BitVector)
+            if other.as_int() < 0:
+                raise ValueError("Cannot shift by negative value {}".format(other))
             shift_result = self._value << other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(shift_result & mask, num_bits=self.num_bits)
@@ -50,10 +54,27 @@ class BitVector:
         .item() returns a python type
         """
         if isinstance(other, int):
+            if other < 0:
+                raise ValueError("Cannot shift by negative value {}".format(other))
             shift_result = np.right_shift(self._value,  other).item()
         else:
             assert isinstance(other, BitVector)
+            if other.as_int() < 0:
+                raise ValueError("Cannot shift by negative value {}".format(other))
             shift_result = np.right_shift(self._value,  other._value).item()
+        mask = (1 << self.num_bits) - 1
+        return BitVector(shift_result & mask, num_bits=self.num_bits)
+
+    def arithmetic_shift_right(self, other):
+        if isinstance(other, int):
+            if other < 0:
+                raise ValueError("Cannot shift by negative value {}".format(other))
+            shift_result = self._value >> other
+        else:
+            assert isinstance(other, BitVector)
+            if other.as_int() < 0:
+                raise ValueError("Cannot shift by negative value {}".format(other))
+            shift_result = self._value >> other._value
         mask = (1 << self.num_bits) - 1
         return BitVector(shift_result & mask, num_bits=self.num_bits)
 
@@ -105,3 +126,6 @@ class BitVector:
 
     def as_int(self):
         return self._value
+
+    def as_binary_string(self):
+        return "0b" + np.binary_repr(self.as_int(), self.num_bits)

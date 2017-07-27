@@ -84,7 +84,7 @@ BitsType.__invert__ = __invert__
 @lru_cache(maxsize=None)
 def DeclareShiftLeft(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_shl", 'in', In(T), 'out', Out(T))
+    return DeclareCircuit("coreir_shl", 'in', In(UInt(N)), 'out', Out(T))
 
 
 @lru_cache(maxsize=None)
@@ -92,13 +92,17 @@ def DeclareDynamicShiftLeft(N):
     T = Bits(N)
     # i1_type = Bits((N - 1).bit_length())
     return DeclareCircuit("coreir_dshl",
-                          'in0', In(T), 'in1', In(T), 'out', Out(T))
+                          'in0', In(T), 'in1', In(UInt(N)), 'out', Out(T))
 
 
 def __lshift__(self, other):
     if isinstance(other, IntegerTypes):
+        if other < 0:
+            raise ValueError("Second argument to << must be positive, not {}".format(other))
         return DeclareShiftLeft(self.N)(WIDTH=self.N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
+        if not isinstance(other, UIntType):
+            raise TypeError("Second argument to << must be a UInt, not {}".format(type(other)))
         return DeclareDynamicShiftLeft(self.N)(WIDTH=self.N)(self, other)
     else:
         raise TypeError("<< not implemented for argument 2 of type {}".format(
@@ -111,7 +115,7 @@ BitsType.__lshift__ = __lshift__
 @lru_cache(maxsize=None)
 def DeclareShiftRight(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_lshr", 'in', In(T), 'out', Out(T))
+    return DeclareCircuit("coreir_lshr", 'in', In(UInt(N)), 'out', Out(T))
 
 
 @lru_cache(maxsize=None)
@@ -119,13 +123,17 @@ def DeclareDynamicShiftRight(N):
     T = Bits(N)
     # i1_type = Bits((N - 1).bit_length())
     return DeclareCircuit("coreir_dlshr",
-                          'in0', In(T), 'in1', In(T), 'out', Out(T))
+                          'in0', In(T), 'in1', In(UInt(N)), 'out', Out(T))
 
 
 def __rshift__(self, other):
     if isinstance(other, IntegerTypes):
+        if other < 0:
+            raise ValueError("Second argument to >> must be positive, not {}".format(other))
         return DeclareShiftRight(self.N)(WIDTH=self.N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
+        if not isinstance(other, UIntType):
+            raise TypeError("Second argument to >> must be a UInt, not {}".format(type(other)))
         return DeclareDynamicShiftRight(self.N)(WIDTH=self.N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
@@ -169,3 +177,34 @@ declare_binop("coreir_ult",  UInt, UIntType, "__lt__", out_type=Bit)
 declare_binop("coreir_ule", UInt, UIntType, "__le__", out_type=Bit)
 declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", out_type=Bit)
 declare_binop("coreir_uge", UInt, UIntType, "__ge__", out_type=Bit)
+
+
+@lru_cache(maxsize=None)
+def DeclareArithmeticShiftRight(N):
+    T = SInt(N)
+    return DeclareCircuit("coreir_ashr", 'in', In(UInt(N)), 'out', Out(T))
+
+
+@lru_cache(maxsize=None)
+def DeclareDynamicArithmeticShiftRight(N):
+    T = SInt(N)
+    # i1_type = Bits((N - 1).bit_length())
+    return DeclareCircuit("coreir_dashr",
+                          'in0', In(T), 'in1', In(UInt(N)), 'out', Out(T))
+
+
+def arithmetic_shift_right(self, other):
+    if isinstance(other, IntegerTypes):
+        if other < 0:
+            raise ValueError("Second argument to arithmetic_shift_right must be positive, not {}".format(other))
+        return DeclareArithmeticShiftRight(self.N)(WIDTH=self.N, SHIFTBITS=other)(self)
+    elif isinstance(other, Type):
+        if not isinstance(other, UIntType):
+            raise TypeError("Second argument to arithmetic_shift_right must be a UInt, not {}".format(type(other)))
+        return DeclareDynamicArithmeticShiftRight(self.N)(WIDTH=self.N)(self, other)
+    else:
+        raise TypeError(">> not implemented for argument 2 of type {}".format(
+            type(other)))
+
+
+SIntType.arithmetic_shift_right = arithmetic_shift_right
