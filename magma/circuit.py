@@ -151,7 +151,14 @@ class _CircuitType(object):
         args = []
         for k, v in self.kwargs.items():
             if isinstance(v, tuple):
-                 v = hstr(v[0], v[1])
+                 # {   # Format identifier
+                 # 0:  # first parameter
+                 # #   # use "0x" prefix
+                 # 0   # fill with zeroes
+                 # {1} # to a length of n characters (including 0x), defined by the second parameter
+                 # x   # hexadecimal number, using lowercase letters for a-f
+                 # }   # End of format identifier
+                 v = "{0:#0{1}x}".format(v[0], v[1] // 4)
             else:
                  v = str(v)
             args.append("%s=%s"%(k, v))

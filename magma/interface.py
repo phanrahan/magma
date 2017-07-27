@@ -100,7 +100,6 @@ class _Interface(Type):
             else:
                 iname = repr( input )
                 oname = repr( output )
-                assert input.debug_info == output.debug_info
                 s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input.debug_info)
         return s
 
