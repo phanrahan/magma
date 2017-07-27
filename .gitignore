@@ -9,9 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-**/build/*
-!**/build/.gitignore
-!**/build/Makefile
+build/
 
 develop-eggs/
 dist/
