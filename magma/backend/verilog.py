@@ -6,7 +6,7 @@ from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
 from ..bit import BitType, VCC, GND
-from ..array import ArrayKind, ArrayType
+from ..array import ArrayKind, ArrayType, SIntType
 from ..circuit import *
 from ..wire import wiredefaultclock
 
@@ -60,7 +60,8 @@ def vname(t):
 # return the verilog declaration for the data type
 def vdecl(t):
     if isinstance(t, ArrayType):
-        return '[%d:%d]' % (t.N-1, 0)
+        signed = "signed " if isinstance(t, SIntType) else ""
+        return '{}[{}:{}]'.format(signed, t.N-1, 0)
     else:
         assert isinstance(t, BitType)
         return ""
@@ -106,6 +107,7 @@ def compileinstance(self):
            if isinstance(v, tuple):
                v = hstr(v[0], v[1])
            params.append(arg(k, v))
+    params = sorted(params)
 
     #s = '(* loc="%d,%d/%d" *)\n' % self.loc if self.loc else ""
 

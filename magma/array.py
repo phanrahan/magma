@@ -3,7 +3,7 @@ from .error import error
 from .ref import ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
-from .bit import Bit, BitOut, VCC, GND, BitType
+from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
 from .bits import int2seq
 from .debug import debug_wire
 
@@ -14,6 +14,7 @@ __all__ += ['Array5', 'Array6', 'Array7', 'Array8']
 __all__ += ['Array9', 'Array10', 'Array11', 'Array12']
 __all__ += ['Array13', 'Array14', 'Array15', 'Array16']
 __all__ += ['Array18']
+__all__ += ['Bits', 'UInt', 'SInt']
 
 __all__ += ['array', 'concat', 'constarray']
 
@@ -212,6 +213,82 @@ def Array(N,T):
     assert isinstance(T, Kind)
     name = 'Array(%d,%s)' % (N,str(T))
     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
+
+
+class BitsType(ArrayType):
+    pass
+
+
+class BitsKind(ArrayKind):
+    def __str__(cls):
+        return "Bits({})".format(cls.N)
+
+    def qualify(cls, direction):
+        if cls.T._isoriented(direction):
+            return cls
+        return Bits(cls.N, cls.T.qualify(direction))
+
+    def flip(cls):
+        return Bits(cls.N, cls.T.flip())
+
+
+def Bits(N, T=None):
+    if T is None:
+        T = Bit
+    assert isinstance(N, IntegerTypes)
+    name = 'Bits({})'.format(N)
+    return BitsKind(name, (BitsType,), dict(N=N, T=T))
+
+
+class UIntType(BitsType):
+    pass
+
+
+class UIntKind(BitsKind):
+    def __str__(cls):
+        return "UInt({})".format(cls.N)
+
+    def qualify(cls, direction):
+        if cls.T._isoriented(direction):
+            return cls
+        return UInt(cls.N, cls.T.qualify(direction))
+
+    def flip(cls):
+        return UInt(cls.N, cls.T.flip())
+
+
+def UInt(N, T=None):
+    if T is None:
+        T = Bit
+    assert isinstance(N, IntegerTypes)
+    name = 'UInt({})'.format(N)
+    return UIntKind(name, (UIntType,), dict(N=N, T=T))
+
+
+class SIntType(BitsType):
+    pass
+
+
+class SIntKind(BitsKind):
+    def __str__(cls):
+        return "SInt({})".format(cls.N)
+
+    def qualify(cls, direction):
+        if cls.T._isoriented(direction):
+            return cls
+        return SInt(cls.N, cls.T.qualify(direction))
+
+    def flip(cls):
+        return SInt(cls.N, cls.T.flip())
+
+
+def SInt(N, T=None):
+    if T is None:
+        T = Bit
+    assert isinstance(N, IntegerTypes)
+    name = 'SInt({})'.format(N)
+    return SIntKind(name, (SIntType,), dict(N=N, T=T))
+
 
 Array1 = Array(1,Bit)
 Array2 = Array(2,Bit)
