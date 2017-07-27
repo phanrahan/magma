@@ -1,6 +1,5 @@
 from magma import DeclareCircuit, DefineCircuit, EndCircuit, In, Out, Bit, \
     wire, Array, array
-from mantle.lattice.mantle40 import And
 from magma.ir import compile
 
 
