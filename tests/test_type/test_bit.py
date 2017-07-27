@@ -5,11 +5,11 @@ def test_bit():
     assert isinstance(BitIn,  BitKind)
     assert isinstance(BitOut, BitKind)
 
-    assert not Bit.isinput()
-    assert not Bit.isoutput()
+    #assert not Bit.isinput()
+    #assert not Bit.isoutput()
 
-    assert BitIn.isinput()
-    assert BitOut.isoutput()
+    #assert BitIn.isinput()
+    #assert BitOut.isoutput()
 
     assert Bit == Bit
     assert BitIn == BitIn
