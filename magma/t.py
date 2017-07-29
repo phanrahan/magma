@@ -6,19 +6,6 @@ __all__  = ['Type', 'Kind']
 __all__ += ['In', 'Out', 'InOut', 'Flip']
 
 
-
-
-#def qualifiedname(self, sep='.'):
-#    instname = str(self.inst) if self.inst else None
-#    
-#    if isinstance(self.addr, IntegerTypes):
-#        assert instname
-#        return instname + '[%d]' % self.addr
-#    else:
-#        name = self.name()
-#        return instname + sep+ name if instname else name
-
-
 class Type(object):
     def __init__(self, **kwargs):
         # ref is int, str or tuple
@@ -30,6 +17,7 @@ class Type(object):
         #assert isinstance(name, Ref)
         self.name = name
 
+    # subclasses only need to implement one of these methods
     def __eq__(self, rhs):
         return not (self != rhs)
     def __ne__(self, rhs):
@@ -43,52 +31,39 @@ class Type(object):
     def __str__(self):
         return self.name.qualifiedname()
 
-    #def name(self):
-    #    # Bit or Array
-    #    if isinstance(self.addr, StringTypes):
-    #        return self.addr
-    #
-    #    # Array[i] or Tuple.i
-    #    elif isinstance(self.addr, tuple):
-    #        i = self.addr[1]
-    #        if   isinstance(i, IntegerTypes):
-    #            return self.addr[0].name() + '[%d]' % i
-    #        elif isinstance(i, StringTypes):
-    #            return self.addr[0].name() + '.' + i
-    #
-    #    # positional argument
-    #    elif isinstance(self.addr, IntegerTypes):
-    #        return str(self.addr)
-    #
-    #    return ""
+    # an instance has an anon name
+    def anon(self):
+        return self.name.anon()
 
-    def isoriented(self, direction):
-        return type(self)._isoriented(direction)
+    # abstract method - must be implemented by subclasses
+    @classmethod
+    def isoriented(cls, direction):
+        pass
 
-    def isinput(self):
-        return self.isoriented(INPUT) 
+    @classmethod
+    def isinput(cls):
+        return cls.isoriented(INPUT) 
 
+    @classmethod
     def isoutput(self):
         return self.isoriented(OUTPUT)
 
+    @classmethod
     def isinout(self):
         return self.isoriented(INOUT)
 
+    @classmethod
     def isbidir(self):
         return False
-
-    # an anonymous type has an anon name
-    def anon(self):
-        return self.name.anon()
 
 
 class Kind(type):
     def __init__(cls, name, bases, dct):
         type.__init__( cls, name, bases, dct)
 
+    # subclasses only need to implement one of these methods
     def __eq__(cls, rhs):
         return not (cls != rhs)
-
     def __ne__(cls, rhs):
         return not (cls == rhs)
 
@@ -97,29 +72,28 @@ class Kind(type):
     def __repr__(cls):
         return cls.__name__
 
-    def _isinput(cls):
-        return cls._isoriented(INPUT)
+    # abstract method - must be implemented by subclasses
+    def qualify(cls):
+        pass
 
-    def _isoutput(cls):
-        return cls._isoriented(OUTPUT)
+    # abstract method - must be implemented by subclasses
+    def flip(cls):
+        pass
 
-    def _isinout(cls):
-        return cls._isoriented(INOUT)
 
-    def _isbidir(cls):
-        return False
 
-def In(t):
-    return t.qualify(direction=INPUT)
 
-def Out(t):
-    return t.qualify(direction=OUTPUT)
+def In(T):
+    return T.qualify(direction=INPUT)
 
-def InOut(t):
-    return t.qualify(direction=INOUT)
+def Out(T):
+    return T.qualify(direction=OUTPUT)
 
-def Flip(t):
-    return t.flip()
+def InOut(T):
+    return T.qualify(direction=INOUT)
+
+def Flip(T):
+    return T.flip()
 
 
 

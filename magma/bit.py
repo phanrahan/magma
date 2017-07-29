@@ -26,10 +26,16 @@ class BitType(Type):
     def __eq__(self, rhs):
         return self is rhs
 
+    __ne__ = Type.__ne__
+
     __hash__ = Type.__hash__
 
     def __call__(self, output):
         return self.wire(output, get_callee_frame_info())
+
+    @classmethod
+    def isoriented(cls, direction):
+        return cls.direction == direction
 
     @debug_wire
     def wire(i, o, debug_info):
@@ -107,7 +113,6 @@ class BitKind(Kind):
         if not hasattr(cls, 'direction'):
             cls.direction = None
 
-
     def __eq__(cls, rhs):
         if not isinstance(rhs, BitKind):
             return False
@@ -121,13 +126,11 @@ class BitKind(Kind):
     __hash__=Kind.__hash__
 
     def __str__(cls):
-        if cls._isinput():  return 'In(Bit)'
-        if cls._isoutput(): return 'Out(Bit)'
-        if cls._isinout():  return 'InOut(Bit)'
+        if cls.isinput():  return 'In(Bit)'
+        if cls.isoutput(): return 'Out(Bit)'
+        if cls.isinout():  return 'InOut(Bit)'
         return 'Bit'
 
-    def _isoriented(cls, direction):
-        return cls.direction == direction
 
     def qualify(cls, direction): 
         if   direction is None:   return Bit
@@ -136,8 +139,8 @@ class BitKind(Kind):
         return cls
 
     def flip(cls):
-        if   cls._isoriented(INPUT):  return BitOut
-        elif cls._isoriented(OUTPUT): return BitIn
+        if   cls.isoriented(INPUT):  return BitOut
+        elif cls.isoriented(OUTPUT): return BitIn
         return cls
 
 

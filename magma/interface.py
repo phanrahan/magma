@@ -27,16 +27,16 @@ def parse(decl):
 
         #print(str(port), isinstance(port, Kind))
         assert isinstance(port, Kind) or isinstance(port, Type)
-        if isinstance(port, Kind):
-            if   port._isinput():  portdirection = INPUT
-            elif port._isoutput(): portdirection = OUTPUT
-            elif port._isinout():  portdirection = INOUT
-            else:                  portdirection = None
-        else:
-            if   port.isinput():  portdirection = INPUT
-            elif port.isoutput(): portdirection = OUTPUT
-            elif port.isinout():  portdirection = INOUT
-            else:                 portdirection = None
+        #if isinstance(port, Kind):
+        #    if   port.isinput():  portdirection = INPUT
+        #    elif port.isoutput(): portdirection = OUTPUT
+        #    elif port.isinout():  portdirection = INOUT
+        #    else:                  portdirection = None
+        #else:
+        if   port.isinput():  portdirection = INPUT
+        elif port.isoutput(): portdirection = OUTPUT
+        elif port.isinout():  portdirection = INOUT
+        else:                 portdirection = None
 
         if len(argi) == 2:
             # depreciate this method of setting input and output

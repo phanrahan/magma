@@ -53,6 +53,14 @@ class TupleType(Type):
     def __call__(self, o):
         return self.wire(o)
 
+    @classmethod
+    def isoriented(cls, direction):
+        for T in cls.Ts:
+            if not T.isoriented(direction):
+                return False
+        return True
+
+
     @debug_wire
     def wire(i, o, debug_info):
         # print('Tuple.wire(', o, ', ', i, ')')
@@ -165,14 +173,8 @@ class TupleKind(Kind):
             key = cls.Ks.index(key)
         return cls.Ts[key]
 
-    def _isoriented(cls, direction):
-        for T in cls.Ts:
-            if not T._isoriented(direction):
-                return False
-        return True
-
     def qualify(cls, direction):
-        if cls._isoriented(direction):
+        if cls.isoriented(direction):
             return cls
         return _Tuple(cls.Ks, [T.qualify(direction) for T in cls.Ts])
 

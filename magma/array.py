@@ -71,6 +71,11 @@ class ArrayType(Type):
     def __call__(self, o):
         return self.wire(o)
 
+    @classmethod
+    def isoriented(cls, direction):
+        return cls.T.isoriented(direction)
+
+
     @debug_wire
     def wire(i, o, debug_info):
         # print('Array.wire(', o, ', ', i, ')')
@@ -196,11 +201,8 @@ class ArrayKind(Kind):
 
             return cls.ts[key]
 
-    def _isoriented(cls, direction):
-        return cls.T._isoriented(direction)
-
     def qualify(cls, direction):
-        if cls.T._isoriented(direction):
+        if cls.T.isoriented(direction):
             return cls
         return Array(cls.N, cls.T.qualify(direction))
 
@@ -224,7 +226,7 @@ class BitsKind(ArrayKind):
         return "Bits({})".format(cls.N)
 
     def qualify(cls, direction):
-        if cls.T._isoriented(direction):
+        if cls.T.isoriented(direction):
             return cls
         return Bits(cls.N, cls.T.qualify(direction))
 
@@ -249,7 +251,7 @@ class UIntKind(BitsKind):
         return "UInt({})".format(cls.N)
 
     def qualify(cls, direction):
-        if cls.T._isoriented(direction):
+        if cls.T.isoriented(direction):
             return cls
         return UInt(cls.N, cls.T.qualify(direction))
 
@@ -274,7 +276,7 @@ class SIntKind(BitsKind):
         return "SInt({})".format(cls.N)
 
     def qualify(cls, direction):
-        if cls.T._isoriented(direction):
+        if cls.T.isoriented(direction):
             return cls
         return SInt(cls.N, cls.T.qualify(direction))
 
