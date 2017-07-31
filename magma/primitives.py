@@ -3,6 +3,8 @@ from magma.bit import Bit, BitType, In, Out
 from magma.array import Bits, BitsType, SInt, SIntType, UInt, UIntType
 from magma.circuit import DeclareCircuit
 from magma.compatibility import IntegerTypes
+from magma.bit_vector import BitVector
+import operator
 try:
     from functools import lru_cache
 except ImportError:
@@ -143,13 +145,20 @@ def __rshift__(self, other):
 BitsType.__rshift__ = __rshift__
 
 
-def declare_binop(name, _type, type_type, op, out_type=None):
+def declare_binop(name, _type, type_type, op, python_op, out_type=None):
+    def simulate(self, value_store, state_store):
+        in0 = BitVector(value_store.get_value(self.in0))
+        in1 = BitVector(value_store.get_value(self.in1))
+        value_store.set_value(self.out, python_op(in0, in1).as_bool_list())
+
     @lru_cache(maxsize=None)
     def Declare(N):
         T = _type(N)
         return DeclareCircuit("{}".format(name),
                               'in0', In(T), 'in1', In(T),
-                              'out', Out(out_type if out_type else T))
+                              'out', Out(out_type if out_type else T),
+                              stateful=False,
+                              simulate=simulate)
 
     @type_check_binary_operator
     def func(self, other):
@@ -158,25 +167,25 @@ def declare_binop(name, _type, type_type, op, out_type=None):
     setattr(type_type, op, func)
 
 
-declare_binop("coreir_add", SInt, SIntType, "__add__")
-declare_binop("coreir_sub", SInt, SIntType, "__sub__")
-declare_binop("coreir_mul", SInt, SIntType, "__mul__")
-declare_binop("coreir_sdiv", SInt, SIntType, "__div__")
-declare_binop("coreir_sdiv", SInt, SIntType, "__truediv__")
-declare_binop("coreir_slt",  SInt, SIntType, "__lt__", out_type=Bit)
-declare_binop("coreir_sle", SInt, SIntType, "__le__", out_type=Bit)
-declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", out_type=Bit)
-declare_binop("coreir_sge", SInt, SIntType, "__ge__", out_type=Bit)
+declare_binop("coreir_add", SInt, SIntType, "__add__", operator.add)
+declare_binop("coreir_sub", SInt, SIntType, "__sub__", operator.sub)
+declare_binop("coreir_mul", SInt, SIntType, "__mul__", operator.mul)
+declare_binop("coreir_sdiv", SInt, SIntType, "__div__", operator.truediv)
+declare_binop("coreir_sdiv", SInt, SIntType, "__truediv__", operator.truediv)
+declare_binop("coreir_slt",  SInt, SIntType, "__lt__", operator.lt, out_type=Bit)
+declare_binop("coreir_sle", SInt, SIntType, "__le__", operator.le, out_type=Bit)
+declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", operator.gt, out_type=Bit)
+declare_binop("coreir_sge", SInt, SIntType, "__ge__", operator.ge, out_type=Bit)
 
-declare_binop("coreir_add", UInt, UIntType, "__add__")
-declare_binop("coreir_sub", UInt, UIntType, "__sub__")
-declare_binop("coreir_mul", UInt, UIntType, "__mul__")
-declare_binop("coreir_udiv", UInt, UIntType, "__div__")
-declare_binop("coreir_udiv", UInt, UIntType, "__truediv__")
-declare_binop("coreir_ult",  UInt, UIntType, "__lt__", out_type=Bit)
-declare_binop("coreir_ule", UInt, UIntType, "__le__", out_type=Bit)
-declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", out_type=Bit)
-declare_binop("coreir_uge", UInt, UIntType, "__ge__", out_type=Bit)
+declare_binop("coreir_add", UInt, UIntType, "__add__", operator.add)
+declare_binop("coreir_sub", UInt, UIntType, "__sub__", operator.sub)
+declare_binop("coreir_mul", UInt, UIntType, "__mul__", operator.mul)
+declare_binop("coreir_udiv", UInt, UIntType, "__div__", operator.truediv)
+declare_binop("coreir_udiv", UInt, UIntType, "__truediv__", operator.truediv)
+declare_binop("coreir_ult",  UInt, UIntType, "__lt__", operator.lt, out_type=Bit)
+declare_binop("coreir_ule", UInt, UIntType, "__le__", operator.le, out_type=Bit)
+declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", operator.gt, out_type=Bit)
+declare_binop("coreir_uge", UInt, UIntType, "__ge__", operator.ge, out_type=Bit)
 
 
 @lru_cache(maxsize=None)

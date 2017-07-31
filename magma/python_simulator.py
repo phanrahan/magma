@@ -24,6 +24,8 @@ class PythonSimulatorException(Exception):
 
 class SimPrimitive:
     def __init__(self, primitive, value_store):
+        if primitive.simulate is None:
+            raise ValueError("Cannot simulate {} of type {} because it does not have a Python simulate method".format(primitive, type(primitive)))
         self.primitive = primitive
         self.inputs = []
         self.outputs = []

@@ -13,11 +13,11 @@ class BitVector:
             self._value = value
             self._bits = int2seq(value, num_bits)
         elif isinstance(value, list):
-            if not all(x == 0 or x == 1 for x in value):
-                raise Exception("BitVector list initialization must be a list of 0s and 1s")
+            if not (all(x == 0 or x == 1 for x in value) or all(x == False or x == True for x in value)):
+                raise Exception("BitVector list initialization must be a list of 0s and 1s or a list of True and False")
             if num_bits is None:
                 num_bits = len(value)
-            self._value = seq2int(value, num_bits)
+            self._value = seq2int(value)
             self._bits = value
         else:
             raise Exception("BitVector initialization with type {} not supported".format(type(value)))
@@ -129,3 +129,6 @@ class BitVector:
 
     def as_binary_string(self):
         return "0b" + np.binary_repr(self.as_int(), self.num_bits)
+
+    def as_bool_list(self):
+        return [bool(x) for x in self._bits]

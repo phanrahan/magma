@@ -147,7 +147,8 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
     while source_qual in bit_map:
         intermediate_in = bit_map[source_qual]
         sourcebit = intermediate_in.bit.value()
-        assert sourcebit is not None
+        if sourcebit is None:
+            raise Exception("Sourcebit is None, {} is possibly unwired?".format(source_qual))
 
         source_qual = QualifiedBit(bit=sourcebit, scope=intermediate_in.scope)
         collapsed_out_bits.append(source_qual)
