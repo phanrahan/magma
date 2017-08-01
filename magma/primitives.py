@@ -217,3 +217,63 @@ def arithmetic_shift_right(self, other):
 
 
 SIntType.arithmetic_shift_right = arithmetic_shift_right
+
+
+def gen_sim_register(N):
+    def sim_register(self, value_store, state_store):
+        """
+        Adapted from Brennan's SB_DFF simulation in mantle
+        """
+        cur_clock = value_store.get_value(self.clk)
+
+        if not state_store:
+            state_store['prev_clock'] = cur_clock
+            state_store['cur_val'] = BitVector(0, num_bits=N)
+
+        # if r:
+        #     cur_r = value_store.get_value(self.R)
+        # if s:
+        #     cur_s = value_store.get_value(self.S)
+
+        prev_clock = state_store['prev_clock']
+        # if not n:
+        #     clock_edge = cur_clock and not prev_clock
+        # else:
+        #     clock_edge = not cur_clock and prev_clock
+        clock_edge = cur_clock and not prev_clock
+
+        new_val = state_store['cur_val'].as_bool_list()
+
+        if clock_edge:
+            input_val = value_store.get_value(self.D)
+
+            enable = True
+            # if ce:
+            #     enable = value_store.get_value(self.E)
+
+            if enable:
+                # if r and sy and cur_r:
+                #     new_val = False
+                # elif s and sy and cur_s:
+                #     new_val = True
+                # else:
+                #     new_val = input_val
+                new_val = input_val
+
+        # if r and not sy and cur_r:
+        #     new_val = False
+        # if s and not sy and cur_s:
+        #     new_val = True
+
+        state_store['prev_clock'] = cur_clock
+        state_store['cur_val'] = BitVector(new_val, num_bits=N)
+        value_store.set_value(self.Q, new_val)
+    return sim_register
+
+@lru_cache(maxsize=None)
+def DefineRegister(N, T=Bits):
+    name = "Reg_P"  # TODO: Add support for clock interface
+    io = ["D", In(T(N)), "clk", In(Bit), "Q", Out(T(N))]
+    def wrapper(*args, **kwargs):
+        return DeclareCircuit(name, *io, stateful=True, simulate=gen_sim_register(N))(WIDTH=N, *args, **kwargs)
+    return wrapper

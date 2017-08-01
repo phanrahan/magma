@@ -132,3 +132,6 @@ class BitVector:
 
     def as_bool_list(self):
         return [bool(x) for x in self._bits]
+
+    def __len__(self):
+        return self.num_bits
