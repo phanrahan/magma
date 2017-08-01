@@ -271,9 +271,12 @@ def gen_sim_register(N):
     return sim_register
 
 @lru_cache(maxsize=None)
-def DefineRegister(N, T=Bits):
+def DefineRegister(N, clock_enable=False, T=Bits):
     name = "Reg_P"  # TODO: Add support for clock interface
     io = ["D", In(T(N)), "clk", In(Bit), "Q", Out(T(N))]
+    if clock_enable:
+        io.extend(["en", In(Bit)])
+        name += "E"  # TODO: This assumes ordering of clock parameters
     def wrapper(*args, **kwargs):
         return DeclareCircuit(name, *io, stateful=True, simulate=gen_sim_register(N))(WIDTH=N, *args, **kwargs)
     return wrapper
