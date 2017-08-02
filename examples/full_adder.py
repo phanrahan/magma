@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 from magma import *
 
 class FullAdder(Circuit):
@@ -21,32 +15,29 @@ class FullAdder(Circuit):
         wire(a_and_b | b_and_cin | a_and_cin, io.cout)
 
 
-# In[2]:
+if __name__ == "__main__":
+    from magma.python_simulator import PythonSimulator
+    from magma.scope import Scope
 
+    simulator = PythonSimulator(FullAdder)
+    scope = Scope()
+    test_vectors = [
+        [0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0],
+        [1, 0, 0, 1, 0],
+        [1, 1, 0, 0, 1],
+        [0, 1, 1, 0, 1],
+        [1, 0, 1, 0, 1],
+        [1, 1, 0, 0, 1],
+        [1, 1, 1, 1, 1]
+    ]
 
-from magma.python_simulator import PythonSimulator
-from magma.scope import Scope
+    for a, b, cin, out, cout in test_vectors:
+        simulator.set_value(FullAdder.a, scope, bool(a))
+        simulator.set_value(FullAdder.b, scope, bool(b))
+        simulator.set_value(FullAdder.cin, scope, bool(cin))
+        simulator.evaluate()
+        assert simulator.get_value(FullAdder.out, scope) == bool(out)
+        assert simulator.get_value(FullAdder.cout, scope) == bool(cout)
 
-simulator = PythonSimulator(FullAdder)
-scope = Scope()
-test_vectors = [
-    [0, 0, 0, 0, 0],
-    [0, 1, 0, 1, 0],
-    [1, 0, 0, 1, 0],
-    [1, 1, 0, 0, 1],
-    [0, 1, 1, 0, 1],
-    [1, 0, 1, 0, 1],
-    [1, 1, 0, 0, 1],
-    [1, 1, 1, 1, 1]
-]
-
-for a, b, cin, out, cout in test_vectors:
-    simulator.set_value(FullAdder.a, scope, bool(a))
-    simulator.set_value(FullAdder.b, scope, bool(b))
-    simulator.set_value(FullAdder.cin, scope, bool(cin))
-    simulator.evaluate()
-    assert simulator.get_value(FullAdder.out, scope) == bool(out)
-    assert simulator.get_value(FullAdder.cout, scope) == bool(cout)
-
-print("Success!")
-
+    print("Success!")
