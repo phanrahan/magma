@@ -40,9 +40,9 @@ def test_register():
         simulator.evaluate()
         assert simulator.get_value(TestCircuit.out, scope) == expected.as_bool_list()
 
-def test_register_clock_enable():
+def test_register_CE():
     N = 4
-    Register4 = DefineRegister(N, clock_enable=True, T=UInt)
+    Register4 = DefineRegister(N, CE=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_ce"
         IO = ["CLK", In(Bit), "CE", In(Bit), "out", Out(UInt(N))]
