@@ -30,9 +30,19 @@ def test_1_bit_logic():
     def f(a, b, c):
         return (a & b) | (b ^ c)
 
-    compileverilator('build/sim_test_1_bit_logic_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_1_bit_logic_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_1_bit_logic.v")
     run_verilator_test('test_1_bit_logic', 'sim_test_1_bit_logic_main', 'test_circuit1')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c, d in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list()[0])
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list()[0])
+        simulator.set_value(TestCircuit.c, scope, c.as_bool_list()[0])
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.d, scope) == d.as_bool_list()[0]
 
 
 def test_bits_logic():
