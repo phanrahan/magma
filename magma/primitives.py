@@ -146,10 +146,15 @@ BitsType.__rshift__ = __rshift__
 
 
 def declare_binop(name, _type, type_type, op, python_op, out_type=None):
+    signed = type_type is SIntType
     def simulate(self, value_store, state_store):
-        in0 = BitVector(value_store.get_value(self.in0))
-        in1 = BitVector(value_store.get_value(self.in1))
-        value_store.set_value(self.out, python_op(in0, in1).as_bool_list())
+        in0 = BitVector(value_store.get_value(self.in0), signed=signed)
+        in1 = BitVector(value_store.get_value(self.in1), signed=signed)
+        out = python_op(in0, in1).as_bool_list()
+        if out_type is Bit:
+            assert len(out) == 1, "out_type is Bit but the operation returned a list of length {}".format(len(out))
+            out = out[0]
+        value_store.set_value(self.out, out)
 
     @lru_cache(maxsize=None)
     def Declare(N):
