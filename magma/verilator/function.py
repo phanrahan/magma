@@ -7,6 +7,7 @@ if sys.version_info < (3, 3):
 else:
     from inspect import signature
 from itertools import product
+import pytest
 
 # check that number of function arguments equals number of circuit inputs
 def check(circuit, func):
@@ -20,6 +21,7 @@ def check(circuit, func):
             ncircargs += 1
     assert nfuncargs == ncircargs
 
+@pytest.mark.skip(reason="Not a test")
 def testvectors(circuit, func, input_ranges=None, mode='complete'):
     check(circuit, func)
 

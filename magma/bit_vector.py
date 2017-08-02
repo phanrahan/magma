@@ -6,7 +6,8 @@ import numpy as np
 
 
 class BitVector:
-    def __init__(self, value=0, num_bits=None):
+    def __init__(self, value=0, num_bits=None, signed=False):
+        self.signed = signed
         if isinstance(value, IntegerTypes):
             if num_bits is None:
                 num_bits = max(value.bit_length(), 1)
@@ -19,6 +20,8 @@ class BitVector:
                 num_bits = len(value)
             self._value = seq2int(value)
             self._bits = value
+            if self.signed and self._bits[-1]:
+                self._value -= (1 << num_bits)
         else:
             raise Exception("BitVector initialization with type {} not supported".format(type(value)))
         self.num_bits = num_bits
@@ -135,3 +138,6 @@ class BitVector:
 
     def __len__(self):
         return self.num_bits
+
+    def __str__(self):
+        return str(self._value)

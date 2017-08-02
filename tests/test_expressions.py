@@ -2,7 +2,10 @@ from magma import *
 from magma.backend import verilog
 from magma.verilator.verilator import compile as compileverilator
 from magma.verilator.verilator import run_verilator_test
+from magma.verilator.function import testvectors
 import itertools
+from magma.python_simulator import PythonSimulator
+from magma.scope import Scope
 
 def insert_coreir_stdlib_include(verilog_file):
     file_path = os.path.dirname(__file__)
@@ -197,7 +200,7 @@ def test_uint_div():
 def test_uint_lt():
     class TestCircuit(Circuit):
         name = "test_uint_lt"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a < circuit.b
@@ -206,15 +209,24 @@ def test_uint_lt():
     def f(a, b):
         return a < b
 
-    compileverilator('build/sim_test_uint_lt_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_uint_lt_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_uint_lt.v")
     run_verilator_test('test_uint_lt', 'sim_test_uint_lt_main', 'test_uint_lt')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_uint_le():
     class TestCircuit(Circuit):
         name = "test_uint_le"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a <= circuit.b
@@ -223,15 +235,24 @@ def test_uint_le():
     def f(a, b):
         return a <= b
 
-    compileverilator('build/sim_test_uint_le_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_uint_le_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_uint_le.v")
     run_verilator_test('test_uint_le', 'sim_test_uint_le_main', 'test_uint_le')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_uint_gt():
     class TestCircuit(Circuit):
         name = "test_uint_gt"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a > circuit.b
@@ -240,15 +261,24 @@ def test_uint_gt():
     def f(a, b):
         return a > b
 
-    compileverilator('build/sim_test_uint_gt_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_uint_gt_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_uint_gt.v")
     run_verilator_test('test_uint_gt', 'sim_test_uint_gt_main', 'test_uint_gt')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_uint_ge():
     class TestCircuit(Circuit):
         name = "test_uint_ge"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a >= circuit.b
@@ -257,9 +287,18 @@ def test_uint_ge():
     def f(a, b):
         return a >= b
 
-    compileverilator('build/sim_test_uint_ge_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_uint_ge_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_uint_ge.v")
     run_verilator_test('test_uint_ge', 'sim_test_uint_ge_main', 'test_uint_ge')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_sint_add():
@@ -333,7 +372,7 @@ def test_sint_div():
 def test_sint_lt():
     class TestCircuit(Circuit):
         name = "test_sint_lt"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a < circuit.b
@@ -342,15 +381,24 @@ def test_sint_lt():
     def f(a, b):
         return a < b
 
-    compileverilator('build/sim_test_sint_lt_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_lt_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_sint_lt.v")
     run_verilator_test('test_sint_lt', 'sim_test_sint_lt_main', 'test_sint_lt')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_sint_le():
     class TestCircuit(Circuit):
         name = "test_sint_le"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a <= circuit.b
@@ -359,15 +407,24 @@ def test_sint_le():
     def f(a, b):
         return a <= b
 
-    compileverilator('build/sim_test_sint_le_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_le_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_sint_le.v")
     run_verilator_test('test_sint_le', 'sim_test_sint_le_main', 'test_sint_le')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_sint_gt():
     class TestCircuit(Circuit):
         name = "test_sint_gt"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a > circuit.b
@@ -376,15 +433,24 @@ def test_sint_gt():
     def f(a, b):
         return a > b
 
-    compileverilator('build/sim_test_sint_gt_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_gt_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_sint_gt.v")
     run_verilator_test('test_sint_gt', 'sim_test_sint_gt_main', 'test_sint_gt')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_sint_ge():
     class TestCircuit(Circuit):
         name = "test_sint_ge"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a >= circuit.b
@@ -393,9 +459,17 @@ def test_sint_ge():
     def f(a, b):
         return a >= b
 
-    compileverilator('build/sim_test_sint_ge_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_ge_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_sint_ge.v")
 
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0], "Failed on {}, {}, {}".format(a, b, c)
 
 def test_sint_arithmetic_right_shift():
     class TestCircuit(Circuit):

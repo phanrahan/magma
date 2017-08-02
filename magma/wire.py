@@ -85,13 +85,7 @@ def wire(o, i, debug_info):
     #    i, o = o, i
         
     # Wire(Type, Type)
-    # Support wiring Array(1, Bit) <-> Bit
-    if isinstance(i, ArrayType) and len(i) == 1 and isinstance(o, BitType):
-        i[0].wire(o, debug_info)
-    elif isinstance(o, ArrayType) and len(o) == 1 and isinstance(i, BitType):
-        i.wire(o[0], debug_info)
-    else:
-        i.wire(o, debug_info)
+    i.wire(o, debug_info)
 
 
 def wireclock(define, circuit):
