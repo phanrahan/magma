@@ -219,7 +219,7 @@ def arithmetic_shift_right(self, other):
 SIntType.arithmetic_shift_right = arithmetic_shift_right
 
 
-def gen_sim_register(N, CE):
+def gen_sim_register(N, ce):
     def sim_register(self, value_store, state_store):
         """
         Adapted from Brennan's SB_DFF simulation in mantle
@@ -248,7 +248,7 @@ def gen_sim_register(N, CE):
             input_val = value_store.get_value(self.D)
 
             enable = True
-            if CE:
+            if ce:
                 enable = value_store.get_value(self.en)
 
             if enable:
@@ -271,12 +271,12 @@ def gen_sim_register(N, CE):
     return sim_register
 
 @lru_cache(maxsize=None)
-def DefineRegister(N, CE=False, T=Bits):
+def DefineRegister(N, ce=False, T=Bits):
     name = "Reg_P"  # TODO: Add support for clock interface
     io = ["D", In(T(N)), "clk", In(Bit), "Q", Out(T(N))]
-    if CE:
+    if ce:
         io.extend(["en", In(Bit)])
         name += "E"  # TODO: This assumes ordering of clock parameters
     def wrapper(*args, **kwargs):
-        return DeclareCircuit(name, *io, stateful=True, simulate=gen_sim_register(N, CE))(WIDTH=N, *args, **kwargs)
+        return DeclareCircuit(name, *io, stateful=True, simulate=gen_sim_register(N, ce))(WIDTH=N, *args, **kwargs)
     return wrapper
