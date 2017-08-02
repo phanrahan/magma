@@ -197,7 +197,7 @@ def test_uint_div():
 def test_uint_lt():
     class TestCircuit(Circuit):
         name = "test_uint_lt"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a < circuit.b
@@ -214,7 +214,7 @@ def test_uint_lt():
 def test_uint_le():
     class TestCircuit(Circuit):
         name = "test_uint_le"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a <= circuit.b
@@ -231,7 +231,7 @@ def test_uint_le():
 def test_uint_gt():
     class TestCircuit(Circuit):
         name = "test_uint_gt"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a > circuit.b
@@ -248,7 +248,7 @@ def test_uint_gt():
 def test_uint_ge():
     class TestCircuit(Circuit):
         name = "test_uint_ge"
-        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(UInt(1))]
+        IO = ["a", In(UInt(4)), "b", In(UInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a >= circuit.b
@@ -333,7 +333,7 @@ def test_sint_div():
 def test_sint_lt():
     class TestCircuit(Circuit):
         name = "test_sint_lt"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a < circuit.b
@@ -350,7 +350,7 @@ def test_sint_lt():
 def test_sint_le():
     class TestCircuit(Circuit):
         name = "test_sint_le"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a <= circuit.b
@@ -367,7 +367,7 @@ def test_sint_le():
 def test_sint_gt():
     class TestCircuit(Circuit):
         name = "test_sint_gt"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a > circuit.b
@@ -384,7 +384,7 @@ def test_sint_gt():
 def test_sint_ge():
     class TestCircuit(Circuit):
         name = "test_sint_ge"
-        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(SInt(1))]
+        IO = ["a", In(SInt(4)), "b", In(SInt(4)), "c", Out(Bit)]
         @classmethod
         def definition(circuit):
             c = circuit.a >= circuit.b

@@ -81,7 +81,7 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
         
         if not isinstance(o, ArrayType):
-            error('Wiring Error: wiring {} (Not Array) to {} (Array)'.format(o, i))
+            error('Wiring Error: wiring {} ({}) to {} ({})'.format(o, type(o), i, type(i)))
             return
 
         #if i.T != o.T:
