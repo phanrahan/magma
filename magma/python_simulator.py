@@ -265,9 +265,10 @@ class PythonSimulator(CircuitSimulator):
         return None
 
     def step(self):
-        if self.clkbit is not None:
-            cur_clock_val = self.value_store.get_value(self.clkbit)
-            self.value_store.set_value(self.clkbit, not cur_clock_val)
+        if self.clkbit is None:
+            raise PythonSimulatorException("Cannot step a simulated circuit without a clock")
+        cur_clock_val = self.value_store.get_value(self.clkbit)
+        self.value_store.set_value(self.clkbit, not cur_clock_val)
 
     def cont(self):
         cycles = 0
