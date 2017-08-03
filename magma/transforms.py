@@ -129,6 +129,11 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
     return newsource
 
 def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit):
+    if isinstance(origbit, ArrayType):
+        assert isinstance(newbit, ArrayType)
+        for x, y in zip(origbit, newbit):
+            wire_new_bit(x, y, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit)
+        return
     # Trace back from origbit to its source, tracking bits that will be "collapsed"
     new_circuit = flattened_circuit.circuit
 
