@@ -26,9 +26,15 @@ def type_check_binary_operator(operator):
     return type_checked_operator
 
 
-def declare_bit_binop(name, op):
+def declare_bit_binop(name, op, python_op):
+    def simulate(self, value_store, state_store):
+        in0 = BitVector(value_store.get_value(self.in0))
+        in1 = BitVector(value_store.get_value(self.in1))
+        out = python_op(in0, in1).as_bool_list()[0]
+        value_store.set_value(self.out, out)
     circ = DeclareCircuit("{}".format(name),
-                          'in0', In(Bit), 'in1', In(Bit), 'out', Out(Bit))
+                          'in0', In(Bit), 'in1', In(Bit), 'out', Out(Bit),
+                          simulate=simulate)
 
     @type_check_binary_operator
     def func(self, other):
@@ -37,9 +43,9 @@ def declare_bit_binop(name, op):
     setattr(BitType, op, func)
 
 
-declare_bit_binop("coreir_and", "__and__")
-declare_bit_binop("coreir_or", "__or__")
-declare_bit_binop("coreir_xor", "__xor__")
+declare_bit_binop("coreir_and", "__and__", operator.and_)
+declare_bit_binop("coreir_or", "__or__", operator.or_)
+declare_bit_binop("coreir_xor", "__xor__", operator.xor)
 
 BitInvert = DeclareCircuit("coreir_not", 'in', In(Bit), 'out', Out(Bit))
 
