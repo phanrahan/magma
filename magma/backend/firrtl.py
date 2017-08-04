@@ -49,6 +49,24 @@ def compileinstance(instance):
             s += "{} <= {}.{}\n".format(value_name, instance_name, name)
     return s
 
+
+def compile_primitive(instance):
+    op = instance.firrtl_op
+    instance_name = str(instance.name)
+    # s = "inst {} of {}\n".format(instance_name, str(instance.__class__.__name__))
+    outputs = instance.interface.outputs()
+    assert len(outputs) == 1, "FIRRTL primitive should only have one output"
+    port = outputs[0]
+    args = []
+    for name, port in instance.interface.ports.items():
+        if port.isinput():
+            value = port.value()
+            if not value:
+                print('Warning (firrtl): input', str(port), 'not connected to an output')
+                value = port
+            args.append(get_name(value))
+    return "{} <= {}({})\n".format(get_name(port), instance.firrtl_op, ", ".join(args))
+
 def compiledefinition(cls):
 
     # for now only allow Bit or Array(n, Bit)
@@ -81,8 +99,11 @@ def compiledefinition(cls):
         #print('compile instances')
         # emit the structured verilog for each instance
         for instance in cls.instances:
-            wiredefaultclock(cls, instance)
-            s += compileinstance(instance)
+            if instance.firrtl_op is not None:
+                s += compile_primitive(instance)
+            else:
+                wiredefaultclock(cls, instance)
+                s += compileinstance(instance)
 
         # assign to module output arguments
         for input in cls.interface.inputs():

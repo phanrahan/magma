@@ -291,7 +291,15 @@ def AnonymousCircuit(*decl):
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
-    dct = dict(IO=decl, cells=args.get('cells', 0), alignment=1, primitive=args.get('primitive', True), stateful=args.get('stateful', False), simulate=args.get('simulate'))
+    dct = dict(
+        IO=decl,
+        cells=args.get('cells', 0),
+        alignment=1,
+        primitive=args.get('primitive', True),
+        stateful=args.get('stateful', False),
+        simulate=args.get('simulate'),
+        firrtl_op=args.get('firrtl_op')
+    )
     return CircuitKind( name, (CircuitType,), dct )
 
 
