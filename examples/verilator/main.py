@@ -1,10 +1,6 @@
-#import os
-#os.environ['MANTLE'] = 'lattice'
-
 from magma import *
+from magma.verilator.verilator import compile as compileverilator
 from mantle.verilog.gates import And, XOr
-from verilator import compile as compileverilator
-#from simulator import testvectors
 
 def f(a, b, c):
     return (a & b) ^ c
