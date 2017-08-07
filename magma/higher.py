@@ -5,9 +5,10 @@ from .circuit import *
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
-__ALL__ += ['fork', 'join', 'flat']
-__ALL__ += ['braid']
 __ALL__ += ['row', 'col', 'map']
+__ALL__ += ['fork', 'join', 'flat']
+__ALL__ += ['fold', 'scan']
+__ALL__ += ['braid']
 
 # return a list of all the arguments 
 # with a given name from a list of interfaces
@@ -222,21 +223,32 @@ def braid(circuits,
     #print(args)
     return AnonymousCircuit(args)
 
+def flat(*circuits):
+    if len(circuits) == 1: circuits = circuits[0]
+    flatargs = getargbydirection(circuits[0].interface, INPUT)
+    return braid(circuits, flatargs=flatargs)
+
 def fork(*circuits):
     """Wire input to all the inputs, concatenate output"""
     if len(circuits) == 1: circuits = circuits[0]
     forkargs = getargbydirection(circuits[0].interface, INPUT)
     return braid(circuits, forkargs=forkargs)
 
-def flat(*circuits):
-    if len(circuits) == 1: circuits = circuits[0]
-    flatargs = getargbydirection(circuits[0].interface, INPUT)
-    return braid(circuits, flatargs=flatargs)
-
 def join(*circuits):
     """concatenate input and concatenate output"""
     if len(circuits) == 1: circuits = circuits[0]
     return braid(circuits)
+
+def fold(*circuits, **kwargs):
+    """fold"""
+    if len(circuits) == 1: circuits = circuits[0]
+    return braid(circuits, **kwargs)
+
+def scan(*circuits, **kwargs):
+    """scan"""
+    if len(circuits) == 1: circuits = circuits[0]
+    return braid(circuits, **kwargs)
+
 
 
 def inputargs(circuit):
