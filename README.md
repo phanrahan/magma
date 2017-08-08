@@ -1,76 +1,83 @@
 # Magma
 [![Build Status](https://travis-ci.com/phanrahan/magma.svg?token=BftLM4kSr1QfgPspi6aF&branch=master)](https://travis-ci.com/phanrahan/magma)
 
-Magma is a low-level design language (LLDL) for programming FPGAs.
+Magma is a low-level language embedded in python.
+Currently Magma can be used program FPGAs.
+In the future, we hope that Magma will be used
+to program CGRAs and ASICs.
+
 The central abstraction in Magma is a circuit.
 A circuit is a set of functional units 
-that are then wired together.
-Magma circuits are analagous to structural verilog or netlists.
+that are wired together.
+Magma circuits are analagous to verilog modules.
+Wiring circuits together creates a netlist.
+Thus, all Magma programs are guaranteed to be synthesizable.
 
-High-level design languages such as verilog or VHDL 
-perform synthesis and behavioral specification of circuits.
-Magma takes a different approach.
-Synthesis is performed using meta-programming 
-using domain-specific languages.
-Magma is based on python,
-a powerful and widely used programming language.
-Python is used to to implement
-"generators" that create circuits.
-Example generators include 
+Python is used to to create Magma circuits.
+This approach to hardware design
+is referred to as "generators" in the hardware community,
+and "metaprogramming" in the software community.
+Example hardware generators include 
 logic minimiziers,
 arithmetic units,
-finite state machines,
-and even processors.
-
-The second component of the system is Mantle.
-Mantle is a library of common hardware components.
-Mantle is meant to be like libc or libm.
-Mantle primitives are analogous 
-to the 7400 series or 4000 series
-of discrete integrated circuits.
-Typical components include and gates, multiplexers, adders, registers,
-shift registers, flip-flops, counters and memories.
+and linear feedback shift registers.
+Using powerful python metaprogramming capabilities
+such as decorators and metaclasses makes it possible 
+to create higher-level domain-specific languages (DSLs).
+Examples include languages for
+finite state machines, memory controllers,
+image and signal processing, and even processors.
 
 Here is a simple Magma program.
 ```
-And2 = And(2)
+And2 = DefineAnd(2)
+
 and2 = And2()
 
-LED(and2(SWITCH[0], SWITCH[1]))
+wire( and2(SWITCH[0], SWITCH[1])), LED )
 ```
-And2 is a function that creates 2-bit and gates.
-Calling And2 creates a new 2-bit and gate.
-And is a high-order function that builds functions
-that build and gates of different sizes.
-For example, And can be used to create functions 
-that create 4-input and gates 
-by calling And(4).
+In Magma, hardware is built in three stages.
+The first stage creates Circuit classes.
+Circuits classes when called create circuit instances.
+In the above example,
+```DefineAnd(n)``` is a parameterized circuit generator
+that creates a circuit class that implements an n-bit and gate.
+A generator is needed because the class is parameterized.
+The second stage creates Circuit instances.
+And2 is a Circuit class;
+calling And2 creates an instance of a 2-bit and gate.
+The third stage wires circuit instances to other circuit instances.
+The function call and2(SWITCH[0], SWITCH[1])
+wires SWITCH[0] to the first input
+and SWITCH[1] to the second input
+of the and2 gate.
+The output of the and2 gate is returned. and is then wired to the LED.
+The function call syntax for wiring 
+is equivlanet to explicitly wiring inputs and outputs.
+```
+# wire( and2(SWITCH[0], SWITCH[1])), LED )
+wire( SWITCH[0], and2.I0 )
+wire( SWITCH[1], and2.I1 )
+wire( and2.O, LED )
+```
 
-Once a circuit for an and gate has been created,
-it is connected to some inputs and outputs.
-In this example, 
-SWITCH[0], SWITCH[1], and LED are also circuits.
-Calling and(SWITCH[0], SWITCH[1])
-wires SWITCH[0] to the first input of the and gate
-and SWITCH[1] to the second input.
-Calling LED(and) wires the outout of the and
-gate to the input of the LED.
+Note that this Magma example 
+shows how programming hardware is different than writing software.
+In software, a function is executed sequentially when it is called. 
+In hardware, a function is a circuit instance.
+A new circuit instance is created each time a function is used.
+Each circuit instance represents a different hardware unit
+which continuously executing in parallel.
 
-Note that this simple example shows 
-how programming hardware is different than software.
-In software, there is one version of a function that can
-be called from different places in the program.
-In hardware, a function represents a circuit.
-A new copy of the circuit must be created each time a function is used.
-In software, calling a function causes the function to execute.
-In hardware, circuits are always executing.
-Calling a circuit function 
-wires up the arguments to the inputs of the circuit.
-
-Magma currently runs on Xilinx and Lattice ice40 FPGAs.
-We use inexpensive FPGA boards such as the Papilio, Mojo, Logi, XULA-2,
-and Icestick boards.
+Magma has several backends.
+The most commonly used is the coreir backend that
+outputs structural verilog 
+instancing the coreir intermediste representation primitives.
+Included in this relase is also a backend end for the ice40 FPGAs;
+this backend uses the open source yosys tool chain for the ice40.
+We have also developed  back-ends for Altera and Xilinx FPGAs.
 
 More documentation is contained in the doc directory.
-Another good place to start is the examples in ```examples```.
+Another good place to start is the examples in ```examples```
+and the jupyter notes in ```notebooks```.
 
