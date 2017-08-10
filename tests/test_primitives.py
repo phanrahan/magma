@@ -42,7 +42,7 @@ def test_register():
 
 def test_register_ce():
     N = 4
-    Register4 = DefineRegister(N, ce=True, T=UInt)
+    Register4 = DefineRegister(N, has_ce=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_ce"
         IO = ["CLK", In(Bit), "CE", In(Bit), "out", Out(UInt(N))]
