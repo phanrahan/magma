@@ -57,9 +57,19 @@ def test_bits_logic():
     def f(a, b, c):
         return (a & b) | (b ^ c)
 
-    compileverilator('build/sim_test_bits_logic_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_bits_logic_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_bits_logic.v")
     run_verilator_test('test_bits_logic', 'sim_test_bits_logic_main', 'test_circuit2')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c, d in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.c, scope, c.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.d, scope) == d.as_bool_list()
 
 
 def test_bits_lshift():

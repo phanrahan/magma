@@ -58,12 +58,19 @@ def __invert__(self):
 BitType.__invert__ = __invert__
 
 
-def declare_bits_binop(name, op):
+def declare_bits_binop(name, op, python_op):
+    def simulate(self, value_store, state_store):
+        in0 = BitVector(value_store.get_value(self.in0))
+        in1 = BitVector(value_store.get_value(self.in1))
+        out = python_op(in0, in1).as_bool_list()
+        value_store.set_value(self.out, out)
+
     @lru_cache(maxsize=None)
     def Declare(N):
         T = Bits(N)
         return DeclareCircuit("{}".format(name),
-                              'in0', In(T), 'in1', In(T), 'out', Out(T))
+                              'in0', In(T), 'in1', In(T), 'out', Out(T),
+                              simulate=simulate)
 
     @type_check_binary_operator
     def func(self, other):
@@ -72,9 +79,9 @@ def declare_bits_binop(name, op):
     setattr(BitsType, op, func)
 
 
-declare_bits_binop("coreir_and", "__and__")
-declare_bits_binop("coreir_or", "__or__")
-declare_bits_binop("coreir_xor", "__xor__")
+declare_bits_binop("coreir_and", "__and__", operator.and_)
+declare_bits_binop("coreir_or", "__or__", operator.or_)
+declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
 
 @lru_cache(maxsize=None)
