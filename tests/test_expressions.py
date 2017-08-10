@@ -24,11 +24,11 @@ def test_1_bit_logic():
         IO = ["a", In(Bit), "b", In(Bit), "c", In(Bit), "d", Out(Bit)]
         @classmethod
         def definition(circuit):
-            d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
+            d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_1_bit_logic", TestCircuit)
     def f(a, b, c):
-        return (a & b) | (b ^ c)
+        return ~(a & b) | (b ^ c)
 
     test_vectors = testvectors(TestCircuit, f)
     compileverilator('build/sim_test_1_bit_logic_main.cpp', TestCircuit, test_vectors)
@@ -51,11 +51,11 @@ def test_bits_logic():
         IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", In(Bits(4)), "d", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            d = (circuit.a & circuit.b) | (circuit.b ^ circuit.c)
+            d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_bits_logic", TestCircuit)
     def f(a, b, c):
-        return (a & b) | (b ^ c)
+        return ~(a & b) | (b ^ c)
 
     test_vectors = testvectors(TestCircuit, f)
     compileverilator('build/sim_test_bits_logic_main.cpp', TestCircuit, test_vectors)

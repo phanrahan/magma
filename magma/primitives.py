@@ -48,7 +48,13 @@ declare_bit_binop("coreir_and", "__and__", operator.and_, "and")
 declare_bit_binop("coreir_or", "__or__", operator.or_, "or")
 declare_bit_binop("coreir_xor", "__xor__", operator.xor, "xor")
 
-BitInvert = DeclareCircuit("coreir_not", 'in', In(Bit), 'out', Out(Bit))
+def simulate_bit_not(self, value_store, state_store):
+    _in = BitVector(value_store.get_value(getattr(self, "in")))
+    out = (~_in).as_bool_list()[0]
+    value_store.set_value(self.out, out)
+
+BitInvert = DeclareCircuit("coreir_not", 'in', In(Bit), 'out', Out(Bit),
+        simulate=simulate_bit_not)
 
 
 def __invert__(self):
@@ -84,10 +90,15 @@ declare_bits_binop("coreir_or", "__or__", operator.or_)
 declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
 
+def simulate_bits_not(self, value_store, state_store):
+    _in = BitVector(value_store.get_value(getattr(self, "in")))
+    out = (~_in).as_bool_list()
+    value_store.set_value(self.out, out)
+
 @lru_cache(maxsize=None)
 def DeclareInvertN(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_not", 'in', In(T), 'out', Out(T))
+    return DeclareCircuit("coreir_not", 'in', In(T), 'out', Out(T), simulate=simulate_bits_not)
 
 
 def __invert__(self):

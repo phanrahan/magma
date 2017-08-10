@@ -3,6 +3,7 @@ from __future__ import division
 from magma.compatibility import IntegerTypes, StringTypes
 from magma.bits import seq2int, int2seq
 import numpy as np
+import ctypes
 
 
 class BitVector:
@@ -141,3 +142,9 @@ class BitVector:
 
     def __str__(self):
         return str(self._value)
+
+    def __invert__(self):
+        retval = ~self._value
+        if not self.signed:
+            retval = retval & (1 << self.num_bits) - 1
+        return BitVector(retval, num_bits=self.num_bits)
