@@ -1,9 +1,10 @@
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.array import Bits, BitsType, SInt, SIntType, UInt, UIntType
-from magma.circuit import DeclareCircuit
+from magma.circuit import DeclareCircuit, circuit_type_method
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
+from magma.wire import wire
 import operator
 try:
     from functools import lru_cache
@@ -304,9 +305,23 @@ def gen_sim_register(N, has_ce):
 def DefineRegister(N, has_ce=False, T=Bits):
     name = "Reg_P"  # TODO: Add support for clock interface
     io = ["D", In(T(N)), "clk", In(Bit), "Q", Out(T(N))]
+    methods = []
+
+    def when(self, condition):
+        wire(self.en, condition)
+        return self
+
     if has_ce:
         io.extend(["en", In(Bit)])
         name += "E"  # TODO: This assumes ordering of clock parameters
+        methods.append(circuit_type_method("when", when))
+
     def wrapper(*args, **kwargs):
-        return DeclareCircuit(name, *io, stateful=True, simulate=gen_sim_register(N, has_ce))(WIDTH=N, *args, **kwargs)
+        return DeclareCircuit(
+            name,
+            *io,
+            stateful=True,
+            simulate=gen_sim_register(N, has_ce),
+            circuit_type_methods=methods
+        )(WIDTH=N, *args, **kwargs)
     return wrapper

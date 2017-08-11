@@ -4,6 +4,7 @@ import inspect
 if sys.version_info > (3, 0):
     from functools import reduce
 import operator
+from collections import namedtuple
 from .interface import *
 from .wire import *
 from .t import Flip
@@ -24,6 +25,9 @@ __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
 
 __all__ += ['AnonymousCircuit']
+
+
+circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 
 # create an attribute for each port
@@ -52,6 +56,9 @@ class CircuitKind(type):
 
         # create a new circuit class
         self = type.__new__(metacls, name, bases, dct)
+
+        for method in dct.get('circuit_type_methods', []):
+            setattr(self, method.name, method.definition)
 
         # create interface for this circuit class 
         if hasattr(self, 'IO'):
@@ -298,7 +305,8 @@ def DeclareCircuit(name, *decl, **args):
         primitive=args.get('primitive', True),
         stateful=args.get('stateful', False),
         simulate=args.get('simulate'),
-        firrtl_op=args.get('firrtl_op')
+        firrtl_op=args.get('firrtl_op'),
+        circuit_type_methods=args.get('circuit_type_methods', [])
     )
     return CircuitKind( name, (CircuitType,), dct )
 
