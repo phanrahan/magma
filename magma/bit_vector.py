@@ -141,3 +141,9 @@ class BitVector:
 
     def __str__(self):
         return str(self._value)
+
+    def __invert__(self):
+        retval = ~self._value
+        if not self.signed:
+            retval = retval & (1 << self.num_bits) - 1
+        return BitVector(retval, num_bits=self.num_bits)
