@@ -42,17 +42,16 @@ def test_register():
 
 def test_register_ce():
     N = 4
-    Register4 = DefineRegister(N, ce=True, T=UInt)
+    Register4 = DefineRegister(N, has_ce=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_ce"
         IO = ["CLK", In(Bit), "CE", In(Bit), "out", Out(UInt(N))]
         @classmethod
         def definition(circuit):
-            reg = Register4()
+            reg = Register4().when(circuit.CE)
             magma.wire(reg.Q, circuit.out)
             magma.wire(reg.D, reg.Q + magma.int2seq(1, N))
             magma.wire(circuit.CLK, reg.clk)
-            magma.wire(circuit.CE, reg.en)
 
     magma.compile("build/test_register_ce", TestCircuit)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
