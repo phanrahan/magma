@@ -1,9 +1,10 @@
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.array import Bits, BitsType, SInt, SIntType, UInt, UIntType
-from magma.circuit import DeclareCircuit
+from magma.circuit import DeclareCircuit, circuit_type_method
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
+from magma.wire import wire
 import operator
 try:
     from functools import lru_cache
@@ -249,7 +250,7 @@ def arithmetic_shift_right(self, other):
 SIntType.arithmetic_shift_right = arithmetic_shift_right
 
 
-def gen_sim_register(N, has_ce):
+def gen_sim_register(N, has_ce, has_reset):
     def sim_register(self, value_store, state_store):
         """
         Adapted from Brennan's SB_DFF simulation in mantle
@@ -260,8 +261,8 @@ def gen_sim_register(N, has_ce):
             state_store['prev_clock'] = cur_clock
             state_store['cur_val'] = BitVector(0, num_bits=N)
 
-        # if r:
-        #     cur_r = value_store.get_value(self.R)
+        if has_reset:
+            cur_reset = value_store.get_value(self.rst)
         # if s:
         #     cur_s = value_store.get_value(self.S)
 
@@ -290,8 +291,8 @@ def gen_sim_register(N, has_ce):
                 #     new_val = input_val
                 new_val = input_val
 
-        # if r and not sy and cur_r:
-        #     new_val = False
+        if has_reset and not cur_reset:  # Reset is asserted low
+            new_val = [False for _ in range(N)]
         # if s and not sy and cur_s:
         #     new_val = True
 
@@ -301,12 +302,35 @@ def gen_sim_register(N, has_ce):
     return sim_register
 
 @lru_cache(maxsize=None)
-def DefineRegister(N, has_ce=False, T=Bits):
+def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
     name = "Reg_P"  # TODO: Add support for clock interface
     io = ["D", In(T(N)), "clk", In(Bit), "Q", Out(T(N))]
+    methods = []
+
+    def reset(self, condition):
+        wire(condition, self.rst)
+        return self
+
+    if has_reset:
+        io.extend(["rst", In(Bit)])
+        name += "R"  # TODO: This assumes ordering of clock parameters
+        methods.append(circuit_type_method("reset", reset))
+
+    def when(self, condition):
+        wire(condition, self.en)
+        return self
+
     if has_ce:
         io.extend(["en", In(Bit)])
         name += "E"  # TODO: This assumes ordering of clock parameters
+        methods.append(circuit_type_method("when", when))
+
     def wrapper(*args, **kwargs):
-        return DeclareCircuit(name, *io, stateful=True, simulate=gen_sim_register(N, has_ce))(WIDTH=N, *args, **kwargs)
+        return DeclareCircuit(
+            name,
+            *io,
+            stateful=True,
+            simulate=gen_sim_register(N, has_ce, has_reset),
+            circuit_type_methods=methods
+        )(WIDTH=N, *args, **kwargs)
     return wrapper
