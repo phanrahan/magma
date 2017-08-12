@@ -6,6 +6,7 @@ if sys.version_info < (3, 4):
 else:
     from abc import ABC
 from collections import namedtuple
+from itertools import product
 from .simulator import CircuitSimulator, ExecutionState
 from .transforms import flatten, setup_clocks
 from .circuit import *
@@ -13,7 +14,7 @@ from .scope import *
 from .array import ArrayType
 from .bit import VCC, GND, BitType
 
-__all__ = ['PythonSimulator', 'test']
+__all__ = ['PythonSimulator', 'testvectors']
 
 ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
@@ -293,20 +294,39 @@ class PythonSimulator(CircuitSimulator):
 
         return False
 
-def test(circuit, test):
+def testvectors(circuit, input_ranges=None, mode='complete'):
+    ntest = len(circuit.interface.ports.items())
+
     simulator = PythonSimulator(circuit)
     scope = Scope()
 
-    i = 0
-    for name, port in circuit.interface.ports.items():
+    args = []
+    for i, (name, port) in enumerate(circuit.interface.ports.items()):
         if port.isoutput():
-            simulator.set_value(getattr(circuit, name), scope, bool(test[i]))
-            i += 1
+            if isinstance(port, BitType):
+                args.append([0,1])
+            else:
+                assert True, "can only test In(Bit)"
 
-    simulator.evaluate()
+    tests = []
+    for test in product(*args):
+        testv = ntest*[0]
+        j = 0
+        for i, (name, port) in enumerate(circuit.interface.ports.items()):
+            # circuit defn output is an input to the idefinition
+            if port.isoutput(): 
+                testv[i] = test[j]
+                simulator.set_value(getattr(circuit, name), scope, bool(test[j]))
+                j += 1
 
-    i = 0
-    for name, port in circuit.interface.ports.items():
-        if port.isinput():
-            assert simulator.get_value(getattr(circuit, name), scope) == bool(test[i])
-            i += 1
+        simulator.evaluate()
+
+        for i, (name, port) in enumerate(circuit.interface.ports.items()):
+            # circuit defn input is an input of the definition
+            if port.isinput():
+                testv[i] = int(simulator.get_value(getattr(circuit, name), scope))
+
+        tests.append(testv)
+
+    return tests
+
