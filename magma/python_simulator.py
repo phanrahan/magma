@@ -13,7 +13,7 @@ from .scope import *
 from .array import ArrayType
 from .bit import VCC, GND, BitType
 
-__all__ = ['PythonSimulator']
+__all__ = ['PythonSimulator', 'test']
 
 ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
@@ -292,3 +292,21 @@ class PythonSimulator(CircuitSimulator):
                 return True
 
         return False
+
+def test(circuit, test):
+    simulator = PythonSimulator(circuit)
+    scope = Scope()
+
+    i = 0
+    for name, port in circuit.interface.ports.items():
+        if port.isoutput():
+            simulator.set_value(getattr(circuit, name), scope, bool(test[i]))
+            i += 1
+
+    simulator.evaluate()
+
+    i = 0
+    for name, port in circuit.interface.ports.items():
+        if port.isinput():
+            assert simulator.get_value(getattr(circuit, name), scope) == bool(test[i])
+            i += 1
