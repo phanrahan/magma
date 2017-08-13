@@ -1,6 +1,10 @@
 from magma import *
 from magma.primitives import DefineRegister
 
+from magma.python_simulator import PythonSimulator
+from magma.scope import Scope
+from magma.bit_vector import BitVector
+
 def test_shift_register():
     N = 4
     Register4 = DefineRegister(4)
@@ -17,16 +21,8 @@ def test_shift_register():
             fold(regs, foldargs={"D":"Q"})
             wire(regs[-1].Q, io.O)
 
-    from magma.python_simulator import PythonSimulator
-    from magma.scope import Scope
-    from magma.bit_vector import BitVector
-
     simulator = PythonSimulator(ShiftRegister)
     scope = Scope()
-    O0 = []
-    O1 = []
-    O2 = []
-    O3 = []
     expected = [0, 0, 0] + list(range(0, 1 << N, 3))[:-3]
     actual = []
     for i in range(0, 1 << N, 3):
