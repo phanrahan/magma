@@ -197,6 +197,7 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
     func.__name__ = op
     setattr(type_type, op, func)
 
+declare_binop("coreir_eq", Bits, BitsType, "__eq__", operator.eq, out_type=Bit)
 
 declare_binop("coreir_add", SInt, SIntType, "__add__", operator.add)
 declare_binop("coreir_sub", SInt, SIntType, "__sub__", operator.sub)
