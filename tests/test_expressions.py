@@ -84,9 +84,18 @@ def test_bits_eq():
     def f(a, b):
         return a == b
 
-    compileverilator('build/sim_test_bits_eq_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_bits_eq_main.cpp', TestCircuit, test_vectors)
     insert_coreir_stdlib_include("build/test_bits_eq.v")
     run_verilator_test('test_bits_eq', 'sim_test_bits_eq_main', 'test_eq')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
 
 
 def test_bits_lshift():
