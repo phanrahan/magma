@@ -147,3 +147,6 @@ class BitVector:
         if not self.signed:
             retval = retval & (1 << self.num_bits) - 1
         return BitVector(retval, num_bits=self.num_bits)
+
+    def __eq__(self, other):
+        return BitVector(self._value == other._value, num_bits=1)

@@ -72,6 +72,32 @@ def test_bits_logic():
         assert simulator.get_value(TestCircuit.d, scope) == d.as_bool_list()
 
 
+def test_bits_eq():
+    class TestCircuit(Circuit):
+        name = "test_eq"
+        IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", Out(Bit)]
+        @classmethod
+        def definition(circuit):
+            c = circuit.a == circuit.b
+            wire(c, circuit.c)
+    compile("build/test_bits_eq", TestCircuit)
+    def f(a, b):
+        return a == b
+
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_bits_eq_main.cpp', TestCircuit, test_vectors)
+    insert_coreir_stdlib_include("build/test_bits_eq.v")
+    run_verilator_test('test_bits_eq', 'sim_test_bits_eq_main', 'test_eq')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
+        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+
+
 def test_bits_lshift():
     class TestCircuit(Circuit):
         name = "test_lshift"
