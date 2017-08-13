@@ -11,8 +11,10 @@ from .simulator import CircuitSimulator, ExecutionState
 from .transforms import flatten, setup_clocks
 from .circuit import *
 from .scope import *
-from .array import ArrayType
+from .array import ArrayType, SIntType
 from .bit import VCC, GND, BitType
+from .bit_vector import BitVector
+from .bits import seq2int
 
 __all__ = ['PythonSimulator', 'testvectors']
 
@@ -333,19 +335,38 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
     for i, (name, port) in enumerate(circuit.interface.ports.items()):
         if port.isoutput():
             if isinstance(port, BitType):
-                args.append([0,1])
+                args.append([BitVector(0),BitVector(1)])
+            elif isinstance(port, ArrayType):
+                num_bits = type(port).N
+                if isinstance(port, SIntType):
+                    if input_ranges is None:
+                        start = -2**(num_bits - 1)
+                        end = 2**(num_bits - 1)  # We don't subtract one because range end is exclusive
+                        input_range = range(start, end)
+                    else:
+                        input_range = input_ranges[i]
+                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
+                else:
+                    if input_ranges is None:
+                        input_range = range(1<<num_bits)
+                    else:
+                        input_range = input_ranges[i]
+                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
             else:
-                assert True, "can only test In(Bit)"
+                assert True, "can't test Tuples"
 
     tests = []
     for test in product(*args):
+        test = list(test)
         testv = ntest*[0]
         j = 0
         for i, (name, port) in enumerate(circuit.interface.ports.items()):
             # circuit defn output is an input to the idefinition
             if port.isoutput(): 
-                testv[i] = test[j]
-                simulator.set_value(getattr(circuit, name), scope, bool(test[j]))
+                testv[i] = test[j].as_int()
+                val = test[j].as_bool_list()
+                if len(val) == 1: val = val[0]
+                simulator.set_value(getattr(circuit, name), scope, val)
                 j += 1
 
         simulator.evaluate()
@@ -353,7 +374,10 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
         for i, (name, port) in enumerate(circuit.interface.ports.items()):
             # circuit defn input is an input of the definition
             if port.isinput():
-                testv[i] = int(simulator.get_value(getattr(circuit, name), scope))
+                val = simulator.get_value(getattr(circuit, name), scope)
+                val = int(val) if isinstance(val, bool) else seq2int(val)
+                testv[i] = val
+
 
         tests.append(testv)
 
