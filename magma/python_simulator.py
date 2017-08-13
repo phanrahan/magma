@@ -166,6 +166,33 @@ class PythonSimulator(CircuitSimulator):
 
         return True
 
+    def __sort_state_primitives(self, state_primitives):
+        """
+        State primitives should be sorted in reversed topological order.
+        This ensures that the simulation order of the stateful elements
+        is correct.
+        Intuition:
+            If the output value of a state element `x` feeds into the input of
+            another state element `y`,
+            `y` should perform it's simulation before `x` because it will use
+            the value of the signal on the previous clock cycle.
+        """
+        sorted_state_primitives = []
+        for primitive_1 in state_primitives:
+            inserted = False
+            for index, primitive_2 in enumerate(sorted_state_primitives):
+                for output in primitive_1.inputs:
+                    if output.value() in primitive_2.inputs:
+                        sorted_state_primitives.insert(index, primitive_1)
+                        inserted = True
+                        break
+                if inserted:
+                    break
+            if not inserted:
+                sorted_state_primitives.append(primitive_1)
+        sorted_state_primitives.reverse()
+        return sorted_state_primitives
+
     def __get_ordered_primitives(self, unordered_primitives):
         state_primitives = []
         after_state = []
@@ -175,6 +202,8 @@ class PythonSimulator(CircuitSimulator):
             if primitive.stateful():
                 primitive.initialize_outputs()
                 state_primitives.append(primitive)
+
+        sorted_state_primitives = self.__sort_state_primitives(state_primitives)
 
         unordered_primitives[:] = [u for u in unordered_primitives if not u.stateful()]
 
@@ -190,7 +219,7 @@ class PythonSimulator(CircuitSimulator):
                     break
             assert found, "Some circuits have unsatisfied inputs"
         
-        return ExecutionOrder(stateful=state_primitives, combinational=combinational)
+        return ExecutionOrder(stateful=sorted_state_primitives, combinational=combinational)
 
     def __init__(self, main_circuit, clkbit=None):
         setup_clocks(main_circuit)
