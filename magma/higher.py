@@ -5,7 +5,7 @@ from .circuit import *
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
-__ALL__ += ['row', 'col', 'map']
+__ALL__ += ['row', 'col', 'map_']
 __ALL__ += ['fork', 'join', 'flat']
 __ALL__ += ['fold', 'scan']
 __ALL__ += ['braid']
@@ -329,3 +329,5 @@ def row(f, n):
 def col(f, n):
     return [f(y) for y in range(n)]
 
+def map_(f, n):
+    return [f() for _ in range(n)]
