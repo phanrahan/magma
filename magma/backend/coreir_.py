@@ -2,13 +2,15 @@ from collections import OrderedDict
 from magma.backend.verilog import find
 from magma.array import ArrayKind, ArrayType
 from magma.wire import wiredefaultclock
+from magma.bit import VCC, GND
 import coreir
 
 
 class CoreIRBackend:
     def __init__(self):
         self.context = coreir.Context()
-        self.coreir_stdlib = self.context.get_namespace("coreir")
+        self.libs = {}
+        self.unique_instance_id = -1
 
     def check_interface(self, definition):
         # for now only allow Bit or Array(n, Bit)
@@ -32,14 +34,33 @@ class CoreIRBackend:
             args[name] = _type
         return self.context.Record(args)
 
+    def get_instantiable(self, name, lib):
+        if lib not in self.libs:
+            if lib == "coreir":
+                self.libs[lib] = self.context.get_namespace(lib)
+            else:
+                self.libs[lib] = self.context.load_library(lib)
+        instantiable = self.libs[lib].instantiables[name]
+        if instantiable.kind == coreir.Module:
+            return self.libs[lib].modules[name]
+        else:
+            return self.libs[lib].generators[name]
+
     def compile_instance(self, instance, module_definition):
         name = instance.__class__.__name__
-        len_prefix = len("coreir_")
-        assert "coreir_" == name[:len_prefix]
-        instantiable = self.coreir_stdlib.instantiables[name[len_prefix:]]
-        if instantiable.kind == coreir.Module:
-            return module_definition.add_module_instance(instance.name, instantiable)
-        elif instantiable.kind == coreir.Generator:
+        if getattr(instance, 'coreir_lib', False):
+            instantiable = self.get_instantiable(name, instance.coreir_lib)
+        else:
+            len_prefix = len("coreir_")
+            assert "coreir_" == name[:len_prefix]
+            instantiable = self.get_instantiable(name[len_prefix:], "coreir")
+        if isinstance(instantiable, coreir.Module):
+            args = {}
+            for name, value in instance.kwargs.items():
+                args[name] = value[0]  # Drop width for now
+            args = self.context.newArgs(args)
+            return module_definition.add_module_instance(instance.name, instantiable, args)
+        elif isinstance(instantiable, coreir.Generator):
             gen_args = self.context.newArgs({"width": instance.kwargs["WIDTH"]})
             return module_definition.add_generator_instance(instance.name, instantiable, gen_args)
         else:
@@ -63,16 +84,36 @@ class CoreIRBackend:
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
+                    if port.value() in [VCC, GND]:
+                        source = self.get_constant_instance(port.value(), module_definition)
+                    else:
+                        source = module_definition.select(str(output_ports[port.value()]))
                     module_definition.connect(
-                        module_definition.select(str(output_ports[port.value()])),
+                        source,
                         module_definition.select(str(port)))
         module.definition = module_definition
         return module
 
+    def get_constant_instance(self, constant, module_definition):
+        self.unique_instance_id += 1
+        instantiable = self.get_instantiable("const", "coreir")
+        if constant == VCC:
+            value = 1
+        elif constant == GND:
+            value = 0
+        else:
+            raise NotImplementedError
+        gen_args = self.context.newArgs({"width": 1})
+        config = self.context.newArgs({"value": value})
+        name = "const_inst{}".format(self.unique_instance_id)
+        module_definition.add_generator_instance(name, instantiable, gen_args, config)
+        # FIXME: This should work
+        # return instantiable.select("out")
+        return module_definition.select("{}.out.0".format(name))
+
     def compile(self, defn):
         modules = {}
         for key, value in defn.items():
-            print('compiling', key)
             modules[key] = self.compile_definition(value)
         return modules
 
