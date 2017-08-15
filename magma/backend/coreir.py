@@ -33,9 +33,6 @@ class CoreIRBackend:
         return self.context.Record(args)
 
     def compile_instance(self, instance, module_definition):
-        # for key, value in instance.interface.ports.items():
-        #     if value.isinput():
-        #         # Find the output connected to value
         name = instance.__class__.__name__
         len_prefix = len("coreir_")
         assert "coreir_" == name[:len_prefix]
