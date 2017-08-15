@@ -5,16 +5,16 @@
         "test_coreir_uint": {
           "connections": [
             [
-              "inst1.out",
-              "inst2.in1"
+              "self.a",
+              "inst3.in1"
             ],
             [
               "inst2.out",
               "inst3.in0"
             ],
             [
-              "self.a",
-              "inst1.in0"
+              "inst1.out",
+              "inst2.in1"
             ],
             [
               "inst0.out",
@@ -22,15 +22,15 @@
             ],
             [
               "self.a",
-              "inst3.in1"
-            ],
-            [
-              "self.b",
-              "inst1.in1"
+              "inst1.in0"
             ],
             [
               "self.b",
               "inst0.in1"
+            ],
+            [
+              "inst1.in1",
+              "self.b"
             ],
             [
               "self.a",

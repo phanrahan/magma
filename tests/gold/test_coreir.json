@@ -5,56 +5,56 @@
         "test_coreir": {
           "connections": [
             [
-              "inst1.out",
-              "inst3.in0"
-            ],
-            [
-              "inst2.out",
-              "inst3.in1"
-            ],
-            [
-              "self.c",
-              "inst2.in1"
+              "inst3.in0",
+              "inst1.out"
             ],
             [
               "self.a",
               "inst0.in0"
             ],
             [
-              "inst0.out",
-              "inst1.in"
-            ],
-            [
-              "self.b",
-              "inst2.in0"
-            ],
-            [
               "self.b",
               "inst0.in1"
+            ],
+            [
+              "self.c",
+              "inst2.in1"
+            ],
+            [
+              "inst2.in0",
+              "self.b"
+            ],
+            [
+              "inst3.in1",
+              "inst2.out"
+            ],
+            [
+              "inst1.in",
+              "inst0.out"
             ]
           ],
           "instances": {
             "inst0": {
               "genargs": {
-                "width": 1
+                "width": 4
               },
               "genref": "coreir.and"
             },
             "inst1": {
               "genargs": {
-                "width": 1
+                "width": 4
               },
               "genref": "coreir.not"
             },
             "inst2": {
               "genargs": {
-                "width": 1
+                "width": 4
               },
               "genref": "coreir.xor"
             },
             "inst3": {
               "genargs": {
-                "width": 1
+                "width": 4
               },
               "genref": "coreir.or"
             }
@@ -62,10 +62,26 @@
           "type": [
             "Record",
             {
-              "a": "BitIn",
-              "b": "BitIn",
-              "c": "BitIn",
-              "d": "Bit"
+              "a": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "b": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "c": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "d": [
+                "Array",
+                4,
+                "Bit"
+              ]
             }
           ]
         }

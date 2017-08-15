@@ -5,10 +5,6 @@
         "test_coreir_bits": {
           "connections": [
             [
-              "inst2.out",
-              "inst3.in1"
-            ],
-            [
               "inst1.out",
               "inst3.in0"
             ],
@@ -17,16 +13,20 @@
               "inst2.in0"
             ],
             [
+              "self.b",
+              "inst0.in1"
+            ],
+            [
               "self.c",
               "inst2.in1"
             ],
             [
-              "inst0.out",
-              "inst1.in"
+              "inst2.out",
+              "inst3.in1"
             ],
             [
-              "self.b",
-              "inst0.in1"
+              "inst0.out",
+              "inst1.in"
             ],
             [
               "self.a",
