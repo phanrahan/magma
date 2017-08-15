@@ -1,6 +1,12 @@
 import os
 import inspect
-from .backend import verilog, blif, firrtl, coreir
+from .backend import verilog, blif, firrtl
+from .error import warn
+try:
+    import coreir
+    from .backend import coreir
+except ImportError:
+    warn("coreir not installed, will not be able to use compile target \"coreir\"")
 from .config import get_compile_dir
 from .simulator_interactive_frontend import simulate
 

@@ -1,3 +1,4 @@
+coreir = pytest.importorskip("coreir")
 from magma import *
 
 
