@@ -12,9 +12,8 @@ def test_coreir_bit():
             d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_coreir_bit", TestCircuit, output="coreir")
-    with open("build/test_coreir_bit.json") as actual:
-        with open("gold/test_coreir_bit.json") as gold:
-            assert actual.read() == gold.read()
+    assert magma_check_files_equal(__file__, 
+            "build/test_coreir_bit.json", "gold/test_coreir_bit.json")
 
 
 def test_coreir_bits():
@@ -26,9 +25,8 @@ def test_coreir_bits():
             d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_coreir_bits", TestCircuit, output="coreir")
-    with open("build/test_coreir_bits.json") as actual:
-        with open("gold/test_coreir_bits.json") as gold:
-            assert actual.read() == gold.read()
+    assert magma_check_files_equal(__file__, 
+            "build/test_coreir_bits.json", "gold/test_coreir_bits.json")
 
 def test_coreir_uint():
     class TestCircuit(Circuit):
@@ -42,9 +40,8 @@ def test_coreir_uint():
             tmp4 = tmp3 / circuit.a
             wire(tmp4, circuit.c)
     compile("build/test_coreir_uint", TestCircuit, output="coreir")
-    with open("build/test_coreir_uint.json") as actual:
-        with open("gold/test_coreir_uint.json") as gold:
-            assert actual.read() == gold.read()
+    assert magma_check_files_equal(__file__, 
+            "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
 
 if __name__ == "__main__":
     test_coreir()
