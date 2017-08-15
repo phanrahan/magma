@@ -4,7 +4,7 @@ from .backend import verilog, blif, firrtl
 from .error import warn
 try:
     import coreir
-    from .backend import coreir_backend
+    from .backend import coreir as coreir_backend
 except ImportError:
     warn("coreir not installed, will not be able to use compile target \"coreir\"")
 from .config import get_compile_dir
