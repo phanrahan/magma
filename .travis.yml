@@ -29,4 +29,4 @@ install:
     - pip install -e .
 
 script: 
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then py.test --cov=magma tests;else pytest --cov=magma tests; fi
+    - py.test
