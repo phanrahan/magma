@@ -20,18 +20,22 @@ def get_type(port):
         width = 1
     return "UInt<{}>".format(width)
 
-def get_name(port):
-    if port is VCC: return "UInt<1>(\"h1\")"
-    if port is GND: return "UInt<1>(\"h0\")"
+def get_name(dot, port):
+    if port is VCC: return "1"
+    if port is GND: return "0"
 
     if isinstance(port, ArrayType):
         if not port.iswhole(port.ts):
             # the sequence of values is concantenated
-            port = [get_name(i) for i in port.ts]
+            port = [get_name(dot, i) for i in port.ts]
             port.reverse()
             if len(port) == 1:  # FIXME: Hack to make single length bit arrays work
                 return port[0]
-            return '{' + ','.join(port) + '}'
+            name = '[' + ','.join(port) + ']'
+            dot.node(name, '{{' + '|'.join(port) + '}|}')
+            for sub in port:
+                dot.edge(sub, name + ':' + sub)
+            return name
     assert not port.anon()
     return port.name.qualifiedname(sep="_")
 
@@ -56,7 +60,7 @@ def compileinstance(dot, instance):
         #     for index, subport in enumerate(value.ts):
         #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
         # else:
-        value_name = get_name(value)
+        value_name = get_name(dot, value)
         if port.isinput():
             # s += "{}.{} <= {}\n".format(instance_name, name, value_name)
             dot.edge(value_name, '{}:{}'.format(instance_name, name))
@@ -65,7 +69,7 @@ def compileinstance(dot, instance):
             dot.edge('{}:{}'.format(instance_name, name), value_name)
 
     instance_label = '{' + '|'.join(inputs) + '}|' + \
-                     '{} of {}'.format(instance_name, instance_cls_name) + \
+                     '{}\\n{}'.format(instance_name, instance_cls_name) + \
                      '|{' + '|'.join(outputs) + '}'
     dot.node(instance_name, '{' + instance_label + '}')
 
@@ -81,15 +85,15 @@ def compiledefinition(dot, cls):
     for name, port in cls.interface.ports.items():
         # TODO: Check whether port.isinput() or .isoutput().
         dot.node(name,
-                 escape('{} : {}'.format(name, get_type(port))),
+                 escape('{}\\n{}'.format(name, get_type(port))),
                  shape='ellipse')
 
     # declare a wire for each instance output
     for instance in cls.instances:
         for port in instance.interface.ports.values():
             if port.isoutput():
-                dot.node(get_name(port),
-                         escape('{} : {}'.format(get_name(port), get_type(port))),
+                dot.node(get_name(dot, port),
+                         escape('{}\\n{}'.format(get_name(dot, port), get_type(port))),
                          shape='none')
 
     # Emit the graph node (with ports) for each instance.
@@ -100,8 +104,8 @@ def compiledefinition(dot, cls):
     for input in cls.interface.inputs():
         output = input.value()
         if output:
-            iname = get_name(input)
-            oname = get_name(output)
+            iname = get_name(dot, input)
+            oname = get_name(dot, output)
             dot.edge(oname, iname)
 
 def find(circuit, defn):
