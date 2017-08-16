@@ -6,9 +6,22 @@ python:
     - "3.5"
 
 before_install:
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test  # for gcc-4.9
     - sudo apt-get -qq update
-    - sudo apt-get install -y verilator
+    - sudo apt-get install -y verilator 
+    - sudo apt-get install -y g++-4.9 gcc-4.9  # coreir dependency
     - pip install --upgrade pip setuptools
+
+    # BEGIN: coreir installation
+    - git clone -b dev https://github.com/rdaly525/coreir.git
+    - cd coreir;
+    - export COREIRCONFIG="g++-4.9";
+    - export COREIR=$PWD
+    - export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
+    - make install
+    - make py
+    - cd ..;
+    # END: coreir installation
 
 install: 
     - pip install -r requirements.txt
@@ -16,4 +29,4 @@ install:
     - pip install -e .
 
 script: 
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then py.test --cov=magma tests;else pytest --cov=magma tests; fi
+    - py.test --cov=magma --ignore=coreir/  # Ignore tests in the coreir directory

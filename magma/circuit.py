@@ -306,7 +306,8 @@ def DeclareCircuit(name, *decl, **args):
         stateful=args.get('stateful', False),
         simulate=args.get('simulate'),
         firrtl_op=args.get('firrtl_op'),
-        circuit_type_methods=args.get('circuit_type_methods', [])
+        circuit_type_methods=args.get('circuit_type_methods', []),
+        coreir_lib=args.get('coreir_lib', None)
     )
     return CircuitKind( name, (CircuitType,), dct )
 

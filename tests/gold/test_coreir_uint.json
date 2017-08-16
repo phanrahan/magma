@@ -1,0 +1,95 @@
+{
+  "namespaces": {
+    "_G": {
+      "modules": {
+        "test_coreir_uint": {
+          "connections": [
+            [
+              "self.c",
+              "inst3.out"
+            ],
+            [
+              "self.b",
+              "inst1.in1"
+            ],
+            [
+              "self.b",
+              "inst0.in1"
+            ],
+            [
+              "self.a",
+              "inst3.in1"
+            ],
+            [
+              "self.a",
+              "inst1.in0"
+            ],
+            [
+              "self.a",
+              "inst0.in0"
+            ],
+            [
+              "inst3.in0",
+              "inst2.out"
+            ],
+            [
+              "inst2.in1",
+              "inst1.out"
+            ],
+            [
+              "inst2.in0",
+              "inst0.out"
+            ]
+          ],
+          "instances": {
+            "inst0": {
+              "genargs": {
+                "width": 4
+              },
+              "genref": "coreir.add"
+            },
+            "inst1": {
+              "genargs": {
+                "width": 4
+              },
+              "genref": "coreir.sub"
+            },
+            "inst2": {
+              "genargs": {
+                "width": 4
+              },
+              "genref": "coreir.mul"
+            },
+            "inst3": {
+              "genargs": {
+                "width": 4
+              },
+              "genref": "coreir.udiv"
+            }
+          },
+          "type": [
+            "Record",
+            {
+              "a": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "b": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "c": [
+                "Array",
+                4,
+                "Bit"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "top": "_G.test_coreir_uint"
+}

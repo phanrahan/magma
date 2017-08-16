@@ -1,0 +1,80 @@
+{
+  "namespaces": {
+    "_G": {
+      "modules": {
+        "test_coreir_bit": {
+          "connections": [
+            [
+              "self.d",
+              "inst3.out"
+            ],
+            [
+              "self.c",
+              "inst2.in1"
+            ],
+            [
+              "self.b",
+              "inst2.in0"
+            ],
+            [
+              "self.b",
+              "inst0.in1"
+            ],
+            [
+              "self.a",
+              "inst0.in0"
+            ],
+            [
+              "inst3.in1",
+              "inst2.out"
+            ],
+            [
+              "inst3.in0",
+              "inst1.out"
+            ],
+            [
+              "inst1.in",
+              "inst0.out"
+            ]
+          ],
+          "instances": {
+            "inst0": {
+              "genargs": {
+                "width": 1
+              },
+              "genref": "coreir.and"
+            },
+            "inst1": {
+              "genargs": {
+                "width": 1
+              },
+              "genref": "coreir.not"
+            },
+            "inst2": {
+              "genargs": {
+                "width": 1
+              },
+              "genref": "coreir.xor"
+            },
+            "inst3": {
+              "genargs": {
+                "width": 1
+              },
+              "genref": "coreir.or"
+            }
+          },
+          "type": [
+            "Record",
+            {
+              "a": "BitIn",
+              "b": "BitIn",
+              "c": "BitIn",
+              "d": "Bit"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "top": "_G.test_coreir_bit"
+}
