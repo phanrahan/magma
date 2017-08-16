@@ -84,13 +84,19 @@ class CoreIRBackend:
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
-                    if port.value() in [VCC, GND]:
+                    if port.value() is VCC or port.value() is GND:
                         source = self.get_constant_instance(port.value(), module_definition)
                     else:
                         source = module_definition.select(str(output_ports[port.value()]))
                     module_definition.connect(
                         source,
                         module_definition.select(str(port)))
+        for input in definition.interface.inputs():
+            output = input.value()
+            if output:
+                module_definition.connect(
+                    module_definition.select(str(input).replace(definition.__name__, "self")),
+                    module_definition.select(str(output)))
         module.definition = module_definition
         return module
 

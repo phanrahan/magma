@@ -29,4 +29,4 @@ install:
     - pip install -e .
 
 script: 
-    - py.test
+    - py.test --cov=magma --ignore=coreir/  # Ignore tests in the coreir directory

@@ -5,6 +5,10 @@
         "test_coreir_uint": {
           "connections": [
             [
+              "self.c",
+              "inst3.out"
+            ],
+            [
               "self.b",
               "inst1.in1"
             ],

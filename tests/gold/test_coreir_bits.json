@@ -5,6 +5,10 @@
         "test_coreir_bits": {
           "connections": [
             [
+              "self.d",
+              "inst3.out"
+            ],
+            [
               "self.c",
               "inst2.in1"
             ],
