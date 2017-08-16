@@ -1,4 +1,5 @@
 import sys
+import pytest
 from magma import *
 from magma import DeclareFromVerilog, DeclareFromTemplatedVerilog
 
