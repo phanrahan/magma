@@ -3,25 +3,29 @@ import os, sys, getopt
 from magma import compile
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'b:m:t')
+    opts, args = getopt.getopt(sys.argv[1:], 'b:o:')
 except:
-    print >> sys.stderr, 'usage: magma [-b board] -m mantle -t mantle_target -o output file'
+    print >> sys.stderr, 'usage: magma [-b board] -o output file'
     sys.exit(1)
 
 name = os.path.basename(args[0])
 name = os.path.splitext(name)[0]
 
-mantle_name = os.environ.get('MANTLE')
-target_name = os.environ.get('MANTLE_TARGET')
-board_name = None
+board = None
+target = None
+mantle = None
 for o, a in opts:
-    if   o == '-m':
-        mantle_name = a
-    elif o == '-t':
-        target_name = a
-    elif o == '-b':
-        board_name = a
+    if o == '-b':
+        board = a
 
+if board == 'icestick' or board == 'goboard' or board == 'hx8kboard':
+    target = 'ice40'
+    mantle = 'lattice'
+
+if target:
+    os.environ['MANTLE_TARGET'] = target
+if mantle:
+    os.environ['MANTLE'] = mantle
 
 # Add CWD to PYTHONPATH so Python can find the input file
 sys.path.append(os.getcwd())

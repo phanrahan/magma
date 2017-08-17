@@ -11,6 +11,7 @@ setup(
     name='magma',
     version='0.1-alpha',
     description='A circuit wiring language for programming FPGAs',
+    scripts=['bin/magma'],
     packages=[
         "magma",
         "magma.backend"
