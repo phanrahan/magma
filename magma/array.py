@@ -14,7 +14,10 @@ __all__ += ['Array5', 'Array6', 'Array7', 'Array8']
 __all__ += ['Array9', 'Array10', 'Array11', 'Array12']
 __all__ += ['Array13', 'Array14', 'Array15', 'Array16']
 __all__ += ['Array18']
-__all__ += ['Bits', 'UInt', 'SInt']
+
+__all__ += ['Bits', 'BitsType', 'BitsKind']
+__all__ += ['UInt', 'UIntType', 'UIntKind']
+__all__ += ['SInt', 'SIntType', 'SIntKind']
 
 __all__ += ['array', 'concat', 'constarray']
 

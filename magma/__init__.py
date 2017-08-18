@@ -13,6 +13,7 @@ from .bit import *
 from .array import *
 from .tuple import *
 from .interface import *
+from .conversions import *
 
 from .wire import *
 from .circuit import *
