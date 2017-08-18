@@ -87,6 +87,8 @@ class CoreIRBackend:
                     if port.value() is VCC or port.value() is GND:
                         source = self.get_constant_instance(port.value(), module_definition)
                     else:
+                        print(output_ports)
+                        print(port.value())
                         source = module_definition.select(str(output_ports[port.value()]))
                     module_definition.connect(
                         source,
