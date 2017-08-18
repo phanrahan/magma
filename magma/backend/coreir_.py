@@ -11,7 +11,7 @@ class CoreIRBackend:
     def __init__(self):
         self.context = coreir.Context()
         self.libs = {}
-        self.unique_instance_id = -1
+        self.__constant_cache = {}
 
     def check_interface(self, definition):
         # for now only allow Bit or Array(n, Bit)
@@ -112,26 +112,27 @@ class CoreIRBackend:
         return module
 
     def get_constant_instance(self, constant, num_bits, module_definition):
-        self.unique_instance_id += 1
-        instantiable = self.get_instantiable("const", "coreir")
+        if constant not in self.__constant_cache:
+            instantiable = self.get_instantiable("const", "coreir")
 
-        bit_type_to_constant_map = {
-            GND: 0,
-            VCC: 1
-        }
-        if constant in bit_type_to_constant_map:
-            value = bit_type_to_constant_map[constant]
-        elif isinstance(constant, ArrayType):
-            value = seq2int([bit_type_to_constant_map[x] for x in constant])
-        else:
-            raise NotImplementedError(value)
-        gen_args = self.context.newArgs({"width": 1})
-        config = self.context.newArgs({"value": value})
-        name = "const_inst{}".format(self.unique_instance_id)
-        module_definition.add_generator_instance(name, instantiable, gen_args, config)
-        # FIXME: This should work
-        # return instantiable.select("out")
-        return module_definition.select("{}.out.0".format(name))
+            bit_type_to_constant_map = {
+                GND: 0,
+                VCC: 1
+            }
+            if constant in bit_type_to_constant_map:
+                value = bit_type_to_constant_map[constant]
+            elif isinstance(constant, ArrayType):
+                value = seq2int([bit_type_to_constant_map[x] for x in constant])
+            else:
+                raise NotImplementedError(value)
+            gen_args = self.context.newArgs({"width": 1})
+            config = self.context.newArgs({"value": value})
+            name = "const_{}".format(constant)
+            module_definition.add_generator_instance(name, instantiable, gen_args, config)
+            # FIXME: This should work
+            # return instantiable.select("out")
+            self.__constant_cache[constant] = module_definition.select("{}.out.0".format(name))
+        return self.__constant_cache[constant]
 
     def compile(self, defn):
         modules = {}

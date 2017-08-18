@@ -70,35 +70,35 @@
             ],
             [
               "inst3.in1.1",
-              "const_inst7.out.0"
+              "const_VCC.out.0"
             ],
             [
               "inst3.in1.0",
-              "const_inst6.out.0"
+              "const_VCC.out.0"
             ],
             [
               "inst2.in1.1",
-              "const_inst5.out.0"
+              "const_VCC.out.0"
             ],
             [
               "inst2.in1.0",
-              "const_inst4.out.0"
+              "const_GND.out.0"
             ],
             [
               "inst1.in1.1",
-              "const_inst3.out.0"
+              "const_GND.out.0"
             ],
             [
               "inst1.in1.0",
-              "const_inst2.out.0"
+              "const_VCC.out.0"
             ],
             [
               "inst0.in1.1",
-              "const_inst1.out.0"
+              "const_GND.out.0"
             ],
             [
               "inst0.in1.0",
-              "const_inst0.out.0"
+              "const_GND.out.0"
             ],
             [
               "self.out",
@@ -178,7 +178,7 @@
             ]
           ],
           "instances": {
-            "const_inst0": {
+            "const_GND": {
               "configargs": {
                 "value": 0
               },
@@ -187,61 +187,7 @@
               },
               "genref": "coreir.const"
             },
-            "const_inst1": {
-              "configargs": {
-                "value": 0
-              },
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.const"
-            },
-            "const_inst2": {
-              "configargs": {
-                "value": 1
-              },
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.const"
-            },
-            "const_inst3": {
-              "configargs": {
-                "value": 0
-              },
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.const"
-            },
-            "const_inst4": {
-              "configargs": {
-                "value": 0
-              },
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.const"
-            },
-            "const_inst5": {
-              "configargs": {
-                "value": 1
-              },
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.const"
-            },
-            "const_inst6": {
-              "configargs": {
-                "value": 1
-              },
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.const"
-            },
-            "const_inst7": {
+            "const_VCC": {
               "configargs": {
                 "value": 1
               },
