@@ -3,6 +3,7 @@ from magma.backend.verilog import find
 from magma.array import ArrayKind, ArrayType
 from magma.wire import wiredefaultclock
 from magma.bit import VCC, GND
+from magma.bits import seq2int
 import coreir
 
 
@@ -81,18 +82,26 @@ class CoreIRBackend:
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
                     output_ports[port] = str(port)
+
+        def connect(port, value):
+            if value.anon() and isinstance(value, ArrayType):
+                for i, v in zip(range(len(port)), value):
+                    connect("{}.{}".format(str(port), i), v)
+                return
+            if isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
+                source = self.get_constant_instance(value, len(value),
+                        module_definition)
+            elif value is VCC or value is GND:
+                source = self.get_constant_instance(value, 1, module_definition)
+            else:
+                source = module_definition.select(output_ports[value])
+            module_definition.connect(
+                source,
+                module_definition.select(str(port)))
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
-                    if port.value() is VCC or port.value() is GND:
-                        source = self.get_constant_instance(port.value(), module_definition)
-                    else:
-                        print(output_ports)
-                        print(port.value())
-                        source = module_definition.select(str(output_ports[port.value()]))
-                    module_definition.connect(
-                        source,
-                        module_definition.select(str(port)))
+                    connect(port, port.value())
         for input in definition.interface.inputs():
             output = input.value()
             if output:
@@ -102,15 +111,20 @@ class CoreIRBackend:
         module.definition = module_definition
         return module
 
-    def get_constant_instance(self, constant, module_definition):
+    def get_constant_instance(self, constant, num_bits, module_definition):
         self.unique_instance_id += 1
         instantiable = self.get_instantiable("const", "coreir")
-        if constant == VCC:
-            value = 1
-        elif constant == GND:
-            value = 0
+
+        bit_type_to_constant_map = {
+            GND: 0,
+            VCC: 1
+        }
+        if constant in bit_type_to_constant_map:
+            value = bit_type_to_constant_map[constant]
+        elif isinstance(constant, ArrayType):
+            value = seq2int([bit_type_to_constant_map[x] for x in constant])
         else:
-            raise NotImplementedError
+            raise NotImplementedError(value)
         gen_args = self.context.newArgs({"width": 1})
         config = self.context.newArgs({"value": value})
         name = "const_inst{}".format(self.unique_instance_id)
