@@ -28,6 +28,7 @@ def test_coreir_bits():
     assert magma_check_files_equal(__file__, 
             "build/test_coreir_bits.json", "gold/test_coreir_bits.json")
 
+
 def test_coreir_uint():
     class TestCircuit(Circuit):
         name = "test_coreir_uint"
