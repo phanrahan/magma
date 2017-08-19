@@ -32,16 +32,20 @@ def convertbits(value, n, totype, checkbit):
         raise ValueError(
             "bits can only be used with a Bit, Array, Bits, UInt, SInt, int, or Sequence, not : {}".format(type(value)))
 
-    if not isinstance(value, IntegerTypes):
+    if not isinstance(value, (IntegerTypes, BitType)):
         assert n is None
 
     if isinstance(value, int):
-        # if n is None ...
+        if n is None:
+            n = value.bit_length()
         ts = int2seq(value, n)
     elif isinstance(value, Sequence):
         ts =  list(value)
     elif isinstance(value, BitType):
-        ts = [value]
+        if n is None:
+            ts = [value]
+        else:
+            ts = n*[value]
     else:
         ts = [value[i] for i in range(len(value))]
 

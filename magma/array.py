@@ -55,7 +55,7 @@ class ArrayType(Type):
         if isinstance(key,slice):
             return array([self[i] for i in range(*key.indices(len(self)))])
         else:
-            if not (0 <= key and key < self.N):
+            if not (-self.N < key and key < self.N):
                 raise IndexError
 
             return self.ts[key]

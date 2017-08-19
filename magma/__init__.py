@@ -13,6 +13,7 @@ from .bit import *
 from .array import *
 from .tuple import *
 from .interface import *
+from .primitives import *
 from .conversions import *
 
 from .wire import *
@@ -36,6 +37,5 @@ else:
     from .compile import *
 
 from .tests import *
-import magma.primitives
 
 #print('import magma')

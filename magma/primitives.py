@@ -5,13 +5,22 @@ from magma.circuit import DeclareCircuit, circuit_type_method
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
 from magma.wire import wire
-from magma.conversions import array
+from magma.conversions import array, bits, uint, sint
 import operator
 try:
     from functools import lru_cache
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
+__all__  = ['__and__', '__or__', '__xor__'] 
+__all__ += ['__invert__']
+__all__ += ['__eq__', '__ne__']
+__all__ += ['__lshift__', '__rshift__']
+__all__ += ['__add__', '__sub__', "__mul__", "__div__", "__truediv__"]
+__all__ += ['__lt__', '__le__', "__gt__", "__ge__"]
+__all__ += ['concat']
+__all__ += ['zext', 'sext']
+#__all__ += ['mux']
 
 def type_check_binary_operator(operator):
     """
@@ -337,7 +346,87 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         )(WIDTH=N, *args, **kwargs)
     return wrapper
 
+
+def __and__(self, rhs):
+    return self & rhs
+
+def __or__(self, rhs):
+    return self | rhs
+
+def __xor__(self, rhs):
+    return self ^ rhs
+
+def __invert__(self):
+    return ~self
+
+def __add__(self, rhs):
+    return self + rhs
+
+def __sub__(self, rhs):
+    return self - rhs
+
+def __mul__(self, rhs):
+    return self * rhs
+
+def __div__(self, rhs):
+    return self / rhs
+
+def __truediv__(self, rhs):
+    return self // rhs
+
+
+def __eq__(self, rhs):
+    return self == rhs
+
+def __ne__(self, rhs):
+    return self != rhs
+
+def __lt__(self, rhs):
+    return self < rhs
+
+def __le__(self, rhs):
+    return self <= rhs
+
+def __gt__(self, rhs):
+    return self > rhs
+
+def __ge__(self, rhs):
+    return self >= rhs
+
+def __lshift__(self, rhs):
+    return self << rhs
+
+def __rshift__(self, rhs):
+    return self >> rhs
+
+def replicate(value, n):
+    return 
+
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts] # flatten
     return array(ts)
+
+def zext(value, n):
+    assert isinstance(value, (UIntType, SIntType, BitsType))
+    if isinstance(value, UIntType):
+        zeros = uint(0,n)
+    elif isinstance(value, SIntType):
+        zeros = sint(0,n)
+    elif isinstance(value, BitsType):
+        zeros = bits(0,n)
+    return concat(zeros,value)
+
+def sext(value, n):
+    assert isinstance(value, SIntType)
+    return sint(concat(array(value[-1], n), array(value)))
+
+#def mux(I0, I1, S):
+#    assert isinstance(S, BitType)
+#    assert isinstance(I0, BitType) or isinstance(I0, BitsType)
+#    assert isinstance(I1, BitType) or isinstance(I1, BitsType)
+#    assert type(I0) == type(I1)
+#    if isinstance(I0, BitType):
+#        return Mux(2)(I0, I1, S)
+#    elif:
+#        return Mux(2,len(I0))(I0, I1, S)
 
