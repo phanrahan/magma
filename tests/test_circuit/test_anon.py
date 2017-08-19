@@ -8,7 +8,7 @@ def test():
 
     def AndN2():
         and2 = And2()
-        return AnonymousCircuit("I", array(and2.I0, and2.I1), "O", and2.O)
+        return AnonymousCircuit("I", array([and2.I0, and2.I1]), "O", and2.O)
 
     and2 = AndN2()
 

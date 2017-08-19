@@ -2,10 +2,13 @@ from collections import Sequence
 from .compatibility import IntegerTypes
 from .bit import BitKind, BitType, BitOut, VCC, GND
 from .array import ArrayType, Array, BitsType, Bits, UIntType, UInt, SIntType, SInt
+from .tuple import Tuple
 from .bits import int2seq
 
 __all__  = ['bit']
+__all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
+__all__ += ['tuple_']
 
 def bit(value):
     if not isinstance(value, (BitType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
@@ -80,4 +83,29 @@ def sint(value, n=None):
         return value
     return convertbits(value, n, SInt, True)
 
+
+def tuple_(*larg, **kwargs):
+    decl = []
+    args = []
+    n = len(larg)
+    if n > 0:
+        assert n % 2 == 0
+        for i in range(0, n, 2):
+            K = larg[i]
+            t = larg[i+1]
+            T = type(t)
+            if T in IntegerTypes:
+                T = BitOut
+            decl.append(K)
+            decl.append(T)
+            args.append(t)
+    else:
+        for K, t in kwargs.items():
+            T = type(t)
+            if T in IntegerTypes:
+                T = BitOut
+            decl.append(K)
+            decl.append(T)
+            args.append(t)
+    return Tuple(*decl)(*args)
 

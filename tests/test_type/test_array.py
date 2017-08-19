@@ -84,6 +84,6 @@ def test_array2d():
 
 
 def test_construct():
-    a1 = array(1,1)
+    a1 = array([1,1])
     print(type(a1))
     assert isinstance(a1, ArrayType)

@@ -19,8 +19,6 @@ __all__ += ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
 __all__ += ['SInt', 'SIntType', 'SIntKind']
 
-__all__ += ['array', 'concat', 'constarray']
-
 #
 # Create an Array
 #
@@ -55,7 +53,7 @@ class ArrayType(Type):
 
     def __getitem__(self, key):
         if isinstance(key,slice):
-            return array(*[self[i] for i in range(*key.indices(len(self)))])
+            return array([self[i] for i in range(*key.indices(len(self)))])
         else:
             if not (0 <= key and key < self.N):
                 raise IndexError
@@ -68,7 +66,7 @@ class ArrayType(Type):
         res_bits = []
         for i in range(total):
             res_bits.append(self[i] if i < self.N else other[i - self.N])
-        return array(*res_bits)
+        return array(res_bits)
 
     # should I allow this?
     def __call__(self, o):
@@ -153,7 +151,7 @@ class ArrayType(Type):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(*ts)
+        return array(ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -165,7 +163,7 @@ class ArrayType(Type):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(*ts)
+        return array(ts)
 
     def const(self):
         for t in self.ts:
@@ -197,7 +195,7 @@ class ArrayKind(Kind):
 
     def __getitem__(cls, key):
         if isinstance(key,slice):
-            return array(*[cls[i] for i in xrange(*key.indices(len(cls)))])
+            return array([cls[i] for i in xrange(*key.indices(len(cls)))])
         else:
             if not (0 <= key and key < cls.N):
                 raise IndexError
@@ -314,24 +312,6 @@ Array16 = Array(16,Bit)
 
 Array18 = Array(18,Bit)
 
-def array(*ts):
-
-    # create list of types
-    Ts = []
-    for t in ts:
-        T = type(t)
-        if T in IntegerTypes:
-            T = BitOut
-        Ts.append(T)
-
-    # check that they are all the same
-    for t in Ts:
-       assert t == T
-
-    return Array(len(Ts), T)(*ts)
-
-def constarray(i, n):
-    return array(*int2seq(i, n))
 
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts] # flatten
@@ -372,3 +352,4 @@ if __name__ == '__main__':
     #a3 = a1[0:2]
     #print(a3.lvalue(), a3.value())
 
+from .conversions import array

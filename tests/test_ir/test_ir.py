@@ -16,7 +16,7 @@ def test_print_ir():
 
     main = DefineCircuit("main", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit)) 
     and2 = AndN2() 
-    main.O( and2(array(main.I0, main.I1)) ) 
+    main.O( and2(array([main.I0, main.I1])) ) 
     EndCircuit() 
 
     result = compile(main)

@@ -2,6 +2,7 @@ from .port import *
 from .array import *
 from .wire import *
 from .circuit import *
+from .conversions import array
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
@@ -45,7 +46,7 @@ def lscanarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
     if not noiarg:
         args += ['input %s' % iarg, iargs[0]]
     if not nooarg:
-        args += ['output %s' % oarg, array(*oargs)]
+        args += ['output %s' % oarg, array(oargs)]
     return args
 
 #
@@ -60,7 +61,7 @@ def rscanarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
     if not noiarg:
         args += ['input %s' % iarg, iargs[0]]
     if not nooarg:
-        args += ['output %s' % oarg, array(*oargs)]
+        args += ['output %s' % oarg, array(oargs)]
     return args
 
 #
@@ -103,7 +104,7 @@ def joinarg(arg, interfaces):
     args = getarg(arg, interfaces)
     direction = getdirection(args)
     #print('joinarg', args)
-    return ['%s %s' % (direction, arg), array(*args)]
+    return ['%s %s' % (direction, arg), array(args)]
 
 # return ["input/output arg", array] from a list of interfaces
 def flatarg(arg, interfaces):
@@ -113,7 +114,7 @@ def flatarg(arg, interfaces):
     for a in args:
         for i in range(len(a)):
             flatargs.append(a[i])
-    return ['%s %s' % (direction, arg), array(*flatargs)]
+    return ['%s %s' % (direction, arg), array(flatargs)]
 
 
 def braid(circuits, 
@@ -296,7 +297,7 @@ def inputs(circuit):
     if len(input) == 1:
         return input[0]
     else:
-        return array(*input)
+        return array(input)
 
 def outputs(circuit):
     output = circuit.interface.outputs()
@@ -313,7 +314,7 @@ def uncurry(circuit, prefix='I'):
            assert port.direction == INPUT 
            uncurryargs.append(port)
 
-    args = ['input %s' % prefix, array(*uncurryargs)]
+    args = ['input %s' % prefix, array(uncurryargs)]
 
     for name, port in circuit.interface.ports.items():
         if not name.startswith(prefix):

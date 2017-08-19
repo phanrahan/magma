@@ -14,7 +14,7 @@ def test():
 
     a = AndN(2)
 
-    wire(array(main.I, 1), a.I)
+    wire(array([main.I, 1]), a.I)
     wire(a.O, main.O)
 
     compile("build/array2", main)

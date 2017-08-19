@@ -108,7 +108,7 @@ class _Interface(Type):
                 
     def __getitem__(self, key):
         if isinstance(key,slice):
-            return array(*[self[i] for i in range(*key.indices(len(self)))])
+            return array([self[i] for i in range(*key.indices(len(self)))])
         else:
             assert 0 <= key and key < len(self), "key: %d, self.N: %d" %(key,len(self))
             return self.arguments()[key]

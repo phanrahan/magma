@@ -5,6 +5,7 @@ from magma.circuit import DeclareCircuit, circuit_type_method
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
 from magma.wire import wire
+from magma.conversions import array
 import operator
 try:
     from functools import lru_cache
@@ -335,3 +336,8 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
             circuit_type_methods=methods
         )(WIDTH=N, *args, **kwargs)
     return wrapper
+
+def concat(*arrays):
+    ts = [t for a in arrays for t in a.ts] # flatten
+    return array(ts)
+
