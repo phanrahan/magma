@@ -1,5 +1,4 @@
-from magma import BitType, ArrayType
-from magma.array import SIntType
+from magma import BitType, ArrayType, SIntType
 from magma.bit_vector import BitVector
 import sys
 if sys.version_info < (3, 3):
