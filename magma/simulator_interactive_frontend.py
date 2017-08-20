@@ -5,7 +5,7 @@ from .circuit import *
 from .scope import *
 from .array import ArrayType
 from .bit import BitType
-from .bits import seq2int
+from .bitutils import seq2int
 from .ref import InstRef
 from .compatibility import builtins
 from code import compile_command

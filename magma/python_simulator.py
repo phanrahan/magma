@@ -11,10 +11,11 @@ from .simulator import CircuitSimulator, ExecutionState
 from .transforms import flatten, setup_clocks
 from .circuit import *
 from .scope import *
-from .array import ArrayType, SIntType
 from .bit import VCC, GND, BitType
+from .array import ArrayType
+from .bits import SIntType
 from .bit_vector import BitVector
-from .bits import seq2int
+from .bitutils import seq2int
 
 __all__ = ['PythonSimulator', 'testvectors']
 

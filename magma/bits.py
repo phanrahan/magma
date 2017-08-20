@@ -1,79 +1,81 @@
-from types import FunctionType
-from collections import Sequence
-import inspect
-from .bitwise import log2
-from .compatibility import StringTypes
+from .compatibility import IntegerTypes
+from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
+from .array import ArrayType, ArrayKind
 
-__all__ = ['seq2int', 'int2seq', 'ints2seq', 'fun2seq', 'lutinit']
+__all__  = ['Bits', 'BitsType', 'BitsKind']
+__all__ += ['UInt', 'UIntType', 'UIntKind']
+__all__ += ['SInt', 'SIntType', 'SIntKind']
+
+class BitsType(ArrayType):
+    pass
 
 
-#
-# seq to int
-#
-def seq2int(l):
-    n = len(l)
+class BitsKind(ArrayKind):
+    def __str__(cls):
+        return "Bits({})".format(cls.N)
 
-    i = 0
-    for j in range(n):
-        if l[j]:
-            i |= 1 << j
-    return i
+    def qualify(cls, direction):
+        if cls.T.isoriented(direction):
+            return cls
+        return Bits(cls.N, cls.T.qualify(direction))
 
-#
-# int to seq
-#
-def int2seq(i, n=0):
-    if isinstance(i, StringTypes):
-        i = ord(i)
+    def flip(cls):
+        return Bits(cls.N, cls.T.flip())
 
-    # find minimum number of bits needed for i
-    if n == 0:
-        j = i
-        while j:
-            n += 1
-            j >>= 1
 
-    return [1 if i & (1 << j) else 0 for j in range(n)]
+def Bits(N, T=None):
+    if T is None:
+        T = Bit
+    assert isinstance(N, IntegerTypes)
+    name = 'Bits({})'.format(N)
+    return BitsKind(name, (BitsType,), dict(N=N, T=T))
 
-#
-# ints to seq
-#
-def ints2seq(l, n):
-    return [int2seq(i,n) for i in l]
 
-#
-# fun to seq
-#
-def fun2seq(f, n=None):
-    if not n:
-        logn = len(inspect.getargspec(f).args)
-        n = 1 << logn
-    else:
-        logn = log2(n)
-    
-    l = []
-    for i in range(n):
-         arg = int2seq(i, logn)
-         l.append(1 if f(*arg) else 0)
-    return l
+class UIntType(BitsType):
+    pass
 
-def lutinit(init, n=None):
-    if isinstance(init, FunctionType):
-        init = fun2seq(init, n)
 
-    if isinstance(init, Sequence):
-        nlut = len(init)
-        if n != nlut:
-            assert n % nlut == 0
-            init = (n//nlut) * init
-        init = seq2int(init)
+class UIntKind(BitsKind):
+    def __str__(cls):
+        return "UInt({})".format(cls.N)
 
-    assert n is not None
+    def qualify(cls, direction):
+        if cls.T.isoriented(direction):
+            return cls
+        return UInt(cls.N, cls.T.qualify(direction))
 
-    return init, n
+    def flip(cls):
+        return UInt(cls.N, cls.T.flip())
 
-if __name__ == "__main__":
-    def f(a,b):
-        return a or b
-    print(fun2seq(f))
 
+def UInt(N, T=None):
+    if T is None:
+        T = Bit
+    assert isinstance(N, IntegerTypes)
+    name = 'UInt({})'.format(N)
+    return UIntKind(name, (UIntType,), dict(N=N, T=T))
+
+
+class SIntType(BitsType):
+    pass
+
+
+class SIntKind(BitsKind):
+    def __str__(cls):
+        return "SInt({})".format(cls.N)
+
+    def qualify(cls, direction):
+        if cls.T.isoriented(direction):
+            return cls
+        return SInt(cls.N, cls.T.qualify(direction))
+
+    def flip(cls):
+        return SInt(cls.N, cls.T.flip())
+
+
+def SInt(N, T=None):
+    if T is None:
+        T = Bit
+    assert isinstance(N, IntegerTypes)
+    name = 'SInt({})'.format(N)
+    return SIntKind(name, (SIntType,), dict(N=N, T=T))

@@ -1,6 +1,6 @@
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
-from magma.array import Bits, BitsType, SInt, SIntType, UInt, UIntType
+from magma.bits import Bits, BitsType, SInt, SIntType, UInt, UIntType
 from magma.circuit import DeclareCircuit, circuit_type_method
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
@@ -12,15 +12,14 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
-__all__  = ['__and__', '__or__', '__xor__'] 
-__all__ += ['__invert__']
-__all__ += ['__eq__', '__ne__']
-__all__ += ['__lshift__', '__rshift__']
-__all__ += ['__add__', '__sub__', "__mul__", "__div__", "__truediv__"]
-__all__ += ['__lt__', '__le__', "__gt__", "__ge__"]
-__all__ += ['concat']
+__all__  = ['and_', 'or_', 'xor'] 
+__all__ += ['invert']
+__all__ += ['eq', 'ne']
+__all__ += ['lshift', 'rshift']
+__all__ += ['add', 'sub', "mul", "div", "truediv"]
+__all__ += ['lt', 'le', "gt", "ge"]
+__all__ += ['concat', 'replicate']
 __all__ += ['zext', 'sext']
-#__all__ += ['mux']
 
 def type_check_binary_operator(operator):
     """
@@ -347,56 +346,55 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
     return wrapper
 
 
-def __and__(self, rhs):
+def and_(self, rhs):
     return self & rhs
 
-def __or__(self, rhs):
+def or_(self, rhs):
     return self | rhs
 
-def __xor__(self, rhs):
+def xor(self, rhs):
     return self ^ rhs
 
-def __invert__(self):
+def invert(self):
     return ~self
 
-def __add__(self, rhs):
+def add(self, rhs):
     return self + rhs
 
-def __sub__(self, rhs):
+def sub(self, rhs):
     return self - rhs
 
-def __mul__(self, rhs):
+def mul(self, rhs):
     return self * rhs
 
-def __div__(self, rhs):
+def div(self, rhs):
     return self / rhs
 
-def __truediv__(self, rhs):
+def truediv(self, rhs):
     return self // rhs
 
-
-def __eq__(self, rhs):
+def eq(self, rhs):
     return self == rhs
 
-def __ne__(self, rhs):
+def ne(self, rhs):
     return self != rhs
 
-def __lt__(self, rhs):
+def lt(self, rhs):
     return self < rhs
 
-def __le__(self, rhs):
+def le(self, rhs):
     return self <= rhs
 
-def __gt__(self, rhs):
+def gt(self, rhs):
     return self > rhs
 
-def __ge__(self, rhs):
+def ge(self, rhs):
     return self >= rhs
 
-def __lshift__(self, rhs):
+def lshift(self, rhs):
     return self << rhs
 
-def __rshift__(self, rhs):
+def rshift(self, rhs):
     return self >> rhs
 
 def replicate(value, n):

@@ -2,6 +2,7 @@ import magma
 from magma import In, Out, Bit, UInt, Circuit
 from magma.primitives import DefineRegister
 from magma.bit_vector import BitVector
+from magma.bitutils import int2seq
 from magma.verilator.verilator import compile as compileverilator
 from magma.verilator.verilator import run_verilator_test
 from magma.python_simulator import PythonSimulator
@@ -19,7 +20,7 @@ def test_register():
         def definition(circuit):
             reg = Register4()
             magma.wire(reg.Q, circuit.out)
-            magma.wire(reg.D, reg.Q + magma.int2seq(1, N))
+            magma.wire(reg.D, reg.Q + int2seq(1, N))
             magma.wire(circuit.CLK, reg.clk)
 
     magma.compile("build/test_register", TestCircuit)
@@ -50,7 +51,7 @@ def test_register_ce():
         def definition(circuit):
             reg = Register4().when(circuit.CE)
             magma.wire(reg.Q, circuit.out)
-            magma.wire(reg.D, reg.Q + magma.int2seq(1, N))
+            magma.wire(reg.D, reg.Q + int2seq(1, N))
             magma.wire(circuit.CLK, reg.clk)
 
     magma.compile("build/test_register_ce", TestCircuit)
@@ -85,7 +86,7 @@ def test_register_reset():
         def definition(circuit):
             reg = Register4().reset(circuit.RESET)
             magma.wire(reg.Q, circuit.out)
-            magma.wire(reg.D, reg.Q + magma.int2seq(1, N))
+            magma.wire(reg.D, reg.Q + int2seq(1, N))
             magma.wire(circuit.CLK, reg.clk)
 
     magma.compile("build/test_register_reset", TestCircuit)

@@ -1,9 +1,10 @@
 from collections import Sequence
 from .compatibility import IntegerTypes
 from .bit import BitKind, BitType, BitOut, VCC, GND
-from .array import ArrayType, Array, BitsType, Bits, UIntType, UInt, SIntType, SInt
+from .array import ArrayType, Array
+from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
 from .tuple import Tuple
-from .bits import int2seq
+from .bitutils import int2seq
 
 __all__  = ['bit']
 __all__ += ['array']
