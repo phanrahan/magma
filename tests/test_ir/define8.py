@@ -18,8 +18,8 @@ main = DefineCircuit("main",
     "I2", In(Bit), "I3", In(Bit),
     "O", Out(Bit))
 and4 = And4()
-I0 = array(main.I0, main.I1),
-I1 = array(main.I2, main.I3)
+I0 = array([main.I0, main.I1]),
+I1 = array([main.I2, main.I3])
 O = and4(I0, I1)
 main.O( O )
 EndCircuit()

@@ -1,7 +1,7 @@
 from __future__ import division
 
 from magma.compatibility import IntegerTypes, StringTypes
-from magma.bits import seq2int, int2seq
+from magma.bitutils import seq2int, int2seq
 import numpy as np
 
 

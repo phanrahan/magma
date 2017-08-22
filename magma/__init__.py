@@ -1,8 +1,8 @@
 import os
 
 # utility
-from .bits import *
-from .bitwise import *
+# from .bits import *
+# from .bitwise import *
 
 # lowest-level wiring abstraction
 from .port import *
@@ -11,8 +11,11 @@ from .port import *
 from .t import *
 from .bit import *
 from .array import *
+from .bits import *
 from .tuple import *
 from .interface import *
+from .primitives import *
+from .conversions import *
 
 from .wire import *
 from .circuit import *
@@ -35,6 +38,5 @@ else:
     from .compile import *
 
 from .tests import *
-import magma.primitives
 
 #print('import magma')

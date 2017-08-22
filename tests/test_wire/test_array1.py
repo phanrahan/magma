@@ -13,7 +13,7 @@ def test():
 
     a = AndN(2)
 
-    wire(array(0,1), a.I)
+    wire(array([0,1]), a.I)
     wire(a.O, main.O)
 
     compile("build/array1", main)

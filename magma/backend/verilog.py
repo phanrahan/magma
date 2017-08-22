@@ -6,7 +6,8 @@ from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
 from ..bit import BitType, VCC, GND
-from ..array import ArrayKind, ArrayType, SIntType
+from ..array import ArrayKind, ArrayType
+from ..bits import SIntType
 from ..circuit import *
 from ..wire import wiredefaultclock
 

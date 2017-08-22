@@ -1,11 +1,10 @@
 from magma import *
 
 def test():
-    print(Array2)
 
-    A2 = Array(2,Bit)
-    B2 = Array(2,BitIn)
-    C2 = Array(2,BitOut)
+    A2 = Bits(2)
+    B2 = In(Bits(2))
+    C2 = Out(Bits(2))
     assert A2 == A2
     assert B2 == B2
     assert C2 == C2
@@ -14,14 +13,14 @@ def test():
     assert A2 != C2
     assert B2 != C2
 
-    A4 = Array(4,Bit)
+    A4 = Bits(4)
     assert A4 == Array4
     assert A2 != A4
 
 
 def test_val():
-    Array4In = Array(4, BitIn)
-    Array4Out = Array(4, BitOut)
+    Array4In = In(Bits(4))
+    Array4Out = Out(Bits(4))
 
     assert Flip(Array4In) == Array4Out
     assert Flip(Array4Out) == Array4In
@@ -39,8 +38,9 @@ def test_val():
     a3 = a1[0:2]
 
 def test_flip():
-    AIn = In(Array2)
-    AOut = Out(Array2)
+    Bits2 = Bits(2)
+    AIn = In(Bits2)
+    AOut = Out(Bits2)
 
     print(AIn)
     print(AOut)
@@ -63,27 +63,7 @@ def test_flip():
     assert A == AOut
     print(A)
 
-def test_array2d():
-    # types
-
-    A24 = Array(2,Array(4,Bit))
-    print(A24)
-
-    assert isinstance(A24, ArrayKind)
-
-    assert A24 == Array(2,Array4)
-
-    # constructor
-
-    a = A24(name='a')
-    assert isinstance(a, ArrayType)
-    print(a[0])
-    assert isinstance(a[0], ArrayType)
-    print(a[0][0])
-    assert isinstance(a[0][0], BitType)
-
-
 def test_construct():
-    a1 = array([1,1])
+    a1 = bits([1,1])
     print(type(a1))
-    assert isinstance(a1, ArrayType)
+    assert isinstance(a1, BitsType)

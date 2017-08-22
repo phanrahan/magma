@@ -7,8 +7,6 @@ from .debug import debug_wire
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
 
-__all__ += ['tuple_']
-
 #
 # Create an Tuple
 #

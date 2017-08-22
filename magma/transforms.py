@@ -3,6 +3,7 @@ from .circuit import *
 from .scope import *
 from .bit import *
 from .array import *
+from .conversions import array
 from .wire import wire, wiredefaultclock
 from .ref import DefnRef, InstRef, ArrayRef
 
@@ -29,7 +30,7 @@ class TransformedCircuit:
             for o in orig_bit:
                 arr.append(self.get_new_bit(o, scope))
 
-            return array(*arr)
+            return array(arr)
         else:
             try:
                 return self.orig_to_new[QualifiedBit(bit=orig_bit, scope=scope)]
@@ -119,7 +120,7 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
             ns = get_new_source(partial_qual, primitive_map, old_circuit, new_circuit)
             new_source_array.append(ns)
 
-        return array(*new_source_array)
+        return array(new_source_array)
     else:
         assert False, "Failed to collapse bit"
 

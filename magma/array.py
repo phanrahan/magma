@@ -4,7 +4,7 @@ from .ref import ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
-from .bits import int2seq
+from .bitutils import int2seq
 from .debug import debug_wire
 
 __all__  = ['ArrayType', 'ArrayKind', 'Array']
@@ -14,9 +14,6 @@ __all__ += ['Array5', 'Array6', 'Array7', 'Array8']
 __all__ += ['Array9', 'Array10', 'Array11', 'Array12']
 __all__ += ['Array13', 'Array14', 'Array15', 'Array16']
 __all__ += ['Array18']
-__all__ += ['Bits', 'UInt', 'SInt']
-
-__all__ += ['array', 'concat', 'constarray']
 
 #
 # Create an Array
@@ -52,9 +49,9 @@ class ArrayType(Type):
 
     def __getitem__(self, key):
         if isinstance(key,slice):
-            return array(*[self[i] for i in range(*key.indices(len(self)))])
+            return array([self[i] for i in range(*key.indices(len(self)))])
         else:
-            if not (0 <= key and key < self.N):
+            if not (-self.N < key and key < self.N):
                 raise IndexError
 
             return self.ts[key]
@@ -65,7 +62,7 @@ class ArrayType(Type):
         res_bits = []
         for i in range(total):
             res_bits.append(self[i] if i < self.N else other[i - self.N])
-        return array(*res_bits)
+        return array(res_bits)
 
     # should I allow this?
     def __call__(self, o):
@@ -150,7 +147,7 @@ class ArrayType(Type):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(*ts)
+        return array(ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -162,7 +159,7 @@ class ArrayType(Type):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(*ts)
+        return array(ts)
 
     def const(self):
         for t in self.ts:
@@ -194,7 +191,7 @@ class ArrayKind(Kind):
 
     def __getitem__(cls, key):
         if isinstance(key,slice):
-            return array(*[cls[i] for i in xrange(*key.indices(len(cls)))])
+            return array([cls[i] for i in xrange(*key.indices(len(cls)))])
         else:
             if not (0 <= key and key < cls.N):
                 raise IndexError
@@ -216,82 +213,6 @@ def Array(N,T):
     name = 'Array(%d,%s)' % (N,str(T))
     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
 
-
-class BitsType(ArrayType):
-    pass
-
-
-class BitsKind(ArrayKind):
-    def __str__(cls):
-        return "Bits({})".format(cls.N)
-
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return Bits(cls.N, cls.T.qualify(direction))
-
-    def flip(cls):
-        return Bits(cls.N, cls.T.flip())
-
-
-def Bits(N, T=None):
-    if T is None:
-        T = Bit
-    assert isinstance(N, IntegerTypes)
-    name = 'Bits({})'.format(N)
-    return BitsKind(name, (BitsType,), dict(N=N, T=T))
-
-
-class UIntType(BitsType):
-    pass
-
-
-class UIntKind(BitsKind):
-    def __str__(cls):
-        return "UInt({})".format(cls.N)
-
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return UInt(cls.N, cls.T.qualify(direction))
-
-    def flip(cls):
-        return UInt(cls.N, cls.T.flip())
-
-
-def UInt(N, T=None):
-    if T is None:
-        T = Bit
-    assert isinstance(N, IntegerTypes)
-    name = 'UInt({})'.format(N)
-    return UIntKind(name, (UIntType,), dict(N=N, T=T))
-
-
-class SIntType(BitsType):
-    pass
-
-
-class SIntKind(BitsKind):
-    def __str__(cls):
-        return "SInt({})".format(cls.N)
-
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return SInt(cls.N, cls.T.qualify(direction))
-
-    def flip(cls):
-        return SInt(cls.N, cls.T.flip())
-
-
-def SInt(N, T=None):
-    if T is None:
-        T = Bit
-    assert isinstance(N, IntegerTypes)
-    name = 'SInt({})'.format(N)
-    return SIntKind(name, (SIntType,), dict(N=N, T=T))
-
-
 Array1 = Array(1,Bit)
 Array2 = Array(2,Bit)
 Array3 = Array(3,Bit)
@@ -311,24 +232,6 @@ Array16 = Array(16,Bit)
 
 Array18 = Array(18,Bit)
 
-def array(*ts):
-
-    # create list of types
-    Ts = []
-    for t in ts:
-        T = type(t)
-        if T in IntegerTypes:
-            T = BitOut
-        Ts.append(T)
-
-    # check that they are all the same
-    for t in Ts:
-       assert t == T
-
-    return Array(len(Ts), T)(*ts)
-
-def constarray(i, n):
-    return array(*int2seq(i, n))
 
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts] # flatten
@@ -369,3 +272,4 @@ if __name__ == '__main__':
     #a3 = a1[0:2]
     #print(a3.lvalue(), a3.value())
 
+from .conversions import array

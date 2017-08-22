@@ -19,7 +19,7 @@ main = DefineCircuit("main",
     "I0", In(Bit), "I1", In(Bit), "I2", In(Bit), "I3", In(Bit),
     "O", Out(Bit))
 and4 = And4()
-I = array(main.I0, main.I1, main.I2, main.I3)
+I = array([main.I0, main.I1, main.I2, main.I3])
 main.O( and4(I) )
 EndCircuit()
 

@@ -3,7 +3,7 @@ from magma.backend.verilog import find
 from magma.array import ArrayKind, ArrayType
 from magma.wire import wiredefaultclock
 from magma.bit import VCC, GND
-from magma.bits import seq2int
+from magma.bitutils import seq2int
 import coreir
 
 

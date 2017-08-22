@@ -1,5 +1,5 @@
 from magma import *
-from magma.bits import *
+from magma.bitutils import *
 
 def simulate_prim_not(self, value_store, state_store):
     I = value_store.get_value(self.I)
