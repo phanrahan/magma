@@ -129,9 +129,7 @@ class CoreIRBackend:
             config = self.context.newArgs({"value": value})
             name = "const_{}".format(constant)
             module_definition.add_generator_instance(name, instantiable, gen_args, config)
-            # FIXME: This should work
-            # return instantiable.select("out")
-            self.__constant_cache[constant] = module_definition.select("{}.out.0".format(name))
+            self.__constant_cache[constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[constant]
 
     def compile(self, defn):
