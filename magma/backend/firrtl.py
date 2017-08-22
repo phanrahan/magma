@@ -1,8 +1,8 @@
-from ..array import ArrayKind, ArrayType
-from ..bit import BitType, VCC, GND
-from ..wire import wiredefaultclock
-from .verilog import find
 from collections import OrderedDict
+from ..bit import BitType, VCC, GND
+from ..array import ArrayKind, ArrayType
+from ..clock import wiredefaultclock
+from .verilog import find
 
 def get_type(port):
     if isinstance(port, ArrayType):

@@ -1,4 +1,6 @@
 import re
+from .port import INPUT, OUTPUT
+from .t import In, Out
 from .bit import Bit
 from .array import Array
 from .circuit import DefineCircuit
@@ -24,10 +26,13 @@ class FPGA(Part):
         # form arrays
         for p in self.pins:
             if p.used:
+                # find names of the form %s[%d]
+                #  these are considered arrays
                 match = re.findall('(.*)\[(\d+)\]', p.name)
                 if match:
                     name, i = match[0]
                     i = int(i)
+                    # keep track of the maximum index
                     if name in arrays:
                         arrays[name] = max(arrays[name], i)
                     else:
@@ -37,16 +42,19 @@ class FPGA(Part):
         args = []
         for p in self.pins:
             if p.used:
+                # find names of the form %s[%d]
+                #  these are considered arrays
                 match = re.findall('(.*)\[(\d+)\]', p.name)
                 if match:
                     name, i = match[0]
                     i = int(i)
                     if name in arrays and i == 0:
-                        args.append('%s %s' % (p.direction, name))
-                        args.append(Array(arrays[name]+1, Bit))
+                        args.append(name)
+                        T = Bits(arrays[name]+1)
+                        args.append(In(T) if p.direction == INPUT else Out(T))
                 else:
-                    args.append('%s %s' % (p.direction, p.name))
-                    args.append(Bit)
+                    args.append(p.name)
+                    args.append(In(Bit) if p.direction == INPUT else Out(Bit))
 
         D = DefineCircuit('main',*args)
         D.fpga = self

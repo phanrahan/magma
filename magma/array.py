@@ -1,6 +1,6 @@
 from collections import Sequence
 from .error import error
-from .ref import ArrayRef
+from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
@@ -43,6 +43,13 @@ class ArrayType(Type):
         return self.ts == rhs.ts
 
     __hash__ = Type.__hash__
+
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'array([{}])'.format(', '.join(ts))
+
 
     def __len__(self):
         return self.N
@@ -173,7 +180,11 @@ class ArrayKind(Kind):
         Kind.__init__( cls, name, bases, dct)
 
     def __str__(cls):
-        return "Array(%d,%s)" % (cls.N, cls.T)
+        s = "Array(%d,%s)" % (cls.N, cls.T)
+        #if cls.isinput(): s = 'In({})'.format(s)
+        #if cls.isoutput(): s = 'Out({})'.format(s)
+        #if cls.isinout(): s = 'InOut({})'.format(s)
+        return s
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ArrayKind): return False

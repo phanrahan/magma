@@ -4,7 +4,7 @@ from ..bitutils import seq2int, fun2seq
 from ..bit import VCC, GND, BitType
 from ..array import ArrayType
 from ..port import INPUT, OUTPUT, INOUT
-from ..wire import wiredefaultclock
+from ..clock import wiredefaultclock
 from ..circuit import *
 
 __all__ = ['compile']

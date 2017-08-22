@@ -26,10 +26,10 @@ class Type(object):
     __hash__ = object.__hash__
 
     def __repr__(self):
-        return self.name.qualifiedname()
+        return repr(self.name)
 
     def __str__(self):
-        return self.name.qualifiedname()
+        return str(self.name)
 
     # an instance has an anon name
     def anon(self):
@@ -70,7 +70,10 @@ class Kind(type):
     __hash__ = type.__hash__
 
     def __repr__(cls):
-        return cls.__name__
+        return str(cls)
+
+    def __str__(cls):
+        return repr(cls)
 
     # abstract method - must be implemented by subclasses
     def qualify(cls):

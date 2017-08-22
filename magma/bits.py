@@ -1,4 +1,5 @@
 from .compatibility import IntegerTypes
+from .ref import AnonRef
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
 from .array import ArrayType, ArrayKind
 
@@ -7,11 +8,17 @@ __all__ += ['UInt', 'UIntType', 'UIntKind']
 __all__ += ['SInt', 'SIntType', 'SIntKind']
 
 class BitsType(ArrayType):
-    pass
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'bits([{}])'.format(', '.join(ts))
 
 
 class BitsKind(ArrayKind):
     def __str__(cls):
+        if cls.isinput():  return "In(Bits({}))".format(cls.N)
+        if cls.isoutput(): return "Out(Bits({}))".format(cls.N)
         return "Bits({})".format(cls.N)
 
     def qualify(cls, direction):
@@ -32,11 +39,17 @@ def Bits(N, T=None):
 
 
 class UIntType(BitsType):
-    pass
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'uint([{}])'.format(', '.join(ts))
 
 
 class UIntKind(BitsKind):
     def __str__(cls):
+        if cls.isinput():  return "In(UInt({}))".format(cls.N)
+        if cls.isoutput(): return "Out(UInt({}))".format(cls.N)
         return "UInt({})".format(cls.N)
 
     def qualify(cls, direction):
@@ -57,11 +70,17 @@ def UInt(N, T=None):
 
 
 class SIntType(BitsType):
-    pass
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'sint([{}])'.format(', '.join(ts))
 
 
 class SIntKind(BitsKind):
     def __str__(cls):
+        if cls.isinput():  return "In(SInt({}))".format(cls.N)
+        if cls.isoutput(): return "Out(SInt({}))".format(cls.N)
         return "SInt({})".format(cls.N)
 
     def qualify(cls, direction):

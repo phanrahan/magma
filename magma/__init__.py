@@ -1,9 +1,5 @@
 import os
 
-# utility
-# from .bits import *
-# from .bitwise import *
-
 # lowest-level wiring abstraction
 from .port import *
 
@@ -13,6 +9,7 @@ from .bit import *
 from .array import *
 from .bits import *
 from .tuple import *
+from .clock import *
 from .interface import *
 from .primitives import *
 from .conversions import *

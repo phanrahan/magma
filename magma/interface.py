@@ -10,9 +10,14 @@ from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
-__all__ += ['ClockInterface']
 
+#
+# parse argument declaration of the form 
+#
+#  (name0, type0, name1, type1, ..., namen, typen)
+#
 def parse(decl):
+    #print(decl)
     n = len(decl)
     assert n % 2 == 0
 
@@ -20,45 +25,18 @@ def parse(decl):
     names = []
     ports = []
     for i in range(0,n,2):
-        argi = decl[i].split() # [input|output] name
-        port = decl[i+1]       # type
+        name = decl[i]   # name
+        port = decl[i+1] # type
 
-        assert len(argi) > 0 and len(argi) <= 2
-
-        #print(str(port), isinstance(port, Kind))
         assert isinstance(port, Kind) or isinstance(port, Type)
-        #if isinstance(port, Kind):
-        #    if   port.isinput():  portdirection = INPUT
-        #    elif port.isoutput(): portdirection = OUTPUT
-        #    elif port.isinout():  portdirection = INOUT
-        #    else:                  portdirection = None
-        #else:
-        if   port.isinput():  portdirection = INPUT
-        elif port.isoutput(): portdirection = OUTPUT
-        elif port.isinout():  portdirection = INOUT
-        else:                 portdirection = None
 
-        if len(argi) == 2:
-            # depreciate this method of setting input and output
-            direction = argi[0]
-            name = argi[1]
-        else: # len(argi) == 1
-            if argi[0] in [INPUT, OUTPUT, INOUT]:
-                direction = argi[0]
-                name = i // 2
-            else:
-                direction = portdirection
-                name = argi[0]
-
-        if direction is None:
-            direction = portdirection
+        direction = None
+        if   port.isinput():  direction = INPUT
+        elif port.isoutput(): direction = OUTPUT
+        elif port.isinout():  direction = INOUT
 
         if direction is None:
             print("Error:", name, "must have a direciton")
-        else: 
-            if portdirection is not None and direction != portdirection:
-                print('Warning: directions inconsistent {} {}'.format(direction, portdirection))
-            # direction has priority
 
         directions.append(direction)
         names.append(name)
@@ -72,19 +50,7 @@ def parse(decl):
 class _Interface(Type):
 
     def __str__(self):
-        I = []
-        for name, port in self.ports.items():
-            if port.isinput():
-                s = '%s : %s' % (name, type(port))
-                I.append(s)
-
-        O = []
-        for name, port in self.ports.items():
-            if port.isoutput():
-                s = '%s : %s' % (name, type(port))
-                O.append(s)
-
-        return ', '.join(I) + ' -> ' + ', '.join(O)
+        return str(type(self))
 
     def __repr__(self):
         s = ""
@@ -95,12 +61,14 @@ class _Interface(Type):
                     for i in range(len(input)):
                         iname = repr( input[i] )
                         oname = repr( output[i] )
-                        assert input[i].debug_info == output[i].debug_info
-                        s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input[i].debug_info)
+                        #assert input[i].debug_info == output[i].debug_info
+                        #s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input[i].debug_info)
+                        s += 'wire({}, {})\n'.format(oname, iname)
             else:
                 iname = repr( input )
                 oname = repr( output )
-                s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input.debug_info)
+                #s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input.debug_info)
+                s += 'wire({}, {})\n'.format(oname, iname)
         return s
 
     def __len__(self):
@@ -110,7 +78,8 @@ class _Interface(Type):
         if isinstance(key,slice):
             return array([self[i] for i in range(*key.indices(len(self)))])
         else:
-            assert 0 <= key and key < len(self), "key: %d, self.N: %d" %(key,len(self))
+            n = len(self)
+            assert -n < key and key < len(self), "key: %d, self.N: %d" %(key,len(self))
             return self.arguments()[key]
 
     def inputs(self):
@@ -143,7 +112,7 @@ class _Interface(Type):
             if port.isinput():
                 if name in ['RESET', 'SET', 'CE', 'CLK', 'CIN']: 
                     continue
-                l.append('input %s' % name)
+                l.append('%s' % name)
                 l.append(port)
         return l
 
@@ -153,7 +122,7 @@ class _Interface(Type):
             if port.isoutput():
                 if name in ['COUT']: 
                     continue
-                l.append('output %s' % name)
+                l.append('%s' % name)
                 l.append(port)
         return l
 
@@ -161,28 +130,21 @@ class _Interface(Type):
         l = []
         for name, port in self.ports.items():
             if name in ['RESET', 'SET', 'CE', 'CLK']: 
-                l.append('input %s' % name)
+                l.append('%s' % name)
                 l.append(port)
         return l
 
     def args(self):
         l = []
         for name, port in self.ports.items():
-            if   port.isinput():  d = INPUT
-            elif port.isoutput(): d = OUTPUT
-            elif port.isinout():  d = INOUT
-            l.append('%s %s' % (d, name))
+            l.append('%s' % name)
             l.append(port)
         return l
 
     def decl(self):
         d = []
         for name, port in self.ports.items():
-            if   port.isinput(): t = 'output'
-            elif port.isoutput(): t = 'input'
-
-            d  += [t + ' ' + name, type(port).flip()]
-
+            d  += [name, type(port).flip()]
         return d
 
     def isclocked(self):
@@ -194,11 +156,9 @@ class _Interface(Type):
 #
 # Interface class
 #
-# An interface is an OrderedDict that maps from names to ports
-#
 # This function assumes the port instances are provided
 #
-#  e.g. Interface('input I0', Bit(), 'input I1', Bit(), 'output O', Bit())
+#  e.g. Interface('I0', In(Bit)(), 'I1', In(Bit)(), 'O', Out(Bit)())
 #
 class Interface(_Interface):
     def __init__(self, decl):
@@ -224,21 +184,20 @@ class Interface(_Interface):
 #
 # _DeclareInterface class
 #
-# An interface is an OrderedDict that maps from names to ports
-#
-# This function assumes the ports are types. When an instance
-# of the interface is created.
+# First, an Interface is declared
 #
 #  Interface = DeclareInterface('I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit))
 #
-#  interface = Interface() will instantiate the ports
+# Then, the interface is instanced
+#
+#  interface = Interface()
 #
 class _DeclareInterface(_Interface):
     def __init__(self, inst=None, defn=None):
 
+        # parse the class Interface declaration
         directions, names, ports = parse(self.Decl)
 
-        # setup ports
         args = OrderedDict()
 
         for i in range(len(directions)):
@@ -249,6 +208,7 @@ class _DeclareInterface(_Interface):
             if defn:
                if   direction == OUTPUT: direction = INPUT
                elif direction == INPUT:  direction = OUTPUT
+               elif direction == INOUT:  direction = INOUT
 
             if   inst: ref = InstRef(inst, name)
             elif defn: ref = DefnRef(defn, name)
@@ -261,6 +221,15 @@ class _DeclareInterface(_Interface):
         self.ports = args
 
 class InterfaceKind(Kind):
+    def __str__(cls):
+        args = []
+        for i, arg in enumerate(cls.Decl):
+            if i % 2 == 0:
+                args.append('"{}"'.format(arg))
+            else:
+                args.append(str(arg))
+        return ', '.join(args)
+
     def __eq__(cls, rhs):
         if not isinstance(rhs, InterfaceKind): return False
 
@@ -275,25 +244,8 @@ class InterfaceKind(Kind):
 # Interface factory
 #
 def DeclareInterface(*decl):
-    name = '%s[%s]' % ('Interface', ', '.join([str(a) for a in decl]))
+    name = '%s(%s)' % ('Interface', ', '.join([str(a) for a in decl]))
     #print('DeclareInterface', name)
     dct = dict(Decl=decl)
     return InterfaceKind(name, (_DeclareInterface,), dct)
-
-
-def ClockInterface(ce=False, r=False, s=False):
-    args = ['input CLK', Bit]
-    if ce: args += ['input CE', Bit]
-    if r:  args += ['input RESET', Bit]
-    if s:  args += ['input SET', Bit]
-    return args
-
-if __name__ == '__main__':
-    I0 = DeclareInterface("input a", Bit, "output b", Array2)
-    print(I0)
-    i0 = I0()
-    print(i0)
-
-    I1 = DeclareInterface("input a", Bit, "output b", Array2)
-    assert I0 == I1
 

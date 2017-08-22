@@ -3,10 +3,10 @@ from .compatibility import IntegerTypes
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
 
 class Ref:
-    def __repr__(self):
-        return self.qualifiedname()
-
     def __str__(self):
+        return self.name
+
+    def __repr__(self):
         return self.qualifiedname()
 
 class AnonRef(Ref):
@@ -56,9 +56,11 @@ class ArrayRef(Ref):
        self.array = array # Array
        self.index = index
 
+   def __str__(self):
+       return self.qualifiedname(sep=None)
+
    def qualifiedname(self, sep='.'):
-       return self.array.name.qualifiedname(sep=sep) + \
-                '[%d]' % self.index
+       return self.array.name.qualifiedname(sep=sep) + '[%d]' % self.index
 
    def anon(self):
        return self.array.name.anon()
@@ -68,8 +70,11 @@ class TupleRef(Ref):
        self.tuple = tuple # Tuple
        self.index = index
 
+   def __str__(self):
+       return self.qualifiedname(sep=None)
+
    def qualifiedname(self, sep='.'):
-       return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
+       return self.tuple.name.qualifiedname(sep=sep) + '.' + str(self.index)
 
    def anon(self):
        return self.tuple.name.anon()

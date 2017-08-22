@@ -9,7 +9,7 @@ from ..bit import BitType, VCC, GND
 from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
 from ..circuit import *
-from ..wire import wiredefaultclock
+from ..clock import wiredefaultclock
 
 #__all__  = ['hstr', 'bstr']
 __all__  = ['hstr']

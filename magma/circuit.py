@@ -14,17 +14,17 @@ from .bit import VCC, GND
 from .debug import get_callee_frame_info
 from .error import warn
 
-__all__  = ['CircuitType']
+__all__  = ['AnonymousCircuitType']
+__all__ += ['AnonymousCircuit']
 
-__all__ += ['DeclareCircuit'] 
-
-__all__ += ['DefineCircuit', 'EndCircuit']
+__all__ += ['CircuitType']
 __all__ += ['Circuit']
+__all__ += ['DeclareCircuit'] 
+__all__ += ['DefineCircuit', 'EndCircuit']
+
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
-
-__all__ += ['AnonymousCircuit']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
@@ -81,33 +81,40 @@ class CircuitKind(type):
 
     def __str__(cls):
         return cls.__name__
+        #return '{}({})'.format(cls.__name__, str(cls.IO))
 
     def __repr__(cls):
-        instname = cls.__name__
 
-        args = ['"%s"' % instname]
-        for k, v in cls.interface.ports.items():
-            assert v.isinput() or v.isoutput()
-            args.append('"%s"'%k)
-            args.append(str(Flip(type(v))))
-        s = ", ".join(args)
+        name = cls.__name__
+        args = str(cls.IO)
+        if hasattr(cls,"instances"):
+            #args = ['"%s"' % instname]
+            #for k, v in cls.interface.ports.items():
+            #    assert v.isinput() or v.isoutput()
+            #    args.append('"%s"'%k)
+            #    args.append(str(Flip(type(v))))
+            #s = ", ".join(args)
 
 
-        s = '{} = DefineCircuit({})  # {} {}\n'.format(instname, s, cls.filename, cls.lineno)
+            #s = '{} = DefineCircuit("{}", {})  # {} {}\n'.format(name, name, args, cls.filename, cls.lineno)
+            s = '{} = DefineCircuit("{}", {})\n'.format(name, name, args)
 
-        # emit instances
-        for instance in cls.instances:
-            s += repr(instance) + '\n'
+            # emit instances
+            for instance in cls.instances:
+                s += repr(instance) + '\n'
 
-        # emit wires from instances
-        for instance in cls.instances:
-            s += repr(instance.interface)
+            # emit wires from instances
+            for instance in cls.instances:
+                s += repr(instance.interface)
 
-        # for input in cls.interface.inputs():
-        s += repr( cls.interface )
+            # for input in cls.interface.inputs():
+            s += repr( cls.interface )
 
-        s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_filename,
-                                              cls.end_circuit_lineno)
+            #s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_filename,
+            #                                      cls.end_circuit_lineno)
+            s += "EndCircuit()"
+        else:
+            s = '{} = DeclareCircuit("{}", {})'.format(name, name, args)
 
         return s
 
@@ -128,7 +135,7 @@ class CircuitKind(type):
 # Abstract base class for circuits
 #
 @six.add_metaclass(CircuitKind)
-class _CircuitType(object):
+class AnonymousCircuitType(object):
 
     def __init__(self, *largs, **kwargs):
         self.largs = largs
@@ -156,21 +163,12 @@ class _CircuitType(object):
 
     def __repr__(self):
         args = []
-        for k, v in self.kwargs.items():
-            if isinstance(v, tuple):
-                 # {   # Format identifier
-                 # 0:  # first parameter
-                 # #   # use "0x" prefix
-                 # 0   # fill with zeroes
-                 # {1} # to a length of n characters (including 0x), defined by the second parameter
-                 # x   # hexadecimal number, using lowercase letters for a-f
-                 # }   # End of format identifier
-                 v = "{0:#0{1}x}".format(v[0], v[1] // 4)
-            else:
-                 v = str(v)
-            args.append("%s=%s"%(k, v))
-        return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
-            ', '.join(args), self.filename, self.lineno)
+        for k, v in self.interface.ports.items():
+            args.append('"{}"'.format(k))
+            args.append(repr(v))
+        return '{}({})'.format(str(type(self)), ', '.join(args))
+        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+        #    ', '.join(args), self.filename, self.lineno)
 
     def __getitem__(self, key):
         return self.interface[key]
@@ -180,7 +178,7 @@ class _CircuitType(object):
 
         # if the argument is a single circuit, 
         #   replace it with the circuit's outputs
-        if len(outputs) == 1 and isinstance(outputs[0], _CircuitType):
+        if len(outputs) == 1 and isinstance(outputs[0], AnonymousCircuitType):
              outputs = outputs[0].interface.outputs()
 
         # wire up argument list, if present
@@ -242,6 +240,61 @@ class _CircuitType(object):
     def outputargs(self):
         return self.interface.outputargs()
 
+#
+# AnonymousCircuits are like macros - the circuit instances are not placed
+#
+def AnonymousCircuit(*decl):
+    if len(decl) == 1:
+        decl = decl[0]
+    return AnonymousCircuitType().setinterface(Interface(decl))
+
+
+# 
+# Placed circuit - instances placed in a definition
+#
+class CircuitType(AnonymousCircuitType):
+    def __init__(self, *largs, **kwargs):
+        super(CircuitType, self).__init__(*largs, **kwargs)
+
+        # Circuit instances are placed if within a definition
+        global currentDefinition
+        if currentDefinition:
+             currentDefinition.place(self)
+
+    def __repr__(self):
+        args = []
+        for k, v in self.kwargs.items():
+            if isinstance(v, tuple):
+                 # {   # Format identifier
+                 # 0:  # first parameter
+                 # #   # use "0x" prefix
+                 # 0   # fill with zeroes
+                 # {1} # to a length of n characters (including 0x), defined by the second parameter
+                 # x   # hexadecimal number, using lowercase letters for a-f
+                 # }   # End of format identifier
+                 v = "{0:#0{1}x}".format(v[0], v[1] // 4)
+            else:
+                 v = str(v)
+            args.append("%s=%s"%(k, v))
+        return '{} = {}({})'.format(str(self), str(type(self)), ', '.join(args))
+        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+
+# DeclareCircuit Factory
+def DeclareCircuit(name, *decl, **args):
+    dct = dict(
+        IO=decl,
+        cells=args.get('cells', 0),
+        alignment=1,
+        primitive=args.get('primitive', True),
+        stateful=args.get('stateful', False),
+        simulate=args.get('simulate'),
+        firrtl_op=args.get('firrtl_op'),
+        circuit_type_methods=args.get('circuit_type_methods', []),
+        coreir_lib=args.get('coreir_lib', None)
+    )
+    return CircuitKind( name, (CircuitType,), dct )
+
+
 
 # Maintain a current definition and stack of nested definitions
 
@@ -268,50 +321,6 @@ def isdefinition(circuit):
 
 def isprimitive(circuit):
     return circuit.primitive
-
-# 
-# Placed circuit - instances placed in a definition
-#
-class CircuitType(_CircuitType):
-    def __init__(self, *largs, **kwargs):
-        super(CircuitType, self).__init__(*largs, **kwargs)
-
-        # Circuit instances are placed if within a definition
-        global currentDefinition
-        if currentDefinition:
-             currentDefinition.place(self)
-
-#
-# AnonymousCircuits are like macros - the circuit instances are not placed
-#
-def AnonymousCircuit(*decl):
-    n = len(decl)
-    if   n == 0: 
-        return None
-    elif n == 1:
-        decl = decl[0]
-
-    # instance an unplaced circuit 
-    return _CircuitType().setinterface(Interface(decl))
-
-
-
-# DeclareCircuit Factory
-def DeclareCircuit(name, *decl, **args):
-    dct = dict(
-        IO=decl,
-        cells=args.get('cells', 0),
-        alignment=1,
-        primitive=args.get('primitive', True),
-        stateful=args.get('stateful', False),
-        simulate=args.get('simulate'),
-        firrtl_op=args.get('firrtl_op'),
-        circuit_type_methods=args.get('circuit_type_methods', []),
-        coreir_lib=args.get('coreir_lib', None)
-    )
-    return CircuitKind( name, (CircuitType,), dct )
-
-
 
 Cache = {}
 
@@ -404,7 +413,7 @@ class DefineCircuitKind(CircuitKind):
             clsinst = type(inst)
             dx, dz = clsinst.getarea()
             z = (z+alignment-1)/alignment
-            print('placing', inst, 'at', x, y+z/8, z%8)
+            #print('placing', inst, 'at', x, y+z/8, z%8)
             inst.loc = (x, y+z/8, z%8)
             if   orientation == 'vertical':
                 z += dz
