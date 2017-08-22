@@ -1,5 +1,8 @@
 from magma import *
 
+Array2 = Array(2,Bit)
+Array4 = Array(4,Bit)
+
 def test():
     print(Array2)
 

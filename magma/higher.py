@@ -44,9 +44,9 @@ def lscanarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 
     args = []
     if not noiarg:
-        args += ['input %s' % iarg, iargs[0]]
+        args += [iarg, iargs[0]]
     if not nooarg:
-        args += ['output %s' % oarg, array(oargs)]
+        args += [oarg, array(oargs)]
     return args
 
 #
@@ -59,9 +59,9 @@ def rscanarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 
     args = []
     if not noiarg:
-        args += ['input %s' % iarg, iargs[0]]
+        args += [iarg, iargs[0]]
     if not nooarg:
-        args += ['output %s' % oarg, array(oargs)]
+        args += [oarg, array(oargs)]
     return args
 
 #
@@ -73,9 +73,9 @@ def lfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
         wire(oargs[i], iargs[i+1])
     args = []
     if not noiarg:
-        args += ['input %s' % iarg, iargs[0]]
+        args += [iarg, iargs[0]]
     if not nooarg:
-        args += ['output %s' % oarg, oargs[n-1]]
+        args += [oarg, oargs[n-1]]
     return args
 
 def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
@@ -86,35 +86,35 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
         wire(oargs[i+1], iargs[i])
     args = []
     if not noiarg:
-        args += ['input %s' % iarg, iargs[0]]
+        args += [iarg, iargs[0]]
     if not nooarg:
-        args += ['output %s' % oarg, oargs[n-1]]
+        args += [oarg, oargs[n-1]]
     return args
 
-# return ["input arg", args] from a list of interfaces
+# return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
     oarg = type(iargs[0])()
     for iarg in iargs:
          wire(oarg, iarg)
-    return ['input %s' % arg, oarg]
+    return [arg, oarg]
 
-# return ["input/output arg", array] from a list of interfaces
+# return [arg, array] from a list of interfaces
 def joinarg(arg, interfaces):
     args = getarg(arg, interfaces)
-    direction = getdirection(args)
+    #direction = getdirection(args)
     #print('joinarg', args)
-    return ['%s %s' % (direction, arg), array(args)]
+    return [arg, array(args)]
 
-# return ["input/output arg", array] from a list of interfaces
+# return [arg, array] from a list of interfaces
 def flatarg(arg, interfaces):
     args = getarg(arg, interfaces)
-    direction = getdirection(args)
+    #direction = getdirection(args)
     flatargs = []
     for a in args:
         for i in range(len(a)):
             flatargs.append(a[i])
-    return ['%s %s' % (direction, arg), array(flatargs)]
+    return [arg, array(flatargs)]
 
 
 def braid(circuits, 
@@ -278,13 +278,10 @@ def curry(circuit, prefix='I'):
     for name, port in circuit.interface.ports.items():
         if name == prefix and port.isinput():
            for i in range(len(port)):
-               args.append('input %s%d' % (name, i))
+               args.append('%s%d' % (name, i))
                args.append(port[i])
         else:
-           if   port.isinput():  d = INPUT
-           elif port.isoutput(): d = OUTPUT
-           elif port.isinout():  d = INOUT
-           args.append('%s %s' % (d, name))
+           args.append(name)
            args.append(port)
 
     #print(args)
@@ -314,11 +311,11 @@ def uncurry(circuit, prefix='I'):
            assert port.direction == INPUT 
            uncurryargs.append(port)
 
-    args = ['input %s' % prefix, array(uncurryargs)]
+    args = [prefix, array(uncurryargs)]
 
     for name, port in circuit.interface.ports.items():
         if not name.startswith(prefix):
-           args += ['%s %s' % (port.direction, name), port]
+           args += [name, port]
 
     #print(args)
     return AnonymousCircuit(args)

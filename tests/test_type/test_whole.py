@@ -1,5 +1,7 @@
 from magma import *
 
+Array2 = Array(2,Bit)
+
 def test():
     Reg2 = DefineCircuit("Reg2", "I0", In(Array2), "I1", In(Array2))
     a = Reg2.I0

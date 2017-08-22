@@ -1,11 +1,12 @@
 from collections import namedtuple, OrderedDict
 from .circuit import *
-from .scope import *
 from .bit import *
+from .clock import wiredefaultclock
 from .array import *
+from .wire import wire
 from .conversions import array
-from .wire import wire, wiredefaultclock
 from .ref import DefnRef, InstRef, ArrayRef
+from .scope import *
 
 __all__ = ['TransformedCircuit', 'flatten', 'setup_clocks', 'get_uniq_circuits']
 

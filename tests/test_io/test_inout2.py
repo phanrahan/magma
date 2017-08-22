@@ -3,7 +3,7 @@ from magma import *
 
 
 def test():
-    main = DefineCircuit("main", "I", In(Array2), "O", Out(Array2))
+    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bits(2)))
 
     wire(main.I, main.O)
 

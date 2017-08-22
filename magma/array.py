@@ -1,6 +1,6 @@
 from collections import Sequence
 from .error import error
-from .ref import ArrayRef
+from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
@@ -8,12 +8,6 @@ from .bitutils import int2seq
 from .debug import debug_wire
 
 __all__  = ['ArrayType', 'ArrayKind', 'Array']
-
-__all__ += ['Array1', 'Array2', 'Array3', 'Array4']
-__all__ += ['Array5', 'Array6', 'Array7', 'Array8']
-__all__ += ['Array9', 'Array10', 'Array11', 'Array12']
-__all__ += ['Array13', 'Array14', 'Array15', 'Array16']
-__all__ += ['Array18']
 
 #
 # Create an Array
@@ -43,6 +37,13 @@ class ArrayType(Type):
         return self.ts == rhs.ts
 
     __hash__ = Type.__hash__
+
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'array([{}])'.format(', '.join(ts))
+
 
     def __len__(self):
         return self.N
@@ -173,7 +174,11 @@ class ArrayKind(Kind):
         Kind.__init__( cls, name, bases, dct)
 
     def __str__(cls):
-        return "Array(%d,%s)" % (cls.N, cls.T)
+        s = "Array(%d,%s)" % (cls.N, cls.T)
+        #if cls.isinput(): s = 'In({})'.format(s)
+        #if cls.isoutput(): s = 'Out({})'.format(s)
+        #if cls.isinout(): s = 'InOut({})'.format(s)
+        return s
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ArrayKind): return False
@@ -213,63 +218,5 @@ def Array(N,T):
     name = 'Array(%d,%s)' % (N,str(T))
     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
 
-Array1 = Array(1,Bit)
-Array2 = Array(2,Bit)
-Array3 = Array(3,Bit)
-Array4 = Array(4,Bit)
-Array5 = Array(5,Bit)
-Array6 = Array(6,Bit)
-Array7 = Array(7,Bit)
-Array8 = Array(8,Bit)
-Array9 = Array(9,Bit)
-Array10 = Array(10,Bit)
-Array11 = Array(11,Bit)
-Array12 = Array(12,Bit)
-Array13 = Array(13,Bit)
-Array14 = Array(14,Bit)
-Array15 = Array(15,Bit)
-Array16 = Array(16,Bit)
-
-Array18 = Array(18,Bit)
-
-
-def concat(*arrays):
-    ts = [t for a in arrays for t in a.ts] # flatten
-    return array(*ts)
-    
-if __name__ == '__main__':
-    from magma.port import INPUT, OUTPUT, INOUT
-
-    A2 = Array(2,Bit)
-    B2 = Array(2,Bit)
-    print(A2)
-    assert A2 == B2
-    assert not(A2 != B2)
-
-    A4 = Array(4,Bit)
-    print(A4)
-    assert A4 == Array4
-    assert A2 != A4
-
-    A24 = Array(2,A4)
-    print(A24)
-    assert A2 != A4
-
-    a0 = Array4(name='a0',direction=OUTPUT)
-    print(a0)
-
-    print(str(a0.ts[0]))
-
-    a1 = Array4(name='a1',direction=INPUT)
-    print(a1)
-
-    #a1.wire(a0)
-    #print(a1.lvalue(), a1.value())
-
-    #b0 = a1[0]
-    #print(b0.lvalue(), b0.value())
-
-    #a3 = a1[0:2]
-    #print(a3.lvalue(), a3.value())
 
 from .conversions import array

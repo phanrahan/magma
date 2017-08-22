@@ -1,5 +1,7 @@
 from magma import *
 
+Array2 = Array(2,Bit)
+
 def test():
     a0 = Array2(name='a0')
     #assert a0.direction is None

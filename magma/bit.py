@@ -5,11 +5,10 @@ from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
 
-__all__  = ['BitType', 'BitKind', 'Bit', 'BitIn', 'BitOut', 'BitInOut']
-
+__all__  = ['BitType', 'BitKind']
+__all__ += ['Bit', 'BitIn', 'BitOut', 'BitInOut']
 __all__ += ['VCC', 'GND', 'HIGH', 'LOW']
 
-#
 # Create a Bit
 #
 #   Bit(name=, direction=) - Define a Bit
@@ -160,18 +159,4 @@ GND = BitOut(name="GND")
 
 HIGH = VCC
 LOW = GND
-    
-
-if __name__ == '__main__':
-    assert Bit == Bit
-    assert not (Bit != Bit)
-
-    assert str(Bit) == 'Bit'
-
-    assert VCC == VCC
-    assert GND == GND
-    assert VCC != GND
-
-    assert str(VCC) == 'VCC'
-    assert str(GND) == 'GND'
 
