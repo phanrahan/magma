@@ -74,7 +74,7 @@ def lutinit(init, n=None):
     return init, n
 
 
-def uint(x, nbits):
+def int2uint(x, nbits):
     return x & ((1 << nbits)-1)
 
 # base 32
