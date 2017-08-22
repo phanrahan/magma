@@ -87,16 +87,16 @@ def wireclocktype(defn, inst, type):
              print('Clock')
 
 def wiredefaultclock(cls, instance):
-    print('wiring clocks', str(cls), str(instance))
+    #print('wiring clocks', str(cls), str(instance))
 
     if hasattr(instance, 'CLK') and not instance.CLK.driven():
-        print('wiring clock to CLK')
+        #print('wiring clock to CLK')
         if not hasattr(cls,'CLK'):
             print("Warning: %s does not have a CLK" % str(cls))
             return
         wire(cls.CLK, instance.CLK)
     if hasattr(instance, 'clk') and not instance.clk.driven():
-        print('wiring clock to clk')
+        #print('wiring clock to clk')
         if not hasattr(cls,'CLK'):
             print("Warning: %s does not have a CLK" % str(cls))
             return

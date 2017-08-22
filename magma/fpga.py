@@ -2,6 +2,7 @@ import re
 from .port import INPUT, OUTPUT
 from .t import In, Out
 from .bit import Bit
+from .bits import Bits
 from .array import Array
 from .circuit import DefineCircuit
 from .part import Part
