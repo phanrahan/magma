@@ -10,6 +10,7 @@ from .port import *
 # types
 from .t import *
 from .bit import *
+from .bitutils import *
 from .array import *
 from .bits import *
 from .tuple import *
