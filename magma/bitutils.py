@@ -6,7 +6,7 @@ import inspect
 from .compatibility import StringTypes
 
 __all__  = ['seq2int', 'int2seq', 'ints2seq', 'fun2seq', 'lutinit']
-__all__ += ['uint', 'clz', 'pow2', 'log2', 'clog2', 'rol', 'ror']
+__all__ += ['int2uint', 'clz', 'pow2', 'log2', 'clog2', 'rol', 'ror']
 
 #
 # seq to int
