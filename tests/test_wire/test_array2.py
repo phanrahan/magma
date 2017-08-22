@@ -5,7 +5,7 @@ from magma import *
 def test():
     def DefineAndN(n):
         name = 'AndN%d' % n
-        return DeclareCircuit(name, "I", In(Array(n, Bit)), "O", Out(Bit))
+        return DeclareCircuit(name, "I", In(Bits(n)), "O", Out(Bit))
 
     def AndN(n):
         return DefineAndN(n)()

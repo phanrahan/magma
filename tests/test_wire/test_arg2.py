@@ -5,7 +5,7 @@ from magma import *
 def test():
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 
-    main = DefineCircuit("main", "I", In(Array2), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
 
     a = And2()
 

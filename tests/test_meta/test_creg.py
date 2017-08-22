@@ -8,7 +8,7 @@ def test():
     def FFs(n):
         return [DFF() for i in range(n)]
 
-    main = DefineCircuit("main", "CLK", In(Bit), "I", In(Array2), "O", Out(Array2))
+    main = DefineCircuit("main", "CLK", In(Bit), "I", In(Bits(2)), "O", Out(Bits(2)))
     I = main.I
     O = main.O
 
