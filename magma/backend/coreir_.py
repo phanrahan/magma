@@ -1,9 +1,9 @@
 from collections import OrderedDict
-from magma.backend.verilog import find
-from magma.array import ArrayKind, ArrayType
-from magma.wire import wiredefaultclock
-from magma.bit import VCC, GND
-from magma.bitutils import seq2int
+from ..bit import VCC, GND
+from ..array import ArrayKind, ArrayType
+from ..clock import wiredefaultclock
+from ..bitutils import seq2int
+from ..backend.verilog import find
 import coreir
 
 
