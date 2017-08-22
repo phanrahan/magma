@@ -26,6 +26,8 @@ def parse(decl):
     ports = []
     for i in range(0,n,2):
         name = decl[i]   # name
+        if not name:
+            name = i//2
         port = decl[i+1] # type
 
         assert isinstance(port, Kind) or isinstance(port, Type)
