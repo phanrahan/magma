@@ -1,6 +1,6 @@
 {
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "test_coreir_uint": {
           "connections": [
@@ -91,5 +91,5 @@
       }
     }
   },
-  "top": "_G.test_coreir_uint"
+  "top": "global.test_coreir_uint"
 }
