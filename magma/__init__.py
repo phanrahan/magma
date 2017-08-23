@@ -11,29 +11,19 @@ from .array import *
 from .bits import *
 from .tuple import *
 from .clock import *
-from .interface import *
-from .primitives import *
 from .conversions import *
+from .interface import *
 
-from .wire import *
 from .circuit import *
+from .wire import *
+from .higher import *
 
-from .peripheral import *
-from .part import *
-from .fpga import *
-
-from .board import *
+from .primitives import *
 
 # verilog 
 from .fromverilog import *
 from .backend.verilog import *
-
-from .higher import *
-
-if os.getenv("MAGMA_COMPILE_STYLE") == "abstract":
-    from .compile_abstract import *
-else:
-    from .compile import *
+from .compile import *
 
 from .tests import *
 
