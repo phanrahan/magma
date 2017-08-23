@@ -20,7 +20,7 @@ __all__ += ['AnonymousCircuit']
 __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit'] 
-__all__ += ['DefineCircuit', 'EndCircuit']
+__all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
@@ -444,11 +444,13 @@ def DefineCircuit(name, *decl, **args):
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
 
-def EndCircuit():
+def EndDefine():
     debug_info = get_callee_frame_info()
     currentDefinition.end_circuit_filename = debug_info[0]
     currentDefinition.end_circuit_lineno   = debug_info[1]
     popDefinition()
+
+EndCircuit = EndDefine
 
 def CopyInstance(instance):
     circuit = type(instance)
