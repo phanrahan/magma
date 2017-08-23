@@ -120,10 +120,15 @@ class ValueStore:
 
     def set_value(self, bit, newval):
         if isinstance(bit, ArrayType):
+            if isinstance(newval, BitVector):
+                newval = newval.as_bool_list()
             for b,v in zip(bit, newval):
                 self.set_value(b, v)
             return
 
+        if isinstance(newval, BitVector):
+            assert len(newval) == 1
+            newval = newval.as_bool_list()[0]
         assert isinstance(newval, bool), "Can only set boolean values"
         assert bit.isoutput()
 

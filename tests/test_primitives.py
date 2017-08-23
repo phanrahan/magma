@@ -37,9 +37,9 @@ def test_register():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for clk, expected in test_vectors:
-        simulator.set_value(TestCircuit.CLK, scope, clk.as_bool_list()[0])
+        simulator.set_value(TestCircuit.CLK, scope, clk)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.out, scope) == expected.as_bool_list()
+        assert simulator.get_value(TestCircuit.out, scope) == expected
 
 def test_register_ce():
     N = 4
@@ -71,10 +71,10 @@ def test_register_ce():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for clk, enable, expected in test_vectors:
-        simulator.set_value(TestCircuit.CLK, scope, clk.as_bool_list()[0])
-        simulator.set_value(TestCircuit.CE, scope, enable.as_bool_list()[0])
+        simulator.set_value(TestCircuit.CLK, scope, clk)
+        simulator.set_value(TestCircuit.CE, scope, enable)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.out, scope) == expected.as_bool_list()
+        assert simulator.get_value(TestCircuit.out, scope) == expected
 
 def test_register_reset():
     N = 4
@@ -111,7 +111,7 @@ def test_register_reset():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for clk, reset, expected in test_vectors:
-        simulator.set_value(TestCircuit.CLK, scope, clk.as_bool_list()[0])
-        simulator.set_value(TestCircuit.RESET, scope, reset.as_bool_list()[0])
+        simulator.set_value(TestCircuit.CLK, scope, clk)
+        simulator.set_value(TestCircuit.RESET, scope, reset)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.out, scope) == expected.as_bool_list()
+        assert simulator.get_value(TestCircuit.out, scope) == expected

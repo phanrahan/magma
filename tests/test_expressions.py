@@ -38,11 +38,11 @@ def test_1_bit_logic():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c, d in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list()[0])
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list()[0])
-        simulator.set_value(TestCircuit.c, scope, c.as_bool_list()[0])
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.c, scope, c)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.d, scope) == d.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.d, scope) == d
 
 
 def test_bits_logic():
@@ -65,11 +65,11 @@ def test_bits_logic():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c, d in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
-        simulator.set_value(TestCircuit.c, scope, c.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.c, scope, c)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.d, scope) == d.as_bool_list()
+        assert simulator.get_value(TestCircuit.d, scope) == d
 
 
 def test_bits_eq():
@@ -92,10 +92,10 @@ def test_bits_eq():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_bits_lshift():
@@ -263,10 +263,10 @@ def test_uint_lt():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_le():
@@ -289,10 +289,10 @@ def test_uint_le():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_gt():
@@ -315,10 +315,10 @@ def test_uint_gt():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_ge():
@@ -341,10 +341,10 @@ def test_uint_ge():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_add():
@@ -435,10 +435,10 @@ def test_sint_lt():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_le():
@@ -461,10 +461,10 @@ def test_sint_le():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_gt():
@@ -487,10 +487,10 @@ def test_sint_gt():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0]
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_ge():
@@ -512,10 +512,10 @@ def test_sint_ge():
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a.as_bool_list())
-        simulator.set_value(TestCircuit.b, scope, b.as_bool_list())
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c.as_bool_list()[0], "Failed on {}, {}, {}".format(a, b, c)
+        assert simulator.get_value(TestCircuit.c, scope) == c, "Failed on {}, {}, {}".format(a, b, c)
 
 def test_sint_arithmetic_right_shift():
     class TestCircuit(Circuit):
