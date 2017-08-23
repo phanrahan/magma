@@ -149,4 +149,10 @@ class BitVector:
         return BitVector(retval, num_bits=self.num_bits)
 
     def __eq__(self, other):
-        return BitVector(self._value == other._value, num_bits=1)
+        if isinstance(other, BitVector):
+            return BitVector(self._value == other._value, num_bits=1)
+        elif isinstance(other, list) and all(isinstance(x, bool) for x in other):
+            return self.as_bool_list() == other
+        elif isinstance(other, bool) and self.num_bits == 1:
+            return self.as_bool_list()[0] == other
+        raise NotImplementedError()
