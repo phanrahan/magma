@@ -117,9 +117,6 @@ class CircuitKind(type):
 
         return s
 
-    def getarea(cls):
-        return (1, cls.cells)
-
     def find(cls, defn):
         name = cls.__name__
         if not isdefinition(cls):
@@ -374,12 +371,12 @@ class DefineCircuitKind(CircuitKind):
     #
     def place(cls, inst):
         if not inst.name:
-            inst.defn = cls
             inst.name = 'inst' + str(len(cls.instances))
             # osnr's suggested name
             #inst.name = 'inst' + str(len(cls.instances)) + '_' + inst.__class__.name
             #print('naming circuit instance', inst.name)
         #print('placing', inst, 'in', cls)
+        inst.defn = cls
         inst.stack = inspect.stack()
         cls.instances.append(inst)
 
