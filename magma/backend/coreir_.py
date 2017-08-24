@@ -75,18 +75,18 @@ class CoreIRBackend:
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
-                output_ports[port] = str(port).replace(definition.__name__, "self")
+                output_ports[port] = repr(port).replace(definition.__name__, "self")
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
-                    output_ports[port] = str(port)
+                    output_ports[port] = repr(port)
 
         def connect(port, value):
             if value.anon() and isinstance(value, ArrayType):
                 for i, v in zip(range(len(port)), value):
-                    connect("{}.{}".format(str(port), i), v)
+                    connect("{}.{}".format(repr(port), i), v)
                 return
             if isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
                 source = self.get_constant_instance(value, len(value),
@@ -97,7 +97,7 @@ class CoreIRBackend:
                 source = module_definition.select(output_ports[value])
             module_definition.connect(
                 source,
-                module_definition.select(str(port)))
+                module_definition.select(repr(port)))
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
@@ -106,8 +106,8 @@ class CoreIRBackend:
             output = input.value()
             if output:
                 module_definition.connect(
-                    module_definition.select(str(input).replace(definition.__name__, "self")),
-                    module_definition.select(str(output)))
+                    module_definition.select(repr(input).replace(definition.__name__, "self")),
+                    module_definition.select(repr(output)))
         module.definition = module_definition
         return module
 
