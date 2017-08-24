@@ -25,7 +25,7 @@ def test_array_to_bit(capsys):
     out, err = capsys.readouterr()
     err_lines = err.splitlines()
     assert err_lines[-1] == "=" * 80
-    assert err_lines[-2] == "Wiring Error: wiring main.O (In(Bit)) to inst0.I (Array(8,In(Bit)))"
+    assert err_lines[-2] == "Wiring Error: wiring O (In(Bit)) to I (Array(8,In(Bit)))"
     assert err_lines[-3] == "    wire(main.O, buf.I)"
 
 def test_bit_to_array(capsys):
@@ -38,5 +38,5 @@ def test_bit_to_array(capsys):
     out, err = capsys.readouterr()
     err_lines = err.splitlines()
     assert err_lines[-1] == "=" * 80
-    assert err_lines[-2] == "Wiring Error: wiring inst0.I (In(Bit)) to main.O (Array(7,In(Bit)))"
+    assert err_lines[-2] == "Wiring Error: wiring I (In(Bit)) to O (Array(7,In(Bit)))"
     assert err_lines[-3] == "    wire(buf.I, main.O)"
