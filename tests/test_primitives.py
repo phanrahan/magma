@@ -8,7 +8,7 @@ from magma.verilator.verilator import run_verilator_test
 from magma.python_simulator import PythonSimulator
 from magma.scope import Scope
 
-from test_expressions import insert_coreir_stdlib_include
+from test_expressions import insert_coreir_include
 
 def test_register():
     N = 4
@@ -31,7 +31,7 @@ def test_register():
         test_vectors.append([BitVector(0, num_bits=1), output])
 
     compileverilator('build/sim_test_register_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_stdlib_include("build/test_register.v")
+    insert_coreir_include("build/test_register.v")
     run_verilator_test('test_register', 'sim_test_register_main', 'test_register')
 
     simulator = PythonSimulator(TestCircuit)
@@ -65,7 +65,7 @@ def test_register_ce():
         test_vectors.append([BitVector(0, num_bits=1), BitVector(0, num_bits=1), output])
 
     compileverilator('build/sim_test_register_ce_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_stdlib_include("build/test_register_ce.v")
+    insert_coreir_include("build/test_register_ce.v")
     run_verilator_test('test_register_ce', 'sim_test_register_ce_main', 'test_register_ce')
 
     simulator = PythonSimulator(TestCircuit)
@@ -105,7 +105,7 @@ def test_register_reset():
         test_vectors.append([BitVector(0, num_bits=1), BitVector(1, num_bits=1), output])
 
     compileverilator('build/sim_test_register_reset_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_stdlib_include("build/test_register_reset.v")
+    insert_coreir_include("build/test_register_reset.v")
     run_verilator_test('test_register_reset', 'sim_test_register_reset_main', 'test_register_reset')
 
     simulator = PythonSimulator(TestCircuit)
