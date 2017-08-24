@@ -271,7 +271,7 @@ class CircuitType(AnonymousCircuitType):
                  # }   # End of format identifier
                  v = "{0:#0{1}x}".format(v[0], v[1] // 4)
             else:
-                 v = str(v)
+                 v = '"{}"'.format(v)
             args.append("%s=%s"%(k, v))
         return '{} = {}({})'.format(str(self), str(type(self)), ', '.join(args))
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
