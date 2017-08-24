@@ -81,7 +81,6 @@ class CircuitKind(type):
 
     def __str__(cls):
         return cls.__name__
-        #return '{}({})'.format(cls.__name__, str(cls.IO))
 
     def __repr__(cls):
 
@@ -167,6 +166,7 @@ class AnonymousCircuitType(object):
             args.append('"{}"'.format(k))
             args.append(repr(v))
         return '{}({})'.format(str(type(self)), ', '.join(args))
+
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
         #    ', '.join(args), self.filename, self.lineno)
 
@@ -278,6 +278,7 @@ class CircuitType(AnonymousCircuitType):
             args.append("%s=%s"%(k, v))
         return '{} = {}({})'.format(str(self), str(type(self)), ', '.join(args))
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+        # cls.filename, cls.lineno)
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
@@ -347,9 +348,6 @@ class DefineCircuitKind(CircuitKind):
         self = CircuitKind.__new__(metacls, name, bases, dct)
         Cache[name] = self
 
-        self.orientation = 'vertical'
-        self.alignment = 1
-
         self.verilog = None
         self.verilogFile = None
         self.verilogLib = None
@@ -386,40 +384,6 @@ class DefineCircuitKind(CircuitKind):
         cls.instances.append(inst)
 
 
-    def setlayout(cls, orientation='vertical', alignment=1):
-        cls.orientation = orientation
-        cls.alignment = alignment
-
-    def getarea(cls):
-        x = 0
-        z = 0
-        for inst in cls.instances:
-            clsinst = type(inst)
-            dx, dz = clsinst.getarea()
-            z = (z+clsinst.alignment-1)/clsinst.alignment
-            if   cls.orientation == 'vertical':
-                x = max(x, dx)
-                z += dz
-            elif cls.orientation == 'horizontal':
-                x += dx
-                z = max(z, dz)
-        return (x,z)
-
-    def layout(cls, x=0, y=0):
-        orientation = cls.orientation
-        alignment = cls.alignment
-        z = 0
-        for inst in cls.instances:
-            clsinst = type(inst)
-            dx, dz = clsinst.getarea()
-            z = (z+alignment-1)/alignment
-            #print('placing', inst, 'at', x, y+z/8, z%8)
-            inst.loc = (x, y+z/8, z%8)
-            if   orientation == 'vertical':
-                z += dz
-            elif orientation == 'horizontal':
-                x += dx
-
 @six.add_metaclass(DefineCircuitKind)
 class Circuit(CircuitType):
     pass
@@ -433,8 +397,6 @@ def DefineCircuit(name, *decl, **args):
         currentDefinitionStack.append(currentDefinition)
 
     dct = dict(IO          = decl,
-               orientation = args.get('orientation', 'vertical'), 
-               alignment   = args.get('alignment', 1),
                primitive   = args.get('primitive', False),
                stateful    = args.get('stateful', False),
                simulate    = args.get('simulate'),
