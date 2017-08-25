@@ -1,5 +1,13 @@
 import os
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
+def cache_definition(fn):
+    return lru_cache(maxsize=None)(fn)
+
 # lowest-level wiring abstraction
 from .port import *
 

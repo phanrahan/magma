@@ -1,3 +1,4 @@
+from magma import cache_definition
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.clock import Clock, ClockEnable, Reset
@@ -44,34 +45,36 @@ def declare_bit_binop(name, op, python_op, firrtl_op):
         in1 = BitVector(value_store.get_value(self.in1))
         out = python_op(in0, in1).as_bool_list()[0]
         value_store.set_value(self.out, out)
-    circ = DeclareCircuit("{}_bit".format(name),
+
+    circ = DeclareCircuit("{}".format(name),
                           'in0', In(Bit), 'in1', In(Bit), 'out', Out(Bit),
                           simulate=simulate,
-                          firrtl_op=firrtl_op,
-                          verilog_name=name)
+                          firrtl_op=firrtl_op)
 
     @type_check_binary_operator
     def func(self, other):
-        return circ(width=1)(self, other)
+        return circ()(self, other)
     func.__name__ = op
     setattr(BitType, op, func)
 
+    return circ
 
-declare_bit_binop("coreir_and", "__and__", operator.and_, "and")
-declare_bit_binop("coreir_or", "__or__", operator.or_, "or")
-declare_bit_binop("coreir_xor", "__xor__", operator.xor, "xor")
+
+BitAnd = declare_bit_binop("coreir_bitand", "__and__", operator.and_, "and")
+BitOr  = declare_bit_binop("coreir_bitor", "__or__", operator.or_, "or")
+BitXor = declare_bit_binop("coreir_bitxor", "__xor__", operator.xor, "xor")
 
 def simulate_bit_not(self, value_store, state_store):
     _in = BitVector(value_store.get_value(getattr(self, "in")))
     out = (~_in).as_bool_list()[0]
     value_store.set_value(self.out, out)
 
-BitInvert = DeclareCircuit("coreir_not0", 'in', In(Bit), 'out', Out(Bit),
-        simulate=simulate_bit_not, verilog_name="coreir_not")
+BitNot = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
+        simulate=simulate_bit_not)
 
 
 def __invert__(self):
-    return BitInvert(width=1)(self)
+    return BitNot()(self)
 
 
 BitType.__invert__ = __invert__

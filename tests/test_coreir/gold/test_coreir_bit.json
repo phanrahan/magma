@@ -39,28 +39,16 @@
           ],
           "instances": {
             "inst0": {
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.and"
+              "modref": "coreir.bitand"
             },
             "inst1": {
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.not"
+              "modref": "coreir.bitnot"
             },
             "inst2": {
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.xor"
+              "modref": "coreir.bitxor"
             },
             "inst3": {
-              "genargs": {
-                "width": 1
-              },
-              "genref": "coreir.or"
+              "modref": "coreir.bitor"
             }
           },
           "type": [
