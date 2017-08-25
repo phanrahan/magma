@@ -1,5 +1,5 @@
-import sys
 from magma import *
+from magma.tests import magma_check_files_equal
 
 def test():
     def DefineAndN(n):

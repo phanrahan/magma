@@ -6,7 +6,7 @@ from .port import *
 # types
 from .t import *
 from .bit import *
-from .bitutils import *
+#from .bitutils import *
 from .array import *
 from .bits import *
 from .tuple import *
@@ -25,6 +25,6 @@ from .fromverilog import *
 from .backend.verilog import *
 from .compile import *
 
-from .tests import *
+#from .tests import *
 
 #print('import magma')
