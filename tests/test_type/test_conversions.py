@@ -1,11 +1,10 @@
 import pytest
 from magma import \
     bit, BitType, GND, VCC, \
-    ArrayType, \
+    array, ArrayType, \
     bits, BitsType, \
     uint, UIntType, \
     sint, SIntType
-from magma.conversions import array
 
 def test_bit():
     assert isinstance(bit(0), BitType)
