@@ -1,4 +1,4 @@
-from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip
+from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip, VCC, GND
 
 def test_bit():
     assert isinstance(Bit,    BitKind)
@@ -65,3 +65,14 @@ def test_bit_val():
     assert not b.isinput()
     assert not b.isoutput()
     assert not b.isinout()
+
+def test_vcc():
+    assert str(VCC) == "VCC"
+    assert isinstance(VCC, BitOut)
+
+    assert str(GND) == "GND"
+    assert isinstance(GND, BitOut)
+
+    assert VCC == VCC
+    assert VCC != GND
+    assert GND == GND
