@@ -43,10 +43,11 @@ def declare_bit_binop(name, op, python_op, firrtl_op):
         in1 = BitVector(value_store.get_value(self.in1))
         out = python_op(in0, in1).as_bool_list()[0]
         value_store.set_value(self.out, out)
-    circ = DeclareCircuit("{}".format(name),
+    circ = DeclareCircuit("{}_bit".format(name),
                           'in0', In(Bit), 'in1', In(Bit), 'out', Out(Bit),
                           simulate=simulate,
-                          firrtl_op=firrtl_op)
+                          firrtl_op=firrtl_op,
+                          verilog_name=name)
 
     @type_check_binary_operator
     def func(self, other):
@@ -64,8 +65,8 @@ def simulate_bit_not(self, value_store, state_store):
     out = (~_in).as_bool_list()[0]
     value_store.set_value(self.out, out)
 
-BitInvert = DeclareCircuit("coreir_not", 'in', In(Bit), 'out', Out(Bit),
-        simulate=simulate_bit_not)
+BitInvert = DeclareCircuit("coreir_not0", 'in', In(Bit), 'out', Out(Bit),
+        simulate=simulate_bit_not, verilog_name="coreir_not")
 
 
 def __invert__(self):
@@ -85,9 +86,10 @@ def declare_bits_binop(name, op, python_op):
     @lru_cache(maxsize=None)
     def Declare(N):
         T = Bits(N)
-        return DeclareCircuit("{}".format(name),
+        return DeclareCircuit("{}{}".format(name, N),
                               'in0', In(T), 'in1', In(T), 'out', Out(T),
-                              simulate=simulate)
+                              simulate=simulate,
+                              verilog_name=name)
 
     @type_check_binary_operator
     def func(self, other):
@@ -109,7 +111,8 @@ def simulate_bits_not(self, value_store, state_store):
 @lru_cache(maxsize=None)
 def DeclareInvertN(N):
     T = Bits(N)
-    return DeclareCircuit("coreir_not", 'in', In(T), 'out', Out(T), simulate=simulate_bits_not)
+    return DeclareCircuit("coreir_not{}".format(N), 'in', In(T), 'out', Out(T),
+            simulate=simulate_bits_not, verilog_name="coreir_not")
 
 
 def __invert__(self):
@@ -119,29 +122,37 @@ def __invert__(self):
 BitsType.__invert__ = __invert__
 
 
-@lru_cache(maxsize=None)
-def DeclareShiftLeft(N):
-    T = Bits(N)
-    return DeclareCircuit("coreir_shl", 'in', In(UInt(N)), 'out', Out(T))
-
-
-@lru_cache(maxsize=None)
-def DeclareDynamicShiftLeft(N):
-    T = Bits(N)
-    # i1_type = Bits((N - 1).bit_length())
-    return DeclareCircuit("coreir_dshl",
-                          'in0', In(T), 'in1', In(UInt(N)), 'out', Out(T))
-
-
 def __lshift__(self, other):
+    N = self.N
+    T = Bits(N)
     if isinstance(other, IntegerTypes):
         if other < 0:
-            raise ValueError("Second argument to << must be positive, not {}".format(other))
-        return DeclareShiftLeft(self.N)(WIDTH=self.N, SHIFTBITS=other)(self)
+            raise ValueError("Second argument to << must be positive, not "
+                    "{}".format(other))
+
+        def simulate_shift_left(self, value_store, state_store):
+            _in = BitVector(value_store.get_value(getattr(self, "in")))
+            out = _in << other
+            value_store.set_value(self.out, out.as_bool_list())
+
+        circ = DeclareCircuit("coreir_shl{}".format(N), 'in', In(UInt(N)),
+                'out', Out(T), verilog_name="coreir_shl",
+                simulate=simulate_shift_left)
+        return circ(WIDTH=N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
-            raise TypeError("Second argument to << must be a UInt, not {}".format(type(other)))
-        return DeclareDynamicShiftLeft(self.N)(WIDTH=self.N)(self, other)
+            raise TypeError("Second argument to << must be a UInt, not "
+                    "{}".format(type(other)))
+        def simulate(self, value_store, state_store):
+            in0 = BitVector(value_store.get_value(self.in0))
+            in1 = BitVector(value_store.get_value(self.in1))
+            out = (in0 << in1).as_bool_list()
+            value_store.set_value(self.out, out)
+
+        circ = DeclareCircuit("coreir_dshl{}".format(N), 'in0', In(T), 'in1',
+                In(UInt(N)), 'out', Out(T), verilog_name="coreir_dshl",
+                simulate=simulate)
+        return circ(WIDTH=N)(self, other)
     else:
         raise TypeError("<< not implemented for argument 2 of type {}".format(
             type(other)))
@@ -149,30 +160,37 @@ def __lshift__(self, other):
 
 BitsType.__lshift__ = __lshift__
 
-
-@lru_cache(maxsize=None)
-def DeclareShiftRight(N):
-    T = Bits(N)
-    return DeclareCircuit("coreir_lshr", 'in', In(UInt(N)), 'out', Out(T))
-
-
-@lru_cache(maxsize=None)
-def DeclareDynamicShiftRight(N):
-    T = Bits(N)
-    # i1_type = Bits((N - 1).bit_length())
-    return DeclareCircuit("coreir_dlshr",
-                          'in0', In(T), 'in1', In(UInt(N)), 'out', Out(T))
-
-
 def __rshift__(self, other):
+    N = self.N
+    T = Bits(N)
     if isinstance(other, IntegerTypes):
         if other < 0:
-            raise ValueError("Second argument to >> must be positive, not {}".format(other))
-        return DeclareShiftRight(self.N)(WIDTH=self.N, SHIFTBITS=other)(self)
+            raise ValueError("Second argument to >> must be positive, not "
+                    "{}".format(other))
+
+        def simulate_shift_left(self, value_store, state_store):
+            _in = BitVector(value_store.get_value(getattr(self, "in")))
+            out = _in >> other
+            value_store.set_value(self.out, out.as_bool_list())
+
+        circ = DeclareCircuit("coreir_lshr{}".format(N), 'in', In(UInt(N)),
+                'out', Out(T), verilog_name="coreir_lshr",
+                simulate=simulate_shift_left)
+        return circ(WIDTH=N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
-            raise TypeError("Second argument to >> must be a UInt, not {}".format(type(other)))
-        return DeclareDynamicShiftRight(self.N)(WIDTH=self.N)(self, other)
+            raise TypeError("Second argument to >> must be a UInt, not "
+                    "{}".format(type(other)))
+        def simulate(self, value_store, state_store):
+            in0 = BitVector(value_store.get_value(self.in0))
+            in1 = BitVector(value_store.get_value(self.in1))
+            out = (in0 >> in1).as_bool_list()
+            value_store.set_value(self.out, out)
+
+        circ = DeclareCircuit("coreir_dlshr{}".format(N), 'in0', In(T), 'in1',
+                In(UInt(N)), 'out', Out(T), verilog_name="coreir_dlshr",
+                simulate=simulate)
+        return circ(WIDTH=N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
             type(other)))
@@ -195,11 +213,12 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
     @lru_cache(maxsize=None)
     def Declare(N):
         T = _type(N)
-        return DeclareCircuit("{}".format(name),
+        return DeclareCircuit("{}{}".format(name, N),
                               'in0', In(T), 'in1', In(T),
                               'out', Out(out_type if out_type else T),
                               stateful=False,
-                              simulate=simulate)
+                              simulate=simulate,
+                              verilog_name=name)
 
     @type_check_binary_operator
     def func(self, other):
@@ -230,29 +249,37 @@ declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", operator.gt, out_type=Bit
 declare_binop("coreir_uge", UInt, UIntType, "__ge__", operator.ge, out_type=Bit)
 
 
-@lru_cache(maxsize=None)
-def DeclareArithmeticShiftRight(N):
-    T = SInt(N)
-    return DeclareCircuit("coreir_ashr", 'in', In(UInt(N)), 'out', Out(T))
-
-
-@lru_cache(maxsize=None)
-def DeclareDynamicArithmeticShiftRight(N):
-    T = SInt(N)
-    # i1_type = Bits((N - 1).bit_length())
-    return DeclareCircuit("coreir_dashr",
-                          'in0', In(T), 'in1', In(UInt(N)), 'out', Out(T))
-
-
 def arithmetic_shift_right(self, other):
+    N = self.N
+    T = SInt(N)
     if isinstance(other, IntegerTypes):
         if other < 0:
-            raise ValueError("Second argument to arithmetic_shift_right must be positive, not {}".format(other))
-        return DeclareArithmeticShiftRight(self.N)(WIDTH=self.N, SHIFTBITS=other)(self)
+            raise ValueError("Second argument to arithmetic_shift_right must be "
+                    "positive, not {}".format(other))
+
+        def simulate_arithmetic_shift_right(self, value_store, state_store):
+            _in = BitVector(value_store.get_value(getattr(self, "in")), signed=True)
+            out = _in.arithmetic_shift_right(other)
+            value_store.set_value(self.out, out.as_bool_list())
+        circ =  DeclareCircuit("coreir_ashr{}".format(N), 'in', In(UInt(N)),
+                'out', Out(T), verilog_name="coreir_ashr",
+                simulate=simulate_arithmetic_shift_right)
+        return circ(WIDTH=self.N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
-            raise TypeError("Second argument to arithmetic_shift_right must be a UInt, not {}".format(type(other)))
-        return DeclareDynamicArithmeticShiftRight(self.N)(WIDTH=self.N)(self, other)
+            raise TypeError("Second argument to arithmetic_shift_right must be "
+                    "a UInt, not {}".format(type(other)))
+
+        def simulate(self, value_store, state_store):
+            in0 = BitVector(value_store.get_value(self.in0), signed=True)
+            in1 = BitVector(value_store.get_value(self.in1))
+            out = in0.arithmetic_shift_right(in1).as_bool_list()
+            value_store.set_value(self.out, out)
+
+        circ = DeclareCircuit("coreir_dashr{}".format(N), 'in0', In(T), 'in1',
+                In(UInt(N)), 'out', Out(T), verilog_name="coreir_dashr",
+                simulate=simulate)
+        return circ(WIDTH=self.N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
             type(other)))
@@ -343,6 +370,23 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
             stateful=True,
             simulate=gen_sim_register(N, has_ce, has_reset),
             circuit_type_methods=methods
+        )(WIDTH=N, *args, **kwargs)
+    return wrapper
+
+
+def DefineMux(N):
+    def simulate(self, value_store, state_store):
+        d0 = BitVector(value_store.get_value(self.d0))
+        d1 = BitVector(value_store.get_value(self.d1))
+        sel = BitVector(value_store.get_value(self.sel))
+        out = d1 if sel.as_int() else d0
+        value_store.set_value(self.out, out)
+    def wrapper(*args, **kwargs):
+        return DeclareCircuit("Mux".format(N), 
+            *["d0", In(Bits(N)), "d1", In(Bits(N)), "sel", In(Bit), 
+             "out", Out(Bits(N))],
+            verilog_name="Mux",
+            simulate=simulate
         )(WIDTH=N, *args, **kwargs)
     return wrapper
 

@@ -101,27 +101,27 @@ def test_bits_eq():
 def test_bits_lshift():
     class TestCircuit(Circuit):
         name = "test_lshift"
-        # IO = ["a", In(Bits(4)), "b", In(Bits(4)), "c", Out(Bits(4)), "d", Out(Bits(4))]
         IO = ["a", In(Bits(4)), "b", Out(Bits(4))]
         @classmethod
         def definition(circuit):
             b = circuit.a << 2
-            # d = circuit.a >> 3
-            # tmp3 = circuit.a << circuit.b
-            # tmp4 = circuit.a >> circuit.c
-            # d = tmp1 & tmp2 ^ tmp3 | tmp4
-            # wire(c, circuit.c)
             wire(b, circuit.b)
     compile("build/test_bits_lshift", TestCircuit)
     def f(a):
         return a << 2
-        # tmp3 = a << b
-        # tmp4 = a >> c
-        # return tmp1 & tmp2 ^ tmp3 | tmp4
 
-    compileverilator('build/sim_test_bits_lshift_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_bits_lshift_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_bits_lshift.v")
     run_verilator_test('test_bits_lshift', 'sim_test_bits_lshift_main', 'test_lshift')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.b, scope) == b
 
 
 def test_bits_dlshift():
@@ -136,9 +136,19 @@ def test_bits_dlshift():
     def f(a, b):
         return a << b
 
-    compileverilator('build/sim_test_bits_dlshift_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_bits_dlshift_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_bits_dlshift.v")
     run_verilator_test('test_bits_dlshift', 'sim_test_bits_dlshift_main', 'test_dlshift')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_bits_rshift():
@@ -153,9 +163,18 @@ def test_bits_rshift():
     def f(a):
         return a >> 3
 
-    compileverilator('build/sim_test_bits_rshift_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_bits_rshift_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_bits_rshift.v")
     run_verilator_test('test_bits_rshift', 'sim_test_bits_rshift_main', 'test_rshift')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.b, scope) == b
 
 
 def test_bits_drshift():
@@ -170,9 +189,19 @@ def test_bits_drshift():
     def f(a, b):
         return a >> b
 
-    compileverilator('build/sim_test_bits_drshift_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_bits_drshift_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_bits_drshift.v")
     run_verilator_test('test_bits_drshift', 'sim_test_bits_drshift_main', 'test_drshift')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_add():
@@ -187,9 +216,19 @@ def test_uint_add():
     def f(a, b):
         return a + b
 
-    compileverilator('build/sim_test_uint_add_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_uint_add_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_uint_add.v")
     run_verilator_test('test_uint_add', 'sim_test_uint_add_main', 'test_uint_add')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_sub():
@@ -204,9 +243,19 @@ def test_uint_sub():
     def f(a, b):
         return a - b
 
-    compileverilator('build/sim_test_uint_sub_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_uint_sub_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_uint_sub.v")
     run_verilator_test('test_uint_sub', 'sim_test_uint_sub_main', 'test_uint_sub')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_mul():
@@ -221,9 +270,19 @@ def test_uint_mul():
     def f(a, b):
         return a * b
 
-    compileverilator('build/sim_test_uint_mul_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+
+    compileverilator('build/sim_test_uint_mul_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_uint_mul.v")
     run_verilator_test('test_uint_mul', 'sim_test_uint_mul_main', 'test_uint_mul')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_div():
@@ -238,9 +297,19 @@ def test_uint_div():
     def f(a, b):
         return a / b
 
-    compileverilator('build/sim_test_uint_div_main.cpp', TestCircuit, f, input_ranges=(range(0, 1 << 4), range(1, 1 << 4)))
+    test_vectors = testvectors(TestCircuit, f, input_ranges=(range(0, 1 << 4),
+        range(1, 1 << 4)))
+    compileverilator('build/sim_test_uint_div_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_uint_div.v")
     run_verilator_test('test_uint_div', 'sim_test_uint_div_main', 'test_uint_div')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_uint_lt():
@@ -259,6 +328,14 @@ def test_uint_lt():
     compileverilator('build/sim_test_uint_lt_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_uint_lt.v")
     run_verilator_test('test_uint_lt', 'sim_test_uint_lt_main', 'test_uint_lt')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
     simulator = PythonSimulator(TestCircuit)
     scope = Scope()
@@ -359,9 +436,18 @@ def test_sint_add():
     def f(a, b):
         return a + b
 
-    compileverilator('build/sim_test_sint_add_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_add_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_sint_add.v")
     run_verilator_test('test_sint_add', 'sim_test_sint_add_main', 'test_sint_add')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_sub():
@@ -376,9 +462,18 @@ def test_sint_sub():
     def f(a, b):
         return a - b
 
-    compileverilator('build/sim_test_sint_sub_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_sub_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_sint_sub.v")
     run_verilator_test('test_sint_sub', 'sim_test_sint_sub_main', 'test_sint_sub')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_mul():
@@ -393,9 +488,18 @@ def test_sint_mul():
     def f(a, b):
         return a * b
 
-    compileverilator('build/sim_test_sint_mul_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_mul_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_sint_mul.v")
     run_verilator_test('test_sint_mul', 'sim_test_sint_mul_main', 'test_sint_mul')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_div():
@@ -410,9 +514,18 @@ def test_sint_div():
     def f(a, b):
         return a * b
 
-    compileverilator('build/sim_test_sint_div_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_div_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_sint_div.v")
     run_verilator_test('test_sint_div', 'sim_test_sint_div_main', 'test_sint_div')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c
 
 
 def test_sint_lt():
@@ -529,9 +642,19 @@ def test_sint_arithmetic_right_shift():
     def f(a):
         return a.arithmetic_shift_right(2)
 
-    compileverilator('build/sim_test_sint_arithmetic_right_shift_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_arithmetic_right_shift_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_sint_arithmetic_right_shift.v")
-    run_verilator_test('test_sint_arithmetic_right_shift', 'sim_test_sint_arithmetic_right_shift_main', 'test_sint_arithmetic_right_shift')
+    run_verilator_test('test_sint_arithmetic_right_shift',
+            'sim_test_sint_arithmetic_right_shift_main',
+            'test_sint_arithmetic_right_shift')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.b, scope) == b
 
 
 def test_sint_dynamic_arithmetic_right_shift():
@@ -546,6 +669,18 @@ def test_sint_dynamic_arithmetic_right_shift():
     def f(a, b):
         return a.arithmetic_shift_right(b)
 
-    compileverilator('build/sim_test_sint_dynamic_arithmetic_right_shift_main.cpp', TestCircuit, f)
+    test_vectors = testvectors(TestCircuit, f, input_ranges=(range(-2**3, 2**3),
+        range(0, 1 << 4)))
+    compileverilator('build/sim_test_sint_dynamic_arithmetic_right_shift_main.cpp', TestCircuit, test_vectors)
     insert_coreir_include("build/test_sint_dynamic_arithmetic_right_shift.v")
-    run_verilator_test('test_sint_dynamic_arithmetic_right_shift', 'sim_test_sint_dynamic_arithmetic_right_shift_main', 'test_sint_dynamic_arithmetic_right_shift')
+    run_verilator_test('test_sint_dynamic_arithmetic_right_shift',
+            'sim_test_sint_dynamic_arithmetic_right_shift_main',
+            'test_sint_dynamic_arithmetic_right_shift')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b, c in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.c, scope) == c, (a.as_bool_list(), b.as_bool_list(), c.as_bool_list())
