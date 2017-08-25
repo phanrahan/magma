@@ -9,8 +9,6 @@ from magma.python_simulator import PythonSimulator
 from magma.scope import Scope
 from magma.verilator.function import testvectors
 
-from test_expressions import insert_coreir_include
-
 def test_register():
     N = 4
     Register4 = DefineRegister(N, T=UInt)
@@ -24,7 +22,7 @@ def test_register():
             wire(getattr(reg, "in"), reg.out + int2seq(1, N))
             wire(circuit.CLK, reg.clk)
 
-    compile("build/test_register", TestCircuit)
+    compile("build/test_register", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
     test_vectors = [[BitVector(0, num_bits=1), BitVector(0, num_bits=N)]]  # We hardcode the first ouput
     for output in expected_sequence:
@@ -32,7 +30,6 @@ def test_register():
         test_vectors.append([BitVector(0, num_bits=1), output])
 
     compileverilator('build/sim_test_register_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_include("build/test_register.v")
     run_verilator_test('test_register', 'sim_test_register_main', 'test_register')
 
     simulator = PythonSimulator(TestCircuit)
@@ -55,7 +52,7 @@ def test_register_ce():
             wire(getattr(reg, "in"), reg.out + int2seq(1, N))
             wire(circuit.CLK, reg.clk)
 
-    compile("build/test_register_ce", TestCircuit)
+    compile("build/test_register_ce", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
     test_vectors = [[BitVector(0, num_bits=1), BitVector(1, num_bits=1), BitVector(0, num_bits=N)]]  # We hardcode the first ouput
     for output in expected_sequence:
@@ -66,7 +63,6 @@ def test_register_ce():
         test_vectors.append([BitVector(0, num_bits=1), BitVector(0, num_bits=1), output])
 
     compileverilator('build/sim_test_register_ce_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_include("build/test_register_ce.v")
     run_verilator_test('test_register_ce', 'sim_test_register_ce_main', 'test_register_ce')
 
     simulator = PythonSimulator(TestCircuit)
@@ -90,7 +86,7 @@ def test_register_reset():
             wire(getattr(reg, "in"), reg.out + int2seq(1, N))
             wire(circuit.CLK, reg.clk)
 
-    compile("build/test_register_reset", TestCircuit)
+    compile("build/test_register_reset", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, (1 << N) - 4)]
     test_vectors = [[BitVector(0, num_bits=1), BitVector(1, num_bits=1), BitVector(0, num_bits=N)]]  # We hardcode the first ouput
     for output in expected_sequence:
@@ -106,7 +102,6 @@ def test_register_reset():
         test_vectors.append([BitVector(0, num_bits=1), BitVector(1, num_bits=1), output])
 
     compileverilator('build/sim_test_register_reset_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_include("build/test_register_reset.v")
     run_verilator_test('test_register_reset', 'sim_test_register_reset_main', 'test_register_reset')
 
     simulator = PythonSimulator(TestCircuit)
@@ -134,9 +129,8 @@ def test_mux():
 
     test_vectors = testvectors(TestCircuit, reference)
 
-    compile("build/test_mux", TestCircuit)
+    compile("build/test_mux", TestCircuit, include_coreir=True)
     compileverilator('build/sim_test_mux_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_include("build/test_mux.v")
     run_verilator_test('test_mux', 'sim_test_mux_main', 'test_mux')
 
     simulator = PythonSimulator(TestCircuit)
@@ -199,9 +193,8 @@ def test_memory():
     test_vectors = []
     test_vectors.extend(write_value(7, 3))
 
-    compile("build/test_mem", TestCircuit)
+    compile("build/test_mem", TestCircuit, include_coreir=True)
     compileverilator('build/sim_test_mem_main.cpp', TestCircuit, test_vectors)
-    insert_coreir_include("build/test_mem.v")
     run_verilator_test('test_mem', 'sim_test_mem_main', 'test_mem')
 
     simulator = PythonSimulator(TestCircuit)

@@ -1,3 +1,4 @@
+import os
 import types
 import operator
 from functools import reduce
@@ -10,6 +11,9 @@ from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
 from ..circuit import *
 from ..clock import wiredefaultclock
+
+coreir_primitives_file_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "coreir_prims.v")
 
 #__all__  = ['hstr', 'bstr']
 __all__  = ['hstr']
@@ -183,10 +187,13 @@ def find(circuit, defn):
     return defn
 
 
-def compile(main):
+def compile(main, include_coreir=False):
     defn = find(main,OrderedDict())
 
     code = ''
+    if include_coreir:
+        code += "`include \"{}\"\n".format(coreir_primitives_file_path)
+
     for k, v in defn.items():
          print('compiling', k)
          code += compiledefinition(v) + '\n'

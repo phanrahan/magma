@@ -27,7 +27,4 @@ from .compile import *
 
 from .tests import *
 
-coreir_primitives_file_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "coreir_prims.v")
-
 #print('import magma')
