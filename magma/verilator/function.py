@@ -38,7 +38,7 @@ def testvectors(circuit, func, input_ranges=None, mode='complete'):
                         input_range = range(start, end)
                     else:
                         input_range = input_ranges[i]
-                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
+                    args.append([BitVector(x, num_bits=num_bits, signed=True) for x in input_range])
                 else:
                     if input_ranges is None:
                         input_range = range(1<<num_bits)
