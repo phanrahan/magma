@@ -1,12 +1,13 @@
-import magma
-from magma import In, Out, Bit, UInt, Circuit
-from magma.primitives import DefineRegister
+from magma import In, Out, Bit, UInt, Circuit, Bits, wire, compile
+from magma.primitives import DefineRegister, DefineMux
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq
 from magma.verilator.verilator import compile as compileverilator
 from magma.verilator.verilator import run_verilator_test
+from magma.verilator.function import testvectors
 from magma.python_simulator import PythonSimulator
 from magma.scope import Scope
+from magma.verilator.function import testvectors
 
 from test_expressions import insert_coreir_include
 
@@ -19,11 +20,11 @@ def test_register():
         @classmethod
         def definition(circuit):
             reg = Register4()
-            magma.wire(reg.Q, circuit.out)
-            magma.wire(reg.D, reg.Q + int2seq(1, N))
-            magma.wire(circuit.CLK, reg.clk)
+            wire(reg.Q, circuit.out)
+            wire(reg.D, reg.Q + int2seq(1, N))
+            wire(circuit.CLK, reg.clk)
 
-    magma.compile("build/test_register", TestCircuit)
+    compile("build/test_register", TestCircuit)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
     test_vectors = [[BitVector(0, num_bits=1), BitVector(0, num_bits=N)]]  # We hardcode the first ouput
     for output in expected_sequence:
@@ -50,11 +51,11 @@ def test_register_ce():
         @classmethod
         def definition(circuit):
             reg = Register4().when(circuit.CE)
-            magma.wire(reg.Q, circuit.out)
-            magma.wire(reg.D, reg.Q + int2seq(1, N))
-            magma.wire(circuit.CLK, reg.clk)
+            wire(reg.Q, circuit.out)
+            wire(reg.D, reg.Q + int2seq(1, N))
+            wire(circuit.CLK, reg.clk)
 
-    magma.compile("build/test_register_ce", TestCircuit)
+    compile("build/test_register_ce", TestCircuit)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
     test_vectors = [[BitVector(0, num_bits=1), BitVector(1, num_bits=1), BitVector(0, num_bits=N)]]  # We hardcode the first ouput
     for output in expected_sequence:
@@ -85,11 +86,11 @@ def test_register_reset():
         @classmethod
         def definition(circuit):
             reg = Register4().reset(circuit.RESET)
-            magma.wire(reg.Q, circuit.out)
-            magma.wire(reg.D, reg.Q + int2seq(1, N))
-            magma.wire(circuit.CLK, reg.clk)
+            wire(reg.Q, circuit.out)
+            wire(reg.D, reg.Q + int2seq(1, N))
+            wire(circuit.CLK, reg.clk)
 
-    magma.compile("build/test_register_reset", TestCircuit)
+    compile("build/test_register_reset", TestCircuit)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, (1 << N) - 4)]
     test_vectors = [[BitVector(0, num_bits=1), BitVector(1, num_bits=1), BitVector(0, num_bits=N)]]  # We hardcode the first ouput
     for output in expected_sequence:
@@ -115,3 +116,37 @@ def test_register_reset():
         simulator.set_value(TestCircuit.RESET, scope, reset)
         simulator.evaluate()
         assert simulator.get_value(TestCircuit.out, scope) == expected
+
+def test_mux():
+    class TestCircuit(Circuit):
+        name = "test_mux"
+        IO = ["I0", In(Bits(4)), "I1", In(Bits(4)), "sel", In(Bit), "O", Out(Bits(4))]
+        @classmethod
+        def definition(circuit):
+            mux4 = DefineMux(4)()
+            wire(mux4.d0, circuit.I0)
+            wire(mux4.d1, circuit.I1)
+            wire(mux4.sel, circuit.sel)
+            wire(mux4.out, circuit.O)
+
+    def reference(a, b, sel):
+        return b if sel.as_int() else a
+
+    test_vectors = testvectors(TestCircuit, reference)
+
+    compile("build/test_mux", TestCircuit)
+    compileverilator('build/sim_test_mux_main.cpp', TestCircuit, test_vectors)
+    insert_coreir_include("build/test_mux.v")
+    run_verilator_test('test_mux', 'sim_test_mux_main', 'test_mux')
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for I0, I1, sel, O in test_vectors:
+        simulator.set_value(TestCircuit.I0, scope, I0)
+        simulator.set_value(TestCircuit.I1, scope, I1)
+        simulator.set_value(TestCircuit.sel, scope, sel)
+        simulator.evaluate()
+        print(I0, I1, sel, O)
+        assert simulator.get_value(TestCircuit.O, scope) == O
+
+

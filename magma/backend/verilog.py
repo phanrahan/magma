@@ -112,7 +112,7 @@ def compileinstance(self):
 
     #s = '(* loc="%d,%d/%d" *)\n' % self.loc if self.loc else ""
 
-    s = str(self.__class__.__name__)
+    s = str(self.__class__.verilog_name)
     if len(params):
         if len(params) > 2:
             s += ' #(' + ",\n".join(params) + ')'
@@ -136,7 +136,7 @@ def compiledefinition(cls):
        s = cls.verilogFile
     else:
         args = ', '.join(vmoduleargs(cls.interface))
-        s = 'module %s (%s);\n' % (cls.__name__, args)
+        s = 'module %s (%s);\n' % (cls.verilog_name, args)
         if cls.verilog:
             s += cls.verilog + '\n'
             if cls.verilogLib:
@@ -173,7 +173,7 @@ def compiledefinition(cls):
     return s
 
 def find(circuit, defn):
-    name = circuit.__name__
+    name = circuit.verilog_name
     if not isdefinition(circuit):
         return defn
     for i in circuit.instances:

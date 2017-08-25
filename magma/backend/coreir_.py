@@ -48,7 +48,7 @@ class CoreIRBackend:
             return self.libs[lib].generators[name]
 
     def compile_instance(self, instance, module_definition):
-        name = instance.__class__.__name__
+        name = instance.__class__.verilog_name
         if getattr(instance, 'coreir_lib', False):
             instantiable = self.get_instantiable(name, instance.coreir_lib)
         else:
@@ -70,12 +70,12 @@ class CoreIRBackend:
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        module = self.context.G.new_module(definition.__name__, module_type)
+        module = self.context.G.new_module(definition.verilog_name, module_type)
         module_definition = module.new_definition()
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
-                output_ports[port] = repr(port).replace(definition.__name__, "self")
+                output_ports[port] = repr(port).replace(definition.verilog_name, "self")
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
@@ -106,7 +106,7 @@ class CoreIRBackend:
             output = input.value()
             if output:
                 module_definition.connect(
-                    module_definition.select(repr(input).replace(definition.__name__, "self")),
+                    module_definition.select(repr(input).replace(definition.verilog_name, "self")),
                     module_definition.select(repr(output)))
         module.definition = module_definition
         return module
@@ -141,4 +141,4 @@ class CoreIRBackend:
 def compile(main, file_name):
     defn = find(main, OrderedDict())
     modules = CoreIRBackend().compile(defn)
-    modules[main.__name__].save_to_file(file_name)
+    modules[main.verilog_name].save_to_file(file_name)
