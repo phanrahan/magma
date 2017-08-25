@@ -511,8 +511,8 @@ def DefineMem(width, depth):
     name = "coreir_mem{}{}".format(width, depth)
     is_power_of_two = lambda num: num != 0 and ((num & (num - 1)) == 0)
     assert is_power_of_two(width) and is_power_of_two(depth)
-    IO = ["raddr", In(Bits(int(math.log2(depth)))), 
-          "waddr", In(Bits(int(math.log2(depth)))), 
+    IO = ["raddr", In(Bits(max(depth.bit_length() - 1, 1))),
+          "waddr", In(Bits(max(depth.bit_length() - 1, 1))),
           "wdata", In(Bits(width)), 
           "rclk", In(Bit), 
           "ren", In(Bit), 
