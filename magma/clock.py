@@ -35,7 +35,7 @@ ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
 
 
 def ClockInterface(has_ce, has_reset, has_set):
-    args = ['CLK', In(Bit)]
+    args = ['CLK', In(Clock)]
     if has_ce: args += ['CE', In(Bit)]
     if has_reset:  args += ['RESET', In(Bit)]
     if has_set:  args += ['SET', In(Bit)]
@@ -52,68 +52,15 @@ def wireclock(define, circuit):
         assert hasattr(circuit, 'SET')
         wire(define.SET,   circuit.SET)
 
-_FFS  = ['FDRSE']
-_FFS += ['SB_DFF',  'SB_DFFSS',  'SB_DFFSR', 'SB_DFFS', 'SB_DFFR']
-_FFS += ['SB_DFFE', 'SB_DFFESS', 'SB_DFFESR', 'SB_DFFES', 'SB_DFFER']
-_FFS += ['SB_DFFN',  'SB_DFFNSS',  'SB_DFFNSR', 'SB_DFFNS', 'SB_DFFNR']
-_FFS += ['SB_DFFNE', 'SB_DFFNESS', 'SB_DFFNESR', 'SB_DFFNES', 'SB_DFFNER']
-
-def wireclocktype(defn, inst, type):
+def wiredefaultclock(defn, inst):
+    #print('wiring clocks', str(defn), str(instance))
+    defnclk = None
+    instclk = None
     for name, port in defn.interface.ports.items():
-         print(name, port)
          if isinstance(port, ClockType):
-             print('Clock')
-         if isinstance(port, ClockKind):
-             print('Clock')
+             defnclk = port
     for name, port in inst.interface.ports.items():
-         print(name, port)
          if isinstance(port, ClockType):
-             print('Clock')
-
-def wiredefaultclock(cls, instance):
-    #print('wiring clocks', str(cls), str(instance))
-
-    if hasattr(instance, 'CLK') and not instance.CLK.driven():
-        #print('wiring clock to CLK')
-        if not hasattr(cls,'CLK'):
-            print("Warning: %s does not have a CLK" % str(cls))
-            return
-        wire(cls.CLK, instance.CLK)
-    if hasattr(instance, 'clk') and not instance.clk.driven():
-        #print('wiring clock to clk')
-        if not hasattr(cls,'CLK'):
-            print("Warning: %s does not have a CLK" % str(cls))
-            return
-        wire(cls.CLK, instance.clk)
-    if hasattr(instance, 'CLKA') and not instance.CLKA.driven():
-        #print('wiring clock to CLKA')
-        if not hasattr(cls,'CLK'):
-            print("Warning: %s does not have a CLK" % str(cls))
-            return
-        wire(cls.CLK, instance.CLKA)
-    if hasattr(instance, 'CLKB') and not instance.CLKB.driven():
-        #print('wiring clock to CLKB')
-        if not hasattr(cls,'CLK'):
-            print("Warning: %s does not have a CLK" % str(cls))
-            return
-        wire(cls.CLK, instance.CLKB)
-    if hasattr(instance, 'RCLK') and not instance.RCLK.driven():
-        #print('wiring clock to RCLK')
-        if not hasattr(cls,'CLK'):
-            print("Warning: %s does not have a CLK" % str(cls))
-            return
-        wire(cls.CLK, instance.RCLK)
-    if hasattr(instance, 'WCLK') and not instance.WCLK.driven():
-        #print('wiring clock to WCLK')
-        if not hasattr(cls,'CLK'):
-            print("Warning: %s does not have a CLK" % str(cls))
-            return
-        wire(cls.CLK, instance.WCLK)
-    if type(instance).__name__ in _FFS:
-        if hasattr(instance,'C') and not instance.C.driven():
-            if not hasattr(cls,'CLK'):
-                print("Warning: %s does not have a CLK" % str(cls))
-                return
-            #print('wiring clock to FF')
-            wire(cls.CLK, instance.C)
-
+             instclk = port
+    if instclk and not instclk.driven() and defnclk:
+        wire(defnclk, instclk)

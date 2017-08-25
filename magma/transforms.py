@@ -1,7 +1,7 @@
 from collections import namedtuple, OrderedDict
 from .circuit import *
 from .bit import *
-from .clock import wiredefaultclock
+from .clock import ClockType, wiredefaultclock
 from .array import *
 from .wire import wire
 from .conversions import array
@@ -39,7 +39,7 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert isinstance(new_bit, BitType) or isinstance(new_bit, ArrayType)
+        assert isinstance(new_bit, (BitType, ClockType)) or isinstance(new_bit, ArrayType)
 
         if isinstance(orig_bit, ArrayType):
             # Map the individual bits
