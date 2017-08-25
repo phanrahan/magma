@@ -8,6 +8,7 @@ from magma.bit_vector import BitVector
 from magma.wire import wire
 from magma.conversions import array, bits, uint, sint
 import operator
+import math
 try:
     from functools import lru_cache
 except ImportError:
@@ -473,3 +474,20 @@ def sext(value, n):
 #    elif:
 #        return Mux(2,len(I0))(I0, I1, S)
 
+
+def DefineMem(width, depth):
+    name = "coreir_mem{}{}".format(width, depth)
+    is_power_of_two = lambda num: num != 0 and ((num & (num - 1)) == 0)
+    assert is_power_of_two(width) and is_power_of_two(depth)
+    IO = ["raddr", In(Bits(int(math.log2(depth)))), 
+          "waddr", In(Bits(int(math.log2(depth)))), 
+          "wdata", In(Bits(width)), 
+          "rclk", In(Bit), 
+          "ren", In(Bit), 
+          "wclk", In(Bit), 
+          "wen", In(Bit), 
+          "rdata", Out(Bits(width))]
+    circ = DeclareCircuit(name, *IO, verilog_name="coreir_mem", )
+    def wrapper(*args, **kwargs):
+        return circ(*args, width=width, depth=depth, **kwargs)
+    return wrapper

@@ -1,5 +1,5 @@
 from magma import In, Out, Bit, UInt, Circuit, Bits, wire, compile
-from magma.primitives import DefineRegister, DefineMux
+from magma.primitives import DefineRegister, DefineMux, DefineMem
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq
 from magma.verilator.verilator import compile as compileverilator
@@ -147,5 +147,70 @@ def test_mux():
         simulator.set_value(TestCircuit.sel, scope, sel)
         simulator.evaluate()
         assert simulator.get_value(TestCircuit.O, scope) == O
+
+def test_memory():
+    class TestCircuit(Circuit):
+        name = "test_mem"
+        IO = ["raddr", In(Bits(2)), 
+              "waddr", In(Bits(2)), 
+              "wdata", In(Bits(4)), 
+              "rclk", In(Bit), 
+              "ren", In(Bit), 
+              "wclk", In(Bit), 
+              "wen", In(Bit), 
+              "rdata", Out(Bits(4))]
+        @classmethod
+        def definition(circuit):
+            mem = DefineMem(4, 4)()
+            wire(mem.raddr, circuit.raddr)
+            wire(mem.waddr, circuit.waddr)
+            wire(mem.wdata, circuit.wdata)
+            wire(mem.rclk, circuit.rclk)
+            wire(mem.ren, circuit.ren)
+            wire(mem.wclk, circuit.wclk)
+            wire(mem.wen, circuit.wen)
+            wire(mem.rdata, circuit.rdata)
+
+    def write_value(value, addr):
+        test_vectors = []
+        for wclk in [0, 1]:
+            test_vectors.append([
+                BitVector(0, num_bits=2), # raddr
+                BitVector(addr, num_bits=2), # waddr
+                BitVector(value, num_bits=4), # wdata
+                BitVector(0, num_bits=1), # rclk
+                BitVector(0, num_bits=1), # ren
+                BitVector(wclk, num_bits=1), # wclk
+                BitVector(1, num_bits=1), # wen
+                BitVector(0, num_bits=4), # rdata
+            ])
+        for rclk in [0, 1]:
+            test_vectors.append([
+                BitVector(addr, num_bits=2), # raddr
+                BitVector(0, num_bits=2), # waddr
+                BitVector(0, num_bits=4), # wdata
+                BitVector(rclk, num_bits=1), # rclk
+                BitVector(1, num_bits=1), # ren
+                BitVector(0, num_bits=1), # wclk
+                BitVector(0, num_bits=1), # wen
+                BitVector(value if rclk else 0, num_bits=4), # rdata
+            ])
+        return test_vectors
+    test_vectors = []
+    test_vectors.extend(write_value(7, 3))
+
+    compile("build/test_mem", TestCircuit)
+    compileverilator('build/sim_test_mem_main.cpp', TestCircuit, test_vectors)
+    insert_coreir_include("build/test_mem.v")
+    run_verilator_test('test_mem', 'sim_test_mem_main', 'test_mem')
+
+    # simulator = PythonSimulator(TestCircuit)
+    # scope = Scope()
+    # for I0, I1, sel, O in test_vectors:
+    #     simulator.set_value(TestCircuit.I0, scope, I0)
+    #     simulator.set_value(TestCircuit.I1, scope, I1)
+    #     simulator.set_value(TestCircuit.sel, scope, sel)
+    #     simulator.evaluate()
+    #     assert simulator.get_value(TestCircuit.O, scope) == O
 
 
