@@ -648,3 +648,26 @@ def test_sint_dynamic_arithmetic_right_shift():
         simulator.set_value(TestCircuit.b, scope, b)
         simulator.evaluate()
         assert simulator.get_value(TestCircuit.c, scope) == c, (a.as_bool_list(), b.as_bool_list(), c.as_bool_list())
+
+
+def test_sint_neg():
+    class TestCircuit(Circuit):
+        name = "test_sint_neg"
+        IO = ["a", In(SInt(4)), "b", Out(SInt(4))]
+        @classmethod
+        def definition(circuit):
+            b = -circuit.a
+            wire(b, circuit.b)
+    compile("build/test_sint_neg", TestCircuit, include_coreir=True)
+    def f(a):
+        return -a
+
+    test_vectors = testvectors(TestCircuit, f)
+    compileverilator('build/sim_test_sint_neg.cpp', TestCircuit, test_vectors)
+
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for a, b in test_vectors:
+        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.b, scope) == b

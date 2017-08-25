@@ -239,6 +239,24 @@ declare_binop("coreir_sle", SInt, SIntType, "__le__", operator.le, out_type=Bit)
 declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", operator.gt, out_type=Bit)
 declare_binop("coreir_sge", SInt, SIntType, "__ge__", operator.ge, out_type=Bit)
 
+
+def simulate_neg(self, value_store, state_store):
+    _in = BitVector(value_store.get_value(getattr(self, "in")), signed=True)
+    out = (-_in).as_bool_list()
+    value_store.set_value(self.out, out)
+
+
+def DeclareNeg(N):
+    return DeclareCircuit("coreir_neg{}".format(N), 'in', In(SInt(N)), 'out',
+            Out(SInt(N)), simulate=simulate_neg, verilog_name="coreir_not")
+
+
+def __neg__(self):
+    return DeclareNeg(self.N)(width=self.N)(self)
+
+SIntType.__neg__ = __neg__
+
+
 declare_binop("coreir_add", UInt, UIntType, "__add__", operator.add)
 declare_binop("coreir_sub", UInt, UIntType, "__sub__", operator.sub)
 declare_binop("coreir_mul", UInt, UIntType, "__mul__", operator.mul)

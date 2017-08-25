@@ -156,3 +156,9 @@ class BitVector:
         elif isinstance(other, bool) and self.num_bits == 1:
             return self.as_bool_list()[0] == other
         raise NotImplementedError()
+
+    def __neg__(self):
+        if not self.signed:
+            raise TypeError("Cannot call __neg__ on unsigned BitVector")
+        return BitVector(-self._value, num_bits=self.num_bits, signed=True)
+
