@@ -1,5 +1,0 @@
-python3 main.py
-
-verilator -Wall -Wno-DECLFILENAME --cc main.v --exe sim_main.cpp
-make -C obj_dir -j -f Vmain.mk Vmain
-./obj_dir/Vmain

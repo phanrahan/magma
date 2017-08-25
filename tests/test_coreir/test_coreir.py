@@ -1,6 +1,7 @@
 import pytest
 coreir = pytest.importorskip("coreir")
 from magma import *
+from magma.tests import magma_check_files_equal
 
 
 def test_coreir_bit():
