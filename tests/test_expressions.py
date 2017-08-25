@@ -14,7 +14,7 @@ def insert_coreir_include(verilog_file):
     with open(verilog_file, "r") as f:
         contents = f.readlines()
 
-    contents.insert(0, "`include \"coreir.v\"\n")
+    contents.insert(0, "`include \"{}\"\n".format(coreir_primitives_file_path))
     with open(verilog_file, "w") as f:
         f.write("".join(contents))
 

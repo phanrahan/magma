@@ -62,7 +62,7 @@ class CoreIRBackend:
             args = self.context.newArgs(args)
             return module_definition.add_module_instance(instance.name, instantiable, args)
         elif isinstance(instantiable, coreir.Generator):
-            gen_args = self.context.newArgs({"width": instance.kwargs["WIDTH"]})
+            gen_args = self.context.newArgs({"width": instance.kwargs["width"]})
             return module_definition.add_generator_instance(instance.name, instantiable, gen_args)
         else:
             raise NotImplementedError()

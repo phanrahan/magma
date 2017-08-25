@@ -20,8 +20,8 @@ def test_register():
         @classmethod
         def definition(circuit):
             reg = Register4()
-            wire(reg.Q, circuit.out)
-            wire(reg.D, reg.Q + int2seq(1, N))
+            wire(reg.out, circuit.out)
+            wire(getattr(reg, "in"), reg.out + int2seq(1, N))
             wire(circuit.CLK, reg.clk)
 
     compile("build/test_register", TestCircuit)
@@ -51,8 +51,8 @@ def test_register_ce():
         @classmethod
         def definition(circuit):
             reg = Register4().when(circuit.CE)
-            wire(reg.Q, circuit.out)
-            wire(reg.D, reg.Q + int2seq(1, N))
+            wire(reg.out, circuit.out)
+            wire(getattr(reg, "in"), reg.out + int2seq(1, N))
             wire(circuit.CLK, reg.clk)
 
     compile("build/test_register_ce", TestCircuit)
@@ -86,8 +86,8 @@ def test_register_reset():
         @classmethod
         def definition(circuit):
             reg = Register4().reset(circuit.RESET)
-            wire(reg.Q, circuit.out)
-            wire(reg.D, reg.Q + int2seq(1, N))
+            wire(reg.out, circuit.out)
+            wire(getattr(reg, "in"), reg.out + int2seq(1, N))
             wire(circuit.CLK, reg.clk)
 
     compile("build/test_register_reset", TestCircuit)
@@ -124,8 +124,8 @@ def test_mux():
         @classmethod
         def definition(circuit):
             mux4 = DefineMux(4)()
-            wire(mux4.d0, circuit.I0)
-            wire(mux4.d1, circuit.I1)
+            wire(mux4.in0, circuit.I0)
+            wire(mux4.in1, circuit.I1)
             wire(mux4.sel, circuit.sel)
             wire(mux4.out, circuit.O)
 
