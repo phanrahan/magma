@@ -18,9 +18,9 @@ def test_shift_register():
         def definition(io):
             regs = [Register4() for _ in range(N)]
             [wire(io.CLK, reg.clk) for reg in regs]  # TODO: Clean up this clock wiring
-            wire(io.I, regs[0].D)
-            fold(regs, foldargs={"D":"Q"})
-            wire(regs[-1].Q, io.O)
+            wire(io.I, getattr(regs[0], "in"))
+            fold(regs, foldargs={"in":"out"})
+            wire(getattr(regs[-1], "out"), io.O)
 
     simulator = PythonSimulator(ShiftRegister)
     scope = Scope()

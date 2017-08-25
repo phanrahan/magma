@@ -8,6 +8,7 @@ from magma.bit_vector import BitVector
 from magma.wire import wire
 from magma.conversions import array, bits, uint, sint
 import operator
+import math
 try:
     from functools import lru_cache
 except ImportError:
@@ -51,7 +52,7 @@ def declare_bit_binop(name, op, python_op, firrtl_op):
 
     @type_check_binary_operator
     def func(self, other):
-        return circ(WIDTH=1)(self, other)
+        return circ(width=1)(self, other)
     func.__name__ = op
     setattr(BitType, op, func)
 
@@ -70,7 +71,7 @@ BitInvert = DeclareCircuit("coreir_not0", 'in', In(Bit), 'out', Out(Bit),
 
 
 def __invert__(self):
-    return BitInvert(WIDTH=1)(self)
+    return BitInvert(width=1)(self)
 
 
 BitType.__invert__ = __invert__
@@ -93,7 +94,7 @@ def declare_bits_binop(name, op, python_op):
 
     @type_check_binary_operator
     def func(self, other):
-        return Declare(self.N)(WIDTH=self.N)(self, other)
+        return Declare(self.N)(width=self.N)(self, other)
     func.__name__ = op
     setattr(BitsType, op, func)
 
@@ -116,7 +117,7 @@ def DeclareInvertN(N):
 
 
 def __invert__(self):
-    return DeclareInvertN(self.N)(WIDTH=self.N)(self)
+    return DeclareInvertN(self.N)(width=self.N)(self)
 
 
 BitsType.__invert__ = __invert__
@@ -138,7 +139,7 @@ def __lshift__(self, other):
         circ = DeclareCircuit("coreir_shl{}".format(N), 'in', In(UInt(N)),
                 'out', Out(T), verilog_name="coreir_shl",
                 simulate=simulate_shift_left)
-        return circ(WIDTH=N, SHIFTBITS=other)(self)
+        return circ(width=N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
             raise TypeError("Second argument to << must be a UInt, not "
@@ -152,7 +153,7 @@ def __lshift__(self, other):
         circ = DeclareCircuit("coreir_dshl{}".format(N), 'in0', In(T), 'in1',
                 In(UInt(N)), 'out', Out(T), verilog_name="coreir_dshl",
                 simulate=simulate)
-        return circ(WIDTH=N)(self, other)
+        return circ(width=N)(self, other)
     else:
         raise TypeError("<< not implemented for argument 2 of type {}".format(
             type(other)))
@@ -176,7 +177,7 @@ def __rshift__(self, other):
         circ = DeclareCircuit("coreir_lshr{}".format(N), 'in', In(UInt(N)),
                 'out', Out(T), verilog_name="coreir_lshr",
                 simulate=simulate_shift_left)
-        return circ(WIDTH=N, SHIFTBITS=other)(self)
+        return circ(width=N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
             raise TypeError("Second argument to >> must be a UInt, not "
@@ -190,7 +191,7 @@ def __rshift__(self, other):
         circ = DeclareCircuit("coreir_dlshr{}".format(N), 'in0', In(T), 'in1',
                 In(UInt(N)), 'out', Out(T), verilog_name="coreir_dlshr",
                 simulate=simulate)
-        return circ(WIDTH=N)(self, other)
+        return circ(width=N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
             type(other)))
@@ -222,7 +223,7 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
 
     @type_check_binary_operator
     def func(self, other):
-        return Declare(self.N)(WIDTH=self.N)(self, other)
+        return Declare(self.N)(width=self.N)(self, other)
     func.__name__ = op
     setattr(type_type, op, func)
 
@@ -264,7 +265,7 @@ def arithmetic_shift_right(self, other):
         circ =  DeclareCircuit("coreir_ashr{}".format(N), 'in', In(UInt(N)),
                 'out', Out(T), verilog_name="coreir_ashr",
                 simulate=simulate_arithmetic_shift_right)
-        return circ(WIDTH=self.N, SHIFTBITS=other)(self)
+        return circ(width=self.N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
             raise TypeError("Second argument to arithmetic_shift_right must be "
@@ -279,7 +280,7 @@ def arithmetic_shift_right(self, other):
         circ = DeclareCircuit("coreir_dashr{}".format(N), 'in0', In(T), 'in1',
                 In(UInt(N)), 'out', Out(T), verilog_name="coreir_dashr",
                 simulate=simulate)
-        return circ(WIDTH=self.N)(self, other)
+        return circ(width=self.N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
             type(other)))
@@ -314,7 +315,7 @@ def gen_sim_register(N, has_ce, has_reset):
         new_val = state_store['cur_val'].as_bool_list()
 
         if clock_edge:
-            input_val = value_store.get_value(self.D)
+            input_val = value_store.get_value(getattr(self, "in"))
 
             enable = True
             if has_ce:
@@ -336,13 +337,13 @@ def gen_sim_register(N, has_ce, has_reset):
 
         state_store['prev_clock'] = cur_clock
         state_store['cur_val'] = BitVector(new_val, num_bits=N)
-        value_store.set_value(self.Q, new_val)
+        value_store.set_value(self.out, new_val)
     return sim_register
 
 @lru_cache(maxsize=None)
 def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
-    name = "Reg_P"  # TODO: Add support for clock interface
-    io = ["D", In(T(N)), "clk", In(Clock), "Q", Out(T(N))]
+    name = "coreir_reg_P"  # TODO: Add support for clock interface
+    io = ["in", In(T(N)), "clk", In(Clock), "out", Out(T(N))]
     methods = []
 
     def reset(self, condition):
@@ -370,24 +371,24 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
             stateful=True,
             simulate=gen_sim_register(N, has_ce, has_reset),
             circuit_type_methods=methods
-        )(WIDTH=N, *args, **kwargs)
+        )(width=N, *args, **kwargs)
     return wrapper
 
 
 def DefineMux(N):
     def simulate(self, value_store, state_store):
-        d0 = BitVector(value_store.get_value(self.d0))
-        d1 = BitVector(value_store.get_value(self.d1))
+        in0 = BitVector(value_store.get_value(self.in0))
+        in1 = BitVector(value_store.get_value(self.in1))
         sel = BitVector(value_store.get_value(self.sel))
-        out = d1 if sel.as_int() else d0
+        out = in1 if sel.as_int() else in0
         value_store.set_value(self.out, out)
     def wrapper(*args, **kwargs):
-        return DeclareCircuit("Mux".format(N), 
-            *["d0", In(Bits(N)), "d1", In(Bits(N)), "sel", In(Bit), 
+        return DeclareCircuit("coreir_mux".format(N), 
+            *["in0", In(Bits(N)), "in1", In(Bits(N)), "sel", In(Bit), 
              "out", Out(Bits(N))],
-            verilog_name="Mux",
+            verilog_name="coreir_mux",
             simulate=simulate
-        )(WIDTH=N, *args, **kwargs)
+        )(width=N, *args, **kwargs)
     return wrapper
 
 
@@ -473,3 +474,52 @@ def sext(value, n):
 #    elif:
 #        return Mux(2,len(I0))(I0, I1, S)
 
+def gen_sim_mem(width, depth):
+    def sim_mem(self, value_store, state_store):
+        cur_rclk = value_store.get_value(self.rclk)
+        cur_wclk = value_store.get_value(self.wclk)
+
+        if not state_store:
+            state_store['mem'] = [
+                BitVector(0, width) for _ in range(depth)
+            ]
+            state_store['prev_rclk'] = cur_rclk
+            state_store['prev_wclk'] = cur_wclk
+
+
+        prev_rclk = state_store['prev_rclk']
+        prev_wclk = state_store['prev_wclk']
+        rclk_edge = cur_rclk and not prev_rclk
+        wclk_edge = cur_wclk and not prev_wclk
+        rdata = value_store.get_value(self.rdata)
+
+        if rclk_edge:
+            if value_store.get_value(self.ren):
+                index = BitVector(value_store.get_value(self.raddr)).as_int()
+                rdata = state_store['mem'][index].as_bool_list()
+        if wclk_edge:
+            if value_store.get_value(self.wen):
+                index = BitVector(value_store.get_value(self.waddr)).as_int()
+                state_store['mem'][index] = BitVector(value_store.get_value(self.wdata))
+
+        state_store['prev_rclk'] = cur_rclk
+        state_store['prev_wclk'] = cur_wclk
+        value_store.set_value(self.rdata, rdata)
+    return sim_mem
+
+def DefineMem(width, depth):
+    name = "coreir_mem{}{}".format(width, depth)
+    is_power_of_two = lambda num: num != 0 and ((num & (num - 1)) == 0)
+    assert is_power_of_two(width) and is_power_of_two(depth)
+    IO = ["raddr", In(Bits(max(depth.bit_length() - 1, 1))),
+          "waddr", In(Bits(max(depth.bit_length() - 1, 1))),
+          "wdata", In(Bits(width)), 
+          "rclk", In(Bit), 
+          "ren", In(Bit), 
+          "wclk", In(Bit), 
+          "wen", In(Bit), 
+          "rdata", Out(Bits(width))]
+    circ = DeclareCircuit(name, *IO, verilog_name="coreir_mem", simulate=gen_sim_mem(width, depth))
+    def wrapper(*args, **kwargs):
+        return circ(*args, width=width, depth=depth, **kwargs)
+    return wrapper

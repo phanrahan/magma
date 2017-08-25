@@ -88,6 +88,6 @@ def run_verilator_test(verilog_file_name, driver_name, top_module):
     (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
     file_path = os.path.dirname(filename)
     build_dir = os.path.join(file_path, 'build')
-    assert not subprocess.call('verilator -Wall -Wno-DECLFILENAME --cc {}.v --exe {}.cpp --top-module {}'.format(verilog_file_name, driver_name, top_module), cwd=build_dir, shell=True)
+    assert not subprocess.call('verilator -Wall -Wno-INCABSPATH -Wno-DECLFILENAME --cc {}.v --exe {}.cpp --top-module {}'.format(verilog_file_name, driver_name, top_module), cwd=build_dir, shell=True)
     assert not subprocess.call('make -C obj_dir -j -f V{0}.mk V{0}'.format(top_module), cwd=build_dir, shell=True)
     assert not subprocess.call('./obj_dir/V{}'.format(top_module), cwd=build_dir, shell=True)

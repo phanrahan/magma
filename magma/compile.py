@@ -13,7 +13,7 @@ def write_file(file_name, extension, code):
         file.write(code)
 
 
-def compile(basename, main, output='verilog', origin=None):
+def compile(basename, main, output='verilog', origin=None, include_coreir=False):
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
@@ -26,7 +26,7 @@ def compile(basename, main, output='verilog', origin=None):
         return
 
     if output == 'verilog':
-        write_file(file_name, 'v', verilog.compile(main))
+        write_file(file_name, 'v', verilog.compile(main, include_coreir))
     elif output == 'blif':
         write_file(file_name, 'blif', blif.compile(main))
     elif output == 'firrtl':
