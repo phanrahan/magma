@@ -204,13 +204,17 @@ def test_memory():
     insert_coreir_include("build/test_mem.v")
     run_verilator_test('test_mem', 'sim_test_mem_main', 'test_mem')
 
-    # simulator = PythonSimulator(TestCircuit)
-    # scope = Scope()
-    # for I0, I1, sel, O in test_vectors:
-    #     simulator.set_value(TestCircuit.I0, scope, I0)
-    #     simulator.set_value(TestCircuit.I1, scope, I1)
-    #     simulator.set_value(TestCircuit.sel, scope, sel)
-    #     simulator.evaluate()
-    #     assert simulator.get_value(TestCircuit.O, scope) == O
+    simulator = PythonSimulator(TestCircuit)
+    scope = Scope()
+    for raddr, waddr, wdata, rclk, ren, wclk, wen, rdata in test_vectors:
+        simulator.set_value(TestCircuit.raddr, scope, raddr)
+        simulator.set_value(TestCircuit.waddr, scope, waddr)
+        simulator.set_value(TestCircuit.wdata, scope, wdata)
+        simulator.set_value(TestCircuit.rclk, scope, rclk)
+        simulator.set_value(TestCircuit.ren, scope, ren)
+        simulator.set_value(TestCircuit.wclk, scope, wclk)
+        simulator.set_value(TestCircuit.wen, scope, wen)
+        simulator.evaluate()
+        assert simulator.get_value(TestCircuit.rdata, scope) == rdata
 
 

@@ -474,6 +474,38 @@ def sext(value, n):
 #    elif:
 #        return Mux(2,len(I0))(I0, I1, S)
 
+def gen_sim_mem(width, depth):
+    def sim_mem(self, value_store, state_store):
+        cur_rclk = value_store.get_value(self.rclk)
+        cur_wclk = value_store.get_value(self.wclk)
+
+        if not state_store:
+            state_store['mem'] = [
+                BitVector(0, width) for _ in range(depth)
+            ]
+            state_store['prev_rclk'] = cur_rclk
+            state_store['prev_wclk'] = cur_wclk
+
+
+        prev_rclk = state_store['prev_rclk']
+        prev_wclk = state_store['prev_wclk']
+        rclk_edge = cur_rclk and not prev_rclk
+        wclk_edge = cur_wclk and not prev_wclk
+        rdata = value_store.get_value(self.rdata)
+
+        if rclk_edge:
+            if value_store.get_value(self.ren):
+                index = BitVector(value_store.get_value(self.raddr)).as_int()
+                rdata = state_store['mem'][index].as_bool_list()
+        if wclk_edge:
+            if value_store.get_value(self.wen):
+                index = BitVector(value_store.get_value(self.waddr)).as_int()
+                state_store['mem'][index] = BitVector(value_store.get_value(self.wdata))
+
+        state_store['prev_rclk'] = cur_rclk
+        state_store['prev_wclk'] = cur_wclk
+        value_store.set_value(self.rdata, rdata)
+    return sim_mem
 
 def DefineMem(width, depth):
     name = "coreir_mem{}{}".format(width, depth)
@@ -487,7 +519,7 @@ def DefineMem(width, depth):
           "wclk", In(Bit), 
           "wen", In(Bit), 
           "rdata", Out(Bits(width))]
-    circ = DeclareCircuit(name, *IO, verilog_name="coreir_mem", )
+    circ = DeclareCircuit(name, *IO, verilog_name="coreir_mem", simulate=gen_sim_mem(width, depth))
     def wrapper(*args, **kwargs):
         return circ(*args, width=width, depth=depth, **kwargs)
     return wrapper
