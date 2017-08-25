@@ -1,6 +1,7 @@
 import os
 import inspect
-from .backend import verilog, blif, firrtl
+
+from .backend import verilog, blif, firrtl, dot
 from .error import warn
 from .config import get_compile_dir
 from .simulator_interactive_frontend import simulate
@@ -36,6 +37,8 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         # package
         from .backend import coreir_
         coreir_.compile(main, file_name + ".json")
+    elif output == 'dot':
+        write_file(file_name, 'dot', dot.compile(main))
 
     if hasattr(main, 'fpga'):
         fpga = main.fpga
