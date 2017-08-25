@@ -145,7 +145,7 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
             # TODO: Raise an exception for now, can we handle this case silently (ignore unwired ports)?
             raise MagmaTransformException("Calling `.value()` on Array returned None. Array = {}, values = {}. Likely an unwired port.".format(origbit, [b.value() for b in origbit.ts]))
         else:
-            raise NotImplementedError(origbit)
+            raise MagmaTransformException("Calling `.value()` on {} returned None. Likely an unwired port.".format(origbit))
     source_qual = QualifiedBit(bit=sourcebit, scope=cur_scope)
     orig_qual = QualifiedBit(bit=origbit, scope=cur_scope)
     collapsed_out_bits = [source_qual]
