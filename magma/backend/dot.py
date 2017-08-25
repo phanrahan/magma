@@ -12,12 +12,7 @@ def escape(s):
     return re.sub(r'([<>])', r'\\\1', s)
 
 def get_type(port):
-    if isinstance(port, ArrayType):
-        width = port.N
-    else:
-        assert isinstance(port, BitType)
-        width = 1
-    return "UInt<{}>".format(width)
+    return str(type(port))
 
 def get_name(dot, port):
     if port is VCC: return "1"
