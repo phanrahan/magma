@@ -400,6 +400,19 @@ class DefineCircuitKind(CircuitKind):
         cls.instances.append(inst)
 
 
+# Register graphviz repr if running in IPython.
+# There's a bug in IPython which breaks visual reprs
+# on types.
+try:
+    ip = get_ipython()
+    html_formatter = ip.display_formatter.formatters['text/html']
+    html_formatter.for_type(DefineCircuitKind, to_html)
+    html_formatter.for_type(CircuitKind, to_html)
+except NameError:
+    # Not running in IPython right now?
+    pass
+
+
 @six.add_metaclass(DefineCircuitKind)
 class Circuit(CircuitType):
     pass

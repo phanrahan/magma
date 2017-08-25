@@ -1,6 +1,5 @@
 from ..array import ArrayKind, ArrayType
 from ..bit import BitType, VCC, GND
-from ..wire import wiredefaultclock
 from collections import OrderedDict
 
 from graphviz import Digraph
