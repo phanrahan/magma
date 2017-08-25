@@ -13,6 +13,7 @@ from .tuple import TupleType
 from .bit import VCC, GND
 from .debug import get_callee_frame_info
 from .error import warn
+from .backend.dot import to_html
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -117,6 +118,12 @@ class CircuitKind(type):
 
         return s
 
+    def _repr_html_(cls):
+        return to_html(cls)
+
+    def getarea(cls):
+        return (1, cls.cells)
+
     def find(cls, defn):
         name = cls.__name__
         if not isdefinition(cls):
@@ -170,6 +177,9 @@ class AnonymousCircuitType(object):
 
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
         #    ', '.join(args), self.filename, self.lineno)
+
+    def _repr_html_(self):
+        return to_html(self)
 
     def __getitem__(self, key):
         return self.interface[key]

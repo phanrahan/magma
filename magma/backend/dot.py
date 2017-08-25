@@ -1,7 +1,6 @@
 from ..array import ArrayKind, ArrayType
 from ..bit import BitType, VCC, GND
 from ..wire import wiredefaultclock
-from .verilog import find
 from collections import OrderedDict
 
 from graphviz import Digraph
@@ -104,6 +103,30 @@ def compiledefinition(dot, cls):
             iname = get_name(input)
             oname = get_name(output)
             dot.edge(oname, iname)
+
+def find(circuit, defn):
+    name = circuit.name
+    if not hasattr(circuit, "instances"):
+        return defn
+    for i in circuit.instances:
+        find(type(i), defn)
+    if name not in defn:
+        defn[name] = circuit
+    return defn
+
+def to_html(main):
+    defn = find(main,OrderedDict())
+
+    dots = []
+    for k, v in defn.items():
+         print('compiling', k, v)
+         dot = Digraph(k,
+                       graph_attr={'label': k, 'rankdir': 'LR'},
+                       node_attr={'shape': 'record'})
+         compiledefinition(dot, v)
+         dots.append(dot)
+
+    return "\n".join([dot._repr_svg_() for dot in dots])
 
 def compile(main):
     defn = find(main,OrderedDict())
