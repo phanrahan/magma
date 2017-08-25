@@ -146,7 +146,6 @@ def test_mux():
         simulator.set_value(TestCircuit.I1, scope, I1)
         simulator.set_value(TestCircuit.sel, scope, sel)
         simulator.evaluate()
-        print(I0, I1, sel, O)
         assert simulator.get_value(TestCircuit.O, scope) == O
 
 
