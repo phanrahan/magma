@@ -288,7 +288,8 @@ def DeclareCircuit(name, *decl, **args):
         simulate=args.get('simulate'),
         firrtl_op=args.get('firrtl_op'),
         circuit_type_methods=args.get('circuit_type_methods', []),
-        coreir_lib=args.get('coreir_lib', None)
+        coreir_lib=args.get('coreir_lib', None),
+        verilog_name=args.get('verilog_name', name)
     )
     return CircuitKind( name, (CircuitType,), dct )
 
@@ -349,6 +350,8 @@ class DefineCircuitKind(CircuitKind):
         self.verilogFile = None
         self.verilogLib = None
 
+        self.verilog_name = dct.get('verilog_name', name)
+
         self.firrtl = None
 
         self.instances = []
@@ -393,12 +396,13 @@ def DefineCircuit(name, *decl, **args):
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)
 
-    dct = dict(IO          = decl,
-               primitive   = args.get('primitive', False),
-               stateful    = args.get('stateful', False),
-               simulate    = args.get('simulate'),
-               filename    = debug_info[0],
-               lineno      = debug_info[1])
+    dct = dict(IO           = decl,
+               primitive    = args.get('primitive', False),
+               stateful     = args.get('stateful', False),
+               simulate     = args.get('simulate'),
+               filename     = debug_info[0],
+               lineno       = debug_info[1],
+               verilog_name = args.get('verilog_name', name))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
