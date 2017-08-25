@@ -1,22 +1,18 @@
 from .port import INPUT, OUTPUT, INOUT
 from .t import In, Out, InOut
-from .bit import Bit, BitKind, BitType
+from .bit import Bit, _BitKind, _BitType
 from .wire import wire
 
 __all__  = ['Clock', 'ClockKind', 'ClockType']
-__all__ += ['ClockEnable', 'ClockEnableType']
-__all__ += ['Reset', 'ResetType']
-__all__ += ['Set', 'SetType']
 
 __all__ += ['ClockInterface']
 
 __all__ += ['wireclock', 'wiredefaultclock']
 
-class ClockKind(BitKind):
+class ClockKind(_BitKind):
     def __str__(cls):
         if cls.isinput():  return 'In(Clock)'
         if cls.isoutput(): return 'Out(Clock)'
-        if cls.isinout():  return 'InOut(Clock)'
         return 'Clock'
 
     def qualify(cls, direction):
@@ -30,24 +26,12 @@ class ClockKind(BitKind):
         elif cls.isoriented(OUTPUT): return ClockIn
         return cls
 
-class ClockType(BitType):
+class ClockType(_BitType):
     pass
 
 Clock = ClockKind('Clock', (ClockType,), {})
 ClockIn = ClockKind('Clock', (ClockType,), dict(direction=INPUT))
 ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
-
-class ClockEnableType(BitType):
-    pass
-ClockEnable = BitKind('ClockEnable', (ClockEnableType,), {})
-
-class ResetType(BitType):
-    pass
-Reset = BitKind('Reset', (ResetType,), {})
-
-class SetType(BitType):
-    pass
-Set = BitKind('Set', (SetType,), {})
 
 
 def ClockInterface(has_ce, has_reset, has_set):
