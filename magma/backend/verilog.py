@@ -177,11 +177,11 @@ def compiledefinition(cls):
     return s
 
 def find(circuit, defn):
-    name = circuit.verilog_name
     if not isdefinition(circuit):
         return defn
     for i in circuit.instances:
         find(type(i), defn)
+    name = circuit.verilog_name
     if name not in defn:
         defn[name] = circuit
     return defn
