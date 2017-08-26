@@ -1,3 +1,4 @@
+from magma import cache_definition
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.clock import Clock
@@ -44,34 +45,36 @@ def declare_bit_binop(name, op, python_op, firrtl_op):
         in1 = BitVector(value_store.get_value(self.in1))
         out = python_op(in0, in1).as_bool_list()[0]
         value_store.set_value(self.out, out)
-    circ = DeclareCircuit("{}_bit".format(name),
+
+    circ = DeclareCircuit("{}".format(name),
                           'in0', In(Bit), 'in1', In(Bit), 'out', Out(Bit),
                           simulate=simulate,
-                          firrtl_op=firrtl_op,
-                          verilog_name=name)
+                          firrtl_op=firrtl_op)
 
     @type_check_binary_operator
     def func(self, other):
-        return circ(width=1)(self, other)
+        return circ()(self, other)
     func.__name__ = op
     setattr(BitType, op, func)
 
+    return circ
 
-declare_bit_binop("coreir_and", "__and__", operator.and_, "and")
-declare_bit_binop("coreir_or", "__or__", operator.or_, "or")
-declare_bit_binop("coreir_xor", "__xor__", operator.xor, "xor")
+
+BitAnd = declare_bit_binop("coreir_bitand", "__and__", operator.and_, "and")
+BitOr  = declare_bit_binop("coreir_bitor", "__or__", operator.or_, "or")
+BitXor = declare_bit_binop("coreir_bitxor", "__xor__", operator.xor, "xor")
 
 def simulate_bit_not(self, value_store, state_store):
     _in = BitVector(value_store.get_value(getattr(self, "in")))
     out = (~_in).as_bool_list()[0]
     value_store.set_value(self.out, out)
 
-BitInvert = DeclareCircuit("coreir_not0", 'in', In(Bit), 'out', Out(Bit),
-        simulate=simulate_bit_not, verilog_name="coreir_not")
+BitNot = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
+        simulate=simulate_bit_not)
 
 
 def __invert__(self):
-    return BitInvert(width=1)(self)
+    return BitNot()(self)
 
 
 BitType.__invert__ = __invert__
@@ -84,40 +87,45 @@ def declare_bits_binop(name, op, python_op):
         out = python_op(in0, in1).as_bool_list()
         value_store.set_value(self.out, out)
 
-    @lru_cache(maxsize=None)
+    @cache_definition
     def Declare(N):
         T = Bits(N)
         return DeclareCircuit("{}{}".format(name, N),
                               'in0', In(T), 'in1', In(T), 'out', Out(T),
                               simulate=simulate,
-                              verilog_name=name)
+                              verilog_name=name,
+                              default_kwargs={"width": N})
 
     @type_check_binary_operator
     def func(self, other):
-        return Declare(self.N)(width=self.N)(self, other)
+        return Declare(self.N)()(self, other)
     func.__name__ = op
     setattr(BitsType, op, func)
+    return Declare
 
 
-declare_bits_binop("coreir_and", "__and__", operator.and_)
-declare_bits_binop("coreir_or", "__or__", operator.or_)
-declare_bits_binop("coreir_xor", "__xor__", operator.xor)
+DefineAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
+DefineOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
+DefineXor = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
 
-def simulate_bits_not(self, value_store, state_store):
+def simulate_bits_invert(self, value_store, state_store):
     _in = BitVector(value_store.get_value(getattr(self, "in")))
     out = (~_in).as_bool_list()
     value_store.set_value(self.out, out)
 
-@lru_cache(maxsize=None)
+@cache_definition
 def DeclareInvertN(N):
     T = Bits(N)
     return DeclareCircuit("coreir_not{}".format(N), 'in', In(T), 'out', Out(T),
-            simulate=simulate_bits_not, verilog_name="coreir_not")
+            simulate=simulate_bits_invert, verilog_name="coreir_not",
+            default_kwargs={"width": N})
 
 
 def __invert__(self):
     return DeclareInvertN(self.N)(width=self.N)(self)
+
+DefineInvert = DeclareInvertN
 
 
 BitsType.__invert__ = __invert__
@@ -211,7 +219,7 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
             out = out[0]
         value_store.set_value(self.out, out)
 
-    @lru_cache(maxsize=None)
+    @cache_definition
     def Declare(N):
         T = _type(N)
         return DeclareCircuit("{}{}".format(name, N),
@@ -219,25 +227,26 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
                               'out', Out(out_type if out_type else T),
                               stateful=False,
                               simulate=simulate,
-                              verilog_name=name)
+                              verilog_name=name,
+                              default_kwargs={"width": N})
 
     @type_check_binary_operator
     def func(self, other):
-        return Declare(self.N)(width=self.N)(self, other)
+        return Declare(self.N)()(self, other)
     func.__name__ = op
     setattr(type_type, op, func)
+    return Declare
 
-declare_binop("coreir_eq", Bits, BitsType, "__eq__", operator.eq, out_type=Bit)
-
-declare_binop("coreir_add", SInt, SIntType, "__add__", operator.add)
-declare_binop("coreir_sub", SInt, SIntType, "__sub__", operator.sub)
-declare_binop("coreir_mul", SInt, SIntType, "__mul__", operator.mul)
-declare_binop("coreir_sdiv", SInt, SIntType, "__div__", operator.truediv)
+DefineEq = declare_binop("coreir_eq", Bits, BitsType, "__eq__", operator.eq, out_type=Bit)
+DefineSAdd = declare_binop("coreir_add", SInt, SIntType, "__add__", operator.add)
+DefineSSub = declare_binop("coreir_sub", SInt, SIntType, "__sub__", operator.sub)
+DefineSMul = declare_binop("coreir_mul", SInt, SIntType, "__mul__", operator.mul)
+DefineSDiv = declare_binop("coreir_sdiv", SInt, SIntType, "__div__", operator.truediv)
 declare_binop("coreir_sdiv", SInt, SIntType, "__truediv__", operator.truediv)
-declare_binop("coreir_slt",  SInt, SIntType, "__lt__", operator.lt, out_type=Bit)
-declare_binop("coreir_sle", SInt, SIntType, "__le__", operator.le, out_type=Bit)
-declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", operator.gt, out_type=Bit)
-declare_binop("coreir_sge", SInt, SIntType, "__ge__", operator.ge, out_type=Bit)
+DefineSlt = declare_binop("coreir_slt",  SInt, SIntType, "__lt__", operator.lt, out_type=Bit)
+DefineSle = declare_binop("coreir_sle", SInt, SIntType, "__le__", operator.le, out_type=Bit)
+DefineSgt = declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", operator.gt, out_type=Bit)
+DefineSge = declare_binop("coreir_sge", SInt, SIntType, "__ge__", operator.ge, out_type=Bit)
 
 
 def simulate_neg(self, value_store, state_store):
@@ -248,24 +257,26 @@ def simulate_neg(self, value_store, state_store):
 
 def DeclareNeg(N):
     return DeclareCircuit("coreir_neg{}".format(N), 'in', In(SInt(N)), 'out',
-            Out(SInt(N)), simulate=simulate_neg, verilog_name="coreir_not")
+            Out(SInt(N)), simulate=simulate_neg, verilog_name="coreir_not",
+            default_kwargs={"width": N})
 
 
 def __neg__(self):
-    return DeclareNeg(self.N)(width=self.N)(self)
+    return DeclareNeg(self.N)()(self)
 
 SIntType.__neg__ = __neg__
+DefineNeg = DeclareNeg
 
 
-declare_binop("coreir_add", UInt, UIntType, "__add__", operator.add)
-declare_binop("coreir_sub", UInt, UIntType, "__sub__", operator.sub)
-declare_binop("coreir_mul", UInt, UIntType, "__mul__", operator.mul)
-declare_binop("coreir_udiv", UInt, UIntType, "__div__", operator.truediv)
+DefineUAdd = declare_binop("coreir_add", UInt, UIntType, "__add__", operator.add)
+DefineUSub = declare_binop("coreir_sub", UInt, UIntType, "__sub__", operator.sub)
+DefineUMul = declare_binop("coreir_mul", UInt, UIntType, "__mul__", operator.mul)
+DefineUDiv = declare_binop("coreir_udiv", UInt, UIntType, "__div__", operator.truediv)
 declare_binop("coreir_udiv", UInt, UIntType, "__truediv__", operator.truediv)
-declare_binop("coreir_ult",  UInt, UIntType, "__lt__", operator.lt, out_type=Bit)
-declare_binop("coreir_ule", UInt, UIntType, "__le__", operator.le, out_type=Bit)
-declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", operator.gt, out_type=Bit)
-declare_binop("coreir_uge", UInt, UIntType, "__ge__", operator.ge, out_type=Bit)
+DefineUlt = declare_binop("coreir_ult",  UInt, UIntType, "__lt__", operator.lt, out_type=Bit)
+DefineUle = declare_binop("coreir_ule", UInt, UIntType, "__le__", operator.le, out_type=Bit)
+DefineUgt = declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", operator.gt, out_type=Bit)
+DefineUge = declare_binop("coreir_uge", UInt, UIntType, "__ge__", operator.ge, out_type=Bit)
 
 
 def arithmetic_shift_right(self, other):
@@ -358,7 +369,8 @@ def gen_sim_register(N, has_ce, has_reset):
         value_store.set_value(self.out, new_val)
     return sim_register
 
-@lru_cache(maxsize=None)
+
+@cache_definition
 def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
     name = "coreir_reg_P"  # TODO: Add support for clock interface
     io = ["in", In(T(N)), "clk", In(Clock), "out", Out(T(N))]
@@ -382,17 +394,17 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         name += "E"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("when", when))
 
-    def wrapper(*args, **kwargs):
-        return DeclareCircuit(
-            name,
-            *io,
-            stateful=True,
-            simulate=gen_sim_register(N, has_ce, has_reset),
-            circuit_type_methods=methods
-        )(width=N, *args, **kwargs)
-    return wrapper
+    return DeclareCircuit(
+        name,
+        *io,
+        stateful=True,
+        simulate=gen_sim_register(N, has_ce, has_reset),
+        circuit_type_methods=methods,
+        default_kwargs={"width": N}
+    )
 
 
+@cache_definition
 def DefineMux(N):
     def simulate(self, value_store, state_store):
         in0 = BitVector(value_store.get_value(self.in0))
@@ -400,14 +412,13 @@ def DefineMux(N):
         sel = BitVector(value_store.get_value(self.sel))
         out = in1 if sel.as_int() else in0
         value_store.set_value(self.out, out)
-    def wrapper(*args, **kwargs):
-        return DeclareCircuit("coreir_mux".format(N), 
-            *["in0", In(Bits(N)), "in1", In(Bits(N)), "sel", In(Bit), 
-             "out", Out(Bits(N))],
-            verilog_name="coreir_mux",
-            simulate=simulate
-        )(width=N, *args, **kwargs)
-    return wrapper
+    return DeclareCircuit("coreir_mux".format(N), 
+        *["in0", In(Bits(N)), "in1", In(Bits(N)), "sel", In(Bit), 
+         "out", Out(Bits(N))],
+        verilog_name="coreir_mux",
+        simulate=simulate,
+        default_kwargs={"width": N}
+    )
 
 
 def and_(self, rhs):
@@ -525,6 +536,7 @@ def gen_sim_mem(width, depth):
         value_store.set_value(self.rdata, rdata)
     return sim_mem
 
+@cache_definition
 def DefineMem(width, depth):
     name = "coreir_mem{}{}".format(width, depth)
     is_power_of_two = lambda num: num != 0 and ((num & (num - 1)) == 0)
@@ -537,7 +549,6 @@ def DefineMem(width, depth):
           "wclk", In(Bit), 
           "wen", In(Bit), 
           "rdata", Out(Bits(width))]
-    circ = DeclareCircuit(name, *IO, verilog_name="coreir_mem", simulate=gen_sim_mem(width, depth))
-    def wrapper(*args, **kwargs):
-        return circ(*args, width=width, depth=depth, **kwargs)
-    return wrapper
+    return DeclareCircuit(name, *IO, verilog_name="coreir_mem",
+            simulate=gen_sim_mem(width, depth),
+            default_kwargs={"width": width, "depth": depth})

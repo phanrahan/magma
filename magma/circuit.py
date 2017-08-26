@@ -136,6 +136,10 @@ class AnonymousCircuitType(object):
     def __init__(self, *largs, **kwargs):
         self.largs = largs
         self.kwargs = kwargs
+        if hasattr(self, 'default_kwargs'):
+            for key in self.default_kwargs:
+                if key not in kwargs:
+                    self.kwargs[key] = self.default_kwargs[key]
 
         self.name = kwargs['name'] if 'name' in kwargs else ""
 
@@ -289,7 +293,8 @@ def DeclareCircuit(name, *decl, **args):
         firrtl_op=args.get('firrtl_op'),
         circuit_type_methods=args.get('circuit_type_methods', []),
         coreir_lib=args.get('coreir_lib', None),
-        verilog_name=args.get('verilog_name', name)
+        verilog_name=args.get('verilog_name', name),
+        default_kwargs=args.get('default_kwargs', {})
     )
     return CircuitKind( name, (CircuitType,), dct )
 
@@ -351,6 +356,7 @@ class DefineCircuitKind(CircuitKind):
         self.verilogLib = None
 
         self.verilog_name = dct.get('verilog_name', name)
+        self.default_kwargs = dct.get('default_kwargs', {})
 
         self.firrtl = None
 
@@ -402,7 +408,8 @@ def DefineCircuit(name, *decl, **args):
                simulate     = args.get('simulate'),
                filename     = debug_info[0],
                lineno       = debug_info[1],
-               verilog_name = args.get('verilog_name', name))
+               verilog_name = args.get('verilog_name', name),
+               default_kwargs = args.get('default_kwargs', {}))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition

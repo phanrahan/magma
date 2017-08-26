@@ -229,6 +229,47 @@ module coreir_mux #(parameter width=16) (
   assign out = sel ? in1 : in0;
 endmodule
 
+//1 bit ops
+module coreir_bitand (
+  input in0,
+  input in1,
+  output out
+);
+  assign out = in0 &in1;
+endmodule
+
+module coreir_bitor (
+  input in0,
+  input in1,
+  output out
+);
+  assign out = in0 |in1;
+endmodule
+
+module coreir_bitxor (
+  input in0,
+  input in1,
+  output out
+);
+  assign out = in0 ^in1;
+endmodule
+
+module coreir_bitnot (
+  input in,
+  output out
+);
+  assign out = ~in;
+endmodule
+
+module coreir_bitmux (
+  input in0,
+  input in1,
+  input sel,
+  output out
+);
+  assign out = sel ? in1 : in0;
+endmodule
+
 //slice op
 module coreir_slice #(parameter width=16,parameter lo=0,parameter hi=16) (
   input [width-1:0] in,
@@ -253,9 +294,23 @@ module coreir_const #(parameter width=16,parameter value=0) (
   assign out = value;
 endmodule
 
+//Bit Const op
+module coreir_bitconst #(parameter value=0) (
+  output out
+);
+  assign out = value;
+endmodule
+
 //term op
 module coreir_term #(parameter width=16) (
   input [width-1:0] in
+);
+  
+endmodule
+
+//term op
+module coreir_bitterm (
+  input in
 );
   
 endmodule
@@ -417,6 +472,168 @@ module coreir_reg_PCE #(parameter width=16,parameter init=0) (
   output [width-1:0] out
 );
   reg [width-1:0] r;
+  always @(posedge clk) begin
+    r <= en ? (clr ? init : in) : r;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_N #(parameter init=0) (
+  input clk,
+  input in,
+  output out
+);
+  reg r;
+  always @(negedge clk) begin
+    r <= in;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_P #(parameter init=0) (
+  input clk,
+  input in,
+  output out
+);
+  reg r;
+  always @(posedge clk) begin
+    r <= in;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_NR #(parameter init=0) (
+  input clk,
+  input in,
+  input rst,
+  output out
+);
+  reg r;
+  always @(negedge clk, negedge rst) begin
+    if (!rst) r <= init;
+    else r <= in;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_PR #(parameter init=0) (
+  input clk,
+  input in,
+  input rst,
+  output out
+);
+  reg r;
+  always @(posedge clk, negedge rst) begin
+    if (!rst) r <= init;
+    else r <= in;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_NC #(parameter init=0) (
+  input clk,
+  input clr,
+  input in,
+  output out
+);
+  reg r;
+  always @(negedge clk) begin
+    r <= (clr ? init : in);
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_PC #(parameter init=0) (
+  input clk,
+  input clr,
+  input in,
+  output out
+);
+  reg r;
+  always @(posedge clk) begin
+    r <= (clr ? init : in);
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_NE #(parameter init=0) (
+  input clk,
+  input en,
+  input in,
+  output out
+);
+  reg r;
+  always @(negedge clk) begin
+    r <= en ? in : r;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_PE #(parameter init=0) (
+  input clk,
+  input en,
+  input in,
+  output out
+);
+  reg r;
+  always @(posedge clk) begin
+    r <= en ? in : r;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_NRE #(parameter init=0) (
+  input clk,
+  input en,
+  input in,
+  input rst,
+  output out
+);
+  reg r;
+  always @(negedge clk, negedge rst) begin
+    if (!rst) r <= init;
+    else r <= en ? in : r;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_PRE #(parameter init=0) (
+  input clk,
+  input en,
+  input in,
+  input rst,
+  output out
+);
+  reg r;
+  always @(posedge clk, negedge rst) begin
+    if (!rst) r <= init;
+    else r <= en ? in : r;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_NCE #(parameter init=0) (
+  input clk,
+  input clr,
+  input en,
+  input in,
+  output out
+);
+  reg r;
+  always @(negedge clk) begin
+    r <= en ? (clr ? init : in) : r;
+  end
+  assign out = r;
+endmodule
+
+module coreir_bitreg_PCE #(parameter init=0) (
+  input clk,
+  input clr,
+  input en,
+  input in,
+  output out
+);
+  reg r;
   always @(posedge clk) begin
     r <= en ? (clr ? init : in) : r;
   end
