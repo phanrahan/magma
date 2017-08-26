@@ -39,6 +39,8 @@ class CoreIRBackend:
         if lib not in self.libs:
             if lib == "coreir":
                 self.libs[lib] = self.context.get_namespace(lib)
+            elif lib == "global":
+                self.libs[lib] = self.context.G
             else:
                 self.libs[lib] = self.context.load_library(lib)
         instantiable = self.libs[lib].instantiables[name]
@@ -51,10 +53,12 @@ class CoreIRBackend:
         name = instance.__class__.verilog_name
         if getattr(instance, 'coreir_lib', False):
             instantiable = self.get_instantiable(name, instance.coreir_lib)
-        else:
+        elif "coreir_" in name:
             len_prefix = len("coreir_")
             assert "coreir_" == name[:len_prefix]
             instantiable = self.get_instantiable(name[len_prefix:], "coreir")
+        else:
+            instantiable = self.get_instantiable(name, "global")
         if isinstance(instantiable, coreir.Module):
             args = {}
             for name, value in instance.kwargs.items():
@@ -76,12 +80,20 @@ class CoreIRBackend:
         for name, port in definition.interface.ports.items():
             if port.isoutput():
                 output_ports[port] = repr(port).replace(definition.verilog_name, "self")
+                if isinstance(port, ArrayType):
+                    for bit in port:
+                        output_ports[bit] = repr(bit).replace("[", ".").replace("]", "").replace(definition.verilog_name, "self")
+
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
                     output_ports[port] = repr(port)
+                    if isinstance(port, ArrayType):
+                        for bit in port:
+                            output_ports[bit] = repr(bit).replace("[", ".").replace("]", "")
+
 
         def connect(port, value):
             if value.anon() and isinstance(value, ArrayType):
@@ -97,14 +109,21 @@ class CoreIRBackend:
                 source = module_definition.select(output_ports[value])
             module_definition.connect(
                 source,
-                module_definition.select(repr(port)))
+                module_definition.select(repr(port).replace(definition.verilog_name, "self")))
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
                     connect(port, port.value())
         for input in definition.interface.inputs():
             output = input.value()
-            if output:
+            assert output, "Output {} not connected".format(input)
+            if output.anon():
+                assert isinstance(output, ArrayType)
+                for i, o in zip(input, output):
+                    module_definition.connect(
+                        module_definition.select(repr(i).replace(definition.verilog_name, "self").replace("[", ".").replace("]", "")),
+                        module_definition.select(repr(o)))
+            else:
                 module_definition.connect(
                     module_definition.select(repr(input).replace(definition.verilog_name, "self")),
                     module_definition.select(repr(output)))
