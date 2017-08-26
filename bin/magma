@@ -3,21 +3,21 @@ import os, sys, getopt
 from magma import compile
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'b:o:')
+    opts, args = getopt.getopt(sys.argv[1:], 'b:')
 except:
-    print >> sys.stderr, 'usage: magma [-b board] -o output file'
+    print >> sys.stderr, 'usage: magma [-b board]'
     sys.exit(1)
 
 name = os.path.basename(args[0])
 name = os.path.splitext(name)[0]
 
 board = None
-target = None
-mantle = None
 for o, a in opts:
     if o == '-b':
         board = a
 
+target = None
+mantle = None
 if board == 'icestick' or board == 'goboard' or board == 'hx8kboard':
     target = 'ice40'
     mantle = 'lattice'
