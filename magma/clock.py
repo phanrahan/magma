@@ -53,14 +53,14 @@ def wireclock(define, circuit):
         wire(define.SET,   circuit.SET)
 
 def wiredefaultclock(defn, inst):
-    #print('wiring clocks', str(defn), str(instance))
+    #print('wiring clocks', str(defn), str(inst))
     defnclk = None
-    instclk = None
     for name, port in defn.interface.ports.items():
          if isinstance(port, ClockType):
+             #print('defn clock', port)
              defnclk = port
-    for name, port in inst.interface.ports.items():
-         if isinstance(port, ClockType):
-             instclk = port
-    if instclk and not instclk.driven() and defnclk:
-        wire(defnclk, instclk)
+    if defnclk:
+        for name, port in inst.interface.ports.items():
+             if isinstance(port, ClockType) and not port.driven():
+                 #print('inst clock', port)
+                 wire(defnclk, port)
