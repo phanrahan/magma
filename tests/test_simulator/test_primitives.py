@@ -42,4 +42,4 @@ def simulate_prim_flip_flop(self, value_store, state_store):
 PRIM_AND = DeclareCircuit('PRIM_AND', 'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit), stateful=False, primitive=True, simulate=simulate_prim_and)
 PRIM_OR = DeclareCircuit('PRIM_OR', 'I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit), stateful=False, primitive=True, simulate=simulate_prim_or)
 PRIM_NOT = DeclareCircuit('PRIM_NOT', 'I', In(Bit), 'O', Out(Bit), stateful=False, primitive=True, simulate=simulate_prim_not)
-PRIM_FF = DeclareCircuit('PRIM_FF', 'CLK', In(Bit), 'D', In(Bit), 'Q', Out(Bit), stateful=True, primitive=True, simulate=simulate_prim_flip_flop)
+PRIM_FF = DeclareCircuit('PRIM_FF', 'CLK', In(Clock), 'D', In(Bit), 'Q', Out(Bit), stateful=True, primitive=True, simulate=simulate_prim_flip_flop)

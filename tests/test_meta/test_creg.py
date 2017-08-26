@@ -3,12 +3,12 @@ from magma.tests import magma_check_files_equal
 
 
 def test():
-    DFF = DeclareCircuit('DFF', "I", In(Bit), "O", Out(Bit), "CLK", In(Bit))
+    DFF = DeclareCircuit('DFF', "I", In(Bit), "O", Out(Bit), "CLK", In(Clock))
 
     def FFs(n):
         return [DFF() for i in range(n)]
 
-    main = DefineCircuit("main", "CLK", In(Bit), "I", In(Bits(2)), "O", Out(Bits(2)))
+    main = DefineCircuit("main", "CLK", In(Clock), "I", In(Bits(2)), "O", Out(Bits(2)))
     I = main.I
     O = main.O
 

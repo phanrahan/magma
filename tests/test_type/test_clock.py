@@ -1,16 +1,17 @@
 from magma import Clock, ClockType, ClockKind, In, Out, Flip
 
 def test_clock():
-    assert isinstance(Clock,    ClockKind)
+    assert isinstance(Clock, ClockKind)
     assert Clock == Clock
     assert str(Clock) == 'Clock'
 
 def test_clock_flip():
     ClockOut = Out(Clock)
-    assert isinstance(ClockOut,    ClockKind)
+    assert isinstance(ClockOut, ClockKind)
     assert str(ClockOut) == 'Out(Clock)'
+
     ClockIn = In(Clock)
-    assert isinstance(ClockIn,    ClockKind)
+    assert isinstance(ClockIn, ClockKind)
     assert str(ClockIn) == 'In(Clock)'
 
     clockin = In(ClockIn)

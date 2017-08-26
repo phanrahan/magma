@@ -1,6 +1,6 @@
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
-from magma.clock import Clock, ClockEnable, Reset
+from magma.clock import Clock
 from magma.bits import Bits, BitsType, SInt, SIntType, UInt, UIntType
 from magma.circuit import DeclareCircuit, circuit_type_method
 from magma.compatibility import IntegerTypes
@@ -369,7 +369,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         return self
 
     if has_reset:
-        io.extend(["rst", In(Reset)])
+        io.extend(["rst", In(Bit)])
         name += "R"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("reset", reset))
 
@@ -378,7 +378,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         return self
 
     if has_ce:
-        io.extend(["en", In(ClockEnable)])
+        io.extend(["en", In(Bit)])
         name += "E"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("when", when))
 

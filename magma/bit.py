@@ -9,16 +9,13 @@ __all__  = ['BitType', 'BitKind']
 __all__ += ['Bit', 'BitIn', 'BitOut', 'BitInOut']
 __all__ += ['VCC', 'GND', 'HIGH', 'LOW']
 
-# Create a Bit
-#
-#   Bit(name=, direction=) - Define a Bit
 #
 # Each bit is associated with a Port. The Port keeps track of
 # how bits are wired together.
 #
-class BitType(Type):
+class _BitType(Type):
     def __init__(self, *largs, **kwargs):
-        super(BitType, self).__init__(*largs, **kwargs)
+        super(_BitType, self).__init__(*largs, **kwargs)
 
         self.port = Port(self)
 
@@ -26,7 +23,6 @@ class BitType(Type):
         return self is rhs
 
     __ne__ = Type.__ne__
-
     __hash__ = Type.__hash__
 
     def __call__(self, output):
@@ -39,14 +35,14 @@ class BitType(Type):
     @debug_wire
     def wire(i, o, debug_info):
 
-        #print('Bit.wire(', str(i), ', ', str(o), ')')
+        #print('_Bit.wire(', str(i), ', ', str(o), ')')
 
         # promote integer types to LOW/HIGH
         if isinstance(o, IntegerTypes):
             o = HIGH if o else LOW
 
-        if not isinstance(o, BitType):
-            error('Wiring Error: wiring {} to {} (not a Bit)'.format(o, i))
+        if not isinstance(o, _BitType):
+            error('Wiring Error: wiring {} to {} (not a _Bit)'.format(o, i))
             return
 
         #if o.isoutput() and i.isoutput():
@@ -69,13 +65,13 @@ class BitType(Type):
     def wired(self):
         return self.port.wired()
 
-    # return the input or output Bit connected to this Bit
+    # return the input or output _Bit connected to this _Bit
     def trace(self):
         t = self.port.trace()
         if t: t = t.bit
         return t
 
-    # return the output Bit connected to this input Bit
+    # return the output _Bit connected to this input _Bit
     def value(self):
         t = self.port.value()
         if t: t = t.bit
@@ -105,13 +101,56 @@ class BitType(Type):
         return self.name.qualifiedname(sep='.')
 
 
-class BitKind(Kind):
+class _BitKind(Kind):
     def __init__(cls, name, bases, dct):
-        super(BitKind, cls).__init__(name, bases, dct)
+        super(_BitKind, cls).__init__(name, bases, dct)
 
         if not hasattr(cls, 'direction'):
             cls.direction = None
 
+    def __eq__(cls, rhs):
+        if not isinstance(rhs, _BitKind):
+            return False
+
+        #if cls.direction is None or rhs.direction is None:
+        #    return True
+
+        return cls.direction == rhs.direction
+
+    __ne__ = Kind.__ne__
+    __hash__ = Kind.__hash__
+
+    #def __str__(cls):
+    #    if cls.isinput():  return 'In(_Bit)'
+    #    if cls.isoutput(): return 'Out(_Bit)'
+    #    if cls.isinout():  return 'InOut(_Bit)'
+    #    return '_Bit'
+
+    #def qualify(cls, direction): 
+    #    if   direction is None:   return _Bit
+    #    elif direction == INPUT:  return _BitIn
+    #    elif direction == OUTPUT: return _BitOut
+    #    return cls
+
+    #def flip(cls):
+    #    if   cls.isoriented(INPUT):  return _BitOut
+    #    elif cls.isoriented(OUTPUT): return _BitIn
+    #    return cls
+
+#def _MakeBit(**kwargs):
+#    return _BitKind('_Bit', (_BitType,), kwargs)
+#
+#_Bit = _MakeBit()
+#_BitIn= _MakeBit(direction=INPUT)
+#_BitOut = _MakeBit(direction=OUTPUT)
+#_BitInOut = _MakeBit(direction=INOUT)
+
+
+class BitType(_BitType):
+    __ne__ = Type.__ne__
+    __hash__ = Type.__hash__
+
+class BitKind(_BitKind):
     def __eq__(cls, rhs):
         if not isinstance(rhs, BitKind):
             return False
@@ -121,15 +160,14 @@ class BitKind(Kind):
 
         return cls.direction == rhs.direction
 
-    __ne__=Kind.__ne__
-    __hash__=Kind.__hash__
+    __ne__ = _BitKind.__ne__
+    __hash__ = _BitKind.__hash__
 
     def __str__(cls):
         if cls.isinput():  return 'In(Bit)'
         if cls.isoutput(): return 'Out(Bit)'
         if cls.isinout():  return 'InOut(Bit)'
         return 'Bit'
-
 
     def qualify(cls, direction): 
         if   direction is None:   return Bit
@@ -142,17 +180,13 @@ class BitKind(Kind):
         elif cls.isoriented(OUTPUT): return BitIn
         return cls
 
-
-
-def _Bit(**kwargs):
+def MakeBit(**kwargs):
     return BitKind('Bit', (BitType,), kwargs)
 
-Bit = _Bit()
-
-# should these be subclasses of Bit?
-BitIn = _Bit(direction=INPUT)
-BitOut = _Bit(direction=OUTPUT)
-BitInOut = _Bit(direction=INOUT)
+Bit = MakeBit()
+BitIn = MakeBit(direction=INPUT)
+BitOut = MakeBit(direction=OUTPUT)
+BitInOut = MakeBit(direction=INOUT)
 
 VCC = BitOut(name="VCC")
 GND = BitOut(name="GND")
