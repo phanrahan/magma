@@ -13,6 +13,7 @@ from .tuple import TupleType
 from .bit import VCC, GND
 from .debug import get_callee_frame_info
 from .error import warn
+from .backend.dot import to_html
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -117,6 +118,12 @@ class CircuitKind(type):
 
         return s
 
+    def _repr_html_(cls):
+        return to_html(cls)
+
+    def getarea(cls):
+        return (1, cls.cells)
+
     def find(cls, defn):
         name = cls.__name__
         if not isdefinition(cls):
@@ -170,6 +177,9 @@ class AnonymousCircuitType(object):
 
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
         #    ', '.join(args), self.filename, self.lineno)
+
+    def _repr_html_(self):
+        return to_html(self)
 
     def __getitem__(self, key):
         return self.interface[key]
@@ -388,6 +398,19 @@ class DefineCircuitKind(CircuitKind):
         inst.defn = cls
         inst.stack = inspect.stack()
         cls.instances.append(inst)
+
+
+# Register graphviz repr if running in IPython.
+# There's a bug in IPython which breaks visual reprs
+# on types.
+try:
+    ip = get_ipython()
+    html_formatter = ip.display_formatter.formatters['text/html']
+    html_formatter.for_type(DefineCircuitKind, to_html)
+    html_formatter.for_type(CircuitKind, to_html)
+except NameError:
+    # Not running in IPython right now?
+    pass
 
 
 @six.add_metaclass(DefineCircuitKind)
