@@ -1,15 +1,20 @@
 from __future__ import division
 from collections import OrderedDict
 from .ref import AnonRef, InstRef, DefnRef
-from .t import *
-from .port import *
-from .bit import *
-from .array import *
+from .t import Type, Kind, In, Out, Flip
+from .port import INPUT, OUTPUT, INOUT
+#from .bit import *
+from .clock import ClockType
+from .array import ArrayType
 from .tuple import TupleType
 from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
+
+# flatten a list of lists
+def flatten(l):
+    return sum(l, [])
 
 #
 # parse argument declaration of the form 
@@ -84,74 +89,56 @@ class _Interface(Type):
             assert -n < key and key < len(self), "key: %d, self.N: %d" %(key,len(self))
             return self.arguments()[key]
 
-    def inputs(self):
-        input = []
-        for name, port in self.ports.items():
-            if port.isinput():
-                if name in ['RESET', 'SET', 'CE', 'CLK', 'CIN']: 
-                    continue
-                input.append(port)
-        return input
-
-    def outputs(self):
-        l = []
-        for name, port in self.ports.items():
-            if port.isoutput():
-                if name in ['COUT']: 
-                    continue
-                l.append(port)
-        return l
-
+    # return all the argument ports
     def arguments(self):
-        l = []
-        for name, port in self.ports.items():
-            l.append(port)
-        return l
+        return [port  for name, port in self.ports.items()]
 
-    def inputargs(self):
-        l = []
-        for name, port in self.ports.items():
-            if port.isinput():
-                if name in ['RESET', 'SET', 'CE', 'CLK', 'CIN']: 
-                    continue
-                l.append('%s' % name)
-                l.append(port)
-        return l
+    # return all the argument input ports
+    def inputs(self):
+        return [port for name, port in self.ports.items() \
+                    if port.isinput() \
+                        and not isinstance(port, ClockType) and \
+                            name not in ['RESET', 'SET', 'CE', 'CIN']] 
 
-    def outputargs(self):
-        l = []
-        for name, port in self.ports.items():
-            if port.isoutput():
-                if name in ['COUT']: 
-                    continue
-                l.append('%s' % name)
-                l.append(port)
-        return l
+    # return all the argument output ports
+    def outputs(self):
+        return [port for name, port in self.ports.items() \
+                    if port.isoutput() and name not in ['COUT']]
 
-    def clockargs(self):
-        l = []
-        for name, port in self.ports.items():
-            if name in ['RESET', 'SET', 'CE', 'CLK']: 
-                l.append('%s' % name)
-                l.append(port)
-        return l
 
+    # return all the arguments as name, port
     def args(self):
-        l = []
-        for name, port in self.ports.items():
-            l.append('%s' % name)
-            l.append(port)
-        return l
+        return flatten( [[name, port] for name, port in self.ports.items()] )
 
+    # return all the arguments as name, flip(port) 
+    #   same as the declaration
     def decl(self):
-        d = []
-        for name, port in self.ports.items():
-            d  += [name, type(port).flip()]
-        return d
+        return flatten( [[name, type(port).flip()] \
+                             for name, port in self.ports.items() ] )
 
+
+    # return all the input arguments as name, port
+    def inputargs(self):
+        return flatten( [[name, port] for name, port in self.ports.items() \
+                            if port.isinput() and \
+                                not isinstance(port, ClockType) and \
+                                    name not in ['RESET', 'SET', 'CE', 'CIN']] )
+
+    # return all the output arguments as name, port
+    def outputargs(self):
+        return flatten( [[name, port] for name, port in self.ports.items() \
+                            if port.isoutput() and name not in ['COUT'] ] )
+
+    # return all the clock arguments as name, port
+    def clockargs(self):
+        return flatten( [[name, port] for name, port in self.ports.items() \
+                            if isinstance(port, ClockType) 
+                                or name in ['RESET', 'SET', 'CE'] ] )
+
+    # return True if this interface has a Clock
     def isclocked(self):
         for name, port in self.ports.items():
-            if name in ['RESET', 'SET', 'CE', 'CLK']: 
+            if isinstance(port, ClockType):
                 return True
         return False
 
