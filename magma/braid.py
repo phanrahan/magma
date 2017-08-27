@@ -1,8 +1,8 @@
-from .port import *
-from .array import *
-from .wire import *
-from .circuit import *
+from .port import INPUT, OUTPUT, INOUT
+from .array import Array
 from .conversions import array
+from .circuit import AnonymousCircuit
+from .wire import wire
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
@@ -10,6 +10,10 @@ __ALL__ += ['row', 'col', 'map_']
 __ALL__ += ['fork', 'join', 'flat']
 __ALL__ += ['fold', 'scan']
 __ALL__ += ['braid']
+
+# flatten list of lists
+def flatten(l):
+    return sum(l, [])
 
 # return a list of all the arguments 
 # with a given name from a list of interfaces
@@ -94,9 +98,9 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 # return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
-    oarg = type(iargs[0])()
+    oarg = type(iargs[0])() # create a single anonymous value 
     for iarg in iargs:
-         wire(oarg, iarg)
+         wire(oarg, iarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
 
 # return [arg, array] from a list of interfaces
@@ -110,6 +114,7 @@ def joinarg(arg, interfaces):
 def flatarg(arg, interfaces):
     args = getarg(arg, interfaces)
     #direction = getdirection(args)
+    #print('flatarg', args)
     flatargs = []
     for a in args:
         for i in range(len(a)):
@@ -117,6 +122,30 @@ def flatarg(arg, interfaces):
     return [arg, array(flatargs)]
 
 
+# all powerful braid functions
+#
+#  circuits : list of circuits which should all have the same signature
+#
+#  forkargs : list of argument names to fork
+#   this argument is wired to all the circuits
+#  joinargs : list of argument names to join
+#   this argument is equal an array of all the arguments from circuits
+#  flatargs : list of argument names to flatten
+#   this argument is equal an array of all the flatted arguments from circuits
+#  foldargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
+#  rfoldargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
+#    namein[0] is retained in the result, 
+#    nameout[n-1] is retained in the result
+#  scanargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
+#  rscanargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
+#    namein[0] is retained in the result, 
+#    the array nameout is retained in the result
+#
+# by default, clock arguments are forked,
+#  unless they appear in another keyword
+#
+# by default, any arguments not appearing in a keyword are joined
+#
 def braid(circuits, 
             forkargs=[],
             joinargs=[],
@@ -126,8 +155,11 @@ def braid(circuits,
 
     forkargs = list(forkargs)
 
-    # by default, clkargs are added to foldargs
-    for clkarg in ['RESET', 'SET', 'CE', 'CLK']:
+    interfaces = [circuit.interface for circuit in circuits]
+
+    # by default, clkargs are added to forkargs,
+    # unless they appear in another keyword
+    for clkarg in interfaces[0].clockargnames():
         if clkarg in forkargs: continue
         if clkarg in joinargs: continue
         if clkarg in flatargs: continue
@@ -137,44 +169,19 @@ def braid(circuits,
         if clkarg in rscanargs.keys(): continue
         forkargs.append(clkarg)
 
-    interfaces = [circuit.interface for circuit in circuits]
+    # do NOT join arguments if they appear in another keyword
+    nojoinargs = forkargs + flatargs
+    nojoinargs += flatten( [[k, v] for k, v in foldargs.items()] )
+    nojoinargs += flatten( [[k, v] for k, v in rfoldargs.items()] )
+    nojoinargs += flatten( [[k, v] for k, v in scanargs.items()] )
+    nojoinargs += flatten( [[k, v] for k, v in rscanargs.items()] )
 
-    nojoinargs = []
-    # scans
-    for k, v in scanargs.items():
-        nojoinargs.append(k)
-        nojoinargs.append(v)
-    for k, v in rscanargs.items():
-        nojoinargs.append(k)
-        nojoinargs.append(v)
+    joinargs = [name for name in interfaces[0].ports.keys() \
+                    if name not in nojoinargs]
 
-    # folds
-    for k, v in foldargs.items():
-        nojoinargs.append(k)
-        nojoinargs.append(v)
-    for k, v in rfoldargs.items():
-        nojoinargs.append(k)
-        nojoinargs.append(v)
-
-    # fork
-    for k in forkargs:
-        nojoinargs.append(k)
-
-    # flat
-    for k in flatargs:
-        nojoinargs.append(k)
-
-    #print('nojoin', nojoinargs)
-
-    joinargs = []
-    for name in interfaces[0].ports.keys():
-        #print(name, name in nojoinargs)
-        if name not in nojoinargs: 
-            joinargs.append(name)
-
-    #print('join', joinargs)
-    #print('flat', flatargs)
     #print('fork', forkargs)
+    #print('flat', flatargs)
+    #print('join', joinargs)
     #print('fold', foldargs)
     #print('scan', scanargs)
     args = []
@@ -224,21 +231,26 @@ def braid(circuits,
     #print(args)
     return AnonymousCircuit(args)
 
-def flat(*circuits):
-    if len(circuits) == 1: circuits = circuits[0]
-    flatargs = getargbydirection(circuits[0].interface, INPUT)
-    return braid(circuits, flatargs=flatargs)
-
+# fork all inputs
 def fork(*circuits):
     """Wire input to all the inputs, concatenate output"""
     if len(circuits) == 1: circuits = circuits[0]
     forkargs = getargbydirection(circuits[0].interface, INPUT)
     return braid(circuits, forkargs=forkargs)
 
+# join all inputs
 def join(*circuits):
     """concatenate input and concatenate output"""
     if len(circuits) == 1: circuits = circuits[0]
     return braid(circuits)
+
+# flatten the join of all inputs - each input must be an array
+#  should this operate on a single circuit
+def flat(*circuits):
+    if len(circuits) == 1: circuits = circuits[0]
+    flatargs = getargbydirection(circuits[0].interface, INPUT)
+    return braid(circuits, flatargs=flatargs)
+
 
 def fold(*circuits, **kwargs):
     """fold"""
@@ -258,27 +270,29 @@ def inputargs(circuit):
 def outputargs(circuit):
     return circuit.interface.outputargs()
 
+# wire the outputs of circuit2 to the inputs of circuit1
 def compose(circuit1, circuit2):
-    # check that circuit2.outputs == circuit1.inputs
     wire(circuit2, circuit1)
-    args = []
-    args += inputargs(circuit2)
-    args += outputargs(circuit1)
-    return AnonymousCircuit(args)
+    return AnonymousCircuit( inputargs(circuit2) + outputargs(circuit1) )
 
 
 #
-# this could be generalized to break apart an argument which
-# is an array into a list of new arguments
+# curry a circuit
 #
-# the naming convention here is arbitrary and should be improved
+#  the input argument named prefix, which must be an array,
+#  is broken into separate input arguments 
+#
+#  for example, if prefix='I',
+#    then "I", array([i0, i1]) -> "I0", i0, "I1", i1 
+#
+# all other inputs remain unchanged
 #
 def curry(circuit, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
         if name == prefix and port.isinput():
            for i in range(len(port)):
-               args.append('%s%d' % (name, i))
+               args.append('{}{}'.format(name, i))
                args.append(port[i])
         else:
            args.append(name)
@@ -303,22 +317,32 @@ def outputs(circuit):
     else:
         return Array(*output)
 
+#
+# uncurry a circuit
+#
+#  all input arguments whose names begin with prefix 
+#  are collected into a single input argument named prefix,
+#  which is an array constructed from of the input arguments
+#
+#  for example, if prefix='I',
+#    then "I0", i0, "I1", i1 -> "I", array([i0, i1])
+#
+#  the uncurry argument is the first argument in the result
+#
+# all other inputs remain unchanged.
+#
 def uncurry(circuit, prefix='I'):
 
+    otherargs = []
     uncurryargs = []
     for name, port in circuit.interface.ports.items():
-        if name.startswith(prefix):
-           assert port.direction == INPUT 
+        # should we insert the argument in the position of the first match?
+        if name.startswith(prefix) and port.isinput():
            uncurryargs.append(port)
+        else:
+           otherargs += [name, port]
 
-    args = [prefix, array(uncurryargs)]
-
-    for name, port in circuit.interface.ports.items():
-        if not name.startswith(prefix):
-           args += [name, port]
-
-    #print(args)
-    return AnonymousCircuit(args)
+    return AnonymousCircuit( [prefix, array(uncurryargs)] + otherargs )
 
 
 def row(f, n):

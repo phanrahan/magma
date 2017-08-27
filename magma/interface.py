@@ -135,6 +135,13 @@ class _Interface(Type):
                             if isinstance(port, ClockType) 
                                 or name in ['RESET', 'SET', 'CE'] ] )
 
+    # return all the clock argument names
+    def clockargnames(self):
+        return [name for name, port in self.ports.items() \
+                    if isinstance(port, ClockType) 
+                        or name in ['RESET', 'SET', 'CE'] ]
+
+
     # return True if this interface has a Clock
     def isclocked(self):
         for name, port in self.ports.items():

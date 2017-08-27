@@ -23,8 +23,9 @@ from .conversions import *
 from .interface import *
 
 from .circuit import *
+from .braid import *
+
 from .wire import *
-from .higher import *
 
 from .primitives import *
 
