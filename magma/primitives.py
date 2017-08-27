@@ -15,7 +15,11 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
-__all__  = ['and_', 'or_', 'xor'] 
+__all__  = ['DefineMux']
+__all__ += ['DefineRegister']
+__all__ += ['DefineMemory']
+
+__all__ += ['and_', 'or_', 'xor'] 
 __all__ += ['invert']
 __all__ += ['eq', 'ne']
 __all__ += ['lshift', 'rshift']
@@ -60,6 +64,7 @@ def declare_bit_binop(name, op, python_op, firrtl_op):
     return circ
 
 
+# And should decide to call BitAnd vs And ...
 BitAnd = declare_bit_binop("coreir_bitand", "__and__", operator.and_, "and")
 BitOr  = declare_bit_binop("coreir_bitor", "__or__", operator.or_, "or")
 BitXor = declare_bit_binop("coreir_bitxor", "__xor__", operator.xor, "xor")
@@ -69,10 +74,12 @@ def simulate_bit_not(self, value_store, state_store):
     out = (~_in).as_bool_list()[0]
     value_store.set_value(self.out, out)
 
+# In mantle, Not=BitNot
 BitNot = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
         simulate=simulate_bit_not)
 
 
+# In mantle, Invert inverts Bits
 def __invert__(self):
     return BitNot()(self)
 
@@ -104,9 +111,10 @@ def declare_bits_binop(name, op, python_op):
     return Declare
 
 
+# Should these be just And(2)
 DefineAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
 DefineOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
-DefineXor = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
+DefineXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
 
 def simulate_bits_invert(self, value_store, state_store):
@@ -115,7 +123,7 @@ def simulate_bits_invert(self, value_store, state_store):
     value_store.set_value(self.out, out)
 
 @cache_definition
-def DeclareInvertN(N):
+def DeclareInvert(N):
     T = Bits(N)
     return DeclareCircuit("coreir_not{}".format(N), 'in', In(T), 'out', Out(T),
             simulate=simulate_bits_invert, verilog_name="coreir_not",
@@ -123,10 +131,7 @@ def DeclareInvertN(N):
 
 
 def __invert__(self):
-    return DeclareInvertN(self.N)(width=self.N)(self)
-
-DefineInvert = DeclareInvertN
-
+    return DeclareInvert(self.N)(width=self.N)(self)
 
 BitsType.__invert__ = __invert__
 
@@ -237,16 +242,22 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
     setattr(type_type, op, func)
     return Declare
 
-DefineEq = declare_binop("coreir_eq", Bits, BitsType, "__eq__", operator.eq, out_type=Bit)
+# EQ2?
+DefineEQ = declare_binop("coreir_eq", Bits, BitsType, "__eq__", operator.eq, out_type=Bit)
+# NE2??
+
+# Should SAdd and UAdd be the same?
 DefineSAdd = declare_binop("coreir_add", SInt, SIntType, "__add__", operator.add)
 DefineSSub = declare_binop("coreir_sub", SInt, SIntType, "__sub__", operator.sub)
 DefineSMul = declare_binop("coreir_mul", SInt, SIntType, "__mul__", operator.mul)
 DefineSDiv = declare_binop("coreir_sdiv", SInt, SIntType, "__div__", operator.truediv)
 declare_binop("coreir_sdiv", SInt, SIntType, "__truediv__", operator.truediv)
-DefineSlt = declare_binop("coreir_slt",  SInt, SIntType, "__lt__", operator.lt, out_type=Bit)
-DefineSle = declare_binop("coreir_sle", SInt, SIntType, "__le__", operator.le, out_type=Bit)
-DefineSgt = declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", operator.gt, out_type=Bit)
-DefineSge = declare_binop("coreir_sge", SInt, SIntType, "__ge__", operator.ge, out_type=Bit)
+
+# In mantle, LT = SLT
+DefineSLT = declare_binop("coreir_slt",  SInt, SIntType, "__lt__", operator.lt, out_type=Bit)
+DefineSLE = declare_binop("coreir_sle", SInt, SIntType, "__le__", operator.le, out_type=Bit)
+DefineSGT = declare_binop("coreir_sgt",  SInt, SIntType, "__gt__", operator.gt, out_type=Bit)
+DefineSGE = declare_binop("coreir_sge", SInt, SIntType, "__ge__", operator.ge, out_type=Bit)
 
 
 def simulate_neg(self, value_store, state_store):
@@ -255,17 +266,16 @@ def simulate_neg(self, value_store, state_store):
     value_store.set_value(self.out, out)
 
 
-def DeclareNeg(N):
+def DeclareNegate(N):
     return DeclareCircuit("coreir_neg{}".format(N), 'in', In(SInt(N)), 'out',
             Out(SInt(N)), simulate=simulate_neg, verilog_name="coreir_not",
             default_kwargs={"width": N})
 
 
 def __neg__(self):
-    return DeclareNeg(self.N)()(self)
+    return DeclareNegate(self.N)()(self)
 
 SIntType.__neg__ = __neg__
-DefineNeg = DeclareNeg
 
 
 DefineUAdd = declare_binop("coreir_add", UInt, UIntType, "__add__", operator.add)
@@ -273,10 +283,11 @@ DefineUSub = declare_binop("coreir_sub", UInt, UIntType, "__sub__", operator.sub
 DefineUMul = declare_binop("coreir_mul", UInt, UIntType, "__mul__", operator.mul)
 DefineUDiv = declare_binop("coreir_udiv", UInt, UIntType, "__div__", operator.truediv)
 declare_binop("coreir_udiv", UInt, UIntType, "__truediv__", operator.truediv)
-DefineUlt = declare_binop("coreir_ult",  UInt, UIntType, "__lt__", operator.lt, out_type=Bit)
-DefineUle = declare_binop("coreir_ule", UInt, UIntType, "__le__", operator.le, out_type=Bit)
-DefineUgt = declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", operator.gt, out_type=Bit)
-DefineUge = declare_binop("coreir_uge", UInt, UIntType, "__ge__", operator.ge, out_type=Bit)
+
+DefineULT = declare_binop("coreir_ult",  UInt, UIntType, "__lt__", operator.lt, out_type=Bit)
+DefineULE = declare_binop("coreir_ule", UInt, UIntType, "__le__", operator.le, out_type=Bit)
+DefineUGT = declare_binop("coreir_ugt",  UInt, UIntType, "__gt__", operator.gt, out_type=Bit)
+DefineUGE = declare_binop("coreir_uge", UInt, UIntType, "__ge__", operator.ge, out_type=Bit)
 
 
 def arithmetic_shift_right(self, other):
@@ -405,7 +416,9 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
 
 
 @cache_definition
-def DefineMux(N):
+def DefineMux(height=2, width=1):
+    assert height == 2
+    N = width
     def simulate(self, value_store, state_store):
         in0 = BitVector(value_store.get_value(self.in0))
         in1 = BitVector(value_store.get_value(self.in1))
@@ -497,6 +510,7 @@ def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value[-1], n), array(value)))
 
+
 #def mux(I0, I1, S):
 #    assert isinstance(S, BitType)
 #    assert isinstance(I0, BitType) or isinstance(I0, BitsType)
@@ -507,14 +521,14 @@ def sext(value, n):
 #    elif:
 #        return Mux(2,len(I0))(I0, I1, S)
 
-def gen_sim_mem(width, depth):
+def gen_sim_mem(height, width):
     def sim_mem(self, value_store, state_store):
         cur_rclk = value_store.get_value(self.rclk)
         cur_wclk = value_store.get_value(self.wclk)
 
         if not state_store:
             state_store['mem'] = [
-                BitVector(0, width) for _ in range(depth)
+                BitVector(0, width) for _ in range(height)
             ]
             state_store['prev_rclk'] = cur_rclk
             state_store['prev_wclk'] = cur_wclk
@@ -540,19 +554,20 @@ def gen_sim_mem(width, depth):
         value_store.set_value(self.rdata, rdata)
     return sim_mem
 
+# this is different than the mantle Memory primitive
 @cache_definition
-def DefineMem(width, depth):
-    name = "coreir_mem{}{}".format(width, depth)
+def DefineMemory(height, width):
+    name = "coreir_mem{}x{}".format(height,width)
     is_power_of_two = lambda num: num != 0 and ((num & (num - 1)) == 0)
-    assert is_power_of_two(width) and is_power_of_two(depth)
-    IO = ["raddr", In(Bits(max(depth.bit_length() - 1, 1))),
-          "waddr", In(Bits(max(depth.bit_length() - 1, 1))),
-          "wdata", In(Bits(width)), 
+    assert is_power_of_two(width) and is_power_of_two(height)
+    IO = ["raddr", In(Bits(max(height.bit_length() - 1, 1))),
+          "rdata", Out(Bits(width)),
           "rclk", In(Bit), 
           "ren", In(Bit), 
+          "waddr", In(Bits(max(height.bit_length() - 1, 1))),
+          "wdata", In(Bits(width)),
           "wclk", In(Bit), 
-          "wen", In(Bit), 
-          "rdata", Out(Bits(width))]
+          "wen", In(Bit) ]
     return DeclareCircuit(name, *IO, verilog_name="coreir_mem",
-            simulate=gen_sim_mem(width, depth),
-            default_kwargs={"width": width, "depth": depth})
+            simulate=gen_sim_mem(height, width),
+            default_kwargs={"width": width, "depth": height})

@@ -1,5 +1,5 @@
 from magma import In, Out, Bit, UInt, Circuit, Bits, wire, compile
-from magma.primitives import DefineRegister, DefineMux, DefineMem
+from magma.primitives import DefineRegister, DefineMux, DefineMemory
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq
 from magma.verilator.verilator import compile as compileverilator
@@ -118,7 +118,7 @@ def test_mux():
         IO = ["I0", In(Bits(4)), "I1", In(Bits(4)), "sel", In(Bit), "O", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            mux4 = DefineMux(4)()
+            mux4 = DefineMux(width=4)()
             wire(mux4.in0, circuit.I0)
             wire(mux4.in1, circuit.I1)
             wire(mux4.sel, circuit.sel)
@@ -155,15 +155,15 @@ def test_memory():
               "rdata", Out(Bits(4))]
         @classmethod
         def definition(circuit):
-            mem = DefineMem(4, 4)()
+            mem = DefineMemory(height=4, width=4)()
             wire(mem.raddr, circuit.raddr)
-            wire(mem.waddr, circuit.waddr)
-            wire(mem.wdata, circuit.wdata)
+            wire(mem.rdata, circuit.rdata)
             wire(mem.rclk, circuit.rclk)
             wire(mem.ren, circuit.ren)
+            wire(mem.waddr, circuit.waddr)
+            wire(mem.wdata, circuit.wdata)
             wire(mem.wclk, circuit.wclk)
             wire(mem.wen, circuit.wen)
-            wire(mem.rdata, circuit.rdata)
 
     def write_value(value, addr):
         test_vectors = []
