@@ -21,7 +21,7 @@ __all__ += ['eq', 'ne']
 __all__ += ['lshift', 'rshift']
 __all__ += ['add', 'sub', "mul", "div", "truediv"]
 __all__ += ['lt', 'le', "gt", "ge"]
-__all__ += ['concat', 'replicate']
+__all__ += ['concat', 'repeat']
 __all__ += ['zext', 'sext']
 
 def type_check_binary_operator(operator):
@@ -472,8 +472,12 @@ def lshift(self, rhs):
 def rshift(self, rhs):
     return self >> rhs
 
-def replicate(value, n):
-    return 
+def repeat(value, n):
+    if isinstance(value, BitType):
+        repeats = bits(n*[value])
+    else:
+        repeats = array(n*[value])
+    return repeats
 
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts] # flatten
