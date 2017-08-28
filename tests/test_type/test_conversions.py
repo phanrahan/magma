@@ -37,7 +37,7 @@ def test_uint():
      assert isinstance(uint(VCC), UIntType)
      assert isinstance(uint(array(1,4)), UIntType)
      assert isinstance(uint(bits(1,4)), UIntType)
-     assert isinstance(uint(sint(1,4)), UIntType)
+     #assert isinstance(uint(sint(1,4)), UIntType)
 
 def test_sint():
      assert isinstance(sint(1,4), SIntType)
@@ -45,5 +45,5 @@ def test_sint():
      assert isinstance(sint(VCC), SIntType)
      assert isinstance(sint(array(1,4)), SIntType)
      assert isinstance(sint(bits(1,4)), SIntType)
-     assert isinstance(sint(sint(1,4)), SIntType)
+     #assert isinstance(sint(sint(1,4)), SIntType)
 

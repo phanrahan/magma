@@ -1,32 +1,62 @@
 from collections import Sequence
 from .compatibility import IntegerTypes
-from .bit import BitKind, BitType, BitOut, VCC, GND
+from .t import In, Out
+from .bit import BitKind, BitType, Bit, VCC, GND
+from .clock import ClockType, Clock
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
 from .tuple import Tuple
 from .bitutils import int2seq
 
 __all__  = ['bit']
+__all__ += ['clock']
+
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
 __all__ += ['tuple_']
 
 def bit(value):
-    if not isinstance(value, (BitType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
+    if isinstance(value, BitType):
+        return value
+
+    if not isinstance(value, (ClockType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
         raise ValueError(
-            "bit can only be used with a Bit, Array, Bits, UInt, SInt, or int, not : {}".format(type(value)))
+            "bit can only be used with a Clock, Array, Bits, UInt, SInt, or int, not : {}".format(type(value)))
 
     if isinstance(value, (ArrayType, BitsType, UIntType, SIntType)):
         assert len(value) == 1
         value = value[0]
 
     if isinstance(value, IntegerTypes):
-        value = VCC if value else GND
+        return VCC if value else GND
 
-    assert isinstance(value, BitType)
+    if isinstance(value, ClockType):
+        if   value == In(Bit): return In(Clock)
+        elif value == Out(Bit): return Out(Clock)
 
     return value
 
+
+def clock(value):
+    if isinstance(value, ClockType):
+        return value
+
+    if not isinstance(value, (BitType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
+        raise ValueError(
+            "clock can only be used with a Bit, Array, Bits, UInt, SInt, or int, not : {}".format(type(value)))
+
+    if isinstance(value, (ArrayType, BitsType, UIntType, SIntType)):
+        assert len(value) == 1
+        value = value[0]
+
+    if isinstance(value, IntegerTypes):
+        return VCC if value else GND
+
+    if isinstance(value, ClockType):
+        if   value == In(Clock): return In(Bit)
+        elif value == Out(Clock): return Out(Bit)
+
+    return value
 
 def convertbits(value, n, totype, checkbit):
     if not isinstance(value, (BitType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes, Sequence)):
@@ -55,7 +85,7 @@ def convertbits(value, n, totype, checkbit):
     for t in ts:
         T = type(t)
         if T in IntegerTypes:
-            T = BitOut
+            T = Out(Bit)
         Ts.append(T)
 
     # check that they are all the same
@@ -67,7 +97,6 @@ def convertbits(value, n, totype, checkbit):
 
     return totype(len(Ts), T)(*ts)
 
-# not exported because it has a different interface than array.array
 def array(value, n=None):
     if isinstance(value, ArrayType):
         return value
@@ -81,11 +110,15 @@ def bits(value, n=None):
 def uint(value, n=None):
     if isinstance(value, UIntType):
         return value
+    if isinstance(value, SIntType):
+        raise ValueError( "uint cannot convert SInt" ) 
     return convertbits(value, n, UInt, True)
 
 def sint(value, n=None):
     if isinstance(value, SIntType):
         return value
+    if isinstance(value, UIntType):
+        raise ValueError( "uint cannot convert SInt" ) 
     return convertbits(value, n, SInt, True)
 
 
@@ -100,7 +133,7 @@ def tuple_(*larg, **kwargs):
             t = larg[i+1]
             T = type(t)
             if T in IntegerTypes:
-                T = BitOut
+                T = Out(Bit)
             decl.append(K)
             decl.append(T)
             args.append(t)
@@ -108,7 +141,7 @@ def tuple_(*larg, **kwargs):
         for K, t in kwargs.items():
             T = type(t)
             if T in IntegerTypes:
-                T = BitOut
+                T = Out(Bit)
             decl.append(K)
             decl.append(T)
             args.append(t)
