@@ -7,6 +7,8 @@ from magma.primitives import DefineRegister, DefineMux, DefineMemory
 from magma.primitives import DefineAnd, And, and_
 from magma.primitives import DefineOr, Or, or_
 from magma.primitives import DefineXOr, XOr, xor
+from magma.primitives import DefineInvert, Invert, invert
+from magma.primitives import DefineEQ, EQ, eq
 
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq
@@ -18,6 +20,23 @@ from magma.scope import Scope
 from magma.verilator.function import testvectors
 
 
+def check_unary_circuit(circ, circ_name, reference):
+    compile("build/{}".format(circ_name), circ, include_coreir=True)
+
+    test_vectors = testvectors(circ, reference)
+    compileverilator('build/sim_{}_main.cpp'.format(circ_name), circ, test_vectors)
+
+    run_verilator_test(circ_name, 'sim_{}_main'.format(circ_name), circ_name)
+    simulator = PythonSimulator(circ)
+    scope = Scope()
+    for a, b, c, d in test_vectors:
+        simulator.set_value(circ.a, scope, a)
+        simulator.evaluate()
+        assert simulator.get_value(circ.b, scope) == b
+        assert simulator.get_value(circ.c, scope) == c
+        assert simulator.get_value(circ.d, scope) == d
+
+
 def check_circuit(circ, circ_name, reference):
     compile("build/{}".format(circ_name), circ, include_coreir=True)
 
@@ -27,31 +46,48 @@ def check_circuit(circ, circ_name, reference):
     run_verilator_test(circ_name, 'sim_{}_main'.format(circ_name), circ_name)
     simulator = PythonSimulator(circ)
     scope = Scope()
-    for a, b, c, d, e, f in test_vectors:
+    for a, b, c, d, e in test_vectors:
         simulator.set_value(circ.a, scope, a)
         simulator.set_value(circ.b, scope, b)
-        simulator.set_value(circ.c, scope, c)
         simulator.evaluate()
+        assert simulator.get_value(circ.c, scope) == c
         assert simulator.get_value(circ.d, scope) == d
         assert simulator.get_value(circ.e, scope) == e
-        assert simulator.get_value(circ.f, scope) == f
 
 
 def run_test(name, define_op, instance_op, op, python_op):
     width = 4
 
-    def reference(a, b, c):
-        val = reduce(python_op, [a, b, c])
+    def reference(a, b):
+        val = python_op(a, b)
         return val, val, val
 
     circ_name = "test_define_{}".format(name, width)
     circ = m.DefineCircuit(circ_name,
-        *["a", In(Bits(width)), "b", In(Bits(width)), "c", In(Bits(width)),
-          "d", Out(Bits(width)), "e", Out(Bits(width)),
-          "f", Out(Bits(width))])
-    wire(define_op(3, width)()(circ.a, circ.b, circ.c), circ.d)
-    wire(instance_op(3)(circ.a, circ.b, circ.c), circ.e)
-    wire(op(circ.a, circ.b, circ.c), circ.f)
+        *["a", In(Bits(width)), "b", In(Bits(width)), "c", Out(Bits(width)),
+          "d", Out(Bits(width)), "e", Out(Bits(width))])
+    wire(define_op(2, width)()(circ.a, circ.b), circ.c)
+    wire(instance_op(2)(circ.a, circ.b), circ.d)
+    wire(op(circ.a, circ.b), circ.e)
+    m.EndDefine()
+
+    check_circuit(circ, circ_name, reference)
+
+
+def run_compare_test(name, define_op, instance_op, op, python_op):
+    width = 4
+
+    def reference(a, b):
+        val = python_op(a, b)
+        return val, val, val
+
+    circ_name = "test_define_{}".format(name, width)
+    circ = m.DefineCircuit(circ_name,
+        *["a", In(Bits(width)), "b", In(Bits(width)), "c", Out(Bit),
+          "d", Out(Bit), "e", Out(Bit)])
+    wire(define_op(2, width)()(circ.a, circ.b), circ.c)
+    wire(instance_op(2)(circ.a, circ.b), circ.d)
+    wire(op(circ.a, circ.b), circ.e)
     m.EndDefine()
 
     check_circuit(circ, circ_name, reference)
@@ -67,6 +103,33 @@ def test_or():
 
 def test_xor():
     run_test("xor", DefineXOr, XOr, xor, operator.xor)
+
+
+def test_eq():
+    run_compare_test("eq", DefineEQ, EQ, eq, operator.eq)
+
+
+def run_unary_op_test(name, define_op, instance_op, op, python_op):
+    width = 4
+
+    def reference(a):
+        val = python_op(a)
+        return val, val, val
+
+    circ_name = "test_define_{}".format(name, width)
+    circ = m.DefineCircuit(circ_name,
+        *["a", In(Bits(width)),
+          "b", Out(Bits(width)), "c", Out(Bits(width)),
+          "d", Out(Bits(width))])
+    wire(define_op(width)()(circ.a), circ.b)
+    wire(instance_op()(circ.a), circ.c)
+    wire(op(circ.a), circ.d)
+    m.EndDefine()
+
+    check_unary_circuit(circ, circ_name, reference)
+
+def test_invert():
+    run_unary_op_test("invert", DefineInvert, Invert, invert, operator.invert)
 
 
 def test_register():
