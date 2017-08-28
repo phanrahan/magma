@@ -169,15 +169,17 @@ def DefineAnd(height=2, width=None):
 
 def And(height, **kwargs):
     def AndGenerator(*args):
-        width = len(args[0])
-        assert all(len(arg) == width for arg in args)
+        if all(isinstance(arg, BitType) for arg in args):
+            width = None
+        else:
+            assert all(isinstance(arg, BitsType) for arg in args)
+            width = len(args[0])
+            assert all(len(arg) == width for arg in args)
         return DefineAnd(height, width)(**kwargs)(*args)
     return AndGenerator
 
 
 def and_(*args):
-    width = len(args[0])
-    assert all(len(arg) == width for arg in args)
     return And(len(args))(*args)
 
 
@@ -195,15 +197,17 @@ def DefineOr(height=2, width=None):
 
 def Or(height, **kwargs):
     def OrGenerator(*args):
-        width = len(args[0])
-        assert all(len(arg) == width for arg in args)
+        if all(isinstance(arg, BitType) for arg in args):
+            width = None
+        else:
+            assert all(isinstance(arg, BitsType) for arg in args)
+            width = len(args[0])
+            assert all(len(arg) == width for arg in args)
         return DefineOr(height, width)(**kwargs)(*args)
     return OrGenerator
 
 
 def or_(*args):
-    width = len(args[0])
-    assert all(len(arg) == width for arg in args)
     return Or(len(args))(*args)
 
 DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
@@ -220,15 +224,17 @@ def DefineXOr(height=2, width=None):
 
 def XOr(height, **kwargs):
     def XOrGenerator(*args):
-        width = len(args[0])
-        assert all(len(arg) == width for arg in args)
+        if all(isinstance(arg, BitType) for arg in args):
+            width = None
+        else:
+            assert all(isinstance(arg, BitsType) for arg in args)
+            width = len(args[0])
+            assert all(len(arg) == width for arg in args)
         return DefineXOr(height, width)(**kwargs)(*args)
     return XOrGenerator
 
 
 def xor(*args):
-    width = len(args[0])
-    assert all(len(arg) == width for arg in args)
     return XOr(len(args))(*args)
 
 
@@ -246,7 +252,8 @@ def DefineInvert(N):
 
 def Invert():
     def invert_generator(arg):
-        assert isinstance(arg, Type)
+        assert not isinstance(arg, BitType), "Invert not defined to Bit, use Not()"
+        assert isinstance(arg, BitsType)
         return DefineInvert(len(arg))()(arg)
     return invert_generator
 
@@ -382,15 +389,17 @@ def DefineEQ(height=2, width=None):
 
 def EQ(height, **kwargs):
     def EQGenerator(*args):
-        width = len(args[0])
-        assert all(len(arg) == width for arg in args)
+        if all(isinstance(arg, BitType) for arg in args):
+            width = None
+        else:
+            assert all(isinstance(arg, BitsType) for arg in args)
+            width = len(args[0])
+            assert all(len(arg) == width for arg in args)
         return DefineEQ(height, width)(**kwargs)(*args)
     return EQGenerator
 
 
 def eq(*args):
-    width = len(args[0])
-    assert all(len(arg) == width for arg in args)
     return EQ(len(args))(*args)
 
 def DefineNE(*args):
