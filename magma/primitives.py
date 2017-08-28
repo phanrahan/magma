@@ -3,13 +3,14 @@ from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.clock import Clock
 from magma.bits import Bits, BitsType, SInt, SIntType, UInt, UIntType
-from magma.circuit import DeclareCircuit, circuit_type_method
+from magma.circuit import DeclareCircuit, circuit_type_method, DefineCircuit, EndDefine
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
 from magma.wire import wire
 from magma.conversions import array, bits, uint, sint
 import operator
 import math
+from functools import wraps, reduce
 try:
     from functools import lru_cache
 except ImportError:
@@ -18,15 +19,32 @@ except ImportError:
 __all__  = ['DefineMux']
 __all__ += ['DefineRegister']
 __all__ += ['DefineMemory']
+__all__ += ['DefineAnd', 'And', 'and_']
+__all__ += ['DefineOr', 'Or', 'or_']
+__all__ += ['DefineXOr', 'XOr', 'xor']
+__all__ += ['DefineInvert', 'Invert', 'invert']
+__all__ += ['DefineEQ', 'EQ', 'eq'] 
+# __all__ += ['DefineNE', 'NE', 'ne']
 
-__all__ += ['and_', 'or_', 'xor'] 
-__all__ += ['invert']
-__all__ += ['eq', 'ne']
 __all__ += ['lshift', 'rshift']
 __all__ += ['add', 'sub', "mul", "div", "truediv"]
 __all__ += ['lt', 'le', "gt", "ge"]
 __all__ += ['concat', 'repeat']
 __all__ += ['zext', 'sext']
+
+
+def type_check_definition_params(fn):
+    @wraps(fn)
+    def wrapped(height=2, width=None):
+        if not isinstance(height, IntegerTypes) or height < 2:
+            raise ValueError("Height must be an integer greater than or equal "
+                    "to 2, not {}".format(height))
+        if width is not None and (not isinstance(width, IntegerTypes) or width < 1):
+            raise ValueError("Width must be None or an integer greater than or"
+                    " equal to 1, not {}".format(height))
+        return fn(height, width)
+    return wrapped
+
 
 def type_check_binary_operator(operator):
     """
@@ -67,24 +85,35 @@ def declare_bit_binop(name, op, python_op, firrtl_op):
 # And should decide to call BitAnd vs And ...
 BitAnd = declare_bit_binop("coreir_bitand", "__and__", operator.and_, "and")
 BitOr  = declare_bit_binop("coreir_bitor", "__or__", operator.or_, "or")
-BitXor = declare_bit_binop("coreir_bitxor", "__xor__", operator.xor, "xor")
+BitXOr = declare_bit_binop("coreir_bitxor", "__xor__", operator.xor, "xor")
 
 def simulate_bit_not(self, value_store, state_store):
     _in = BitVector(value_store.get_value(getattr(self, "in")))
     out = (~_in).as_bool_list()[0]
     value_store.set_value(self.out, out)
 
-# In mantle, Not=BitNot
-BitNot = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
-        simulate=simulate_bit_not)
+
+DefineCoreirNot = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
+    simulate=simulate_bit_not)
+
+def DefineNot(width=None):
+    if width != None:
+        raise ValueError("Not is only defined as a 1-bit operation, width must"
+                " be None")
+    return DefineCoreirNot
+
+def Not():
+    def not_generator(arg):
+        assert isinstance(arg, BitType)
+        return DefineNot()()(arg)
+    return not_generator
 
 
-# In mantle, Invert inverts Bits
-def __invert__(self):
-    return BitNot()(self)
+def not_(self):
+    return Not()(self)
 
 
-BitType.__invert__ = __invert__
+BitType.__invert__ = not_
 
 
 def declare_bits_binop(name, op, python_op):
@@ -111,10 +140,96 @@ def declare_bits_binop(name, op, python_op):
     return Declare
 
 
-# Should these be just And(2)
-DefineAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
-DefineOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
-DefineXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
+@cache_definition
+def DefineFoldOp(DefineOp, op, height, width):
+    T = Bits(width)
+    IO = []
+    for i in range(height):
+        IO += ["I{}".format(i), In(T)]
+    IO += ["O", Out(T)]
+    circ = DefineCircuit("fold_{}{}{}".format(op, height, width), *IO)
+    reduce_args = [getattr(circ, "I{}".format(i)) for i in range(height)]
+    Op2 = DefineOp(2, width)
+    wire(reduce(lambda x, y: Op2()(x, y), reduce_args), circ.O)
+    EndDefine()
+    return circ
+
+
+DefineCoreirAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
+
+@type_check_definition_params
+def DefineAnd(height=2, width=None):
+    if width is None:
+        return BitAnd
+    elif height is 2:
+        return DefineCoreirAnd(width)
+    else:
+        return DefineFoldOp(DefineAnd, "and", height, width)
+
+
+def And(height, **kwargs):
+    def AndGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineAnd(height, width)(**kwargs)(*args)
+    return AndGenerator
+
+
+def and_(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return And(len(args))(*args)
+
+
+DefineCoreirOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
+
+@type_check_definition_params
+def DefineOr(height=2, width=None):
+    if width is None:
+        return BitOr
+    elif height is 2:
+        return DefineCoreirOr(width)
+    else:
+        return DefineFoldOp(DefineOr, "or", height, width)
+
+
+def Or(height, **kwargs):
+    def OrGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineOr(height, width)(**kwargs)(*args)
+    return OrGenerator
+
+
+def or_(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return Or(len(args))(*args)
+
+DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
+
+@type_check_definition_params
+def DefineXOr(height=2, width=None):
+    if width is None:
+        return BitXOr
+    elif height is 2:
+        return DefineCoreirXOr(width)
+    else:
+        return DefineFoldOp(DefineXOr, "xor", height, width)
+
+
+def XOr(height, **kwargs):
+    def XOrGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineXOr(height, width)(**kwargs)(*args)
+    return XOrGenerator
+
+
+def xor(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return XOr(len(args))(*args)
 
 
 def simulate_bits_invert(self, value_store, state_store):
@@ -123,15 +238,25 @@ def simulate_bits_invert(self, value_store, state_store):
     value_store.set_value(self.out, out)
 
 @cache_definition
-def DeclareInvert(N):
+def DefineInvert(N):
     T = Bits(N)
     return DeclareCircuit("coreir_not{}".format(N), 'in', In(T), 'out', Out(T),
             simulate=simulate_bits_invert, verilog_name="coreir_not",
             default_kwargs={"width": N})
 
+def Invert():
+    def invert_generator(arg):
+        assert isinstance(arg, Type)
+        return DefineInvert(len(arg))()(arg)
+    return invert_generator
+
+
+def invert(arg):
+    return Invert()(arg)
+
 
 def __invert__(self):
-    return DeclareInvert(self.N)(width=self.N)(self)
+    return DefineInvert(self.N)()(self)
 
 BitsType.__invert__ = __invert__
 
@@ -242,9 +367,40 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
     setattr(type_type, op, func)
     return Declare
 
-# EQ2?
-DefineEQ = declare_binop("coreir_eq", Bits, BitsType, "__eq__", operator.eq, out_type=Bit)
-# NE2??
+DefineCoreirEQ = declare_binop("coreir_eq", Bits, BitsType, "__eq__",
+        operator.eq, out_type=Bit)
+
+@type_check_definition_params
+def DefineEQ(height=2, width=None):
+    if width is None:
+        return BitAnd
+    elif height is 2:
+        return DefineCoreirEQ(width)
+    else:
+        return DefineFoldOp(DefineEQ, "eq", height, width)
+
+
+def EQ(height, **kwargs):
+    def EQGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineEQ(height, width)(**kwargs)(*args)
+    return EQGenerator
+
+
+def eq(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return EQ(len(args))(*args)
+
+def DefineNE(*args):
+    raise NotImplementedError()
+
+def NE(*args):
+    raise NotImplementedError()
+
+def ne(*args):
+    raise NotImplementedError()
 
 # Should SAdd and UAdd be the same?
 DefineSAdd = declare_binop("coreir_add", SInt, SIntType, "__add__", operator.add)
@@ -432,19 +588,6 @@ def DefineMux(height=2, width=1):
         simulate=simulate,
         default_kwargs={"width": N}
     )
-
-
-def and_(self, rhs):
-    return self & rhs
-
-def or_(self, rhs):
-    return self | rhs
-
-def xor(self, rhs):
-    return self ^ rhs
-
-def invert(self):
-    return ~self
 
 def add(self, rhs):
     return self + rhs
