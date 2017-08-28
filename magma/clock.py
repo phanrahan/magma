@@ -34,7 +34,7 @@ ClockIn = ClockKind('Clock', (ClockType,), dict(direction=INPUT))
 ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
 
 
-def ClockInterface(has_ce, has_reset, has_set):
+def ClockInterface(has_ce=False, has_reset=False, has_set=False):
     args = ['CLK', In(Clock)]
     if has_ce: args += ['CE', In(Bit)]
     if has_reset:  args += ['RESET', In(Bit)]
