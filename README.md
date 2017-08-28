@@ -1,5 +1,5 @@
 # Magma
-[![Build Status](https://travis-ci.com/phanrahan/magma.svg?token=BftLM4kSr1QfgPspi6aF&branch=master)](https://travis-ci.com/phanrahan/magma)
+[![Build Status](https://travis-ci.org/phanrahan/magma.svg?branch=master)](https://travis-ci.org/phanrahan/magma)
 
 Magma is a hardware design language embedded in python.
 
