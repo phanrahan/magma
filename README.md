@@ -54,6 +54,20 @@ and with [Loam](https://github.com/phanrahan/loam)
 which is used to represent parts and boards,
 and to build applications for standalone FPGA boards.
 
+# Installation
+## Prerequisites
+* python (3 recommended)
+* pip
+* verilator (for testing)
+### MacOS/Homebrew
+```
+$ brew install python3 verilator
+```
+### Ubuntu
+```
+$ sudo apt-get install python3 python3-pip verilator
+```
+
 
 ## Setup
 Clone the magma repository
