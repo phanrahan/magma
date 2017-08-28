@@ -72,6 +72,12 @@ $ sudo apt-get install python3 python3-pip
 **NOTE:** instructions assume Python 3 has been installed. On Ubuntu and
 MacOs/Homebrew that means `pip3` will be the package manager.
 
+Clone the magma repository
+```
+$ git clone https://github.com/phanrahan/magma
+$ cd magma
+```
+
 Install the Python dependencies
 ```
 $ pip3 install -r requirements.txt
