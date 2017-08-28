@@ -4,8 +4,9 @@ from magma import compile
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'b:')
-except:
-    print >> sys.stderr, 'usage: magma [-b board]'
+except Exception as e:
+    print(e, file=sys.stderr)
+    print('usage: magma [-b board]', file=sys.stderr)
     sys.exit(1)
 
 name = os.path.basename(args[0])
