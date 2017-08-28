@@ -51,7 +51,12 @@ def testvectors(circuit, func, input_ranges=None, mode='complete'):
     nargs = len(args)
     tests = []
     for test in product(*args):
-         test = list(test)
-         tests.append(test+[func(*test)])
+        test = list(test)
+        result = func(*test)
+        if isinstance(result, tuple):
+            test.extend(result)
+        else:
+            test.append(result)
+        tests.append(test)
 
     return tests

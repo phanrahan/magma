@@ -57,9 +57,11 @@ int main(int argc, char **argv, char **env) {{
         if port.isinput():
             source += '''\
         assert(top->{} == test[{}]);
-    }}
 '''.format(name,i)
         i += 1
+    source += '''\
+    }
+'''
 
     source += '''
     delete top;

@@ -20,8 +20,9 @@ __all__  = ['DefineMux']
 __all__ += ['DefineRegister']
 __all__ += ['DefineMemory']
 __all__ += ['DefineAnd', 'And', 'and_']
+__all__ += ['DefineOr', 'Or', 'or_']
+__all__ += ['DefineXOr', 'XOr', 'xor']
 
-__all__ += ['or_', 'xor']
 __all__ += ['invert']
 __all__ += ['eq', 'ne']
 __all__ += ['lshift', 'rshift']
@@ -132,17 +133,18 @@ def declare_bits_binop(name, op, python_op):
     setattr(BitsType, op, func)
     return Declare
 
+
 @cache_definition
-def DefineFoldAnd(height, width):
+def DefineFoldOp(DefineOp, op, height, width):
     T = Bits(width)
     IO = []
     for i in range(height):
         IO += ["I{}".format(i), In(T)]
     IO += ["O", Out(T)]
-    circ = DefineCircuit("fold_and{}{}".format(height, width), *IO)
+    circ = DefineCircuit("fold_{}{}{}".format(op, height, width), *IO)
     reduce_args = [getattr(circ, "I{}".format(i)) for i in range(height)]
-    And2 = DefineAnd(2, width)
-    wire(reduce(lambda x, y: And2()(x, y), reduce_args), circ.O)
+    Op2 = DefineOp(2, width)
+    wire(reduce(lambda x, y: Op2()(x, y), reduce_args), circ.O)
     EndDefine()
     return circ
 
@@ -156,7 +158,8 @@ def DefineAnd(height=2, width=None):
     elif height is 2:
         return DefineCoreirAnd(width)
     else:
-        return DefineFoldAnd(height, width)
+        return DefineFoldOp(DefineAnd, "and", height, width)
+
 
 def And(height, **kwargs):
     def AndGenerator(*args):
@@ -173,7 +176,54 @@ def and_(*args):
 
 
 DefineCoreirOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
+
+@type_check_definition_params
+def DefineOr(height=2, width=None):
+    if width is None:
+        return BitOr
+    elif height is 2:
+        return DefineCoreirOr(width)
+    else:
+        return DefineFoldOp(DefineOr, "or", height, width)
+
+
+def Or(height, **kwargs):
+    def OrGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineOr(height, width)(**kwargs)(*args)
+    return OrGenerator
+
+
+def or_(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return Or(len(args))(*args)
+
 DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
+
+@type_check_definition_params
+def DefineXOr(height=2, width=None):
+    if width is None:
+        return BitXOr
+    elif height is 2:
+        return DefineCoreirXOr(width)
+    else:
+        return DefineFoldOp(DefineXOr, "xor", height, width)
+
+
+def XOr(height, **kwargs):
+    def XOrGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineXOr(height, width)(**kwargs)(*args)
+    return XOrGenerator
+
+
+def xor(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return XOr(len(args))(*args)
 
 
 def simulate_bits_invert(self, value_store, state_store):
@@ -491,12 +541,6 @@ def DefineMux(height=2, width=1):
         simulate=simulate,
         default_kwargs={"width": N}
     )
-
-def or_(self, rhs):
-    return self | rhs
-
-def xor(self, rhs):
-    return self ^ rhs
 
 def invert(self):
     return ~self
