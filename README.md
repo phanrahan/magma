@@ -55,37 +55,27 @@ which is used to represent parts and boards,
 and to build applications for standalone FPGA boards.
 
 
-# Installation
-## Prerequisites
-* python (3 recommended)
-* pip
-### MacOS/Homebrew
-```
-$ brew install python3
-```
-### Ubuntu
-```
-$ sudo apt-get install python3 python3-pip
-```
-
 ## Setup
-**NOTE:** instructions assume Python 3 has been installed. On Ubuntu and
-MacOs/Homebrew that means `pip3` will be the package manager.
+Clone the magma repository
+```
+$ git clone https://github.com/phanrahan/magma
+$ cd magma
+```
 
 Install the Python dependencies
 ```
-$ pip3 install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 Install magma as a symbolic package
 ```
-$ pip3 install -e .
+$ pip install -e .
 ```
 
 Install testing infrastructure and run tests to validate the setup
 ```
-$ pip3 install pytest
-$ pytest
+$ pip install pytest
+$ pytest tests
 ```
 
 You should see something like
