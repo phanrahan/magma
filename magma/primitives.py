@@ -3,13 +3,14 @@ from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
 from magma.clock import Clock
 from magma.bits import Bits, BitsType, SInt, SIntType, UInt, UIntType
-from magma.circuit import DeclareCircuit, circuit_type_method
+from magma.circuit import DeclareCircuit, circuit_type_method, DefineCircuit, EndDefine
 from magma.compatibility import IntegerTypes
 from magma.bit_vector import BitVector
 from magma.wire import wire
 from magma.conversions import array, bits, uint, sint
 import operator
 import math
+from functools import wraps, reduce
 try:
     from functools import lru_cache
 except ImportError:
@@ -18,8 +19,9 @@ except ImportError:
 __all__  = ['DefineMux']
 __all__ += ['DefineRegister']
 __all__ += ['DefineMemory']
+__all__ += ['DefineAnd', 'And', 'and_']
 
-__all__ += ['and_', 'or_', 'xor'] 
+__all__ += ['or_', 'xor']
 __all__ += ['invert']
 __all__ += ['eq', 'ne']
 __all__ += ['lshift', 'rshift']
@@ -27,6 +29,20 @@ __all__ += ['add', 'sub', "mul", "div", "truediv"]
 __all__ += ['lt', 'le', "gt", "ge"]
 __all__ += ['concat', 'repeat']
 __all__ += ['zext', 'sext']
+
+
+def type_check_definition_params(fn):
+    @wraps(fn)
+    def wrapped(height=2, width=None):
+        if not isinstance(height, IntegerTypes) or height < 2:
+            raise ValueError("Height must be an integer greater than or equal "
+                    "to 2, not {}".format(height))
+        if width is not None and (not isinstance(width, IntegerTypes) or width < 1):
+            raise ValueError("Width must be None or an integer greater than or"
+                    " equal to 1, not {}".format(height))
+        return fn(height, width)
+    return wrapped
+
 
 def type_check_binary_operator(operator):
     """
@@ -74,14 +90,20 @@ def simulate_bit_not(self, value_store, state_store):
     out = (~_in).as_bool_list()[0]
     value_store.set_value(self.out, out)
 
-# In mantle, Not=BitNot
-BitNot = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
-        simulate=simulate_bit_not)
+
+Not = DeclareCircuit("coreir_bitnot", 'in', In(Bit), 'out', Out(Bit),
+    simulate=simulate_bit_not)
+
+def DefineNot(width=None):
+    if width != None:
+        raise ValueError("Not is only defined as a 1-bit operation, width must"
+                " be None")
+    return Not
 
 
 # In mantle, Invert inverts Bits
 def __invert__(self):
-    return BitNot()(self)
+    return Not()(self)
 
 
 BitType.__invert__ = __invert__
@@ -110,11 +132,48 @@ def declare_bits_binop(name, op, python_op):
     setattr(BitsType, op, func)
     return Declare
 
+@cache_definition
+def DefineFoldAnd(height, width):
+    T = Bits(width)
+    IO = []
+    for i in range(height):
+        IO += ["I{}".format(i), In(T)]
+    IO += ["O", Out(T)]
+    circ = DefineCircuit("fold_and{}{}".format(height, width), *IO)
+    reduce_args = [getattr(circ, "I{}".format(i)) for i in range(height)]
+    And2 = DefineAnd(2, width)
+    wire(reduce(lambda x, y: And2()(x, y), reduce_args), circ.O)
+    EndDefine()
+    return circ
 
-# Should these be just And(2)
-DefineAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
-DefineOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
-DefineXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
+
+DefineCoreirAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
+
+@type_check_definition_params
+def DefineAnd(height=2, width=None):
+    if width is None:
+        return BitAnd
+    elif height is 2:
+        return DefineCoreirAnd(width)
+    else:
+        return DefineFoldAnd(height, width)
+
+def And(height, **kwargs):
+    def AndGenerator(*args):
+        width = len(args[0])
+        assert all(len(arg) == width for arg in args)
+        return DefineAnd(height, width)(**kwargs)(*args)
+    return AndGenerator
+
+
+def and_(*args):
+    width = len(args[0])
+    assert all(len(arg) == width for arg in args)
+    return And(len(args))(*args)
+
+
+DefineCoreirOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
+DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
 
 def simulate_bits_invert(self, value_store, state_store):
@@ -432,10 +491,6 @@ def DefineMux(height=2, width=1):
         simulate=simulate,
         default_kwargs={"width": N}
     )
-
-
-def and_(self, rhs):
-    return self & rhs
 
 def or_(self, rhs):
     return self | rhs

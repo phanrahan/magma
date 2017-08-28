@@ -1,5 +1,7 @@
+import magma as m
 from magma import In, Out, Bit, UInt, Circuit, Bits, wire, compile
 from magma.primitives import DefineRegister, DefineMux, DefineMemory
+from magma.primitives import DefineAnd, And, and_
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq
 from magma.verilator.verilator import compile as compileverilator
@@ -8,6 +10,67 @@ from magma.verilator.function import testvectors
 from magma.python_simulator import PythonSimulator
 from magma.scope import Scope
 from magma.verilator.function import testvectors
+
+
+def test_and():
+    width = 4
+
+    def reference(a, b, c):
+        return a & b & c
+
+    def check_circuit(circ, circ_name):
+        compile("build/{}".format(circ_name), circ, include_coreir=True)
+
+        test_vectors = testvectors(circ, reference)
+        compileverilator('build/sim_{}_main.cpp'.format(circ_name), circ, test_vectors)
+
+        run_verilator_test(circ_name, 'sim_{}_main'.format(circ_name), circ_name)
+        simulator = PythonSimulator(circ)
+        scope = Scope()
+        for a, b, c, d in test_vectors:
+            simulator.set_value(circ.a, scope, a)
+            simulator.set_value(circ.b, scope, b)
+            simulator.set_value(circ.c, scope, c)
+            simulator.evaluate()
+            assert simulator.get_value(circ.d, scope) == d
+
+    def test_define():
+        circ_name = "test_define_and{}".format(width)
+        circ = m.DefineCircuit(circ_name,
+            *["a", In(Bits(width)), "b", In(Bits(width)), "c", In(Bits(width)),
+              "d", Out(Bits(width))])
+        And3 = DefineAnd(3, width)
+        and3 = And3()
+        wire(and3(circ.a, circ.b, circ.c), circ.d)
+        m.EndDefine()
+
+        check_circuit(circ, circ_name)
+
+    def test_instance():
+        circ_name = "test_instance_and{}".format(width)
+        circ = m.DefineCircuit(circ_name,
+            *["a", In(Bits(width)), "b", In(Bits(width)), "c", In(Bits(width)),
+              "d", Out(Bits(width))])
+        and3 = And(3)
+        wire(and3(circ.a, circ.b, circ.c), circ.d)
+        m.EndDefine()
+
+        check_circuit(circ, circ_name)
+
+    def test_operator():
+        circ_name = "test_operator_and{}".format(width)
+        circ = m.DefineCircuit(circ_name,
+            *["a", In(Bits(width)), "b", In(Bits(width)), "c", In(Bits(width)),
+              "d", Out(Bits(width))])
+        wire(and_(circ.a, circ.b, circ.c), circ.d)
+        m.EndDefine()
+
+        check_circuit(circ, circ_name)
+
+    test_define()
+    test_instance()
+    test_operator()
+
 
 def test_register():
     N = 4
