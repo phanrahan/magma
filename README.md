@@ -75,7 +75,7 @@ $ pip install -e .
 Install testing infrastructure and run tests to validate the setup
 ```
 $ pip install pytest
-$ pytest
+$ pytest tests
 ```
 
 You should see something like
