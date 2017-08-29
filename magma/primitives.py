@@ -142,7 +142,10 @@ def declare_bits_binop(name, op, python_op):
 
 @cache_definition
 def DefineFoldOp(DefineOp, op, height, width):
-    T = Bits(width)
+    if width is None:
+        T = Bit
+    else:
+        T = Bits(width)
     IO = []
     for i in range(height):
         IO += ["I{}".format(i), In(T)]
@@ -159,10 +162,11 @@ DefineCoreirAnd = declare_bits_binop("coreir_and", "__and__", operator.and_)
 
 @type_check_definition_params
 def DefineAnd(height=2, width=None):
-    if width is None:
-        return BitAnd
-    elif height is 2:
-        return DefineCoreirAnd(width)
+    if height is 2:
+        if width is None:
+            return BitAnd
+        else:
+            return DefineCoreirAnd(width)
     else:
         return DefineFoldOp(DefineAnd, "and", height, width)
 
@@ -187,10 +191,11 @@ DefineCoreirOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
 
 @type_check_definition_params
 def DefineOr(height=2, width=None):
-    if width is None:
-        return BitOr
-    elif height is 2:
-        return DefineCoreirOr(width)
+    if height is 2:
+        if width is None:
+            return BitOr
+        else:
+            return DefineCoreirOr(width)
     else:
         return DefineFoldOp(DefineOr, "or", height, width)
 
@@ -214,10 +219,11 @@ DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
 @type_check_definition_params
 def DefineXOr(height=2, width=None):
-    if width is None:
-        return BitXOr
-    elif height is 2:
-        return DefineCoreirXOr(width)
+    if height is 2:
+        if width is None:
+            return BitXOr
+        else:
+            return DefineCoreirXOr(width)
     else:
         return DefineFoldOp(DefineXOr, "xor", height, width)
 
@@ -379,10 +385,11 @@ DefineCoreirEQ = declare_binop("coreir_eq", Bits, BitsType, "__eq__",
 
 @type_check_definition_params
 def DefineEQ(height=2, width=None):
-    if width is None:
-        return BitAnd
-    elif height is 2:
-        return DefineCoreirEQ(width)
+    if height is 2:
+        if width is None:
+            return BitAnd
+        else:
+            return DefineCoreirEQ(width)
     else:
         return DefineFoldOp(DefineEQ, "eq", height, width)
 
