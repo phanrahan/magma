@@ -1,22 +1,24 @@
 import sys
 from full_adder import FullAdder
 
-from magma import *
+import magma as m
+from magma.bitutils import int2seq
 
 def DefineAdder(N):
-    T = UInt(N)
-    class Adder(Circuit):
+    T = m.UInt(N)
+    class Adder(m.Circuit):
         name = "Adder{}".format(N)
-        IO = ["a", In(T), "b", In(T), "cin", In(Bit), "out", Out(T), "cout", Out(Bit)]
+        IO = ["a", m.In(T), "b", m.In(T), "cin", m.In(m.Bit),
+              "out", m.Out(T), "cout", m.Out(m.Bit)]
         @classmethod
         def definition(io):
             adders = [FullAdder() for _ in range(N)]
-            circ = braid(adders, foldargs={"cin":"cout"})
-            wire(io.a, circ.a)
-            wire(io.b, circ.b)
-            wire(io.cin, circ.cin)
-            wire(io.cout, circ.cout)
-            wire(io.out, circ.out)
+            circ = m.braid(adders, foldargs={"cin":"cout"})
+            m.wire(io.a, circ.a)
+            m.wire(io.b, circ.b)
+            m.wire(io.cin, circ.cin)
+            m.wire(io.cout, circ.cout)
+            m.wire(io.out, circ.out)
     return Adder
 
 

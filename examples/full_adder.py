@@ -1,18 +1,19 @@
-from magma import *
+import magma as m
 
-class FullAdder(Circuit):
+class FullAdder(m.Circuit):
     name = "FullAdder"
-    IO = ["a", In(Bit), "b", In(Bit), "cin", In(Bit), "out", Out(Bit), "cout", Out(Bit)]
+    IO = ["a", m.In(m.Bit), "b", m.In(m.Bit), "cin", m.In(m.Bit),
+          "out", m.Out(m.Bit), "cout", m.Out(m.Bit)]
     @classmethod
     def definition(io):
         # Generate the sum
         a_xor_b = io.a ^ io.b
-        wire(a_xor_b ^ io.cin, io.out)
+        m.wire(a_xor_b ^ io.cin, io.out)
         # Generate the carry
         a_and_b = io.a & io.b
         b_and_cin = io.b & io.cin
         a_and_cin = io.a & io.cin
-        wire(a_and_b | b_and_cin | a_and_cin, io.cout)
+        m.wire(a_and_b | b_and_cin | a_and_cin, io.cout)
 
 
 if __name__ == "__main__":
