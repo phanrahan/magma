@@ -27,7 +27,7 @@ def test_shift_register():
     expected = [0, 0, 0] + list(range(0, 1 << N, 3))[:-3]
     actual = []
     for i in range(0, 1 << N, 3):
-        simulator.set_value(ShiftRegister.I, scope, [bool(x) for x in int2seq(i, N)])
+        simulator.set_value(ShiftRegister.I, scope, uint(i, N))
         for j in range(2):
             simulator.step()
             simulator.evaluate()
