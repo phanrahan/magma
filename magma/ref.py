@@ -57,7 +57,7 @@ class ArrayRef(Ref):
        self.index = index
 
    def __str__(self):
-       return self.qualifiedname(sep=None)
+       return self.qualifiedname(sep="")
 
    def qualifiedname(self, sep='.'):
        return self.array.name.qualifiedname(sep=sep) + '[%d]' % self.index
@@ -71,7 +71,7 @@ class TupleRef(Ref):
        self.index = index
 
    def __str__(self):
-       return self.qualifiedname(sep=None)
+       return self.qualifiedname(sep="")
 
    def qualifiedname(self, sep='.'):
        return self.tuple.name.qualifiedname(sep=sep) + '.' + str(self.index)
