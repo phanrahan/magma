@@ -1,8 +1,8 @@
 from collections import Sequence
 from .compatibility import IntegerTypes
 from .t import In, Out
-from .bit import BitKind, BitType, Bit, VCC, GND
-from .clock import ClockType, Clock
+from .bit import BitKind, BitType, Bit, VCC, GND, BitIn, BitOut, BitInOut
+from .clock import ClockType, Clock, ClockIn, ClockOut, ClockInOut
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
 from .tuple import Tuple
@@ -31,8 +31,12 @@ def bit(value):
         return VCC if value else GND
 
     if isinstance(value, ClockType):
-        if   value == In(Bit): return In(Clock)
-        elif value == Out(Bit): return Out(Clock)
+        if   value.isinput():  b = BitIn()
+        elif value.isoutput(): b = BitOut()
+        elif value.isinout():  b = BitInOut()
+        else: b = Bit()
+        b.port = value.port
+        return b
 
     return value
 
@@ -52,9 +56,13 @@ def clock(value):
     if isinstance(value, IntegerTypes):
         return VCC if value else GND
 
-    if isinstance(value, ClockType):
-        if   value == In(Clock): return In(Bit)
-        elif value == Out(Clock): return Out(Bit)
+    if isinstance(value, BitType):
+        if   value.isinput():  c = ClockIn()
+        elif value.isoutput(): c = ClockOut()
+        elif value.isinout():  c = ClockInOut()
+        else: c = Clock()
+        c.port = value.port
+        return c
 
     return value
 

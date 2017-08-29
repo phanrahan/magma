@@ -3,7 +3,8 @@ from .t import In, Out, InOut
 from .bit import Bit, _BitKind, _BitType
 from .wire import wire
 
-__all__  = ['Clock', 'ClockKind', 'ClockType']
+__all__  = ['ClockKind', 'ClockType']
+__all__ += ['Clock', 'ClockIn', 'ClockOut','ClockInOut']
 
 __all__ += ['ClockInterface']
 
@@ -32,6 +33,7 @@ class ClockType(_BitType):
 Clock = ClockKind('Clock', (ClockType,), {})
 ClockIn = ClockKind('Clock', (ClockType,), dict(direction=INPUT))
 ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
+ClockInOut = ClockKind('Clock', (ClockType,), dict(direction=INOUT))
 
 
 def ClockInterface(has_ce=False, has_reset=False, has_set=False):
