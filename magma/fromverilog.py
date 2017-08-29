@@ -9,7 +9,7 @@ from pyverilog.dataflow.visit import NodeVisitor
 from .t import In, Out
 from .bit import Bit
 from .array import Array
-from .circuit import DeclareCircuit, DefineCircuit
+from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 
 __all__  = ['DeclareFromVerilog']
 __all__ += ['DeclareFromVerilogFile']
@@ -66,6 +66,7 @@ def FromVerilog(source, func):
          if func == DefineCircuit:
              # inline source
              circuit.verilogFile = source
+         EndDefine()
          modules.append(circuit)
     return modules
 
