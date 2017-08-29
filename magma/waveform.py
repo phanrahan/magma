@@ -16,8 +16,8 @@ def waveform(signals, labels):
         plt.text(-1.5, i+.25, labels[i])
         plt.plot(t, 0.5*signals[i]+i, 'r', linewidth = 2)
 
-    plt.xlim([0,n])
-    plt.ylim([0,nsignals])
+    # plt.xlim([0,n])
+    # plt.ylim([-.25,nsignals])
 
     plt.gca().axis('off')
     plt.show()
