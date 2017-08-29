@@ -2,6 +2,7 @@ from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
 from .array import ArrayType, ArrayKind
+from .bit_vector import BitVector
 
 __all__  = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
@@ -13,6 +14,21 @@ class BitsType(ArrayType):
             return repr(self.name)
         ts = [repr(t) for t in self.ts]
         return 'bits([{}])'.format(', '.join(ts))
+
+    def bits(self):
+        if not self.const():
+            raise Exception("Not a constant")
+        def convert(x):
+            if x is VCC:
+                return True
+            assert x is GND
+            return False
+        return [convert(x) for x in self.ts]
+
+    def __int__(self):
+        if not self.const():
+            raise Exception("Can't call __int__ on a non-constant")
+        return BitVector(self.bits()).as_int()
 
 
 class BitsKind(ArrayKind):
@@ -75,6 +91,11 @@ class SIntType(BitsType):
             return repr(self.name)
         ts = [repr(t) for t in self.ts]
         return 'sint([{}])'.format(', '.join(ts))
+
+    def __int__(self):
+        if not self.const():
+            raise Exception("Can't call __int__ on a non-constant")
+        return BitVector(self.bits(), signed=True).as_int()
 
 
 class SIntKind(BitsKind):
