@@ -234,6 +234,8 @@ class PythonSimulator(CircuitSimulator):
         return ExecutionOrder(stateful=sorted_state_primitives, combinational=combinational)
 
     def __init__(self, main_circuit, clkbit=None):
+        if isinstance(main_circuit, CircuitType):
+            raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
         setup_clocks(main_circuit)
         self.txfm = flatten(main_circuit)
         self.circuit = self.txfm.circuit
