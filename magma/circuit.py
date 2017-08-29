@@ -438,10 +438,11 @@ def DefineCircuit(name, *decl, **args):
     return currentDefinition
 
 def EndDefine():
-    debug_info = get_callee_frame_info()
-    currentDefinition.end_circuit_filename = debug_info[0]
-    currentDefinition.end_circuit_lineno   = debug_info[1]
-    popDefinition()
+    if currentDefinition:
+        debug_info = get_callee_frame_info()
+        currentDefinition.end_circuit_filename = debug_info[0]
+        currentDefinition.end_circuit_lineno   = debug_info[1]
+        popDefinition()
 
 EndCircuit = EndDefine
 
