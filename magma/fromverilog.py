@@ -104,7 +104,7 @@ def DefineFromVerilog(source):
     return FromVerilog(source, DefineCircuit)
 
 def DefineFromVerilogFile(file):
-    return FromVerilogFile(source, DefineCircuit)
+    return FromVerilogFile(file, DefineCircuit)
 
 def DefineFromTemplatedVerilog(source, **kwargs):
     return FromTemplatedVerilog(source, DefineCircuit, **kwargs)
