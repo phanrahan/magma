@@ -18,10 +18,9 @@ def get_original_wire_call_stack_frame():
     else:
         return frame.frame
 
-def warn(*args, print_traceback=True):
+def warn(*args):
     print(*args)
-    if print_traceback:
-        traceback.print_stack()
+    traceback.print_stack()
 
 def error(message):
     stack_frame = get_original_wire_call_stack_frame()
