@@ -10,7 +10,9 @@ from .ref import InstRef
 from .compatibility import builtins
 from code import compile_command
 import re
-import readline
+from sys import platform
+if platform == "linux" or platform == "linux2" or platform == "darwin":
+    import readline
 import cmd
 
 __all__ = ['simulate']

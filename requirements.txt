@@ -7,4 +7,3 @@ funcsigs; python_version < '3.3'
 numpy
 matplotlib
 graphviz
-readline
