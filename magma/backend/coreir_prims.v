@@ -671,7 +671,7 @@ assign rdata = outreg;
 integer i;
 initial begin
   outreg = {width{1'bx}};
-  for (i=0; i<depth; i+=1) begin
+  for (i=0; i<depth; i=i+1) begin
     data[i] = {width{1'bx}};
   end
 end
