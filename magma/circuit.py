@@ -331,7 +331,9 @@ def popDefinition():
 #  A circuit is a definition if it has instances
 def isdefinition(circuit):
     'Return whether a circuit is a module definition'
-    return hasattr(circuit, "instances")
+    return hasattr(circuit, "instances") or \
+           getattr(circuit, "verilogFile", None) is not None or \
+           getattr(circuit, "verilog", None) is not None
 
 def isprimitive(circuit):
     return circuit.primitive
