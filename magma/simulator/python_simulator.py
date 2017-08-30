@@ -11,11 +11,12 @@ from .simulator import CircuitSimulator, ExecutionState
 from ..transforms import flatten, setup_clocks
 from ..circuit import *
 from ..scope import *
-from ..bit import VCC, GND, BitType
+from ..bit import VCC, GND, BitType, _BitType
 from ..array import ArrayType
 from ..bits import SIntType, BitsType
 from ..bit_vector import BitVector
 from ..bitutils import seq2int
+from ..clock import ClockType
 
 __all__ = ['PythonSimulator', 'testvectors']
 
@@ -146,17 +147,10 @@ class PythonSimulator(CircuitSimulator):
 
         return wrapped
 
-    def __setup_circuit(self, clkbit):
-        if clkbit:
-            self.clkbit = clkbit
-        else:
-            if hasattr(self.circuit, 'CLKIN'):
-                self.clkbit = self.circuit.CLKIN
-            elif hasattr(self.circuit, 'CLK'):
-                self.clkbit = self.circuit.CLK
-            else:
-                # assert False, 'No valid clock in circuit'
-                self.clkbit = None
+    def __setup_circuit(self, clock):
+        if clock is not None:
+            clock = self.txfm.get_new_bit(clock, self.default_scope)
+        self.clock = clock
 
         self.circuit_inputs = []
         self.circuit_outputs = []
@@ -233,14 +227,17 @@ class PythonSimulator(CircuitSimulator):
         
         return ExecutionOrder(stateful=sorted_state_primitives, combinational=combinational)
 
-    def __init__(self, main_circuit, clkbit=None):
+    def __init__(self, main_circuit, clock=None):
         if isinstance(main_circuit, CircuitType):
             raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
+        if clock is not None and not isinstance(clock, ClockType):
+            raise ValueError("clock must be a ClockType or None")
         setup_clocks(main_circuit)
         self.txfm = flatten(main_circuit)
         self.circuit = self.txfm.circuit
         self.value_store = ValueStore()
-        self.__setup_circuit(clkbit)
+        self.default_scope = Scope()
+        self.__setup_circuit(clock)
         self.watchpoints = []
 
         primitives = self.__setup_primitives()
@@ -252,9 +249,9 @@ class PythonSimulator(CircuitSimulator):
     def get_capabilities(self):
         return []
 
-    def get_value(self, bit, scope):
-        if not isinstance(scope, Scope):
-            raise PythonSimulatorException("Second argument to `get_value` should be an instance of Scope")
+    def get_value(self, bit, scope=None):
+        if scope is None:
+            scope = self.default_scope
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit is None:
             return None
@@ -264,9 +261,9 @@ class PythonSimulator(CircuitSimulator):
         except KeyError:
             return None
 
-    def set_value(self, bit, scope, newval):
-        if not isinstance(scope, Scope):
-            raise PythonSimulatorException("Second argument to `set_value` should be an instance of Scope, not {}".format(type(scope)))
+    def set_value(self, bit, newval, scope=None):
+        if scope is None:
+            scope = self.default_scope
         newbit = self.txfm.get_new_bit(bit, scope)
         if not self.is_circuit_input(newbit):
             message = "Only setting main's inputs is supported (Trying to set: {})".format(bit)
@@ -279,7 +276,7 @@ class PythonSimulator(CircuitSimulator):
         Checks if `value` is in `self.circuit_inputs`.
         If `value` is an `ArrayType`, it recursively checks the elements
         """
-        if isinstance(value, BitType):
+        if isinstance(value, _BitType):
             return value in self.circuit_inputs
         elif isinstance(value, ArrayType):
             return all(self.is_circuit_input(elem) for elem in value)
@@ -301,18 +298,20 @@ class PythonSimulator(CircuitSimulator):
 
     def get_clock_value(self):
         """
-        Looks up the value of `self.clkbit` in `self.value_store`
-        Returns None if self.clkbit is None (circuit doesn't have a clock)
+        Looks up the value of `self.clock` in `self.value_store`
+        Returns None if self.clock is None (circuit doesn't have a clock)
         """
-        if self.clkbit is not None:
-            return self.value_store.get_value(self.clkbit)
+        if self.clock is not None:
+            return self.value_store.get_value(self.clock)
         return None
 
     def step(self):
-        if self.clkbit is None:
-            raise PythonSimulatorException("Cannot step a simulated circuit without a clock")
-        cur_clock_val = self.value_store.get_value(self.clkbit)
-        self.value_store.set_value(self.clkbit, not cur_clock_val)
+        if self.clock is None:
+            raise PythonSimulatorException("Cannot step a simulated circuit "
+                    "without a clock, did you pass a clock during "
+                    "initialization?")
+        cur_clock_val = self.value_store.get_value(self.clock)
+        self.value_store.set_value(self.clock, not cur_clock_val)
 
     def cont(self):
         cycles = 0

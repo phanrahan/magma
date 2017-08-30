@@ -69,14 +69,14 @@ def test():
     wire(counter.COUT, testcircuit.COUT)
     EndCircuit()
     
-    sim = PythonSimulator(testcircuit)
+    sim = PythonSimulator(testcircuit, testcircuit.CLK)
     
     for i in range((1 << 5) - 1):
         sim.evaluate()
-        val = sim.get_value(testcircuit.O, Scope())
+        val = sim.get_value(testcircuit.O)
         num = seq2int(val)
         assert num == i
-        cout = sim.get_value(testcircuit.COUT, Scope())
+        cout = sim.get_value(testcircuit.COUT)
         assert not cout
     
         sim.step()
@@ -84,10 +84,10 @@ def test():
         sim.step()
     
     sim.evaluate()
-    val = sim.get_value(testcircuit.O, Scope())
+    val = sim.get_value(testcircuit.O)
     num = seq2int(val)
     assert num == 31
-    cout = sim.get_value(testcircuit.COUT, Scope())
+    cout = sim.get_value(testcircuit.COUT)
     assert cout
     
     sim.step()
@@ -95,9 +95,9 @@ def test():
     sim.step()
     sim.evaluate()
     
-    val = sim.get_value(testcircuit.O, Scope())
+    val = sim.get_value(testcircuit.O)
     num = seq2int(val)
     assert num == 0
     
-    cout = sim.get_value(testcircuit.COUT, Scope())
+    cout = sim.get_value(testcircuit.COUT)
     assert not cout
