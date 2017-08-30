@@ -40,7 +40,7 @@ def ParseVerilogModule(node):
         elif isinstance(io, Output):
             dir = Out
         else:
-            dir = InOot
+            dir = InOut
 
         if io.width is None:
             t = Bit
