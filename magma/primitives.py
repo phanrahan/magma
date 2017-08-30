@@ -265,7 +265,7 @@ def Invert(**kwargs):
 
 
 def invert(arg, **kwargs):
-    return Invert()(arg, **kwargs)
+    return Invert(**kwargs)(arg)
 
 
 def __invert__(self):
