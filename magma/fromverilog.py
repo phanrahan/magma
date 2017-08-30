@@ -6,7 +6,7 @@ from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef
 from pyverilog.dataflow.visit import NodeVisitor
 
-from .t import In, Out
+from .t import In, Out, InOut
 from .bit import Bit
 from .array import Array
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
@@ -34,16 +34,23 @@ def ParseVerilogModule(node):
     for port in node.portlist.ports:
         io = port.first
         args.append(io.name)
-        msb = int(io.width.msb.value)
-        lsb = int(io.width.lsb.value)
-        if   isinstance(io, Input):  dir = 'In'
-        elif isinstance(io, Output): dir = 'Out'
-        else: continue
-        if msb == 0 and lsb == 0:
-            t = Bit
+
+        if isinstance(io, Input):
+            direction = In
+        elif isinstance(io, Output):
+            direction = Out
         else:
-            t = Array(msb-lsb+1, Bit)
-        args.append( In(t) if dir == 'In' else Out(t) )
+            direction = InOut
+
+        if io.width is None:
+            type_ = Bit
+        else:
+            msb = int(io.width.msb.value)
+            lsb = int(io.width.lsb.value)
+
+            type_ = Array(msb-lsb+1, Bit)
+
+        args.append(direction(type_))
 
     return node.name, args
 
