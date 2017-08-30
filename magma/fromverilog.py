@@ -36,21 +36,21 @@ def ParseVerilogModule(node):
         args.append(io.name)
 
         if isinstance(io, Input):
-            dir = In
+            direction = In
         elif isinstance(io, Output):
-            dir = Out
+            direction = Out
         else:
-            dir = InOut
+            direction = InOut
 
         if io.width is None:
-            t = Bit
+            type_ = Bit
         else:
             msb = int(io.width.msb.value)
             lsb = int(io.width.lsb.value)
 
-            t = Array(msb-lsb+1, Bit)
+            type_ = Array(msb-lsb+1, Bit)
 
-        args.append(dir(t))
+        args.append(direction(type_))
 
     return node.name, args
 
