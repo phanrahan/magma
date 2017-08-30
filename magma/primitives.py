@@ -383,11 +383,18 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
 DefineCoreirEQ = declare_binop("coreir_eq", Bits, BitsType, "__eq__",
         operator.eq, out_type=Bit)
 
+@cache_definition
+def DefineBitEQ():
+    circ = DefineCircuit("biteq", "in0", In(Bit), "in1", In(Bit), "out", Out(Bit))
+    wire(not_(xor(circ.in0, circ.in1)), circ.out)
+    EndDefine()
+    return circ
+
 @type_check_definition_params
 def DefineEQ(height=2, width=None):
     if height is 2:
         if width is None:
-            return BitAnd
+            return DefineBitEQ()
         else:
             return DefineCoreirEQ(width)
     else:
@@ -619,9 +626,6 @@ def div(self, rhs):
 
 def truediv(self, rhs):
     return self // rhs
-
-def eq(self, rhs):
-    return self == rhs
 
 def ne(self, rhs):
     return self != rhs
