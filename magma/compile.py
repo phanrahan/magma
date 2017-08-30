@@ -4,7 +4,6 @@ import inspect
 from .backend import verilog, blif, firrtl, dot
 from .error import warn
 from .config import get_compile_dir
-from .simulator_interactive_frontend import simulate
 
 __all__ = ['compile']
 
@@ -21,10 +20,6 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         file_name = os.path.join(file_path, basename)
     else:
         file_name = basename
-
-    if output == '--simulate': #FIXME
-        simulate(main)
-        return
 
     if output == 'verilog':
         write_file(file_name, 'v', verilog.compile(main, include_coreir))
