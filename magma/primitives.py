@@ -183,8 +183,8 @@ def And(height, **kwargs):
     return AndGenerator
 
 
-def and_(*args):
-    return And(len(args))(*args)
+def and_(*args, **kwargs):
+    return And(len(args), **kwargs)(*args)
 
 
 DefineCoreirOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
@@ -212,8 +212,8 @@ def Or(height, **kwargs):
     return OrGenerator
 
 
-def or_(*args):
-    return Or(len(args))(*args)
+def or_(*args, **kwargs):
+    return Or(len(args), **kwargs)(*args)
 
 DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
@@ -240,8 +240,8 @@ def XOr(height, **kwargs):
     return XOrGenerator
 
 
-def xor(*args):
-    return XOr(len(args))(*args)
+def xor(*args, **kwargs):
+    return XOr(len(args), **kwargs)(*args)
 
 
 def simulate_bits_invert(self, value_store, state_store):
@@ -256,16 +256,16 @@ def DefineInvert(N):
             simulate=simulate_bits_invert, verilog_name="coreir_not",
             default_kwargs={"width": N})
 
-def Invert():
+def Invert(**kwargs):
     def invert_generator(arg):
         assert not isinstance(arg, BitType), "Invert not defined to Bit, use Not()"
         assert isinstance(arg, BitsType)
-        return DefineInvert(len(arg))()(arg)
+        return DefineInvert(len(arg))(**kwargs)(arg)
     return invert_generator
 
 
-def invert(arg):
-    return Invert()(arg)
+def invert(arg, **kwargs):
+    return Invert(**kwargs)(arg)
 
 
 def __invert__(self):
@@ -383,11 +383,18 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
 DefineCoreirEQ = declare_binop("coreir_eq", Bits, BitsType, "__eq__",
         operator.eq, out_type=Bit)
 
+@cache_definition
+def DefineBitEQ():
+    circ = DefineCircuit("biteq", "in0", In(Bit), "in1", In(Bit), "out", Out(Bit))
+    wire(not_(xor(circ.in0, circ.in1)), circ.out)
+    EndDefine()
+    return circ
+
 @type_check_definition_params
 def DefineEQ(height=2, width=None):
     if height is 2:
         if width is None:
-            return BitAnd
+            return DefineBitEQ()
         else:
             return DefineCoreirEQ(width)
     else:
@@ -406,8 +413,8 @@ def EQ(height, **kwargs):
     return EQGenerator
 
 
-def eq(*args):
-    return EQ(len(args))(*args)
+def eq(*args, **kwargs):
+    return EQ(len(args), **kwargs)(*args)
 
 def DefineNE(*args):
     raise NotImplementedError()
@@ -619,9 +626,6 @@ def div(self, rhs):
 
 def truediv(self, rhs):
     return self // rhs
-
-def eq(self, rhs):
-    return self == rhs
 
 def ne(self, rhs):
     return self != rhs

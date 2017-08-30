@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 import magma as m
-from magma import In, Out, Bit, UInt, Circuit, Bits, wire, compile
+from magma import In, Out, Bit, UInt, SInt, Circuit, Bits, wire, compile
 from magma.primitives import DefineRegister, DefineMux, DefineMemory
 
 from magma.primitives import DefineAnd, And, and_
@@ -55,58 +55,71 @@ def check_circuit(circ, circ_name, reference):
         assert simulator.get_value(circ.e, scope) == e
 
 
-def run_test(name, define_op, instance_op, op, python_op):
-    width = 4
+def run_test(name, define_op, instance_op, op, python_op, types):
 
     def reference(a, b):
         val = python_op(a, b)
         return val, val, val
 
-    circ_name = "test_define_{}".format(name, width)
-    circ = m.DefineCircuit(circ_name,
-        *["a", In(Bits(width)), "b", In(Bits(width)), "c", Out(Bits(width)),
-          "d", Out(Bits(width)), "e", Out(Bits(width))])
-    wire(define_op(2, width)()(circ.a, circ.b), circ.c)
-    wire(instance_op(2)(circ.a, circ.b), circ.d)
-    wire(op(circ.a, circ.b), circ.e)
-    m.EndDefine()
+    def test(T, width):
+        circ_name = "test_define_{}{}".format(name, width)
+        circ = m.DefineCircuit(circ_name,
+            *["a", In(T), "b", In(T), "c", Out(T),
+              "d", Out(T), "e", Out(T)])
+        wire(define_op(2, width)()(circ.a, circ.b), circ.c)
+        wire(instance_op(2)(circ.a, circ.b), circ.d)
+        wire(op(circ.a, circ.b), circ.e)
+        m.EndDefine()
 
-    check_circuit(circ, circ_name, reference)
+        check_circuit(circ, circ_name, reference)
+
+    for type_ in types:
+        if type_ == Bit:
+            test(Bit, None)
+        else:
+            for width in range(1, 4):
+                test(type_(width), width)
 
 
-def run_compare_test(name, define_op, instance_op, op, python_op):
-    width = 4
-
+def run_compare_test(name, define_op, instance_op, op, python_op, types):
     def reference(a, b):
         val = python_op(a, b)
         return val, val, val
 
-    circ_name = "test_define_{}".format(name, width)
-    circ = m.DefineCircuit(circ_name,
-        *["a", In(Bits(width)), "b", In(Bits(width)), "c", Out(Bit),
-          "d", Out(Bit), "e", Out(Bit)])
-    wire(define_op(2, width)()(circ.a, circ.b), circ.c)
-    wire(instance_op(2)(circ.a, circ.b), circ.d)
-    wire(op(circ.a, circ.b), circ.e)
-    m.EndDefine()
+    def test(T, width):
+        circ_name = "test_define_{}{}".format(name, width)
+        circ = m.DefineCircuit(circ_name,
+            *["a", In(T), "b", In(T), "c", Out(Bit),
+              "d", Out(Bit), "e", Out(Bit)])
+        wire(define_op(2, width)()(circ.a, circ.b), circ.c)
+        wire(instance_op(2)(circ.a, circ.b), circ.d)
+        wire(op(circ.a, circ.b), circ.e)
+        m.EndDefine()
 
-    check_circuit(circ, circ_name, reference)
+        check_circuit(circ, circ_name, reference)
+
+    for type_ in types:
+        if type_ == Bit:
+            test(Bit, None)
+        else:
+            for width in range(1, 4):
+                test(type_(width), width)
 
 
 def test_and():
-    run_test("and", DefineAnd, And, and_, operator.and_)
+    run_test("and", DefineAnd, And, and_, operator.and_, [Bit, Bits])
 
 
 def test_or():
-    run_test("or", DefineOr, Or, or_, operator.or_)
+    run_test("or", DefineOr, Or, or_, operator.or_, [Bit, Bits])
 
 
 def test_xor():
-    run_test("xor", DefineXOr, XOr, xor, operator.xor)
+    run_test("xor", DefineXOr, XOr, xor, operator.xor, [Bit, Bits])
 
 
 def test_eq():
-    run_compare_test("eq", DefineEQ, EQ, eq, operator.eq)
+    run_compare_test("eq", DefineEQ, EQ, eq, operator.eq, [Bit, Bits])
 
 
 def run_unary_op_test(name, define_op, instance_op, op, python_op):
