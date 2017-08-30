@@ -283,7 +283,8 @@ class CircuitType(AnonymousCircuitType):
                  # {1} # to a length of n characters (including 0x), defined by the second parameter
                  # x   # hexadecimal number, using lowercase letters for a-f
                  # }   # End of format identifier
-                 v = "{0:#0{1}x}".format(v[0], v[1] // 4)
+                 if len(v) == 2:
+                     v = "{0:#0{1}x}".format(v[0], v[1] // 4)
             else:
                  v = '"{}"'.format(v)
             args.append("%s=%s"%(k, v))
