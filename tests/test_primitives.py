@@ -16,7 +16,6 @@ from magma.testing.verilator import compile as compileverilator
 from magma.testing.verilator import run_verilator_test
 from magma.testing.function import testvectors
 from magma.simulator import PythonSimulator
-from magma.verilator.function import testvectors
 
 
 def check_unary_circuit(circ, circ_name, reference):
