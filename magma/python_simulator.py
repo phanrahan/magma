@@ -13,7 +13,7 @@ from .circuit import *
 from .scope import *
 from .bit import VCC, GND, BitType
 from .array import ArrayType
-from .bits import SIntType
+from .bits import SIntType, BitsType
 from .bit_vector import BitVector
 from .bitutils import seq2int
 
@@ -122,6 +122,10 @@ class ValueStore:
         if isinstance(bit, ArrayType):
             if isinstance(newval, BitVector):
                 newval = newval.as_bool_list()
+            elif isinstance(newval, BitsType):
+                if not newval.const():
+                    raise ValueError("Calling set_value with a BitsType only works with a constant")
+                newval = newval.bits()
             for b,v in zip(bit, newval):
                 self.set_value(b, v)
             return
@@ -230,6 +234,8 @@ class PythonSimulator(CircuitSimulator):
         return ExecutionOrder(stateful=sorted_state_primitives, combinational=combinational)
 
     def __init__(self, main_circuit, clkbit=None):
+        if isinstance(main_circuit, CircuitType):
+            raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
         setup_clocks(main_circuit)
         self.txfm = flatten(main_circuit)
         self.circuit = self.txfm.circuit

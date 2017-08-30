@@ -63,6 +63,6 @@ def wiredefaultclock(defn, inst):
              defnclk = port
     if defnclk:
         for name, port in inst.interface.ports.items():
-             if isinstance(port, ClockType) and not port.driven():
+             if isinstance(port, ClockType) and port.isinput() and not port.driven():
                  #print('inst clock', port)
                  wire(defnclk, port)
