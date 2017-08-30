@@ -166,12 +166,13 @@ def compiledefinition(cls):
                 s += compileinstance(instance) + ';\n'
 
             # assign to module output arguments
-            for input in cls.interface.inputs():
-                output = input.value()
-                if output:
-                    iname = vname(input)
-                    oname = vname(output)
-                    s += 'assign %s = %s;\n' % (iname, oname)
+            for port in cls.interface.ports.values():
+                if port.isinput():
+                    output = port.value()
+                    if output:
+                        iname = vname(port)
+                        oname = vname(output)
+                        s += 'assign %s = %s;\n' % (iname, oname)
 
         s += "endmodule\n"
 
