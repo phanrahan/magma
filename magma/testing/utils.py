@@ -4,7 +4,7 @@ Infrastructure for writing magma tests
 import filecmp
 import os
 
-def magma_check_files_equal(callee_file, file1, file2):
+def check_files_equal(callee_file, file1, file2):
     """
     Check if file1 == file2 where file1 and file2 are in the same path as
     callee_file (presumably __file__ for the script calling this function)

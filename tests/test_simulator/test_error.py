@@ -1,4 +1,3 @@
-
 from magma import *
 from magma.primitives import DefineRegister
 
