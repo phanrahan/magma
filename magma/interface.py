@@ -96,8 +96,9 @@ class _Interface(Type):
     # return all the argument input ports
     def inputs(self):
         return [port for name, port in self.ports.items() \
-                    if port.isinput() \
-                        and name not in ['RESET', 'SET', 'CE', 'CIN']]
+                    if port.isinput() and \
+                        not isinstance(port, ClockType) and \
+                            name not in ['RESET', 'SET', 'CE', 'CIN']]
 
     # return all the argument output ports
     def outputs(self):
