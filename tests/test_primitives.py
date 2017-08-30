@@ -12,12 +12,11 @@ from magma.primitives import DefineEQ, EQ, eq
 
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq
-from magma.verilator.verilator import compile as compileverilator
-from magma.verilator.verilator import run_verilator_test
-from magma.verilator.function import testvectors
+from magma.testing.verilator import compile as compileverilator
+from magma.testing.verilator import run_verilator_test
+from magma.testing.function import testvectors
 from magma.simulator import PythonSimulator
 from magma.scope import Scope
-from magma.verilator.function import testvectors
 
 
 def check_unary_circuit(circ, circ_name, reference):
