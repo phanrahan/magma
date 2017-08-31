@@ -12,5 +12,3 @@ def check_files_equal(callee_file, file1, file2):
     file_path = os.path.dirname(callee_file)
     return filecmp.cmp(os.path.join(file_path, file1), 
                        os.path.join(file_path, file2), shallow=False)
-
-check_files_equal = magma_check_files_equal
