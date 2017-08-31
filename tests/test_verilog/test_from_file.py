@@ -1,5 +1,5 @@
 import magma as m
-import magma.tests
+import magma.testing
 import os
 
 def check_port(definition, port, type, direction):
@@ -23,5 +23,5 @@ def test():
     check_port(RXMOD, "valid", m.BitType, "output")
 
     m.compile("build/test_rxmod", RXMOD)
-    assert m.tests.check_files_equal(__file__, "build/test_rxmod.v",
+    assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
             "gold/test_rxmod.v")
