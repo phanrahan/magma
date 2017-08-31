@@ -62,6 +62,20 @@ and to build applications for standalone FPGA boards.
 * python (3 recommended)
 * pip
 * verilator (for testing)
+### Universal
+[miniconda](https://conda.io/miniconda.html) - A free minimal installer for
+conda. Miniconda is a small, bootstrap version of Anaconda that includes only
+conda, Python, the packages they depend on and a small number of other useful
+packages, including pip, zlib and a few others. Use the conda install command
+to install 720+ additional conda packages from the Continuum repository.
+
+Download the installer for your operating system from
+[https://conda.io/miniconda.html](https://conda.io/miniconda.html)
+```
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+```
+
+
 ### MacOS/Homebrew
 ```
 $ brew install python3 verilator
