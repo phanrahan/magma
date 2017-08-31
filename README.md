@@ -6,8 +6,6 @@ Magma is a hardware design language embedded in python.
 The central abstraction in Magma is a circuit.
 A circuit is a set of functional units that are wired together.
 Magma circuits are analagous to verilog modules.
-Creating circuits in Magma
-is analogous to instantiating modules and wiring them together in verilog.
 Thus, all Magma programs are guaranteed to be synthesizable.
 Although wiring modules together may seem low-level,
 it encourages hardware designers to build reusable components,
@@ -17,12 +15,15 @@ Python is used to to create Magma circuits.
 This approach to hardware design using scripting languages
 is referred to as *generators* in the hardware community.
 Example hardware generators include 
-arithmetic units and linear feedback shift registers.
-Software engineers more generally 
-refer to this technique as *metaprogramming*.
+arithmetic units,
+linear feedback shift registers,
+wallace trees,
+and sorting networks..
+Software engineers refer to this technique as *metaprogramming*.
 The scripting language is a metaprogram 
-in the sense that it is a program that creates a program.
+in the sense that it is a program that creates a hardware program.
 
+In contrast to verilog,
 Python has powerful metaprogramming capabilities,
 such as decorators and metaclasses.
 This makes it possible to create 
@@ -43,13 +44,15 @@ Please also refer to the
 The design of Magma was heavily influenced by 
 [Chisel](https://chisel.eecs.berkeley.edu/),
 so Magma should be easy to learn if you know Chisel.
+The [Chisel Tutorial Notebook](https://github.com/phanrahan/magma/tree/master/notebooks/chisel-tutorial)
+has the Magma versions of the Chisel Tutorial examples.
 Magma also has a 
 [FIRRTL](https://github.com/freechipsproject/firrtl) backend,
 and we hope to demonstrate interoperability with Chisel via FIRRTL soon.
 
 Magma is designed to work with
 [Mantle](https://github.com/phanrahan/mantle) 
-which contains an extensive a collection of useful circuits;
+which contains an a collection of useful circuits;
 and with [Loam](https://github.com/phanrahan/loam)
 which is used to represent parts and boards,
 and to build applications for standalone FPGA boards.
