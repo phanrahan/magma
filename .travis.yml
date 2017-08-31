@@ -17,7 +17,7 @@ before_install:
     - export COREIRCONFIG="g++-4.9";
     - export COREIR=$PWD
     - export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
-    - make install
+    - make install -j 2
     - make py
     - cd ..;
     # END: coreir installation
