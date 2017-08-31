@@ -184,29 +184,42 @@ class AnonymousCircuitType(object):
     def __getitem__(self, key):
         return self.interface[key]
 
+    # wire a list of outputs to the circuit's inputs
+    def wireoutputs(self, outputs, debug_info):
+        inputs = self.interface.inputs()
+        ni = len(inputs)
+        no = len(outputs)
+        if ni != no:
+            warn("Warning: number of inputs is not equal to the number of outputs")
+            warn("Warning: only %d of the %d arguments will be wired" % (ni, no))
+        for i in range(min(ni,no)):
+            wire(outputs[i], inputs[i], debug_info)
+
+    # wire a single output to the circuit's inputs
+    def wire(self, output, debug_info):
+
+        if hasattr(output, 'interface'):
+            # wire the circuit's outputs to this circuit's inputs
+            self.wireoutputs(output.interface.outputs(), debug_info)
+        else:
+            # wire the output to this circuit's input (should only have 1 input)
+            inputs = self.interface.inputs()
+            ni = len(inputs)
+            if ni == 0:
+                warn("Warning: wiring an output to a circuit with no input arguments")
+                return
+            if ni != 1:
+                warn("Warning: wiring an output to a circuit with more than one input argument")
+            inputs[0].wire( output, debug_info )
+
     def __call__(input, *outputs, **kw):
         debug_info = get_callee_frame_info()
 
-        # if the argument is a single circuit, 
-        #   replace it with the circuit's outputs
-        if len(outputs) == 1 and isinstance(outputs[0], AnonymousCircuitType):
-             outputs = outputs[0].interface.outputs()
-
-        # wire up argument list, if present
         no = len(outputs)
-        if no != 0:
-            inputs = input.interface.inputs()
-            ni = len(inputs)
-            if ni != no:
-                if no > ni:
-                    warn("Warning: wiring only %d of the %d arguments"
-                        % (ni, no))
-                else:
-                    warn("Warning: wiring only %d of the %d circuit inputs"
-                        % (no, ni))
-
-            for i in range(min(ni,no)):
-                wire(outputs[i], inputs[i], debug_info)
+        if len(outputs) == 1:
+            input.wire(outputs[0], debug_info)
+        else:
+            input.wireoutputs(outputs, debug_info)
 
         # wire up extra arguments, name to name
         for key, value in kw.items():
@@ -473,9 +486,3 @@ def hstr(init, nbits):
     return format
 
 
-if __name__ == '__main__':
-    from magma.bit import Bit
-    C0 = DeclareCircuit("C", "a", In(Bit), "b", Out(Bit))
-    print(C0)
-    c0 = C0()
-    print(c0)

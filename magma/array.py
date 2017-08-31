@@ -5,7 +5,7 @@ from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
 from .bitutils import int2seq
-from .debug import debug_wire
+from .debug import debug_wire, get_callee_frame_info
 
 __all__  = ['ArrayType', 'ArrayKind', 'Array']
 
@@ -65,9 +65,8 @@ class ArrayType(Type):
             res_bits.append(self[i] if i < self.N else other[i - self.N])
         return array(res_bits)
 
-    # should I allow this?
     def __call__(self, o):
-        return self.wire(o)
+        return self.wire(o, get_callee_frame_info())
 
     @classmethod
     def isoriented(cls, direction):
@@ -81,10 +80,6 @@ class ArrayType(Type):
         if not isinstance(o, ArrayType):
             error('Wiring Error: wiring {} ({}) to {} ({})'.format(repr(o), type(o), repr(i), type(i)))
             return
-
-        #if i.T != o.T:
-        #    print('Wiring error: Array elements must have the same type')
-        #    return
 
         if i.N != o.N:
             error('Wiring Error: Arrays must have the same length {} != {}'.format(i.N, o.N))

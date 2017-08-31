@@ -45,16 +45,6 @@ class _BitType(Type):
             error('Wiring Error: wiring {} to {} (not a _Bit)'.format(o, i))
             return
 
-        #if o.isoutput() and i.isoutput():
-        #    print("Error: can't wire an output to an output")
-        #    return
-        #if i.isinput() and o.isinput():
-        #    print("Error: can't wire an input to an input")
-        #    return
-
-        if o.isinput() and not i.isinput():
-            i, o = o, i
-
         i.port.wire(o.port)
         i.debug_info = debug_info
         o.debug_info = debug_info

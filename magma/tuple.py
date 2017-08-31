@@ -3,7 +3,7 @@ from .ref import TupleRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes, StringTypes
 from .bit import BitOut, VCC, GND
-from .debug import debug_wire
+from .debug import debug_wire, get_callee_frame_info
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
 
@@ -47,9 +47,8 @@ class TupleType(Type):
     def __len__(self):
         return self.N
 
-    # should I allow this?
     def __call__(self, o):
-        return self.wire(o)
+        return self.wire(o, get_callee_frame_info())
 
     @classmethod
     def isoriented(cls, direction):
@@ -67,8 +66,8 @@ class TupleType(Type):
             print('Wiring error: wiring', o, 'to', i, '(not an Tuple)')
             return
 
-        if i.N != o.N:
-            print('Wiring error: Tuples must have the same length', i.N, o.N)
+        if i.Ks != o.Ks:
+            print('Wiring error: Tuples must have the same keys', i.Ks, o.Ks)
             return
 
         #if i.Ts != o.Ts:
