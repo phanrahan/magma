@@ -7,20 +7,16 @@ well as a [Vagrant](https://www.vagrantup.com/) virtual machine.
 
 ## Local
 Tested on MacOS 10.12.6 with Homebrew and Ubuntu 14.04.
-### Dependencies
-#### MacOS
+### MacOS
 ```
 brew install python3
+python3 install.py
 ```
 
-#### Ubuntu
+### Ubuntu
 ```
 sudo apt-get install python3 python3-pip
-```
-
-### Installing Icestorm tools, arachne-pnr, and yosys
-```
-python3 install.py --num_cores 4
+sudo python3 install.py
 ```
 
 ## Vagrant Virtual Machine

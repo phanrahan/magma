@@ -7,10 +7,14 @@ import platform
 from subprocess import call
 import os
 import argparse
+import multiprocessing
 
-parser = argparse.ArgumentParser(description='Install the toolchain for programming the icestcik')
-parser.add_argument('--num_cores', type=int, default=1,
-                   help='run make with `num_cores` cores (-j `num_cores`)')
+
+parser = argparse.ArgumentParser(description='Install the toolchain for '
+        'programming the icestcik')
+parser.add_argument('--num_cores', type=int, default=multiprocessing.cpu_count(),
+                   help='run make with `num_cores` cores (-j `num_cores`), '
+                        'defaults to `multiprocessing.cpu_count()`')
 args = parser.parse_args()
 
 apt_packages = ["pkg-config", "build-essential", "bison", "flex", "gawk",
@@ -71,3 +75,6 @@ def install(package, url):
 install("icestorm", "https://github.com/cliffordwolf/icestorm.git")
 install("yosys", "https://github.com/cliffordwolf/yosys.git")
 install("arachne-pnr", "https://github.com/cseed/arachne-pnr.git")
+
+with open("/etc/udev/rules.d/53-lattice-ftdi.rules", "w") as lattice_ftdi_rules:
+    lattice_ftdi_rules.write('ACTION=="add", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="666"')
