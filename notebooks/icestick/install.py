@@ -2,7 +2,8 @@
 Adapted from https://github.com/ddm/icetools
 """
 
-from sys import platform
+import sys
+import platform
 from subprocess import call
 import os
 import argparse
@@ -39,15 +40,16 @@ class cd:
 
 
 print("Installing third party dependencies")
-if platform == "linux" or platform == "linux2":
+is_linux_platform = sys.platform == "linux" or sys.platform == "linux2"
+if is_linux_platform:
     linux_distribution = platform.linux_distribution()[0]
-    if "ubuntu" in linux_distribution:
+    if "Ubuntu" == linux_distribution:
         run(["sudo", "apt-get", "install", "-y"] + apt_packages)
     else:
         raise NotImplementedError(linux_distribution)
-elif platform == "darwin":
+elif sys.platform == "darwin":
     run(["brew", "install"] + brew_packages)
-elif platform == "win32":
+elif sys.platform == "win32":
     raise NotImplementedError("Windows")
 
 def install(package, url):
@@ -61,7 +63,7 @@ def install(package, url):
     with cd(package):
         run(["make", "clean"])
         run(["make", "-j", str(args.num_cores)])
-        if platform == "linux" or platform == "linux2":
+        if is_linux_platform:
             run(["sudo", "make", "install"])
         else:
             run(["make", "install"])
