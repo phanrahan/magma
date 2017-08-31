@@ -8,14 +8,14 @@ else:
 from collections import namedtuple
 from itertools import product
 from .simulator import CircuitSimulator, ExecutionState
-from .transforms import flatten, setup_clocks
-from .circuit import *
-from .scope import *
-from .bit import VCC, GND, BitType
-from .array import ArrayType
-from .bits import SIntType, BitsType
-from .bit_vector import BitVector
-from .bitutils import seq2int
+from ..transforms import flatten, setup_clocks
+from ..circuit import *
+from ..scope import *
+from ..bit import VCC, GND, BitType
+from ..array import ArrayType
+from ..bits import SIntType, BitsType
+from ..bit_vector import BitVector
+from ..bitutils import seq2int
 
 __all__ = ['PythonSimulator', 'testvectors']
 

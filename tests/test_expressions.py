@@ -1,10 +1,10 @@
 from magma import *
 from magma.backend import verilog
-from magma.verilator.verilator import compile as compileverilator
-from magma.verilator.verilator import run_verilator_test
-from magma.verilator.function import testvectors
+from magma.testing.verilator import compile as compileverilator
+from magma.testing.verilator import run_verilator_test
+from magma.testing.function import testvectors
 import itertools
-from magma.python_simulator import PythonSimulator
+from magma.simulator import PythonSimulator
 from magma.scope import Scope
 
 def test_1_bit_logic():

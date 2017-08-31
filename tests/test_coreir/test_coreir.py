@@ -1,7 +1,7 @@
 import pytest
 coreir = pytest.importorskip("coreir")
 from magma import *
-from magma.tests import magma_check_files_equal
+from magma.testing import check_files_equal
 
 
 def test_coreir_bit():
@@ -13,7 +13,7 @@ def test_coreir_bit():
             d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_coreir_bit", TestCircuit, output="coreir")
-    assert magma_check_files_equal(__file__, 
+    assert check_files_equal(__file__, 
             "build/test_coreir_bit.json", "gold/test_coreir_bit.json")
 
 
@@ -26,7 +26,7 @@ def test_coreir_bits():
             d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_coreir_bits", TestCircuit, output="coreir")
-    assert magma_check_files_equal(__file__, 
+    assert check_files_equal(__file__, 
             "build/test_coreir_bits.json", "gold/test_coreir_bits.json")
 
 
@@ -42,7 +42,7 @@ def test_coreir_uint():
             tmp4 = tmp3 / circuit.a
             wire(tmp4, circuit.c)
     compile("build/test_coreir_uint", TestCircuit, output="coreir")
-    assert magma_check_files_equal(__file__, 
+    assert check_files_equal(__file__, 
             "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
 
 if __name__ == "__main__":

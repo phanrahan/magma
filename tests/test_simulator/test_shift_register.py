@@ -1,7 +1,7 @@
 from magma import *
 from magma.primitives import DefineRegister
 
-from magma.python_simulator import PythonSimulator
+from magma.simulator import PythonSimulator
 from magma.scope import Scope
 from magma.bit_vector import BitVector
 from magma.bitutils import int2seq, seq2int
