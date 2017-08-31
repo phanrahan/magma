@@ -1,8 +1,7 @@
 from magma import *
 from magma.testing import check_files_equal
 
-
-def test():
+def test_flip():
     Buf = DeclareCircuit('Buf', "I", In(Bit), "O", Out(Bit))
 
     main = DefineCircuit("main", "O", Out(Bit))
