@@ -3,7 +3,7 @@ from ..circuit import isdefinition
 __all__ = ['Pass', 'InstancePass', 'DefinitionPass']
 
 # abstract base class
-class Pass:
+class Pass(object):
     def __init__(self, main):
         self.main = main
 
@@ -26,7 +26,7 @@ class InstancePass(Pass):
          return self._run(self.main)
 
 class DefinitionPass(Pass):
-    def __init__(self,main):
+    def __init__(self, main):
         super(DefinitionPass, self).__init__(main)
         self.definitions = {}
 
