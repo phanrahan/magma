@@ -69,6 +69,7 @@ $ brew install python3 verilator
 ### Ubuntu
 ```
 $ sudo apt-get install python3 python3-pip verilator
+$ sudo apt-get build-dep python-matplotlib  # Install dependencies required for matplotlib
 ```
 
 
