@@ -76,5 +76,6 @@ install("icestorm", "https://github.com/cliffordwolf/icestorm.git")
 install("yosys", "https://github.com/cliffordwolf/yosys.git")
 install("arachne-pnr", "https://github.com/cseed/arachne-pnr.git")
 
-with open("/etc/udev/rules.d/53-lattice-ftdi.rules", "w") as lattice_ftdi_rules:
-    lattice_ftdi_rules.write('ACTION=="add", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="666"')
+if is_linux_platform:
+    with open("/etc/udev/rules.d/53-lattice-ftdi.rules", "w") as lattice_ftdi_rules:
+        lattice_ftdi_rules.write('ACTION=="add", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="666"')
