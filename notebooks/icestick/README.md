@@ -26,7 +26,8 @@ python3 install.py --num_cores 4
 ## Vagrant Virtual Machine
 
 ### Dependencies
-Install vagrant: [https://www.vagrantup.com/downloads.html](https://www.vagrantup.com/downloads.html).
+Install vagrant:
+[https://www.vagrantup.com/downloads.html](https://www.vagrantup.com/downloads.html)
 
 #### MacOS
 ```
