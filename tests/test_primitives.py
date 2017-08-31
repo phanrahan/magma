@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 import magma as m
-from magma import In, Out, Bit, UInt, SInt, Circuit, Bits, wire, compile
+from magma import In, Out, Bit, Clock, UInt, SInt, Circuit, Bits, uint, wire, compile
 from magma.primitives import DefineRegister, DefineMux, DefineMemory
 
 from magma.primitives import DefineAnd, And, and_
@@ -11,11 +11,12 @@ from magma.primitives import DefineInvert, Invert, invert
 from magma.primitives import DefineEQ, EQ, eq
 
 from magma.bit_vector import BitVector
-from magma.bitutils import int2seq
 from magma.testing.verilator import compile as compileverilator
 from magma.testing.verilator import run_verilator_test
 from magma.testing.function import testvectors
-from magma.simulator import PythonSimulator
+from magma.testing.function import testvectors
+from magma.simulator.python_simulator import PythonSimulator
+from magma.scope import Scope
 
 
 def check_unary_circuit(circ, circ_name, reference):
@@ -151,7 +152,7 @@ def test_register():
         def definition(circuit):
             reg = Register4()
             wire(reg.out, circuit.out)
-            wire(getattr(reg, "in"), reg.out + int2seq(1, N))
+            wire(getattr(reg, "in"), reg.out + uint(1, N))
             wire(circuit.CLK, reg.clk)
 
     compile("build/test_register", TestCircuit, include_coreir=True)
@@ -180,8 +181,8 @@ def test_register_ce():
         def definition(circuit):
             reg = Register4().when(circuit.enable)
             wire(reg.out, circuit.out)
-            wire(getattr(reg, "in"), reg.out + int2seq(1, N))
-            m.wireclock(circuit, reg)
+            wire(getattr(reg, "in"), reg.out + uint(1, N))
+            wire(circuit.CLK, reg.clk)
 
     compile("build/test_register_ce", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
@@ -213,8 +214,8 @@ def test_register_reset():
         def definition(circuit):
             reg = Register4().reset(circuit.reset)
             wire(reg.out, circuit.out)
-            wire(getattr(reg, "in"), reg.out + int2seq(1, N))
-            m.wireclock(circuit, reg)
+            wire(getattr(reg, "in"), reg.out + uint(1, N))
+            wire(circuit.CLK, reg.clk)
 
     compile("build/test_register_reset", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, (1 << N) - 4)]

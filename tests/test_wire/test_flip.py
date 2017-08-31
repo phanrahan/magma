@@ -10,7 +10,7 @@ def test():
     buf = Buf()
 
     # flip inputs and outputs
-    wire(buf.I, 1)
+    wire(buf.I, bit(1))
     wire(main.O, buf.O)
 
     compile("build/flip", main)

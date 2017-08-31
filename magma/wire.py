@@ -38,10 +38,10 @@ def wire(o, i, debug_info):
 
     # we are wiring a Type to a Sequence
     if isinstance(i, Sequence):
-        if isinstance(o, ArrayType) and len(i) == len(o):
-            for j in range(len(o)):
-                wire(o[j], i[j], debug_info)
-            return
+    #    if isinstance(o, ArrayType) and len(i) == len(o):
+    #        for j in range(len(o)):
+    #            wire(o[j], i[j], debug_info)
+    #        return
         if len(i) != 1:
             error('Wiring Error: wiring {} ({}) to {} (Sequence of length={})'.format(o, type(o), i, len(i)))
             return
@@ -49,20 +49,18 @@ def wire(o, i, debug_info):
 
     # we are wiring a Sequence to a Type
     if isinstance(o, Sequence):
-        if isinstance(i, ArrayType) and len(i) == len(o):
-            for j in range(len(o)):
-                wire(o[j], i[j], debug_info)
-            return
+    #    if isinstance(i, ArrayType) and len(i) == len(o):
+    #        for j in range(len(o)):
+    #            wire(o[j], i[j], debug_info)
+    #        return
         if len(o) != 1:
             error('Wiring Error: wiring {} (Sequence of length={}) to {} ({})'.format(o, len(o), i, type(i)))
             return
         o = o[0]
 
     # promote integer types to LOW/HIGH
-    if isinstance(o, IntegerTypes):
-        o = HIGH if o else LOW
-    if isinstance(i, IntegerTypes):
-        i = HIGH if i else LOW
+    #if isinstance(o, IntegerTypes):
+    #    o = HIGH if o else LOW
 
     # check directions ...
     #if isinstance(i, BitType) or isinstance(i, ArrayType) or isinstance(i, TupleType):
