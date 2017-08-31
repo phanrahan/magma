@@ -25,17 +25,17 @@ def test():
 
     sim = PythonSimulator(testcircuit)
     sim.evaluate()
-    v = sim.get_value(testcircuit.O, Scope())
+    v = sim.get_value(testcircuit.O)
     assert v == True
 
-    sim.set_value(testcircuit.I1, Scope(), True)
+    sim.set_value(testcircuit.I1, True)
     sim.evaluate()
-    v = sim.get_value(testcircuit.O, Scope())
+    v = sim.get_value(testcircuit.O)
     assert v == False
 
-    sim.set_value(testcircuit.I0, Scope(), True)
+    sim.set_value(testcircuit.I0, True)
     sim.evaluate()
-    v = sim.get_value(testcircuit.O, Scope())
+    v = sim.get_value(testcircuit.O)
     assert v == True 
 
 

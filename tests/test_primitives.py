@@ -16,7 +16,6 @@ from magma.testing.verilator import compile as compileverilator
 from magma.testing.verilator import run_verilator_test
 from magma.testing.function import testvectors
 from magma.simulator import PythonSimulator
-from magma.scope import Scope
 
 
 def check_unary_circuit(circ, circ_name, reference):
@@ -27,13 +26,12 @@ def check_unary_circuit(circ, circ_name, reference):
 
     run_verilator_test(circ_name, 'sim_{}_main'.format(circ_name), circ_name)
     simulator = PythonSimulator(circ)
-    scope = Scope()
     for a, b, c, d in test_vectors:
-        simulator.set_value(circ.a, scope, a)
+        simulator.set_value(circ.a, a)
         simulator.evaluate()
-        assert simulator.get_value(circ.b, scope) == b
-        assert simulator.get_value(circ.c, scope) == c
-        assert simulator.get_value(circ.d, scope) == d
+        assert simulator.get_value(circ.b) == b
+        assert simulator.get_value(circ.c) == c
+        assert simulator.get_value(circ.d) == d
 
 
 def check_circuit(circ, circ_name, reference):
@@ -44,14 +42,13 @@ def check_circuit(circ, circ_name, reference):
 
     run_verilator_test(circ_name, 'sim_{}_main'.format(circ_name), circ_name)
     simulator = PythonSimulator(circ)
-    scope = Scope()
     for a, b, c, d, e in test_vectors:
-        simulator.set_value(circ.a, scope, a)
-        simulator.set_value(circ.b, scope, b)
+        simulator.set_value(circ.a, a)
+        simulator.set_value(circ.b, b)
         simulator.evaluate()
-        assert simulator.get_value(circ.c, scope) == c
-        assert simulator.get_value(circ.d, scope) == d
-        assert simulator.get_value(circ.e, scope) == e
+        assert simulator.get_value(circ.c) == c
+        assert simulator.get_value(circ.d) == d
+        assert simulator.get_value(circ.e) == e
 
 
 def run_test(name, define_op, instance_op, op, python_op, types):
@@ -149,7 +146,7 @@ def test_register():
     Register4 = DefineRegister(N, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register"
-        IO = ["CLK", In(Bit), "out", Out(UInt(N))]
+        IO = ["CLK", In(m.Clock), "out", Out(UInt(N))]
         @classmethod
         def definition(circuit):
             reg = Register4()
@@ -167,25 +164,24 @@ def test_register():
     compileverilator('build/sim_test_register_main.cpp', TestCircuit, test_vectors)
     run_verilator_test('test_register', 'sim_test_register_main', 'test_register')
 
-    simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
+    simulator = PythonSimulator(TestCircuit, TestCircuit.CLK)
     for clk, expected in test_vectors:
-        simulator.set_value(TestCircuit.CLK, scope, clk)
+        simulator.set_value(TestCircuit.CLK, clk)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.out, scope) == expected
+        assert simulator.get_value(TestCircuit.out) == expected
 
 def test_register_ce():
     N = 4
     Register4 = DefineRegister(N, has_ce=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_ce"
-        IO = ["CLK", In(Bit), "CE", In(Bit), "out", Out(UInt(N))]
+        IO = ["CLK", In(m.Clock), "enable", In(Bit), "out", Out(UInt(N))]
         @classmethod
         def definition(circuit):
-            reg = Register4().when(circuit.CE)
+            reg = Register4().when(circuit.enable)
             wire(reg.out, circuit.out)
             wire(getattr(reg, "in"), reg.out + int2seq(1, N))
-            wire(circuit.CLK, reg.clk)
+            m.wireclock(circuit, reg)
 
     compile("build/test_register_ce", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, 1 << N)]
@@ -200,26 +196,25 @@ def test_register_ce():
     compileverilator('build/sim_test_register_ce_main.cpp', TestCircuit, test_vectors)
     run_verilator_test('test_register_ce', 'sim_test_register_ce_main', 'test_register_ce')
 
-    simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
+    simulator = PythonSimulator(TestCircuit, TestCircuit.CLK)
     for clk, enable, expected in test_vectors:
-        simulator.set_value(TestCircuit.CLK, scope, clk)
-        simulator.set_value(TestCircuit.CE, scope, enable)
+        simulator.set_value(TestCircuit.CLK, clk)
+        simulator.set_value(TestCircuit.enable, enable)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.out, scope) == expected
+        assert simulator.get_value(TestCircuit.out) == expected
 
 def test_register_reset():
     N = 4
     Register4 = DefineRegister(N, has_reset=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_reset"
-        IO = ["CLK", In(Bit), "RESET", In(Bit), "out", Out(UInt(N))]
+        IO = ["CLK", In(m.Clock), "reset", In(Bit), "out", Out(UInt(N))]
         @classmethod
         def definition(circuit):
-            reg = Register4().reset(circuit.RESET)
+            reg = Register4().reset(circuit.reset)
             wire(reg.out, circuit.out)
             wire(getattr(reg, "in"), reg.out + int2seq(1, N))
-            wire(circuit.CLK, reg.clk)
+            m.wireclock(circuit, reg)
 
     compile("build/test_register_reset", TestCircuit, include_coreir=True)
     expected_sequence = [BitVector(x, num_bits=N) for x in range(1, (1 << N) - 4)]
@@ -239,13 +234,12 @@ def test_register_reset():
     compileverilator('build/sim_test_register_reset_main.cpp', TestCircuit, test_vectors)
     run_verilator_test('test_register_reset', 'sim_test_register_reset_main', 'test_register_reset')
 
-    simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
+    simulator = PythonSimulator(TestCircuit, TestCircuit.CLK)
     for clk, reset, expected in test_vectors:
-        simulator.set_value(TestCircuit.CLK, scope, clk)
-        simulator.set_value(TestCircuit.RESET, scope, reset)
+        simulator.set_value(TestCircuit.CLK, clk)
+        simulator.set_value(TestCircuit.reset, reset)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.out, scope) == expected
+        assert simulator.get_value(TestCircuit.out) == expected
 
 def test_mux():
     class TestCircuit(Circuit):
@@ -269,13 +263,12 @@ def test_mux():
     run_verilator_test('test_mux', 'sim_test_mux_main', 'test_mux')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for I0, I1, sel, O in test_vectors:
-        simulator.set_value(TestCircuit.I0, scope, I0)
-        simulator.set_value(TestCircuit.I1, scope, I1)
-        simulator.set_value(TestCircuit.sel, scope, sel)
+        simulator.set_value(TestCircuit.I0, I0)
+        simulator.set_value(TestCircuit.I1, I1)
+        simulator.set_value(TestCircuit.sel, sel)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.O, scope) == O
+        assert simulator.get_value(TestCircuit.O) == O
 
 def test_memory():
     class TestCircuit(Circuit):
@@ -333,16 +326,15 @@ def test_memory():
     run_verilator_test('test_mem', 'sim_test_mem_main', 'test_mem')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for raddr, waddr, wdata, rclk, ren, wclk, wen, rdata in test_vectors:
-        simulator.set_value(TestCircuit.raddr, scope, raddr)
-        simulator.set_value(TestCircuit.waddr, scope, waddr)
-        simulator.set_value(TestCircuit.wdata, scope, wdata)
-        simulator.set_value(TestCircuit.rclk, scope, rclk)
-        simulator.set_value(TestCircuit.ren, scope, ren)
-        simulator.set_value(TestCircuit.wclk, scope, wclk)
-        simulator.set_value(TestCircuit.wen, scope, wen)
+        simulator.set_value(TestCircuit.raddr, raddr)
+        simulator.set_value(TestCircuit.waddr, waddr)
+        simulator.set_value(TestCircuit.wdata, wdata)
+        simulator.set_value(TestCircuit.rclk, rclk)
+        simulator.set_value(TestCircuit.ren, ren)
+        simulator.set_value(TestCircuit.wclk, wclk)
+        simulator.set_value(TestCircuit.wen, wen)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.rdata, scope) == rdata
+        assert simulator.get_value(TestCircuit.rdata) == rdata
 
 

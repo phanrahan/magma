@@ -5,7 +5,6 @@ from magma.testing.verilator import run_verilator_test
 from magma.testing.function import testvectors
 import itertools
 from magma.simulator import PythonSimulator
-from magma.scope import Scope
 
 def test_1_bit_logic():
     class TestCircuit(Circuit):
@@ -24,13 +23,12 @@ def test_1_bit_logic():
     run_verilator_test('test_1_bit_logic', 'sim_test_1_bit_logic_main', 'test_circuit1')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c, d in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
-        simulator.set_value(TestCircuit.c, scope, c)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
+        simulator.set_value(TestCircuit.c, c)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.d, scope) == d
+        assert simulator.get_value(TestCircuit.d) == d
 
 
 def test_bits_logic():
@@ -50,13 +48,12 @@ def test_bits_logic():
     run_verilator_test('test_bits_logic', 'sim_test_bits_logic_main', 'test_circuit2')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c, d in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
-        simulator.set_value(TestCircuit.c, scope, c)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
+        simulator.set_value(TestCircuit.c, c)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.d, scope) == d
+        assert simulator.get_value(TestCircuit.d) == d
 
 
 def test_bits_eq():
@@ -76,12 +73,11 @@ def test_bits_eq():
     run_verilator_test('test_bits_eq', 'sim_test_bits_eq_main', 'test_eq')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_bits_lshift():
@@ -102,11 +98,10 @@ def test_bits_lshift():
     run_verilator_test('test_bits_lshift', 'sim_test_bits_lshift_main', 'test_lshift')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.a, a)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.b, scope) == b
+        assert simulator.get_value(TestCircuit.b) == b
 
 
 def test_bits_dlshift():
@@ -127,12 +122,11 @@ def test_bits_dlshift():
     run_verilator_test('test_bits_dlshift', 'sim_test_bits_dlshift_main', 'test_dlshift')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_bits_rshift():
@@ -153,11 +147,10 @@ def test_bits_rshift():
     run_verilator_test('test_bits_rshift', 'sim_test_bits_rshift_main', 'test_rshift')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.a, a)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.b, scope) == b
+        assert simulator.get_value(TestCircuit.b) == b
 
 
 def test_bits_drshift():
@@ -178,12 +171,11 @@ def test_bits_drshift():
     run_verilator_test('test_bits_drshift', 'sim_test_bits_drshift_main', 'test_drshift')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_add():
@@ -204,12 +196,11 @@ def test_uint_add():
     run_verilator_test('test_uint_add', 'sim_test_uint_add_main', 'test_uint_add')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_sub():
@@ -230,12 +221,11 @@ def test_uint_sub():
     run_verilator_test('test_uint_sub', 'sim_test_uint_sub_main', 'test_uint_sub')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_mul():
@@ -256,12 +246,11 @@ def test_uint_mul():
     run_verilator_test('test_uint_mul', 'sim_test_uint_mul_main', 'test_uint_mul')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_div():
@@ -282,12 +271,11 @@ def test_uint_div():
     run_verilator_test('test_uint_div', 'sim_test_uint_div_main', 'test_uint_div')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_lt():
@@ -307,20 +295,18 @@ def test_uint_lt():
     run_verilator_test('test_uint_lt', 'sim_test_uint_lt_main', 'test_uint_lt')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_le():
@@ -340,12 +326,11 @@ def test_uint_le():
     run_verilator_test('test_uint_le', 'sim_test_uint_le_main', 'test_uint_le')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_gt():
@@ -365,12 +350,11 @@ def test_uint_gt():
     run_verilator_test('test_uint_gt', 'sim_test_uint_gt_main', 'test_uint_gt')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_uint_ge():
@@ -390,12 +374,11 @@ def test_uint_ge():
     run_verilator_test('test_uint_ge', 'sim_test_uint_ge_main', 'test_uint_ge')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_add():
@@ -415,12 +398,11 @@ def test_sint_add():
     run_verilator_test('test_sint_add', 'sim_test_sint_add_main', 'test_sint_add')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_sub():
@@ -440,12 +422,11 @@ def test_sint_sub():
     run_verilator_test('test_sint_sub', 'sim_test_sint_sub_main', 'test_sint_sub')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_mul():
@@ -465,12 +446,11 @@ def test_sint_mul():
     run_verilator_test('test_sint_mul', 'sim_test_sint_mul_main', 'test_sint_mul')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_div():
@@ -490,12 +470,11 @@ def test_sint_div():
     run_verilator_test('test_sint_div', 'sim_test_sint_div_main', 'test_sint_div')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_lt():
@@ -515,12 +494,11 @@ def test_sint_lt():
     run_verilator_test('test_sint_lt', 'sim_test_sint_lt_main', 'test_sint_lt')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_le():
@@ -540,12 +518,11 @@ def test_sint_le():
     run_verilator_test('test_sint_le', 'sim_test_sint_le_main', 'test_sint_le')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_gt():
@@ -565,12 +542,11 @@ def test_sint_gt():
     run_verilator_test('test_sint_gt', 'sim_test_sint_gt_main', 'test_sint_gt')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c
+        assert simulator.get_value(TestCircuit.c) == c
 
 
 def test_sint_ge():
@@ -589,12 +565,11 @@ def test_sint_ge():
     compileverilator('build/sim_test_sint_ge_main.cpp', TestCircuit, test_vectors)
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c, "Failed on {}, {}, {}".format(a, b, c)
+        assert simulator.get_value(TestCircuit.c) == c, "Failed on {}, {}, {}".format(a, b, c)
 
 def test_sint_arithmetic_right_shift():
     class TestCircuit(Circuit):
@@ -615,11 +590,10 @@ def test_sint_arithmetic_right_shift():
             'test_sint_arithmetic_right_shift')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.a, a)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.b, scope) == b
+        assert simulator.get_value(TestCircuit.b) == b
 
 
 def test_sint_dynamic_arithmetic_right_shift():
@@ -642,12 +616,11 @@ def test_sint_dynamic_arithmetic_right_shift():
             'test_sint_dynamic_arithmetic_right_shift')
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b, c in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
-        simulator.set_value(TestCircuit.b, scope, b)
+        simulator.set_value(TestCircuit.a, a)
+        simulator.set_value(TestCircuit.b, b)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.c, scope) == c, (a.as_bool_list(), b.as_bool_list(), c.as_bool_list())
+        assert simulator.get_value(TestCircuit.c) == c, (a.as_bool_list(), b.as_bool_list(), c.as_bool_list())
 
 
 def test_sint_neg():
@@ -666,8 +639,7 @@ def test_sint_neg():
     compileverilator('build/sim_test_sint_neg.cpp', TestCircuit, test_vectors)
 
     simulator = PythonSimulator(TestCircuit)
-    scope = Scope()
     for a, b in test_vectors:
-        simulator.set_value(TestCircuit.a, scope, a)
+        simulator.set_value(TestCircuit.a, a)
         simulator.evaluate()
-        assert simulator.get_value(TestCircuit.b, scope) == b
+        assert simulator.get_value(TestCircuit.b) == b

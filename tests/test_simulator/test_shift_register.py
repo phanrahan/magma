@@ -13,24 +13,23 @@ def test_shift_register():
 
     class ShiftRegister(Circuit):
         name = "ShiftRegister"
-        IO = ["I", In(T), "O", Out(T), "CLK", In(Bit)]
+        IO = ["I", In(T), "O", Out(T), "CLK", In(Clock)]
         @classmethod
         def definition(io):
             regs = [Register4() for _ in range(N)]
-            [wire(io.CLK, reg.clk) for reg in regs]  # TODO: Clean up this clock wiring
+            wireclock(io, regs)
             wire(io.I, getattr(regs[0], "in"))
             fold(regs, foldargs={"in":"out"})
-            wire(getattr(regs[-1], "out"), io.O)
+            wire(regs[-1].out, io.O)
 
-    simulator = PythonSimulator(ShiftRegister)
-    scope = Scope()
+    simulator = PythonSimulator(ShiftRegister, clock=ShiftRegister.CLK)
     expected = [0, 0, 0] + list(range(0, 1 << N, 3))[:-3]
     actual = []
     for i in range(0, 1 << N, 3):
-        simulator.set_value(ShiftRegister.I, scope, uint(i, N))
+        simulator.set_value(ShiftRegister.I, uint(i, N))
         for j in range(2):
             simulator.step()
             simulator.evaluate()
-        actual.append(seq2int(simulator.get_value(ShiftRegister.O, scope)))
+        actual.append(seq2int(simulator.get_value(ShiftRegister.O)))
 
     assert actual == expected
