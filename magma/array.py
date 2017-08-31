@@ -72,6 +72,9 @@ class ArrayType(Type):
     def isoriented(cls, direction):
         return cls.T.isoriented(direction)
 
+    def as_list(self):
+        return [self[i] for i in range(len(self))]
+
 
     @debug_wire
     def wire(i, o, debug_info):
