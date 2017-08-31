@@ -47,7 +47,7 @@ print("Installing third party dependencies")
 is_linux_platform = sys.platform == "linux" or sys.platform == "linux2"
 if is_linux_platform:
     linux_distribution = platform.linux_distribution()[0]
-    if "Ubuntu" == linux_distribution:
+    if linux_distribution in {"Ubuntu", "debian"}:
         run(["sudo", "apt-get", "install", "-y"] + apt_packages)
     else:
         raise NotImplementedError(linux_distribution)

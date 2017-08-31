@@ -70,11 +70,16 @@ packages, including pip, zlib and a few others. Use the conda install command
 to install 720+ additional conda packages from the Continuum repository.
 
 Download the installer for your operating system from
-[https://conda.io/miniconda.html](https://conda.io/miniconda.html)
-```
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-```
+[https://conda.io/miniconda.html](https://conda.io/miniconda.html).
 
+The following instructions uses the latest MacOSX release, replace the link in
+the wget command for you operating system.
+```
+$ wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+$ bash Miniconda3-latest-MacOSX-x86_64.sh
+# Installing dependencies like matplotlib is typically more reliable with conda than pip
+$ conda install matplotlib
+```
 
 ### MacOS/Homebrew
 ```
