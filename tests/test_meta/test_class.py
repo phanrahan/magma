@@ -1,5 +1,5 @@
 from magma import *
-from magma.tests import magma_check_files_equal
+from magma.testing import check_files_equal
 
 
 def test():
@@ -24,4 +24,4 @@ def test():
     O( and2(I) )
 
     compile("build/class", main)
-    assert magma_check_files_equal(__file__, "build/class.v", "gold/class.v")
+    assert check_files_equal(__file__, "build/class.v", "gold/class.v")

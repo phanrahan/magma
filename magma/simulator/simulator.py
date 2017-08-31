@@ -11,7 +11,7 @@ ExecutionState = namedtuple('ExecutionState', ['cycles', 'clock', 'triggered_poi
 
 class CircuitSimulator(ABC):
     @abstractmethod
-    def __init__(self, circuit):
+    def __init__(self, circuit, clock):
         pass
 
     @abstractmethod

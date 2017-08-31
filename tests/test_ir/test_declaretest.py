@@ -1,5 +1,5 @@
 from magma import *
-from magma.tests import magma_check_files_equal
+from magma.testing import check_files_equal
 
 def test():
     # Clear the circuit cache from any other test cases
@@ -15,4 +15,4 @@ def test():
     EndCircuit()
 
     compile("build/declaretest", main)
-    assert magma_check_files_equal(__file__, "build/declaretest.v", "gold/declaretest.v")
+    assert check_files_equal(__file__, "build/declaretest.v", "gold/declaretest.v")

@@ -1,5 +1,5 @@
 from magma import *
-from magma.tests import magma_check_files_equal
+from magma.testing import check_files_equal
 
 
 def test():
@@ -13,4 +13,4 @@ def test():
     wire(a.O, main.O)
 
     compile("build/named2a", main)
-    assert magma_check_files_equal(__file__, "build/named2a.v", "gold/named2a.v")
+    assert check_files_equal(__file__, "build/named2a.v", "gold/named2a.v")
