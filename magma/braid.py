@@ -350,7 +350,8 @@ def flat(circuit, prefix='I'):
            flattenargs += port.as_list()
         else:
            otherargs += [name, port]
-    return AnonymousCircuit( [prefix, array(flattenargs)] + otherargs )
+    args = [prefix, array(flattenargs)] + otherargs
+    return AnonymousCircuit( args )
 
 # concat all the inputs whose name starts with prefix
 #  each input must be an array

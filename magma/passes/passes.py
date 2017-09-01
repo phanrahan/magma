@@ -21,15 +21,15 @@ class InstancePass(Pass):
         self.instances = []
 
     def _run(self, definition, path):
-        path = list(path) # copy
-        path.append(definition)
         for instance in definition.instances:
             instancedefinition = type(instance)
-            if isdefinition(instancedefinition):
-                self._run( instancedefinition, path )
-            self.instances.append(instance)
+            instpath = list(path) # copy
+            instpath.append(instance)
+            self.instances.append(instpath)
             if callable(self):
-                self(instance, path)
+                self(instpath)
+            if isdefinition(instancedefinition):
+                self._run( instancedefinition, instpath )
     
     def run(self):
          self._run(self.main, [])
