@@ -44,3 +44,4 @@ def test_counter():
     print('ndffs =',p.ndffs)
 
 
+test_counter()
