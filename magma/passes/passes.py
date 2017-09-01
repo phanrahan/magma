@@ -4,7 +4,7 @@ from .tsort import tsort
 __all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass']
 
 # abstract base class
-class Pass:
+class Pass(object):
     def __init__(self, main):
         self.main = main
 
