@@ -340,7 +340,6 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
     ntest = len(circuit.interface.ports.items())
 
     simulator = PythonSimulator(circuit)
-    scope = Scope()
 
     args = []
     for i, (name, port) in enumerate(circuit.interface.ports.items()):
@@ -377,7 +376,7 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
                 testv[i] = test[j].as_int()
                 val = test[j].as_bool_list()
                 if len(val) == 1: val = val[0]
-                simulator.set_value(getattr(circuit, name), scope, val)
+                simulator.set_value(getattr(circuit, name), val)
                 j += 1
 
         simulator.evaluate()
@@ -385,7 +384,7 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
         for i, (name, port) in enumerate(circuit.interface.ports.items()):
             # circuit defn input is an input of the definition
             if port.isinput():
-                val = simulator.get_value(getattr(circuit, name), scope)
+                val = simulator.get_value(getattr(circuit, name))
                 val = int(val) if isinstance(val, bool) else seq2int(val)
                 testv[i] = val
 
