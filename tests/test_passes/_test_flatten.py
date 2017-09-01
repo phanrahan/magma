@@ -13,7 +13,7 @@ class PrimitivesPass(InstancePass):
         self.ncarrys = 0
         self.ndffs = 0
 
-    def __call__(self, instance):
+    def __call__(self, instance, path):
         if isinstance(instance, SB_LUT4):
             self.nluts += 1
         elif isinstance(instance, SB_CARRY):
@@ -31,17 +31,21 @@ def test_adder():
 
 def test_counter():
     Counter8 = DefineCounter(8)
-    print(repr(Counter8))
-    print()
-    setup_clocks(Counter8)
-    c = flatten(Counter8).circuit
-    #print(type(c))
-    print(repr(c))
-    p = PrimitivesPass(c).run()
-    assert p.nluts == 8
+    #print(repr(Counter8))
+    p = PrimitivesPass(Counter8).run()
     print('nluts =',p.nluts)
     print('ncarrys =',p.ncarrys)
     print('ndffs =',p.ndffs)
 
+    setup_clocks(Counter8)
+    c = flatten(Counter8).circuit
+    #print(repr(c))
 
-test_counter()
+    q = PrimitivesPass(c).run()
+    print('nluts =',q.nluts)
+    print('ncarrys =',q.ncarrys)
+    print('ndffs =',q.ndffs)
+    assert p.nluts == q.nluts
+    assert p.ncarrys == q.ncarrys
+    assert p.ndffs == q.ndffs
+

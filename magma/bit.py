@@ -90,6 +90,9 @@ class _BitType(Type):
         #assert not t.anon()
         return self.name.qualifiedname(sep='.')
 
+    def flatten(self):
+        return [self]
+
 
 class _BitKind(Kind):
     def __init__(cls, name, bases, dct):

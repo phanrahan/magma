@@ -22,3 +22,6 @@ def test_ir():
     p = IRPass(counter).run()
     print(p.code)
 
+test_definition()
+
+

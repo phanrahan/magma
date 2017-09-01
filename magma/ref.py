@@ -4,13 +4,14 @@ __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
 
 class Ref:
     def __str__(self):
-        return self.name
+        print(type(self.name))
+        return str(self.name)
 
     def __repr__(self):
         return self.qualifiedname()
 
 class AnonRef(Ref):
-    def __init__(self, name=None):
+    def __init__(self, name=""):
         self.name = name
 
     def qualifiedname(self, sep='.'):
