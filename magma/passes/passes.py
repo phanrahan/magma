@@ -21,6 +21,7 @@ class InstancePass(Pass):
         self.instances = []
 
     def _run(self, definition, path):
+        path = list(path) # copy
         path.append(definition)
         for instance in definition.instances:
             instancedefinition = type(instance)
