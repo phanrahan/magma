@@ -4,7 +4,6 @@ __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
 
 class Ref:
     def __str__(self):
-        print(type(self.name))
         return str(self.name)
 
     def __repr__(self):
