@@ -79,13 +79,3 @@ class TupleRef(Ref):
    def anon(self):
        return self.tuple.name.anon()
 
-
-
-if __name__ == '__main__':
-   a = AnonRef()
-   print(str(a))
-   a = AnonRef('x')
-   print(str(a))
-
-   print(isinstance(a,Ref))
-

@@ -1,4 +1,4 @@
-from .error import error
+from .error import error, warn
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
@@ -58,7 +58,7 @@ class Wire:
 
             if o not in self.outputs:
                 if len(self.outputs) != 0:
-                    print("Warning: adding an output to a wire with an output", str(o))
+                    warn("Warning: adding an output {} to a wire with an output {}".format(str(o), str(self.outputs[0])))
                 #print('adding output', o)
                 self.outputs.append(o)
 

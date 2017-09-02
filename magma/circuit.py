@@ -45,7 +45,7 @@ def setports(self, ports):
 class CircuitKind(type):
     
     def __new__(metacls, name, bases, dct):
-        #print('DefineCircuitKind new:', name)
+        #print('CircuitKind new:', name)
 
         # override circuit class name
         if 'name' not in dct:
@@ -56,20 +56,20 @@ class CircuitKind(type):
             dct['primitive'] = False
 
         # create a new circuit class
-        self = type.__new__(metacls, name, bases, dct)
+        cls = type.__new__(metacls, name, bases, dct)
 
         for method in dct.get('circuit_type_methods', []):
-            setattr(self, method.name, method.definition)
+            setattr(cls, method.name, method.definition)
 
         # create interface for this circuit class 
-        if hasattr(self, 'IO'):
+        if hasattr(cls, 'IO'):
             # turn IO attribite into an Interface
-            self.IO = DeclareInterface(*self.IO)
+            cls.IO = DeclareInterface(*cls.IO)
 
-        return self
+        return cls
 
     def __call__(cls, *largs, **kwargs):
-        #print('DefineCircuitKind call:', largs, kwargs)
+        #print('CircuitKind call:', largs, kwargs)
         debug_info = get_callee_frame_info()
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
         self.set_debug_info(debug_info)
@@ -88,15 +88,6 @@ class CircuitKind(type):
         name = cls.__name__
         args = str(cls.IO)
         if hasattr(cls,"instances"):
-            #args = ['"%s"' % instname]
-            #for k, v in cls.interface.ports.items():
-            #    assert v.isinput() or v.isoutput()
-            #    args.append('"%s"'%k)
-            #    args.append(str(Flip(type(v))))
-            #s = ", ".join(args)
-
-
-            #s = '{} = DefineCircuit("{}", {})  # {} {}\n'.format(name, name, args, cls.filename, cls.lineno)
             s = '{} = DefineCircuit("{}", {})\n'.format(name, name, args)
 
             # emit instances
@@ -110,8 +101,6 @@ class CircuitKind(type):
             # for input in cls.interface.inputs():
             s += repr( cls.interface )
 
-            #s += "EndCircuit()  # {} {}\n".format(cls.end_circuit_filename,
-            #                                      cls.end_circuit_lineno)
             s += "EndCircuit()"
         else:
             s = '{} = DeclareCircuit("{}", {})'.format(name, name, args)
@@ -120,9 +109,6 @@ class CircuitKind(type):
 
     def _repr_html_(cls):
         return to_html(cls)
-
-    def getarea(cls):
-        return (1, cls.cells)
 
     def find(cls, defn):
         name = cls.__name__
@@ -309,8 +295,6 @@ class CircuitType(AnonymousCircuitType):
 def DeclareCircuit(name, *decl, **args):
     dct = dict(
         IO=decl,
-        cells=args.get('cells', 0),
-        alignment=1,
         primitive=args.get('primitive', True),
         stateful=args.get('stateful', False),
         simulate=args.get('simulate'),
@@ -371,7 +355,7 @@ class DefineCircuitKind(CircuitKind):
 
         # circuit definition are cached
         if name in Cache:
-            #print(name, 'cached')
+            warn('Warning: Circuit {} already defined'.format(name))
             return Cache[name]
 
         self = CircuitKind.__new__(metacls, name, bases, dct)

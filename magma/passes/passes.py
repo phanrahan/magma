@@ -10,6 +10,7 @@ class Pass(object):
 
     def run(self):
         self.done()
+        return self
 
     def done(self):
         pass
@@ -87,7 +88,9 @@ class InstanceGraphPass(Pass):
         super(InstanceGraphPass, self).__init__(main)
 
         p = BuildInstanceGraphPass(main).run()
+        self.tsortedgraph = p.tsortedgraph
 
-        for vert, edges in p.tsortedgraph:
-            self(vert, edges)
+        if callable(self):
+            for vert, edges in self.tsortedgraph:
+                self(vert, edges)
 
