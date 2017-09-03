@@ -42,8 +42,8 @@ def parse(decl):
         elif port.isoutput(): direction = OUTPUT
         elif port.isinout():  direction = INOUT
 
-        if direction is None:
-            print("Error:", name, "must have a direciton")
+        #if direction is None:
+        #    print("Error:", name, "must have a direciton")
 
         directions.append(direction)
         names.append(name)
@@ -61,20 +61,19 @@ class _Interface(Type):
 
     def __repr__(self):
         s = ""
-        for input in self.inputs():
-            output = input.value()
-            if isinstance(output, ArrayType) or isinstance(output, TupleType):
-                if not output.iswhole(output.ts):
-                    for i in range(len(input)):
-                        iname = repr( input[i] )
-                        oname = repr( output[i] )
-                        #assert input[i].debug_info == output[i].debug_info
-                        #s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input[i].debug_info)
-                        s += 'wire({}, {})\n'.format(oname, iname)
-            else:
+        for name, input in self.ports.items():
+            if input.isinput():
+                output = input.value()
+                if isinstance(output, ArrayType) \
+                  or isinstance(output, TupleType):
+                    if not output.iswhole(output.ts):
+                        for i in range(len(input)):
+                            iname = repr( input[i] )
+                            oname = repr( output[i] )
+                            s += 'wire({}, {})\n'.format(oname, iname)
+                        continue
                 iname = repr( input )
                 oname = repr( output )
-                #s += 'wire({}, {})  # {} {}\n'.format(oname, iname, *input.debug_info)
                 s += 'wire({}, {})\n'.format(oname, iname)
         return s
 
@@ -170,7 +169,7 @@ class Interface(_Interface):
             port = ports[i]
 
             if isinstance(name, IntegerTypes):
-                name = str(name)
+                name = str(name) # convert integer to str, e.g. 0 to "0"
 
             args[name] = port
 

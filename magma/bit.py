@@ -90,6 +90,9 @@ class _BitType(Type):
         #assert not t.anon()
         return self.name.qualifiedname(sep='.')
 
+    def flatten(self):
+        return [self]
+
 
 class _BitKind(Kind):
     def __init__(cls, name, bases, dct):
@@ -110,31 +113,22 @@ class _BitKind(Kind):
     __ne__ = Kind.__ne__
     __hash__ = Kind.__hash__
 
-    #def __str__(cls):
-    #    if cls.isinput():  return 'In(_Bit)'
-    #    if cls.isoutput(): return 'Out(_Bit)'
-    #    if cls.isinout():  return 'InOut(_Bit)'
-    #    return '_Bit'
+    def __str__(cls):
+        if cls.isinput():  return 'In(_Bit)'
+        if cls.isoutput(): return 'Out(_Bit)'
+        if cls.isinout():  return 'InOut(_Bit)'
+        return '_Bit'
 
-    #def qualify(cls, direction): 
-    #    if   direction is None:   return _Bit
-    #    elif direction == INPUT:  return _BitIn
-    #    elif direction == OUTPUT: return _BitOut
-    #    return cls
+    def qualify(cls, direction): 
+        if   direction is None:   return _Bit
+        elif direction == INPUT:  return _BitIn
+        elif direction == OUTPUT: return _BitOut
+        return cls
 
-    #def flip(cls):
-    #    if   cls.isoriented(INPUT):  return _BitOut
-    #    elif cls.isoriented(OUTPUT): return _BitIn
-    #    return cls
-
-#def _MakeBit(**kwargs):
-#    return _BitKind('_Bit', (_BitType,), kwargs)
-#
-#_Bit = _MakeBit()
-#_BitIn= _MakeBit(direction=INPUT)
-#_BitOut = _MakeBit(direction=OUTPUT)
-#_BitInOut = _MakeBit(direction=INOUT)
-
+    def flip(cls):
+        if   cls.isoriented(INPUT):  return _BitOut
+        elif cls.isoriented(OUTPUT): return _BitIn
+        return cls
 
 class BitType(_BitType):
     __ne__ = Type.__ne__

@@ -166,6 +166,10 @@ class ArrayType(Type):
                 return False
 
         return True
+    
+    def flatten(self):
+        return sum([t.flatten() for t in self.ts], [])
+            
 
 class ArrayKind(Kind):
     def __init__(cls, name, bases, dct):

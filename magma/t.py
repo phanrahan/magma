@@ -70,10 +70,10 @@ class Kind(type):
     __hash__ = type.__hash__
 
     def __repr__(cls):
-        return str(cls)
+        return cls.__name__
 
     def __str__(cls):
-        return repr(cls)
+        return cls.__name__
 
     # abstract method - must be implemented by subclasses
     def qualify(cls):

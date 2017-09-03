@@ -4,12 +4,13 @@ from .tsort import tsort
 __all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass']
 
 # abstract base class
-class Pass:
+class Pass(object):
     def __init__(self, main):
         self.main = main
 
     def run(self):
         self.done()
+        return self
 
     def done(self):
         pass
@@ -20,17 +21,19 @@ class InstancePass(Pass):
         super(InstancePass, self).__init__(main)
         self.instances = []
 
-    def _run(self, definition):
+    def _run(self, definition, path):
         for instance in definition.instances:
             instancedefinition = type(instance)
-            if isdefinition(instancedefinition):
-                self._run( instancedefinition )
-            self.instances.append(instance)
+            instpath = list(path) # copy
+            instpath.append(instance)
+            self.instances.append(instpath)
             if callable(self):
-                self(instance)
+                self(instpath)
+            if isdefinition(instancedefinition):
+                self._run( instancedefinition, instpath )
     
     def run(self):
-         self._run(self.main)
+         self._run(self.main, [])
          self.done()
          return self
 
@@ -58,23 +61,21 @@ class DefinitionPass(Pass):
          return self
 
 
-class BuildInstanceGraphPass(InstancePass):
+class BuildInstanceGraphPass(DefinitionPass):
     def __init__(self, main):
         super(BuildInstanceGraphPass, self).__init__(main)
         self.graph = {}
 
-    def __call__(self, instance):
-        instancedefinition = type(instance)
-        if instancedefinition not in self.graph:
-            self.graph[instancedefinition]  = []
-
-        definition = instance.defn # enclosing definition
+    def __call__(self, definition):
         if definition not in self.graph:
             self.graph[definition]  = []
-
-        if instancedefinition not in self.graph[definition]:
-            #print('Adding',definition.name, instancedefinition.name)
-            self.graph[definition].append(instancedefinition)
+        for instance in definition.instances:
+            instancedefinition = type(instance)
+            if instancedefinition not in self.graph:
+                self.graph[instancedefinition]  = []
+            if instancedefinition not in self.graph[definition]:
+                #print('Adding',definition.name, instancedefinition.name)
+                self.graph[definition].append(instancedefinition)
 
     def done(self):
         graph = []
@@ -87,7 +88,9 @@ class InstanceGraphPass(Pass):
         super(InstanceGraphPass, self).__init__(main)
 
         p = BuildInstanceGraphPass(main).run()
+        self.tsortedgraph = p.tsortedgraph
 
-        for vert, edges in p.tsortedgraph:
-            self(vert, edges)
+        if callable(self):
+            for vert, edges in self.tsortedgraph:
+                self(vert, edges)
 

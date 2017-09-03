@@ -1,13 +1,14 @@
 from .port import INPUT, OUTPUT, INOUT
-from .array import Array
+from .array import Array, ArrayType
 from .conversions import array
 from .circuit import AnonymousCircuit
 from .wire import wire
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
+__ALL__ += ['flat', 'cut']
 __ALL__ += ['row', 'col', 'map_']
-__ALL__ += ['fork', 'join', 'flat']
+__ALL__ += ['fork', 'join']
 __ALL__ += ['fold', 'scan']
 __ALL__ += ['braid']
 
@@ -244,12 +245,6 @@ def join(*circuits):
     if len(circuits) == 1: circuits = circuits[0]
     return braid(circuits)
 
-# flatten the join of all inputs - each input must be an array
-#  should this operate on a single circuit
-def flat(*circuits):
-    if len(circuits) == 1: circuits = circuits[0]
-    flatargs = getargbydirection(circuits[0].interface, INPUT)
-    return braid(circuits, flatargs=flatargs)
 
 
 def fold(*circuits, **kwargs):
@@ -343,6 +338,35 @@ def uncurry(circuit, prefix='I'):
            otherargs += [name, port]
 
     return AnonymousCircuit( [prefix, array(uncurryargs)] + otherargs )
+
+# concat all the inputs whose name starts with prefix
+#  each input must be an array
+def flat(circuit, prefix='I'):
+    otherargs = []
+    flattenargs = []
+    for name, port in circuit.interface.ports.items():
+        # should we insert the argument in the position of the first match?
+        if name.startswith(prefix) and isinstance(port, ArrayType):
+           flattenargs += port.as_list()
+        else:
+           otherargs += [name, port]
+    args = [prefix, array(flattenargs)] + otherargs
+    return AnonymousCircuit( args )
+
+# concat all the inputs whose name starts with prefix
+#  each input must be an array
+def cut(circuit, n, prefix='I'):
+    args = []
+    for name, port in circuit.interface.ports.items():
+        # should we insert the argument in the position of the first match?
+        if name == prefix and isinstance(port, ArrayType):
+           l = port.as_list()
+           l = [array(l[i:i + n]) for i in range(0, len(l), n)]
+           for i in range(len(l)):
+               args += ['{}{}'.format(prefix,i), l[i]]
+        else:
+           args += [name, port]
+    return AnonymousCircuit( args )
 
 
 def row(f, n):

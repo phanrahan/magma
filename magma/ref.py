@@ -4,13 +4,13 @@ __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
 
 class Ref:
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     def __repr__(self):
         return self.qualifiedname()
 
 class AnonRef(Ref):
-    def __init__(self, name=None):
+    def __init__(self, name=""):
         self.name = name
 
     def qualifiedname(self, sep='.'):
@@ -78,14 +78,4 @@ class TupleRef(Ref):
 
    def anon(self):
        return self.tuple.name.anon()
-
-
-
-if __name__ == '__main__':
-   a = AnonRef()
-   print(str(a))
-   a = AnonRef('x')
-   print(str(a))
-
-   print(isinstance(a,Ref))
 
