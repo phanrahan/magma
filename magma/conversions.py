@@ -1,11 +1,11 @@
-from collections import Sequence
+from collections import Sequence, OrderedDict
 from .compatibility import IntegerTypes
 from .t import In, Out
 from .bit import BitKind, BitType, Bit, VCC, GND, BitIn, BitOut, BitInOut
 from .clock import ClockType, Clock, ClockIn, ClockOut, ClockInOut
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
-from .tuple import Tuple
+from .tuple import TupleType, Tuple
 from .bitutils import int2seq
 
 __all__  = ['bit']
@@ -13,6 +13,7 @@ __all__ += ['clock']
 
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
+
 __all__ += ['tuple_']
 
 def bit(value):
@@ -67,20 +68,20 @@ def clock(value):
     return value
 
 def convertbits(value, n, totype, checkbit):
-    if not isinstance(value, (BitType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes, Sequence)):
+    if not isinstance(value, (BitType, ClockType, TupleType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes, Sequence)):
         raise ValueError(
-            "bits can only be used with a Bit, Array, Bits, UInt, SInt, int, or Sequence, not : {}".format(type(value)))
+            "bits can only be used with a Bit, Clock, Tuple, Array, Bits, UInt, SInt, int, or Sequence, not : {}".format(type(value)))
 
-    if not isinstance(value, (IntegerTypes, BitType)):
+    if not isinstance(value, (IntegerTypes, BitType, ClockType)):
         assert n is None
 
-    if isinstance(value, int):
+    if isinstance(value, IntegerTypes):
         if n is None:
-            n = value.bit_length()
+            n = max(value.bit_length(),1)
         ts = int2seq(value, n)
     elif isinstance(value, Sequence):
         ts =  list(value)
-    elif isinstance(value, BitType):
+    elif isinstance(value, (BitType, ClockType)):
         if n is None:
             ts = [value]
         else:
@@ -129,29 +130,35 @@ def sint(value, n=None):
         raise ValueError( "uint cannot convert SInt" ) 
     return convertbits(value, n, SInt, True)
 
+#
+# convert value to a tuple
+#   *value = tuple from positional arguments
+#   **kwargs = tuple from keyword arguments
+#
+def tuple_(value):
+    if isinstance(value, TupleType):
+        return value
 
-def tuple_(*larg, **kwargs):
-    decl = []
+    decl = OrderedDict()
     args = []
-    n = len(larg)
-    if n > 0:
-        assert n % 2 == 0
-        for i in range(0, n, 2):
-            K = larg[i]
-            t = larg[i+1]
-            T = type(t)
-            if T in IntegerTypes:
-                T = Out(Bit)
-            decl.append(K)
-            decl.append(T)
-            args.append(t)
-    else:
-        for K, t in kwargs.items():
-            T = type(t)
-            if T in IntegerTypes:
-                T = Out(Bit)
-            decl.append(K)
-            decl.append(T)
-            args.append(t)
-    return Tuple(*decl)(*args)
 
+    if isinstance(value, IntegerTypes):
+        value = int2seq(value, max(value.bit_length(),1) )
+    elif isinstance(value, (BitType, ClockType)):
+        value = [value]
+    elif isinstance(value, ArrayType):
+        value = [value[i] for i in range(len(value))]
+
+    if isinstance(value, Sequence):
+        ts = list(value)
+        for i in range(len(ts)):
+            args.append(ts[i])
+            decl[i] = type(ts[i])
+    elif isinstance(value, (dict, OrderedDict)):
+        for k, v in value.items():
+            args.append(v)
+            decl[k] = type(v)
+    else:
+        assert False
+
+    return Tuple(decl)(*args)

@@ -1,6 +1,24 @@
 from magma import *
 
-def test():
+def test_pair():
+    # types
+
+    A2 = Tuple(Bit, Bit)
+    print(A2)
+    assert isinstance(A2, TupleKind)
+    print(str(A2))
+    assert A2 == A2
+
+    B2 = Tuple(In(Bit), In(Bit))
+    assert isinstance(B2, TupleKind)
+    assert B2 == B2
+
+    C2 = Tuple(Out(Bit), Out(Bit))
+    assert isinstance(C2, TupleKind)
+    #assert str(C2) == 'Tuple(x=Out(Bit),y=Out(Bit))'
+    assert C2 == C2
+
+def test_dict():
     # types
 
     A2 = Tuple(x=Bit, y=Bit)
@@ -24,35 +42,6 @@ def test():
     assert A2 != C2
     assert B2 != C2
 
-    # functions
-
-    #print('tuple_("x",1,"y",1)')
-    #a1 = tuple_("x",1,"y",1)
-    #assert isinstance(a1, TupleType)
-
-
-def test_val():
-    A2 = Tuple(x=Bit, y=Bit)
-
-    # constructor
-
-    a = A2(name='a')
-    print('created A2')
-    assert isinstance(a, TupleType)
-    assert str(a) == 'a'
-
-    # selectors
-
-    print('a["x"]')
-    b = a['x']
-    assert isinstance(b, BitType)
-    assert str(b) == 'a.x'
-
-    print('a.x')
-    b = a.x
-    assert isinstance(b, BitType)
-    assert str(b) == 'a.x'
-
 def test_flip():
     Tuple2 = Tuple(x=In(Bit), y=Out(Bit))
     print(Tuple2)
@@ -71,22 +60,16 @@ def test_flip():
     T = In(Tout)
     assert T == Tin
 
-    T = Flip(Tout)
-    assert T == Tin
-    print(T)
-
+    #T = Flip(Tout)
+    #assert T == Tin
+    #print(T)
 
     T = Out(Tin)
     assert T == Tout
 
-    T = Flip(Tin)
-    assert T == Tout
-    print(T)
-
-def test_construct():
-    print('tuple_("x",1,"y",1)')
-    a1 = tuple_("x",1,"y",1)
-    assert isinstance(a1, TupleType)
+    #T = Flip(Tin)
+    #assert T == Tout
+    #print(T)
 
 def test_wire():
     Tuple2 = Tuple(x=Bit, y=Bit)
@@ -122,4 +105,25 @@ def test_wire():
     print('inputs:', [str(p) for p in wires.inputs])
     print('outputs:', [str(p) for p in wires.outputs])
 
+def test_val():
+    A2 = Tuple(x=Bit, y=Bit)
+
+    # constructor
+
+    a = A2(name='a')
+    print('created A2')
+    assert isinstance(a, TupleType)
+    assert str(a) == 'a'
+
+    # selectors
+
+    print('a["x"]')
+    b = a['x']
+    assert isinstance(b, BitType)
+    assert str(b) == 'a.x'
+
+    print('a.x')
+    b = a.x
+    assert isinstance(b, BitType)
+    assert str(b) == 'a.x'
 

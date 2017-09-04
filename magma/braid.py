@@ -6,7 +6,7 @@ from .wire import wire
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
-__ALL__ += ['flat', 'cut']
+__ALL__ += ['flat', 'partition']
 __ALL__ += ['row', 'col', 'map_']
 __ALL__ += ['fork', 'join']
 __ALL__ += ['fold', 'scan']
@@ -355,7 +355,7 @@ def flat(circuit, prefix='I'):
 
 # concat all the inputs whose name starts with prefix
 #  each input must be an array
-def cut(circuit, n, prefix='I'):
+def partition(circuit, n, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?

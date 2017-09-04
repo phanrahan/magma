@@ -12,7 +12,7 @@ def test_flatten():
     A = Array(2,Bit)
     B = Array(2,Bit)
     print(A==B)
-    t = tuple_(x=array([b0, b1]), y=array([b2, b3, b4]))
+    t = tuple_(dict(x=array([b0, b1]), y=array([b2, b3, b4])))
     print(type(t.name))
     print(type(t))
     a = array(t.flatten())

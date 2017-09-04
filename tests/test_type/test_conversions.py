@@ -1,10 +1,12 @@
 import pytest
+from collections import OrderedDict
 from magma import \
     bit, BitType, GND, VCC, \
     array, ArrayType, \
     bits, BitsType, \
     uint, UIntType, \
-    sint, SIntType
+    sint, SIntType, \
+    tuple_, TupleType
 
 def test_bit():
     assert isinstance(bit(0), BitType)
@@ -46,4 +48,13 @@ def test_sint():
      assert isinstance(sint(array(1,4)), SIntType)
      assert isinstance(sint(bits(1,4)), SIntType)
      #assert isinstance(sint(sint(1,4)), SIntType)
+
+def test_tuple():
+     assert isinstance(tuple_(OrderedDict(x=0, y=1)), TupleType)
+     assert isinstance(tuple_([0,1]), TupleType)
+     assert isinstance(tuple_(VCC), TupleType)
+     assert isinstance(tuple_(array(1,4)), TupleType)
+     assert isinstance(tuple_(bits(1,4)), TupleType)
+     assert isinstance(tuple_(sint(1,4)), TupleType)
+     assert isinstance(tuple_(uint(1,4)), TupleType)
 

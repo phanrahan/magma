@@ -20,7 +20,7 @@ def get_original_wire_call_stack_frame():
 
 def warn(*args):
     print(*args)
-    traceback.print_stack()
+    #traceback.print_stack()
 
 def error(message):
     stack_frame = get_original_wire_call_stack_frame()

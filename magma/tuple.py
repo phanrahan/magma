@@ -1,25 +1,31 @@
-from collections import Sequence, OrderedDict
-from .ref import TupleRef
+from collections import Sequence, Mapping, OrderedDict
+from .ref import AnonRef, TupleRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes, StringTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
+from .error import error
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
 
 #
 # Create an Tuple
 #
+#  Tuple() 
+#  - creates a new tuple value
+#  Tuple(v0, v1, ..., vn) 
+#  - creates a new tuple value where each field equals vi
+#
 class TupleType(Type):
     def __init__(self, *largs, **kwargs):
 
-        Type.__init__(self, **kwargs)
+        Type.__init__(self, **kwargs) # name=
 
-        if isinstance(largs, Sequence) and len(largs) > 0:
+        self.ts = []
+        if len(largs) > 0:
             assert len(largs) == self.N
-            self.ts = []
             for i in range(self.N):
-                k = self.Ks[i]
+                k = str(self.Ks[i])
                 t = largs[i]
                 if isinstance(t, IntegerTypes):
                     t = VCC if t else GND
@@ -27,10 +33,9 @@ class TupleType(Type):
                 self.ts.append(t)
                 setattr(self, k, t)
         else:
-            self.ts = []
             for i in range(self.N):
+                k = str(self.Ks[i])
                 T = self.Ts[i]
-                k = self.Ks[i]
                 t = T(name=TupleRef(self,k))
                 self.ts.append(t)
                 setattr(self, k, t)
@@ -38,6 +43,13 @@ class TupleType(Type):
     def __eq__(self, rhs):
         if not isinstance(rhs, TupleType): return False
         return self.ts == rhs.ts
+
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        kts = ['{}={}'.format(k, v) for k, v in zip(self.Ks, ts)]
+        return 'tuple(dict({})'.format(', '.join(kts))
 
     def __getitem__(self, key):
         if key in self.Ks:
@@ -126,7 +138,7 @@ class TupleType(Type):
         if len(ts) == self.N and self.iswhole(ts):
             return ts[0].name.tuple
 
-        return tuple_(**dict(zip(self.Ks,ts)))
+        return tuple_(dict(zip(self.Ks,ts)))
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -138,7 +150,7 @@ class TupleType(Type):
         if len(ts) == self.N and self.iswhole(ts):
             return ts[0].name.tuple
 
-        return tuple_(**dict(zip(self.Ks,ts)))
+        return tuple_(dict(zip(self.Ks,ts)))
 
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
@@ -176,77 +188,50 @@ class TupleKind(Kind):
     def qualify(cls, direction):
         if cls.isoriented(direction):
             return cls
-        return _Tuple(cls.Ks, [T.qualify(direction) for T in cls.Ts])
+        return Tuple(OrderedDict(zip(cls.Ks, [T.qualify(direction) for T in cls.Ts])))
 
     def flip(cls):
-        return _Tuple(cls.Ks, [T.flip() for T in cls.Ts])
+        return Tuple(OrderedDict(zip(cls.Ks, [T.flip() for T in cls.Ts])))
 
 
-def _Tuple(Ks, Ts):
-    name = 'Tuple(%s)' % ",".join(Ks)
-    return TupleKind(name, (TupleType,), dict(Ks=list(Ks), Ts=list(Ts)))
-    
-def Tuple(*decl, **kwargs):
-    n = len(decl)
-    if n > 0:
-        assert n % 2 == 0
-        d = OrderedDict()
-        for i in range(0,len(decl),2):
-             key, val = decl[i], decl[i+1]
-             assert isinstance(key, StringTypes)
-             assert isinstance(val, Kind)
-             d[key] = val
-        return _Tuple(d.keys(), d.values())
+# 
+# Tuple(Mapping)
+# Tuple(Sequence)
+#
+# *largs with largs being comprised of magma types
+#    Tuple(T0, T1, ..., Tn)
+#
+# **kwargs - only called if largs is empty
+#    Tuple(x=Bit, y=Bit) -> Tuple(**kwargs)
+#
+def Tuple(*largs, **kwargs):
+    if largs:
+        if isinstance(largs[0], Kind):
+            Ks = range(len(largs))
+            Ts = largs
+        else:
+            largs = largs[0]
+            if isinstance(largs, Sequence):
+                Ks = range(len(largs))
+                Ts = largs
+            elif isinstance(largs, Mapping):
+                Ks = list(largs.keys())
+                Ts = list(largs.values())
+            else: 
+                assert False
     else:
-        return _Tuple(kwargs.keys(), kwargs.values())
+        Ks = list(kwargs.keys())
+        Ts = list(kwargs.values())
 
-def tuple_(*larg, **kwargs):
-    decl = []
-    args = []
-    n = len(larg)
-    if n > 0:
-        assert n % 2 == 0
-        for i in range(0, n, 2):
-            K = larg[i]
-            t = larg[i+1]
-            T = type(t)
-            if T in IntegerTypes:
-                T = BitOut
-            decl.append(K)
-            decl.append(T)
-            args.append(t)
-    else:
-        for K, t in kwargs.items():
-            T = type(t)
-            if T in IntegerTypes:
-                T = BitOut
-            decl.append(K)
-            decl.append(T)
-            args.append(t)
-    return Tuple(*decl)(*args)
+    # check types and promote integers
+    for i in range(len(Ts)):
+        T = Ts[i]
+        if T in IntegerTypes:
+            T = BitOut
+            Ts[i] = T
+        if not isinstance(T, Kind):
+            error('Error: tuples must contain magma types - {}'.format(T))
 
-
-if __name__ == '__main__':
-
-    A2 = Tuple('x', Bit, 'y', Bit)
-    B2 = Tuple('x', Bit, 'y', Bit)
-    print(A2)
-    assert A2 == B2
-    assert not(A2 != B2)
-
-    a0 = A2(name='a0')
-    print(a0)
-
-    a1 = A2(name='a1')
-    print(a1)
-
-    print(a1['x'])
-    print(a1.x)
-
-    print(tuple_(0,1))
-
-    a1.wire(a0)
-
-    #b0 = a1[0]
-
+    name = 'Tuple(%s)' % ",".join(str(Ks))
+    return TupleKind(name, (TupleType,), dict(Ks=Ks, Ts=Ts))
 
