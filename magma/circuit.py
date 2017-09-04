@@ -355,7 +355,7 @@ class DefineCircuitKind(CircuitKind):
 
         # circuit definition are cached
         if name in Cache:
-            warn('Warning: Circuit {} already defined'.format(name))
+            #warn('Warning: Circuit {} already defined'.format(name))
             return Cache[name]
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
