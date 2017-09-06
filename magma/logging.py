@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-importimport logging
+import logging
 import traceback
 import inspect
 import sys
