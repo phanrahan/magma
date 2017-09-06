@@ -12,7 +12,7 @@ from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
 from .debug import get_callee_frame_info
-from .error import warn
+from .logging import warning
 from .backend.dot import to_html
 
 __all__  = ['AnonymousCircuitType']
@@ -176,8 +176,8 @@ class AnonymousCircuitType(object):
         ni = len(inputs)
         no = len(outputs)
         if ni != no:
-            warn("Warning: number of inputs is not equal to the number of outputs")
-            warn("Warning: only %d of the %d arguments will be wired" % (ni, no))
+            warning("Warning: number of inputs is not equal to the number of outputs")
+            warning("Warning: only %d of the %d arguments will be wired" % (ni, no))
         for i in range(min(ni,no)):
             wire(outputs[i], inputs[i], debug_info)
 
@@ -192,10 +192,10 @@ class AnonymousCircuitType(object):
             inputs = self.interface.inputs()
             ni = len(inputs)
             if ni == 0:
-                warn("Warning: wiring an output to a circuit with no input arguments")
+                warning("Warning: wiring an output to a circuit with no input arguments")
                 return
             if ni != 1:
-                warn("Warning: wiring an output to a circuit with more than one input argument")
+                warning("Warning: wiring an output to a circuit with more than one input argument")
             inputs[0].wire( output, debug_info )
 
     def __call__(input, *outputs, **kw):
@@ -216,7 +216,7 @@ class AnonymousCircuitType(object):
                 i = getattr(input, key)
                 wire( value, getattr(input, key), debug_info)
             else:
-                print('Warning: circuit does not have', key)
+                warn('Warning: circuit does not have {}'.format(key))
 
         o = input.interface.outputs()
         return o[0] if len(o) == 1 else tuple(o)

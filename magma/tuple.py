@@ -4,7 +4,7 @@ from .t import Type, Kind
 from .compatibility import IntegerTypes, StringTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
-from .error import error
+from .logging import error
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
 

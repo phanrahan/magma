@@ -2,7 +2,6 @@ import os
 import inspect
 
 from .backend import verilog, blif, firrtl, dot
-from .error import warn
 from .config import get_compile_dir
 
 __all__ = ['compile']

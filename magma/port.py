@@ -1,4 +1,4 @@
-from .error import error, warn
+from .logging import error, warning
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
@@ -53,19 +53,19 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                error("Error: using an input as an output {}".format(repr(o)))
+                error("Error: using an input as an output {}".format(repr(o)), include_wire_traceback=True)
                 return
 
             if o not in self.outputs:
                 if len(self.outputs) != 0:
-                    warn("Warning: adding an output {} to a wire with an output {}".format(str(o), str(self.outputs[0])))
+                    warning("Warning: adding an output {} to a wire with an output {}".format(str(o), str(self.outputs[0])))
                 #print('adding output', o)
                 self.outputs.append(o)
 
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                error("Error: using an output as an input {}".format(repr(i)))
+                error("Error: using an output as an input {}".format(repr(i)), include_wire_traceback=True)
                 return
 
             if i not in self.inputs:
@@ -81,16 +81,16 @@ class Wire:
     def check(self):
         for o in self.inputs:
             if o.isoutput():
-                print("Error: output in the wire inputs:",)
+                error("Error: output in the wire inputs: {}".format(o))
 
         for o in self.outputs:
             if o.isinput():
-                print("Error: input in the wire outputs:",)
+                error("Error: input in the wire outputs: {}".format(o))
                 return False
 
         # check that this wire is only driven by a single output
         if len(self.outputs) > 1:
-            print("Error: Multiple outputs on a wire:",)
+            error("Error: Multiple outputs on a wire: {}".format(self.outputs))
             return False
 
         return True
