@@ -1,7 +1,7 @@
 from magma import *
 
 def test_flat():
-    F = DeclareCircuit('F', "I0", In(Bits(2)), "I1", In(Bits(2)), "O", Out(Bit))
+    F = DeclareCircuit('F', "I", In(Array(2,Bits(2))), "O", Out(Bit))
     f = F(name="f")
     g = flat(f)
     assert len(g.interface) == 2
@@ -14,4 +14,6 @@ def test_partition():
     assert len(g.interface) == 3
     assert len(g.I0) == 2
     assert len(g.I1) == 2
+
+test_flat()
 
