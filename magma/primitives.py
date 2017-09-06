@@ -562,7 +562,8 @@ def gen_sim_register(N, has_ce, has_reset):
 
 @cache_definition
 def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
-    name = "coreir_reg_P"  # TODO: Add support for clock interface
+    name = "coreir_reg"  # TODO: Add support for clock interface
+    verilog_name = name + "_P"
     io = ["in", In(T(N)), "clk", In(Clock), "out", Out(T(N))]
     methods = []
 
@@ -572,7 +573,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
 
     if has_reset:
         io.extend(["rst", In(Bit)])
-        name += "R"  # TODO: This assumes ordering of clock parameters
+        verilog_name += "R"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("reset", reset))
 
     def when(self, condition):
@@ -581,7 +582,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
 
     if has_ce:
         io.extend(["en", In(Bit)])
-        name += "E"  # TODO: This assumes ordering of clock parameters
+        verilog_name += "E"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("when", when))
 
     return DeclareCircuit(
@@ -590,7 +591,8 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         stateful=True,
         simulate=gen_sim_register(N, has_ce, has_reset),
         circuit_type_methods=methods,
-        default_kwargs={"width": N}
+        default_kwargs={"width": N},
+        verilog_name=verilog_name
     )
 
 

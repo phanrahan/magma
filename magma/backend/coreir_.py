@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from ..bit import VCC, GND
 from ..array import ArrayKind, ArrayType
-from ..clock import wiredefaultclock
+from ..clock import wiredefaultclock, ClockType
 from ..bitutils import seq2int
 from ..backend.verilog import find
 import coreir
@@ -23,11 +23,16 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = {}
         for name, port in interface.ports.items():
-            # FIXME: Logic taken from verilog backend, why do we flip?
             if port.isinput(): 
-                _type = self.context.Bit()
+                if isinstance(port, ClockType):
+                    _type = self.context.get_named_type("coreir", "clk")
+                else:
+                    _type = self.context.Bit()
             elif port.isoutput():
-                _type = self.context.BitIn()
+                if isinstance(port, ClockType):
+                    _type = self.context.get_named_type("coreir", "clkIn")
+                else:
+                    _type = self.context.BitIn()
             else: 
                 raise NotImplementedError
             if isinstance(port, ArrayType):

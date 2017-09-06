@@ -45,5 +45,27 @@ def test_coreir_uint():
     assert check_files_equal(__file__, 
             "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
 
+def test_coreir_shift_register():
+    from magma.primitives import DefineRegister
+
+    N = 4
+    Register4 = DefineRegister(4)
+    T = Bits(N)
+
+    class ShiftRegister(Circuit):
+        name = "ShiftRegister"
+        IO = ["I", In(T), "O", Out(T), "CLK", In(Clock)]
+        @classmethod
+        def definition(io):
+            regs = [Register4() for _ in range(N)]
+            wireclock(io, regs)
+            wire(io.I, getattr(regs[0], "in"))
+            fold(regs, foldargs={"in":"out"})
+            wire(regs[-1].out, io.O)
+
+    compile("shift_register_coreir", ShiftRegister, 'coreir')
+    assert check_files_equal(__file__,
+            "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
+
 if __name__ == "__main__":
     test_coreir()
