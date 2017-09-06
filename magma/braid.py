@@ -341,7 +341,7 @@ def uncurry(circuit, prefix='I'):
 
 # flatten all the args matching names in flatargs
 #  each input must be an array
-def flat(circuit, flatargs=['I']):
+def flat(circuit, flatargs=['I', 'O']):
     args = []
     for name, port in circuit.interface.ports.items():
         if name in flatargs \
