@@ -24,8 +24,7 @@ class InstancePass(Pass):
     def _run(self, definition, path):
         for instance in definition.instances:
             instancedefinition = type(instance)
-            instpath = list(path) # copy
-            instpath.append(instance)
+            instpath = path + (instance, )
             self.instances.append(instpath)
             if callable(self):
                 self(instpath)
@@ -33,7 +32,7 @@ class InstancePass(Pass):
                 self._run( instancedefinition, instpath )
     
     def run(self):
-         self._run(self.main, [])
+         self._run(self.main, tuple())
          self.done()
          return self
 
