@@ -4,7 +4,7 @@ from .port import INPUT, OUTPUT, INOUT
 from .compatibility import IntegerTypes
 from .t import Type
 from .debug import debug_wire
-from .error import error
+from .logging import info, warning, error
 
 __all__ = ['wire']
 

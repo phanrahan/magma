@@ -1,5 +1,5 @@
 import inspect
-from .error import error
+from .logging import error
 from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes

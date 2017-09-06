@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from ..bit import VCC, GND
 from ..array import ArrayKind, ArrayType
-from ..clock import wiredefaultclock
+from ..clock import wiredefaultclock, ClockType
 from ..bitutils import seq2int
 from ..backend.verilog import find
 import coreir
@@ -23,11 +23,16 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = {}
         for name, port in interface.ports.items():
-            # FIXME: Logic taken from verilog backend, why do we flip?
             if port.isinput(): 
-                _type = self.context.Bit()
+                if isinstance(port, ClockType):
+                    _type = self.context.get_named_type("coreir", "clk")
+                else:
+                    _type = self.context.Bit()
             elif port.isoutput():
-                _type = self.context.BitIn()
+                if isinstance(port, ClockType):
+                    _type = self.context.get_named_type("coreir", "clkIn")
+                else:
+                    _type = self.context.BitIn()
             else: 
                 raise NotImplementedError
             if isinstance(port, ArrayType):
@@ -50,7 +55,7 @@ class CoreIRBackend:
             return self.libs[lib].generators[name]
 
     def compile_instance(self, instance, module_definition):
-        name = instance.__class__.verilog_name
+        name = instance.__class__.coreir_name
         if getattr(instance, 'coreir_lib', False):
             instantiable = self.get_instantiable(name, instance.coreir_lib)
         elif "coreir_" in name:
@@ -74,15 +79,15 @@ class CoreIRBackend:
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        module = self.context.G.new_module(definition.verilog_name, module_type)
+        module = self.context.G.new_module(definition.coreir_name, module_type)
         module_definition = module.new_definition()
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
-                output_ports[port] = repr(port).replace(definition.verilog_name, "self")
+                output_ports[port] = repr(port).replace(definition.coreir_name, "self")
                 if isinstance(port, ArrayType):
                     for bit in port:
-                        output_ports[bit] = repr(bit).replace("[", ".").replace("]", "").replace(definition.verilog_name, "self")
+                        output_ports[bit] = repr(bit).replace("[", ".").replace("]", "").replace(definition.coreir_name, "self")
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
@@ -109,7 +114,7 @@ class CoreIRBackend:
                 source = module_definition.select(output_ports[value])
             module_definition.connect(
                 source,
-                module_definition.select(repr(port).replace(definition.verilog_name, "self")))
+                module_definition.select(repr(port).replace(definition.coreir_name, "self")))
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
@@ -121,11 +126,11 @@ class CoreIRBackend:
                 assert isinstance(output, ArrayType)
                 for i, o in zip(input, output):
                     module_definition.connect(
-                        module_definition.select(repr(i).replace(definition.verilog_name, "self").replace("[", ".").replace("]", "")),
+                        module_definition.select(repr(i).replace(definition.coreir_name, "self").replace("[", ".").replace("]", "")),
                         module_definition.select(repr(o)))
             else:
                 module_definition.connect(
-                    module_definition.select(repr(input).replace(definition.verilog_name, "self")),
+                    module_definition.select(repr(input).replace(definition.coreir_name, "self")),
                     module_definition.select(repr(output)))
         module.definition = module_definition
         return module
@@ -160,4 +165,4 @@ class CoreIRBackend:
 def compile(main, file_name):
     defn = find(main, OrderedDict())
     modules = CoreIRBackend().compile(defn)
-    modules[main.verilog_name].save_to_file(file_name)
+    modules[main.coreir_name].save_to_file(file_name)

@@ -1,5 +1,5 @@
 from collections import Sequence
-from .error import error
+from .logging import error
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
@@ -81,11 +81,11 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
         
         if not isinstance(o, ArrayType):
-            error('Wiring Error: wiring {} ({}) to {} ({})'.format(repr(o), type(o), repr(i), type(i)))
+            error('Wiring Error: wiring {} ({}) to {} ({})'.format(repr(o), type(o), repr(i), type(i)), include_wire_traceback=True)
             return
 
         if i.N != o.N:
-            error('Wiring Error: Arrays must have the same length {} != {}'.format(i.N, o.N))
+            error('Wiring Error: Arrays must have the same length {} != {}'.format(i.N, o.N), include_wire_traceback=True)
             return 
 
         for k in range(len(i)):

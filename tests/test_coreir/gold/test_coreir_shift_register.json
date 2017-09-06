@@ -1,0 +1,118 @@
+{
+  "namespaces": {
+    "_G": {
+      "modules": {
+        "ShiftRegister": {
+          "connections": [
+            [
+              "self.O",
+              "inst3.out"
+            ],
+            [
+              "self.I",
+              "inst0.in"
+            ],
+            [
+              "self.CLK",
+              "inst3.clk"
+            ],
+            [
+              "self.CLK",
+              "inst2.clk"
+            ],
+            [
+              "self.CLK",
+              "inst1.clk"
+            ],
+            [
+              "self.CLK",
+              "inst0.clk"
+            ],
+            [
+              "inst3.in",
+              "inst2.out"
+            ],
+            [
+              "inst2.in",
+              "inst1.out"
+            ],
+            [
+              "inst1.in",
+              "inst0.out"
+            ]
+          ],
+          "instances": {
+            "inst0": {
+              "configargs": {
+                "init": 0
+              },
+              "genargs": {
+                "clr": false,
+                "en": false,
+                "rst": false,
+                "width": 4
+              },
+              "genref": "coreir.reg"
+            },
+            "inst1": {
+              "configargs": {
+                "init": 0
+              },
+              "genargs": {
+                "clr": false,
+                "en": false,
+                "rst": false,
+                "width": 4
+              },
+              "genref": "coreir.reg"
+            },
+            "inst2": {
+              "configargs": {
+                "init": 0
+              },
+              "genargs": {
+                "clr": false,
+                "en": false,
+                "rst": false,
+                "width": 4
+              },
+              "genref": "coreir.reg"
+            },
+            "inst3": {
+              "configargs": {
+                "init": 0
+              },
+              "genargs": {
+                "clr": false,
+                "en": false,
+                "rst": false,
+                "width": 4
+              },
+              "genref": "coreir.reg"
+            }
+          },
+          "type": [
+            "Record",
+            {
+              "CLK": [
+                "Named",
+                "coreir.clkIn"
+              ],
+              "I": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "O": [
+                "Array",
+                4,
+                "Bit"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "top": "_G.ShiftRegister"
+}
