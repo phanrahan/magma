@@ -36,4 +36,4 @@ sys.path.append(os.getcwd())
 main = __import__(name).main
 mainv = os.path.join('build',name)
 
-compile(mainv, main)
+compile(mainv, main, "coreir")
