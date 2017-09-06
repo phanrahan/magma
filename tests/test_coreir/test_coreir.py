@@ -65,7 +65,8 @@ def test_coreir_shift_register():
 
     compile("shift_register_coreir", ShiftRegister, 'coreir')
     assert check_files_equal(__file__,
-            "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
+            "build/test_coreir_shift_register.json",
+            "gold/test_coreir_shift_register.json")
 
 if __name__ == "__main__":
     test_coreir()

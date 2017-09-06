@@ -130,6 +130,7 @@ def declare_bits_binop(name, op, python_op):
                               'in0', In(T), 'in1', In(T), 'out', Out(T),
                               simulate=simulate,
                               verilog_name=name,
+                              coreir_name=name,
                               default_kwargs={"width": N})
 
     @type_check_binary_operator
@@ -254,6 +255,7 @@ def DefineInvert(N):
     T = Bits(N)
     return DeclareCircuit("coreir_not{}".format(N), 'in', In(T), 'out', Out(T),
             simulate=simulate_bits_invert, verilog_name="coreir_not",
+            coreir_name="coreir_not",
             default_kwargs={"width": N})
 
 def Invert(**kwargs):
@@ -289,7 +291,7 @@ def __lshift__(self, other):
 
         circ = DeclareCircuit("coreir_shl{}".format(N), 'in', In(UInt(N)),
                 'out', Out(T), verilog_name="coreir_shl",
-                simulate=simulate_shift_left)
+                coreir_name="coreir_shl", simulate=simulate_shift_left)
         return circ(width=N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
@@ -303,7 +305,7 @@ def __lshift__(self, other):
 
         circ = DeclareCircuit("coreir_dshl{}".format(N), 'in0', In(T), 'in1',
                 In(UInt(N)), 'out', Out(T), verilog_name="coreir_dshl",
-                simulate=simulate)
+                coreir_name="coreir_dshl", simulate=simulate)
         return circ(width=N)(self, other)
     else:
         raise TypeError("<< not implemented for argument 2 of type {}".format(
@@ -327,7 +329,7 @@ def __rshift__(self, other):
 
         circ = DeclareCircuit("coreir_lshr{}".format(N), 'in', In(UInt(N)),
                 'out', Out(T), verilog_name="coreir_lshr",
-                simulate=simulate_shift_left)
+                coreir_name="coreir_lshr", simulate=simulate_shift_left)
         return circ(width=N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
         if not isinstance(other, UIntType):
@@ -341,7 +343,7 @@ def __rshift__(self, other):
 
         circ = DeclareCircuit("coreir_dlshr{}".format(N), 'in0', In(T), 'in1',
                 In(UInt(N)), 'out', Out(T), verilog_name="coreir_dlshr",
-                simulate=simulate)
+                coreir_name="coreir_dlshr", simulate=simulate)
         return circ(width=N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
@@ -371,6 +373,7 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
                               stateful=False,
                               simulate=simulate,
                               verilog_name=name,
+                              coreir_name=name,
                               default_kwargs={"width": N})
 
     @type_check_binary_operator
@@ -448,7 +451,7 @@ def simulate_neg(self, value_store, state_store):
 def DeclareNegate(N):
     return DeclareCircuit("coreir_neg{}".format(N), 'in', In(SInt(N)), 'out',
             Out(SInt(N)), simulate=simulate_neg, verilog_name="coreir_not",
-            default_kwargs={"width": N})
+            coreir_name="coreir_not", default_kwargs={"width": N})
 
 
 def __neg__(self):
@@ -483,6 +486,7 @@ def arithmetic_shift_right(self, other):
             value_store.set_value(self.out, out.as_bool_list())
         circ =  DeclareCircuit("coreir_ashr{}".format(N), 'in', In(UInt(N)),
                 'out', Out(T), verilog_name="coreir_ashr",
+                coreir_name="coreir_ashr",
                 simulate=simulate_arithmetic_shift_right)
         return circ(width=self.N, SHIFTBITS=other)(self)
     elif isinstance(other, Type):
@@ -498,7 +502,7 @@ def arithmetic_shift_right(self, other):
 
         circ = DeclareCircuit("coreir_dashr{}".format(N), 'in0', In(T), 'in1',
                 In(UInt(N)), 'out', Out(T), verilog_name="coreir_dashr",
-                simulate=simulate)
+                coreir_name="coreir_dashr", simulate=simulate)
         return circ(width=self.N)(self, other)
     else:
         raise TypeError(">> not implemented for argument 2 of type {}".format(
@@ -562,8 +566,8 @@ def gen_sim_register(N, has_ce, has_reset):
 
 @cache_definition
 def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
-    name = "coreir_reg"  # TODO: Add support for clock interface
-    verilog_name = name + "_P"
+    name = "coreir_reg_P"  # TODO: Add support for clock interface
+    coreir_name = "coreir_reg"
     io = ["in", In(T(N)), "clk", In(Clock), "out", Out(T(N))]
     methods = []
 
@@ -573,7 +577,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
 
     if has_reset:
         io.extend(["rst", In(Bit)])
-        verilog_name += "R"  # TODO: This assumes ordering of clock parameters
+        name += "R"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("reset", reset))
 
     def when(self, condition):
@@ -582,7 +586,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
 
     if has_ce:
         io.extend(["en", In(Bit)])
-        verilog_name += "E"  # TODO: This assumes ordering of clock parameters
+        name += "E"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("when", when))
 
     return DeclareCircuit(
@@ -592,7 +596,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         simulate=gen_sim_register(N, has_ce, has_reset),
         circuit_type_methods=methods,
         default_kwargs={"width": N},
-        verilog_name=verilog_name
+        coreir_name=coreir_name
     )
 
 
@@ -610,6 +614,7 @@ def DefineMux(height=2, width=1):
         *["in0", In(Bits(N)), "in1", In(Bits(N)), "sel", In(Bit), 
          "out", Out(Bits(N))],
         verilog_name="coreir_mux",
+        coreir_name="coreir_mux",
         simulate=simulate,
         default_kwargs={"width": N}
     )
@@ -734,5 +739,5 @@ def DefineMemory(height, width):
           "wclk", In(Bit), 
           "wen", In(Bit) ]
     return DeclareCircuit(name, *IO, verilog_name="coreir_mem",
-            simulate=gen_sim_mem(height, width),
+            coreir_name="coreir_mem", simulate=gen_sim_mem(height, width),
             default_kwargs={"width": width, "depth": height})
