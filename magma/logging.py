@@ -25,7 +25,7 @@ def info(message, *args, **kwargs):
 def warning(message, *args, **kwargs):
     log.warning(message, *args, **kwargs)
 
-def error(message, *args, include_wire_traceback=False, **kwargs):
+def error(message, include_wire_traceback=False, *args, **kwargs):
     if include_wire_traceback:
         sys.stderr.write("="*80 + "\n")
         stack_frame = get_original_wire_call_stack_frame()
