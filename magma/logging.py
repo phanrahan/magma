@@ -38,6 +38,7 @@ def error(message, include_wire_traceback=False, *args, **kwargs):
         sys.stderr.write("="*80 + "\n")
         stack_frame = get_original_wire_call_stack_frame()
         traceback.print_stack(f=stack_frame, limit=10, file=sys.stderr)
+    # FIXME: In python 2, log.error doesn't go to stderr by default
     # log.error(message, *args, **kwargs)
     print(message, file=sys.stderr, *args, **kwargs)
     if include_wire_traceback:
