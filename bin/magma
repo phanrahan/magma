@@ -2,25 +2,39 @@
 import os, sys, getopt
 from magma import compile
 
+def usage():
+    print('usage: magma [-b board] [-o outputformat] file\n', file=sys.stderr)
+    print('Options', file=sys.stderr)
+    print('-h          help', file=sys.stderr)
+    print('-b board    (icestick, goboard, hx8kboard) ', file=sys.stderr)
+    print('-o format   (verilog [default], coreir, firrtl, blif) ', file=sys.stderr)
+    sys.exit(1)
+
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'b:o:')
 except Exception as e:
     print(e, file=sys.stderr)
-    print('usage: magma [-b board]', file=sys.stderr)
-    sys.exit(1)
+    usage()
 
 sys.path.append(os.path.dirname(os.path.realpath(args[0])))
 
-name = os.path.basename(args[0])
-name = os.path.splitext(name)[0]
 
 board = None
-output = "verilog"
+outputformat = 'verilog'
 for o, a in opts:
-    if o == '-b':
+    if o == '-h':
+        usage()
+    elif o == '-b':
+        if a not in ['icestick', 'goboard', 'hx8kboard']:
+            usage()
         board = a
-    if o == '-o':
-        output = a
+    elif o == '-o':
+        if a not in ['verilog', 'coreir', 'firrtl', 'blif']:
+            usage()
+        outputformat = a
+
+name = os.path.basename(args[0])
+name = os.path.splitext(name)[0]
 
 target = None
 mantle = None
@@ -39,4 +53,4 @@ sys.path.append(os.getcwd())
 main = __import__(name).main
 mainv = os.path.join('build',name)
 
-compile(mainv, main, output=output)
+compile(mainv, main, output=outputformat)
