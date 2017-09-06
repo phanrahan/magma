@@ -339,18 +339,18 @@ def uncurry(circuit, prefix='I'):
 
     return AnonymousCircuit( [prefix, array(uncurryargs)] + otherargs )
 
-# concat all the inputs whose name starts with prefix
+# flatten all the args matching names in flatargs
 #  each input must be an array
-def flat(circuit, prefix='I'):
-    otherargs = []
-    flattenargs = []
+def flat(circuit, flatargs=['I']):
+    args = []
     for name, port in circuit.interface.ports.items():
-        # should we insert the argument in the position of the first match?
-        if name.startswith(prefix) and isinstance(port, ArrayType):
-           flattenargs += port.as_list()
+        if name in flatargs \
+           and isinstance(port, ArrayType) \
+               and isinstance(port[0], ArrayType):
+           ts = sum([p.as_list() for p in port], [])
+           args += [name, array(ts)]
         else:
-           otherargs += [name, port]
-    args = [prefix, array(flattenargs)] + otherargs
+           args += [name, port]
     return AnonymousCircuit( args )
 
 # concat all the inputs whose name starts with prefix
