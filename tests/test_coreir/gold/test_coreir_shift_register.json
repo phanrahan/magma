@@ -1,6 +1,6 @@
 {
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "ShiftRegister": {
           "connections": [
@@ -114,5 +114,5 @@
       }
     }
   },
-  "top": "_G.ShiftRegister"
+  "top": "global.ShiftRegister"
 }
