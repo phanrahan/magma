@@ -63,7 +63,7 @@ def test_coreir_shift_register():
             fold(regs, foldargs={"in":"out"})
             wire(regs[-1].out, io.O)
 
-    compile("shift_register_coreir", ShiftRegister, 'coreir')
+    compile("build/test_shift_register_coreir", ShiftRegister, 'coreir')
     assert check_files_equal(__file__,
             "build/test_coreir_shift_register.json",
             "gold/test_coreir_shift_register.json")

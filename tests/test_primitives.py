@@ -64,7 +64,7 @@ def run_test(name, define_op, instance_op, op, python_op, types):
             *["a", In(T), "b", In(T), "c", Out(T),
               "d", Out(T), "e", Out(T)])
         wire(define_op(2, width)()(circ.a, circ.b), circ.c)
-        wire(instance_op(2)(circ.a, circ.b), circ.d)
+        wire(instance_op(2, width)(circ.a, circ.b), circ.d)
         wire(op(circ.a, circ.b), circ.e)
         m.EndDefine()
 
@@ -89,7 +89,7 @@ def run_compare_test(name, define_op, instance_op, op, python_op, types):
             *["a", In(T), "b", In(T), "c", Out(Bit),
               "d", Out(Bit), "e", Out(Bit)])
         wire(define_op(2, width)()(circ.a, circ.b), circ.c)
-        wire(instance_op(2)(circ.a, circ.b), circ.d)
+        wire(instance_op(2, width)(circ.a, circ.b), circ.d)
         wire(op(circ.a, circ.b), circ.e)
         m.EndDefine()
 

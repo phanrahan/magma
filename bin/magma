@@ -3,7 +3,7 @@ import os, sys, getopt
 from magma import compile
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'b:')
+    opts, args = getopt.getopt(sys.argv[1:], 'b:o:')
 except Exception as e:
     print(e, file=sys.stderr)
     print('usage: magma [-b board]', file=sys.stderr)
@@ -15,9 +15,12 @@ name = os.path.basename(args[0])
 name = os.path.splitext(name)[0]
 
 board = None
+output = "verilog"
 for o, a in opts:
     if o == '-b':
         board = a
+    if o == '-o':
+        output = a
 
 target = None
 mantle = None
@@ -36,4 +39,4 @@ sys.path.append(os.getcwd())
 main = __import__(name).main
 mainv = os.path.join('build',name)
 
-compile(mainv, main)
+compile(mainv, main, output=output)

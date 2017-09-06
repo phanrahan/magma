@@ -76,6 +76,12 @@ class CoreIRBackend:
         else:
             raise NotImplementedError()
 
+    def get_port_select(self, port, definition):
+        select = repr(port)
+        if definition.name != "":
+            select = select.replace(definition.name, "self")
+        return select.replace("[", ".").replace("]", "")
+
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
@@ -84,26 +90,26 @@ class CoreIRBackend:
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
-                output_ports[port] = repr(port).replace(definition.coreir_name, "self")
+                output_ports[port] = self.get_port_select(port, definition)
                 if isinstance(port, ArrayType):
                     for bit in port:
-                        output_ports[bit] = repr(bit).replace("[", ".").replace("]", "").replace(definition.coreir_name, "self")
+                        output_ports[bit] = self.get_port_select(bit, definition)
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
-                    output_ports[port] = repr(port)
+                    output_ports[port] = self.get_port_select(port, definition)
                     if isinstance(port, ArrayType):
                         for bit in port:
-                            output_ports[bit] = repr(bit).replace("[", ".").replace("]", "")
+                            output_ports[bit] = self.get_port_select(bit, definition)
 
 
         def connect(port, value):
             if value.anon() and isinstance(value, ArrayType):
-                for i, v in zip(range(len(port)), value):
-                    connect("{}.{}".format(repr(port), i), v)
+                for p, v in zip(port, value):
+                    connect(p, v)
                 return
             if isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
                 source = self.get_constant_instance(value, len(value),
@@ -114,7 +120,7 @@ class CoreIRBackend:
                 source = module_definition.select(output_ports[value])
             module_definition.connect(
                 source,
-                module_definition.select(repr(port).replace(definition.coreir_name, "self")))
+                module_definition.select(self.get_port_select(port, definition)))
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
@@ -126,12 +132,12 @@ class CoreIRBackend:
                 assert isinstance(output, ArrayType)
                 for i, o in zip(input, output):
                     module_definition.connect(
-                        module_definition.select(repr(i).replace(definition.coreir_name, "self").replace("[", ".").replace("]", "")),
-                        module_definition.select(repr(o)))
+                        module_definition.select(self.get_port_select(i, definition)),
+                        module_definition.select(self.get_port_select(o, definition)))
             else:
                 module_definition.connect(
-                    module_definition.select(repr(input).replace(definition.coreir_name, "self")),
-                    module_definition.select(repr(output)))
+                    module_definition.select(self.get_port_select(input, definition)),
+                    module_definition.select(self.get_port_select(output, definition)))
         module.definition = module_definition
         return module
 

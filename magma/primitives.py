@@ -140,6 +140,10 @@ def declare_bits_binop(name, op, python_op):
     setattr(BitsType, op, func)
     return Declare
 
+def get_length(arg):
+    if isinstance(arg, BitType):
+        return None
+    return len(arg)
 
 @cache_definition
 def DefineFoldOp(DefineOp, op, height, width):
@@ -172,20 +176,15 @@ def DefineAnd(height=2, width=None):
         return DefineFoldOp(DefineAnd, "and", height, width)
 
 
-def And(height, **kwargs):
-    def AndGenerator(*args):
-        if all(isinstance(arg, BitType) for arg in args):
-            width = None
-        else:
-            assert all(isinstance(arg, BitsType) for arg in args)
-            width = len(args[0])
-            assert all(len(arg) == width for arg in args)
-        return DefineAnd(height, width)(**kwargs)(*args)
-    return AndGenerator
+def And(height, width=None, **kwargs):
+    return DefineAnd(height, width)(**kwargs)
 
 
 def and_(*args, **kwargs):
-    return And(len(args), **kwargs)(*args)
+    width = get_length(args[0])
+    if not all(get_length(x) == width for x in args):
+        raise ValueError("All arguments should have the same length")
+    return And(len(args), width, **kwargs)(*args)
 
 
 DefineCoreirOr  = declare_bits_binop("coreir_or", "__or__", operator.or_)
@@ -201,20 +200,15 @@ def DefineOr(height=2, width=None):
         return DefineFoldOp(DefineOr, "or", height, width)
 
 
-def Or(height, **kwargs):
-    def OrGenerator(*args):
-        if all(isinstance(arg, BitType) for arg in args):
-            width = None
-        else:
-            assert all(isinstance(arg, BitsType) for arg in args)
-            width = len(args[0])
-            assert all(len(arg) == width for arg in args)
-        return DefineOr(height, width)(**kwargs)(*args)
-    return OrGenerator
+def Or(height, width=None, **kwargs):
+    return DefineOr(height, width)(**kwargs)
 
 
 def or_(*args, **kwargs):
-    return Or(len(args), **kwargs)(*args)
+    width = get_length(args[0])
+    if not all(get_length(x) == width for x in args):
+        raise ValueError("All arguments should have the same length")
+    return Or(len(args), width, **kwargs)(*args)
 
 DefineCoreirXOr = declare_bits_binop("coreir_xor", "__xor__", operator.xor)
 
@@ -229,20 +223,15 @@ def DefineXOr(height=2, width=None):
         return DefineFoldOp(DefineXOr, "xor", height, width)
 
 
-def XOr(height, **kwargs):
-    def XOrGenerator(*args):
-        if all(isinstance(arg, BitType) for arg in args):
-            width = None
-        else:
-            assert all(isinstance(arg, BitsType) for arg in args)
-            width = len(args[0])
-            assert all(len(arg) == width for arg in args)
-        return DefineXOr(height, width)(**kwargs)(*args)
-    return XOrGenerator
+def XOr(height, width=None, **kwargs):
+    return DefineXOr(height, width)(**kwargs)
 
 
 def xor(*args, **kwargs):
-    return XOr(len(args), **kwargs)(*args)
+    width = get_length(args[0])
+    if not all(get_length(x) == width for x in args):
+        raise ValueError("All arguments should have the same length")
+    return XOr(len(args), width, **kwargs)(*args)
 
 
 def simulate_bits_invert(self, value_store, state_store):
@@ -404,20 +393,15 @@ def DefineEQ(height=2, width=None):
         return DefineFoldOp(DefineEQ, "eq", height, width)
 
 
-def EQ(height, **kwargs):
-    def EQGenerator(*args):
-        if all(isinstance(arg, BitType) for arg in args):
-            width = None
-        else:
-            assert all(isinstance(arg, BitsType) for arg in args)
-            width = len(args[0])
-            assert all(len(arg) == width for arg in args)
-        return DefineEQ(height, width)(**kwargs)(*args)
-    return EQGenerator
+def EQ(height, width=None, **kwargs):
+    return DefineEQ(height, width)(**kwargs)
 
 
 def eq(*args, **kwargs):
-    return EQ(len(args), **kwargs)(*args)
+    width = get_length(args[0])
+    if not all(get_length(x) == width for x in args):
+        raise ValueError("All arguments should have the same length")
+    return EQ(len(args), width, **kwargs)(*args)
 
 def DefineNE(*args):
     raise NotImplementedError()
