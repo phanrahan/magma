@@ -1,7 +1,11 @@
 import pytest
 from collections import OrderedDict
 from magma import \
-    bit, BitType, GND, VCC, \
+    GND, VCC, \
+    bit, BitType, \
+    clock, ClockType, \
+    reset, ResetType, \
+    enable, EnableType, \
     array, ArrayType, \
     bits, BitsType, \
     uint, UIntType, \
@@ -13,9 +17,52 @@ def test_bit():
     assert isinstance(bit(1), BitType)
     assert isinstance(bit(VCC), BitType)
     assert isinstance(bit(GND), BitType)
+    assert isinstance(bit(bit(0)), BitType)
+    assert isinstance(bit(clock(0)), BitType)
+    assert isinstance(bit(reset(0)), BitType)
+    assert isinstance(bit(enable(0)), BitType)
     assert isinstance(bit(bits(0,1)), BitType)
     assert isinstance(bit(uint(0,1)), BitType)
     assert isinstance(bit(sint(0,1)), BitType)
+
+def test_enable():
+    assert isinstance(enable(0), EnableType)
+    assert isinstance(enable(1), EnableType)
+    assert isinstance(enable(VCC), EnableType)
+    assert isinstance(enable(GND), EnableType)
+    assert isinstance(enable(bit(0)), EnableType)
+    assert isinstance(enable(clock(0)), EnableType)
+    assert isinstance(enable(reset(0)), EnableType)
+    assert isinstance(enable(enable(0)), EnableType)
+    assert isinstance(enable(bits(0,1)), EnableType)
+    assert isinstance(enable(uint(0,1)), EnableType)
+    assert isinstance(enable(sint(0,1)), EnableType)
+
+def test_reset():
+    assert isinstance(reset(0), ResetType)
+    assert isinstance(reset(1), ResetType)
+    assert isinstance(reset(VCC), ResetType)
+    assert isinstance(reset(GND), ResetType)
+    assert isinstance(reset(bit(0)), ResetType)
+    assert isinstance(reset(clock(0)), ResetType)
+    assert isinstance(reset(enable(0)), ResetType)
+    assert isinstance(reset(reset(0)), ResetType)
+    assert isinstance(reset(bits(0,1)), ResetType)
+    assert isinstance(reset(uint(0,1)), ResetType)
+    assert isinstance(reset(sint(0,1)), ResetType)
+
+def test_clock():
+    assert isinstance(clock(0), ClockType)
+    assert isinstance(clock(1), ClockType)
+    assert isinstance(clock(VCC), ClockType)
+    assert isinstance(clock(GND), ClockType)
+    assert isinstance(clock(bit(0)), ClockType)
+    assert isinstance(clock(clock(0)), ClockType)
+    assert isinstance(clock(reset(0)), ClockType)
+    assert isinstance(clock(enable(0)), ClockType)
+    assert isinstance(clock(bits(0,1)), ClockType)
+    assert isinstance(clock(uint(0,1)), ClockType)
+    assert isinstance(clock(sint(0,1)), ClockType)
 
 def test_array():
      assert isinstance(array(1,4), ArrayType)
