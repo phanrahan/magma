@@ -2,7 +2,7 @@ from collections import Sequence, OrderedDict
 from .compatibility import IntegerTypes
 from .t import In, Out
 from .bit import BitKind, BitType, Bit, VCC, GND, BitIn, BitOut, BitInOut
-from .clock import ClockType, Clock, ClockIn, ClockOut, ClockInOut
+from .clock import ClockType, Clock, ClockIn, ClockOut, ResetType, EnableType
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
 from .tuple import TupleType, Tuple
@@ -20,7 +20,7 @@ def bit(value):
     if isinstance(value, BitType):
         return value
 
-    if not isinstance(value, (ClockType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
+    if not isinstance(value, (ClockType, ResetType, EnableType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
         raise ValueError(
             "bit can only be used with a Clock, Array, Bits, UInt, SInt, or int, not : {}".format(type(value)))
 
@@ -31,10 +31,9 @@ def bit(value):
     if isinstance(value, IntegerTypes):
         return VCC if value else GND
 
-    if isinstance(value, ClockType):
+    if isinstance(value, (ClockType, ResetType, EnableType)):
         if   value.isinput():  b = BitIn()
         elif value.isoutput(): b = BitOut()
-        elif value.isinout():  b = BitInOut()
         else: b = Bit()
         b.port = value.port
         return b
@@ -57,10 +56,9 @@ def clock(value):
     if isinstance(value, IntegerTypes):
         return VCC if value else GND
 
-    if isinstance(value, BitType):
+    if isinstance(value, (BitType, EnableType, ResetType)):
         if   value.isinput():  c = ClockIn()
         elif value.isoutput(): c = ClockOut()
-        elif value.isinout():  c = ClockInOut()
         else: c = Clock()
         c.port = value.port
         return c
@@ -68,7 +66,7 @@ def clock(value):
     return value
 
 def convertbits(value, n, totype, checkbit):
-    if not isinstance(value, (BitType, ClockType, TupleType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes, Sequence)):
+    if not isinstance(value, (BitType, ClockType, ResetType, EnableType, TupleType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes, Sequence)):
         raise ValueError(
             "bits can only be used with a Bit, Clock, Tuple, Array, Bits, UInt, SInt, int, or Sequence, not : {}".format(type(value)))
 
@@ -81,7 +79,7 @@ def convertbits(value, n, totype, checkbit):
         ts = int2seq(value, n)
     elif isinstance(value, Sequence):
         ts =  list(value)
-    elif isinstance(value, (BitType, ClockType)):
+    elif isinstance(value, (BitType, ClockType, ResetType, EnableType)):
         if n is None:
             ts = [value]
         else:
@@ -144,7 +142,7 @@ def tuple_(value):
 
     if isinstance(value, IntegerTypes):
         value = int2seq(value, max(value.bit_length(),1) )
-    elif isinstance(value, (BitType, ClockType)):
+    elif isinstance(value, (BitType, ClockType, ResetType, EnableType)):
         value = [value]
     elif isinstance(value, ArrayType):
         value = [value[i] for i in range(len(value))]
