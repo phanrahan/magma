@@ -1,79 +1,73 @@
 from collections import Sequence, OrderedDict
 from .compatibility import IntegerTypes
 from .t import In, Out
-from .bit import BitKind, BitType, Bit, VCC, GND, BitIn, BitOut, BitInOut
-from .clock import ClockType, Clock, ClockIn, ClockOut, ClockInOut
+from .bit import _BitKind, _BitType, Bit, BitKind, BitType, VCC, GND
+from .clock import ClockType, Clock, \
+    Reset, ResetType, \
+    Enable, EnableType
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
 from .tuple import TupleType, Tuple
 from .bitutils import int2seq
 
 __all__  = ['bit']
-__all__ += ['clock']
+__all__ += ['clock', 'reset', 'enable']
 
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
 
 __all__ += ['tuple_']
 
-def bit(value):
-    if isinstance(value, BitType):
+def convertbit(value, totype, T):
+    if isinstance(value, totype):
         return value
 
-    if not isinstance(value, (ClockType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
+    if not isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes)):
         raise ValueError(
-            "bit can only be used with a Clock, Array, Bits, UInt, SInt, or int, not : {}".format(type(value)))
+            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
 
-    if isinstance(value, (ArrayType, BitsType, UIntType, SIntType)):
-        assert len(value) == 1
+    if isinstance(value, (ArrayType, TupleType)):
+        if len(value) != 1:
+            raise ValueError(
+            "bit can only be used on arrays and tuples of length 1; not {}".format(len(value)))
         value = value[0]
+        if not isinstance(value, _BitType):
+            raise ValueError(
+                "bit can only be used on arrays and tuples of bits; not {}".format(type(value)))
+
+    assert isinstance(value, (IntegerTypes, _BitType))
 
     if isinstance(value, IntegerTypes):
-        return VCC if value else GND
+        value = VCC if value else GND
 
-    if isinstance(value, ClockType):
-        if   value.isinput():  b = BitIn()
-        elif value.isoutput(): b = BitOut()
-        elif value.isinout():  b = BitInOut()
-        else: b = Bit()
-        b.port = value.port
-        return b
+    if   value.isinput():  b = In(T)()
+    elif value.isoutput(): b = Out(T)()
+    else: b = T()
+    b.port = value.port
+    return b
 
-    return value
 
+def bit(value):
+    return convertbit(value, BitType, Bit)
 
 def clock(value):
-    if isinstance(value, ClockType):
+    return convertbit(value, ClockType, Clock)
+
+def reset(value):
+    return convertbit(value, ResetType, Reset)
+
+def enable(value):
+    return convertbit(value, EnableType, Enable)
+
+
+
+def convertbits(value, n, totype, totypeconstructor, checkbit):
+    if isinstance(value, totype):
         return value
 
-    if not isinstance(value, (BitType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes)):
+    if not isinstance(value, (_BitType, TupleType, ArrayType, IntegerTypes, Sequence)):
         raise ValueError(
-            "clock can only be used with a Bit, Array, Bits, UInt, SInt, or int, not : {}".format(type(value)))
-
-    if isinstance(value, (ArrayType, BitsType, UIntType, SIntType)):
-        assert len(value) == 1
-        value = value[0]
-
-    if isinstance(value, IntegerTypes):
-        return VCC if value else GND
-
-    if isinstance(value, BitType):
-        if   value.isinput():  c = ClockIn()
-        elif value.isoutput(): c = ClockOut()
-        elif value.isinout():  c = ClockInOut()
-        else: c = Clock()
-        c.port = value.port
-        return c
-
-    return value
-
-def convertbits(value, n, totype, checkbit):
-    if not isinstance(value, (BitType, ClockType, TupleType, ArrayType, BitsType, UIntType, SIntType, IntegerTypes, Sequence)):
-        raise ValueError(
-            "bits can only be used with a Bit, Clock, Tuple, Array, Bits, UInt, SInt, int, or Sequence, not : {}".format(type(value)))
-
-    if not isinstance(value, (IntegerTypes, BitType, ClockType)):
-        assert n is None
+            "bits can only be used on a Bit, an Array, a Tuple, an int, or a Sequence; not : {}".format(type(value)))
 
     if isinstance(value, IntegerTypes):
         if n is None:
@@ -81,7 +75,7 @@ def convertbits(value, n, totype, checkbit):
         ts = int2seq(value, n)
     elif isinstance(value, Sequence):
         ts =  list(value)
-    elif isinstance(value, (BitType, ClockType)):
+    elif isinstance(value, _BitType):
         if n is None:
             ts = [value]
         else:
@@ -99,36 +93,34 @@ def convertbits(value, n, totype, checkbit):
 
     # check that they are all the same
     for t in Ts:
-       # make this test optional ...
+       # this should be converted to error()
        if checkbit:
-           assert isinstance(t, BitKind)
-       assert t == T
+            if not isinstance(t, _BitKind):
+                raise ValueError(
+                    "bits can only be used on Arrays or Tuples containing bits, not : {}".format(type(value)))
+       if t != T:
+            raise ValueError("All fields in a Array or a Tuple must be the same type")
 
-    return totype(len(Ts), T)(*ts)
+    assert len(Ts)
+
+    return totypeconstructor(len(Ts), T)(*ts)
 
 def array(value, n=None):
-    if isinstance(value, ArrayType):
-        return value
-    return convertbits(value, n, Array, False)
+    return convertbits(value, n, ArrayType, Array, False)
 
 def bits(value, n=None):
-    if isinstance(value, BitsType):
-        return value
-    return convertbits(value, n, Bits, True)
+    return convertbits(value, n, BitsType, Bits, True)
 
 def uint(value, n=None):
-    if isinstance(value, UIntType):
-        return value
     if isinstance(value, SIntType):
         raise ValueError( "uint cannot convert SInt" ) 
-    return convertbits(value, n, UInt, True)
+    return convertbits(value, n, UIntType, UInt, True)
 
 def sint(value, n=None):
-    if isinstance(value, SIntType):
-        return value
     if isinstance(value, UIntType):
         raise ValueError( "uint cannot convert SInt" ) 
-    return convertbits(value, n, SInt, True)
+    return convertbits(value, n, SIntType, SInt, True)
+
 
 #
 # convert value to a tuple
@@ -144,7 +136,7 @@ def tuple_(value):
 
     if isinstance(value, IntegerTypes):
         value = int2seq(value, max(value.bit_length(),1) )
-    elif isinstance(value, (BitType, ClockType)):
+    elif isinstance(value, (BitType, ClockType, ResetType, EnableType)):
         value = [value]
     elif isinstance(value, ArrayType):
         value = [value[i] for i in range(len(value))]

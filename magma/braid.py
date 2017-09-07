@@ -112,15 +112,15 @@ def joinarg(arg, interfaces):
     return [arg, array(args)]
 
 # return [arg, array] from a list of interfaces
-def flatarg(arg, interfaces):
-    args = getarg(arg, interfaces)
-    #direction = getdirection(args)
-    #print('flatarg', args)
-    flatargs = []
-    for a in args:
-        for i in range(len(a)):
-            flatargs.append(a[i])
-    return [arg, array(flatargs)]
+#def flatarg(arg, interfaces):
+#    args = getarg(arg, interfaces)
+#    #direction = getdirection(args)
+#    #print('flatarg', args)
+#    flatargs = []
+#    for a in args:
+#        for i in range(len(a)):
+#            flatargs.append(a[i])
+#    return [arg, array(flatargs)]
 
 
 # all powerful braid functions
@@ -131,8 +131,6 @@ def flatarg(arg, interfaces):
 #   this argument is wired to all the circuits
 #  joinargs : list of argument names to join
 #   this argument is equal an array of all the arguments from circuits
-#  flatargs : list of argument names to flatten
-#   this argument is equal an array of all the flatted arguments from circuits
 #  foldargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
 #  rfoldargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
 #    namein[0] is retained in the result, 
@@ -150,7 +148,6 @@ def flatarg(arg, interfaces):
 def braid(circuits, 
             forkargs=[],
             joinargs=[],
-            flatargs=[],
             foldargs={}, rfoldargs={},
             scanargs={}, rscanargs={}):
 
@@ -163,7 +160,6 @@ def braid(circuits,
     for clkarg in interfaces[0].clockargnames():
         if clkarg in forkargs: continue
         if clkarg in joinargs: continue
-        if clkarg in flatargs: continue
         if clkarg in foldargs.keys(): continue
         if clkarg in rfoldargs.keys(): continue
         if clkarg in scanargs.keys(): continue
@@ -171,7 +167,7 @@ def braid(circuits,
         forkargs.append(clkarg)
 
     # do NOT join arguments if they appear in another keyword
-    nojoinargs = forkargs + flatargs
+    nojoinargs = list(forkargs)
     nojoinargs += flatten( [[k, v] for k, v in foldargs.items()] )
     nojoinargs += flatten( [[k, v] for k, v in rfoldargs.items()] )
     nojoinargs += flatten( [[k, v] for k, v in scanargs.items()] )
@@ -225,9 +221,9 @@ def braid(circuits,
             #print('joining', key)
             args += joinarg(key, interfaces)
 
-        elif key in flatargs:
-            #print('flattening', key)
-            args += flatarg(key, interfaces)
+        #elif key in flatargs:
+        #    #print('flattening', key)
+        #    args += flatarg(key, interfaces)
 
     #print(args)
     return AnonymousCircuit(args)

@@ -4,11 +4,18 @@ from .bit import Bit, _BitKind, _BitType
 from .wire import wire
 
 __all__  = ['ClockKind', 'ClockType']
-__all__ += ['Clock', 'ClockIn', 'ClockOut','ClockInOut']
+__all__ += ['Clock', 'ClockIn', 'ClockOut']
+
+__all__ += ['ResetKind', 'ResetType']
+__all__ += ['Reset', 'ResetIn', 'ResetOut']
+
+__all__ += ['EnableKind', 'EnableType']
+__all__ += ['Enable', 'EnableIn', 'EnableOut']
 
 __all__ += ['ClockInterface']
+__all__ += ['wireclock', 'wireclocktype', 'wiredefaultclock']
 
-__all__ += ['wireclock', 'wiredefaultclock']
+
 
 class ClockKind(_BitKind):
     def __str__(cls):
@@ -33,36 +40,87 @@ class ClockType(_BitType):
 Clock = ClockKind('Clock', (ClockType,), {})
 ClockIn = ClockKind('Clock', (ClockType,), dict(direction=INPUT))
 ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
-ClockInOut = ClockKind('Clock', (ClockType,), dict(direction=INOUT))
 
 
-def ClockInterface(has_ce=False, has_reset=False, has_set=False):
+class ResetKind(_BitKind):
+    def __str__(cls):
+        if cls.isinput():  return 'In(Reset)'
+        if cls.isoutput(): return 'Out(Reset)'
+        return 'Reset'
+
+    def qualify(cls, direction):
+        if   direction is None:   return Reset
+        elif direction == INPUT:  return ResetIn
+        elif direction == OUTPUT: return ResetOut
+        return cls
+
+    def flip(cls):
+        if   cls.isoriented(INPUT):  return ResetOut
+        elif cls.isoriented(OUTPUT): return ResetIn
+        return cls
+
+class ResetType(_BitType):
+    pass
+
+Reset = ResetKind('Reset', (ResetType,), {})
+ResetIn = ResetKind('Reset', (ResetType,), dict(direction=INPUT))
+ResetOut = ResetKind('Reset', (ResetType,), dict(direction=OUTPUT))
+
+# Preset
+# Clear
+
+class EnableKind(_BitKind):
+    def __str__(cls):
+        if cls.isinput():  return 'In(Enable)'
+        if cls.isoutput(): return 'Out(Enable)'
+        return 'Enable'
+
+    def qualify(cls, direction):
+        if   direction is None:   return Enable
+        elif direction == INPUT:  return EnableIn
+        elif direction == OUTPUT: return EnableOut
+        return cls
+
+    def flip(cls):
+        if   cls.isoriented(INPUT):  return EnableOut
+        elif cls.isoriented(OUTPUT): return EnableIn
+        return cls
+
+class EnableType(_BitType):
+    pass
+
+Enable = EnableKind('Enable', (EnableType,), {})
+EnableIn = EnableKind('Enable', (EnableType,), dict(direction=INPUT))
+EnableOut = EnableKind('Enable', (EnableType,), dict(direction=OUTPUT))
+
+
+def ClockInterface(has_enable=False, has_reset=False, has_set=False, has_ce=False):
     args = ['CLK', In(Clock)]
-    if has_ce: args += ['CE', In(Bit)]
-    if has_reset:  args += ['RESET', In(Bit)]
-    if has_set:  args += ['SET', In(Bit)]
+    has_enable != has_ce
+    if has_enable:
+        args += ['CE', In(Enable)]
+    if has_reset:
+        args += ['RESET', In(Reset)]
     return args
 
-def wireclock(define, circuit):
-    if hasattr(define,'CE'):
-        assert hasattr(circuit, 'CE')
-        wire(define.CE,    circuit.CE)
-    if hasattr(define,'RESET'):  
-        assert hasattr(circuit, 'RESET')
-        wire(define.RESET, circuit.RESET)
-    if hasattr(define,'SET'):    
-        assert hasattr(circuit, 'SET')
-        wire(define.SET,   circuit.SET)
 
-def wiredefaultclock(defn, inst):
+def wireclocktype(defn, inst, clocktype):
     #print('wiring clocks', str(defn), str(inst))
-    defnclk = None
+    defnclk = []
     for name, port in defn.interface.ports.items():
-         if isinstance(port, ClockType):
+         if isinstance(port, clocktype) and port.isoutput():
              #print('defn clock', port)
-             defnclk = port
+             defnclk += [port]
     if defnclk:
+        defnclk = defnclk[0] # wire first clock
         for name, port in inst.interface.ports.items():
-             if isinstance(port, ClockType) and port.isinput() and not port.driven():
+             if isinstance(port, clocktype) and port.isinput() and not port.driven():
                  #print('inst clock', port)
                  wire(defnclk, port)
+
+def wiredefaultclock(defn, inst):
+    wireclocktype(defn, inst, ClockType)
+
+def wireclock(define, circuit):
+    wireclocktype(define, circuit, ResetType)
+    wireclocktype(define, circuit, EnableType)

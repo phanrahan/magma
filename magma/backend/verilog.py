@@ -7,7 +7,7 @@ from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
 from ..bit import BitType, VCC, GND
-from ..clock import ClockType
+from ..clock import ClockType, EnableType, ResetType
 from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
 from ..circuit import *
@@ -69,7 +69,7 @@ def vdecl(t):
         signed = "signed " if isinstance(t, SIntType) else ""
         return '{}[{}:{}]'.format(signed, t.N-1, 0)
     else:
-        assert isinstance(t, (BitType, ClockType))
+        assert isinstance(t, (BitType, ClockType, EnableType, ResetType))
         return ""
 
 # return the verilog module args
