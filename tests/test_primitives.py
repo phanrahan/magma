@@ -1,7 +1,8 @@
 import operator
 from functools import reduce
 import magma as m
-from magma import In, Out, Bit, Clock, UInt, SInt, Circuit, Bits, uint, wire, compile
+from magma import In, Out, Bit, Clock, UInt, SInt, Circuit, Bits, uint, wire, \
+    compile, Enable, Reset
 from magma.primitives import DefineRegister, DefineMux, DefineMemory
 
 from magma.primitives import DefineAnd, And, and_
@@ -176,7 +177,7 @@ def test_register_ce():
     Register4 = DefineRegister(N, has_ce=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_ce"
-        IO = ["CLK", In(m.Clock), "enable", In(Bit), "out", Out(UInt(N))]
+        IO = ["CLK", In(m.Clock), "enable", In(Enable), "out", Out(UInt(N))]
         @classmethod
         def definition(circuit):
             reg = Register4().when(circuit.enable)
@@ -209,7 +210,7 @@ def test_register_reset():
     Register4 = DefineRegister(N, has_reset=True, T=UInt)
     class TestCircuit(Circuit):
         name = "test_register_reset"
-        IO = ["CLK", In(m.Clock), "reset", In(Bit), "out", Out(UInt(N))]
+        IO = ["CLK", In(m.Clock), "reset", In(Reset), "out", Out(UInt(N))]
         @classmethod
         def definition(circuit):
             reg = Register4().reset(circuit.reset)

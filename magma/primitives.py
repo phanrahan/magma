@@ -1,7 +1,7 @@
 from magma import cache_definition
 from magma.t import Type
 from magma.bit import Bit, BitType, In, Out
-from magma.clock import Clock
+from magma.clock import Clock, Reset, Enable
 from magma.bits import Bits, BitsType, SInt, SIntType, UInt, UIntType
 from magma.circuit import DeclareCircuit, circuit_type_method, DefineCircuit, EndDefine
 from magma.compatibility import IntegerTypes
@@ -567,7 +567,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         return self
 
     if has_reset:
-        io.extend(["rst", In(Bit)])
+        io.extend(["rst", In(Reset)])
         name += "R"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("reset", reset))
 
@@ -576,7 +576,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         return self
 
     if has_ce:
-        io.extend(["en", In(Bit)])
+        io.extend(["en", In(Enable)])
         name += "E"  # TODO: This assumes ordering of clock parameters
         methods.append(circuit_type_method("when", when))
 
