@@ -7,7 +7,7 @@ python:
 before_install:
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test  # for gcc-4.9
     - sudo apt-get -qq update
-    - sudo apt-get install -y verilator 
+    - sudo apt-get install -y verilator
     - sudo apt-get install -y g++-4.9 gcc-4.9  # coreir dependency
     - pip install --upgrade pip setuptools
 
@@ -18,14 +18,14 @@ before_install:
     - export COREIR=$PWD
     - export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
     - make install -j 2
-    - make py
+    - pip install -e bindings/python
     - cd ..;
     # END: coreir installation
 
-install: 
+install:
     - pip install -r requirements.txt
     - pip install pytest-cov
     - pip install -e .
 
-script: 
+script:
     - py.test --cov=magma --ignore=coreir/  # Ignore tests in the coreir directory
