@@ -1,4 +1,4 @@
-from collections import Sequence, OrderedDict
+from collections import Sequence, Mapping, OrderedDict
 from .compatibility import IntegerTypes
 from .t import In, Out
 from .bit import _BitKind, _BitType, Bit, BitKind, BitType, VCC, GND
@@ -127,16 +127,22 @@ def sint(value, n=None):
 #   *value = tuple from positional arguments
 #   **kwargs = tuple from keyword arguments
 #
-def tuple_(value):
+def tuple_(value, n=None):
     if isinstance(value, TupleType):
         return value
+
+    if not isinstance(value, (_BitType, ArrayType, IntegerTypes, Sequence, Mapping)):
+        raise ValueError(
+            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
 
     decl = OrderedDict()
     args = []
 
     if isinstance(value, IntegerTypes):
-        value = int2seq(value, max(value.bit_length(),1) )
-    elif isinstance(value, (BitType, ClockType, ResetType, EnableType)):
+        if n is None:
+            n = max(value.bit_length(),1)
+        value = int2seq(value, n)
+    elif isinstance(value, _BitType):
         value = [value]
     elif isinstance(value, ArrayType):
         value = [value[i] for i in range(len(value))]
@@ -146,11 +152,9 @@ def tuple_(value):
         for i in range(len(ts)):
             args.append(ts[i])
             decl[i] = type(ts[i])
-    elif isinstance(value, (dict, OrderedDict)):
+    elif isinstance(value, Mapping):
         for k, v in value.items():
             args.append(v)
             decl[k] = type(v)
-    else:
-        assert False
 
     return Tuple(decl)(*args)
