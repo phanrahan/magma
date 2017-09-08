@@ -23,7 +23,7 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = {}
         for name, port in interface.ports.items():
-            if port.isinput(): 
+            if port.isinput():
                 if isinstance(port, ClockType):
                     _type = self.context.get_named_type("coreir", "clk")
                 else:
@@ -33,7 +33,7 @@ class CoreIRBackend:
                     _type = self.context.get_named_type("coreir", "clkIn")
                 else:
                     _type = self.context.BitIn()
-            else: 
+            else:
                 raise NotImplementedError
             if isinstance(port, ArrayType):
                 _type = self.context.Array(port.N, _type)
@@ -127,18 +127,16 @@ class CoreIRBackend:
             if output.anon():
                 assert isinstance(output, ArrayType)
                 for i, o in zip(input, output):
-                    module_definition.connect(
-                        module_definition.select(self.get_port_select(i, definition)),
-                        module_definition.select(self.get_port_select(o, definition)))
+                    connect(i, o)
             else:
-                module_definition.connect(
-                    module_definition.select(self.get_port_select(input, definition)),
-                    module_definition.select(self.get_port_select(output, definition)))
+                connect(input, output)
         module.definition = module_definition
         return module
 
     def get_constant_instance(self, constant, num_bits, module_definition):
-        if constant not in self.__constant_cache:
+        if module_definition not in self.__constant_cache:
+            self.__constant_cache[module_definition] = {}
+        if constant not in self.__constant_cache[module_definition]:
 
             bit_type_to_constant_map = {
                 GND: 0,
@@ -161,8 +159,8 @@ class CoreIRBackend:
                 name = "const_{}".format(constant)
                 instantiable = self.get_instantiable("const", "coreir")
                 module_definition.add_generator_instance(name, instantiable, gen_args, config)
-            self.__constant_cache[constant] = module_definition.select("{}.out".format(name))
-        return self.__constant_cache[constant]
+            self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
+        return self.__constant_cache[module_definition][constant]
 
     def compile(self, defn):
         modules = {}
