@@ -208,10 +208,14 @@ class AnonymousCircuitType(object):
             input.wireoutputs(outputs, debug_info)
 
         # wire up extra arguments, name to name
+        #
+        # this code should be changed to use clock types ...
+        #
         for key, value in kw.items():
-            if key == 'ce':    key = 'CE'
-            if key == 'set':   key = 'SET'
-            if key == 'reset': key = 'RESET'
+            if key == 'enable': key = 'CE'
+            if key == 'reset':  key = 'RESET'
+            if key == 'set':    key = 'SET' # NYI
+            if key == 'ce':     key = 'CE'  # depreciated
             if hasattr(input, key):
                 i = getattr(input, key)
                 wire( value, getattr(input, key), debug_info)

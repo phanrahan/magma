@@ -111,17 +111,6 @@ def joinarg(arg, interfaces):
     #print('joinarg', args)
     return [arg, array(args)]
 
-# return [arg, array] from a list of interfaces
-#def flatarg(arg, interfaces):
-#    args = getarg(arg, interfaces)
-#    #direction = getdirection(args)
-#    #print('flatarg', args)
-#    flatargs = []
-#    for a in args:
-#        for i in range(len(a)):
-#            flatargs.append(a[i])
-#    return [arg, array(flatargs)]
-
 
 # all powerful braid functions
 #
@@ -221,50 +210,78 @@ def braid(circuits,
             #print('joining', key)
             args += joinarg(key, interfaces)
 
-        #elif key in flatargs:
-        #    #print('flattening', key)
-        #    args += flatarg(key, interfaces)
-
     #print(args)
     return AnonymousCircuit(args)
 
 # fork all inputs
 def fork(*circuits):
     """Wire input to all the inputs, concatenate output"""
-    if len(circuits) == 1: circuits = circuits[0]
+    if len(circuits) == 1:
+        circuits = circuits[0]
     forkargs = getargbydirection(circuits[0].interface, INPUT)
     return braid(circuits, forkargs=forkargs)
 
 # join all inputs
 def join(*circuits):
     """concatenate input and concatenate output"""
-    if len(circuits) == 1: circuits = circuits[0]
+    if len(circuits) == 1:
+        circuits = circuits[0]
     return braid(circuits)
 
 
 
 def fold(*circuits, **kwargs):
     """fold"""
-    if len(circuits) == 1: circuits = circuits[0]
+    if len(circuits) == 1:
+        circuits = circuits[0]
     return braid(circuits, **kwargs)
 
 def scan(*circuits, **kwargs):
     """scan"""
-    if len(circuits) == 1: circuits = circuits[0]
+    if len(circuits) == 1:
+        circuits = circuits[0]
     return braid(circuits, **kwargs)
 
 
+def compose2(circuit1, circuit2):
+    # collect input argument names from circuit1
+    iargs = circuit1.interface.inputargs()
+    iargs = [iargs[2*i] for i in range(len(iargs)//2)]
 
-def inputargs(circuit):
-    return circuit.interface.inputargs()
+    # collect output argument names from circuit2
+    oargs = circuit2.interface.outputargs()
+    oargs = [oargs[2*i] for i in range(len(oargs)//2)]
 
-def outputargs(circuit):
-    return circuit.interface.outputargs()
+    if len(iargs) != len(oargs):
+        error("Number of inputs must equal the number of outputs")
 
-# wire the outputs of circuit2 to the inputs of circuit1
-def compose(circuit1, circuit2):
-    wire(circuit2, circuit1)
-    return AnonymousCircuit( inputargs(circuit2) + outputargs(circuit1) )
+    # wire outputs of circuit2 to the inputs of circuit1
+    for I, O in zip(iargs, oargs):
+        #print('wire({},{})'.format(O,I))
+        wire( getattr(circuit2,O), getattr(circuit1,I) )
+
+    # compute new arguments
+    args = circuit2.interface.inputargs() + circuit1.interface.outputargs()
+
+    # fork clock arguments
+    clkargs1 = set(circuit1.interface.clockargnames())
+    clkargs2 = set(circuit2.interface.clockargnames())
+    if clkargs1 != clkargs2:
+        error("Circuits have different clock arguments")
+    interfaces = [circuit2.interface, circuit1.interface]
+    for clkarg in clkargs1:
+        args += forkarg(clkarg, interfaces)
+
+    return AnonymousCircuit(args)
+
+def compose(*circuits):
+    if len(circuits) == 1:
+        circuits = circuits[0]
+
+    if len(circuits) == 1:
+        return circuits[0]
+
+    return compose2(circuits[0], compose(circuits[1:])) # right associative
 
 
 #
@@ -294,19 +311,19 @@ def curry(circuit, prefix='I'):
 
 
 
-def inputs(circuit):
-    input = circuit.interface.inputs()
-    if len(input) == 1:
-        return input[0]
-    else:
-        return array(input)
+#def inputs(circuit):
+#    input = circuit.interface.inputs()
+#    if len(input) == 1:
+#        return input[0]
+#    else:
+#        return array(input)
 
-def outputs(circuit):
-    output = circuit.interface.outputs()
-    if len(output) == 1:
-        return output[0]
-    else:
-        return Array(*output)
+#def outputs(circuit):
+#    output = circuit.interface.outputs()
+#    if len(output) == 1:
+#        return output[0]
+#    else:
+#        return Array(*output)
 
 #
 # uncurry a circuit

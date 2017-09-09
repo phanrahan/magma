@@ -12,8 +12,9 @@ __all__ += ['Reset', 'ResetIn', 'ResetOut']
 __all__ += ['EnableKind', 'EnableType']
 __all__ += ['Enable', 'EnableIn', 'EnableOut']
 
-__all__ += ['ClockInterface']
+__all__ += ['ClockInterface', 'ClockTypes']
 __all__ += ['wireclock', 'wireclocktype', 'wiredefaultclock']
+
 
 
 
@@ -93,6 +94,7 @@ Enable = EnableKind('Enable', (EnableType,), {})
 EnableIn = EnableKind('Enable', (EnableType,), dict(direction=INPUT))
 EnableOut = EnableKind('Enable', (EnableType,), dict(direction=OUTPUT))
 
+ClockTypes = (ClockType, ResetType, EnableType)
 
 def ClockInterface(has_enable=False, has_reset=False, has_set=False, has_ce=False):
     args = ['CLK', In(Clock)]
