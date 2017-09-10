@@ -1,6 +1,10 @@
-from magma import wire, compile, EndCircuit
+from magma import *
 from loam.boards.icestick import IceStick, Counter
-from pipeline import Pipeline
+import os
+if os.path.exists('pipeline.py'):
+    from pipeline import Pipeline
+else:
+    from modules import Pipeline
 
 
 icestick = IceStick()
@@ -17,7 +21,7 @@ main = icestick.main()
 counter = Counter(4)
 pipeline = Pipeline()
 wire(counter.O[-1], pipeline.CLK)
-wire(pipeline.O[:4], [main.D1, main.D2, main.D3, main.D4])
+wire(pipeline.O[:4], bits([main.D1, main.D2, main.D3, main.D4]))
 # light 5 indicates the end of prediction
 wire(pipeline.D, main.D5)
 
