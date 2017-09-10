@@ -2,7 +2,9 @@
 
 ## Introduction
 
-This example designs a very simple pipeline for handwritten digits recognition using one-layer binary "neural network". The architecture is output stationary. The image is resized to 16x16, and operand width in execution stage of pipeline is 16 bit. The pipeline contains five stages:
+This example designs a very simple pipeline for handwritten digits recognition using one-layer binary "neural network". 
+
+The architecture is output stationary. The image is resized to 16x16, and operand width in execution stage of pipeline is 16 bit. The pipeline contains five stages:
 
 ![binary matrix vector multiplication](/notebooks/digits_recognition/images/bmv.png)
 
@@ -27,4 +29,5 @@ There are five lights (D0, D1, D2, D3, D4) on the IceStick FPGA. The D5 LED is g
 ## LICENSE
 
 The MIT License
+
 Copyright (c) 2017 Yujun Lin, Kaidi Cao, Song Han
