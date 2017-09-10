@@ -4,7 +4,7 @@
 
 This example designs a very simple pipeline for handwritten digits recognition using one-layer binary "neural network". The architecture is output stationary. The image is resized to 16x16, and operand width in execution stage of pipeline is 16 bit. The pipeline contains five stages:
 
-![binary matrix vector multiplication](/images/bmv.png)
+![binary matrix vector multiplication](/notebooks/digits_recognition/images/bmv.png)
 
 - IF: calculate IDX and CYCLE as shown in figure
 - RR: read weight matrix and image block from ROM and LUTs
