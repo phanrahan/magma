@@ -18,7 +18,7 @@ Example hardware generators include
 arithmetic units,
 linear feedback shift registers,
 wallace trees,
-and sorting networks..
+and sorting networks.
 Software engineers refer to this technique as *metaprogramming*.
 The scripting language is a metaprogram 
 in the sense that it is a program that creates a hardware program.
