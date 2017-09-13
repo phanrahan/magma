@@ -112,22 +112,28 @@ def find(circuit, defn):
         defn[name] = circuit
     return defn
 
+def to_dot(name, cls):
+    dot = Digraph(name,
+                  graph_attr={'label': str(name), 'rankdir': 'LR'},
+                  node_attr={'shape': 'record'})
+    compiledefinition(dot, cls)
+    return dot
+
 def dots(main):
     defn = find(main,OrderedDict())
 
     dots = []
     for k, v in defn.items():
          # print('compiling', k, v)
-         dot = Digraph(k,
-                       graph_attr={'label': str(v), 'rankdir': 'LR'},
-                       node_attr={'shape': 'record'})
-         compiledefinition(dot, v)
-         dots.append(dot)
+         dots.append(to_dot(k, v))
 
     return dots
 
 def to_html(main):
-    return "\n".join([dot._repr_svg_() for dot in dots(main)])
+    # Called by the IPython html representation.
+    # Only return the graph of the circuit,
+    # not any defns it depends on in turn.
+    return to_dot(main.name, main)._repr_svg_()
 
 def compile(main):
     return "\n".join([str(dot) for dot in dots(main)]) + '\n'
