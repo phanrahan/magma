@@ -76,11 +76,20 @@ def compiledefinition(dot, cls):
             if not isinstance(port.T, BitKind):
                 print('Error: Argument', port, 'must be a an Array(n,Bit)')
 
+    # For alignment.
+    inputs, outputs = Digraph('inputs'), Digraph('outputs')
     for name, port in cls.interface.ports.items():
         # TODO: Check whether port.isinput() or .isoutput().
-        dot.node(name,
-                 escape('{}\\n{}'.format(name, get_type(port))),
-                 shape='ellipse')
+        subgraph = inputs if port.isinput() else outputs
+        subgraph.node(name,
+                    escape('{}\\n{}'.format(name, get_type(port))),
+                    shape='ellipse')
+    # Could use 'min' and 'max' ranks, but they get flipped on
+    # instanced circuits, so this is a hack for now.
+    inputs.graph_attr.update(rank='same')
+    outputs.graph_attr.update(rank='same')
+    dot.subgraph(inputs)
+    dot.subgraph(outputs)
 
     # declare a wire for each instance output
     for instance in cls.instances:
