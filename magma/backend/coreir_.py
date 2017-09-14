@@ -21,7 +21,7 @@ class CoreIRBackend:
                     error('Error: Argument {} must be a an Array(n,Bit)'.format(port))
 
     def convert_interface_to_module_type(self, interface):
-        args = {}
+        args = OrderedDict()
         for name, port in interface.ports.items():
             if port.isinput():
                 if isinstance(port, ClockType):
