@@ -13,8 +13,8 @@ def test_coreir_bit():
             d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_coreir_bit", TestCircuit, output="coreir")
-    # assert check_files_equal(__file__,
-    #         "build/test_coreir_bit.json", "gold/test_coreir_bit.json")
+    assert check_files_equal(__file__, 
+            "build/test_coreir_bit.json", "gold/test_coreir_bit.json")
 
 
 def test_coreir_bits():
@@ -26,8 +26,8 @@ def test_coreir_bits():
             d = ~(circuit.a & circuit.b) | (circuit.b ^ circuit.c)
             wire(d, circuit.d)
     compile("build/test_coreir_bits", TestCircuit, output="coreir")
-    # assert check_files_equal(__file__,
-    #         "build/test_coreir_bits.json", "gold/test_coreir_bits.json")
+    assert check_files_equal(__file__, 
+            "build/test_coreir_bits.json", "gold/test_coreir_bits.json")
 
 
 def test_coreir_uint():
@@ -42,8 +42,8 @@ def test_coreir_uint():
             tmp4 = tmp3 / circuit.a
             wire(tmp4, circuit.c)
     compile("build/test_coreir_uint", TestCircuit, output="coreir")
-    # assert check_files_equal(__file__,
-    #         "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
+    assert check_files_equal(__file__, 
+            "build/test_coreir_uint.json", "gold/test_coreir_uint.json")
 
 def test_coreir_shift_register():
     from magma.primitives import DefineRegister
@@ -64,9 +64,9 @@ def test_coreir_shift_register():
             wire(regs[-1].out, io.O)
 
     compile("build/test_coreir_shift_register", ShiftRegister, 'coreir')
-    # assert check_files_equal(__file__,
-    #         "build/test_coreir_shift_register.json",
-    #         "gold/test_coreir_shift_register.json")
+    assert check_files_equal(__file__,
+            "build/test_coreir_shift_register.json",
+            "gold/test_coreir_shift_register.json")
 
 if __name__ == "__main__":
     test_coreir()
