@@ -4,6 +4,7 @@ Infrastructure for writing magma tests
 import filecmp
 import os
 import sys
+import difflib
 
 def check_files_equal(callee_file, file1, file2):
     """
