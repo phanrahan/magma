@@ -162,3 +162,6 @@ class BitVector:
             raise TypeError("Cannot call __neg__ on unsigned BitVector")
         return BitVector(-self._value, num_bits=self.num_bits, signed=True)
 
+    def __bool__(self):
+        return bool(self.as_int())
+
