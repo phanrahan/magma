@@ -11,22 +11,22 @@
         "instances":{
           "inst0":{
             "genref":"coreir.reg",
-            "genargs":{"en":false, "clr":false, "width":4, "rst":false},
+            "genargs":{"clr":false, "en":false, "rst":false, "width":4},
             "configargs":{"init":0}
           },
           "inst1":{
             "genref":"coreir.reg",
-            "genargs":{"en":false, "clr":false, "width":4, "rst":false},
+            "genargs":{"clr":false, "en":false, "rst":false, "width":4},
             "configargs":{"init":0}
           },
           "inst2":{
             "genref":"coreir.reg",
-            "genargs":{"en":false, "clr":false, "width":4, "rst":false},
+            "genargs":{"clr":false, "en":false, "rst":false, "width":4},
             "configargs":{"init":0}
           },
           "inst3":{
             "genref":"coreir.reg",
-            "genargs":{"en":false, "clr":false, "width":4, "rst":false},
+            "genargs":{"clr":false, "en":false, "rst":false, "width":4},
             "configargs":{"init":0}
           }
         },
