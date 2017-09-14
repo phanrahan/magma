@@ -52,7 +52,7 @@ class ArrayType(Type):
         if isinstance(key,slice):
             return array([self[i] for i in range(*key.indices(len(self)))])
         else:
-            if not (-self.N < key and key < self.N):
+            if not (-self.N <= key and key < self.N):
                 raise IndexError
 
             return self.ts[key]
@@ -79,14 +79,14 @@ class ArrayType(Type):
     @debug_wire
     def wire(i, o, debug_info):
         # print('Array.wire(', o, ', ', i, ')')
-        
+
         if not isinstance(o, ArrayType):
             error('Wiring Error: wiring {} ({}) to {} ({})'.format(repr(o), type(o), repr(i), type(i)), include_wire_traceback=True)
             return
 
         if i.N != o.N:
             error('Wiring Error: Arrays must have the same length {} != {}'.format(i.N, o.N), include_wire_traceback=True)
-            return 
+            return
 
         for k in range(len(i)):
             i[k].wire(o[k], debug_info)
@@ -114,7 +114,7 @@ class ArrayType(Type):
                 return False
 
         for i in range(n):
-            # elements must be an array reference 
+            # elements must be an array reference
             if not isinstance(ts[i].name, ArrayRef):
                 #print('not an array ref')
                 return False
@@ -125,7 +125,7 @@ class ArrayType(Type):
                 return False
 
         if n > 0 and n != ts[0].name.array.N:
-            # must use all of the elements of the base array 
+            # must use all of the elements of the base array
             return False
 
         for i in range(n):
@@ -166,10 +166,10 @@ class ArrayType(Type):
                 return False
 
         return True
-    
+
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
-            
+
 
 class ArrayKind(Kind):
     def __init__(cls, name, bases, dct):
