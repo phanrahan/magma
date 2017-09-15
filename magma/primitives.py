@@ -23,7 +23,7 @@ __all__ += ['DefineAnd', 'And', 'and_']
 __all__ += ['DefineOr', 'Or', 'or_']
 __all__ += ['DefineXOr', 'XOr', 'xor']
 __all__ += ['DefineInvert', 'Invert', 'invert']
-__all__ += ['DefineEQ', 'EQ', 'eq'] 
+__all__ += ['DefineEQ', 'EQ', 'eq']
 # __all__ += ['DefineNE', 'NE', 'ne']
 
 __all__ += ['lshift', 'rshift']
@@ -134,6 +134,7 @@ def declare_bits_binop(name, op, python_op):
                               verilog_name   = "coreir_" + name,
                               coreir_name    = name,
                               coreir_lib     = "coreir",
+                              coreir_genargs = {"width": N},
                               default_kwargs = {"width": N})
 
     @type_check_binary_operator
@@ -249,6 +250,7 @@ def DefineInvert(N):
             simulate=simulate_bits_invert, verilog_name="coreir_not",
             coreir_name    = "not",
             coreir_lib     = "coreir",
+            coreir_genargs = {"width": N},
             default_kwargs = {"width": N})
 
 def Invert(**kwargs):
@@ -369,6 +371,7 @@ def declare_binop(name, _type, type_type, op, python_op, out_type=None):
                               verilog_name="coreir_" + name,
                               coreir_name=name,
                               coreir_lib = "coreir",
+                              coreir_genargs={"width": N},
                               default_kwargs={"width": N})
 
     @type_check_binary_operator
@@ -441,7 +444,9 @@ def simulate_neg(self, value_store, state_store):
 def DeclareNegate(N):
     return DeclareCircuit("neg{}".format(N), 'in', In(SInt(N)), 'out',
             Out(SInt(N)), simulate=simulate_neg, verilog_name="coreir_not",
-            coreir_name="not", coreir_lib="coreir", default_kwargs={"width": N})
+            coreir_name="not", coreir_lib="coreir",
+            coreir_genargs={"width": N},
+            default_kwargs={"width": N})
 
 
 def __neg__(self):
@@ -587,6 +592,7 @@ def DefineRegister(N, has_ce=False, has_reset=False, T=Bits):
         simulate=gen_sim_register(N, has_ce, has_reset),
         circuit_type_methods=methods,
         default_kwargs={"width": N},
+        coreir_genargs={"width": N},
         coreir_name=coreir_name,
         verilog_name="coreir_" + name,
         coreir_lib="coreir"
@@ -603,14 +609,15 @@ def DefineMux(height=2, width=1):
         sel = BitVector(value_store.get_value(self.sel))
         out = in1 if sel.as_int() else in0
         value_store.set_value(self.out, out)
-    return DeclareCircuit("mux".format(N), 
-        *["in0", In(Bits(N)), "in1", In(Bits(N)), "sel", In(Bit), 
+    return DeclareCircuit("mux".format(N),
+        *["in0", In(Bits(N)), "in1", In(Bits(N)), "sel", In(Bit),
          "out", Out(Bits(N))],
         verilog_name="coreir_mux",
         coreir_name="mux",
         coreir_lib="coreir",
         simulate=simulate,
-        default_kwargs={"width": N}
+        default_kwargs={"width": N},
+        corier_genargs={"width": N}
     )
 
 def add(self, rhs):
@@ -726,12 +733,13 @@ def DefineMemory(height, width):
     assert is_power_of_two(width) and is_power_of_two(height)
     IO = ["raddr", In(Bits(max(height.bit_length() - 1, 1))),
           "rdata", Out(Bits(width)),
-          "rclk", In(Bit), 
-          "ren", In(Bit), 
+          "rclk", In(Bit),
+          "ren", In(Bit),
           "waddr", In(Bits(max(height.bit_length() - 1, 1))),
           "wdata", In(Bits(width)),
-          "wclk", In(Bit), 
+          "wclk", In(Bit),
           "wen", In(Bit) ]
     return DeclareCircuit(name, *IO, verilog_name="coreir_mem",
             coreir_name="coreir_mem", simulate=gen_sim_mem(height, width),
+            coreir_genargs={"width": width, "depth": height},
             default_kwargs={"width": width, "depth": height})

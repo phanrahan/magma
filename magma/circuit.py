@@ -20,7 +20,7 @@ __all__ += ['AnonymousCircuit']
 
 __all__ += ['CircuitType']
 __all__ += ['Circuit']
-__all__ += ['DeclareCircuit'] 
+__all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 
 __all__ += ['isdefinition']
@@ -43,7 +43,7 @@ def setports(self, ports):
 # Metaclass for creating circuits
 #
 class CircuitKind(type):
-    
+
     def __new__(metacls, name, bases, dct):
         #print('CircuitKind new:', name)
 
@@ -61,7 +61,7 @@ class CircuitKind(type):
         for method in dct.get('circuit_type_methods', []):
             setattr(cls, method.name, method.definition)
 
-        # create interface for this circuit class 
+        # create interface for this circuit class
         if hasattr(cls, 'IO'):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
@@ -161,7 +161,7 @@ class AnonymousCircuitType(object):
             args.append(repr(v))
         return '{}({})'.format(str(type(self)), ', '.join(args))
 
-        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         #    ', '.join(args), self.filename, self.lineno)
 
     def _repr_html_(self):
@@ -263,7 +263,7 @@ def AnonymousCircuit(*decl):
     return AnonymousCircuitType().setinterface(Interface(decl))
 
 
-# 
+#
 # Placed circuit - instances placed in a definition
 #
 class CircuitType(AnonymousCircuitType):
@@ -292,7 +292,7 @@ class CircuitType(AnonymousCircuitType):
                  v = '"{}"'.format(v)
             args.append("%s=%s"%(k, v))
         return '{} = {}({})'.format(str(self), str(type(self)), ', '.join(args))
-        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)), 
+        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         # cls.filename, cls.lineno)
 
 # DeclareCircuit Factory
@@ -305,8 +305,10 @@ def DeclareCircuit(name, *decl, **args):
         firrtl_op=args.get('firrtl_op'),
         circuit_type_methods=args.get('circuit_type_methods', []),
         coreir_lib=args.get('coreir_lib', None),
-        verilog_name=args.get('verilog_name', name),
         coreir_name=args.get('coreir_name', name),
+        coreir_genargs=args.get('coreir_genargs', {}),
+        coreir_configargs=args.get('coreir_configargs', {}),
+        verilog_name=args.get('verilog_name', name),
         default_kwargs=args.get('default_kwargs', {})
     )
     return CircuitKind( name, (CircuitType,), dct )
@@ -372,6 +374,8 @@ class DefineCircuitKind(CircuitKind):
 
         self.verilog_name = dct.get('verilog_name', name)
         self.coreir_name = dct.get('coreir_name', name)
+        self.coreir_genargs = dct.get('coreir_genrgs', {})
+        self.coreir_configargs = dct.get('coreir_configargs', {})
         self.default_kwargs = dct.get('default_kwargs', {})
 
         self.firrtl = None
@@ -391,7 +395,7 @@ class DefineCircuitKind(CircuitKind):
 
         return self
 
-    # 
+    #
     # place a circuit instance in this definition
     #
     def place(cls, inst):
@@ -439,6 +443,9 @@ def DefineCircuit(name, *decl, **args):
                lineno         = debug_info[1],
                verilog_name   = args.get('verilog_name', name),
                coreir_name    = args.get('coreir_name', name),
+               coreir_lib     = args.get('coreir_lib', None),
+               corier_genargs = args.get('coreir_genargs', None),
+               corier_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
@@ -466,7 +473,7 @@ def hex(i):
 
 def hstr(init, nbits):
     bits = 1 << int(nbits)
-    format = "0x" 
+    format = "0x"
     nformat = []
     for i in range(bits//4):
         nformat.append(init%16)

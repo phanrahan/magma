@@ -67,11 +67,16 @@ class CoreIRBackend:
             args = self.context.newArgs(args)
             return module_definition.add_module_instance(instance.name, instantiable, args)
         elif isinstance(instantiable, coreir.Generator):
+            config_args = {}
+            for name, value in instance.coreir_configargs.items():
+                config_args[name] = value
+            config_args = self.context.newArgs(config_args)
             gen_args = {}
-            for name, value in instance.kwargs.items():
+            for name, value in type(instance).coreir_genargs.items():
                 gen_args[name] = value
             gen_args = self.context.newArgs(gen_args)
-            return module_definition.add_generator_instance(instance.name, instantiable, gen_args)
+            return module_definition.add_generator_instance(instance.name,
+                    instantiable, gen_args, config_args)
         else:
             raise NotImplementedError()
 
