@@ -136,6 +136,12 @@ class BitVector:
     def as_bool_list(self):
         return [bool(x) for x in self._bits]
 
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return BitVector(self._bits[index])
+        else:
+            return self._bits[index]
+
     def __len__(self):
         return self.num_bits
 
