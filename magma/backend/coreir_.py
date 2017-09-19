@@ -25,12 +25,12 @@ class CoreIRBackend:
         for name, port in interface.ports.items():
             if port.isinput():
                 if isinstance(port, ClockType):
-                    _type = self.context.get_named_type("coreir", "clk")
+                    _type = self.context.named_types[("coreir", "clk")]
                 else:
                     _type = self.context.Bit()
             elif port.isoutput():
                 if isinstance(port, ClockType):
-                    _type = self.context.get_named_type("coreir", "clkIn")
+                    _type = self.context.named_types[("coreir", "clkIn")]
                 else:
                     _type = self.context.BitIn()
             else:
