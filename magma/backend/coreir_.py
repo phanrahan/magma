@@ -45,7 +45,7 @@ class CoreIRBackend:
             if lib == "coreir":
                 self.libs[lib] = self.context.get_namespace(lib)
             elif lib == "global":
-                self.libs[lib] = self.context.G
+                self.libs[lib] = self.context.global_namespace
             else:
                 self.libs[lib] = self.context.load_library(lib)
         instantiable = self.libs[lib].instantiables[name]
@@ -89,7 +89,7 @@ class CoreIRBackend:
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        module = self.context.G.new_module(definition.coreir_name, module_type)
+        module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
         module_definition = module.new_definition()
         output_ports = {}
         for name, port in definition.interface.ports.items():
