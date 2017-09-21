@@ -2,24 +2,24 @@ from magma import *
 from magma.testing import check_files_equal
 
 
-@cache_definition
-def DefineCoreirAdd(N, has_cout=False, has_cin=False):
-    T = Bits(N)
-    IO = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
-    gen_args = {"width": N}
-    if has_cout:
-        IO += ['cout', Out(Bit)]
-        gen_args['has_cout'] = True
-    if has_cin:
-        IO += ['cin', In(Bit)]
-        gen_args['has_cin'] = True
-    name = "add"
-    return DeclareCircuit("coreir_{}{}".format(name, N), *IO,
-                      stateful=False,
-                      verilog_name="coreir_" + name,
-                      coreir_name=name,
-                      coreir_lib = "coreir",
-                      coreir_genargs=gen_args)
+class DefineCoreirAdd(CircuitGenerator):
+    name = "coreir_add"
+    def generate(self, N, has_cout=False, has_cin=False):
+        T = Bits(N)
+        IO = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
+        gen_args = {"width": N}
+        if has_cout:
+            IO += ['cout', Out(Bit)]
+            gen_args['has_cout'] = True
+        if has_cin:
+            IO += ['cin', In(Bit)]
+            gen_args['has_cin'] = True
+        return DeclareCircuit(self.cached_name, *IO,
+                          stateful=False,
+                          verilog_name="coreir_add",
+                          coreir_name="add",
+                          coreir_lib = "coreir",
+                          coreir_genargs=gen_args)
 
 
 class DefineAdd(CircuitGenerator):
@@ -34,7 +34,7 @@ class DefineAdd(CircuitGenerator):
         if cout:
             IO += ["COUT", Out(Bit)]
 
-        circ = DefineCircuit(self.cached_name(n, cin, cout), *IO)
+        circ = DefineCircuit(self.cached_name, *IO)
 
         add = DefineCoreirAdd(width, has_cout=cout, has_cin=cin)()
         wire(circ.I0, add.in0)

@@ -497,14 +497,12 @@ class CircuitGenerator:
     @lru_cache(maxsize=None)
     def __new__(type_, *args, **kwargs):
         inst = object.__new__(type_)
-        definition = inst.generate(*args, **kwargs)
-        return definition
-
-    def cached_name(self, *args, **kwargs):
-        params = list(signature(self.generate).parameters.keys())
+        params = list(signature(inst.generate).parameters.keys())
         cached_args = []
         for value, param in zip(args, params):
             cached_args.append("{}={}".format(param, value))
-        if kwargs:
-            raise NotImplementedError()
-        return "{}({})".format(self.name, ", ".join(cached_args))
+        for key, value in kwargs.items():
+            cached_args.append("{}={}".format(key, value))
+        inst.cached_name = "{}({})".format(inst.name, ", ".join(cached_args))
+        definition = inst.generate(*args, **kwargs)
+        return definition
