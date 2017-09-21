@@ -504,8 +504,8 @@ class CircuitGenerator:
         cached_args = []
         for value, param in zip(args, params):
             cached_args.append("{}={}".format(param, value))
-        for key, value in kwargs.items():
-            cached_args.append("{}={}".format(key, value))
+        for key in sorted(kwargs):
+            cached_args.append("{}={}".format(key, kwargs[key]))
         inst.cached_name = "{}({})".format(inst.name, ", ".join(cached_args))
         definition = inst.generate(*args, **kwargs)
         definition._generator_arguments = GeneratorArguments(args, kwargs)
