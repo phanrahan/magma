@@ -3,6 +3,14 @@ import six
 import inspect
 if sys.version_info > (3, 0):
     from functools import reduce
+if sys.version_info < (3, 3):
+    from funcsigs import signature
+else:
+    from inspect import signature
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 import operator
 from collections import namedtuple
 from .interface import *
@@ -26,6 +34,7 @@ __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
+__all__ += ['CircuitGenerator']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
@@ -484,3 +493,31 @@ def hstr(init, nbits):
     return format
 
 
+GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
+
+
+class CircuitGenerator(object):
+    @lru_cache(maxsize=None)
+    def __new__(type_, *args, **kwargs):
+        # Create an instance of the generator
+        inst = object.__new__(type_)
+
+        # Build a list of stringified parameters of the form "param=value"
+        params = list(signature(inst.generate).parameters.keys())
+        cached_args = []
+        for value, param in zip(args, params):
+            cached_args.append("{}={}".format(param, value))
+        for key in sorted(kwargs):
+            cached_args.append("{}={}".format(key, kwargs[key]))
+
+        # Cached name is base_name + stringified parameters joined by commas
+        inst.cached_name = "{}({})".format(inst.base_name,
+                                           ", ".join(cached_args))
+
+        # Generate the defintion
+        definition = inst.generate(*args, **kwargs)
+
+        # Store generator arguments and reference to original generator
+        definition._generator_arguments = GeneratorArguments(args, kwargs)
+        definition._generator = type_
+        return definition
