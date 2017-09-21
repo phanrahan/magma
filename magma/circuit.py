@@ -499,15 +499,25 @@ GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 class CircuitGenerator(object):
     @lru_cache(maxsize=None)
     def __new__(type_, *args, **kwargs):
+        # Create an instance of the generator
         inst = object.__new__(type_)
+
+        # Build a list of stringified parameters of the form "param=value"
         params = list(signature(inst.generate).parameters.keys())
         cached_args = []
         for value, param in zip(args, params):
             cached_args.append("{}={}".format(param, value))
         for key in sorted(kwargs):
             cached_args.append("{}={}".format(key, kwargs[key]))
-        inst.cached_name = "{}({})".format(inst.name, ", ".join(cached_args))
+
+        # Cached name is base_name + stringified parameters joined by commas
+        inst.cached_name = "{}({})".format(inst.base_name,
+                                           ", ".join(cached_args))
+
+        # Generate the defintion
         definition = inst.generate(*args, **kwargs)
+
+        # Store generator arguments and reference to original generator
         definition._generator_arguments = GeneratorArguments(args, kwargs)
         definition._generator = type_
         return definition

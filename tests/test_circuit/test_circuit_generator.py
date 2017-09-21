@@ -3,7 +3,7 @@ from magma.testing import check_files_equal
 
 
 class DefineCoreirAdd(CircuitGenerator):
-    name = "coreir_add"
+    base_name = "coreir_add"
     def generate(self, N, has_cout=False, has_cin=False):
         T = Bits(N)
         IO = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
@@ -23,7 +23,7 @@ class DefineCoreirAdd(CircuitGenerator):
 
 
 class DefineAdd(CircuitGenerator):
-    name = "Add"
+    base_name = "Add"
     def generate(self, n, cin=False, cout=False):
         width = n
         T = Bits(width)
