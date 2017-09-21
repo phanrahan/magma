@@ -48,7 +48,10 @@ class DefineAdd(CircuitGenerator):
         return circ
 
 def test_add_generator():
-    compile("build/test_add8cin", DefineAdd(8, cin=True, cout=False),
-            output="coreir")
+    Add8cin = DefineAdd(8, cin=True, cout=False)
+    assert Add8cin._generator_arguments.args == (8,)
+    assert Add8cin._generator_arguments.kwargs == {"cin": True, "cout": False}
+    assert Add8cin._generator == DefineAdd
+    compile("build/test_add8cin", Add8cin, output="coreir")
     assert check_files_equal(__file__,
             "build/test_add8cin.json", "gold/test_add8cin.json")

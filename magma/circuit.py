@@ -508,5 +508,6 @@ class CircuitGenerator:
             cached_args.append("{}={}".format(key, value))
         inst.cached_name = "{}({})".format(inst.name, ", ".join(cached_args))
         definition = inst.generate(*args, **kwargs)
-        definition.__generator_arguments = GeneratorArguments(args, kwargs)
+        definition._generator_arguments = GeneratorArguments(args, kwargs)
+        definition._generator = type_
         return definition
