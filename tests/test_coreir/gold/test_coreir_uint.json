@@ -11,11 +11,11 @@
         "instances":{
           "inst0":{
             "genref":"coreir.add",
-            "genargs":{"width":4}
+            "genargs":{"has_cin":false, "has_cout":false, "width":4}
           },
           "inst1":{
             "genref":"coreir.sub",
-            "genargs":{"width":4}
+            "genargs":{"has_cin":false, "has_cout":false, "width":4}
           },
           "inst2":{
             "genref":"coreir.mul",
