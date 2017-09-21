@@ -496,7 +496,7 @@ def hstr(init, nbits):
 GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 
 
-class CircuitGenerator:
+class CircuitGenerator(object):
     @lru_cache(maxsize=None)
     def __new__(type_, *args, **kwargs):
         inst = object.__new__(type_)
