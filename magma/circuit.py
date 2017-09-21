@@ -3,6 +3,14 @@ import six
 import inspect
 if sys.version_info > (3, 0):
     from functools import reduce
+if sys.version_info < (3, 3):
+    from funcsigs import signature
+else:
+    from inspect import signature
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 import operator
 from collections import namedtuple
 from .interface import *
@@ -26,6 +34,7 @@ __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
+__all__ += ['CircuitGenerator']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
@@ -484,3 +493,18 @@ def hstr(init, nbits):
     return format
 
 
+class CircuitGenerator:
+    @lru_cache(maxsize=None)
+    def __new__(type_, *args, **kwargs):
+        inst = object.__new__(type_)
+        definition = inst.generate(*args, **kwargs)
+        return definition
+
+    def cached_name(self, *args, **kwargs):
+        params = list(signature(self.generate).parameters.keys())
+        cached_args = []
+        for value, param in zip(args, params):
+            cached_args.append("{}={}".format(param, value))
+        if kwargs:
+            raise NotImplementedError()
+        return "{}({})".format(self.name, ", ".join(cached_args))

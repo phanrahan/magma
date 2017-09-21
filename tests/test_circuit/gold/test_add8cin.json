@@ -1,0 +1,28 @@
+{"top":"global.Add(n=8, cin=True, cout=False)",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Add(n=8, cin=True, cout=False)":{
+        "type":["Record",{
+          "I0":["Array",8,"BitIn"],
+          "I1":["Array",8,"BitIn"],
+          "CIN":"BitIn",
+          "O":["Array",8,"Bit"]
+        }],
+        "instances":{
+          "inst0":{
+            "genref":"coreir.add",
+            "genargs":{"has_cin":true, "has_cout":false, "width":8}
+          }
+        },
+        "connections":[
+          ["self.O","inst0.out"],
+          ["self.I1","inst0.in1"],
+          ["self.I0","inst0.in0"],
+          ["self.CIN","inst0.cin"]
+        ]
+      }
+    }
+  }
+}
+}
