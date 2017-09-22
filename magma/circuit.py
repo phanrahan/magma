@@ -505,7 +505,7 @@ class CircuitGenerator(object):
         inst = object.__new__(type_)
 
         # Build a list of stringified parameters of the form "param=value"
-        params = list(signature(inst.interface).parameters.keys())
+        params = list(signature(type_.interface).parameters.keys())
         cached_args = []
         for value, param in zip(args, params):
             cached_args.append("{}={}".format(param, value))
@@ -513,13 +513,11 @@ class CircuitGenerator(object):
             cached_args.append("{}={}".format(key, kwargs[key]))
 
         # Cached name is base_name + stringified parameters joined by commas
-        inst.cached_name = "{}({})".format(inst.base_name,
-                                           ", ".join(cached_args))
+        cached_name = "{}({})".format(type_.base_name, ", ".join(cached_args))
 
         # Generate the declaration
-        IO = inst.interface(*args, **kwargs)
-        inst.IO = IO
-        declaration = DeclareCircuit(inst.cached_name, *IO)
+        IO = type_.interface(*args, **kwargs)
+        declaration = DeclareCircuit(cached_name, *IO)
 
         # Store generator arguments and reference to original generator
         declaration._generator_arguments = GeneratorArguments(args, kwargs)

@@ -4,7 +4,8 @@ from magma.testing import check_files_equal
 
 class AddGenerator(CircuitGenerator):
     base_name = "Add"
-    def interface(self, N, has_cout=False, has_cin=False):
+    @classmethod
+    def interface(cls, N, has_cout=False, has_cin=False):
         T = Bits(N)
         IO = ['I0', In(T), 'I1', In(T), 'O', Out(T)]
         if has_cout:
@@ -25,7 +26,8 @@ class CoreirAdd(AddGenerator):
         if has_cin:
             coreir_io += ['cin', In(Bit)]
         CoreirAdd = DeclareCircuit("coreir_" + definition.name, *coreir_io,
-                coreir_name="add", coreir_lib="coreir", coreir_genargs=coreir_genargs)
+                coreir_name="add", coreir_lib="coreir",
+                coreir_genargs=coreir_genargs)
         coreir_add = CoreirAdd()
         wire(definition.I0, coreir_add.in0)
         wire(definition.I1, coreir_add.in1)
