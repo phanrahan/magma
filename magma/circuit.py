@@ -35,6 +35,7 @@ __all__ += ['isdefinition']
 __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
 __all__ += ['CircuitGenerator']
+__all__ += ['circuit_type_method']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
@@ -72,6 +73,7 @@ class CircuitKind(type):
 
         # create interface for this circuit class
         if hasattr(cls, 'IO'):
+            cls._IO = cls.IO
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
 
@@ -503,7 +505,7 @@ class CircuitGenerator(object):
         inst = object.__new__(type_)
 
         # Build a list of stringified parameters of the form "param=value"
-        params = list(signature(inst.generate).parameters.keys())
+        params = list(signature(inst.interface).parameters.keys())
         cached_args = []
         for value, param in zip(args, params):
             cached_args.append("{}={}".format(param, value))
@@ -514,10 +516,12 @@ class CircuitGenerator(object):
         inst.cached_name = "{}({})".format(inst.base_name,
                                            ", ".join(cached_args))
 
-        # Generate the defintion
-        definition = inst.generate(*args, **kwargs)
+        # Generate the declaration
+        IO = inst.interface(*args, **kwargs)
+        inst.IO = IO
+        declaration = DeclareCircuit(inst.cached_name, *IO)
 
         # Store generator arguments and reference to original generator
-        definition._generator_arguments = GeneratorArguments(args, kwargs)
-        definition._generator = type_
-        return definition
+        declaration._generator_arguments = GeneratorArguments(args, kwargs)
+        declaration._generator = type_
+        return declaration

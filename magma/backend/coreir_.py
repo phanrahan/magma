@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from ..bit import VCC, GND
+from ..circuit import isdefinition, DefineCircuit, EndDefine
 from ..array import ArrayKind, ArrayType
 from ..clock import wiredefaultclock, ClockType
 from ..bitutils import seq2int
@@ -8,9 +9,10 @@ import coreir
 
 
 class CoreIRBackend:
-    def __init__(self):
+    def __init__(self, generators):
         self.context = coreir.Context()
         self.libs = {}
+        self.generators = generators
         self.__constant_cache = {}
 
     def check_interface(self, definition):
@@ -170,13 +172,44 @@ class CoreIRBackend:
             self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
 
-    def compile(self, defn):
+    def get_generator(self, generator):
+        for generator_implementation in self.generators:
+            if issubclass(generator_implementation, generator):
+                return generator_implementation
+        raise Exception("Couldn't find generator implementation for "
+                "{}".format(generator))
+
+    def compile(self, defn, generators):
         modules = {}
+        for name, IO, generator, arguments in generators:
+            if name in defn:
+                continue
+            linked_generator = self.get_generator(generator)
+            declaration = linked_generator(*arguments.args, **arguments.kwargs)
+            definition = DefineCircuit(name, *IO)
+            linked_generator.definition(definition,
+                    *arguments.args, **arguments.kwargs)
+            EndDefine()
+            self.compile_definition(definition)
         for key, value in defn.items():
             modules[key] = self.compile_definition(value)
         return modules
 
-def compile(main, file_name):
+
+def find_generators(circuit, generators):
+    if isdefinition(circuit):
+        for i in circuit.instances:
+            find_generators(type(i), generators)
+    else:
+        if hasattr(circuit, '_generator'):
+            generators.append((circuit.name, circuit._IO, circuit._generator,
+                circuit._generator_arguments))
+    return generators
+
+
+def compile(main, file_name, generators):
+    backend = CoreIRBackend(generators)
     defn = find(main, OrderedDict())
-    modules = CoreIRBackend().compile(defn)
+    generators = find_generators(main, [])
+    modules = backend.compile(defn, generators)
     modules[main.coreir_name].save_to_file(file_name)
