@@ -73,7 +73,6 @@ class CircuitKind(type):
 
         # create interface for this circuit class
         if hasattr(cls, 'IO'):
-            cls._IO = cls.IO
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
 
