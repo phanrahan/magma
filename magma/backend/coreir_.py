@@ -9,10 +9,10 @@ import coreir
 
 
 class CoreIRBackend:
-    def __init__(self, generators):
+    def __init__(self, generator_implementations):
         self.context = coreir.Context()
         self.libs = {}
-        self.generators = generators
+        self.generator_implementations = generator_implementations
         self.__constant_cache = {}
 
     def check_interface(self, definition):
@@ -172,8 +172,8 @@ class CoreIRBackend:
             self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
 
-    def get_generator(self, generator):
-        for generator_implementation in self.generators:
+    def get_generator_implementation(self, generator):
+        for generator_implementation in self.generator_implementations:
             if issubclass(generator_implementation, generator):
                 return generator_implementation
         raise Exception("Couldn't find generator implementation for "
@@ -185,7 +185,7 @@ class CoreIRBackend:
             if circuit.name in defn:
                 continue
             generator = circuit._generator
-            linked_generator = self.get_generator(generator)
+            linked_generator = self.get_generator_implementation(generator)
             arguments = circuit._generator_arguments
             declaration = linked_generator(*arguments.args, **arguments.kwargs)
             definition = DefineCircuit(circuit.name, *circuit.IO.Decl)
@@ -208,8 +208,8 @@ def find_generators(circuit, generators):
     return generators
 
 
-def compile(main, file_name, generators):
-    backend = CoreIRBackend(generators)
+def compile(main, file_name, generator_implementations):
+    backend = CoreIRBackend(generator_implementations)
     defn = find(main, OrderedDict())
     generators = find_generators(main, [])
     modules = backend.compile(defn, generators)
