@@ -500,9 +500,6 @@ GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 class CircuitGenerator(object):
     @lru_cache(maxsize=None)
     def __new__(type_, *args, **kwargs):
-        # Create an instance of the generator
-        inst = object.__new__(type_)
-
         # Build a list of stringified parameters of the form "param=value"
         params = list(signature(type_.interface).parameters.keys())
         cached_args = []
