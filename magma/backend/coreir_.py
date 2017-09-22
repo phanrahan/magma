@@ -181,12 +181,14 @@ class CoreIRBackend:
 
     def compile(self, defn, generators):
         modules = {}
-        for name, IO, generator, arguments in generators:
-            if name in defn:
+        for circuit in generators:
+            if circuit.name in defn:
                 continue
+            generator = circuit._generator
             linked_generator = self.get_generator(generator)
+            arguments = circuit._generator_arguments
             declaration = linked_generator(*arguments.args, **arguments.kwargs)
-            definition = DefineCircuit(name, *IO)
+            definition = DefineCircuit(circuit.name, *circuit.IO.Decl)
             linked_generator.definition(definition,
                     *arguments.args, **arguments.kwargs)
             EndDefine()
@@ -202,8 +204,7 @@ def find_generators(circuit, generators):
             find_generators(type(i), generators)
     else:
         if hasattr(circuit, '_generator'):
-            generators.append((circuit.name, circuit._IO, circuit._generator,
-                circuit._generator_arguments))
+            generators.append(circuit)
     return generators
 
 

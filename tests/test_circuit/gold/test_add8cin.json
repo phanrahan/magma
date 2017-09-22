@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "test":{
+      "Add(N=8, has_cin=True, has_cout=False)":{
         "type":["Record",{
           "I0":["Array",8,"BitIn"],
           "I1":["Array",8,"BitIn"],
@@ -20,6 +20,25 @@
           ["self.I1","inst0.in1"],
           ["self.I0","inst0.in0"],
           ["self.CIN","inst0.cin"]
+        ]
+      },
+      "test":{
+        "type":["Record",{
+          "I0":["Array",8,"BitIn"],
+          "I1":["Array",8,"BitIn"],
+          "CIN":"BitIn",
+          "O":["Array",8,"Bit"]
+        }],
+        "instances":{
+          "inst0":{
+            "modref":"global.Add(N=8, has_cin=True, has_cout=False)"
+          }
+        },
+        "connections":[
+          ["self.O","inst0.O"],
+          ["self.I1","inst0.I1"],
+          ["self.I0","inst0.I0"],
+          ["self.CIN","inst0.CIN"]
         ]
       }
     }
