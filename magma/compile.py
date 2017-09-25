@@ -12,7 +12,8 @@ def write_file(file_name, extension, code):
         file.write(code)
 
 
-def compile(basename, main, output='verilog', origin=None, include_coreir=False):
+def compile(basename, main, output='verilog', origin=None,
+        include_coreir=False, generators=[]):
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
@@ -30,7 +31,7 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         # underscore so our coreir module doesn't conflict with coreir bindings
         # package
         from .backend import coreir_
-        coreir_.compile(main, file_name + ".json")
+        coreir_.compile(main, file_name + ".json", generators)
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
 
