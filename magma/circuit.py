@@ -4,10 +4,6 @@ import inspect
 from functools import wraps
 if sys.version_info > (3, 0):
     from functools import reduce
-if sys.version_info < (3, 3):
-    from funcsigs import signature
-else:
-    from inspect import signature
 try:
     from functools import lru_cache
 except ImportError:
