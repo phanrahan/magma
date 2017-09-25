@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Add(N=8, has_cin=True, has_cout=False)":{
+      "Add8_cin":{
         "type":["Record",{
           "I0":["Array",8,"BitIn"],
           "I1":["Array",8,"BitIn"],
@@ -31,7 +31,7 @@
         }],
         "instances":{
           "inst0":{
-            "modref":"global.Add(N=8, has_cin=True, has_cout=False)"
+            "modref":"global.Add8_cin"
           }
         },
         "connections":[
