@@ -179,7 +179,7 @@ class AnonymousCircuitType(object):
 
     # wire a list of outputs to the circuit's inputs
     def wireoutputs(self, outputs, debug_info):
-        inputs = self.interface.inputs()
+        nputs = self.interface.inputs()
         ni = len(inputs)
         no = len(outputs)
         if ni != no:
