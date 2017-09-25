@@ -14,7 +14,7 @@ except ImportError:
     from backports.functools_lru_cache import lru_cache
 import operator
 from collections import namedtuple
-from .interface import InterfaceKind, DeclareInterface
+from .interface import *
 from .wire import *
 from .t import Flip
 from .array import ArrayType
@@ -359,8 +359,13 @@ class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
         if 'name' not in dct:
+            # Check if we are a subclass of something other than Circuit
             for base in bases:
-                if base.__name__ is not "Circuit":
+                if base is not Circuit:
+                    if not issubclass(base, Circuit):
+                        raise Exception("Must subclass from Circuit or a "
+                                "subclass of Circuit. {}".format(base))
+                    # If so, we will inherit the name of the first parent
                     dct['name'] = base.name
                     break
             else:

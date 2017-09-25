@@ -11,13 +11,14 @@ from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
+__all__ += ['InterfaceKind']
 
 # flatten a list of lists
 def flatten(l):
     return sum(l, [])
 
 #
-# parse argument declaration of the form 
+# parse argument declaration of the form
 #
 #  (name0, type0, name1, type1, ..., namen, typen)
 #
@@ -79,7 +80,7 @@ class _Interface(Type):
 
     def __len__(self):
         return len(self.ports.keys())
-                
+
     def __getitem__(self, key):
         if isinstance(key,slice):
             return array([self[i] for i in range(*key.indices(len(self)))])
@@ -107,7 +108,7 @@ class _Interface(Type):
     def args(self):
         return flatten( [[name, port] for name, port in self.ports.items()] )
 
-    # return all the arguments as name, flip(port) 
+    # return all the arguments as name, flip(port)
     #   same as the declaration
     def decl(self):
         return flatten( [[name, type(port).flip()] \
@@ -135,7 +136,7 @@ class _Interface(Type):
     # return all the clock argument names
     def clockargnames(self):
         return [name for name, port in self.ports.items() \
-                    if isinstance(port, ClockTypes) ] 
+                    if isinstance(port, ClockTypes) ]
 #                                or name in ['SET'] ]
 
 
