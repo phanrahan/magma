@@ -26,8 +26,8 @@ class CheckDefinitionUniquenessPass(DefinitionPass):
 
     def __call__(self, definition):
         if definition.name not in self.seen:
-            self.seen[definition.name] = []
-        self.seen[definition.name].append(definition)
+            self.seen[definition.name] = set()
+        self.seen[definition.name].add(definition)
 
     def _run(self, definition):
         for instance in definition.instances:
