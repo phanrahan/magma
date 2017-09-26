@@ -490,6 +490,7 @@ GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 
 
 def circuit_generator(func):
+    @lru_cache(maxsize=None)
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
