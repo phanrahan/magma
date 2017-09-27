@@ -158,3 +158,29 @@ def tuple_(value, n=None):
             decl[k] = type(v)
 
     return Tuple(decl)(*args)
+
+
+def concat(*arrays):
+    ts = [t for a in arrays for t in a.ts] # flatten
+    return array(ts)
+
+def repeat(value, n):
+    if isinstance(value, BitType):
+        repeats = bits(n*[value])
+    else:
+        repeats = array(n*[value])
+    return repeats
+
+def zext(value, n):
+    assert isinstance(value, (UIntType, SIntType, BitsType))
+    if isinstance(value, UIntType):
+        zeros = uint(0,n)
+    elif isinstance(value, SIntType):
+        zeros = sint(0,n)
+    elif isinstance(value, BitsType):
+        zeros = bits(0,n)
+    return concat(zeros,value)
+
+def sext(value, n):
+    assert isinstance(value, SIntType)
+    return sint(concat(array(value[-1], n), array(value)))
