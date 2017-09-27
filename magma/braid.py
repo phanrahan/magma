@@ -298,7 +298,7 @@ def compose(*circuits):
 def curry(circuit, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
-        if name == prefix and port.isinput():
+        if not port.wired() and name == prefix and port.isinput():
            for i in range(len(port)):
                args.append('{}{}'.format(name, i))
                args.append(port[i])
@@ -308,22 +308,6 @@ def curry(circuit, prefix='I'):
 
     #print(args)
     return AnonymousCircuit(args)
-
-
-
-#def inputs(circuit):
-#    input = circuit.interface.inputs()
-#    if len(input) == 1:
-#        return input[0]
-#    else:
-#        return array(input)
-
-#def outputs(circuit):
-#    output = circuit.interface.outputs()
-#    if len(output) == 1:
-#        return output[0]
-#    else:
-#        return Array(*output)
 
 #
 # uncurry a circuit
@@ -345,7 +329,8 @@ def uncurry(circuit, prefix='I'):
     uncurryargs = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?
-        if name.startswith(prefix) and port.isinput():
+        if not port.wired() and name.startswith(prefix) and port.isinput():
+           #print('uncurry', name)
            uncurryargs.append(port)
         else:
            otherargs += [name, port]
@@ -357,9 +342,10 @@ def uncurry(circuit, prefix='I'):
 def flat(circuit, flatargs=['I', 'O']):
     args = []
     for name, port in circuit.interface.ports.items():
-        if name in flatargs \
-           and isinstance(port, ArrayType) \
-               and isinstance(port[0], ArrayType):
+        if not port.wired() and name in flatargs \
+               and isinstance(port, ArrayType) \
+                   and isinstance(port[0], ArrayType):
+           #print('flat',name)
            ts = sum([p.as_list() for p in port], [])
            args += [name, array(ts)]
         else:
@@ -372,7 +358,7 @@ def partition(circuit, n, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?
-        if name == prefix and isinstance(port, ArrayType):
+        if not port.wired() and name == prefix and isinstance(port, ArrayType):
            l = port.as_list()
            l = [array(l[i:i + n]) for i in range(0, len(l), n)]
            for i in range(len(l)):
