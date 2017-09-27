@@ -233,6 +233,7 @@ class PythonSimulator(CircuitSimulator):
         if clock is not None and not isinstance(clock, ClockType):
             raise ValueError("clock must be a ClockType or None")
         setup_clocks(main_circuit)
+        self.main_circuit = main_circuit
         self.txfm = flatten(main_circuit)
         self.circuit = self.txfm.circuit
         self.value_store = ValueStore()
@@ -335,6 +336,33 @@ class PythonSimulator(CircuitSimulator):
                 return True
 
         return False
+
+    def __call__(self, *largs):
+        circuit = self.main_circuit
+
+        j = 0
+        for name, port in circuit.interface.ports.items():
+            if port.isoutput():
+                n = 1
+                if isinstance(port, ArrayType):
+                    n = type(port).N
+                val = BitVector(largs[j], num_bits=n)
+                self.set_value(getattr(circuit, name), val)
+                j += 1
+
+        self.evaluate()
+
+        outs = []
+        for name, port in circuit.interface.ports.items():
+            if port.isinput():
+                val = self.get_value(getattr(circuit, name))
+                val = int(val) if isinstance(val, bool) else seq2int(val)
+                outs.append(val)
+
+        if len(outs) == 1:
+            return outs[0]
+        return tuple(outs)
+
 
 def testvectors(circuit, input_ranges=None, mode='complete'):
     ntest = len(circuit.interface.ports.items())
