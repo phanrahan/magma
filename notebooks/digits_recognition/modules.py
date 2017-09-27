@@ -105,14 +105,14 @@ class Controller(Circuit):
 
 
 # Test Unit for Rom Reading
-class TestReadRom(Circuit):
-    name = "TestReadRom2"
+class TestReadROM(Circuit):
+    name = "TestReadROM2"
     IO = ['IDX', In(Bits(b)), 'CYCLE', In(Bits(n)), 'CLK', In(Clock),
           'WEIGHT', Out(Bits(N)), 'IMAGE', Out(Bits(N))]
     @classmethod
     def definition(io):
         weights_list = [1] + [2**16-1]*15 + [3] + [2**16-1]*15 + ([0] + [2**16-1]*15)*((256-32)//16)
-        weigths_rom = ROMB(weights_list)
+        weigths_rom = ROMB(256,16,weights_list)
         lut_list = []
         for i in range(N):
             lut_list.append(SB_LUT4(LUT_INIT=1))
@@ -129,14 +129,14 @@ class TestReadRom(Circuit):
 
 
 # Read ROM unit
-class ReadRom(Circuit):
+class ReadROM(Circuit):
     assert N == 16
-    name = "ReadRom"
+    name = "ReadROM"
     IO = ['IDX', In(Bits(b)), 'CYCLE', In(Bits(n)), 'CLK', In(Clock),
           'WEIGHT', Out(Bits(N)), 'IMAGE', Out(Bits(N))]
     @classmethod
     def definition(io):
-        weigths_rom = ROMB(weights_list)
+        weigths_rom = ROMB(256,16,weights_list)
         # using 16 LUTs to store the image, each LUT contributes 1 bit per cycle
         lut_list = []
         for i in range(N):
@@ -256,7 +256,7 @@ class Pipeline(Circuit):
         wire(controller.CYCLE, reg_1_cycle.I)
         wire(1, reg_1_control.I)
         # RR - get weight block, image block of N bits
-        readROM = ReadRom()
+        readROM = ReadROM()
         wire(reg_1_idx, readROM.IDX)
         wire(reg_1_cycle.O, readROM.CYCLE)
         reg_2 = mantle.Register(N + b + n)
