@@ -27,9 +27,7 @@ from .braid import *
 
 from .wire import *
 
-from .primitives import *
-
-# verilog 
+# verilog
 from .fromverilog import *
 from .backend.verilog import *
 from .compile import *
