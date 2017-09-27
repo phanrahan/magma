@@ -1,8 +1,13 @@
 import sys
 import six
 import inspect
+from functools import wraps
 if sys.version_info > (3, 0):
     from functools import reduce
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 import operator
 from collections import namedtuple
 from .interface import *
@@ -26,6 +31,8 @@ __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
+__all__ += ['circuit_type_method']
+__all__ += ['circuit_generator']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
@@ -49,7 +56,7 @@ class CircuitKind(type):
 
         # override circuit class name
         if 'name' not in dct:
-             dct['name'] = name
+            dct['name'] = name
         name = dct['name']
 
         if 'primitive' not in dct:
@@ -62,7 +69,7 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         # create interface for this circuit class
-        if hasattr(cls, 'IO'):
+        if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
 
@@ -343,30 +350,25 @@ def isdefinition(circuit):
 def isprimitive(circuit):
     return circuit.primitive
 
-Cache = {}
-
-def __magma_clear_circuit_cache():
-    """
-    Used in testing to clear Cache to prevent name conflicts from different
-    tests
-    """
-    Cache.clear()
 
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
-        # override name if present in dict
         if 'name' not in dct:
-             dct['name'] = name
+            # Check if we are a subclass of something other than Circuit
+            for base in bases:
+                if base is not Circuit:
+                    if not issubclass(base, Circuit):
+                        raise Exception("Must subclass from Circuit or a "
+                                "subclass of Circuit. {}".format(base))
+                    # If so, we will inherit the name of the first parent
+                    dct['name'] = base.name
+                    break
+            else:
+                dct['name'] = name
         name = dct['name']
 
-        # circuit definition are cached
-        if name in Cache:
-            #warn('Warning: Circuit {} already defined'.format(name))
-            return Cache[name]
-
         self = CircuitKind.__new__(metacls, name, bases, dct)
-        Cache[name] = self
 
         self.verilog = None
         self.verilogFile = None
@@ -484,3 +486,15 @@ def hstr(init, nbits):
     return format
 
 
+GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
+
+
+def circuit_generator(func):
+    @lru_cache(maxsize=None)
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        result = func(*args, **kwargs)
+        # Store arguments to generate the circuit
+        result._generator_arguments = GeneratorArguments(args, kwargs)
+        return result
+    return wrapped
