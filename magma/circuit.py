@@ -344,9 +344,7 @@ def popDefinition():
 #  A circuit is a definition if it has instances
 def isdefinition(circuit):
     'Return whether a circuit is a module definition'
-    return circuit.is_definition or \
-           getattr(circuit, "verilogFile", None) is not None or \
-           getattr(circuit, "verilog", None) is not None
+    return circuit.is_definition
 
 def isprimitive(circuit):
     return circuit.primitive
@@ -384,7 +382,7 @@ class DefineCircuitKind(CircuitKind):
         self.firrtl = None
 
         self.instances = []
-        self.is_definition = dct.get('is_definition', False)
+        self._is_definition = dct.get('is_definition', False)
 
         if hasattr(self, 'IO'):
             # instantiate interface
@@ -395,10 +393,14 @@ class DefineCircuitKind(CircuitKind):
             if hasattr(self, 'definition'):
                  pushDefinition(self)
                  self.definition()
-                 self.is_definition = True
+                 self._is_definition = True
                  EndCircuit()
 
         return self
+
+    @property
+    def is_definition(self):
+        return self._is_definition or self.verilog or self.verilogFile
 
     #
     # place a circuit instance in this definition
