@@ -18,6 +18,9 @@ __all__ += ['bits', 'uint', 'sint']
 
 __all__ += ['tuple_']
 
+__all__ += ['concat', 'repeat']
+__all__ += ['sext', 'zext']
+
 def convertbit(value, totype, T):
     if isinstance(value, totype):
         return value

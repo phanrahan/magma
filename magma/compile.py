@@ -40,7 +40,7 @@ class CheckDefinitionUniquenessPass(DefinitionPass):
     def run(self):
         super(CheckDefinitionUniquenessPass, self).run()
         duplicated = []
-        print(self.seen)
+        #print(self.seen)
         for name, definitions in self.seen.items():
             if len(definitions) > 1:
                 duplicated.append((name, definitions))
