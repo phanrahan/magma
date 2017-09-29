@@ -4,6 +4,7 @@ from ..array import ArrayKind, ArrayType
 from ..clock import wiredefaultclock, ClockType
 from ..bitutils import seq2int
 from ..backend.verilog import find
+from ..logging import error
 import coreir
 
 
@@ -131,7 +132,9 @@ class CoreIRBackend:
                     connect(port, port.value())
         for input in definition.interface.inputs():
             output = input.value()
-            assert output, "Output {} not connected".format(input)
+            if not output:
+                error(repr(definition))
+                raise Exception("Output {} not connected".format(input))
             if output.anon():
                 assert isinstance(output, ArrayType)
                 for i, o in zip(input, output):
