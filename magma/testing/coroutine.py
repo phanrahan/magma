@@ -39,6 +39,8 @@ def check(circuit, sim, number_of_cycles):
             simulator.step()
             simulator.evaluate()
         # Coroutine has an implicit __next__ call on construction so it already
-        # is init it's initial state
-        assert sim.O == BitVector(simulator.get_value(circuit.O)).as_int()
+        # is in it's initial state
+        for name, port in circuit.interface.ports.items():
+            if port.isinput():  # circuit output
+                assert getattr(sim, name) == BitVector(simulator.get_value(getattr(circuit, name))).as_int()
         next(sim)
