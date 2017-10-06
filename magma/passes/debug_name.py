@@ -14,11 +14,14 @@ class InstDecl:
 class DebugNamePass(DefinitionPass):
     def __call__(self, definition):
         for inst in definition.instances:
+            if hasattr(inst, 'decl'):
+                # Skip if this pass has already been run (partially or not)
+                continue
             stack = inst.stack
             inst.decl = None
             for frame_info in stack:
-                local_vars = frame_info.frame.f_locals.items()
+                local_vars = frame_info[0].f_locals.items()
                 for name, var in local_vars:
                     if var is inst:
-                        inst.decl = InstDecl(name, frame_info.lineno, frame_info.frame.f_code.co_filename)
+                        inst.decl = InstDecl(name, frame_info[2], frame_info[0].f_code.co_filename)
                         break

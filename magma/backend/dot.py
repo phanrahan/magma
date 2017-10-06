@@ -1,5 +1,6 @@
 from ..array import ArrayKind, ArrayType
 from ..bit import BitType, VCC, GND
+from ..passes.debug_name import DebugNamePass
 from collections import OrderedDict
 
 from graphviz import Digraph
@@ -34,7 +35,8 @@ def get_name(dot, port):
     return port.name.qualifiedname(sep="_")
 
 def compileinstance(dot, instance):
-    instance_name = str(instance.name)
+    instance_orig_name = str(instance.decl.varname)
+    instance_backend_name = str(instance.name)
     instance_cls_name = str(instance.__class__.__name__)
 
     inputs = []
@@ -52,20 +54,20 @@ def compileinstance(dot, instance):
             value = port
         # if isinstance(value, ArrayType):
         #     for index, subport in enumerate(value.ts):
-        #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
+        #         s += "{}.{}[{}] <= {}\n".format(instance_backend_name, name, index, get_name(subport))
         # else:
         value_name = get_name(dot, value)
         if port.isinput():
-            # s += "{}.{} <= {}\n".format(instance_name, name, value_name)
-            dot.edge(value_name, '{}:{}'.format(instance_name, name))
+            # s += "{}.{} <= {}\n".format(instance_backend_name, name, value_name)
+            dot.edge(value_name, '{}:{}'.format(instance_backend_name, name))
         else:
-            # s += "{} <= {}.{}\n".format(value_name, instance_name, name)
-            dot.edge('{}:{}'.format(instance_name, name), value_name)
+            # s += "{} <= {}.{}\n".format(value_name, instance_backend_name, name)
+            dot.edge('{}:{}'.format(instance_backend_name, name), value_name)
 
     instance_label = '{' + '|'.join(inputs) + '}|' + \
-                     '{}\\n{}'.format(instance_name, instance_cls_name) + \
+                     '{} ({})\\n{}'.format(instance_orig_name, instance_backend_name, instance_cls_name) + \
                      '|{' + '|'.join(outputs) + '}'
-    dot.node(instance_name, '{' + instance_label + '}')
+    dot.node(instance_backend_name, '{' + instance_label + '}')
 
 def compiledefinition(dot, cls):
     # Each definition maps to an entire self-contained graphviz digraph.
@@ -127,7 +129,9 @@ def dots(main):
     return dots
 
 def to_html(main):
+    DebugNamePass(main).run()
     return "\n".join([dot._repr_svg_() for dot in dots(main)])
 
 def compile(main):
+    DebugNamePass(main).run()
     return "\n".join([str(dot) for dot in dots(main)]) + '\n'
