@@ -1,6 +1,6 @@
 from __future__ import print_function
 from .python_simulator import PythonSimulator
-from ..transforms import get_uniq_circuits
+from ..passes.debug_name import DebugNamePass
 from ..circuit import *
 from ..scope import *
 from ..array import ArrayType
@@ -16,15 +16,6 @@ if platform == "linux" or platform == "linux2" or platform == "darwin":
 import cmd
 
 __all__ = ['simulate']
-
-class InstDecl:
-    def __init__(self, varname, lineno, filename):
-        self.varname = varname
-        self.lineno = lineno
-        self.filename = filename
-
-    def __repr__(self):
-        return self.filename + " line " + str(self.lineno) + ": " + self.varname
 
 class DisplayExpr:
     idx = 0
@@ -448,25 +439,11 @@ class SimulationConsole(cmd.Cmd):
             except KeyboardInterrupt:
                 print('\nKeyboardInterrupt')
 
-def add_debug_info(main):
-    circuits = get_uniq_circuits(main)
-    for circuit in circuits:
-      for inst in circuit.instances:
-          stack = inst.stack
-          inst.decl = None
-
-          for frame_info in stack:
-              local_vars = frame_info.frame.f_locals.items()
-              for name, var in local_vars:
-                  if var is inst:
-                      inst.decl = InstDecl(name, frame_info.lineno, frame_info.frame.f_code.co_filename)
-                      break
-
 def simulate(main):
     EndCircuit()
-    simulator = PythonSimulator(main)
-    
-    add_debug_info(main)
+    simulator = PythonSimulator(main, main.CLK)
+
+    DebugNamePass(main).run()
 
     console = SimulationConsole(main, simulator)
     console.run()
