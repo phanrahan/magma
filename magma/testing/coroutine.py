@@ -42,5 +42,5 @@ def check(circuit, sim, number_of_cycles):
         # is in it's initial state
         for name, port in circuit.interface.ports.items():
             if port.isinput():  # circuit output
-                assert getattr(sim, name) == BitVector(simulator.get_value(getattr(circuit, name))).as_int()
+                assert getattr(sim, name) == BitVector(simulator.get_value(getattr(circuit, name)))
         next(sim)
