@@ -18,7 +18,6 @@ from .tuple import TupleType
 from .bit import VCC, GND
 from .debug import get_callee_frame_info
 from .logging import warning
-from .backend.dot import to_html
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -37,6 +36,10 @@ __all__ += ['circuit_generator']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
+def circuit_to_html(cls):
+    # Avoid circular dependency so dot backend can use passes
+    from .backend.dot import to_html
+    return to_html(cls)
 
 # create an attribute for each port
 def setports(self, ports):
@@ -115,7 +118,7 @@ class CircuitKind(type):
         return s
 
     def _repr_html_(cls):
-        return to_html(cls)
+        return circuit_to_html(cls)
 
     def find(cls, defn):
         name = cls.__name__
@@ -172,7 +175,7 @@ class AnonymousCircuitType(object):
         #    ', '.join(args), self.filename, self.lineno)
 
     def _repr_html_(self):
-        return to_html(self)
+        return circuit_to_html(self)
 
     def __getitem__(self, key):
         return self.interface[key]
@@ -423,8 +426,8 @@ class DefineCircuitKind(CircuitKind):
 try:
     ip = get_ipython()
     html_formatter = ip.display_formatter.formatters['text/html']
-    html_formatter.for_type(DefineCircuitKind, to_html)
-    html_formatter.for_type(CircuitKind, to_html)
+    html_formatter.for_type(DefineCircuitKind, circuit_to_html)
+    html_formatter.for_type(CircuitKind, circuit_to_html)
 except NameError:
     # Not running in IPython right now?
     pass

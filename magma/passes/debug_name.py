@@ -14,6 +14,9 @@ class InstDecl:
 class DebugNamePass(DefinitionPass):
     def __call__(self, definition):
         for inst in definition.instances:
+            if hasattr(inst, 'decl'):
+                # Skip if this pass has already been run (partially or not)
+                continue
             stack = inst.stack
             inst.decl = None
             for frame_info in stack:
