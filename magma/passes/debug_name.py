@@ -20,8 +20,8 @@ class DebugNamePass(DefinitionPass):
             stack = inst.stack
             inst.decl = None
             for frame_info in stack:
-                local_vars = frame_info.frame.f_locals.items()
+                local_vars = frame_info[0].f_locals.items()
                 for name, var in local_vars:
                     if var is inst:
-                        inst.decl = InstDecl(name, frame_info.lineno, frame_info.frame.f_code.co_filename)
+                        inst.decl = InstDecl(name, frame_info[2], frame_info[0].f_code.co_filename)
                         break
