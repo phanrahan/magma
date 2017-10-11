@@ -10,32 +10,16 @@
           "CIN":"BitIn"
         }],
         "instances":{
-          "bit_const_GND":{
-            "modref":"coreir.bitconst",
-            "modargs":{"value":["Int",0]}
-          },
           "inst0":{
             "genref":"coreir.add",
-            "genargs":{"has_cin":["Bool",false], "has_cout":["Bool",false], "width":["Int",8]}
-          },
-          "inst1":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":["Bool",false], "has_cout":["Bool",false], "width":["Int",8]}
+            "genargs":{"has_cin":["Bool",true], "has_cout":["Bool",false], "width":["Int",8]}
           }
         },
         "connections":[
-          ["bit_const_GND.out","inst1.in0.1"],
-          ["bit_const_GND.out","inst1.in0.2"],
-          ["bit_const_GND.out","inst1.in0.3"],
-          ["bit_const_GND.out","inst1.in0.4"],
-          ["bit_const_GND.out","inst1.in0.5"],
-          ["bit_const_GND.out","inst1.in0.6"],
-          ["bit_const_GND.out","inst1.in0.7"],
-          ["inst0.in0","inst1.out"],
+          ["inst0.cin","self.CIN"],
+          ["inst0.in0","self.I0"],
           ["inst0.in1","self.I1"],
-          ["inst0.out","self.O"],
-          ["inst1.in1","self.I0"],
-          ["self.CIN","inst1.in0.0"]
+          ["inst0.out","self.O"]
         ]
       },
       "test":{
