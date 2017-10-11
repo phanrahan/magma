@@ -43,7 +43,7 @@ class CoreIRBackend:
 
     def get_instantiable(self, name, lib):
         if lib not in self.libs:
-            if lib == "coreir":
+            if lib in {"coreir", "mantle", "corebit"}:
                 self.libs[lib] = self.context.get_namespace(lib)
             elif lib == "global":
                 self.libs[lib] = self.context.global_namespace
@@ -65,17 +65,17 @@ class CoreIRBackend:
             args = {}
             for name, value in instance.kwargs.items():
                 args[name] = value[0]  # Drop width for now
-            args = self.context.newArgs(args)
+            args = self.context.new_values(args)
             return module_definition.add_module_instance(instance.name, instantiable, args)
         elif isinstance(instantiable, coreir.Generator):
             config_args = {}
             for name, value in instance.coreir_configargs.items():
                 config_args[name] = value
-            config_args = self.context.newArgs(config_args)
+            config_args = self.context.new_values(config_args)
             gen_args = {}
             for name, value in type(instance).coreir_genargs.items():
                 gen_args[name] = value
-            gen_args = self.context.newArgs(gen_args)
+            gen_args = self.context.new_values(gen_args)
             return module_definition.add_generator_instance(instance.name,
                     instantiable, gen_args, config_args)
         else:
@@ -160,13 +160,14 @@ class CoreIRBackend:
             else:
                 raise NotImplementedError(value)
             if num_bits is None:
-                config = self.context.newArgs({"value": value})
+                config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
+                # instantiable = self.get_instantiable("const", "corebit")
                 instantiable = self.get_instantiable("bitconst", "coreir")
                 module_definition.add_module_instance(name, instantiable, config)
             else:
-                gen_args = self.context.newArgs({"width": num_bits})
-                config = self.context.newArgs({"value": value})
+                gen_args = self.context.new_values({"width": num_bits})
+                config = self.context.new_values({"value": value})
                 name = "const_{}".format(constant)
                 instantiable = self.get_instantiable("const", "coreir")
                 module_definition.add_generator_instance(name, instantiable, gen_args, config)
