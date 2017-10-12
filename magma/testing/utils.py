@@ -21,8 +21,8 @@ def check_files_equal(callee_file, file1_name, file2_name):
                 diff = difflib.unified_diff(
                     file1.readlines(),
                     file2.readlines(),
-                    fromfile=file1_name,
-                    tofile=file2_name,
+                    fromfile=file2_name,
+                    tofile=file1_name,
                 )
                 for line in diff:
                     sys.stderr.write(line)
