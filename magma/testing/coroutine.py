@@ -44,3 +44,14 @@ def check(circuit, sim, number_of_cycles):
             if port.isinput():  # circuit output
                 assert getattr(sim, name) == BitVector(simulator.get_value(getattr(circuit, name)))
         next(sim)
+
+def testvectors(circuit, sim, number_of_cycles):
+    outputs = []
+    for cycle in range(number_of_cycles):
+        out_ports = {}
+        for name, port in circuit.interface.ports.items():
+            if port.isinput():  # circuit output
+                out_ports[name] = getattr(sim, name)
+        outputs.append(out_ports)
+        next(sim)
+    return outputs
