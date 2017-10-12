@@ -160,11 +160,9 @@ class CoreIRBackend:
             else:
                 raise NotImplementedError(value)
             if num_bits is None:
-                # config = self.context.new_values({"value": bool(value)})
-                config = self.context.new_values({"value": value})
+                config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
-                # instantiable = self.get_instantiable("const", "corebit")
-                instantiable = self.get_instantiable("bitconst", "coreir")
+                instantiable = self.get_instantiable("const", "corebit")
                 module_definition.add_module_instance(name, instantiable, config)
             else:
                 gen_args = self.context.new_values({"width": num_bits})
