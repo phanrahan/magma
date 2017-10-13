@@ -11,9 +11,8 @@ class Scope:
                 self.val += '/'
         else:
             self.val = '/'
-        if 'const' in kwargs:
-            self.val += kwargs['const']
-        elif 'instance' in kwargs:
+
+        if 'instance' in kwargs:
             self.inst = kwargs['instance']
             self.val += type(self.inst).__name__ + '.' + self.inst.name
 

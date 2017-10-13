@@ -43,7 +43,7 @@ def get_bit_full_name(bit):
     if isinstance(name, InstRef):
         return name.inst.name + "." + name.name
     elif isinstance(name, DefnRef):
-        return name.defn + '.' + name.name
+        return str(name.defn) + '.' + name.name
     elif isinstance(name, ArrayRef):
         arrayname = get_bit_full_name(name.array)
         return arrayname + "[" + str(name.index) + "]"
