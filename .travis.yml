@@ -12,7 +12,7 @@ before_install:
     - pip install --upgrade pip setuptools
 
     # BEGIN: coreir installation
-    - git clone -b dev https://github.com/rdaly525/coreir.git
+    - git clone -b firrtl https://github.com/rdaly525/coreir.git
     - cd coreir;
     - export COREIRCONFIG="g++-4.9";
     - export COREIR=$PWD
