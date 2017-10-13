@@ -22,8 +22,8 @@ class Coroutine:
     def __getattr__(self, key):
         return self.co.gi_frame.f_locals[key]
 
-    def send(self, *args, **kwargs):
-        return self.co.send(*args, **kwargs)
+    def send(self, *args):
+        return self.co.send(*args)
 
     def __next__(self):
         return next(self.co)
@@ -51,13 +51,24 @@ def check(circuit, sim, number_of_cycles):
                 assert getattr(sim, name) == BitVector(simulator.get_value(getattr(circuit, name)))
         next(sim)
 
-def testvectors(circuit, sim, number_of_cycles):
+def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
     outputs = []
+    inputs = []
     for cycle in range(number_of_cycles):
         out_ports = {}
+        in_ports = {}
         for name, port in circuit.interface.ports.items():
+            if name == "CLK":
+                continue
             if port.isinput():  # circuit output
                 out_ports[name] = getattr(sim, name)
+            if port.isoutput():  # circuit input
+                in_ports[name] = getattr(inputs_generator, name)
         outputs.append(out_ports)
-        next(sim)
-    return outputs
+        inputs.append(in_ports)
+        if in_ports:
+            sim.send(in_ports)
+        else:
+            next(sim)
+        next(inputs_generator)
+    return inputs, outputs
