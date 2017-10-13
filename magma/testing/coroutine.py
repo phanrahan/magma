@@ -8,16 +8,12 @@ class Coroutine:
 
     Overrides __getattr__ to support inspection of the local variables
     """
-    def __init__(self, func):
-        self.definition = func
-        self.running = False
-    
-    def __call__(self, *args, **kwargs):
-        if self.running:
-            raise Exception("Coroutine started that was already running")
+    def __init__(self, *args, **kwargs):
         self.reset(*args, **kwargs)
-        self.running = True
-        return self
+
+    @classmethod
+    def definition(cls, *args, **kwargs):
+        return cls._definition(*args, **kwargs)
 
     def reset(self, *args, **kwargs):
         self.co = self.definition(*args, **kwargs)
@@ -35,8 +31,11 @@ class Coroutine:
     def next(self):
         return self.__next__()
 
+def coroutine(func):
+    class _Coroutine(Coroutine):
+        _definition = func
 
-coroutine = Coroutine
+    return _Coroutine
 
 
 def check(circuit, sim, number_of_cycles):
