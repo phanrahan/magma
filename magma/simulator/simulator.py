@@ -35,6 +35,10 @@ class CircuitSimulator(ABC):
         pass
 
     @abstractmethod
+    def reverse_step(self):
+        pass
+
+    @abstractmethod
     def cont(self):
         pass
 

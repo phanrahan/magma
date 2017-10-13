@@ -109,7 +109,7 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
         new_primitive = primitive_map[QualifiedInstance(instance=old_primitive, scope=scope)]
         newsource = new_primitive.interface.ports[bitref.name]
     elif isinstance(bitref, DefnRef):
-        defn = bitref.defn
+        defn = bitref.defn.name
         assert defn == old_circuit.name, "Collapsed bit to circuit other than outermost"
         newsource = new_circuit.interface.ports[bitref.name]
     elif isinstance(old_source, ArrayType):
