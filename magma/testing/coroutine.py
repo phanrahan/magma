@@ -1,35 +1,42 @@
 from magma.simulator import PythonSimulator
 from magma.bit_vector import BitVector
 
-def coroutine(func):
-    class Coroutine:
-        """
-        Makes the initial call to __next__ upon construction to immediately
-        start the routine.
+class Coroutine:
+    """
+    Makes the initial call to __next__ upon construction to immediately
+    start the routine.
 
-        Overrides __getattr__ to support inspection of the local variables
-        """
-        def __init__(self, *args, **kwargs):
-            self.definition = func
-            self.reset(*args, **kwargs)
+    Overrides __getattr__ to support inspection of the local variables
+    """
+    def __init__(self, func):
+        self.definition = func
+        self.running = False
+    
+    def __call__(self, *args, **kwargs):
+        if self.running:
+            raise Exception("Coroutine started that was already running")
+        self.reset(*args, **kwargs)
+        self.running = True
+        return self
 
-        def reset(self, *args, **kwargs):
-            self.co = self.definition(*args, **kwargs)
-            next(self.co)
+    def reset(self, *args, **kwargs):
+        self.co = self.definition(*args, **kwargs)
+        next(self.co)
 
-        def __getattr__(self, key):
-            return self.co.gi_frame.f_locals[key]
+    def __getattr__(self, key):
+        return self.co.gi_frame.f_locals[key]
 
-        def send(self, *args, **kwargs):
-            return self.co.send(*args, **kwargs)
+    def send(self, *args, **kwargs):
+        return self.co.send(*args, **kwargs)
 
-        def __next__(self):
-            return next(self.co)
+    def __next__(self):
+        return next(self.co)
 
-        def next(self):
-            return self.__next__()
+    def next(self):
+        return self.__next__()
 
-    return Coroutine
+
+coroutine = Coroutine
 
 
 def check(circuit, sim, number_of_cycles):
