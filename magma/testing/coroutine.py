@@ -70,5 +70,6 @@ def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
             sim.send(in_ports)
         else:
             next(sim)
-        next(inputs_generator)
+        if inputs_generator is not None:
+            next(inputs_generator)
     return inputs, outputs
