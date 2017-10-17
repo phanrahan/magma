@@ -138,7 +138,7 @@ class CoreIRBackend:
                 empty_config = self.context.new_values({})
                 i = 0
                 outputs = []
-                for i in range(0, len(value), 2):
+                for i in range(len(value) - 1, -1, -2):
                     __unique_concat_id += 1
                     name = "__magma_backend_concat{}".format(__unique_concat_id)
                     module_definition.add_module_instance(name, bit_concat_instantiable, empty_config)
@@ -147,7 +147,7 @@ class CoreIRBackend:
                         get_select(value[i]))
                     module_definition.connect(
                         module_definition.select("{}.in1".format(name)),
-                        get_select(value[i + 1]))
+                        get_select(value[i - 1]))
                     outputs.append(module_definition.select("{}.out".format(name)))
                 concat_instantiable = self.get_instantiable("concat", "coreir")
                 width = 2
