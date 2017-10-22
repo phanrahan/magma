@@ -39,12 +39,12 @@ class InstRef(Ref):
 class DefnRef(Ref):
     def __init__(self, defn, name):
         assert defn
-        self.defn = str(defn) # Definition
+        self.defn = defn # Definition
         self.name = name
 
     def qualifiedname(self, sep='.'):
         if sep == '.':
-            return self.defn + sep + self.name
+            return str(self.defn) + sep + self.name
         else:
             return self.name
 

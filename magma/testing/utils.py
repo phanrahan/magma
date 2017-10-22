@@ -19,10 +19,10 @@ def check_files_equal(callee_file, file1_name, file2_name):
         with open(file1_path, "r") as file1:
             with open(file2_path, "r") as file2:
                 diff = difflib.unified_diff(
-                    file1.readlines(),
                     file2.readlines(),
-                    fromfile=file1_name,
-                    tofile=file2_name,
+                    file1.readlines(),
+                    fromfile=file2_name,
+                    tofile=file1_name,
                 )
                 for line in diff:
                     sys.stderr.write(line)

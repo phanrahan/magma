@@ -35,7 +35,6 @@ def get_name(dot, port):
     return port.name.qualifiedname(sep="_")
 
 def compileinstance(dot, instance):
-    instance_orig_name = str(instance.decl.varname)
     instance_backend_name = str(instance.name)
     instance_cls_name = str(instance.__class__.__name__)
 
@@ -64,9 +63,13 @@ def compileinstance(dot, instance):
             # s += "{} <= {}.{}\n".format(value_name, instance_backend_name, name)
             dot.edge('{}:{}'.format(instance_backend_name, name), value_name)
 
-    instance_label = '{' + '|'.join(inputs) + '}|' + \
-                     '{} ({})\\n{}'.format(instance_orig_name, instance_backend_name, instance_cls_name) + \
-                     '|{' + '|'.join(outputs) + '}'
+    instance_label = '{' + '|'.join(inputs) + '}|'
+    if instance.decl is not None:
+        instance_label += '{} ({})\\n{}'.format(instance.decl.varname, instance_backend_name, instance_cls_name)
+    else:
+        instance_label += '{}\\n{}'.format(instance_backend_name, instance_cls_name)
+
+    instance_label += '|{' + '|'.join(outputs) + '}'
     dot.node(instance_backend_name, '{' + instance_label + '}')
 
 def compiledefinition(dot, cls):

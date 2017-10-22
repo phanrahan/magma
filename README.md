@@ -44,7 +44,7 @@ Please also refer to the
 The design of Magma was heavily influenced by 
 [Chisel](https://chisel.eecs.berkeley.edu/),
 so Magma should be easy to learn if you know Chisel.
-The [Chisel Tutorial Notebook](https://github.com/phanrahan/magma/tree/master/notebooks/chisel-tutorial)
+The [Chisel Tutorial Notebook](https://github.com/phanrahan/mantle/tree/master/notebooks/chisel-tutorial)
 has the Magma versions of the Chisel Tutorial examples.
 Magma also has a 
 [FIRRTL](https://github.com/freechipsproject/firrtl) backend,

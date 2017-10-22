@@ -6,7 +6,19 @@ from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
 import coreir
+from ..ref import ArrayRef, DefnRef
 
+def magma_port_to_coreir(port):
+    select = repr(port)
+
+    name = port.name
+    if isinstance(name, ArrayRef):
+        name = name.array.name
+    if isinstance(name, DefnRef):
+        if name.defn.name != "":
+            select = select.replace(name.defn.name, "self")
+
+    return select.replace("[", ".").replace("]", "")
 
 class CoreIRBackend:
     def __init__(self):
@@ -88,12 +100,6 @@ class CoreIRBackend:
         else:
             raise NotImplementedError()
 
-    def get_port_select(self, port, definition):
-        select = repr(port)
-        if definition.name != "":
-            select = select.replace(definition.name, "self")
-        return select.replace("[", ".").replace("]", "")
-
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
@@ -102,20 +108,20 @@ class CoreIRBackend:
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
-                output_ports[port] = self.get_port_select(port, definition)
+                output_ports[port] = magma_port_to_coreir(port)
                 if isinstance(port, ArrayType):
                     for bit in port:
-                        output_ports[bit] = self.get_port_select(bit, definition)
+                        output_ports[bit] = magma_port_to_coreir(bit)
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
-                    output_ports[port] = self.get_port_select(port, definition)
+                    output_ports[port] = magma_port_to_coreir(port)
                     if isinstance(port, ArrayType):
                         for bit in port:
-                            output_ports[bit] = self.get_port_select(bit, definition)
+                            output_ports[bit] = magma_port_to_coreir(bit)
 
 
         def get_select(value):
@@ -177,7 +183,7 @@ class CoreIRBackend:
                 source = module_definition.select(output_ports[value])
             module_definition.connect(
                 source,
-                module_definition.select(self.get_port_select(port, definition)))
+                module_definition.select(magma_port_to_coreir(port)))
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
