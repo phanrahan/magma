@@ -8,7 +8,11 @@ import numpy as np
 class BitVector:
     def __init__(self, value=0, num_bits=None, signed=False):
         self.signed = signed
-        if isinstance(value, IntegerTypes):
+        if isinstance(value, BitVector):
+            self._value = value.as_int()
+            self._signed = value.signed
+            self._bits = int2seq(self._value, num_bits)
+        elif isinstance(value, IntegerTypes):
             if num_bits is None:
                 num_bits = max(value.bit_length(), 1)
             self._value = value
