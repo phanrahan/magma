@@ -19,7 +19,8 @@ setup(
     scripts=['bin/magma'],
     packages=[
         "magma",
-        "magma.backend"
+        "magma.backend",
+        "magma.passes"
     ],
     install_requires=install_requires
 )
