@@ -17,7 +17,7 @@ before_install:
     - export COREIRCONFIG="g++-4.9";
     - export COREIR=$PWD
     - sudo make install -j 2
-    - pip install coreir
+    - pip install git+git://github.com/leonardt/pycoreir.git@dev
     - cd ..;
     # END: coreir installation
 
