@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import os
 from ..bit import VCC, GND, BitType
 from ..array import ArrayKind, ArrayType
 from ..clock import wiredefaultclock, ClockType, ResetType
@@ -137,43 +138,49 @@ class CoreIRBackend:
                 raise Exception("Got None for port: {}".format(port))
             elif isinstance(value, coreir.Wireable):
                 source = value
+
             elif value.anon() and isinstance(value, ArrayType):
-                if not all(isinstance(v, BitType) for v in value):
-                    raise NotImplementedError()
-                bit_concat_instantiable = self.get_instantiable("concat", "corebit")
-                empty_config = self.context.new_values({})
-                i = 0
-                outputs = []
-                for i in range(len(value) - 1, -1, -2):
-                    __unique_concat_id += 1
-                    name = "__magma_backend_concat{}".format(__unique_concat_id)
-                    module_definition.add_module_instance(name, bit_concat_instantiable, empty_config)
-                    module_definition.connect(
-                        module_definition.select("{}.in0".format(name)),
-                        get_select(value[i]))
-                    module_definition.connect(
-                        module_definition.select("{}.in1".format(name)),
-                        get_select(value[i - 1]))
-                    outputs.append(module_definition.select("{}.out".format(name)))
-                concat_instantiable = self.get_instantiable("concat", "coreir")
-                width = 2
-                while len(outputs) > 1:
-                    next_outputs = []
-                    config = self.context.new_values({"width0": width, "width1": width})
-                    for i in range(0, len(outputs), 2):
+                if os.environ.get("MAGMA_COREIR_FIRRTL", False):
+                    if not all(isinstance(v, BitType) for v in value):
+                        raise NotImplementedError()
+                    bit_concat_instantiable = self.get_instantiable("concat", "corebit")
+                    empty_config = self.context.new_values({})
+                    i = 0
+                    outputs = []
+                    for i in range(len(value) - 1, -1, -2):
                         __unique_concat_id += 1
                         name = "__magma_backend_concat{}".format(__unique_concat_id)
-                        module_definition.add_generator_instance(name, concat_instantiable, config)
+                        module_definition.add_module_instance(name, bit_concat_instantiable, empty_config)
                         module_definition.connect(
                             module_definition.select("{}.in0".format(name)),
-                            outputs[i])
+                            get_select(value[i]))
                         module_definition.connect(
                             module_definition.select("{}.in1".format(name)),
-                            outputs[i + 1])
-                        next_outputs.append(module_definition.select("{}.out".format(name)))
-                    width *= 2
-                    outputs = next_outputs
-                source = outputs[0]
+                            get_select(value[i - 1]))
+                        outputs.append(module_definition.select("{}.out".format(name)))
+                    concat_instantiable = self.get_instantiable("concat", "coreir")
+                    width = 2
+                    while len(outputs) > 1:
+                        next_outputs = []
+                        config = self.context.new_values({"width0": width, "width1": width})
+                        for i in range(0, len(outputs), 2):
+                            __unique_concat_id += 1
+                            name = "__magma_backend_concat{}".format(__unique_concat_id)
+                            module_definition.add_generator_instance(name, concat_instantiable, config)
+                            module_definition.connect(
+                                module_definition.select("{}.in0".format(name)),
+                                outputs[i])
+                            module_definition.connect(
+                                module_definition.select("{}.in1".format(name)),
+                                outputs[i + 1])
+                            next_outputs.append(module_definition.select("{}.out".format(name)))
+                        width *= 2
+                        outputs = next_outputs
+                    source = outputs[0]
+                else:
+                    for p, v in zip(port, value):
+                        connect(p, v)
+                    return
             elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
                 source = self.get_constant_instance(value, len(value),
                         module_definition)
