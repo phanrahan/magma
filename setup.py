@@ -20,7 +20,8 @@ setup(
     packages=[
         "magma",
         "magma.backend",
-        "magma.passes"
+        "magma.passes",
+        "magma.testing"
     ],
     install_requires=install_requires
 )
