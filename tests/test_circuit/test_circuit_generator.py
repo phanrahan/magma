@@ -29,27 +29,37 @@ primitives = namedtuple('primitives', ['DefineAdd'])(DefineAdd)
 
 @circuit_generator
 def DefineAdd(N, has_cout=False, has_cin=False):
-    class Add(primitives.DefineAdd(N, has_cout, has_cin)):
+    class Add(primitives.DefineAdd(N, has_cin=has_cin, has_cout=has_cout)):
         @classmethod
         def definition(add):
-            T = Bits(N)
-            coreir_io = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
-            coreir_genargs = {"width": N, "has_cout": has_cout, "has_cin": has_cin}
+            coreir_genargs = {"width": N} # , "has_cout": has_cout, "has_cin": has_cin}
             if has_cout:
-                coreir_io += ['cout', Out(Bit)]
-            if has_cin:
-                coreir_io += ['cin', In(Bit)]
+                coreir_genargs["width"] += 1
+            T = Bits(coreir_genargs["width"])
+            coreir_io = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
             CoreirAdd = DeclareCircuit("coreir_" + add.name, *coreir_io,
                     coreir_name="add", coreir_lib="coreir",
                     coreir_genargs=coreir_genargs)
             coreir_add = CoreirAdd()
-            wire(add.I0, coreir_add.in0)
-            wire(add.I1, coreir_add.in1)
-            wire(coreir_add.out, add.O)
+            I0 = add.I0
+            I1 = add.I1
             if has_cout:
-                wire(coreir_add.cout, add.COUT)
+                I0 = concat(add.I0, bits(0, n=1))
+                I1 = concat(add.I1, bits(0, n=1))
             if has_cin:
-                wire(coreir_add.cin, add.CIN)
+                coreir_add_cin = CoreirAdd()
+                wire(coreir_add_cin.in0, concat(bits(0, n=coreir_genargs["width"]-1), bits(add.CIN)))
+                wire(coreir_add_cin.in1, I0)
+                I0 = coreir_add_cin.out
+            wire(I0, coreir_add.in0)
+            wire(I1, coreir_add.in1)
+            O = coreir_add.out
+            if has_cout:
+                COUT = O[-1]
+                O = O[:-1]
+            wire(O, add.O)
+            if has_cout:
+                wire(COUT, add.COUT)
     return Add
 
 

@@ -1,7 +1,8 @@
 from collections import OrderedDict
-from ..bit import VCC, GND
+import os
+from ..bit import VCC, GND, BitType
 from ..array import ArrayKind, ArrayType
-from ..clock import wiredefaultclock, ClockType
+from ..clock import wiredefaultclock, ClockType, ResetType
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -25,6 +26,7 @@ class CoreIRBackend:
         self.context = coreir.Context()
         self.libs = {}
         self.__constant_cache = {}
+        self.__unique_concat_id = -1
 
     def check_interface(self, definition):
         # for now only allow Bit or Array(n, Bit)
@@ -39,11 +41,15 @@ class CoreIRBackend:
             if port.isinput():
                 if isinstance(port, ClockType):
                     _type = self.context.named_types[("coreir", "clk")]
+                elif isinstance(port, ResetType):
+                    _type = self.context.named_types[("coreir", "rst")]
                 else:
                     _type = self.context.Bit()
             elif port.isoutput():
                 if isinstance(port, ClockType):
                     _type = self.context.named_types[("coreir", "clkIn")]
+                elif isinstance(port, ResetType):
+                    _type = self.context.named_types[("coreir", "rstIn")]
                 else:
                     _type = self.context.BitIn()
             else:
@@ -76,7 +82,10 @@ class CoreIRBackend:
         if isinstance(instantiable, coreir.Module):
             args = {}
             for name, value in instance.kwargs.items():
-                args[name] = value[0]  # Drop width for now
+                if isinstance(value, tuple):
+                    args[name] = value[0]  # Drop width for now
+                else:
+                    args[name] = value
             args = self.context.new_values(args)
             return module_definition.add_module_instance(instance.name, instantiable, args)
         elif isinstance(instantiable, coreir.Generator):
@@ -117,38 +126,85 @@ class CoreIRBackend:
                             output_ports[bit] = magma_port_to_coreir(bit)
 
 
-        def connect(port, value):
-            if value.anon() and isinstance(value, ArrayType):
-                for p, v in zip(port, value):
-                    connect(p, v)
-                return
-            if isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
-                source = self.get_constant_instance(value, len(value),
-                        module_definition)
-            elif value is VCC or value is GND:
-                source = self.get_constant_instance(value, None, module_definition)
+        def get_select(value):
+            if value in [VCC, GND]:
+                return self.get_constant_instance(value, None, module_definition)
             else:
-                source = module_definition.select(output_ports[value])
-            module_definition.connect(
-                source,
-                module_definition.select(magma_port_to_coreir(port)))
+                return module_definition.select(output_ports[value])
+
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
-                    connect(port, port.value())
+                    self.connect(module_definition, port, port.value(), output_ports)
         for input in definition.interface.inputs():
             output = input.value()
             if not output:
                 error(repr(definition))
                 raise Exception("Output {} not connected".format(input))
-            if output.anon():
-                assert isinstance(output, ArrayType)
-                for i, o in zip(input, output):
-                    connect(i, o)
-            else:
-                connect(input, output)
+            self.connect(module_definition, input, output, output_ports)
         module.definition = module_definition
         return module
+
+    def connect(self, module_definition, port, value, output_ports):
+        self.__unique_concat_id
+        if value is None:
+            raise Exception("Got None for port: {}".format(port))
+        elif isinstance(value, coreir.Wireable):
+            source = value
+
+        elif value.anon() and isinstance(value, ArrayType):
+            if os.environ.get("MAGMA_COREIR_FIRRTL", False):
+                if not all(isinstance(v, BitType) for v in value):
+                    raise NotImplementedError()
+                bit_concat_instantiable = self.get_instantiable("concat", "corebit")
+                empty_config = self.context.new_values({})
+                i = 0
+                outputs = []
+                for i in range(len(value) - 1, -1, -2):
+                    self.__unique_concat_id += 1
+                    name = "__magma_backend_concat{}".format(self.__unique_concat_id)
+                    module_definition.add_module_instance(name, bit_concat_instantiable, empty_config)
+                    module_definition.connect(
+                        module_definition.select("{}.in0".format(name)),
+                        get_select(value[i]))
+                    module_definition.connect(
+                        module_definition.select("{}.in1".format(name)),
+                        get_select(value[i - 1]))
+                    outputs.append(module_definition.select("{}.out".format(name)))
+                concat_instantiable = self.get_instantiable("concat", "coreir")
+                width = 2
+                while len(outputs) > 1:
+                    next_outputs = []
+                    config = self.context.new_values({"width0": width, "width1": width})
+                    for i in range(0, len(outputs), 2):
+                        self.__unique_concat_id += 1
+                        name = "__magma_backend_concat{}".format(self.__unique_concat_id)
+                        module_definition.add_generator_instance(name, concat_instantiable, config)
+                        module_definition.connect(
+                            module_definition.select("{}.in0".format(name)),
+                            outputs[i])
+                        module_definition.connect(
+                            module_definition.select("{}.in1".format(name)),
+                            outputs[i + 1])
+                        next_outputs.append(module_definition.select("{}.out".format(name)))
+                    width *= 2
+                    outputs = next_outputs
+                source = outputs[0]
+            else:
+                for p, v in zip(port, value):
+                    self.connect(module_definition, p, v, output_ports)
+                return
+        elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
+            source = self.get_constant_instance(value, len(value),
+                    module_definition)
+        elif value is VCC or value is GND:
+            source = self.get_constant_instance(value, None, module_definition)
+        else:
+            source = module_definition.select(output_ports[value])
+        module_definition.connect(
+            source,
+            module_definition.select(magma_port_to_coreir(port)))
+
 
     def get_constant_instance(self, constant, num_bits, module_definition):
         if module_definition not in self.__constant_cache:
@@ -166,11 +222,9 @@ class CoreIRBackend:
             else:
                 raise NotImplementedError(value)
             if num_bits is None:
-                # config = self.context.new_values({"value": bool(value)})
-                config = self.context.new_values({"value": value})
+                config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
-                # instantiable = self.get_instantiable("const", "corebit")
-                instantiable = self.get_instantiable("bitconst", "coreir")
+                instantiable = self.get_instantiable("const", "corebit")
                 module_definition.add_module_instance(name, instantiable, config)
             else:
                 gen_args = self.context.new_values({"width": num_bits})
