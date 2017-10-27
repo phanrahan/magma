@@ -32,10 +32,6 @@ class ArrayType(Type):
                 t = T(name=ArrayRef(self,i))
                 self.ts.append(t)
 
-    def __eq__(self, rhs):
-        if not isinstance(rhs, ArrayType): return False
-        return self.ts == rhs.ts
-
     __hash__ = Type.__hash__
 
     def __repr__(self):

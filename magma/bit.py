@@ -20,9 +20,6 @@ class _BitType(Type):
 
         self.port = Port(self)
 
-    def __eq__(self, rhs):
-        return self is rhs
-
     __ne__ = Type.__ne__
     __hash__ = Type.__hash__
 
