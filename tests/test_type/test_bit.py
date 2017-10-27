@@ -49,28 +49,28 @@ def test_bit_val():
     assert isinstance(b, BitType)
     assert isinstance(b, BitIn)
     assert b.isinput()
-    assert str(b) == "a"
+    assert str(b) is "a"
     assert isinstance(b, BitIn)
     assert b.isinput()
 
     b = BitOut(name="a")
     assert b.isoutput()
-    assert str(b) == "a"
+    assert str(b) is "a"
     assert isinstance(b, BitOut)
     assert b.isoutput()
 
     b = Bit(name="a")
-    assert str(b) == "a"
+    assert str(b) is "a"
     assert isinstance(b, Bit)
     assert not b.isinput()
     assert not b.isoutput()
     assert not b.isinout()
 
 def test_vcc():
-    assert str(VCC) == "VCC"
+    assert str(VCC) is "VCC"
     assert isinstance(VCC, BitOut)
 
-    assert str(GND) == "GND"
+    assert str(GND) is "GND"
     assert isinstance(GND, BitOut)
 
     assert VCC is VCC
