@@ -115,7 +115,7 @@ class ValueStore:
             bit = bit.value()
 
         if bit.const():
-            return True if bit == VCC else False
+            return True if bit is VCC else False
 
         return self.value_map[bit]
 
@@ -188,7 +188,7 @@ class PythonSimulator(CircuitSimulator):
             inserted = False
             for index, primitive_2 in enumerate(sorted_state_primitives):
                 for output in primitive_1.inputs:
-                    if output.value() in primitive_2.inputs:
+                    if any(output.value() is x for x in primitive_2.inputs):
                         sorted_state_primitives.insert(index, primitive_1)
                         inserted = True
                         break
@@ -278,7 +278,7 @@ class PythonSimulator(CircuitSimulator):
         If `value` is an `ArrayType`, it recursively checks the elements
         """
         if isinstance(value, _BitType):
-            return value in self.circuit_inputs
+            return any(value is x for x in self.circuit_inputs)
         elif isinstance(value, ArrayType):
             return all(self.is_circuit_input(elem) for elem in value)
         else:
