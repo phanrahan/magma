@@ -5,6 +5,11 @@ from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
 __all__  = ['_BitType', '_BitKind']
 __all__ += ['BitType', 'BitKind']
 __all__ += ['Bit', 'BitIn', 'BitOut', 'BitInOut']
@@ -162,6 +167,7 @@ class BitKind(_BitKind):
         elif cls.isoriented(OUTPUT): return BitIn
         return cls
 
+@lru_cache(maxsize=None)
 def MakeBit(**kwargs):
     return BitKind('Bit', (BitType,), kwargs)
 

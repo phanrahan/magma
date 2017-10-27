@@ -7,6 +7,11 @@ from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
 from .bitutils import int2seq
 from .debug import debug_wire, get_callee_frame_info
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
 __all__  = ['ArrayType', 'ArrayKind', 'Array']
 
 #
@@ -210,6 +215,7 @@ class ArrayKind(Kind):
         return Array(cls.N, cls.T.flip())
 
 
+@lru_cache(maxsize=None)
 def Array(N,T):
     assert isinstance(N, IntegerTypes)
     assert isinstance(T, Kind)
