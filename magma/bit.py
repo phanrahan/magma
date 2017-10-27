@@ -45,7 +45,7 @@ class _BitType(Type):
             o = HIGH if o else LOW
 
         if not isinstance(o, _BitType):
-            error('Wiring Error: wiring {} to {} (not a _Bit)'.format(o, i))
+            error('Wiring Error: wiring {} to {} (not a _Bit)'.format(o, i), include_wire_traceback=True)
             return
 
         i.port.wire(o.port)
