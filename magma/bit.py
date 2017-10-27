@@ -5,6 +5,11 @@ from .t import Type, Kind, In, Out
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
 __all__  = ['_BitType', '_BitKind']
 __all__ += ['BitType', 'BitKind']
 __all__ += ['Bit', 'BitIn', 'BitOut', 'BitInOut']
@@ -19,9 +24,6 @@ class _BitType(Type):
         super(_BitType, self).__init__(*largs, **kwargs)
 
         self.port = Port(self)
-
-    def __eq__(self, rhs):
-        return self is rhs
 
     __ne__ = Type.__ne__
     __hash__ = Type.__hash__
@@ -43,7 +45,7 @@ class _BitType(Type):
             o = HIGH if o else LOW
 
         if not isinstance(o, _BitType):
-            error('Wiring Error: wiring {} to {} (not a _Bit)'.format(o, i))
+            error('Wiring Error: wiring {} to {} (not a _Bit)'.format(o, i), include_wire_traceback=True)
             return
 
         i.port.wire(o.port)
@@ -165,6 +167,7 @@ class BitKind(_BitKind):
         elif cls.isoriented(OUTPUT): return BitIn
         return cls
 
+@lru_cache(maxsize=None)
 def MakeBit(**kwargs):
     return BitKind('Bit', (BitType,), kwargs)
 
