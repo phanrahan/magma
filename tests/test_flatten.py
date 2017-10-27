@@ -15,7 +15,8 @@ def test_flatten():
     A = Array(2,Bit)
     B = Array(2,Bit)
     assert A is B
-    t = tuple_(OrderedDict(x=array([b0, b1]), y=array([b2, b3, b4])))
+    d = dict(x=array([b0, b1]), y=array([b2, b3, b4]))
+    t = tuple_(OrderedDict(sorted(d.items(), key=lambda t: t[0])))
     assert str(t.name) == "None"
     assert str(type(t)) == "Tuple(x=Array(2,Bit),y=Array(3,Bit))"
     a = array(t.flatten())

@@ -22,7 +22,7 @@ bitwise_ops = [
     "__and__",
     "__or__",
     "__xor__",
-    # "__eq__"
+    "__eq__"
 ]
 
 for op in bitwise_ops:
