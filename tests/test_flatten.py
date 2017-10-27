@@ -1,5 +1,6 @@
 import magma
 from magma import *
+from collections import OrderedDict
 
 def test_flatten():
     b0 = Bit(name='b0')
@@ -14,7 +15,7 @@ def test_flatten():
     A = Array(2,Bit)
     B = Array(2,Bit)
     assert A is B
-    t = tuple_(dict(x=array([b0, b1]), y=array([b2, b3, b4])))
+    t = tuple_(OrderedDict(x=array([b0, b1]), y=array([b2, b3, b4])))
     assert str(t.name) == "None"
     assert str(type(t)) == "Tuple(x=Array(2,Bit),y=Array(3,Bit))"
     a = array(t.flatten())
