@@ -69,7 +69,7 @@ class _BitType(Type):
         return t
 
     def const(self):
-        return self is VCC or self is GND
+        return self == VCC or self == GND
 
     def getinst(self):
         t = self.trace()
