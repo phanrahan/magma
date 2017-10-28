@@ -11,13 +11,13 @@ def test_bit():
     #assert BitIn.isinput()
     #assert BitOut.isoutput()
 
-    assert Bit is Bit
-    assert BitIn is BitIn
-    assert BitOut is BitOut
+    assert Bit == Bit
+    assert BitIn == BitIn
+    assert BitOut == BitOut
 
-    assert Bit is not BitIn
-    assert Bit is not BitOut
-    assert BitIn is not BitOut
+    assert Bit != BitIn
+    assert Bit != BitOut
+    assert BitIn != BitOut
 
     assert str(Bit) == 'Bit'
     assert str(BitIn) == 'In(Bit)'
@@ -26,56 +26,56 @@ def test_bit():
 def test_bit_flip():
     bout = Out(Bit)
     bin = In(Bit)
-    assert bout is BitOut
-    assert bin is BitIn
+    assert bout == BitOut
+    assert bin == BitIn
 
     bin = In(BitIn)
     bout = Out(BitIn)
-    assert bout is BitOut
-    assert bin is BitIn
+    assert bout == BitOut
+    assert bin == BitIn
 
     bin = In(BitOut)
     bout = Out(BitOut)
-    assert bout is BitOut
-    assert bin is BitIn
+    assert bout == BitOut
+    assert bin == BitIn
 
     bin = Flip(BitOut)
     bout = Flip(BitIn)
-    assert bout is BitOut
-    assert bin is BitIn
+    assert bout == BitOut
+    assert bin == BitIn
 
 def test_bit_val():
     b = BitIn(name="a")
     assert isinstance(b, BitType)
     assert isinstance(b, BitIn)
     assert b.isinput()
-    assert str(b) is "a"
+    assert str(b) == "a"
     assert isinstance(b, BitIn)
     assert b.isinput()
 
     b = BitOut(name="a")
     assert b.isoutput()
-    assert str(b) is "a"
+    assert str(b) == "a"
     assert isinstance(b, BitOut)
     assert b.isoutput()
 
     b = Bit(name="a")
-    assert str(b) is "a"
+    assert str(b) == "a"
     assert isinstance(b, Bit)
     assert not b.isinput()
     assert not b.isoutput()
     assert not b.isinout()
 
 def test_vcc():
-    assert str(VCC) is "VCC"
+    assert str(VCC) == "VCC"
     assert isinstance(VCC, BitOut)
 
-    assert str(GND) is "GND"
+    assert str(GND) == "GND"
     assert isinstance(GND, BitOut)
 
-    assert VCC is VCC
-    assert VCC is not GND
-    assert GND is GND
+    assert VCC == VCC
+    assert VCC != GND
+    assert GND == GND
 
 def test_wire1():
     b0 = BitOut(name='b0')
