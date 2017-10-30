@@ -320,7 +320,7 @@ def DeclareCircuit(name, *decl, **args):
         circuit_type_methods=args.get('circuit_type_methods', []),
         coreir_lib=args.get('coreir_lib', "global"),
         coreir_name=args.get('coreir_name', name),
-        coreir_genargs=args.get('coreir_genargs', {}),
+        coreir_genargs=args.get('coreir_genargs', None),
         coreir_configargs=args.get('coreir_configargs', {}),
         verilog_name=args.get('verilog_name', name),
         default_kwargs=args.get('default_kwargs', {})
