@@ -314,8 +314,8 @@ class PythonSimulator(CircuitSimulator):
         cur_clock_val = self.value_store.get_value(self.clock)
         self.value_store.set_value(self.clock, not cur_clock_val)
     
-    def reverse_step(self):
-        pass
+    def rewind(self, halfcycles):
+        raise PythonSimulatorException("Reversing not currently supported")
 
     def cont(self):
         cycles = 0

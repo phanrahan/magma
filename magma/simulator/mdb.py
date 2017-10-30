@@ -5,7 +5,7 @@ from ..circuit import *
 from ..scope import *
 from ..array import ArrayType
 from ..bit import BitType
-from ..bitutils import seq2int
+from ..bitutils import seq2int, int2seq
 from ..ref import InstRef
 from ..compatibility import builtins
 from code import compile_command
@@ -103,6 +103,7 @@ class SimulationConsole(cmd.Cmd):
         self.skip_half = False
         self.skip_next = 0
         self.stepping = True
+        self.reversing = False
 
         return line
     
@@ -136,8 +137,23 @@ class SimulationConsole(cmd.Cmd):
         self.clock_high = state.clock
         self.cycles += state.cycles
 
+    def reverse_simulator(self):
+        reversecount = self.skip_next
+        if self.skip_half:
+            reversecount *= 2
+            if self.clock_high:
+                reversecount -= 1
+
+        self.simulator.rewind(reversecount)
+        state = self.simulator.evaluate()
+        self.cycles -= reversecount // 2
+        self.clock_high = state.clock
+
     def postcmd(self, stop, line):
-        if self.advance_clock:
+        if self.reversing:
+            self.reverse_simulator()
+
+        elif self.advance_clock:
             if self.stepping:
                 self.step_simulator()
             else:
@@ -251,6 +267,16 @@ class SimulationConsole(cmd.Cmd):
         self.skip_half = False
         self.parse_next(arg)
 
+    def do_reverse_step(self, arg):
+        self.reversing = True
+        self.skip_half = False
+        self.parse_next(arg)
+
+    def do_reverse_cycle(self, arg):
+        self.reversing = True
+        self.skip_half = True
+        self.parse_next(arg)
+
     def do_examine(self, arg):
         'examine BIT: prints the current value of BIT as an array of booleans. Shortcut: x BIT.'
         self.parse_print(arg, True)
@@ -326,8 +352,8 @@ class SimulationConsole(cmd.Cmd):
                 return 
         print('No display number {}'.format(idx))
 
-    def do_repeat(self, arg):
-        'repeat: Reevaluates the circuit without changing the clock value.\nUse this after modify_input so the simulator can calculate new values.'
+    def do_evaluate(self, arg):
+        'repeat: Reevaluates the circuit without changing the clock value.\nUse this after set so the simulator can calculate new values.'
         self.reeval = True
 
     def do_up(self, arg):
@@ -403,8 +429,8 @@ class SimulationConsole(cmd.Cmd):
         for s in scopes:
             print("  " + s.value())
 
-    def do_modify_input(self, arg):
-        "modify_input BIT NEWVAL: sets BIT to NEWVAL. BIT must be an input to the top level circuit."
+    def do_assign(self, arg):
+        "assign BIT NEWVAL: sets BIT to NEWVAL. BIT must be an input to the top level circuit."
         if arg is None:
             print('Provide a top level input to change')
             return
@@ -426,6 +452,9 @@ class SimulationConsole(cmd.Cmd):
             print('Not a top level circuit input')
             return
 
+        if isinstance(newval, int):
+            newval = int2seq(newval, len(bit))
+
         self.simulator.set_value(bit, self.scope, newval)
 
     def run(self):
@@ -439,9 +468,9 @@ class SimulationConsole(cmd.Cmd):
             except KeyboardInterrupt:
                 print('\nKeyboardInterrupt')
 
-def simulate(main):
+def simulate(main, simulator_type=PythonSimulator):
     EndCircuit()
-    simulator = PythonSimulator(main, main.CLK)
+    simulator = simulator_type(main, main.CLK)
 
     DebugNamePass(main).run()
 
