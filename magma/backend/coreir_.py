@@ -8,6 +8,18 @@ from ..backend.verilog import find
 from ..logging import error
 import coreir
 from ..ref import ArrayRef, DefnRef
+from ..passes import InstanceGraphPass
+
+from collections import defaultdict
+
+class keydefaultdict(defaultdict):
+    # From https://stackoverflow.com/questions/2912231/is-there-a-clever-way-to-pass-the-key-to-defaultdicts-default-factory
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError( key )
+        else:
+            ret = self[key] = self.default_factory(key)
+            return ret
 
 def magma_port_to_coreir(port):
     select = repr(port)
@@ -23,8 +35,16 @@ def magma_port_to_coreir(port):
 
 class CoreIRBackend:
     def __init__(self):
-        self.context = coreir.Context()
-        self.libs = {}
+        self.context = context = coreir.Context()
+
+        def get_lib(lib):
+            if lib in {"coreir", "mantle", "corebit"}:
+                return context.get_namespace(lib)
+            elif lib == "global":
+                return context.global_namespace
+            else:
+                return context.load_library(lib)
+        self.libs = keydefaultdict(get_lib)
         self.__constant_cache = {}
         self.__unique_concat_id = -1
 
@@ -59,27 +79,11 @@ class CoreIRBackend:
             args[name] = _type
         return self.context.Record(args)
 
-    def get_instantiable(self, name, lib):
-        if lib not in self.libs:
-            if lib in {"coreir", "mantle", "corebit"}:
-                self.libs[lib] = self.context.get_namespace(lib)
-            elif lib == "global":
-                self.libs[lib] = self.context.global_namespace
-            else:
-                self.libs[lib] = self.context.load_library(lib)
-        instantiable = self.libs[lib].instantiables[name]
-        if instantiable.kind == coreir.Module:
-            return self.libs[lib].modules[name]
-        else:
-            return self.libs[lib].generators[name]
-
     def compile_instance(self, instance, module_definition):
         name = instance.__class__.coreir_name
-        if getattr(instance, 'coreir_lib', False):
-            instantiable = self.get_instantiable(name, instance.coreir_lib)
-        else:
-            instantiable = self.get_instantiable(name, "global")
-        if isinstance(instantiable, coreir.Module):
+        lib = self.libs[instance.coreir_lib]
+        if instance.coreir_genargs is None:
+            module = lib.modules[name]
             args = {}
             for name, value in instance.kwargs.items():
                 if isinstance(value, tuple):
@@ -87,8 +91,9 @@ class CoreIRBackend:
                 else:
                     args[name] = value
             args = self.context.new_values(args)
-            return module_definition.add_module_instance(instance.name, instantiable, args)
-        elif isinstance(instantiable, coreir.Generator):
+            return module_definition.add_module_instance(instance.name, module, args)
+        else:
+            generator = lib.generators[name]
             config_args = {}
             for name, value in instance.coreir_configargs.items():
                 config_args[name] = value
@@ -98,9 +103,7 @@ class CoreIRBackend:
                 gen_args[name] = value
             gen_args = self.context.new_values(gen_args)
             return module_definition.add_generator_instance(instance.name,
-                    instantiable, gen_args, config_args)
-        else:
-            raise NotImplementedError()
+                    generator, gen_args, config_args)
 
     def compile_definition(self, definition):
         self.check_interface(definition)
@@ -156,14 +159,14 @@ class CoreIRBackend:
             if os.environ.get("MAGMA_COREIR_FIRRTL", False):
                 if not all(isinstance(v, BitType) for v in value):
                     raise NotImplementedError()
-                bit_concat_instantiable = self.get_instantiable("concat", "corebit")
+                bit_concat_module = self.libs['corebit'].modules["concat"]
                 empty_config = self.context.new_values({})
                 i = 0
                 outputs = []
                 for i in range(len(value) - 1, -1, -2):
                     self.__unique_concat_id += 1
                     name = "__magma_backend_concat{}".format(self.__unique_concat_id)
-                    module_definition.add_module_instance(name, bit_concat_instantiable, empty_config)
+                    module_definition.add_module_instance(name, bit_concat_module, empty_config)
                     module_definition.connect(
                         module_definition.select("{}.in0".format(name)),
                         get_select(value[i]))
@@ -171,7 +174,7 @@ class CoreIRBackend:
                         module_definition.select("{}.in1".format(name)),
                         get_select(value[i - 1]))
                     outputs.append(module_definition.select("{}.out".format(name)))
-                concat_instantiable = self.get_instantiable("concat", "coreir")
+                concat_generator = self.libs['corebit'].generators["concat"]
                 width = 2
                 while len(outputs) > 1:
                     next_outputs = []
@@ -179,7 +182,7 @@ class CoreIRBackend:
                     for i in range(0, len(outputs), 2):
                         self.__unique_concat_id += 1
                         name = "__magma_backend_concat{}".format(self.__unique_concat_id)
-                        module_definition.add_generator_instance(name, concat_instantiable, config)
+                        module_definition.add_generator_instance(name, concat_generator, config)
                         module_definition.connect(
                             module_definition.select("{}.in0".format(name)),
                             outputs[i])
@@ -224,8 +227,8 @@ class CoreIRBackend:
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
-                instantiable = self.get_instantiable("const", "corebit")
-                module_definition.add_module_instance(name, instantiable, config)
+                corebit_const_module = self.libs['corebit'].modules["const"]
+                module_definition.add_module_instance(name, corebit_const_module, config)
             else:
                 gen_args = self.context.new_values({"width": num_bits})
                 config = self.context.new_values({"value": value})
@@ -237,11 +240,13 @@ class CoreIRBackend:
 
     def compile(self, defn):
         modules = {}
-        for key, value in defn.items():
-            modules[key] = self.compile_definition(value)
+        pass_ = InstanceGraphPass(defn)
+        pass_.run()
+        for key, _ in pass_.tsortedgraph:
+            if key.is_definition:
+                modules[key.name] = self.compile_definition(key)
         return modules
 
 def compile(main, file_name):
-    defn = find(main, OrderedDict())
-    modules = CoreIRBackend().compile(defn)
+    modules = CoreIRBackend().compile(main)
     modules[main.coreir_name].save_to_file(file_name)
