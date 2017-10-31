@@ -35,7 +35,7 @@ class CircuitSimulator(ABC):
         pass
 
     @abstractmethod
-    def reverse_step(self):
+    def rewind(self, halfcycles):
         pass
 
     @abstractmethod
