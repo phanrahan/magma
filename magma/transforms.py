@@ -31,7 +31,11 @@ class TransformedCircuit:
             for o in orig_bit:
                 arr.append(self.get_new_bit(o, scope))
 
-            return array(arr)
+            arr = array(arr)
+            if arr.iswhole(arr):
+                return arr[0].name.array
+
+            return arr
         else:
             try:
                 return self.orig_to_new[QualifiedBit(bit=orig_bit, scope=scope)]
