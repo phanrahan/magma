@@ -4,6 +4,9 @@ python:
 
 sudo: false
 
+cache:
+    apt: true
+
 addons:
   apt:
     sources:
