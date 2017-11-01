@@ -21,6 +21,7 @@ setup(
         "magma",
         "magma.backend",
         "magma.passes",
+        "magma.simulator",
         "magma.testing"
     ],
     install_requires=install_requires

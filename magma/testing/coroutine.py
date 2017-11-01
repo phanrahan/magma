@@ -40,6 +40,7 @@ def coroutine(func):
 
 def check(circuit, sim, number_of_cycles):
     simulator = PythonSimulator(circuit, clock=circuit.CLK)
+    failed = False
     for cycle in range(number_of_cycles):
         for i in range(2):
             simulator.step()
@@ -48,8 +49,11 @@ def check(circuit, sim, number_of_cycles):
         # is in it's initial state
         for name, port in circuit.interface.ports.items():
             if port.isinput():  # circuit output
-                assert getattr(sim, name) == BitVector(simulator.get_value(getattr(circuit, name)))
+                if getattr(sim, name) != BitVector(simulator.get_value(getattr(circuit, name))):
+                    print(f"Failed on cycle {cycle}, port {name}, expected {getattr(sim, name)}, got {BitVector(simulator.get_value(getattr(circuit, name)))}")
+                    failed = True
         next(sim)
+    assert not failed, "Failed to pass simulation"
 
 def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
     outputs = []
