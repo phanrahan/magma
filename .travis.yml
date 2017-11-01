@@ -18,7 +18,7 @@ before_install:
     - mkdir deps/lib
     - mkdir deps/include
     - cd deps
-    - git clone -b dev https://github.com/rdaly525/coreir.git
+    - git clone https://github.com/rdaly525/coreir.git
     - cd coreir
     - export COREIRCONFIG="g++-4.9"
     - export COREIR=$PWD
