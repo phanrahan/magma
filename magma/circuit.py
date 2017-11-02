@@ -65,6 +65,9 @@ class CircuitKind(type):
         if 'primitive' not in dct:
             dct['primitive'] = False
 
+        if 'coreir_lib' not in dct:
+            dct['coreir_lib'] = "global"
+
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
 
@@ -315,9 +318,9 @@ def DeclareCircuit(name, *decl, **args):
         simulate=args.get('simulate'),
         firrtl_op=args.get('firrtl_op'),
         circuit_type_methods=args.get('circuit_type_methods', []),
-        coreir_lib=args.get('coreir_lib', None),
+        coreir_lib=args.get('coreir_lib', "global"),
         coreir_name=args.get('coreir_name', name),
-        coreir_genargs=args.get('coreir_genargs', {}),
+        coreir_genargs=args.get('coreir_genargs', None),
         coreir_configargs=args.get('coreir_configargs', {}),
         verilog_name=args.get('verilog_name', name),
         default_kwargs=args.get('default_kwargs', {})
@@ -378,7 +381,7 @@ class DefineCircuitKind(CircuitKind):
 
         self.verilog_name = dct.get('verilog_name', name)
         self.coreir_name = dct.get('coreir_name', name)
-        self.coreir_genargs = dct.get('coreir_genrgs', {})
+        self.coreir_genargs = dct.get('coreir_genargs', None)
         self.coreir_configargs = dct.get('coreir_configargs', {})
         self.default_kwargs = dct.get('default_kwargs', {})
 
@@ -454,9 +457,9 @@ def DefineCircuit(name, *decl, **args):
                lineno         = debug_info[1],
                verilog_name   = args.get('verilog_name', name),
                coreir_name    = args.get('coreir_name', name),
-               coreir_lib     = args.get('coreir_lib', None),
-               corier_genargs = args.get('coreir_genargs', None),
-               corier_configargs = args.get('coreir_configargs', None),
+               coreir_lib     = args.get('coreir_lib', "global"),
+               coreir_genargs = args.get('coreir_genargs', None),
+               coreir_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
