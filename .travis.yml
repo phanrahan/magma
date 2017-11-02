@@ -1,24 +1,37 @@
 language: python
 python:
-    - "2.7"
-    - "3.4"
-    - "3.5"
+    - "3.6"
+
+sudo: false
+
+cache:
+    apt: true
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test  # coreir (for g++-4.9)
+    packages:
+      - g++-4.9  # coreir
 
 before_install:
-    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test  # for gcc-4.9
-    - sudo apt-get -qq update
-    - sudo apt-get install -y verilator
-    - sudo apt-get install -y g++-4.9 gcc-4.9  # coreir dependency
-    - pip install --upgrade pip setuptools
-
     # BEGIN: coreir installation
+    - mkdir deps
+    - mkdir deps/bin
+    - mkdir deps/lib
+    - mkdir deps/include
+    - cd deps
     - git clone -b dev https://github.com/rdaly525/coreir.git
-    - cd coreir;
-    - export COREIRCONFIG="g++-4.9";
+    - cd coreir
+    - export COREIRCONFIG="g++-4.9"
     - export COREIR=$PWD
-    - sudo make install -j 2
-    - pip install git+git://github.com/leonardt/pycoreir.git
-    - cd ..;
+    - make install prefix=$TRAVIS_BUILD_DIR/deps
+    - cd ..
+    - cd ..
+    - export PATH=$TRAVIS_BUILD_DIR/deps/bin:$PATH
+    - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/deps/lib:$LD_LIBRARY_PATH
+      # - pip install coreir
+    - pip install git+git://github.com/leonardt/pycoreir.git@dev
     # END: coreir installation
 
 install:
