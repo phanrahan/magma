@@ -30,8 +30,8 @@ before_install:
     - cd ..
     - export PATH=$TRAVIS_BUILD_DIR/deps/bin:$PATH
     - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/deps/lib:$LD_LIBRARY_PATH
-      # - pip install coreir
-    - pip install git+git://github.com/leonardt/pycoreir.git
+    - pip install coreir
+      # - pip install git+git://github.com/leonardt/pycoreir.git
     # END: coreir installation
 
 install:
