@@ -186,13 +186,14 @@ class SimulationConsole(cmd.Cmd):
 
     def update_vars(self):
         self.vars.clear()
+        self.vars['top'] = self.top_circuit
 
         if self.scope.inst is None:
-            self.vars['circuit'] = self.top_circuit
+            self.vars['self'] = self.top_circuit
         else:
-            self.vars['circuit'] = type(self.scope.inst)
+            self.vars['self'] = type(self.scope.inst)
 
-        instances = self.vars['circuit'].instances
+        instances = self.vars['self'].instances
         for inst in instances:
             self.vars[inst.name] = inst
             if inst.decl is not None:
@@ -286,7 +287,7 @@ class SimulationConsole(cmd.Cmd):
         self.parse_print(arg, False)
 
     def do_watch(self, arg):
-        'watch BIT: sets a watchpoint on BIT.\nThe simulator will interrupt and return to the console when BIT changes value.'
+        'watch BIT [VALUE]: sets a watchpoint on BIT.\nThe simulator will interrupt and return to the console when BIT changes value.\nIf the optional argument VALUE is passed in, the simulator will interrupt only when BIT is equal to VALUE.'
         if not arg:
             print('Provide a bit to watch')
             return
@@ -382,7 +383,8 @@ class SimulationConsole(cmd.Cmd):
         """info instances|interface|watchpoints:
      instances: Display all the instances in the current scope
      interface: Display the interface bits of the current scope's outer circuit
-     watchpoints: Display currently active watchpoints"""
+     watchpoints: Display currently active watchpoints
+     INSTANCE: Display the interface to INSTANCE"""
         if arg == 'instances':
             print("")
             for inst in self.vars['circuit'].instances:
@@ -410,6 +412,7 @@ class SimulationConsole(cmd.Cmd):
         elif arg == 'watchpoints':
             print("TODO")
         else:
+            # Handle printing the interface to an instance
             print("I don't know how to give you info on that")
 
     def do_continue(self, arg): 
