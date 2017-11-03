@@ -15,7 +15,7 @@ if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwi
     import readline
 import cmd
 
-__all__ = ['simulate']
+__all__ = ['simulate', 'SimulationConsole']
 
 class DisplayExpr:
     idx = 0
