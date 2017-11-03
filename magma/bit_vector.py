@@ -40,8 +40,13 @@ class BitVector:
             raise Exception("BitVector initialization with type {} not supported".format(type(value)))
         self.num_bits = num_bits
 
+    @type_check_and_promote_ints
     def __and__(self, other):
         assert isinstance(other, BitVector)
+        return BitVector(self._value & other._value, num_bits=self.num_bits)
+
+    @type_check_and_promote_ints
+    def __rand__(self, other):
         return BitVector(self._value & other._value, num_bits=self.num_bits)
 
     def __or__(self, other):
