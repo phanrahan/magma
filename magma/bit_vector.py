@@ -5,6 +5,16 @@ from .bitutils import seq2int, int2seq
 import numpy as np
 
 
+def type_check_and_promote_ints(fn):
+    def wrapped(self, other):
+        if not (isinstance(other, BitVector) or isinstance(other, int) and other.bit_length() <= self.num_bits):
+            raise TypeError()  # TODO: Improve this type error message
+        if isinstance(other, int):
+            other = BitVector(other, self.num_bits)
+        return fn(self, other)
+    return wrapped
+
+
 class BitVector:
     def __init__(self, value=0, num_bits=None, signed=False):
         self.signed = signed
@@ -30,8 +40,13 @@ class BitVector:
             raise Exception("BitVector initialization with type {} not supported".format(type(value)))
         self.num_bits = num_bits
 
+    @type_check_and_promote_ints
     def __and__(self, other):
         assert isinstance(other, BitVector)
+        return BitVector(self._value & other._value, num_bits=self.num_bits)
+
+    @type_check_and_promote_ints
+    def __rand__(self, other):
         return BitVector(self._value & other._value, num_bits=self.num_bits)
 
     def __or__(self, other):
@@ -85,6 +100,7 @@ class BitVector:
         mask = (1 << self.num_bits) - 1
         return BitVector(shift_result & mask, num_bits=self.num_bits)
 
+    @type_check_and_promote_ints
     def __add__(self, other):
         assert isinstance(other, BitVector)
         result = self._value + other._value
@@ -115,20 +131,20 @@ class BitVector:
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
+    @type_check_and_promote_ints
     def __lt__(self, other):
-        assert isinstance(other, BitVector)
         return BitVector(int(self._value < other._value), num_bits=1)
 
+    @type_check_and_promote_ints
     def __le__(self, other):
-        assert isinstance(other, BitVector)
         return BitVector(int(self._value <= other._value), num_bits=1)
 
+    @type_check_and_promote_ints
     def __gt__(self, other):
-        assert isinstance(other, BitVector)
         return BitVector(int(self._value > other._value), num_bits=1)
 
+    @type_check_and_promote_ints
     def __ge__(self, other):
-        assert isinstance(other, BitVector)
         return BitVector(int(self._value >= other._value), num_bits=1)
 
     def as_int(self):
@@ -151,6 +167,9 @@ class BitVector:
 
     def __str__(self):
         return str(self._value)
+
+    def __repr__(self):
+        return f"BitVector({self._value}, {self.num_bits})"
 
     def __invert__(self):
         retval = ~self._value
