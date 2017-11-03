@@ -10,8 +10,8 @@ from ..ref import InstRef
 from ..compatibility import builtins
 from code import compile_command
 import re
-from sys import platform
-if platform == "linux" or platform == "linux2" or platform == "darwin":
+import sys
+if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     import readline
 import cmd
 
@@ -29,6 +29,9 @@ class DisplayExpr:
 
     def display(self, value):
         print("\t{}: {} = {}".format(self.idx, self.string, value))
+
+def print_err(str):
+    print(str, file=sys.stderr)
 
 def describe_instance(inst):
     desc_str = type(inst).__name__ + ": "
@@ -115,7 +118,7 @@ class SimulationConsole(cmd.Cmd):
         if len(func) == 1:
             return func[0](arg)
         elif len(func) > 1:
-            print("Ambiguous command")
+            print_err("Ambiguous command")
         else:
             self.console_evaluate(line)
 
@@ -228,7 +231,7 @@ class SimulationConsole(cmd.Cmd):
             try:
                 code = compile_command(buf)
             except Exception as e: 
-                print("Invalid python: {}".format(e))
+                print_err("Invalid python: {}".format(e))
                 return
 
             if code is None:
@@ -239,7 +242,7 @@ class SimulationConsole(cmd.Cmd):
         try:
             exec(code, None, self.vars)
         except Exception as e:
-            print("Failed to execute: {}".format(e))
+            print_err("Failed to execute: {}".format(e))
 
 
     def parse_circuit(self, name):
@@ -290,7 +293,7 @@ class SimulationConsole(cmd.Cmd):
             try:
                 self.skip_next = int(num)
             except:
-                print("Please provide an integer")
+                print_err("Please provide an integer")
                 self.skip_next = 0
 
         else:
@@ -298,13 +301,13 @@ class SimulationConsole(cmd.Cmd):
 
     def parse_print(self, arg, raw):
         if not arg:
-            print('Please provide an argument')
+            print_err('Please provide an argument')
             return
 
         try:
             printme, scope = self.parse_circuit(arg)
         except Exception as e:
-            print("Failed to print: {}".format(e))
+            print_err("Failed to print: {}".format(e))
             return
 
         if isinstance(printme, BitType) or isinstance(printme, ArrayType):
@@ -316,7 +319,7 @@ class SimulationConsole(cmd.Cmd):
                 print("  " + name + ": ", end='')
                 self.log_val(bit, scope, raw)
         else:
-            print("Can only print Bits and circuit instances")
+            print_err("Can only print Bits and circuit instances")
 
     def do_quit(self, arg):
         'quit: Exit the simulator'
@@ -353,7 +356,7 @@ class SimulationConsole(cmd.Cmd):
     def do_watch(self, arg):
         'watch BIT [VALUE]: sets a watchpoint on BIT.\nThe simulator will interrupt and return to the console when BIT changes value.\nIf the optional argument VALUE is passed in, the simulator will interrupt only when BIT is equal to VALUE.'
         if not arg:
-            print('Provide a bit to watch')
+            print_err('Provide a bit to watch')
             return
 
         args = arg.split()
@@ -362,7 +365,7 @@ class SimulationConsole(cmd.Cmd):
         try:
             watchme, scope = self.parse_circuit(bitname)
         except Exception as e:
-            print("Failed to watch: {}".format(e))
+            print_err("Failed to watch: {}".format(e))
             return
 
         if len(args) == 2:
@@ -374,13 +377,13 @@ class SimulationConsole(cmd.Cmd):
                 if not isinstance(value, list) or not isinstance(value[0], bool):
                     raise SimulationConsoleException("Invalid watch value")
             except Exception as e:
-                print("Cannot watch for value {}: {}".format(args[1], e))
+                print_err("Cannot watch for value {}: {}".format(args[1], e))
                 return
         else:
             value = None
 
         if not isinstance(watchme, BitType) and not isinstance(watchme, ArrayType):
-            print("Can only watch bits or arrays")
+            print_err("Can only watch bits or arrays")
 
         watch_num = self.simulator.add_watchpoint(watchme, scope, value)
         print('Watchpoint {} on {}'.format(watch_num, arg))
@@ -388,24 +391,24 @@ class SimulationConsole(cmd.Cmd):
     def do_delete(self, arg):
         'delete N: deletes watchpoint N.'
         if not arg:
-            print('Please provide a watchpoint number')
+            print_err('Please provide a watchpoint number')
             return
 
         try:
             watch_num = int(arg)
         except:
-            print("delete requires an integer")
+            print_err("delete requires an integer")
             return
 
         found = self.simulator.delete_watchpoint(watch_num)
         if not found:
-            print('No watchpoint number {}'.format(watch_num))
+            print_err('No watchpoint number {}'.format(watch_num))
 
     def do_display(self, arg):
         'display BIT: repeatedly prints the value of BIT each time the simulator stops.'
 
         if not arg:
-            print('Provide an expression to display')
+            print_err('Provide an expression to display')
             return
 
         try:
@@ -415,7 +418,7 @@ class SimulationConsole(cmd.Cmd):
 
             display_expr = DisplayExpr(bit, arg, scope)
         except Exception as e:
-            print("Invalid argument to display: {}".format(e))
+            print_err("Invalid argument to display: {}".format(e))
             return
 
         self.display_exprs.append(display_expr)
@@ -423,20 +426,20 @@ class SimulationConsole(cmd.Cmd):
     def do_undisplay(self, arg):
         'undisplay N: stops displaying the bit at index N.'
         if not arg:
-            print('Provide an index to stop displaying')
+            print_err('Provide an index to stop displaying')
             return
 
         try:
             idx = int(arg)
         except:
-            print("undisplay requires an integer")
+            print_err("undisplay requires an integer")
             return
 
         for e in self.display_exprs:
             if e.idx == idx:
                 del e
                 return 
-        print('No display number {}'.format(idx))
+        print_err('No display number {}'.format(idx))
 
     def do_evaluate(self, arg):
         'repeat: Reevaluates the circuit without changing the clock value.\nUse this after set so the simulator can calculate new values.'
@@ -448,7 +451,7 @@ class SimulationConsole(cmd.Cmd):
             self.scope = self.scope.parent
             self.update_vars()
         else:
-            print("Cannot go up")
+            print_err("Cannot go up")
 
     def do_descend(self, arg):
         "descend INSTANCE: update the current scope to be inside INSTANCE."
@@ -456,10 +459,10 @@ class SimulationConsole(cmd.Cmd):
             inst, scope = self.parse_circuit(arg)
 
             if not isdefinition(type(inst)):
-                print("Cannot descend into primitives")
+                print_err("Cannot descend into primitives")
                 return
         except Exception as e:
-            print("Invalid expression: {}".format(e))
+            print_err("Cannot switch scope to '{}': {}".format(arg, e))
             return
 
         if isinstance(inst, CircuitType):
@@ -469,7 +472,7 @@ class SimulationConsole(cmd.Cmd):
             self.scope = Scope()
             self.update_vars()
         else:
-            print("You must provide an instance to descend into")
+            print_err("You must provide an instance to descend into")
 
     def do_info(self, arg):
         """info instances|interface|watchpoints:
@@ -485,12 +488,12 @@ class SimulationConsole(cmd.Cmd):
                 try:
                     inst = self.safe_parse_inst(instname)
                 except Exception as e:
-                    print("Cannot get info on '{}': {}".format(instname, e))
+                    print_err("Cannot get info on '{}': {}".format(instname, e))
                     return
                 defn = type(inst)
 
                 if not isdefinition(defn):
-                    print("Cannot get instances in '{}' because it is a primitive".format(instname))
+                    print_err("Cannot get instances in '{}' because it is a primitive".format(instname))
                     return
 
             print("")
@@ -505,7 +508,7 @@ class SimulationConsole(cmd.Cmd):
                 try:
                     inst = self.safe_parse_inst(instname)
                 except Exception as e:
-                    print("Cannot get info on '{}': {}".format(instname, e))
+                    print_err("Cannot get info on '{}': {}".format(instname, e))
                     return
                 defn = type(inst)
 
@@ -513,7 +516,7 @@ class SimulationConsole(cmd.Cmd):
         elif arg == 'watchpoints':
             print("TODO")
         else:
-            print("I don't know how to give you info on that")
+            print_err("I don't know how to give you info on that")
 
     def do_continue(self, arg): 
         "continue: continue cycling the simulator's clock and evaluating until a watchpoint is hit."
@@ -535,27 +538,26 @@ class SimulationConsole(cmd.Cmd):
     def do_assign(self, arg):
         "assign BIT NEWVAL: sets BIT to NEWVAL. BIT must be an input to the top level circuit."
         if arg is None:
-            print('Provide a top level input to change')
+            print_err('Provide a top level input to change')
             return
 
         args = arg.split()
         if len(args) != 2:
-            print('Provide a circuit input and a new value')
+            print_err('Provide a circuit input and a new value')
             return
 
         bit = eval(args[0], None, self.vars)
         if bit not in self.top_circuit.interface.inputs():
-            print("Can only assign values to inputs to the top level circuit")
+            print_err("Can only assign values to inputs in the top level circuit")
 
         try:
             newval = eval(args[1], None, self.vars)
         except Exception as e:
-            print("Invalid new value".format(e))
+            print_err("Invalid new value".format(e))
             return
 
         if bit is None or not bit.isoutput():
-            print("b {}".format(bit))
-            print('Not a top level circuit input')
+            print_err("b '{}': Not a top level circuit input".format(bit))
             return
 
         if isinstance(newval, int):
@@ -572,7 +574,7 @@ class SimulationConsole(cmd.Cmd):
                 self.cmdloop()
                 break;
             except KeyboardInterrupt:
-                print('\nKeyboardInterrupt')
+                print_err('\nKeyboardInterrupt')
 
 def simulate(main, simulator_type=PythonSimulator):
     EndCircuit()
