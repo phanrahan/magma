@@ -6,6 +6,11 @@ from magma.scope import *
 from magma.passes.debug_name import DebugNamePass
 
 def test(capsys):
+    def get_out(capsys):
+        out, err = capsys.readouterr()
+        assert(err == "")
+        return out.rstrip()
+
     def FFs(n):
         return [PRIM_FF() for i in range(n)]
     
@@ -78,21 +83,30 @@ def test(capsys):
     console = SimulationConsole(testcircuit, sim);
     sim.evaluate()
 
-    console.onecmd("p self.O")
+    console.runcmd("p self.O")
     out, err = capsys.readouterr()
     assert(out.rstrip() == "0")
 
-    console.onecmd("p self.idontexist")
+    console.runcmd("p self.idontexist")
     out, err = capsys.readouterr()
     assert(err != "")
     assert(out == "")
 
-    console.onecmd("next")
+    console.runcmd("next")
+    console.runcmd("next")
     out, err = capsys.readouterr()
     assert(err == "")
     assert(out == "")
 
-    console.onecmd("p self.O")
-    out, err = capsys.readouterr()
-    assert(err == "")
-    #assert(out.rstrip() == "1")
+    console.runcmd("p self.O")
+    assert get_out(capsys) == "1"
+
+    console.runcmd("next")
+    console.runcmd("p self.O")
+    assert get_out(capsys) == "2"
+
+    console.runcmd("p counter.O")
+    assert get_out(capsys) == "2"
+
+    console.runcmd("p counter.reg.O")
+    assert get_out(capsys) == "2"

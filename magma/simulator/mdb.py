@@ -576,6 +576,12 @@ class SimulationConsole(cmd.Cmd):
             except KeyboardInterrupt:
                 print_err('\nKeyboardInterrupt')
 
+    # For test infra
+    def runcmd(self, line):
+        line = self.precmd(line)
+        stop = self.onecmd(line)
+        self.postcmd(stop, line)
+
 def simulate(main, simulator_type=PythonSimulator):
     EndCircuit()
     simulator = simulator_type(main, main.CLK)
