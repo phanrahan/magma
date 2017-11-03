@@ -4,7 +4,7 @@ from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
-from .bitutils import int2seq
+from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 
 __all__  = ['ArrayType', 'ArrayKind', 'Array']
@@ -49,6 +49,8 @@ class ArrayType(Type):
         return self.N
 
     def __getitem__(self, key):
+        if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
+            key = seq2int([0 if t is GND else 1 for t in key.ts])
         if isinstance(key,slice):
             return array([self[i] for i in range(*key.indices(len(self)))])
         else:
