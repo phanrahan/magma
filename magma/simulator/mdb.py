@@ -145,10 +145,11 @@ class SimulationConsole(cmd.Cmd):
 
     def step_simulator(self):
         while self.skip_next > 0:
-            if not self.clock_high and self.skip_half and not self.skip_next:
-                self.skip_next = 1
-            if self.skip_next and (not self.skip_half or self.clock_high):
-                self.skip_next -= 1
+            self.skip_next -= 1
+
+            if self.clock_high and self.skip_half:
+                if not self.advance_simulator():
+                    break
 
             if not self.advance_simulator():
                 break
