@@ -147,6 +147,17 @@ class PythonSimulator(CircuitSimulator):
 
         return wrapped
 
+    def initialize(self, bit):
+        if isinstance(bit, ArrayType):
+            for b in bit:
+                self.initialize(b)
+        else:
+            if bit.isoutput():
+                self.circuit_inputs.append(bit)
+                self.value_store.set_value(bit, False)
+            else:
+                self.circuit_outputs.append(bit)
+
     def __setup_circuit(self, clock):
         if clock is not None:
             clock = self.txfm.get_new_bit(clock, self.default_scope)
@@ -155,14 +166,7 @@ class PythonSimulator(CircuitSimulator):
         self.circuit_inputs = []
         self.circuit_outputs = []
         for name, bit in self.circuit.interface.ports.items():
-            if not isinstance(bit, ArrayType):
-                bit = [bit]
-            for b in bit:
-                if b.isoutput():
-                    self.circuit_inputs.append(b)
-                    self.value_store.set_value(b, False)
-                else:
-                    self.circuit_outputs.append(b)
+            self.initialize(bit)
 
     def __outputs_initialized(self):
         for bit in self.circuit_outputs:

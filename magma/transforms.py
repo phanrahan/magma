@@ -100,9 +100,9 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
         return old_source
 
     bitref = old_source.name
-    arrayref = isinstance(bitref, ArrayRef)
-    if arrayref:
-        idx = bitref.index
+    idxs = []
+    while isinstance(bitref, ArrayRef):
+        idxs.append(bitref.index)
         bitref = bitref.array.name
 
     if isinstance(bitref, InstRef):
@@ -128,10 +128,11 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
 
         return array(new_source_array)
     else:
-        assert False, "Failed to collapse bit"
+        assert False, f"Failed to collapse bit {bitref}, {arrayref}"
 
-    if arrayref:
-        newsource = newsource[idx]
+    if idxs:
+        for idx in reversed(idxs):
+            newsource = newsource[idx]
 
     return newsource
 
