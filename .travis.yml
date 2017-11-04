@@ -15,7 +15,7 @@ addons:
         - g++-4.9  # for coreir
 
 before_install:
-    - ./.travis/install_coreir.sh
+    - source .travis/install_coreir.sh
 
 install:
     - pip install -r requirements.txt
