@@ -2,6 +2,8 @@ language: python
 python:
     - "3.6"
 
+sudo: required  # for coreir install.sh
+
 before_install:
     - ./.travis/install_coreir.sh
 
