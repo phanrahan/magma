@@ -2,7 +2,7 @@ language: python
 python:
     - "3.6"
 
-sudo: true
+sudo: true  # Needed for coreir-dev branch building coreir from source (installing g++-4.9 through apt)
 
 before_install:
     - source .travis/install_coreir.sh
