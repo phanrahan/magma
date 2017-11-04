@@ -2,7 +2,17 @@ language: python
 python:
     - "3.6"
 
-sudo: required  # for coreir install.sh
+sudo: false
+
+cache:
+    apt: true
+
+addons:
+  apt:
+    sources:
+        - ubuntu-toolchain-r-test  # g++-4.9 for coreir
+    packages:
+        - g++-4.9  # for coreir
 
 before_install:
     - ./.travis/install_coreir.sh
