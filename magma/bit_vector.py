@@ -8,7 +8,7 @@ import numpy as np
 def type_check_and_promote_ints(fn):
     def wrapped(self, other):
         if not (isinstance(other, BitVector) or isinstance(other, int) and other.bit_length() <= self.num_bits):
-            raise TypeError()  # TODO: Improve this type error message
+            raise TypeError(other)
         if isinstance(other, int):
             other = BitVector(other, self.num_bits)
         return fn(self, other)
@@ -195,4 +195,7 @@ class BitVector:
 
     def __bool__(self):
         return bool(self.as_int())
+
+    def bits(self):
+        return self.as_bool_list()
 
