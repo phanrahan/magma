@@ -26,7 +26,7 @@ def mergewires(new, old):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            error("Error: connecting more than one output to an input {}".format(o))
+            error("Error: connecting more than one output to an input {}".format(o), include_wire_traceback=True)
         new.outputs.append(o)
         o.wires = new
 
