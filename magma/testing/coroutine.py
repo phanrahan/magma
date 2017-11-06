@@ -64,7 +64,12 @@ def check(circuit, sim, number_of_cycles, inputs_generator=None):
                     inputs.append(input_value)
                     simulator.set_value(getattr(circuit, name), input_value)
             next(inputs_generator)
-            sim.send(*inputs)
+            if len(inputs) > 1:
+                sim.send(inputs)
+            elif len(inputs) == 1:
+                sim.send(inputs[0])
+            else:
+                next(sim)
     assert not failed, "Failed to pass simulation"
 
 def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
