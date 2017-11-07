@@ -89,7 +89,7 @@ class CoreIRBackend:
                 if isinstance(value, tuple):
                     args[name] = value[0]  # Drop width for now
                 elif name == "name":
-                    continue  # Skip names
+                    continue  # Skip name
                 else:
                     args[name] = value
             args = self.context.new_values(args)
