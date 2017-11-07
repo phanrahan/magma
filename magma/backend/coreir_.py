@@ -77,6 +77,8 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
         for name, port in interface.ports.items():
+            if not port.isinput() and not port.isoutput():
+                raise NotImplementedError()
             args[name] = self.get_type(port, port.isinput())
         return self.context.Record(args)
 
