@@ -25,7 +25,7 @@ def magma_port_to_coreir(port):
     select = repr(port)
 
     name = port.name
-    if isinstance(name, ArrayRef):
+    while isinstance(name, ArrayRef):
         name = name.array.name
     if isinstance(name, DefnRef):
         if name.defn.name != "":
@@ -55,28 +55,29 @@ class CoreIRBackend:
                 if not isinstance(port.T, BitKind):
                     error('Error: Argument {} must be a an Array(n,Bit)'.format(port))
 
+    def get_type(self, port, is_input):
+        if isinstance(port, (ArrayType, ArrayKind)):
+            _type = self.context.Array(port.N, self.get_type(port.T, is_input))
+        elif is_input:
+            if isinstance(port, ClockType):
+                _type = self.context.named_types[("coreir", "clk")]
+            elif isinstance(port, ResetType):
+                _type = self.context.named_types[("coreir", "rst")]
+            else:
+                _type = self.context.Bit()
+        else:
+            if isinstance(port, ClockType):
+                _type = self.context.named_types[("coreir", "clkIn")]
+            elif isinstance(port, ResetType):
+                _type = self.context.named_types[("coreir", "rstIn")]
+            else:
+                _type = self.context.BitIn()
+        return _type
+
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
         for name, port in interface.ports.items():
-            if port.isinput():
-                if isinstance(port, ClockType):
-                    _type = self.context.named_types[("coreir", "clk")]
-                elif isinstance(port, ResetType):
-                    _type = self.context.named_types[("coreir", "rst")]
-                else:
-                    _type = self.context.Bit()
-            elif port.isoutput():
-                if isinstance(port, ClockType):
-                    _type = self.context.named_types[("coreir", "clkIn")]
-                elif isinstance(port, ResetType):
-                    _type = self.context.named_types[("coreir", "rstIn")]
-                else:
-                    _type = self.context.BitIn()
-            else:
-                raise NotImplementedError
-            if isinstance(port, ArrayType):
-                _type = self.context.Array(port.N, _type)
-            args[name] = _type
+            args[name] = self.get_type(port, port.isinput())
         return self.context.Record(args)
 
     def compile_instance(self, instance, module_definition):
@@ -107,6 +108,12 @@ class CoreIRBackend:
             return module_definition.add_generator_instance(instance.name,
                     generator, gen_args, config_args)
 
+    def add_output_port(self, output_ports, port):
+        output_ports[port] = magma_port_to_coreir(port)
+        if isinstance(port, ArrayType):
+            for bit in port:
+                self.add_output_port(output_ports, bit)
+
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
@@ -115,20 +122,14 @@ class CoreIRBackend:
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
-                output_ports[port] = magma_port_to_coreir(port)
-                if isinstance(port, ArrayType):
-                    for bit in port:
-                        output_ports[bit] = magma_port_to_coreir(bit)
+                self.add_output_port(output_ports, port)
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
-                    output_ports[port] = magma_port_to_coreir(port)
-                    if isinstance(port, ArrayType):
-                        for bit in port:
-                            output_ports[bit] = magma_port_to_coreir(bit)
+                    self.add_output_port(output_ports, port)
 
 
         def get_select(value):

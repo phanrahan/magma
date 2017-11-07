@@ -47,7 +47,7 @@ class CheckDefinitionUniquenessPass(DefinitionPass):
                 error("Found multiple definitions for {}".format(name))
 
         if len(duplicated):
-            raise MultipleDefinitionException()
+            raise MultipleDefinitionException([name for name, _ in duplicated])
 
 
 def check_definitions_are_unique(circuit):
