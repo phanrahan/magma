@@ -27,5 +27,4 @@ else
     tar -xf coreir.tar.gz -C coreir_release --strip-components 1;
     export PATH=$TRAVIS_BUILD_DIR/coreir_release/bin:$PATH;
     export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/coreir_release/lib:$LD_LIBRARY_PATH;
-    pip install coreir;
 fi
