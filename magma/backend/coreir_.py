@@ -88,6 +88,8 @@ class CoreIRBackend:
             for name, value in instance.kwargs.items():
                 if isinstance(value, tuple):
                     args[name] = value[0]  # Drop width for now
+                elif name == "name":
+                    continue  # Skip names
                 else:
                     args[name] = value
             args = self.context.new_values(args)
@@ -143,7 +145,7 @@ class CoreIRBackend:
             output = input.value()
             if not output:
                 error(repr(definition))
-                raise Exception("Output {} not connected".format(input))
+                raise Exception(f"Output {input} of {definition.name}".format(input))
             self.connect(module_definition, input, output, output_ports)
         module.definition = module_definition
         return module
