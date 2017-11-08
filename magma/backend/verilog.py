@@ -109,7 +109,7 @@ def compileinstance(self):
 
     params = []
     for k, v in self.kwargs.items():
-       if k != 'loc':
+       if k not in {'loc', 'name'}:
            if isinstance(v, tuple):
                v = hstr(v[0], v[1])
            params.append(arg(k, v))
