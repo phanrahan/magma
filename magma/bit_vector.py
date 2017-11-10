@@ -162,6 +162,14 @@ class BitVector:
         else:
             return self._bits[index]
 
+    def __setitem__(self, index, value):
+        if isinstance(index, slice):
+            raise NotImplementedError()
+        else:
+            if not (isinstance(value, bool) or isinstance(value, int) and value in {0, 1}):
+                raise ValueError(f"Second argument __setitem__ on a single BitVector index should be a boolean or 0 or 1, not {value}")
+            self._bits[index] = value
+
     def __len__(self):
         return self.num_bits
 
