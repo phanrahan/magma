@@ -13,7 +13,7 @@ def usage():
     sys.exit(1)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'b:o:m:')
+    opts, args = getopt.getopt(sys.argv[1:], 'b:o:m:t:')
 except Exception as e:
     print(e, file=sys.stderr)
     usage()
