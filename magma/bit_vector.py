@@ -107,6 +107,7 @@ class BitVector:
         mask = (1 << self.num_bits) - 1
         return BitVector(result & mask, num_bits=self.num_bits)
 
+    @type_check_and_promote_ints
     def __sub__(self, other):
         assert isinstance(other, BitVector)
         result = self._value - other._value
