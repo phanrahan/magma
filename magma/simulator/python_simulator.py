@@ -134,6 +134,8 @@ class ValueStore:
         if isinstance(newval, BitVector):
             assert len(newval) == 1
             newval = newval.as_bool_list()[0]
+        if isinstance(newval, int) and newval in {0, 1}:
+            newval = bool(newval)
         assert isinstance(newval, bool), "Can only set boolean values"
         assert bit.isoutput()
 
