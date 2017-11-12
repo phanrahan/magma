@@ -76,6 +76,23 @@ def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
     outputs = []
     inputs = []
     for cycle in range(number_of_cycles):
+        if inputs_generator is None:
+            next(sim)
+        else:
+            inputs = []
+            for name, port in circuit.interface.ports.items():
+                if name in ["CLK", "CE"]:
+                    continue  # Skip clocks, TODO: Check the type
+                if port.isoutput():  # circuit input
+                    input_value = getattr(inputs_generator, name)
+                    inputs.append(input_value)
+            next(inputs_generator)
+        if len(inputs) > 1:
+            sim.send(inputs)
+        elif len(inputs) == 1:
+            sim.send(inputs[0])
+        else:
+            next(sim)
         out_ports = {}
         in_ports = {}
         for name, port in circuit.interface.ports.items():
@@ -87,10 +104,4 @@ def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
                 in_ports[name] = getattr(inputs_generator, name)
         outputs.append(out_ports)
         inputs.append(in_ports)
-        if in_ports:
-            sim.send(in_ports)
-        else:
-            next(sim)
-        if inputs_generator is not None:
-            next(inputs_generator)
     return inputs, outputs
