@@ -159,28 +159,27 @@ class CoreIRSimulator(CircuitSimulator):
         self.num_rewinds = 0
 
     def evaluate(self, no_update=False):
-        cycles = 0
-        if self.num_rewinds == 0:
-            if no_update:
-                clkvalue = self.__get_clock_value()
-                insts, ports = convert_to_coreir_path(self.clock, Scope())
-                self.simulator_state.set_clock_value(old_style_path(insts, ports), False, False)
+        clkvalue = self.__get_clock_value()
+        insts, ports = convert_to_coreir_path(self.clock, Scope())
+        self.simulator_state.set_clock_value(old_style_path(insts, ports), False, False)
+        self.simulator_state.execute()
+        self.simulator_state.set_clock_value(old_style_path(insts, ports), not clkvalue, clkvalue)
 
-            self.simulator_state.execute()
-
-            if no_update:
-                self.simulator_state.set_clock_value(old_style_path(insts, ports), not clkvalue, clkvalue)
-
-            cycles = self.__get_cur_cycles()
-
-        return ExecutionState(triggered_points=self.__get_triggered_points(), clock=self.__get_clock_value(), cycles=cycles)
-
-    def step(self):
-        if self.num_rewinds == 0: 
-            self.simulator_state.step()
-        else:
+        return ExecutionState(triggered_points=self.__get_triggered_points(), clock=clkvalue, cycles=0)
+    
+    def advance(self, halfcycles=1):
+        cycles = self.__get_cur_cycles()
+        # TODO add a function to interpreter to avoid doing this for loop in python
+        watchpoints = []
+        for i in range(0, halfcycles):
             self.simulator_state.run_half_cycle()
-            self.num_rewinds -= 1
+            watchpoints = self.__get_triggered_points()
+            if len(watchpoints) > 0:
+                break
+            self.num_rewinds = max(self.num_rewinds - 1, 0)
+
+        post_cycles = self.__get_cur_cycles()
+        return ExecutionState(triggered_points=watchpoints, clock=self.__get_clock_value(), cycles=post_cycles - cycles)
 
     def rewind(self, halfcycles):
         self.num_rewinds += halfcycles

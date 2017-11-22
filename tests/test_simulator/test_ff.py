@@ -16,8 +16,7 @@ def test():
     sim.evaluate()
     val = sim.get_value(testcircuit.O)
     assert(val == False)
-    sim.step()
-    sim.evaluate()
+    sim.advance()
     val = sim.get_value(testcircuit.O)
     assert(val == False)
     
@@ -26,12 +25,10 @@ def test():
     val = sim.get_value(testcircuit.O)
     assert(val == False)
     
-    sim.step()
-    sim.evaluate()
+    sim.advance()
     val = sim.get_value(testcircuit.O)
     assert(val == True)
     
-    sim.step()
-    sim.evaluate()
+    sim.advance()
     val = sim.get_value(testcircuit.O)
     assert(val == True)

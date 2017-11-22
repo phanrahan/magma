@@ -93,7 +93,6 @@ def test(capsys):
     assert(out == "")
 
     console.runcmd("next")
-    console.runcmd("next")
     out, err = capsys.readouterr()
     assert(err == "")
     assert(out == "")
