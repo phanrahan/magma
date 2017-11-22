@@ -112,9 +112,9 @@ class CoreIRSimulator(CircuitSimulator):
         coreir_.compile(circuit, coreir_filename)
 
         # Initialize interpreter, get handle back to interpreter state
-        ctx  = coreir.Context()
-        coreir_circuit = ctx.load_from_file(coreir_filename)
-        ctx.run_passes(["rungenerators", "flattentypes", "flatten", "verifyconnectivity-onlyinputs"])
+        self.ctx  = coreir.Context()
+        coreir_circuit = self.ctx.load_from_file(coreir_filename)
+        self.ctx.run_passes(["rungenerators", "flattentypes", "flatten", "verifyconnectivity-onlyinputs"])
         self.simulator_state = coreir.SimulatorState(coreir_circuit)
 
         if need_cleanup:
