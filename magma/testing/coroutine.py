@@ -60,6 +60,9 @@ def check(circuit, sim, number_of_cycles, inputs_generator=None):
                 sim.send(inputs[0])
             else:
                 next(sim)
+        simulator.step()
+        simulator.evaluate()
+        simulator.step()
         simulator.evaluate()
         # Coroutine has an implicit __next__ call on construction so it already
         # is in it's initial state
@@ -68,9 +71,6 @@ def check(circuit, sim, number_of_cycles, inputs_generator=None):
                 if getattr(sim, name) != BitVector(simulator.get_value(getattr(circuit, name))):
                     print(f"Failed on cycle {cycle}, port {name}, expected {getattr(sim, name)}, got {BitVector(simulator.get_value(getattr(circuit, name)))}")
                     failed = True
-        simulator.step()
-        simulator.evaluate()
-        simulator.step()
     assert not failed, "Failed to pass simulation"
 
 def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
