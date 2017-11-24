@@ -97,7 +97,6 @@ class CoreIRSimulator(CircuitSimulator):
 
     def __init__(self, circuit, clock, coreir_filename=None):
         self.watchpoints = []
-        self.num_rewinds = 0
 
         need_cleanup = False
         if not coreir_filename:
@@ -156,8 +155,6 @@ class CoreIRSimulator(CircuitSimulator):
         insts, ports = convert_to_coreir_path(bit, scope)
         self.simulator_state.set_value(old_style_path(insts, ports), newval)
 
-        self.num_rewinds = 0
-
     def evaluate(self, no_update=False):
         clkvalue = self.__get_clock_value()
         insts, ports = convert_to_coreir_path(self.clock, Scope())
@@ -176,14 +173,11 @@ class CoreIRSimulator(CircuitSimulator):
             watchpoints = self.__get_triggered_points()
             if len(watchpoints) > 0:
                 break
-            self.num_rewinds = max(self.num_rewinds - 1, 0)
 
         post_cycles = self.__get_cur_cycles()
         return ExecutionState(triggered_points=watchpoints, clock=self.__get_clock_value(), cycles=post_cycles - cycles)
 
     def rewind(self, halfcycles):
-        self.num_rewinds += halfcycles
-
         self.simulator_state.rewind(halfcycles)
         return ExecutionState(triggered_points=self.__get_triggered_points(), clock=self.__get_clock_value(), cycles=0)
 
