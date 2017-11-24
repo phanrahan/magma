@@ -6,8 +6,9 @@ from ..scope import *
 from ..array import ArrayType
 from ..bit import BitType
 from ..bitutils import seq2int, int2seq
-from ..ref import InstRef
+from ..ref import InstRef, DefnRef
 from ..compatibility import builtins
+from magma.waveform import waveform
 from code import compile_command
 import re
 import sys
@@ -91,7 +92,9 @@ class SimulationConsole(cmd.Cmd):
         self.clock_high = False
 
         self.aliases = { 'x'  : self.do_examine,
-                         'd'  : self.do_descend } 
+                         'd'  : self.do_descend,
+                         'rn' : self.do_reverse_cycle,
+                         'rs' : self.do_reverse_step }
 
         self.update_prompt()
 
@@ -131,6 +134,26 @@ class SimulationConsole(cmd.Cmd):
         self.reversing = False
 
         return line
+
+    def reverse_simulator(self):
+        if self.clock_high and self.cycles == 0: return
+
+        reversecount = self.skip_next
+        if self.skip_half:
+            reversecount *= 2
+            if not self.clock_high:
+                reversecount -= 1
+
+        for i in range(reversecount):
+            state = self.simulator.rewind(1)
+            self.clock_high = state.clock
+            if self.clock_high:
+                self.cycles -= 1
+
+            if state.triggered_points:
+                self.print_watchpoints(state.triggered_points)
+                return False
+
     
     def advance_simulator(self):
         self.simulator.step()
@@ -163,18 +186,6 @@ class SimulationConsole(cmd.Cmd):
         self.clock_high = state.clock
         self.cycles += state.cycles
 
-    def reverse_simulator(self):
-        reversecount = self.skip_next
-        if self.skip_half:
-            reversecount *= 2
-            if self.clock_high:
-                reversecount -= 1
-
-        self.simulator.rewind(reversecount)
-        state = self.simulator.evaluate()
-        self.cycles -= reversecount // 2
-        self.clock_high = state.clock
-
     def postcmd(self, stop, line):
         if self.reversing:
             self.reverse_simulator()
@@ -186,7 +197,7 @@ class SimulationConsole(cmd.Cmd):
                 self.continue_simulator()
 
         if self.reeval:
-            self.simulator.evaluate()
+            self.simulator.evaluate(True)
 
         self.update_prompt()
 
@@ -201,9 +212,9 @@ class SimulationConsole(cmd.Cmd):
             return "Doesn't exist"
 
         if raw:
-            return val
+            return "".join(['1' if e else '0' for e in val])
         else:
-            if not isinstance(bit, ArrayType):
+            if not isinstance(bit, ArrayType) or isinstance(val, bool):
                 val = [val]
             return seq2int(val)
 
@@ -336,11 +347,13 @@ class SimulationConsole(cmd.Cmd):
         self.parse_next(arg)
 
     def do_reverse_step(self, arg):
+        'reverse_step N: rewinds the circuit N half cycles'
         self.reversing = True
         self.skip_half = False
         self.parse_next(arg)
 
     def do_reverse_cycle(self, arg):
+        'reverse_cycle N: rewinds the circuit N cycles'
         self.reversing = True
         self.skip_half = True
         self.parse_next(arg)
@@ -435,15 +448,11 @@ class SimulationConsole(cmd.Cmd):
             print_err("undisplay requires an integer")
             return
 
-        for e in self.display_exprs:
+        for i,e in enumerate(self.display_exprs):
             if e.idx == idx:
-                del e
+                del self.display_exprs[i]
                 return 
         print_err('No display number {}'.format(idx))
-
-    def do_evaluate(self, arg):
-        'repeat: Reevaluates the circuit without changing the clock value.\nUse this after set so the simulator can calculate new values.'
-        self.reeval = True
 
     def do_up(self, arg):
         "up: Change to the parent circuit's scope."
@@ -546,9 +555,15 @@ class SimulationConsole(cmd.Cmd):
             print_err('Provide a circuit input and a new value')
             return
 
-        bit = eval(args[0], None, self.vars)
-        if bit not in self.top_circuit.interface.inputs():
+        try:
+            bit = eval(args[0], None, self.vars)
+        except Exception as e:
+            print_err("Invalid bit for assignment: {}".format(e))
+            return
+
+        if bit not in self.top_circuit.interface.outputs():
             print_err("Can only assign values to inputs in the top level circuit")
+            return
 
         try:
             newval = eval(args[1], None, self.vars)
@@ -556,14 +571,40 @@ class SimulationConsole(cmd.Cmd):
             print_err("Invalid new value".format(e))
             return
 
-        if bit is None or not bit.isoutput():
-            print_err("b '{}': Not a top level circuit input".format(bit))
-            return
-
         if isinstance(newval, int):
             newval = int2seq(newval, len(bit))
 
         self.simulator.set_value(bit, self.scope, newval)
+        self.reeval = True
+
+    def do_waveform(self, arg):
+        if not arg:
+            print_err('Please a provide wire')
+            return
+
+        try:
+            waveme, scope = self.parse_circuit(arg)
+        except Exception as e:
+            print_err("Invalid argument for waveform: {}".format(e))
+            return
+
+        if not isinstance(waveme, BitType) and not isinstance(waveme, ArrayType):
+            print_err("Can only provide waveforms for wires")
+            return
+
+        labels = [arg]
+        signals = []
+
+        for i in range(self.cycles - 1):
+            val = self.simulator.get_value(waveme, scope)
+            signals.insert(0, [seq2int(val)])
+            self.simulator.rewind(2)
+
+        for i in range(self.cycles - 1):
+            self.simulator.step()
+            self.simulator.step()
+
+        waveform(signals, labels)
 
     def run(self):
         self.simulator.evaluate()
