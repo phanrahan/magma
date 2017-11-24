@@ -72,28 +72,24 @@ def test():
     sim = PythonSimulator(testcircuit, testcircuit.CLK)
     
     for i in range((1 << 5) - 1):
-        sim.evaluate()
+        sim.advance()
         val = sim.get_value(testcircuit.O)
         num = seq2int(val)
         assert num == i
         cout = sim.get_value(testcircuit.COUT)
         assert not cout
     
-        sim.step()
-        sim.evaluate()
-        sim.step()
+        sim.advance()
     
-    sim.evaluate()
     val = sim.get_value(testcircuit.O)
     num = seq2int(val)
     assert num == 31
     cout = sim.get_value(testcircuit.COUT)
     assert cout
     
-    sim.step()
-    sim.evaluate()
-    sim.step()
-    sim.evaluate()
+
+    sim.advance()
+    sim.advance()
     
     val = sim.get_value(testcircuit.O)
     num = seq2int(val)

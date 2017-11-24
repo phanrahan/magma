@@ -154,31 +154,18 @@ class SimulationConsole(cmd.Cmd):
                 self.print_watchpoints(state.triggered_points)
                 return False
 
-    
-    def advance_simulator(self):
-        self.simulator.step()
-        state = self.simulator.evaluate()
+    def step_simulator(self):
+        n = self.skip_next 
+        if self.skip_half:
+            n *= 2
+            if self.clock_high:
+                n -= 1
 
-        self.cycles += 1 if state.clock else 0
-
+        state = self.simulator.advance(n)
         self.clock_high = state.clock
-
+        self.cycles += state.cycles
         if state.triggered_points:
             self.print_watchpoints(state.triggered_points)
-            return False
-
-        return True
-
-    def step_simulator(self):
-        while self.skip_next > 0:
-            self.skip_next -= 1
-
-            if self.clock_high and self.skip_half:
-                if not self.advance_simulator():
-                    break
-
-            if not self.advance_simulator():
-                break
 
     def continue_simulator(self):
         state = self.simulator.cont()

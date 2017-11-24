@@ -27,11 +27,11 @@ class CircuitSimulator(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self):
+    def advance(self, n):
         pass
 
     @abstractmethod
-    def step(self):
+    def evaluate(self_):
         pass
 
     @abstractmethod
