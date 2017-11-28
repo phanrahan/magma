@@ -22,8 +22,8 @@ class Coroutine:
     def __getattr__(self, key):
         return self.co.gi_frame.f_locals[key]
 
-    def send(self, *args):
-        return self.co.send(*args)
+    def send(self, args):
+        return self.co.send(args)
 
     def __next__(self):
         return next(self.co)
