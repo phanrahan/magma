@@ -233,6 +233,14 @@ class PythonSimulator(CircuitSimulator):
         
         return ExecutionOrder(stateful=sorted_state_primitives, combinational=combinational)
 
+    def __step(self):
+        if self.clock is None:
+            raise PythonSimulatorException("Cannot step a simulated circuit "
+                    "without a clock, did you pass a clock during "
+                    "initialization?")
+        cur_clock_val = self.value_store.get_value(self.clock)
+        self.value_store.set_value(self.clock, not cur_clock_val)
+    
     def __init__(self, main_circuit, clock=None):
         if isinstance(main_circuit, CircuitType):
             raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
@@ -290,6 +298,19 @@ class PythonSimulator(CircuitSimulator):
         else:
             raise NotImplementedError(type(value))
 
+    def advance(self, n=1):
+        cycles = 0
+        for i in range(0, n):
+            self.__step()
+            state = self.evaluate()
+
+            if not state.clock:
+                cycles += 1
+            if state.triggered_points:
+                return ExecutionState(triggered_points=state.triggered_points, clock=state.clock, cycles=cycles)
+
+        return ExecutionState(triggered_points=[], clock=self.get_clock_value(), cycles=cycles)
+
     def evaluate(self):
         for primitive in self.execution_order.stateful:
             primitive.simulate()
@@ -312,14 +333,6 @@ class PythonSimulator(CircuitSimulator):
             return self.value_store.get_value(self.clock)
         return None
 
-    def step(self):
-        if self.clock is None:
-            raise PythonSimulatorException("Cannot step a simulated circuit "
-                    "without a clock, did you pass a clock during "
-                    "initialization?")
-        cur_clock_val = self.value_store.get_value(self.clock)
-        self.value_store.set_value(self.clock, not cur_clock_val)
-    
     def rewind(self, halfcycles):
         raise PythonSimulatorException("Reversing not currently supported")
 

@@ -60,10 +60,7 @@ def check(circuit, sim, number_of_cycles, inputs_generator=None):
                 sim.send(inputs[0])
             else:
                 next(sim)
-        simulator.step()
-        simulator.evaluate()
-        simulator.step()
-        simulator.evaluate()
+        simulator.advance(2)
         # Coroutine has an implicit __next__ call on construction so it already
         # is in it's initial state
         for name, port in circuit.interface.ports.items():

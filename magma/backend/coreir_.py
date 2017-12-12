@@ -214,10 +214,12 @@ class CoreIRBackend:
             module_definition.select(magma_port_to_coreir(port)))
 
 
+    __unique_constant_id = -1
     def get_constant_instance(self, constant, num_bits, module_definition):
         if module_definition not in self.__constant_cache:
             self.__constant_cache[module_definition] = {}
         if constant not in self.__constant_cache[module_definition]:
+            self.__unique_constant_id += 1
 
             bit_type_to_constant_map = {
                 GND: 0,
@@ -231,16 +233,17 @@ class CoreIRBackend:
                 raise NotImplementedError(value)
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
-                name = "bit_const_{}".format(constant)
+                name = "bit_const_{}_{}".format(constant, self.__unique_constant_id)
                 corebit_const_module = self.libs['corebit'].modules["const"]
                 module_definition.add_module_instance(name, corebit_const_module, config)
             else:
                 gen_args = self.context.new_values({"width": num_bits})
                 config = self.context.new_values({"value": value})
-                name = "const_{}".format(constant)
+                name = "const_{}_{}".format(constant, self.__unique_constant_id)
                 instantiable = self.get_instantiable("const", "coreir")
                 module_definition.add_generator_instance(name, instantiable, gen_args, config)
-            self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
+            return module_definition.select("{}.out".format(name))
+            # self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
 
     def compile(self, defn):
