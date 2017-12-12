@@ -24,5 +24,6 @@ setup(
         "magma.simulator",
         "magma.testing"
     ],
-    install_requires=install_requires
+    install_requires=install_requires,
+    python_requires='>=3.6'
 )
