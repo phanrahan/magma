@@ -40,7 +40,6 @@ def coroutine(func):
 
 def check(circuit, sim, number_of_cycles, inputs_generator=None):
     simulator = PythonSimulator(circuit, clock=circuit.CLK)
-    simulator.evaluate()
     failed = False
     for cycle in range(number_of_cycles):
         if inputs_generator is None:
