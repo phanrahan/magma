@@ -90,7 +90,7 @@ class CoreIRBackend:
             args = {}
             for name, value in instance.kwargs.items():
                 if isinstance(value, tuple):
-                    args[name] = value[0]  # Drop width for now
+                    args[name] = coreir.BitVector(value[1], value[0])
                 elif name == "name":
                     continue  # Skip name
                 else:
