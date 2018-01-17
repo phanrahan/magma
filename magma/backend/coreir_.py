@@ -89,10 +89,10 @@ class CoreIRBackend:
             module = lib.modules[name]
             args = {}
             for name, value in instance.kwargs.items():
-                if isinstance(value, tuple):
+                if name in {"name", "loc"}:
+                    continue  # Skip
+                elif isinstance(value, tuple):
                     args[name] = coreir.BitVector(value[1], value[0])
-                elif name == "name":
-                    continue  # Skip name
                 else:
                     args[name] = value
             args = self.context.new_values(args)
