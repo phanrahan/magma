@@ -148,7 +148,7 @@ class CoreIRBackend:
             output = input.value()
             if not output:
                 error(repr(definition))
-                raise Exception(f"Output {input} of {definition.name}".format(input))
+                raise Exception(f"Output {input} of {definition.name} not connected.".format(input))
             self.connect(module_definition, input, output, output_ports)
         module.definition = module_definition
         return module
