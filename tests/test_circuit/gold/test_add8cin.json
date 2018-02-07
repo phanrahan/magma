@@ -10,31 +10,7 @@
           "CIN":"BitIn"
         }],
         "instances":{
-          "bit_const_GND_0":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_1":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_2":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_3":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_4":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_5":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_6":{
+          "bit_const_GND":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           },
@@ -48,13 +24,13 @@
           }
         },
         "connections":[
-          ["bit_const_GND_0.out","inst1.in0.0"],
-          ["bit_const_GND_1.out","inst1.in0.1"],
-          ["bit_const_GND_2.out","inst1.in0.2"],
-          ["bit_const_GND_3.out","inst1.in0.3"],
-          ["bit_const_GND_4.out","inst1.in0.4"],
-          ["bit_const_GND_5.out","inst1.in0.5"],
-          ["bit_const_GND_6.out","inst1.in0.6"],
+          ["bit_const_GND.out","inst1.in0.0"],
+          ["bit_const_GND.out","inst1.in0.1"],
+          ["bit_const_GND.out","inst1.in0.2"],
+          ["bit_const_GND.out","inst1.in0.3"],
+          ["bit_const_GND.out","inst1.in0.4"],
+          ["bit_const_GND.out","inst1.in0.5"],
+          ["bit_const_GND.out","inst1.in0.6"],
           ["inst0.in0","inst1.out"],
           ["inst0.in1","self.I1"],
           ["inst0.out","self.O"],
