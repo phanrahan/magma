@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "StaticLeftShift_162":{
+      "double":{
         "type":["Record",{
           "I":["Array",16,"BitIn"],
           "O":["Array",16,"Bit"]
@@ -34,21 +34,6 @@
           ["self.I.7","self.O.5"],
           ["self.I.8","self.O.6"],
           ["self.I.9","self.O.7"]
-        ]
-      },
-      "double":{
-        "type":["Record",{
-          "I":["Array",16,"BitIn"],
-          "O":["Array",16,"Bit"]
-        }],
-        "instances":{
-          "inst0":{
-            "modref":"global.StaticLeftShift_162"
-          }
-        },
-        "connections":[
-          ["inst0.I","self.I"],
-          ["inst0.O","self.O"]
         ]
       },
       "test_module":{

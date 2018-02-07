@@ -1,16 +1,15 @@
 import magma
-import mantle
 import coreir
 import os
-os.environ["MANTLE"] = "coreir"
 
 def test_compile_coreir():
     width = 16
     parallel_inputs = 4
     doubleT = magma.Bits(width)
     double = magma.DefineCircuit("double", "I", magma.In(doubleT), "O", magma.Out(doubleT))
-    import math
-    magma.wire(mantle.coreir.logic.static_left_shift(double.I, 2), double.O)
+    shift_amount = 2
+    output = magma.concat(double.I[shift_amount:width], magma.bits(0, shift_amount))
+    magma.wire(output, double.O)
     coreir_double = magma.backend.coreir_compile(double)
     c = coreir_double.context
 
