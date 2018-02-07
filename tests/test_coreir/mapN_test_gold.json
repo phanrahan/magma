@@ -8,18 +8,14 @@
           "O":["Array",16,"Bit"]
         }],
         "instances":{
-          "bit_const_GND_0":{
-            "modref":"corebit.const",
-            "modargs":{"value":["Bool",false]}
-          },
-          "bit_const_GND_1":{
+          "bit_const_GND":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           }
         },
         "connections":[
-          ["bit_const_GND_0.out","self.O.14"],
-          ["bit_const_GND_1.out","self.O.15"],
+          ["bit_const_GND.out","self.O.14"],
+          ["bit_const_GND.out","self.O.15"],
           ["self.I.10","self.O.8"],
           ["self.I.11","self.O.9"],
           ["self.I.12","self.O.10"],
