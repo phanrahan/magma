@@ -255,6 +255,9 @@ class CoreIRBackend:
                 modules[key.name] = self.compile_definition(key)
         return modules
 
-def compile(main, file_name):
+def compile(main, file_name=None):
     modules = CoreIRBackend().compile(main)
-    modules[main.coreir_name].save_to_file(file_name)
+    if file_name is not None:
+        return modules[main.coreir_name].save_to_file(file_name)
+    else:
+        return modules[main.coreir_name]
