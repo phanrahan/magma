@@ -22,7 +22,7 @@ if [ "$TRAVIS_BRANCH" == "coreir-dev" ]; then
     export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/deps/lib:$LD_LIBRARY_PATH;
     pip install git+git://github.com/leonardt/pycoreir.git@dev;
 else
-    wget https://github.com/rdaly525/coreir/releases/download/v0.0.4/coreir.tar.gz;
+    wget https://github.com/rdaly525/coreir/releases/download/v0.0.8/coreir.tar.gz;
     mkdir coreir_release;
     tar -xf coreir.tar.gz -C coreir_release --strip-components 1;
     export PATH=$TRAVIS_BUILD_DIR/coreir_release/bin:$PATH;
