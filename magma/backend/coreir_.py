@@ -233,17 +233,18 @@ class CoreIRBackend:
                 raise NotImplementedError(value)
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
-                name = "bit_const_{}_{}".format(constant, self.__unique_constant_id)
+                name = "bit_const_{}".format(constant)
                 corebit_const_module = self.libs['corebit'].modules["const"]
                 module_definition.add_module_instance(name, corebit_const_module, config)
             else:
                 gen_args = self.context.new_values({"width": num_bits})
                 config = self.context.new_values({"value": value})
-                name = "const_{}_{}".format(constant, self.__unique_constant_id)
+                # name = "const_{}_{}".format(constant, self.__unique_constant_id)
+                name = "const_{}".format(constant)
                 instantiable = self.get_instantiable("const", "coreir")
                 module_definition.add_generator_instance(name, instantiable, gen_args, config)
-            return module_definition.select("{}.out".format(name))
-            # self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
+            # return module_definition.select("{}.out".format(name))
+            self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
 
     def compile(self, defn):
@@ -255,6 +256,9 @@ class CoreIRBackend:
                 modules[key.name] = self.compile_definition(key)
         return modules
 
-def compile(main, file_name):
+def compile(main, file_name=None):
     modules = CoreIRBackend().compile(main)
-    modules[main.coreir_name].save_to_file(file_name)
+    if file_name is not None:
+        return modules[main.coreir_name].save_to_file(file_name)
+    else:
+        return modules[main.coreir_name]
