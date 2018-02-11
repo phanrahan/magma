@@ -98,7 +98,7 @@ ClockTypes = (ClockType, ResetType, EnableType)
 
 def ClockInterface(has_enable=False, has_reset=False, has_set=False, has_ce=False):
     args = ['CLK', In(Clock)]
-    has_enable != has_ce
+    has_enable = has_ce
     if has_enable:
         args += ['CE', In(Enable)]
     if has_reset:

@@ -89,10 +89,10 @@ class CoreIRBackend:
             module = lib.modules[name]
             args = {}
             for name, value in instance.kwargs.items():
-                if isinstance(value, tuple):
-                    args[name] = value[0]  # Drop width for now
-                elif name == "name":
-                    continue  # Skip name
+                if name in {"name", "loc"}:
+                    continue  # Skip
+                elif isinstance(value, tuple):
+                    args[name] = coreir.BitVector(value[1], value[0])
                 else:
                     args[name] = value
             args = self.context.new_values(args)
@@ -148,7 +148,7 @@ class CoreIRBackend:
             output = input.value()
             if not output:
                 error(repr(definition))
-                raise Exception(f"Output {input} of {definition.name}".format(input))
+                raise Exception(f"Output {input} of {definition.name} not connected.".format(input))
             self.connect(module_definition, input, output, output_ports)
         module.definition = module_definition
         return module
