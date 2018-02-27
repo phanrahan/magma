@@ -34,9 +34,10 @@ def magma_port_to_coreir(port):
     return select.replace("[", ".").replace("]", "")
 
 class CoreIRBackend:
-    def __init__(self):
-        self.context = context = coreir.Context()
-
+    def __init__(self, context=None):
+        if context is None:
+            context = coreir.Context()
+        self.context = context
         def get_lib(lib):
             if lib in {"coreir", "mantle", "corebit"}:
                 return context.get_namespace(lib)
@@ -116,11 +117,7 @@ class CoreIRBackend:
             for bit in port:
                 self.add_output_port(output_ports, bit)
 
-    def compile_definition(self, definition):
-        self.check_interface(definition)
-        module_type = self.convert_interface_to_module_type(definition.interface)
-        module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
-        module_definition = module.new_definition()
+    def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():
@@ -150,6 +147,13 @@ class CoreIRBackend:
                 error(repr(definition))
                 raise Exception(f"Output {input} of {definition.name} not connected.".format(input))
             self.connect(module_definition, input, output, output_ports)
+
+    def compile_definition(self, definition):
+        self.check_interface(definition)
+        module_type = self.convert_interface_to_module_type(definition.interface)
+        module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        module_definition = module.new_definition()
+        self.compile_definition_to_module_definition(definition, module_definition)
         module.definition = module_definition
         return module
 
@@ -247,6 +251,7 @@ class CoreIRBackend:
             self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
 
+
     def compile(self, defn):
         modules = {}
         pass_ = InstanceGraphPass(defn)
@@ -256,8 +261,8 @@ class CoreIRBackend:
                 modules[key.name] = self.compile_definition(key)
         return modules
 
-def compile(main, file_name=None):
-    modules = CoreIRBackend().compile(main)
+def compile(main, file_name=None, context=None):
+    modules = CoreIRBackend(context).compile(main)
     if file_name is not None:
         return modules[main.coreir_name].save_to_file(file_name)
     else:
