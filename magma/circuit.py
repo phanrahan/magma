@@ -233,7 +233,7 @@ class AnonymousCircuitType(object):
                 i = getattr(input, key)
                 wire( value, getattr(input, key), debug_info)
             else:
-                warn('Warning: circuit does not have {}'.format(key))
+                warning('Warning: circuit does not have {}'.format(key))
 
         o = input.interface.outputs()
         return o[0] if len(o) == 1 else tuple(o)

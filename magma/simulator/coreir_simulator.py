@@ -112,6 +112,8 @@ class CoreIRSimulator(CircuitSimulator):
 
         # Initialize interpreter, get handle back to interpreter state
         self.ctx  = coreir.Context()
+        self.ctx.load_library("commonlib")
+        self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
         self.ctx.run_passes(["rungenerators", "flattentypes", "flatten", "verifyconnectivity-onlyinputs"])
         self.simulator_state = coreir.SimulatorState(coreir_circuit)
@@ -122,7 +124,7 @@ class CoreIRSimulator(CircuitSimulator):
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
             if not isinstance(topin, ClockType):
-                self.set_value(topin, Scope(), int2seq(0, n=len(topin)))
+                self.set_value(topin, int2seq(0, n=len(topin)), Scope())
 
         if clock is not None:
             insts, ports = convert_to_coreir_path(clock, Scope())
@@ -151,7 +153,7 @@ class CoreIRSimulator(CircuitSimulator):
             return bools[0]
         return bools
 
-    def set_value(self, bit, scope, newval):
+    def set_value(self, bit, newval, scope):
         insts, ports = convert_to_coreir_path(bit, scope)
         self.simulator_state.set_value(old_style_path(insts, ports), newval)
 

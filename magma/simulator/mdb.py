@@ -561,7 +561,7 @@ class SimulationConsole(cmd.Cmd):
         if isinstance(newval, int):
             newval = int2seq(newval, len(bit))
 
-        self.simulator.set_value(bit, self.scope, newval)
+        self.simulator.set_value(bit, newval, self.scope)
         self.reeval = True
 
     def do_waveform(self, arg):

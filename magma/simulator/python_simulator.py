@@ -311,7 +311,7 @@ class PythonSimulator(CircuitSimulator):
 
         return ExecutionState(triggered_points=[], clock=self.get_clock_value(), cycles=cycles)
 
-    def evaluate(self):
+    def evaluate(self, no_update=False):
         for primitive in self.execution_order.stateful:
             primitive.simulate()
         for primitive in self.execution_order.combinational:
@@ -339,7 +339,7 @@ class PythonSimulator(CircuitSimulator):
     def cont(self):
         cycles = 0
         while True:
-            self.step()
+            self.__step()
             state = self.evaluate()
             if not state.clock:
                 cycles += 1
