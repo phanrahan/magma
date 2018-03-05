@@ -40,12 +40,12 @@
         "instances":{
           "mapDouble":{
             "genref":"aetherlinglib.mapParallel",
-            "genargs":{"operator":["Module","global.double"], "parallelOperators":["Int",4], "width":["Int",16]}
+            "genargs":{"numInputs":["Int",4], "operator":["Module","global.double"]}
           }
         },
         "connections":[
-          ["mapDouble.in","self.in"],
-          ["mapDouble.out","self.out"]
+          ["mapDouble.I","self.in"],
+          ["mapDouble.O","self.out"]
         ]
       }
     }
