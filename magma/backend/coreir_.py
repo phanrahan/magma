@@ -2,6 +2,7 @@ from collections import OrderedDict
 import os
 from ..bit import VCC, GND, BitType
 from ..array import ArrayKind, ArrayType
+from ..tuple import TupleKind, TupleType
 from ..clock import wiredefaultclock, ClockType, ResetType
 from ..bitutils import seq2int
 from ..backend.verilog import find
@@ -59,6 +60,9 @@ class CoreIRBackend:
     def get_type(self, port, is_input):
         if isinstance(port, (ArrayType, ArrayKind)):
             _type = self.context.Array(port.N, self.get_type(port.T, is_input))
+        elif isinstance(port, (TupleType, TupleKind)):
+            _type = self.context.Record({k:self.get_type(t, is_input)
+                                         for (k,t) in zip(port.Ks, port.Ts)})
         elif is_input:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clk")]
