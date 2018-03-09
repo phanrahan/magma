@@ -3,12 +3,12 @@
   "global":{
     "modules":{
       "Add8_cin":{
-        "type":["Record",{
-          "I0":["Array",8,"BitIn"],
-          "I1":["Array",8,"BitIn"],
-          "O":["Array",8,"Bit"],
-          "CIN":"BitIn"
-        }],
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["O",["Array",8,"Bit"]],
+          ["CIN","BitIn"]
+        ]],
         "instances":{
           "bit_const_GND":{
             "modref":"corebit.const",
@@ -39,12 +39,12 @@
         ]
       },
       "test":{
-        "type":["Record",{
-          "I0":["Array",8,"BitIn"],
-          "I1":["Array",8,"BitIn"],
-          "CIN":"BitIn",
-          "O":["Array",8,"Bit"]
-        }],
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["CIN","BitIn"],
+          ["O",["Array",8,"Bit"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Add8_cin"
