@@ -34,6 +34,14 @@ class DisplayExpr:
 def print_err(str):
     print(str, file=sys.stderr)
 
+def split_index(str):
+    r = re.compile("^([a-zA-Z]+)\[([0-9]+)\]$")
+    match = r.match(str)
+    if match is None:
+        return None
+
+    return match[1], int(match[2])
+
 def describe_instance(inst):
     desc_str = type(inst).__name__ + ": "
     if inst.decl is not None:
@@ -72,6 +80,24 @@ def get_bit_full_name(bit):
         return arrayname + "[" + str(name.index) + "]"
     else:
         return ""
+
+def format_val(val, bit, raw):
+    # Is an array of arrays?
+    if isinstance(val, list) and len(val) > 0 and isinstance(val[0], list):
+        s = '['
+        for i, v in enumerate(val):
+            s += str(format_val(v, bit[i], raw))
+            if i < len(val) - 1:
+                s += ", "
+        s += ']'
+        return s
+    else:
+        if raw:
+            return "".join(['1' if e else '0' for e in reversed(val)])
+        else:
+            if not isinstance(bit, ArrayType) or isinstance(val, bool):
+                val = [val]
+            return seq2int(val)
 
 class SimulationConsoleException(Exception):
     pass
@@ -189,24 +215,19 @@ class SimulationConsole(cmd.Cmd):
         self.update_prompt()
 
         for e in self.display_exprs:
-            e.display(self.format_val(e.object, e.scope))
+            e.display(self.get_formatted_val(e.object, e.scope))
 
         return stop
     
-    def format_val(self, bit, scope, raw=False):
+    def get_formatted_val(self, bit, scope, raw=False):
         val = self.simulator.get_value(bit, scope)
         if val is None:
             return "Doesn't exist"
 
-        if raw:
-            return "".join(['1' if e else '0' for e in val])
-        else:
-            if not isinstance(bit, ArrayType) or isinstance(val, bool):
-                val = [val]
-            return seq2int(val)
+        return format_val(val, bit, raw)
 
     def log_val(self, bit, scope, raw=False):
-        print(self.format_val(bit, scope, raw))
+        print(self.get_formatted_val(bit, scope, raw))
 
     def update_vars(self):
         self.vars.clear()
@@ -255,10 +276,18 @@ class SimulationConsole(cmd.Cmd):
 
         for idx, comp_name in enumerate(components):
             defn = type(cur) if isinstance(cur, CircuitType) else cur
+            index_match = split_index(comp_name)
+            bit_idx = None
+            if index_match is not None:
+                comp_name = index_match[0]
+                bit_idx = index_match[1]
 
             # Last iteration, check for bit first
             if idx == len(components) - 1 and comp_name in cur.interface.ports:
-                return cur.interface.ports[comp_name], scope
+                if bit_idx is None:
+                    return cur.interface.ports[comp_name], scope
+                else:
+                    return cur.interface.ports[comp_name][bit_idx], scope
 
             found = False
             for inst in defn.instances:
