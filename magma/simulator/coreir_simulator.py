@@ -44,8 +44,14 @@ def convert_to_coreir_path(bit, scope):
         scope = scope.parent
     
     last_component = coreir_.magma_port_to_coreir(bit)
-    last_inst, port = last_component.split('.')
+    last_inst, port = last_component.split('.', 1)
     insts.append(last_inst)
+
+    # Handle renaming due to flatten types
+    if isinstance(bit.name, ArrayRef) and isinstance(bit, ArrayType):
+        port, idx = port.split('.')
+        port += "_" + idx
+
     ports = [port]
 
     return insts, ports 
@@ -147,11 +153,20 @@ class CoreIRSimulator(CircuitSimulator):
         if bit.const():
             return True if bit == VCC else False
 
-        insts, ports = convert_to_coreir_path(bit, scope)
-        bools = self.simulator_state.get_value(insts, ports)
-        if len(bools) == 1:
-            return bools[0]
-        return bools
+        # Symbol table doesn't support arrays of arrays
+        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+            r = []
+            for arr in bit:
+                r.append(self.get_value(arr, scope))
+
+            return r
+        else:
+            insts, ports = convert_to_coreir_path(bit, scope)
+
+            bools = self.simulator_state.get_value(insts, ports)
+            if len(bools) == 1:
+                return bools[0]
+            return bools
 
     def set_value(self, bit, newval, scope):
         insts, ports = convert_to_coreir_path(bit, scope)
