@@ -35,12 +35,15 @@ def print_err(str):
     print(str, file=sys.stderr)
 
 def split_index(str):
-    r = re.compile("^([a-zA-Z]+)\[([0-9]+)\]$")
+    r = re.compile("^([a-zA-Z]+)((?:\[[0-9]+\])+)$")
     match = r.match(str)
     if match is None:
         return None
 
-    return match[1], int(match[2])
+    idxr = re.compile("\[([0-9]+)\]")
+    idx_match = idxr.findall(match[2])
+
+    return match[1], [int(i) for i in idx_match]
 
 def describe_instance(inst):
     desc_str = type(inst).__name__ + ": "
@@ -287,7 +290,10 @@ class SimulationConsole(cmd.Cmd):
                 if bit_idx is None:
                     return cur.interface.ports[comp_name], scope
                 else:
-                    return cur.interface.ports[comp_name][bit_idx], scope
+                    port = cur.interface.ports[comp_name]
+                    for i in bit_idx:
+                        port = port[i]
+                    return port, scope
 
             found = False
             for inst in defn.instances:
