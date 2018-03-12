@@ -48,8 +48,16 @@ def convert_to_coreir_path(bit, scope):
     insts.append(last_inst)
 
     # Handle renaming due to flatten types
-    if isinstance(bit.name, ArrayRef) and isinstance(bit, ArrayType):
-        port, idx = port.split('.')
+    is_nested = False
+    arr = bit
+    while isinstance(arr.name, ArrayRef):
+        if isinstance(arr, ArrayType):
+            is_nested = True
+            break
+        arr = arr.name.array
+
+    if is_nested:
+        port, idx = port.split('.', 1)
         port += "_" + idx
 
     ports = [port]
