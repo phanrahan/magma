@@ -9,7 +9,7 @@ from random import randint
 
 unary_primitives = [
     ("not", operator.invert),
-    # ("neg", operator.neg),
+    ("neg", operator.neg),
 ]
 
 binary_primitives = [
@@ -48,28 +48,55 @@ def pytest_generate_tests(metafunc):
     if 'input1' in metafunc.fixturenames:
         metafunc.parametrize("input1", range(16))
 
-def complete(func, n, width, signed=False):
+def complete(func, n, width, signed=False, num_args=1):
     max = 1 << width
     tests = []
-    for i in range(n):
-        for j in range(n):
-            test = [BitVector(i, width, signed), BitVector(j, width, signed)]
-            result = func(*test)
-            test.append(result)
-            tests.append(test)
-    return tests
-
-def random(func, n, width, signed=False):
-    max = 1 << width
-    tests = []
-    for i in range(n):
-        x = randint(0, max)
-        y = randint(0, max)
-        test = [BitVector(x, width, signed), BitVector(y, width, signed)]
+    for args in itertools.product(range(max) for _ in range(num_args)):
+        test = [BitVector(i, width, signed) for i in args]
         result = func(*test)
         test.append(result)
         tests.append(test)
     return tests
+
+def random(func, n, width, signed=False, num_args=1):
+    max = 1 << width
+    tests = []
+    for i in range(n):
+        test = [BitVector(randint(0, max - 1), width, signed) for _ in range(num_args)]
+        result = func(*test)
+        test.append(result)
+        tests.append(test)
+    return tests
+
+def test_unary_primitive(unary_primitive, width):
+
+    primitive_name, primitive_op = unary_primitive
+    prim = m.DeclareCircuit(f"primitive_name",
+            "in", m.In(m.Array(width, m.Bit)),
+            "out",  m.Out(m.Array(width, m.Bit)),
+            coreir_lib="coreir", coreir_name=primitive_name, coreir_genargs={"width": width})
+    circ = m.DefineCircuit(f"{primitive_name}_wrapper",
+            "I", m.In(m.Array(width, m.Bit)),
+            "O",  m.Out(m.Array(width, m.Bit))
+            )
+    inst = prim()
+    m.wire(circ.I, getattr(inst, "in"))
+    m.wire(circ.O, inst.out)
+    m.EndDefine()
+    m.compile(f"build/{primitive_name}", circ, output="coreir")
+
+    file_path = os.path.dirname(__file__)
+    build_dir = os.path.join(file_path, 'build')
+    result = delegator.run(f"coreir -i {primitive_name}.json -o {primitive_name}.v", cwd=build_dir)
+    assert not result.return_code, result.out + "\n" + result.err
+    if width == 4:
+        tests = complete(primitive_op, 16, width, signed=primitive_name=="neg", num_args=1)
+    else:
+        assert width == 16
+        tests = random(primitive_op, 512, width, signed=primitive_name=="neg", num_args=1)
+    m.testing.verilator.compile(f"build/sim_{primitive_name}.cpp", circ, tests)
+    m.testing.verilator.run_verilator_test(f"{primitive_name}",
+            f"sim_{primitive_name}", f"{primitive_name}_wrapper")
 
 def test_binary_primitive(binary_primitive, width):
 
@@ -96,10 +123,10 @@ def test_binary_primitive(binary_primitive, width):
     result = delegator.run(f"coreir -i {primitive_name}.json -o {primitive_name}.v", cwd=build_dir)
     assert not result.return_code, result.out + "\n" + result.err
     if width == 4:
-        tests = complete(primitive_op, 16, width)
+        tests = complete(primitive_op, 16, width, num_args=2)
     else:
         assert width == 16
-        tests = random(primitive_op, 512, width)
+        tests = random(primitive_op, 512, width, num_args=2)
     m.testing.verilator.compile(f"build/sim_{primitive_name}.cpp", circ, tests)
     m.testing.verilator.run_verilator_test(f"{primitive_name}",
             f"sim_{primitive_name}", f"{primitive_name}_wrapper")
@@ -128,10 +155,10 @@ def test_comparison_primitive(comparison_primitive, width):
     result = delegator.run(f"coreir -i {primitive_name}.json -o {primitive_name}.v", cwd=build_dir)
     assert not result.return_code, result.out + "\n" + result.err
     if width == 4:
-        tests = complete(primitive_op, 16, width, signed)
+        tests = complete(primitive_op, 16, width, signed, num_args=2)
     else:
         assert width == 16
-        tests = random(primitive_op, 512, width, signed)
+        tests = random(primitive_op, 512, width, signed, num_args=2)
     m.testing.verilator.compile(f"build/sim_{primitive_name}.cpp", circ, tests)
     m.testing.verilator.run_verilator_test(f"{primitive_name}",
             f"sim_{primitive_name}", f"{primitive_name}_wrapper")
