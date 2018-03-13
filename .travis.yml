@@ -5,6 +5,8 @@ python:
 sudo: true  # Needed for coreir-dev branch building coreir from source (installing g++-4.9 through apt)
 
 before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install verilator
     - source .travis/install_coreir.sh
 
 install:
