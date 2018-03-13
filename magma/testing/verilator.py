@@ -48,7 +48,7 @@ int main(int argc, char **argv, char **env) {{
         if port.isoutput():
             source += '''\
         top->{name} = test[{i}];
-        std::cout << "{name}=" << test[{i}] << " ";
+        printf("{name} = 0x%x ", test[{i}]);
 '''.format(name=name,i=i)
         i += 1
 
@@ -61,9 +61,9 @@ int main(int argc, char **argv, char **env) {{
     for name, port in circuit.interface.ports.items():
         if port.isinput():
             source += '''\
-        std::cout << "Expected {name} = " << test[{i}] << std::endl;
+        printf("Expected {name} = 0x%x\\n", test[{i}]);
         // For some reason top->port doesn't show up in cout, printf works though
-        printf("Actual {name}   = %x\\n", top->{name});
+        printf("Actual {name}   = 0x%x\\n", top->{name});
         assert(top->{name} == test[{i}]);
 '''.format(name=name,i=i)
         i += 1
