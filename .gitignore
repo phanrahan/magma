@@ -91,3 +91,5 @@ ENV/
 tests/build
 
 .DS_Store
+
+tests/test_coreir/build

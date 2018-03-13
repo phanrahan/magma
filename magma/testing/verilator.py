@@ -15,6 +15,7 @@ def harness(circuit,tests):
 #include "verilated.h"
 #include <cassert>
 #include <iostream>
+#include <printf.h>
 
 int main(int argc, char **argv, char **env) {{
     Verilated::commandArgs(argc, argv);
@@ -38,17 +39,21 @@ int main(int argc, char **argv, char **env) {{
     source += '''
     for(int i = 0; i < {}; i++) {{
         unsigned int* test = tests[i];
+        std::cout << "===== Test Iteration " << i << " =====" << std::endl;
+        std::cout << "Inputs: " << std::endl;
 '''.format(len(tests))
 
     i = 0
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
             source += '''\
-        top->{} = test[{}];
-'''.format(name,i)
+        top->{name} = test[{i}];
+        std::cout << "{name}=" << test[{i}] << " ";
+'''.format(name=name,i=i)
         i += 1
 
     source += '''\
+        std::cout << std::endl;
         top->eval();
 '''
 
@@ -56,8 +61,11 @@ int main(int argc, char **argv, char **env) {{
     for name, port in circuit.interface.ports.items():
         if port.isinput():
             source += '''\
-        assert(top->{} == test[{}]);
-'''.format(name,i)
+        std::cout << "Expected {name} = " << test[{i}] << std::endl;
+        // For some reason top->port doesn't show up in cout, printf works though
+        printf("Actual {name}   = %x\\n", top->{name});
+        assert(top->{name} == test[{i}]);
+'''.format(name=name,i=i)
         i += 1
     source += '''\
     }
