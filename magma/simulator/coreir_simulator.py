@@ -141,7 +141,19 @@ class CoreIRSimulator(CircuitSimulator):
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
             if not isinstance(topin, ClockType):
-                self.set_value(topin, int2seq(0, n=len(topin)), Scope())
+                arr = topin
+                lens = []
+                while isinstance(arr, ArrayType):
+                    lens.append(len(arr))
+                    arr = arr[0]
+                if not isinstance(topin, ArrayType):
+                    lens.append(1)
+
+                init = [0]
+                for l in reversed(lens):
+                    init = [init*l]
+
+                self.set_value(topin, init[0], Scope())
 
         if clock is not None:
             insts, ports = convert_to_coreir_path(clock, Scope())
@@ -180,8 +192,12 @@ class CoreIRSimulator(CircuitSimulator):
             return bools
 
     def set_value(self, bit, newval, scope):
-        insts, ports = convert_to_coreir_path(bit, scope)
-        self.simulator_state.set_value(old_style_path(insts, ports), newval)
+        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+            for i, arr in enumerate(bit):
+                self.set_value(arr, newval[i], scope)
+        else:
+            insts, ports = convert_to_coreir_path(bit, scope)
+            self.simulator_state.set_value(old_style_path(insts, ports), newval)
 
     def evaluate(self, no_update=False):
         clkvalue = self.__get_clock_value()

@@ -45,6 +45,17 @@ def split_index(str):
 
     return match[1], [int(i) for i in idx_match]
 
+def convert_to_bools(val, bit):
+    if isinstance(val, int):
+        return int2seq(val, len(bit))
+    elif isinstance(val, bool):
+        return val
+    elif isinstance(val, list):
+        newval = []
+        for i,v in enumerate(val):
+            newval.append(convert_to_bools(v, bit[i]))
+        return newval
+
 def describe_instance(inst):
     desc_str = type(inst).__name__ + ": "
     if inst.decl is not None:
@@ -572,10 +583,7 @@ class SimulationConsole(cmd.Cmd):
             print_err('Provide a top level input to change')
             return
 
-        args = arg.split()
-        if len(args) != 2:
-            print_err('Provide a circuit input and a new value')
-            return
+        args = arg.split(' ', 1)
 
         try:
             bit = eval(args[0], None, self.vars)
@@ -593,8 +601,7 @@ class SimulationConsole(cmd.Cmd):
             print_err("Invalid new value".format(e))
             return
 
-        if isinstance(newval, int):
-            newval = int2seq(newval, len(bit))
+        newval = convert_to_bools(newval, bit)
 
         self.simulator.set_value(bit, newval, self.scope)
         self.reeval = True
