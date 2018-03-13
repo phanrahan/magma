@@ -20,7 +20,7 @@ binary_primitives = [
     ("sub", operator.sub),
     ("mul", operator.mul),
     ("shl", operator.lshift),
-    # ("lshr", operator.rshift),
+    ("lshr", operator.rshift),
 ]
 
 comparison_primitives = [
