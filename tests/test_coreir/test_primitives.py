@@ -41,7 +41,7 @@ def pytest_generate_tests(metafunc):
     if 'comparison_primitive' in metafunc.fixturenames:
         metafunc.parametrize("comparison_primitive", comparison_primitives)
     if 'width' in metafunc.fixturenames:
-        metafunc.parametrize("width", [4])
+        metafunc.parametrize("width", [16])
     if 'input0' in metafunc.fixturenames:
         metafunc.parametrize("input0", range(16))
     if 'input1' in metafunc.fixturenames:
