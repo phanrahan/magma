@@ -92,7 +92,7 @@ class CoreIRBackend:
             return Array(len(coreir_type), self.get_ports(coreir_type.element_type))
         elif (coreir_type.kind == "Record"):
             elements = {}
-            for item in coreir_type.items:
+            for item in coreir_type.items():
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
                 elements[name] = self.get_ports(item[1])
