@@ -103,7 +103,7 @@ class CoreIRBackend:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
     def get_ports_as_list(self, ports):
-        return [item for pair in ports.items() for item in pair]
+        return [item for i in range(ports.N) for item in [ports.Ks[i], ports.Ts[i]]]
 
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
