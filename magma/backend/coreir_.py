@@ -96,7 +96,7 @@ class CoreIRBackend:
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
                 elements[name] = self.get_ports(item[1])
-            tupleToReturn = Tuple(**elements)
+            return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
             raise NotImplementedError("named types not supported yet")
         else:
