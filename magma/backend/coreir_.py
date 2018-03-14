@@ -1,8 +1,8 @@
 from collections import OrderedDict
 import os
-from ..bit import VCC, GND, BitType
-from ..array import ArrayKind, ArrayType
-from ..tuple import TupleKind, TupleType
+from ..bit import VCC, GND, BitType, BitIn, BitOut
+from ..array import ArrayKind, ArrayType, Array
+from ..tuple import TupleKind, TupleType, Tuple
 from ..clock import wiredefaultclock, ClockType, ResetType
 from ..bitutils import seq2int
 from ..backend.verilog import find
@@ -82,6 +82,28 @@ class CoreIRBackend:
             else:
                 _type = self.context.BitIn()
         return _type
+
+    def get_ports(self, coreir_type):
+        if (coreir_type.kind == "Bit"):
+            return BitOut
+        elif (coreir_type.kind == "BitIn"):
+            return BitIn
+        elif (coreir_type.kind == "Array"):
+            return Array(len(coreir_type), self.get_ports(coreir_type.element_type))
+        elif (coreir_type.kind == "Record"):
+            elements = {}
+            for item in coreir_type.items:
+                # replace  the in port with I as can't reference that
+                name = "I" if (item[0] == "in") else item[0]
+                elements[name] = self.get_ports(item[1])
+            tupleToReturn = Tuple(**elements)
+        elif (coreir_type.kind == "Named"):
+            raise NotImplementedError("named types not supported yet")
+        else:
+            raise NotImplementedError("Trying to convert unknown coreir type to magma type")
+
+    def get_ports_as_list(self, ports):
+        return [item for pair in ports.items() for item in pair]
 
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
