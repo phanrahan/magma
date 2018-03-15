@@ -62,15 +62,19 @@ class CoreIRBackend:
         elif is_input:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clk")]
-            elif isinstance(port, ResetType):
-                _type = self.context.named_types[("coreir", "rst")]
+            # FIXME: We need to distinguish between synchronous and
+            # asynchronous resets
+            # elif isinstance(port, ResetType):
+            #     _type = self.context.named_types[("coreir", "rst")]
             else:
                 _type = self.context.Bit()
         else:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clkIn")]
-            elif isinstance(port, ResetType):
-                _type = self.context.named_types[("coreir", "rstIn")]
+            # FIXME: We need to distinguish between synchronous and
+            # asynchronous resets
+            # elif isinstance(port, ResetType):
+            #     _type = self.context.named_types[("coreir", "rstIn")]
             else:
                 _type = self.context.BitIn()
         return _type
