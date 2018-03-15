@@ -14,4 +14,4 @@ def ModuleFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: s
                                dependentNamespaces: list, genargs):
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
     cirb.context.run_passes_namespaced(["rungenerators"], [namespace] + dependentNamespaces)
-    return DefineModuleWrapper(cirb, moduleToWrap)
+    return DefineModuleWrapper(cirb, moduleToWrap)()
