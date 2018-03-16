@@ -23,6 +23,10 @@ class keydefaultdict(defaultdict):
             return ret
 
 def magma_port_to_coreir(port):
+    # rewrite here to use coreir port name that couldn't be used in python
+    if hasattr(port, "origPortName"):
+        port.name.name = port.origPortName
+
     select = repr(port)
 
     name = port.name
@@ -96,6 +100,9 @@ class CoreIRBackend:
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
                 elements[name] = self.get_ports(item[1])
+                # save the renaming data for later use
+                if item[0] == "in":
+                    elements[name].origPortName = "in"
             return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
             raise NotImplementedError("named types not supported yet")
@@ -117,7 +124,10 @@ class CoreIRBackend:
         name = instance.__class__.coreir_name
         lib = self.libs[instance.coreir_lib]
         if instance.coreir_genargs is None:
-            module = lib.modules[name]
+            if hasattr(instance, "wrappedModule"):
+                module = instance.wrappedModule
+            else:
+                module = lib.modules[name]
             args = {}
             for name, value in instance.kwargs.items():
                 if name in {"name", "loc"}:
@@ -181,11 +191,11 @@ class CoreIRBackend:
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
-        module_definition = module.new_definition()
+        coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        module_definition = coreir_module.new_definition()
         self.compile_definition_to_module_definition(definition, module_definition)
-        module.definition = module_definition
-        return module
+        coreir_module.definition = module_definition
+        return coreir_module
 
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id
