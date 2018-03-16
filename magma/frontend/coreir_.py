@@ -1,5 +1,5 @@
-from .backend.coreir_ import CoreIRBackend
-from .circuit import Circuit
+from magma.backend.coreir_ import CoreIRBackend
+from magma.circuit import Circuit
 from magma import cache_definition
 
 @cache_definition
