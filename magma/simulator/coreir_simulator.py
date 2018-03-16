@@ -95,7 +95,7 @@ class CoreIRSimulator(CircuitSimulator):
 
         return triggered
 
-    def __init__(self, circuit, clock, coreir_filename=None):
+    def __init__(self, circuit, clock, coreir_filename=None, context=None):
         self.watchpoints = []
 
         need_cleanup = False
@@ -108,10 +108,13 @@ class CoreIRSimulator(CircuitSimulator):
         self.clock = clock
         setup_clocks(circuit)
 
-        coreir_.compile(circuit, coreir_filename)
+        if context is None:
+            self.ctx = coreir.Context()
+        else:
+            self.ctx = context
+        coreir_.compile(circuit, coreir_filename, context=self.ctx)
 
         # Initialize interpreter, get handle back to interpreter state
-        self.ctx  = coreir.Context()
         self.ctx.load_library("commonlib")
         self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
