@@ -207,7 +207,10 @@ class CoreIRSimulator(CircuitSimulator):
         self.simulator_state.set_clock_value(old_style_path(insts, ports), not clkvalue, clkvalue)
 
         return ExecutionState(triggered_points=self.__get_triggered_points(), clock=clkvalue, cycles=0)
-    
+
+    def advance_cycle(self, cycles=1):
+        self.advance(cycles*2)
+
     def advance(self, halfcycles=1):
         cycles = self.__get_cur_cycles()
         # TODO add a function to interpreter to avoid doing this for loop in python
@@ -220,6 +223,9 @@ class CoreIRSimulator(CircuitSimulator):
 
         post_cycles = self.__get_cur_cycles()
         return ExecutionState(triggered_points=watchpoints, clock=self.__get_clock_value(), cycles=post_cycles - cycles)
+
+    def rewind_cycle(self, cycles=1):
+        self.rewind(cycles*2)
 
     def rewind(self, halfcycles):
         self.simulator_state.rewind(halfcycles)
