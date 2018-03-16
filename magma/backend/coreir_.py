@@ -38,14 +38,7 @@ class CoreIRBackend:
         if context is None:
             context = coreir.Context()
         self.context = context
-        def get_lib(lib):
-            if lib in {"coreir", "mantle", "corebit"}:
-                return context.get_namespace(lib)
-            elif lib == "global":
-                return context.global_namespace
-            else:
-                return context.load_library(lib)
-        self.libs = keydefaultdict(get_lib)
+        self.libs = keydefaultdict(self.context.get_lib)
         self.__constant_cache = {}
         self.__unique_concat_id = -1
 
