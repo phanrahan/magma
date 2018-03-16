@@ -44,8 +44,22 @@ def convert_to_coreir_path(bit, scope):
         scope = scope.parent
     
     last_component = coreir_.magma_port_to_coreir(bit)
-    last_inst, port = last_component.split('.')
+    last_inst, port = last_component.split('.', 1)
     insts.append(last_inst)
+
+    # Handle renaming due to flatten types
+    is_nested = False
+    arr = bit
+    while isinstance(arr.name, ArrayRef):
+        if isinstance(arr, ArrayType):
+            is_nested = True
+            break
+        arr = arr.name.array
+
+    if is_nested:
+        port, idx = port.split('.', 1)
+        port += "_" + idx
+
     ports = [port]
 
     return insts, ports 
@@ -127,7 +141,19 @@ class CoreIRSimulator(CircuitSimulator):
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
             if not isinstance(topin, ClockType):
-                self.set_value(topin, int2seq(0, n=len(topin)), Scope())
+                arr = topin
+                lens = []
+                while isinstance(arr, ArrayType):
+                    lens.append(len(arr))
+                    arr = arr[0]
+                if not isinstance(topin, ArrayType):
+                    lens.append(1)
+
+                init = [0]
+                for l in reversed(lens):
+                    init = [init*l]
+
+                self.set_value(topin, init[0], Scope())
 
         if clock is not None:
             insts, ports = convert_to_coreir_path(clock, Scope())
@@ -150,15 +176,28 @@ class CoreIRSimulator(CircuitSimulator):
         if bit.const():
             return True if bit == VCC else False
 
-        insts, ports = convert_to_coreir_path(bit, scope)
-        bools = self.simulator_state.get_value(insts, ports)
-        if len(bools) == 1:
-            return bools[0]
-        return bools
+        # Symbol table doesn't support arrays of arrays
+        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+            r = []
+            for arr in bit:
+                r.append(self.get_value(arr, scope))
+
+            return r
+        else:
+            insts, ports = convert_to_coreir_path(bit, scope)
+
+            bools = self.simulator_state.get_value(insts, ports)
+            if len(bools) == 1:
+                return bools[0]
+            return bools
 
     def set_value(self, bit, newval, scope):
-        insts, ports = convert_to_coreir_path(bit, scope)
-        self.simulator_state.set_value(old_style_path(insts, ports), newval)
+        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+            for i, arr in enumerate(bit):
+                self.set_value(arr, newval[i], scope)
+        else:
+            insts, ports = convert_to_coreir_path(bit, scope)
+            self.simulator_state.set_value(old_style_path(insts, ports), newval)
 
     def evaluate(self, no_update=False):
         clkvalue = self.__get_clock_value()
