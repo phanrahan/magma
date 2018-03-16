@@ -90,4 +90,7 @@ ENV/
 .ropeproject
 tests/build
 
+# Pycharm
+.idea/
+
 .DS_Store

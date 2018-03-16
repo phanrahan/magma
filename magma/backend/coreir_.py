@@ -1,7 +1,8 @@
 from collections import OrderedDict
 import os
-from ..bit import VCC, GND, BitType
-from ..array import ArrayKind, ArrayType
+from ..bit import VCC, GND, BitType, BitIn, BitOut
+from ..array import ArrayKind, ArrayType, Array
+from ..tuple import TupleKind, TupleType, Tuple
 from ..clock import wiredefaultclock, ClockType, ResetType
 from ..bitutils import seq2int
 from ..backend.verilog import find
@@ -22,6 +23,10 @@ class keydefaultdict(defaultdict):
             return ret
 
 def magma_port_to_coreir(port):
+    # rewrite here to use coreir port name that couldn't be used in python
+    if hasattr(port, "origPortName"):
+        port.name.name = port.origPortName
+
     select = repr(port)
 
     name = port.name
@@ -38,14 +43,7 @@ class CoreIRBackend:
         if context is None:
             context = coreir.Context()
         self.context = context
-        def get_lib(lib):
-            if lib in {"coreir", "mantle", "corebit"}:
-                return context.get_namespace(lib)
-            elif lib == "global":
-                return context.global_namespace
-            else:
-                return context.load_library(lib)
-        self.libs = keydefaultdict(get_lib)
+        self.libs = keydefaultdict(self.context.get_lib)
         self.__constant_cache = {}
         self.__unique_concat_id = -1
 
@@ -59,6 +57,9 @@ class CoreIRBackend:
     def get_type(self, port, is_input):
         if isinstance(port, (ArrayType, ArrayKind)):
             _type = self.context.Array(port.N, self.get_type(port.T, is_input))
+        elif isinstance(port, (TupleType, TupleKind)):
+            _type = self.context.Record({k:self.get_type(t, is_input)
+                                         for (k,t) in zip(port.Ks, port.Ts)})
         elif is_input:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clk")]
@@ -79,6 +80,31 @@ class CoreIRBackend:
                 _type = self.context.BitIn()
         return _type
 
+    def get_ports(self, coreir_type):
+        if (coreir_type.kind == "Bit"):
+            return BitOut
+        elif (coreir_type.kind == "BitIn"):
+            return BitIn
+        elif (coreir_type.kind == "Array"):
+            return Array(len(coreir_type), self.get_ports(coreir_type.element_type))
+        elif (coreir_type.kind == "Record"):
+            elements = {}
+            for item in coreir_type.items():
+                # replace  the in port with I as can't reference that
+                name = "I" if (item[0] == "in") else item[0]
+                elements[name] = self.get_ports(item[1])
+                # save the renaming data for later use
+                if item[0] == "in":
+                    elements[name].origPortName = "in"
+            return Tuple(**elements)
+        elif (coreir_type.kind == "Named"):
+            raise NotImplementedError("named types not supported yet")
+        else:
+            raise NotImplementedError("Trying to convert unknown coreir type to magma type")
+
+    def get_ports_as_list(self, ports):
+        return [item for i in range(ports.N) for item in [ports.Ks[i], ports.Ts[i]]]
+
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
         for name, port in interface.ports.items():
@@ -91,7 +117,10 @@ class CoreIRBackend:
         name = instance.__class__.coreir_name
         lib = self.libs[instance.coreir_lib]
         if instance.coreir_genargs is None:
-            module = lib.modules[name]
+            if hasattr(instance, "wrappedModule"):
+                module = instance.wrappedModule
+            else:
+                module = lib.modules[name]
             args = {}
             for name, value in instance.kwargs.items():
                 if name in {"name", "loc"}:
@@ -155,11 +184,11 @@ class CoreIRBackend:
     def compile_definition(self, definition):
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
-        module_definition = module.new_definition()
+        coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        module_definition = coreir_module.new_definition()
         self.compile_definition_to_module_definition(definition, module_definition)
-        module.definition = module_definition
-        return module
+        coreir_module.definition = module_definition
+        return coreir_module
 
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id

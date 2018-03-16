@@ -109,7 +109,7 @@ class CoreIRSimulator(CircuitSimulator):
 
         return triggered
 
-    def __init__(self, circuit, clock, coreir_filename=None):
+    def __init__(self, circuit, clock, coreir_filename=None, context=None):
         self.watchpoints = []
 
         need_cleanup = False
@@ -122,11 +122,14 @@ class CoreIRSimulator(CircuitSimulator):
         self.clock = clock
         setup_clocks(circuit)
 
-        coreir_.compile(circuit, coreir_filename)
+        if context is None:
+            self.ctx = coreir.Context()
+        else:
+            self.ctx = context
+        coreir_.compile(circuit, coreir_filename, context=self.ctx)
 
         # Initialize interpreter, get handle back to interpreter state
-        self.ctx  = coreir.Context()
-        self.ctx.load_library("commonlib")
+        self.ctx.get_lib("commonlib")
         self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
         self.ctx.run_passes(["rungenerators", "flattentypes", "flatten", "verifyconnectivity-onlyinputs"])
@@ -204,7 +207,7 @@ class CoreIRSimulator(CircuitSimulator):
         self.simulator_state.set_clock_value(old_style_path(insts, ports), not clkvalue, clkvalue)
 
         return ExecutionState(triggered_points=self.__get_triggered_points(), clock=clkvalue, cycles=0)
-    
+
     def advance(self, halfcycles=1):
         cycles = self.__get_cur_cycles()
         # TODO add a function to interpreter to avoid doing this for loop in python
