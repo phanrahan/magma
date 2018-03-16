@@ -27,24 +27,22 @@ class CircuitSimulator(ABC):
         pass
 
     @abstractmethod
-    def advance_cycle(self, cycles):
-        pass
-
-    @abstractmethod
     def advance(self, halfcycles):
         pass
+
+    def advance_cycle(self, cycles):
+        self.advance(cycles * 2)
 
     @abstractmethod
     def evaluate(self_):
         pass
 
     @abstractmethod
-    def rewind_cycle(self, cycles):
-        pass
-
-    @abstractmethod
     def rewind(self, halfcycles):
         pass
+
+    def rewind_cycle(self, cycles):
+        self.rewind(cycles * 2)
 
     @abstractmethod
     def cont(self):
