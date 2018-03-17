@@ -11,7 +11,20 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule):
     return ModuleWrapper
 
 def ModuleFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
-                               dependentNamespaces: list, genargs = {}, modargs = {}):
+                               dependentNamespaces: list, genargs: dict = {}, modargs: dict = {}):
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
     cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
     return DefineModuleWrapper(cirb, moduleToWrap)(**modargs)
+
+def GetCoreIRModule(cirb: CoreIRBackend, circuit: Circuit):
+    """
+    Get the CoreIR module corresponding to the Magma circuit
+
+    :param cirb: The CoreIR backend currently be used.
+    :param circuit: The magma circuit to get the coreIR backend for
+    :return: A CoreIR module
+    """
+    if (hasattr(circuit, "wrappedModule")):
+        return circuit.wrappedModule
+    else:
+        return cirb.compile_definition(circuit)

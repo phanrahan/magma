@@ -23,10 +23,6 @@ class keydefaultdict(defaultdict):
             return ret
 
 def magma_port_to_coreir(port):
-    # rewrite here to use coreir port name that couldn't be used in python
-    if hasattr(port, "origPortName"):
-        port.name.name = port.origPortName
-
     select = repr(port)
 
     name = port.name
