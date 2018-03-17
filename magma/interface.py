@@ -209,6 +209,8 @@ class _DeclareInterface(_Interface):
             else:      ref = AnonRef(name)
 
             port = port.qualify(direction)
+            if hasattr(port, "origPortName"):
+                ref.name = port.origPortName
 
             args[name] = port(name=ref)
 
