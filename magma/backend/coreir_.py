@@ -77,6 +77,10 @@ class CoreIRBackend:
                 _type = self.context.BitIn()
         return _type
 
+    coreirNamedTypeToPortDict = {
+        "clk": Clock
+    }
+
     def get_ports(self, coreir_type):
         if (coreir_type.kind == "Bit"):
             return BitOut
@@ -90,8 +94,8 @@ class CoreIRBackend:
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
                 # exception to handle clock types, since other named types not handled
-                if name == "clk" and item[1].kind == "Named":
-                    elements[name] = In(Clock)
+                if item[1].kind == "Named" and name in self.coreirNamedTypeToPortDict:
+                    elements[name] = In(self.coreirNamedTypeToPortDict[name])
                 else:
                     elements[name] = self.get_ports(item[1])
                 # save the renaming data for later use
@@ -194,7 +198,7 @@ class CoreIRBackend:
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id
         if value is None:
-            raise Exception("Got None for port: {}".format(port))
+            raise Exception("Got None for port: {}, is it connected to anything?".format(port))
         elif isinstance(value, coreir.Wireable):
             source = value
 
