@@ -3,13 +3,14 @@ import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, ClockType, ResetType
+from ..clock import wiredefaultclock, ClockType, Clock, ResetType
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
 import coreir
 from ..ref import ArrayRef, DefnRef
 from ..passes import InstanceGraphPass
+from ..t import In
 
 from collections import defaultdict
 
@@ -88,7 +89,11 @@ class CoreIRBackend:
             for item in coreir_type.items():
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
-                elements[name] = self.get_ports(item[1])
+                # exception to handle clock types, since other named types not handled
+                if name == "clk" and item[1].kind == "Named":
+                    elements[name] = In(Clock)
+                else:
+                    elements[name] = self.get_ports(item[1])
                 # save the renaming data for later use
                 if item[0] == "in":
                     elements[name].origPortName = "in"
