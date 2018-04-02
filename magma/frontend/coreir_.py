@@ -27,4 +27,4 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: Circuit):
     if (hasattr(circuit, "wrappedModule")):
         return circuit.wrappedModule
     else:
-        return cirb.compile_definition(circuit)
+        return cirb.compile(circuit)[circuit.name]
