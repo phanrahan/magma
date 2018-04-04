@@ -10,11 +10,16 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule):
         wrappedModule = coreirModule
     return ModuleWrapper
 
-def ModuleFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
-                               dependentNamespaces: list, genargs: dict = {}, modargs: dict = {}):
+def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
+                                dependentNamespaces: list, genargs: dict = {}, modargs: dict = {}):
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
     cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
-    return DefineModuleWrapper(cirb, moduleToWrap)(**modargs)
+    return DefineModuleWrapper(cirb, moduleToWrap)
+
+def CircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
+                                dependentNamespaces: list, genargs: dict = {}, modargs: dict = {}):
+    return DefineCircuitFromGeneratorWrapper(cirb, namespace, generator,
+                                             dependentNamespaces, genargs)(**modargs)
 
 def GetCoreIRModule(cirb: CoreIRBackend, circuit: Circuit):
     """
