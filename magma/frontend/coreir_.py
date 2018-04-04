@@ -16,8 +16,8 @@ def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gener
     cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
     return DefineModuleWrapper(cirb, moduleToWrap)
 
-def CircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
-                                dependentNamespaces: list, genargs: dict = {}, modargs: dict = {}):
+def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
+                                        dependentNamespaces: list, genargs: dict = {}, modargs: dict = {}):
     return DefineCircuitFromGeneratorWrapper(cirb, namespace, generator,
                                              dependentNamespaces, genargs)(**modargs)
 
