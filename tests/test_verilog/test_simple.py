@@ -12,4 +12,4 @@ def test_simple():
     v = DeclareFromVerilog(s)
     top = v[0]
     assert top.name == "top"
-    assert repr(top.IO) == "Interface(a, In(Bit), b, Out(Bit))"
+    assert repr(top.IO) == "Interface(a, In(Bit), b, Out(Bit), c, Bit)"

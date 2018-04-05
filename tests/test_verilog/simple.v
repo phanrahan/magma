@@ -1,5 +1,6 @@
-module top(a, b);
+module top(a, b, c);
     input a;
     output b;
-    assign a = b;
+    inout c;
+    assign a = b & c;
 endmodule

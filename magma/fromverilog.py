@@ -4,6 +4,7 @@ from collections import namedtuple
 
 from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
+import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
 
 from .t import In, Out, InOut
@@ -66,7 +67,10 @@ def ParseVerilogModule(node):
             for child in node.children():
                 if isinstance(child, Decl):
                     first_child = child.children()[0]
-                    if isinstance(first_child, (Input, Output)) and first_child.name == port:
+                    if first_child.name == "c":
+                        print(type(first_child))
+                    if isinstance(first_child, (parser.Input, parser.Output, parser.Inout)) and \
+                            first_child.name == port:
                         args.append(first_child.name)
                         args.append(get_type(first_child))
                         break
