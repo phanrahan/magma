@@ -60,7 +60,8 @@ def ParseVerilogModule(node):
         else:
             raise NotImplementedError(type(port))
 
-    if ports and not args:
+    if ports:
+        assert not args, "Can we have mixed declared and undeclared types in a Verilog module?"
         for port in ports:
             for child in node.children():
                 if isinstance(child, Decl):
