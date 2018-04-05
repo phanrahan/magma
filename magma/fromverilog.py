@@ -65,9 +65,12 @@ def ParseVerilogModule(node):
             for child in node.children():
                 if isinstance(child, Decl):
                     first_child = child.children()[0]
-                    if isinstance(first_child, (Input, Output)):
+                    if isinstance(first_child, (Input, Output)) and first_child.name == port:
                         args.append(first_child.name)
                         args.append(get_type(first_child))
+                        break
+            else:
+                raise Exception(f"Could not find type declaration for port {port}")
 
     return node.name, args
 
