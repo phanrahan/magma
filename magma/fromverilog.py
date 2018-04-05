@@ -3,7 +3,7 @@ from __future__ import print_function
 from collections import namedtuple
 
 from mako.template import Template
-from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef
+from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
 from pyverilog.dataflow.visit import NodeVisitor
 
 from .t import In, Out, InOut
@@ -29,28 +29,45 @@ class ModuleVisitor(NodeVisitor):
         self.nodes.append(node)
         return node
 
+def get_type(io):
+    if isinstance(io, Input):
+        direction = In
+    elif isinstance(io, Output):
+        direction = Out
+    else:
+        direction = InOut
+
+    if io.width is None:
+        type_ = Bit
+    else:
+        msb = int(io.width.msb.value)
+        lsb = int(io.width.lsb.value)
+
+        type_ = Array(msb-lsb+1, Bit)
+    return direction(type_)
+
+
 def ParseVerilogModule(node):
     args = []
+    ports = []
     for port in node.portlist.ports:
-        io = port.first
-        args.append(io.name)
-
-        if isinstance(io, Input):
-            direction = In
-        elif isinstance(io, Output):
-            direction = Out
+        if isinstance(port, Ioport):
+            io = port.first
+            args.append(io.name)
+            args.append(get_type(io))
+        elif isinstance(port, Port):
+            ports.append(port.name)
         else:
-            direction = InOut
+            raise NotImplementedError(type(port))
 
-        if io.width is None:
-            type_ = Bit
-        else:
-            msb = int(io.width.msb.value)
-            lsb = int(io.width.lsb.value)
-
-            type_ = Array(msb-lsb+1, Bit)
-
-        args.append(direction(type_))
+    if ports and not args:
+        for port in ports:
+            for child in node.children():
+                if isinstance(child, Decl):
+                    first_child = child.children()[0]
+                    if isinstance(first_child, (Input, Output)):
+                        args.append(first_child.name)
+                        args.append(get_type(first_child))
 
     return node.name, args
 
