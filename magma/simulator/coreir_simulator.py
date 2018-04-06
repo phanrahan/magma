@@ -109,7 +109,7 @@ class CoreIRSimulator(CircuitSimulator):
 
         return triggered
 
-    def __init__(self, circuit, clock, coreir_filename=None, context=None):
+    def __init__(self, circuit, clock, coreir_filename=None, context=None, namespaces=["global"]):
         self.watchpoints = []
 
         need_cleanup = False
@@ -132,7 +132,9 @@ class CoreIRSimulator(CircuitSimulator):
         self.ctx.get_lib("commonlib")
         self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
-        self.ctx.run_passes(["rungenerators", "flattentypes", "flatten", "verifyconnectivity-onlyinputs"])
+        self.ctx.run_passes(["rungenerators", "flattentypes", "flatten",
+                             "verifyconnectivity-noclkrst", "deletedeadinstances"],
+                            namespaces=namespaces)
         self.simulator_state = coreir.SimulatorState(coreir_circuit)
 
         if need_cleanup:
