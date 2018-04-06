@@ -23,7 +23,7 @@ def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gen
 
 def GetCoreIRModule(cirb: CoreIRBackend, circuit: Circuit):
     """
-    Get the CoreIR module corresponding to the Magma circuit
+    Get the CoreIR module corresponding to the Magma circuit or circuit instance
 
     :param cirb: The CoreIR backend currently be used.
     :param circuit: The magma circuit to get the coreIR backend for
@@ -32,4 +32,9 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: Circuit):
     if (hasattr(circuit, "wrappedModule")):
         return circuit.wrappedModule
     else:
-        return cirb.compile(circuit)[circuit.name]
+        # if this is an instance, compile the class, as that is the circuit
+        if circuit.is_instance:
+            circuitNotInstance = circuit.__class__
+        else:
+            circuitNotInstance = circuit
+        return cirb.compile(circuitNotInstance)[circuitNotInstance.name]

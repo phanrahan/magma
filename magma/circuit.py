@@ -156,6 +156,7 @@ class AnonymousCircuitType(object):
         self.interface = None
         self.defn = None
         self.used = False
+        self.is_instance = True
 
         self.filename = None
         self.lineno   = None
@@ -389,6 +390,7 @@ class DefineCircuitKind(CircuitKind):
 
         self.instances = []
         self._is_definition = dct.get('is_definition', False)
+        self.is_instance = False
 
         if hasattr(self, 'IO'):
             # instantiate interface
