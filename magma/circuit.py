@@ -426,6 +426,8 @@ class DefineCircuitKind(CircuitKind):
             inst.name = 'inst' + str(len(cls.instances))
             # osnr's suggested name
             #inst.name = 'inst' + str(len(cls.instances)) + '_' + inst.__class__.name
+            if inst.name == "inst0_coreir_mux":
+                print("hi")
             #print('naming circuit instance', inst.name)
         #print('placing', inst, 'in', cls)
         inst.defn = cls
