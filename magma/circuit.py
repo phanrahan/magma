@@ -37,9 +37,12 @@ __all__ += ['circuit_generator']
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 def circuit_to_html(cls):
-    # Avoid circular dependency so dot backend can use passes
-    from .backend.dot import to_html
-    return to_html(cls)
+    if isdefinition(cls):
+        # Avoid circular dependency so dot backend can use passes
+        from .backend.dot import to_html
+        return to_html(cls)
+    else:
+        return repr(cls)
 
 # create an attribute for each port
 def setports(self, ports):
