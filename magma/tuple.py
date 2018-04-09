@@ -149,6 +149,7 @@ class TupleType(Type):
 
         if len(ts) == self.N and self.iswhole(ts):
             return ts[0].name.tuple
+        assert False
 
         return tuple_(dict(zip(self.Ks,ts)))
 
