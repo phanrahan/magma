@@ -7,7 +7,7 @@ from .clock import ClockType, Clock, \
     Enable, EnableType
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
-from .tuple import TupleType, Tuple, tuple_
+from .tuple import TupleType, Tuple, tuple_ as tuple_imported
 from .bitutils import int2seq
 
 __all__  = ['bit']
@@ -152,4 +152,4 @@ def sext(value, n):
     return sint(concat(array(value[-1], n), array(value)))
 
 def tuple_(value, n=None):
-    tuple_(value, n)
+    return tuple_imported(value, n)
