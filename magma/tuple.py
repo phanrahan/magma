@@ -40,6 +40,8 @@ class TupleType(Type):
                 self.ts.append(t)
                 setattr(self, k, t)
 
+    __hash__ = Type.__hash__
+
     def __eq__(self, rhs):
         if not isinstance(rhs, TupleType): return False
         return self.ts == rhs.ts
