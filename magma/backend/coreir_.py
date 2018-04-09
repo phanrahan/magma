@@ -247,6 +247,10 @@ class CoreIRBackend:
         elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
             source = self.get_constant_instance(value, len(value),
                     module_definition)
+        elif isinstance(value, TupleType) and value.anon():
+            for p, v in zip(port, value):
+                self.connect(module_definition, p, v, output_ports)
+            return
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
