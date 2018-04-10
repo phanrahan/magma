@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import os
-from ..bit import VCC, GND, BitType, BitIn, BitOut
+from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
 from ..clock import wiredefaultclock, ClockType, Clock, ResetType
@@ -100,6 +100,9 @@ class CoreIRBackend:
                     elements[name] = self.get_ports(item[1])
                 # save the renaming data for later use
                 if item[0] == "in":
+                    if isinstance(elements[name], BitKind):
+                        # making a copy of bit, as don't want to affect all other bits
+                        elements[name] = MakeBit(direction=elements[name].direction)
                     elements[name].origPortName = "in"
             return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
