@@ -78,7 +78,8 @@ class CoreIRBackend:
         return _type
 
     coreirNamedTypeToPortDict = {
-        "clk": Clock
+        "clk": Clock,
+        "coreir.clkIn": Clock
     }
 
     def get_ports(self, coreir_type):
@@ -93,11 +94,7 @@ class CoreIRBackend:
             for item in coreir_type.items():
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
-                # exception to handle clock types, since other named types not handled
-                if item[1].kind == "Named" and name in self.coreirNamedTypeToPortDict:
-                    elements[name] = In(self.coreirNamedTypeToPortDict[name])
-                else:
-                    elements[name] = self.get_ports(item[1])
+                elements[name] = self.get_ports(item[1])
                 # save the renaming data for later use
                 if item[0] == "in":
                     if isinstance(elements[name], BitKind):
@@ -106,7 +103,11 @@ class CoreIRBackend:
                     elements[name].origPortName = "in"
             return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
-            raise NotImplementedError("named types not supported yet")
+            # exception to handle clock types, since other named types not handled
+            if coreir_type.name in self.coreirNamedTypeToPortDict:
+                return In(self.coreirNamedTypeToPortDict[coreir_type.name])
+            else:
+                raise NotImplementedError("not all named types supported yet")
         else:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
