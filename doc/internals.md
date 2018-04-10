@@ -6,7 +6,7 @@ i. note: this describes both run and _run
 3. DefinitionPass
 4. B
 
-Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System? – see magma/circuit.py
+Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System? – see [magma/circuit.py](https://github.com/phanrahan/magma/blob/coreir-dev/magma/circuit.py)
 1. CircuitKind – instances of this are circuit declarations
     1. AnonymousCircuitType is an instance of this, so what does that make instances of AnonymousCircuit? You can’t have instances of a circuit declaration without a definition, right?
     1. CircuitType is an instance of this, subclass of AnonymousCircuitType
