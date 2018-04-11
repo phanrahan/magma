@@ -81,6 +81,7 @@ class CircuitKind(type):
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
+            cls.interface = cls.IO
 
         return cls
 

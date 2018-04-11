@@ -224,6 +224,23 @@ class _DeclareInterface(_Interface):
         self.ports = args
 
 class InterfaceKind(Kind):
+    def __init__(cls, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        ports = []
+        key = None
+        for i, arg in enumerate(cls.Decl):
+            if i % 2 == 0:
+                key = arg
+            else:
+                ports.append((key, arg))
+        cls.ports = OrderedDict(ports)
+
+    def items(cls): 
+        return cls.ports.items()
+
+    def __iter__(cls):
+        return iter(cls.ports)
+
     def __str__(cls):
         args = []
         for i, arg in enumerate(cls.Decl):
