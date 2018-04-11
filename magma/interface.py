@@ -78,6 +78,9 @@ class _Interface(Type):
                 s += 'wire({}, {})\n'.format(oname, iname)
         return s
 
+    def __iter__(self):
+        return iter(self.ports)
+
     def __len__(self):
         return len(self.ports.keys())
 
@@ -86,7 +89,7 @@ class _Interface(Type):
             return array([self[i] for i in range(*key.indices(len(self)))])
         else:
             n = len(self)
-            assert -n < key and key < len(self), "key: %d, self.N: %d" %(key,len(self))
+            assert -n < key and key < n, "key: %d, self.N: %d" %(key,len(self))
             return self.arguments()[key]
 
     # return all the argument ports

@@ -13,3 +13,10 @@ def test_simple():
     top = v[0]
     assert top.name == "top"
     assert repr(top.IO) == "Interface(a, In(Bit), b, Out(Bit), c, Bit)"
+
+def test_small():
+    file_path = os.path.dirname(__file__)
+    file_name = os.path.join(file_path, "small.v")
+    small = m.DeclareFromVerilogFile(file_name)[0]
+    for name in small.IO():
+        assert name in ["in", "out"]
