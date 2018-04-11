@@ -85,12 +85,16 @@ class _Interface(Type):
         return len(self.ports.keys())
 
     def __getitem__(self, key):
-        if isinstance(key,slice):
-            return array([self[i] for i in range(*key.indices(len(self)))])
+        if isinstance(key, int):
+            if isinstance(key,slice):
+                return array([self[i] for i in range(*key.indices(len(self)))])
+            else:
+                n = len(self)
+                assert -n < key and key < n, "key: %d, self.N: %d" %(key,len(self))
+                return self.arguments()[key]
         else:
-            n = len(self)
-            assert -n < key and key < n, "key: %d, self.N: %d" %(key,len(self))
-            return self.arguments()[key]
+            assert isinstance(key, str)
+            return self.ports[key]
 
     # return all the argument ports
     def arguments(self):
