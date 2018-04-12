@@ -3,7 +3,7 @@ import sys
 
 setup(
     name='magma',
-    version='0.1-alpha',
+    version='0.1',
     description='A circuit wiring language for programming FPGAs',
     scripts=['bin/magma'],
     packages=[
@@ -17,8 +17,6 @@ setup(
         "six",
         "mako",
         "pyverilog",
-        "backports-functools-lur-cache;python_vesion < '3'",
-        "funcsigs;python_vesion < '3.3'",
         "numpy",
         "graphviz",
         "coreir",
