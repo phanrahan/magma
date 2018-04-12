@@ -1,10 +1,31 @@
 Types of passes:
 1. Pass – parent, just takes an object __(I think it’s a circuit, with InstanceGraphPass it’s a circuit, unclear for others)__ and assigns it to the pass’s main
-2. InstancePass(Pass) – call’s Pass’s init, then creates an empty instances list – main here is a circuit definition
-a. run -
-i. note: this describes both run and _run
-3. DefinitionPass
-4. B
+2. InstancePass(Pass) – A pass that finds all instances (including nested ones) in a definition
+    1. __init__ - call’s Pass’s init, then creates an empty instances list – main here is a circuit definition
+    1. run/_run - BFS search of all instances, return a list of paths to all.
+        1. note: callable is meaningless here, since InstancePass never callable
+3. DefinitionPass - A pass that finds all the definitions and instances
+    1. Works by taking in a top level definition (self.main) and then
+        1. For each instance used in the definition, look at that instances defintion
+    1. __is this really what this is doing? Why is this here? Neither DefinitionPass nor InstancePass are ever referenced___
+        1. not true. InstancePass never used, but definition pass subclassed a bunch, like BuildInstanceGraphPass.
+        2. subclasses of this use DefinitionPass._run to populate the definitions property of the Pass object
+    2. __even if this were to do something, shouldn't it need to be changed to call InstancePass to find neseted modules?__
+    2. __can an instance have a definition in it's instances list? If so, then isn't this pass broken?__ - no, according to circuit.py isdefinition, a circuit is a definition if it has instances. Since can't be both a definition and an instance, instances can't contain instances
+        1. definition.instances can only have instances. Instances can (and I think must, but not sure) have defintions. These are accessed by type(instance)
+    3. __And what does call do? Nothing has a `__call__` method__ - The passes that subclass this have `__call__` methods
+4. BuildInstanceGraphPass
+    1. DefinitionPass gets all the definitions, then calls the `__call__` method on all them, which builds the graph of
+        1. Verticies - the definitions
+        2. Edges - the instances.
+            1. __what are these edges connecting to? It goes from a vertex (a definition) to what?__
+    1. done - makes graph into a list of tuples of (defintion, instances for definition)
+5. InstanceGraphPass - call BuildInstanceGraphPass to a tuple of (circuitdefiniton, instances for definition) for all definitions in the cirucit passed in as main, set that list as value for self.tsortedgraph
+
+
+How Are Circuit Definitions And Instances Structured
+1. Each definition has a instances list, which is a list of instances in that are added to that definition
+2. Each of those instances may have a definition that is gotten by getting the instances type. This is because an instance's definition is the class it is an instance of. Getting the type of an instance gets the class its an instance of.
 
 Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System? – see [magma/circuit.py](https://github.com/phanrahan/magma/blob/coreir-dev/magma/circuit.py)
 1. CircuitKind – instances of this are circuit declarations
