@@ -8,7 +8,6 @@ before_install:
     - source .travis/install_coreir.sh
 
 install:
-    - pip install -r requirements.txt
     - pip install pytest-cov
     - pip install -e .
 

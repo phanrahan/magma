@@ -24,6 +24,16 @@ setup(
         "magma.simulator",
         "magma.testing"
     ],
-    install_requires=install_requires,
+    install_requires=[
+        "six",
+        "mako",
+        "pyverilog",
+        "backports-functools-lur-cache;python_vesion < '3'",
+        "funcsigs;python_vesion < '3.3'",
+        "numpy",
+        "graphviz",
+        "coreir",
+        "bit_vector"
+    ],
     python_requires='>=3.6'
 )
