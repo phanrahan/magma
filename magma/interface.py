@@ -1,4 +1,5 @@
 from __future__ import division
+from itertools import chain
 from collections import OrderedDict
 from .ref import AnonRef, InstRef, DefnRef
 from .t import Type, Kind, In, Out, Flip
@@ -13,9 +14,9 @@ __all__  = ['DeclareInterface']
 __all__ += ['Interface']
 __all__ += ['InterfaceKind']
 
-# flatten a list of lists
+# flatten an iterable of iterables to list
 def flatten(l):
-    return sum(l, [])
+    return list(chain(*l))
 
 #
 # parse argument declaration of the form
@@ -113,31 +114,31 @@ class _Interface(Type):
 
     # return all the arguments as name, port
     def args(self):
-        return flatten( [[name, port] for name, port in self.ports.items()] )
+        return flatten([name, port] for name, port in self.ports.items())
 
     # return all the arguments as name, flip(port)
     #   same as the declaration
     def decl(self):
-        return flatten( [[name, type(port).flip()] \
-                             for name, port in self.ports.items() ] )
+        return flatten([name, type(port).flip()] \
+                             for name, port in self.ports.items()  )
 
 
     # return all the input arguments as name, port
     def inputargs(self):
         return flatten( \
-                [[name, port] for name, port in self.ports.items() \
-                    if port.isinput() and not isinstance(port, ClockTypes)] )
+                [name, port] for name, port in self.ports.items() \
+                    if port.isinput() and not isinstance(port, ClockTypes) )
 #                                    name not in ['SET', 'CIN']] )
 
     # return all the output arguments as name, port
     def outputargs(self):
-        return flatten( [[name, port] for name, port in self.ports.items() \
-                            if port.isoutput()] )
+        return flatten( [name, port] for name, port in self.ports.items() \
+                            if port.isoutput() )
 
     # return all the clock arguments as name, port
     def clockargs(self):
-        return flatten( [[name, port] for name, port in self.ports.items() \
-                            if isinstance(port, ClockTypes) ] )
+        return flatten( [name, port] for name, port in self.ports.items() \
+                            if isinstance(port, ClockTypes)  )
 #                                        or name in ['SET'] ] )
 
     # return all the clock argument names
