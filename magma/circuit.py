@@ -423,14 +423,14 @@ class DefineCircuitKind(CircuitKind):
     #
     def place(cls, inst):
         if not inst.name:
-            inst.name = 'inst' + str(len(cls.instances))
+            inst.name = 'inst' + str(len(cls._instances))
             # osnr's suggested name
             #inst.name = 'inst' + str(len(cls.instances)) + '_' + inst.__class__.name
             #print('naming circuit instance', inst.name)
         #print('placing', inst, 'in', cls)
         inst.defn = cls
         inst.stack = inspect.stack()
-        cls.instances.append(inst)
+        cls._instances.append(inst)
 
 
 # Register graphviz repr if running in IPython.
