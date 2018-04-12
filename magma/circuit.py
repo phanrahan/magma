@@ -392,7 +392,7 @@ class DefineCircuitKind(CircuitKind):
 
         self.firrtl = None
 
-        self.instances = []
+        self._instances = []
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
 
@@ -413,6 +413,10 @@ class DefineCircuitKind(CircuitKind):
     @property
     def is_definition(self):
         return self._is_definition or self.verilog or self.verilogFile
+
+    @property
+    def instances(self):
+        return self._instances
 
     #
     # place a circuit instance in this definition
