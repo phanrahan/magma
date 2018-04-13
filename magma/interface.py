@@ -1,4 +1,5 @@
 from __future__ import division
+from itertools import chain
 from collections import OrderedDict
 from .ref import AnonRef, InstRef, DefnRef
 from .t import Type, Kind, In, Out, Flip
@@ -13,9 +14,9 @@ __all__  = ['DeclareInterface']
 __all__ += ['Interface']
 __all__ += ['InterfaceKind']
 
-# flatten a list of lists
+# flatten an iterable of iterables to list
 def flatten(l):
-    return sum(l, [])
+    return list(chain(*l))
 
 #
 # parse argument declaration of the form
@@ -78,16 +79,23 @@ class _Interface(Type):
                 s += 'wire({}, {})\n'.format(oname, iname)
         return s
 
+    def __iter__(self):
+        return iter(self.ports)
+
     def __len__(self):
         return len(self.ports.keys())
 
     def __getitem__(self, key):
-        if isinstance(key,slice):
-            return array([self[i] for i in range(*key.indices(len(self)))])
+        if isinstance(key, int):
+            if isinstance(key,slice):
+                return array([self[i] for i in range(*key.indices(len(self)))])
+            else:
+                n = len(self)
+                assert -n < key and key < n, "key: %d, self.N: %d" %(key,len(self))
+                return self.arguments()[key]
         else:
-            n = len(self)
-            assert -n < key and key < len(self), "key: %d, self.N: %d" %(key,len(self))
-            return self.arguments()[key]
+            assert isinstance(key, str)
+            return self.ports[key]
 
     # return all the argument ports
     def arguments(self):
@@ -106,31 +114,31 @@ class _Interface(Type):
 
     # return all the arguments as name, port
     def args(self):
-        return flatten( [[name, port] for name, port in self.ports.items()] )
+        return flatten([name, port] for name, port in self.ports.items())
 
     # return all the arguments as name, flip(port)
     #   same as the declaration
     def decl(self):
-        return flatten( [[name, type(port).flip()] \
-                             for name, port in self.ports.items() ] )
+        return flatten([name, type(port).flip()] \
+                             for name, port in self.ports.items()  )
 
 
     # return all the input arguments as name, port
     def inputargs(self):
         return flatten( \
-                [[name, port] for name, port in self.ports.items() \
-                    if port.isinput() and not isinstance(port, ClockTypes)] )
+                [name, port] for name, port in self.ports.items() \
+                    if port.isinput() and not isinstance(port, ClockTypes) )
 #                                    name not in ['SET', 'CIN']] )
 
     # return all the output arguments as name, port
     def outputargs(self):
-        return flatten( [[name, port] for name, port in self.ports.items() \
-                            if port.isoutput()] )
+        return flatten( [name, port] for name, port in self.ports.items() \
+                            if port.isoutput() )
 
     # return all the clock arguments as name, port
     def clockargs(self):
-        return flatten( [[name, port] for name, port in self.ports.items() \
-                            if isinstance(port, ClockTypes) ] )
+        return flatten( [name, port] for name, port in self.ports.items() \
+                            if isinstance(port, ClockTypes)  )
 #                                        or name in ['SET'] ] )
 
     # return all the clock argument names
@@ -217,6 +225,23 @@ class _DeclareInterface(_Interface):
         self.ports = args
 
 class InterfaceKind(Kind):
+    def __init__(cls, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        ports = []
+        key = None
+        for i, arg in enumerate(cls.Decl):
+            if i % 2 == 0:
+                key = arg
+            else:
+                ports.append((key, arg))
+        cls.ports = OrderedDict(ports)
+
+    def items(cls): 
+        return cls.ports.items()
+
+    def __iter__(cls):
+        return iter(cls.ports)
+
     def __str__(cls):
         args = []
         for i, arg in enumerate(cls.Decl):

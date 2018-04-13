@@ -37,9 +37,12 @@ __all__ += ['circuit_generator']
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 def circuit_to_html(cls):
-    # Avoid circular dependency so dot backend can use passes
-    from .backend.dot import to_html
-    return to_html(cls)
+    if isdefinition(cls):
+        # Avoid circular dependency so dot backend can use passes
+        from .backend.dot import to_html
+        return to_html(cls)
+    else:
+        return repr(cls)
 
 # create an attribute for each port
 def setports(self, ports):
@@ -78,6 +81,7 @@ class CircuitKind(type):
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
+            cls.interface = cls.IO
 
         return cls
 
@@ -388,7 +392,7 @@ class DefineCircuitKind(CircuitKind):
 
         self.firrtl = None
 
-        self.instances = []
+        self._instances = []
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
 
@@ -409,6 +413,10 @@ class DefineCircuitKind(CircuitKind):
     @property
     def is_definition(self):
         return self._is_definition or self.verilog or self.verilogFile
+
+    @property
+    def instances(self):
+        return self._instances
 
     #
     # place a circuit instance in this definition
