@@ -30,7 +30,7 @@ All types inherit from [Type in magma/t.py](https://github.com/phanrahan/magma/b
 1. Arrays of bits or other types
 1. Named tuples of other types
 
-Note that PyCoreIR also have python implementations of the CoreIR types below. Sometimes you may see these when working with CoreIR objects underlying Magma.
+Note that PyCoreIR also has Python implementations of the CoreIR types below. Sometimes you may see these when working with CoreIR objects underlying Magma.
 
 ### Circuits
 1. CircuitDeclaration - declarations state that a circuit exists and has certain input and ouput wires, but not what the circuit does.
@@ -81,7 +81,7 @@ CoreIR has two type systems:
 1. Instances – a circuit in hardware
     1. Note: in IR, an instance is just a pointer back to a module so that at compilation time, CoreIR knows what to build. This is like LLVM where a call node references a function.
 
-### How To Create And Test A Circuit In Magma?
+### How To Create And Test A Circuit In CoreIR?
 1. Get a namespace to put the generator in. Aetherling shows how to [make a new namespace](https://github.com/rdaly525/coreir/blob/master/src/libs/aetherlinglib.cpp#L19) and [access it for creating things in it](https://github.com/rdaly525/coreir/blob/master/src/libs/aetherlinglib/aeZip2.h#L10).
 1. Create a params object. See [Aetherling's Zip2 params object](https://github.com/rdaly525/coreir/blob/master/src/libs/aetherlinglib/aeZip2.h#L18) for an example of how to create one.
 1. Create a typegen. See [Aetherling's Zip2 typegen object](https://github.com/rdaly525/coreir/blob/master/src/libs/aetherlinglib/aeZip2.h#L25) for an example.
