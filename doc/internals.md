@@ -21,12 +21,18 @@ Types of passes:
     3. __And what does call do? Nothing has a `__call__` method__
         1. The passes that subclass this have `__call__` methods
 4. BuildInstanceGraphPass
-    1. DefinitionPass gets all the definitions, then calls the `__call__` method on all them (them being the definitions and not the declarations), which builds the graph of
-        1. Verticies - the definitions
-        2. Edges - the instances.
-            1. __what are these edges connecting to? It goes from a vertex (a definition) to what?__
-    1. done - makes graph into a list of tuples of (defintion, instances for definition)
-5. InstanceGraphPass - call BuildInstanceGraphPass to a tuple of (circuitdefiniton, instances for definition) for all definitions in the cirucit passed in as main, set that list as value for self.tsortedgraph
+    1. This has a graph which tracks which definitions are dependent on other definitions. Definitions as vertices and instances are directed edges. Each edge points from the definition that uses the instance to the instance's definition.
+        1. The graph is stored as a mapping where keys are definitions and values are lists of definitions that the key is dependent on
+    1. This inherits DefinitionPass's run, which calls BuildInstanceGraphPass's `__call__` method for each definition (and not for declarations)
+    1. The `__call__` hanldes on definition at a time. For each definition, this
+        1. Adds the definition to the graph if its not already in there
+        2. For each instance in the definition:
+            1. Add the instance's definition to the graph if its not already in the graph
+            1. Add an edge indicating dependency from the definition using the instance to the instance's definition
+5. InstanceGraphPass -
+    1. call BuildInstanceGraphPass to build a dependency graph of definitions for circuit definition passed in as main
+    1. set that list as value for self.tsortedgraph
+    1. If callable, which it isn't but subclasses might, will call self for each vertex in the sorted graph
 
 
 How Are Circuit Definitions And Instances Structured
