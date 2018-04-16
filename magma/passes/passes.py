@@ -23,13 +23,13 @@ class InstancePass(Pass):
 
     def _run(self, definition, path):
         for instance in definition.instances:
-            instancedefinition = type(instance)
+            defintionOrDeclarationOfInstance = type(instance)
             instpath = path + (instance, )
             self.instances.append(instpath)
             if callable(self):
                 self(instpath)
-            if isdefinition(instancedefinition):
-                self._run( instancedefinition, instpath )
+            if isdefinition(defintionOrDeclarationOfInstance):
+                self._run( defintionOrDeclarationOfInstance, instpath )
     
     def run(self):
          self._run(self.main, tuple())
@@ -43,9 +43,9 @@ class DefinitionPass(Pass):
 
     def _run(self, definition):
         for instance in definition.instances:
-            instancedefinition = type(instance)
-            if isdefinition(instancedefinition):
-                self._run( instancedefinition )
+            defintionOrDeclarationOfInstance = type(instance)
+            if isdefinition(defintionOrDeclarationOfInstance):
+                self._run( defintionOrDeclarationOfInstance )
 
         # call each definition only once
         name = definition.__name__
