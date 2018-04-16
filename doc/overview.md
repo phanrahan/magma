@@ -91,5 +91,7 @@ CoreIR has two type systems:
 1. Add a simulator test that creates a module using instances derived from the generator. This is a complex test that should guarantee correctness. Do this by creating a .cpp file in the tests/simulator folder and following [aetherlingHelpersSim.cpp's example](https://github.com/rdaly525/coreir/blob/master/tests/simulator/aetherlingHelpersSim.cpp).
 
 
-
+## How To Interface Between CoreIR and Magma
+1. To access CoreIR generators from Magma, use either DefineCircuitFromGeneratorWrapper() or CircuitInstanceFromGeneratorWrapper()
+1. To export Magma circuit definitions to CoreIR, use GetCoreIRModule() to get a PyCoreIR module and then call save_to_file("circuitName.json") on that PyCoreIR module to export a CoreIR module as a json file. The json file can be compiled to Verilog using the [CoreIR CLI with the -i flag documented here](https://github.com/rdaly525/coreir/blob/master/doc/StandaloneCoireIR.md#options).
 
