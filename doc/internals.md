@@ -41,7 +41,7 @@ How Are Circuit Definitions And Instances Structured
 
 Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System? – see [magma/circuit.py](https://github.com/phanrahan/magma/blob/coreir-dev/magma/circuit.py)
 1. CircuitKind – instances of this are circuit declarations.
-    1. Declarations are like function declarations in C, Magma declarations declare the ports but do not show how to define the circuit. Declarations cannot contain interfaces. Declarations are used in use cases including wrappers for CoreIR C++ modules that provide definitions, or as an abstract interface for multiple definitions that are backend-dependent.
+    1. Declarations are like function declarations in C, Magma declarations declare the ports but do not show how to define the circuit. Declarations cannot contain instances. Declarations are used in use cases including wrappers for CoreIR C++ modules that provide definitions, or as an abstract interface for multiple definitions that are backend-dependent.
     1. AnonymousCircuitType is an instance of this, __so what does that make instances of AnonymousCircuit? You can’t have instances of a circuit declaration without a definition, right?__
     1. CircuitType is an instance of this, subclass of AnonymousCircuitType
         1. a comment declares instances of CircuitType are instances placed in definitions
