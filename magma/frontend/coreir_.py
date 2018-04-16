@@ -1,5 +1,5 @@
 from magma.backend.coreir_ import CoreIRBackend
-from magma.circuit import Circuit
+from magma.circuit import DefineCircuitKind
 from magma import cache_definition
 
 @cache_definition
@@ -21,7 +21,7 @@ def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gen
     return DefineCircuitFromGeneratorWrapper(cirb, namespace, generator,
                                              dependentNamespaces, genargs)(**modargs)
 
-def GetCoreIRModule(cirb: CoreIRBackend, circuit: Circuit):
+def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
     """
     Get the CoreIR module corresponding to the Magma circuit or circuit instance
 
