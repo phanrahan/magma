@@ -1,4 +1,4 @@
-Types of passes:
+## Types of passes:
 1. Pass – parent, just takes an object __(I think it’s a circuit, with InstanceGraphPass it’s a circuit, unclear for others)__ and assigns it to the pass’s main
 2. InstancePass(Pass) – A pass that finds the paths to all the instances instances in a definition. This includes nested instances (instances which as used in the definitions of other instances).
     1. __init__ - call’s Pass’s init, then creates an empty instances list – main here is a circuit definition
@@ -24,22 +24,23 @@ Types of passes:
     1. This has a graph which tracks which definitions are dependent on other definitions. Definitions as vertices and instances are directed edges. Each edge points from the definition that uses the instance to the instance's definition.
         1. The graph is stored as a mapping where keys are definitions and values are lists of definitions that the key is dependent on
     1. This inherits DefinitionPass's run, which calls BuildInstanceGraphPass's `__call__` method for each definition (and not for declarations)
-    1. The `__call__` hanldes on definition at a time. For each definition, this
+    1. The `__call__` hanldes one definition at a time. For each definition, this
         1. Adds the definition to the graph if its not already in there
         2. For each instance in the definition:
             1. Add the instance's definition to the graph if its not already in the graph
             1. Add an edge indicating dependency from the definition using the instance to the instance's definition
+    1. tsortedgraph is a list of (definition, `[dependent definitions list]`) sorted so that dependent vertices come after their dependencies
 5. InstanceGraphPass -
     1. call BuildInstanceGraphPass to build a dependency graph of definitions for circuit definition passed in as main
     1. set that list as value for self.tsortedgraph
     1. If callable, which it isn't but subclasses might, will call self for each vertex in the sorted graph
 
 
-How Are Circuit Definitions And Instances Structured
+## How Are Circuit Definitions And Instances Structured
 1. Each definition has a instances list, which is a list of instances in that are added to that definition
 2. Each of those instances may have a definition that is gotten by getting the instances type. This is because an instance's definition is the class it is an instance of. Getting the type of an instance gets the class its an instance of.
 
-Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System? – see [magma/circuit.py](https://github.com/phanrahan/magma/blob/coreir-dev/magma/circuit.py)
+## Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System? – see [magma/circuit.py](https://github.com/phanrahan/magma/blob/coreir-dev/magma/circuit.py)
 1. CircuitKind – instances of this are circuit declarations.
     1. Declarations are like function declarations in C, Magma declarations declare the ports but do not show how to define the circuit. Declarations cannot contain instances. Declarations are used in use cases including wrappers for CoreIR C++ modules that provide definitions, or as an abstract interface for multiple definitions that are backend-dependent.
     1. AnonymousCircuitType is an instance of this, __so what does that make instances of AnonymousCircuit? You can’t have instances of a circuit declaration without a definition, right?__
@@ -64,9 +65,10 @@ Where Do Circuit Declarations, Definitions, and Instances Fit in the Type System
 4. Circuit - instances of this are circuit instances that have a definition and not a declaration.
     1. This class (and subclasses of it) are circuit definitions.
 
-How does compiling magma circuits (NOT INSTANCES) to coreir modules work?
+## How does compiling magma circuit definitions to coreir modules work?
 1. (optional) – call the compile function that is not part of the CoreIRBackend (CIRB) object. This creates a coreirbackend, calls compile on the coreirbackend with the circuit handed to it
-2. Compile for CIRB – builds an InstanceGraph using InstanceGraphPass (InstanceGraphPass class in magma.passes.passes)
-    1. InstanceGraphPass –
-        1. Super is just the pass `__init__`, this just assigns the main property (for storing the main circuit)
-        1. BuildInstanceGraphPass -
+2. Compile for CIRB –
+    1. builds a graph of definition -> list of dependent definitions graph using InstanceGraphPass
+    1. Call compile_definition for each definition, in order so that higher-order definitions come after the definitions they are dependent on:
+        1. check_interface - verifies that the ports on the definition's interface are bits, arrays, or records
+        1. 
