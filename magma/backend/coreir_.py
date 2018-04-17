@@ -156,8 +156,11 @@ class CoreIRBackend:
     def add_output_port(self, output_ports, port):
         output_ports[port] = magma_port_to_coreir(port)
         if isinstance(port, ArrayType):
-            for bit in port:
-                self.add_output_port(output_ports, bit)
+            for element in port:
+                self.add_output_port(output_ports, element)
+        elif isinstance(port, TupleType):
+            for element in port:
+                self.add_output_port(output_ports, element)
 
     def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
