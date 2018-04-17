@@ -360,6 +360,8 @@ def isdefinition(circuit):
 def isprimitive(circuit):
     return circuit.primitive
 
+# a map from circuitDefinition names to circuit definition objects
+definitionCache = {}
 
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
@@ -379,6 +381,12 @@ class DefineCircuitKind(CircuitKind):
         name = dct['name']
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
+
+        if hasattr(self, 'definition'):
+            if name in definitionCache:
+                return definitionCache[name]
+            else:
+                definitionCache[name] = self
 
         self.verilog = None
         self.verilogFile = None
