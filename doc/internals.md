@@ -65,10 +65,58 @@
 4. Circuit - instances of this are circuit instances that have a definition and not a declaration.
     1. This class (and subclasses of it) are circuit definitions.
 
+## How do circuit definition/interface interfaces work?
+1. Each circuit definition and interface has an interface object.
+1. Each Interface instance has a ports dictionary. The dictionary is a mapping of:
+    1. key - name of port in interface
+    1. value - instance of Magma type, whose name field is a reference to the definition or instance containing this port.
+1. The interface of a definition is created in the following way:
+    1. The DeclareInterface function is a factory that produces interface. Each interface is a class that is an instance of the InterfaceKind metaclass. This is accomplished because the superclass of InterfaceKind, Kind, is a subclass of type and so calling InterfaceKind's call eventually reaches Kind's `__init__`, which constructs a new Interface type using the type `__init__` function.
+    1. When a CircuitDefinition is created, two things happen:
+        1. Using CircuitKind's `__new__` method: a new Interface class is created using DeclareInterface.
+        1. Using DefineCircuitKind's `__new__` method: an instance of that newly created Interface class is created and assigned to the definition's interface field.
+            1. The instance is created by calling the Interface class's `__call__` function, which calls the interface class's constructor. That constructor is _DeclareInterface's `__init__` since the metaclass work used to create the Interface class set _DeclareInterface as its base class.
+            1. `_DeclareInterface.__init__` creates a dictionary of ports using this process:
+                1. for each port name and port type (where each port type is an instance of the Kind object, and is a type subclassing Type), add a dictionary entry whose key is the name of the port and the value is: an instance of the Type. The Type instance's name field is not actually a name, but is an object holding:
+                    1. a reference to the circuit definition or instance containing the port
+                    1. the name of the port in the instance
+
+
+
 ## How does compiling magma circuit definitions to coreir modules work?
 1. (optional) – call the compile function that is not part of the CoreIRBackend (CIRB) object. This creates a coreirbackend, calls compile on the coreirbackend with the circuit handed to it
 2. Compile for CIRB –
     1. builds a graph of definition -> list of dependent definitions graph using InstanceGraphPass
     1. Call compile_definition for each definition, in order so that higher-order definitions come after the definitions they are dependent on:
-        1. check_interface - verifies that the ports on the definition's interface are bits, arrays, or records
-        1. 
+        1. check_interface - verifies that the top-level ports on the definition's interface are bits, arrays, or records and that contained types within these ports are also one of those three things.
+        1. convert_interface_to_module_definition - create a PyCoreIR record representing the Magma definition's ports. This is done by calling get_type on each ports in the interface of the Magma definition.
+            1. get_type takes in a Magma type and converts it and all Magma types contained in it (like bits inside arrays) to PyCoreIR types.
+            1. module_type is PyCoreIR type object, specifically a Record
+        1. context.global_namespace.new_module - creates a new CoreIR C++ module wrapped by PyCoreIR using python's C interface with the CoreIR C++ library. This module is added to the global CoreIR namespace.
+            1. coreir_module is a PyCoreIR module object
+        1. coreir_module.new_definition - adds a definition to CoreIR C++ module, returns a pointer to that module wrapped by PyCoreIR's ModuleDef class.
+            1. module_definition is a PyCoreIR moduleDef object
+        1. compile_definition_to_module_definition -
+            1. create a dictionary output_ports using add_output_port:
+                1. key - a Magma type instance representing a port (or part of a port) on the Magma definition
+                1. values - a string for accesing the port in the CoreIR object
+            1. for each instance in the Magma definition:
+                1. the wire the clock from definition to the instance if needed
+                1. compile_instance - compile it to a PyCoreIR module and add it to the PyCoreIR module definition
+                1. add all output ports of the Magma instance to output_ports
+            1. for each instance in the Magma definition
+                1. connect all input ports to one output port in the PyCoreIR definition using the connect function
+                    1. connect -
+                        1. arguments are:
+                            1. module_definition is the PyCoreIR module definition,
+                            1. port is the the type instance for the input magma port
+                            1. value is the magma type instance for the output port connected to the input port
+                            1. output_ports is the dictionary previously described
+                        1. connect recurses until it gets to individual bits, gets the CoreIR select path strings for the input and output ports, and connects them in the PyCoreIR module definition
+                        1. Ignore all the extra stuff for things like MAGMA_COREIR_FIRRTL, this is old and dead code
+            1. for each port on the interface of the Magma definition
+                1. connect it to an output port using the same process as for the input ports of the instances in the definition
+        1. assign the created definition to coreir_module and return the module
+
+
+
