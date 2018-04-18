@@ -99,11 +99,6 @@ $ git clone https://github.com/phanrahan/magma
 $ cd magma
 ```
 
-Install the Python dependencies
-```
-$ pip install -r requirements.txt
-```
-
 Install magma as a symbolic package
 ```
 $ pip install -e .
