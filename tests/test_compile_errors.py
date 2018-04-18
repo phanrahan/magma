@@ -2,7 +2,7 @@ from magma import *
 from magma.compile import MultipleDefinitionException
 
 
-def test_multiple_definitions():
+def test_multiple_definitions_are_same():
     class Circ1(Circuit):
         name = "same"
         IO = ['I', In(Bit), 'O', Out(Bit)]
@@ -29,7 +29,7 @@ def test_multiple_definitions():
     EndDefine()
     try:
         compile('shouldnotmatter', test)
-        assert False, "Should throw MultipleDefinitionException"
+        assert Circ1 is Circ2
     except MultipleDefinitionException:
         pass
 
