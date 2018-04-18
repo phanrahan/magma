@@ -213,7 +213,10 @@ class CoreIRBackend:
 
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id
-        if value is None:
+        # allow clocks to be unwired as CoreIR can wire them up
+        if value is None and isinstance(port, ClockType):
+            return
+        elif value is None:
             raise Exception("Got None for port: {}, is it connected to anything?".format(port))
         elif isinstance(value, coreir.Wireable):
             source = value
