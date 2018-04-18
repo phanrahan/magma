@@ -33,6 +33,28 @@ def test_multiple_definitions_are_same():
     except MultipleDefinitionException:
         pass
 
+def test_multiple_definitions_are_same_older_def_approach():
+    IO = ['I', In(Bit), 'O', Out(Bit)]
+    Circ1 = DefineCircuit("same", *IO)
+    wire(Circ1.I, Circ1.O)
+    EndDefine()
+    Circ2 = DefineCircuit("same", *IO)
+    wire(Circ2.I, Circ2.O)
+    EndDefine()
+
+    test = DefineCircuit('test', 'I', In(Bit), 'O1', Out(Bit), 'O2', Out(Bit))
+    circ1 = Circ1()
+    wire(test.I, circ1.I)
+    wire(test.O1, circ1.O)
+    circ2 = Circ2()
+    wire(test.I, circ2.I)
+    wire(test.O2, circ2.O)
+    EndDefine()
+    try:
+        compile('shouldnotmatter', test)
+        assert Circ1 is Circ2
+    except MultipleDefinitionException:
+        pass
 
 def test_same_definitions():
     class Circ1(Circuit):

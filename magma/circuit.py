@@ -382,7 +382,7 @@ class DefineCircuitKind(CircuitKind):
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
 
-        if hasattr(self, 'definition'):
+        if hasattr(self, 'definition') or dct.get('is_definition', False):
             if name in definitionCache:
                 return definitionCache[name]
             else:
