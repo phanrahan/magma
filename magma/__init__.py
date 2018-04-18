@@ -7,9 +7,7 @@ except ImportError:
     from backports.functools_lru_cache import lru_cache
 
 def cache_definition(fn):
-    warnings.warn("deprecated, circuit definition caching now based on "
-                  "names", DeprecationWarning)
-    return fn
+    return lru_cache(maxsize=None)(fn)
 
 # lowest-level wiring abstraction
 from .port import *
