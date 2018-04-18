@@ -292,7 +292,7 @@ class CoreIRBackend:
             elif isinstance(constant, ArrayType):
                 value = seq2int([bit_type_to_constant_map[x] for x in constant])
             else:
-                raise NotImplementedError(value)
+                raise NotImplementedError(constant)
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
