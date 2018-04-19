@@ -4,10 +4,7 @@ import inspect
 from functools import wraps
 if sys.version_info > (3, 0):
     from functools import reduce
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
+from . import cache_definition
 import operator
 from collections import namedtuple
 from .interface import *
@@ -525,7 +522,7 @@ GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 
 
 def circuit_generator(func):
-    @lru_cache(maxsize=None)
+    @cache_definition
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)

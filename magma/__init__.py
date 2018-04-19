@@ -6,8 +6,14 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
+cachedFunctions = []
+def clear_cachedFunctions():
+    for func in cachedFunctions:
+        func.cache_clear()
+
 def cache_definition(fn):
-    return lru_cache(maxsize=None)(fn)
+    cachedFunctions.append(lru_cache(maxsize=None)(fn))
+    return cachedFunctions[-1]
 
 # lowest-level wiring abstraction
 from .port import *
