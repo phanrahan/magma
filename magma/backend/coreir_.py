@@ -319,7 +319,12 @@ class CoreIRBackend:
         pass_.run()
         for key, _ in pass_.tsortedgraph:
             if key.is_definition:
-                modules[key.name] = self.compile_definition(key)
+                # don't try to compile if already have definition
+                if hasattr(key, 'wrappedModule'):
+                    modules[key.name] = key.wrappedModule
+                else:
+                    modules[key.name] = self.compile_definition(key)
+                    key.wrappedModule = modules[key.name]
         return modules
 
 def compile(main, file_name=None, context=None):

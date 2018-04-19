@@ -8,11 +8,17 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName):
         name = uniqueName
         IO = cirb.get_ports_as_list(cirb.get_ports(coreirModule.type))
         wrappedModule = coreirModule
+
+        @classmethod
+        def definition(cls):
+            pass
     return ModuleWrapper
 
 def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
                                       dependentNamespaces: list, uniqueName: str,
                                       genargs: dict = {}):
+    if uniqueName in definitionCache:
+        return definitionCache[uniqueName]
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
     cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
     return DefineModuleWrapper(cirb, moduleToWrap, uniqueName)

@@ -26,6 +26,7 @@ __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
+__all__ += ['magma_clear_circuit_cache']
 
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
@@ -363,6 +364,9 @@ def isprimitive(circuit):
 # a map from circuitDefinition names to circuit definition objects
 definitionCache = {}
 
+def magma_clear_circuit_cache():
+    definitionCache.clear()
+
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
@@ -382,7 +386,8 @@ class DefineCircuitKind(CircuitKind):
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
 
-        if hasattr(self, 'definition') or dct.get('is_definition', False):
+        if hasattr(self, 'definition') or dct.get('is_definition', False) \
+                or hasattr(self, 'wrappedModule'):
             if name in definitionCache:
                 return definitionCache[name]
             else:
