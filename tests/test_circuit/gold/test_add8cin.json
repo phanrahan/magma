@@ -24,18 +24,18 @@
           }
         },
         "connections":[
-          ["inst1.in0.0","bit_const_GND.out"],
-          ["inst1.in0.1","bit_const_GND.out"],
-          ["inst1.in0.2","bit_const_GND.out"],
-          ["inst1.in0.3","bit_const_GND.out"],
-          ["inst1.in0.4","bit_const_GND.out"],
-          ["inst1.in0.5","bit_const_GND.out"],
-          ["inst1.in0.6","bit_const_GND.out"],
-          ["inst1.out","inst0.in0"],
-          ["self.I1","inst0.in1"],
-          ["self.O","inst0.out"],
-          ["self.CIN","inst1.in0.7"],
-          ["self.I0","inst1.in1"]
+          ["bit_const_GND.out","inst1.in0.0"],
+          ["bit_const_GND.out","inst1.in0.1"],
+          ["bit_const_GND.out","inst1.in0.2"],
+          ["bit_const_GND.out","inst1.in0.3"],
+          ["bit_const_GND.out","inst1.in0.4"],
+          ["bit_const_GND.out","inst1.in0.5"],
+          ["bit_const_GND.out","inst1.in0.6"],
+          ["inst0.in0","inst1.out"],
+          ["inst0.in1","self.I1"],
+          ["inst0.out","self.O"],
+          ["inst1.in1","self.I0"],
+          ["self.CIN","inst1.in0.7"]
         ]
       },
       "test":{
@@ -51,10 +51,10 @@
           }
         },
         "connections":[
-          ["self.CIN","inst0.CIN"],
-          ["self.I0","inst0.I0"],
-          ["self.I1","inst0.I1"],
-          ["self.O","inst0.O"]
+          ["inst0.CIN","self.CIN"],
+          ["inst0.I0","self.I0"],
+          ["inst0.I1","self.I1"],
+          ["inst0.O","self.O"]
         ]
       }
     }
