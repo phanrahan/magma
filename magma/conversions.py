@@ -7,7 +7,7 @@ from .clock import ClockType, Clock, \
     Enable, EnableType
 from .array import ArrayType, Array
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
-from .tuple import TupleType, Tuple
+from .tuple import TupleType, Tuple, tuple_ as tuple_imported
 from .bitutils import int2seq
 
 __all__  = ['bit']
@@ -125,43 +125,6 @@ def sint(value, n=None):
     return convertbits(value, n, SIntType, SInt, True)
 
 
-#
-# convert value to a tuple
-#   *value = tuple from positional arguments
-#   **kwargs = tuple from keyword arguments
-#
-def tuple_(value, n=None):
-    if isinstance(value, TupleType):
-        return value
-
-    if not isinstance(value, (_BitType, ArrayType, IntegerTypes, Sequence, Mapping)):
-        raise ValueError(
-            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
-
-    decl = OrderedDict()
-    args = []
-
-    if isinstance(value, IntegerTypes):
-        if n is None:
-            n = max(value.bit_length(),1)
-        value = int2seq(value, n)
-    elif isinstance(value, _BitType):
-        value = [value]
-    elif isinstance(value, ArrayType):
-        value = [value[i] for i in range(len(value))]
-
-    if isinstance(value, Sequence):
-        ts = list(value)
-        for i in range(len(ts)):
-            args.append(ts[i])
-            decl[i] = type(ts[i])
-    elif isinstance(value, Mapping):
-        for k, v in value.items():
-            args.append(v)
-            decl[k] = type(v)
-
-    return Tuple(decl)(*args)
-
 
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts] # flatten
@@ -187,3 +150,6 @@ def zext(value, n):
 def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value[-1], n), array(value)))
+
+def tuple_(value, n=None):
+    return tuple_imported(value, n)

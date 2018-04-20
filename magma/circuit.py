@@ -4,10 +4,7 @@ import inspect
 from functools import wraps
 if sys.version_info > (3, 0):
     from functools import reduce
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
+from . import cache_definition
 import operator
 from collections import namedtuple
 from .interface import *
@@ -26,6 +23,7 @@ __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
+__all__ += ['magma_clear_circuit_cache']
 
 __all__ += ['isdefinition']
 __all__ += ['isprimitive']
@@ -360,6 +358,11 @@ def isdefinition(circuit):
 def isprimitive(circuit):
     return circuit.primitive
 
+# a map from circuitDefinition names to circuit definition objects
+definitionCache = {}
+
+def magma_clear_circuit_cache():
+    definitionCache.clear()
 
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
@@ -379,6 +382,13 @@ class DefineCircuitKind(CircuitKind):
         name = dct['name']
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
+
+        if hasattr(self, 'definition') or dct.get('is_definition', False) \
+                or hasattr(self, 'wrappedModule'):
+            if name in definitionCache:
+                return definitionCache[name]
+            else:
+                definitionCache[name] = self
 
         self.verilog = None
         self.verilogFile = None
@@ -512,7 +522,7 @@ GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 
 
 def circuit_generator(func):
-    @lru_cache(maxsize=None)
+    @cache_definition
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)

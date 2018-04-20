@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import os
-from ..bit import VCC, GND, BitType, BitIn, BitOut
+from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
 from ..clock import wiredefaultclock, ClockType, Clock, ResetType
@@ -45,11 +45,20 @@ class CoreIRBackend:
         self.__unique_concat_id = -1
 
     def check_interface(self, definition):
-        # for now only allow Bit or Array(n, Bit)
+        # for now only allow Bit, Array, or Record
+        def check_type(portType, errorMessage=""):
+            if isinstance(portType, ArrayKind):
+                check_type(portType.T, errorMessage.format("Array({}, {})").format(
+                    str(portType.N, "{}")))
+            elif isinstance(portType, TupleKind):
+                for (k, t) in zip(port.Ks, port.Ts):
+                    check_type(t, errorMessage.format("Record({}:{})".format(k, "{}")))
+            elif isinstance(portType, BitKind):
+                return
+            else:
+                error(errorMessage.format(str(port)))
         for name, port in definition.interface.ports.items():
-            if isinstance(port, ArrayKind):
-                if not isinstance(port.T, BitKind):
-                    error('Error: Argument {} must be a an Array(n,Bit)'.format(port))
+            check_type('Error: Argument {} must be a Bit, Array, or Record')
 
     def get_type(self, port, is_input):
         if isinstance(port, (ArrayType, ArrayKind)):
@@ -78,7 +87,8 @@ class CoreIRBackend:
         return _type
 
     coreirNamedTypeToPortDict = {
-        "clk": Clock
+        "clk": Clock,
+        "coreir.clkIn": Clock
     }
 
     def get_ports(self, coreir_type):
@@ -93,17 +103,20 @@ class CoreIRBackend:
             for item in coreir_type.items():
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
-                # exception to handle clock types, since other named types not handled
-                if item[1].kind == "Named" and name in self.coreirNamedTypeToPortDict:
-                    elements[name] = In(self.coreirNamedTypeToPortDict[name])
-                else:
-                    elements[name] = self.get_ports(item[1])
+                elements[name] = self.get_ports(item[1])
                 # save the renaming data for later use
                 if item[0] == "in":
+                    if isinstance(elements[name], BitKind):
+                        # making a copy of bit, as don't want to affect all other bits
+                        elements[name] = MakeBit(direction=elements[name].direction)
                     elements[name].origPortName = "in"
             return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
-            raise NotImplementedError("named types not supported yet")
+            # exception to handle clock types, since other named types not handled
+            if coreir_type.name in self.coreirNamedTypeToPortDict:
+                return In(self.coreirNamedTypeToPortDict[coreir_type.name])
+            else:
+                raise NotImplementedError("not all named types supported yet")
         else:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
@@ -152,8 +165,11 @@ class CoreIRBackend:
     def add_output_port(self, output_ports, port):
         output_ports[port] = magma_port_to_coreir(port)
         if isinstance(port, ArrayType):
-            for bit in port:
-                self.add_output_port(output_ports, bit)
+            for element in port:
+                self.add_output_port(output_ports, element)
+        elif isinstance(port, TupleType):
+            for element in port:
+                self.add_output_port(output_ports, element)
 
     def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
@@ -197,7 +213,10 @@ class CoreIRBackend:
 
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id
-        if value is None:
+        # allow clocks to be unwired as CoreIR can wire them up
+        if value is None and isinstance(port, ClockType):
+            return
+        elif value is None:
             raise Exception("Got None for port: {}, is it connected to anything?".format(port))
         elif isinstance(value, coreir.Wireable):
             source = value
@@ -247,6 +266,10 @@ class CoreIRBackend:
         elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
             source = self.get_constant_instance(value, len(value),
                     module_definition)
+        elif isinstance(value, TupleType) and value.anon():
+            for p, v in zip(port, value):
+                self.connect(module_definition, p, v, output_ports)
+            return
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
@@ -272,7 +295,7 @@ class CoreIRBackend:
             elif isinstance(constant, ArrayType):
                 value = seq2int([bit_type_to_constant_map[x] for x in constant])
             else:
-                raise NotImplementedError(value)
+                raise NotImplementedError(constant)
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
@@ -296,7 +319,12 @@ class CoreIRBackend:
         pass_.run()
         for key, _ in pass_.tsortedgraph:
             if key.is_definition:
-                modules[key.name] = self.compile_definition(key)
+                # don't try to compile if already have definition
+                if hasattr(key, 'wrappedModule'):
+                    modules[key.name] = key.wrappedModule
+                else:
+                    modules[key.name] = self.compile_definition(key)
+                    key.wrappedModule = modules[key.name]
         return modules
 
 def compile(main, file_name=None, context=None):
