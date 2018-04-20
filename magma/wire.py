@@ -11,6 +11,10 @@ __all__ = ['wire']
 
 @debug_wire
 def wire(o, i, debug_info):
+    if hasattr(o, "is_defintion") and o.is_definition and \
+            hasattr(i, "is_definition") and i.is_definition:
+        raise Exception("Trying to connect two definitions. "
+                        "At least one must be an instance.")
 
     # Wire(o, Circuit)
     if hasattr(i, 'interface'):
