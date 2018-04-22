@@ -157,6 +157,13 @@ class TupleType(Type):
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
+    def const(self):
+        for t in self.ts:
+            if not t.const():
+                return False
+
+        return True
+
 class TupleKind(Kind):
     def __init__(cls, name, bases, dct):
         super(TupleKind, cls).__init__(name, bases, dct)
