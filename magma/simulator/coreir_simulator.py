@@ -48,17 +48,12 @@ def convert_to_coreir_path(bit, scope):
     insts.append(last_inst)
 
     # Handle renaming due to flatten types
-    is_nested = False
     arr = bit
     while isinstance(arr.name, ArrayRef):
         if isinstance(arr, ArrayType):
-            is_nested = True
-            break
+            port, idx = port.split('.', 1)
+            port += '_' + idx
         arr = arr.name.array
-
-    if is_nested:
-        port, idx = port.split('.', 1)
-        port += "_" + idx
 
     ports = [port]
 
@@ -132,8 +127,8 @@ class CoreIRSimulator(CircuitSimulator):
         self.ctx.get_lib("commonlib")
         self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
-        self.ctx.run_passes(["rungenerators", "flattentypes", "flatten", "wireclocks-coreir",
-                             "verifyconnectivity-noclkrst", "deletedeadinstances"],
+        self.ctx.run_passes(["rungenerators", "wireclocks-coreir", "verifyconnectivity-noclkrst",
+                             "flattentypes", "flatten", "verifyconnectivity-noclkrst", "deletedeadinstances"],
                             namespaces=namespaces)
         self.simulator_state = coreir.SimulatorState(coreir_circuit)
 
