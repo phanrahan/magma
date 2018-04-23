@@ -8,7 +8,7 @@ from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
 import coreir
-from ..ref import ArrayRef, DefnRef
+from ..ref import ArrayRef, DefnRef, TupleRef
 from ..passes import InstanceGraphPass
 from ..t import In
 
@@ -23,12 +23,18 @@ class keydefaultdict(defaultdict):
             ret = self[key] = self.default_factory(key)
             return ret
 
+def get_top_name(name):
+    if isinstance(name, TupleRef):
+        return get_top_name(name.tuple.name)
+    while isinstance(name, ArrayRef):
+        return get_top_name(name.array.name)
+    return name
+
 def magma_port_to_coreir(port):
     select = repr(port)
 
     name = port.name
-    while isinstance(name, ArrayRef):
-        name = name.array.name
+    name = get_top_name(name)
     if isinstance(name, DefnRef):
         if name.defn.name != "":
             select = select.replace(name.defn.name, "self")
