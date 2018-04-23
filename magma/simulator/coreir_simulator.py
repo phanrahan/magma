@@ -187,7 +187,7 @@ class CoreIRSimulator(CircuitSimulator):
             return True if bit == VCC else False
 
         # Symbol table doesn't support arrays of arrays
-        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+        if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
             r = []
             for arr in bit:
                 r.append(self.get_value(arr, scope))
