@@ -206,7 +206,7 @@ class CoreIRSimulator(CircuitSimulator):
             return bools
 
     def set_value(self, bit, newval, scope):
-        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+        if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
             for i, arr in enumerate(bit):
                 self.set_value(arr, newval[i], scope)
         elif isinstance(bit, TupleType):
