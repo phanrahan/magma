@@ -151,16 +151,6 @@ class CoreIRSimulator(CircuitSimulator):
         for topin in circuit.interface.outputs():
             if not isinstance(topin, ClockType):
                 arr = topin
-                # lens = []
-                # while isinstance(arr, ArrayType):
-                #     lens.append(len(arr))
-                #     arr = arr[0]
-                # if not isinstance(topin, ArrayType):
-                #     lens.append(1)
-                #
-                # init = [0]
-                # for l in reversed(lens):
-                #     init = [init*l]
                 init = create_zeros_init(arr)
 
                 self.set_value(topin, init, Scope())

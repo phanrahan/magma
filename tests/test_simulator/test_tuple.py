@@ -19,8 +19,6 @@ def test_simulator_tuple():
     tupleValues = {'sel':int2seq(testValInt, width), 'data':int2seq(testValInt+20, width)}
     inType = In(nestedTuples)
     outType = Out(Array(2*inDims[0], tupleEl))
-    #inType = In(Bit)
-    #outType = Out(Bit)
     args = ['I', inType, 'O', outType] + ClockInterface(False, False)
 
     testcircuit = DefineCircuit('test_simulator_tuple', *args)
@@ -29,7 +27,6 @@ def test_simulator_tuple():
     wire(testcircuit.I[0].sel, testcircuit.O[1])
     wire(testcircuit.I[1].data, testcircuit.O[2])
     wire(testcircuit.I[1].sel, testcircuit.O[3])
-    #wire(inType, outType)
 
     EndCircuit()
 
