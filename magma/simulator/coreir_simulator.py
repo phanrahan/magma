@@ -139,22 +139,31 @@ class CoreIRSimulator(CircuitSimulator):
         if need_cleanup:
             os.remove(coreir_filename)
 
+        def create_zeros_init(arrOrTuple):
+            if isinstance(arrOrTuple, ArrayType):
+                return [create_zeros_init(el) for el in arrOrTuple.ts]
+            elif isinstance(arrOrTuple, TupleType):
+                return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.Ks, arrOrTuple.ts)}
+            else:
+                return 0
+
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
             if not isinstance(topin, ClockType):
                 arr = topin
-                lens = []
-                while isinstance(arr, ArrayType):
-                    lens.append(len(arr))
-                    arr = arr[0]
-                if not isinstance(topin, ArrayType):
-                    lens.append(1)
+                # lens = []
+                # while isinstance(arr, ArrayType):
+                #     lens.append(len(arr))
+                #     arr = arr[0]
+                # if not isinstance(topin, ArrayType):
+                #     lens.append(1)
+                #
+                # init = [0]
+                # for l in reversed(lens):
+                #     init = [init*l]
+                init = create_zeros_init(arr)
 
-                init = [0]
-                for l in reversed(lens):
-                    init = [init*l]
-
-                self.set_value(topin, init[0], Scope())
+                self.set_value(topin, init, Scope())
 
         if clock is not None:
             insts, ports = convert_to_coreir_path(clock, Scope())
