@@ -15,8 +15,8 @@ def test_simulator_tuple():
     scope = Scope()
     inDims = [2, width]
     tupleEl = Array(inDims[1], Bit)
-    nestedTuples = Array(inDims[0], Tuple(sel=tupleEl, Data=tupleEl))
-    tupleValues = {'sel':int2seq(testValInt, width), 'Data':int2seq(testValInt+20, width)}
+    nestedTuples = Array(inDims[0], Tuple(sel=tupleEl, data=tupleEl))
+    tupleValues = {'sel':int2seq(testValInt, width), 'data':int2seq(testValInt+20, width)}
     inType = In(nestedTuples)
     outType = Out(Array(2*inDims[0], tupleEl))
     #inType = In(Bit)
@@ -25,9 +25,9 @@ def test_simulator_tuple():
 
     testcircuit = DefineCircuit('test_simulator_tuple', *args)
 
-    wire(testcircuit.I[0].Data, testcircuit.O[0])
+    wire(testcircuit.I[0].data, testcircuit.O[0])
     wire(testcircuit.I[0].sel, testcircuit.O[1])
-    wire(testcircuit.I[1].Data, testcircuit.O[2])
+    wire(testcircuit.I[1].data, testcircuit.O[2])
     wire(testcircuit.I[1].sel, testcircuit.O[3])
     #wire(inType, outType)
 
@@ -37,8 +37,9 @@ def test_simulator_tuple():
                           namespaces=["aetherlinglib", "commonlib", "mantle", "coreir", "global"])
 
     sim.set_value(testcircuit.I, [tupleValues, tupleValues], scope)
-    getArrayInTuple = sim.get_value(testcircuit.I.data, scope)
-    getTuple = sim.get_value(testcircuit.I, scope)
-    assert getArrayInTuple == tupleValues['Data']
-    assert getTuple == tupleValues
+    getArrayInTuple = sim.get_value(testcircuit.I[0].data, scope)
+    getTuples = sim.get_value(testcircuit.I, scope)
+    assert getArrayInTuple == tupleValues['data']
+    assert getTuples[0] == tupleValues
+    assert getTuples[1] == tupleValues
 
