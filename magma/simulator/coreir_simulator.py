@@ -145,7 +145,7 @@ class CoreIRSimulator(CircuitSimulator):
             elif isinstance(arrOrTuple, TupleType):
                 return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.Ks, arrOrTuple.ts)}
             else:
-                return 0
+                return [0]
 
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
