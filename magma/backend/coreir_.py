@@ -26,7 +26,7 @@ class keydefaultdict(defaultdict):
 def get_top_name(name):
     if isinstance(name, TupleRef):
         return get_top_name(name.tuple.name)
-    while isinstance(name, ArrayRef):
+    if isinstance(name, ArrayRef):
         return get_top_name(name.array.name)
     return name
 
