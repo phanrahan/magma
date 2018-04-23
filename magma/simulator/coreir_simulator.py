@@ -4,8 +4,9 @@ from tempfile import NamedTemporaryFile
 from .simulator import CircuitSimulator, ExecutionState
 from ..backend import coreir_
 from ..scope import Scope
-from ..ref import DefnRef, ArrayRef
+from ..ref import DefnRef, ArrayRef, TupleRef
 from ..array import ArrayType
+from ..tuple import TupleType
 from ..bitutils import int2seq
 from ..clock import ClockType
 from ..transforms import setup_clocks, flatten
@@ -48,17 +49,15 @@ def convert_to_coreir_path(bit, scope):
     insts.append(last_inst)
 
     # Handle renaming due to flatten types
-    is_nested = False
-    arr = bit
-    while isinstance(arr.name, ArrayRef):
-        if isinstance(arr, ArrayType):
-            is_nested = True
-            break
-        arr = arr.name.array
-
-    if is_nested:
-        port, idx = port.split('.', 1)
-        port += "_" + idx
+    arrOrTuple = bit
+    while isinstance(arrOrTuple.name, ArrayRef) or isinstance(arrOrTuple.name, TupleRef):
+        if isinstance(arrOrTuple, ArrayType) or isinstance(arrOrTuple, TupleType):
+            port, idx = port.split('.', 1)
+            port += '_' + idx
+        if isinstance(arrOrTuple.name, ArrayRef):
+            arrOrTuple = arrOrTuple.name.array
+        elif isinstance(arrOrTuple.name, TupleRef):
+            arrOrTuple = arrOrTuple.name.tuple
 
     ports = [port]
 
@@ -132,8 +131,8 @@ class CoreIRSimulator(CircuitSimulator):
         self.ctx.get_lib("commonlib")
         self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
-        self.ctx.run_passes(["rungenerators", "flattentypes", "flatten", "wireclocks-coreir",
-                             "verifyconnectivity-noclkrst", "deletedeadinstances"],
+        self.ctx.run_passes(["rungenerators", "wireclocks-coreir", "verifyconnectivity-noclkrst",
+                             "flattentypes", "flatten", "verifyconnectivity-noclkrst", "deletedeadinstances"],
                             namespaces=namespaces)
         self.simulator_state = coreir.SimulatorState(coreir_circuit)
 
@@ -183,7 +182,11 @@ class CoreIRSimulator(CircuitSimulator):
             r = []
             for arr in bit:
                 r.append(self.get_value(arr, scope))
-
+            return r
+        elif isinstance(bit, TupleType):
+            r = {}
+            for k,v in zip(bit.Ks, bit.ts):
+                r[k] = self.get_value(v, scope)
             return r
         else:
             insts, ports = convert_to_coreir_path(bit, scope)
@@ -197,6 +200,9 @@ class CoreIRSimulator(CircuitSimulator):
         if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
             for i, arr in enumerate(bit):
                 self.set_value(arr, newval[i], scope)
+        elif isinstance(bit, TupleType):
+            for k,v in zip(bit.Ks, bit.ts):
+                self.set_value(v, newval[k], scope)
         else:
             insts, ports = convert_to_coreir_path(bit, scope)
             self.simulator_state.set_value(old_style_path(insts, ports), newval)
