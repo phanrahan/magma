@@ -333,6 +333,15 @@ class CoreIRBackend:
                     key.wrappedModule = modules[key.name]
         return modules
 
+    def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):
+        passes = ["rungenerators", "wireclocks-coreir"]
+        if verifyConnectivity:
+            passes += ["verifyconnectivity-noclkrst"]
+        if flatten:
+            passes += ["flattentypes", "flatten"]
+        self.context.run_passes(passes, namespaces)
+        module.save_to_file(filename)
+
 def compile(main, file_name=None, context=None):
     modules = CoreIRBackend(context).compile(main)
     if file_name is not None:

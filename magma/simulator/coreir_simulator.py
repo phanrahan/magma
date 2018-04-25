@@ -139,22 +139,21 @@ class CoreIRSimulator(CircuitSimulator):
         if need_cleanup:
             os.remove(coreir_filename)
 
+        def create_zeros_init(arrOrTuple):
+            if isinstance(arrOrTuple, ArrayType):
+                return [create_zeros_init(el) for el in arrOrTuple.ts]
+            elif isinstance(arrOrTuple, TupleType):
+                return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.Ks, arrOrTuple.ts)}
+            else:
+                return [0]
+
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
             if not isinstance(topin, ClockType):
                 arr = topin
-                lens = []
-                while isinstance(arr, ArrayType):
-                    lens.append(len(arr))
-                    arr = arr[0]
-                if not isinstance(topin, ArrayType):
-                    lens.append(1)
+                init = create_zeros_init(arr)
 
-                init = [0]
-                for l in reversed(lens):
-                    init = [init*l]
-
-                self.set_value(topin, init[0], Scope())
+                self.set_value(topin, init, Scope())
 
         if clock is not None:
             insts, ports = convert_to_coreir_path(clock, Scope())
@@ -178,7 +177,7 @@ class CoreIRSimulator(CircuitSimulator):
             return True if bit == VCC else False
 
         # Symbol table doesn't support arrays of arrays
-        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+        if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
             r = []
             for arr in bit:
                 r.append(self.get_value(arr, scope))
@@ -197,7 +196,7 @@ class CoreIRSimulator(CircuitSimulator):
             return bools
 
     def set_value(self, bit, newval, scope):
-        if isinstance(bit, ArrayType) and isinstance(bit[0], ArrayType):
+        if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
             for i, arr in enumerate(bit):
                 self.set_value(arr, newval[i], scope)
         elif isinstance(bit, TupleType):
