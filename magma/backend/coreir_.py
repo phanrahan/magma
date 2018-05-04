@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import os
-from ..bit import VCC, GND, BitType, BitIn, BitOut
+from ..bit import VCC, GND, BitType, BitIn, BitOut, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
 from ..clock import wiredefaultclock, ClockType, Clock, ResetType
@@ -45,11 +45,20 @@ class CoreIRBackend:
         self.__unique_concat_id = -1
 
     def check_interface(self, definition):
-        # for now only allow Bit or Array(n, Bit)
+        # for now only allow Bit, Array, or Record
+        def check_type(portType, errorMessage=""):
+            if isinstance(portType, ArrayKind):
+                check_type(portType.T, errorMessage.format("Array({}, {})").format(
+                    str(portType.N, "{}")))
+            elif isinstance(portType, TupleKind):
+                for (k, t) in zip(port.Ks, port.Ts):
+                    check_type(t, errorMessage.format("Record({}:{})".format(k, "{}")))
+            elif isinstance(portType, BitKind):
+                return
+            else:
+                error(errorMessage.format(str(port)))
         for name, port in definition.interface.ports.items():
-            if isinstance(port, ArrayKind):
-                if not isinstance(port.T, BitKind):
-                    error('Error: Argument {} must be a an Array(n,Bit)'.format(port))
+            check_type('Error: Argument {} must be a Bit, Array, or Record')
 
     def get_type(self, port, is_input):
         if isinstance(port, (ArrayType, ArrayKind)):
