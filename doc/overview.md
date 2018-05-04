@@ -2,7 +2,7 @@
 The projects in order of dependency (with most abstract at top) are:
 1. Mantle - libraries of useful circuits built in Magma
 1. Magma - A Python API for creating circuits
-1. PyCoreIR - A set of Python bindings for converting Magma into CoreIR
+1. PyCoreIR - A set of Python bindings for manipulating CoreIR data structures.
 1. CoreIR - A C++ library for manipulating the CoreIR hardware IR (like LLVM for hardware)
 
 __NOTE: Where does loam fit in here?__
