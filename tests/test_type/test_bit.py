@@ -1,15 +1,14 @@
 from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip, VCC, GND, wire
 
 def test_bit():
-    assert isinstance(Bit,    BitKind)
+    assert issubclass(Bit, BitType)
+    assert isinstance(Bit, BitKind)
+
+    assert issubclass(BitIn, BitType)
     assert isinstance(BitIn,  BitKind)
+
+    assert issubclass(BitOut, BitType)
     assert isinstance(BitOut, BitKind)
-
-    #assert not Bit.isinput()
-    #assert not Bit.isoutput()
-
-    #assert BitIn.isinput()
-    #assert BitOut.isoutput()
 
     assert Bit == Bit
     assert BitIn == BitIn
@@ -56,11 +55,13 @@ def test_bit_val():
     b = BitOut(name="a")
     assert b.isoutput()
     assert str(b) == "a"
+    assert isinstance(b, BitType)
     assert isinstance(b, BitOut)
     assert b.isoutput()
 
     b = Bit(name="a")
     assert str(b) == "a"
+    assert isinstance(b, BitType)
     assert isinstance(b, Bit)
     assert not b.isinput()
     assert not b.isoutput()
