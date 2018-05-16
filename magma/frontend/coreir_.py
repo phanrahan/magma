@@ -15,7 +15,7 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName):
     return ModuleWrapper
 
 def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
-                                      dependentNamespaces: list = [], uniqueName: str,
+                                      uniqueName: str, dependentNamespaces: list = [],
                                       genargs: dict = {}):
     if uniqueName in definitionCache:
         return definitionCache[uniqueName]
@@ -27,7 +27,7 @@ def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gen
                                         dependentNamespaces: list, uniqueName: str,
                                         genargs: dict = {}, modargs: dict = {}):
     return DefineCircuitFromGeneratorWrapper(cirb, namespace, generator,
-                                             dependentNamespaces, uniqueName,
+                                             uniqueName, dependentNamespaces,
                                              genargs)(**modargs)
 
 def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
@@ -55,7 +55,9 @@ def DeclareCoreIRGenerator(lib : str, name : str, typegen = None):
     else:
         # Assume the generator is available, create a wrapped circuit
         def Define(**kwargs):
-            return DefineCircuitFromGeneratorWrapper(CoreIRBackend(), lib, name, genargs=kwargs)
+            kwargs_str = "_".join(f"{key}_{value}" for key, value in kwargs.items())
+            unique_name = f"{lib}_{name}_{kwargs_str}"
+            return DefineCircuitFromGeneratorWrapper(CoreIRBackend(), lib, name, unique_name, genargs=kwargs)
         return Define
 
 def coreir_typegen(fn):

@@ -19,7 +19,7 @@ def smax_type_gen(width : int):
 
 
 def test_declare_generator():
-    DefineSmax = m.DeclareCoreIRGenerator(lib="commonlib", name="smax", typegen=smax_type_gen)
+    DefineSmax = m.DeclareCoreIRGenerator(lib="commonlib", name="smax")
     width = 16
 
     class LinkerTest(m.Circuit):
