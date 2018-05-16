@@ -42,3 +42,5 @@ from .compile import *
 #from .tests import *
 
 #print('import magma')
+
+from .frontend.coreir_ import DeclareCoreIRGenerator, coreir_typegen
