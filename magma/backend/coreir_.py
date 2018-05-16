@@ -43,6 +43,13 @@ def magma_port_to_coreir(port):
 
 
 magma_coreir_context = coreir.Context()  # Singleton context meant to be used with coreir/magma code
+def __reset_context():
+    """
+    Testing hook so every test has a fresh context
+    """
+    global magma_coreir_context
+    magma_coreir_context = coreir.Context()
+
 
 class CoreIRBackend:
     def __init__(self, context=None):

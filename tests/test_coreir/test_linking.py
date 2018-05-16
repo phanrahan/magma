@@ -1,6 +1,5 @@
 import os
 import magma as m
-import coreir
 
 # def smax_type_gen(context, values):
 #     width = values['width'].value
