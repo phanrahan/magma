@@ -15,9 +15,9 @@
           }
         },
         "connections":[
-          ["inst0.in0","self.I0"],
-          ["inst0.in1","self.I1"],
-          ["inst0.out","self.O"]
+          ["self.I0","inst0.in0"],
+          ["self.I1","inst0.in1"],
+          ["self.O","inst0.out"]
         ]
       }
     }
