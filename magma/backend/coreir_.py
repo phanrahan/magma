@@ -228,47 +228,9 @@ class CoreIRBackend:
             source = value
 
         elif value.anon() and isinstance(value, ArrayType):
-            if os.environ.get("MAGMA_COREIR_FIRRTL", False):
-                if not all(isinstance(v, BitType) for v in value):
-                    raise NotImplementedError()
-                bit_concat_module = self.libs['corebit'].modules["concat"]
-                empty_config = self.context.new_values({})
-                i = 0
-                outputs = []
-                for i in range(len(value) - 1, -1, -2):
-                    self.__unique_concat_id += 1
-                    name = "__magma_backend_concat{}".format(self.__unique_concat_id)
-                    module_definition.add_module_instance(name, bit_concat_module, empty_config)
-                    module_definition.connect(
-                        module_definition.select("{}.in0".format(name)),
-                        get_select(value[i]))
-                    module_definition.connect(
-                        module_definition.select("{}.in1".format(name)),
-                        get_select(value[i - 1]))
-                    outputs.append(module_definition.select("{}.out".format(name)))
-                concat_generator = self.libs['corebit'].generators["concat"]
-                width = 2
-                while len(outputs) > 1:
-                    next_outputs = []
-                    config = self.context.new_values({"width0": width, "width1": width})
-                    for i in range(0, len(outputs), 2):
-                        self.__unique_concat_id += 1
-                        name = "__magma_backend_concat{}".format(self.__unique_concat_id)
-                        module_definition.add_generator_instance(name, concat_generator, config)
-                        module_definition.connect(
-                            module_definition.select("{}.in0".format(name)),
-                            outputs[i])
-                        module_definition.connect(
-                            module_definition.select("{}.in1".format(name)),
-                            outputs[i + 1])
-                        next_outputs.append(module_definition.select("{}.out".format(name)))
-                    width *= 2
-                    outputs = next_outputs
-                source = outputs[0]
-            else:
-                for p, v in zip(port, value):
-                    self.connect(module_definition, p, v, output_ports)
-                return
+            for p, v in zip(port, value):
+                self.connect(module_definition, p, v, output_ports)
+            return
         elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
             source = self.get_constant_instance(value, len(value),
                     module_definition)
