@@ -48,10 +48,15 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
             circuitNotInstance = circuit
         return cirb.compile(circuitNotInstance)[circuitNotInstance.name]
 
-def DeclareCoreIRGenerator(lib : str, name : str, typegen):
-    def Define(**kwargs):
-        return DefineCircuitFromGeneratorWrapper(CoreIRBackend(), lib, name, genargs=kwargs)
-    return Define
+def DeclareCoreIRGenerator(lib : str, name : str, typegen = None):
+    if typegen is not None:
+        # This is for generators which we don't have access to
+        raise NotImplementedError()
+    else:
+        # Assume the generator is available, create a wrapped circuit
+        def Define(**kwargs):
+            return DefineCircuitFromGeneratorWrapper(CoreIRBackend(), lib, name, genargs=kwargs)
+        return Define
 
 def coreir_typegen(fn):
     def wrapped(*args, **kwargs):
