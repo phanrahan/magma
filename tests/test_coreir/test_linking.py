@@ -1,3 +1,4 @@
+import os
 import magma as m
 import coreir
 
@@ -33,6 +34,8 @@ def test_declare_generator():
             m.wire(self.I1, smax.in1)
             m.wire(self.O, smax.out)
 
-    m.compile("build/linker_test", LinkerTest, output="coreir")
-    with open("build/linker_test.json", "r") as actual:
-        print(actual.read())
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    m.compile(os.path.join(dir_path, "build/linker_test0"), LinkerTest, output="coreir")
+    with open(os.path.join(dir_path, "build/linker_test0.json"), "r") as actual:
+        with open(os.path.join(dir_path, "gold/linker_test0.json"), "r") as expected:
+            assert actual.read() == expected.read()

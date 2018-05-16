@@ -41,10 +41,13 @@ def magma_port_to_coreir(port):
 
     return select.replace("[", ".").replace("]", "")
 
+
+magma_coreir_context = coreir.Context()  # Singleton context meant to be used with coreir/magma code
+
 class CoreIRBackend:
     def __init__(self, context=None):
         if context is None:
-            context = coreir.Context()
+            context = magma_coreir_context
         self.context = context
         self.libs = keydefaultdict(self.context.get_lib)
         self.__constant_cache = {}
