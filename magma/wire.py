@@ -11,6 +11,10 @@ __all__ = ['wire']
 
 @debug_wire
 def wire(o, i, debug_info):
+    if not hasattr(o, "is_instance") or not o.is_instance:
+        raise TypeError("The first input to wire needs to be a circuit instance and is not")
+    if not hasattr(i, "is_instance") or not i.is_instance:
+        raise TypeError("The second input to wire needs to be a circuit instance and is not")
 
     # Wire(o, Circuit)
     if hasattr(i, 'interface'):
