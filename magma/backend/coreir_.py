@@ -3,7 +3,7 @@ import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, ClockType, Clock, ResetType
+from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -14,11 +14,14 @@ from ..t import In
 
 from collections import defaultdict
 
+class CoreIRBackendError(RuntimeError):
+    pass
+
 class keydefaultdict(defaultdict):
     # From https://stackoverflow.com/questions/2912231/is-there-a-clever-way-to-pass-the-key-to-defaultdicts-default-factory
     def __missing__(self, key):
         if self.default_factory is None:
-            raise KeyError( key )
+            raise KeyError( key )  # pragma: no cover
         else:
             ret = self[key] = self.default_factory(key)
             return ret
@@ -51,20 +54,20 @@ class CoreIRBackend:
         self.__unique_concat_id = -1
 
     def check_interface(self, definition):
-        # for now only allow Bit, Array, or Record
-        def check_type(portType, errorMessage=""):
-            if isinstance(portType, ArrayKind):
-                check_type(portType.T, errorMessage.format("Array({}, {})").format(
-                    str(portType.N, "{}")))
-            elif isinstance(portType, TupleKind):
+        # for now only allow Bit, Array, or Tuple
+        def check_type(port, errorMessage=""):
+            if isinstance(port, ArrayKind):
+                check_type(port.T, errorMessage.format("Array({}, {})").format(
+                    str(port.N), "{}"))
+            elif isinstance(port, TupleKind):
                 for (k, t) in zip(port.Ks, port.Ts):
-                    check_type(t, errorMessage.format("Record({}:{})".format(k, "{}")))
-            elif isinstance(portType, BitKind):
+                    check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
+            elif isinstance(port, (BitKind, ClockKind)):
                 return
             else:
-                error(errorMessage.format(str(port)))
+                raise CoreIRBackendError(errorMessage.format(str(port)))
         for name, port in definition.interface.ports.items():
-            check_type('Error: Argument {} must be a Bit, Array, or Record')
+            check_type(type(port), 'Error: Argument {} must be comprised only of Bit, Array, or Tuple')
 
     def get_type(self, port, is_input):
         if isinstance(port, (ArrayType, ArrayKind)):
