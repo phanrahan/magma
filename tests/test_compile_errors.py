@@ -28,7 +28,7 @@ def test_multiple_definitions():
     wire(test.O2, circ2.O)
     EndDefine()
     try:
-        compile('shouldnotmatter', test)
+        compile('build/shouldnotmatter', test)
         assert False, "Should throw MultipleDefinitionException"
     except MultipleDefinitionException:
         pass
