@@ -77,8 +77,6 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False,
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
 
-    if not vendor:
-        vendor = os.getenv('MANTLE', 'lattice')
     if hasattr(main, 'fpga'):
         fpga = main.fpga
         if   vendor == 'altera':
