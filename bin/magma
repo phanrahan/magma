@@ -25,11 +25,10 @@ boards  = ['icestick', 'goboard', 'hx8kboard', 'tinyfpga']
 boards += ['de0nano']
 boards += ['papilioone', 'papiliopro']
 
+board = None
 target = None
 vendor = None
-board = None
 outputformat = 'verilog'
-mantle = 'verilog'
 top_circuit = 'main'
 build = 'build'
 for o, a in opts:
@@ -62,31 +61,35 @@ name = os.path.splitext(name)[0]
 if board in ['icestick', 'goboard', 'hx8kboard', 'tinyfpga']:
     if not target:
         target = 'ice40'
-    assert vendor in [None, 'lattice']
-    vendor = 'lattice'
 elif board == 'de0nano':
     if not target:
         target = 'cyclone4'
-    assert vendor in [None, 'altera']
-    vendor = 'altera'
 elif board == 'papilioone':
     if not target:
         target = 'spartan3'
-    assert vendor in [None, 'xilinx']
-    vendor = 'xilinx'
 elif board == 'papiliopro':
     if not target:
         target = 'spartan6'
-    assert vendor in [None, 'xilinx']
-    vendor = 'xilinx'
 
-if target:
+# import may set MANTLE_TARGET
+main = getattr(__import__(name), top_circuit)
+
+if not target:
+    target = os.environ['MANTLE_TARGET']
+else:
     os.environ['MANTLE_TARGET'] = target
+
+if not vendor:
+    if target == 'ice40':
+        vendor = 'lattice'
+    elif target in ['spartan3', 'spartan6', 'kyntex7']:
+        vendor = 'xilinx'
+    elif target in ['cyclone4']:
+        vendor = 'altera'
 
 # Add CWD to PYTHONPATH so Python can find the input file
 sys.path.append(os.getcwd())
 
-main = getattr(__import__(name), top_circuit)
 mainv = os.path.join(build,name)
 
 compile(mainv, main, output=outputformat, vendor=vendor)
