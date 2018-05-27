@@ -1,14 +1,14 @@
 #!/usr/bin/env python2
 # fabricate only works with python2
-
 import os, glob
 from os.path import join, exists
 from fabricate import main, autoclean, run
 
+BOARD = 'papilioone'
 BUILD = 'build'
 GOLD = 'gold' 
 
-tests = glob.glob('*.py')
+tests = glob.glob('lut1.py')
 
 def build():
     for test in tests:
@@ -21,7 +21,7 @@ def compile(base):
     regress(base)
 
 def magma(base):
-    run('magma', '-d', BUILD, base)
+    run('magma', '-d', BUILD, '-b', BOARD, base)
 
 def regress(base):
     u = base+'.ucf'

@@ -43,7 +43,7 @@ for o, a in opts:
             usage()
         outputformat = a
     elif o == '-m':
-        if a not in ['verilog', 'coreir', 'lattice']:
+        if a not in ['ice40', 'spartan3', 'spartan6', 'kyntex7', 'cyclone4']:
             usage()
         target = a
     elif o == '-v':
@@ -55,31 +55,17 @@ for o, a in opts:
     elif o == '-d':
         build = a
 
-name = os.path.basename(args[0])
-name = os.path.splitext(name)[0]
-
-if board in ['icestick', 'goboard', 'hx8kboard', 'tinyfpga']:
-    if not target:
+if not target and board:
+    if board in ['icestick', 'goboard', 'hx8kboard', 'tinyfpga']:
         target = 'ice40'
-elif board == 'de0nano':
-    if not target:
+    elif board == 'de0nano':
         target = 'cyclone4'
-elif board == 'papilioone':
-    if not target:
+    elif board == 'papilioone':
         target = 'spartan3'
-elif board == 'papiliopro':
-    if not target:
+    elif board == 'papiliopro':
         target = 'spartan6'
 
-# import may set MANTLE_TARGET
-main = getattr(__import__(name), top_circuit)
-
-if not target:
-    target = os.environ['MANTLE_TARGET']
-else:
-    os.environ['MANTLE_TARGET'] = target
-
-if not vendor:
+if not vendor and target:
     if target == 'ice40':
         vendor = 'lattice'
     elif target in ['spartan3', 'spartan6', 'kyntex7']:
@@ -87,8 +73,16 @@ if not vendor:
     elif target in ['cyclone4']:
         vendor = 'altera'
 
+if target:
+    os.environ['MANTLE_TARGET'] = target
+
 # Add CWD to PYTHONPATH so Python can find the input file
 sys.path.append(os.getcwd())
+
+name = os.path.basename(args[0])
+name = os.path.splitext(name)[0]
+
+main = getattr(__import__(name), top_circuit)
 
 mainv = os.path.join(build,name)
 
