@@ -1,7 +1,7 @@
 import magma as m
+import mantle
 
 class FullAdder(m.Circuit):
-    name = "FullAdder"
     IO = ["a", m.In(m.Bit), "b", m.In(m.Bit), "cin", m.In(m.Bit),
           "out", m.Out(m.Bit), "cout", m.Out(m.Bit)]
     @classmethod
@@ -17,11 +17,9 @@ class FullAdder(m.Circuit):
 
 
 if __name__ == "__main__":
-    from magma.python_simulator import PythonSimulator
-    from magma.scope import Scope
+    from magma.simulator.python_simulator import PythonSimulator
 
     simulator = PythonSimulator(FullAdder)
-    scope = Scope()
     test_vectors = [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 1, 0],
@@ -34,11 +32,11 @@ if __name__ == "__main__":
     ]
 
     for a, b, cin, out, cout in test_vectors:
-        simulator.set_value(FullAdder.a, scope, bool(a))
-        simulator.set_value(FullAdder.b, scope, bool(b))
-        simulator.set_value(FullAdder.cin, scope, bool(cin))
+        simulator.set_value(FullAdder.a, bool(a))
+        simulator.set_value(FullAdder.b, bool(b))
+        simulator.set_value(FullAdder.cin, bool(cin))
         simulator.evaluate()
-        assert simulator.get_value(FullAdder.out, scope) == bool(out)
-        assert simulator.get_value(FullAdder.cout, scope) == bool(cout)
+        assert simulator.get_value(FullAdder.out) == bool(out)
+        assert simulator.get_value(FullAdder.cout) == bool(cout)
 
     print("Success!")
