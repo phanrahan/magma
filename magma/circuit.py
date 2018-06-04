@@ -124,8 +124,8 @@ class CircuitKind(type):
 
         return s
 
-    def _repr_html_(cls):
-        return circuit_to_html(cls)
+    # def _repr_html_(cls):
+    #     return circuit_to_html(cls)
 
     def find(cls, defn):
         name = cls.__name__
@@ -182,8 +182,8 @@ class AnonymousCircuitType(object):
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         #    ', '.join(args), self.filename, self.lineno)
 
-    def _repr_html_(self):
-        return circuit_to_html(self)
+    # def _repr_html_(self):
+    #     return circuit_to_html(self)
 
     def __getitem__(self, key):
         return self.interface[key]
