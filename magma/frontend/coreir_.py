@@ -20,7 +20,7 @@ def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gener
     if uniqueName in definitionCache:
         return definitionCache[uniqueName]
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
-    cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
+    # cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
     return DefineModuleWrapper(cirb, moduleToWrap, uniqueName)
 
 def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
@@ -48,7 +48,9 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
             circuitNotInstance = circuit
         return cirb.compile(circuitNotInstance)[circuitNotInstance.name]
 
-def DeclareCoreIRGenerator(lib : str, name : str, typegen = None):
+def DeclareCoreIRGenerator(lib : str, name : str, typegen = None, backend = None):
+    if backend is None:
+        backend = CoreIRBackend()
     if typegen is not None:
         # This is for generators which we don't have access to
         raise NotImplementedError()
@@ -57,7 +59,7 @@ def DeclareCoreIRGenerator(lib : str, name : str, typegen = None):
         def Define(**kwargs):
             kwargs_str = "_".join(f"{key}_{value}" for key, value in kwargs.items())
             unique_name = f"{lib}_{name}_{kwargs_str}"
-            return DefineCircuitFromGeneratorWrapper(CoreIRBackend(), lib, name, unique_name, genargs=kwargs)
+            return DefineCircuitFromGeneratorWrapper(backend, lib, name, unique_name, genargs=kwargs)
         return Define
 
 def coreir_typegen(fn):
