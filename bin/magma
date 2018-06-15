@@ -27,7 +27,6 @@ boards += ['papilioone', 'papiliopro']
 
 board = None
 target = None
-vendor = None
 outputformat = 'verilog'
 top_circuit = 'main'
 build = 'build'
@@ -46,10 +45,6 @@ for o, a in opts:
         if a not in ['ice40', 'spartan3', 'spartan6', 'kyntex7', 'cyclone4']:
             usage()
         target = a
-    elif o == '-v':
-        if a not in ['altera', 'xilinx', 'lattice', 'silego']:
-            usage()
-        vendor = a
     elif o == '-t':
         top_circuit = a
     elif o == '-d':
@@ -65,14 +60,6 @@ if not target and board:
     elif board == 'papiliopro':
         target = 'spartan6'
 
-if not vendor and target:
-    if target == 'ice40':
-        vendor = 'lattice'
-    elif target in ['spartan3', 'spartan6', 'kyntex7']:
-        vendor = 'xilinx'
-    elif target in ['cyclone4']:
-        vendor = 'altera'
-
 if target:
     os.environ['MANTLE_TARGET'] = target
     set_mantle_target(target)
@@ -87,4 +74,4 @@ main = getattr(__import__(name), top_circuit)
 
 mainv = os.path.join(build,name)
 
-compile(mainv, main, output=outputformat, vendor=vendor)
+compile(mainv, main, output=outputformat)

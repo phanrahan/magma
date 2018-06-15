@@ -54,7 +54,7 @@ def check_definitions_are_unique(circuit):
     CheckDefinitionUniquenessPass(circuit).run()
 
 
-def compile(basename, main, output='verilog', origin=None, include_coreir=False, vendor=None):
+def compile(basename, main, output='verilog', origin=None, include_coreir=False):
     check_definitions_are_unique(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
@@ -78,10 +78,4 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False,
         write_file(file_name, 'dot', dot.compile(main))
 
     if hasattr(main, 'fpga'):
-        fpga = main.fpga
-        if   vendor == 'altera':
-            write_file(file_name, 'qsf', fpga.qsf(basename.split('/')[-1]))
-        elif vendor == 'xilinx':
-            write_file(file_name, 'ucf', fpga.ucf())
-        elif vendor == 'lattice' or vendor == 'silego':
-            write_file(file_name, 'pcf', fpga.pcf())
+        main.fpga.constraints(file_name);
