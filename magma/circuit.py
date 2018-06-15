@@ -98,7 +98,8 @@ class CircuitKind(type):
         return self
 
     def __str__(cls):
-        return cls.__name__
+        interface = ", ".join(f"{name}: {_type}" for name, _type in cls.interface.items())
+        return f"{cls.__name__}({interface})"
 
     def __repr__(cls):
 
