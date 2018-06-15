@@ -35,15 +35,13 @@ from .compile import *
 
 #from .tests import *
 
-#print('import magma')
-
 from .logging import warning
 
 
 mantle_target = None
 def set_mantle_target(t):
      global mantle_target
-     if mantle_target is not None:
-         warning('setting mantle target again', mantle_target, t )
+     if mantle_target is not None and mantle_target != t:
+         warning('changing mantle target', mantle_target, t )
      mantle_target = t
  
