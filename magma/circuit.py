@@ -98,8 +98,11 @@ class CircuitKind(type):
         return self
 
     def __str__(cls):
-        interface = ", ".join(f"{name}: {_type}" for name, _type in cls.interface.items())
-        return f"{cls.__name__}({interface})"
+        interface = ""
+        if hasattr(cls, "interface"):
+            interface = ", ".join(f"{name}: {_type}" for name, _type in cls.interface.items())
+            interface = f"({interface})"
+        return f"{cls.__name__}{interface}"
 
     def __repr__(cls):
 
@@ -178,7 +181,7 @@ class AnonymousCircuitType(object):
         for k, v in self.interface.ports.items():
             args.append('"{}"'.format(k))
             args.append(repr(v))
-        return '{}({})'.format(str(type(self)), ', '.join(args))
+        return '{}({})'.format(type(self).__name__, ', '.join(args))
 
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         #    ', '.join(args), self.filename, self.lineno)
@@ -310,7 +313,7 @@ class CircuitType(AnonymousCircuitType):
             else:
                  v = '"{}"'.format(v)
             args.append("%s=%s"%(k, v))
-        return '{} = {}({})'.format(str(self), str(type(self)), ', '.join(args))
+        return '{} = {}({})'.format(str(self), type(self).__name__, ', '.join(args))
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         # cls.filename, cls.lineno)
 
