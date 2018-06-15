@@ -79,9 +79,6 @@ class _Interface(Type):
                 s += 'wire({}, {})\n'.format(oname, iname)
         return s
 
-    def items(self):
-        return self.ports.items()
-
     def __iter__(self):
         return iter(self.ports)
 
@@ -239,7 +236,7 @@ class InterfaceKind(Kind):
                 ports.append((key, arg))
         cls.ports = OrderedDict(ports)
 
-    def items(cls):
+    def items(cls): 
         return cls.ports.items()
 
     def __iter__(cls):
