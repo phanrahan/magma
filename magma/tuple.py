@@ -40,6 +40,8 @@ class TupleType(Type):
                 self.ts.append(t)
                 setattr(self, k, t)
 
+    __hash__ = Type.__hash__
+
     def __eq__(self, rhs):
         if not isinstance(rhs, TupleType): return False
         return self.ts == rhs.ts
@@ -155,6 +157,13 @@ class TupleType(Type):
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
+    def const(self):
+        for t in self.ts:
+            if not t.const():
+                return False
+
+        return True
+
 class TupleKind(Kind):
     def __init__(cls, name, bases, dct):
         super(TupleKind, cls).__init__(name, bases, dct)
@@ -234,4 +243,45 @@ def Tuple(*largs, **kwargs):
 
     name = 'Tuple(%s)' % ",".join(str(Ks))
     return TupleKind(name, (TupleType,), dict(Ks=Ks, Ts=Ts))
+
+from .bitutils import int2seq
+from .array import ArrayType, Array
+from .bit import _BitKind, _BitType, Bit, BitKind, BitType, VCC, GND
+
+#
+# convert value to a tuple
+#   *value = tuple from positional arguments
+#   **kwargs = tuple from keyword arguments
+#
+def tuple_(value, n=None):
+    if isinstance(value, TupleType):
+        return value
+
+    if not isinstance(value, (_BitType, ArrayType, IntegerTypes, Sequence, Mapping)):
+        raise ValueError(
+            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
+
+    decl = OrderedDict()
+    args = []
+
+    if isinstance(value, IntegerTypes):
+        if n is None:
+            n = max(value.bit_length(),1)
+        value = int2seq(value, n)
+    elif isinstance(value, _BitType):
+        value = [value]
+    elif isinstance(value, ArrayType):
+        value = [value[i] for i in range(len(value))]
+
+    if isinstance(value, Sequence):
+        ts = list(value)
+        for i in range(len(ts)):
+            args.append(ts[i])
+            decl[i] = type(ts[i])
+    elif isinstance(value, Mapping):
+        for k, v in value.items():
+            args.append(v)
+            decl[k] = type(v)
+
+    return Tuple(decl)(*args)
 

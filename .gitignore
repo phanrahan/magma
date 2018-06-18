@@ -94,3 +94,5 @@ tests/build
 .idea/
 
 .DS_Store
+parser.out
+parsetab.py

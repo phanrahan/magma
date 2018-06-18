@@ -1,34 +1,43 @@
 from collections import OrderedDict
 import os
-from ..bit import VCC, GND, BitType, BitIn, BitOut, BitKind
+from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, ClockType, Clock, ResetType
+from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
 import coreir
-from ..ref import ArrayRef, DefnRef
+from ..ref import ArrayRef, DefnRef, TupleRef
 from ..passes import InstanceGraphPass
 from ..t import In
 
 from collections import defaultdict
 
+class CoreIRBackendError(RuntimeError):
+    pass
+
 class keydefaultdict(defaultdict):
     # From https://stackoverflow.com/questions/2912231/is-there-a-clever-way-to-pass-the-key-to-defaultdicts-default-factory
     def __missing__(self, key):
         if self.default_factory is None:
-            raise KeyError( key )
+            raise KeyError( key )  # pragma: no cover
         else:
             ret = self[key] = self.default_factory(key)
             return ret
+
+def get_top_name(name):
+    if isinstance(name, TupleRef):
+        return get_top_name(name.tuple.name)
+    if isinstance(name, ArrayRef):
+        return get_top_name(name.array.name)
+    return name
 
 def magma_port_to_coreir(port):
     select = repr(port)
 
     name = port.name
-    while isinstance(name, ArrayRef):
-        name = name.array.name
+    name = get_top_name(name)
     if isinstance(name, DefnRef):
         if name.defn.name != "":
             select = select.replace(name.defn.name, "self")
@@ -45,20 +54,20 @@ class CoreIRBackend:
         self.__unique_concat_id = -1
 
     def check_interface(self, definition):
-        # for now only allow Bit, Array, or Record
-        def check_type(portType, errorMessage=""):
-            if isinstance(portType, ArrayKind):
-                check_type(portType.T, errorMessage.format("Array({}, {})").format(
-                    str(portType.N, "{}")))
-            elif isinstance(portType, TupleKind):
+        # for now only allow Bit, Array, or Tuple
+        def check_type(port, errorMessage=""):
+            if isinstance(port, ArrayKind):
+                check_type(port.T, errorMessage.format("Array({}, {})").format(
+                    str(port.N), "{}"))
+            elif isinstance(port, TupleKind):
                 for (k, t) in zip(port.Ks, port.Ts):
-                    check_type(t, errorMessage.format("Record({}:{})".format(k, "{}")))
-            elif isinstance(portType, BitKind):
+                    check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
+            elif isinstance(port, (BitKind, ClockKind)):
                 return
             else:
-                error(errorMessage.format(str(port)))
+                raise CoreIRBackendError(errorMessage.format(str(port)))
         for name, port in definition.interface.ports.items():
-            check_type('Error: Argument {} must be a Bit, Array, or Record')
+            check_type(type(port), 'Error: Argument {} must be comprised only of Bit, Array, or Tuple')
 
     def get_type(self, port, is_input):
         if isinstance(port, (ArrayType, ArrayKind)):
@@ -87,7 +96,8 @@ class CoreIRBackend:
         return _type
 
     coreirNamedTypeToPortDict = {
-        "clk": Clock
+        "clk": Clock,
+        "coreir.clkIn": Clock
     }
 
     def get_ports(self, coreir_type):
@@ -102,17 +112,20 @@ class CoreIRBackend:
             for item in coreir_type.items():
                 # replace  the in port with I as can't reference that
                 name = "I" if (item[0] == "in") else item[0]
-                # exception to handle clock types, since other named types not handled
-                if item[1].kind == "Named" and name in self.coreirNamedTypeToPortDict:
-                    elements[name] = In(self.coreirNamedTypeToPortDict[name])
-                else:
-                    elements[name] = self.get_ports(item[1])
+                elements[name] = self.get_ports(item[1])
                 # save the renaming data for later use
                 if item[0] == "in":
+                    if isinstance(elements[name], BitKind):
+                        # making a copy of bit, as don't want to affect all other bits
+                        elements[name] = MakeBit(direction=elements[name].direction)
                     elements[name].origPortName = "in"
             return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
-            raise NotImplementedError("named types not supported yet")
+            # exception to handle clock types, since other named types not handled
+            if coreir_type.name in self.coreirNamedTypeToPortDict:
+                return In(self.coreirNamedTypeToPortDict[coreir_type.name])
+            else:
+                raise NotImplementedError("not all named types supported yet")
         else:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
@@ -140,7 +153,7 @@ class CoreIRBackend:
                 if name in {"name", "loc"}:
                     continue  # Skip
                 elif isinstance(value, tuple):
-                    args[name] = coreir.BitVector(value[1], value[0])
+                    args[name] = BitVector(value[0], num_bits=value[1])
                 else:
                     args[name] = value
             args = self.context.new_values(args)
@@ -161,8 +174,11 @@ class CoreIRBackend:
     def add_output_port(self, output_ports, port):
         output_ports[port] = magma_port_to_coreir(port)
         if isinstance(port, ArrayType):
-            for bit in port:
-                self.add_output_port(output_ports, bit)
+            for element in port:
+                self.add_output_port(output_ports, element)
+        elif isinstance(port, TupleType):
+            for element in port:
+                self.add_output_port(output_ports, element)
 
     def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
@@ -206,7 +222,10 @@ class CoreIRBackend:
 
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id
-        if value is None:
+        # allow clocks to be unwired as CoreIR can wire them up
+        if value is None and isinstance(port, ClockType):
+            return
+        elif value is None:
             raise Exception("Got None for port: {}, is it connected to anything?".format(port))
         elif isinstance(value, coreir.Wireable):
             source = value
@@ -218,6 +237,10 @@ class CoreIRBackend:
         elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
             source = self.get_constant_instance(value, len(value),
                     module_definition)
+        elif isinstance(value, TupleType) and value.anon():
+            for p, v in zip(port, value):
+                self.connect(module_definition, p, v, output_ports)
+            return
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
@@ -243,7 +266,7 @@ class CoreIRBackend:
             elif isinstance(constant, ArrayType):
                 value = seq2int([bit_type_to_constant_map[x] for x in constant])
             else:
-                raise NotImplementedError(value)
+                raise NotImplementedError(constant)
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
                 name = "bit_const_{}".format(constant)
@@ -267,8 +290,22 @@ class CoreIRBackend:
         pass_.run()
         for key, _ in pass_.tsortedgraph:
             if key.is_definition:
-                modules[key.name] = self.compile_definition(key)
+                # don't try to compile if already have definition
+                if hasattr(key, 'wrappedModule'):
+                    modules[key.name] = key.wrappedModule
+                else:
+                    modules[key.name] = self.compile_definition(key)
+                    key.wrappedModule = modules[key.name]
         return modules
+
+    def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):
+        passes = ["rungenerators", "wireclocks-coreir"]
+        if verifyConnectivity:
+            passes += ["verifyconnectivity-noclkrst"]
+        if flatten:
+            passes += ["flattentypes", "flatten"]
+        self.context.run_passes(passes, namespaces)
+        module.save_to_file(filename)
 
 def compile(main, file_name=None, context=None):
     modules = CoreIRBackend(context).compile(main)
