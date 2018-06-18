@@ -1,7 +1,9 @@
+import pytest
 from magma import *
 from magma.compile import MultipleDefinitionException
 
 
+@pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_multiple_definitions_are_same():
     class Circ1(Circuit):
         name = "same"
@@ -33,6 +35,7 @@ def test_multiple_definitions_are_same():
     except MultipleDefinitionException:
         pass
 
+@pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_multiple_definitions_are_same_older_def_approach():
     IO = ['I', In(Bit), 'O', Out(Bit)]
     Circ1 = DefineCircuit("same", *IO)
@@ -56,6 +59,7 @@ def test_multiple_definitions_are_same_older_def_approach():
     except MultipleDefinitionException:
         pass
 
+@pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_same_definitions():
     class Circ1(Circuit):
         name = "same"
