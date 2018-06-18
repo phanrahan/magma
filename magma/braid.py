@@ -230,13 +230,13 @@ def join(*circuits):
 
 
 
-def fold(*circuits, **kwargs):
+def fold(*circuits, foldargs={"I":"O"}, **kwargs):
     """fold"""
     if len(circuits) == 1:
         circuits = circuits[0]
     return braid(circuits, **kwargs)
 
-def scan(*circuits, **kwargs):
+def scan(*circuits, scanargs={"I":"O"}, **kwargs):
     """scan"""
     if len(circuits) == 1:
         circuits = circuits[0]
