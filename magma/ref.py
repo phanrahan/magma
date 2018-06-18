@@ -44,7 +44,7 @@ class DefnRef(Ref):
 
     def qualifiedname(self, sep='.'):
         if sep == '.':
-            return str(self.defn) + sep + self.name
+            return self.defn.__name__ + sep + self.name
         else:
             return self.name
 

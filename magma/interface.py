@@ -79,6 +79,10 @@ class _Interface(Type):
                 s += 'wire({}, {})\n'.format(oname, iname)
         return s
 
+    @classmethod
+    def items(cls):
+        return cls.ports.items()
+
     def __iter__(self):
         return iter(self.ports)
 

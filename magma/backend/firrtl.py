@@ -99,7 +99,7 @@ def compiledefinition(cls):
         #print('compile instances')
         # emit the structured verilog for each instance
         for instance in cls.instances:
-            if instance.firrtl_op is not None:
+            if getattr(instance, "firrtl_op", False):
                 s += compile_primitive(instance)
             else:
                 wiredefaultclock(cls, instance)

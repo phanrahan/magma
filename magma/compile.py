@@ -78,11 +78,4 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         write_file(file_name, 'dot', dot.compile(main))
 
     if hasattr(main, 'fpga'):
-        fpga = main.fpga
-        vendor = os.getenv('MANTLE', 'lattice')
-        if   vendor == 'altera':
-            write_file(file_name, 'qsf', fpga.qsf(basename.split('/')[-1]))
-        elif vendor == 'xilinx':
-            write_file(file_name, 'ucf', fpga.ucf())
-        elif vendor == 'lattice' or vendor == 'silego':
-            write_file(file_name, 'pcf', fpga.pcf())
+        main.fpga.constraints(file_name);

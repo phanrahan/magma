@@ -1,4 +1,3 @@
-import sys
 from full_adder import FullAdder
 
 import magma as m
@@ -23,17 +22,16 @@ def DefineAdder(N):
 
 
 if __name__ == "__main__":
-    from magma.python_simulator import PythonSimulator
-    from magma.scope import Scope
+    from magma.simulator.python_simulator import PythonSimulator
     from magma.bit_vector import BitVector
 
     Adder4 = DefineAdder(4)
     simulator = PythonSimulator(Adder4)
-    scope = Scope()
-    simulator.set_value(Adder4.a, scope, BitVector(2, num_bits=4).as_bool_list())
-    simulator.set_value(Adder4.b, scope, BitVector(3, num_bits=4).as_bool_list())
-    simulator.set_value(Adder4.cin, scope, True)
+    simulator.set_value(Adder4.a, BitVector(2, num_bits=4))
+    simulator.set_value(Adder4.b, BitVector(3, num_bits=4))
+    simulator.set_value(Adder4.cin, True)
     simulator.evaluate()
-    assert simulator.get_value(Adder4.out, scope) == int2seq(6, 4)
-    assert simulator.get_value(Adder4.cout, scope) == False
+    #assert simulator.get_value(Adder4.out) == int2seq(6, 4)
+    assert simulator.get_value(Adder4.out) == BitVector(6, num_bits=4)
+    assert simulator.get_value(Adder4.cout) == False
     print("Success!")

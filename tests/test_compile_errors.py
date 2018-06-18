@@ -28,8 +28,8 @@ def test_multiple_definitions_are_same():
     wire(test.O2, circ2.O)
     EndDefine()
     try:
-        compile('shouldnotmatter', test)
-        assert Circ1 is Circ2
+        compile('build/shouldnotmatter', test)
+        assert False, "Should throw MultipleDefinitionException"
     except MultipleDefinitionException:
         pass
 

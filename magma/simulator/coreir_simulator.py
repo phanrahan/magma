@@ -43,7 +43,7 @@ def convert_to_coreir_path(bit, scope):
         inst_name = scope.inst.name
         insts.insert(0, inst_name)
         scope = scope.parent
-    
+
     last_component = coreir_.magma_port_to_coreir(bit)
     last_inst, port = last_component.split('.', 1)
     insts.append(last_inst)
@@ -61,7 +61,7 @@ def convert_to_coreir_path(bit, scope):
 
     ports = [port]
 
-    return insts, ports 
+    return insts, ports
 
 # This exists because things like clocks and setting values doesn't have the new API
 # so convert from what the new API expects to what the old API expects
@@ -83,7 +83,7 @@ class WatchPoint:
 
     def was_triggered(self):
         new_val = self.simulator.get_value(self.bit, self.scope)
-        triggered = new_val != self.old_val 
+        triggered = new_val != self.old_val
         if self.value:
             if self.value != new_val:
                 triggered = False
@@ -98,6 +98,8 @@ class CoreIRSimulator(CircuitSimulator):
         return steps
 
     def __get_clock_value(self):
+        if self.clock is None:
+            return None
         return self.get_value(self.clock, Scope())
 
     def __get_triggered_points(self):
@@ -208,10 +210,12 @@ class CoreIRSimulator(CircuitSimulator):
 
     def evaluate(self, no_update=False):
         clkvalue = self.__get_clock_value()
-        insts, ports = convert_to_coreir_path(self.clock, Scope())
-        self.simulator_state.set_clock_value(old_style_path(insts, ports), False, False)
+        if clkvalue is not None:
+            insts, ports = convert_to_coreir_path(self.clock, Scope())
+            self.simulator_state.set_clock_value(old_style_path(insts, ports), False, False)
         self.simulator_state.execute()
-        self.simulator_state.set_clock_value(old_style_path(insts, ports), not clkvalue, clkvalue)
+        if clkvalue is not None:
+            self.simulator_state.set_clock_value(old_style_path(insts, ports), not clkvalue, clkvalue)
 
         return ExecutionState(triggered_points=self.__get_triggered_points(), clock=clkvalue, cycles=0)
 
