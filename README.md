@@ -57,11 +57,13 @@ and with [Loam](https://github.com/phanrahan/loam)
 which is used to represent parts and boards,
 and to build applications for standalone FPGA boards.
 
-# Installation
-## Prerequisites
-* python (3 recommended)
-* pip
-* verilator (for testing)
+## Setting up Python
+We recommend using Python 3.  This section walks through a few common methods
+for getting set up with Python. The first (recommended) method is to use
+miniconda which supports MacOS and Linux (and Windows, but magma's support for
+windows has not been tested).  We also provide methods using the standard
+package managers for MacOS and Ubuntu Linux.
+
 ### Universal
 [miniconda](https://conda.io/miniconda.html) - A free minimal installer for
 conda. Miniconda is a small, bootstrap version of Anaconda that includes only
@@ -83,14 +85,13 @@ $ conda install matplotlib
 
 ### MacOS/Homebrew
 ```
-$ brew install python3 verilator
-```
-### Ubuntu
-```
-$ sudo apt-get install python3 python3-pip verilator
-$ sudo apt-get build-dep python-matplotlib  # Install dependencies required for matplotlib
+$ brew install python3
 ```
 
+### Ubuntu
+```
+$ sudo apt-get install python3 python3-pip
+```
 
 ## Setup
 Clone the magma repository

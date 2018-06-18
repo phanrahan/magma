@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, getopt
-from magma import compile
+from magma import compile, set_mantle_target
 
 def usage():
     print('usage: magma [-b board] [-o outputformat] file\n', file=sys.stderr)
@@ -9,27 +9,32 @@ def usage():
     print('-b board    (icestick, goboard, hx8kboard) ', file=sys.stderr)
     print('-o format   (verilog [default], coreir, firrtl, blif) ', file=sys.stderr)
     print('-m mantle   (verilog [default], coreir, lattice)', file=sys.stderr)
-    print('-t top      (top circuit module, main [default])')
+    print('-t top      (top circuit module, main [default])', file=sys.stderr)
+    print('-d dir      (build directory [default=build])', file=sys.stderr)
     sys.exit(1)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'b:o:m:t:')
+    opts, args = getopt.getopt(sys.argv[1:], 'b:o:m:t:d:')
 except Exception as e:
     print(e, file=sys.stderr)
     usage()
 
 sys.path.append(os.path.dirname(os.path.realpath(args[0])))
 
+boards  = ['icestick', 'goboard', 'hx8kboard', 'tinyfpga', 'upduino']
+boards += ['de0nano']
+boards += ['papilioone', 'papiliopro']
 
 board = None
+target = None
 outputformat = 'verilog'
-mantle = 'verilog'
 top_circuit = 'main'
+build = 'build'
 for o, a in opts:
     if o == '-h':
         usage()
     elif o == '-b':
-        if a not in ['icestick', 'goboard', 'hx8kboard']:
+        if a not in boards:
             usage()
         board = a
     elif o == '-o':
@@ -37,29 +42,36 @@ for o, a in opts:
             usage()
         outputformat = a
     elif o == '-m':
-        if a not in ['verilog', 'coreir', 'lattice']:
+        if a not in ['ice40', 'spartan3', 'spartan6', 'kyntex7', 'cyclone4']:
             usage()
-        mantle = a
+        target = a
     elif o == '-t':
         top_circuit = a
+    elif o == '-d':
+        build = a
 
-name = os.path.basename(args[0])
-name = os.path.splitext(name)[0]
-
-target = None
-if board == 'icestick' or board == 'goboard' or board == 'hx8kboard':
-    target = 'ice40'
-    mantle = 'lattice'
+if not target and board:
+    if board in ['icestick', 'goboard', 'hx8kboard', 'tinyfpga', 'upduino']:
+        target = 'ice40'
+    elif board == 'de0nano':
+        target = 'cyclone4'
+    elif board == 'papilioone':
+        target = 'spartan3'
+    elif board == 'papiliopro':
+        target = 'spartan6'
 
 if target:
     os.environ['MANTLE_TARGET'] = target
-if mantle:
-    os.environ['MANTLE'] = mantle
+    set_mantle_target(target)
 
 # Add CWD to PYTHONPATH so Python can find the input file
 sys.path.append(os.getcwd())
 
+name = os.path.basename(args[0])
+name = os.path.splitext(name)[0]
+
 main = getattr(__import__(name), top_circuit)
-mainv = os.path.join('build',name)
+
+mainv = os.path.join(build,name)
 
 compile(mainv, main, output=outputformat)

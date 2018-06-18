@@ -24,7 +24,7 @@ def hex(n):
     if n < 10: return chr(ord('0')+n)
     else:      return chr(ord('A')+n-10)
 
-# return a hex string reprenting n 
+# return a hex string reprenting n
 def hstr(n, bits):
     format = "%d'h" % bits
     nformat = []

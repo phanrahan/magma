@@ -14,6 +14,7 @@ def check_files_equal(callee_file, file1_name, file2_name):
     file_path = os.path.dirname(callee_file)
     file1_path = os.path.join(file_path, file1_name)
     file2_path = os.path.join(file_path, file2_name)
+    print(file1_path, file2_path)
     result = filecmp.cmp(file1_path, file2_path, shallow=False)
     if not result:
         with open(file1_path, "r") as file1:

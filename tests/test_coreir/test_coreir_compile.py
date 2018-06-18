@@ -10,7 +10,7 @@ def test_compile_coreir():
     shift_amount = 2
     output = magma.concat(double.I[shift_amount:width], magma.bits(0, shift_amount))
     magma.wire(output, double.O)
-    coreir_double = magma.backend.coreir_compile(double)
+    coreir_double = magma.backend.coreir_.compile(double)
     c = coreir_double.context
 
     def get_lib(lib):

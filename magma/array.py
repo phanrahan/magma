@@ -200,7 +200,7 @@ class ArrayKind(Kind):
 
     def __getitem__(cls, key):
         if isinstance(key,slice):
-            return array([cls[i] for i in xrange(*key.indices(len(cls)))])
+            return array([cls[i] for i in range(*key.indices(len(cls)))])
         else:
             if not (0 <= key and key < cls.N):
                 raise IndexError
