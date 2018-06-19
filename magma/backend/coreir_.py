@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from bit_vector import BitVector
 import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
@@ -295,7 +296,7 @@ class CoreIRBackend:
                     modules[key.name] = key.wrappedModule
                 else:
                     modules[key.name] = self.compile_definition(key)
-                    key.wrappedModule = modules[key.name]
+                    # key.wrappedModule = modules[key.name]
         return modules
 
     def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):
