@@ -240,7 +240,7 @@ def scan(*circuits, scanargs={"I":"O"}, **kwargs):
     """scan"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    return braid(circuits, **kwargs)
+    return braid(circuits, scanargs=scanargs, **kwargs)
 
 
 def compose2(circuit1, circuit2):
