@@ -3,7 +3,7 @@ import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind
+from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -62,7 +62,7 @@ class CoreIRBackend:
             elif isinstance(port, TupleKind):
                 for (k, t) in zip(port.Ks, port.Ts):
                     check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
-            elif isinstance(port, (BitKind, ClockKind)):
+            elif isinstance(port, (BitKind, ClockKind, EnableKind, ResetKind)):
                 return
             else:
                 raise CoreIRBackendError(errorMessage.format(str(port)))
