@@ -16,7 +16,7 @@ __ALL__ += ['braid']
 def flatten(l):
     return sum(l, [])
 
-# return a list of all the arguments 
+# return a list of all the arguments
 # with a given name from a list of interfaces
 def getarg(arg, interfaces):
     return [i.ports[arg] for i in interfaces]
@@ -30,7 +30,7 @@ def getdirection(args):
     if a.isinout():  return INOUT
     return None
 
-# return a list of all the arguments 
+# return a list of all the arguments
 # in a given direction from a list of interfaces
 def getargbydirection(interface, direction):
     args = []
@@ -99,7 +99,7 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 # return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
-    oarg = type(iargs[0])() # create a single anonymous value 
+    oarg = type(iargs[0])() # create a single anonymous value
     for iarg in iargs:
          wire(oarg, iarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
@@ -122,11 +122,11 @@ def joinarg(arg, interfaces):
 #   this argument is equal an array of all the arguments from circuits
 #  foldargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
 #  rfoldargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
-#    namein[0] is retained in the result, 
+#    namein[0] is retained in the result,
 #    nameout[n-1] is retained in the result
 #  scanargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
 #  rscanargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
-#    namein[0] is retained in the result, 
+#    namein[0] is retained in the result,
 #    the array nameout is retained in the result
 #
 # by default, clock arguments are forked,
@@ -134,7 +134,7 @@ def joinarg(arg, interfaces):
 #
 # by default, any arguments not appearing in a keyword are joined
 #
-def braid(circuits, 
+def braid(circuits,
             forkargs=[],
             joinargs=[],
             foldargs={}, rfoldargs={},
@@ -234,7 +234,7 @@ def fold(*circuits, foldargs={"I":"O"}, **kwargs):
     """fold"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    return braid(circuits, **kwargs)
+    return braid(circuits, foldargs=foldargs, **kwargs)
 
 def scan(*circuits, scanargs={"I":"O"}, **kwargs):
     """scan"""
@@ -288,10 +288,10 @@ def compose(*circuits):
 # curry a circuit
 #
 #  the input argument named prefix, which must be an array,
-#  is broken into separate input arguments 
+#  is broken into separate input arguments
 #
 #  for example, if prefix='I',
-#    then "I", array([i0, i1]) -> "I0", i0, "I1", i1 
+#    then "I", array([i0, i1]) -> "I0", i0, "I1", i1
 #
 # all other inputs remain unchanged
 #
@@ -312,7 +312,7 @@ def curry(circuit, prefix='I'):
 #
 # uncurry a circuit
 #
-#  all input arguments whose names begin with prefix 
+#  all input arguments whose names begin with prefix
 #  are collected into a single input argument named prefix,
 #  which is an array constructed from of the input arguments
 #
