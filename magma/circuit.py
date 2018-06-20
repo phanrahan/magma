@@ -23,6 +23,7 @@ __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
+__all__ += ['getCurrentDefinition']
 __all__ += ['magma_clear_circuit_cache']
 
 __all__ += ['isdefinition']
@@ -340,6 +341,10 @@ def DeclareCircuit(name, *decl, **args):
 
 currentDefinition = None
 currentDefinitionStack = []
+
+def getCurrentDefinition():
+    global currentDefinition
+    return currentDefinition
 
 def pushDefinition(defn):
     global currentDefinition
