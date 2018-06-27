@@ -16,13 +16,13 @@ def cache_definition(fn):
     return cachedFunctions[-1]
 
 
-# lowest-level wiring abstraction
+# wires
 from .port import *
+from .wire import *
 
 # types
 from .t import *
 from .bit import *
-#from .bitutils import *
 from .array import *
 from .bits import *
 from .tuple import *
@@ -30,17 +30,18 @@ from .clock import *
 from .conversions import *
 from .interface import *
 
+# circuit
 from .circuit import *
-from .braid import *
 
-from .wire import *
+# higher-order operators
+from .braid import *
 
 # verilog
 from .fromverilog import *
 from .backend.verilog import *
-from .compile import *
 
-#from .tests import *
+# compile
+from .compile import *
 
 from .logging import warning
 

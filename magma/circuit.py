@@ -397,6 +397,7 @@ class DefineCircuitKind(CircuitKind):
             if name in definitionCache:
                 return definitionCache[name]
             else:
+                #print('creating',name)
                 definitionCache[name] = self
 
         self.verilog = None
