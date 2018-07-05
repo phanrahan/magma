@@ -30,6 +30,9 @@ class CheckDefinitionUniquenessPass(DefinitionPass):
         self.seen[definition.name].add(definition)
 
     def _run(self, definition):
+        if not isdefinition(definition):
+            return
+
         for instance in definition.instances:
             instancedefinition = type(instance)
             if isdefinition(instancedefinition):
