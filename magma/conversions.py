@@ -102,7 +102,7 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
                 raise ValueError(
                     "bits can only be used on Arrays or Tuples containing bits, not : {}".format(type(value)))
        if t != T:
-            raise ValueError("All fields in a Array or a Tuple must be the same type")
+           raise ValueError("All fields in a Array or a Tuple must be the same type : {}".format(Ts))
 
     assert len(Ts)
 
