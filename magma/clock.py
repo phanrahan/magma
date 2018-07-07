@@ -1,6 +1,6 @@
 from .port import INPUT, OUTPUT, INOUT
 from .t import In, Out, InOut
-from .bit import Bit, _BitKind, _BitType
+from .bit import Bit, _BitKind, _BitType, BitKind, BitType
 from .wire import wire
 
 __all__  = ['ClockKind', 'ClockType']
@@ -43,7 +43,7 @@ ClockIn = ClockKind('Clock', (ClockType,), dict(direction=INPUT))
 ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
 
 
-class ResetKind(_BitKind):
+class ResetKind(BitKind):
     def __str__(cls):
         if cls.isinput():  return 'In(Reset)'
         if cls.isoutput(): return 'Out(Reset)'
@@ -60,7 +60,7 @@ class ResetKind(_BitKind):
         elif cls.isoriented(OUTPUT): return ResetIn
         return cls
 
-class ResetType(_BitType):
+class ResetType(BitType):
     pass
 
 Reset = ResetKind('Reset', (ResetType,), {})
@@ -70,7 +70,7 @@ ResetOut = ResetKind('Reset', (ResetType,), dict(direction=OUTPUT))
 # Preset
 # Clear
 
-class EnableKind(_BitKind):
+class EnableKind(BitKind):
     def __str__(cls):
         if cls.isinput():  return 'In(Enable)'
         if cls.isoutput(): return 'Out(Enable)'
@@ -87,7 +87,7 @@ class EnableKind(_BitKind):
         elif cls.isoriented(OUTPUT): return EnableIn
         return cls
 
-class EnableType(_BitType):
+class EnableType(BitType):
     pass
 
 Enable = EnableKind('Enable', (EnableType,), {})
