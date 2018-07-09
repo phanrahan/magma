@@ -53,14 +53,14 @@ def vname(t):
     if t is GND: return "1'b0"
 
     if isinstance(t, ArrayType):
-        #print(str(t), t.iswhole(t.ts))
+        # print(t.ts)
         if not t.iswhole(t.ts):
             # the sequence of values is concantenated
             t = [vname(i) for i in t.ts]
             t.reverse()
             return '{' + ','.join(t) + '}'
 
-    assert not t.anon()
+    assert not t.anon(), (t.name)
     return t.name.qualifiedname(sep='_')
 
 # return the verilog declaration for the data type
@@ -86,7 +86,7 @@ def vmoduleargs(self):
 
 def compileinstance(self):
 
-    #print('compileinstance', str(self))
+    # print('compileinstance', str(self), str(type(self)))
 
     def arg(k,v):
         if not isinstance(v, str): v = str(v)

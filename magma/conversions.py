@@ -1,13 +1,13 @@
 from collections import Sequence
 from .compatibility import IntegerTypes
-from .t import In, Out
+from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
 from .bit import _BitKind, _BitType, Bit, BitType, VCC, GND
 from .clock import ClockType, Clock, \
     Reset, ResetType, \
     Enable, EnableType
-from .array import ArrayType, Array
+from .array import ArrayType, Array, ArrayKind
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
-from .tuple import TupleType, tuple_ as tuple_imported
+from .tuple import TupleType, tuple_ as tuple_imported, TupleKind
 from .bitutils import int2seq
 
 __all__ = ['bit']
@@ -22,11 +22,19 @@ __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext']
 
 
+def can_convert_to_bit(value):
+    return isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes))
+
+
+def can_convert_to_bit_type(value):
+    return isinstance(value, (_BitKind, ArrayKind, TupleKind))
+
+
 def convertbit(value, totype, T):
     if isinstance(value, totype):
         return value
 
-    if not isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes)):
+    if not can_convert_to_bit(value):
         raise ValueError(
             "bit can only be used on a Bit, an Array, or an int"
             f"; not {type(value)}")
@@ -48,9 +56,9 @@ def convertbit(value, totype, T):
         value = VCC if value else GND
 
     if value.isinput():
-        b = In(T)()
+        b = In(T)(name=value.name)
     elif value.isoutput():
-        b = Out(T)()
+        b = Out(T)(name=value.name)
     else:
         b = T()
     b.port = value.port
@@ -107,6 +115,7 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
             T = Out(Bit)
         Ts.append(T)
 
+    convert_to_bit = False
     # check that they are all the same
     for t in Ts:
         # this should be converted to error()
@@ -114,12 +123,25 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
             if not isinstance(t, _BitKind):
                 raise ValueError(
                     "bits can only be used on Arrays or Tuples containing bits"
-                    f", not : {type(value)}")
+                    f", not : {t}")
         if t != T:
-            raise ValueError(
-                "All fields in a Array or a Tuple must be the same type")
+            if can_convert_to_bit_type(t) and can_convert_to_bit_type(T):
+                # If they can all be converted to Bit, then that's okay
+                convert_to_bit = True
+            else:
+                raise ValueError(
+                    "All fields in a Array or a Tuple must be the same type"
+                    f"got {t} expected {T}")
 
     assert len(Ts)
+
+    if convert_to_bit is True:
+        ts = [bit(t) for t in ts]
+        T = {
+            INPUT: In,
+            OUTPUT: Out,
+            INOUT: InOut
+        }[T.direction](Bit)
 
     return totypeconstructor(len(Ts), T)(*ts)
 

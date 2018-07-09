@@ -23,7 +23,7 @@ class ArrayType(Type):
             for t in largs:
                 if isinstance(t, IntegerTypes):
                     t = VCC if t else GND
-                assert type(t) == self.T
+                assert type(t) == self.T, (type(t), self.T)
                 self.ts.append(t)
         else:
             self.ts = []
