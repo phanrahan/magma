@@ -120,7 +120,7 @@ class _BitKind(Kind):
         if cls.isinout():  return 'InOut(_Bit)'
         return '_Bit'
 
-    def qualify(cls, direction):
+    def qualify(cls, direction): 
         if   direction is None:   return _Bit
         elif direction == INPUT:  return _BitIn
         elif direction == OUTPUT: return _BitOut
@@ -154,7 +154,7 @@ class BitKind(_BitKind):
         if cls.isinout():  return 'InOut(Bit)'
         return 'Bit'
 
-    def qualify(cls, direction):
+    def qualify(cls, direction): 
         if   direction is None:   return Bit
         elif direction == INPUT:  return BitIn
         elif direction == OUTPUT: return BitOut
