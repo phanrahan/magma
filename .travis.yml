@@ -8,8 +8,14 @@ before_install:
     - source .travis/install_coreir.sh
 
 install:
-    - pip install pytest-cov
+    - pip install python-coveralls
+    - pip install pytest-cov pytest-pep8
     - pip install -e .
 
 script:
-    - py.test --cov=magma tests/
+    # TODO: Enable pep8 check
+    # - py.test --cov magma --pep8 magma -v --cov-report term-missing tests
+    - py.test --cov magma -v --cov-report term-missing tests
+
+after_success:
+    - coveralls

@@ -1,5 +1,6 @@
 # Magma
 [![Build Status](https://travis-ci.org/phanrahan/magma.svg?branch=master)](https://travis-ci.org/phanrahan/magma)
+[![Coverage Status](https://coveralls.io/repos/github/phanrahan/magma/badge.svg?branch=master)](https://coveralls.io/github/phanrahan/magma?branch=master)
 
 Magma is a hardware design language embedded in python.
 
@@ -34,17 +35,18 @@ memory controllers,
 image and signal processing,
 and even processors.
 
-The best way to learn Magma is through examples.
-Install the system as described below,
-and then browse and run the 
-jupyter [notebooks](https://github.com/phanrahan/magma/tree/master/notebooks).
+The best way to learn Magma is through examples.  The
+[magmathon](https://github.com/phanrahan/magmathon) repository contains
+instructions for installing magma, as well as a set of [Jupyter
+Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/tutorial)
+that introduce the system.
 Please also refer to the
 [documentation](https://github.com/phanrahan/magma/wiki).
 
 The design of Magma was heavily influenced by 
 [Chisel](https://chisel.eecs.berkeley.edu/),
 so Magma should be easy to learn if you know Chisel.
-The [Chisel Tutorial Notebook](https://github.com/phanrahan/mantle/tree/master/notebooks/chisel-tutorial)
+The [Chisel Tutorial Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/chisel-tutorial)
 has the Magma versions of the Chisel Tutorial examples.
 Magma also has a 
 [FIRRTL](https://github.com/freechipsproject/firrtl) backend,
