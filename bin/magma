@@ -22,7 +22,9 @@ except Exception as e:
 sys.path.append(os.path.dirname(os.path.realpath(args[0])))
 
 boards  = ['icestick', 'goboard', 'hx8kboard', 'tinyfpga', 'upduino']
-boards += ['papilioone', 'papiliopro']
+boards += ['papilioone']
+boards += ['papiliopro', 'xula2', 'mojo']
+boards += ['zed', 'trenz']
 boards += ['de0nano']
 boards += ['gpdevboard']
 
@@ -43,7 +45,7 @@ for o, a in opts:
             usage()
         outputformat = a
     elif o == '-m':
-        if a not in ['ice40', 'spartan3', 'spartan6', 'kyntex7', 'cyclone4', 'greenpak4']:
+        if a not in ['ice40', 'spartan3', 'spartan6', 'kintex7', 'cyclone4', 'greenpak4']:
             usage()
         target = a
     elif o == '-t':
@@ -58,8 +60,10 @@ if not target and board:
         target = 'cyclone4'
     elif board == 'papilioone':
         target = 'spartan3'
-    elif board == 'papiliopro':
+    elif board in ['papiliopro', 'xula2', 'mojo']:
         target = 'spartan6'
+    elif board in ['zed', 'trenz']:
+        target = 'kintex7'
     elif board == 'gpdevboard':
         target = 'greenpak4'
 
