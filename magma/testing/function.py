@@ -1,5 +1,5 @@
 from magma import BitType, ArrayType, SIntType
-from magma.bit_vector import BitVector
+from bit_vector import BitVector
 import sys
 if sys.version_info < (3, 3):
     from funcsigs import signature
@@ -22,7 +22,9 @@ def check(circuit, func):
 
 @pytest.mark.skip(reason="Not a test")
 def testvectors(circuit, func, input_ranges=None, mode='complete'):
-    check(circuit, func)
+    # Remove check for now, since user could implement using *args
+    # TODO: check *args and let that pass, otherwise verify they are the same
+    # check(circuit, func)
 
     args = []
     for i, (name, port) in enumerate(circuit.interface.ports.items()):
@@ -31,11 +33,13 @@ def testvectors(circuit, func, input_ranges=None, mode='complete'):
                 args.append([BitVector(0),BitVector(1)])
             elif isinstance(port, ArrayType):
                 num_bits = type(port).N
+                print(port)
                 if isinstance(port, SIntType):
                     if input_ranges is None:
                         start = -2**(num_bits - 1)
                         end = 2**(num_bits - 1)  # We don't subtract one because range end is exclusive
                         input_range = range(start, end)
+                        print(input_range)
                     else:
                         input_range = input_ranges[i]
                     args.append([BitVector(x, num_bits=num_bits, signed=True) for x in input_range])

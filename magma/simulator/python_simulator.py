@@ -79,7 +79,7 @@ class WatchPoint:
 
     def was_triggered(self):
         new_val = self.simulator.get_value(self.bit, self.scope)
-        triggered = new_val != self.old_val 
+        triggered = new_val != self.old_val
         if self.value:
             if self.value != new_val:
                 triggered = False
@@ -230,7 +230,7 @@ class PythonSimulator(CircuitSimulator):
                     found = True
                     break
             assert found, "Some circuits have unsatisfied inputs"
-        
+
         return ExecutionOrder(stateful=sorted_state_primitives, combinational=combinational)
 
     def __step(self):
@@ -240,7 +240,7 @@ class PythonSimulator(CircuitSimulator):
                     "initialization?")
         cur_clock_val = self.value_store.get_value(self.clock)
         self.value_store.set_value(self.clock, not cur_clock_val)
-    
+
     def __init__(self, main_circuit, clock=None):
         if isinstance(main_circuit, CircuitType):
             raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
@@ -405,7 +405,7 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
                         input_range = range(start, end)
                     else:
                         input_range = input_ranges[i]
-                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
+                    args.append([BitVector(x, num_bits=num_bits, signed=True) for x in input_range])
                 else:
                     if input_ranges is None:
                         input_range = range(1<<num_bits)
@@ -422,7 +422,7 @@ def testvectors(circuit, input_ranges=None, mode='complete'):
         j = 0
         for i, (name, port) in enumerate(circuit.interface.ports.items()):
             # circuit defn output is an input to the idefinition
-            if port.isoutput(): 
+            if port.isoutput():
                 testv[i] = test[j].as_int()
                 val = test[j].as_bool_list()
                 if len(val) == 1: val = val[0]

@@ -6,6 +6,71 @@ import subprocess
 
 __all__ = ['harness', 'compile']
 
+def regression_harness(circuit,tests):
+
+    assert len(circuit.interface.ports.keys()) == len(tests[0]), (len(circuit.interface.ports.keys()), len(tests[0]))
+
+    source = '''\
+#include "V{name}.h"
+#include "verilated.h"
+#include <cassert>
+#include <iostream>
+
+int main(int argc, char **argv, char **env) {{
+    Verilated::commandArgs(argc, argv);
+    V{name}* top = new V{name};
+'''.format(name=circuit.__name__)
+
+    source += '''
+    unsigned int tests[{}][{}] = {{
+'''.format(len(tests), len(tests[0]))
+
+    for test in tests:
+        testvector = ', '.join([t.as_binary_string() for t in test])
+        #testvector += ', {}'.format(int(func(*test[:nargs])))
+        source += '''\
+        {{ {} }},
+'''.format(testvector)
+    source += '''\
+    };
+'''
+
+    source += '''
+    for(int i = 0; i < {}; i++) {{
+        unsigned int* test = tests[i];
+'''.format(len(tests))
+
+    i = 0
+    for name, port in circuit.interface.ports.items():
+        if port.isinput():
+            source += '''\
+        top->{} = test[{}];
+'''.format(name,i)
+        i += 1
+
+    source += '''\
+        top->eval();
+'''
+
+    i = 0
+    for name, port in circuit.interface.ports.items():
+        if port.isoutput():
+            source += '''\
+        assert(top->{} == test[{}]);
+'''.format(name,i)
+        i += 1
+    source += '''\
+    }
+'''
+
+    source += '''
+    delete top;
+    std::cout << "Success" << std::endl;
+    exit(0);
+}'''
+
+    return source
+
 def harness(circuit,tests):
 
     assert len(circuit.interface.ports.keys()) == len(tests[0]), (len(circuit.interface.ports.keys()), len(tests[0]))
