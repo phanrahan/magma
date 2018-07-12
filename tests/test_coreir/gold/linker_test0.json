@@ -1,0 +1,26 @@
+{"top":"global.LinkerTest0",
+"namespaces":{
+  "global":{
+    "modules":{
+      "LinkerTest0":{
+        "type":["Record",[
+          ["I0",["Array",16,"BitIn"]],
+          ["I1",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]]
+        ]],
+        "instances":{
+          "inst0":{
+            "genref":"commonlib.smax",
+            "genargs":{"width":["Int",16]}
+          }
+        },
+        "connections":[
+          ["self.I0","inst0.in0"],
+          ["self.I1","inst0.in1"],
+          ["self.O","inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

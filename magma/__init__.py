@@ -43,6 +43,7 @@ from .backend.verilog import *
 # compile
 from .compile import *
 
+from .frontend.coreir_ import DeclareCoreIRGenerator, coreir_typegen
 from .logging import warning
 
 
@@ -52,4 +53,3 @@ def set_mantle_target(t):
      if mantle_target is not None and mantle_target != t:
          warning('changing mantle target', mantle_target, t )
      mantle_target = t
- 

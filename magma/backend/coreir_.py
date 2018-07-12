@@ -45,10 +45,20 @@ def magma_port_to_coreir(port):
 
     return select.replace("[", ".").replace("]", "")
 
+
+magma_coreir_context = coreir.Context()  # Singleton context meant to be used with coreir/magma code
+def __reset_context():
+    """
+    Testing hook so every test has a fresh context
+    """
+    global magma_coreir_context
+    magma_coreir_context = coreir.Context()
+
+
 class CoreIRBackend:
     def __init__(self, context=None):
         if context is None:
-            context = coreir.Context()
+            context = magma_coreir_context
         self.context = context
         self.libs = keydefaultdict(self.context.get_lib)
         self.__constant_cache = {}
@@ -284,12 +294,13 @@ class CoreIRBackend:
             self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
 
-
-    def compile(self, defn):
+    def compile_dependencies(self, defn):
         modules = {}
         pass_ = InstanceGraphPass(defn)
         pass_.run()
         for key, _ in pass_.tsortedgraph:
+            if key == defn:
+                continue
             if key.is_definition:
                 # don't try to compile if already have definition
                 if hasattr(key, 'wrappedModule'):
@@ -297,6 +308,17 @@ class CoreIRBackend:
                 else:
                     modules[key.name] = self.compile_definition(key)
                     # key.wrappedModule = modules[key.name]
+        return modules
+
+    def compile(self, defn):
+        modules = self.compile_dependencies(defn)
+        if defn.is_definition:
+            # don't try to compile if already have definition
+            if hasattr(defn, 'wrappedModule'):
+                modules[defn.name] = defn.wrappedModule
+            else:
+                modules[defn.name] = self.compile_definition(defn)
+                defn.wrappedModule = modules[defn.name]
         return modules
 
     def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):
