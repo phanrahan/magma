@@ -73,7 +73,7 @@ int main(int argc, char **argv, char **env) {{
 
 def harness(circuit,tests):
 
-    assert len(circuit.interface.ports.keys()) == len(tests[0]), (len(circuit.interface.ports.keys()), len(tests[0]))
+    assert len(circuit.interface.ports.keys()) == len(tests[0])
 
     source = '''\
 #include "V{name}.h"
@@ -94,7 +94,7 @@ int main(int argc, char **argv, char **env) {{
         testvector = ', '.join([t.as_binary_string() for t in test])
         #testvector += ', {}'.format(int(func(*test[:nargs])))
         source += '''\
-        {{ {} }},
+        {{ {} }}, 
 '''.format(testvector)
     source += '''\
     };
@@ -107,7 +107,7 @@ int main(int argc, char **argv, char **env) {{
 
     i = 0
     for name, port in circuit.interface.ports.items():
-        if port.isinput():
+        if port.isoutput():
             source += '''\
         top->{} = test[{}];
 '''.format(name,i)
@@ -119,7 +119,7 @@ int main(int argc, char **argv, char **env) {{
 
     i = 0
     for name, port in circuit.interface.ports.items():
-        if port.isoutput():
+        if port.isinput():
             source += '''\
         assert(top->{} == test[{}]);
 '''.format(name,i)
