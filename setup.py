@@ -8,6 +8,7 @@ setup(
     scripts=['bin/magma'],
     packages=[
         "magma",
+        "magma.frontend",
         "magma.backend",
         "magma.passes",
         "magma.simulator",
