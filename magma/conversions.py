@@ -83,7 +83,7 @@ def enable(value):
 
 def convertbits(value, n, totype, totypeconstructor, checkbit):
     if isinstance(value, totype):
-        if n != len(value):
+        if n is not None and n != len(value):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
         return value
 
