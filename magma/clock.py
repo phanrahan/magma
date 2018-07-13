@@ -9,6 +9,9 @@ __all__ += ['Clock', 'ClockIn', 'ClockOut']
 __all__ += ['ResetKind', 'ResetType']
 __all__ += ['Reset', 'ResetIn', 'ResetOut']
 
+__all__ += ['AsyncResetKind', 'AsyncResetType']
+__all__ += ['AsyncReset', 'AsyncResetIn', 'AsyncResetOut']
+
 __all__ += ['EnableKind', 'EnableType']
 __all__ += ['Enable', 'EnableIn', 'EnableOut']
 
@@ -66,6 +69,30 @@ class ResetType(_BitType):
 Reset = ResetKind('Reset', (ResetType,), {})
 ResetIn = ResetKind('Reset', (ResetType,), dict(direction=INPUT))
 ResetOut = ResetKind('Reset', (ResetType,), dict(direction=OUTPUT))
+
+class AsyncResetKind(_BitKind):
+    def __str__(cls):
+        if cls.isinput():  return 'In(AsyncReset)'
+        if cls.isoutput(): return 'Out(AsyncReset)'
+        return 'AsyncReset'
+
+    def qualify(cls, direction):
+        if   direction is None:   return AsyncReset
+        elif direction == INPUT:  return AsyncResetIn
+        elif direction == OUTPUT: return AsyncResetOut
+        return cls
+
+    def flip(cls):
+        if   cls.isoriented(INPUT):  return AsyncResetOut
+        elif cls.isoriented(OUTPUT): return AsyncResetIn
+        return cls
+
+class AsyncResetType(_BitType):
+    pass
+
+AsyncReset = AsyncResetKind('AsyncReset', (AsyncResetType,), {})
+AsyncResetIn = AsyncResetKind('AsyncReset', (AsyncResetType,), dict(direction=INPUT))
+AsyncResetOut = AsyncResetKind('AsyncReset', (AsyncResetType,), dict(direction=OUTPUT))
 
 # Preset
 # Clear
@@ -125,4 +152,5 @@ def wiredefaultclock(defn, inst):
 
 def wireclock(define, circuit):
     wireclocktype(define, circuit, ResetType)
+    wireclocktype(define, circuit, AsyncResetType)
     wireclocktype(define, circuit, EnableType)

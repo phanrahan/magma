@@ -141,8 +141,8 @@ int main(int argc, char **argv, char **env) {{
     for name, port in circuit.interface.ports.items():
         if port.isinput():
             source += f'''\
-            check(\"{name}\", top->{name}, test[{i}], i);
-            '''
+        check(\"{name}\", top->{name}, test[{i}], i);
+'''
         i += 1
     source += '''\
     }

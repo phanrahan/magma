@@ -4,7 +4,7 @@ import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind
+from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -73,7 +73,7 @@ class CoreIRBackend:
             elif isinstance(port, TupleKind):
                 for (k, t) in zip(port.Ks, port.Ts):
                     check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
-            elif isinstance(port, (BitKind, ClockKind, EnableKind, ResetKind)):
+            elif isinstance(port, (BitKind, ClockKind, EnableKind, ResetKind, AsyncResetKind)):
                 return
             else:
                 raise CoreIRBackendError(errorMessage.format(str(port)))
@@ -89,19 +89,15 @@ class CoreIRBackend:
         elif is_input:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clk")]
-            # FIXME: We need to distinguish between synchronous and
-            # asynchronous resets
-            # elif isinstance(port, ResetType):
-            #     _type = self.context.named_types[("coreir", "rst")]
+            elif isinstance(port, AsyncResetType):
+                _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
         else:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clkIn")]
-            # FIXME: We need to distinguish between synchronous and
-            # asynchronous resets
-            # elif isinstance(port, ResetType):
-            #     _type = self.context.named_types[("coreir", "rstIn")]
+            elif isinstance(port, AsyncResetType):
+                _type = self.context.named_types[("coreir", "arstIn")]
             else:
                 _type = self.context.BitIn()
         return _type
@@ -177,6 +173,8 @@ class CoreIRBackend:
             config_args = self.context.new_values(config_args)
             gen_args = {}
             for name, value in type(instance).coreir_genargs.items():
+                if isinstance(value, AsyncResetKind):
+                    value = self.context.named_types["coreir", "arst"]
                 gen_args[name] = value
             gen_args = self.context.new_values(gen_args)
             return module_definition.add_generator_instance(instance.name,
