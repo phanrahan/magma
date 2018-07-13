@@ -16,6 +16,16 @@ def regression_harness(circuit,tests):
 #include <cassert>
 #include <iostream>
 
+void check(const char* port, int a, int b, int i) {{
+    if (!(a == b)) {{
+        std::cerr << \"Got      : \" << a << std::endl;
+        std::cerr << \"Expected : \" << b << std::endl;
+        std::cerr << \"i        : \" << i << std::endl;
+        std::cerr << \"Port     : \" << port << std::endl;
+        exit(1);
+    }}
+}}
+
 int main(int argc, char **argv, char **env) {{
     Verilated::commandArgs(argc, argv);
     V{name}* top = new V{name};
@@ -55,9 +65,9 @@ int main(int argc, char **argv, char **env) {{
     i = 0
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
-            source += '''\
-        assert(top->{} == test[{}]);
-'''.format(name,i)
+            source += f'''\
+            check(\"{name}\", top->{name}, test[{i}], {i});
+            '''
         i += 1
     source += '''\
     }
@@ -81,6 +91,16 @@ def harness(circuit,tests):
 #include <cassert>
 #include <iostream>
 
+void check(const char* port, int a, int b, int i) {{
+    if (!(a == b)) {{
+        std::cerr << \"Got      : \" << a << std::endl;
+        std::cerr << \"Expected : \" << b << std::endl;
+        std::cerr << \"i        : \" << i << std::endl;
+        std::cerr << \"Port     : \" << port << std::endl;
+        exit(1);
+    }}
+}}
+
 int main(int argc, char **argv, char **env) {{
     Verilated::commandArgs(argc, argv);
     V{name}* top = new V{name};
@@ -94,7 +114,7 @@ int main(int argc, char **argv, char **env) {{
         testvector = ', '.join([t.as_binary_string() for t in test])
         #testvector += ', {}'.format(int(func(*test[:nargs])))
         source += '''\
-        {{ {} }}, 
+        {{ {} }},
 '''.format(testvector)
     source += '''\
     };
@@ -120,9 +140,9 @@ int main(int argc, char **argv, char **env) {{
     i = 0
     for name, port in circuit.interface.ports.items():
         if port.isinput():
-            source += '''\
-        assert(top->{} == test[{}]);
-'''.format(name,i)
+            source += f'''\
+            check(\"{name}\", top->{name}, test[{i}], {i});
+            '''
         i += 1
     source += '''\
     }
