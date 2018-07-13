@@ -1,7 +1,7 @@
 from collections import namedtuple, OrderedDict
 from .circuit import *
 from .bit import *
-from .clock import ClockType, EnableType, ResetType, wiredefaultclock
+from .clock import ClockType, EnableType, ResetType, AsyncResetType, wiredefaultclock
 from .array import *
 from .wire import wire
 from .conversions import array
@@ -44,7 +44,7 @@ class TransformedCircuit:
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
         assert isinstance(new_bit,
-                (BitType, ArrayType, ClockType, EnableType, ResetType))
+                (BitType, ArrayType, ClockType, EnableType, ResetType, AsyncResetType))
 
         if isinstance(orig_bit, ArrayType):
             # Map the individual bits
