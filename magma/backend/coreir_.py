@@ -189,6 +189,14 @@ class CoreIRBackend:
             for element in port:
                 self.add_output_port(output_ports, element)
 
+    def compile_declaration(self, declaration):
+        # These libraries are already available by default in coreir, so we
+        # don't need declarations
+        if declaration.coreir_lib in ["coreir", "corebit", "commonlib"]:
+            return
+        module_type = self.convert_interface_to_module_type(declaration.interface)
+        coreir_module = self.context.global_namespace.new_module(declaration.coreir_name, module_type)
+
     def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
         for name, port in definition.interface.ports.items():
@@ -299,6 +307,8 @@ class CoreIRBackend:
         for key, _ in pass_.tsortedgraph:
             if key == defn:
                 continue
+            if key.name in modules:
+                continue
             if key.is_definition:
                 # don't try to compile if already have definition
                 if hasattr(key, 'wrappedModule'):
@@ -306,6 +316,8 @@ class CoreIRBackend:
                 else:
                     modules[key.name] = self.compile_definition(key)
                     # key.wrappedModule = modules[key.name]
+            else:
+                self.compile_declaration(key)
         return modules
 
     def compile(self, defn):
