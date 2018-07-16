@@ -43,7 +43,6 @@ from .backend.verilog import *
 # compile
 from .compile import *
 
-from .frontend.coreir_ import DeclareCoreIRGenerator, coreir_typegen
 from .logging import warning
 
 

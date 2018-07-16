@@ -1,5 +1,6 @@
 import os
 import magma as m
+from magma.frontend.coreir_ import coreir_typegen, DeclareCoreIRGenerator
 
 # def smax_type_gen(context, values):
 #     width = values['width'].value
@@ -9,7 +10,7 @@ import magma as m
 #         "out": context.Array(width, context.Bit())
 #     })
 
-@m.coreir_typegen
+@coreir_typegen
 def smax_type_gen(width : int):
     return Tuple(
         in0 = m.Array(width, m.In(m.Bit)),
@@ -19,7 +20,7 @@ def smax_type_gen(width : int):
 
 
 def test_declare_generator():
-    DefineSmax = m.DeclareCoreIRGenerator(lib="commonlib", name="smax")
+    DefineSmax = DeclareCoreIRGenerator(lib="commonlib", name="smax")
     width = 16
 
     class LinkerTest(m.Circuit):
