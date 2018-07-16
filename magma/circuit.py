@@ -180,7 +180,10 @@ class AnonymousCircuitType(object):
         for k, v in self.interface.ports.items():
             args.append('"{}"'.format(k))
             args.append(repr(v))
-        return '{}({})'.format(type(self).__name__, ', '.join(args))
+        if self.name:
+            return '{} = {}({})'.format(str(self), type(self).__name__, ', '.join(args))
+        else:
+            return '{}({})'.format(type(self).__name__, ', '.join(args))
 
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         #    ', '.join(args), self.filename, self.lineno)
@@ -312,7 +315,11 @@ class CircuitType(AnonymousCircuitType):
             else:
                  v = '"{}"'.format(v)
             args.append("%s=%s"%(k, v))
-        return '{} = {}({})'.format(str(self), type(self).__name__, ', '.join(args))
+        if self.name:
+            return '{} = {}({})'.format(str(self), type(self).__name__, ', '.join(args))
+        else:
+            return '{}({})'.format(type(self).__name__, ', '.join(args))
+
         #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
         # cls.filename, cls.lineno)
 
