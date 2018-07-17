@@ -221,7 +221,7 @@ class CoreIRBackend:
             for name, port in instance.interface.ports.items():
                 if port.isinput():
                     self.connect(module_definition, port, port.value(), output_ports)
-        for input in definition.interface.inputs():
+        for input in definition.interface.inputs(include_clocks=True):
             output = input.value()
             if not output:
                 error(repr(definition))
