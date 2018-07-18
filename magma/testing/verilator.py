@@ -91,10 +91,15 @@ def harness(circuit,tests):
 #include <cassert>
 #include <iostream>
 
-void check(const char* port, int a, int b, int i) {{
-    if (!(a == b)) {{
+typedef struct {{
+    unsigned int value;
+    bool is_x;
+}} value_t;
+
+void check(const char* port, int a, value_t b, int i) {{
+    if (!b.is_x && !(a == b.value)) {{
         std::cerr << \"Got      : \" << a << std::endl;
-        std::cerr << \"Expected : \" << b << std::endl;
+        std::cerr << \"Expected : \" << b.value << std::endl;
         std::cerr << \"i        : \" << i << std::endl;
         std::cerr << \"Port     : \" << port << std::endl;
         exit(1);
@@ -107,11 +112,19 @@ int main(int argc, char **argv, char **env) {{
 '''.format(name=circuit.__name__)
 
     source += '''
-    unsigned int tests[{}][{}] = {{
+    value_t tests[{}][{}] = {{
 '''.format(len(tests), len(tests[0]))
 
     for test in tests:
-        testvector = ', '.join([t.as_binary_string() for t in test])
+        def to_string(t):
+            if t is None or t._value is None:
+                val = "0"
+                X = "true"
+            else:
+                val = t.as_binary_string()
+                X = "false"
+            return f"{{{val}, {X}}}"
+        testvector = ', '.join([to_string(t) for t in test])
         #testvector += ', {}'.format(int(func(*test[:nargs])))
         source += '''\
         {{ {} }},
@@ -122,14 +135,14 @@ int main(int argc, char **argv, char **env) {{
 
     source += '''
     for(int i = 0; i < {}; i++) {{
-        unsigned int* test = tests[i];
+        value_t* test = tests[i];
 '''.format(len(tests))
 
     i = 0
     for name, port in circuit.interface.ports.items():
         if port.isoutput():
             source += '''\
-        top->{} = test[{}];
+        top->{} = test[{}].value;
 '''.format(name,i)
         i += 1
 
