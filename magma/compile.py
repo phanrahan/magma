@@ -1,5 +1,6 @@
 import os
 import inspect
+import subprocess
 
 from .passes import DefinitionPass
 from .backend import verilog, blif, firrtl, dot
@@ -77,6 +78,12 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         # package
         from .backend import coreir_
         coreir_.compile(main, file_name + ".json")
+    elif output == 'coreir-verilog':
+        # underscore so our coreir module doesn't conflict with coreir bindings
+        # package
+        from .backend import coreir_
+        coreir_.compile(main, file_name + ".json")
+        subprocess.run(f"coreir -i {file_name}.json -o {file_name}.v", shell=True)
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
 
