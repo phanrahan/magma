@@ -124,8 +124,8 @@ EnableOut = EnableKind('Enable', (EnableType,), dict(direction=OUTPUT))
 ClockTypes = (ClockType, ResetType, AsyncResetType, EnableType)
 
 
-def ClockInterface(has_enable=False, has_reset=False, has_async_reset=False,
-                   has_set=False, has_ce=False):
+def ClockInterface(has_enable=False, has_reset=False, has_set=False,
+                   has_ce=False, has_async_reset=False):
     args = ['CLK', In(Clock)]
     has_enable |= has_ce
     if has_enable:
