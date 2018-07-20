@@ -4,7 +4,7 @@ import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind
+from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -205,6 +205,7 @@ class CoreIRBackend:
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
+            wireclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
