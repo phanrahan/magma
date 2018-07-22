@@ -1,1 +1,5 @@
-[Types, Values, Conversions, Operators, Functions, Mantle Primitives](doc/types.md)
+* [Types and Values](doc/types_and_values.md)
+* [Conversions](doc/conversions.md)
+* [Operators](doc/operators.md)
+* [Utility Functions](doc/utility_functions.md)
+* [Mantle Primitives](doc/mantle_primitives.md)
