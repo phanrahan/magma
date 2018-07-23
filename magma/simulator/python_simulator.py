@@ -115,7 +115,7 @@ class ValueStore:
             bit = bit.value()
 
         if bit.const():
-            return True if bit == VCC else False
+            return True if bit is VCC else False
 
         return self.value_map[bit]
 
