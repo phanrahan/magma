@@ -21,7 +21,7 @@ The `Bits` type supports the following logical operators.
 The `UInt` and `SInt` types support all the logical operators
 as well as arithmetic and comparison operastors.
 - Add `+`
-- Subtract `-`
+- Subtract/Negate `-`
 - ~~Multiply `*`~~ Unsupported because mantle lacks an implementation, pull request welcome!
 - ~~Divide `/`~~ Unsupported because mantle lacks an implementation, pull request welcome!
 - Less than `<`
