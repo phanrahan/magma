@@ -194,7 +194,7 @@ class PythonSimulator(CircuitSimulator):
             inserted = False
             for index, primitive_2 in enumerate(sorted_state_primitives):
                 for output in primitive_1.inputs:
-                    if output.value() in primitive_2.inputs:
+                    if any(output.value() is x for x in primitive_2.inputs):
                         sorted_state_primitives.insert(index, primitive_1)
                         inserted = True
                         break
