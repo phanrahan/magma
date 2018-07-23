@@ -42,7 +42,7 @@ class Type(object):
 
     @classmethod
     def isinput(cls):
-        return cls.isoriented(INPUT) 
+        return cls.isoriented(INPUT)
 
     @classmethod
     def isoutput(self):
@@ -97,7 +97,3 @@ def InOut(T):
 
 def Flip(T):
     return T.flip()
-
-
-
-

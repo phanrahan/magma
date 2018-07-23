@@ -1,4 +1,6 @@
-from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip, VCC, GND, wire
+from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip, VCC, \
+    GND, wire
+
 
 def test_bit():
     assert issubclass(Bit, BitType)
@@ -22,6 +24,7 @@ def test_bit():
     assert str(BitIn) == 'In(Bit)'
     assert str(BitOut) == 'Out(Bit)'
 
+
 def test_bit_flip():
     bout = Out(Bit)
     bin = In(Bit)
@@ -42,6 +45,7 @@ def test_bit_flip():
     bout = Flip(BitIn)
     assert bout == BitOut
     assert bin == BitIn
+
 
 def test_bit_val():
     b = BitIn(name="a")
@@ -67,6 +71,7 @@ def test_bit_val():
     assert not b.isoutput()
     assert not b.isinout()
 
+
 def test_vcc():
     assert str(VCC) == "VCC"
     assert isinstance(VCC, BitOut)
@@ -74,9 +79,10 @@ def test_vcc():
     assert str(GND) == "GND"
     assert isinstance(GND, BitOut)
 
-    assert VCC == VCC
-    assert VCC != GND
-    assert GND == GND
+    assert VCC is VCC
+    assert VCC is not GND
+    assert GND is GND
+
 
 def test_wire1():
     b0 = BitOut(name='b0')
@@ -86,12 +92,12 @@ def test_wire1():
     assert b1.isinput()
 
     print('wire(b0,b1)')
-    wire(b0,b1)
+    wire(b0, b1)
     assert b0.port.wires is b1.port.wires
 
-    #wires = b0.port.wires
-    #print 'inputs:', [str(p) for p in wires.inputs]
-    #print 'outputs:', [str(p) for p in wires.outputs]
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
     assert len(b0.port.wires.inputs) == 1
     assert len(b0.port.wires.outputs) == 1
 
@@ -103,6 +109,7 @@ def test_wire1():
 
     assert b0.value() is None
     assert b1.value() is b0
+
 
 def test_wire2():
     b0 = BitOut(name='b0')
@@ -112,12 +119,12 @@ def test_wire2():
     assert b1.isinput()
 
     print('wire(b1,b0)')
-    wire(b1,b0)
+    wire(b1, b0)
     assert b0.port.wires is b1.port.wires
 
-    #wires = b0.port.wires
-    #print 'inputs:', [str(p) for p in wires.inputs]
-    #print 'outputs:', [str(p) for p in wires.outputs]
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
 
     assert len(b0.port.wires.inputs) == 1
     assert len(b0.port.wires.outputs) == 1
@@ -130,18 +137,19 @@ def test_wire2():
 
     assert b0.value() is None
     assert b1.value() is b0
+
 
 def test_wire3():
     b0 = Bit(name='b0')
     b1 = Bit(name='b1')
 
     print('wire(b0,b1)')
-    wire(b0,b1)
+    wire(b0, b1)
     assert b0.port.wires is b1.port.wires
 
-    #wires = b0.port.wires
-    #print 'inputs:', [str(p) for p in wires.inputs]
-    #print 'outputs:', [str(p) for p in wires.outputs]
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
     assert len(b0.port.wires.inputs) == 1
     assert len(b0.port.wires.outputs) == 1
 
@@ -154,17 +162,18 @@ def test_wire3():
     assert b0.value() is None
     assert b1.value() is b0
 
+
 def test_wire4():
     b0 = BitIn(name='b0')
     b1 = BitIn(name='b1')
 
     print('wire(b0,b1)')
-    wire(b0,b1)
-    #assert b0.port.wires is b1.port.wires
+    wire(b0, b1)
+    # assert b0.port.wires is b1.port.wires
 
-    #wires = b0.port.wires
-    #print 'inputs:', [str(p) for p in wires.inputs]
-    #print 'outputs:', [str(p) for p in wires.outputs]
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
 
     assert len(b0.port.wires.inputs) == 0
     assert len(b0.port.wires.outputs) == 0
@@ -178,17 +187,18 @@ def test_wire4():
     assert b0.value() is None
     assert b1.value() is None
 
+
 def test_wire5():
     b0 = BitOut(name='b0')
     b1 = BitOut(name='b1')
 
     print('wire(b0,b1)')
-    wire(b0,b1)
-    #assert b0.port.wires is b1.port.wires
+    wire(b0, b1)
+    # assert b0.port.wires is b1.port.wires
 
-    #wires = b0.port.wires
-    #print 'inputs:', [str(p) for p in wires.inputs]
-    #print 'outputs:', [str(p) for p in wires.outputs]
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
 
     assert len(b0.port.wires.inputs) == 0
     assert len(b0.port.wires.outputs) == 0

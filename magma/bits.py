@@ -1,12 +1,13 @@
 from .compatibility import IntegerTypes
 from .ref import AnonRef
-from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
+from .bit import Bit, VCC, GND
 from .array import ArrayType, ArrayKind
 from .bit_vector import BitVector
 
-__all__  = ['Bits', 'BitsType', 'BitsKind']
+__all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
 __all__ += ['SInt', 'SIntType', 'SIntKind']
+
 
 class BitsType(ArrayType):
     def __repr__(self):
@@ -18,6 +19,7 @@ class BitsType(ArrayType):
     def bits(self):
         if not self.const():
             raise Exception("Not a constant")
+
         def convert(x):
             if x is VCC:
                 return True
@@ -33,8 +35,10 @@ class BitsType(ArrayType):
 
 class BitsKind(ArrayKind):
     def __str__(cls):
-        if cls.isinput():  return "In(Bits({}))".format(cls.N)
-        if cls.isoutput(): return "Out(Bits({}))".format(cls.N)
+        if cls.isinput():
+            return "In(Bits({}))".format(cls.N)
+        if cls.isoutput():
+            return "Out(Bits({}))".format(cls.N)
         return "Bits({})".format(cls.N)
 
     def qualify(cls, direction):
@@ -64,8 +68,10 @@ class UIntType(BitsType):
 
 class UIntKind(BitsKind):
     def __str__(cls):
-        if cls.isinput():  return "In(UInt({}))".format(cls.N)
-        if cls.isoutput(): return "Out(UInt({}))".format(cls.N)
+        if cls.isinput():
+            return "In(UInt({}))".format(cls.N)
+        if cls.isoutput():
+            return "Out(UInt({}))".format(cls.N)
         return "UInt({})".format(cls.N)
 
     def qualify(cls, direction):
@@ -100,8 +106,10 @@ class SIntType(BitsType):
 
 class SIntKind(BitsKind):
     def __str__(cls):
-        if cls.isinput():  return "In(SInt({}))".format(cls.N)
-        if cls.isoutput(): return "Out(SInt({}))".format(cls.N)
+        if cls.isinput():
+            return "In(SInt({}))".format(cls.N)
+        if cls.isoutput():
+            return "Out(SInt({}))".format(cls.N)
         return "SInt({})".format(cls.N)
 
     def qualify(cls, direction):

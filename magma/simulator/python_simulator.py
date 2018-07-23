@@ -292,7 +292,7 @@ class PythonSimulator(CircuitSimulator):
         If `value` is an `ArrayType`, it recursively checks the elements
         """
         if isinstance(value, _BitType):
-            return value in self.circuit_inputs
+            return any(value is x for x in self.circuit_inputs)
         elif isinstance(value, ArrayType):
             return all(self.is_circuit_input(elem) for elem in value)
         else:

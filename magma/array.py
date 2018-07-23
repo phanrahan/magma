@@ -3,15 +3,13 @@ from .logging import error
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
-from .bit import Bit, BitOut, VCC, GND, BitType, BitKind
-from .bitutils import int2seq, seq2int
+from .bit import VCC, GND
+from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 
-__all__  = ['ArrayType', 'ArrayKind', 'Array']
+__all__ = ['ArrayType', 'ArrayKind', 'Array']
 
-#
-# Create an Array
-#
+
 class ArrayType(Type):
     def __init__(self, *largs, **kwargs):
 
@@ -29,11 +27,12 @@ class ArrayType(Type):
             self.ts = []
             for i in range(self.N):
                 T = self.T
-                t = T(name=ArrayRef(self,i))
+                t = T(name=ArrayRef(self, i))
                 self.ts.append(t)
 
     def __eq__(self, rhs):
-        if not isinstance(rhs, ArrayType): return False
+        if not isinstance(rhs, ArrayType):
+            return False
         return self.ts == rhs.ts
 
     __hash__ = Type.__hash__
@@ -44,14 +43,13 @@ class ArrayType(Type):
         ts = [repr(t) for t in self.ts]
         return 'array([{}])'.format(', '.join(ts))
 
-
     def __len__(self):
         return self.N
 
     def __getitem__(self, key):
         if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
             key = seq2int([0 if t is GND else 1 for t in key.ts])
-        if isinstance(key,slice):
+        if isinstance(key, slice):
             return array([self[i] for i in range(*key.indices(len(self)))])
         else:
             if not (-self.N <= key and key < self.N):
@@ -77,17 +75,18 @@ class ArrayType(Type):
     def as_list(self):
         return [self[i] for i in range(len(self))]
 
-
     @debug_wire
     def wire(i, o, debug_info):
         # print('Array.wire(', o, ', ', i, ')')
 
         if not isinstance(o, ArrayType):
-            error('Wiring Error: wiring {} ({}) to {} ({})'.format(repr(o), type(o), repr(i), type(i)), include_wire_traceback=True)
+            error(f'Wiring Error: wiring {repr(o)} ({type(o)}) to'
+                  f' {repr(i)} ({type(i)})', include_wire_traceback=True)
             return
 
         if i.N != o.N:
-            error('Wiring Error: Arrays must have the same length {} != {}'.format(i.N, o.N), include_wire_traceback=True)
+            error(f'Wiring Error: Arrays must have the same length'
+                  f' {i.N} != {o.N}', include_wire_traceback=True)
             return
 
         for k in range(len(i)):
@@ -112,16 +111,14 @@ class ArrayType(Type):
 
         for i in range(n):
             if ts[i].anon():
-                #print('not an inst or defn')
                 return False
 
         for i in range(n):
             # elements must be an array reference
             if not isinstance(ts[i].name, ArrayRef):
-                #print('not an array ref')
                 return False
 
-        for i in range(1,n):
+        for i in range(1, n):
             # elements must refer to the same array
             if ts[i].name.array is not ts[i-1].name.array:
                 return False
@@ -136,7 +133,6 @@ class ArrayType(Type):
                 return False
 
         return True
-
 
     def trace(self):
         ts = [t.trace() for t in self.ts]
@@ -175,20 +171,19 @@ class ArrayType(Type):
 
 class ArrayKind(Kind):
     def __init__(cls, name, bases, dct):
-        Kind.__init__( cls, name, bases, dct)
+        Kind.__init__(cls, name, bases, dct)
 
     def __str__(cls):
-        s = "Array(%d,%s)" % (cls.N, cls.T)
-        #if cls.isinput(): s = 'In({})'.format(s)
-        #if cls.isoutput(): s = 'Out({})'.format(s)
-        #if cls.isinout(): s = 'InOut({})'.format(s)
-        return s
+        return "Array(%d,%s)" % (cls.N, cls.T)
 
     def __eq__(cls, rhs):
-        if not isinstance(rhs, ArrayKind): return False
+        if not isinstance(rhs, ArrayKind):
+            return False
 
-        if cls.N != rhs.N: return False
-        if cls.T != rhs.T: return False
+        if cls.N != rhs.N:
+            return False
+        if cls.T != rhs.T:
+            return False
 
         return True
 
@@ -199,7 +194,7 @@ class ArrayKind(Kind):
         return cls.N
 
     def __getitem__(cls, key):
-        if isinstance(key,slice):
+        if isinstance(key, slice):
             return array([cls[i] for i in range(*key.indices(len(cls)))])
         else:
             if not (0 <= key and key < cls.N):
@@ -216,11 +211,12 @@ class ArrayKind(Kind):
         return Array(cls.N, cls.T.flip())
 
 
-def Array(N,T):
+def Array(N, T):
     assert isinstance(N, IntegerTypes)
     assert isinstance(T, Kind)
-    name = 'Array(%d,%s)' % (N,str(T))
+    name = 'Array(%d,%s)' % (N, str(T))
     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
 
 
-from .conversions import array
+# Workaround for circular dependency
+from .conversions import array  # nopep8

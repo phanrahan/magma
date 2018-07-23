@@ -1,15 +1,15 @@
-import os
-import warnings
-
 try:
     from functools import lru_cache
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
 cachedFunctions = []
+
+
 def clear_cachedFunctions():
     for func in cachedFunctions:
         func.cache_clear()
+
 
 def cache_definition(fn):
     cachedFunctions.append(lru_cache(maxsize=None)(fn))
@@ -25,6 +25,9 @@ from .t import *
 from .bit import *
 from .array import *
 from .bits import *
+# Define default operators that raise exceptions, rename so it doesn't muck
+# with `from magma import *` code that also uses operator
+import magma.operators
 from .tuple import *
 from .clock import *
 from .conversions import *
