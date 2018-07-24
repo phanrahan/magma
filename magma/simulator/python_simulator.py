@@ -18,7 +18,7 @@ from ..bit_vector import BitVector
 from ..bitutils import seq2int
 from ..clock import ClockType
 
-__all__ = ['PythonSimulator', 'testvectors']
+__all__ = ['PythonSimulator']
 
 ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
