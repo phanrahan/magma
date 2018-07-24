@@ -18,7 +18,7 @@ from ..bit_vector import BitVector
 from ..bitutils import seq2int
 from ..clock import ClockType
 
-__all__ = ['PythonSimulator', 'testvectors']
+__all__ = ['PythonSimulator']
 
 ExecutionOrder = namedtuple('ExecutionOrder', ['stateful', 'combinational'])
 
@@ -384,62 +384,3 @@ class PythonSimulator(CircuitSimulator):
         if len(outs) == 1:
             return outs[0]
         return tuple(outs)
-
-
-def testvectors(circuit, input_ranges=None, mode='complete'):
-    ntest = len(circuit.interface.ports.items())
-
-    simulator = PythonSimulator(circuit)
-
-    args = []
-    for i, (name, port) in enumerate(circuit.interface.ports.items()):
-        if port.isoutput():
-            if isinstance(port, BitType):
-                args.append([BitVector(0),BitVector(1)])
-            elif isinstance(port, ArrayType):
-                num_bits = type(port).N
-                if isinstance(port, SIntType):
-                    if input_ranges is None:
-                        start = -2**(num_bits - 1)
-                        end = 2**(num_bits - 1)  # We don't subtract one because range end is exclusive
-                        input_range = range(start, end)
-                    else:
-                        input_range = input_ranges[i]
-                    args.append([BitVector(x, num_bits=num_bits, signed=True) for x in input_range])
-                else:
-                    if input_ranges is None:
-                        input_range = range(1<<num_bits)
-                    else:
-                        input_range = input_ranges[i]
-                    args.append([BitVector(x, num_bits=num_bits) for x in input_range])
-            else:
-                assert True, "can't test Tuples"
-
-    tests = []
-    for test in product(*args):
-        test = list(test)
-        testv = ntest*[0]
-        j = 0
-        for i, (name, port) in enumerate(circuit.interface.ports.items()):
-            # circuit defn output is an input to the idefinition
-            if port.isoutput():
-                testv[i] = test[j].as_int()
-                val = test[j].as_bool_list()
-                if len(val) == 1: val = val[0]
-                simulator.set_value(getattr(circuit, name), val)
-                j += 1
-
-        simulator.evaluate()
-
-        for i, (name, port) in enumerate(circuit.interface.ports.items()):
-            # circuit defn input is an input of the definition
-            if port.isinput():
-                val = simulator.get_value(getattr(circuit, name))
-                val = int(val) if isinstance(val, bool) else seq2int(val)
-                testv[i] = val
-
-
-        tests.append(testv)
-
-    return tests
-
