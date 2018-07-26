@@ -228,7 +228,7 @@ class AnonymousCircuitType(object):
         no = len(outputs)
         if len(outputs) == 1:
             input.wire(outputs[0], debug_info)
-        else:
+        elif len(outputs) >= 1:  # In case there are only kw
             input.wireoutputs(outputs, debug_info)
 
         # wire up extra arguments, name to name
