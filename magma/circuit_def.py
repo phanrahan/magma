@@ -86,7 +86,7 @@ def combinational(fn):
     tree = get_ast(fn)
     tree = IfTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
-    # TODO: Only remove @m.circuit_def, there could be others
+    # TODO: Only remove @m.circuit.combinational, there could be others
     tree.body[0].decorator_list = []
     debug(astor.to_source(tree))
     exec(compile(tree, filename="<ast>", mode="exec"), defn_globals,
