@@ -19,13 +19,29 @@ def get_ast(obj):
 
 
 class IfTransformer(ast.NodeTransformer):
+    def flatten(self, _list):
+        """1-deep flatten"""
+        flat_list = []
+        for item in _list:
+            if isinstance(item, list):
+                flat_list.extend(item)
+            else:
+                flat_list.append(item)
+        return flat_list
+
     def visit_If(self, node):
+        # Flatten in case there's a nest If statement that returns a list
+        node.body = self.flatten(map(self.visit, node.body))
+        if not hasattr(node, "orelse"):
+            raise NotImplementedError("If without else")
+        node.orelse = self.flatten(map(self.visit, node.orelse))
         seen = OrderedDict()
         for stmt in node.body:
             if not isinstance(stmt, ast.Assign):
                 # TODO: Print info from original source file/line
                 raise CircuitDefinitionSyntaxError(
-                    "Expected only assignment statements in if statement")
+                    f"Expected only assignment statements in if statement, got"
+                    f" {type(stmt)}")
             if len(stmt.targets) > 1:
                 raise NotImplementedError("Assigning more than one value")
             key = ast.dump(stmt.targets[0])
@@ -34,8 +50,6 @@ class IfTransformer(ast.NodeTransformer):
                 warning("Assigning to value twice inside `if` block,"
                         " taking the last value (first value is ignored)")
             seen[key] = stmt
-        if not hasattr(node, "orelse"):
-            raise NotImplementedError("If without else")
         orelse_seen = set()
         for stmt in node.orelse:
             key = ast.dump(stmt.targets[0])
