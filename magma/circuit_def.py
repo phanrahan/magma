@@ -57,6 +57,8 @@ class IfTransformer(ast.NodeTransformer):
     def visit_IfExp(self, node):
         if not hasattr(node, "orelse"):
             raise NotImplementedError("If without else")
+        node.body = self.visit(node.body)
+        node.orelse = self.visit(node.orelse)
         return ast.Call(
             ast.Name("mux", ast.Load()),
             [ast.List([node.body, node.orelse],

@@ -15,6 +15,7 @@ setup(
         "magma.testing"
     ],
     install_requires=[
+        "astor",
         "six",
         "mako",
         "pyverilog",

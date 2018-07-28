@@ -81,3 +81,35 @@ def test_ternary():
     m.compile("build/test_ternary", TestTernary)
     assert check_files_equal(__file__, f"build/test_ternary.v",
                              f"gold/test_ternary.v")
+
+
+def test_ternary_nested():
+    class TestTernaryNested(m.Circuit):
+        IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
+
+        @m.circuit_def
+        def definition(io):
+            m.wire(io.O,
+                   io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])
+            # io.O = io.I[0] if io.S else io.I[1]
+            # TODO: Or non block assign?
+            # io.O <= io.I[0] if io.S else io.[1]
+    m.compile("build/test_ternary_nested", TestTernaryNested)
+    assert check_files_equal(__file__, f"build/test_ternary_nested.v",
+                             f"gold/test_ternary_nested.v")
+
+
+def test_ternary_nested2():
+    class TestTernaryNested2(m.Circuit):
+        IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
+
+        @m.circuit_def
+        def definition(io):
+            m.wire(io.O,
+                   (io.I[0] if io.S[0] else io.I[1]) if io.S[1] else io.I[2])
+            # io.O = io.I[0] if io.S else io.I[1]
+            # TODO: Or non block assign?
+            # io.O <= io.I[0] if io.S else io.[1]
+    m.compile("build/test_ternary_nested2", TestTernaryNested2)
+    assert check_files_equal(__file__, f"build/test_ternary_nested2.v",
+                             f"gold/test_ternary_nested2.v")
