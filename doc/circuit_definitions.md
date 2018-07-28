@@ -25,7 +25,7 @@ class IfStatementBasic(m.Circuit):
 
 Basic nesting:
 ```python
-class TestIfStatementNested(m.Circuit):
+class IfStatementNested(m.Circuit):
     IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
      @m.circuit_def
     def definition(io):
@@ -44,7 +44,7 @@ class TestIfStatementNested(m.Circuit):
 
 Terneray expressions
 ```python
-class TestTernary(m.Circuit):
+class Ternary(m.Circuit):
     IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
      @m.circuit_def
     def definition(io):
@@ -53,7 +53,7 @@ class TestTernary(m.Circuit):
 
 Nesting terneray expressions
 ```python
-class TestTernaryNested(m.Circuit):
+class TernaryNested(m.Circuit):
     IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
      @m.circuit_def
     def definition(io):
