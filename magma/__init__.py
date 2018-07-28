@@ -55,3 +55,6 @@ def set_mantle_target(t):
      if mantle_target is not None and mantle_target != t:
          warning('changing mantle target', mantle_target, t )
      mantle_target = t
+
+
+from .circuit_def import circuit_def
