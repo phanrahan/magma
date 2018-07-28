@@ -1,7 +1,7 @@
-# Circuit Definitions
-Circuit defintions can be marked with the `@m.circuit_def` decorator.
-This introduces a set of syntax level features for magma circuit definitions,
-including the use of `if` statements to generate `Mux`es.
+# Combinational Circuit Definitions
+Circuit defintions can be marked with the `@m.circuit.combinational` decorator.
+This introduces a set of syntax level features for defining combinational magma
+circuits, including the use of `if` statements to generate `Mux`es.
 
 This feature is currently experimental, and therefor expect bugs to occur.
 Please file any issues on the magma GitHub repository.
@@ -13,7 +13,7 @@ Basic example:
 ```python
 class IfStatementBasic(m.Circuit):
     IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-     @m.circuit_def
+     @m.circuit.combinational
     def definition(io):
         if io.S:
             O = io.I[0]
@@ -27,7 +27,7 @@ Basic nesting:
 ```python
 class IfStatementNested(m.Circuit):
     IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-     @m.circuit_def
+     @m.circuit.combinational
     def definition(io):
         if io.S[0]:
             if io.S[1]:
@@ -46,7 +46,7 @@ Terneray expressions
 ```python
 class Ternary(m.Circuit):
     IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-     @m.circuit_def
+     @m.circuit.combinational
     def definition(io):
         m.wire(io.O, io.I[0] if io.S else io.I[1])
 ```
@@ -55,7 +55,7 @@ Nesting terneray expressions
 ```python
 class TernaryNested(m.Circuit):
     IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-     @m.circuit_def
+     @m.circuit.combinational
     def definition(io):
         m.wire(io.O,
                io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])

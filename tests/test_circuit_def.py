@@ -20,7 +20,7 @@ def DefineMux(height=2, width=None):
     io += ['O', m.Out(T)]
 
     class _Mux(m.Circuit):
-        name = "Mux{}x{}".format(height, width)
+        name = f"Mux{height}" + (f"_x{width}" if width else "")
         IO = io
     return _Mux
 
@@ -50,7 +50,7 @@ def test_if_statement_basic():
     class TestIfStatementBasic(m.Circuit):
         IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
 
-        @m.circuit_def
+        @m.circuit.combinational
         def definition(io):
             if io.S:
                 O = io.I[0]
@@ -72,7 +72,7 @@ def test_if_statement_nested():
     class TestIfStatementNested(m.Circuit):
         IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
 
-        @m.circuit_def
+        @m.circuit.combinational
         def definition(io):
             if io.S[0]:
                 if io.S[1]:
@@ -100,7 +100,7 @@ def test_ternary():
     class TestTernary(m.Circuit):
         IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
 
-        @m.circuit_def
+        @m.circuit.combinational
         def definition(io):
             m.wire(io.O, io.I[0] if io.S else io.I[1])
             # io.O = io.I[0] if io.S else io.I[1]
@@ -115,7 +115,7 @@ def test_ternary_nested():
     class TestTernaryNested(m.Circuit):
         IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
 
-        @m.circuit_def
+        @m.circuit.combinational
         def definition(io):
             m.wire(io.O,
                    io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])
@@ -131,7 +131,7 @@ def test_ternary_nested2():
     class TestTernaryNested2(m.Circuit):
         IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
 
-        @m.circuit_def
+        @m.circuit.combinational
         def definition(io):
             m.wire(io.O,
                    (io.I[0] if io.S[0] else io.I[1]) if io.S[1] else io.I[2])

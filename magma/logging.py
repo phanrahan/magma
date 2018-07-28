@@ -25,6 +25,10 @@ def get_original_wire_call_stack_frame():
         return frame.frame
 
 
+def debug(message, *args, **kwargs):
+    log.debug(message, *args, **kwargs)
+
+
 def info(message, *args, **kwargs):
     log.info(message, *args, **kwargs)
 
@@ -43,3 +47,4 @@ def error(message, include_wire_traceback=False, *args, **kwargs):
     print(message, file=sys.stderr, *args, **kwargs)
     if include_wire_traceback:
         sys.stderr.write("="*80 + "\n")
+

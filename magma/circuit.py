@@ -547,3 +547,5 @@ def circuit_generator(func):
         result._generator_arguments = GeneratorArguments(args, kwargs)
         return result
     return wrapped
+
+from magma.circuit_def import combinational

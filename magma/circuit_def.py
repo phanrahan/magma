@@ -3,9 +3,8 @@ import ast
 import inspect
 import textwrap
 from collections import OrderedDict
-from magma.logging import warning
+from magma.logging import warning, debug
 import astor
-import inspect
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -80,7 +79,7 @@ class IfTransformer(ast.NodeTransformer):
             [])
 
 
-def circuit_def(fn):
+def combinational(fn):
     stack = inspect.stack()
     defn_locals = stack[1].frame.f_locals
     defn_globals = stack[1].frame.f_globals
@@ -89,7 +88,7 @@ def circuit_def(fn):
     tree = ast.fix_missing_locations(tree)
     # TODO: Only remove @m.circuit_def, there could be others
     tree.body[0].decorator_list = []
-    # print(astor.to_source(tree))
+    debug(astor.to_source(tree))
     exec(compile(tree, filename="<ast>", mode="exec"), defn_globals,
          defn_locals)
 
