@@ -46,15 +46,17 @@ def mux(I, S):
     return Mux(len(I), get_length(I[0]))(*I, S)
 
 
+@m.circuit.combinational
+def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    if S:
+        return I[0]
+    else:
+        return I[1]
+
+
 def test_if_statement_basic():
-    @m.circuit.combinational
-    def test_if_statement_basic(I: m.Bits(2), S: m.Bit) -> m.Bit:
-        if S:
-            return I[0]
-        else:
-            return I[1]
     m.compile("build/test_if_statement_basic",
-              test_if_statement_basic.circuit_definition)
+              basic_if.circuit_definition)
     assert check_files_equal(__file__, f"build/test_if_statement_basic.v",
                              f"gold/test_if_statement_basic.v")
 
@@ -105,3 +107,13 @@ def test_ternary_nested2():
               test_ternary_nested2.circuit_definition)
     assert check_files_equal(__file__, f"build/test_ternary_nested2.v",
                              f"gold/test_ternary_nested2.v")
+
+
+def test_function_composition():
+    @m.circuit.combinational
+    def test_basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
+        return basic_if(I, S)
+    m.compile("build/test_basic_if_function_call",
+              test_basic_if_function_call.circuit_definition)
+    assert check_files_equal(__file__, f"build/test_basic_if_function_call.v",
+                             f"gold/test_basic_if_function_call.v")
