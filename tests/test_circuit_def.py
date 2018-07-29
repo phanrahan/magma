@@ -48,19 +48,19 @@ def mux(I, S):
 
 def test_if_statement_basic():
     @m.circuit.combinational
-    def test_if_statement_basic(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    def TestIfStatementBasics(I: m.Bits(2), S: m.Bit) -> m.Bit:
         if S:
             return I[0]
         else:
             return I[1]
-    m.compile("build/test_if_statement_basic", test_if_statement_basic)
+    m.compile("build/test_if_statement_basic", TestIfStatementBasics)
     assert check_files_equal(__file__, f"build/test_if_statement_basic.v",
                              f"gold/test_if_statement_basic.v")
 
 
 def test_if_statement_nested():
     @m.circuit.combinational
-    def test_if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    def TestIfStatementNested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
         if S[0]:
             if S[1]:
                 return I[0]
@@ -71,33 +71,33 @@ def test_if_statement_nested():
                 return I[2]
             else:
                 return I[3]
-    m.compile("build/test_if_statement_nested", test_if_statement_nested)
+    m.compile("build/test_if_statement_nested", TestIfStatementNested)
     assert check_files_equal(__file__, f"build/test_if_statement_nested.v",
                              f"gold/test_if_statement_nested.v")
 
 
 def test_ternary():
     @m.circuit.combinational
-    def test_ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    def TestTernary(I: m.Bits(2), S: m.Bit) -> m.Bit:
         return I[0] if S else I[1]
-    m.compile("build/test_ternary", test_ternary)
+    m.compile("build/test_ternary", TestTernary)
     assert check_files_equal(__file__, f"build/test_ternary.v",
                              f"gold/test_ternary.v")
 
 
 def test_ternary_nested():
     @m.circuit.combinational
-    def test_ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    def TestTernaryNested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
         return I[0] if S[0] else I[1] if S[1] else I[2]
-    m.compile("build/test_ternary_nested", test_ternary_nested)
+    m.compile("build/test_ternary_nested", TestTernaryNested)
     assert check_files_equal(__file__, f"build/test_ternary_nested.v",
                              f"gold/test_ternary_nested.v")
 
 
 def test_ternary_nested2():
     @m.circuit.combinational
-    def test_ternary_nested2(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    def TestTernaryNested2(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
         return (I[0] if S[0] else I[1]) if S[1] else I[2]
-    m.compile("build/test_ternary_nested2", test_ternary_nested2)
+    m.compile("build/test_ternary_nested2", TestTernaryNested2)
     assert check_files_equal(__file__, f"build/test_ternary_nested2.v",
                              f"gold/test_ternary_nested2.v")

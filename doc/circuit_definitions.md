@@ -12,7 +12,7 @@ The condition must be an expression that evaluates to a `magma` value.
 Basic example:
 ```python
 @m.circuit.combinational
-def test_if_statement_basic(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def IfStatementBasic(I: m.Bits(2), S: m.Bit) -> m.Bit:
     if S:
         return I[0]
     else:
@@ -24,7 +24,7 @@ Basic nesting:
 ```python
 class IfStatementNested(m.Circuit):
 @m.circuit.combinational
-def test_if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+def IfStatementNested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
     if S[0]:
         if S[1]:
             return I[0]
@@ -39,14 +39,14 @@ def test_if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
 
 Terneray expressions
 ```python
-def test_ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def Ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
     return I[0] if S else I[1]
 ```
 
 Nesting terneray expressions
 ```python
 @m.circuit.combinational
-def test_ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+def TernaryNested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
     return I[0] if S[0] else I[1] if S[1] else I[2]
 ```
 
