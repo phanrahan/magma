@@ -165,4 +165,13 @@ def combinational(fn):
     exec(compile(tree, filename="<ast>", mode="exec"), defn_globals,
          defn_locals)
 
-    return defn_locals[fn.__name__]
+    circuit_def = defn_locals[fn.__name__]
+
+    @functools.wraps(fn)
+    @functools.partial(circuit_def)
+    def func(circuit_def, *args, **kwargs):
+        return circuit_def()(*args, **kwargs)
+    func.__name__ = fn.__name__
+    func.__qualname__ = fn.__name__
+    func.circuit_definition = circuit_def
+    return func
