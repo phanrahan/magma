@@ -12,7 +12,7 @@ The condition must be an expression that evaluates to a `magma` value.
 Basic example:
 ```python
 @m.circuit.combinational
-def if_statement_basic(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
     if S:
         return I[0]
     else:
@@ -64,3 +64,13 @@ Things that aren't supported:
   value. (So the above code would break even if x was assigned in the else
   block.
 * If without an else (for the same reason as the above)
+
+Function composition:
+```
+@m.circuit.combinational
+def basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    return basic_if(I, S)
+```
+Function calls must refer to another `m.circuit.combinational` element, or a
+function that accepts magma values, define instances and wires values, and
+returns a magma.  Calling any other type of function has undefined behavior.
