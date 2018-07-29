@@ -168,8 +168,7 @@ def combinational(fn):
     circuit_def = defn_locals[fn.__name__]
 
     @functools.wraps(fn)
-    @functools.partial(circuit_def)
-    def func(circuit_def, *args, **kwargs):
+    def func(*args, **kwargs):
         return circuit_def()(*args, **kwargs)
     func.__name__ = fn.__name__
     func.__qualname__ = fn.__name__
