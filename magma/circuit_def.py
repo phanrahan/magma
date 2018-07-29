@@ -97,12 +97,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
     def visit_Return(self, node):
         node.value = self.visit(node.value)
-        return ast.Expr(ast.Call(
-            ast.Attribute(ast.Name("m", ast.Load()), "wire", ast.Load()),
-            [node.value, ast.Attribute(ast.Name("io", ast.Load()), "O",
-                                       ast.Load())],
-            []
-        ))
+        return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
     def visit_FunctionDef(self, node):
         names = [arg.arg for arg in node.args.args]
@@ -115,6 +110,14 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         IO.extend([ast.Str("O"), self.qualify(node.returns, "Out")])
         IO = ast.List(IO, ast.Load())
         node.body = [self.visit(s) for s in node.body]
+        node.body.append(ast.Expr(ast.Call(
+            ast.Attribute(ast.Name("m", ast.Load()), "wire", ast.Load()),
+            [ast.Name("O", ast.Load()),
+             ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
+            []
+        ))
+
+        )
         # class {node.name}(m.Circuit):
         #     IO = {IO}
         #     @classmethod
