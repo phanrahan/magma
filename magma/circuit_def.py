@@ -5,6 +5,7 @@ import textwrap
 from collections import OrderedDict
 from magma.logging import warning, debug
 import astor
+# import astunparse
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -79,24 +80,86 @@ class IfTransformer(ast.NodeTransformer):
             [])
 
 
+class FunctionToCircuitDefTransformer(ast.NodeTransformer):
+    def __init__(self):
+        super().__init__()
+        self.IO = set("O")
+
+    def visit(self, node):
+        new_node = super().visit(node)
+        if new_node is not node:
+            return ast.copy_location(new_node, node)
+        return node
+
+    def qualify(self, node, direction):
+        return ast.Call(ast.Attribute(ast.Name("m", ast.Load()), direction,
+                                      ast.Load()), [node], [])
+
+    def visit_Return(self, node):
+        node.value = self.visit(node.value)
+        return ast.Expr(ast.Call(
+            ast.Attribute(ast.Name("m", ast.Load()), "wire", ast.Load()),
+            [node.value, ast.Attribute(ast.Name("io", ast.Load()), "O",
+                                       ast.Load())],
+            []
+        ))
+
+    def visit_FunctionDef(self, node):
+        names = [arg.arg for arg in node.args.args]
+        types = [arg.annotation for arg in node.args.args]
+        IO = []
+        for name, type_ in zip(names, types):
+            self.IO.add(name)
+            IO.extend([ast.Str(name),
+                       self.qualify(type_, "In")])
+        IO.extend([ast.Str("O"), self.qualify(node.returns, "Out")])
+        IO = ast.List(IO, ast.Load())
+        node.body = [self.visit(s) for s in node.body]
+        # class {node.name}(m.Circuit):
+        #     IO = {IO}
+        #     @classmethod
+        #     def definition(io):
+        #         {body}
+        class_def = ast.ClassDef(
+            node.name,
+            [ast.Attribute(ast.Name("m", ast.Load()), "Circuit", ast.Load())],
+            [], [
+                ast.Assign([ast.Name("IO", ast.Store())], IO),
+                ast.FunctionDef(
+                    "definition",
+                    ast.arguments([ast.arg("io", None)],
+                                  None, [], [],
+                                  None, []),
+                    node.body,
+                    [ast.Name("classmethod", ast.Load())],
+                    None
+                )
+
+                ],
+            [])
+        return class_def
+
+    def visit_Name(self, node):
+        if node.id in self.IO:
+            return ast.Attribute(ast.Name("io", ast.Load()), node.id,
+                                 ast.Load())
+        return node
+
+
 def combinational(fn):
     stack = inspect.stack()
     defn_locals = stack[1].frame.f_locals
     defn_globals = stack[1].frame.f_globals
     tree = get_ast(fn)
+    tree = FunctionToCircuitDefTransformer().visit(tree)
+    tree = ast.fix_missing_locations(tree)
     tree = IfTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     # TODO: Only remove @m.circuit.combinational, there could be others
     tree.body[0].decorator_list = []
     debug(astor.to_source(tree))
+    # debug(astunparse.dump(tree))
     exec(compile(tree, filename="<ast>", mode="exec"), defn_globals,
          defn_locals)
 
-    fn = defn_locals[fn.__name__]
-
-    @classmethod
-    @functools.wraps(fn)
-    def wrapped(io):
-        return fn(io)
-
-    return wrapped
+    return defn_locals[fn.__name__]

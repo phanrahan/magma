@@ -47,97 +47,57 @@ def mux(I, S):
 
 
 def test_if_statement_basic():
-    class TestIfStatementBasic(m.Circuit):
-        IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            if io.S:
-                O = io.I[0]
-                # m.wire(io.O, io.I[0])
-                # io.O = io.I[0]
-                # TODO: Alternative syntax
-                # io.O <= io.I[0]
-                # TODO: Or we could use wire syntax
-                # wire(io.O, io.I[0])
-            else:
-                O = io.I[1]
-            m.wire(O, io.O)
-    m.compile("build/test_if_statement_basic", TestIfStatementBasic)
+    @m.circuit.combinational
+    def test_if_statement_basic(I: m.Bits(2), S: m.Bit) -> m.Bit:
+        if S:
+            return I[0]
+        else:
+            return I[1]
+    m.compile("build/test_if_statement_basic", test_if_statement_basic)
     assert check_files_equal(__file__, f"build/test_if_statement_basic.v",
                              f"gold/test_if_statement_basic.v")
 
 
 def test_if_statement_nested():
-    class TestIfStatementNested(m.Circuit):
-        IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            if io.S[0]:
-                if io.S[1]:
-                    O = io.I[0]
-                else:
-                    O = io.I[1]
-                # m.wire(io.O, io.I[0])
-                # io.O = io.I[0]
-                # TODO: Alternative syntax
-                # io.O <= io.I[0]
-                # TODO: Or we could use wire syntax
-                # wire(io.O, io.I[0])
+    @m.circuit.combinational
+    def test_if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+        if S[0]:
+            if S[1]:
+                return I[0]
             else:
-                if io.S[1]:
-                    O = io.I[2]
-                else:
-                    O = io.I[3]
-            m.wire(O, io.O)
-    m.compile("build/test_if_statement_nested", TestIfStatementNested)
+                return I[1]
+        else:
+            if S[1]:
+                return I[2]
+            else:
+                return I[3]
+    m.compile("build/test_if_statement_nested", test_if_statement_nested)
     assert check_files_equal(__file__, f"build/test_if_statement_nested.v",
                              f"gold/test_if_statement_nested.v")
 
 
 def test_ternary():
-    class TestTernary(m.Circuit):
-        IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            m.wire(io.O, io.I[0] if io.S else io.I[1])
-            # io.O = io.I[0] if io.S else io.I[1]
-            # TODO: Or non block assign?
-            # io.O <= io.I[0] if io.S else io.[1]
-    m.compile("build/test_ternary", TestTernary)
+    @m.circuit.combinational
+    def test_ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+        return I[0] if S else I[1]
+    m.compile("build/test_ternary", test_ternary)
     assert check_files_equal(__file__, f"build/test_ternary.v",
                              f"gold/test_ternary.v")
 
 
 def test_ternary_nested():
-    class TestTernaryNested(m.Circuit):
-        IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            m.wire(io.O,
-                   io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])
-            # io.O = io.I[0] if io.S else io.I[1]
-            # TODO: Or non block assign?
-            # io.O <= io.I[0] if io.S else io.[1]
-    m.compile("build/test_ternary_nested", TestTernaryNested)
+    @m.circuit.combinational
+    def test_ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+        return I[0] if S[0] else I[1] if S[1] else I[2]
+    m.compile("build/test_ternary_nested", test_ternary_nested)
     assert check_files_equal(__file__, f"build/test_ternary_nested.v",
                              f"gold/test_ternary_nested.v")
 
 
 def test_ternary_nested2():
-    class TestTernaryNested2(m.Circuit):
-        IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            m.wire(io.O,
-                   (io.I[0] if io.S[0] else io.I[1]) if io.S[1] else io.I[2])
-            # io.O = io.I[0] if io.S else io.I[1]
-            # TODO: Or non block assign?
-            # io.O <= io.I[0] if io.S else io.[1]
-    m.compile("build/test_ternary_nested2", TestTernaryNested2)
+    @m.circuit.combinational
+    def test_ternary_nested2(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+        return (I[0] if S[0] else I[1]) if S[1] else I[2]
+    m.compile("build/test_ternary_nested2", test_ternary_nested2)
     assert check_files_equal(__file__, f"build/test_ternary_nested2.v",
                              f"gold/test_ternary_nested2.v")
