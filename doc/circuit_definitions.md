@@ -11,54 +11,43 @@ The condition must be an expression that evaluates to a `magma` value.
 
 Basic example:
 ```python
-class IfStatementBasic(m.Circuit):
-    IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        if io.S:
-            O = io.I[0]
-        else:
-            O = io.I[1]
-        m.wire(O, io.O)
+@m.circuit.combinational
+def test_if_statement_basic(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    if S:
+        return I[0]
+    else:
+        return I[1]
 
 ```
 
 Basic nesting:
 ```python
 class IfStatementNested(m.Circuit):
-    IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        if io.S[0]:
-            if io.S[1]:
-                O = io.I[0]
-            else:
-                O = io.I[1]
+@m.circuit.combinational
+def test_if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    if S[0]:
+        if S[1]:
+            return I[0]
         else:
-            if io.S[1]:
-                O = io.I[2]
-            else:
-                O = io.I[3]
-        m.wire(O, io.O)
+            return I[1]
+    else:
+        if S[1]:
+            return I[2]
+        else:
+            return I[3]
 ```
 
 Terneray expressions
 ```python
-class Ternary(m.Circuit):
-    IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        m.wire(io.O, io.I[0] if io.S else io.I[1])
+def test_ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    return I[0] if S else I[1]
 ```
 
 Nesting terneray expressions
 ```python
-class TernaryNested(m.Circuit):
-    IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        m.wire(io.O,
-               io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])
+@m.circuit.combinational
+def test_ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    return I[0] if S[0] else I[1] if S[1] else I[2]
 ```
 
 Things that aren't supported:
