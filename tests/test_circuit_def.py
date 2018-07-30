@@ -56,7 +56,7 @@ def compile_and_check(output_file, circuit_definition, target):
     else:
         raise NotImplementedError()
     assert check_files_equal(__file__, f"build/{output_file}.{suffix}",
-                             f"gold/test_if_statement_basic.{suffix}")
+                             f"gold/{output_file}.{suffix}")
 
 
 def pytest_generate_tests(metafunc):
