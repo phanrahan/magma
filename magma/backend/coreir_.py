@@ -40,13 +40,10 @@ def magma_port_to_coreir(port):
     name = port.name
     if isinstance(name, TupleRef):
         # Prefix integer indexes for unnamed tuples (e.g. 0, 1, 2) with "_"
-        try:
-            int(name.index)
+        if name.index.isdigit():
             select = select.split(".")
             select[-1] = "_" + select[-1]
             select = ".".join(select)
-        except ValueError:
-            pass
     name = get_top_name(name)
     if isinstance(name, DefnRef):
         if name.defn.name != "":
