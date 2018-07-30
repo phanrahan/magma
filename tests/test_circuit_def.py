@@ -132,9 +132,11 @@ def test_function_composition(target):
                       basic_function_call.circuit_definition, target)
 
 
-@pytest.mark.skip(reason="Tuples not supported in verilog backend, Unnamed "
-                  "tuples not supported in coreir backend")
 def test_return_tuple(target):
+    if target == "verilog":
+        # TODO: Tuples not supported in verilog backend
+        pytest.skip()
+
     @m.circuit.combinational
     def return_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
         return I[0], I[1]

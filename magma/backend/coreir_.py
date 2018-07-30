@@ -38,6 +38,15 @@ def magma_port_to_coreir(port):
     select = repr(port)
 
     name = port.name
+    if isinstance(name, TupleRef):
+        # Prefix integer indexes for unnamed tuples (e.g. 0, 1, 2) with "_"
+        try:
+            int(name.index)
+            select = select.split(".")
+            select[-1] = "_" + select[-1]
+            select = ".".join(select)
+        except ValueError:
+            pass
     name = get_top_name(name)
     if isinstance(name, DefnRef):
         if name.defn.name != "":
@@ -84,8 +93,20 @@ class CoreIRBackend:
         if isinstance(port, (ArrayType, ArrayKind)):
             _type = self.context.Array(port.N, self.get_type(port.T, is_input))
         elif isinstance(port, (TupleType, TupleKind)):
-            _type = self.context.Record({str(k):self.get_type(t, is_input)
-                                         for (k,t) in zip(port.Ks, port.Ts)})
+            def to_string(k):
+                """
+                Unnamed tuples have integer keys (e.g. 0, 1, 2),
+                we prefix them with "_" so they can be consumed by coreir's
+                Record type (key names are constrained such that they can't be
+                integers)
+                """
+                if isinstance(k, int):
+                    return f"_{k}"
+                return k
+            _type = self.context.Record({
+                to_string(k): self.get_type(t, is_input) for (k, t) in
+                zip(port.Ks, port.Ts)
+            })
         elif is_input:
             if isinstance(port, ClockType):
                 _type = self.context.named_types[("coreir", "clk")]
@@ -210,13 +231,6 @@ class CoreIRBackend:
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
                     self.add_output_port(output_ports, port)
-
-
-        def get_select(value):
-            if value in [VCC, GND]:
-                return self.get_constant_instance(value, None, module_definition)
-            else:
-                return module_definition.select(output_ports[value])
 
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
