@@ -1,0 +1,34 @@
+{"top":"global.basic_if",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Mux2":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "basic_if":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.Mux2"
+          }
+        },
+        "connections":[
+          ["self.I.0","inst0.I0"],
+          ["self.I.1","inst0.I1"],
+          ["self.O","inst0.O"],
+          ["self.S","inst0.S"]
+        ]
+      }
+    }
+  }
+}
+}

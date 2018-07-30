@@ -84,7 +84,7 @@ class CoreIRBackend:
         if isinstance(port, (ArrayType, ArrayKind)):
             _type = self.context.Array(port.N, self.get_type(port.T, is_input))
         elif isinstance(port, (TupleType, TupleKind)):
-            _type = self.context.Record({k:self.get_type(t, is_input)
+            _type = self.context.Record({str(k):self.get_type(t, is_input)
                                          for (k,t) in zip(port.Ks, port.Ts)})
         elif is_input:
             if isinstance(port, ClockType):

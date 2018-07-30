@@ -11,9 +11,9 @@ __all__  = ['TupleType', 'TupleKind', 'Tuple']
 #
 # Create an Tuple
 #
-#  Tuple() 
+#  Tuple()
 #  - creates a new tuple value
-#  Tuple(v0, v1, ..., vn) 
+#  Tuple(v0, v1, ..., vn)
 #  - creates a new tuple value where each field equals vi
 #
 class TupleType(Type):
@@ -75,7 +75,7 @@ class TupleType(Type):
     @debug_wire
     def wire(i, o, debug_info):
         # print('Tuple.wire(', o, ', ', i, ')')
-        
+
         if not isinstance(o, TupleType):
             print('Wiring error: wiring', o, 'to', i, '(not an Tuple)')
             return
@@ -112,7 +112,7 @@ class TupleType(Type):
                 return False
 
         for i in range(len(ts)):
-            # elements must be an tuple reference 
+            # elements must be an tuple reference
             if not isinstance(ts[i].name, TupleRef):
                 #print('not an tuple ref')
                 return False
@@ -203,7 +203,7 @@ class TupleKind(Kind):
         return Tuple(OrderedDict(zip(cls.Ks, [T.flip() for T in cls.Ts])))
 
 
-# 
+#
 # Tuple(Mapping)
 # Tuple(Sequence)
 #
@@ -226,7 +226,7 @@ def Tuple(*largs, **kwargs):
             elif isinstance(largs, Mapping):
                 Ks = list(largs.keys())
                 Ts = list(largs.values())
-            else: 
+            else:
                 assert False
     else:
         Ks = list(kwargs.keys())

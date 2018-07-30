@@ -12,6 +12,10 @@ class CircuitDefinitionSyntaxError(Exception):
     pass
 
 
+def m_dot(attr):
+    return ast.Attribute(ast.Name("m", ast.Load()), attr, ast.Load())
+
+
 def get_ast(obj):
     indented_program_txt = inspect.getsource(obj)
     program_txt = textwrap.dedent(indented_program_txt)
@@ -92,8 +96,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return node
 
     def qualify(self, node, direction):
-        return ast.Call(ast.Attribute(ast.Name("m", ast.Load()), direction,
-                                      ast.Load()), [node], [])
+        return ast.Call(m_dot(direction), [node], [])
 
     def visit_Return(self, node):
         node.value = self.visit(node.value)
@@ -111,7 +114,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         IO = ast.List(IO, ast.Load())
         node.body = [self.visit(s) for s in node.body]
         node.body.append(ast.Expr(ast.Call(
-            ast.Attribute(ast.Name("m", ast.Load()), "wire", ast.Load()),
+            m_dot("wire"),
             [ast.Name("O", ast.Load()),
              ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
             []
@@ -149,11 +152,23 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return node
 
 
+class ReturnTupleConvertor(ast.NodeTransformer):
+    def visit_Return(self, node):
+        if isinstance(node.value, ast.Tuple):
+            node.value = ast.Call(
+                m_dot("tuple_"),
+                [node.value],
+                []
+            )
+        return node
+
+
 def combinational(fn):
     stack = inspect.stack()
     defn_locals = stack[1].frame.f_locals
     defn_globals = stack[1].frame.f_globals
     tree = get_ast(fn)
+    tree = ReturnTupleConvertor().visit(tree)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree = IfTransformer().visit(tree)
