@@ -1,0 +1,18 @@
+{"top":"global.return_magma_named_tuple",
+"namespaces":{
+  "global":{
+    "modules":{
+      "return_magma_named_tuple":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O",["Record",[["x","Bit"],["y","Bit"]]]]
+        ]],
+        "connections":[
+          ["self.O.x","self.I.0"],
+          ["self.O.y","self.I.1"]
+        ]
+      }
+    }
+  }
+}
+}

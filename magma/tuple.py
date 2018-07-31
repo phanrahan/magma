@@ -285,3 +285,6 @@ def tuple_(value, n=None):
 
     return Tuple(decl)(*args)
 
+
+def namedtuple(**kwargs):
+    return tuple_(kwargs)

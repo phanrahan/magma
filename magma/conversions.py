@@ -7,7 +7,7 @@ from .clock import ClockType, Clock, \
     Enable, EnableType
 from .array import ArrayType, Array, ArrayKind
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
-from .tuple import TupleType, tuple_ as tuple_imported, TupleKind
+from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 
 __all__ = ['bit']
@@ -16,7 +16,7 @@ __all__ += ['clock', 'reset', 'enable']
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
 
-__all__ += ['tuple_']
+__all__ += ['tuple_', 'namedtuple']
 
 __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext']

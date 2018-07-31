@@ -150,3 +150,15 @@ def test_return_magma_tuple(target):
         return m.tuple_([I[0], I[1]])
     compile_and_check("return_magma_tuple",
                       return_magma_tuple.circuit_definition, target)
+
+
+def test_return_magma_named_tuple(target):
+    if target == "verilog":
+        # TODO: Tuples not supported in verilog backend
+        pytest.skip()
+
+    @m.circuit.combinational
+    def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
+        return m.namedtuple(x=I[0], y=I[1])
+    compile_and_check("return_magma_named_tuple",
+                      return_magma_named_tuple.circuit_definition, target)
