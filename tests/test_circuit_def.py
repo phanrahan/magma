@@ -132,12 +132,21 @@ def test_function_composition(target):
                       basic_function_call.circuit_definition, target)
 
 
-def test_return_tuple(target):
+def test_return_py_tuple(target):
+    @m.circuit.combinational
+    def return_py_tuple(I: m.Bits(2)) -> (m.Bit, m.Bit):
+        return I[0], I[1]
+    compile_and_check("return_py_tuple", return_py_tuple.circuit_definition,
+                      target)
+
+
+def test_return_magma_tuple(target):
     if target == "verilog":
         # TODO: Tuples not supported in verilog backend
         pytest.skip()
 
     @m.circuit.combinational
-    def return_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
-        return I[0], I[1]
-    compile_and_check("return_tuple", return_tuple.circuit_definition, target)
+    def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
+        return m.tuple_([I[0], I[1]])
+    compile_and_check("return_magma_tuple",
+                      return_magma_tuple.circuit_definition, target)

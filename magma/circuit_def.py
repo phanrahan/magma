@@ -87,7 +87,7 @@ class IfTransformer(ast.NodeTransformer):
 class FunctionToCircuitDefTransformer(ast.NodeTransformer):
     def __init__(self):
         super().__init__()
-        self.IO = set("O")
+        self.IO = set()
 
     def visit(self, node):
         new_node = super().visit(node)
@@ -98,10 +98,6 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
     def qualify(self, node, direction):
         return ast.Call(m_dot(direction), [node], [])
 
-    def visit_Return(self, node):
-        node.value = self.visit(node.value)
-        return ast.Assign([ast.Name("O", ast.Store())], node.value)
-
     def visit_FunctionDef(self, node):
         names = [arg.arg for arg in node.args.args]
         types = [arg.annotation for arg in node.args.args]
@@ -110,17 +106,28 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
             self.IO.add(name)
             IO.extend([ast.Str(name),
                        self.qualify(type_, "In")])
-        IO.extend([ast.Str("O"), self.qualify(node.returns, "Out")])
+        if isinstance(node.returns, ast.Tuple):
+            for i, elt in enumerate(node.returns.elts):
+                IO.extend([ast.Str(f"O{i}"), self.qualify(elt, "Out")])
+        else:
+            IO.extend([ast.Str("O"), self.qualify(node.returns, "Out")])
         IO = ast.List(IO, ast.Load())
         node.body = [self.visit(s) for s in node.body]
-        node.body.append(ast.Expr(ast.Call(
-            m_dot("wire"),
-            [ast.Name("O", ast.Load()),
-             ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
-            []
-        ))
-
-        )
+        if isinstance(node.returns, ast.Tuple):
+            for i, elt in enumerate(node.returns.elts):
+                node.body.append(ast.Expr(ast.Call(
+                    m_dot("wire"),
+                    [ast.Name(f"O{i}", ast.Load()),
+                     ast.Attribute(ast.Name("io", ast.Load()), f"O{i}", ast.Load())],
+                    []
+                )))
+        else:
+            node.body.append(ast.Expr(ast.Call(
+                m_dot("wire"),
+                [ast.Name("O", ast.Load()),
+                 ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
+                []
+            )))
         # class {node.name}(m.Circuit):
         #     IO = {IO}
         #     @classmethod
@@ -151,16 +158,17 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
                                  ast.Load())
         return node
 
-
-class ReturnTupleConvertor(ast.NodeTransformer):
     def visit_Return(self, node):
+        node.value = self.visit(node.value)
         if isinstance(node.value, ast.Tuple):
-            node.value = ast.Call(
-                m_dot("tuple_"),
-                [node.value],
-                []
+            return ast.Assign(
+                [ast.Tuple([ast.Name(f"O{i}", ast.Store())
+                 for i in range(len(node.value.elts))], ast.Store())],
+                node.value
             )
-        return node
+        return ast.Assign([ast.Name("O", ast.Store())], node.value)
+
+
 
 
 def combinational(fn):
@@ -168,7 +176,6 @@ def combinational(fn):
     defn_locals = stack[1].frame.f_locals
     defn_globals = stack[1].frame.f_globals
     tree = get_ast(fn)
-    tree = ReturnTupleConvertor().visit(tree)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree = IfTransformer().visit(tree)

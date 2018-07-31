@@ -1,0 +1,19 @@
+{"top":"global.return_py_tuple",
+"namespaces":{
+  "global":{
+    "modules":{
+      "return_py_tuple":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O0","Bit"],
+          ["O1","Bit"]
+        ]],
+        "connections":[
+          ["self.O0","self.I.0"],
+          ["self.O1","self.I.1"]
+        ]
+      }
+    }
+  }
+}
+}

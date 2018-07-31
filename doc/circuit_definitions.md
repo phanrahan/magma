@@ -65,7 +65,7 @@ Things that aren't supported:
   block.
 * If without an else (for the same reason as the above)
 
-Function composition:
+## Function composition:
 ```
 @m.circuit.combinational
 def basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
@@ -74,3 +74,29 @@ def basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
 Function calls must refer to another `m.circuit.combinational` element, or a
 function that accepts magma values, define instances and wires values, and
 returns a magma.  Calling any other type of function has undefined behavior.
+
+## Returning multiple values (tuples)
+
+There are two ways to return multiple values, first is to use a Python tuple.
+This is specified in the type signature as `(m.Type, m.Type, ...)`.  In the
+body of the definition, the values can be returned using the standard Python
+tuple syntax.  The circuit defined with a Python tuple as an output type will
+default to the naming convetion `O0, O1, ...` for the output ports.
+
+```python
+@m.circuit.combinational
+def return_py_tuple(I: m.Bits(2)) -> (m.Bit, m.Bit):
+    return I[0], I[1]
+```
+
+The other method is to use an `m.Tuple` (magma's tuple type).  Again, this is
+specified in the type signature, using `m.Tuple(m.Type, m.Type, ...)`.  You can
+also use the namedtuple pattern to give your multiple outputs explicit names
+with `m.Tuple(O0=m.Bit, O1=m.Bit)`.
+
+
+```python
+@m.circuit.combinational
+def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
+    return m.tuple_([I[0], I[1]])
+```
