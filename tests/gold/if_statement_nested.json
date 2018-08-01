@@ -28,12 +28,12 @@
           }
         },
         "connections":[
-          ["self.I.0","inst0.I0"],
-          ["self.I.1","inst0.I1"],
+          ["self.I.3","inst0.I0"],
+          ["self.I.2","inst0.I1"],
           ["inst2.I0","inst0.O"],
           ["self.S.1","inst0.S"],
-          ["self.I.2","inst1.I0"],
-          ["self.I.3","inst1.I1"],
+          ["self.I.1","inst1.I0"],
+          ["self.I.0","inst1.I1"],
           ["inst2.I1","inst1.O"],
           ["self.S.1","inst1.S"],
           ["self.O","inst2.O"],

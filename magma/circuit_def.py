@@ -64,7 +64,7 @@ class IfTransformer(ast.NodeTransformer):
                 orelse_seen.add(key)
                 seen[key].value = ast.Call(
                     ast.Name("mux", ast.Load()),
-                    [ast.List([seen[key].value, stmt.value],
+                    [ast.List([stmt.value, seen[key].value],
                               ast.Load()), node.test],
                     [])
             else:
@@ -79,7 +79,7 @@ class IfTransformer(ast.NodeTransformer):
         node.orelse = self.visit(node.orelse)
         return ast.Call(
             ast.Name("mux", ast.Load()),
-            [ast.List([node.body, node.orelse],
+            [ast.List([node.orelse, node.body],
                       ast.Load()), node.test],
             [])
 
@@ -182,6 +182,9 @@ def combinational(fn):
     tree = ast.fix_missing_locations(tree)
     # TODO: Only remove @m.circuit.combinational, there could be others
     tree.body[0].decorator_list = []
+    if "mux" not in defn_globals and \
+            "mux" not in defn_locals:
+        tree.body.insert(0, ast.parse("from mantle import mux").body[0])
     debug(astor.to_source(tree))
     # debug(astunparse.dump(tree))
     exec(compile(tree, filename="<ast>", mode="exec"), defn_globals,

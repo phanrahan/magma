@@ -22,8 +22,8 @@
           }
         },
         "connections":[
-          ["self.I.0","inst0.I0"],
-          ["self.I.1","inst0.I1"],
+          ["self.I.1","inst0.I0"],
+          ["self.I.0","inst0.I1"],
           ["self.O","inst0.O"],
           ["self.S","inst0.S"]
         ]
