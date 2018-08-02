@@ -1,0 +1,46 @@
+{"top":"global.if_statement_nested",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Mux2":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "if_statement_nested":{
+        "type":["Record",[
+          ["I",["Array",4,"BitIn"]],
+          ["S",["Array",2,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.Mux2"
+          },
+          "inst1":{
+            "modref":"global.Mux2"
+          },
+          "inst2":{
+            "modref":"global.Mux2"
+          }
+        },
+        "connections":[
+          ["self.I.3","inst0.I0"],
+          ["self.I.2","inst0.I1"],
+          ["inst2.I0","inst0.O"],
+          ["self.S.1","inst0.S"],
+          ["self.I.1","inst1.I0"],
+          ["self.I.0","inst1.I1"],
+          ["inst2.I1","inst1.O"],
+          ["self.S.1","inst1.S"],
+          ["self.O","inst2.O"],
+          ["self.S.0","inst2.S"]
+        ]
+      }
+    }
+  }
+}
+}
