@@ -4,19 +4,20 @@ from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
 from .bit import _BitKind, _BitType, Bit, BitType, VCC, GND
 from .clock import ClockType, Clock, \
     Reset, ResetType, \
+    AsyncReset, AsyncResetType, \
     Enable, EnableType
 from .array import ArrayType, Array, ArrayKind
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
-from .tuple import TupleType, tuple_ as tuple_imported, TupleKind
+from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 
 __all__ = ['bit']
-__all__ += ['clock', 'reset', 'enable']
+__all__ += ['clock', 'reset', 'enable', 'asyncreset']
 
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
 
-__all__ += ['tuple_']
+__all__ += ['tuple_', 'namedtuple']
 
 __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext']
@@ -75,6 +76,10 @@ def clock(value):
 
 def reset(value):
     return convertbit(value, ResetType, Reset)
+
+
+def asyncreset(value):
+    return convertbit(value, AsyncResetType, AsyncReset)
 
 
 def enable(value):

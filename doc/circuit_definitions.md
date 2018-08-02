@@ -11,54 +11,43 @@ The condition must be an expression that evaluates to a `magma` value.
 
 Basic example:
 ```python
-class IfStatementBasic(m.Circuit):
-    IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        if io.S:
-            O = io.I[0]
-        else:
-            O = io.I[1]
-        m.wire(O, io.O)
+@m.circuit.combinational
+def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    if S:
+        return I[0]
+    else:
+        return I[1]
 
 ```
 
 Basic nesting:
 ```python
 class IfStatementNested(m.Circuit):
-    IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        if io.S[0]:
-            if io.S[1]:
-                O = io.I[0]
-            else:
-                O = io.I[1]
+@m.circuit.combinational
+def if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    if S[0]:
+        if S[1]:
+            return I[0]
         else:
-            if io.S[1]:
-                O = io.I[2]
-            else:
-                O = io.I[3]
-        m.wire(O, io.O)
+            return I[1]
+    else:
+        if S[1]:
+            return I[2]
+        else:
+            return I[3]
 ```
 
 Terneray expressions
 ```python
-class Ternary(m.Circuit):
-    IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        m.wire(io.O, io.I[0] if io.S else io.I[1])
+def ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    return I[0] if S else I[1]
 ```
 
 Nesting terneray expressions
 ```python
-class TernaryNested(m.Circuit):
-    IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-     @m.circuit.combinational
-    def definition(io):
-        m.wire(io.O,
-               io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])
+@m.circuit.combinational
+def ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+    return I[0] if S[0] else I[1] if S[1] else I[2]
 ```
 
 Things that aren't supported:
@@ -75,3 +64,44 @@ Things that aren't supported:
   value. (So the above code would break even if x was assigned in the else
   block.
 * If without an else (for the same reason as the above)
+
+## Function composition:
+```
+@m.circuit.combinational
+def basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    return basic_if(I, S)
+```
+Function calls must refer to another `m.circuit.combinational` element, or a
+function that accepts magma values, define instances and wires values, and
+returns a magma.  Calling any other type of function has undefined behavior.
+
+## Returning multiple values (tuples)
+
+There are two ways to return multiple values, first is to use a Python tuple.
+This is specified in the type signature as `(m.Type, m.Type, ...)`.  In the
+body of the definition, the values can be returned using the standard Python
+tuple syntax.  The circuit defined with a Python tuple as an output type will
+default to the naming convetion `O0, O1, ...` for the output ports.
+
+```python
+@m.circuit.combinational
+def return_py_tuple(I: m.Bits(2)) -> (m.Bit, m.Bit):
+    return I[0], I[1]
+```
+
+The other method is to use an `m.Tuple` (magma's tuple type).  Again, this is
+specified in the type signature, using `m.Tuple(m.Type, m.Type, ...)`.  You can
+also use the namedtuple pattern to give your multiple outputs explicit names
+with `m.Tuple(O0=m.Bit, O1=m.Bit)`.
+
+
+```python
+@m.circuit.combinational
+def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
+    return m.tuple_([I[0], I[1]])
+```
+
+```
+def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
+    return m.namedtuple(x=I[0], y=I[1])
+```

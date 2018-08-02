@@ -1,3 +1,7 @@
+"""
+Example usage:
+$ MAGMA_LOG_LEVEL=DEBUG MAGMA_LOG_STREAM=stdout pytest
+"""
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -5,8 +9,25 @@ import logging
 import traceback
 import inspect
 import sys
+import os
 
+
+streams = {
+    "stdout": sys.stdout
+}
+
+stream = os.getenv("MAGMA_LOG_STREAM", None)
+if stream in streams:
+    logging.basicConfig(stream=streams[stream])
+elif stream is not None:
+    logging.warning(f"Unsupported value for MAGMA_LOG_STREAM: {stream}")
 log = logging.getLogger("magma")
+
+level = os.getenv("MAGMA_LOG_LEVEL", None)
+if level in ["DEBUG", "WARN", "INFO"]:
+    log.setLevel(getattr(logging, level))
+elif level is not None:
+    logging.warning(f"Unsupported value for MAGMA_LOG_LEVEL: {stream}")
 
 
 def get_original_wire_call_stack_frame():

@@ -1,5 +1,6 @@
 import magma as m
 from magma.testing import check_files_equal
+import pytest
 
 
 @m.cache_definition
@@ -46,98 +47,118 @@ def mux(I, S):
     return Mux(len(I), get_length(I[0]))(*I, S)
 
 
-def test_if_statement_basic():
-    class TestIfStatementBasic(m.Circuit):
-        IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
+def compile_and_check(output_file, circuit_definition, target):
+    m.compile(f"build/{output_file}", circuit_definition, output=target)
+    if target == "verilog":
+        suffix = "v"
+    elif target == "coreir":
+        suffix = "json"
+    else:
+        raise NotImplementedError()
+    assert check_files_equal(__file__, f"build/{output_file}.{suffix}",
+                             f"gold/{output_file}.{suffix}")
 
-        @m.circuit.combinational
-        def definition(io):
-            if io.S:
-                O = io.I[0]
-                # m.wire(io.O, io.I[0])
-                # io.O = io.I[0]
-                # TODO: Alternative syntax
-                # io.O <= io.I[0]
-                # TODO: Or we could use wire syntax
-                # wire(io.O, io.I[0])
+
+def pytest_generate_tests(metafunc):
+    if 'target' in metafunc.fixturenames:
+        metafunc.parametrize("target", ["verilog", "coreir"])
+
+
+def test_if_statement_basic(target):
+    @m.circuit.combinational
+    def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
+        if S:
+            return I[0]
+        else:
+            return I[1]
+    compile_and_check("if_statement_basic", basic_if.circuit_definition,
+                      target)
+
+
+def test_if_statement_nested(target):
+    @m.circuit.combinational
+    def if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+        if S[0]:
+            if S[1]:
+                return I[0]
             else:
-                O = io.I[1]
-            m.wire(O, io.O)
-    m.compile("build/test_if_statement_basic", TestIfStatementBasic)
-    assert check_files_equal(__file__, f"build/test_if_statement_basic.v",
-                             f"gold/test_if_statement_basic.v")
-
-
-def test_if_statement_nested():
-    class TestIfStatementNested(m.Circuit):
-        IO = ["I", m.In(m.Bits(4)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            if io.S[0]:
-                if io.S[1]:
-                    O = io.I[0]
-                else:
-                    O = io.I[1]
-                # m.wire(io.O, io.I[0])
-                # io.O = io.I[0]
-                # TODO: Alternative syntax
-                # io.O <= io.I[0]
-                # TODO: Or we could use wire syntax
-                # wire(io.O, io.I[0])
+                return I[1]
+        else:
+            if S[1]:
+                return I[2]
             else:
-                if io.S[1]:
-                    O = io.I[2]
-                else:
-                    O = io.I[3]
-            m.wire(O, io.O)
-    m.compile("build/test_if_statement_nested", TestIfStatementNested)
-    assert check_files_equal(__file__, f"build/test_if_statement_nested.v",
-                             f"gold/test_if_statement_nested.v")
+                return I[3]
+    compile_and_check("if_statement_nested",
+                      if_statement_nested.circuit_definition,
+                      target)
 
 
-def test_ternary():
-    class TestTernary(m.Circuit):
-        IO = ["I", m.In(m.Bits(2)), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            m.wire(io.O, io.I[0] if io.S else io.I[1])
-            # io.O = io.I[0] if io.S else io.I[1]
-            # TODO: Or non block assign?
-            # io.O <= io.I[0] if io.S else io.[1]
-    m.compile("build/test_ternary", TestTernary)
-    assert check_files_equal(__file__, f"build/test_ternary.v",
-                             f"gold/test_ternary.v")
+def test_ternary(target):
+    @m.circuit.combinational
+    def ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+        return I[0] if S else I[1]
+    compile_and_check("ternary", ternary.circuit_definition, target)
 
 
-def test_ternary_nested():
-    class TestTernaryNested(m.Circuit):
-        IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
-
-        @m.circuit.combinational
-        def definition(io):
-            m.wire(io.O,
-                   io.I[0] if io.S[0] else io.I[1] if io.S[1] else io.I[2])
-            # io.O = io.I[0] if io.S else io.I[1]
-            # TODO: Or non block assign?
-            # io.O <= io.I[0] if io.S else io.[1]
-    m.compile("build/test_ternary_nested", TestTernaryNested)
-    assert check_files_equal(__file__, f"build/test_ternary_nested.v",
-                             f"gold/test_ternary_nested.v")
+def test_ternary_nested(target):
+    @m.circuit.combinational
+    def ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+        return I[0] if S[0] else I[1] if S[1] else I[2]
+    compile_and_check("ternary_nested", ternary_nested.circuit_definition,
+                      target)
 
 
-def test_ternary_nested2():
-    class TestTernaryNested2(m.Circuit):
-        IO = ["I", m.In(m.Bits(3)), "S", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
+def test_ternary_nested2(target):
+    @m.circuit.combinational
+    def ternary_nested2(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+        return (I[0] if S[0] else I[1]) if S[1] else I[2]
+    compile_and_check("ternary_nested2", ternary_nested2.circuit_definition,
+                      target)
 
-        @m.circuit.combinational
-        def definition(io):
-            m.wire(io.O,
-                   (io.I[0] if io.S[0] else io.I[1]) if io.S[1] else io.I[2])
-            # io.O = io.I[0] if io.S else io.I[1]
-            # TODO: Or non block assign?
-            # io.O <= io.I[0] if io.S else io.[1]
-    m.compile("build/test_ternary_nested2", TestTernaryNested2)
-    assert check_files_equal(__file__, f"build/test_ternary_nested2.v",
-                             f"gold/test_ternary_nested2.v")
+
+@m.circuit.combinational
+def basic_func(I: m.Bits(2), S: m.Bit) -> m.Bit:
+    if S:
+        return I[0]
+    else:
+        return I[1]
+
+
+def test_function_composition(target):
+    @m.circuit.combinational
+    def basic_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
+        return basic_func(I, S)
+    compile_and_check("basic_function_call",
+                      basic_function_call.circuit_definition, target)
+
+
+def test_return_py_tuple(target):
+    @m.circuit.combinational
+    def return_py_tuple(I: m.Bits(2)) -> (m.Bit, m.Bit):
+        return I[0], I[1]
+    compile_and_check("return_py_tuple", return_py_tuple.circuit_definition,
+                      target)
+
+
+def test_return_magma_tuple(target):
+    if target == "verilog":
+        # TODO: Tuples not supported in verilog backend
+        pytest.skip()
+
+    @m.circuit.combinational
+    def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
+        return m.tuple_([I[0], I[1]])
+    compile_and_check("return_magma_tuple",
+                      return_magma_tuple.circuit_definition, target)
+
+
+def test_return_magma_named_tuple(target):
+    if target == "verilog":
+        # TODO: Tuples not supported in verilog backend
+        pytest.skip()
+
+    @m.circuit.combinational
+    def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
+        return m.namedtuple(x=I[0], y=I[1])
+    compile_and_check("return_magma_named_tuple",
+                      return_magma_named_tuple.circuit_definition, target)
