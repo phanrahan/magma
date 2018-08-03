@@ -17,6 +17,7 @@ The `Bits` type supports the following logical operators.
 - Not `~`
 - Logical right shift (with zeros) `>>`
 - Logical left shift (with zeros) `<<`
+- Dynamic bit selection `bits_obj[add.O]` (select a bit dynamically using a magma value)
 
 The `UInt` and `SInt` types support all the logical operators
 as well as arithmetic and comparison operastors.
