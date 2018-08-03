@@ -109,15 +109,18 @@ class ValueStore:
 
     def get_value(self, bit):
         if isinstance(bit, ArrayType):
-            return BitVector([self.get_value(b) for b in bit])
+            value = ([self.get_value(b) for b in bit])
+            if isinstance(type(bit).T, BitType):
+                return BitVector(value)
+            return value
 
         if bit.isinput():
             bit = bit.value()
 
         if bit.const():
-            return BitVector(True, 1) if bit is VCC else BitVector(False, 1)
+            return True if bit is VCC else False
 
-        return BitVector(self.value_map[bit], 1)
+        return self.value_map[bit]
 
     def set_value(self, bit, newval):
         if isinstance(bit, ArrayType):
