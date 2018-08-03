@@ -58,9 +58,7 @@ def __reset_context():
     Testing hook so every test has a fresh context
     """
     global magma_coreir_context
-    global magma_coreir_global_modules
     magma_coreir_context = coreir.Context()
-    magma_coreir_global_modules = {}
 
 
 class CoreIRBackend:
