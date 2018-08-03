@@ -259,13 +259,13 @@ class CoreIRBackend:
         elif isinstance(value, coreir.Wireable):
             source = value
 
+        elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
+            source = self.get_constant_instance(value, len(value),
+                    module_definition)
         elif value.anon() and isinstance(value, ArrayType):
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, output_ports)
             return
-        elif isinstance(value, ArrayType) and all(x in {VCC, GND} for x in value):
-            source = self.get_constant_instance(value, len(value),
-                    module_definition)
         elif isinstance(value, TupleType) and value.anon():
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, output_ports)
@@ -293,21 +293,21 @@ class CoreIRBackend:
             if constant in bit_type_to_constant_map:
                 value = bit_type_to_constant_map[constant]
             elif isinstance(constant, ArrayType):
-                value = seq2int([bit_type_to_constant_map[x] for x in constant])
+                value = BitVector([bit_type_to_constant_map[x] for x in constant])
             else:
                 raise NotImplementedError(constant)
             if num_bits is None:
                 config = self.context.new_values({"value": bool(value)})
-                name = "bit_const_{}".format(constant)
+                name = "bit_const_{}".format(constant if not constant.anon() else id(constant))
                 corebit_const_module = self.libs['corebit'].modules["const"]
                 module_definition.add_module_instance(name, corebit_const_module, config)
             else:
                 gen_args = self.context.new_values({"width": num_bits})
                 config = self.context.new_values({"value": value})
                 # name = "const_{}_{}".format(constant, self.__unique_constant_id)
-                name = "const_{}".format(constant)
-                instantiable = self.get_instantiable("const", "coreir")
-                module_definition.add_generator_instance(name, instantiable, gen_args, config)
+                name = "const_{}".format(constant if not constant.anon() else id(constant))
+                const_generator = self.libs['coreir'].generators["const"]
+                module_definition.add_generator_instance(name, const_generator, gen_args, config)
             # return module_definition.select("{}.out".format(name))
             self.__constant_cache[module_definition][constant] = module_definition.select("{}.out".format(name))
         return self.__constant_cache[module_definition][constant]
