@@ -251,8 +251,17 @@ class CoreIRBackend:
 
     def connect(self, module_definition, port, value, output_ports):
         self.__unique_concat_id
-        # allow clocks to be unwired as CoreIR can wire them up
-        if value is None and isinstance(port, ClockType):
+
+        # allow clocks or arrays of clocks to be unwired as CoreIR can wire them up
+        def is_clock_or_nested_clock(p):
+            if isinstance(p, (ClockType, ClockKind)):
+                return True
+            elif isinstance(p, (ArrayType, ArrayKind)):
+                return is_clock_or_nested_clock(p.T)
+            else:
+                return False
+
+        if value is None and is_clock_or_nested_clock(port):
             return
         elif value is None:
             raise Exception("Got None for port: {}, is it connected to anything?".format(port))
