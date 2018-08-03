@@ -63,6 +63,7 @@ def __reset_context():
 
 class CoreIRBackend:
     def __init__(self, context=None):
+        self.modules = {}
         if context is None:
             context = magma_coreir_context
         self.context = context
@@ -313,35 +314,33 @@ class CoreIRBackend:
         return self.__constant_cache[module_definition][(value, num_bits)]
 
     def compile_dependencies(self, defn):
-        modules = {}
         pass_ = InstanceGraphPass(defn)
         pass_.run()
         for key, _ in pass_.tsortedgraph:
             if key == defn:
                 continue
-            if key.name in modules:
+            if key.name in self.modules:
                 continue
             if key.is_definition:
                 # don't try to compile if already have definition
                 if hasattr(key, 'wrappedModule'):
-                    modules[key.name] = key.wrappedModule
+                    self.modules[key.name] = key.wrappedModule
                 else:
-                    modules[key.name] = self.compile_definition(key)
+                    self.modules[key.name] = self.compile_definition(key)
                     # key.wrappedModule = modules[key.name]
             else:
                 self.compile_declaration(key)
-        return modules
 
     def compile(self, defn):
-        modules = self.compile_dependencies(defn)
+        self.compile_dependencies(defn)
         if defn.is_definition:
             # don't try to compile if already have definition
             if hasattr(defn, 'wrappedModule'):
-                modules[defn.name] = defn.wrappedModule
+                self.modules[defn.name] = defn.wrappedModule
             else:
-                modules[defn.name] = self.compile_definition(defn)
-                defn.wrappedModule = modules[defn.name]
-        return modules
+                self.modules[defn.name] = self.compile_definition(defn)
+                defn.wrappedModule = self.modules[defn.name]
+        return self.modules
 
     def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):
         passes = ["rungenerators", "wireclocks-coreir"]
@@ -353,8 +352,9 @@ class CoreIRBackend:
         module.save_to_file(filename)
 
 def compile(main, file_name=None, context=None):
-    modules = CoreIRBackend(context).compile(main)
+    backend = CoreIRBackend(context)
+    backend.compile(main)
     if file_name is not None:
-        return modules[main.coreir_name].save_to_file(file_name)
+        return backend.modules[main.coreir_name].save_to_file(file_name)
     else:
-        return modules[main.coreir_name]
+        return backend.modules[main.coreir_name]
