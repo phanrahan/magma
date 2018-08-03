@@ -10,7 +10,7 @@
           ["CIN","BitIn"]
         ]],
         "instances":{
-          "bit_const_0":{
+          "bit_const_0_None":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           },
@@ -24,13 +24,13 @@
           }
         },
         "connections":[
-          ["inst1.in0.0","bit_const_0.out"],
-          ["inst1.in0.1","bit_const_0.out"],
-          ["inst1.in0.2","bit_const_0.out"],
-          ["inst1.in0.3","bit_const_0.out"],
-          ["inst1.in0.4","bit_const_0.out"],
-          ["inst1.in0.5","bit_const_0.out"],
-          ["inst1.in0.6","bit_const_0.out"],
+          ["inst1.in0.0","bit_const_0_None.out"],
+          ["inst1.in0.1","bit_const_0_None.out"],
+          ["inst1.in0.2","bit_const_0_None.out"],
+          ["inst1.in0.3","bit_const_0_None.out"],
+          ["inst1.in0.4","bit_const_0_None.out"],
+          ["inst1.in0.5","bit_const_0_None.out"],
+          ["inst1.in0.6","bit_const_0_None.out"],
           ["inst1.out","inst0.in0"],
           ["self.I1","inst0.in1"],
           ["self.O","inst0.out"],
