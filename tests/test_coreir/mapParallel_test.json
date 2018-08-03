@@ -8,14 +8,14 @@
           ["O",["Array",16,"Bit"]]
         ]],
         "instances":{
-          "bit_const_0":{
+          "bit_const_0_None":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           }
         },
         "connections":[
-          ["self.O.14","bit_const_0.out"],
-          ["self.O.15","bit_const_0.out"],
+          ["self.O.14","bit_const_0_None.out"],
+          ["self.O.15","bit_const_0_None.out"],
           ["self.O.8","self.I.10"],
           ["self.O.9","self.I.11"],
           ["self.O.10","self.I.12"],
