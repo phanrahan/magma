@@ -109,16 +109,16 @@ class CoreIRBackend:
                 zip(port.Ks, port.Ts)
             })
         elif is_input:
-            if isinstance(port, ClockType):
+            if isinstance(port, (ClockType, ClockKind)):
                 _type = self.context.named_types[("coreir", "clk")]
-            elif isinstance(port, AsyncResetType):
+            elif isinstance(port, (AsyncResetType, AsyncResetKind)):
                 _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
         else:
-            if isinstance(port, ClockType):
+            if isinstance(port, (ClockType, ClockKind)):
                 _type = self.context.named_types[("coreir", "clkIn")]
-            elif isinstance(port, AsyncResetType):
+            elif isinstance(port, (AsyncResetType, AsyncResetKind)):
                 _type = self.context.named_types[("coreir", "arstIn")]
             else:
                 _type = self.context.BitIn()
@@ -262,8 +262,11 @@ class CoreIRBackend:
                 return True
             elif isinstance(p, (ArrayType, ArrayKind)):
                 return is_clock_or_nested_clock(p.T)
-            else:
-                return False
+            elif isinstance(p, (TupleType, TupleKind)):
+                for item in p.Ts:
+                    if is_clock_or_nested_clock(item):
+                        return True
+            return False
 
         if value is None and is_clock_or_nested_clock(port):
             return
