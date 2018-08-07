@@ -99,7 +99,7 @@ def compileinstance(self):
             # find the output connected to v
             w = v.value()
             if not w:
-                print('Warning (verilog): input', str(v), 'not connected to an output')
+                print(f'Warning (verilog): {str(self.defn.name)}.{str(type(self).name)}_{str(self)}.{str(v)} not connected')
                 continue
             v = w
         if isinstance(k, IntegerTypes):
