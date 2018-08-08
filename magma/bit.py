@@ -34,9 +34,9 @@ class _BitType(Type):
 
     @debug_wire
     def wire(i, o, debug_info):
-        # promote integer types to LOW/HIGH
+        # promote integer types to BitType
         if isinstance(o, IntegerTypes):
-            o = HIGH if o else LOW
+            o = VCC if o else GND
 
         if not isinstance(o, _BitType):
             error(f'Wiring Error: wiring {o} to {i} (not a _Bit)',

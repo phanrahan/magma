@@ -1,8 +1,10 @@
 from .compatibility import IntegerTypes
 from .ref import AnonRef
+from .t import Out
 from .bit import Bit, VCC, GND
-from .array import ArrayType, ArrayKind
+from .array import Array, ArrayType, ArrayKind
 from .bit_vector import BitVector
+from .debug import debug_wire
 
 __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
@@ -15,6 +17,16 @@ class BitsType(ArrayType):
             return repr(self.name)
         ts = [repr(t) for t in self.ts]
         return 'bits([{}])'.format(', '.join(ts))
+
+    @debug_wire
+    def wire(i, o, debug_info):
+        # promote integer types to BitType
+        if isinstance(o, IntegerTypes):
+            bv = BitVector(o, i.N)
+            o = Out(Bits(i.N))(*bv.as_bool_list())
+
+        super().wire(o)
+
 
     def bits(self):
         if not self.const():
@@ -127,3 +139,4 @@ def SInt(N, T=None):
     assert isinstance(N, IntegerTypes)
     name = 'SInt({})'.format(N)
     return SIntKind(name, (SIntType,), dict(N=N, T=T))
+
