@@ -159,6 +159,8 @@ class BitKind(_BitKind):
             return BitIn
         elif direction == OUTPUT:
             return BitOut
+        elif direction == INOUT:
+            return BitInOut
         return cls
 
     def flip(cls):
