@@ -220,11 +220,11 @@ class _DeclareInterface(_Interface):
             elif defn: ref = DefnRef(defn, name)
             else:      ref = AnonRef(name)
 
-            port = port.qualify(direction)
+            qualified_port = port.qualify(direction)
             if hasattr(port, "origPortName"):
                 ref.name = port.origPortName
 
-            args[name] = port(name=ref)
+            args[name] = qualified_port(name=ref)
 
         self.ports = args
 
