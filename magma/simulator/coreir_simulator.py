@@ -198,6 +198,9 @@ class CoreIRSimulator(CircuitSimulator):
             return bools
 
     def set_value(self, bit, newval, scope):
+        if isinstance(bit, ArrayType) and len(newval) != len(bit):
+                raise ValueError(f"Excepted a value of lengh {len(bit)} not"
+                                 f" {len(newval)}")
         if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
             for i, arr in enumerate(bit):
                 self.set_value(arr, newval[i], scope)
