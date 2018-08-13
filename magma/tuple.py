@@ -241,7 +241,7 @@ def Tuple(*largs, **kwargs):
         if not isinstance(T, Kind):
             error('Error: tuples must contain magma types - {}'.format(T))
 
-    name = 'Tuple(%s)' % ",".join(str(Ks))
+    name = 'Tuple(%s)' % ", ".join([f"{k}: {t}" for k, t in zip(Ks, Ts)])
     return TupleKind(name, (TupleType,), dict(Ks=Ks, Ts=Ts))
 
 from .bitutils import int2seq
