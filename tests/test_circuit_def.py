@@ -162,3 +162,33 @@ def test_return_magma_named_tuple(target):
         return m.namedtuple(x=I[0], y=I[1])
     compile_and_check("return_magma_named_tuple",
                       return_magma_named_tuple.circuit_definition, target)
+
+
+def test_simple_circuit_1(target):
+    if target == "verilog":
+        # TODO: Tuples not supported in verilog backend
+        pytest.skip()
+
+    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
+                         m.Out(m.Bit))
+    m.wire(0, EQ.O)
+    m.EndDefine()
+
+    @m.circuit.combinational
+    def logic(a: m.Bit) -> (m.Bit,):
+        if EQ()(a, m.bit(0)):
+            c = m.bit(1)
+        else:
+            c = m.bit(0)
+        return (c,)
+
+    class Foo(m.Circuit):
+        IO = ["a", m.In(m.Bit),
+              "c", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            c = logic(io.a)
+            m.wire(c, io.c)
+
+    compile_and_check("simple_circuit_1", Foo, target)

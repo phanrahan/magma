@@ -173,8 +173,10 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
 def combinational(fn):
     stack = inspect.stack()
-    defn_locals = stack[1].frame.f_locals
-    defn_globals = stack[1].frame.f_globals
+    defn_env = {}
+    for i in range(1, len(stack)):
+        defn_env.update(stack[i].frame.f_locals)
+        defn_env.update(stack[i].frame.f_globals)
     tree = get_ast(fn)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
@@ -182,15 +184,13 @@ def combinational(fn):
     tree = ast.fix_missing_locations(tree)
     # TODO: Only remove @m.circuit.combinational, there could be others
     tree.body[0].decorator_list = []
-    if "mux" not in defn_globals and \
-            "mux" not in defn_locals:
+    if "mux" not in defn_env:
         tree.body.insert(0, ast.parse("from mantle import mux").body[0])
     debug(astor.to_source(tree))
     # debug(astunparse.dump(tree))
-    exec(compile(tree, filename="<ast>", mode="exec"), defn_globals,
-         defn_locals)
+    exec(compile(tree, filename="<ast>", mode="exec"), defn_env)
 
-    circuit_def = defn_locals[fn.__name__]
+    circuit_def = defn_env[fn.__name__]
 
     @functools.wraps(fn)
     def func(*args, **kwargs):
