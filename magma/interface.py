@@ -3,6 +3,7 @@ from itertools import chain
 from collections import OrderedDict
 from .ref import AnonRef, InstRef, DefnRef
 from .t import Type, Kind, In, Out, Flip
+from .bit import BitKind, MakeBit
 from .port import INPUT, OUTPUT, INOUT
 #from .bit import *
 from .clock import ClockType, ClockTypes
@@ -23,7 +24,7 @@ def flatten(l):
 #
 #  (name0, type0, name1, type1, ..., namen, typen)
 #
-def parse(decl):
+def parse(decl, renamed_ports):
     #print(decl)
     n = len(decl)
     assert n % 2 == 0
@@ -49,6 +50,10 @@ def parse(decl):
 
         directions.append(direction)
         names.append(name)
+        if name in renamed_ports:
+            if isinstance(port, BitKind):
+                port = MakeBit(direction=port.direction)
+            port.origPortName = renamed_ports[name]
         ports.append(port)
 
     return directions, names, ports
@@ -167,9 +172,9 @@ class _Interface(Type):
 #  e.g. Interface('I0', In(Bit)(), 'I1', In(Bit)(), 'O', Out(Bit)())
 #
 class Interface(_Interface):
-    def __init__(self, decl):
+    def __init__(self, decl, renamed_ports):
 
-        directions, names, ports = parse(decl)
+        directions, names, ports = parse(decl, renamed_ports)
 
         # setup ports
         args = OrderedDict()
@@ -199,10 +204,10 @@ class Interface(_Interface):
 #  interface = Interface()
 #
 class _DeclareInterface(_Interface):
-    def __init__(self, inst=None, defn=None):
+    def __init__(self, renamed_ports, inst=None, defn=None):
 
         # parse the class Interface declaration
-        directions, names, ports = parse(self.Decl)
+        directions, names, ports = parse(self.Decl, renamed_ports)
 
         args = OrderedDict()
 
@@ -268,9 +273,9 @@ class InterfaceKind(Kind):
 #
 # Interface factory
 #
-def DeclareInterface(*decl):
+def DeclareInterface(*decl, **kwargs):
     name = '%s(%s)' % ('Interface', ', '.join([str(a) for a in decl]))
     #print('DeclareInterface', name)
-    dct = dict(Decl=decl)
+    dct = dict(Decl=decl, **kwargs)
     return InterfaceKind(name, (_DeclareInterface,), dct)
 
