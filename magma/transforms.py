@@ -92,6 +92,13 @@ def get_primitives(outer_circuit, outer_scope):
 
     return (primitives, mapping)
 
+
+def get_renamed_port(circ, name):
+    for key, value in circ.renamed_ports.items():
+        if value == name:
+            return circ.interface.ports[key]
+    return circ.interface.ports[name]
+
 def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
     old_source = source_qual.bit
     scope = source_qual.scope
@@ -111,11 +118,11 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
         if not isprimitive(type(old_primitive)):
             raise MagmaTransformException("Failed to collapse bit to primitive. bit={} type={}".format(old_primitive, type(old_primitive)))
         new_primitive = primitive_map[QualifiedInstance(instance=old_primitive, scope=scope)]
-        newsource = new_primitive.interface.ports[bitref.name]
+        newsource = get_renamed_port(new_primitive, bitref.name)
     elif isinstance(bitref, DefnRef):
         defn = bitref.defn.name
         assert defn == old_circuit.name, f"Collapsed bit to circuit other than outermost, {defn} {old_circuit.name}"
-        newsource = new_circuit.interface.ports[bitref.name]
+        newsource = get_renamed_port(new_circuit, bitref.name)
     elif isinstance(old_source, ArrayType):
         # Must not be a whole array
         assert bitref.anon()
