@@ -26,7 +26,7 @@ def mergewires(new, old):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            error("Error: connecting more than one output to an input {}".format(o), include_wire_traceback=True)
+            error("Connecting more than one output to an input {}".format(o), include_wire_traceback=True)
         new.outputs.append(o)
         o.wires = new
 
@@ -42,8 +42,8 @@ class Wire:
     def connect( self, o, i ):
 
         # anon Ports are added to the input or output list of this wire
-        # 
-        # connecting to a non-anonymous port to an anonymous port 
+        #
+        # connecting to a non-anonymous port to an anonymous port
         # add the non-anonymous port to the wire associated with the
         # anonymous port
 
@@ -53,7 +53,7 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                error("Error: using an input as an output {}".format(repr(o)), include_wire_traceback=True)
+                error("Using an input as an output {}".format(repr(o)), include_wire_traceback=True)
                 return
 
             if o not in self.outputs:
@@ -65,7 +65,7 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                error("Error: using an output as an input {}".format(repr(i)), include_wire_traceback=True)
+                error("Using an output as an input {}".format(repr(i)), include_wire_traceback=True)
                 return
 
             if i not in self.inputs:
@@ -74,23 +74,23 @@ class Wire:
 
         # print(o.wires,i.wires,self,self.outputs,self.inputs)
 
-        # always update wires 
+        # always update wires
         o.wires = self
         i.wires = self
 
     def check(self):
         for o in self.inputs:
             if o.isoutput():
-                error("Error: output in the wire inputs: {}".format(o))
+                error("Output in the wire inputs: {}".format(o))
 
         for o in self.outputs:
             if o.isinput():
-                error("Error: input in the wire outputs: {}".format(o))
+                error("Input in the wire outputs: {}".format(o))
                 return False
 
         # check that this wire is only driven by a single output
         if len(self.outputs) > 1:
-            error("Error: Multiple outputs on a wire: {}".format(self.outputs))
+            error("Multiple outputs on a wire: {}".format(self.outputs))
             return False
 
         return True
@@ -124,7 +124,7 @@ class Port:
         #    i.bit.direction = INPUT
 
         #print("Wiring", o.bit.direction, str(o), "->", i.bit.direction, str(i))
-        
+
         if i.wires and o.wires and i.wires is not o.wires:
             # print('merging', i.wires.inputs, i.wires.outputs)
             # print('merging', o.wires.inputs, o.wires.outputs)

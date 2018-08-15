@@ -10,15 +10,18 @@ import traceback
 import inspect
 import sys
 import os
+from io import StringIO
 
 
 streams = {
-    "stdout": sys.stdout
+    "stdout": sys.stdout,
+    "stderr": sys.stderr
 }
 
-stream = os.getenv("MAGMA_LOG_STREAM", "stdout")
+stream = os.getenv("MAGMA_LOG_STREAM", "stderr")
+log_stream = streams[stream]
 if stream in streams:
-    logging.basicConfig(stream=streams[stream])
+    logging.basicConfig(stream=log_stream)
 elif stream is not None:
     logging.warning(f"Unsupported value for MAGMA_LOG_STREAM: {stream}")
 log = logging.getLogger("magma")
@@ -38,7 +41,7 @@ def get_original_wire_call_stack_frame():
             function = frame.function
         if function not in ["wire", "connect",
                             "get_original_wire_call_stack_frame",
-                            "error", "warn"]:
+                            "error", "warn", "print_wire_traceback_wrapped"]:
             break
     if sys.version_info < (3, 5):
         return frame[0]
@@ -47,18 +50,22 @@ def get_original_wire_call_stack_frame():
 
 
 def print_wire_traceback(fn):
-    def wrapped(*args, **kwargs):
+    def print_wire_traceback_wrapped(*args, **kwargs):
         include_wire_traceback = kwargs.get("include_wire_traceback", False)
         if include_wire_traceback:
-            sys.stderr.write("="*80 + "\n")
-            stack_frame = get_original_wire_call_stack_frame()
-            traceback.print_stack(f=stack_frame, limit=10, file=sys.stderr)
             del kwargs["include_wire_traceback"]
+        if include_wire_traceback:
+            fn("="*80 + "\n")
+            stack_frame = get_original_wire_call_stack_frame()
+            with StringIO() as io:
+                traceback.print_stack(f=stack_frame, limit=10, file=io)
+                for line in io.getvalue().splitlines():
+                    fn(line)
         res = fn(*args, **kwargs)
         if include_wire_traceback:
-            sys.stderr.write("="*80 + "\n")
+            fn("="*80 + "\n")
         return res
-    return wrapped
+    return print_wire_traceback_wrapped
 
 
 @print_wire_traceback
