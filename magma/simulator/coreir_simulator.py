@@ -112,6 +112,7 @@ class CoreIRSimulator(CircuitSimulator):
 
     def __init__(self, circuit, clock, coreir_filename=None, context=None, namespaces=["global"]):
         self.watchpoints = []
+        self.default_scope = Scope()
 
         need_cleanup = False
         if not coreir_filename:
@@ -147,7 +148,7 @@ class CoreIRSimulator(CircuitSimulator):
             elif isinstance(arrOrTuple, TupleType):
                 return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.Ks, arrOrTuple.ts)}
             else:
-                return [0]
+                return 0
 
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
@@ -174,7 +175,9 @@ class CoreIRSimulator(CircuitSimulator):
         # TBD
         pass
 
-    def get_value(self, bit, scope):
+    def get_value(self, bit, scope=None):
+        if scope is None:
+            scope = self.default_scope
         if bit.const():
             return True if bit == VCC else False
 
@@ -197,7 +200,9 @@ class CoreIRSimulator(CircuitSimulator):
                 return bools[0]
             return bools
 
-    def set_value(self, bit, newval, scope):
+    def set_value(self, bit, newval, scope=None):
+        if scope is None:
+            scope = self.default_scope
         if isinstance(bit, ArrayType) and len(newval) != len(bit):
                 raise ValueError(f"Excepted a value of lengh {len(bit)} not"
                                  f" {len(newval)}")
