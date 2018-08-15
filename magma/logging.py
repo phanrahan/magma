@@ -55,7 +55,7 @@ def print_wire_traceback(fn):
         if include_wire_traceback:
             del kwargs["include_wire_traceback"]
         if include_wire_traceback:
-            fn("="*80 + "\n")
+            fn("="*80)
             stack_frame = get_original_wire_call_stack_frame()
             with StringIO() as io:
                 traceback.print_stack(f=stack_frame, limit=10, file=io)
@@ -63,7 +63,7 @@ def print_wire_traceback(fn):
                     fn(line)
         res = fn(*args, **kwargs)
         if include_wire_traceback:
-            fn("="*80 + "\n")
+            fn("="*80)
         return res
     return print_wire_traceback_wrapped
 
