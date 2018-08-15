@@ -172,7 +172,7 @@ class _Interface(Type):
 #  e.g. Interface('I0', In(Bit)(), 'I1', In(Bit)(), 'O', Out(Bit)())
 #
 class Interface(_Interface):
-    def __init__(self, decl, renamed_ports):
+    def __init__(self, decl, renamed_ports={}):
 
         directions, names, ports = parse(decl, renamed_ports)
 
@@ -204,7 +204,7 @@ class Interface(_Interface):
 #  interface = Interface()
 #
 class _DeclareInterface(_Interface):
-    def __init__(self, renamed_ports, inst=None, defn=None):
+    def __init__(self, renamed_ports={}, inst=None, defn=None):
 
         # parse the class Interface declaration
         directions, names, ports = parse(self.Decl, renamed_ports)
