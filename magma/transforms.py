@@ -128,7 +128,7 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
 
         return array(new_source_array)
     else:
-        assert False, f"Failed to collapse bit {bitref}, {arrayref}"
+        assert False, f"Failed to collapse bit {bitref}"
 
     if idxs:
         for idx in reversed(idxs):
