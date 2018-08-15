@@ -83,7 +83,7 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         # package
         from .backend import coreir_
         coreir_.compile(main, file_name + ".json")
-        subprocess.run(f"coreir -i {file_name}.json -o {file_name}.v", shell=True)
+        subprocess.run(f"coreir -l commonlib -i {file_name}.json -o {file_name}.v", shell=True)
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
 
