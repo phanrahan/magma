@@ -58,7 +58,7 @@ def print_wire_traceback(fn):
             fn("="*80)
             stack_frame = get_original_wire_call_stack_frame()
             with StringIO() as io:
-                traceback.print_stack(f=stack_frame, limit=10, file=io)
+                traceback.print_stack(f=stack_frame, limit=20, file=io)
                 for line in io.getvalue().splitlines():
                     fn(line)
         res = fn(*args, **kwargs)
