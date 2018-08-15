@@ -1,5 +1,4 @@
 import inspect
-import sys
 
 
 def get_callee_frame_info():

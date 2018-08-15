@@ -186,7 +186,11 @@ def combinational(fn):
     tree.body[0].decorator_list = []
     if "mux" not in defn_env:
         tree.body.insert(0, ast.parse("from mantle import mux").body[0])
-    debug(astor.to_source(tree))
+    source = "\n"
+    for i, line in enumerate(astor.to_source(tree).splitlines()):
+        source += f"    {i}: {line}\n"
+
+    debug(source)
     # debug(astunparse.dump(tree))
     exec(compile(tree, filename="<ast>", mode="exec"), defn_env)
 

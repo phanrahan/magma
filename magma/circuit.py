@@ -200,8 +200,8 @@ class AnonymousCircuitType(object):
         ni = len(inputs)
         no = len(outputs)
         if ni != no:
-            warning("Warning: number of inputs is not equal to the number of outputs")
-            warning("Warning: only %d of the %d arguments will be wired" % (ni, no))
+            warning(f"Number of inputs is not equal to the number of outputs, only {ni} of the {no} arguments will be wired",
+                    include_wire_traceback=True)
         for i in range(min(ni,no)):
             wire(outputs[i], inputs[i], debug_info)
 

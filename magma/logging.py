@@ -16,7 +16,7 @@ streams = {
     "stdout": sys.stdout
 }
 
-stream = os.getenv("MAGMA_LOG_STREAM", None)
+stream = os.getenv("MAGMA_LOG_STREAM", "stdout")
 if stream in streams:
     logging.basicConfig(stream=streams[stream])
 elif stream is not None:
@@ -46,26 +46,36 @@ def get_original_wire_call_stack_frame():
         return frame.frame
 
 
+def print_wire_traceback(fn):
+    def wrapped(*args, **kwargs):
+        include_wire_traceback = kwargs.get("include_wire_traceback", False)
+        if include_wire_traceback:
+            sys.stderr.write("="*80 + "\n")
+            stack_frame = get_original_wire_call_stack_frame()
+            traceback.print_stack(f=stack_frame, limit=10, file=sys.stderr)
+            del kwargs["include_wire_traceback"]
+        res = fn(*args, **kwargs)
+        if include_wire_traceback:
+            sys.stderr.write("="*80 + "\n")
+        return res
+    return wrapped
+
+
+@print_wire_traceback
 def debug(message, *args, **kwargs):
     log.debug(message, *args, **kwargs)
 
 
+@print_wire_traceback
 def info(message, *args, **kwargs):
     log.info(message, *args, **kwargs)
 
 
+@print_wire_traceback
 def warning(message, *args, **kwargs):
     log.warning(message, *args, **kwargs)
 
 
-def error(message, include_wire_traceback=False, *args, **kwargs):
-    if include_wire_traceback:
-        sys.stderr.write("="*80 + "\n")
-        stack_frame = get_original_wire_call_stack_frame()
-        traceback.print_stack(f=stack_frame, limit=10, file=sys.stderr)
-    # FIXME: In python 2, log.error doesn't go to stderr by default
-    # log.error(message, *args, **kwargs)
-    print(message, file=sys.stderr, *args, **kwargs)
-    if include_wire_traceback:
-        sys.stderr.write("="*80 + "\n")
-
+@print_wire_traceback
+def error(message, *args, **kwargs):
+    log.error(message, *args, **kwargs)
