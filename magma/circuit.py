@@ -92,7 +92,7 @@ class CircuitKind(type):
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
-            self.setinterface(cls.IO(inst=self))
+            self.setinterface(cls.IO(inst=self, renamed_ports=cls.renamed_ports))
 
         return self
 
@@ -338,7 +338,8 @@ def DeclareCircuit(name, *decl, **args):
         coreir_genargs=args.get('coreir_genargs', None),
         coreir_configargs=args.get('coreir_configargs', {}),
         verilog_name=args.get('verilog_name', name),
-        default_kwargs=args.get('default_kwargs', {})
+        default_kwargs=args.get('default_kwargs', {}),
+        renamed_ports=args.get('renamed_ports', {})
     )
     return CircuitKind( name, (CircuitType,), dct )
 
@@ -372,7 +373,7 @@ def isdefinition(circuit):
     return getattr(circuit, "is_definition", False)
 
 def isprimitive(circuit):
-    return circuit.primitive
+    return getattr(circuit, "primitive", False)
 
 # a map from circuitDefinition names to circuit definition objects
 definitionCache = {}
@@ -396,6 +397,7 @@ class DefineCircuitKind(CircuitKind):
             else:
                 dct['name'] = name
         name = dct['name']
+        dct["renamed_ports"] = dct.get("renamed_ports", {})
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
 
@@ -425,7 +427,7 @@ class DefineCircuitKind(CircuitKind):
 
         if hasattr(self, 'IO'):
             # instantiate interface
-            self.interface = self.IO(defn=self)
+            self.interface = self.IO(defn=self, renamed_ports=dct["renamed_ports"])
             setports(self, self.interface.ports)
 
             # create circuit definition
@@ -497,7 +499,8 @@ def DefineCircuit(name, *decl, **args):
                coreir_lib     = args.get('coreir_lib', "global"),
                coreir_genargs = args.get('coreir_genargs', None),
                coreir_configargs = args.get('coreir_configargs', None),
-               default_kwargs = args.get('default_kwargs', {}))
+               default_kwargs = args.get('default_kwargs', {}),
+               renamed_ports = args.get('renamed_ports', {}))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
