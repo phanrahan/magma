@@ -373,7 +373,7 @@ def isdefinition(circuit):
     return getattr(circuit, "is_definition", False)
 
 def isprimitive(circuit):
-    return circuit.primitive
+    return getattr(circuit, "primitive", False)
 
 # a map from circuitDefinition names to circuit definition objects
 definitionCache = {}
