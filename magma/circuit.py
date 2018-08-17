@@ -64,6 +64,9 @@ class CircuitKind(type):
             dct['name'] = name
         name = dct['name']
 
+        if 'renamed_ports' not in dct:
+            dct['renamed_ports'] = {}
+
         if 'primitive' not in dct:
             dct['primitive'] = False
 
