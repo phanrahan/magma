@@ -13,7 +13,7 @@ class InstDecl:
         return self.filename + " line " + str(self.lineno) + ": " + self.varname
 
 def create_debugname(ref_name, ref, inst):
-    if ref == inst:
+    if ref is inst:
         return ref_name
 
     if isinstance(ref, list):
@@ -35,7 +35,7 @@ class DebugNamePass(DefinitionPass):
             for frame_info in stack[1:]: # Skip the first element in the stack, where the inst is placed
                 local_vars = frame_info[0].f_locals.items()
                 for name, var in local_vars:
-                    if var in referrers or var == inst:
+                    if any(var is x for x in referrers) or var is inst:
                         debugname = create_debugname(name, var, inst)
 
                         # Ignore the 'self' frame (where the inst is created)
