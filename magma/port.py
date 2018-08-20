@@ -41,7 +41,8 @@ def mergewires(new, old, debug_info):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            report_wiring_error(f"Connecting more than one output to an input `{o.bit.debug_name}`", debug_info)  # noqa
+            outputs = [o.bit.debug_name for o in new.outputs]
+            report_wiring_error(f"Connecting more than one output ({outputs}) to an input `{i.bit.debug_name}`", debug_info)  # noqa
         new.outputs.append(o)
         o.wires = new
 
