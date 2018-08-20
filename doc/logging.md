@@ -1,3 +1,8 @@
+Basic example
+```
+$ MAGMA_LOG_LEVEL=DEBUG MAGMA_COREIR_BACKEND_LOG_LEVEL=WARN MAGMA_LOG_STREAM=stdout pytest
+```
+
 # Logging
 * `MAGMA_LOG_LEVEL`  
   Valid Inputs - DEBUG, WARN, ERROR  
@@ -72,9 +77,3 @@
     ERROR:magma:WIRING ERROR: Using an output as an input inst0.O
     ERROR:magma:==================== END: MAGMA ERROR ====================
   ```
-
-
-Example
-```
-$ MAGMA_LOG_LEVEL=DEBUG MAGMA_COREIR_BACKEND_LOG_LEVEL=WARN MAGMA_LOG_STREAM=stdout pytest
-```
