@@ -1,10 +1,9 @@
 from collections import Sequence, Mapping, OrderedDict
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind
-from .compatibility import IntegerTypes, StringTypes
+from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
-from .logging import error
 from .port import report_wiring_error
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
