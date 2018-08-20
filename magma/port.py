@@ -1,5 +1,6 @@
 from .logging import error, warning, get_source_line
 from .backend.util import make_relative
+from .ref import DefnRef, InstRef
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
@@ -61,7 +62,7 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                report_wiring_error(f"Using {repr(o)} (an input) as an output", debug_info)
+                report_wiring_error(f"Using {o.debug_name} (an input) as an output", debug_info)
                 return
 
             if o not in self.outputs:
@@ -73,7 +74,7 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                report_wiring_error(f"Using {repr(i)} (an output) as an input", debug_info)
+                report_wiring_error(f"Using {i.debug_name} (an output) as an input", debug_info)
                 return
 
             if i not in self.inputs:
@@ -114,6 +115,17 @@ class Port:
         self.bit = bit
 
         self.wires = Wire()
+
+    @property
+    def debug_name(self):
+        defn_str = ""
+        inst_str = ""
+        if isinstance(self.bit.name, DefnRef):
+            defn_str = str(self.bit.name.defn.name) + "."
+        elif isinstance(self.bit.name, InstRef):
+            inst_str = str(type(self.bit.name.inst).name) + "_" + str(self.bit.name.inst.name) + "."
+            defn_str = str(self.bit.name.inst.defn.name) + "."
+        return f"{defn_str}{inst_str}{str(self)}"
 
     def __repr__(self):
         return repr(self.bit)

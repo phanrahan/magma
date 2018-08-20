@@ -22,7 +22,7 @@ def test_output_as_input(caplog):
     a = A()
     wire(main.I, a.O)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_wire/test_errors.py:23: Using inst0.O (an output) as an input
+\033[1mtests/test_wire/test_errors.py:23: Using main.A_inst0.O (an output) as an input
     wire(main.I, a.O)
 """
 
