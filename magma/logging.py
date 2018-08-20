@@ -38,6 +38,9 @@ elif level is not None:
     logging.warning(f"Unsupported value for MAGMA_LOG_LEVEL: {level}")
 
 
+traceback_limit = int(os.getenv("MAGMA_ERROR_TRACEBACK_LIMIT", "5"))
+
+
 def get_original_wire_call_stack_frame():
     for frame in inspect.stack():
         if sys.version_info < (3, 5):
@@ -63,7 +66,7 @@ def print_wire_traceback(fn):
             fn("="*20 + " BEGIN: MAGMA ERROR " + "="*20)
             stack_frame = get_original_wire_call_stack_frame()
             with StringIO() as io:
-                traceback.print_stack(f=stack_frame, limit=5, file=io)
+                traceback.print_stack(f=stack_frame, limit=traceback_limit, file=io)
                 for line in io.getvalue().splitlines():
                     fn(line)
         res = fn(*args, **kwargs)
