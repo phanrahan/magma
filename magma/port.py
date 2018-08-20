@@ -53,7 +53,7 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                error("Using an input as an output {}".format(repr(o)), include_wire_traceback=True)
+                error("WIRING ERROR: Using an input as an output {}".format(repr(o)), include_wire_traceback=True)
                 return
 
             if o not in self.outputs:
@@ -65,7 +65,7 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                error("Using an output as an input {}".format(repr(i)), include_wire_traceback=True)
+                error("WIRING ERROR: Using an output as an input {}".format(repr(i)), include_wire_traceback=True)
                 return
 
             if i not in self.inputs:
