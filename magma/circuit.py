@@ -15,6 +15,7 @@ from .tuple import TupleType
 from .bit import VCC, GND
 from .debug import get_callee_frame_info
 from .logging import warning
+from .port import report_wiring_warning
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -203,8 +204,8 @@ class AnonymousCircuitType(object):
         ni = len(inputs)
         no = len(outputs)
         if ni != no:
-            warning(f"Number of inputs is not equal to the number of outputs, only {ni} of the {no} arguments will be wired",
-                    include_wire_traceback=True)
+            report_wiring_warning(f"Number of inputs is not equal to the number of outputs, only {ni} of the {no} arguments will be wired",
+                    debug_info)
         for i in range(min(ni,no)):
             wire(outputs[i], inputs[i], debug_info)
 

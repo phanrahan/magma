@@ -52,3 +52,16 @@ def test_muliple_outputs_circuit(caplog):
 \033[1mtests/test_wire/test_errors.py:50: Can only wire circuits with one output. Argument 0 to wire `main_inst0` has outputs [inst0.O, inst0.U]
     wire(a, main.I)
 """
+
+
+def test_muliple_outputs_circuit(caplog):
+    A = DeclareCircuit('A', "I", In(Bit), "J", In(Bit), "O", Out(Bit), "U", Out(Bit))
+
+    main = DefineCircuit("main", "I", In(Bit), "O", Out(Bit))
+
+    a = A()
+    a(main)
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:63: Number of inputs is not equal to the number of outputs, only 2 of the 1 arguments will be wired
+    a(main)
+"""
