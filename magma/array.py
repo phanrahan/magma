@@ -1,5 +1,4 @@
 from collections import Sequence
-from .logging import error
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
@@ -81,16 +80,11 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
 
         if not isinstance(o, ArrayType):
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to'
-                                f' {i.debug_name} (type={type(i)}) because'
-                                f' {o.debug_name} is not an Array', debug_info)
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info)  # noqa
             return
 
         if i.N != o.N:
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)},'
-                                f' len={i.N}) to {i.debug_name} (type={type(i)},'
-                                f' len={o.N}) because the arrays do not have'
-                                f' the same length', debug_info)
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, len={i.N}) to {i.debug_name} (type={type(i)}, len={o.N}) because the arrays do not have the same length', debug_info)  # noqa
             return
 
         for k in range(len(i)):
