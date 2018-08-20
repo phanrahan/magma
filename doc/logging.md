@@ -19,6 +19,14 @@ $ MAGMA_LOG_LEVEL=DEBUG MAGMA_COREIR_BACKEND_LOG_LEVEL=WARN MAGMA_LOG_STREAM=std
   Same inputs as `MAGMA_LOG_LEVEL`. Sets the logging level specifically for the
   coreir backend.
 
+* `MAGMA_INCLUDE_WIRE_TRACEBACK`  
+  Setting this variable enables the traceback feature of magma's error
+  reporting. When certain wiring errors are made, magma will dump a traceback
+  similar to the message seen from Python Exceptions, which can be useful for
+  debugging complex wiring errors with multiple levels of indirection (calls to
+  multiple generators).
+ 
+
 * `MAGMA_ERROR_TRACEBACK_LIMIT`  
   Valid Inputs - Positive integers (default: 5)
   Set the maximum number of stack frames printed in the traceback for magma

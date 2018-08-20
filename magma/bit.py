@@ -43,7 +43,7 @@ class _BitType(Type):
                   include_wire_traceback=True)
             return
 
-        i.port.wire(o.port)
+        i.port.wire(o.port, debug_info)
         i.debug_info = debug_info
         o.debug_info = debug_info
 

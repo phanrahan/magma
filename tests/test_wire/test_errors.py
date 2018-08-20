@@ -8,8 +8,10 @@ def test_input_as_output(caplog):
 
     buf = Buf()
     wire(main.O, buf.I)
-    assert caplog.records[-2].msg == "WIRING ERROR: Using an input as an output main.O"
-    assert caplog.records[-3].msg == "    wire(main.O, buf.I)"
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:10: Using main.O (an input) as an output
+    wire(main.O, buf.I)
+"""
 
 
 def test_output_as_input(caplog):
@@ -19,8 +21,10 @@ def test_output_as_input(caplog):
 
     a = A()
     wire(main.I, a.O)
-    assert caplog.records[-2].msg == "WIRING ERROR: Using an output as an input inst0.O"
-    assert caplog.records[-3].msg == "    wire(main.I, a.O)"
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:23: Using inst0.O (an output) as an input
+    wire(main.I, a.O)
+"""
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from .compatibility import IntegerTypes
 from .bit import VCC, GND
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
+from .port import report_wiring_error
 
 __all__ = ['ArrayType', 'ArrayKind', 'Array']
 
@@ -80,13 +81,16 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
 
         if not isinstance(o, ArrayType):
-            error(f'Wiring Error: wiring {repr(o)} ({type(o)}) to'
-                  f' {repr(i)} ({type(i)})', include_wire_traceback=True)
+            report_wiring_error(f'Cannot wire {repr(o)} (type={type(o)}) to'
+                                f' {repr(i)} (type={type(i)}) because'
+                                f' {repr(o)} is not an Array', debug_info)
             return
 
         if i.N != o.N:
-            error(f'Wiring Error: Arrays must have the same length'
-                  f' {i.N} != {o.N}', include_wire_traceback=True)
+            report_wiring_error(f'Cannot wire {repr(o)} (type={type(o)},'
+                                f' len={i.N}) to {repr(i)} (type={type(i)},'
+                                f' len={o.N}) because the arrays do not have'
+                                f' the same length', debug_info)
             return
 
         for k in range(len(i)):

@@ -27,7 +27,7 @@ log_stream = streams.get(stream, sys.stderr)
 log = logging.getLogger("magma")
 handler = colorlog.StreamHandler(log_stream)
 handler.setFormatter(colorlog.ColoredFormatter(
-    '%(log_color)s%(levelname)s:%(name)s:%(message)s'))
+    '%(name)s:%(log_color)s%(levelname)s%(reset)s:%(message)s'))
 log.addHandler(handler)
 
 
@@ -36,6 +36,9 @@ if level in ["DEBUG", "WARN", "INFO"]:
     log.setLevel(getattr(logging, level))
 elif level is not None:
     logging.warning(f"Unsupported value for MAGMA_LOG_LEVEL: {level}")
+
+
+__magma_include_wire_traceback = os.getenv("MAGMA_INCLUDE_WIRE_TRACEBACK", False)
 
 
 traceback_limit = int(os.getenv("MAGMA_ERROR_TRACEBACK_LIMIT", "5"))
@@ -62,16 +65,15 @@ def print_wire_traceback(fn):
         include_wire_traceback = kwargs.get("include_wire_traceback", False)
         if include_wire_traceback:
             del kwargs["include_wire_traceback"]
-        if include_wire_traceback:
-            fn("="*20 + " BEGIN: MAGMA ERROR " + "="*20)
+        if include_wire_traceback and __magma_include_wire_traceback:
+            fn("="*20 + " BEGIN: MAGMA WIRING ERROR TRACEBACK " + "="*20)
             stack_frame = get_original_wire_call_stack_frame()
             with StringIO() as io:
                 traceback.print_stack(f=stack_frame, limit=traceback_limit, file=io)
                 for line in io.getvalue().splitlines():
                     fn(line)
+            fn("="*20 + " END: MAGMA WIRING ERROR TRACEBACK " + "="*20)
         res = fn(*args, **kwargs)
-        if include_wire_traceback:
-            fn("="*20 + " END: MAGMA ERROR " + "="*20)
         return res
     return print_wire_traceback_wrapped
 
@@ -94,3 +96,8 @@ def warning(message, *args, **kwargs):
 @print_wire_traceback
 def error(message, *args, **kwargs):
     log.error(message, *args, **kwargs)
+
+
+def get_source_line(filename, lineno):
+    with open(filename, "r") as f:
+        return f.readlines()[lineno - 1]

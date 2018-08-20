@@ -1,4 +1,5 @@
-from .logging import error, warning
+from .logging import error, warning, get_source_line
+from .backend.util import make_relative
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
@@ -7,6 +8,13 @@ __all__ += ['Port']
 INPUT = 'input'
 OUTPUT = 'output'
 INOUT = 'inout'
+
+
+def report_wiring_error(message, debug_info):
+    error(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}",
+          include_wire_traceback=True)
+    error(get_source_line(debug_info[0], debug_info[1]))
+
 
 def flip(direction):
     assert direction in [INPUT, OUTPUT, INOUT]
@@ -39,7 +47,7 @@ class Wire:
         self.inputs = []
         self.outputs = []
 
-    def connect( self, o, i ):
+    def connect( self, o, i , debug_info):
 
         # anon Ports are added to the input or output list of this wire
         #
@@ -53,7 +61,7 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                error("WIRING ERROR: Using an input as an output {}".format(repr(o)), include_wire_traceback=True)
+                report_wiring_error(f"Using {repr(o)} (an input) as an output", debug_info)
                 return
 
             if o not in self.outputs:
@@ -65,7 +73,7 @@ class Wire:
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                error("WIRING ERROR: Using an output as an input {}".format(repr(i)), include_wire_traceback=True)
+                report_wiring_error(f"Using {repr(i)} (an output) as an input", debug_info)
                 return
 
             if i not in self.inputs:
@@ -117,7 +125,7 @@ class Port:
         return self.bit.anon()
 
     # wire a port to a port
-    def wire(i, o):
+    def wire(i, o, debug_info):
         #if o.bit.direction is None:
         #    o.bit.direction = OUTPUT
         #if i.bit.direction is None:
@@ -139,7 +147,7 @@ class Port:
         else:
             w = Wire()
 
-        w.connect(o, i)
+        w.connect(o, i, debug_info)
 
         #print("after",o,"->",i, w)
 
