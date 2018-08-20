@@ -1,4 +1,4 @@
-from .ref import Ref, AnonRef
+from .ref import Ref, AnonRef, DefnRef, InstRef
 from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
 
@@ -55,6 +55,17 @@ class Type(object):
     @classmethod
     def isbidir(self):
         return False
+
+    @property
+    def debug_name(self):
+        defn_str = ""
+        inst_str = ""
+        if isinstance(self.name, DefnRef):
+            defn_str = str(self.name.defn.name) + "."
+        elif isinstance(self.name, InstRef):
+            inst_str = str(type(self.name.inst).name) + "_" + str(self.name.inst.name) + "."
+            defn_str = str(self.name.inst.defn.name) + "."
+        return f"{defn_str}{inst_str}{str(self)}"
 
 
 class Kind(type):

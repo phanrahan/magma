@@ -1,11 +1,11 @@
 from collections import Sequence
-from .logging import error
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .bit import VCC, GND
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
+from .port import report_wiring_error
 
 __all__ = ['ArrayType', 'ArrayKind', 'Array']
 
@@ -80,13 +80,11 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
 
         if not isinstance(o, ArrayType):
-            error(f'Wiring Error: wiring {repr(o)} ({type(o)}) to'
-                  f' {repr(i)} ({type(i)})', include_wire_traceback=True)
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info)  # noqa
             return
 
         if i.N != o.N:
-            error(f'Wiring Error: Arrays must have the same length'
-                  f' {i.N} != {o.N}', include_wire_traceback=True)
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, len={i.N}) to {i.debug_name} (type={type(i)}, len={o.N}) because the arrays do not have the same length', debug_info)  # noqa
             return
 
         for k in range(len(i)):

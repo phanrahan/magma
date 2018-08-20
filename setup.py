@@ -15,6 +15,7 @@ setup(
         "magma.testing"
     ],
     install_requires=[
+        "zenlog",
         "astor",
         "six",
         "mako",

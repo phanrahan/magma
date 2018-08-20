@@ -1,4 +1,6 @@
-from .logging import error, warning
+from .logging import error, warning, get_source_line
+from .backend.util import make_relative
+from .ref import DefnRef, InstRef
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
@@ -8,13 +10,26 @@ INPUT = 'input'
 OUTPUT = 'output'
 INOUT = 'inout'
 
+
+def report_wiring_error(message, debug_info):
+    error(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}",
+          include_wire_traceback=True)
+    error(get_source_line(debug_info[0], debug_info[1]))
+
+
+def report_wiring_warning(message, debug_info):
+    # TODO: Include wire traceback support
+    warning(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}")
+    warning(get_source_line(debug_info[0], debug_info[1]))
+
+
 def flip(direction):
     assert direction in [INPUT, OUTPUT, INOUT]
     if   direction == INPUT:  return OUTPUT
     elif direction == OUTPUT: return INPUT
     elif direction == INOUT:  return INOUT
 
-def mergewires(new, old):
+def mergewires(new, old, debug_info):
     oldinputs = set(old.inputs)
     newinputs = set(new.inputs)
     oldoutputs = set(old.outputs)
@@ -26,7 +41,8 @@ def mergewires(new, old):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            error("Connecting more than one output to an input {}".format(o), include_wire_traceback=True)
+            outputs = [o.bit.debug_name for o in new.outputs]
+            report_wiring_error(f"Connecting more than one output ({outputs}) to an input `{i.bit.debug_name}`", debug_info)  # noqa
         new.outputs.append(o)
         o.wires = new
 
@@ -39,7 +55,7 @@ class Wire:
         self.inputs = []
         self.outputs = []
 
-    def connect( self, o, i ):
+    def connect( self, o, i , debug_info):
 
         # anon Ports are added to the input or output list of this wire
         #
@@ -53,19 +69,20 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                error("Using an input as an output {}".format(repr(o)), include_wire_traceback=True)
+                report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as an output", debug_info)
                 return
 
             if o not in self.outputs:
                 if len(self.outputs) != 0:
-                    warning("Warning: adding an output {} to a wire with an output {}".format(str(o), str(self.outputs[0])))
+                    warn_str = "Adding the output `{}` to the wire `{}` which already has output(s) `[{}]`".format(o.bit.debug_name, i.bit.debug_name, ", ".join(output.bit.debug_name for output in self.outputs))
+                    report_wiring_warning(warn_str, debug_info)  # noqa
                 #print('adding output', o)
                 self.outputs.append(o)
 
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                error("Using an output as an input {}".format(repr(i)), include_wire_traceback=True)
+                report_wiring_error(f"Using `{i.bit.debug_name}` (an output) as an input", debug_info)
                 return
 
             if i not in self.inputs:
@@ -117,7 +134,7 @@ class Port:
         return self.bit.anon()
 
     # wire a port to a port
-    def wire(i, o):
+    def wire(i, o, debug_info):
         #if o.bit.direction is None:
         #    o.bit.direction = OUTPUT
         #if i.bit.direction is None:
@@ -129,8 +146,8 @@ class Port:
             # print('merging', i.wires.inputs, i.wires.outputs)
             # print('merging', o.wires.inputs, o.wires.outputs)
             w = Wire()
-            mergewires(w, i.wires)
-            mergewires(w, o.wires)
+            mergewires(w, i.wires, debug_info)
+            mergewires(w, o.wires, debug_info)
             # print('after merge', w.inputs, w.outputs)
         elif o.wires:
             w = o.wires
@@ -139,7 +156,7 @@ class Port:
         else:
             w = Wire()
 
-        w.connect(o, i)
+        w.connect(o, i, debug_info)
 
         #print("after",o,"->",i, w)
 
