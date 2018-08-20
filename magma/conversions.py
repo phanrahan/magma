@@ -125,7 +125,6 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
     convert_to_bit = False
     # check that they are all the same
     for t in Ts:
-        # this should be converted to error()
         if checkbit:
             if not isinstance(t, _BitKind):
                 raise ValueError(
