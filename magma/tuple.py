@@ -240,7 +240,7 @@ def Tuple(*largs, **kwargs):
             T = BitOut
             Ts[i] = T
         if not isinstance(T, Kind):
-            error('Error: tuples must contain magma types - {}'.format(T))
+            raise ValueError(f'Tuples must contain magma types - got {T}')
 
     name = 'Tuple(%s)' % ", ".join([f"{k}: {t}" for k, t in zip(Ks, Ts)])
     return TupleKind(name, (TupleType,), dict(Ks=Ks, Ts=Ts))
