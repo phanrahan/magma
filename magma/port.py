@@ -41,7 +41,7 @@ def mergewires(new, old, debug_info):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            report_wiring_error(f"Connecting more than one output to an input {o.bit.debug_name}", debug_info)  # noqa
+            report_wiring_error(f"Connecting more than one output to an input `{o.bit.debug_name}`", debug_info)  # noqa
         new.outputs.append(o)
         o.wires = new
 
@@ -68,19 +68,20 @@ class Wire:
         if not o.anon():
             #assert o.bit.direction is not None
             if o.bit.isinput():
-                report_wiring_error(f"Using {o.bit.debug_name} (an input) as an output", debug_info)
+                report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as an output", debug_info)
                 return
 
             if o not in self.outputs:
                 if len(self.outputs) != 0:
-                    report_wiring_warning("Adding an output {} to a wire that already has an output {}".format(o.bit.debug_name, self.outputs[0].bit.debug_name), debug_info)  # noqa
+                    warn_str = "Adding the output `{}` to the wire `{}` which already has output(s) `[{}]`".format(o.bit.debug_name, i.bit.debug_name, ", ".join(output.bit.debug_name for output in self.outputs))
+                    report_wiring_warning(warn_str, debug_info)  # noqa
                 #print('adding output', o)
                 self.outputs.append(o)
 
         if not i.anon():
             #assert i.bit.direction is not None
             if i.bit.isoutput():
-                report_wiring_error(f"Using {i.bit.debug_name} (an output) as an input", debug_info)
+                report_wiring_error(f"Using `{i.bit.debug_name}` (an output) as an input", debug_info)
                 return
 
             if i not in self.inputs:
