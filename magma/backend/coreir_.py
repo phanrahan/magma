@@ -12,8 +12,12 @@ import coreir
 from ..ref import ArrayRef, DefnRef, TupleRef
 from ..passes import InstanceGraphPass
 from ..t import In
+import logging
 
 from collections import defaultdict
+
+logger = logging.getLogger('magma').getChild('coreir_backend')
+# logger.setLevel(logging.DEBUG)
 
 class CoreIRBackendError(RuntimeError):
     pass
@@ -245,6 +249,7 @@ class CoreIRBackend:
             self.connect(module_definition, input, output, output_ports)
 
     def compile_definition(self, definition):
+        logger.debug(f"Compiling definition {definition}")
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
