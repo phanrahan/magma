@@ -1,11 +1,13 @@
-import os
 import magma as m
 from magma.testing import check_files_equal
 import logging
+import pytest
 
 
-def test_simple_def():
-    os.environ["MAGMA_CODEGEN_DEBUG_INFO"] = "1"
+@pytest.mark.parametrize("target,suffix",
+                         [("verilog", "v"), ("coreir", "json")])
+def test_simple_def(target, suffix):
+    m.set_codegen_debug_info(True)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
@@ -19,10 +21,10 @@ def test_simple_def():
 
     m.EndCircuit()
 
-    m.compile("build/test_simple_def", main)
-    del os.environ["MAGMA_CODEGEN_DEBUG_INFO"]
-    assert check_files_equal(__file__, f"build/test_simple_def.v",
-                             f"gold/test_simple_def.v")
+    m.compile("build/test_simple_def", main, output=target)
+    m.set_codegen_debug_info(False)
+    assert check_files_equal(__file__, f"build/test_simple_def.{suffix}",
+                             f"gold/test_simple_def.{suffix}")
 
 
 def test_unwired_ports_warnings(caplog):
@@ -49,7 +51,8 @@ def test_2d_array_error(caplog):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Array(2, m.Array(3, m.Bit))), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I", m.In(m.Array(2, m.Array(3, m.Bit))),
+                           "O", m.Out(m.Bit))
 
     and2 = And2()
 
@@ -61,4 +64,4 @@ def test_2d_array_error(caplog):
         m.compile("build/test_unwired_output", main)
         assert False, "Should raise exception"
     except Exception as e:
-        assert str(e) == "Argument main.I of type Array(2,Array(3,Out(Bit))) is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"
+        assert str(e) == "Argument main.I of type Array(2,Array(3,Out(Bit))) is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa

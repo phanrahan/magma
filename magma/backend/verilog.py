@@ -24,14 +24,7 @@ elif level is not None:
     logging.warning("Unsupported value for MAGMA_VERILOG_BACKEND_LOG_LEVEL:"
                     f" {level}")
 
-
-def get_codegen_debug_info():
-    return os.environ.get('MAGMA_CODEGEN_DEBUG_INFO', False)
-
-def make_relative(path):
-    cwd = os.getcwd()
-    common_prefix = os.path.commonprefix([cwd, path])
-    return os.path.relpath(path, common_prefix)
+from .util import get_codegen_debug_info, make_relative
 
 coreir_primitives_file_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "coreir_prims.v")
