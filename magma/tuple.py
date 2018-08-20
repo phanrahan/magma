@@ -5,6 +5,7 @@ from .compatibility import IntegerTypes, StringTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
 from .logging import error
+from .port import report_wiring_error
 
 __all__  = ['TupleType', 'TupleKind', 'Tuple']
 
@@ -77,11 +78,11 @@ class TupleType(Type):
         # print('Tuple.wire(', o, ', ', i, ')')
 
         if not isinstance(o, TupleType):
-            print('Wiring error: wiring', o, 'to', i, '(not an Tuple)')
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not a Tuple', debug_info)  # noqa
             return
 
         if i.Ks != o.Ks:
-            print('Wiring error: Tuples must have the same keys', i.Ks, o.Ks)
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, keys={i.Ks}) to {i.debug_name} (type={type(i)}, keys={o.Ks}) because the tuples do not have the same keys', debug_info)  # noqa
             return
 
         #if i.Ts != o.Ts:
