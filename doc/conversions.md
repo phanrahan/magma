@@ -1,8 +1,10 @@
 ## Conversions
 
-Conversions between values are performed with conversion functions.
-The functions follow the standard python convention for converting values,
-e.g. int(s,base) converts a string in the given base to an integer.
+Conversions between `Magma` values are performed 
+with `Magma` conversion functions.
+The functions are named by following 
+the standard python naming convention for converting values,
+e.g. `int(s,base)` converts a string in the given base to an integer.
 
 ```python
 # convert to a Bit value
@@ -18,8 +20,8 @@ array(int|bit|Bits(n)|UInt(n)|SInt(n)|[t0, t1, ..., tn])
 bits(int|bit|Array(n,Bit)|UInt(n)|SInt(n)|[b0, b1, ..., bn])
 
 # convert to an unsigned int UInt(n) value
-uint(int|bit|Array(n,Bit)|Bits(n)|SInt(n)|[t0, b1, ..., bn])
+uint(int|bit|Array(n,Bit)|Bits(n)|SInt(n)|[b0, b1, ..., bn])
 
 # convert to a signed int SInt(n) value
-sint(int|bit|Array(n,Bit)|Bits(n)|UInt(n)|[t0, b1, ..., bn])
+sint(int|bit|Array(n,Bit)|Bits(n)|UInt(n)|[b0, b1, ..., bn])
 ```
