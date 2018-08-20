@@ -15,7 +15,7 @@ setup(
         "magma.testing"
     ],
     install_requires=[
-        "zenlog",
+        "colorlog",
         "astor",
         "six",
         "mako",
