@@ -65,3 +65,16 @@ def test_muliple_outputs_circuit(caplog):
 \033[1mtests/test_wire/test_errors.py:63: Number of inputs is not equal to the number of outputs, only 2 of the 1 arguments will be wired
     a(main)
 """
+
+
+def test_no_inputs_circuit(caplog):
+    A = DeclareCircuit('A', "O", Out(Bit), "U", Out(Bit))
+
+    main = DefineCircuit("main", "I", In(Bit), "O", Out(Bit))
+
+    a = A()
+    wire(main.I, a)
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:76: Wiring an output to a circuit with no input arguments
+    wire(main.I, a)
+"""
