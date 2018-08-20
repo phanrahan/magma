@@ -27,5 +27,19 @@ def test_output_as_input(caplog):
 """
 
 
+def test_multiple_outputs_to_input(caplog):
+    A = DeclareCircuit('A', "I", In(Bit), "O", Out(Bit))
+
+    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+
+    a = A()
+    wire(main.I[0], a.I)
+    wire(main.I[1], a.I)
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:37: Adding an output main.I[1] to a wire that already has an output main.I[0]
+    wire(main.I[1], a.I)
+"""
+
+
 if __name__ == "__main__":
     test_output_as_input(None)
