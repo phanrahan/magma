@@ -234,7 +234,6 @@ class CoreIRBackend:
 
         coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
                                                                  module_type)
-        coreir_module.print_()
 
     def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
