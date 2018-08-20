@@ -12,6 +12,15 @@ from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
 from ..circuit import *
 from ..clock import wiredefaultclock
+import os
+
+def get_codegen_debug_info():
+    return os.environ.get('MAGMA_CODEGEN_DEBUG_INFO', False)
+
+def make_relative(path):
+    cwd = os.getcwd()
+    common_prefix = os.path.commonprefix([cwd, path])
+    return os.path.relpath(path, common_prefix)
 
 coreir_primitives_file_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "coreir_prims.v")
@@ -163,7 +172,10 @@ def compiledefinition(cls):
             # emit the structured verilog for each instance
             for instance in cls.instances:
                 wiredefaultclock(cls, instance)
-                s += compileinstance(instance) + ';\n'
+                s += compileinstance(instance) + ";"
+                if instance.filename and instance.lineno and get_codegen_debug_info():
+                    s += f" // Instanced at {make_relative(instance.filename)}:{instance.lineno}"
+                s +=  '\n'
 
             # assign to module output arguments
             for port in cls.interface.ports.values():
@@ -172,7 +184,10 @@ def compiledefinition(cls):
                     if output:
                         iname = vname(port)
                         oname = vname(output)
-                        s += 'assign %s = %s;\n' % (iname, oname)
+                        s += 'assign %s = %s;' % (iname, oname)
+                        if hasattr(port, "debug_info") and get_codegen_debug_info():
+                            s += f"  // Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}"
+                        s += '\n'
 
         s += "endmodule\n"
 
