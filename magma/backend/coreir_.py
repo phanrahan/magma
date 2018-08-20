@@ -17,7 +17,13 @@ import logging
 from collections import defaultdict
 
 logger = logging.getLogger('magma').getChild('coreir_backend')
-# logger.setLevel(logging.DEBUG)
+level = os.getenv("MAGMA_COREIR_BACKEND_LOG_LEVEL", "WARN")
+# TODO: Factor this with magma.logging code for debug level validation
+if level in ["DEBUG", "WARN", "INFO"]:
+    logger.setLevel(getattr(logging, level))
+elif level is not None:
+    logging.warning("Unsupported value for MAGMA_COREIR_BACKEND_LOG_LEVEL:"
+                    f" {level}")
 
 class CoreIRBackendError(RuntimeError):
     pass

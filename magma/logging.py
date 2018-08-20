@@ -30,7 +30,7 @@ level = os.getenv("MAGMA_LOG_LEVEL", None)
 if level in ["DEBUG", "WARN", "INFO"]:
     log.setLevel(getattr(logging, level))
 elif level is not None:
-    logging.warning(f"Unsupported value for MAGMA_LOG_LEVEL: {stream}")
+    logging.warning(f"Unsupported value for MAGMA_LOG_LEVEL: {level}")
 
 
 def get_original_wire_call_stack_frame():
