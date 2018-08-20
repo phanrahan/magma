@@ -5,6 +5,7 @@ from .compatibility import IntegerTypes
 from .t import Type
 from .debug import debug_wire
 from .logging import info, warning, error
+from .port import report_wiring_error
 
 __all__ = ['wire']
 
@@ -20,10 +21,11 @@ def wire(o, i, debug_info):
     # replace output Circuit with its output (should only be 1 output)
     if hasattr(o, 'interface'):
         # if wiring a Circuit to a Port
-        # then circuit should have 1 output 
+        # then circuit should have 1 output
+        o_orig = o
         o = o.interface.outputs()
         if len(o) != 1:
-            error('Wiring Error: wiring {} (Sequence of length={}) to {} ({})'.format(o, len(o), i, type(i)))
+            report_wiring_error(f'Can only wire circuits with one output. Argument 0 to wire `{o_orig.debug_name}` has outputs {o}', debug_info)  # noqa
             return
         o = o[0]
 

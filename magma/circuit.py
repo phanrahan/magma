@@ -225,6 +225,12 @@ class AnonymousCircuitType(object):
                 warning("Warning: wiring an output to a circuit with more than one input argument")
             inputs[0].wire( output, debug_info )
 
+
+    @property
+    def debug_name(self):
+        defn_str = str(self.defn.name)
+        return f"{defn_str}_{str(self)}"
+
     def __call__(input, *outputs, **kw):
         debug_info = get_callee_frame_info()
 

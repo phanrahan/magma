@@ -39,3 +39,16 @@ def test_multiple_outputs_to_input_warning(caplog):
 \033[1mtests/test_wire/test_errors.py:37: Adding the output `main.I[1]` to the wire `main.A_inst0.I` which already has output(s) `[main.I[0]]`
     wire(main.I[1], a.I)
 """
+
+
+def test_muliple_outputs_circuit(caplog):
+    A = DeclareCircuit('A', "I", In(Bit), "O", Out(Bit), "U", Out(Bit))
+
+    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+
+    a = A()
+    wire(a, main.I)
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:50: Can only wire circuits with one output. Argument 0 to wire `main_inst0` has outputs [inst0.O, inst0.U]
+    wire(a, main.I)
+"""
