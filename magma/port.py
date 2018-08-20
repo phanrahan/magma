@@ -17,13 +17,19 @@ def report_wiring_error(message, debug_info):
     error(get_source_line(debug_info[0], debug_info[1]))
 
 
+def report_wiring_warning(message, debug_info):
+    # TODO: Include wire traceback support
+    warning(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}")
+    warning(get_source_line(debug_info[0], debug_info[1]))
+
+
 def flip(direction):
     assert direction in [INPUT, OUTPUT, INOUT]
     if   direction == INPUT:  return OUTPUT
     elif direction == OUTPUT: return INPUT
     elif direction == INOUT:  return INOUT
 
-def mergewires(new, old):
+def mergewires(new, old, debug_info):
     oldinputs = set(old.inputs)
     newinputs = set(new.inputs)
     oldoutputs = set(old.outputs)
@@ -35,7 +41,7 @@ def mergewires(new, old):
 
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
-            error("Connecting more than one output to an input {}".format(o), include_wire_traceback=True)
+            report_wiring_error("Connecting more than one output to an input {o.debug_name}", debug_info)  # noqa
         new.outputs.append(o)
         o.wires = new
 
@@ -67,7 +73,7 @@ class Wire:
 
             if o not in self.outputs:
                 if len(self.outputs) != 0:
-                    warning("Warning: adding an output {} to a wire with an output {}".format(str(o), str(self.outputs[0])))
+                    report_wiring_warning("Adding an output {} to a wire that already has an output {}".format(o.bit.debug_name, self.outputs[0].bit.debug_name), debug_info)  # noqa
                 #print('adding output', o)
                 self.outputs.append(o)
 
@@ -138,8 +144,8 @@ class Port:
             # print('merging', i.wires.inputs, i.wires.outputs)
             # print('merging', o.wires.inputs, o.wires.outputs)
             w = Wire()
-            mergewires(w, i.wires)
-            mergewires(w, o.wires)
+            mergewires(w, i.wires, debug_info)
+            mergewires(w, o.wires, debug_info)
             # print('after merge', w.inputs, w.outputs)
         elif o.wires:
             w = o.wires
