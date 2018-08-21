@@ -413,8 +413,8 @@ class DefineCircuitKind(CircuitKind):
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
 
-        if hasattr(self, 'definition') or dct.get('is_definition', False) \
-                or hasattr(self, 'wrappedModule'):
+        if (hasattr(self, 'definition') or dct.get('is_definition', False) \
+                or hasattr(self, 'wrappedModule')) and not getattr(self, '__magma_no_cache__', False):
             if name in definitionCache:
                 return definitionCache[name]
             else:
@@ -512,7 +512,8 @@ def DefineCircuit(name, *decl, **args):
                coreir_genargs = args.get('coreir_genargs', None),
                coreir_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}),
-               renamed_ports = args.get('renamed_ports', {}))
+               renamed_ports = args.get('renamed_ports', {}),
+               __magma_no_cache__ = args.get('__magma_no_cache__', False))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
