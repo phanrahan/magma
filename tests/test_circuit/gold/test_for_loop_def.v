@@ -5,12 +5,24 @@ wire  inst1_O;
 wire  inst2_O;
 wire  inst3_O;
 // Instanced at tests/test_circuit/test_define.py:41
+// Argument I0(I[0]) wired at tests/test_circuit/test_define.py:43
+// Argument I1(I[1]) wired at tests/test_circuit/test_define.py:44
+// Argument O(inst0_O) wired at tests/test_circuit/test_define.py:46
 And2 inst0 (.I0(I[0]), .I1(I[1]), .O(inst0_O));
 // Instanced at tests/test_circuit/test_define.py:41
+// Argument I0(inst0_O) wired at tests/test_circuit/test_define.py:46
+// Argument I1(I[1]) wired at tests/test_circuit/test_define.py:47
+// Argument O(inst1_O) wired at tests/test_circuit/test_define.py:46
 And2 inst1 (.I0(inst0_O), .I1(I[1]), .O(inst1_O));
 // Instanced at tests/test_circuit/test_define.py:41
+// Argument I0(inst1_O) wired at tests/test_circuit/test_define.py:46
+// Argument I1(I[1]) wired at tests/test_circuit/test_define.py:47
+// Argument O(inst2_O) wired at tests/test_circuit/test_define.py:46
 And2 inst2 (.I0(inst1_O), .I1(I[1]), .O(inst2_O));
 // Instanced at tests/test_circuit/test_define.py:41
+// Argument I0(inst2_O) wired at tests/test_circuit/test_define.py:46
+// Argument I1(I[1]) wired at tests/test_circuit/test_define.py:47
+// Argument O(inst3_O) wired at tests/test_circuit/test_define.py:50
 And2 inst3 (.I0(inst2_O), .I1(I[1]), .O(inst3_O));
 // Wired at tests/test_circuit/test_define.py:50
 assign O = inst3_O;
