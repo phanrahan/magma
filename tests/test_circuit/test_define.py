@@ -42,6 +42,36 @@ def test_simple_def(target, suffix):
                              f"gold/test_simple_def_class.{suffix}")
 
 
+@pytest.mark.parametrize("target,suffix",
+                         [("verilog", "v"), ("coreir", "json")])
+def test_for_loop_def(target, suffix):
+    m.set_codegen_debug_info(True)
+    And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
+                            "O", m.Out(m.Bit))
+
+    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+
+    and2_prev = None
+    for i in range(0, 4):
+        and2 = And2()
+        if i == 0:
+            m.wire(main.I[0], and2.I0)
+            m.wire(main.I[1], and2.I1)
+        else:
+            m.wire(and2_prev.O, and2.I0)
+            m.wire(main.I[1], and2.I1)
+        and2_prev = and2
+
+    m.wire(and2.O, main.O)
+
+    m.EndCircuit()
+
+    m.compile("build/test_for_loop_def", main, output=target)
+    m.set_codegen_debug_info(False)
+    assert check_files_equal(__file__, f"build/test_for_loop_def.{suffix}",
+                             f"gold/test_for_loop_def.{suffix}")
+
+
 def test_unwired_ports_warnings(caplog):
     caplog.set_level(logging.WARN)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
