@@ -4,6 +4,7 @@ from .port import Port, INPUT, OUTPUT, INOUT
 from .t import Type, Kind
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
+from .port import report_wiring_error
 
 __all__ = ['_BitType', '_BitKind']
 __all__ += ['BitType', 'BitKind']
@@ -39,8 +40,7 @@ class _BitType(Type):
             o = HIGH if o else LOW
 
         if not isinstance(o, _BitType):
-            error(f'Wiring Error: wiring {o} to {i} (not a _Bit)',
-                  include_wire_traceback=True)
+            report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} (type={type(o)}) because {o.debug_name} is not a _Bit', debug_info)
             return
 
         i.port.wire(o.port, debug_info)
