@@ -9,6 +9,7 @@ And2 inst0 (.I0(I[0]), .I1(I[1]), .O(inst0_O));
 And2 inst1 (.I0(inst0_O), .I1(I[1]), .O(inst1_O));
 // Instanced at tests/test_circuit/test_define.py:76
 And2 inst2 (.I0(inst1_O), .I1(I[0]), .O(inst2_O));
-// Wired at tests/test_circuit/test_define.py:80assign O = inst2_O;
+// Wired at tests/test_circuit/test_define.py:80
+assign O = inst2_O;
 endmodule
 
