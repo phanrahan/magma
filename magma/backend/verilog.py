@@ -6,7 +6,7 @@ from collections import OrderedDict, Sequence
 from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
-from ..bit import BitType, VCC, GND
+from ..bit import _BitType, _BitKind, VCC, GND
 from ..clock import ClockType, EnableType, ResetType
 from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
@@ -89,7 +89,7 @@ def vdecl(t):
         signed = "signed " if isinstance(t, SIntType) else ""
         return '{}[{}:{}]'.format(signed, t.N-1, 0)
     else:
-        assert isinstance(t, (BitType, ClockType, EnableType, ResetType))
+        assert isinstance(t, _BitType)
         return ""
 
 # return the verilog module args
@@ -151,10 +151,9 @@ def compiledefinition(cls):
 
     # for now only allow Bit or Array(n, Bit)
     for name, port in cls.interface.ports.items():
-        if isinstance(port, ArrayKind):
-            if not isinstance(port.T, BitKind):
-                print('Error: Argument', port, 'must be a an Array(n,Bit)')
-                assert True
+        if isinstance(port, (ArrayKind, ArrayType)):
+            if not isinstance(port.T, (_BitType, _BitKind)):
+                raise Exception(f'Argument {cls.__name__}.{name} of type {type(port)} is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)')
 
 
     if cls.verilogFile:
@@ -225,6 +224,6 @@ def compile(main, include_coreir=False):
         code += "`include \"{}\"\n".format(coreir_primitives_file_path)
 
     for k, v in defn.items():
-         print('compiling', k)
+         logging.debug(f'compiling circuit {k}')
          code += compiledefinition(v) + '\n'
     return code
