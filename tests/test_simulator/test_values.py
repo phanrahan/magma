@@ -22,7 +22,7 @@ def test_bit():
         sim.set_value(Main.I, 22)
         assert False, "Should throw type error"
     except TypeError as e:
-        assert str(e) == "Can only set Bit I with a boolean value or 0 or 1"
+        assert str(e) == "Can only set Bit I with a boolean value or 0 or 1, not 22 (type=<class 'int'>)"
 
 
 def test_array():
