@@ -12,7 +12,18 @@ from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
 from ..circuit import *
 from ..clock import wiredefaultclock
+import logging
 import os
+
+logger = logging.getLogger('magma').getChild('verilog_backend')
+level = os.getenv("MAGMA_VERILOG_BACKEND_LOG_LEVEL", "WARN")
+# TODO: Factor this with magma.logging code for debug level validation
+if level in ["DEBUG", "WARN", "INFO"]:
+    logger.setLevel(getattr(logging, level))
+elif level is not None:
+    logging.warning("Unsupported value for MAGMA_VERILOG_BACKEND_LOG_LEVEL:"
+                    f" {level}")
+
 
 def get_codegen_debug_info():
     return os.environ.get('MAGMA_CODEGEN_DEBUG_INFO', False)
@@ -108,7 +119,7 @@ def compileinstance(self):
             # find the output connected to v
             w = v.value()
             if not w:
-                print(f'Warning (verilog): {str(self.defn.name)}.{str(type(self).name)}_{str(self)}.{str(v)} not connected')
+                logging.warning(f'{str(self.defn.name)}.{str(type(self).name)}_{str(self)}.{str(v)} not connected')
                 continue
             v = w
         if isinstance(k, IntegerTypes):
@@ -188,6 +199,8 @@ def compiledefinition(cls):
                         if hasattr(port, "debug_info") and get_codegen_debug_info():
                             s += f"  // Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}"
                         s += '\n'
+                    else:
+                        logging.warning(f"{cls.__name__}.{port.name} is unwired")
 
         s += "endmodule\n"
 
