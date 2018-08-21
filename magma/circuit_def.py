@@ -210,7 +210,7 @@ def combinational(fn):
         fp.write(astor.to_source(tree))
     # exec(compile(tree, filename=file_name, mode="exec"), defn_env)
     try:
-        exec(compile(tree, filename=file_name, mode="exec"), defn_env)
+        exec(compile(astor.to_source(tree), filename=file_name, mode="exec"), defn_env)
     except:
         import sys
         tb = traceback.format_exc()
