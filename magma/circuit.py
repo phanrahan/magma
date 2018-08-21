@@ -229,7 +229,9 @@ class AnonymousCircuitType(object):
 
     @property
     def debug_name(self):
-        defn_str = str(self.defn.name)
+        defn_str = ""
+        if hasattr(self, 'defn'):
+            defn_str = str(self.defn.name)
         return f"{defn_str}_{str(self)}"
 
     def __call__(input, *outputs, **kw):
