@@ -3,10 +3,11 @@ import ast
 import inspect
 import textwrap
 from collections import OrderedDict
-from magma.logging import warning, debug, warning
+from magma.logging import debug, warning, error
 from .backend.util import make_relative
 import astor
-# import astunparse
+import os
+import traceback
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -203,9 +204,11 @@ def combinational(fn):
         source += f"    {i}: {line}\n"
 
     debug(source)
-    # debug(astunparse.dump(tree))
-    exec(compile(tree, filename="<ast>", mode="exec"), defn_env)
-
+    os.makedirs(".magma", exist_ok=True)
+    file_name = os.path.join(".magma", fn.__name__ + ".py")
+    with open(file_name, "w") as fp:
+        fp.write(astor.to_source(tree))
+    exec(compile(tree, filename=file_name, mode="exec"), defn_env)
     circuit_def = defn_env[fn.__name__]
 
     @functools.wraps(fn)
