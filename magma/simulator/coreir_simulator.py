@@ -252,8 +252,7 @@ class CoreIRSimulator(CircuitSimulator):
 
     def add_watchpoint(self, bit, scope, value=None):
         if value is None:
-            print("CoreIR Simulator does not support watching for value change")
-            return
+            raise Exception("CoreIR Simulator does not support watching for value change")
 
         insts, ports = convert_to_coreir_path(bit, scope)
         self.simulator_state.set_watchpoint(insts, ports, value)
