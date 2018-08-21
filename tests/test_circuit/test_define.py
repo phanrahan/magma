@@ -72,6 +72,36 @@ def test_for_loop_def(target, suffix):
                              f"gold/test_for_loop_def.{suffix}")
 
 
+@pytest.mark.parametrize("target,suffix",
+                         [("verilog", "v"), ("coreir", "json")])
+def test_interleaved_instance_wiring(target, suffix):
+    m.set_codegen_debug_info(True)
+    And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
+                            "O", m.Out(m.Bit))
+
+    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+
+    and2_0 = And2()
+    and2_1 = And2()
+
+    m.wire(main.I[0], and2_0.I0)
+    m.wire(main.I[1], and2_0.I1)
+    m.wire(and2_0.O, and2_1.I0)
+    m.wire(main.I[1], and2_1.I1)
+    and2_2 = And2()
+    m.wire(and2_1.O, and2_2.I0)
+    m.wire(main.I[0], and2_2.I1)
+
+    m.wire(and2_2.O, main.O)
+
+    m.EndCircuit()
+
+    m.compile("build/test_interleaved_instance_wiring", main, output=target)
+    m.set_codegen_debug_info(False)
+    assert check_files_equal(__file__, f"build/test_interleaved_instance_wiring.{suffix}",
+                             f"gold/test_interleaved_instance_wiring.{suffix}")
+
+
 def test_unwired_ports_warnings(caplog):
     caplog.set_level(logging.WARN)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),

@@ -1,0 +1,44 @@
+{"top":"global.main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "And2":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "main":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"69"}
+          },
+          "inst1":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"70"}
+          },
+          "inst2":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"76"}
+          }
+        },
+        "connections":[
+          ["self.I.0","inst0.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"72"}],
+          ["self.I.1","inst0.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"73"}],
+          ["inst1.I0","inst0.O",{"filename":"tests/test_circuit/test_define.py","lineno":"74"}],
+          ["self.I.1","inst1.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"75"}],
+          ["inst2.I0","inst1.O",{"filename":"tests/test_circuit/test_define.py","lineno":"77"}],
+          ["self.I.0","inst2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"78"}],
+          ["self.O","inst2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"80"}]
+        ]
+      }
+    }
+  }
+}
+}
