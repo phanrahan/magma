@@ -244,6 +244,9 @@ class CoreIRBackend:
 
         coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
                                                                  module_type)
+        if get_codegen_debug_info() and declaration.filename and declaration.lineno:
+            coreir_module.add_metadata("filename", make_relative(declaration.filename))
+            coreir_module.add_metadata("lineno", str(declaration.lineno))
         return coreir_module
 
     def compile_definition_to_module_definition(self, definition, module_definition):

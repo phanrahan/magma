@@ -7,7 +7,8 @@
           ["I0","BitIn"],
           ["I1","BitIn"],
           ["O","Bit"]
-        ]]
+        ]],
+        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"35"}
       },
       "main":{
         "type":["Record",[
