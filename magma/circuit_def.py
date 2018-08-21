@@ -6,7 +6,6 @@ from collections import OrderedDict
 from magma.logging import warning, debug
 import astor
 # import astunparse
-from .port import report_wiring_warning
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -24,10 +23,6 @@ def get_ast(obj):
 
 
 class IfTransformer(ast.NodeTransformer):
-    def __init__(self, filename):
-        super().__init__()
-        self.filename = filename
-
     def flatten(self, _list):
         """1-deep flatten"""
         flat_list = []
@@ -56,8 +51,8 @@ class IfTransformer(ast.NodeTransformer):
             key = ast.dump(stmt.targets[0])
             if key in seen:
                 # TODO: Print the line number
-                report_wiring_warning("Assigning to value twice inside `if` block,"
-                        " taking the last value (first value is ignored)", (self.filename, self.line_offset + node.lineno))
+                warning("Assigning to value twice inside `if` block,"
+                        " taking the last value (first value is ignored)")
             seen[key] = stmt
         orelse_seen = set()
         for stmt in node.orelse:
@@ -185,7 +180,7 @@ def combinational(fn):
     tree = get_ast(fn)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
-    tree = IfTransformer(filename).visit(tree)
+    tree = IfTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     # TODO: Only remove @m.circuit.combinational, there could be others
     tree.body[0].decorator_list = []
