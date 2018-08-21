@@ -1,6 +1,7 @@
 import os
 import magma as m
 from magma.testing import check_files_equal
+import logging
 
 
 def test_simple_def():
@@ -25,6 +26,7 @@ def test_simple_def():
 
 
 def test_unwired_ports_warnings(caplog):
+    caplog.set_level(logging.WARN)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
