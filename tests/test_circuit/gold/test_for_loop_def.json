@@ -42,7 +42,8 @@
           ["inst3.I0","inst2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"46"}],
           ["self.I.1","inst3.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"47"}],
           ["self.O","inst3.O",{"filename":"tests/test_circuit/test_define.py","lineno":"50"}]
-        ]
+        ],
+        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"37"}
       }
     }
   }

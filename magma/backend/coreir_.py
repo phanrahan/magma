@@ -15,6 +15,7 @@ from ..t import In
 import logging
 from .util import make_relative, get_codegen_debug_info
 from ..interface import InterfaceKind
+import inspect
 
 from collections import defaultdict
 
@@ -289,6 +290,9 @@ class CoreIRBackend:
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        if get_codegen_debug_info() and definition.filename and definition.lineno:
+            coreir_module.add_metadata("filename", make_relative(definition.filename))
+            coreir_module.add_metadata("lineno", str(definition.lineno))
         module_definition = coreir_module.new_definition()
         self.compile_definition_to_module_definition(definition, module_definition)
         coreir_module.definition = module_definition

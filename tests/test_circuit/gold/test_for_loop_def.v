@@ -1,5 +1,5 @@
 module main (input [1:0] I, output  O);
-wire  inst0_O;
+Defined at tests/test_circuit/test_define.py:37wire  inst0_O;
 wire  inst1_O;
 wire  inst2_O;
 wire  inst3_O;
