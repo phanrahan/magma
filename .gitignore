@@ -96,3 +96,6 @@ tests/build
 .DS_Store
 parser.out
 parsetab.py
+
+.magma
+.pytest_cache
