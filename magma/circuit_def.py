@@ -23,6 +23,11 @@ def get_ast(obj):
 
 
 class IfTransformer(ast.NodeTransformer):
+    def __init__(self, filename, lines):
+        super().__init__()
+        self.filename = filename
+        self.lines = lines
+
     def flatten(self, _list):
         """1-deep flatten"""
         flat_list = []
