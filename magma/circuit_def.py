@@ -3,7 +3,8 @@ import ast
 import inspect
 import textwrap
 from collections import OrderedDict
-from magma.logging import warning, debug
+from magma.logging import warning, debug, warning
+from .backend.util import make_relative
 import astor
 # import astunparse
 
@@ -22,11 +23,16 @@ def get_ast(obj):
     return ast.parse(program_txt)
 
 
+def report_transformer_warning(message, filename, lineno, line):
+    warning(f"\033[1m{make_relative(filename)}:{lineno}: {message}")
+    warning(line)
+
+
 class IfTransformer(ast.NodeTransformer):
     def __init__(self, filename, lines):
         super().__init__()
         self.filename = filename
-        self.lines = lines
+        self.lines, self.starting_line = lines
 
     def flatten(self, _list):
         """1-deep flatten"""
@@ -56,16 +62,16 @@ class IfTransformer(ast.NodeTransformer):
             key = ast.dump(stmt.targets[0])
             if key in seen:
                 # TODO: Print the line number
-                warning("Assigning to value twice inside `if` block,"
-                        " taking the last value (first value is ignored)")
+                report_transformer_warning("Assigning to value twice inside `if` block,"
+                        " taking the last value (first value is ignored)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
             seen[key] = stmt
         orelse_seen = set()
         for stmt in node.orelse:
             key = ast.dump(stmt.targets[0])
             if key in seen:
                 if key in orelse_seen:
-                    warning("Assigning to value twice inside `else` block,"
-                            " taking the last value (first value is ignored)")
+                    report_transformer_warning("Assigning to value twice inside `else` block,"
+                            " taking the last value (first value is ignored)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
                 orelse_seen.add(key)
                 seen[key].value = ast.Call(
                     ast.Name("mux", ast.Load()),
@@ -73,8 +79,9 @@ class IfTransformer(ast.NodeTransformer):
                               ast.Load()), node.test],
                     [])
             else:
-                raise NotImplementedError("Assigning to a variable once in"
-                                          " `else` block (not in then block)")
+                report_transformer_warning("NOT IMPLEMENTED: Assigning to a variable once in"
+                        " `else` block (not in then block)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
+                raise NotImplementedError()
         return [node for node in seen.values()]
 
     def visit_IfExp(self, node):

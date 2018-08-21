@@ -192,3 +192,64 @@ def test_simple_circuit_1(target):
             m.wire(c, io.c)
 
     compile_and_check("simple_circuit_1", Foo, target)
+
+
+def test_warnings(caplog):
+
+    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
+                         m.Out(m.Bit))
+    m.wire(0, EQ.O)
+    m.EndDefine()
+
+    @m.circuit.combinational
+    def logic(a: m.Bit) -> (m.Bit,):
+        if EQ()(a, m.bit(0)):
+            c = m.bit(1)
+            c = m.bit(0)
+        else:
+            c = m.bit(0)
+            c = m.bit(1)
+        return (c,)
+
+    class Foo(m.Circuit):
+        IO = ["a", m.In(m.Bit),
+              "c", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            c = logic(io.a)
+            m.wire(c, io.c)
+
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_circuit_def.py:207: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
+            c = m.bit(1)
+
+\033[1mtests/test_circuit_def.py:207: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
+            c = m.bit(1)
+"""
+
+
+def test_not_implemented(caplog):
+
+    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
+                         m.Out(m.Bit))
+    m.wire(0, EQ.O)
+    m.EndDefine()
+
+    try:
+        @m.circuit.combinational
+        def logic(a: m.Bit) -> (m.Bit,):
+            if EQ()(a, m.bit(0)):
+                c = m.bit(1)
+            else:
+                c = m.bit(0)
+                d = m.bit(1)
+            return (c,)
+        assert False, "Should raise not implemented error"
+    except NotImplementedError:
+        pass
+
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_circuit_def.py:243: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
+                c = m.bit(1)
+"""
