@@ -1,6 +1,7 @@
 import magma as m
 from magma.testing import check_files_equal
 import pytest
+import logging
 
 
 @m.cache_definition
@@ -195,6 +196,7 @@ def test_simple_circuit_1(target):
 
 
 def test_warnings(caplog):
+    caplog.set_level(logging.WARN)
 
     EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
                          m.Out(m.Bit))
@@ -221,10 +223,10 @@ def test_warnings(caplog):
             m.wire(c, io.c)
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_circuit_def.py:207: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
+\033[1mtests/test_circuit_def.py:209: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
             c = m.bit(1)
 
-\033[1mtests/test_circuit_def.py:207: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
+\033[1mtests/test_circuit_def.py:209: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
             c = m.bit(1)
 """
 
@@ -250,6 +252,6 @@ def test_not_implemented(caplog):
         pass
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_circuit_def.py:243: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
+\033[1mtests/test_circuit_def.py:245: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
                 c = m.bit(1)
 """
