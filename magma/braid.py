@@ -120,12 +120,12 @@ def joinarg(arg, interfaces):
 #   this argument is wired to all the circuits
 #  joinargs : list of argument names to join
 #   this argument is equal an array of all the arguments from circuits
-#  foldargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
-#  rfoldargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
+#  foldargs : dict of argument namein:nameout, set namein[i+1] to namout[i]
+#  rfoldargs : dict of argument namein:nameout, set namein[i-1] to namout[i]
 #    namein[0] is retained in the result,
 #    nameout[n-1] is retained in the result
-#  scanargs : dict of argument namein:nameout, set namein[i+1] to namout[u]
-#  rscanargs : dict of argument namein:nameout, set namein[i-1] to namout[u]
+#  scanargs : dict of argument namein:nameout, set namein[i+1] to namout[i]
+#  rscanargs : dict of argument namein:nameout, set namein[i-1] to namout[i]
 #    namein[0] is retained in the result,
 #    the array nameout is retained in the result
 #
