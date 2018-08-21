@@ -52,7 +52,7 @@ def get_original_wire_call_stack_frame():
             function = frame.function
         if function not in ["wire", "connect",
                             "get_original_wire_call_stack_frame",
-                            "error", "warn", "print_wire_traceback_wrapped", "report_wiring_error", "report_wiring_warning"]:
+                            "error", "warn", "print_wire_traceback_wrapped", "report_wiring_error", "report_wiring_warning", "__call__", "wireoutputs"]:
             break
     if sys.version_info < (3, 5):
         return frame[0]
