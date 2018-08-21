@@ -2,6 +2,7 @@ from ..array import ArrayKind, ArrayType
 from ..bit import BitType, VCC, GND
 from ..passes.debug_name import DebugNamePass
 from collections import OrderedDict
+import magma.logging as logging
 
 from graphviz import Digraph
 import re
@@ -46,8 +47,8 @@ def compileinstance(dot, instance):
             inputs.append('<{0}> {0}'.format(str(name)))
             value = port.value()
             if not value:
-                print('Warning (firrtl): input', str(port), 'not connected to an output')
-                value = port
+                logging.warning(f'Input {port.debug_name} not connected to an output')
+                continue
         else:
             outputs.append('<{0}> {0}'.format(str(name)))
             value = port
