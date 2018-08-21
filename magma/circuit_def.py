@@ -208,7 +208,15 @@ def combinational(fn):
     file_name = os.path.join(".magma", fn.__name__ + ".py")
     with open(file_name, "w") as fp:
         fp.write(astor.to_source(tree))
-    exec(compile(tree, filename=file_name, mode="exec"), defn_env)
+    # exec(compile(tree, filename=file_name, mode="exec"), defn_env)
+    try:
+        exec(compile(tree, filename=file_name, mode="exec"), defn_env)
+    except:
+        import sys
+        tb = traceback.format_exc()
+        import IPython
+        print(IPython.core.ultratb.AutoFormattedTB().text(*sys.exc_info()))
+        raise Exception(f"Error occured when compiling and executing m.circuit.combinational function {fn.__name__}, see above") from None
     circuit_def = defn_env[fn.__name__]
 
     @functools.wraps(fn)
