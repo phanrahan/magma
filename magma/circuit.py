@@ -220,10 +220,10 @@ class AnonymousCircuitType(object):
             inputs = self.interface.inputs()
             ni = len(inputs)
             if ni == 0:
-                report_wiring_warning("Wiring an output to a circuit with no input arguments", debug_info)
+                report_wiring_warning("Wiring an output to a circuit with no input arguments, skipping", debug_info)
                 return
             if ni != 1:
-                report_wiring_warning("Wiring an output to a circuit with more than one input argument")
+                report_wiring_warning(f"Wiring an output to a circuit with more than one input argument, using the first input {inputs[0].debug_name}", debug_info)
             inputs[0].wire( output, debug_info )
 
 

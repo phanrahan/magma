@@ -75,6 +75,19 @@ def test_no_inputs_circuit(caplog):
     a = A()
     wire(main.I, a)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_wire/test_errors.py:76: Wiring an output to a circuit with no input arguments
+\033[1mtests/test_wire/test_errors.py:76: Wiring an output to a circuit with no input arguments, skipping
+    wire(main.I, a)
+"""
+
+
+def test_muliple_inputs_circuit(caplog):
+    A = DeclareCircuit('A', "I", In(Bit), "J", In(Bit), "O", Out(Bit), "U", Out(Bit))
+
+    main = DefineCircuit("main", "I", In(Bit), "O", Out(Bit))
+
+    a = A()
+    wire(main.I, a)
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:89: Wiring an output to a circuit with more than one input argument, using the first input main.A_inst0.I
     wire(main.I, a)
 """
