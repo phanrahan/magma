@@ -107,3 +107,6 @@ def test_anon_value(target, suffix, T):
     m.compile(f"build/test_anon_value_{T}", main, target)
     assert check_files_equal(__file__, f"build/test_anon_value_{T}.{suffix}",
                              f"gold/test_anon_value_{T}.{suffix}")
+
+if __name__ == "__main__":
+    test_simple_def("coreir", "json")

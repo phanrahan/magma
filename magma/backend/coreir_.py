@@ -334,9 +334,12 @@ class CoreIRBackend:
             logger.debug(value, output_ports)
             logger.debug(id(value), [id(key) for key in output_ports])
             source = module_definition.select(output_ports[value])
-        module_definition.connect(
-            source,
-            module_definition.select(magma_port_to_coreir(port)))
+        sink = module_definition.select(magma_port_to_coreir(port))
+        module_definition.connect(source, sink)
+        if get_codegen_debug_info() and hasattr(port, "debug_info"):
+            filename, lineno = port.debug_info
+            module_definition.add_metadata(source, sink, "filename", make_relative(filename))
+            module_definition.add_metadata(source, sink, "lineno", str(lineno))
 
 
     __unique_constant_id = -1
