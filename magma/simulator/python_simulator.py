@@ -13,7 +13,7 @@ from ..circuit import *
 from ..scope import *
 from ..bit import VCC, GND, BitType, _BitType
 from ..array import ArrayType
-from ..bits import SIntType, BitsType
+from ..bits import SIntType, BitsType, UIntType
 from ..bit_vector import BitVector
 from ..bitutils import seq2int
 from ..clock import ClockType
@@ -109,9 +109,11 @@ class ValueStore:
 
     def get_value(self, bit):
         if isinstance(bit, ArrayType):
-            value = ([self.get_value(b) for b in bit])
-            if isinstance(type(bit).T, BitType):
-                return BitVector(value)
+            value = [self.get_value(b) for b in bit]
+            if isinstance(bit, SIntType):
+                return BitVector(value).as_sint()
+            elif isinstance(bit, (BitsType, UIntType)):
+                return BitVector(value).as_uint()
             return value
 
         if bit.isinput():
@@ -123,6 +125,9 @@ class ValueStore:
         return self.value_map[bit]
 
     def set_value(self, bit, newval):
+        if not bit.isoutput():
+            raise TypeError("Can only call set value on an input")
+
         if isinstance(bit, ArrayType):
             if isinstance(newval, BitVector):
                 newval = newval.as_bool_list()
@@ -130,17 +135,20 @@ class ValueStore:
                 if not newval.const():
                     raise ValueError("Calling set_value with a BitsType only works with a constant")
                 newval = newval.bits()
+            elif isinstance(bit, BitsType) and isinstance(newval, int):
+                if not isinstance(bit, SIntType) and newval < 0:
+                    raise ValueError(f"Can only set {bit} of type {type(bit)} with positive integer, not {newval}")
+                newval = BitVector(newval, len(bit))
+            elif not isinstance(newval, list):
+                raise TypeError(f"Calling set_value with {bit} of type {type(bit)} only works with a list of values or a BitVector")
             for b,v in zip(bit, newval):
                 self.set_value(b, v)
             return
 
-        if isinstance(newval, BitVector):
-            assert len(newval) == 1
-            newval = newval.as_bool_list()[0]
         if isinstance(newval, int) and newval in {0, 1}:
             newval = bool(newval)
-        assert isinstance(newval, bool), "Can only set boolean values"
-        assert bit.isoutput()
+        if not isinstance(newval, bool):
+            raise TypeError(f"Can only set Bit {bit} with a boolean value or 0 or 1")
 
         self.value_map[bit] = newval
 

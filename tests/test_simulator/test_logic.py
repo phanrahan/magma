@@ -16,7 +16,7 @@ def test():
     wire(testcircuit.I0, ori.I0)
     wire(testcircuit.I1, n.I)
     wire(n.O, ori.I1)
-    
+
     wire(ori.O, ori2.I0)
     wire(andy.O, ori2.I1)
 
@@ -36,6 +36,6 @@ def test():
     sim.set_value(testcircuit.I0, True)
     sim.evaluate()
     v = sim.get_value(testcircuit.O)
-    assert v == True 
+    assert v == True
 
 
