@@ -192,3 +192,34 @@ def test_simple_circuit_1(target):
             m.wire(c, io.c)
 
     compile_and_check("simple_circuit_1", Foo, target)
+
+
+def test_warnings(caplog):
+    target = "coreir"
+
+    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
+                         m.Out(m.Bit))
+    m.wire(0, EQ.O)
+    m.EndDefine()
+
+    @m.circuit.combinational
+    def logic(a: m.Bit) -> (m.Bit,):
+        if EQ()(a, m.bit(0)):
+            c = m.bit(1)
+            c = m.bit(0)
+        else:
+            c = m.bit(0)
+        return (c,)
+
+    class Foo(m.Circuit):
+        IO = ["a", m.In(m.Bit),
+              "c", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            c = logic(io.a)
+            m.wire(c, io.c)
+
+    log = "\n".join(x.msg for x in caplog.records)
+    print(log)
+    assert False
