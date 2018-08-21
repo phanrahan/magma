@@ -1,6 +1,7 @@
 from ..array import ArrayKind, ArrayType
 from ..bit import BitType, VCC, GND
 from ..passes.debug_name import DebugNamePass
+from ..passes.clock import WireClockPass
 from collections import OrderedDict
 import magma.logging as logging
 
@@ -134,8 +135,10 @@ def dots(main):
 
 def to_html(main):
     DebugNamePass(main).run()
+    WireClockPass(main).run()
     return "\n".join([dot._repr_svg_() for dot in dots(main)])
 
 def compile(main):
     DebugNamePass(main).run()
+    WireClockPass(main).run()
     return "\n".join([str(dot) for dot in dots(main)]) + '\n'
