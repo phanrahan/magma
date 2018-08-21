@@ -42,7 +42,7 @@ instructions for installing magma, as well as a set of [Jupyter
 Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/tutorial)
 that introduce the system.
 Please also refer to the
-[documentation](https://github.com/phanrahan/magma/wiki).
+[documentation](http://magma.readthedocs.io/).
 
 The design of Magma was heavily influenced by 
 [Chisel](https://chisel.eecs.berkeley.edu/),
