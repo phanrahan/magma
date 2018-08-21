@@ -230,7 +230,7 @@ class AnonymousCircuitType(object):
     @property
     def debug_name(self):
         defn_str = ""
-        if hasattr(self, 'defn'):
+        if hasattr(self, 'defn') and self.defn is not None:
             defn_str = str(self.defn.name)
         return f"{defn_str}_{str(self)}"
 

@@ -180,7 +180,7 @@ def combinational(fn):
     tree = get_ast(fn)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
-    tree = IfTransformer().visit(tree)
+    tree = IfTransformer(inspect.getsourcefile(fn), inspect.getsourcelines(fn)).visit(tree)
     tree = ast.fix_missing_locations(tree)
     # TODO: Only remove @m.circuit.combinational, there could be others
     tree.body[0].decorator_list = []
