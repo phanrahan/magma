@@ -1,5 +1,0 @@
-{
-  "tests/test_circuit_def.py::test_source_file_error": true,
-  "tests/test_debug_info.py::test_filename_lineno_verilog": true,
-  "tests/test_wire/test_errors.py::test_multiple_outputs_to_input_error": true
-}
