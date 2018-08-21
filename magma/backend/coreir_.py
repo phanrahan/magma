@@ -13,6 +13,8 @@ from ..ref import ArrayRef, DefnRef, TupleRef
 from ..passes import InstanceGraphPass
 from ..t import In
 import logging
+from .util import make_relative, get_codegen_debug_info
+from ..interface import InterfaceKind
 
 from collections import defaultdict
 
@@ -227,7 +229,11 @@ class CoreIRBackend:
         if declaration.coreir_lib in ["coreir", "corebit", "commonlib"]:
             return
         module_type = self.convert_interface_to_module_type(declaration.interface)
-        coreir_module = self.context.global_namespace.new_module(declaration.coreir_name, module_type)
+        if isinstance(declaration.interface, InterfaceKind):
+            module_type = self.context.Flip(module_type)
+
+        coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
+                                                                 module_type)
 
     def compile_definition_to_module_definition(self, definition, module_definition):
         output_ports = {}
@@ -239,6 +245,9 @@ class CoreIRBackend:
             wiredefaultclock(definition, instance)
             wireclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
+            if get_codegen_debug_info() and instance.filename and instance.lineno:
+                coreir_instance.add_metadata("filename", make_relative(instance.filename))
+                coreir_instance.add_metadata("lineno", str(instance.lineno))
             for name, port in instance.interface.ports.items():
                 if port.isoutput():
                     self.add_output_port(output_ports, port)
