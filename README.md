@@ -1,4 +1,5 @@
 # Magma
+[![Documentation Status](https://readthedocs.org/projects/magma/badge/?version=latest)](https://magma.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/phanrahan/magma.svg?branch=master)](https://travis-ci.org/phanrahan/magma)
 [![Coverage Status](https://coveralls.io/repos/github/phanrahan/magma/badge.svg?branch=master)](https://coveralls.io/github/phanrahan/magma?branch=master)
 
