@@ -150,7 +150,7 @@ class ValueStore:
         if isinstance(newval, int) and newval in {0, 1}:
             newval = bool(newval)
         if not isinstance(newval, bool):
-            raise TypeError(f"Can only set Bit {bit} with a boolean value or 0 or 1")
+            raise TypeError(f"Can only set Bit {bit} with a boolean value or 0 or 1, not {newval} (type={type(newval)})")
 
         self.value_map[bit] = newval
 
@@ -378,10 +378,10 @@ class PythonSimulator(CircuitSimulator):
         j = 0
         for name, port in circuit.interface.ports.items():
             if port.isoutput():
-                n = 1
+                val = largs[j]
                 if isinstance(port, ArrayType):
                     n = type(port).N
-                val = BitVector(largs[j], num_bits=n)
+                    val = BitVector(val, num_bits=n)
                 self.set_value(getattr(circuit, name), val)
                 j += 1
 
