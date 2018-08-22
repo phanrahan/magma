@@ -106,7 +106,10 @@ def compileinstance(self):
         return '.%s(%s)' % (k, v)
 
     args = []
+    debug_str = ""
     for k, v in self.interface.ports.items():
+        if hasattr(v, "debug_info") and get_codegen_debug_info():
+            filename, lineno = v.debug_info
         #print('arg', k, v,)
         if v.isinput():
             # find the output connected to v
@@ -119,6 +122,8 @@ def compileinstance(self):
             args.append( vname(v) )
         else:
             args.append( arg(k,vname(v)) )
+        if hasattr(v, "debug_info") and get_codegen_debug_info():
+            debug_str += f"// Argument {k}({vname(v)}) wired at {make_relative(filename)}:{lineno}\n"
 
     params = []
     for k, v in self.kwargs.items():
@@ -138,7 +143,7 @@ def compileinstance(self):
             s += ' #(' + ", ".join(params) + ')'
     s += ' ' + str(self.name)
 
-    return '%s (%s)' % (s, ', '.join(args))
+    return debug_str + '%s (%s)' % (s, ', '.join(args))
 
 def compiledefinition(cls):
 
@@ -153,7 +158,10 @@ def compiledefinition(cls):
        s = cls.verilogFile
     else:
         args = ', '.join(vmoduleargs(cls.interface))
-        s = 'module %s (%s);\n' % (cls.verilog_name, args)
+        s = ''
+        if get_codegen_debug_info() and cls.filename and cls.lineno:
+            s += f'// Defined at {make_relative(cls.filename)}:{cls.lineno}\n'
+        s += 'module %s (%s);\n' % (cls.verilog_name, args)
         if cls.verilog:
             s += cls.verilog + '\n'
             if cls.verilogLib:
@@ -175,10 +183,9 @@ def compiledefinition(cls):
             # emit the structured verilog for each instance
             for instance in cls.instances:
                 wiredefaultclock(cls, instance)
-                s += compileinstance(instance) + ";"
                 if instance.filename and instance.lineno and get_codegen_debug_info():
-                    s += f" // Instanced at {make_relative(instance.filename)}:{instance.lineno}"
-                s +=  '\n'
+                    s += f"// Instanced at {make_relative(instance.filename)}:{instance.lineno}\n"
+                s += compileinstance(instance) + ";\n"
 
             # assign to module output arguments
             for port in cls.interface.ports.values():
@@ -187,10 +194,9 @@ def compiledefinition(cls):
                     if output:
                         iname = vname(port)
                         oname = vname(output)
-                        s += 'assign %s = %s;' % (iname, oname)
                         if hasattr(port, "debug_info") and get_codegen_debug_info():
-                            s += f"  // Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}"
-                        s += '\n'
+                            s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
+                        s += 'assign %s = %s;\n' % (iname, oname)
                     else:
                         logging.warning(f"{cls.__name__}.{port.name} is unwired")
 

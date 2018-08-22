@@ -73,6 +73,10 @@ class CircuitKind(type):
 
         if 'coreir_lib' not in dct:
             dct['coreir_lib'] = "global"
+        if "filename" not in dct and "lineno" not in dct:
+            callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
+            dct["filename"] = callee_frame.filename
+            dct["lineno"] = callee_frame.lineno
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
@@ -151,7 +155,7 @@ class CircuitKind(type):
 class AnonymousCircuitType(object):
 
     def __init__(self, *largs, **kwargs):
-        self.largs = largs
+
         self.kwargs = kwargs
         if hasattr(self, 'default_kwargs'):
             for key in self.default_kwargs:
@@ -337,8 +341,11 @@ class CircuitType(AnonymousCircuitType):
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
+    debug_info = get_callee_frame_info()
     dct = dict(
         IO=decl,
+        filename=debug_info[0],
+        lineno=debug_info[1],
         is_definition=False,
         primitive=args.get('primitive', True),
         stateful=args.get('stateful', False),
