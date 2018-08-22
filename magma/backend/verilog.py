@@ -26,9 +26,6 @@ elif level is not None:
 
 from .util import get_codegen_debug_info, make_relative
 
-coreir_primitives_file_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "coreir_prims.v")
-
 #__all__  = ['hstr', 'bstr']
 __all__  = ['hstr']
 
