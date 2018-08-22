@@ -14,7 +14,6 @@ from ..circuit import *
 from ..clock import wiredefaultclock
 import logging
 import os
-from bit_vector import BitVector
 
 logger = logging.getLogger('magma').getChild('verilog_backend')
 level = os.getenv("MAGMA_VERILOG_BACKEND_LOG_LEVEL", "WARN")
@@ -67,13 +66,6 @@ def vname(t):
     if t is GND: return "1'b0"
 
     if isinstance(t, ArrayType):
-        bit_type_to_constant_map = {
-            GND: 0,
-            VCC: 1
-        }
-        if all(x in {VCC, GND} for x in t.ts):
-            value = BitVector([bit_type_to_constant_map[x] for x in t.ts])
-            return f"{len(value)}'h{hex(value.as_uint())}"
         # print(t.ts)
         if not t.iswhole(t.ts):
             # the sequence of values is concantenated
