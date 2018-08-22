@@ -58,7 +58,7 @@ def check_definitions_are_unique(circuit):
     CheckDefinitionUniquenessPass(circuit).run()
 
 
-def compile(basename, main, output='verilog', origin=None, include_coreir=False):
+def compile(basename, main, output='verilog', origin=None):
     check_definitions_are_unique(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
@@ -68,7 +68,7 @@ def compile(basename, main, output='verilog', origin=None, include_coreir=False)
         file_name = basename
 
     if output == 'verilog':
-        write_file(file_name, 'v', verilog.compile(main, include_coreir))
+        write_file(file_name, 'v', verilog.compile(main))
     elif output == 'blif':
         write_file(file_name, 'blif', blif.compile(main))
     elif output == 'firrtl':

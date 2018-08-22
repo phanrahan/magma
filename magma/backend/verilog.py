@@ -215,12 +215,10 @@ def find(circuit, defn):
     return defn
 
 
-def compile(main, include_coreir=False):
+def compile(main):
     defn = find(main,OrderedDict())
 
     code = ''
-    if include_coreir:
-        code += "`include \"{}\"\n".format(coreir_primitives_file_path)
 
     for k, v in defn.items():
          logging.debug(f'compiling circuit {k}')
