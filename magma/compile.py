@@ -108,6 +108,12 @@ def compile(basename, main, output='verilog', **kwargs):
         write_file(file_name, 'fir', firrtl.compile(main))
     elif output == 'coreir':
         __compile_to_coreir(main, file_name, opts)
+    elif output == 'coreir-verilog-inline':
+        # underscore so our coreir module doesn't conflict with coreir bindings
+        # package
+        from .backend import coreir_
+        coreir_.compile(main, file_name + ".json")
+        subprocess.run(f"coreir -l commonlib -i {file_name}.json -o {file_name}.v --inline", shell=True)
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
     else:
