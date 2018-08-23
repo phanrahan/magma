@@ -11,6 +11,9 @@ from .t import In, Out, InOut
 from .bit import Bit
 from .array import Array
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
+import logging
+
+logger = logging.getLogger('magma').getChild('from_verilog')
 
 __all__  = ['DeclareFromVerilog']
 __all__ += ['DeclareFromVerilogFile']
@@ -91,13 +94,17 @@ def FromVerilog(source, func):
         assert len(v.nodes) == 1
     modules = []
     for node in v.nodes:
-         name, args = ParseVerilogModule(node)
-         circuit = func(name, *args)
-         if func == DefineCircuit:
-             # inline source
-             circuit.verilogFile = source
-         EndDefine()
-         modules.append(circuit)
+        try:
+            name, args = ParseVerilogModule(node)
+            circuit = func(name, *args)
+            if func == DefineCircuit:
+                # inline source
+                circuit.verilogFile = source
+            EndDefine()
+            modules.append(circuit)
+        except:
+            logger.warning(f"Could not parse module {node.name}, skipping")
+
     return modules
 
 def FromVerilogFile(file, func):
