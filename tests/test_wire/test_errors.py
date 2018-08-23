@@ -62,7 +62,7 @@ def test_muliple_outputs_circuit(caplog):
     a = A()
     a(main)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_wire/test_errors.py:63: Number of inputs is not equal to the number of outputs, only 2 of the 1 arguments will be wired
+\033[1mtests/test_wire/test_errors.py:63: Number of inputs is not equal to the number of outputs, expected 2 inputs, got 1. Only 1 will be wired.
     a(main)
 """
 
