@@ -14,10 +14,10 @@ class AnonRef(Ref):
         self.name = name
 
     def __str__(self):
-        return str(self.name) if self.name else f"AnonymousValue({id(self)})"
+        return str(self.name) if self.name else f"AnonymousValue_{id(self)}"
 
     def qualifiedname(self, sep='.'):
-        return str(self.name) if self.name else f"AnonymousValue({id(self)})"
+        return str(self.name) if self.name else f"AnonymousValue_{id(self)}"
 
     def anon(self):
         return False if self.name else True
