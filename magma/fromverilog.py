@@ -80,7 +80,7 @@ def ParseVerilogModule(node):
 
     return node.name, args
 
-def FromVerilog(source, func):
+def FromVerilog(source, func, module=None):
     parser = VerilogParser()
 
     ast = parser.parse(source)
@@ -94,6 +94,8 @@ def FromVerilog(source, func):
         assert len(v.nodes) == 1
     modules = []
     for node in v.nodes:
+        if module is not None and node.name != module:
+            continue
         try:
             name, args = ParseVerilogModule(node)
             circuit = func(name, *args)
@@ -101,17 +103,22 @@ def FromVerilog(source, func):
                 # inline source
                 circuit.verilogFile = source
             EndDefine()
+            if module is not None:
+                assert node.name == module
+                return circuit
             modules.append(circuit)
         except:
             logger.warning(f"Could not parse module {node.name}, skipping")
+    if module is not None:
+        raise Exception(f"Could not find module {module}")
 
     return modules
 
-def FromVerilogFile(file, func):
+def FromVerilogFile(file, func, module=None):
     if file is None:
         return None
     verilog = open(file).read()
-    return FromVerilog(verilog, func)
+    return FromVerilog(verilog, func, module)
 
 def FromTemplatedVerilog(templatedverilog, func, **kwargs):
     verilog = Template(templatedverilog).render(**kwargs)
@@ -127,8 +134,8 @@ def FromTemplatedVerilogFile(file, func, **kwargs):
 def DeclareFromVerilog(source):
     return FromVerilog(source, DeclareCircuit)
 
-def DeclareFromVerilogFile(file):
-    return FromVerilogFile(file, DeclareCircuit)
+def DeclareFromVerilogFile(file, module=None):
+    return FromVerilogFile(file, DeclareCircuit, module)
 
 def DeclareFromTemplatedVerilog(source, **kwargs):
     return FromTemplatedVerilog(source, DeclareCircuit, **kwargs)
@@ -140,8 +147,8 @@ def DeclareFromTemplatedVerilogFile(file, **kwargs):
 def DefineFromVerilog(source):
     return FromVerilog(source, DefineCircuit)
 
-def DefineFromVerilogFile(file):
-    return FromVerilogFile(file, DefineCircuit)
+def DefineFromVerilogFile(file, module=None):
+    return FromVerilogFile(file, DefineCircuit, module)
 
 def DefineFromTemplatedVerilog(source, **kwargs):
     return FromTemplatedVerilog(source, DefineCircuit, **kwargs)
