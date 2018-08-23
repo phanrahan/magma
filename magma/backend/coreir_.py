@@ -83,6 +83,7 @@ class CoreIRBackend:
         self.modules = CoreIRBackend.context_to_modules_map[context]
         self.context = context
         self.libs = keydefaultdict(self.context.get_lib)
+        self.libs_used = set()
         self.__constant_cache = {}
         self.__unique_concat_id = -1
 
@@ -224,6 +225,8 @@ class CoreIRBackend:
                 self.add_output_port(output_ports, element)
 
     def compile_declaration(self, declaration):
+        if declaration.coreir_lib is not None:
+            self.libs_used.add(declaration.coreir_lib)
         # These libraries are already available by default in coreir, so we
         # don't need declarations
         if declaration.coreir_lib in ["coreir", "corebit", "commonlib"]:
@@ -236,6 +239,8 @@ class CoreIRBackend:
                                                                  module_type)
 
     def compile_definition_to_module_definition(self, definition, module_definition):
+        if definition.coreir_lib is not None:
+            self.libs_used.add(definition.coreir_lib)
         output_ports = {}
         for name, port in definition.interface.ports.items():
             if port.isoutput():

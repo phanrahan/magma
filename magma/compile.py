@@ -58,7 +58,14 @@ def check_definitions_are_unique(circuit):
     CheckDefinitionUniquenessPass(circuit).run()
 
 
-def compile(basename, main, output='verilog', origin=None):
+def compile(basename, main, output='verilog', origin=None, coreir_args=None):
+    if coreir_args is None:
+        # Make a fresh dict every time so we don't keep manipulating the
+        # singleton default argument dict
+        coreir_args = {}
+    if output == 'coreir-verilog':
+        coreir_args["output_verilog"] = True
+        output = "coreir"
     check_definitions_are_unique(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
@@ -77,13 +84,17 @@ def compile(basename, main, output='verilog', origin=None):
         # underscore so our coreir module doesn't conflict with coreir bindings
         # package
         from .backend import coreir_
-        coreir_.compile(main, file_name + ".json")
-    elif output == 'coreir-verilog':
-        # underscore so our coreir module doesn't conflict with coreir bindings
-        # package
-        from .backend import coreir_
-        coreir_.compile(main, file_name + ".json")
-        subprocess.run(f"coreir -l commonlib -i {file_name}.json -o {file_name}.v", shell=True)
+        backend = coreir_.CoreIRBackend()
+        backend.compile(main)
+        if coreir_args.get("passes", False):
+            backend.context.run_passes(coreir_args["passes"], ["global"])
+
+        backend.modules[main.coreir_name].save_to_file(file_name + ".json")
+        lib_arg = ""
+        if coreir_args.get("output_verilog", False):
+            if backend.libs_used:
+                lib_arg = f"-l {','.join(backend.libs_used)}"
+            subprocess.run(f"coreir {lib_arg} -i {file_name}.json -o {file_name}.v", shell=True)
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
 
