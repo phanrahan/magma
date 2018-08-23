@@ -84,7 +84,7 @@ class ArrayType(Type):
             return
 
         if i.N != o.N:
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, len={i.N}) to {i.debug_name} (type={type(i)}, len={o.N}) because the arrays do not have the same length', debug_info)  # noqa
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={o.T}, len={o.N}) to {i.debug_name} (type={i.T}, len={i.N}) because the arrays do not have the same length', debug_info)  # noqa
             return
 
         for k in range(len(i)):
