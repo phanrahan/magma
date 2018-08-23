@@ -9,7 +9,7 @@ def test_array_lengths(caplog):
     buf = Buf()
     wire(main.O, buf.I)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_type/test_type_errors.py:10: Cannot wire main.O (type=Array(7,In(Bit)), len=8) to main.Buf_inst0.I (type=Array(8,In(Bit)), len=7) because the arrays do not have the same length
+\033[1mtests/test_type/test_type_errors.py:10: Cannot wire main.O (type=Array(7,In(Bit))) to main.Buf_inst0.I (type=Array(8,In(Bit))) because the arrays do not have the same length
     wire(main.O, buf.I)
 """
 
