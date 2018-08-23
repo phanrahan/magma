@@ -23,7 +23,7 @@ setup(
         "numpy",
         "graphviz",
         "coreir==0.24a0",
-        "bit_vector==0.32a0"
+        "bit_vector==0.33a0"
     ],
     python_requires='>=3.6'
 )
