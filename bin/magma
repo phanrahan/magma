@@ -41,7 +41,7 @@ for o, a in opts:
             usage()
         board = a
     elif o == '-o':
-        if a not in ['verilog', 'coreir', 'coreir_verilog', 'firrtl', 'blif']:
+        if a not in ['verilog', 'coreir', 'coreir-verilog', 'firrtl', 'blif']:
             usage()
         outputformat = a
     elif o == '-m':
@@ -80,5 +80,6 @@ name = os.path.splitext(name)[0]
 main = getattr(__import__(name), top_circuit)
 
 mainv = os.path.join(build,name)
+print(mainv, outputformat)
 
 compile(mainv, main, output=outputformat)
