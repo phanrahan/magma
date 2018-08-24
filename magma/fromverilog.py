@@ -102,7 +102,7 @@ def FromVerilog(source, func, module=None):
             if func == DefineCircuit:
                 # inline source
                 circuit.verilogFile = source
-            EndDefine()
+                EndDefine()
             if module is not None:
                 assert node.name == module
                 return circuit
