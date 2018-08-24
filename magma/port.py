@@ -24,9 +24,9 @@ def report_wiring_warning(message, debug_info):
     # TODO: Include wire traceback support
     warning(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}")
     try:
-        error(get_source_line(debug_info[0], debug_info[1]))
+        warning(get_source_line(debug_info[0], debug_info[1]))
     except FileNotFoundError:
-        error(f"    Could not find file {debug_info[0]}")
+        warning(f"    Could not find file {debug_info[0]}")
 
 
 def flip(direction):
