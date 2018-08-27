@@ -24,8 +24,9 @@ level = os.getenv("MAGMA_COREIR_BACKEND_LOG_LEVEL", "WARN")
 if level in ["DEBUG", "WARN", "INFO"]:
     logger.setLevel(getattr(logging, level))
 elif level is not None:
-    logging.warning("Unsupported value for MAGMA_COREIR_BACKEND_LOG_LEVEL:"
-                    f" {level}")
+    logger.warning("Unsupported value for MAGMA_COREIR_BACKEND_LOG_LEVEL:"
+                   f" {level}")
+# logger.setLevel(logging.DEBUG)
 
 class CoreIRBackendError(RuntimeError):
     pass
@@ -185,6 +186,7 @@ class CoreIRBackend:
     def compile_instance(self, instance, module_definition):
         name = instance.__class__.coreir_name
         lib = self.libs[instance.coreir_lib]
+        logger.debug(instance.name, type(instance))
         if instance.coreir_genargs is None:
             if hasattr(instance, "wrappedModule"):
                 module = instance.wrappedModule
@@ -231,18 +233,23 @@ class CoreIRBackend:
         # don't need declarations
         if declaration.coreir_lib in ["coreir", "corebit", "commonlib"]:
             return
+        if declaration.name in self.modules:
+            logger.debug(f"    {declaration} already compiled, skipping")
+            return
         module_type = self.convert_interface_to_module_type(declaration.interface)
         if isinstance(declaration.interface, InterfaceKind):
             module_type = self.context.Flip(module_type)
 
         coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
                                                                  module_type)
+        return coreir_module
 
     def compile_definition_to_module_definition(self, definition, module_definition):
         if definition.coreir_lib is not None:
             self.libs_used.add(definition.coreir_lib)
         output_ports = {}
         for name, port in definition.interface.ports.items():
+            logger.debug(name, port, port.isoutput())
             if port.isoutput():
                 self.add_output_port(output_ports, port)
 
@@ -270,6 +277,9 @@ class CoreIRBackend:
 
     def compile_definition(self, definition):
         logger.debug(f"Compiling definition {definition}")
+        if definition.name in self.modules:
+            logger.debug(f"    {definition} already compiled, skipping")
+            return
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
@@ -314,6 +324,8 @@ class CoreIRBackend:
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
+            logger.debug(value, output_ports)
+            logger.debug(id(value), [id(key) for key in output_ports])
             source = module_definition.select(output_ports[value])
         module_definition.connect(
             source,
@@ -369,7 +381,7 @@ class CoreIRBackend:
                     self.modules[key.name] = self.compile_definition(key)
                     # key.wrappedModule = modules[key.name]
             else:
-                self.compile_declaration(key)
+                self.modules[key.name] = self.compile_declaration(key)
 
     def compile(self, defn):
         self.compile_dependencies(defn)

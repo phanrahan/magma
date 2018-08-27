@@ -22,9 +22,24 @@ def test_simple_def(target, suffix):
     m.EndCircuit()
 
     m.compile("build/test_simple_def", main, output=target)
-    m.set_codegen_debug_info(False)
     assert check_files_equal(__file__, f"build/test_simple_def.{suffix}",
                              f"gold/test_simple_def.{suffix}")
+
+    # Check that the subclassing pattern produces the same annotations
+    class Main(m.Circuit):
+        IO = ["I", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            and2 = And2()
+            m.wire(io.I[0], and2.I0)
+            m.wire(io.I[1], and2.I1)
+            m.wire(and2.O, io.O)
+
+    m.compile("build/test_simple_def_class", Main, output=target)
+    m.set_codegen_debug_info(False)
+    assert check_files_equal(__file__, f"build/test_simple_def_class.{suffix}",
+                             f"gold/test_simple_def_class.{suffix}")
 
 
 def test_unwired_ports_warnings(caplog):
