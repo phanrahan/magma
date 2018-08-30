@@ -119,7 +119,7 @@ class CoreIRBackend:
                     return f"_{k}"
                 return k
             _type = self.context.Record({
-                to_string(k): self.get_type(t, is_input) for (k, t) in
+                to_string(k): self.get_type(t, t.isinput()) for (k, t) in
                 zip(port.Ks, port.Ts)
             })
         elif is_input:
@@ -178,7 +178,8 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
         for name, port in interface.ports.items():
-            if not port.isinput() and not port.isoutput():
+            if not port.isinput() and not port.isoutput() and \
+                    not isinstance(port, TupleType):
                 raise NotImplementedError()
             args[name] = self.get_type(port, port.isinput())
         return self.context.Record(args)
@@ -218,11 +219,12 @@ class CoreIRBackend:
                     generator, gen_args, config_args)
 
     def add_output_port(self, output_ports, port):
-        output_ports[port] = magma_port_to_coreir(port)
-        if isinstance(port, ArrayType):
-            for element in port:
-                self.add_output_port(output_ports, element)
-        elif isinstance(port, TupleType):
+        if port.isoutput():
+            output_ports[port] = magma_port_to_coreir(port)
+            if isinstance(port, ArrayType):
+                for element in port:
+                    self.add_output_port(output_ports, element)
+        if isinstance(port, TupleType):
             for element in port:
                 self.add_output_port(output_ports, element)
 
@@ -250,8 +252,7 @@ class CoreIRBackend:
         output_ports = {}
         for name, port in definition.interface.ports.items():
             logger.debug(name, port, port.isoutput())
-            if port.isoutput():
-                self.add_output_port(output_ports, port)
+            self.add_output_port(output_ports, port)
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
@@ -261,19 +262,25 @@ class CoreIRBackend:
                 coreir_instance.add_metadata("filename", make_relative(instance.filename))
                 coreir_instance.add_metadata("lineno", str(instance.lineno))
             for name, port in instance.interface.ports.items():
-                if port.isoutput():
-                    self.add_output_port(output_ports, port)
+                self.add_output_port(output_ports, port)
 
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
-                if port.isinput():
-                    self.connect(module_definition, port, port.value(), output_ports)
-        for input in definition.interface.inputs(include_clocks=True):
-            output = input.value()
-            if not output:
-                error(repr(definition))
-                raise Exception(f"Output {input} of {definition.name} not connected.".format(input))
-            self.connect(module_definition, input, output, output_ports)
+                self.connect_input(module_definition, port, output_ports)
+
+        for port in definition.interface.ports.values():
+            self.connect_input(module_definition, port,
+                               output_ports)
+
+    def connect_input(self, module_definition, port,
+                      output_ports):
+        if not port.isinput():
+            if isinstance(port, TupleType):
+                for elem in port:
+                    self.connect_input(module_definition, elem,
+                                       output_ports)
+            return
+        self.connect(module_definition, port, port.value(), output_ports)
 
     def compile_definition(self, definition):
         logger.debug(f"Compiling definition {definition}")
