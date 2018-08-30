@@ -1,0 +1,31 @@
+{"top":"global.main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "And2":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "main":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.And2"
+          }
+        },
+        "connections":[
+          ["self.I.0","inst0.I0"],
+          ["self.I.1","inst0.I1"],
+          ["self.O","inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}
