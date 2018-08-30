@@ -84,23 +84,26 @@ def test_2d_array_error(caplog):
 
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
-def test_anon_bit(target, suffix):
-    And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
-                            "O", m.Out(m.Bit))
+@pytest.mark.parametrize("T",[m.Bit, m.Bits(2), m.Array(2, m.Bit), m.Tuple(x=m.Bit, y=m.Bit)])
+def test_anon_value(target, suffix, T):
+    if isinstance(T, m.TupleKind) and target == "verilog":
+        pytest.skip("Tuple not supported by verilog")
+    And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
+                            "O", m.Out(T))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)),
-                           "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I0", m.In(T), "I1", m.In(T),
+                           "O", m.Out(T))
 
     and2 = And2()
 
-    m.wire(main.I[0], and2.I0)
-    m.wire(main.I[1], and2.I1)
-    tmp = m.Bit()
+    m.wire(main.I0, and2.I0)
+    m.wire(main.I1, and2.I1)
+    tmp = T()
     m.wire(and2.O, tmp)
     m.wire(tmp, main.O)
 
     m.EndCircuit()
 
-    m.compile("build/test_anon_bit", main, target)
-    assert check_files_equal(__file__, f"build/test_anon_bit.{suffix}",
-                             f"gold/test_anon_bit.{suffix}")
+    m.compile(f"build/test_anon_value_{T}", main, target)
+    assert check_files_equal(__file__, f"build/test_anon_value_{T}.{suffix}",
+                             f"gold/test_anon_value_{T}.{suffix}")
