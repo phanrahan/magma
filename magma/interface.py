@@ -29,7 +29,6 @@ def parse(decl, renamed_ports):
     n = len(decl)
     assert n % 2 == 0
 
-    directions = []
     names = []
     ports = []
     for i in range(0,n,2):
@@ -40,15 +39,7 @@ def parse(decl, renamed_ports):
 
         assert isinstance(port, Kind) or isinstance(port, Type)
 
-        direction = None
-        if   port.isinput():  direction = INPUT
-        elif port.isoutput(): direction = OUTPUT
-        elif port.isinout():  direction = INOUT
 
-        #if direction is None:
-        #    print("Error:", name, "must have a direciton")
-
-        directions.append(direction)
         names.append(name)
         if name in renamed_ports:
             if isinstance(port, BitKind):
@@ -56,7 +47,7 @@ def parse(decl, renamed_ports):
             port.origPortName = renamed_ports[name]
         ports.append(port)
 
-    return directions, names, ports
+    return names, ports
 
 #
 # Abstract Base Class for an Interface
@@ -174,15 +165,12 @@ class _Interface(Type):
 class Interface(_Interface):
     def __init__(self, decl, renamed_ports={}):
 
-        directions, names, ports = parse(decl, renamed_ports)
+        names, ports = parse(decl, renamed_ports)
 
         # setup ports
         args = OrderedDict()
 
-        for i in range(len(directions)):
-            direction = directions[i]
-            name = names[i]
-            port = ports[i]
+        for name, port in zip(names, ports):
 
             if isinstance(name, IntegerTypes):
                 name = str(name) # convert integer to str, e.g. 0 to "0"
@@ -207,29 +195,22 @@ class _DeclareInterface(_Interface):
     def __init__(self, renamed_ports={}, inst=None, defn=None):
 
         # parse the class Interface declaration
-        directions, names, ports = parse(self.Decl, renamed_ports)
+        names, ports = parse(self.Decl, renamed_ports)
 
         args = OrderedDict()
 
-        for i in range(len(directions)):
-            direction = directions[i]
-            name = names[i]
-            port = ports[i]
-
-            if defn:
-               if   direction == OUTPUT: direction = INPUT
-               elif direction == INPUT:  direction = OUTPUT
-               elif direction == INOUT:  direction = INOUT
-
+        for name, port in zip(names, ports):
             if   inst: ref = InstRef(inst, name)
             elif defn: ref = DefnRef(defn, name)
             else:      ref = AnonRef(name)
 
-            qualified_port = port.qualify(direction)
             if hasattr(port, "origPortName"):
                 ref.name = port.origPortName
 
-            args[name] = qualified_port(name=ref)
+            if defn:
+               port = port.flip()
+
+            args[name] = port(name=ref)
 
         self.ports = args
 
