@@ -266,27 +266,21 @@ class CoreIRBackend:
 
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
-                if port.isinput():
-                    self.connect(module_definition, port, port.value(),
-                                 output_ports)
+                self.connect_input(module_definition, port, output_ports)
 
         for port in definition.interface.ports.values():
-            self.connect_input(definition, module_definition, port,
+            self.connect_input(module_definition, port,
                                output_ports)
 
-    def connect_input(self, definition, module_definition, port,
+    def connect_input(self, module_definition, port,
                       output_ports):
         if not port.isinput():
             if isinstance(port, TupleType):
                 for elem in port:
-                    self.connect_input(definition, module_definition, elem,
+                    self.connect_input(module_definition, elem,
                                        output_ports)
             return
-        output = port.value()
-        if not output:
-            error(repr(definition))
-            raise Exception(f"Output {port} of {definition.name} not connected.".format(port))
-        self.connect(module_definition, port, output, output_ports)
+        self.connect(module_definition, port, port.value(), output_ports)
 
     def compile_definition(self, definition):
         logger.debug(f"Compiling definition {definition}")
