@@ -1,0 +1,40 @@
+{"top":"global.bar",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["ifc",["Record",[["I","BitIn"],["O","Bit"]]]]
+        ]],
+        "connections":[
+          ["self.ifc.O","self.ifc.I"]
+        ]
+      },
+      "bar":{
+        "type":["Record",[
+          ["I",["Record",[["x",["Record",[["a","BitIn"],["b","BitIn"]]]],["y",["Record",[["a","Bit"],["b","Bit"]]]],["z",["Record",[["a","BitIn"],["b","Bit"]]]]]]]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.Foo"
+          },
+          "inst1":{
+            "modref":"global.Foo"
+          },
+          "inst2":{
+            "modref":"global.Foo"
+          }
+        },
+        "connections":[
+          ["self.I.x.a","inst0.ifc.I"],
+          ["self.I.y.a","inst0.ifc.O"],
+          ["self.I.x.b","inst1.ifc.I"],
+          ["self.I.y.b","inst1.ifc.O"],
+          ["self.I.z.a","inst2.ifc.I"],
+          ["self.I.z.b","inst2.ifc.O"]
+        ]
+      }
+    }
+  }
+}
+}

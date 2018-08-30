@@ -45,5 +45,24 @@ def test_multi_direction_tuple_instance_bulk():
     assert check_files_equal(__file__, f"build/test_multi_direction_tuple_instance_bulk.json",
                              f"gold/test_multi_direction_tuple_instance.json")
 
+def test_nesting():
+    bar = m.DefineCircuit("bar", "I", m.Tuple(x=m.In(m.Tuple(a=m.Bit, b=m.Bit)),
+                                              y=m.Out(m.Tuple(a=m.Bit, b=m.Bit)),
+                                              z=m.Tuple(a=m.In(m.Bit), b=m.Out(m.Bit))))
+    foo = def_foo()
+    foo_inst0 = foo()
+    foo_inst1 = foo()
+    foo_inst2 = foo()
+    m.wire(foo_inst0.ifc.I, bar.I.x.a)
+    m.wire(foo_inst0.ifc.O, bar.I.y.a)
+    m.wire(foo_inst1.ifc.I, bar.I.x.b)
+    m.wire(foo_inst1.ifc.O, bar.I.y.b)
+    m.wire(foo_inst2.ifc.I, bar.I.z.a)
+    m.wire(foo_inst2.ifc.O, bar.I.z.b)
+    m.EndCircuit()
+    m.compile("build/test_nesting", bar, output="coreir")
+    assert check_files_equal(__file__, f"build/test_nesting.json",
+                             f"gold/test_nesting.json")
+
 if __name__ == "__main__":
     test_multi_direction_tuple()
