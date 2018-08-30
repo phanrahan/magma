@@ -88,8 +88,11 @@ class TupleType(Type):
         #    print('Wiring error: Tuple elements must have the same type')
         #    return
 
-        for k in range(len(i)):
-            i[k].wire(o[k], debug_info)
+        for i_elem, o_elem in zip(i, o):
+            if o_elem.isinput():
+                o_elem.wire(i_elem, debug_info)
+            else:
+                i_elem.wire(o_elem, debug_info)
 
     def driven(self):
         for t in self.ts:

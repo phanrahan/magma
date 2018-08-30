@@ -33,5 +33,17 @@ def test_multi_direction_tuple_instance():
     assert check_files_equal(__file__, f"build/test_multi_direction_tuple_instance.json",
                              f"gold/test_multi_direction_tuple_instance.json")
 
+
+def test_multi_direction_tuple_instance_bulk():
+    bar = m.DefineCircuit("bar", "ifc", m.Tuple(I=m.In(m.Bit), O=m.Out(m.Bit)))
+    foo_inst = def_foo()()
+    m.wire(bar.ifc, foo_inst.ifc)
+    m.EndCircuit()
+
+    m.compile("build/test_multi_direction_tuple_instance_bulk", bar, output="coreir")
+    # NOTE: Should be the same as previous test, so we use that as a check
+    assert check_files_equal(__file__, f"build/test_multi_direction_tuple_instance_bulk.json",
+                             f"gold/test_multi_direction_tuple_instance.json")
+
 if __name__ == "__main__":
     test_multi_direction_tuple()
