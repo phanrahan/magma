@@ -58,14 +58,40 @@ def check_definitions_are_unique(circuit):
     CheckDefinitionUniquenessPass(circuit).run()
 
 
-def compile(basename, main, output='verilog', origin=None, coreir_args=None):
-    if coreir_args is None:
-        # Make a fresh dict every time so we don't keep manipulating the
-        # singleton default argument dict
-        coreir_args = {}
+def __compile_to_coreir(main, file_name, opts):
+    # Underscore so our coreir module doesn't conflict with coreir bindings
+    # package.
+    from .backend import coreir_
+    backend = coreir_.CoreIRBackend()
+    backend.compile(main)
+    if opts.get("passes", False):
+        backend.context.run_passes(opts["passes"], ["global"])
+
+    backend.modules[main.coreir_name].save_to_file(file_name + ".json")
+    if opts.get("output_verilog", False):
+        # TODO(rsetaluri): Expose compilation to verilog in pycoreir rather than
+        # calling the binary from the command line.
+        lib_arg = ""
+        if backend.libs_used:
+            lib_arg = f"-l {','.join(backend.libs_used)}"
+        cmd = f"coreir {lib_arg} -i {file_name}.json"
+        if opts.get("split", ""):
+            split = opts["split"]
+            cmd += f" -o {split}/*.v -s"
+        else:
+            cmd += f" -o {file_name}.v"
+        subprocess.run(cmd, shell=True)
+
+
+def compile(basename, main, output='verilog', **kwargs):
+    opts = kwargs.copy()
+
+    # Rather than having separate logic for 'coreir-verilog' mode, we defer to
+    # 'coreir' mode with the 'output_verilog' option set to True.
     if output == 'coreir-verilog':
-        coreir_args["output_verilog"] = True
+        opts["output_verilog"] = True
         output = "coreir"
+
     check_definitions_are_unique(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
@@ -81,22 +107,11 @@ def compile(basename, main, output='verilog', origin=None, coreir_args=None):
     elif output == 'firrtl':
         write_file(file_name, 'fir', firrtl.compile(main))
     elif output == 'coreir':
-        # underscore so our coreir module doesn't conflict with coreir bindings
-        # package
-        from .backend import coreir_
-        backend = coreir_.CoreIRBackend()
-        backend.compile(main)
-        if coreir_args.get("passes", False):
-            backend.context.run_passes(coreir_args["passes"], ["global"])
-
-        backend.modules[main.coreir_name].save_to_file(file_name + ".json")
-        lib_arg = ""
-        if coreir_args.get("output_verilog", False):
-            if backend.libs_used:
-                lib_arg = f"-l {','.join(backend.libs_used)}"
-            subprocess.run(f"coreir {lib_arg} -i {file_name}.json -o {file_name}.v", shell=True)
+        __compile_to_coreir(main, file_name, opts)
     elif output == 'dot':
         write_file(file_name, 'dot', dot.compile(main))
+    else:
+        raise NotImplementedError(f"Backend '{output}' not supported")
 
     if hasattr(main, 'fpga'):
         main.fpga.constraints(file_name);
