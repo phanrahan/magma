@@ -77,7 +77,7 @@ def __compile_to_coreir(main, file_name, opts):
         cmd = f"coreir {lib_arg} -i {file_name}.json"
         if opts.get("split", ""):
             split = opts["split"]
-            cmd += f" -o {split}/*.v -s"
+            cmd += f" -o \"{split}/*.v\" -s"
         else:
             cmd += f" -o {file_name}.v"
         subprocess.run(cmd, shell=True)
