@@ -307,7 +307,8 @@ class CoreIRBackend:
         if value is None and is_clock_or_nested_clock(port):
             return
         elif value is None:
-            raise Exception("Got None for port: {}, is it connected to anything?".format(port))
+            raise Exception(f"Got None for port '{port.debug_name}', is it "
+                            "connected to anything?")
         elif isinstance(value, coreir.Wireable):
             source = value
 
