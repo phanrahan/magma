@@ -1,0 +1,25 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["IFC",["Array",10,["Record",[["I","BitIn"],["O","Bit"]]]]]
+        ]],
+        "connections":[
+          ["self.IFC.0.O","self.IFC.0.I"],
+          ["self.IFC.1.O","self.IFC.1.I"],
+          ["self.IFC.2.O","self.IFC.2.I"],
+          ["self.IFC.3.O","self.IFC.3.I"],
+          ["self.IFC.4.O","self.IFC.4.I"],
+          ["self.IFC.5.O","self.IFC.5.I"],
+          ["self.IFC.6.O","self.IFC.6.I"],
+          ["self.IFC.7.O","self.IFC.7.I"],
+          ["self.IFC.8.O","self.IFC.8.I"],
+          ["self.IFC.9.O","self.IFC.9.I"]
+        ]
+      }
+    }
+  }
+}
+}

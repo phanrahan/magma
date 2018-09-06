@@ -64,5 +64,15 @@ def test_nesting():
     assert check_files_equal(__file__, f"build/test_nesting.json",
                              f"gold/test_nesting.json")
 
+def test_array_nesting():
+    T = m.Array(10, m.Tuple(I=m.In(m.Bit), O=m.Out(m.Bit)))
+    Foo = m.DefineCircuit("Foo", "IFC", T)
+    for i in range(10):
+        m.wire(Foo.IFC[i].I, Foo.IFC[i].O)
+    m.EndCircuit()
+    m.compile("build/test_array_nesting", Foo, output="coreir")
+    assert check_files_equal(__file__, f"build/test_array_nesting.json",
+                             f"gold/test_array_nesting.json")
+
 if __name__ == "__main__":
     test_multi_direction_tuple()

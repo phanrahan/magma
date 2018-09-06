@@ -104,9 +104,9 @@ class CoreIRBackend:
         for name, port in definition.interface.ports.items():
             check_type(type(port), 'Error: Argument {} must be comprised only of Bit, Array, or Tuple')
 
-    def get_type(self, port, is_input):
+    def get_type(self, port):
         if isinstance(port, (ArrayType, ArrayKind)):
-            _type = self.context.Array(port.N, self.get_type(port.T, is_input))
+            _type = self.context.Array(port.N, self.get_type(port.T))
         elif isinstance(port, (TupleType, TupleKind)):
             def to_string(k):
                 """
@@ -119,10 +119,10 @@ class CoreIRBackend:
                     return f"_{k}"
                 return k
             _type = self.context.Record({
-                to_string(k): self.get_type(t, t.isinput()) for (k, t) in
+                to_string(k): self.get_type(t) for (k, t) in
                 zip(port.Ks, port.Ts)
             })
-        elif is_input:
+        elif port.isinput():
             if isinstance(port, (ClockType, ClockKind)):
                 _type = self.context.named_types[("coreir", "clk")]
             elif isinstance(port, (AsyncResetType, AsyncResetKind)):
@@ -178,10 +178,7 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
         for name, port in interface.ports.items():
-            if not port.isinput() and not port.isoutput() and \
-                    not isinstance(port, TupleType):
-                raise NotImplementedError()
-            args[name] = self.get_type(port, port.isinput())
+            args[name] = self.get_type(port)
         return self.context.Record(args)
 
     def compile_instance(self, instance, module_definition):
@@ -221,10 +218,7 @@ class CoreIRBackend:
     def add_output_port(self, output_ports, port):
         if port.isoutput():
             output_ports[port] = magma_port_to_coreir(port)
-            if isinstance(port, ArrayType):
-                for element in port:
-                    self.add_output_port(output_ports, element)
-        if isinstance(port, TupleType):
+        if isinstance(port, (TupleType, ArrayType)):
             for element in port:
                 self.add_output_port(output_ports, element)
 
@@ -275,7 +269,7 @@ class CoreIRBackend:
     def connect_input(self, module_definition, port,
                       output_ports):
         if not port.isinput():
-            if isinstance(port, TupleType):
+            if isinstance(port, (TupleType, ArrayType)):
                 for elem in port:
                     self.connect_input(module_definition, elem,
                                        output_ports)
