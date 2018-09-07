@@ -8,8 +8,8 @@ import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
 
 from .t import In, Out, InOut
-from .bit import Bit
-from .array import Array
+from .bit import Bit, _BitKind
+from .bits import Bits, BitsKind
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 import logging
 
@@ -33,7 +33,21 @@ class ModuleVisitor(NodeVisitor):
         self.nodes.append(node)
         return node
 
-def get_type(io):
+def convert(input_type, target_type):
+    if isinstance(input_type, _BitKind) and \
+       isinstance(target_type, _BitKind) and \
+       input_type.direction == target_type.direction:
+        return target_type
+    if isinstance(input_type, BitsKind) and \
+       isinstance(target_type, BitsKind) and \
+       input_type.N == target_type.N and \
+       input_type.T.direction == target_type.T.direction:
+        return target_type
+    raise NotImplementedError(f"Conversion between {input_type} and "
+                              f"{target_type} not supported")
+
+
+def get_type(io, type_map):
     if isinstance(io, Input):
         direction = In
     elif isinstance(io, Output):
@@ -46,19 +60,24 @@ def get_type(io):
     else:
         msb = int(io.width.msb.value)
         lsb = int(io.width.lsb.value)
+        type_ = Bits(msb-lsb+1)
 
-        type_ = Array(msb-lsb+1, Bit)
-    return direction(type_)
+    type_ = direction(type_)
+
+    if io.name in type_map:
+        type_ = convert(type_, type_map[io.name])
+
+    return type_
 
 
-def ParseVerilogModule(node):
+def ParseVerilogModule(node, type_map):
     args = []
     ports = []
     for port in node.portlist.ports:
         if isinstance(port, Ioport):
             io = port.first
             args.append(io.name)
-            args.append(get_type(io))
+            args.append(get_type(io, type_map))
         elif isinstance(port, Port):
             ports.append(port.name)
         else:
@@ -73,14 +92,14 @@ def ParseVerilogModule(node):
                     if isinstance(first_child, (parser.Input, parser.Output, parser.Inout)) and \
                             first_child.name == port:
                         args.append(first_child.name)
-                        args.append(get_type(first_child))
+                        args.append(get_type(first_child, type_map))
                         break
             else:
                 raise Exception(f"Could not find type declaration for port {port}")
 
     return node.name, args
 
-def FromVerilog(source, func, module=None):
+def FromVerilog(source, func, type_map, module=None):
     parser = VerilogParser()
 
     ast = parser.parse(source)
@@ -97,7 +116,7 @@ def FromVerilog(source, func, module=None):
         if module is not None and node.name != module:
             continue
         try:
-            name, args = ParseVerilogModule(node)
+            name, args = ParseVerilogModule(node, type_map)
             circuit = func(name, *args)
             if func == DefineCircuit:
                 # inline source
@@ -107,52 +126,53 @@ def FromVerilog(source, func, module=None):
                 assert node.name == module
                 return circuit
             modules.append(circuit)
-        except:
-            logger.warning(f"Could not parse module {node.name}, skipping")
+        except Exception as e:
+            logger.warning(f"Could not parse module {node.name} ({e}), "
+                           f"skipping")
     if module is not None:
         raise Exception(f"Could not find module {module}")
 
     return modules
 
-def FromVerilogFile(file, func, module=None):
+def FromVerilogFile(file, func, type_map, module=None):
     if file is None:
         return None
     verilog = open(file).read()
-    return FromVerilog(verilog, func, module)
+    return FromVerilog(verilog, func, type_map, module)
 
-def FromTemplatedVerilog(templatedverilog, func, **kwargs):
+def FromTemplatedVerilog(templatedverilog, func, type_map, **kwargs):
     verilog = Template(templatedverilog).render(**kwargs)
-    return FromVerilog(verilog, func)
+    return FromVerilog(verilog, func, type_map)
 
-def FromTemplatedVerilogFile(file, func, **kwargs):
+def FromTemplatedVerilogFile(file, func, type_map, **kwargs):
     if file is None:
         return None
     templatedverilog = open(file).read()
-    return FromTemplatedVerilog(templatedverilog, func, **kwargs)
+    return FromTemplatedVerilog(templatedverilog, func, type_map, **kwargs)
 
 
-def DeclareFromVerilog(source):
-    return FromVerilog(source, DeclareCircuit)
+def DeclareFromVerilog(source, type_map={}):
+    return FromVerilog(source, DeclareCircuit, type_map)
 
-def DeclareFromVerilogFile(file, module=None):
-    return FromVerilogFile(file, DeclareCircuit, module)
+def DeclareFromVerilogFile(file, module=None, type_map={}):
+    return FromVerilogFile(file, DeclareCircuit, type_map, module)
 
-def DeclareFromTemplatedVerilog(source, **kwargs):
-    return FromTemplatedVerilog(source, DeclareCircuit, **kwargs)
+def DeclareFromTemplatedVerilog(source, type_map={}, **kwargs):
+    return FromTemplatedVerilog(source, DeclareCircuit, type_map, **kwargs)
 
-def DeclareFromTemplatedVerilogFile(file, **kwargs):
-    return FromTemplatedVerilogFile(file, DeclareCircuit, **kwargs)
+def DeclareFromTemplatedVerilogFile(file, type_map={}, **kwargs):
+    return FromTemplatedVerilogFile(file, DeclareCircuit, type_map, **kwargs)
 
 
-def DefineFromVerilog(source):
-    return FromVerilog(source, DefineCircuit)
+def DefineFromVerilog(source, type_map={}):
+    return FromVerilog(source, DefineCircuit, type_map)
 
-def DefineFromVerilogFile(file, module=None):
-    return FromVerilogFile(file, DefineCircuit, module)
+def DefineFromVerilogFile(file, module=None, type_map={}):
+    return FromVerilogFile(file, DefineCircuit, type_map, module)
 
-def DefineFromTemplatedVerilog(source, **kwargs):
-    return FromTemplatedVerilog(source, DefineCircuit, **kwargs)
+def DefineFromTemplatedVerilog(source, type_map={}, **kwargs):
+    return FromTemplatedVerilog(source, DefineCircuit, type_map, **kwargs)
 
-def DefineFromTemplatedVerilogFile(file, **kwargs):
-    return FromTemplatedVerilogFile(file, DefineCircuit, **kwargs)
+def DefineFromTemplatedVerilogFile(file, type_map={}, **kwargs):
+    return FromTemplatedVerilogFile(file, DefineCircuit, type_map, **kwargs)
 
