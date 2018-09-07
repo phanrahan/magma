@@ -8,9 +8,8 @@ import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
 
 from .t import In, Out, InOut
-from .bit import Bit, BitKind
-from .clock import Clock, ClockKind
-from .array import Array
+from .bit import Bit, _BitKind
+from .bits import Bits, BitsKind
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 import logging
 
@@ -35,12 +34,17 @@ class ModuleVisitor(NodeVisitor):
         return node
 
 def convert(input_type, target_type):
-    if isinstance(input_type, BitKind) and \
-       isinstance(target_type, ClockKind) and \
+    if isinstance(input_type, _BitKind) and \
+       isinstance(target_type, _BitKind) and \
        input_type.direction == target_type.direction:
         return target_type
+    if isinstance(input_type, BitsKind) and \
+       isinstance(target_type, BitsKind) and \
+       input_type.N == target_type.N and \
+       input_type.T.direction == target_type.T.direction:
+        return target_type
     raise NotImplementedError(f"Conversion between {input_type} and "
-                              "{target_type} not supported")
+                              f"{target_type} not supported")
 
 
 def get_type(io, type_map):
@@ -56,8 +60,7 @@ def get_type(io, type_map):
     else:
         msb = int(io.width.msb.value)
         lsb = int(io.width.lsb.value)
-
-        type_ = Array(msb-lsb+1, Bit)
+        type_ = Bits(msb-lsb+1)
 
     type_ = direction(type_)
 
@@ -123,8 +126,9 @@ def FromVerilog(source, func, type_map, module=None):
                 assert node.name == module
                 return circuit
             modules.append(circuit)
-        except:
-            logger.warning(f"Could not parse module {node.name}, skipping")
+        except Exception as e:
+            logger.warning(f"Could not parse module {node.name} ({e}), "
+                           f"skipping")
     if module is not None:
         raise Exception(f"Could not find module {module}")
 

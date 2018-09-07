@@ -1,6 +1,7 @@
 from magma import DeclareFromVerilog
 import inspect
 import os
+import pytest
 import magma as m
 
 
@@ -19,14 +20,30 @@ def test_simple():
     assert repr(top.IO) == "Interface(a, In(Bit), b, Out(Bit), c, InOut(Bit))"
 
 
-def test_type_map():
+@pytest.mark.parametrize("target_type", [m.Clock, m.Reset, m.Bit])
+def test_type_map_bit(target_type):
     path = full_path("simple.v")
     with open(path, 'r') as f:
         s = f.read()
-    type_map = {"a": m.In(m.Clock)}
+    type_map = {"a": m.In(target_type)}
     v = DeclareFromVerilog(s, type_map)
     top = v[0]
-    assert repr(top.IO) == "Interface(a, In(Clock), b, Out(Bit), c, InOut(Bit))"
+    expected = (f"Interface(a, In({repr(target_type)}), b, Out(Bit), c, "
+                "InOut(Bit))")
+    assert repr(top.IO) == expected
+
+
+@pytest.mark.parametrize("target_type", [m.Bits(8), m.UInt(8), m.SInt(8)])
+def test_type_map_bits(target_type):
+    path = full_path("rxmod.v")
+    with open(path, 'r') as f:
+        s = f.read()
+    type_map = {"data": m.Out(target_type)}
+    v = DeclareFromVerilog(s, type_map)
+    top = v[0]
+    expected = (f"Interface(RX, In(Bit), CLK, In(Bit), data, "
+                f"Out({target_type}), valid, Out(Bit))")
+    assert repr(top.IO) == expected
 
 
 def test_type_map_error():
