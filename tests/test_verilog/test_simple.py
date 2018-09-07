@@ -29,6 +29,15 @@ def test_type_map():
     assert repr(top.IO) == "Interface(a, In(Clock), b, Out(Bit), c, InOut(Bit))"
 
 
+def test_type_map_error():
+    path = full_path("simple.v")
+    with open(path, 'r') as f:
+        s = f.read()
+    type_map = {"a": m.In(m.Bits(4))}
+    v = DeclareFromVerilog(s, type_map)
+    assert len(v) == 0
+
+
 def test_small():
     path = full_path("small.v")
     small = m.DeclareFromVerilogFile(path)[0]
