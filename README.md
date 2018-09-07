@@ -111,7 +111,7 @@ $ pip install -e .
 
 Install testing infrastructure and run tests to validate the setup
 ```
-$ pip install pytest
+$ pip install pytest  # note that magma requires pytest version 3.3 or later
 $ pytest tests
 ```
 
