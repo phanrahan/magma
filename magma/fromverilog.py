@@ -8,7 +8,8 @@ import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
 
 from .t import In, Out, InOut
-from .bit import Bit
+from .bit import Bit, BitKind
+from .clock import Clock, ClockKind
 from .array import Array
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 import logging
@@ -33,6 +34,15 @@ class ModuleVisitor(NodeVisitor):
         self.nodes.append(node)
         return node
 
+def convert(input_type, target_type):
+    if isinstance(input_type, BitKind) and \
+       isinstance(target_type, ClockKind) and \
+       input_type.direction == target_type.direction:
+        return target_type
+    raise NotImplementedError(f"Conversion between {input_type} and "
+                              "{target_type} not supported")
+
+
 def get_type(io, type_map):
     if isinstance(io, Input):
         direction = In
@@ -48,7 +58,13 @@ def get_type(io, type_map):
         lsb = int(io.width.lsb.value)
 
         type_ = Array(msb-lsb+1, Bit)
-    return direction(type_)
+
+    type_ = direction(type_)
+
+    if io.name in type_map:
+        type_ = convert(type_, type_map[io.name])
+
+    return type_
 
 
 def ParseVerilogModule(node, type_map):

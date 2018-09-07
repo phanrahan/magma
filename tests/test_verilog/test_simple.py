@@ -3,21 +3,35 @@ import inspect
 import os
 import magma as m
 
-def test_simple():
-    file_path = os.path.dirname(__file__)
-    file_name = os.path.join(file_path, "simple.v")
-    with open(file_name, 'r') as f:
-        s = f.read()
 
+def full_path(filename):
+    file_path = os.path.dirname(__file__)
+    return os.path.join(file_path, filename)
+
+
+def test_simple():
+    path = full_path("simple.v")
+    with open(path, 'r') as f:
+        s = f.read()
     v = DeclareFromVerilog(s)
     top = v[0]
     assert top.name == "top"
     assert repr(top.IO) == "Interface(a, In(Bit), b, Out(Bit), c, InOut(Bit))"
 
+
+def test_type_map():
+    path = full_path("simple.v")
+    with open(path, 'r') as f:
+        s = f.read()
+    type_map = {"a": m.In(m.Clock)}
+    v = DeclareFromVerilog(s, type_map)
+    top = v[0]
+    assert repr(top.IO) == "Interface(a, In(Clock), b, Out(Bit), c, InOut(Bit))"
+
+
 def test_small():
-    file_path = os.path.dirname(__file__)
-    file_name = os.path.join(file_path, "small.v")
-    small = m.DeclareFromVerilogFile(file_name)[0]
+    path = full_path("small.v")
+    small = m.DeclareFromVerilogFile(path)[0]
     for name in small.IO():
         assert name in ["in", "out"]
 
