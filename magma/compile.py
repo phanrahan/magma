@@ -80,7 +80,7 @@ def __compile_to_coreir(main, file_name, opts):
             cmd += f" -o \"{split}/*.v\" -s"
         else:
             cmd += f" -o {file_name}.v"
-        if "inline" in opts and opts["inline"]:
+        if opts.get("inline", False):
             cmd += " --inline"
         subprocess.run(cmd, shell=True)
 
