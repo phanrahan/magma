@@ -104,3 +104,19 @@ def test_no_key(caplog):
 \033[1mtests/test_wire/test_errors.py:102: Circuit main_inst0 does not have input K
     a(K=main.I)
 """
+
+
+def test_const_array_error(caplog):
+    Buf = DeclareCircuit('Buf', "I", In(Array(1, Bit)), "O", Out(Array(1, Bit)))
+
+    main = DefineCircuit("main", "O", Out(Array(1, Bit)))
+
+    buf = Buf()
+
+    wire(1, buf.I)
+    wire(buf.O, main.O)
+
+    assert "\n".join(x.msg for x in caplog.records) == """\
+\033[1mtests/test_wire/test_errors.py:116: Cannot wire 1 (type=<class 'int'>) to main.Buf_inst0.I (type=Array(1,In(Bit))) because conversions from IntegerTypes are only defined for Bits, not general Arrays
+    wire(1, buf.I)
+"""

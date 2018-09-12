@@ -80,7 +80,10 @@ class ArrayType(Type):
         # print('Array.wire(', o, ', ', i, ')')
 
         if not isinstance(o, ArrayType):
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info)  # noqa
+            if isinstance(o, IntegerTypes):
+                report_wiring_error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info)  # noqa
+            else:
+                report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info)  # noqa
             return
 
         if i.N != o.N:
