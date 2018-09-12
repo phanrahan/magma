@@ -1,5 +1,6 @@
 from magma import *
 from magma.testing import check_files_equal
+import pytest
 
 
 def test_const0():
@@ -30,3 +31,20 @@ def test_const1():
     assert check_files_equal(__file__, "build/const1.v", "gold/const1.v")
 
 
+
+
+@pytest.mark.parametrize('T', [Bits, UInt, SInt])
+@pytest.mark.parametrize('N', range(1, 4))
+def test_const_bits(T, N):
+    Buf = DeclareCircuit('Buf', "I", In(T(N)), "O", Out(T(N)))
+
+    main = DefineCircuit("main", "O", Out(T(N)))
+
+    buf = Buf()
+
+    wire(1, buf.I)
+    wire(buf.O, main.O)
+
+    compile(f"build/const_bits_{T.__name__}_{N}", main)
+    assert check_files_equal(__file__, f"build/const_bits_{T.__name__}_{N}.v",
+                             f"gold/const_bits_{T.__name__}_{N}.v")
