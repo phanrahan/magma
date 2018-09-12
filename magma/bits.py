@@ -3,6 +3,7 @@ from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import ArrayType, ArrayKind
 from .bit_vector import BitVector
+from .debug import debug_wire
 
 __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
@@ -31,6 +32,16 @@ class BitsType(ArrayType):
         if not self.const():
             raise Exception("Can't call __int__ on a non-constant")
         return BitVector(self.bits()).as_int()
+
+    @debug_wire
+    def wire(i, o, debug_info):
+        if isinstance(o, IntegerTypes):
+            if o.bit_length() > len(i):
+                raise ValueError(
+                    f"Cannot convert integer {o} (bit_length={o.bit_length()}) to Bits({len(i)})")
+            from .conversions import bits
+            o = bits(o, len(i))
+        super().wire(o, debug_info)
 
 
 class BitsKind(ArrayKind):
