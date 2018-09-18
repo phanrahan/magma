@@ -2,8 +2,8 @@ import pytest
 import tempfile
 from magma import In, Out, Flip, \
     Clock, ClockType, ClockKind, \
-    Reset, ResetType, ResetKind, reset \
-    Enable, EnableType, EnableKind, enable \
+    Reset, ResetType, ResetKind, reset, \
+    Enable, EnableType, EnableKind, enable, \
     AsyncReset, AsyncResetType, AsyncResetKind, \
     DeclareCircuit, DefineCircuit, EndCircuit, \
     Bit, bit, wire, compile
