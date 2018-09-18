@@ -228,7 +228,10 @@ class CoreIRBackend:
         # These libraries are already available by default in coreir, so we
         # don't need declarations
         if declaration.coreir_lib in ["coreir", "corebit", "commonlib"]:
-            return
+            if declaration.coreir_genargs is None:
+                return self.libs[declaration.coreir_lib].modules[declaration.coreir_name]
+            else:
+                return self.libs[declaration.coreir_lib].generators[declaration.coreir_name]
         if declaration.name in self.modules:
             logger.debug(f"    {declaration} already compiled, skipping")
             return
@@ -385,15 +388,17 @@ class CoreIRBackend:
             else:
                 self.modules[key.name] = self.compile_declaration(key)
 
-    def compile(self, defn):
-        self.compile_dependencies(defn)
-        if defn.is_definition:
+    def compile(self, defn_or_declaration):
+        if defn_or_declaration.is_definition:
+            self.compile_dependencies(defn_or_declaration)
             # don't try to compile if already have definition
-            if hasattr(defn, 'wrappedModule'):
-                self.modules[defn.name] = defn.wrappedModule
+            if hasattr(defn_or_declaration, 'wrappedModule'):
+                self.modules[defn_or_declaration.name] = defn_or_declaration.wrappedModule
             else:
-                self.modules[defn.name] = self.compile_definition(defn)
-                defn.wrappedModule = self.modules[defn.name]
+                self.modules[defn_or_declaration.name] = self.compile_definition(defn_or_declaration)
+                defn_or_declaration.wrappedModule = self.modules[defn_or_declaration.name]
+        else:
+            self.modules[defn_or_declaration.name] = self.compile_declaration(defn_or_declaration)
         return self.modules
 
     def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):

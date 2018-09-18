@@ -1,6 +1,7 @@
 from magma.backend.coreir_ import CoreIRBackend
 from magma.circuit import DefineCircuitKind, Circuit, definitionCache
 from magma import cache_definition
+from coreir.generator import Generator
 
 @cache_definition
 def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName):
@@ -43,11 +44,17 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
         return circuit.wrappedModule
     else:
         # if this is an instance, compile the class, as that is the circuit
-        if circuit.is_instance:
+        if hasattr(circuit, 'is_instance') and circuit.is_instance:
             circuitNotInstance = circuit.__class__
         else:
             circuitNotInstance = circuit
-        return cirb.compile(circuitNotInstance)[circuitNotInstance.name]
+        moduleOrGenerator = cirb.compile(circuitNotInstance)[circuitNotInstance.name]
+        # compile can giv eme back the coreIR module or the coreIR generator. if this is
+        # the CoreIR generator, call it with the Magma arguments converted to CoreIR ones.
+        if isinstance(moduleOrGenerator, Generator):
+            return moduleOrGenerator(**circuitNotInstance.coreir_genargs)
+        else:
+            return moduleOrGenerator
 
 def DeclareCoreIRGenerator(lib : str, name : str, typegen = None, backend = None):
     if backend is None:
