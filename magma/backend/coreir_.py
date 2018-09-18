@@ -210,6 +210,8 @@ class CoreIRBackend:
             for name, value in type(instance).coreir_genargs.items():
                 if isinstance(value, AsyncResetKind):
                     value = self.context.named_types["coreir", "arst"]
+                elif isinstance(value, ClockKind):
+                    value = self.context.named_types["coreir", "clk"]
                 gen_args[name] = value
             gen_args = self.context.new_values(gen_args)
             return module_definition.add_generator_instance(instance.name,
