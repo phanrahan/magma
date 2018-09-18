@@ -23,8 +23,8 @@ jobs:
           # - py.test --cov magma --pep8 magma -v --cov-report term-missing tests
           - py.test --cov magma -v --cov-report term-missing tests
     - stage: trigger downstream
-      jdk: oraclejdk8
       script: |
+        # See https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh for documentation
         echo "TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
         if [[ ($TRAVIS_BRANCH == master) &&
               ($TRAVIS_PULL_REQUEST == false) ]] ; then
