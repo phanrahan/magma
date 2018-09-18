@@ -1,0 +1,31 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "foo":{
+        "type":["Record",[
+          ["I","BitIn"]
+        ]]
+      },
+      "top":{
+        "type":["Record",[
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "inst0":{
+            "modref":"global.foo"
+          }
+        },
+        "connections":[
+          ["inst0.I","bit_const_0_None.out"],
+          ["self.O","bit_const_0_None.out"]
+        ]
+      }
+    }
+  }
+}
+}
