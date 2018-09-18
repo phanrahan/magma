@@ -2,8 +2,8 @@ import pytest
 import tempfile
 from magma import In, Out, Flip, \
     Clock, ClockType, ClockKind, \
-    Reset, ResetType, ResetKind, \
-    Enable, EnableType, EnableKind, \
+    Reset, ResetType, ResetKind, reset \
+    Enable, EnableType, EnableKind, enable \
     AsyncReset, AsyncResetType, AsyncResetKind, \
     DeclareCircuit, DefineCircuit, EndCircuit, \
     Bit, bit, wire, compile
@@ -152,5 +152,25 @@ def test_coreir_wrap(T):
         compile(filename, top, output="coreir")
         got = open(f"{filename}.json").read()
     expected_filename = f"tests/test_type/test_coreir_wrap_golden_{T}.json"
+    expected = open(expected_filename).read()
+    assert got == expected
+
+
+@pytest.mark.parametrize("T,t", [(Reset, reset), (Enable, enable)])
+def test_const_wire(T, t):
+    foo = DefineCircuit("foo", "I", In(T))
+    EndCircuit()
+
+    top = DefineCircuit("top", "O", Out(Bit))
+    foo_inst = foo()
+    wire(t(0), foo_inst.I)
+    wire(bit(0), top.O)
+    EndCircuit()
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        filename = f"{tempdir}/top"
+        compile(filename, top, output="coreir")
+        got = open(f"{filename}.json").read()
+    expected_filename = f"tests/test_type/test_const_wire_golden.json"
     expected = open(expected_filename).read()
     assert got == expected
