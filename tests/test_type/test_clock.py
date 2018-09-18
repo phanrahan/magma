@@ -1,7 +1,12 @@
+import pytest
+import tempfile
 from magma import In, Out, Flip, \
     Clock, ClockType, ClockKind, \
     Reset, ResetType, ResetKind, \
-    Enable, EnableType, EnableKind
+    Enable, EnableType, EnableKind, \
+    AsyncReset, AsyncResetType, AsyncResetKind, \
+    DeclareCircuit, DefineCircuit, EndCircuit, \
+    Bit, bit, wire, compile
 
 def test_clock():
     assert isinstance(Clock, ClockKind)
@@ -114,3 +119,38 @@ def test_enable_val():
     assert isinstance(b, Enable)
     assert not b.isinput()
     assert not b.isoutput()
+
+@pytest.mark.parametrize("T", [Clock, AsyncReset])
+def test_coreir_wrap(T):
+    def define_wrap(type_, type_name, in_type):
+        def sim_wrap(self, value_store, state_store):
+            input_val = value_store.get_value(getattr(self, "in"))
+            value_store.set_value(self.out, input_val)
+
+        return DeclareCircuit(
+            f'coreir_wrap{type_name}',
+            "in", In(in_type), "out", Out(type_),
+            coreir_genargs = {"type": type_},
+            coreir_name="wrap",
+            coreir_lib="coreir",
+            simulate=sim_wrap
+        )
+
+    foo = DefineCircuit("foo", "r", In(T))
+    EndCircuit()
+
+    top = DefineCircuit("top", "O", Out(Bit))
+    foo_inst = foo()
+    wrap = define_wrap(T, "Bit", Bit)()
+    wire(bit(0), wrap.interface.ports["in"])
+    wire(wrap.out, foo_inst.r)
+    wire(bit(0), top.O)
+    EndCircuit()
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        filename = f"{tempdir}/top"
+        compile(filename, top, output="coreir")
+        got = open(f"{filename}.json").read()
+    expected_filename = f"tests/test_type/test_coreir_wrap_golden_{T}.json"
+    expected = open(expected_filename).read()
+    assert got == expected
