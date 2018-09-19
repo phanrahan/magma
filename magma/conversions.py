@@ -193,7 +193,7 @@ def zext(value, n):
         zeros = sint(0, n)
     elif isinstance(value, BitsType):
         zeros = bits(0, n)
-    return concat(zeros, value)
+    return concat(value, zeros)
 
 
 def sext(value, n):
