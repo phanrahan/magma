@@ -14,6 +14,7 @@ from magma import \
     tuple_, TupleType, \
     zext, sext
 from magma.bitutils import seq2int
+import magma as m
 
 def test_bit():
     assert isinstance(bit(0), BitType)
@@ -138,3 +139,22 @@ def test_sext(value):
     out = sint(sext(in_, 16))
     assert len(out.bits()) == 32
     assert int(out) == value
+
+
+@pytest.mark.parametrize("op", [m.zext, m.sext])
+def test_extension_error(op):
+    try:
+        a = m.In(m.Bits(2))()
+        op(a, 2)
+        assert False, "This should raise an exception"
+    except Exception as e:
+        assert str(e) == f"{op.__name__} only works with output values"
+
+
+@pytest.mark.parametrize("op", [m.zext, m.sext])
+def test_extension_no_error(op):
+    try:
+        a = m.Out(m.Bits(2))()
+        op(a, 2)
+    except Exception as e:
+        assert False, "This should work"

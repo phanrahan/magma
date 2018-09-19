@@ -1,3 +1,4 @@
+import functools
 from collections import Sequence
 from .compatibility import IntegerTypes
 from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
@@ -10,6 +11,7 @@ from .array import ArrayType, Array, ArrayKind
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
 from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
+import magma as m
 
 __all__ = ['bit']
 __all__ += ['clock', 'reset', 'enable', 'asyncreset']
@@ -185,6 +187,15 @@ def repeat(value, n):
     return repeats
 
 
+def check_value_is_input(fn):
+    @functools.wraps(fn)
+    def wrapped(value, n):
+        if isinstance(value, m.Type) and not value.isoutput():
+            raise Exception(f"{fn.__name__} only works with output values")
+    return wrapped
+
+
+@check_value_is_input
 def zext(value, n):
     assert isinstance(value, (UIntType, SIntType, BitsType))
     if isinstance(value, UIntType):
@@ -196,6 +207,7 @@ def zext(value, n):
     return concat(value, zeros)
 
 
+@check_value_is_input
 def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value), array(value[-1], n)))
