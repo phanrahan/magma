@@ -12,7 +12,7 @@ from magma import \
     uint, UIntType, \
     sint, SIntType, \
     tuple_, TupleType, \
-    zext
+    zext, sext
 from magma.bitutils import seq2int
 
 def test_bit():
@@ -127,3 +127,14 @@ def test_zext(type_, value):
         assert int(out) == seq2int(in_.bits())
     else:
         assert int(out) == value
+
+
+@pytest.mark.parametrize("value", [-5, 0, 10])
+def test_sext(value):
+    in_ = sint(value, 16)
+    # TODO(rsetaluri): Ideally, zext(sint) should return an object of type
+    # SintType, instead it returns an object of type ArrayType. For now, we wrap
+    # the result of zext() in sint().
+    out = sint(sext(in_, 16))
+    assert len(out.bits()) == 32
+    assert int(out) == value

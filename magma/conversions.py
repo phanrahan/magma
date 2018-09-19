@@ -198,7 +198,7 @@ def zext(value, n):
 
 def sext(value, n):
     assert isinstance(value, SIntType)
-    return sint(concat(array(value[-1], n), array(value)))
+    return sint(concat(array(value), array(value[-1], n)))
 
 
 def tuple_(value, n=None):
