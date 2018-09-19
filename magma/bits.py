@@ -2,7 +2,7 @@ from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import ArrayType, ArrayKind
-from .bit_vector import BitVector
+from .bit_vector import BitVector, SIntVector
 from .debug import debug_wire
 
 __all__ = ['Bits', 'BitsType', 'BitsKind']
@@ -112,7 +112,7 @@ class SIntType(BitsType):
     def __int__(self):
         if not self.const():
             raise Exception("Can't call __int__ on a non-constant")
-        return BitVector(self.bits(), signed=True).as_int()
+        return SIntVector(self.bits()).as_sint()
 
 
 class SIntKind(BitsKind):
