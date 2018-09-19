@@ -192,6 +192,7 @@ def check_value_is_input(fn):
     def wrapped(value, n):
         if isinstance(value, m.Type) and not value.isoutput():
             raise Exception(f"{fn.__name__} only works with output values")
+        return fn(value, n)
     return wrapped
 
 
