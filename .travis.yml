@@ -31,5 +31,5 @@ jobs:
           curl -LO --retry 3 https://raw.github.com/mernst/plume-lib/master/bin/trigger-travis.sh
           sh trigger-travis.sh --pro David-Durst aetherling $TRAVIS_ACCESS_TOKEN
           sh trigger-travis.sh --pro StanfordAHA garnet $TRAVIS_ACCESS_TOKEN
-          sh trigger-travis.sh --pro phanrahan mantle $TRAVIS_ACCESS_TOKEN
+          sh trigger-travis.sh phanrahan mantle $TRAVIS_ORG_ACCESS_TOKEN
         fi
