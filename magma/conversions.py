@@ -187,7 +187,7 @@ def repeat(value, n):
     return repeats
 
 
-def check_value_is_input(fn):
+def check_value_is_output(fn):
     @functools.wraps(fn)
     def wrapped(value, n):
         if isinstance(value, m.Type) and not value.isoutput():
@@ -196,7 +196,7 @@ def check_value_is_input(fn):
     return wrapped
 
 
-@check_value_is_input
+@check_value_is_output
 def zext(value, n):
     assert isinstance(value, (UIntType, SIntType, BitsType))
     if isinstance(value, UIntType):
@@ -208,7 +208,7 @@ def zext(value, n):
     return concat(value, zeros)
 
 
-@check_value_is_input
+@check_value_is_output
 def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value), array(value[-1], n)))
