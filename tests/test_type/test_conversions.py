@@ -1,4 +1,5 @@
 import pytest
+from itertools import product
 from collections import OrderedDict
 from magma import \
     GND, VCC, \
@@ -10,7 +11,9 @@ from magma import \
     bits, BitsType, \
     uint, UIntType, \
     sint, SIntType, \
-    tuple_, TupleType
+    tuple_, TupleType, \
+    zext, sext
+from magma.bitutils import seq2int
 
 def test_bit():
     assert isinstance(bit(0), BitType)
@@ -105,3 +108,33 @@ def test_tuple():
      assert isinstance(tuple_(sint(1,4)), TupleType)
      assert isinstance(tuple_(uint(1,4)), TupleType)
 
+
+@pytest.mark.parametrize("type_,value",
+                         product([bits, sint, uint], [-5, 0, 10]))
+def test_zext(type_, value):
+    if type_ != sint:
+        value = abs(value)
+    in_ = type_(value, 16)
+    # TODO(rsetaluri): Ideally, zext(bits) should return an object of type
+    # BitsType, instead it returns an object of type ArrayType. For now, we wrap
+    # the result of zext() in bits().
+    out = type_(zext(in_, 16))
+    assert len(out.bits()) == 32
+    # If we have a negative number, then zext should not return the same (signed
+    # value). It will instead return the unsigned interpretation of the original
+    # bits.
+    if value < 0:
+        assert int(out) == seq2int(in_.bits())
+    else:
+        assert int(out) == value
+
+
+@pytest.mark.parametrize("value", [-5, 0, 10])
+def test_sext(value):
+    in_ = sint(value, 16)
+    # TODO(rsetaluri): Ideally, zext(sint) should return an object of type
+    # SintType, instead it returns an object of type ArrayType. For now, we wrap
+    # the result of zext() in sint().
+    out = sint(sext(in_, 16))
+    assert len(out.bits()) == 32
+    assert int(out) == value

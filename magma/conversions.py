@@ -193,12 +193,12 @@ def zext(value, n):
         zeros = sint(0, n)
     elif isinstance(value, BitsType):
         zeros = bits(0, n)
-    return concat(zeros, value)
+    return concat(value, zeros)
 
 
 def sext(value, n):
     assert isinstance(value, SIntType)
-    return sint(concat(array(value[-1], n), array(value)))
+    return sint(concat(array(value), array(value[-1], n)))
 
 
 def tuple_(value, n=None):
