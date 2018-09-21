@@ -7,6 +7,7 @@ from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
 from .logging import error
 from .circuit import isdefinition
+import magma as m
 
 __all__ = ['compile']
 
@@ -90,7 +91,7 @@ def compile(basename, main, output='verilog', **kwargs):
 
     # Rather than having separate logic for 'coreir-verilog' mode, we defer to
     # 'coreir' mode with the 'output_verilog' option set to True.
-    if output == 'coreir-verilog':
+    if output == 'coreir-verilog' or (output == "verilog" and m.mantle_target == "coreir"):
         opts["output_verilog"] = True
         output = "coreir"
 
