@@ -1,3 +1,4 @@
+import sys
 import os
 from magma.testing.utils import check_files_equal
 import magma as m
@@ -17,6 +18,8 @@ def test():
     m.wire(and2.O, main.O)
 
     m.EndCircuit()
+    sys.modules['mantle'] = True  # Mock mantle import
     m.compile("build/test_coreir_compile_verilog", main)
+    del sys.modules['mantle']
     assert check_files_equal(__file__, "build/test_coreir_compile_verilog.v",
                              "gold/test_coreir_compile_verilog.v")

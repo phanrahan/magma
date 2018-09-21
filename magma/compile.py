@@ -1,3 +1,4 @@
+import sys
 import os
 import inspect
 import subprocess
@@ -89,9 +90,13 @@ def __compile_to_coreir(main, file_name, opts):
 def compile(basename, main, output='verilog', **kwargs):
     opts = kwargs.copy()
 
+    mantle_imported = "mantle" in sys.modules
+
     # Rather than having separate logic for 'coreir-verilog' mode, we defer to
     # 'coreir' mode with the 'output_verilog' option set to True.
-    if output == 'coreir-verilog' or (output == "verilog" and m.mantle_target == "coreir"):
+    if output == 'coreir-verilog' or \
+            (output == "verilog" and m.mantle_target == "coreir" and
+             mantle_imported):
         opts["output_verilog"] = True
         output = "coreir"
 
