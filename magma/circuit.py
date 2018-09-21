@@ -181,7 +181,7 @@ class AnonymousCircuitType(object):
         self.lineno   = debug_info[1]
 
     def __str__(self):
-        return self.name
+        return self.name if self.name else f"AnonymousCircuitType{id(self)}"
 
     def __repr__(self):
         args = []

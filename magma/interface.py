@@ -179,6 +179,9 @@ class Interface(_Interface):
 
         self.ports = args
 
+    def __str__(self):
+        return f'Interface({", ".join(f"{k}: {v}" for k, v in self.ports.items())})'
+
 
 #
 # _DeclareInterface class
