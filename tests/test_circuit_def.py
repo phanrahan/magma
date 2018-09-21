@@ -255,3 +255,26 @@ def test_not_implemented(caplog):
 \033[1mtests/test_circuit_def.py:245: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
                 c = m.bit(1)
 """
+
+
+def test_map_circuit(target):
+    Not = m.DefineCircuit("Not", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    m.wire(0, Not.O)
+    m.EndDefine()
+
+    @m.circuit.combinational
+    def logic(a: m.Bits(10)) -> m.Bits(10):
+        return m.join(m.map_(Not, 10))(a)
+
+    class Foo(m.Circuit):
+        IO = ["a", m.In(m.Bits(10)),
+              "c", m.Out(m.Bits(10))]
+
+        @classmethod
+        def definition(io):
+            c = logic(io.a)
+            m.wire(c, io.c)
+
+    compile_and_check("test_map_circuit", Foo, target)
+
+
