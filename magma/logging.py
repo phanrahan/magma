@@ -31,7 +31,7 @@ handler.setFormatter(colorlog.ColoredFormatter(
 log.addHandler(handler)
 
 
-level = os.getenv("MAGMA_LOG_LEVEL", None)
+level = os.getenv("MAGMA_LOG_LEVEL", "INFO")
 if level in ["DEBUG", "WARN", "INFO"]:
     log.setLevel(getattr(logging, level))
 elif level is not None:
