@@ -5,7 +5,7 @@ import magma as m
 m.set_mantle_target("coreir")
 
 
-def test():
+def test(caplog):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
@@ -23,3 +23,4 @@ def test():
     del sys.modules['mantle']
     assert check_files_equal(__file__, "build/test_coreir_compile_verilog.v",
                              "gold/test_coreir_compile_verilog.v")
+    assert caplog.records[0].msg == "`m.compile` called with `output == verilog` and `m.mantle_target == \"coreir\" and mantle has been imported, using coreir to generate verilog (setting output to \"coreir-verilog\").`"
