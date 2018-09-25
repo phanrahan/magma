@@ -90,13 +90,16 @@ def __compile_to_coreir(main, file_name, opts):
 def compile(basename, main, output='verilog', **kwargs):
     opts = kwargs.copy()
 
+    # If the output is verilog and mantle has been imported and we're using the
+    # coreir mantle target, use coreir to generate verilog by setting the output
+    # to coreir-verilog
     mantle_imported = "mantle" in sys.modules
+    if output == "verilog" and m.mantle_target == "coreir" and mantle_imported:
+        output == 'coreir-verilog'
 
     # Rather than having separate logic for 'coreir-verilog' mode, we defer to
     # 'coreir' mode with the 'output_verilog' option set to True.
-    if output == 'coreir-verilog' or \
-            (output == "verilog" and m.mantle_target == "coreir" and
-             mantle_imported):
+    if output == 'coreir-verilog':
         opts["output_verilog"] = True
         output = "coreir"
 
