@@ -8,7 +8,7 @@ from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
 from .logging import error
 from .circuit import isdefinition
-from .logging import info
+from .logging import warning
 import magma as m
 
 __all__ = ['compile']
@@ -96,10 +96,11 @@ def compile(basename, main, output='verilog', **kwargs):
     # to coreir-verilog
     mantle_imported = "mantle" in sys.modules
     if output == "verilog" and m.mantle_target == "coreir" and mantle_imported:
-        info("`m.compile` called with `output == verilog` and `m.mantle_target"
-             " == \"coreir\" and mantle has been imported, using coreir to"
-             " generate verilog (setting output to \"coreir-verilog\").`")
-        output = 'coreir-verilog'
+        warning("`m.compile` called with `output == verilog` and"
+                " `m.mantle_target == \"coreir\"` and mantle has been imported,"
+                " When generating verilog from circuits from the \"coreir\""
+                " mantle target, you should set `output=\"coreir-verilog\"`.")
+        # output = 'coreir-verilog'
 
     # Rather than having separate logic for 'coreir-verilog' mode, we defer to
     # 'coreir' mode with the 'output_verilog' option set to True.

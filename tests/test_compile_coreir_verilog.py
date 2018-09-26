@@ -23,4 +23,4 @@ def test(caplog):
     del sys.modules['mantle']
     assert check_files_equal(__file__, "build/test_coreir_compile_verilog.v",
                              "gold/test_coreir_compile_verilog.v")
-    assert caplog.records[0].msg == "`m.compile` called with `output == verilog` and `m.mantle_target == \"coreir\" and mantle has been imported, using coreir to generate verilog (setting output to \"coreir-verilog\").`"
+    assert caplog.records[0].msg == "`m.compile` called with `output == verilog` and `m.mantle_target == \"coreir\"` and mantle has been imported, When generating verilog from circuits from the \"coreir\" mantle target, you should set `output=\"coreir-verilog\"`."
