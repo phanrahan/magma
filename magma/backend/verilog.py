@@ -106,7 +106,7 @@ def compileinstance(self):
     debug_str = ""
     for k, v in self.interface.ports.items():
         if hasattr(v, "debug_info") and get_codegen_debug_info():
-            filename, lineno = v.debug_info
+            filename, lineno, module = v.debug_info
         #print('arg', k, v,)
         if v.isinput():
             # find the output connected to v
@@ -156,8 +156,8 @@ def compiledefinition(cls):
     else:
         args = ', '.join(vmoduleargs(cls.interface))
         s = ''
-        if get_codegen_debug_info() and cls.filename and cls.lineno:
-            s += f'// Defined at {make_relative(cls.filename)}:{cls.lineno}\n'
+        if get_codegen_debug_info() and cls.debug_info.filename and cls.debug_info.lineno:
+            s += f'// Defined at {make_relative(cls.debug_info.filename)}:{cls.debug_info.lineno}\n'
         s += 'module %s (%s);\n' % (cls.verilog_name, args)
         if cls.verilog:
             s += cls.verilog + '\n'
@@ -180,8 +180,8 @@ def compiledefinition(cls):
             # emit the structured verilog for each instance
             for instance in cls.instances:
                 wiredefaultclock(cls, instance)
-                if instance.filename and instance.lineno and get_codegen_debug_info():
-                    s += f"// Instanced at {make_relative(instance.filename)}:{instance.lineno}\n"
+                if instance.debug_info.filename and instance.debug_info.lineno and get_codegen_debug_info():
+                    s += f"// Instanced at {make_relative(instance.debug_info.filename)}:{instance.debug_info.lineno}\n"
                 s += compileinstance(instance) + ";\n"
 
             # assign to module output arguments
