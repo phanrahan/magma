@@ -13,7 +13,7 @@ from .t import Flip
 from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
-from .debug import get_callee_frame_info
+from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
 
@@ -73,10 +73,11 @@ class CircuitKind(type):
 
         if 'coreir_lib' not in dct:
             dct['coreir_lib'] = "global"
-        if "filename" not in dct and "lineno" not in dct:
+        if "debug_info" not in dct:
             callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
-            dct["filename"] = callee_frame.filename
-            dct["lineno"] = callee_frame.lineno
+            module = inspect.getmodule(inspect.stack()[2][0])
+            dct["debug_info"] = debug_info(callee_frame.filename,
+                                           callee_frame.lineno, module)
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
@@ -173,12 +174,10 @@ class AnonymousCircuitType(object):
         self.used = False
         self.is_instance = True
 
-        self.filename = None
-        self.lineno   = None
+        self.debug_info = None
 
     def set_debug_info(self, debug_info):
-        self.filename = debug_info[0]  # TODO: Change debug_info to a namedtuple
-        self.lineno   = debug_info[1]
+        self.debug_info = debug_info
 
     def __str__(self):
         return self.name if self.name else f"AnonymousCircuitType{id(self)}"
@@ -344,8 +343,7 @@ def DeclareCircuit(name, *decl, **args):
     debug_info = get_callee_frame_info()
     dct = dict(
         IO=decl,
-        filename=debug_info[0],
-        lineno=debug_info[1],
+        debug_info=debug_info,
         is_definition=False,
         primitive=args.get('primitive', True),
         stateful=args.get('stateful', False),
@@ -511,8 +509,7 @@ def DefineCircuit(name, *decl, **args):
                primitive      = args.get('primitive', False),
                stateful       = args.get('stateful', False),
                simulate       = args.get('simulate'),
-               filename       = debug_info[0],
-               lineno         = debug_info[1],
+               debug_info     = debug_info,
                verilog_name   = args.get('verilog_name', name),
                coreir_name    = args.get('coreir_name', name),
                coreir_lib     = args.get('coreir_lib', "global"),

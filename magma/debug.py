@@ -1,10 +1,13 @@
 import inspect
+import collections
+
+debug_info = collections.namedtuple("debug_info", ["filename", "lineno", "module"])
 
 
 def get_callee_frame_info():
     callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
-    debug_info = callee_frame.filename, callee_frame.lineno
-    return debug_info
+    module = inspect.getmodule(inspect.stack()[2][0])
+    return debug_info(callee_frame.filename, callee_frame.lineno, module)
 
 
 def debug_wire(fn):

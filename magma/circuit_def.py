@@ -8,6 +8,7 @@ from .backend.util import make_relative
 import astor
 import os
 import traceback
+from .debug import debug_info
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -217,6 +218,9 @@ def combinational(fn):
         print(tb)
         raise Exception(f"Error occured when compiling and executing m.circuit.combinational function {fn.__name__}, see above") from None
     circuit_def = defn_env[fn.__name__]
+    circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
+                                        circuit_def.debug_info.lineno,
+                                        inspect.getmodule(fn))
 
     @functools.wraps(fn)
     def func(*args, **kwargs):
