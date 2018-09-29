@@ -33,8 +33,8 @@ class InstRef(Ref):
         if isinstance(self.name, IntegerTypes):
             # Hack, Hack, Hack
             if sep == '.':
-                return str(self.inst) + '[%d]' % self.name
-        return str(self.inst) + sep + str(name)
+                return self.inst.name + '[%d]' % self.name
+        return self.inst.name + sep + str(name)
 
     def anon(self):
         return False

@@ -180,7 +180,11 @@ class AnonymousCircuitType(object):
         self.debug_info = debug_info
 
     def __str__(self):
-        return self.name if self.name else f"AnonymousCircuitType{id(self)}"
+        name = self.name if self.name else f"AnonymousCircuitType{id(self)}"
+        interface = ""
+        interface = ", ".join(f"{name}: {type(value)}" for name, value in self.interface.ports.items())
+        interface = f"({interface})"
+        return f"{name}{interface}"
 
     def __repr__(self):
         args = []
@@ -188,7 +192,7 @@ class AnonymousCircuitType(object):
             args.append('"{}"'.format(k))
             args.append(repr(v))
         if self.name:
-            return '{} = {}({})'.format(str(self), type(self).__name__, ', '.join(args))
+            return '{} = {}({})'.format(self.name, type(self).__name__, ', '.join(args))
         else:
             return '{}({})'.format(type(self).__name__, ', '.join(args))
 
@@ -235,7 +239,7 @@ class AnonymousCircuitType(object):
         defn_str = ""
         if hasattr(self, 'defn') and self.defn is not None:
             defn_str = str(self.defn.name)
-        return f"{defn_str}_{str(self)}"
+        return f"{defn_str}_{self.name}"
 
     def __call__(input, *outputs, **kw):
         debug_info = get_callee_frame_info()
@@ -331,7 +335,7 @@ class CircuitType(AnonymousCircuitType):
                  v = '"{}"'.format(v)
             args.append("%s=%s"%(k, v))
         if self.name:
-            return '{} = {}({})'.format(str(self), type(self).__name__, ', '.join(args))
+            return '{} = {}({})'.format(self.name, type(self).__name__, ', '.join(args))
         else:
             return '{}({})'.format(type(self).__name__, ', '.join(args))
 
