@@ -226,7 +226,7 @@ def join(*circuits, joinargs=[]):
     """concatenate input and concatenate output"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    return braid(circuits, joinargs)
+    return braid(circuits, joinargs=joinargs)
 
 
 
