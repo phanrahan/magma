@@ -222,11 +222,11 @@ def fork(*circuits):
     return braid(circuits, forkargs=forkargs)
 
 # join all inputs
-def join(*circuits):
+def join(*circuits, joinargs=[]):
     """concatenate input and concatenate output"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    return braid(circuits)
+    return braid(circuits, joinargs)
 
 
 
