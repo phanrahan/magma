@@ -65,7 +65,7 @@ which are combined into array of length equal to the number of circuits.
 f = join([fs])
 ```
 
-![join](https://github.com/phanrahan/magma/blob/master/docs/images/join.jpg)
+![join](./images/join.jpg)
 
 The classic example of join is to form a register.
 First, we start with a `DFF`
@@ -86,7 +86,7 @@ and all the elements of these arrays are flattened into a single array.
 The `fork` functions takes a list of n circuits
 with the same interface.
 
-![fork](https://github.com/phanrahan/magma/blob/master/docs/images/fork.jpg)
+![fork](./images/fork.jpg)
 
 A new circuit is returned with the inputs *forked* and outputs joined.
 Forking an input means that the same value is wired up to all the inputs.
@@ -99,7 +99,7 @@ one circuit to the input of the next circuit.
 In particular, given a list of circuits,
 the output from circuit i-1 is wired to the input of circuit i.
 
-![fold](https://github.com/phanrahan/magma/blob/master/docs/images/fold.jpg)
+![fold](./images/fold.jpg)
 
 The classic example of a fold is a serial-in, serial-out (SISO) shift register.
 ```python
@@ -115,7 +115,7 @@ and the last output from circuit n-1, are retained in the resulting circuit.
 Scan is simular to fold.
 The difference is that all the intermediate outputs are preserved.
 
-![scan](https://github.com/phanrahan/magma/blob/master/docs/images/scan.jpg)
+![scan](./images/scan.jpg)
 
 The classic example of a scan is a serial-in parallel-out (SIPO) shift register.
 ```python
