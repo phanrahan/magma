@@ -6,6 +6,7 @@ from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
 import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
+import pyverilog.vparser.ast as pyverilog_ast
 
 from .t import In, Out, InOut
 from .bit import Bit, _BitKind
@@ -46,6 +47,13 @@ def convert(input_type, target_type):
     raise NotImplementedError(f"Conversion between {input_type} and "
                               f"{target_type} not supported")
 
+def get_value(v):
+    if isinstance(v, pyverilog_ast.IntConst):
+        return int(v.value)
+    if isinstance(v, pyverilog_ast.Minus):
+        return get_value(v.left) - get_value(v.right)
+    else:
+        raise NotImplementedError(type(v))
 
 def get_type(io, type_map):
     if isinstance(io, Input):
@@ -58,8 +66,8 @@ def get_type(io, type_map):
     if io.width is None:
         type_ = Bit
     else:
-        msb = int(io.width.msb.value)
-        lsb = int(io.width.lsb.value)
+        msb = get_value(io.width.msb)
+        lsb = get_value(io.width.lsb)
         type_ = Bits(msb-lsb+1)
 
     type_ = direction(type_)
