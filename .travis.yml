@@ -2,6 +2,13 @@ language: python
 python:
     - "3.6"
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.9
+
 sudo: true  # Needed for coreir-dev branch building coreir from source (installing g++-4.9 through apt)
 
 before_install:
