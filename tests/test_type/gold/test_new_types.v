@@ -1,6 +1,4 @@
-
-
-module TestCircuit (
+module global_TestCircuit (
   input [2:0] I_0_x,
   input [2:0] I_0_y,
   input [2:0] I_10_x,
@@ -50,30 +48,56 @@ module TestCircuit (
   output [2:0] O_9_x,
   output [2:0] O_9_y
 );
-  //All the connections
+
+
   assign O_0_x[2:0] = I_0_x[2:0];
+
   assign O_0_y[2:0] = I_0_y[2:0];
-  assign O_1_x[2:0] = I_1_x[2:0];
-  assign O_1_y[2:0] = I_1_y[2:0];
-  assign O_2_x[2:0] = I_2_x[2:0];
-  assign O_2_y[2:0] = I_2_y[2:0];
-  assign O_3_x[2:0] = I_3_x[2:0];
-  assign O_3_y[2:0] = I_3_y[2:0];
-  assign O_4_x[2:0] = I_4_x[2:0];
-  assign O_4_y[2:0] = I_4_y[2:0];
-  assign O_5_x[2:0] = I_5_x[2:0];
-  assign O_5_y[2:0] = I_5_y[2:0];
-  assign O_6_x[2:0] = I_6_x[2:0];
-  assign O_6_y[2:0] = I_6_y[2:0];
-  assign O_7_x[2:0] = I_7_x[2:0];
-  assign O_7_y[2:0] = I_7_y[2:0];
-  assign O_8_x[2:0] = I_8_x[2:0];
-  assign O_8_y[2:0] = I_8_y[2:0];
-  assign O_9_x[2:0] = I_9_x[2:0];
-  assign O_9_y[2:0] = I_9_y[2:0];
+
   assign O_10_x[2:0] = I_10_x[2:0];
+
   assign O_10_y[2:0] = I_10_y[2:0];
+
   assign O_11_x[2:0] = I_11_x[2:0];
+
   assign O_11_y[2:0] = I_11_y[2:0];
 
-endmodule //TestCircuit
+  assign O_1_x[2:0] = I_1_x[2:0];
+
+  assign O_1_y[2:0] = I_1_y[2:0];
+
+  assign O_2_x[2:0] = I_2_x[2:0];
+
+  assign O_2_y[2:0] = I_2_y[2:0];
+
+  assign O_3_x[2:0] = I_3_x[2:0];
+
+  assign O_3_y[2:0] = I_3_y[2:0];
+
+  assign O_4_x[2:0] = I_4_x[2:0];
+
+  assign O_4_y[2:0] = I_4_y[2:0];
+
+  assign O_5_x[2:0] = I_5_x[2:0];
+
+  assign O_5_y[2:0] = I_5_y[2:0];
+
+  assign O_6_x[2:0] = I_6_x[2:0];
+
+  assign O_6_y[2:0] = I_6_y[2:0];
+
+  assign O_7_x[2:0] = I_7_x[2:0];
+
+  assign O_7_y[2:0] = I_7_y[2:0];
+
+  assign O_8_x[2:0] = I_8_x[2:0];
+
+  assign O_8_y[2:0] = I_8_y[2:0];
+
+  assign O_9_x[2:0] = I_9_x[2:0];
+
+  assign O_9_y[2:0] = I_9_y[2:0];
+
+
+endmodule  // global_TestCircuit
+
