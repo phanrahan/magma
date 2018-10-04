@@ -6,7 +6,7 @@ from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
 import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
-import pyverilog.vparser.ast as ast
+import pyverilog.vparser.ast as pyverilog_ast
 
 from .t import In, Out, InOut
 from .bit import Bit, _BitKind
@@ -48,9 +48,9 @@ def convert(input_type, target_type):
                               f"{target_type} not supported")
 
 def get_value(v):
-    if isinstance(v, ast.IntConst):
+    if isinstance(v, pyverilog_ast.IntConst):
         return int(v.value)
-    if isinstance(v, ast.Minus):
+    if isinstance(v, pyverilog_ast.Minus):
         return get_value(v.left) - get_value(v.right)
     else:
         raise NotImplementedError(type(v))
