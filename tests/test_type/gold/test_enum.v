@@ -1,25 +1,27 @@
-
-
 module coreir_const #(parameter value=1, parameter width=1) (
   output [width-1:0] out
 );
   assign out = value;
 
-endmodule //coreir_const
+endmodule  // coreir_const
 
-module enum_test (
+module global_enum_test (
   input [1:0] I,
   output [1:0] O_0,
   output [1:0] O_1
 );
-  //Wire declarations for instance 'const_0_2' (Module coreir_const)
+
+
+  // Instancing generated Module: coreir.const(width:2)
   wire [1:0] const_0_2__out;
-  coreir_const #(.value(2'b00),.width(2)) const_0_2(
+  coreir_const #(.value(2'h0),.width(2)) const_0_2(
     .out(const_0_2__out)
   );
 
-  //All the connections
   assign O_1[1:0] = const_0_2__out[1:0];
+
   assign O_0[1:0] = I[1:0];
 
-endmodule //enum_test
+
+endmodule  // global_enum_test
+
