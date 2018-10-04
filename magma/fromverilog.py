@@ -48,7 +48,6 @@ def convert(input_type, target_type):
                               f"{target_type} not supported")
 
 def get_value(v):
-    import inspect
     if isinstance(v, ast.IntConst):
         return int(v.value)
     if isinstance(v, ast.Minus):
