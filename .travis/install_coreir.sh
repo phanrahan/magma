@@ -3,9 +3,6 @@
 set -e
 
 if [ "$TRAVIS_BRANCH" == "coreir-dev" ]; then
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    sudo apt-get update
-    sudo apt-get install g++-4.9
     mkdir deps;
     mkdir deps/bin;
     mkdir deps/lib;

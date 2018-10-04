@@ -9,8 +9,6 @@ addons:
     packages:
       - g++-4.9
 
-sudo: true  # Needed for coreir-dev branch building coreir from source (installing g++-4.9 through apt)
-
 before_install:
     - source .travis/install_coreir.sh
 
