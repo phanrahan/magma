@@ -2,8 +2,9 @@ from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import ArrayType, ArrayKind
-from .bit_vector import BitVector, SIntVector
 from .debug import debug_wire
+
+from bit_vector import BitVector, SIntVector
 
 __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
