@@ -5,7 +5,7 @@ module coreir_const #(parameter value=1, parameter width=1) (
 
 endmodule  // coreir_const
 
-module global_enum_test (
+module enum_test (
   input [1:0] I,
   output [1:0] O_0,
   output [1:0] O_1
@@ -23,5 +23,5 @@ module global_enum_test (
   assign O_0[1:0] = I[1:0];
 
 
-endmodule  // global_enum_test
+endmodule  // enum_test
 

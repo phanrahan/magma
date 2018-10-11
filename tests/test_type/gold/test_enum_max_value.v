@@ -5,7 +5,7 @@ module coreir_const #(parameter value=1, parameter width=1) (
 
 endmodule  // coreir_const
 
-module global_enum_test_max_value (
+module enum_test_max_value (
   input [2:0] I,
   output [2:0] O_0,
   output [2:0] O_1
@@ -23,5 +23,5 @@ module global_enum_test_max_value (
   assign O_0[2:0] = I[2:0];
 
 
-endmodule  // global_enum_test_max_value
+endmodule  // enum_test_max_value
 

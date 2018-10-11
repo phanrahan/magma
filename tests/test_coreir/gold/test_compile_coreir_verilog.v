@@ -8,7 +8,7 @@ module And2 (
 endmodule  // And2
 
 */
-module global_main (
+module main (
   input [1:0] I,
   output  O
 );
@@ -30,5 +30,5 @@ module global_main (
   assign O = inst0__O;
 
 
-endmodule  // global_main
+endmodule  // main
 
