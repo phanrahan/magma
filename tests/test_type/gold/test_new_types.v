@@ -1,4 +1,4 @@
-module global_TestCircuit (
+module TestCircuit (
   input [2:0] I_0_x,
   input [2:0] I_0_y,
   input [2:0] I_10_x,
@@ -99,5 +99,5 @@ module global_TestCircuit (
   assign O_9_y[2:0] = I_9_y[2:0];
 
 
-endmodule  // global_TestCircuit
+endmodule  // TestCircuit
 
