@@ -67,7 +67,8 @@ class CheckAnyMantleCircuits(DefinitionPass):
         self.has_mantle_circuit = False
 
     def __call__(self, definition):
-        if definition.debug_info.module.__name__.split(".")[0] == "mantle":
+        if definition.debug_info.module is not None and \
+                definition.debug_info.module.__name__.split(".")[0] == "mantle":
             self.has_mantle_circuit = True
 
     def _run(self, definition):
