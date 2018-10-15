@@ -1,5 +1,5 @@
 from magma.simulator import PythonSimulator
-from magma.bit_vector import BitVector
+from bit_vector import BitVector
 
 class Coroutine:
     """
