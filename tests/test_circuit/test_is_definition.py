@@ -1,5 +1,5 @@
 from magma import *
-from magma.circuit import isdefinition
+from magma.is_definition import isdefinition
 
 
 def test_is_definition():

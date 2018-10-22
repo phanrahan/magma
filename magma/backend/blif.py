@@ -5,7 +5,7 @@ from ..bit import VCC, GND, BitType
 from ..array import ArrayType
 from ..port import INPUT, OUTPUT, INOUT
 from ..clock import wiredefaultclock
-from ..circuit import *
+from ..is_definition import isdefinition
 
 __all__ = ['compile']
 

@@ -1,5 +1,5 @@
 from collections import namedtuple, OrderedDict
-from .circuit import *
+from .is_definition import isdefinition
 from .bit import *
 from .clock import ClockType, EnableType, ResetType, AsyncResetType, wiredefaultclock
 from .array import *

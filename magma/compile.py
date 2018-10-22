@@ -7,7 +7,7 @@ from .passes import DefinitionPass
 from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
 from .logging import error
-from .circuit import isdefinition
+from .is_definition import isdefinition
 from .logging import warning
 import magma as m
 

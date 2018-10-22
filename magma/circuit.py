@@ -16,6 +16,7 @@ from .bit import VCC, GND
 from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
+from .is_definition import isdefinition
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -27,7 +28,6 @@ __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['getCurrentDefinition']
 __all__ += ['magma_clear_circuit_cache']
 
-__all__ += ['isdefinition']
 __all__ += ['isprimitive']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
@@ -389,11 +389,6 @@ def popDefinition():
         currentDefinition = currentDefinitionStack.pop()
     else:
         currentDefinition = None
-
-#  A circuit is a definition if it has instances
-def isdefinition(circuit):
-    'Return whether a circuit is a module definition'
-    return getattr(circuit, "is_definition", False)
 
 def isprimitive(circuit):
     return getattr(circuit, "primitive", False)

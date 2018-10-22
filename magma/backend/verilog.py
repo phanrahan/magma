@@ -10,7 +10,7 @@ from ..bit import _BitType, _BitKind, VCC, GND
 from ..clock import ClockType, EnableType, ResetType
 from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
-from ..circuit import *
+from ..is_definition import isdefinition
 from ..clock import wiredefaultclock
 import logging
 import os
