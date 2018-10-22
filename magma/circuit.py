@@ -180,11 +180,13 @@ class AnonymousCircuitType(object):
         self.debug_info = debug_info
 
     def __str__(self):
-        name = self.name if self.name else f"AnonymousCircuitType{id(self)}"
-        interface = ""
-        interface = ", ".join(f"{name}: {type(value)}" for name, value in self.interface.ports.items())
-        interface = f"({interface})"
-        return f"{name}{interface}"
+        if self.name:
+            return f"{self.name}<{type(self)}>"
+        else:
+            name = f"AnonymousCircuitInst{id(self)}"
+            interface = ""
+            interface = ", ".join(f"{name}: {type(value)}" for name, value in self.interface.ports.items())
+            return f"{name}<{interface}>"
 
     def __repr__(self):
         args = []
