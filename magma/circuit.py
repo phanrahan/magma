@@ -28,7 +28,6 @@ __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['getCurrentDefinition']
 __all__ += ['magma_clear_circuit_cache']
 
-__all__ += ['isprimitive']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
@@ -389,9 +388,6 @@ def popDefinition():
         currentDefinition = currentDefinitionStack.pop()
     else:
         currentDefinition = None
-
-def isprimitive(circuit):
-    return getattr(circuit, "primitive", False)
 
 # a map from circuitDefinition names to circuit definition objects
 definitionCache = {}
