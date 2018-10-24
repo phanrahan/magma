@@ -115,10 +115,6 @@ def FromVerilog(source, func, type_map, target_modules=None):
 
     v = ModuleVisitor()
     v.visit(ast)
-
-    if func == DefineCircuit:
-        # only allow a single verilog module
-        assert len(v.nodes) == 1
     modules = []
     for node in v.nodes:
         if target_modules is not None and node.name not in target_modules:
@@ -166,8 +162,8 @@ def DeclareFromTemplatedVerilogFile(file, type_map={}, **kwargs):
     return FromTemplatedVerilogFile(file, DeclareCircuit, type_map, **kwargs)
 
 
-def DefineFromVerilog(source, type_map={}):
-    return FromVerilog(source, DefineCircuit, type_map)
+def DefineFromVerilog(source, type_map={}, target_modules=None):
+    return FromVerilog(source, DefineCircuit, type_map, target_modules)
 
 def DefineFromVerilogFile(file, target_modules=None, type_map={}):
     return FromVerilogFile(file, DefineCircuit, type_map, target_modules)
