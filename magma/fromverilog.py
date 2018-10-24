@@ -137,6 +137,10 @@ def FromVerilog(source, func, type_map, target_modules=None):
         except Exception as e:
             logger.warning(f"Could not parse module {node.name} ({e}), "
                            f"skipping")
+    if not modules:
+        logger.warning(f"Did not import any modules from verilog, either could "
+                       f"not parse or could not find any of the target_modules "
+                       f"({target_modules})")
     return modules
 
 def FromVerilogFile(file, func, type_map, target_modules=None):
