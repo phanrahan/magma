@@ -133,6 +133,7 @@ def FromVerilog(source, func, type_map, target_modules=None):
                 # inline source
                 circuit.verilogFile = source
                 EndDefine()
+            circuit.verilog_source = source
             modules.append(circuit)
         except Exception as e:
             logger.warning(f"Could not parse module {node.name} ({e}), "
