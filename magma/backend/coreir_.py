@@ -251,7 +251,7 @@ class CoreIRBackend:
             self.libs_used.add(definition.coreir_lib)
         output_ports = {}
         for name, port in definition.interface.ports.items():
-            logger.debug(name, port, port.isoutput())
+            logger.debug("{}, {}, {}".format(name, port, port.isoutput()))
             self.add_output_port(output_ports, port)
 
         for instance in definition.instances:
