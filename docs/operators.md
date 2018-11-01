@@ -47,7 +47,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
 | `=`              | `m.wire`, **TODO (=)**  | Any   | All     | Assignment cannot be overloaded for arbitrary Python variables, so in general we must use `m.wire`. There are plans to add support for assignment to attributes of magma types, such as `reg.I = io.I`. |
-| `+=`, `-=`, `/=`, `*=` | `None`   | None  | All     | Again, unsupported due to the lack of support for overloading assignment. May be added in the future for attributes of mamga types |
+| `+=`, `-=`, `/=`, `*=` | `None`   | None  | All     | Again, unsupported due to the lack of support for overloading assignment. May be added in the future for attributes of magma types |
 | `%=` | `None` | None | All | See above |
 | `&=`, `|=`, `^=` | `None` | None | All | See above |
 | `>>=`, `<<=` | `None` | None | All | See above |
