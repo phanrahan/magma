@@ -103,7 +103,6 @@ class CircuitKind(type):
             port = cls.interface[key]
             if port.isoutput():
                 raise TypeError(f"Cannot assign to input port of definition: {port.debug_name}")
-            # Error handling deferred to wiring logic
             port.wire(value)
 
     def __call__(cls, *largs, **kwargs):
@@ -230,7 +229,6 @@ class AnonymousCircuitType(object):
             port = self.interface[key]
             if port.isoutput():
                 raise TypeError(f"Cannot assign to output port of instance: {port.debug_name}")
-            # Error handling deferred to wiring logic
             port.wire(value)
 
     # wire a list of outputs to the circuit's inputs
