@@ -75,7 +75,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 |------------------|----------------| ----- | ------- | -------- |
 | `<<`, `>>`       | `<<`, `>>`     | `m.Bits` | All | **TODO: What does verilog expect for bit width of the shift value? What does magma expect?** |
 | `&&`, `||`       | **TODO**       | `m.Bits` | All | Python doesn't support overloading logical and and or, we can provide mantle functions instead |
-| `->`, `<->`      | None       | None | All | Impliciation and equivalence are used for verification, no planned support |
+| `->`, `<->`      | None       | None | All | Impliciation and equivalence are used for verification, no planned support. If we wanted, we could provide mantle functions taht implement them as `!expression1 || expression2` (implication) and `(!expression1 || expression2) && (!expression2 || expression1)` |
 | `==`, `!=`       | `==`, `!=`     | All | All |  |
 
 #### Binary Arithmetic Operators
