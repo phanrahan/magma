@@ -47,7 +47,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
 | `=`              | `m.wire`, `=` (only when setting attributes on circuit definitions or circuit instances) | Any | All | Assignment cannot be overloaded for arbitrary Python variables, so in general we must use `m.wire`. We have added preliminary for assignment to attributes of magma circuit definitions and instances, e.g. `reg.I = io.I`, but remember that assigning to Python variables, e.g. `I = io.I` does not correspond to wiring. |
-| `+=`, `-=`, `/=`, `*=` | `None`   | None  | All     | Again, unsupported due to the lack of support for overloading assignment. May be added in the future for attributes of magma types |
+| `+=`, `-=`, `/=`, `*=` | `None`   | None  | All     | Support is not planned for these operators because magma cannot provide a clean semantics for them.  Assignment only works for inputs to circuit instances and outputs of circuit definitions.  AugAssign operators imply a value that is used both as an input an output. For example, `inst.a +=1` would imply a is an output that feeds into binary add with 1, while also an input which consumes the result of the binary add. |
 | `%=` | `None` | None | All | See above |
 | `&=`, `|=`, `^=` | `None` | None | All | See above |
 | `>>=`, `<<=` | `None` | None | All | See above |
