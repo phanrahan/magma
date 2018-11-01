@@ -298,6 +298,15 @@ class CoreIRBackend:
         if get_codegen_debug_info() and definition.debug_info:
             coreir_module.add_metadata("filename", json.dumps(make_relative(definition.debug_info.filename)))
             coreir_module.add_metadata("lineno", json.dumps(str(definition.debug_info.lineno)))
+
+        # If this module was imported from verilog, do not go through the
+        # general module construction flow. Instead just attach the verilog
+        # source as metadata and return the module.
+        if hasattr(definition, "verilog_source"):
+            verilog_metadata = {"verilog_string": definition.verilog_source}
+            coreir_module.add_metadata("verilog", json.dumps(verilog_metadata))
+            return coreir_module
+
         module_definition = coreir_module.new_definition()
         self.compile_definition_to_module_definition(definition, module_definition)
         coreir_module.definition = module_definition
