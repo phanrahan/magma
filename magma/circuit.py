@@ -93,6 +93,19 @@ class CircuitKind(type):
 
         return cls
 
+    def __setattr__(cls, key, value):
+        # First check if interface has been set, since early in the metaclass
+        # pipeline we set attributes on the class, so we just use default
+        # semantics for those statements
+        if not getattr(cls, "ports_set", False) or key not in cls.interface:
+            super().__setattr__(key, value)
+        else:
+            port = cls.interface[key]
+            if port.isoutput():
+                raise TypeError(f"Cannot assign to input port of definition: {port.debug_name}")
+            # Error handling deferred to wiring logic
+            port.wire(value)
+
     def __call__(cls, *largs, **kwargs):
         #print('CircuitKind call:', largs, kwargs)
         debug_info = get_callee_frame_info()
@@ -206,6 +219,19 @@ class AnonymousCircuitType(object):
 
     def __getitem__(self, key):
         return self.interface[key]
+
+    def __setattr__(self, key, value):
+        # First check if interface has been set, since early in the metaclass
+        # pipeline we set attributes on the class, so we just use default
+        # semantics for those statements
+        if self.interface is None or key not in self.interface:
+            object.__setattr__(self, key, value)
+        else:
+            port = self.interface[key]
+            if port.isoutput():
+                raise TypeError(f"Cannot assign to output port of instance: {port.debug_name}")
+            # Error handling deferred to wiring logic
+            port.wire(value)
 
     # wire a list of outputs to the circuit's inputs
     def wireoutputs(self, outputs, debug_info):
@@ -452,6 +478,7 @@ class DefineCircuitKind(CircuitKind):
             # instantiate interface
             self.interface = self.IO(defn=self, renamed_ports=dct["renamed_ports"])
             setports(self, self.interface.ports)
+            self.ports_set = True
 
             # create circuit definition
             if hasattr(self, 'definition'):

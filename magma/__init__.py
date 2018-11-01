@@ -58,3 +58,4 @@ def set_mantle_target(t):
 
 from .backend.util import set_codegen_debug_info
 from .enum import Enum
+import magma.util

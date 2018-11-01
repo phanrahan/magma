@@ -1,5 +1,7 @@
 import magma as m
 from magma.operators import MantleImportError
+from common import DeclareAnd
+import pytest
 
 
 def test_error():
@@ -10,3 +12,47 @@ def test_error():
             "Operator should throw an error since mantle is not imported"
     except MantleImportError:
         pass
+
+
+@pytest.mark.parametrize("width", [None, 3])
+@pytest.mark.parametrize("output", ["verilog", "coreir"])
+def test_assign(width, output):
+    T = m.util.BitOrBits(width)
+    name = f"test_assign_operator_{width}_{output}"
+    circ = m.DefineCircuit(name, "a", m.In(T), "b", m.In(T),
+                           "c", m.Out(T))
+    and2 = DeclareAnd(width)()
+    and2.I0 = circ.a
+    and2.I1 = circ.b
+    circ.c = and2.O
+    m.EndDefine()
+
+    m.compile(f"build/{name}", circ, output)
+
+
+@pytest.mark.parametrize("width", [None, 3])
+def test_assign_error_0(width):
+    T = m.util.BitOrBits(width)
+    name = f"test_assign_operator_{width}"
+    circ = m.DefineCircuit(name, "a", m.In(T), "b", m.In(T),
+                           "c", m.Out(T))
+    and2 = DeclareAnd(width)()
+    try:
+        and2.O = circ.a
+        assert False, "Should raise type error"
+    except TypeError as e:
+        assert str(e) == f"Cannot assign to output port of instance: test_assign_operator_{width}.And{width}_inst0.O"
+
+
+@pytest.mark.parametrize("width", [None, 3])
+def test_assign_error_1(width):
+    T = m.util.BitOrBits(width)
+    name = f"test_assign_operator_{width}"
+    circ = m.DefineCircuit(name, "a", m.In(T), "b", m.In(T),
+                           "c", m.Out(T))
+    and2 = DeclareAnd(width)()
+    try:
+        circ.a = and2.O
+        assert False, "Should raise type error"
+    except TypeError as e:
+        assert str(e) == f"Cannot assign to input port of definition: test_assign_operator_{width}.a"
