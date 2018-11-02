@@ -13,10 +13,7 @@ def check_port(definition, port, type, direction):
     else:
         raise NotImplementedError(direction)
 
-def test():
-    file_path = os.path.dirname(__file__)
-    RXMOD = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"))[0]
-
+def check_rxmod(RXMOD):
     check_port(RXMOD, "RX", m.BitType, "input")
     check_port(RXMOD, "CLK", m.BitType, "input")
     check_port(RXMOD, "data", m.ArrayType, "output")
@@ -24,17 +21,19 @@ def test():
 
     m.compile("build/test_rxmod", RXMOD)
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
-            "gold/test_rxmod.v")
+            "gold/test_rxmod.v")    
 
-def test_module_arg():
+def test_basic():
     file_path = os.path.dirname(__file__)
-    RXMOD = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"), "RXMOD")
+    RXMOD = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"))[0]
 
-    check_port(RXMOD, "RX", m.BitType, "input")
-    check_port(RXMOD, "CLK", m.BitType, "input")
-    check_port(RXMOD, "data", m.ArrayType, "output")
-    check_port(RXMOD, "valid", m.BitType, "output")
+    check_rxmod(RXMOD)
 
-    m.compile("build/test_rxmod_module_arg", RXMOD)
-    assert m.testing.check_files_equal(__file__, "build/test_rxmod_module_arg.v",
-            "gold/test_rxmod.v")
+
+def test_target_modules_arg():
+    file_path = os.path.dirname(__file__)
+    circuits = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"), ["RXMOD"])
+    assert len(circuits) == 1
+    assert circuits[0].name == "RXMOD"
+
+    check_rxmod(circuits[0])

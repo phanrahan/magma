@@ -6,6 +6,7 @@ from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
 import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
+import pyverilog.vparser.ast as pyverilog_ast
 
 from .t import In, Out, InOut
 from .bit import Bit, _BitKind
@@ -46,6 +47,13 @@ def convert(input_type, target_type):
     raise NotImplementedError(f"Conversion between {input_type} and "
                               f"{target_type} not supported")
 
+def get_value(v):
+    if isinstance(v, pyverilog_ast.IntConst):
+        return int(v.value)
+    if isinstance(v, pyverilog_ast.Minus):
+        return get_value(v.left) - get_value(v.right)
+    else:
+        raise NotImplementedError(type(v))
 
 def get_type(io, type_map):
     if isinstance(io, Input):
@@ -58,8 +66,8 @@ def get_type(io, type_map):
     if io.width is None:
         type_ = Bit
     else:
-        msb = int(io.width.msb.value)
-        lsb = int(io.width.lsb.value)
+        msb = get_value(io.width.msb)
+        lsb = get_value(io.width.lsb)
         type_ = Bits(msb-lsb+1)
 
     type_ = direction(type_)
@@ -99,7 +107,7 @@ def ParseVerilogModule(node, type_map):
 
     return node.name, args
 
-def FromVerilog(source, func, type_map, module=None):
+def FromVerilog(source, func, type_map, target_modules=None):
     parser = VerilogParser()
 
     ast = parser.parse(source)
@@ -109,11 +117,14 @@ def FromVerilog(source, func, type_map, module=None):
     v.visit(ast)
 
     if func == DefineCircuit:
-        # only allow a single verilog module
-        assert len(v.nodes) == 1
+        # only allow a single verilog module unless we're only defining one
+        # circuit (only one module in target_modules), otherwise, they would
+        # all use the same source, so if they are compiled together, there will
+        # be multiple definitions of the same verilog module
+        assert len(v.nodes) == 1 or len(target_modules) == 1
     modules = []
     for node in v.nodes:
-        if module is not None and node.name != module:
+        if target_modules is not None and node.name not in target_modules:
             continue
         try:
             name, args = ParseVerilogModule(node, type_map)
@@ -122,23 +133,22 @@ def FromVerilog(source, func, type_map, module=None):
                 # inline source
                 circuit.verilogFile = source
                 EndDefine()
-            if module is not None:
-                assert node.name == module
-                return circuit
+            circuit.verilog_source = source
             modules.append(circuit)
         except Exception as e:
             logger.warning(f"Could not parse module {node.name} ({e}), "
                            f"skipping")
-    if module is not None:
-        raise Exception(f"Could not find module {module}")
-
+    if not modules:
+        logger.warning(f"Did not import any modules from verilog, either could "
+                       f"not parse or could not find any of the target_modules "
+                       f"({target_modules})")
     return modules
 
-def FromVerilogFile(file, func, type_map, module=None):
+def FromVerilogFile(file, func, type_map, target_modules=None):
     if file is None:
         return None
     verilog = open(file).read()
-    return FromVerilog(verilog, func, type_map, module)
+    return FromVerilog(verilog, func, type_map, target_modules)
 
 def FromTemplatedVerilog(templatedverilog, func, type_map, **kwargs):
     verilog = Template(templatedverilog).render(**kwargs)
@@ -154,8 +164,8 @@ def FromTemplatedVerilogFile(file, func, type_map, **kwargs):
 def DeclareFromVerilog(source, type_map={}):
     return FromVerilog(source, DeclareCircuit, type_map)
 
-def DeclareFromVerilogFile(file, module=None, type_map={}):
-    return FromVerilogFile(file, DeclareCircuit, type_map, module)
+def DeclareFromVerilogFile(file, target_modules=None, type_map={}):
+    return FromVerilogFile(file, DeclareCircuit, type_map, target_modules)
 
 def DeclareFromTemplatedVerilog(source, type_map={}, **kwargs):
     return FromTemplatedVerilog(source, DeclareCircuit, type_map, **kwargs)
@@ -164,11 +174,11 @@ def DeclareFromTemplatedVerilogFile(file, type_map={}, **kwargs):
     return FromTemplatedVerilogFile(file, DeclareCircuit, type_map, **kwargs)
 
 
-def DefineFromVerilog(source, type_map={}):
-    return FromVerilog(source, DefineCircuit, type_map)
+def DefineFromVerilog(source, type_map={}, target_modules=None):
+    return FromVerilog(source, DefineCircuit, type_map, target_modules)
 
-def DefineFromVerilogFile(file, module=None, type_map={}):
-    return FromVerilogFile(file, DefineCircuit, type_map, module)
+def DefineFromVerilogFile(file, target_modules=None, type_map={}):
+    return FromVerilogFile(file, DefineCircuit, type_map, target_modules)
 
 def DefineFromTemplatedVerilog(source, type_map={}, **kwargs):
     return FromTemplatedVerilog(source, DefineCircuit, type_map, **kwargs)

@@ -16,6 +16,7 @@ import logging
 from .util import make_relative, get_codegen_debug_info
 from ..interface import InterfaceKind
 import inspect
+import copy
 
 from collections import defaultdict
 
@@ -254,7 +255,7 @@ class CoreIRBackend:
             self.libs_used.add(definition.coreir_lib)
         output_ports = {}
         for name, port in definition.interface.ports.items():
-            logger.debug(name, port, port.isoutput())
+            logger.debug("{}, {}, {}".format(name, port, port.isoutput()))
             self.add_output_port(output_ports, port)
 
         for instance in definition.instances:
@@ -406,9 +407,12 @@ class CoreIRBackend:
             # don't try to compile if already have definition
             if hasattr(defn_or_declaration, 'wrappedModule'):
                 self.modules[defn_or_declaration.name] = defn_or_declaration.wrappedModule
+                self.libs_used |= defn_or_declaration.coreir_wrapped_modules_libs_used
             else:
                 self.modules[defn_or_declaration.name] = self.compile_definition(defn_or_declaration)
                 defn_or_declaration.wrappedModule = self.modules[defn_or_declaration.name]
+                defn_or_declaration.coreir_wrapped_modules_libs_used = \
+                    copy.copy(self.libs_used)
         else:
             self.modules[defn_or_declaration.name] = self.compile_declaration(defn_or_declaration)
         return self.modules

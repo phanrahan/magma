@@ -14,7 +14,7 @@ from ..scope import *
 from ..bit import VCC, GND, BitType, _BitType
 from ..array import ArrayType
 from ..bits import SIntType, BitsType, UIntType
-from ..bit_vector import BitVector
+from bit_vector import BitVector
 from ..bitutils import seq2int
 from ..clock import ClockType
 
