@@ -4,6 +4,10 @@ import sys
 setup(
     name='magma-lang',
     version='0.1.1',
+    url='https://github.com/phanrahan/magma',
+    license='MIT',
+    maintainer='Lenny Truong',
+    maintainer_email='lenny@cs.stanford.edu',
     description='A circuit wiring language for programming FPGAs',
     scripts=['bin/magma'],
     packages=[
