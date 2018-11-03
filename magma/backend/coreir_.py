@@ -245,9 +245,9 @@ class CoreIRBackend:
 
         coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
                                                                  module_type)
-        if get_codegen_debug_info() and declaration.filename and declaration.lineno:
-            coreir_module.add_metadata("filename", make_relative(declaration.filename))
-            coreir_module.add_metadata("lineno", str(declaration.lineno))
+        if get_codegen_debug_info() and declaration.debug_info:
+            coreir_module.add_metadata("filename", make_relative(declaration.debug_info.filename))
+            coreir_module.add_metadata("lineno", str(declaration.debug_info.lineno))
         return coreir_module
 
     def compile_definition_to_module_definition(self, definition, module_definition):
@@ -294,9 +294,9 @@ class CoreIRBackend:
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
-        if get_codegen_debug_info() and definition.filename and definition.lineno:
-            coreir_module.add_metadata("filename", make_relative(definition.filename))
-            coreir_module.add_metadata("lineno", str(definition.lineno))
+        if get_codegen_debug_info() and definition.debug_info:
+            coreir_module.add_metadata("filename", make_relative(definition.debug_info.filename))
+            coreir_module.add_metadata("lineno", str(definition.debug_info.lineno))
         module_definition = coreir_module.new_definition()
         self.compile_definition_to_module_definition(definition, module_definition)
         coreir_module.definition = module_definition
@@ -345,9 +345,8 @@ class CoreIRBackend:
         sink = module_definition.select(magma_port_to_coreir(port))
         module_definition.connect(source, sink)
         if get_codegen_debug_info() and hasattr(port, "debug_info"):
-            filename, lineno = port.debug_info
-            module_definition.add_metadata(source, sink, "filename", make_relative(filename))
-            module_definition.add_metadata(source, sink, "lineno", str(lineno))
+            module_definition.add_metadata(source, sink, "filename", make_relative(port.debug_info.filename))
+            module_definition.add_metadata(source, sink, "lineno", str(port.debug_info.lineno))
 
 
     __unique_constant_id = -1
