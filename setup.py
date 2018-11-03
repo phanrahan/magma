@@ -22,7 +22,7 @@ setup(
         "pyverilog",
         "numpy",
         "graphviz",
-        "coreir==0.29a0",
+        "coreir==0.30a0",
         "bit_vector==0.39a0"
     ],
     python_requires='>=3.6'
