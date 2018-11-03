@@ -46,11 +46,13 @@ def circuit_to_html(cls):
 
 # create an attribute for each port
 def setports(self, ports):
+    self.ports_set = False
     #print('setports', ports)
     for name, port in ports.items():
         #print(self, port, type(port))
         if isinstance(name, str):
             setattr(self, name, port)
+    self.ports_set = True
 
 #
 # Metaclass for creating circuits
@@ -223,7 +225,9 @@ class AnonymousCircuitType(object):
         # First check if interface has been set, since early in the metaclass
         # pipeline we set attributes on the class, so we just use default
         # semantics for those statements
-        if self.interface is None or key not in self.interface:
+        if not getattr(self, "ports_set", False) or \
+                getattr(self, "interface", None) is None or \
+                key not in self.interface:
             object.__setattr__(self, key, value)
         else:
             port = self.interface[key]
@@ -476,7 +480,6 @@ class DefineCircuitKind(CircuitKind):
             # instantiate interface
             self.interface = self.IO(defn=self, renamed_ports=dct["renamed_ports"])
             setports(self, self.interface.ports)
-            self.ports_set = True
 
             # create circuit definition
             if hasattr(self, 'definition'):
