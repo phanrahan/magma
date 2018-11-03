@@ -1,7 +1,7 @@
 module coreir_const #(parameter value=1, parameter width=1) (
   output [width-1:0] out
 );
-  assign out = value;
+  assign out = width'value;
 
 endmodule  // coreir_const
 
@@ -18,9 +18,9 @@ module enum_test_max_value (
     .out(const_4_3__out)
   );
 
-  assign O_1[2:0] = const_4_3__out[2:0];
-
   assign O_0[2:0] = I[2:0];
+
+  assign O_1[2:0] = const_4_3__out[2:0];
 
 
 endmodule  // enum_test_max_value

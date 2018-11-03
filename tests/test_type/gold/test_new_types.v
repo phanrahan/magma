@@ -54,14 +54,6 @@ module TestCircuit (
 
   assign O_0_y[2:0] = I_0_y[2:0];
 
-  assign O_10_x[2:0] = I_10_x[2:0];
-
-  assign O_10_y[2:0] = I_10_y[2:0];
-
-  assign O_11_x[2:0] = I_11_x[2:0];
-
-  assign O_11_y[2:0] = I_11_y[2:0];
-
   assign O_1_x[2:0] = I_1_x[2:0];
 
   assign O_1_y[2:0] = I_1_y[2:0];
@@ -97,6 +89,14 @@ module TestCircuit (
   assign O_9_x[2:0] = I_9_x[2:0];
 
   assign O_9_y[2:0] = I_9_y[2:0];
+
+  assign O_10_x[2:0] = I_10_x[2:0];
+
+  assign O_10_y[2:0] = I_10_y[2:0];
+
+  assign O_11_x[2:0] = I_11_x[2:0];
+
+  assign O_11_y[2:0] = I_11_y[2:0];
 
 
 endmodule  // TestCircuit
