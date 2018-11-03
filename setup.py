@@ -8,7 +8,7 @@ setup(
     license='MIT',
     maintainer='Lenny Truong',
     maintainer_email='lenny@cs.stanford.edu',
-    description='A circuit wiring language for programming FPGAs',
+    description='An embedded DSL for constructing hardware circuits',
     scripts=['bin/magma'],
     packages=[
         "magma",
