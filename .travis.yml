@@ -1,40 +1,41 @@
 language: python
 python:
-    - "3.6"
-
+- '3.6'
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
     packages:
-      - g++-4.9
-
+    - g++-4.9
 before_install:
-    - source .travis/install_coreir.sh
-
+- source .travis/install_coreir.sh
 install:
-    - pip install python-coveralls
-    - pip install pytest-cov pytest-pep8
-    - pip install -e .
-
+- pip install python-coveralls
+- pip install pytest-cov pytest-pep8
+- pip install -e .
 after_success:
-    - coveralls
-
+- coveralls
 jobs:
   include:
-    - stage: trigger downstream
-      script:
-          # TODO: Enable pep8 check
-          # - py.test --cov magma --pep8 magma -v --cov-report term-missing tests
-          - py.test --cov magma -v --cov-report term-missing tests
-    - stage: trigger downstream
-      script: |
-        # See https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh for documentation
-        echo "TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
-        if [[ ($TRAVIS_BRANCH == master) &&
-              ($TRAVIS_PULL_REQUEST == false) ]] ; then
-          curl -LO --retry 3 https://raw.github.com/mernst/plume-lib/master/bin/trigger-travis.sh
-          sh trigger-travis.sh --pro David-Durst aetherling $TRAVIS_ACCESS_TOKEN
-          sh trigger-travis.sh --pro StanfordAHA garnet $TRAVIS_ACCESS_TOKEN
-          sh trigger-travis.sh phanrahan mantle $TRAVIS_ORG_ACCESS_TOKEN
-        fi
+  - stage: trigger downstream
+    script:
+    - py.test --cov magma -v --cov-report term-missing tests
+  - stage: trigger downstream
+    script: |
+      # See https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh for documentation
+      echo "TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
+      if [[ ($TRAVIS_BRANCH == master) &&
+            ($TRAVIS_PULL_REQUEST == false) ]] ; then
+        curl -LO --retry 3 https://raw.github.com/mernst/plume-lib/master/bin/trigger-travis.sh
+        sh trigger-travis.sh --pro David-Durst aetherling $TRAVIS_ACCESS_TOKEN
+        sh trigger-travis.sh --pro StanfordAHA garnet $TRAVIS_ACCESS_TOKEN
+        sh trigger-travis.sh phanrahan mantle $TRAVIS_ORG_ACCESS_TOKEN
+      fi
+deploy:
+  provider: pypi
+  user: leonardt
+  on:
+    tags: true
+    branch: master
+  password:
+    secure: edrdZkm/UehEqjZbys8TsR/3yiWme/f9KUwIfC9DgZHT2ALVPvwQB06ZSxEZ5cP4n4Zr8sSP3+A/SUcJUFFQ3i/3Tmz06ilJ081aAdhTEuZQx0XuDutDThPkZELt2gTSIjhpRIG0WpjCLFMy387Voih/QYy8qXYoUTNT93uWqLD/8MOgmsRVxL+tGiqZA1KvzQ95sI1GKB2R5cXW3CFJhL0WZRsrGN9srNHezbf35phmf/ii4ddmNrOqhL83slzA4afmENniPPctajxOLevU0qlJYj9iTS/qV7LG94FXn+v62vb+6aemG+7ky7vgXnfdRLAnSAKEninmQotUYm1FmYNQBcbKGO5ImC6t6KDP5f+pJzYUQA3z3bS2Pfp1kCHjcq0hlaqUC8JlvH8/zaGFYWJyGmQjgB7Fy3UUBMVAezu3+UqjW7WgCVKsAxAKtxs8mW0o+hmHQIjjPX1X+B3kvtHUs+EGLfNYlU7mNrulTj4eqEi1ZVxb7mDiUvMh4rszLBOYbD15ZvqFME5Mu+9ngviV+DQJSiqjQrPPhRIdtEEZvsCGux5ze0gRc2TJjZd0XfB7lELbp6fiZc1+rjkMYnLRmo9CuBe6dvznKxsC88FERTvSKtHezGBMnumGKwJAy64LkXNOoKBTWeyjS8FHwMR5TJz/xIGyWyyJMgmVhww=
