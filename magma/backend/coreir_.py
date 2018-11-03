@@ -15,6 +15,7 @@ from ..t import In
 import logging
 from .util import make_relative, get_codegen_debug_info
 from ..interface import InterfaceKind
+import inspect
 import copy
 
 from collections import defaultdict
@@ -244,6 +245,9 @@ class CoreIRBackend:
 
         coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
                                                                  module_type)
+        if get_codegen_debug_info() and declaration.debug_info:
+            coreir_module.add_metadata("filename", make_relative(declaration.debug_info.filename))
+            coreir_module.add_metadata("lineno", str(declaration.debug_info.lineno))
         return coreir_module
 
     def compile_definition_to_module_definition(self, definition, module_definition):
@@ -290,6 +294,9 @@ class CoreIRBackend:
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        if get_codegen_debug_info() and definition.debug_info:
+            coreir_module.add_metadata("filename", make_relative(definition.debug_info.filename))
+            coreir_module.add_metadata("lineno", str(definition.debug_info.lineno))
         module_definition = coreir_module.new_definition()
         self.compile_definition_to_module_definition(definition, module_definition)
         coreir_module.definition = module_definition
@@ -335,9 +342,11 @@ class CoreIRBackend:
             logger.debug(value, output_ports)
             logger.debug(id(value), [id(key) for key in output_ports])
             source = module_definition.select(output_ports[value])
-        module_definition.connect(
-            source,
-            module_definition.select(magma_port_to_coreir(port)))
+        sink = module_definition.select(magma_port_to_coreir(port))
+        module_definition.connect(source, sink)
+        if get_codegen_debug_info() and hasattr(port, "debug_info"):
+            module_definition.add_metadata(source, sink, "filename", make_relative(port.debug_info.filename))
+            module_definition.add_metadata(source, sink, "lineno", str(port.debug_info.lineno))
 
 
     __unique_constant_id = -1
