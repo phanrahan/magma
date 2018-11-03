@@ -2,8 +2,8 @@ from setuptools import setup
 import sys
 
 setup(
-    name='magma',
-    version='0.1',
+    name='magma-lang',
+    version='0.1.1',
     description='A circuit wiring language for programming FPGAs',
     scripts=['bin/magma'],
     packages=[
