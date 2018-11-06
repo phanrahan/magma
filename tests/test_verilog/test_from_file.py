@@ -37,3 +37,25 @@ def test_target_modules_arg():
     assert circuits[0].name == "RXMOD"
 
     check_rxmod(circuits[0])
+
+
+def test_coreir_compilation():
+    file_path = os.path.dirname(__file__)
+    RXMOD = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"))[0]
+
+    top = m.DefineCircuit("top",
+                          "RX", m.In(m.Bit),
+                          "CLK", m.In(m.Bit),
+                          "data", m.Out(m.Bits(8)),
+                          "valid", m.Out(m.Bit))
+    RXMOD_inst = RXMOD()
+    m.wire(top.RX, RXMOD_inst.RX)
+    m.wire(top.CLK, RXMOD_inst.CLK)
+    m.wire(top.data, RXMOD_inst.data)
+    m.wire(top.valid, RXMOD_inst.valid)
+    m.EndCircuit()
+
+    m.compile("build/test_rxmod_top", top, output="coreir")
+
+    assert m.testing.check_files_equal(
+        __file__, "build/test_rxmod_top.json", "gold/test_rxmod_top.json")
