@@ -46,7 +46,8 @@ for op in (
            "__mul__",
            "__div__",
            "__lt__",
-           "__le__",
+           # __le__ skipped because it's used for assignment on inputs
+           # "__le__", 
            "__gt__",
            "__ge__"
            ):
@@ -87,7 +88,8 @@ for op in ("__add__",
            "__mul__",
            "__div__",
            "__lt__",
-           "__le__",
+           # __le__ skipped because it's used for assignment on inputs
+           # "__le__",
            "__gt__",
            "__ge__"
            ):
@@ -99,7 +101,8 @@ for op in ("__add__",
            "__mul__",
            "__div__",
            "__lt__",
-           "__le__",
+           # __le__ skipped because it's used for assignment on inputs
+           # "__le__",
            "__gt__",
            "__ge__"
            ):

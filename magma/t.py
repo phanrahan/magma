@@ -67,6 +67,12 @@ class Type(object):
             defn_str = str(self.name.inst.defn.name) + "."
         return f"{defn_str}{inst_str}{str(self)}"
 
+    def __le__(self, other):
+        if self.isinput():
+            self.wire(other)
+        else:
+            raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
+
 
 class Kind(type):
     def __init__(cls, name, bases, dct):
