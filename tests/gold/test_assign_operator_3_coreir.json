@@ -1,0 +1,32 @@
+{"top":"global.test_assign_operator_3_coreir",
+"namespaces":{
+  "global":{
+    "modules":{
+      "And3":{
+        "type":["Record",[
+          ["I0",["Array",3,"BitIn"]],
+          ["I1",["Array",3,"BitIn"]],
+          ["O",["Array",3,"Bit"]]
+        ]]
+      },
+      "test_assign_operator_3_coreir":{
+        "type":["Record",[
+          ["a",["Array",3,"BitIn"]],
+          ["b",["Array",3,"BitIn"]],
+          ["c",["Array",3,"Bit"]]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.And3"
+          }
+        },
+        "connections":[
+          ["self.a","inst0.I0"],
+          ["self.b","inst0.I1"],
+          ["self.c","inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}
