@@ -57,7 +57,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
 | `?:`              | `<true_exp> if <cond> else <false_exp>`       | `true_exp : T`, `cond_exp : Bit`,  `false_exp : T`    | `m.circuit.combinational`     | Currently only supported inside the `m.circuit.combinational` syntax because it requires inspection of the AST and rewriting it into a `Mux`. The true expression and the false expression should have the same type, the condition expression should have a Bit type. |
-| `?:`              | `mantle.mux([<true_exp>, <false_exp>], <cond>)`       | `true_exp : T`, `cond_exp : Bit`,  `false_exp : T`    | All     |  |
+| `?:`              | `mantle.mux([<false_exp>, <true_exp>], <cond>)`       | `true_exp : T`, `cond_exp : Bit`,  `false_exp : T`    | All     |  |
 
 #### Unary Logical Operators
 | Verilog Operator | Magma Operator | Types | Context | Comments |
