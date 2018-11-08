@@ -46,13 +46,11 @@ def circuit_to_html(cls):
 
 # create an attribute for each port
 def setports(self, ports):
-    self.ports_set = False
     #print('setports', ports)
     for name, port in ports.items():
         #print(self, port, type(port))
         if isinstance(name, str):
             setattr(self, name, port)
-    self.ports_set = True
 
 #
 # Metaclass for creating circuits
@@ -94,18 +92,6 @@ class CircuitKind(type):
             cls.interface = cls.IO
 
         return cls
-
-    def __setattr__(cls, key, value):
-        # First check if interface has been set, since early in the metaclass
-        # pipeline we set attributes on the class, so we just use default
-        # semantics for those statements
-        if not getattr(cls, "ports_set", False) or key not in cls.interface:
-            super().__setattr__(key, value)
-        else:
-            port = cls.interface[key]
-            if port.isoutput():
-                raise TypeError(f"Cannot assign to input port of definition: {port.debug_name}")
-            port.wire(value)
 
     def __call__(cls, *largs, **kwargs):
         #print('CircuitKind call:', largs, kwargs)
@@ -220,20 +206,6 @@ class AnonymousCircuitType(object):
 
     def __getitem__(self, key):
         return self.interface[key]
-
-    def __setattr__(self, key, value):
-        # First check if interface has been set, since early in the metaclass
-        # pipeline we set attributes on the class, so we just use default
-        # semantics for those statements
-        if not getattr(self, "ports_set", False) or \
-                getattr(self, "interface", None) is None or \
-                key not in self.interface:
-            object.__setattr__(self, key, value)
-        else:
-            port = self.interface[key]
-            if port.isoutput():
-                raise TypeError(f"Cannot assign to output port of instance: {port.debug_name}")
-            port.wire(value)
 
     # wire a list of outputs to the circuit's inputs
     def wireoutputs(self, outputs, debug_info):
