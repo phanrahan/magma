@@ -63,10 +63,10 @@ def test_assign_error_0(width):
                            "c", m.Out(T))
     and2 = DeclareAnd(width)()
     try:
-        and2.O = circ.a
+        and2.O <= circ.a
         assert False, "Should raise type error"
     except TypeError as e:
-        assert str(e) == f"Cannot assign to output port of instance: test_assign_operator_{width}.And{width}_inst0.O"
+        assert str(e) == f"Cannot use <= to assign to output: {and2.O.debug_name} (trying to assign {circ.a.debug_name})"
 
 
 @pytest.mark.parametrize("width", [None, 3])
@@ -77,7 +77,7 @@ def test_assign_error_1(width):
                            "c", m.Out(T))
     and2 = DeclareAnd(width)()
     try:
-        circ.a = and2.O
+        circ.a <= and2.O
         assert False, "Should raise type error"
     except TypeError as e:
-        assert str(e) == f"Cannot assign to input port of definition: test_assign_operator_{width}.a"
+        assert str(e) == f"Cannot use <= to assign to output: {circ.a.debug_name} (trying to assign {and2.O.debug_name})"

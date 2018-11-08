@@ -71,7 +71,7 @@ class Type(object):
         if self.isinput():
             self.wire(other)
         else:
-            raise TypeError("Cannot use <= to assign to an output")
+            raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
 
 
 class Kind(type):
