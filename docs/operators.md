@@ -49,7 +49,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | `=`              | `m.wire`, **TODO (=)**  | Any   | All     | Assignment cannot be overloaded for arbitrary Python variables, so in general we must use `m.wire`. There are plans to add support for assignment to attributes of magma types, such as `reg.I = io.I`. |
 | `+=`, `-=`, `/=`, `*=` | `None`   | None  | All     | Again, unsupported due to the lack of support for overloading assignment. May be added in the future for attributes of magma types |
 | `%=` | `None` | None | All | See above |
-| `&=`, `|=`, `^=` | `None` | None | All | See above |
+| `&=`, `\|=`, `^=` | `None` | None | All | See above |
 | `>>=`, `<<=` | `None` | None | All | See above |
 | `>>>=`, `<<<=` | `None` | None | All | See above |
 
@@ -62,7 +62,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
 | `!`                | **TODO**         | `m.Bit`, `m.Bits` |  All | Logical operators like `not` cannot be overloaded in Python. Planned support for a mantle function `m.lnot` as an alternative |
-| `~`, `&`, `~&`, `|`, `~|`, `^`, `~^`, `^~` | **TODO** | `m.Bits` | All | Python does not have built-in support for reduction operators. Use the python `reduce` function instead, e.g. `reduce(mantle.nand, value)`. |
+| `~`, `&`, `~&`, `\|`, `~\|`, `^`, `~^`, `^~` | **TODO** | `m.Bits` | All | Python does not have built-in support for reduction operators. Use the python `reduce` function instead, e.g. `reduce(mantle.nand, value)`. |
 
 #### Unary Arithmetic Operators
 | Verilog Operator | Magma Operator | Types | Context | Comments |
@@ -74,7 +74,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
 | `<<`, `>>`       | `<<`, `>>`     | `m.Bits` | All | **TODO: What does verilog expect for bit width of the shift value? What does magma expect?** |
-| `&&`, `||`       | **TODO**       | `m.Bits` | All | Python doesn't support overloading logical and and or, we can provide mantle functions instead |
+| `&&`, `\|\|`     | **TODO**       | `m.Bits` | All | Python doesn't support overloading logical and and or, we can provide mantle functions instead |
 | `->`, `<->`      | None       | None | All | Impliciation and equivalence are used for verification, no planned support. If we wanted, we could provide mantle functions taht implement them as `!expression1 || expression2` (implication) and `(!expression1 || expression2) && (!expression2 || expression1)` |
 | `==`, `!=`       | `==`, `!=`     | All | All |  |
 
