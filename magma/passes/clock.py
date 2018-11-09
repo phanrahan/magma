@@ -1,4 +1,4 @@
-from ..circuit import isdefinition
+from ..is_definition import isdefinition
 from ..clock import wiredefaultclock
 from .passes import DefinitionPass
 

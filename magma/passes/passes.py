@@ -1,4 +1,4 @@
-from ..circuit import isdefinition
+from ..is_definition import isdefinition
 from .tsort import tsort
 
 __all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass']

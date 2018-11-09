@@ -1,5 +1,7 @@
 from collections import namedtuple, OrderedDict
-from .circuit import *
+from .circuit import DefineCircuit, EndCircuit, CopyInstance
+from .is_definition import isdefinition
+from .is_primitive import isprimitive
 from .bit import *
 from .clock import ClockType, EnableType, ResetType, AsyncResetType, wiredefaultclock
 from .array import *
