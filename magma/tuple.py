@@ -197,6 +197,12 @@ class TupleKind(Kind):
             key = cls.Ks.index(key)
         return cls.Ts[key]
 
+    def size(cls):
+        n = 0
+        for T in cls.Ts:
+            n += T.size()
+        return n
+
     def qualify(cls, direction):
         if cls.isoriented(direction):
             return cls

@@ -120,6 +120,9 @@ class _BitKind(Kind):
             return 'InOut(_Bit)'
         return '_Bit'
 
+    def size(self):
+        return 1
+
     @abstractmethod
     def qualify(cls, direction):
         pass

@@ -203,6 +203,9 @@ class ArrayKind(Kind):
 
             return cls.ts[key]
 
+    def size(cls):
+        return cls.N * cls.T.size()
+
     def qualify(cls, direction):
         if cls.T.isoriented(direction):
             return cls
