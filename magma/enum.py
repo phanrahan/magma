@@ -5,5 +5,5 @@ def Enum(**kwargs):
     num_bits = max(max_value.bit_length(), 1)
     type_ = m.Bits(num_bits)
     for key, value in kwargs.items():
-        setattr(type_, key, value)
+        setattr(type_, key, m.bits(value, num_bits))
     return type_
