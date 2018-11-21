@@ -24,7 +24,7 @@ def flatten(l):
 #
 #  (name0, type0, name1, type1, ..., namen, typen)
 #
-def parse(decl, renamed_ports):
+def parse(decl):
     #print(decl)
     n = len(decl)
     assert n % 2 == 0
@@ -41,10 +41,6 @@ def parse(decl, renamed_ports):
 
 
         names.append(name)
-        if name in renamed_ports:
-            if isinstance(port, BitKind):
-                port = MakeBit(direction=port.direction)
-            port.origPortName = renamed_ports[name]
         ports.append(port)
 
     return names, ports
@@ -165,7 +161,7 @@ class _Interface(Type):
 class Interface(_Interface):
     def __init__(self, decl, renamed_ports={}):
 
-        names, ports = parse(decl, renamed_ports)
+        names, ports = parse(decl)
 
         # setup ports
         args = OrderedDict()
@@ -174,6 +170,9 @@ class Interface(_Interface):
 
             if isinstance(name, IntegerTypes):
                 name = str(name) # convert integer to str, e.g. 0 to "0"
+
+            if name in renamed_ports:
+                raise NotImplementedError()
 
             args[name] = port
 
@@ -198,7 +197,7 @@ class _DeclareInterface(_Interface):
     def __init__(self, renamed_ports={}, inst=None, defn=None):
 
         # parse the class Interface declaration
-        names, ports = parse(self.Decl, renamed_ports)
+        names, ports = parse(self.Decl)
 
         args = OrderedDict()
 
@@ -209,6 +208,8 @@ class _DeclareInterface(_Interface):
 
             if hasattr(port, "origPortName"):
                 ref.name = port.origPortName
+            if name in renamed_ports:
+                ref.name = renamed_ports[name]
 
             if defn:
                port = port.flip()
