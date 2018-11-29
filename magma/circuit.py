@@ -145,10 +145,25 @@ class CircuitKind(type):
         return circuit_to_html(cls)
 
     def rename(cls, new_name):
+        old_name = cls.name
         cls.name = new_name
         cls.coreir_name = new_name
         cls.verilog_name = new_name
         cls.__name__ = new_name
+
+        # NOTE(rsetaluri): This is a very hacky way to try to rename wrapped
+        # verilog. We simply replace the first instance of "module <old_name>"
+        # with "module <new_name>". This ignores the possibility of "module
+        # <new_name>" existing anywhere else, most likely in comments etc. The
+        # more robust way to do this would to modify the AST directly and
+        # generate the new verilog code.
+        if cls.verilogFile:
+            find_str = f"module {old_name}"
+            replace_str = f"module {new_name}"
+            assert cls.verilogFile.find(find_str) != -1
+            cls.verilogFile = cls.verilogFile.replace(find_str, replace_str, 1)
+            # TODO(rsetaluri): Do we need this?
+            cls.verilog_source = cls.verilogFile
 
     def find(cls, defn):
         name = cls.__name__
