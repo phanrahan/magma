@@ -87,7 +87,8 @@ def __compile_to_coreir(main, file_name, opts):
     # Underscore so our coreir module doesn't conflict with coreir bindings
     # package.
     from .backend import coreir_
-    backend = coreir_.CoreIRBackend()
+    context = opts.get("context", None)
+    backend = coreir_.CoreIRBackend(context)
     backend.compile(main)
     if opts.get("passes", False):
         backend.context.run_passes(opts["passes"], ["global"])

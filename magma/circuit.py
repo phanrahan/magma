@@ -4,8 +4,8 @@ import inspect
 from functools import wraps
 if sys.version_info > (3, 0):
     from functools import reduce
-from . import cache_definition
 import operator
+from . import cache_definition
 from collections import namedtuple
 from .interface import *
 from .wire import *
@@ -17,6 +17,7 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
 from .is_definition import isdefinition
+from .circuit_database import CircuitDatabase
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -26,7 +27,6 @@ __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['getCurrentDefinition']
-__all__ += ['magma_clear_circuit_cache']
 
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
@@ -34,6 +34,8 @@ __all__ += ['circuit_generator']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
+
+circuit_database = CircuitDatabase()
 
 def circuit_to_html(cls):
     if isdefinition(cls):
@@ -137,6 +139,12 @@ class CircuitKind(type):
 
     def _repr_html_(cls):
         return circuit_to_html(cls)
+
+    def rename(cls, new_name):
+        cls.name = new_name
+        cls.coreir_name = new_name
+        cls.verilog_name = new_name
+        cls.__name__ = new_name
 
     def find(cls, defn):
         name = cls.__name__
@@ -389,12 +397,6 @@ def popDefinition():
     else:
         currentDefinition = None
 
-# a map from circuitDefinition names to circuit definition objects
-definitionCache = {}
-
-def magma_clear_circuit_cache():
-    definitionCache.clear()
-
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
@@ -414,14 +416,6 @@ class DefineCircuitKind(CircuitKind):
         dct["renamed_ports"] = dct.get("renamed_ports", {})
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
-
-        if (hasattr(self, 'definition') or dct.get('is_definition', False) \
-                or hasattr(self, 'wrappedModule')) and not getattr(self, '__magma_no_cache__', False):
-            if name in definitionCache:
-                return definitionCache[name]
-            else:
-                #print('creating',name)
-                definitionCache[name] = self
 
         self.verilog = None
         self.verilogFile = None
@@ -524,7 +518,10 @@ def EndDefine():
         debug_info = get_callee_frame_info()
         currentDefinition.end_circuit_filename = debug_info[0]
         currentDefinition.end_circuit_lineno   = debug_info[1]
+        circuit_database.insert(currentDefinition)
         popDefinition()
+    else:
+        raise Exception("EndDefine called without Define/DeclareCircuit")
 
 EndCircuit = EndDefine
 
