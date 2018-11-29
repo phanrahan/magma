@@ -511,8 +511,7 @@ def DefineCircuit(name, *decl, **args):
                coreir_genargs = args.get('coreir_genargs', None),
                coreir_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}),
-               renamed_ports = args.get('renamed_ports', {}),
-               __magma_no_cache__ = args.get('__magma_no_cache__', False))
+               renamed_ports = args.get('renamed_ports', {}))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
