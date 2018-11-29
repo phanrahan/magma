@@ -3,6 +3,7 @@ import tempfile
 import uuid
 from .compile import compile
 import coreir
+from .logging import warning
 
 
 class CircuitDatabaseInterface(ABC):
@@ -33,8 +34,12 @@ class CircuitDatabase(CircuitDatabaseInterface):
 
         def hash(self, circuit):
             with tempfile.TemporaryDirectory() as tempdir:
-                compile(tempdir + "/circuit", circuit, output="coreir", context=coreir.Context())
-                json_str = open(tempdir + "/circuit.json").read()
+                try:
+                    compile(tempdir + "/circuit", circuit, output="coreir", context=coreir.Context())
+                    json_str = open(tempdir + "/circuit.json").read()
+                except Exception as e:
+                    warning(f"Could not compile circuit: '{str(e)}'. Uniquifying anyway.")
+                    json_str = uuid.uuid4()
             return hash(json_str)
 
         def add_circuit(self, circuit):
