@@ -112,7 +112,7 @@ def compileinstance(self):
             # find the output connected to v
             w = v.value()
             if not w:
-                logging.warning(f'{str(self.defn.name)}.{str(type(self).name)}_{self.name}.{str(v)} not connected')
+                logging.warning(f'{v.debug_name} not connected')
                 continue
             v = w
         if isinstance(k, IntegerTypes):

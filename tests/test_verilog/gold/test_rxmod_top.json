@@ -19,15 +19,15 @@
           ["valid","Bit"]
         ]],
         "instances":{
-          "inst0":{
+          "RXMOD_inst0":{
             "modref":"global.RXMOD"
           }
         },
         "connections":[
-          ["self.CLK","inst0.CLK"],
-          ["self.RX","inst0.RX"],
-          ["self.data","inst0.data"],
-          ["self.valid","inst0.valid"]
+          ["self.CLK","RXMOD_inst0.CLK"],
+          ["self.RX","RXMOD_inst0.RX"],
+          ["self.data","RXMOD_inst0.data"],
+          ["self.valid","RXMOD_inst0.valid"]
         ]
       }
     }

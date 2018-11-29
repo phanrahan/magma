@@ -16,14 +16,14 @@
           ["c","Bit"]
         ]],
         "instances":{
-          "inst0":{
+          "AndNone_inst0":{
             "modref":"global.AndNone"
           }
         },
         "connections":[
-          ["self.a","inst0.I0"],
-          ["self.b","inst0.I1"],
-          ["self.c","inst0.O"]
+          ["self.a","AndNone_inst0.I0"],
+          ["self.b","AndNone_inst0.I1"],
+          ["self.c","AndNone_inst0.O"]
         ]
       }
     }

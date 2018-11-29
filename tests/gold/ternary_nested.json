@@ -17,21 +17,21 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "inst0":{
+          "Mux2_inst0":{
             "modref":"global.Mux2"
           },
-          "inst1":{
+          "Mux2_inst1":{
             "modref":"global.Mux2"
           }
         },
         "connections":[
-          ["self.I.2","inst0.I0"],
-          ["self.I.1","inst0.I1"],
-          ["inst1.I0","inst0.O"],
-          ["self.S.1","inst0.S"],
-          ["self.I.0","inst1.I1"],
-          ["self.O","inst1.O"],
-          ["self.S.0","inst1.S"]
+          ["self.I.2","Mux2_inst0.I0"],
+          ["self.I.1","Mux2_inst0.I1"],
+          ["Mux2_inst1.I0","Mux2_inst0.O"],
+          ["self.S.1","Mux2_inst0.S"],
+          ["self.I.0","Mux2_inst1.I1"],
+          ["self.O","Mux2_inst1.O"],
+          ["self.S.0","Mux2_inst1.S"]
         ]
       }
     }

@@ -49,7 +49,7 @@ def test_muliple_outputs_circuit(caplog):
     a = A()
     wire(a, main.I)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_wire/test_errors.py:50: Can only wire circuits with one output. Argument 0 to wire `main_inst0` has outputs [inst0.O, inst0.U]
+\033[1mtests/test_wire/test_errors.py:50: Can only wire circuits with one output. Argument 0 to wire `main.A_inst0` has outputs [inst0.O, inst0.U]
     wire(a, main.I)
 """
 
@@ -101,7 +101,7 @@ def test_no_key(caplog):
     a = A()
     a(K=main.I)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_wire/test_errors.py:102: Circuit main_inst0 does not have input K
+\033[1mtests/test_wire/test_errors.py:102: Instance main.A_inst0 does not have input K
     a(K=main.I)
 """
 

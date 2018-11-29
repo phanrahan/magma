@@ -11,21 +11,22 @@ def test_str_repr():
     m.EndCircuit()
 
     assert str(Logic2) == "Logic2(I0: In(Bit), I1: In(Bit), O: Out(Bit))"
+    print(repr(Logic2))
     assert repr(Logic2) == """\
 Logic2 = DefineCircuit("Logic2", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
-inst0 = XOr2()
-inst1 = And2()
-wire(inst1.O, inst0.I0)
-wire(1, inst0.I1)
-wire(Logic2.I0, inst1.I0)
-wire(Logic2.I1, inst1.I1)
-wire(inst0.O, Logic2.O)
+XOr2_inst0 = XOr2()
+And2_inst0 = And2()
+wire(And2_inst0.O, XOr2_inst0.I0)
+wire(1, XOr2_inst0.I1)
+wire(Logic2.I0, And2_inst0.I0)
+wire(Logic2.I1, And2_inst0.I1)
+wire(XOr2_inst0.O, Logic2.O)
 EndCircuit()\
 """
 
     expected = [
-        "inst0<XOr2(I0: In(Bit), I1: In(Bit), O: Out(Bit))>",
-        "inst1<And2(I0: In(Bit), I1: In(Bit), O: Out(Bit))>"
+        "XOr2_inst0<XOr2(I0: In(Bit), I1: In(Bit), O: Out(Bit))>",
+        "And2_inst0<And2(I0: In(Bit), I1: In(Bit), O: Out(Bit))>"
     ]
     for inst, expected in zip(Logic2.instances, expected):
         assert str(inst) == expected
@@ -44,4 +45,4 @@ def test_str_repr_anon():
     string = str(anon)
     assert string[:len("AnonymousCircuitInst")] == "AnonymousCircuitInst"
     assert string[-len("<I0: Array(3,In(Bit)), I1: Array(3,In(Bit)), O: Array(3,Out(Bit))>"):] == "<I0: Array(3,In(Bit)), I1: Array(3,In(Bit)), O: Array(3,Out(Bit))>"
-    assert repr(anon) == 'AnonymousCircuitType("I0", array([inst0.I0, inst1.I0, inst2.I0]), "I1", array([inst0.I1, inst1.I1, inst2.I1]), "O", array([inst0.O, inst1.O, inst2.O]))'
+    assert repr(anon) == 'AnonymousCircuitType("I0", array([And2_inst0.I0, And2_inst1.I0, And2_inst2.I0]), "I1", array([And2_inst0.I1, And2_inst1.I1, And2_inst2.I1]), "O", array([And2_inst0.O, And2_inst1.O, And2_inst2.O]))'

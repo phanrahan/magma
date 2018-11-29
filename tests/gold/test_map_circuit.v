@@ -3,32 +3,32 @@ assign O = 1'b0;
 endmodule
 
 module logic (input [9:0] a, output [9:0] O);
-wire  inst0_O;
-wire  inst1_O;
-wire  inst2_O;
-wire  inst3_O;
-wire  inst4_O;
-wire  inst5_O;
-wire  inst6_O;
-wire  inst7_O;
-wire  inst8_O;
-wire  inst9_O;
-Not inst0 (.I(a[0]), .O(inst0_O));
-Not inst1 (.I(a[1]), .O(inst1_O));
-Not inst2 (.I(a[2]), .O(inst2_O));
-Not inst3 (.I(a[3]), .O(inst3_O));
-Not inst4 (.I(a[4]), .O(inst4_O));
-Not inst5 (.I(a[5]), .O(inst5_O));
-Not inst6 (.I(a[6]), .O(inst6_O));
-Not inst7 (.I(a[7]), .O(inst7_O));
-Not inst8 (.I(a[8]), .O(inst8_O));
-Not inst9 (.I(a[9]), .O(inst9_O));
-assign O = {inst9_O,inst8_O,inst7_O,inst6_O,inst5_O,inst4_O,inst3_O,inst2_O,inst1_O,inst0_O};
+wire  Not_inst0_O;
+wire  Not_inst1_O;
+wire  Not_inst2_O;
+wire  Not_inst3_O;
+wire  Not_inst4_O;
+wire  Not_inst5_O;
+wire  Not_inst6_O;
+wire  Not_inst7_O;
+wire  Not_inst8_O;
+wire  Not_inst9_O;
+Not Not_inst0 (.I(a[0]), .O(Not_inst0_O));
+Not Not_inst1 (.I(a[1]), .O(Not_inst1_O));
+Not Not_inst2 (.I(a[2]), .O(Not_inst2_O));
+Not Not_inst3 (.I(a[3]), .O(Not_inst3_O));
+Not Not_inst4 (.I(a[4]), .O(Not_inst4_O));
+Not Not_inst5 (.I(a[5]), .O(Not_inst5_O));
+Not Not_inst6 (.I(a[6]), .O(Not_inst6_O));
+Not Not_inst7 (.I(a[7]), .O(Not_inst7_O));
+Not Not_inst8 (.I(a[8]), .O(Not_inst8_O));
+Not Not_inst9 (.I(a[9]), .O(Not_inst9_O));
+assign O = {Not_inst9_O,Not_inst8_O,Not_inst7_O,Not_inst6_O,Not_inst5_O,Not_inst4_O,Not_inst3_O,Not_inst2_O,Not_inst1_O,Not_inst0_O};
 endmodule
 
 module Foo (input [9:0] a, output [9:0] c);
-wire [9:0] inst0_O;
-logic inst0 (.a(a), .O(inst0_O));
-assign c = inst0_O;
+wire [9:0] logic_inst0_O;
+logic logic_inst0 (.a(a), .O(logic_inst0_O));
+assign c = logic_inst0_O;
 endmodule
 
