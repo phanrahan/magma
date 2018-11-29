@@ -97,7 +97,13 @@ $ brew install python3
 $ sudo apt-get install python3 python3-pip
 ```
 
-## Setup
+## User Setup
+Magma is available as a pip package, install the lastest release with:
+```
+pip install magma-lang
+```
+
+## Development Setup
 Clone the magma repository
 ```
 $ git clone https://github.com/phanrahan/magma
