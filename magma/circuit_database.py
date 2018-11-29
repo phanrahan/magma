@@ -46,7 +46,8 @@ class CircuitDatabase(CircuitDatabaseInterface):
             type(circuit).rename(circuit, circuit.name + "-" + hash_)
             self.circuits[hash_] = circuit
 
-        def __repr__(self): return repr(self.circuits)
+        def __repr__(self):
+            return repr(self.circuits)
 
     def __init__(self):
         self.entries = {}
