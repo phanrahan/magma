@@ -44,7 +44,8 @@ class CircuitDatabase(CircuitDatabaseInterface):
             else:
                 index = len(self.circuits)
                 self.circuits[hash_] = (index, circuit)
-            type(circuit).rename(circuit, circuit.name + "_unq" + str(index))
+            if index > 0:
+                type(circuit).rename(circuit, circuit.name + "_unq" + str(index))
 
         def __repr__(self):
             return repr(self.circuits)
