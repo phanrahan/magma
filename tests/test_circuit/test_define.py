@@ -118,8 +118,8 @@ def test_unwired_ports_warnings(caplog):
     m.compile("build/test_unwired_output", main)
     assert check_files_equal(__file__, f"build/test_unwired_output.v",
                              f"gold/test_unwired_output.v")
-    assert caplog.records[0].msg == "main.And2_inst0.I0 not connected"
-    assert caplog.records[1].msg == "main.O is unwired"
+    assert caplog.records[-2].msg == "main.And2_inst0.I0 not connected"
+    assert caplog.records[-1].msg == "main.O is unwired"
 
 
 def test_2d_array_error(caplog):
