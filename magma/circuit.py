@@ -4,8 +4,8 @@ import inspect
 from functools import wraps
 if sys.version_info > (3, 0):
     from functools import reduce
-import operator
 from . import cache_definition
+import operator
 from collections import namedtuple
 from .interface import *
 from .wire import *
@@ -27,6 +27,7 @@ __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['getCurrentDefinition']
+__all__ += ['magma_clear_circuit_database']
 
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
@@ -36,6 +37,9 @@ __all__ += ['circuit_generator']
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 circuit_database = CircuitDatabase()
+
+def magma_clear_circuit_database():
+    circuit_database.clear()
 
 def circuit_to_html(cls):
     if isdefinition(cls):

@@ -10,12 +10,19 @@ class CircuitDatabaseInterface(ABC):
     def insert(self, circuit):
         pass
 
+    @abstractmethod
+    def clear(self):
+        pass
+
 
 class ConservativeCircuitDatabase(CircuitDatabaseInterface):
     def insert(self, circuit):
         name = circuit.name
         new_name = name + "-" + str(uuid.uuid4())
         type(circuit).rename(circuit, new_name)
+
+    def clear(self):
+        pass
 
 
 class CircuitDatabase(CircuitDatabaseInterface):
@@ -49,3 +56,6 @@ class CircuitDatabase(CircuitDatabaseInterface):
         name = circuit.name
         entry = self.entries.setdefault(name, CircuitDatabase.Entry(name))
         entry.add_circuit(circuit)
+
+    def clear(self):
+        self.entries = {}
