@@ -6,7 +6,7 @@ if sys.version_info > (3, 0):
     from functools import reduce
 from . import cache_definition
 import operator
-from collections import namedtuple
+from collections import namedtuple, Counter
 from .interface import *
 from .wire import *
 from .t import Flip
@@ -240,7 +240,7 @@ class AnonymousCircuitType(object):
         defn_str = ""
         if hasattr(self, 'defn') and self.defn is not None:
             defn_str = str(self.defn.name)
-        return f"{defn_str}_{self.name}"
+        return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
         debug_info = get_callee_frame_info()
@@ -264,7 +264,7 @@ class AnonymousCircuitType(object):
                 i = getattr(input, key)
                 wire( value, getattr(input, key), debug_info)
             else:
-                report_wiring_warning('Circuit {} does not have input {}'.format(input.debug_name, key), debug_info)
+                report_wiring_warning('Instance {} does not have input {}'.format(input.debug_name, key), debug_info)
 
         o = input.interface.outputs()
         return o[0] if len(o) == 1 else tuple(o)
@@ -436,6 +436,7 @@ class DefineCircuitKind(CircuitKind):
         self.firrtl = None
 
         self._instances = []
+        self.instanced_circuits_counter = Counter()
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
 
@@ -466,11 +467,8 @@ class DefineCircuitKind(CircuitKind):
     #
     def place(cls, inst):
         if not inst.name:
-            inst.name = 'inst' + str(len(cls.instances))
-            # osnr's suggested name
-            #inst.name = 'inst' + str(len(cls.instances)) + '_' + inst.__class__.name
-            #print('naming circuit instance', inst.name)
-        #print('placing', inst, 'in', cls)
+            inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
+            cls.instanced_circuits_counter[type(inst).name] += 1
         inst.defn = cls
         inst.stack = inspect.stack()
         cls.instances.append(inst)

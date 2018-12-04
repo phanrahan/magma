@@ -15,23 +15,23 @@
           ["I",["Record",[["x",["Record",[["a","BitIn"],["b","BitIn"]]]],["y",["Record",[["a","Bit"],["b","Bit"]]]],["z",["Record",[["a","BitIn"],["b","Bit"]]]]]]]
         ]],
         "instances":{
-          "inst0":{
+          "Foo_inst0":{
             "modref":"global.Foo"
           },
-          "inst1":{
+          "Foo_inst1":{
             "modref":"global.Foo"
           },
-          "inst2":{
+          "Foo_inst2":{
             "modref":"global.Foo"
           }
         },
         "connections":[
-          ["self.I.x.a","inst0.ifc.I"],
-          ["self.I.y.a","inst0.ifc.O"],
-          ["self.I.x.b","inst1.ifc.I"],
-          ["self.I.y.b","inst1.ifc.O"],
-          ["self.I.z.a","inst2.ifc.I"],
-          ["self.I.z.b","inst2.ifc.O"]
+          ["self.I.x.a","Foo_inst0.ifc.I"],
+          ["self.I.y.a","Foo_inst0.ifc.O"],
+          ["self.I.x.b","Foo_inst1.ifc.I"],
+          ["self.I.y.b","Foo_inst1.ifc.O"],
+          ["self.I.z.a","Foo_inst2.ifc.I"],
+          ["self.I.z.b","Foo_inst2.ifc.O"]
         ]
       }
     }

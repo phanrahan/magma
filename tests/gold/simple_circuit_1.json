@@ -8,13 +8,13 @@
           ["c","Bit"]
         ]],
         "instances":{
-          "inst0":{
+          "logic_inst0":{
             "modref":"global.logic"
           }
         },
         "connections":[
-          ["self.c","inst0.O0"],
-          ["self.a","inst0.a"]
+          ["self.c","logic_inst0.O0"],
+          ["self.a","logic_inst0.a"]
         ]
       },
       "Mux2":{
@@ -47,6 +47,9 @@
           ["O0","Bit"]
         ]],
         "instances":{
+          "Mux2_inst0":{
+            "modref":"global.Mux2"
+          },
           "bit_const_0_None":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
@@ -55,20 +58,17 @@
             "modref":"corebit.const",
             "modargs":{"value":["Bool",true]}
           },
-          "inst0":{
+          "eq_inst0":{
             "modref":"global.eq"
-          },
-          "inst1":{
-            "modref":"global.Mux2"
           }
         },
         "connections":[
-          ["inst0.I1","bit_const_0_None.out"],
-          ["inst1.I0","bit_const_0_None.out"],
-          ["inst1.I1","bit_const_1_None.out"],
-          ["self.a","inst0.I0"],
-          ["inst1.S","inst0.O"],
-          ["self.O0","inst1.O"]
+          ["bit_const_0_None.out","Mux2_inst0.I0"],
+          ["bit_const_1_None.out","Mux2_inst0.I1"],
+          ["self.O0","Mux2_inst0.O"],
+          ["eq_inst0.O","Mux2_inst0.S"],
+          ["eq_inst0.I1","bit_const_0_None.out"],
+          ["self.a","eq_inst0.I0"]
         ]
       }
     }

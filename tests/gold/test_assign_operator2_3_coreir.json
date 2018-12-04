@@ -16,13 +16,13 @@
           ["c",["Array",3,"Bit"]]
         ]],
         "instances":{
-          "inst0":{
+          "And3_inst0":{
             "modref":"global.And3"
           }
         },
         "connections":[
-          ["inst0.O","inst0.I0"],
-          ["self.a","inst0.I1"],
+          ["And3_inst0.O","And3_inst0.I0"],
+          ["self.a","And3_inst0.I1"],
           ["self.c","self.b"]
         ]
       }
