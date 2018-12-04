@@ -25,8 +25,8 @@ The `UInt` and `SInt` types support all the logical operators
 as well as arithmetic and comparison operastors.
 - Add `+`
 - Subtract/Negate `-`
-- ~~Multiply `*`~~ Unsupported because mantle lacks an implementation, pull request welcome!
-- ~~Divide `/`~~ Unsupported because mantle lacks an implementation, pull request welcome!
+- Multiply `*`
+- Divide `/`
 - Less than `<`
 - Less than or equal `<=`
 - Greater than `>`
