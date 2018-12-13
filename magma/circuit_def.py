@@ -9,6 +9,8 @@ import astor
 import os
 import traceback
 from .debug import debug_info
+import magma.ast_utils as ast_utils
+import types
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -17,12 +19,6 @@ class CircuitDefinitionSyntaxError(Exception):
 
 def m_dot(attr):
     return ast.Attribute(ast.Name("m", ast.Load()), attr, ast.Load())
-
-
-def get_ast(obj):
-    indented_program_txt = inspect.getsource(obj)
-    program_txt = textwrap.dedent(indented_program_txt)
-    return ast.parse(program_txt)
 
 
 def report_transformer_warning(message, filename, lineno, line):
@@ -183,21 +179,16 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
 
-
-
-def combinational(fn):
-    stack = inspect.stack()
-    defn_env = {}
-    for i in range(1, len(stack)):
-        defn_env.update(stack[i].frame.f_locals)
-        defn_env.update(stack[i].frame.f_globals)
-    tree = get_ast(fn)
+@ast_utils.inspect_enclosing_env
+def combinational(defn_env : dict, fn : types.FunctionType):
+    # TODO: Change this to use ast_utils.get_func_ast
+    tree = ast_utils.get_ast(fn)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree = IfTransformer(inspect.getsourcefile(fn), inspect.getsourcelines(fn)).visit(tree)
     tree = ast.fix_missing_locations(tree)
-    # TODO: Only remove @m.circuit.combinational, there could be others
-    tree.body[0].decorator_list = []
+    tree.body[0].decorator_list = ast_utils.filter_decorator(
+        combinational, tree.body[0].decorator_list, defn_env)
     if "mux" not in defn_env:
         tree.body.insert(0, ast.parse("from mantle import mux").body[0])
     source = "\n"
@@ -205,19 +196,7 @@ def combinational(fn):
         source += f"    {i}: {line}\n"
 
     debug(source)
-    os.makedirs(".magma", exist_ok=True)
-    file_name = os.path.join(".magma", fn.__name__ + ".py")
-    with open(file_name, "w") as fp:
-        fp.write(astor.to_source(tree))
-    # exec(compile(tree, filename=file_name, mode="exec"), defn_env)
-    try:
-        exec(compile(astor.to_source(tree), filename=file_name, mode="exec"), defn_env)
-    except:
-        import sys
-        tb = traceback.format_exc()
-        print(tb)
-        raise Exception(f"Error occured when compiling and executing m.circuit.combinational function {fn.__name__}, see above") from None
-    circuit_def = defn_env[fn.__name__]
+    circuit_def = ast_utils.compile_function_to_file(tree)
     circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
                                         circuit_def.debug_info.lineno,
                                         inspect.getmodule(fn))
@@ -227,5 +206,6 @@ def combinational(fn):
         return circuit_def()(*args, **kwargs)
     func.__name__ = fn.__name__
     func.__qualname__ = fn.__name__
-    func.circuit_definition = circuit_def
+    # Provide a mechanism for accessing the underlying circuit definition
+    setattr(func, "circuit_definition", circuit_def)
     return func
