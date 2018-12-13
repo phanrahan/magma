@@ -14,20 +14,20 @@ module main (
 );
 
 
-  wire  inst0__I0;
-  wire  inst0__I1;
-  wire  inst0__O;
-  And2 inst0(
-    .I0(inst0__I0),
-    .I1(inst0__I1),
-    .O(inst0__O)
+  wire  And2_inst0__I0;
+  wire  And2_inst0__I1;
+  wire  And2_inst0__O;
+  And2 And2_inst0(
+    .I0(And2_inst0__I0),
+    .I1(And2_inst0__I1),
+    .O(And2_inst0__O)
   );
 
-  assign inst0__I0 = I[0];
+  assign And2_inst0__I0 = I[0];
 
-  assign inst0__I1 = I[1];
+  assign And2_inst0__I1 = I[1];
 
-  assign O = inst0__O;
+  assign O = And2_inst0__O;
 
 
 endmodule  // main

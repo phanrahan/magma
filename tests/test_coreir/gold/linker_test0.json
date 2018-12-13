@@ -9,15 +9,15 @@
           ["O",["Array",16,"Bit"]]
         ]],
         "instances":{
-          "inst0":{
+          "commonlib_smax_width_16_inst0":{
             "genref":"commonlib.smax",
             "genargs":{"width":["Int",16]}
           }
         },
         "connections":[
-          ["self.I0","inst0.in0"],
-          ["self.I1","inst0.in1"],
-          ["self.O","inst0.out"]
+          ["self.I0","commonlib_smax_width_16_inst0.in0"],
+          ["self.I1","commonlib_smax_width_16_inst0.in1"],
+          ["self.O","commonlib_smax_width_16_inst0.out"]
         ]
       }
     }

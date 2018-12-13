@@ -16,14 +16,14 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "inst0":{
+          "And2_inst0":{
             "modref":"global.And2"
           }
         },
         "connections":[
-          ["self.I0","inst0.I0"],
-          ["self.I1","inst0.I1"],
-          ["self.O","inst0.O"]
+          ["self.I0","And2_inst0.I0"],
+          ["self.I1","And2_inst0.I1"],
+          ["self.O","And2_inst0.O"]
         ]
       }
     }

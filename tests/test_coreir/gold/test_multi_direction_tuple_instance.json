@@ -15,13 +15,13 @@
           ["ifc",["Record",[["I","BitIn"],["O","Bit"]]]]
         ]],
         "instances":{
-          "inst0":{
+          "Foo_inst0":{
             "modref":"global.Foo"
           }
         },
         "connections":[
-          ["self.ifc.I","inst0.ifc.I"],
-          ["self.ifc.O","inst0.ifc.O"]
+          ["self.ifc.I","Foo_inst0.ifc.I"],
+          ["self.ifc.O","Foo_inst0.ifc.O"]
         ]
       }
     }

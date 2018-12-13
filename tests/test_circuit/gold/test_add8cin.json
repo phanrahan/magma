@@ -14,28 +14,28 @@
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
           },
-          "inst0":{
+          "coreir_Add8_cin_inst0":{
             "genref":"coreir.add",
             "genargs":{"width":["Int",8]}
           },
-          "inst1":{
+          "coreir_Add8_cin_inst1":{
             "genref":"coreir.add",
             "genargs":{"width":["Int",8]}
           }
         },
         "connections":[
-          ["inst1.in0.0","bit_const_0_None.out"],
-          ["inst1.in0.1","bit_const_0_None.out"],
-          ["inst1.in0.2","bit_const_0_None.out"],
-          ["inst1.in0.3","bit_const_0_None.out"],
-          ["inst1.in0.4","bit_const_0_None.out"],
-          ["inst1.in0.5","bit_const_0_None.out"],
-          ["inst1.in0.6","bit_const_0_None.out"],
-          ["inst1.out","inst0.in0"],
-          ["self.I1","inst0.in1"],
-          ["self.O","inst0.out"],
-          ["self.CIN","inst1.in0.7"],
-          ["self.I0","inst1.in1"]
+          ["coreir_Add8_cin_inst1.in0.0","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.in0.1","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.in0.2","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.in0.3","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.in0.4","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.in0.5","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.in0.6","bit_const_0_None.out"],
+          ["coreir_Add8_cin_inst1.out","coreir_Add8_cin_inst0.in0"],
+          ["self.I1","coreir_Add8_cin_inst0.in1"],
+          ["self.O","coreir_Add8_cin_inst0.out"],
+          ["self.CIN","coreir_Add8_cin_inst1.in0.7"],
+          ["self.I0","coreir_Add8_cin_inst1.in1"]
         ]
       },
       "test":{
@@ -46,15 +46,15 @@
           ["O",["Array",8,"Bit"]]
         ]],
         "instances":{
-          "inst0":{
+          "Add8_cin_inst0":{
             "modref":"global.Add8_cin"
           }
         },
         "connections":[
-          ["self.CIN","inst0.CIN"],
-          ["self.I0","inst0.I0"],
-          ["self.I1","inst0.I1"],
-          ["self.O","inst0.O"]
+          ["self.CIN","Add8_cin_inst0.CIN"],
+          ["self.I0","Add8_cin_inst0.I0"],
+          ["self.I1","Add8_cin_inst0.I1"],
+          ["self.O","Add8_cin_inst0.O"]
         ]
       }
     }

@@ -40,8 +40,10 @@ The best way to learn Magma is through examples.  The
 [magmathon](https://github.com/phanrahan/magmathon) repository contains
 instructions for installing magma, as well as a set of [Jupyter
 Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/tutorial)
-that introduce the system.
-Please also refer to the
+that introduce the system. There's also
+[magma_tutorial](https://github.com/leonardt/magma_tutorial) which contains a
+set of basic circuits and tests, providing an example template for a magma
+project.  Please also refer to the
 [documentation](http://magma.readthedocs.io/).
 
 The design of Magma was heavily influenced by 

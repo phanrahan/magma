@@ -8,13 +8,13 @@
           ["c",["Array",10,"Bit"]]
         ]],
         "instances":{
-          "inst0":{
+          "logic_inst0":{
             "modref":"global.logic"
           }
         },
         "connections":[
-          ["self.c","inst0.O"],
-          ["self.a","inst0.a"]
+          ["self.c","logic_inst0.O"],
+          ["self.a","logic_inst0.a"]
         ]
       },
       "Not":{
@@ -38,58 +38,58 @@
           ["O",["Array",10,"Bit"]]
         ]],
         "instances":{
-          "inst0":{
+          "Not_inst0":{
             "modref":"global.Not"
           },
-          "inst1":{
+          "Not_inst1":{
             "modref":"global.Not"
           },
-          "inst2":{
+          "Not_inst2":{
             "modref":"global.Not"
           },
-          "inst3":{
+          "Not_inst3":{
             "modref":"global.Not"
           },
-          "inst4":{
+          "Not_inst4":{
             "modref":"global.Not"
           },
-          "inst5":{
+          "Not_inst5":{
             "modref":"global.Not"
           },
-          "inst6":{
+          "Not_inst6":{
             "modref":"global.Not"
           },
-          "inst7":{
+          "Not_inst7":{
             "modref":"global.Not"
           },
-          "inst8":{
+          "Not_inst8":{
             "modref":"global.Not"
           },
-          "inst9":{
+          "Not_inst9":{
             "modref":"global.Not"
           }
         },
         "connections":[
-          ["self.a.0","inst0.I"],
-          ["self.O.0","inst0.O"],
-          ["self.a.1","inst1.I"],
-          ["self.O.1","inst1.O"],
-          ["self.a.2","inst2.I"],
-          ["self.O.2","inst2.O"],
-          ["self.a.3","inst3.I"],
-          ["self.O.3","inst3.O"],
-          ["self.a.4","inst4.I"],
-          ["self.O.4","inst4.O"],
-          ["self.a.5","inst5.I"],
-          ["self.O.5","inst5.O"],
-          ["self.a.6","inst6.I"],
-          ["self.O.6","inst6.O"],
-          ["self.a.7","inst7.I"],
-          ["self.O.7","inst7.O"],
-          ["self.a.8","inst8.I"],
-          ["self.O.8","inst8.O"],
-          ["self.a.9","inst9.I"],
-          ["self.O.9","inst9.O"]
+          ["self.a.0","Not_inst0.I"],
+          ["self.O.0","Not_inst0.O"],
+          ["self.a.1","Not_inst1.I"],
+          ["self.O.1","Not_inst1.O"],
+          ["self.a.2","Not_inst2.I"],
+          ["self.O.2","Not_inst2.O"],
+          ["self.a.3","Not_inst3.I"],
+          ["self.O.3","Not_inst3.O"],
+          ["self.a.4","Not_inst4.I"],
+          ["self.O.4","Not_inst4.O"],
+          ["self.a.5","Not_inst5.I"],
+          ["self.O.5","Not_inst5.O"],
+          ["self.a.6","Not_inst6.I"],
+          ["self.O.6","Not_inst6.O"],
+          ["self.a.7","Not_inst7.I"],
+          ["self.O.7","Not_inst7.O"],
+          ["self.a.8","Not_inst8.I"],
+          ["self.O.8","Not_inst8.O"],
+          ["self.a.9","Not_inst9.I"],
+          ["self.O.9","Not_inst9.O"]
         ]
       }
     }
