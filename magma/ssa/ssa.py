@@ -68,4 +68,4 @@ def ssa(defn_env : dict, fn : types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
     tree.decorator_list = ast_utils.filter_decorator(ssa, tree.decorator_list, defn_env)
     tree = SSAVisitor().visit(tree)
-    return ast_utils.compile_function_to_file(tree, defn_env)
+    return ast_utils.compile_function_to_file(tree, defn_env=defn_env)

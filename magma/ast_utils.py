@@ -18,9 +18,22 @@ def get_func_ast(obj : types.FunctionType):
     return get_ast(obj).body[0]
 
 
-def compile_function_to_file(tree : ast.FunctionDef, defn_env={}):
+def compile_function_to_file(tree : typing.Union[ast.Module, ast.FunctionDef],
+                             func_name : str = None, defn_env : dict = {}):
+    if isinstance(tree, ast.FunctionDef):
+        if func_name is None:
+            func_name = tree.name
+        else:
+            if func_name != tree.name:
+                raise Exception("Passed in func_name that does not match the "
+                                "function being compiled. Got"
+                                f" func_name={func_name} expected"
+                                f" tree.name={tree.name}")
+    elif isinstance(tree, ast.Module):
+        if func_name is None:
+            raise Exception("func_name required when passing in an ast.Module")
     os.makedirs(".magma", exist_ok=True)
-    file_name = os.path.join(".magma", tree.name + ".py")
+    file_name = os.path.join(".magma", func_name + ".py")
     with open(file_name, "w") as fp:
         fp.write(astor.to_source(tree))
     # exec(compile(tree, filename=file_name, mode="exec"), defn_env)
@@ -30,8 +43,8 @@ def compile_function_to_file(tree : ast.FunctionDef, defn_env={}):
         import sys
         tb = traceback.format_exc()
         print(tb)
-        raise Exception(f"Error occured when compiling and executing m.circuit.combinational function {fn.__name__}, see above") from None
-    return defn_env[tree.name]
+        raise Exception(f"Error occured when compiling and executing m.circuit.combinational function {func_name}, see above") from None
+    return defn_env[func_name]
 
 
 def inspect_enclosing_env(fn):
