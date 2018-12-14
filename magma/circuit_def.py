@@ -181,22 +181,25 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
 @ast_utils.inspect_enclosing_env
 def combinational(defn_env : dict, fn : types.FunctionType):
-    # TODO: Change this to use ast_utils.get_func_ast
-    tree = ast_utils.get_ast(fn)
+    tree = ast_utils.get_func_ast(fn)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree = IfTransformer(inspect.getsourcefile(fn), inspect.getsourcelines(fn)).visit(tree)
     tree = ast.fix_missing_locations(tree)
-    tree.body[0].decorator_list = ast_utils.filter_decorator(
-        combinational, tree.body[0].decorator_list, defn_env)
+    tree.decorator_list = ast_utils.filter_decorator(
+        combinational, tree.decorator_list, defn_env)
     if "mux" not in defn_env:
-        tree.body.insert(0, ast.parse("from mantle import mux").body[0])
+        tree = ast.Module([
+            ast.parse("import magma as m").body[0],
+            ast.parse("from mantle import mux").body[0],
+            tree
+        ])
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"
 
     debug(source)
-    circuit_def = ast_utils.compile_function_to_file(tree)
+    circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__, defn_env)
     circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
                                         circuit_def.debug_info.lineno,
                                         inspect.getmodule(fn))
