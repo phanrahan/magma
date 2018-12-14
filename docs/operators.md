@@ -75,7 +75,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
 | `<<`, `>>`       | `<<`, `>>`     | `m.Bits` | All | **TODO: What does verilog expect for bit width of the shift value? What does magma expect?** |
-| `&&`, `\|\|`     | **TODO**       | `m.Bits` | All | Python doesn't support overloading logical and and or, we can provide mantle functions instead |
+| `&&`, `\|\|`     | **TODO**       | `m.Bits` | All | **NOTE** Python doesn't support overloading logical `and` and `or`, so using those Python operators will not work and will likely lead to difficult to debug error messages. In the future, will provide mantle functions instead and possibly an AST rewriter that translates these operators into the matnle function calls. |
 | `->`, `<->`      | None       | None | All | Impliciation and equivalence are used for verification, no planned support. If we wanted, we could provide mantle functions taht implement them as `!expression1 || expression2` (implication) and `(!expression1 || expression2) && (!expression2 || expression1)` |
 | `==`, `!=`       | `==`, `!=`     | All | All |  |
 
