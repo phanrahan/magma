@@ -89,7 +89,7 @@ Language](https://ieeexplore.ieee.org/document/8299595) (page 256, Table 11-1
 #### Concatenation and Replication Operators
 | Verilog Operator | Magma Operator | Types | Context | Comments |
 |------------------|----------------| ----- | ------- | -------- |
-| `{}`     | `m.concat`     | All   | All     | |
+| `{}`     | `m.concat`     | All   | All     | **NOTE:** The semantics of `m.concat` are inverted from Verilog's (in the same way that Magma/Python's slicing syntax is inverted), so `m.concat(x,y)` corresponds to Verilog code of `{y,x}` as opposed to `{x,y}`  |
 | `{{}}`     | **TODO**     | All   | All     | **TODO: We could use something similar to Python's list replication syntax: `[4] * 4` |
 
 #### Others
