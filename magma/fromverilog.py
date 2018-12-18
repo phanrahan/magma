@@ -94,14 +94,18 @@ def ParseVerilogModule(node, type_map):
     if ports:
         assert not args, "Can we have mixed declared and undeclared types in a Verilog module?"
         for port in ports:
+            found = False
             for child in node.children():
                 if isinstance(child, Decl):
-                    first_child = child.children()[0]
-                    if isinstance(first_child, (parser.Input, parser.Output, parser.Inout)) and \
-                            first_child.name == port:
-                        args.append(first_child.name)
-                        args.append(get_type(first_child, type_map))
-                        break
+                    for sub_child in child.children():
+                        if isinstance(sub_child, (parser.Input, parser.Output, parser.Inout)) and \
+                                sub_child.name == port:
+                            args.append(sub_child.name)
+                            args.append(get_type(sub_child, type_map))
+                            found = True
+                            break
+                if found:
+                    break
             else:
                 raise Exception(f"Could not find type declaration for port {port}")
 

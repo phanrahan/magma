@@ -59,3 +59,15 @@ def test_coreir_compilation():
 
     assert m.testing.check_files_equal(
         __file__, "build/test_rxmod_top.json", "gold/test_rxmod_top.json")
+
+
+def test_decl_list():
+    file_path = os.path.dirname(__file__)
+    type_map = {"clk_in"    : m.In(m.Clock),
+                "reset"     : m.In(m.AsyncReset),
+                "config_en" : m.In(m.Enable),
+                "clk_en"    : m.In(m.Enable)}
+    memory_core = m.DefineFromVerilogFile(
+        os.path.join(file_path, "decl_list.v"), target_modules=["memory_core"],
+        type_map=type_map)[0]
+    assert str(memory_core) == "memory_core(clk_in: In(Clock), clk_en: In(Enable), reset: In(AsyncReset), config_addr: In(Bits(32)), config_data: In(Bits(32)), config_read: In(Bit), config_write: In(Bit), config_en: In(Enable), config_en_sram: In(Bits(4)), config_en_linebuf: In(Bit), data_in: In(Bits(16)), data_out: Out(Bits(16)), wen_in: In(Bit), ren_in: In(Bit), valid_out: Out(Bit), chain_in: In(Bits(16)), chain_out: Out(Bits(16)), chain_wen_in: In(Bit), chain_valid_out: Out(Bit), almost_full: Out(Bit), almost_empty: Out(Bit), addr_in: In(Bits(16)), read_data: Out(Bits(32)), read_data_sram: Out(Bits(32)), read_data_linebuf: Out(Bits(32)), flush: In(Bit))"
