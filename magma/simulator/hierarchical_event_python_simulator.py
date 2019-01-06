@@ -124,12 +124,23 @@ class SimInfo:
 
         self.state_dependencies = self.analyze_state_dependencies()
 
-class HierarchicalPythonSimulator(CircuitSimulator):
-    def __init__(self, circuit, clock):
+class ValueStore:
+    def __init__(self):
+        self.value_map = {}
+
+    def set_value(self, scope, bit, val):
         pass
 
-    def get_capabilities(self):
+    def get_value(self, scope, bit):
         pass
+
+class HierarchicalEventPythonSimulator(CircuitSimulator):
+    def __init__(self, circuit, clock):
+        self.value_store = ValueStore()
+        self.queue = []
+
+    def get_capabilities(self):
+        return []
 
     def get_value(self, bit, scope):
         pass
