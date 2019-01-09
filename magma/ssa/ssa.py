@@ -33,12 +33,14 @@ class SSAVisitor(ast.NodeTransformer):
         return node
 
     def visit_FunctionDef(self, node):
+        for a in node.args.args:
+            a.arg = f"{a.arg}_0"
         node.body = flatten([self.visit(s) for s in node.body])
         return node
 
     def visit_Name(self, node):
         if node.id not in self.last_name:
-            self.last_name[node.id] = node.id
+            self.last_name[node.id] = f"{node.id}_0"
         if isinstance(node.ctx, ast.Store):
             self.write_name(node.id)
         node.id = f"{self.last_name[node.id]}"
