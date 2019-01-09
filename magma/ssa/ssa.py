@@ -45,7 +45,6 @@ class SSAVisitor(ast.NodeTransformer):
         return node
 
     def visit_If(self, node):
-        true_name = {}
         false_name = dict(self.last_name)
 
         test = self.visit(node.test)
