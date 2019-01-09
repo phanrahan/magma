@@ -20,41 +20,58 @@ def flatten(l : list):
 class SSAVisitor(ast.NodeTransformer):
     def __init__(self):
         super().__init__()
+        self.last_name = defaultdict(lambda : "")
         self.var_counter = defaultdict(lambda : -1)
+
+    def write_name(self, var):
+        self.var_counter[var] += 1
+        self.last_name[var] = f"{var}_{self.var_counter[var]}"
+
+    def visit_Assign(self, node):
+        node.value = self.visit(node.value)
+        node.targets = flatten([self.visit(t) for t in node.targets])
+        return node
 
     def visit_FunctionDef(self, node):
         node.body = flatten([self.visit(s) for s in node.body])
         return node
 
     def visit_Name(self, node):
+        if node.id not in self.last_name:
+            self.last_name[node.id] = node.id
         if isinstance(node.ctx, ast.Store):
-            self.var_counter[node.id] += 1
-        if isinstance(node.ctx, ast.Store) or node.id in self.var_counter:
-            node.id += f"_{self.var_counter[node.id]}"
+            self.write_name(node.id)
+        node.id = f"{self.last_name[node.id]}"
         return node
 
     def visit_If(self, node):
-        false_var_counter = dict(self.var_counter)
+        true_name = {}
+        false_name = dict(self.last_name)
+
         test = self.visit(node.test)
         result = flatten([self.visit(s) for s in node.body])
+        true_name = dict(self.last_name)
+
         if node.orelse:
-            false_var_counter = dict(self.var_counter)
+            self.last_name = false_name
             result += flatten([self.visit(s) for s in node.orelse])
-        for var, count in self.var_counter.items():
-            if var in false_var_counter and count != false_var_counter[var]:
+            false_name = dict(self.last_name)
+
+        self.last_name = {**true_name, **false_name}
+        for var in self.last_name.keys():
+            if var in true_name and var in false_name and true_name[var] != false_name[var]:
                 phi_args = [
-                    ast.Name(f"{var}_{count}", ast.Load()),
-                    ast.Name(f"{var}_{false_var_counter[var]}", ast.Load())
+                    ast.Name(false_name[var], ast.Load()),
+                    ast.Name(true_name[var], ast.Load())
                 ]
-                if not node.orelse:
-                    phi_args = [phi_args[1], phi_args[0]]
+
+                self.write_name(var)
                 result.append(ast.Assign(
-                    [ast.Name(f"{var}_{count + 1}", ast.Store())],
+                    [ast.Name(self.last_name[var], ast.Store())],
                     ast.Call(ast.Name("phi", ast.Load()), [
                         ast.List(phi_args, ast.Load()),
                         test
                     ], [])))
-                self.var_counter[var] += 1
         return result
 
 
