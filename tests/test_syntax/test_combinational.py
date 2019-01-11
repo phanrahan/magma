@@ -211,10 +211,10 @@ def test_warnings(caplog):
             m.wire(c, io.c)
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_circuit_def.py:197: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
+\033[1mtests/test_syntax/test_combinational.py:197: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
             c = m.bit(1)
 
-\033[1mtests/test_circuit_def.py:197: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
+\033[1mtests/test_syntax/test_combinational.py:197: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
             c = m.bit(1)
 """
 
@@ -240,7 +240,7 @@ def test_not_implemented(caplog):
         pass
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_circuit_def.py:233: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
+\033[1mtests/test_syntax/test_combinational.py:233: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
                 c = m.bit(1)
 """
 

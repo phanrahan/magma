@@ -4,13 +4,13 @@ import inspect
 import textwrap
 from collections import OrderedDict
 from magma.logging import debug, warning, error
-from .backend.util import make_relative
+from magma.backend.util import make_relative
 import astor
 import os
 import traceback
-from .debug import debug_info
 import magma.ast_utils as ast_utils
 import types
+from magma.debug import debug_info
 
 
 class CircuitDefinitionSyntaxError(Exception):
