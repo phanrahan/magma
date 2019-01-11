@@ -87,7 +87,8 @@ def __compile_to_coreir(main, file_name, opts):
     # Underscore so our coreir module doesn't conflict with coreir bindings
     # package.
     from .backend import coreir_
-    backend = coreir_.CoreIRBackend()
+    context = opts.get("context", None)
+    backend = coreir_.CoreIRBackend(context)
     backend.compile(main)
     if opts.get("passes", False):
         backend.context.run_passes(opts["passes"], ["global"])
@@ -131,7 +132,6 @@ def compile(basename, main, output='verilog', **kwargs):
         opts["output_verilog"] = True
         output = "coreir"
 
-    check_definitions_are_unique(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)

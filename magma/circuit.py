@@ -17,6 +17,7 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
 from .is_definition import isdefinition
+from .circuit_database import CircuitDatabase
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -26,7 +27,7 @@ __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['getCurrentDefinition']
-__all__ += ['magma_clear_circuit_cache']
+__all__ += ['magma_clear_circuit_database']
 
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
@@ -34,6 +35,11 @@ __all__ += ['circuit_generator']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
+
+circuit_database = CircuitDatabase()
+
+def magma_clear_circuit_database():
+    circuit_database.clear()
 
 def circuit_to_html(cls):
     if isdefinition(cls):
@@ -137,6 +143,25 @@ class CircuitKind(type):
 
     def _repr_html_(cls):
         return circuit_to_html(cls)
+
+    def rename(cls, new_name):
+        old_name = cls.name
+        cls.name = new_name
+        cls.coreir_name = new_name
+        cls.verilog_name = new_name
+        cls.__name__ = new_name
+
+        # NOTE(rsetaluri): This is a very hacky way to try to rename wrapped
+        # verilog. We simply replace the first instance of "module <old_name>"
+        # with "module <new_name>". This ignores the possibility of "module
+        # <new_name>" existing anywhere else, most likely in comments etc. The
+        # more robust way to do this would to modify the AST directly and
+        # generate the new verilog code.
+        if cls.verilogFile:
+            find_str = f"module {old_name}"
+            replace_str = f"module {new_name}"
+            assert cls.verilogFile.find(find_str) != -1
+            cls.verilogFile = cls.verilogFile.replace(find_str, replace_str, 1)
 
     def find(cls, defn):
         name = cls.__name__
@@ -389,12 +414,6 @@ def popDefinition():
     else:
         currentDefinition = None
 
-# a map from circuitDefinition names to circuit definition objects
-definitionCache = {}
-
-def magma_clear_circuit_cache():
-    definitionCache.clear()
-
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
@@ -414,14 +433,6 @@ class DefineCircuitKind(CircuitKind):
         dct["renamed_ports"] = dct.get("renamed_ports", {})
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
-
-        if (hasattr(self, 'definition') or dct.get('is_definition', False) \
-                or hasattr(self, 'wrappedModule')) and not getattr(self, '__magma_no_cache__', False):
-            if name in definitionCache:
-                return definitionCache[name]
-            else:
-                #print('creating',name)
-                definitionCache[name] = self
 
         self.verilog = None
         self.verilogFile = None
@@ -511,8 +522,7 @@ def DefineCircuit(name, *decl, **args):
                coreir_genargs = args.get('coreir_genargs', None),
                coreir_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}),
-               renamed_ports = args.get('renamed_ports', {}),
-               __magma_no_cache__ = args.get('__magma_no_cache__', False))
+               renamed_ports = args.get('renamed_ports', {}))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
@@ -522,7 +532,10 @@ def EndDefine():
         debug_info = get_callee_frame_info()
         currentDefinition.end_circuit_filename = debug_info[0]
         currentDefinition.end_circuit_lineno   = debug_info[1]
+        circuit_database.insert(currentDefinition)
         popDefinition()
+    else:
+        raise Exception("EndDefine called without Define/DeclareCircuit")
 
 EndCircuit = EndDefine
 

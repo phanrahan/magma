@@ -189,7 +189,8 @@ class CoreIRBackend:
         lib = self.libs[instance.coreir_lib]
         logger.debug(instance.name, type(instance))
         if instance.coreir_genargs is None:
-            if hasattr(instance, "wrappedModule"):
+            if hasattr(instance, "wrappedModule") and \
+               instance.wrappedModule.context == self.context:
                 module = instance.wrappedModule
             else:
                 module = lib.modules[name]
@@ -402,7 +403,8 @@ class CoreIRBackend:
                 continue
             if key.is_definition:
                 # don't try to compile if already have definition
-                if hasattr(key, 'wrappedModule'):
+                if hasattr(key, 'wrappedModule') and \
+                   key.wrappedModule.context == self.context:
                     self.modules[key.name] = key.wrappedModule
                 else:
                     self.modules[key.name] = self.compile_definition(key)
@@ -414,7 +416,8 @@ class CoreIRBackend:
         if defn_or_declaration.is_definition:
             self.compile_dependencies(defn_or_declaration)
             # don't try to compile if already have definition
-            if hasattr(defn_or_declaration, 'wrappedModule'):
+            if hasattr(defn_or_declaration, 'wrappedModule') and \
+               defn_or_declaration.wrappedModule.context == self.context:
                 self.modules[defn_or_declaration.name] = defn_or_declaration.wrappedModule
                 self.libs_used |= defn_or_declaration.coreir_wrapped_modules_libs_used
             else:

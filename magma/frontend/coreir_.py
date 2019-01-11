@@ -1,5 +1,5 @@
 from magma.backend.coreir_ import CoreIRBackend
-from magma.circuit import DefineCircuitKind, Circuit, definitionCache
+from magma.circuit import DefineCircuitKind, Circuit
 from magma import cache_definition
 from coreir.generator import Generator
 
@@ -18,8 +18,6 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName):
 def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
                                       uniqueName: str, dependentNamespaces: list = [],
                                       genargs: dict = {}, runGenerators = True):
-    if uniqueName in definitionCache:
-        return definitionCache[uniqueName]
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
     if runGenerators:
         cirb.context.run_passes(["rungenerators"], [namespace] + dependentNamespaces)
