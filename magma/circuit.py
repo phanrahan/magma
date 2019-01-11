@@ -162,8 +162,6 @@ class CircuitKind(type):
             replace_str = f"module {new_name}"
             assert cls.verilogFile.find(find_str) != -1
             cls.verilogFile = cls.verilogFile.replace(find_str, replace_str, 1)
-            # TODO(rsetaluri): Do we need this?
-            cls.verilog_source = cls.verilogFile
 
     def find(cls, defn):
         name = cls.__name__
