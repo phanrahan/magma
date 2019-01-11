@@ -132,8 +132,6 @@ def compile(basename, main, output='verilog', **kwargs):
         opts["output_verilog"] = True
         output = "coreir"
 
-    # NOTE(raj): With the new uniquification logic, this is no longer needed.
-    # check_definitions_are_unique(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
