@@ -23,7 +23,7 @@ setup(
         "astor",
         "six",
         "mako",
-        "pyverilog",
+        # "pyverilog",
         "numpy",
         "graphviz",
         "coreir==0.30a0",

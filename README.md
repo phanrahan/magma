@@ -102,6 +102,8 @@ $ sudo apt-get install python3 python3-pip
 ## User Setup
 Magma is available as a pip package, install the lastest release with:
 ```
+# Install forked version of pyverilog with basic system verilog support
+pip install -e git://github.com/leonardt/Pyverilog.git#egg=pyverilog
 pip install magma-lang
 ```
 
@@ -114,6 +116,7 @@ $ cd magma
 
 Install magma as a symbolic package
 ```
+$ pip install -r requirements.txt
 $ pip install -e .
 ```
 
