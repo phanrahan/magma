@@ -152,7 +152,13 @@ def FromVerilogFile(file, func, type_map, target_modules=None):
     if file is None:
         return None
     verilog = open(file).read()
-    return FromVerilog(verilog, func, type_map, target_modules)
+    result = FromVerilog(verilog, func, type_map, target_modules)
+    # Store the original verilog file name, currently used by m.compile to
+    # generate a .sv when compiling a circuit that was defined from a verilog
+    # file
+    for item in result:
+        item.verilog_file_name = file
+    return result
 
 def FromTemplatedVerilog(templatedverilog, func, type_map, **kwargs):
     verilog = Template(templatedverilog).render(**kwargs)

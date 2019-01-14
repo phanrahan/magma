@@ -21,7 +21,8 @@ def check_rxmod(RXMOD):
 
     m.compile("build/test_rxmod", RXMOD)
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
-            "gold/test_rxmod.v")    
+            "gold/test_rxmod.v")
+
 
 def test_basic():
     file_path = os.path.dirname(__file__)
@@ -71,3 +72,23 @@ def test_decl_list():
         os.path.join(file_path, "decl_list.v"), target_modules=["memory_core"],
         type_map=type_map)[0]
     assert str(memory_core) == "memory_core(clk_in: In(Clock), clk_en: In(Enable), reset: In(AsyncReset), config_addr: In(Bits(32)), config_data: In(Bits(32)), config_read: In(Bit), config_write: In(Bit), config_en: In(Enable), config_en_sram: In(Bits(4)), config_en_linebuf: In(Bit), data_in: In(Bits(16)), data_out: Out(Bits(16)), wen_in: In(Bit), ren_in: In(Bit), valid_out: Out(Bit), chain_in: In(Bits(16)), chain_out: Out(Bits(16)), chain_wen_in: In(Bit), chain_valid_out: Out(Bit), almost_full: Out(Bit), almost_empty: Out(Bit), addr_in: In(Bits(16)), read_data: Out(Bits(32)), read_data_sram: Out(Bits(32)), read_data_linebuf: Out(Bits(32)), flush: In(Bit))"
+
+
+def test_from_sv():
+    file_path = os.path.dirname(__file__)
+    test_pe = m.DefineFromVerilogFile(os.path.join(file_path, "test_pe.sv"))[0]
+
+
+    if os.path.exists("build/test_pe.sv"):
+       os.remove("build/test_pe.sv")
+    m.compile("build/test_pe", test_pe)
+
+    # Remove last line from generated file since magma adds an extra newline
+    with open("tests/test_verilog/build/test_pe.sv", 'r') as f:
+        lines = f.readlines()
+        lines = lines[:-1]
+    with open("tests/test_verilog/build/test_pe.sv", 'w') as f:
+        f.write("".join(lines))
+
+    assert m.testing.check_files_equal(__file__, "build/test_pe.sv",
+                                       "test_pe.sv")
