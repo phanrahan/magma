@@ -3,7 +3,7 @@ import sys
 
 setup(
     name='magma-lang',
-    version='0.1.4',
+    version='0.1.5',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
