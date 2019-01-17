@@ -77,7 +77,7 @@ class TupleRef(Ref):
        return self.qualifiedname()
 
    def qualifiedname(self, sep='.'):
-       return self.tuple.name.qualifiedname(sep=sep) + '.' + str(self.index)
+       return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
 
    def anon(self):
        return self.tuple.name.anon()

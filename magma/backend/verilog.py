@@ -10,6 +10,7 @@ from ..bit import _BitType, _BitKind, VCC, GND
 from ..clock import ClockType, EnableType, ResetType
 from ..array import ArrayKind, ArrayType
 from ..bits import SIntType
+from ..tuple import TupleType
 from ..is_definition import isdefinition
 from ..clock import wiredefaultclock
 import logging
@@ -84,13 +85,20 @@ def vdecl(t):
 
 # return the verilog module args
 def vmoduleargs(self):
-    args = []
-    for name, port in self.ports.items():
+    def append(args, port, name):
         if   port.isinput():  d = OUTPUT
         elif port.isoutput(): d = INPUT
         else: d = INOUT
-        #d = flip(port.direction)
-        args.append( "%s %s %s" % (d, vdecl(port), name) )
+        args.append("%s %s %s" % (d, vdecl(port), name))
+
+    args = []
+    for name, port in self.ports.items():
+        if isinstance(port, TupleType):
+            for i in range(len(port)):
+                append(args, port[i], vname(port[i]))
+        else:
+            #d = flip(port.direction)
+            append(args, port, name)
     return args
 
 
@@ -115,7 +123,11 @@ def compileinstance(self):
                 logging.warning(f'{v.debug_name} not connected')
                 continue
             v = w
-        if isinstance(k, IntegerTypes):
+        if isinstance(v, TupleType):
+            for i in range(len(v)):
+                args.append(arg('%s_%s' %
+                    (v[i].name.tuple.name, v[i].name.index), vname(v[i])))
+        elif isinstance(k, IntegerTypes):
             args.append( vname(v) )
         else:
             args.append( arg(k,vname(v)) )
@@ -124,7 +136,7 @@ def compileinstance(self):
 
     params = []
     for k, v in self.kwargs.items():
-       if k not in {'loc', 'name'}:
+       if k not in {'loc', 'name', 'T'}:
            if isinstance(v, tuple):
                v = hstr(v[0], v[1])
            params.append(arg(k, v))
@@ -170,11 +182,18 @@ def compiledefinition(cls):
                     else:
                         s = libName + s
         else:
+            def wire(port):
+                return 'wire %s %s;\n' % (vdecl(port), vname(port))
+
             # declare a wire for each instance output
             for instance in cls.instances:
                 for port in instance.interface.ports.values():
-                    if port.isoutput():
-                        s += 'wire %s %s;\n' % (vdecl(port), vname(port))
+                    if isinstance(port, TupleType):
+                        for i in range(len(port)):
+                            s += wire(port[i])
+                    else:
+                        if not port.isinput():
+                            s += wire(port)
 
             #print('compile instances')
             # emit the structured verilog for each instance
@@ -189,11 +208,21 @@ def compiledefinition(cls):
                 if port.isinput():
                     output = port.value()
                     if output:
-                        iname = vname(port)
-                        oname = vname(output)
-                        if hasattr(port, "debug_info") and get_codegen_debug_info():
-                            s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
-                        s += 'assign %s = %s;\n' % (iname, oname)
+                        if isinstance(output, TupleType):
+                            for name, input in cls.interface.ports.items():
+                                if input.isinput():
+                                    output = input.value()
+                                    assert isinstance(output, TupleType)
+                                    for i in range(len(input)):
+                                        iname = vname(input[i])
+                                        oname = vname(output[i])
+                                        s += 'assign %s = %s;\n' % (iname, oname)
+                        else:
+                            iname = vname(port)
+                            oname = vname(output)
+                            if hasattr(port, "debug_info") and get_codegen_debug_info():
+                                s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
+                            s += 'assign %s = %s;\n' % (iname, oname)
                     else:
                         logging.warning(f"{cls.__name__}.{port.name} is unwired")
 
