@@ -146,8 +146,6 @@ def test_2d_array_error(caplog):
                          [("verilog", "v"), ("coreir", "json")])
 @pytest.mark.parametrize("T",[m.Bit, m.Bits(2), m.Array(2, m.Bit), m.Tuple(x=m.Bit, y=m.Bit)])
 def test_anon_value(target, suffix, T):
-    if isinstance(T, m.TupleKind) and target == "verilog":
-        pytest.skip("Tuple not supported by verilog")
     And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
                             "O", m.Out(T))
 

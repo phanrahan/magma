@@ -142,10 +142,6 @@ def test_return_py_tuple(target):
 
 
 def test_return_magma_tuple(target):
-    if target == "verilog":
-        # TODO: Tuples not supported in verilog backend
-        pytest.skip()
-
     @m.circuit.combinational
     def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
         return m.tuple_([I[0], I[1]])
@@ -154,10 +150,6 @@ def test_return_magma_tuple(target):
 
 
 def test_return_magma_named_tuple(target):
-    if target == "verilog":
-        # TODO: Tuples not supported in verilog backend
-        pytest.skip()
-
     @m.circuit.combinational
     def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
         return m.namedtuple(x=I[0], y=I[1])
@@ -166,10 +158,6 @@ def test_return_magma_named_tuple(target):
 
 
 def test_simple_circuit_1(target):
-    if target == "verilog":
-        # TODO: Tuples not supported in verilog backend
-        pytest.skip()
-
     EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
                          m.Out(m.Bit))
     m.wire(0, EQ.O)
@@ -223,10 +211,10 @@ def test_warnings(caplog):
             m.wire(c, io.c)
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_circuit_def.py:209: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
+\033[1mtests/test_circuit_def.py:197: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
             c = m.bit(1)
 
-\033[1mtests/test_circuit_def.py:209: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
+\033[1mtests/test_circuit_def.py:197: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
             c = m.bit(1)
 """
 
@@ -252,7 +240,7 @@ def test_not_implemented(caplog):
         pass
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_circuit_def.py:245: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
+\033[1mtests/test_circuit_def.py:233: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
                 c = m.bit(1)
 """
 
