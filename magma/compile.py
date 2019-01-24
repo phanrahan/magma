@@ -140,7 +140,13 @@ def compile(basename, main, output='verilog', **kwargs):
         file_name = basename
 
     if output == 'verilog':
-        write_file(file_name, 'v', verilog.compile(main))
+        suffix = "v"
+        # Handle the case when DefineFromVerilogFile is used with a system
+        # verilog file
+        if hasattr(main, "verilog_file_name") and \
+                os.path.splitext(main.verilog_file_name)[-1] == ".sv":
+            suffix = "sv"
+        write_file(file_name, suffix, verilog.compile(main))
     elif output == 'blif':
         write_file(file_name, 'blif', blif.compile(main))
     elif output == 'firrtl':

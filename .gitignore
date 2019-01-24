@@ -99,3 +99,5 @@ parsetab.py
 
 .magma
 .pytest_cache
+build/
+tests/test_verilog/build/
