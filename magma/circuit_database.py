@@ -39,16 +39,21 @@ class CircuitDatabase(CircuitDatabaseInterface):
                 try:
                     backend = get_database_hash_backend()
                     if backend == "coreir":
+                        backend = CoreIRBackend()
                         if hasattr(circuit, "wrappedModule") and circuit.wrappedModule:
                             # If we're compiling a wrappedModule, we just save
                             # it to a file directly.
                             circuit.wrappedModule.save_to_file(tempdir + "/circuit.json")
                         else:
-                            compile(tempdir + "/circuit", circuit, output="coreir")
+                            backend.compile(circuit)
+                            backend.modules[circuit.coreir_name].save_to_file(tempdir + "/circuit.json")
                         # Mark graph as dirty so future JSON passes will run,
                         # otherwise it will not register our changes via the
                         # API
-                        CoreIRBackend().context.run_passes(["markdirty"])
+                        # NOTE: We need to include backend.libs_used or else
+                        # running the pass may fail because a referenced
+                        # library is not loaded
+                        backend.context.run_passes(["markdirty"], ["global"] + list(backend.libs_used))
                         string = open(tempdir + "/circuit.json").read()
                     elif backend == "verilog":
                         compile(tempdir + "/circuit", circuit, backend)
