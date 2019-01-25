@@ -57,7 +57,6 @@ class CircuitDatabase(CircuitDatabaseInterface):
                         raise NotImplementedError(backend)
                 except Exception as e:
                     warning(f"Could not compile circuit {circuit}: '{str(e)}'. Uniquifying anyway.")
-                    raise e
                     string = uuid.uuid4()
             return hash(string)
 
