@@ -3,7 +3,7 @@ import os
 import inspect
 import subprocess
 
-from .passes import DefinitionPass
+from .passes import DefinitionPass, InstanceGraphPass
 from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
 from .logging import error
@@ -95,11 +95,19 @@ def __compile_to_coreir(main, file_name, opts):
 
     backend.modules[main.coreir_name].save_to_file(file_name + ".json")
     if opts.get("output_verilog", False):
+        deps = set()
+        pass_ = InstanceGraphPass(main)
+        pass_.run()
+        for key, _ in pass_.tsortedgraph:
+            if key.coreir_lib:
+                deps.add(key.coreir_lib)
+            elif hasattr(key, 'wrappedModule'):
+                deps |= key.coreir_wrapped_modules_libs_used
         # TODO(rsetaluri): Expose compilation to verilog in pycoreir rather than
         # calling the binary from the command line.
         lib_arg = ""
-        if backend.libs_used:
-            lib_arg = f"-l {','.join(backend.libs_used)}"
+        if deps:
+            lib_arg = f"-l {','.join(deps)}"
         cmd = f"coreir {lib_arg} -i {file_name}.json"
         if opts.get("split", ""):
             split = opts["split"]

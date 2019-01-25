@@ -24,7 +24,6 @@ class TransformedCircuit:
         self.orig_to_new = {}
         self.circuit = DefineCircuit(orig_circuit.name + '_' + transform_name,
                                      *orig_circuit.interface.decl())
-        EndCircuit()
 
     def get_new_bit(self, orig_bit, scope):
         assert isinstance(scope, Scope), "Second argument to get_new_bit should be an instance of Scope"
@@ -220,8 +219,7 @@ def flatten(circuit):
             newbit = new_circuit.interface.ports[name]
             flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 
-    for primitive in new_primitives:
-        new_circuit.place(primitive)
+    EndCircuit()  # For TransformedCircuit
 
     return flattened_circuit
 
