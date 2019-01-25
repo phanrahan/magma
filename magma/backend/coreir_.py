@@ -350,8 +350,8 @@ class CoreIRBackend:
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
-            logger.debug((value, output_ports))
-            logger.debug((id(value), [id(key) for key in output_ports]))
+            # logger.debug((value, output_ports))
+            # logger.debug((id(value), [id(key) for key in output_ports]))
             source = module_definition.select(output_ports[value])
         sink = module_definition.select(magma_port_to_coreir(port))
         module_definition.connect(source, sink)
@@ -406,9 +406,13 @@ class CoreIRBackend:
                 if hasattr(key, 'wrappedModule') and \
                    key.wrappedModule.context == self.context:
                     self.modules[key.name] = key.wrappedModule
+                    self.libs_used |= key.coreir_wrapped_modules_libs_used
                 else:
                     self.modules[key.name] = self.compile_definition(key)
-                    # key.wrappedModule = modules[key.name]
+                    key.wrappedModule = self.modules[key.name]
+                    key.coreir_wrapped_modules_libs_used = \
+                        copy.copy(self.libs_used)
+                    logger.debug(f"Compiled module {key.name}, libs used = {self.libs_used}")
             else:
                 self.modules[key.name] = self.compile_declaration(key)
 

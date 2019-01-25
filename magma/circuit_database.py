@@ -6,6 +6,7 @@ import coreir
 from .logging import warning
 from .config import get_database_hash_backend
 from magma.backend.coreir_ import CoreIRBackend
+from .passes import InstanceGraphPass
 
 
 class CircuitDatabaseInterface(ABC):
@@ -53,11 +54,20 @@ class CircuitDatabase(CircuitDatabaseInterface):
                         # NOTE: We need to include backend.libs_used or else
                         # running the pass may fail because a referenced
                         # library is not loaded
-                        backend.context.run_passes(["markdirty"], ["global"] + list(backend.libs_used))
+                        deps = set()
+                        pass_ = InstanceGraphPass(circuit)
+                        pass_.run()
+                        for key, _ in pass_.tsortedgraph:
+                            if key.coreir_lib:
+                                deps.add(key.coreir_lib)
+                            elif hasattr(key, 'wrappedModule'):
+                                deps |= key.coreir_wrapped_modules_libs_used
+                        backend.context.run_passes(["markdirty"], ["global"] + list(deps))
                         string = open(tempdir + "/circuit.json").read()
                     elif backend == "verilog":
                         compile(tempdir + "/circuit", circuit, backend)
                         string = open(tempdir + "/circuit.v").read()
+                        print(string)
                     else:
                         raise NotImplementedError(backend)
                 except Exception as e:
