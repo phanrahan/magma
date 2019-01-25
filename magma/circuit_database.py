@@ -67,7 +67,6 @@ class CircuitDatabase(CircuitDatabaseInterface):
                     elif backend == "verilog":
                         compile(tempdir + "/circuit", circuit, backend)
                         string = open(tempdir + "/circuit.v").read()
-                        print(string)
                     else:
                         raise NotImplementedError(backend)
                 except Exception as e:
