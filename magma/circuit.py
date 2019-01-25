@@ -484,6 +484,12 @@ class DefineCircuitKind(CircuitKind):
         inst.stack = inspect.stack()
         cls.instances.append(inst)
 
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
 
 # Register graphviz repr if running in IPython.
 # There's a bug in IPython which breaks visual reprs

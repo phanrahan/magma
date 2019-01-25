@@ -187,7 +187,7 @@ class CoreIRBackend:
     def compile_instance(self, instance, module_definition):
         name = instance.__class__.coreir_name
         lib = self.libs[instance.coreir_lib]
-        logger.debug(instance.name, type(instance))
+        logger.debug(f"Compiling instance {(instance.name, type(instance))}")
         if instance.coreir_genargs is None:
             if hasattr(instance, "wrappedModule") and \
                instance.wrappedModule.context == self.context:
@@ -292,7 +292,7 @@ class CoreIRBackend:
         logger.debug(f"Compiling definition {definition}")
         if definition.name in self.modules:
             logger.debug(f"    {definition} already compiled, skipping")
-            return
+            return self.modules[definition.name]
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
@@ -303,8 +303,8 @@ class CoreIRBackend:
         # If this module was imported from verilog, do not go through the
         # general module construction flow. Instead just attach the verilog
         # source as metadata and return the module.
-        if hasattr(definition, "verilogFile") and definition.verilogFile:
-            verilog_metadata = {"verilog_string": definition.verilogFile}
+        if hasattr(definition, "verilog") and definition.verilog:
+            verilog_metadata = {"verilog_string": definition.verilog}
             coreir_module.add_metadata("verilog", json.dumps(verilog_metadata))
             return coreir_module
 
@@ -350,8 +350,8 @@ class CoreIRBackend:
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
-            logger.debug(value, output_ports)
-            logger.debug(id(value), [id(key) for key in output_ports])
+            logger.debug((value, output_ports))
+            logger.debug((id(value), [id(key) for key in output_ports]))
             source = module_definition.select(output_ports[value])
         sink = module_definition.select(magma_port_to_coreir(port))
         module_definition.connect(source, sink)
@@ -413,6 +413,7 @@ class CoreIRBackend:
                 self.modules[key.name] = self.compile_declaration(key)
 
     def compile(self, defn_or_declaration):
+        logger.debug(f"Compiling: {defn_or_declaration.name}")
         if defn_or_declaration.is_definition:
             self.compile_dependencies(defn_or_declaration)
             # don't try to compile if already have definition
