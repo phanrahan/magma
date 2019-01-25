@@ -40,6 +40,8 @@ class CircuitDatabase(CircuitDatabaseInterface):
                     backend = get_database_hash_backend()
                     if backend == "coreir":
                         if hasattr(circuit, "wrappedModule") and circuit.wrappedModule:
+                            # If we're compiling a wrappedModule, we just save
+                            # it to a file directly.
                             circuit.wrappedModule.save_to_file(tempdir + "/circuit.json")
                         else:
                             compile(tempdir + "/circuit", circuit, output="coreir")
