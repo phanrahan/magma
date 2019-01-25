@@ -3,7 +3,7 @@ import sys
 
 setup(
     name='magma-lang',
-    version='0.1.6',
+    version='0.1.7',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
@@ -26,7 +26,7 @@ setup(
         # "pyverilog",
         "numpy",
         "graphviz",
-        "coreir==0.30a0",
+        "coreir>=0.30a0, <= 0.31a0",
         "bit_vector==0.39a0"
     ],
     python_requires='>=3.6'
