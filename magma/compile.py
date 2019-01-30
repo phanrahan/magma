@@ -116,6 +116,8 @@ def __compile_to_coreir(main, file_name, opts):
             cmd += f" -o {file_name}.v"
         if opts.get("inline", False):
             cmd += " --inline"
+        if opts.get("verilator_debug", False):
+            cmd += " --verilator_debug"
         subprocess.run(cmd, shell=True)
 
 
