@@ -100,6 +100,7 @@ def compile(basename, main, output='verilog', **kwargs):
         opts["output_verilog"] = True
         output = "coreir"
 
+    uniquification_pass(main)
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
