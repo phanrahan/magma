@@ -6,10 +6,10 @@ import subprocess
 from .passes import DefinitionPass, InstanceGraphPass
 from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
-from .logging import error
-from .is_definition import isdefinition
 from .logging import warning
+from .uniquification import uniquification_pass
 import magma as m
+
 
 __all__ = ['compile']
 
@@ -17,48 +17,6 @@ __all__ = ['compile']
 def write_file(file_name, extension, code):
     with open("{}.{}".format(file_name, extension), 'w') as file:
         file.write(code)
-
-
-class MultipleDefinitionException(Exception):
-    pass
-
-
-class CheckDefinitionUniquenessPass(DefinitionPass):
-    def __init__(self, main):
-        super(CheckDefinitionUniquenessPass, self).__init__(main)
-        self.seen = {}
-
-    def __call__(self, definition):
-        if definition.name not in self.seen:
-            self.seen[definition.name] = set()
-        self.seen[definition.name].add(definition)
-
-    def _run(self, definition):
-        if not isdefinition(definition):
-            return
-
-        for instance in definition.instances:
-            instancedefinition = type(instance)
-            if isdefinition(instancedefinition):
-                self._run( instancedefinition )
-
-        self(definition)
-
-    def run(self):
-        super(CheckDefinitionUniquenessPass, self).run()
-        duplicated = []
-        #print(self.seen)
-        for name, definitions in self.seen.items():
-            if len(definitions) > 1:
-                duplicated.append((name, definitions))
-                error("Found multiple definitions for {}".format(name))
-
-        if len(duplicated):
-            raise MultipleDefinitionException([name for name, _ in duplicated])
-
-
-def check_definitions_are_unique(circuit):
-    CheckDefinitionUniquenessPass(circuit).run()
 
 
 class CheckAnyMantleCircuits(DefinitionPass):
