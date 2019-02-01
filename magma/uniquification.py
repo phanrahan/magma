@@ -60,5 +60,5 @@ class UniquificationPass(DefinitionPass):
                 warning(msg)
 
 
-def uniquification_pass(circuit, mode=UniquificationMode.UNIQUIFY):
+def uniquification_pass(circuit, mode=UniquificationMode.ERROR):
     UniquificationPass(circuit, mode).run()
