@@ -9,16 +9,3 @@ def set_compile_dir(target):
 
 def get_compile_dir():
     return __COMPILE_DIR
-
-
-__database_hash_backend = "coreir"
-
-
-def set_database_hash_backend(target):
-    global __database_hash_backend
-    assert target in ["verilog", "coreir"]
-    __database_hash_backend = target
-
-
-def get_database_hash_backend():
-    return __database_hash_backend
