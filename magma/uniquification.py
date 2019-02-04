@@ -22,20 +22,23 @@ class UniquificationPass(DefinitionPass):
 
     def __call__(self, definition):
         name = definition.name
-        # TODO(rsetaluri): Use appropriate hash function.
-        key = id(definition)
+        key = hash(definition)
+        insert = False
         if name not in self.seen:
             self.seen[name] = {}
+            insert = True
         elif self.mode is UniquificationMode.UNIQUIFY:
             seen = self.seen[name]
             if key in seen:
                 new_name = seen[key].name
+                insert = False
             else:
                 idx = len(seen)
                 new_name = name + "_unq" + str(idx)
+                insert = True
             type(definition).rename(definition, new_name)
-        # TODO(rsetaluri): Do not do insert if key is already in seen[name].
-        self.seen[name][key] = definition
+        if insert:
+            self.seen[name][key] = definition
 
     def _run(self, definition):
         if not isdefinition(definition):
