@@ -19,6 +19,7 @@ class UniquificationPass(DefinitionPass):
         super(UniquificationPass, self).__init__(main)
         self.mode = mode
         self.seen = {}
+        self.original_names = {}
 
     def __call__(self, definition):
         name = definition.name
@@ -36,6 +37,7 @@ class UniquificationPass(DefinitionPass):
                 idx = len(seen)
                 new_name = name + "_unq" + str(idx)
                 insert = True
+            self.original_names[definition] = name
             type(definition).rename(definition, new_name)
         if insert:
             self.seen[name][key] = definition
@@ -70,5 +72,10 @@ class UniquificationPass(DefinitionPass):
                 warning(msg)
 
 
+# This pass runs uniquification according to @mode and returns a dictionary
+# mapping any renamed circuits to their original names. If @mode is ERROR or
+# WARN the returned dictionary should be empty.
 def uniquification_pass(circuit, mode=UniquificationMode.ERROR):
-    UniquificationPass(circuit, mode).run()
+    pass_ = UniquificationPass(circuit, mode)
+    pass_.run()
+    return pass_.original_names
