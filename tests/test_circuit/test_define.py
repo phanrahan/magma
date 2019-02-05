@@ -2,6 +2,7 @@ import magma as m
 from magma.testing import check_files_equal
 import logging
 import pytest
+import coreir
 
 
 @pytest.mark.parametrize("target,suffix",
@@ -36,7 +37,9 @@ def test_simple_def(target, suffix):
             m.wire(io.I[1], and2.I1)
             m.wire(and2.O, io.O)
 
-    m.compile("build/test_simple_def_class", Main, output=target)
+    # Create a fresh context for second compilation.
+    m.compile("build/test_simple_def_class", Main, output=target,
+              context=coreir.Context())
     m.set_codegen_debug_info(False)
     assert check_files_equal(__file__, f"build/test_simple_def_class.{suffix}",
                              f"gold/test_simple_def_class.{suffix}")
