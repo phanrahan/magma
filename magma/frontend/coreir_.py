@@ -8,7 +8,7 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName, deps):
         name = uniqueName
         IO = cirb.get_ports_as_list(cirb.get_ports(coreirModule.type))
         wrappedModule = coreirModule
-        coreir_wrapped_modules_libs_used = deps
+        coreir_wrapped_modules_libs_used = set(deps)
 
         @classmethod
         def definition(cls):
