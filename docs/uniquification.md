@@ -11,9 +11,9 @@ One of the major components of uniquification is definining the equality operato
 - Conservative: the comparator (if not "exact") should never return True if the correct result is False - but can always return False if the correct result is True. That is, false negatives are ok, but false positives are not.
 
 The following are potential implementations of equality operators:
-- Node graph isomorphism: This is an undecidable problem is is computationally intractable. However, it is the most accurate representation of the true equality operator.
+- Node graph isomorphism: This is an undecidable problem is computationally intractable. However, it is the most accurate representation of the true equality operator.
 - CoreIR/verilog string comparison: This method is computationally tractable but is bottle-necked by the specific backend compilation flows (which we have found to incur a significant cost). They are also fairly conservative, in that many false negatives are possible. For instance, if instances are re-ordered or renamed, then the circuits will *not* be considered to be equal.
-- Circuit characteristics: This method compares a few high-level circuit characteristics, such as the number of instances, the number of outgoing edges for each instance, etc. This method is very fast, and can be done entirely in magma. However, it will likely be more conservative than the CoreIR/verilog string comparispn approach.
+- Circuit characteristics: This method compares a few high-level circuit characteristics, such as the number of instances, the number of outgoing edges for each instance, etc. This method is very fast, and can be done entirely in magma. However, it will likely be more conservative than the CoreIR/verilog string comparison approach.
 
 #### Hashing
 On top of any of the above mechanisms, we can apply hashing which would further speed up comparison times, since only hashes would have to be compared not the entire circuit.
