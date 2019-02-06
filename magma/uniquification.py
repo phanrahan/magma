@@ -39,6 +39,8 @@ class UniquificationPass(DefinitionPass):
                 insert = True
             self.original_names[definition] = name
             type(definition).rename(definition, new_name)
+        else:
+            insert = True
         if insert:
             self.seen[name][key] = definition
 
