@@ -48,8 +48,10 @@ def __compile_to_coreir(main, file_name, opts):
     context = opts.get("context", None)
     backend = coreir_.CoreIRBackend(context)
     backend.compile(main)
-    if opts.get("passes", False):
-        backend.context.run_passes(opts["passes"], ["global"])
+    passes = opts.get("passes", [])
+    if "markdirty" not in passes:
+        passes.append("markdirty")
+    backend.context.run_passes(passes, ["global"])
 
     backend.modules[main.coreir_name].save_to_file(file_name + ".json")
     if opts.get("output_verilog", False):
