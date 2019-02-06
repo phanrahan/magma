@@ -7,7 +7,7 @@ from .passes import DefinitionPass, InstanceGraphPass
 from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
 from .logging import warning
-from .uniquification import uniquification_pass
+from .uniquification import uniquification_pass, UniquificationMode
 import magma as m
 
 
@@ -102,7 +102,15 @@ def compile(basename, main, output='verilog', **kwargs):
         opts["output_verilog"] = True
         output = "coreir"
 
-    uniquification_pass(main)
+    # Allow the user to pass in a mode for uniquification. The input is expected
+    # as a string and maps to the UniquificationMode enum.
+    uniquification_mode_str = opts.get("uniquify", "UNIQUIFY")
+    uniquification_mode = getattr(UniquificationMode, uniquification_mode, None)
+    if uniquification_mode is None:
+        raise ValueError(f"Invalid uniquification mode "
+                         f"{uniquification_mode_str}")
+    uniquification_pass(main, uniquification_mode)
+
     if get_compile_dir() == 'callee_file_dir':
         (_, filename, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
         file_path = os.path.dirname(filename)
