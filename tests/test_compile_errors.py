@@ -1,6 +1,6 @@
 import pytest
 from magma import *
-from magma.compile import MultipleDefinitionException
+from magma.uniquification import MultipleDefinitionException
 
 
 @pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")

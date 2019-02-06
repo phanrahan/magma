@@ -17,7 +17,7 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
 from .is_definition import isdefinition
-from .circuit_database import CircuitDatabase
+
 
 __all__  = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -27,7 +27,6 @@ __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['getCurrentDefinition']
-__all__ += ['magma_clear_circuit_database']
 
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
@@ -36,10 +35,6 @@ __all__ += ['circuit_generator']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
-circuit_database = CircuitDatabase()
-
-def magma_clear_circuit_database():
-    circuit_database.clear()
 
 def circuit_to_html(cls):
     if isdefinition(cls):
@@ -484,12 +479,6 @@ class DefineCircuitKind(CircuitKind):
         inst.stack = inspect.stack()
         cls.instances.append(inst)
 
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        return self.name == other.name
-
 
 # Register graphviz repr if running in IPython.
 # There's a bug in IPython which breaks visual reprs
@@ -538,7 +527,6 @@ def EndDefine():
         debug_info = get_callee_frame_info()
         currentDefinition.end_circuit_filename = debug_info[0]
         currentDefinition.end_circuit_lineno   = debug_info[1]
-        circuit_database.insert(currentDefinition)
         popDefinition()
     else:
         raise Exception("EndDefine called without Define/DeclareCircuit")

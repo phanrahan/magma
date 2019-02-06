@@ -6,6 +6,7 @@ import os
 import sys
 import difflib
 
+
 def check_files_equal(callee_file, file1_name, file2_name):
     """
     Check if file1 == file2 where file1 and file2 are in the same path as
