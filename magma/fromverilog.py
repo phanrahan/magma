@@ -121,11 +121,11 @@ def FromVerilog(source, func, type_map, target_modules=None):
     v.visit(ast)
 
     if func == DefineCircuit:
-        # only allow a single verilog module unless we're only defining one
-        # circuit (only one module in target_modules), otherwise, they would
-        # all use the same source, so if they are compiled together, there will
-        # be multiple definitions of the same verilog module
-        assert len(v.nodes) == 1 or len(target_modules) == 1
+        # Only allow a single verilog module unless we're only defining one
+        # circuit (only one module in target_modules), otherwise, they would all
+        # use the same source, so if they are compiled together, there will be
+        # multiple definitions of the same verilog module.
+        assert len(v.nodes) == 1 or (target_modules and len(target_modules) == 1)
     modules = []
     for node in v.nodes:
         if target_modules is not None and node.name not in target_modules:
