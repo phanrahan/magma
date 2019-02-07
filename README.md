@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/phanrahan/magma.svg?branch=master)](https://travis-ci.org/phanrahan/magma)
 [![Coverage Status](https://coveralls.io/repos/github/phanrahan/magma/badge.svg?branch=master)](https://coveralls.io/github/phanrahan/magma?branch=master)
 
+[CHANGELOG](./CHANGELOG.md)
+
 Magma is a hardware design language embedded in python.
 
 The central abstraction in Magma is a circuit.

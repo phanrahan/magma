@@ -1,6 +1,9 @@
 from setuptools import setup
 import sys
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='magma-lang',
     version='0.1.11',
@@ -29,5 +32,7 @@ setup(
         "coreir>=0.30a0, <= 0.31a0",
         "bit_vector==0.39a0"
     ],
-    python_requires='>=3.6'
+    python_requires='>=3.6',
+    long_description=long_description,
+    long_description_content_type="text/markdown"
 )
