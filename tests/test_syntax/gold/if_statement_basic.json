@@ -2,30 +2,14 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2":{
-        "type":["Record",[
-          ["I0","BitIn"],
-          ["I1","BitIn"],
-          ["S","BitIn"],
-          ["O","Bit"]
-        ]]
-      },
       "basic_if":{
         "type":["Record",[
-          ["I",["Array",2,"BitIn"]],
-          ["S","BitIn"],
+          ["I_0",["Array",2,"BitIn"]],
+          ["S_0","BitIn"],
           ["O","Bit"]
         ]],
-        "instances":{
-          "Mux2_inst0":{
-            "modref":"global.Mux2"
-          }
-        },
         "connections":[
-          ["self.I.1","Mux2_inst0.I0"],
-          ["self.I.0","Mux2_inst0.I1"],
-          ["self.O","Mux2_inst0.O"],
-          ["self.S","Mux2_inst0.S"]
+          ["self.O","self.I_0.1"]
         ]
       }
     }

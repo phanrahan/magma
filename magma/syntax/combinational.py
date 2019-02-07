@@ -11,6 +11,7 @@ import traceback
 import magma.ast_utils as ast_utils
 import types
 from magma.debug import debug_info
+from magma.ssa import convert_tree_to_ssa
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -168,32 +169,32 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
                                  ast.Load())
         return node
 
-    def visit_Return(self, node):
-        node.value = self.visit(node.value)
-        if isinstance(node.value, ast.Tuple):
-            return ast.Assign(
-                [ast.Tuple([ast.Name(f"O{i}", ast.Store())
-                 for i in range(len(node.value.elts))], ast.Store())],
-                node.value
-            )
-        return ast.Assign([ast.Name("O", ast.Store())], node.value)
+#     def visit_Return(self, node):
+#         node.value = self.visit(node.value)
+#         if isinstance(node.value, ast.Tuple):
+#             return ast.Assign(
+#                 [ast.Tuple([ast.Name(f"O{i}", ast.Store())
+#                  for i in range(len(node.value.elts))], ast.Store())],
+#                 node.value
+#             )
+#         return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
 
 @ast_utils.inspect_enclosing_env
 def combinational(defn_env : dict, fn : types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
+    tree = convert_tree_to_ssa(tree, defn_env)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree = IfTransformer(inspect.getsourcefile(fn), inspect.getsourcelines(fn)).visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(
         combinational, tree.decorator_list, defn_env)
-    if "mux" not in defn_env:
-        tree = ast.Module([
-            ast.parse("import magma as m").body[0],
-            ast.parse("from mantle import mux").body[0],
-            tree
-        ])
+    tree = ast.Module([
+        ast.parse("import magma as m").body[0],
+        ast.parse("from mantle import mux as phi").body[0],
+        tree
+    ])
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"

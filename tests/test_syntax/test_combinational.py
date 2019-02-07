@@ -183,9 +183,7 @@ def test_simple_circuit_1(target):
     compile_and_check("simple_circuit_1", Foo, target)
 
 
-def test_warnings(caplog):
-    caplog.set_level(logging.WARN)
-
+def test_multiple_assign(target):
     EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
                          m.Out(m.Bit))
     m.wire(0, EQ.O)
@@ -210,39 +208,38 @@ def test_warnings(caplog):
             c = logic(io.a)
             m.wire(c, io.c)
 
-    assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_syntax/test_combinational.py:197: Assigning to value twice inside `if` block, taking the last value (first value is ignored)
-            c = m.bit(1)
-
-\033[1mtests/test_syntax/test_combinational.py:197: Assigning to value twice inside `else` block, taking the last value (first value is ignored)
-            c = m.bit(1)
-"""
+    compile_and_check("multiple_assign", Foo, target)
 
 
-def test_not_implemented(caplog):
+def test_optional_assignment(target):
 
     EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
                          m.Out(m.Bit))
     m.wire(0, EQ.O)
     m.EndDefine()
 
-    try:
-        @m.circuit.combinational
-        def logic(a: m.Bit) -> (m.Bit,):
-            if EQ()(a, m.bit(0)):
-                c = m.bit(1)
-            else:
-                c = m.bit(0)
-                d = m.bit(1)
-            return (c,)
-        assert False, "Should raise not implemented error"
-    except NotImplementedError:
-        pass
+    @m.circuit.combinational
+    def logic(a: m.Bit) -> (m.Bit, m.Bit):
+        d = m.bit(1)
+        if EQ()(a, m.bit(0)):
+            c = m.bit(1)
+        else:
+            c = m.bit(0)
+            d = m.bit(1)
+        return (c, d)
 
-    assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_syntax/test_combinational.py:233: NOT IMPLEMENTED: Assigning to a variable once in `else` block (not in then block)
-                c = m.bit(1)
-"""
+    class Foo(m.Circuit):
+        IO = ["a", m.In(m.Bit),
+              "c", m.Out(m.Bit),
+              "d", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            c, d = logic(io.a)
+            m.wire(c, io.c)
+            m.wire(d, io.d)
+
+    compile_and_check("optional_assignment", Foo, target)
 
 
 def test_map_circuit(target):

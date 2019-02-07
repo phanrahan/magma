@@ -17,7 +17,9 @@ def basic_if(I_0: m.Bits(2), S_0: m.Bit) ->m.Bit:
     x_0 = I_0[0]
     x_1 = I_0[1]
     x_2 = phi([x_1, x_0], S_0)
-    return x_2
+    __magma_ssa_return_value_0 = x_2
+    O = __magma_ssa_return_value_0
+    return O
 """
 
 
@@ -37,7 +39,9 @@ def basic_if(I_0: m.Bit, S_0: m.Bit) ->m.Bit:
     x_1 = x_0
     x_2 = x_0
     x_3 = phi([x_2, x_1], S_0)
-    return x_3
+    __magma_ssa_return_value_0 = x_3
+    O = __magma_ssa_return_value_0
+    return O
 """
 
 
@@ -54,7 +58,9 @@ def default(I_0: m.Bits(2), S_0: m.Bit) ->m.Bit:
     x_0 = I_0[1]
     x_1 = I_0[0]
     x_2 = phi([x_0, x_1], S_0)
-    return x_2
+    __magma_ssa_return_value_0 = x_2
+    O = __magma_ssa_return_value_0
+    return O
 """
 
 
@@ -82,7 +88,9 @@ def nested(I_0: m.Bits(4), S_0: m.Bits(2)) ->m.Bit:
     x_4 = I_0[3]
     x_5 = phi([x_4, x_3], S_0[1])
     x_6 = phi([x_5, x_2], S_0[0])
-    return x_6
+    __magma_ssa_return_value_0 = x_6
+    O = __magma_ssa_return_value_0
+    return O
 """
 
 def test_weird():
@@ -98,7 +106,9 @@ def default(I_0: m.Bits(2), x_0_0: m.Bit) ->m.Bit:
     x_0 = I_0[1]
     x_1 = I_0[0]
     x_2 = phi([x_0, x_1], x_0_0)
-    return x_2
+    __magma_ssa_return_value_0 = x_2
+    O = __magma_ssa_return_value_0
+    return O
 """
 
 # test_wat()

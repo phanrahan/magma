@@ -12,8 +12,8 @@
       },
       "ternary_nested":{
         "type":["Record",[
-          ["I",["Array",4,"BitIn"]],
-          ["S",["Array",2,"BitIn"]],
+          ["I_0",["Array",4,"BitIn"]],
+          ["S_0",["Array",2,"BitIn"]],
           ["O","Bit"]
         ]],
         "instances":{
@@ -25,13 +25,13 @@
           }
         },
         "connections":[
-          ["self.I.2","Mux2_inst0.I0"],
-          ["self.I.1","Mux2_inst0.I1"],
+          ["self.I_0.2","Mux2_inst0.I0"],
+          ["self.I_0.1","Mux2_inst0.I1"],
           ["Mux2_inst1.I0","Mux2_inst0.O"],
-          ["self.S.1","Mux2_inst0.S"],
-          ["self.I.0","Mux2_inst1.I1"],
+          ["self.S_0.1","Mux2_inst0.S"],
+          ["self.I_0.0","Mux2_inst1.I1"],
           ["self.O","Mux2_inst1.O"],
-          ["self.S.0","Mux2_inst1.S"]
+          ["self.S_0.0","Mux2_inst1.S"]
         ]
       }
     }

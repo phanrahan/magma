@@ -14,7 +14,7 @@
         },
         "connections":[
           ["self.c","logic_inst0.O"],
-          ["self.a","logic_inst0.a"]
+          ["self.a","logic_inst0.a_0"]
         ]
       },
       "Not":{
@@ -34,7 +34,7 @@
       },
       "logic":{
         "type":["Record",[
-          ["a",["Array",10,"BitIn"]],
+          ["a_0",["Array",10,"BitIn"]],
           ["O",["Array",10,"Bit"]]
         ]],
         "instances":{
@@ -70,25 +70,25 @@
           }
         },
         "connections":[
-          ["self.a.0","Not_inst0.I"],
+          ["self.a_0.0","Not_inst0.I"],
           ["self.O.0","Not_inst0.O"],
-          ["self.a.1","Not_inst1.I"],
+          ["self.a_0.1","Not_inst1.I"],
           ["self.O.1","Not_inst1.O"],
-          ["self.a.2","Not_inst2.I"],
+          ["self.a_0.2","Not_inst2.I"],
           ["self.O.2","Not_inst2.O"],
-          ["self.a.3","Not_inst3.I"],
+          ["self.a_0.3","Not_inst3.I"],
           ["self.O.3","Not_inst3.O"],
-          ["self.a.4","Not_inst4.I"],
+          ["self.a_0.4","Not_inst4.I"],
           ["self.O.4","Not_inst4.O"],
-          ["self.a.5","Not_inst5.I"],
+          ["self.a_0.5","Not_inst5.I"],
           ["self.O.5","Not_inst5.O"],
-          ["self.a.6","Not_inst6.I"],
+          ["self.a_0.6","Not_inst6.I"],
           ["self.O.6","Not_inst6.O"],
-          ["self.a.7","Not_inst7.I"],
+          ["self.a_0.7","Not_inst7.I"],
           ["self.O.7","Not_inst7.O"],
-          ["self.a.8","Not_inst8.I"],
+          ["self.a_0.8","Not_inst8.I"],
           ["self.O.8","Not_inst8.O"],
-          ["self.a.9","Not_inst9.I"],
+          ["self.a_0.9","Not_inst9.I"],
           ["self.O.9","Not_inst9.O"]
         ]
       }
