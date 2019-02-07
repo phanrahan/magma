@@ -14,5 +14,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed bug in uniquification error mode.
 
-[Unreleased]: https://github.com/leonardt/pycoreir/compare/v1.0.13...HEAD
-[1.0.13]: https://github.com/leonardt/pycoreir/compare/v1.0.12...v1.0.13
+[Unreleased]: https://github.com/phanrahan/magma/compare/v1.0.13...HEAD
+[1.0.13]: https://github.com/phanrahan/magma/compare/v1.0.12...v1.0.13
