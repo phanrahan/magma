@@ -396,6 +396,8 @@ class CoreIRBackend:
     def compile_dependencies(self, defn):
         pass_ = InstanceGraphPass(defn)
         pass_.run()
+        dependency_names = [key.name for key, _ in pass_.tsortedgraph]
+        logger.debug(f"tsortedgraph: {dependency_names}")
         for key, _ in pass_.tsortedgraph:
             if key == defn:
                 continue
