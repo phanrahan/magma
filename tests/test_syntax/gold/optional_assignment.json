@@ -19,25 +19,13 @@
           ["self.a","logic_inst0.a_0"]
         ]
       },
-      "Mux2xOutBit":{
+      "Mux2":{
         "type":["Record",[
           ["I0","BitIn"],
           ["I1","BitIn"],
           ["S","BitIn"],
           ["O","Bit"]
-        ]],
-        "instances":{
-          "coreir_commonlib_mux2x1_inst0":{
-            "genref":"commonlib.muxn",
-            "genargs":{"N":["Int",2], "width":["Int",1]}
-          }
-        },
-        "connections":[
-          ["self.I0","coreir_commonlib_mux2x1_inst0.in.data.0.0"],
-          ["self.I1","coreir_commonlib_mux2x1_inst0.in.data.1.0"],
-          ["self.S","coreir_commonlib_mux2x1_inst0.in.sel.0"],
-          ["self.O","coreir_commonlib_mux2x1_inst0.out.0"]
-        ]
+        ]]
       },
       "eq":{
         "type":["Record",[
@@ -62,11 +50,11 @@
           ["O1","Bit"]
         ]],
         "instances":{
-          "Mux2xOutBit_inst0":{
-            "modref":"global.Mux2xOutBit"
+          "Mux2_inst0":{
+            "modref":"global.Mux2"
           },
-          "Mux2xOutBit_inst1":{
-            "modref":"global.Mux2xOutBit"
+          "Mux2_inst1":{
+            "modref":"global.Mux2"
           },
           "bit_const_0_None":{
             "modref":"corebit.const",
@@ -84,14 +72,14 @@
           }
         },
         "connections":[
-          ["bit_const_1_None.out","Mux2xOutBit_inst0.I0"],
-          ["bit_const_1_None.out","Mux2xOutBit_inst0.I1"],
-          ["self.O1","Mux2xOutBit_inst0.O"],
-          ["eq_inst0.O","Mux2xOutBit_inst0.S"],
-          ["bit_const_0_None.out","Mux2xOutBit_inst1.I0"],
-          ["bit_const_1_None.out","Mux2xOutBit_inst1.I1"],
-          ["self.O0","Mux2xOutBit_inst1.O"],
-          ["eq_inst1.O","Mux2xOutBit_inst1.S"],
+          ["bit_const_1_None.out","Mux2_inst0.I0"],
+          ["bit_const_1_None.out","Mux2_inst0.I1"],
+          ["self.O1","Mux2_inst0.O"],
+          ["eq_inst0.O","Mux2_inst0.S"],
+          ["bit_const_0_None.out","Mux2_inst1.I0"],
+          ["bit_const_1_None.out","Mux2_inst1.I1"],
+          ["self.O0","Mux2_inst1.O"],
+          ["eq_inst1.O","Mux2_inst1.S"],
           ["eq_inst0.I1","bit_const_0_None.out"],
           ["eq_inst1.I1","bit_const_0_None.out"],
           ["self.a_0","eq_inst0.I0"],

@@ -73,7 +73,7 @@ class IfTransformer(ast.NodeTransformer):
                             " taking the last value (first value is ignored)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
                 orelse_seen.add(key)
                 seen[key].value = ast.Call(
-                    ast.Name("mux", ast.Load()),
+                    ast.Name("phi", ast.Load()),
                     [ast.List([stmt.value, seen[key].value],
                               ast.Load()), node.test],
                     [])
@@ -89,7 +89,7 @@ class IfTransformer(ast.NodeTransformer):
         node.body = self.visit(node.body)
         node.orelse = self.visit(node.orelse)
         return ast.Call(
-            ast.Name("mux", ast.Load()),
+            ast.Name("phi", ast.Load()),
             [ast.List([node.orelse, node.body],
                       ast.Load()), node.test],
             [])
@@ -190,11 +190,12 @@ def combinational(defn_env : dict, fn : types.FunctionType):
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(
         combinational, tree.decorator_list, defn_env)
-    tree = ast.Module([
-        ast.parse("import magma as m").body[0],
-        ast.parse("from mantle import mux as phi").body[0],
-        tree
-    ])
+    if "phi" not in defn_env:
+        tree = ast.Module([
+            ast.parse("import magma as m").body[0],
+            ast.parse("from mantle import mux as phi").body[0],
+            tree
+        ])
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"

@@ -40,7 +40,7 @@ def get_length(value):
         raise NotImplementedError(f"Cannot get_length of {type(value)}")
 
 
-def mux(I, S):
+def phi(I, S):
     if isinstance(S, int):
         return I[S]
     elif S.const():
