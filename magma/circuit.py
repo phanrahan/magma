@@ -53,6 +53,17 @@ def setports(self, ports):
         if isinstance(name, str):
             setattr(self, name, port)
 
+def _add_port(defn, name, typ):
+    if name in defn.IO.ports or name in defn.interface.ports:
+        raise ValueError(f"{name} already is a port of {defn.name}")
+    defn.IO.ports.update({name: typ})
+    ifc = DeclareInterface(name, typ)
+    ifcc = ifc(defn=defn, renamed_ports={})
+    defn.interface.ports.update(ifcc.ports)
+    for name, port in ifcc.ports.items():
+        setattr(defn, name, port)
+
+
 #
 # Metaclass for creating circuits
 #
@@ -83,6 +94,8 @@ class CircuitKind(type):
 
         for method in dct.get('circuit_type_methods', []):
             setattr(cls, method.name, method.definition)
+
+        setattr(cls, "add_port", lambda name, port: _add_port(cls, name, port))
 
         # create interface for this circuit class
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
