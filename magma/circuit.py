@@ -57,12 +57,8 @@ def _add_port(defn, name, typ):
     if name in defn.IO.ports or name in defn.interface.ports:
         raise ValueError(f"{name} already is a port of {defn.name}")
     defn.IO.ports.update({name: typ})
-    ifc = DeclareInterface(name, typ)
-    ifc_inst = ifc(defn=defn, renamed_ports={})
-    defn.interface.ports.update(ifc_inst.ports)
-    type(defn.interface).Decl += (name, typ)
-    for name, port in ifc_inst.ports.items():
-        setattr(defn, name, port)
+    defn.interface.add_port(name, typ, defn=defn)
+    setattr(defn, name, defn.interface.ports[name])
 
 
 #
