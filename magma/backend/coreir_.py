@@ -439,7 +439,7 @@ class CoreIRBackend:
     def flatten_and_save(self, module, filename, namespaces=["global"], flatten=True, verifyConnectivity=True):
         passes = ["rungenerators", "wireclocks-coreir"]
         if verifyConnectivity:
-            passes += ["verifyconnectivity-noclkrst"]
+            passes += ["verifyconnectivity --noclkrst"]
         if flatten:
             passes += ["flattentypes", "flatten"]
         self.context.run_passes(passes, namespaces)
