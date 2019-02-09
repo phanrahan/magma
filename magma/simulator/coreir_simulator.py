@@ -11,6 +11,7 @@ from ..bitutils import int2seq
 from ..clock import ClockType
 from ..transforms import setup_clocks, flatten
 from ..circuit import CircuitType
+from ..uniquification import uniquification_pass, UniquificationMode
 
 import coreir
 
@@ -110,7 +111,15 @@ class CoreIRSimulator(CircuitSimulator):
 
         return triggered
 
-    def __init__(self, circuit, clock, coreir_filename=None, context=None, namespaces=["global"]):
+    def __init__(self, circuit, clock, coreir_filename=None, context=None,
+                 namespaces=["global"], opts={}):
+        uniquification_mode_str = opts.get("uniquify", "UNIQUIFY")
+        uniquification_mode = getattr(UniquificationMode,
+                                      uniquification_mode_str, None)
+        if uniquification_mode is None:
+            raise ValueError(f"Invalid uniquification mode "
+                             f"{uniquification_mode_str}")
+        uniquification_pass(circuit, uniquification_mode)
         self.watchpoints = []
         self.default_scope = Scope()
 
