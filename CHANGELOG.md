@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.15] - 2019-02-07
+## [1.0.15] - 2019-02-12
 ### Changed
 - Changed hashing logic for circuit uniquification to use `hash(repr(cls))`
   instead of `object.__hash__(cls)`.
@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed bug in uniquification error mode.
 
-[Unreleased]: https://github.com/phanrahan/magma/compare/v1.0.14...HEAD
+[Unreleased]: https://github.com/phanrahan/magma/compare/v1.0.15...HEAD
+[1.0.15]: https://github.com/phanrahan/magma/compare/v1.0.14...v1.0.15
 [1.0.14]: https://github.com/phanrahan/magma/compare/v1.0.13...v1.0.14
 [1.0.13]: https://github.com/phanrahan/magma/compare/v1.0.12...v1.0.13
