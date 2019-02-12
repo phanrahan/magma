@@ -113,7 +113,6 @@ class CircuitKind(type):
         return f"{cls.__name__}{interface}"
 
     def __repr__(cls):
-
         name = cls.__name__
         args = str(cls.IO)
         if hasattr(cls,"instances"):
@@ -135,6 +134,9 @@ class CircuitKind(type):
             s = '{} = DeclareCircuit("{}", {})'.format(name, name, args)
 
         return s
+
+    def __hash__(cls):
+        return hash(repr(cls))
 
     def _repr_html_(cls):
         return circuit_to_html(cls)

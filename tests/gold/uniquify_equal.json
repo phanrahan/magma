@@ -1,0 +1,36 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.O","self.I"]
+        ]
+      },
+      "top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "foo_inst0":{
+            "modref":"global.foo"
+          },
+          "foo_inst1":{
+            "modref":"global.foo"
+          }
+        },
+        "connections":[
+          ["self.I","foo_inst0.I"],
+          ["foo_inst1.I","foo_inst0.O"],
+          ["self.O","foo_inst1.O"]
+        ]
+      }
+    }
+  }
+}
+}
