@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed hashing logic for circuit uniquification to use `hash(repr(cls))`
   instead of `object.__hash__(cls)`.
 
+### Fixed
+- Run uniquification before compiling circuit for the coreir simulator.
+
 ## [0.1.14] - 2019-02-07
 ### Fixed
 - Fixed bug in verilog parsing when `target_modules = None`.
