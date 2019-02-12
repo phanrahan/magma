@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.15] - 2019-02-07
+### Changed
+- Changed hashing logic for circuit uniquification to use `hash(repr(cls))`
+  instead of `object.__hash__(cls)`.
+
 ## [1.0.14] - 2019-02-07
 ### Fixed
 - Fixed bug in verilog parsing when `target_modules = None`.
