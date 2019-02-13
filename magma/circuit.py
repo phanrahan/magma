@@ -135,9 +135,6 @@ class CircuitKind(type):
 
         return s
 
-    def __hash__(cls):
-        return hash(repr(cls))
-
     def _repr_html_(cls):
         return circuit_to_html(cls)
 

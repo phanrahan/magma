@@ -23,7 +23,8 @@ class UniquificationPass(DefinitionPass):
 
     def __call__(self, definition):
         name = definition.name
-        key = hash(definition)
+        key = hash(repr(definition))
+
         insert = False
         if name not in self.seen:
             self.seen[name] = {}
