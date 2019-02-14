@@ -31,7 +31,7 @@ def test_uniquify_equal():
     m.wire(curr, top.O)
     m.EndCircuit()
 
-    assert hash(foo) == hash(bar)
+    assert hash(repr(foo)) == hash(repr(bar))
 
     m.compile("build/uniquify_equal", top, output="coreir")
     assert check_files_equal(__file__,
@@ -57,7 +57,7 @@ def test_uniquify_unequal():
     m.wire(bar_inst.O[0], top.O)
     m.EndCircuit()
 
-    assert hash(foo) != hash(bar)
+    assert hash(repr(foo)) != hash(repr(bar))
 
     m.compile("build/uniquify_unequal", top, output="coreir")
     assert check_files_equal(__file__,
