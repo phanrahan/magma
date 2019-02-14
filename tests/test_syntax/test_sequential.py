@@ -1,5 +1,5 @@
 import magma as m
-from test_combinational import compile_and_check
+from test_combinational import compile_and_check, phi
 from collections import Sequence
 
 
