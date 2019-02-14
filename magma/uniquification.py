@@ -26,25 +26,19 @@ class UniquificationPass(DefinitionPass):
         name = definition.name
         key = hash(repr(definition))
 
-        insert = False
         if name not in self.seen:
             self.seen[name] = {}
-            insert = True
-        elif self.mode is UniquificationMode.UNIQUIFY:
-            seen = self.seen[name]
-            if key in seen:
-                new_name = seen[key].name
-                insert = False
-            else:
-                idx = len(seen)
-                new_name = name + "_unq" + str(idx)
-                insert = True
-            self.original_names[definition] = name
-            type(definition).rename(definition, new_name)
+        if key not in self.seen[name]:
+            if self.mode is UniquificationMode.UNIQUIFY and len(self.seen[name]) > 0:
+                new_name = name + "_unq" + str(len(self.seen[name]))
+                type(definition).rename(definition, new_name)
+            self.seen[name][key] = [definition]
         else:
-            insert = True
-        if insert:
-            self.seen[name][key] = definition
+            if self.mode is not UniquificationMode.UNIQUIFY:
+                assert self.seen[name][key][0].name == definition.name
+            else:
+                type(definition).rename(definition, self.seen[name][key][0].name)
+            self.seen[name][key].append(definition)
 
     def _run(self, definition):
         if not isdefinition(definition):
