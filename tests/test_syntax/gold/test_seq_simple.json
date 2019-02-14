@@ -11,24 +11,20 @@
           "Basic_comb_inst0":{
             "modref":"global.Basic_comb"
           },
-          "reg_P_inst0":{
-            "genref":"coreir.reg",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
+          "Register2_inst0":{
+            "modref":"global.Register2"
           },
-          "reg_P_inst1":{
-            "genref":"coreir.reg",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
+          "Register2_inst1":{
+            "modref":"global.Register2"
           }
         },
         "connections":[
           ["self.I","Basic_comb_inst0.I_0"],
-          ["reg_P_inst0.in","Basic_comb_inst0.O0"],
-          ["reg_P_inst1.in","Basic_comb_inst0.O1"],
+          ["Register2_inst0.I","Basic_comb_inst0.O0"],
+          ["Register2_inst1.I","Basic_comb_inst0.O1"],
           ["self.O","Basic_comb_inst0.O2"],
-          ["reg_P_inst0.out","Basic_comb_inst0.self_x_0"],
-          ["reg_P_inst1.out","Basic_comb_inst0.self_y_0"]
+          ["Register2_inst0.O","Basic_comb_inst0.self_x_0"],
+          ["Register2_inst1.O","Basic_comb_inst0.self_y_0"]
         ]
       },
       "Basic_comb":{
@@ -45,6 +41,13 @@
           ["self.self_x_0","self.O1"],
           ["self.self_y_0","self.O2"]
         ]
+      },
+      "Register2":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]]
       }
     }
   }

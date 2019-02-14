@@ -115,8 +115,8 @@ def gen_register_instances(initial_value_map):
 
     will generate
 
-        x = mantle.Register(2, init=0)
-        y = mantle.Register(4, init=0)
+        x = Register(2, init=0)
+        y = Register(4, init=0)
 
     """
     register_instances = ""
@@ -131,7 +131,7 @@ def gen_register_instances(initial_value_map):
         assert isinstance(value.args[1], ast.Num)
         n = value.args[1].n
         init = value.args[0].n
-        register_instances += f"        {name} = mantle.Register({n}, init={init})\n"
+        register_instances += f"        {name} = Register({n}, init={init})\n"
     return register_instances
 
 
@@ -198,9 +198,9 @@ def sequential(defn_env : dict, cls):
         comb_out_wiring=comb_out_wiring
     )
     tree = ast.parse(circuit_definition_str)
-    if "mantle" not in defn_env:
+    if "Register" not in defn_env:
         tree = ast.Module([
-            ast.parse("import mantle").body[0],
+            ast.parse("from mantle import Register").body[0],
         ] + tree.body)
     circuit_def = ast_utils.compile_function_to_file(tree, cls.__name__, defn_env)
     circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
