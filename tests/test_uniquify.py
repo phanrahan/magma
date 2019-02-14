@@ -95,4 +95,8 @@ def test_key_error():
     m.wire(MuxWrapper_2_6_inst1.O, MuxWithDefaultWrapper_2_6_19_0.O)
     m.EndCircuit()
 
-    m.compile(MuxWithDefaultWrapper_2_6_19_0.name, MuxWithDefaultWrapper_2_6_19_0, output="coreir")
+    top = MuxWithDefaultWrapper_2_6_19_0
+    m.compile(f"build/{top.name}", top, output="coreir")
+    assert check_files_equal(__file__,
+                             f"build/{top.name}.json",
+                             "gold/uniquification_key_error_mux.json")
