@@ -1,4 +1,5 @@
 import magma as m
+from test_combinational import compile_and_check
 
 
 def pytest_generate_tests(metafunc):
@@ -19,4 +20,4 @@ def test_seq_simple(target):
             self.x = I
             return O
 
-    m.compile(f"build/test_seq_simple", Basic, output=target)
+    compile_and_check("test_seq_simple", Basic, target)
