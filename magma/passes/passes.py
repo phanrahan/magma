@@ -48,9 +48,9 @@ class DefinitionPass(Pass):
                 self._run( instancedefinition )
 
         # call each definition only once
-        name = definition.__name__
-        if name not in self.definitions:
-            self.definitions[name] = definition
+        id_ = id(definition)
+        if id_ not in self.definitions:
+            self.definitions[id_] = definition
             if callable(self):
                 self(definition)
 
@@ -81,6 +81,7 @@ class BuildInstanceGraphPass(DefinitionPass):
         for vert, edges in self.graph.items():
             graph.append((vert, edges))
         self.tsortedgraph = tsort(graph)
+
 
 class InstanceGraphPass(Pass):
     def __init__(self, main):
