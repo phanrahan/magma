@@ -2,6 +2,29 @@ import inspect
 import ast
 from .util import get_ast
 import astor
+import magma.ast_utils as ast_utils
+from magma.debug import debug_info
+import functools
+
+
+class RewriteSelfAttributes(ast.NodeTransformer):
+    def visit_Attribute(self, node):
+        assert isinstance(node.value, ast.Name)
+        assert node.value.id == "self"
+        return ast.Name(f"self_{node.attr}", ast.Load())
+
+
+class RewriteReturn(ast.NodeTransformer):
+    def __init__(self, initial_value_map):
+        self.initial_value_map = initial_value_map
+
+    def visit_Return(self, node):
+        elts = []
+        for name in self.initial_value_map:
+            elts.append(ast.Name(f"self_{name}", ast.Load()))
+        elts.append(node.value)
+        node.value = ast.Tuple(elts, ast.Load())
+        return node
 
 
 def get_initial_value_map(init_func):
@@ -25,20 +48,19 @@ def get_initial_value_map(init_func):
     initial_value_map = {}
     init_def = get_ast(init_func).body[0]
     for stmt in init_def.body:
-        # We only support basic assignments of the form self.x = m.bits(0, 2)
-        assert isinstance(stmt, ast.Assign)
-        assert len(stmt.targets) == 1
-        assert isinstance(stmt.targets[0], ast.Attribute)
-        assert isinstance(stmt.targets[0].value, ast.Name)
-        assert stmt.targets[0].value.id == "self"
-        print(astor.to_source(stmt))
+        # We only support basic assignments of the form
+        #     self.x: m.Bits(2) = m.bits(0, 2)
+        assert isinstance(stmt, ast.AnnAssign)
+        assert isinstance(stmt.target, ast.Attribute)
+        assert isinstance(stmt.target.value, ast.Name)
+        assert stmt.target.value.id == "self"
         # TODO: Should we deal with multiple assignments? For now we take the
         # last one
-        initial_value_map[stmt.targets[0].attr] = stmt.value
+        initial_value_map[stmt.target.attr] = (stmt.value, stmt.annotation)
     return initial_value_map
 
 
-def get_args(call_func):
+def get_io(call_def):
     """
     Parses a __call__ method of the form
 
@@ -48,10 +70,11 @@ def get_args(call_func):
             self.x = I
             return O
 
-    Returns the list of arguments excluding `self`
+    Returns a tuple
+    [0]: the list of tuples containing the name and type of each input argument
+         excluding `self`
+    [1]: the output type
     """
-    call_def = get_ast(call_func).body[0]
-    inputs = []
     # Only support basic args for now
     assert not call_def.args.vararg
     assert not call_def.args.kwonlyargs
@@ -61,7 +84,8 @@ def get_args(call_func):
 
     # Skips self
     assert call_def.args.args[0].arg == "self"
-    return [arg.arg for arg in call_def.args.args[1:]]
+    inputs = [(arg.arg, arg.annotation) for arg in call_def.args.args[1:]]
+    return inputs, call_def.returns
 
 
 circuit_definition_template = """
@@ -71,9 +95,11 @@ class {circuit_name}(m.Circuit):
     @classmethod
     def definition(io):
 {register_instances}
-{circuit_combinational_def}
-{circuit_combinational_call}
-{output_wiring}
+        @m.circuit.combinational
+        def {circuit_name}_comb({circuit_combinational_args}) -> ({circuit_combinational_output_type}):
+{circuit_combinational_body}
+        comb_out = {circuit_name}_comb({circuit_combinational_call_args})
+{comb_out_wiring}
 """
 
 
@@ -89,12 +115,12 @@ def gen_register_instances(initial_value_map):
 
     will generate
 
-        x = Register(2, init=0)
-        y = Register(4, init=0)
+        x = mantle.Register(2, init=0)
+        y = mantle.Register(4, init=0)
 
     """
     register_instances = ""
-    for name, value in initial_value_map.items():
+    for name, (value, type_) in initial_value_map.items():
         # TODO: Only support m.bits(x, y) for now
         assert isinstance(value, ast.Call) and \
             isinstance(value.func, ast.Attribute) and \
@@ -105,25 +131,80 @@ def gen_register_instances(initial_value_map):
         assert isinstance(value.args[1], ast.Num)
         n = value.args[1].n
         init = value.args[0].n
-        register_instances += f"        {name} = Register({n}, init={init})\n"
+        register_instances += f"        {name} = mantle.Register({n}, init={init})\n"
     return register_instances
 
 
-def sequential(cls):
+def gen_io_list(inputs, output_type):
+    io_list = "["
+    for name, type_ in inputs:
+        type_ = astor.to_source(type_).rstrip()
+        io_list += f"\"{name}\", m.In({type_}), "
+    output_type = astor.to_source(output_type).rstrip()
+    io_list += f"\"O\", m.Out({output_type})"
+    return io_list + "]"
+
+
+@ast_utils.inspect_enclosing_env
+def sequential(defn_env : dict, cls):
     if not inspect.isclass(cls):
         raise ValueError("sequential decorator only works with classes")
 
     initial_value_map = get_initial_value_map(cls.__init__)
 
-    # TODO: args should include the type
-    args = get_args(cls.__call__)
+    call_def = get_ast(cls.__call__).body[0]
+    inputs, output_type = get_io(call_def)
+    io_list = gen_io_list(inputs, output_type)
+
+    circuit_combinational_output_type = ""
+    circuit_combinational_args = ""
+    circuit_combinational_call_args = ""
+    comb_out_wiring = ""
+    for name, type_ in inputs:
+        type_ = astor.to_source(type_).rstrip()
+        circuit_combinational_args += f"{name}: {type_}, "
+        circuit_combinational_call_args += f"io.{name}, "
+
+    comb_out_count = 0
+    for name, (value, type_) in initial_value_map.items():
+        type_ = astor.to_source(type_).rstrip()
+        circuit_combinational_args += f"self_{name}: {type_}, "
+        circuit_combinational_call_args += f"{name}, "
+        circuit_combinational_output_type += f"{type_}, "
+        comb_out_wiring += " " * 8
+        comb_out_wiring += f"{name}.I <= comb_out[{comb_out_count}]\n"
+        comb_out_count += 1
+    circuit_combinational_args = circuit_combinational_args[:-2]
+    circuit_combinational_call_args = circuit_combinational_call_args[:-2]
+    circuit_combinational_output_type += astor.to_source(output_type).rstrip()
+    comb_out_wiring += " " * 8
+    comb_out_wiring += f"io.O <= comb_out[{comb_out_count}]\n"
+
+    circuit_combinational_body = ""
+    for stmt in call_def.body:
+        stmt = RewriteSelfAttributes().visit(stmt)
+        stmt = RewriteReturn(initial_value_map).visit(stmt)
+        circuit_combinational_body += " " * 12
+        circuit_combinational_body += astor.to_source(stmt).rstrip() + "\n"
 
     circuit_definition_str = circuit_definition_template.format(
         circuit_name=cls.__name__,
-        io_list="",
+        io_list=io_list,
         register_instances=gen_register_instances(initial_value_map),
-        circuit_combinational_def="",
-        circuit_combinational_call="",
-        output_wiring=""
+        circuit_combinational_args=circuit_combinational_args,
+        circuit_combinational_output_type=circuit_combinational_output_type,
+        circuit_combinational_body=circuit_combinational_body,
+        circuit_combinational_call_args=circuit_combinational_call_args,
+        comb_out_wiring=comb_out_wiring
     )
-    print(circuit_definition_str)
+    tree = ast.parse(circuit_definition_str)
+    if "mantle" not in defn_env:
+        tree = ast.Module([
+            ast.parse("import mantle").body[0],
+        ] + tree.body)
+    circuit_def = ast_utils.compile_function_to_file(tree, cls.__name__, defn_env)
+    circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
+                                        circuit_def.debug_info.lineno,
+                                        inspect.getmodule(cls))
+
+    return circuit_def
