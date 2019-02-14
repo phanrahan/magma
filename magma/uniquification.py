@@ -17,6 +17,7 @@ class UniquificationMode(Enum):
 class UniquificationPass(DefinitionPass):
     def __init__(self, main, mode):
         super(UniquificationPass, self).__init__(main)
+        self.definitions = {}
         self.mode = mode
         self.seen = {}
         self.original_names = {}
@@ -54,6 +55,10 @@ class UniquificationPass(DefinitionPass):
             if isdefinition(instancedefinition):
                 self._run( instancedefinition )
 
+        id_ = id(definition)
+        if id_ in self.definitions:
+            return
+        self.definitions[id_] = definition
         self(definition)
 
     def run(self):
