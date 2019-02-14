@@ -35,6 +35,7 @@ jobs:
   - stage: docs
     script: curl -X POST -d "token=$READ_THE_DOCS_TOKEN" https://readthedocs.org/api/v2/webhook/magma/55300/
   - stage: deploy
+    if: tag IS present
     script: skip
     deploy: &pypi
       provider: pypi
