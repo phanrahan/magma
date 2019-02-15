@@ -66,8 +66,31 @@ def test_uniquify_unequal():
 
 
 def test_key_error():
-    import mantle
-    Mux2x6 = mantle.DefineMux(2, 6)
+    default_port_mapping = {
+        "I": "in",
+        "I0": "in0",
+        "I1": "in1",
+        "O": "out",
+        "S": "sel",
+    }
+
+    def DeclareCoreirCircuit(*args, **kwargs):
+        return m.DeclareCircuit(*args, **kwargs,
+                                renamed_ports=default_port_mapping)
+
+    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits(6)), "I1", m.In(m.Bits(6)), "S", m.In(m.Bit), "O", m.Out(m.Bits(6)))
+    mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
+                               *["I", m.In(m.Tuple(data=m.Array(2, m.Bits(6)),
+                                                   sel=m.Bits(m.bitutils.clog2(2)))),
+                                 "O", m.Out(m.Bits(6))],
+                               coreir_name="muxn",
+                               coreir_lib="commonlib",
+                               coreir_genargs={"width": 6, "N": 2})()
+    m.wire(Mux2x6.I0, mux.I.data[0])
+    m.wire(Mux2x6.I1, mux.I.data[1])
+    m.wire(Mux2x6.S, mux.I.sel[0])
+    m.wire(mux.O, Mux2x6.O)
+    m.EndDefine()
 
     MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(1)), "O", m.Out(m.Bits(6)))
     Mux2x6_inst0 = Mux2x6()
