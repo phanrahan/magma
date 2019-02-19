@@ -51,7 +51,8 @@ def __compile_to_coreir(main, file_name, opts):
     passes = opts.get("passes", [])
     if "markdirty" not in passes:
         passes.append("markdirty")
-    backend.context.run_passes(passes, ["global"])
+    namespaces = opts.get("namespaces", ["global"])
+    backend.context.run_passes(passes, namespaces)
 
     backend.modules[main.coreir_name].save_to_file(file_name + ".json")
     if opts.get("output_verilog", False):
