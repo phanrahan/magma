@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.16] - 2019-02-21
+### Addded
+- https://github.com/phanrahan/magma/pull/354
+  Added experimental version of `m.circuit.sequential` syntax.
+### Changed
+- https://github.com/phanrahan/magma/pull/354
+  Changes `m.circuit.combinational` to use SSA
+### Fixed
 - https://github.com/phanrahan/magma/pull/355
   Fixes regression in sorting logic for instance graph pass introduced due to
   new hashing logic. Changed uniquification to hash on the rep of the
@@ -12,9 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   circuit
 - https://github.com/phanrahan/magma/pull/358
   Fixes invocation of pass to use new option syntax for coreir
-- https://github.com/phanrahan/magma/pull/354
-  Added experimental version of `m.circuit.sequential` syntax.
-  Changes `m.circuit.combinational` to use SSA
 
 ## [0.1.15] - 2019-02-12
 ### Changed
@@ -36,7 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed bug in uniquification error mode.
 
-[Unreleased]: https://github.com/phanrahan/magma/compare/v0.1.15...HEAD
+[Unreleased]: https://github.com/phanrahan/magma/compare/v0.1.16...HEAD
+[0.1.16]: https://github.com/phanrahan/magma/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/phanrahan/magma/compare/v0.1.14...v0.1.15
 [0.1.14]: https://github.com/phanrahan/magma/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/phanrahan/magma/compare/v0.1.12...v0.1.13
