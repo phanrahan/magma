@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- https://github.com/phanrahan/magma/pull/355
+  Fixes regression in sorting logic for instance graph pass introduced due to
+  new hashing logic. Changed uniquification to hash on the rep of the
+  definition explicitly, rather than overriding the `__hash__` method of
+  circuit
+- https://github.com/phanrahan/magma/pull/358
+  Fixes invocation of pass to use new option syntax for coreir
+- https://github.com/phanrahan/magma/pull/354
+  Added experimental version of `m.circuit.sequential` syntax.
+  Changes `m.circuit.combinational` to use SSA
 
 ## [0.1.15] - 2019-02-12
 ### Changed
