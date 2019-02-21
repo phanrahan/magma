@@ -31,7 +31,7 @@ def test_uniquify_equal():
     m.wire(curr, top.O)
     m.EndCircuit()
 
-    assert hash(foo) == hash(bar)
+    assert hash(repr(foo)) == hash(repr(bar))
 
     m.compile("build/uniquify_equal", top, output="coreir")
     assert check_files_equal(__file__,
@@ -57,9 +57,69 @@ def test_uniquify_unequal():
     m.wire(bar_inst.O[0], top.O)
     m.EndCircuit()
 
-    assert hash(foo) != hash(bar)
+    assert hash(repr(foo)) != hash(repr(bar))
 
     m.compile("build/uniquify_unequal", top, output="coreir")
     assert check_files_equal(__file__,
                              "build/uniquify_unequal.json",
                              "gold/uniquify_unequal.json")
+
+
+def test_key_error():
+    default_port_mapping = {
+        "I": "in",
+        "I0": "in0",
+        "I1": "in1",
+        "O": "out",
+        "S": "sel",
+    }
+
+    def DeclareCoreirCircuit(*args, **kwargs):
+        return m.DeclareCircuit(*args, **kwargs,
+                                renamed_ports=default_port_mapping)
+
+    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits(6)), "I1", m.In(m.Bits(6)), "S", m.In(m.Bit), "O", m.Out(m.Bits(6)))
+    mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
+                               *["I", m.In(m.Tuple(data=m.Array(2, m.Bits(6)),
+                                                   sel=m.Bits(m.bitutils.clog2(2)))),
+                                 "O", m.Out(m.Bits(6))],
+                               coreir_name="muxn",
+                               coreir_lib="commonlib",
+                               coreir_genargs={"width": 6, "N": 2})()
+    m.wire(Mux2x6.I0, mux.I.data[0])
+    m.wire(Mux2x6.I1, mux.I.data[1])
+    m.wire(Mux2x6.S, mux.I.sel[0])
+    m.wire(mux.O, Mux2x6.O)
+    m.EndDefine()
+
+    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(1)), "O", m.Out(m.Bits(6)))
+    Mux2x6_inst0 = Mux2x6()
+    m.wire(MuxWrapper_2_6.I[0], Mux2x6_inst0.I0)
+    m.wire(MuxWrapper_2_6.I[1], Mux2x6_inst0.I1)
+    m.wire(MuxWrapper_2_6.S[0], Mux2x6_inst0.S)
+    m.wire(Mux2x6_inst0.O, MuxWrapper_2_6.O)
+    m.EndCircuit()
+
+    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(1)), "O", m.Out(m.Bits(6)))
+    Mux2x6_inst0 = Mux2x6()
+    m.wire(MuxWrapper_2_6_copy.I[0], Mux2x6_inst0.I0)
+    m.wire(MuxWrapper_2_6_copy.I[1], Mux2x6_inst0.I1)
+    m.wire(MuxWrapper_2_6_copy.S[0], Mux2x6_inst0.S)
+    m.wire(Mux2x6_inst0.O, MuxWrapper_2_6_copy.O)
+    m.EndCircuit()
+
+    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(19)), "O", m.Out(m.Bits(6)))
+    MuxWrapper_2_6_inst0 = MuxWrapper_2_6()
+    MuxWrapper_2_6_inst1 = MuxWrapper_2_6_copy()
+    m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst0.I)
+    m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst1.I)
+    m.wire(MuxWithDefaultWrapper_2_6_19_0.S[0], MuxWrapper_2_6_inst0.S[0])
+    m.wire(MuxWithDefaultWrapper_2_6_19_0.S[0], MuxWrapper_2_6_inst1.S[0])
+    m.wire(MuxWrapper_2_6_inst1.O, MuxWithDefaultWrapper_2_6_19_0.O)
+    m.EndCircuit()
+
+    top = MuxWithDefaultWrapper_2_6_19_0
+    m.compile(f"build/{top.name}", top, output="coreir")
+    assert check_files_equal(__file__,
+                             f"build/{top.name}.json",
+                             "gold/uniquification_key_error_mux.json")

@@ -17,32 +17,28 @@ class UniquificationMode(Enum):
 class UniquificationPass(DefinitionPass):
     def __init__(self, main, mode):
         super(UniquificationPass, self).__init__(main)
+        self.definitions = {}
         self.mode = mode
         self.seen = {}
         self.original_names = {}
 
     def __call__(self, definition):
         name = definition.name
-        key = hash(definition)
-        insert = False
+        key = hash(repr(definition))
+
         if name not in self.seen:
             self.seen[name] = {}
-            insert = True
-        elif self.mode is UniquificationMode.UNIQUIFY:
-            seen = self.seen[name]
-            if key in seen:
-                new_name = seen[key].name
-                insert = False
-            else:
-                idx = len(seen)
-                new_name = name + "_unq" + str(idx)
-                insert = True
-            self.original_names[definition] = name
-            type(definition).rename(definition, new_name)
+        if key not in self.seen[name]:
+            if self.mode is UniquificationMode.UNIQUIFY and len(self.seen[name]) > 0:
+                new_name = name + "_unq" + str(len(self.seen[name]))
+                type(definition).rename(definition, new_name)
+            self.seen[name][key] = [definition]
         else:
-            insert = True
-        if insert:
-            self.seen[name][key] = definition
+            if self.mode is not UniquificationMode.UNIQUIFY:
+                assert self.seen[name][key][0].name == definition.name
+            else:
+                type(definition).rename(definition, self.seen[name][key][0].name)
+            self.seen[name][key].append(definition)
 
     def _run(self, definition):
         if not isdefinition(definition):
@@ -53,6 +49,10 @@ class UniquificationPass(DefinitionPass):
             if isdefinition(instancedefinition):
                 self._run( instancedefinition )
 
+        id_ = id(definition)
+        if id_ in self.definitions:
+            return
+        self.definitions[id_] = definition
         self(definition)
 
     def run(self):
