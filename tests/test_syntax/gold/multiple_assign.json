@@ -14,7 +14,7 @@
         },
         "connections":[
           ["self.c","logic_inst0.O0"],
-          ["self.a","logic_inst0.a"]
+          ["self.a","logic_inst0.a_0"]
         ]
       },
       "Mux2":{
@@ -43,7 +43,7 @@
       },
       "logic":{
         "type":["Record",[
-          ["a","BitIn"],
+          ["a_0","BitIn"],
           ["O0","Bit"]
         ]],
         "instances":{
@@ -63,12 +63,12 @@
           }
         },
         "connections":[
-          ["bit_const_0_None.out","Mux2_inst0.I0"],
-          ["bit_const_1_None.out","Mux2_inst0.I1"],
+          ["bit_const_1_None.out","Mux2_inst0.I0"],
+          ["bit_const_0_None.out","Mux2_inst0.I1"],
           ["self.O0","Mux2_inst0.O"],
           ["eq_inst0.O","Mux2_inst0.S"],
           ["eq_inst0.I1","bit_const_0_None.out"],
-          ["self.a","eq_inst0.I0"]
+          ["self.a_0","eq_inst0.I0"]
         ]
       }
     }

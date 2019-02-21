@@ -1,0 +1,35 @@
+{"top":"global.basic_function_call",
+"namespaces":{
+  "global":{
+    "modules":{
+      "basic_func":{
+        "type":["Record",[
+          ["I_0",["Array",2,"BitIn"]],
+          ["S_0","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.O","self.I_0.1"]
+        ]
+      },
+      "basic_function_call":{
+        "type":["Record",[
+          ["I_0",["Array",2,"BitIn"]],
+          ["S_0","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "basic_func_inst0":{
+            "modref":"global.basic_func"
+          }
+        },
+        "connections":[
+          ["self.I_0","basic_func_inst0.I_0"],
+          ["self.O","basic_func_inst0.O"],
+          ["self.S_0","basic_func_inst0.S_0"]
+        ]
+      }
+    }
+  }
+}
+}

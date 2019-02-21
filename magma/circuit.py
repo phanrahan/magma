@@ -569,4 +569,5 @@ def circuit_generator(func):
         return result
     return wrapped
 
-from magma.circuit_def import combinational
+from magma.syntax.combinational import combinational
+from magma.syntax.sequential import sequential

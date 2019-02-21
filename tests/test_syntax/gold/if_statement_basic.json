@@ -1,0 +1,18 @@
+{"top":"global.basic_if",
+"namespaces":{
+  "global":{
+    "modules":{
+      "basic_if":{
+        "type":["Record",[
+          ["I_0",["Array",2,"BitIn"]],
+          ["S_0","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.O","self.I_0.1"]
+        ]
+      }
+    }
+  }
+}
+}
