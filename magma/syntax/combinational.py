@@ -184,9 +184,6 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 @ast_utils.inspect_enclosing_env
 def combinational(defn_env : dict, fn : types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    pre_ssa_args = []
-    for arg in tree.args.args:
-        pre_ssa_args.append(arg.arg)
     tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
     tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
     tree = ast.fix_missing_locations(tree)
