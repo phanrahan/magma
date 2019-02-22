@@ -39,8 +39,8 @@ class SSAVisitor(ast.NodeTransformer):
     def visit_FunctionDef(self, node):
         for a in node.args.args:
             self.args.add(a.arg)
-            self.last_name[a.arg] = f"{a.arg}_0"
-            a.arg = f"{a.arg}_0"
+            self.last_name[a.arg] = f"{a.arg}"
+            a.arg = f"{a.arg}"
         node.body = flatten([self.visit(s) for s in node.body])
         return node
 
