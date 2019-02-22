@@ -28,8 +28,11 @@ class SSAVisitor(ast.NodeTransformer):
         self.return_values = []
 
     def write_name(self, var):
-        self.var_counter[var] += 1
-        self.last_name[var] = f"{var}_{self.var_counter[var]}"
+        while True:
+            self.var_counter[var] += 1
+            self.last_name[var] = f"{var}_{self.var_counter[var]}"
+            if self.last_name[var] not in self.args:
+                break
 
     def visit_Assign(self, node):
         node.value = self.visit(node.value)
