@@ -23,7 +23,7 @@ class SSAVisitor(ast.NodeTransformer):
         super().__init__()
         self.last_name = defaultdict(lambda: "")
         self.var_counter = defaultdict(lambda: -1)
-        self.args = set()
+        self.args = []
         self.cond_stack = []
         self.return_values = []
 
@@ -38,7 +38,7 @@ class SSAVisitor(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node):
         for a in node.args.args:
-            self.args.add(a.arg)
+            self.args.append(a.arg)
             self.last_name[a.arg] = f"{a.arg}_0"
             a.arg = f"{a.arg}_0"
         node.body = flatten([self.visit(s) for s in node.body])

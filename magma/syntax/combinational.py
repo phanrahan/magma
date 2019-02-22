@@ -98,7 +98,7 @@ class IfTransformer(ast.NodeTransformer):
 class FunctionToCircuitDefTransformer(ast.NodeTransformer):
     def __init__(self, renamed_args):
         super().__init__()
-        self.IO = set()
+        self.IO = {}
         self.renamed_args = renamed_args
 
     def visit(self, node):
@@ -111,11 +111,11 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return ast.Call(m_dot(direction), [node], [])
 
     def visit_FunctionDef(self, node):
-        names = [arg.arg for arg in node.args.args]
+        names = self.renamed_args
         types = [arg.annotation for arg in node.args.args]
         IO = []
         for name, type_ in zip(names, types):
-            self.IO.add(name)
+            self.IO[name + "_0"] = name  # Add ssa rename
             IO.extend([ast.Str(name),
                        self.qualify(type_, "In")])
         if isinstance(node.returns, ast.Tuple):
@@ -140,9 +140,6 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
                  ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
                 []
             )))
-        renamed_args = ast.parse(
-            "{" + ", ".join(f"'{arg}': '{arg}_0'" for arg in self.renamed_args) +
-            "}").body[0].value
         # class {node.name}(m.Circuit):
         #     IO = {IO}
         #     @classmethod
@@ -153,8 +150,6 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
             [ast.Attribute(ast.Name("m", ast.Load()), "Circuit", ast.Load())],
             [], [
                 ast.Assign([ast.Name("IO", ast.Store())], IO),
-                ast.Assign([ast.Name("renamed_ports", ast.Store())],
-                           renamed_args),
                 ast.FunctionDef(
                     "definition",
                     ast.arguments([ast.arg("io", None)],
@@ -171,7 +166,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
     def visit_Name(self, node):
         if node.id in self.IO:
-            return ast.Attribute(ast.Name("io", ast.Load()), node.id,
+            return ast.Attribute(ast.Name("io", ast.Load()), self.IO[node.id],
                                  ast.Load())
         return node
 

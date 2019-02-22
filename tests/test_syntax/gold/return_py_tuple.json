@@ -4,13 +4,13 @@
     "modules":{
       "return_py_tuple":{
         "type":["Record",[
-          ["I_0",["Array",2,"BitIn"]],
+          ["I",["Array",2,"BitIn"]],
           ["O0","Bit"],
           ["O1","Bit"]
         ]],
         "connections":[
-          ["self.O0","self.I_0.0"],
-          ["self.O1","self.I_0.1"]
+          ["self.O0","self.I.0"],
+          ["self.O1","self.I.1"]
         ]
       }
     }

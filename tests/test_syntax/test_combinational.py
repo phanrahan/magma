@@ -277,3 +277,20 @@ def test_renamed_args(target):
             io.O <= invert(a=io.I)
 
     compile_and_check("test_renamed_args", Foo, target)
+
+
+def test_renamed_args_wire(target):
+    @m.circuit.combinational
+    def invert(a: m.Bit) -> m.Bit:
+        return Not()(a)
+
+    class Foo(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            inv = invert.circuit_definition()
+            inv.a <= io.I
+            io.O <= inv.O
+
+    compile_and_check("test_renamed_args_wire", Foo, target)

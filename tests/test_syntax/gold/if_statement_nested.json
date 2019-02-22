@@ -4,12 +4,12 @@
     "modules":{
       "if_statement_nested":{
         "type":["Record",[
-          ["I_0",["Array",4,"BitIn"]],
-          ["S_0",["Array",2,"BitIn"]],
+          ["I",["Array",4,"BitIn"]],
+          ["S",["Array",2,"BitIn"]],
           ["O","Bit"]
         ]],
         "connections":[
-          ["self.O","self.I_0.3"]
+          ["self.O","self.I.3"]
         ]
       }
     }

@@ -19,27 +19,27 @@
           }
         },
         "connections":[
-          ["self.I","Basic_comb_inst0.I_0"],
+          ["self.I","Basic_comb_inst0.I"],
           ["Register2_inst0.I","Basic_comb_inst0.O0"],
           ["Register2_inst1.I","Basic_comb_inst0.O1"],
           ["self.O","Basic_comb_inst0.O2"],
-          ["Register2_inst0.O","Basic_comb_inst0.self_x_0"],
-          ["Register2_inst1.O","Basic_comb_inst0.self_y_0"]
+          ["Register2_inst0.O","Basic_comb_inst0.self_x"],
+          ["Register2_inst1.O","Basic_comb_inst0.self_y"]
         ]
       },
       "Basic_comb":{
         "type":["Record",[
-          ["I_0",["Array",2,"BitIn"]],
-          ["self_x_0",["Array",2,"BitIn"]],
-          ["self_y_0",["Array",2,"BitIn"]],
+          ["I",["Array",2,"BitIn"]],
+          ["self_x",["Array",2,"BitIn"]],
+          ["self_y",["Array",2,"BitIn"]],
           ["O0",["Array",2,"Bit"]],
           ["O1",["Array",2,"Bit"]],
           ["O2",["Array",2,"Bit"]]
         ]],
         "connections":[
-          ["self.O0","self.I_0"],
-          ["self.self_x_0","self.O1"],
-          ["self.self_y_0","self.O2"]
+          ["self.O0","self.I"],
+          ["self.self_x","self.O1"],
+          ["self.self_y","self.O2"]
         ]
       },
       "Register2":{

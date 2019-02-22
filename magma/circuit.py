@@ -279,8 +279,6 @@ class AnonymousCircuitType(object):
             if key == 'reset':  key = 'RESET'
             if key == 'set':    key = 'SET' # NYI
             if key == 'ce':     key = 'CE'  # depreciated
-            # Get renamed port if it's in the mapping
-            key = input.renamed_ports.get(key, key)
             if hasattr(input, key):
                 i = getattr(input, key)
                 wire( value, getattr(input, key), debug_info)
