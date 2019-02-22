@@ -4,6 +4,11 @@ import pytest
 import logging
 
 
+Not = m.DefineCircuit("Not", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+m.wire(0, Not.O)
+m.EndDefine()
+
+
 @m.cache_definition
 def DefineMux(height=2, width=None):
     if width is None:
@@ -243,10 +248,6 @@ def test_optional_assignment(target):
 
 
 def test_map_circuit(target):
-    Not = m.DefineCircuit("Not", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    m.wire(0, Not.O)
-    m.EndDefine()
-
     @m.circuit.combinational
     def logic(a: m.Bits(10)) -> m.Bits(10):
         return m.join(m.map_(Not, 10))(a)
@@ -263,3 +264,16 @@ def test_map_circuit(target):
     compile_and_check("test_map_circuit", Foo, target)
 
 
+def test_renamed_args(target):
+    @m.circuit.combinational
+    def invert(a: m.Bit) -> m.Bit:
+        return Not()(a)
+
+    class Foo(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            io.O <= invert(a=io.I)
+
+    compile_and_check("test_renamed_args", Foo, target)

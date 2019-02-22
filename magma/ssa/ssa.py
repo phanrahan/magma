@@ -147,12 +147,12 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
                         ast.List([name, prev_name], ast.Load()),
                         cond
                     ], []))
-    return tree
+    return tree, ssa_visitor.args
 
 
 @ast_utils.inspect_enclosing_env
 def ssa(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    tree = convert_tree_to_ssa(tree, defn_env)
+    tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
     tree.body.append(ast.Return(ast.Name("O", ast.Load())))
     return ast_utils.compile_function_to_file(tree, defn_env=defn_env)

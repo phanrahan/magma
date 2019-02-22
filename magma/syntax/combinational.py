@@ -96,9 +96,10 @@ class IfTransformer(ast.NodeTransformer):
 
 
 class FunctionToCircuitDefTransformer(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, renamed_args):
         super().__init__()
         self.IO = set()
+        self.renamed_args = renamed_args
 
     def visit(self, node):
         new_node = super().visit(node)
@@ -139,6 +140,9 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
                  ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
                 []
             )))
+        renamed_args = ast.parse(
+            "{" + ", ".join(f"'{arg}': '{arg}_0'" for arg in self.renamed_args) +
+            "}").body[0].value
         # class {node.name}(m.Circuit):
         #     IO = {IO}
         #     @classmethod
@@ -149,6 +153,8 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
             [ast.Attribute(ast.Name("m", ast.Load()), "Circuit", ast.Load())],
             [], [
                 ast.Assign([ast.Name("IO", ast.Store())], IO),
+                ast.Assign([ast.Name("renamed_ports", ast.Store())],
+                           renamed_args),
                 ast.FunctionDef(
                     "definition",
                     ast.arguments([ast.arg("io", None)],
@@ -183,8 +189,11 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 @ast_utils.inspect_enclosing_env
 def combinational(defn_env : dict, fn : types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    tree = convert_tree_to_ssa(tree, defn_env)
-    tree = FunctionToCircuitDefTransformer().visit(tree)
+    pre_ssa_args = []
+    for arg in tree.args.args:
+        pre_ssa_args.append(arg.arg)
+    tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
+    tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree = IfTransformer(inspect.getsourcefile(fn), inspect.getsourcelines(fn)).visit(tree)
     tree = ast.fix_missing_locations(tree)
