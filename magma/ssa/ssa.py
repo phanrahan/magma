@@ -6,7 +6,7 @@ import inspect
 import astor
 
 
-def flatten(l : list):
+def flatten(l: list):
     """
     Non-recursive flatten that ignores non-list children
     """
@@ -144,15 +144,13 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
             for c in conds[:-1]:
                 c = ast.BinOp(cond, ast.And(), c)
             tree.body.append(ast.Call(ast.Name("phi", ast.Load()), [
-                        ast.List([name, prev_name], ast.Load()),
-                        cond
-                    ], []))
+                ast.List([name, prev_name], ast.Load()), cond], []))
     return tree, ssa_visitor.args
 
 
 @ast_utils.inspect_enclosing_env
 def ssa(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
+    tree, _ = convert_tree_to_ssa(tree, defn_env)
     tree.body.append(ast.Return(ast.Name("O", ast.Load())))
     return ast_utils.compile_function_to_file(tree, defn_env=defn_env)
