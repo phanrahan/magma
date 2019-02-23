@@ -1,40 +1,30 @@
-{"top":"global.ShiftRegister",
+{"top":"global.TestShiftRegister",
 "namespaces":{
   "global":{
     "modules":{
       "Register":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "Register2_inst0":{
-            "modref":"global.Register2"
-          },
           "Register_comb_inst0":{
             "modref":"global.Register_comb"
+          },
+          "reg_P_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
           }
         },
         "connections":[
-          ["Register_comb_inst0.O0","Register2_inst0.I"],
-          ["Register_comb_inst0.self_value_0","Register2_inst0.O"],
           ["self.I","Register_comb_inst0.I_0"],
-          ["self.O","Register_comb_inst0.O1"]
+          ["reg_P_inst0.in","Register_comb_inst0.O0"],
+          ["self.O","Register_comb_inst0.O1"],
+          ["reg_P_inst0.out","Register_comb_inst0.self_value_0"],
+          ["self.CLK","reg_P_inst0.clk"]
         ]
-      },
-      "Register2":{
-        "type":["Record",[
-          ["I",["Array",2,"BitIn"]],
-          ["O",["Array",2,"Bit"]],
-          ["CLK",["Named","coreir.clkIn"]]
-        ]]
-      },
-      "Register2_0001":{
-        "type":["Record",[
-          ["I",["Array",2,"BitIn"]],
-          ["O",["Array",2,"Bit"]],
-          ["CLK",["Named","coreir.clkIn"]]
-        ]]
       },
       "Register_comb":{
         "type":["Record",[
@@ -51,26 +41,31 @@
       "Register_unq1":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "Register2_0001_inst0":{
-            "modref":"global.Register2_0001"
-          },
           "Register_comb_inst0":{
             "modref":"global.Register_comb"
+          },
+          "reg_P_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h1"]}
           }
         },
         "connections":[
-          ["Register_comb_inst0.O0","Register2_0001_inst0.I"],
-          ["Register_comb_inst0.self_value_0","Register2_0001_inst0.O"],
           ["self.I","Register_comb_inst0.I_0"],
-          ["self.O","Register_comb_inst0.O1"]
+          ["reg_P_inst0.in","Register_comb_inst0.O0"],
+          ["self.O","Register_comb_inst0.O1"],
+          ["reg_P_inst0.out","Register_comb_inst0.self_value_0"],
+          ["self.CLK","reg_P_inst0.clk"]
         ]
       },
-      "ShiftRegister":{
+      "TestShiftRegister":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
@@ -80,20 +75,22 @@
           "Register_inst1":{
             "modref":"global.Register_unq1"
           },
-          "ShiftRegister_comb_inst0":{
-            "modref":"global.ShiftRegister_comb"
+          "TestShiftRegister_comb_inst0":{
+            "modref":"global.TestShiftRegister_comb"
           }
         },
         "connections":[
-          ["ShiftRegister_comb_inst0.O0","Register_inst0.I"],
-          ["ShiftRegister_comb_inst0.self_x_0","Register_inst0.O"],
-          ["ShiftRegister_comb_inst0.O1","Register_inst1.I"],
-          ["ShiftRegister_comb_inst0.self_y_0","Register_inst1.O"],
-          ["self.I","ShiftRegister_comb_inst0.I_0"],
-          ["self.O","ShiftRegister_comb_inst0.O2"]
+          ["self.CLK","Register_inst0.CLK"],
+          ["TestShiftRegister_comb_inst0.O0","Register_inst0.I"],
+          ["TestShiftRegister_comb_inst0.self_x_0","Register_inst0.O"],
+          ["self.CLK","Register_inst1.CLK"],
+          ["TestShiftRegister_comb_inst0.O1","Register_inst1.I"],
+          ["TestShiftRegister_comb_inst0.self_y_0","Register_inst1.O"],
+          ["self.I","TestShiftRegister_comb_inst0.I_0"],
+          ["self.O","TestShiftRegister_comb_inst0.O2"]
         ]
       },
-      "ShiftRegister_comb":{
+      "TestShiftRegister_comb":{
         "type":["Record",[
           ["I_0",["Array",2,"BitIn"]],
           ["self_x_0",["Array",2,"BitIn"]],
