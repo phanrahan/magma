@@ -122,10 +122,11 @@ def gen_register_instances(initial_value_map):
 
     """
     register_instances = ""
+    tab = "        "
     for name, (value, type_) in initial_value_map.items():
         if isinstance(value, EscapedExpression):
             orig = astor.to_source(value.orig.elts[0]).rstrip()
-            register_instances += f"        {name} = {orig}\n"
+            register_instances += f"{tab}{name} = {orig}\n"
             print(register_instances)
         else:
             # TODO: Only support m.bits(x, y) for now
@@ -138,7 +139,7 @@ def gen_register_instances(initial_value_map):
             assert isinstance(value.args[1], ast.Num)
             n = value.args[1].n
             init = value.args[0].n
-            register_instances += f"        {name} = Register({n}, init={init})\n"
+            register_instances += f"{tab}{name} = Register({n}, init={init})\n"
     return register_instances
 
 
@@ -148,6 +149,7 @@ def gen_io_list(inputs, output_type):
         type_ = astor.to_source(type_).rstrip()
         io_list += f"\"{name}\", m.In({type_}), "
     output_type = astor.to_source(output_type).rstrip()
+    io_list += f"\"CLK\", m.In(m.Clock), "
     io_list += f"\"O\", m.Out({output_type})"
     return io_list + "]"
 
