@@ -4,12 +4,12 @@
     "modules":{
       "return_magma_tuple":{
         "type":["Record",[
-          ["I_0",["Array",2,"BitIn"]],
+          ["I",["Array",2,"BitIn"]],
           ["O",["Record",[["_0","Bit"],["_1","Bit"]]]]
         ]],
         "connections":[
-          ["self.O._0","self.I_0.0"],
-          ["self.O._1","self.I_0.1"]
+          ["self.O._0","self.I.0"],
+          ["self.O._1","self.I.1"]
         ]
       }
     }

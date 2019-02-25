@@ -1,0 +1,53 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "invert_inst0":{
+            "modref":"global.invert"
+          }
+        },
+        "connections":[
+          ["self.O","invert_inst0.O"],
+          ["self.I","invert_inst0.a"]
+        ]
+      },
+      "Not":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          }
+        },
+        "connections":[
+          ["self.O","bit_const_0_None.out"]
+        ]
+      },
+      "invert":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Not_inst0":{
+            "modref":"global.Not"
+          }
+        },
+        "connections":[
+          ["self.a","Not_inst0.I"],
+          ["self.O","Not_inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}

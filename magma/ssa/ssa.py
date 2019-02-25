@@ -6,7 +6,7 @@ import inspect
 import astor
 
 
-def flatten(l : list):
+def flatten(l: list):
     """
     Non-recursive flatten that ignores non-list children
     """
@@ -23,7 +23,7 @@ class SSAVisitor(ast.NodeTransformer):
         super().__init__()
         self.last_name = defaultdict(lambda: "")
         self.var_counter = defaultdict(lambda: -1)
-        self.args = set()
+        self.args = []
         self.cond_stack = []
         self.return_values = []
 
@@ -38,7 +38,7 @@ class SSAVisitor(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node):
         for a in node.args.args:
-            self.args.add(a.arg)
+            self.args.append(a.arg)
             self.last_name[a.arg] = f"{a.arg}_0"
             a.arg = f"{a.arg}_0"
         node.body = flatten([self.visit(s) for s in node.body])
@@ -144,15 +144,13 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
             for c in conds[:-1]:
                 c = ast.BinOp(cond, ast.And(), c)
             tree.body.append(ast.Call(ast.Name("phi", ast.Load()), [
-                        ast.List([name, prev_name], ast.Load()),
-                        cond
-                    ], []))
-    return tree
+                ast.List([name, prev_name], ast.Load()), cond], []))
+    return tree, ssa_visitor.args
 
 
 @ast_utils.inspect_enclosing_env
 def ssa(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    tree = convert_tree_to_ssa(tree, defn_env)
+    tree, _ = convert_tree_to_ssa(tree, defn_env)
     tree.body.append(ast.Return(ast.Name("O", ast.Load())))
     return ast_utils.compile_function_to_file(tree, defn_env=defn_env)

@@ -61,16 +61,22 @@ class IfTransformer(ast.NodeTransformer):
             key = ast.dump(stmt.targets[0])
             if key in seen:
                 # TODO: Print the line number
-                report_transformer_warning("Assigning to value twice inside `if` block,"
-                        " taking the last value (first value is ignored)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
+                report_transformer_warning(
+                    "Assigning to value twice inside `if` block,"
+                    " taking the last value (first value is ignored)",
+                    self.filename, node.lineno + self.starting_line,
+                    self.lines[node.lineno])
             seen[key] = stmt
         orelse_seen = set()
         for stmt in node.orelse:
             key = ast.dump(stmt.targets[0])
             if key in seen:
                 if key in orelse_seen:
-                    report_transformer_warning("Assigning to value twice inside `else` block,"
-                            " taking the last value (first value is ignored)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
+                    report_transformer_warning(
+                        "Assigning to value twice inside `else` block,"
+                        " taking the last value (first value is ignored)",
+                        self.filename, node.lineno + self.starting_line,
+                        self.lines[node.lineno])
                 orelse_seen.add(key)
                 seen[key].value = ast.Call(
                     ast.Name("phi", ast.Load()),
@@ -78,8 +84,11 @@ class IfTransformer(ast.NodeTransformer):
                               ast.Load()), node.test],
                     [])
             else:
-                report_transformer_warning("NOT IMPLEMENTED: Assigning to a variable once in"
-                        " `else` block (not in then block)", self.filename, node.lineno + self.starting_line, self.lines[node.lineno])
+                report_transformer_warning(
+                    "NOT IMPLEMENTED: Assigning to a variable once in"
+                    " `else` block (not in then block)",
+                    self.filename, node.lineno + self.starting_line,
+                    self.lines[node.lineno])
                 raise NotImplementedError()
         return [node for node in seen.values()]
 
@@ -96,9 +105,10 @@ class IfTransformer(ast.NodeTransformer):
 
 
 class FunctionToCircuitDefTransformer(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, renamed_args):
         super().__init__()
-        self.IO = set()
+        self.IO = {}
+        self.renamed_args = renamed_args
 
     def visit(self, node):
         new_node = super().visit(node)
@@ -110,11 +120,11 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return ast.Call(m_dot(direction), [node], [])
 
     def visit_FunctionDef(self, node):
-        names = [arg.arg for arg in node.args.args]
+        names = self.renamed_args
         types = [arg.annotation for arg in node.args.args]
         IO = []
         for name, type_ in zip(names, types):
-            self.IO.add(name)
+            self.IO[name + "_0"] = name  # Add ssa rename
             IO.extend([ast.Str(name),
                        self.qualify(type_, "In")])
         if isinstance(node.returns, ast.Tuple):
@@ -129,7 +139,8 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
                 node.body.append(ast.Expr(ast.Call(
                     m_dot("wire"),
                     [ast.Name(f"O{i}", ast.Load()),
-                     ast.Attribute(ast.Name("io", ast.Load()), f"O{i}", ast.Load())],
+                     ast.Attribute(ast.Name("io", ast.Load()), f"O{i}",
+                                   ast.Load())],
                     []
                 )))
         else:
@@ -157,15 +168,13 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
                     node.body,
                     [ast.Name("classmethod", ast.Load())],
                     None
-                )
-
-                ],
+                )],
             [])
         return class_def
 
     def visit_Name(self, node):
         if node.id in self.IO:
-            return ast.Attribute(ast.Name("io", ast.Load()), node.id,
+            return ast.Attribute(ast.Name("io", ast.Load()), self.IO[node.id],
                                  ast.Load())
         return node
 
@@ -181,12 +190,13 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
 
 @ast_utils.inspect_enclosing_env
-def combinational(defn_env : dict, fn : types.FunctionType):
+def combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    tree = convert_tree_to_ssa(tree, defn_env)
-    tree = FunctionToCircuitDefTransformer().visit(tree)
+    tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
+    tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
     tree = ast.fix_missing_locations(tree)
-    tree = IfTransformer(inspect.getsourcefile(fn), inspect.getsourcelines(fn)).visit(tree)
+    tree = IfTransformer(inspect.getsourcefile(fn),
+                         inspect.getsourcelines(fn)).visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(
         combinational, tree.decorator_list, defn_env)
@@ -201,7 +211,8 @@ def combinational(defn_env : dict, fn : types.FunctionType):
         source += f"    {i}: {line}\n"
 
     debug(source)
-    circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__, defn_env)
+    circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__,
+                                                     defn_env)
     circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
                                         circuit_def.debug_info.lineno,
                                         inspect.getmodule(fn))
