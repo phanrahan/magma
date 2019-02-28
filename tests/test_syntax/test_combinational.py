@@ -55,7 +55,7 @@ def phi(I, S):
 
 def compile_and_check(output_file, circuit_definition, target):
     m.compile(f"build/{output_file}", circuit_definition, output=target)
-    if target == "verilog":
+    if target in ["verilog", "coreir-verilog"]:
         suffix = "v"
     elif target == "coreir":
         suffix = "json"

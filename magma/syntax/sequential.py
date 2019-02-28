@@ -27,7 +27,7 @@ class RewriteReturn(ast.NodeTransformer):
         return node
 
 
-def get_initial_value_map(init_func):
+def get_initial_value_map(init_func, defn_env):
     """
     Parses __init__ funciton of the form
 
@@ -47,6 +47,8 @@ def get_initial_value_map(init_func):
     """
     initial_value_map = {}
     init_def = get_ast(init_func).body[0]
+    init_def = ExecuteEscapedPythonExpressions(defn_env).visit(init_def)
+    init_def = SpecializeConstantInts(defn_env).visit(init_def)
     for stmt in init_def.body:
         # We only support basic assignments of the form
         #     self.x: m.Bits(2) = m.bits(0, 2)
@@ -120,18 +122,24 @@ def gen_register_instances(initial_value_map):
 
     """
     register_instances = ""
+    tab = "        "
     for name, (value, type_) in initial_value_map.items():
-        # TODO: Only support m.bits(x, y) for now
-        assert isinstance(value, ast.Call) and \
-            isinstance(value.func, ast.Attribute) and \
-            isinstance(value.func.value, ast.Name) and \
-            value.func.value.id == "m" and \
-            value.func.attr == "bits"
-        assert isinstance(value.args[0], ast.Num)
-        assert isinstance(value.args[1], ast.Num)
-        n = value.args[1].n
-        init = value.args[0].n
-        register_instances += f"        {name} = Register({n}, init={init})\n"
+        if isinstance(value, EscapedExpression):
+            orig = astor.to_source(value.orig.elts[0]).rstrip()
+            register_instances += f"{tab}{name} = {orig}\n"
+            print(register_instances)
+        else:
+            # TODO: Only support m.bits(x, y) for now
+            assert isinstance(value, ast.Call) and \
+                isinstance(value.func, ast.Attribute) and \
+                isinstance(value.func.value, ast.Name) and \
+                value.func.value.id == "m" and \
+                value.func.attr == "bits"
+            assert isinstance(value.args[0], ast.Num)
+            assert isinstance(value.args[1], ast.Num)
+            n = value.args[1].n
+            init = value.args[0].n
+            register_instances += f"{tab}{name} = Register({n}, init={init})\n"
     return register_instances
 
 
@@ -141,16 +149,46 @@ def gen_io_list(inputs, output_type):
         type_ = astor.to_source(type_).rstrip()
         io_list += f"\"{name}\", m.In({type_}), "
     output_type = astor.to_source(output_type).rstrip()
+    io_list += f"\"CLK\", m.In(m.Clock), "
     io_list += f"\"O\", m.Out({output_type})"
     return io_list + "]"
 
 
+class EscapedExpression(ast.AST):
+    def __init__(self, value, orig):
+        self.value = value
+        self.orig = orig
+
+
+class ExecuteEscapedPythonExpressions(ast.NodeTransformer):
+    def __init__(self, defn_env):
+        self.defn_env = defn_env
+
+    def visit_List(self, node):
+        assert len(node.elts) == 1, "Expected only list literatals that " \
+            "contain a single expression"
+        result = eval(astor.to_source(node.elts[0]).rstrip(), self.defn_env)
+        return EscapedExpression(result, node)
+
+
+class SpecializeConstantInts(ast.NodeTransformer):
+    def __init__(self, defn_env):
+        self.defn_env = defn_env
+
+    def visit_Name(self, node):
+        if node.id in self.defn_env:
+            value = self.defn_env[node.id]
+            if isinstance(value, int):
+                return ast.Num(value)
+        return node
+
+
 @ast_utils.inspect_enclosing_env
-def sequential(defn_env : dict, cls):
+def sequential(defn_env: dict, cls):
     if not inspect.isclass(cls):
         raise ValueError("sequential decorator only works with classes")
 
-    initial_value_map = get_initial_value_map(cls.__init__)
+    initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 
     call_def = get_ast(cls.__call__).body[0]
     inputs, output_type = get_io(call_def)
