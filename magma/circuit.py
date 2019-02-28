@@ -93,6 +93,7 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         setattr(cls, "add_port", lambda name, port: _add_port(cls, name, port))
+        setattr(cls, "self_instances", set())
 
         # create interface for this circuit class
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
@@ -362,6 +363,10 @@ class CircuitType(AnonymousCircuitType):
         global currentDefinition
         if currentDefinition:
              currentDefinition.place(self)
+
+        defn = type(self)
+        assert self not in defn.self_instances
+        defn.self_instances.add(self)
 
     def __repr__(self):
         args = []
