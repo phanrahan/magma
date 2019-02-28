@@ -216,11 +216,13 @@ class _DeclareInterface(_Interface):
             args[name] = _get_port(name, port, renamed_ports, inst, defn)
         self.ports = args
 
-    def add_port(self, name, typ, renamed_ports={}, inst=None, defn=None):
-        assert name not in self.Decl and name not in self.ports
+    def add_port(self, name, typ, renamed_ports={}, inst=None, defn=None, add_to_decl=False):
+        assert name not in self.ports
         port = _get_port(name, typ, renamed_ports, inst, defn)
         self.ports.update({name: port})
-        type(self).Decl += (name, typ)
+        if add_to_decl:
+            assert name not in self.Decl
+            type(self).Decl += (name, typ)
 
 
 class InterfaceKind(Kind):

@@ -53,12 +53,17 @@ def setports(self, ports):
         if isinstance(name, str):
             setattr(self, name, port)
 
+
 def _add_port(defn, name, typ):
     if name in defn.IO.ports or name in defn.interface.ports:
         raise ValueError(f"{name} already is a port of {defn.name}")
     defn.IO.ports.update({name: typ})
-    defn.interface.add_port(name, typ, defn=defn)
+    defn.interface.add_port(name, typ, defn=defn, add_to_decl=True)
     setattr(defn, name, defn.interface.ports[name])
+    for inst in defn.self_instances:
+        inst.IO.ports.update({name: typ})
+        inst.interface.add_port(name, typ, inst=inst, add_to_decl=False)
+        setattr(inst, name, inst.interface.ports[name])
 
 
 #
