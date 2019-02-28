@@ -18,6 +18,8 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
 from .is_definition import isdefinition
+from .current_definition import get_current_definition, push_definition, \
+    pop_definition
 
 
 __all__  = ['AnonymousCircuitType']
@@ -365,9 +367,9 @@ class CircuitType(AnonymousCircuitType):
         super(CircuitType, self).__init__(*largs, **kwargs)
 
         # Circuit instances are placed if within a definition
-        global currentDefinition
-        if currentDefinition:
-             currentDefinition.place(self)
+        current_defn = get_current_definition()
+        if current_defn:
+             current_defn.place(self)
 
         defn = type(self)
         assert self not in defn.self_instances
@@ -423,29 +425,6 @@ def DeclareCircuit(name, *decl, **args):
     return CircuitKind( name, (CircuitType,), dct )
 
 
-
-# Maintain a current definition and stack of nested definitions
-
-currentDefinition = None
-currentDefinitionStack = []
-
-def getCurrentDefinition():
-    global currentDefinition
-    return currentDefinition
-
-def pushDefinition(defn):
-    global currentDefinition
-    if currentDefinition:
-        currentDefinitionStack.append(currentDefinition)
-    currentDefinition = defn
-
-def popDefinition():
-    global currentDefinition
-    if len(currentDefinitionStack) > 0:
-        currentDefinition = currentDefinitionStack.pop()
-    else:
-        currentDefinition = None
-
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
@@ -487,7 +466,7 @@ class DefineCircuitKind(CircuitKind):
 
             # create circuit definition
             if hasattr(self, 'definition'):
-                 pushDefinition(self)
+                 push_definition(self)
                  self.definition()
                  self._is_definition = True
                  EndCircuit()
@@ -557,19 +536,28 @@ def DefineCircuit(name, *decl, **args):
                default_kwargs = args.get('default_kwargs', {}),
                renamed_ports = args.get('renamed_ports', {}))
 
-    currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
-    return currentDefinition
+    defn = DefineCircuitKind( name, (Circuit,), dct)
+    push_definition(defn)
+    return get_current_definition()  # should be same as defn.
+
 
 def EndDefine():
-    if currentDefinition:
+    current_defn = get_current_definition()
+    if current_defn:
         debug_info = get_callee_frame_info()
-        currentDefinition.end_circuit_filename = debug_info[0]
-        currentDefinition.end_circuit_lineno   = debug_info[1]
-        popDefinition()
+        current_defn.end_circuit_filename = debug_info[0]
+        current_defn.end_circuit_lineno   = debug_info[1]
+        pop_definition()
     else:
         raise Exception("EndDefine called without Define/DeclareCircuit")
 
 EndCircuit = EndDefine
+
+
+# This function is only included for backwards compatability.
+def getCurrentDefinition():
+    return current_definition()
+
 
 def CopyInstance(instance):
     circuit = type(instance)
