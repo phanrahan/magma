@@ -82,3 +82,14 @@ class TupleRef(Ref):
    def anon(self):
        return self.tuple.name.anon()
 
+
+# Get the base reference (Anon, Inst, Defn) for a reference. That is, if @ref is
+# an array or tuple ref, dereference up, until the original port is reached.
+def get_base_ref(ref):
+    if isinstance(ref, (AnonRef, InstRef, DefnRef)):
+        return ref
+    if isinstance(ref, ArrayRef):
+        return get_base_ref(ref.array.name)
+    if isinstance(ref, TupleRef):
+        return get_base_ref(ref.tuple.name)
+    raise NotImplementedError(type(ref))

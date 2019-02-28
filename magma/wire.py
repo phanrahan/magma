@@ -2,16 +2,36 @@ import inspect
 from collections import Sequence
 from .port import INPUT, OUTPUT, INOUT
 from .compatibility import IntegerTypes
-from .t import Type
+from .t import Type, Kind
 from .debug import debug_wire
 from .logging import info, warning, error
 from .port import report_wiring_error
+from .current_definition import get_current_definition
+from .ref import InstRef, DefnRef, get_base_ref
+
 
 __all__ = ['wire']
 
 
+# Check that the wiring call is valid: if a port is an instance port, the
+# instance should have been placed in the current definition; if a port is a
+# definition port, the definition should be the current definition.
+def _verify_ref(port):
+    current_defn = get_current_definition()
+    base_ref = get_base_ref(port.name)
+    if isinstance(base_ref, InstRef):
+        assert base_ref.inst.defn is current_defn
+    elif isinstance(base_ref, DefnRef):
+        assert base_ref.defn is current_defn
+
+
 @debug_wire
 def wire(o, i, debug_info):
+
+    for port in (o, i):
+        if not isinstance(type(port), Kind):
+            continue
+        _verify_ref(port)
 
     # Wire(o, Circuit)
     if hasattr(i, 'interface'):
