@@ -2,6 +2,11 @@ from .port import INPUT, OUTPUT, INOUT
 from .t import In, Out, InOut
 from .bit import Bit, _BitKind, _BitType
 from .wire import wire
+# Note (rsetaluri): We should be using .circuit.OpenCircuit and
+# .circuit.EndCircuit, but that would induce a circular dependency, so instead
+# we use the current_definition stack functions directly
+from .current_definition import push_definition, pop_definition
+
 
 __all__  = ['ClockKind', 'ClockType']
 __all__ += ['Clock', 'ClockIn', 'ClockOut']
@@ -145,11 +150,14 @@ def wireclocktype(defn, inst, clocktype):
              #print('defn clock', port)
              defnclk += [port]
     if defnclk:
+        push_definition(defn)
         defnclk = defnclk[0] # wire first clock
         for name, port in inst.interface.ports.items():
              if isinstance(port, clocktype) and port.isinput() and not port.driven():
                  #print('inst clock', port)
                  wire(defnclk, port)
+        pop_definition()
+
 
 def wiredefaultclock(defn, inst):
     wireclocktype(defn, inst, ClockType)

@@ -29,6 +29,7 @@ __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
+__all__ += ['OpenCircuit']
 __all__ += ['getCurrentDefinition']
 
 __all__ += ['CopyInstance']
@@ -539,6 +540,11 @@ def DefineCircuit(name, *decl, **args):
     defn = DefineCircuitKind( name, (Circuit,), dct)
     push_definition(defn)
     return get_current_definition()  # should be same as defn.
+
+
+
+def OpenCircuit(defn):
+    push_definition(defn)
 
 
 def EndDefine():
