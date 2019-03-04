@@ -215,24 +215,25 @@ def ite(s: Bit, a: Data, b: Data) -> Data:
 
 
 @m.circuit.combinational
-def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
+def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit, Bit,
+                                                                Bit, Bit, Bit):
     if signed:
         a = m.sint(a)
         b = m.sint(b)
         # mula, mulb = a.sext(16), b.sext(16)
-        mula, mulb = m.sext(a, 8), m.sext(b, 8)
+        mula, mulb = m.sext(a, 16), m.sext(b, 16)
         mul = mula * mulb
     else:
         # mula, mulb = a.zext(16), b.zext(16)
         a = m.uint(a)
         b = m.uint(b)
-        mula, mulb = m.zext(a, 8), m.zext(b, 8)
+        mula, mulb = m.zext(a, 16), m.zext(b, 16)
         mul = mula * mulb
     # Had to move up because of polymorphism issue
     # mul = mula * mulb
 
-    C = 0
-    V = 0
+    C = m.bit(0)
+    V = m.bit(0)
     if alu == ALU.Add:
         # res, C = a.adc(b, Bit(0))
         res, C = adc(a, b, m.bit(0))
@@ -243,15 +244,15 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
         # res, C = a.adc(b_not, Bit(1))
         res, C = adc(a, b_not, m.bit(1))
         V = overflow(a, b_not, res)
-        res_p = C
+        res_p = m.bit(C)
     elif alu == ALU.Mult0:
-        res, C, V = mul[:16], 0, 0  # wrong C, V
+        res, C, V = mul[:16], m.bit(0), m.bit(0)  # wrong C, V
         res_p = C
     elif alu == ALU.Mult1:
-        res, C, V = mul[8:24], 0, 0  # wrong C, V
+        res, C, V = mul[8:24], m.bit(0), m.bit(0)  # wrong C, V
         res_p = C
     elif alu == ALU.Mult2:
-        res, C, V = mul[16:32], 0, 0  # wrong C, V
+        res, C, V = mul[16:32], m.bit(0), m.bit(0)  # wrong C, V
         res_p = C
     elif alu == ALU.GTE_Max:
         # C, V = a-b?
@@ -269,24 +270,24 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
         res, res_p = ite(pred, a, -a), m.bit(a[-1])
     elif alu == ALU.Sel:
         # res, res_p = d.ite(a, b), 0
-        res, res_p = ite(d, a, b), 0
+        res, res_p = ite(d, a, b), m.bit(0)
     elif alu == ALU.And:
-        res, res_p = a & b, 0
+        res, res_p = a & b, m.bit(0)
     elif alu == ALU.Or:
-        res, res_p = a | b, 0
+        res, res_p = a | b, m.bit(0)
     elif alu == ALU.XOr:
-        res, res_p = a ^ b, 0
+        res, res_p = a ^ b, m.bit(0)
     elif alu == ALU.SHR:
         # res, res_p = a >> b[:4], 0
-        res, res_p = a >> b, 0
+        res, res_p = a >> b, m.bit(0)
     elif alu == ALU.SHL:
         # res, res_p = a << b[:4], 0
-        res, res_p = a << b, 0
+        res, res_p = a << b, m.bit(0)
     elif alu == ALU.Neg:
         if signed:
-            res, res_p = ~a + m.bits(1, DATAWIDTH), 0
+            res, res_p = ~a + m.bits(1, DATAWIDTH), m.bit(0)
         else:
-            res, res_p = ~a, 0
+            res, res_p = ~a, m.bit(0)
 
     Z = res == 0
     N = m.bit(res[-1])
@@ -336,7 +337,8 @@ class PE:
         rf = self.regf(inst.regf, inst.bit2, bit2, clk_en)
 
         # calculate alu results
-        alu_res, alu_res_p, Z, N, C, V = alu(inst.alu, inst.signed, ra, rb, rd)
+        alu_res, alu_res_p, Z, N, C, V = alu(inst.alu, inst.signed, ra, rb,
+                                             rd[0])
 
         # calculate lut results
         lut_res = lut(inst.lut, rd, re, rf)
