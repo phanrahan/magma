@@ -147,10 +147,10 @@ def cond(code: Cond, alu: Bit, lut: Bit, Z: Bit, N: Bit, C: Bit,
 
 # Implement a 3-bit LUT
 @m.circuit.combinational
-def lut(lut: LUT, bit0: Bit, bit1: Bit, bit2: Bit) -> Bit:
-    i = (m.bits(bit2, 3) << m.bits(2, 3)) | \
-        (m.bits(bit1, 3) << m.bits(1, 3)) | \
-        m.bits(bit0, 3)
+def lut(lut: LUT, bit0: Bits(1), bit1: Bits(1), bit2: Bits(1)) -> Bit:
+    i = (m.bits(m.zext(bit2, 2)) << m.bits(2, 3)) | \
+        (m.bits(m.zext(bit1, 2)) << m.bits(1, 3)) | \
+        m.zext(bit0, 2)
     return lut[(m.bits(1, 3) << i)]
 
 
@@ -219,8 +219,9 @@ def ite(s: Bit, a: Data, b: Data) -> Data:
 
 
 @m.circuit.combinational
-def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit, Bit,
-                                                                Bit, Bit, Bit):
+def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bits(1)) -> (Data, Bit,
+                                                                    Bit, Bit,
+                                                                    Bit, Bit):
     if signed:
         a = m.sint(a)
         b = m.sint(b)
@@ -274,7 +275,7 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit, Bit,
         res, res_p = ite(pred, a, -a), m.bit(a[-1])
     elif alu == ALU.Sel:
         # res, res_p = d.ite(a, b), 0
-        res, res_p = ite(d, a, b), m.bit(0)
+        res, res_p = ite(d[0], a, b), m.bit(0)
     elif alu == ALU.And:
         res, res_p = a & b, m.bit(0)
     elif alu == ALU.Or:
@@ -328,8 +329,8 @@ class PE:
     #              clk_en: Bit = Bit(1)):
     def __call__(self, inst: Inst,
                  data0: Data, data1: Data,
-                 bit0: Bit, bit1: Bit, bit2: Bit,
-                 clk_en: Bit) -> Product(Data, Bit, Bit):
+                 bit0: Bits(1), bit1: Bits(1), bit2: Bits(1),
+                 clk_en: Bit) -> (Data, Bit, Bit):
 
         # Simulate one clock cycle
 
@@ -342,10 +343,10 @@ class PE:
 
         # calculate alu results
         alu_res, alu_res_p, Z, N, C, V = alu(inst.alu, inst.signed, ra, rb,
-                                             rd[0])
+                                             rd)
 
         # calculate lut results
-        lut_res = lut(inst.lut, rd[0], re[0], rf[0])
+        lut_res = lut(inst.lut, rd, re, rf)
 
         # calculate 1-bit result
         res_p = cond(inst.cond, alu_res_p, lut_res, Z, N, C, V)

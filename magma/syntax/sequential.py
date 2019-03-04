@@ -81,7 +81,10 @@ class RewriteReturn(ast.NodeTransformer):
                     elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
             else:
                 elts.append(ast.Name(f"self_{name}", ast.Load()))
-        elts.append(node.value)
+        if isinstance(node.value, ast.Tuple):
+            elts.extend(node.value.elts)
+        else:
+            elts.append(node.value)
         node.value = ast.Tuple(elts, ast.Load())
         return node
 
@@ -209,9 +212,16 @@ def gen_io_list(inputs, output_type):
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
         io_list += f"\"{name}\", m.In({type_}), "
-    output_type = astor.to_source(output_type).rstrip()
     io_list += f"\"CLK\", m.In(m.Clock), "
-    io_list += f"\"O\", m.Out({output_type})"
+    if isinstance(output_type, ast.Tuple):
+        outputs = []
+        for i, elem in enumerate(output_type.elts):
+            output_type_str = astor.to_source(elem).rstrip()
+            outputs.append(f"\"O{i}\", m.Out({output_type_str})")
+        io_list += ", ".join(outputs)
+    else:
+        output_type_str = astor.to_source(output_type).rstrip()
+        io_list += f"\"O\", m.Out({output_type_str})"
     return io_list + "]"
 
 
@@ -290,18 +300,32 @@ def sequential(defn_env: dict, cls):
             comb_out_count += 1
     circuit_combinational_args = circuit_combinational_args[:-2]
     circuit_combinational_call_args = circuit_combinational_call_args[:-2]
-    circuit_combinational_output_type += astor.to_source(output_type).rstrip()
-    comb_out_wiring += " " * 8
-    comb_out_wiring += f"io.O <= comb_out[{comb_out_count}]\n"
+    if isinstance(output_type, ast.Tuple):
+        output_types = []
+        for i, elem in enumerate(output_type.elts):
+            output_types.append(astor.to_source(elem).rstrip())
+            comb_out_wiring += " " * 8
+            comb_out_wiring += f"io.O{i} <= comb_out[{comb_out_count + i}]\n"
+        output_type_str = ", ".join(output_types)
+    else:
+        output_type_str = astor.to_source(output_type).rstrip()
+        comb_out_wiring += " " * 8
+        comb_out_wiring += f"io.O <= comb_out[{comb_out_count}]\n"
+    circuit_combinational_output_type += output_type_str
 
     circuit_combinational_body = ""
     for stmt in call_def.body:
-        stmt = RewriteSelfAttributes(initial_value_map).visit(stmt)
+        rewriter = RewriteSelfAttributes(initial_value_map)
+        stmt = rewriter.visit(stmt)
+        code = [stmt]
+        if rewriter.calls_seen:
+            code = rewriter.calls_seen + code
         stmt = RewriteReturn(initial_value_map).visit(stmt)
-        for line in astor.to_source(stmt).rstrip().splitlines():
-            circuit_combinational_body += " " * 12
-            circuit_combinational_body += line
-            circuit_combinational_body += "\n"
+        for stmt in code:
+            for line in astor.to_source(stmt).rstrip().splitlines():
+                circuit_combinational_body += " " * 12
+                circuit_combinational_body += line
+                circuit_combinational_body += "\n"
 
     circuit_definition_str = circuit_definition_template.format(
         circuit_name=cls.__name__,
