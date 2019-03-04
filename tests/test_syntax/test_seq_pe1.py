@@ -1,27 +1,105 @@
 import magma as m
+from peak import Peak
+
+Bit = m.Bit
+Bits = m.Bits
+Product = m.Tuple
+
+DATAWIDTH = 16
+Data = Bits(DATAWIDTH)
 
 
-class Cond(Enum):
-    Z = 0    # EQ
-    Z_n = 1  # NE
-    C = 2    # UGE
-    C_n = 3  # ULT
-    N = 4    # <  0
-    N_n = 5  # >= 0
-    V = 6    # Overflow
-    V_n = 7  # No overflow
-    EQ = 0
-    NE = 1
-    UGE = 2
-    ULT = 3
-    UGT = 8
-    ULE = 9
-    SGE = 10
-    SLT = 11
-    SGT = 12
-    SLE = 13
-    LUT = 14
-    ALU = 15
+LUT = Bits(8)
+
+
+# class Cond(m.Enum):
+Cond = m.Enum(
+    Z=0,    # EQ
+    Z_n=1,  # NE
+    C=2,    # UGE
+    C_n=3,  # ULT
+    N=4,    # <  0
+    N_n=5,  # >= 0
+    V=6,    # Overflow
+    V_n=7,  # No overflow
+    EQ=0,
+    NE=1,
+    UGE=2,
+    ULT=3,
+    UGT=8,
+    ULE=9,
+    SGE=10,
+    SLT=11,
+    SGT=12,
+    SLE=13,
+    LUT=14,
+    ALU=15
+)
+
+
+# class Mode(m.Enum):
+Mode = m.Enum(
+    CONST=0,  # Register returns constant in constant field
+    VALID=1,  # Register written with clock enable, previous value returned
+    BYPASS=2,  # Register is bypassed and input value is returned
+    DELAY=3  # Register written with input value, previous value returned
+)
+
+
+# Constant values for registers
+RegA_Const = Bits(DATAWIDTH)
+RegB_Const = Bits(DATAWIDTH)
+RegD_Const = Bits(1)
+RegE_Const = Bits(1)
+RegF_Const = Bits(1)
+
+# Modes for registers
+RegA_Mode = Mode
+RegB_Mode = Mode
+RegD_Mode = Mode
+RegE_Mode = Mode
+RegF_Mode = Mode
+
+# ALU operations
+# class ALU(Enum):
+ALU = m.Enum(
+    Add=0,
+    Sub=1,
+    Abs=3,
+    GTE_Max=4,
+    LTE_Min=5,
+    Sel=8,
+    Mult0=0xb,
+    Mult1=0xc,
+    Mult2=0xd,
+    SHR=0xf,
+    SHL=0x11,
+    Or=0x12,
+    And=0x13,
+    XOr=0x14
+)
+
+# Whether the operation is unsigned (0) or signed (1)
+Signed = Bits(1)
+
+
+# class Inst(Product):
+Inst = Product(
+    alu=ALU,  # ALU operation
+    signed=Signed,  # unsigned or signed
+    lut=LUT,  # LUT operation as a 3-bit LUT
+    cond=Cond,  # Condition code (see cond.py)
+    rega=RegA_Mode,  # RegA mode (see mode.py)
+    data0=RegA_Const,  # RegA constant (16-bits)
+    regb=RegB_Mode,  # RegB mode
+    data1=RegB_Const,  # RegB constant (16-bits)
+    regd=RegD_Mode,  # RegD mode
+    bit0=RegD_Const,  # RegD constant (1-bit)
+    rege=RegE_Mode,  # RegE mode
+    bit1=RegE_Const,  # RegE constant (1-bit)
+    regf=RegF_Mode,  # RegF mode
+    bit2=RegF_Const    # RegF constant (1-bit)
+)
 
 
 #
@@ -67,41 +145,48 @@ def cond(code: Cond, alu: Bit, lut: Bit, Z: Bit, N: Bit, C: Bit,
     raise NotImplementedError(code)
 
 
-Bit = Bits(1)
-LUT = Bits(8)
-
-
 # Implement a 3-bit LUT
 def lut(lut: LUT, bit0: Bit, bit1: Bit, bit2: Bit) -> Bit:
     i = (int(bit2) << 2) | (int(bit1) << 1) | int(bit0)
     return Bit(lut & (1 << i))
 
 
-class Mode(m.Enum):
-    CONST = 0   # Register returns constant in constant field
-    VALID = 1   # Register written with clock enable, previous value returned
-    BYPASS = 2  # Register is bypassed and input value is returned
-    DELAY = 3   # Register written with input value, previous value returned
+def DefineRegister(width, init=0):
+    @m.circuit.sequential
+    class Register(Peak):
+        def __init__(self):
+            self.value: Bits(width) = m.bits(init, width)
+
+        def __call__(self, value: Bits(width), en: Bit) -> Bits(width):
+            retvalue = self.value
+            if en:
+                self.value = value
+            return retvalue
+
+    return Register
 
 
-class RegisterMode(Peak):
-    def __init__(self, init=0):
-        self.register = bits(init)
+def DefineRegisterMode(width, init=0):
+    @m.circuit.sequential
+    class RegisterMode(Peak):
+        def __init__(self):
+            # TODO: Changed register to be implicit
+            self.register: Bits(width) = [DefineRegister(width, init)()]
 
-    def reset(self):
-        self.register.reset()
-
-    def __call__(self, mode: Mode, const, value, clk_en: Bit):
-        if mode == Mode.CONST:
-            return const
-        elif mode == Mode.BYPASS:
-            return value
-        elif mode == Mode.DELAY:
-            return self.register(value, True)
-        elif mode == Mode.VALID:
-            return self.register(value, clk_en)
-        else:
-            raise NotImplementedError()
+        def __call__(self, mode: Mode, const: Bits(width), value: Bits(width),
+                     clk_en: Bit) -> Bits(width):
+            if mode == Mode.CONST:
+                self.register(value, m.bit(False))
+                return const
+            elif mode == Mode.BYPASS:
+                self.register(value, m.bit(False))
+                return value
+            elif mode == Mode.DELAY:
+                # return self.register(value, True)
+                return self.register(value, m.bit(True))
+            elif mode == Mode.VALID:
+                return self.register(value, clk_en)
+    return RegisterMode
 
 
 @m.circuit.sequential
@@ -110,19 +195,31 @@ class PE:
         # Declare PE state
 
         # Data registers
-        self.rega = RegisterMode(Data)
-        self.regb = RegisterMode(Data)
+        # self.rega = RegisterMode(Data)
+        # self.regb = RegisterMode(Data)
 
         # Bit Registers
-        self.regd = RegisterMode(Bit)
-        self.rege = RegisterMode(Bit)
-        self.regf = RegisterMode(Bit)
+        # self.regd = RegisterMode(Bit)
+        # self.rege = RegisterMode(Bit)
+        # self.regf = RegisterMode(Bit)
 
-    @name_outputs(alu_res=Data, res_p=Bit, irq=Bit)
+        self.rega: Data = [DefineRegisterMode(DATAWIDTH)()]
+        self.regb: Data = [DefineRegisterMode(DATAWIDTH)()]
+
+        # Bit Registers
+        self.regd: Bit = [DefineRegisterMode(1)()]
+        self.rege: Bit = [DefineRegisterMode(1)()]
+        self.regf: Bit = [DefineRegisterMode(1)()]
+
+    # @name_outputs(alu_res=Data, res_p=Bit, irq=Bit)
+    # def __call__(self, inst: Inst,
+    #              data0: Data, data1: Data = Data(0),
+    #              bit0: Bit = Bit(0), bit1: Bit = Bit(0), bit2: Bit = Bit(0),
+    #              clk_en: Bit = Bit(1)):
     def __call__(self, inst: Inst,
-                 data0: Data, data1: Data = Data(0),
-                 bit0: Bit = Bit(0), bit1: Bit = Bit(0), bit2: Bit = Bit(0),
-                 clk_en: Bit = Bit(1)):
+                 data0: Data, data1: Data,
+                 bit0: Bit, bit1: Bit, bit2: Bit,
+                 clk_en: Bit) -> Product(Data, Bit, Bit):
 
         # Simulate one clock cycle
 

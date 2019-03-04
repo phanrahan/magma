@@ -5,13 +5,66 @@ import astor
 import magma.ast_utils as ast_utils
 from magma.debug import debug_info
 import functools
+import magma as m
+from magma.ssa import convert_tree_to_ssa
+from collections import Counter
 
 
 class RewriteSelfAttributes(ast.NodeTransformer):
+    def __init__(self, initial_value_map):
+        self.initial_value_map = initial_value_map
+        self.calls_seen = []
+
     def visit_Attribute(self, node):
-        assert isinstance(node.value, ast.Name)
-        assert node.value.id == "self"
-        return ast.Name(f"self_{node.attr}", ast.Load())
+        if isinstance(node.value, ast.Name) and node.value.id == "self":
+            return ast.Name(f"self_{node.attr}", ast.Load())
+        return node
+
+    def visit_Call(self, node):
+        if isinstance(node.func, ast.Attribute) and \
+                isinstance(node.func.value, ast.Name) and \
+                node.func.value.id == "self":
+            attr = node.func.attr
+            assert attr in self.initial_value_map, \
+                "Reference to self that was not initialized"
+            ret = []
+            ports = self.initial_value_map[attr][0].value.interface.inputs()
+            for name, value in zip(ports, node.args):
+                ret.append(ast.parse(
+                    f"self_{attr}_{name} = {astor.to_source(value).rstrip()}"
+                ).body[0])
+            self.calls_seen.extend(ret)
+            func = astor.to_source(node.func).rstrip()
+            outputs = self.initial_value_map[attr][0].value.interface.outputs()
+            assert len(outputs) == 1, f"Expected one output: {outputs}"
+            return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
+        return node
+
+    def visit_If(self, node):
+        node.test = self.visit(node.test)
+        for attr in ["body", "orelse"]:
+            new_body = []
+            for item in getattr(node, attr):
+                new_body.append(self.visit(item))
+            if self.calls_seen:
+                new_body = self.calls_seen + new_body
+                self.calls_seen = []
+            setattr(node, attr, new_body)
+        return node
+
+
+    # def visit(self, node):
+    #     node = super().visit(node)
+    #     if hasattr(node, 'body'):
+    #         new_body = self.calls_seen
+    #         self.calls_seen = []
+    #         for item in node.body:
+    #             if isinstance(item, list):
+    #                 new_body.extend(item)
+    #             else:
+    #                 new_body.append(item)
+    #         node.body = new_body
+    #     return node
 
 
 class RewriteReturn(ast.NodeTransformer):
@@ -20,8 +73,14 @@ class RewriteReturn(ast.NodeTransformer):
 
     def visit_Return(self, node):
         elts = []
-        for name in self.initial_value_map:
-            elts.append(ast.Name(f"self_{name}", ast.Load()))
+        for name, value in self.initial_value_map.items():
+            if isinstance(value[0], EscapedExpression):
+                for port in value[0].value.interface.inputs():
+                    if isinstance(port, m.ClockType):
+                        continue
+                    elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
+            else:
+                elts.append(ast.Name(f"self_{name}", ast.Load()))
         elts.append(node.value)
         node.value = ast.Tuple(elts, ast.Load())
         return node
@@ -87,6 +146,7 @@ def get_io(call_def):
     # Skips self
     assert call_def.args.args[0].arg == "self"
     inputs = [(arg.arg, arg.annotation) for arg in call_def.args.args[1:]]
+    returns = call_def.returns
     return inputs, call_def.returns
 
 
@@ -127,14 +187,15 @@ def gen_register_instances(initial_value_map):
         if isinstance(value, EscapedExpression):
             orig = astor.to_source(value.orig.elts[0]).rstrip()
             register_instances += f"{tab}{name} = {orig}\n"
-            print(register_instances)
+        elif isinstance(value, ast.Num):
+            register_instances += f"{tab}{name} = {value.n}\n"
         else:
             # TODO: Only support m.bits(x, y) for now
             assert isinstance(value, ast.Call) and \
                 isinstance(value.func, ast.Attribute) and \
                 isinstance(value.func.value, ast.Name) and \
                 value.func.value.id == "m" and \
-                value.func.attr == "bits"
+                value.func.attr == "bits", type(value)
             assert isinstance(value.args[0], ast.Num)
             assert isinstance(value.args[1], ast.Num)
             n = value.args[1].n
@@ -205,13 +266,28 @@ def sequential(defn_env: dict, cls):
 
     comb_out_count = 0
     for name, (value, type_) in initial_value_map.items():
-        type_ = astor.to_source(type_).rstrip()
-        circuit_combinational_args += f"self_{name}: {type_}, "
-        circuit_combinational_call_args += f"{name}, "
-        circuit_combinational_output_type += f"{type_}, "
-        comb_out_wiring += " " * 8
-        comb_out_wiring += f"{name}.I <= comb_out[{comb_out_count}]\n"
-        comb_out_count += 1
+        if isinstance(value, EscapedExpression):
+            for key, value in value.value.interface.ports.items():
+                if isinstance(value, m.ClockType):
+                    continue
+                type_ = repr(type(value))
+                if value.isoutput():
+                    circuit_combinational_args += f"self_{name}_{value}: {type_}, "
+                    circuit_combinational_call_args += f"{name}.{value}, "
+                if value.isinput():
+                    circuit_combinational_output_type += f"{type_}, "
+                    comb_out_wiring += " " * 8
+                    comb_out_wiring += \
+                        f"{name}.{value} <= comb_out[{comb_out_count}]\n"
+                    comb_out_count += 1
+        else:
+            type_ = astor.to_source(type_).rstrip()
+            circuit_combinational_args += f"self_{name}: {type_}, "
+            circuit_combinational_call_args += f"{name}, "
+            circuit_combinational_output_type += f"{type_}, "
+            comb_out_wiring += " " * 8
+            comb_out_wiring += f"{name}.I <= comb_out[{comb_out_count}]\n"
+            comb_out_count += 1
     circuit_combinational_args = circuit_combinational_args[:-2]
     circuit_combinational_call_args = circuit_combinational_call_args[:-2]
     circuit_combinational_output_type += astor.to_source(output_type).rstrip()
@@ -220,10 +296,12 @@ def sequential(defn_env: dict, cls):
 
     circuit_combinational_body = ""
     for stmt in call_def.body:
-        stmt = RewriteSelfAttributes().visit(stmt)
+        stmt = RewriteSelfAttributes(initial_value_map).visit(stmt)
         stmt = RewriteReturn(initial_value_map).visit(stmt)
-        circuit_combinational_body += " " * 12
-        circuit_combinational_body += astor.to_source(stmt).rstrip() + "\n"
+        for line in astor.to_source(stmt).rstrip().splitlines():
+            circuit_combinational_body += " " * 12
+            circuit_combinational_body += line
+            circuit_combinational_body += "\n"
 
     circuit_definition_str = circuit_definition_template.format(
         circuit_name=cls.__name__,
@@ -235,6 +313,7 @@ def sequential(defn_env: dict, cls):
         circuit_combinational_call_args=circuit_combinational_call_args,
         comb_out_wiring=comb_out_wiring
     )
+    print(circuit_definition_str)
     tree = ast.parse(circuit_definition_str)
     if "Register" not in defn_env:
         tree = ast.Module([

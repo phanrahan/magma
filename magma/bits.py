@@ -65,7 +65,15 @@ class BitsKind(ArrayKind):
 def Bits(N, T=None):
     if T is None:
         T = Bit
-    assert isinstance(N, IntegerTypes)
+    assert isinstance(N, (IntegerTypes, BitsType)), (N, type(N))
+    if isinstance(N, BitsType):
+        assert N.const()
+        # TODO: Move this logic to a method in BitsType
+        bit_type_to_constant_map = {
+            GND: 0,
+            VCC: 1
+        }
+        N = BitVector([bit_type_to_constant_map[x] for x in N]).as_uint()
     name = 'Bits({})'.format(N)
     return BitsKind(name, (BitsType,), dict(N=N, T=T))
 
