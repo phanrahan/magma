@@ -142,7 +142,6 @@ def cond(code: Cond, alu: Bit, lut: Bit, Z: Bit, N: Bit, C: Bit,
         return alu
     elif code == Cond.LUT:
         return lut
-    raise NotImplementedError(code)
 
 
 # Implement a 3-bit LUT
@@ -190,6 +189,32 @@ def DefineRegisterMode(width, init=0):
 
 
 @m.circuit.combinational
+def overflow(a: Data, b: Data, res: Data) -> Bit:
+    msb_a = a[-1]
+    msb_b = b[-1]
+    N = res[-1]
+    return (msb_a & msb_b & ~N) | (~msb_a & ~msb_b & N)
+
+
+# TODO: This needs to be polymorphic, assume uint for now
+@m.circuit.combinational
+def adc(a: Data, b: Data, c: Bit) -> (Data, Bit):
+    a = m.uint(m.zext(a, 1))
+    b = m.uint(m.zext(b, 1))
+    c = m.zext(m.uint(c), DATAWIDTH)
+    res = a + b + c
+    return res[0:-1], res[-1]
+
+
+@m.circuit.combinational
+def ite(s: Bit, a: Data, b: Data) -> Data:
+    if s:
+        return a
+    else:
+        return b
+
+
+@m.circuit.combinational
 def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
     if signed:
         a = m.sint(a)
@@ -209,12 +234,14 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
     C = 0
     V = 0
     if alu == ALU.Add:
-        res, C = a.adc(b, Bit(0))
+        # res, C = a.adc(b, Bit(0))
+        res, C = adc(a, b, m.bit(0))
         V = overflow(a, b, res)
         res_p = C
     elif alu == ALU.Sub:
         b_not = ~b
-        res, C = a.adc(b_not, Bit(1))
+        # res, C = a.adc(b_not, Bit(1))
+        res, C = adc(a, b_not, m.bit(1))
         V = overflow(a, b_not, res)
         res_p = C
     elif alu == ALU.Mult0:
@@ -229,16 +256,20 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
     elif alu == ALU.GTE_Max:
         # C, V = a-b?
         pred = a >= b
-        res, res_p = pred.ite(a, b), a >= b
+        # res, res_p = pred.ite(a, b), a >= b
+        res, res_p = ite(pred, a, b), a >= b
     elif alu == ALU.LTE_Min:
         # C, V = a-b?
         pred = a <= b
-        res, res_p = pred.ite(a, b), a >= b
+        # res, res_p = pred.ite(a, b), a >= b
+        res, res_p = ite(pred, a, b), a >= b
     elif alu == ALU.Abs:
         pred = a >= 0
-        res, res_p = pred.ite(a, -a), Bit(a[-1])
+        # res, res_p = pred.ite(a, -a), Bit(a[-1])
+        res, res_p = ite(pred, a, -a), m.bit(a[-1])
     elif alu == ALU.Sel:
-        res, res_p = d.ite(a, b), 0
+        # res, res_p = d.ite(a, b), 0
+        res, res_p = ite(d, a, b), 0
     elif alu == ALU.And:
         res, res_p = a & b, 0
     elif alu == ALU.Or:
@@ -246,19 +277,19 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
     elif alu == ALU.XOr:
         res, res_p = a ^ b, 0
     elif alu == ALU.SHR:
-        res, res_p = a >> b[:4], 0
+        # res, res_p = a >> b[:4], 0
+        res, res_p = a >> b, 0
     elif alu == ALU.SHL:
-        res, res_p = a << b[:4], 0
+        # res, res_p = a << b[:4], 0
+        res, res_p = a << b, 0
     elif alu == ALU.Neg:
         if signed:
-            res, res_p = ~a + Bit(1), 0
+            res, res_p = ~a + m.bits(1, DATAWIDTH), 0
         else:
             res, res_p = ~a, 0
-    else:
-        raise NotImplementedError(alu)
 
     Z = res == 0
-    N = Bit(res[-1])
+    N = m.bit(res[-1])
 
     return res, res_p, Z, N, C, V
 
@@ -314,7 +345,8 @@ class PE:
         res_p = cond(inst.cond, alu_res, lut_res, Z, N, C, V)
 
         # calculate interrupt request
-        irq = Bit(0)  # NYI
+        # irq = Bit(0)  # NYI
+        irq = m.bits(0)  # NYI
 
         # return 16-bit result, 1-bit result, irq
         return alu_res, res_p, irq
