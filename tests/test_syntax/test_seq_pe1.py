@@ -145,9 +145,12 @@ def cond(code: Cond, alu: Bit, lut: Bit, Z: Bit, N: Bit, C: Bit,
 
 
 # Implement a 3-bit LUT
+@m.circuit.combinational
 def lut(lut: LUT, bit0: Bit, bit1: Bit, bit2: Bit) -> Bit:
-    i = (int(bit2) << 2) | (int(bit1) << 1) | int(bit0)
-    return Bit(lut & (1 << i))
+    i = (m.bits(bit2, 3) << m.bits(2, 3)) | \
+        (m.bits(bit1, 3) << m.bits(1, 3)) | \
+        m.bits(bit0, 3)
+    return lut[(m.bits(1, 3) << i)]
 
 
 def DefineRegister(width, init=0):
@@ -341,7 +344,7 @@ class PE:
                                              rd[0])
 
         # calculate lut results
-        lut_res = lut(inst.lut, rd, re, rf)
+        lut_res = lut(inst.lut, rd[0], re[0], rf[0])
 
         # calculate 1-bit result
         res_p = cond(inst.cond, alu_res, lut_res, Z, N, C, V)
