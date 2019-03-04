@@ -205,7 +205,12 @@ def zext(value, n):
         zeros = sint(0, n)
     elif isinstance(value, BitsType):
         zeros = bits(0, n)
-    return concat(value, zeros)
+    result = concat(value, zeros)
+    if isinstance(value, UIntType):
+        return uint(result)
+    elif isinstance(value, SIntType):
+        return sint(result)
+    return result
 
 
 @check_value_is_output

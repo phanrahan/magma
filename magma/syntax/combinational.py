@@ -173,7 +173,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return class_def
 
     def visit_Name(self, node):
-        if node.id in self.IO:
+        if node.id in self.IO and isinstance(node.ctx, ast.Load):
             return ast.Attribute(ast.Name("io", ast.Load()), self.IO[node.id],
                                  ast.Load())
         return node

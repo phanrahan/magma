@@ -189,6 +189,80 @@ def DefineRegisterMode(width, init=0):
     return RegisterMode
 
 
+@m.circuit.combinational
+def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bit) -> (Data, Bit):
+    if signed:
+        a = m.sint(a)
+        b = m.sint(b)
+        # mula, mulb = a.sext(16), b.sext(16)
+        mula, mulb = m.sext(a, 8), m.sext(b, 8)
+        mul = mula * mulb
+    else:
+        # mula, mulb = a.zext(16), b.zext(16)
+        a = m.uint(a)
+        b = m.uint(b)
+        mula, mulb = m.zext(a, 8), m.zext(b, 8)
+        mul = mula * mulb
+    # Had to move up because of polymorphism issue
+    # mul = mula * mulb
+
+    C = 0
+    V = 0
+    if alu == ALU.Add:
+        res, C = a.adc(b, Bit(0))
+        V = overflow(a, b, res)
+        res_p = C
+    elif alu == ALU.Sub:
+        b_not = ~b
+        res, C = a.adc(b_not, Bit(1))
+        V = overflow(a, b_not, res)
+        res_p = C
+    elif alu == ALU.Mult0:
+        res, C, V = mul[:16], 0, 0  # wrong C, V
+        res_p = C
+    elif alu == ALU.Mult1:
+        res, C, V = mul[8:24], 0, 0  # wrong C, V
+        res_p = C
+    elif alu == ALU.Mult2:
+        res, C, V = mul[16:32], 0, 0  # wrong C, V
+        res_p = C
+    elif alu == ALU.GTE_Max:
+        # C, V = a-b?
+        pred = a >= b
+        res, res_p = pred.ite(a, b), a >= b
+    elif alu == ALU.LTE_Min:
+        # C, V = a-b?
+        pred = a <= b
+        res, res_p = pred.ite(a, b), a >= b
+    elif alu == ALU.Abs:
+        pred = a >= 0
+        res, res_p = pred.ite(a, -a), Bit(a[-1])
+    elif alu == ALU.Sel:
+        res, res_p = d.ite(a, b), 0
+    elif alu == ALU.And:
+        res, res_p = a & b, 0
+    elif alu == ALU.Or:
+        res, res_p = a | b, 0
+    elif alu == ALU.XOr:
+        res, res_p = a ^ b, 0
+    elif alu == ALU.SHR:
+        res, res_p = a >> b[:4], 0
+    elif alu == ALU.SHL:
+        res, res_p = a << b[:4], 0
+    elif alu == ALU.Neg:
+        if signed:
+            res, res_p = ~a + Bit(1), 0
+        else:
+            res, res_p = ~a, 0
+    else:
+        raise NotImplementedError(alu)
+
+    Z = res == 0
+    N = Bit(res[-1])
+
+    return res, res_p, Z, N, C, V
+
+
 @m.circuit.sequential
 class PE:
     def __init__(self):
