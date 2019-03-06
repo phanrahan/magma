@@ -93,7 +93,7 @@ Signed = Bits(1)
 # class Inst(Product):
 Inst = Product(
     alu=ALU,  # ALU operation
-    signed=Signed,  # unsigned or signed
+    signed_=Signed,  # unsigned or signed
     lut=LUT,  # LUT operation as a 3-bit LUT
     cond=Cond,  # Condition code (see cond.py)
     rega=RegA_Mode,  # RegA mode (see mode.py)
@@ -161,6 +161,7 @@ def lut(lut: LUT, bit0: Bits(1), bit1: Bits(1), bit2: Bits(1)) -> Bit:
     return lut[(m.bits(1, 3) << i)]
 
 
+@m.cache_definition
 def DefineRegister(width, init=0):
     @m.circuit.sequential
     class Register(Peak):
@@ -171,11 +172,14 @@ def DefineRegister(width, init=0):
             retvalue = self.value
             if en:
                 self.value = value
+            else:
+                self.value = self.value
             return retvalue
 
     return Register
 
 
+@m.cache_definition
 def DefineRegisterMode(width, init=0):
     @m.circuit.sequential
     class RegisterMode(Peak):
@@ -183,11 +187,11 @@ def DefineRegisterMode(width, init=0):
             # TODO: Changed register to be implicit
             self.register: Bits(width) = [DefineRegister(width, init)()]
 
-        def __call__(self, mode: Mode, const: Bits(width), value: Bits(width),
+        def __call__(self, mode: Mode, const_: Bits(width), value: Bits(width),
                      clk_en: Bit) -> Bits(width):
             if mode == Mode.CONST:
                 self.register(value, m.bit(False))
-                return const
+                return const_
             elif mode == Mode.BYPASS:
                 self.register(value, m.bit(False))
                 return value
@@ -226,10 +230,10 @@ def ite(s: Bit, a: Data, b: Data) -> Data:
 
 
 @m.circuit.combinational
-def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bits(1)) -> (Data, Bit,
+def alu(alu: ALU, signed_: Signed, a: Data, b: Data, d: Bits(1)) -> (Data, Bit,
                                                                     Bit, Bit,
                                                                     Bit, Bit):
-    if signed:
+    if signed_:
         a = m.sint(a)
         b = m.sint(b)
         # mula, mulb = a.sext(16), b.sext(16)
@@ -296,7 +300,7 @@ def alu(alu: ALU, signed: Signed, a: Data, b: Data, d: Bits(1)) -> (Data, Bit,
         # res, res_p = a << b[:4], 0
         res, res_p = a << b, m.bit(0)
     elif alu == ALU.Neg:
-        if signed:
+        if signed_:
             res, res_p = ~a + m.bits(1, DATAWIDTH), m.bit(0)
         else:
             res, res_p = ~a, m.bit(0)
@@ -349,7 +353,7 @@ class PE:
         rf = self.regf(inst.regf, inst.bit2, bit2, clk_en)
 
         # calculate alu results
-        alu_res, alu_res_p, Z, N, C, V = alu(inst.alu, inst.signed, ra, rb,
+        alu_res, alu_res_p, Z, N, C, V = alu(inst.alu, inst.signed_, ra, rb,
                                              rd)
 
         # calculate lut results
@@ -360,7 +364,7 @@ class PE:
 
         # calculate interrupt request
         # irq = Bit(0)  # NYI
-        irq = m.bits(0)  # NYI
+        irq = m.bit(0)  # NYI
 
         # return 16-bit result, 1-bit result, irq
         return alu_res, res_p, irq
@@ -387,15 +391,23 @@ def test_pe1():
 #             encoded = ht.BitVector.concat(encoded, result)
 #         return encoded
 
+    tester.step(2)
     tester.circuit.inst = add()
-    data0 = fault.random.random_bv(DATAWIDTH)
-    data1 = fault.random.random_bv(DATAWIDTH)
+    data0 = fault.random.random_bv(DATAWIDTH // 2)
+    data1 = fault.random.random_bv(DATAWIDTH // 2)
+    data0 = BitVector[16](data0)
+    data1 = BitVector[16](data1)
     tester.circuit.data0 = data0
     tester.circuit.data1 = data1
     tester.eval()
     expected = pe_functional_model(add(), data0, data1)
+    tester.step(4)
     for i, value in enumerate(expected):
         getattr(tester.circuit, f"O{i}").expect(value)
+
+    m.compile(f"build/PE", PE, output="coreir-verilog")
     tester.compile_and_run(target="verilator",
-                           directory="tests/test_syntax/build/")
+                           directory="tests/test_syntax/build/",
+                           flags=['-Wno-UNUSED', '--trace'],
+                           skip_compile=True)
 

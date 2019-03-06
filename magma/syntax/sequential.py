@@ -83,7 +83,7 @@ class RewriteReturn(ast.NodeTransformer):
                         continue
                     elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
             else:
-                elts.append(ast.Name(f"self_{name}", ast.Load()))
+                elts.append(ast.Name(f"self_{name}_I", ast.Load()))
         if isinstance(node.value, ast.Tuple):
             elts.extend(node.value.elts)
         else:
@@ -241,7 +241,11 @@ class ExecuteEscapedPythonExpressions(ast.NodeTransformer):
     def visit_List(self, node):
         assert len(node.elts) == 1, "Expected only list literatals that " \
             "contain a single expression"
+        # FIXME: Hack to prevent instancing logic from polluting currently open
+        # definition
+        m.DefineCircuit("tmp")
         result = eval(astor.to_source(node.elts[0]).rstrip(), self.defn_env)
+        m.EndCircuit()
         return EscapedExpression(result, node)
 
 
@@ -295,7 +299,7 @@ def sequential(defn_env: dict, cls):
                     comb_out_count += 1
         else:
             type_ = astor.to_source(type_).rstrip()
-            circuit_combinational_args += f"self_{name}: {type_}, "
+            circuit_combinational_args += f"self_{name}_O: {type_}, "
             circuit_combinational_call_args += f"{name}, "
             circuit_combinational_output_type += f"{type_}, "
             comb_out_wiring += " " * 8

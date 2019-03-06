@@ -131,7 +131,7 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
     num_return_values = len(ssa_visitor.return_values)
     for i in reversed(range(num_return_values)):
         conds = ssa_visitor.return_values[i]
-        name = f"__magma_ssa_return_value_{num_return_values - i - 1}"
+        name = f"__magma_ssa_return_value_{i}"
         if i == num_return_values - 1 or not conds:
             if isinstance(tree.returns, ast.Tuple):
                 tree.body.append(ast.Assign(
@@ -152,18 +152,18 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
                         [ast.Name(f"O{i}", ast.Store())],
                         ast.Call(ast.Name("phi", ast.Load()), [
                             ast.List([
+                                ast.Name(f"O{i}", ast.Load()),
                                 ast.Subscript(ast.Name(name, ast.Load()),
                                               ast.Index(ast.Num(i)),
-                                              ast.Load()),
-                                ast.Name(f"O{i}", ast.Load())], ast.Load()),
+                                              ast.Load())
+                            ], ast.Load()),
                             cond], []))
                     )
             else:
                 tree.body.append(ast.Assign(
                     [ast.Name("O", ast.Store())],
                     ast.Call(ast.Name("phi", ast.Load()), [
-                        ast.List([ast.Name(name, ast.Load()), ast.Name("O",
-                                                                       ast.Load())],
+                        ast.List([ast.Name("O", ast.Load()), ast.Name(name, ast.Load())],
                                  ast.Load()), cond], []))
                 )
     return tree, ssa_visitor.args

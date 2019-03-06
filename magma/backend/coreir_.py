@@ -63,7 +63,9 @@ def magma_port_to_coreir(port):
     name = get_top_name(name)
     if isinstance(name, DefnRef):
         if name.defn.name != "":
-            select = select.replace(name.defn.name, "self")
+            select_list = select.split(".")
+            select_list[0] = "self"
+            select = ".".join(select_list)
 
     return select.replace("[", ".").replace("]", "")
 

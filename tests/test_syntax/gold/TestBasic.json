@@ -28,8 +28,8 @@
           ["reg_P_inst0.in","TestBasic_comb_inst0.O0"],
           ["reg_P_inst1.in","TestBasic_comb_inst0.O1"],
           ["self.O","TestBasic_comb_inst0.O2"],
-          ["reg_P_inst0.out","TestBasic_comb_inst0.self_x"],
-          ["reg_P_inst1.out","TestBasic_comb_inst0.self_y"],
+          ["reg_P_inst0.out","TestBasic_comb_inst0.self_x_O"],
+          ["reg_P_inst1.out","TestBasic_comb_inst0.self_y_O"],
           ["self.CLK","reg_P_inst0.clk"],
           ["self.CLK","reg_P_inst1.clk"]
         ]
@@ -37,16 +37,16 @@
       "TestBasic_comb":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
-          ["self_x",["Array",2,"BitIn"]],
-          ["self_y",["Array",2,"BitIn"]],
+          ["self_x_O",["Array",2,"BitIn"]],
+          ["self_y_O",["Array",2,"BitIn"]],
           ["O0",["Array",2,"Bit"]],
           ["O1",["Array",2,"Bit"]],
           ["O2",["Array",2,"Bit"]]
         ]],
         "connections":[
           ["self.O0","self.I"],
-          ["self.self_x","self.O1"],
-          ["self.self_y","self.O2"]
+          ["self.self_x_O","self.O1"],
+          ["self.self_y_O","self.O2"]
         ]
       }
     }

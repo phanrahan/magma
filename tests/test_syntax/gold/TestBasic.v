@@ -18,16 +18,16 @@ module TestBasic_comb (
   output [1:0] O0,
   output [1:0] O1,
   output [1:0] O2,
-  input [1:0] self_x,
-  input [1:0] self_y
+  input [1:0] self_x_O,
+  input [1:0] self_y_O
 );
 
 
   assign O0[1:0] = I[1:0];
 
-  assign O1[1:0] = self_x[1:0];
+  assign O1[1:0] = self_x_O[1:0];
 
-  assign O2[1:0] = self_y[1:0];
+  assign O2[1:0] = self_y_O[1:0];
 
 
 endmodule  // TestBasic_comb
@@ -43,15 +43,15 @@ module TestBasic (
   wire [1:0] TestBasic_comb_inst0__O0;
   wire [1:0] TestBasic_comb_inst0__O1;
   wire [1:0] TestBasic_comb_inst0__O2;
-  wire [1:0] TestBasic_comb_inst0__self_x;
-  wire [1:0] TestBasic_comb_inst0__self_y;
+  wire [1:0] TestBasic_comb_inst0__self_x_O;
+  wire [1:0] TestBasic_comb_inst0__self_y_O;
   TestBasic_comb TestBasic_comb_inst0(
     .I(TestBasic_comb_inst0__I),
     .O0(TestBasic_comb_inst0__O0),
     .O1(TestBasic_comb_inst0__O1),
     .O2(TestBasic_comb_inst0__O2),
-    .self_x(TestBasic_comb_inst0__self_x),
-    .self_y(TestBasic_comb_inst0__self_y)
+    .self_x_O(TestBasic_comb_inst0__self_x_O),
+    .self_y_O(TestBasic_comb_inst0__self_y_O)
   );
 
   // Instancing generated Module: coreir.reg(width:2)
@@ -82,9 +82,9 @@ module TestBasic (
 
   assign O[1:0] = TestBasic_comb_inst0__O2[1:0];
 
-  assign TestBasic_comb_inst0__self_x[1:0] = reg_P_inst0__out[1:0];
+  assign TestBasic_comb_inst0__self_x_O[1:0] = reg_P_inst0__out[1:0];
 
-  assign TestBasic_comb_inst0__self_y[1:0] = reg_P_inst1__out[1:0];
+  assign TestBasic_comb_inst0__self_y_O[1:0] = reg_P_inst1__out[1:0];
 
   assign reg_P_inst0__clk = CLK;
 
