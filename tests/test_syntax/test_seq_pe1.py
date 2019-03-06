@@ -4,6 +4,7 @@ import peak
 import fault
 from peak.pe1.asm import add, sub, and_, or_, xor
 from peak.pe1.sim import PE as Peak_PE
+from peak.pe1.mode import Mode as Peak_Mode
 from hwtypes import BitVector
 import hwtypes as ht
 from dataclasses import fields, astuple
@@ -371,29 +372,14 @@ class PE:
         return alu_res, res_p, irq
 
 
-@pytest.mark.parametrize('op', [add, sub, and_, or_, xor])
-def test_pe1(op):
+@pytest.mark.parametrize('op', [add, and_, or_, xor])
+@pytest.mark.parametrize('mode', [Peak_Mode.BYPASS, Peak_Mode.DELAY])
+def test_pe1(op, mode):
     pe_functional_model = Peak_PE()
     tester = fault.Tester(PE, clock=PE.CLK)
 
-#     def encode(value):
-#         if isinstance(value, (ht.Bit, ht.BitVector)):
-#             return value
-#         elif isinstance(value, peak.Enum):
-#             length = 1
-#             for field in type(value):
-#                 length = max(length, field.value.bit_length())
-#             return ht.BitVector[length](value.value)
-#         print(value, type(value))
-#         encoded = ht.BitVector[0](0)
-#         for i, x in enumerate(reversed(fields(value))):
-#             result = encode(getattr(value, x.name))
-#             if isinstance(result, ht.Bit):
-#                 result = ht.BitVector[1](result)
-#             encoded = ht.BitVector.concat(encoded, result)
-#         return encoded
-
-    tester.circuit.inst = op()
+    inst = op(ra_mode=mode, rb_mode=mode)
+    tester.circuit.inst = inst
     data0 = fault.random.random_bv(DATAWIDTH // 2)
     data1 = fault.random.random_bv(DATAWIDTH // 2)
     data0 = BitVector[16](data0)
@@ -401,9 +387,15 @@ def test_pe1(op):
     tester.circuit.data0 = data0
     tester.circuit.data1 = data1
     tester.eval()
-    expected = pe_functional_model(op(), data0, data1)
+    expected = pe_functional_model(inst, data0, data1)
+    # TODO: Weird thing with conversions going on for fault signed values
     for i, value in enumerate(expected):
         getattr(tester.circuit, f"O{i}").expect(value)
+    if mode == Peak_Mode.DELAY:
+        tester.step(2)
+        expected = pe_functional_model(inst, data0, data1)
+        for i, value in enumerate(expected):
+            getattr(tester.circuit, f"O{i}").expect(value)
 
     m.compile(f"build/PE", PE, output="coreir-verilog")
     tester.compile_and_run(target="verilator",
