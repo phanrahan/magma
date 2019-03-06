@@ -36,12 +36,12 @@ def print_err(str):
     print(str, file=sys.stderr)
 
 def split_index(str):
-    r = re.compile("^([a-zA-Z]+)((?:\[[0-9]+\])+)$")
+    r = re.compile(r"^([a-zA-Z]+)((?:\[[0-9]+\])+)$")
     match = r.match(str)
     if match is None:
         return None
 
-    idxr = re.compile("\[([0-9]+)\]")
+    idxr = re.compile(r"\[([0-9]+)\]")
     idx_match = idxr.findall(match[2])
 
     return match[1], [int(i) for i in idx_match]
