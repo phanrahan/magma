@@ -1,5 +1,12 @@
 import magma as m
 from peak import Peak
+import peak
+import fault
+from peak.pe1.asm import add
+from peak.pe1.sim import PE as Peak_PE
+from hwtypes import BitVector
+import hwtypes as ht
+from dataclasses import fields, astuple
 
 Bit = m.Bit
 Bits = m.Bits
@@ -357,3 +364,38 @@ class PE:
 
         # return 16-bit result, 1-bit result, irq
         return alu_res, res_p, irq
+
+
+def test_pe1():
+    pe_functional_model = Peak_PE()
+    tester = fault.Tester(PE, clock=PE.CLK)
+
+#     def encode(value):
+#         if isinstance(value, (ht.Bit, ht.BitVector)):
+#             return value
+#         elif isinstance(value, peak.Enum):
+#             length = 1
+#             for field in type(value):
+#                 length = max(length, field.value.bit_length())
+#             return ht.BitVector[length](value.value)
+#         print(value, type(value))
+#         encoded = ht.BitVector[0](0)
+#         for i, x in enumerate(reversed(fields(value))):
+#             result = encode(getattr(value, x.name))
+#             if isinstance(result, ht.Bit):
+#                 result = ht.BitVector[1](result)
+#             encoded = ht.BitVector.concat(encoded, result)
+#         return encoded
+
+    tester.circuit.inst = add()
+    data0 = fault.random.random_bv(DATAWIDTH)
+    data1 = fault.random.random_bv(DATAWIDTH)
+    tester.circuit.data0 = data0
+    tester.circuit.data1 = data1
+    tester.eval()
+    expected = pe_functional_model(add(), data0, data1)
+    for i, value in enumerate(expected):
+        getattr(tester.circuit, f"O{i}").expect(value)
+    tester.compile_and_run(target="verilator",
+                           directory="tests/test_syntax/build/")
+

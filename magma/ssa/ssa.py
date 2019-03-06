@@ -65,8 +65,12 @@ class SSAVisitor(ast.NodeTransformer):
 
         if node.orelse:
             self.last_name = false_name
-            self.cond_stack[-1] = ast.UnaryOp(ast.Invert(),
-                                              self.cond_stack[-1])
+            # Using explicit Not because invert is not defined during magma
+            # tests
+            # self.cond_stack[-1] = ast.UnaryOp(ast.Invert(),
+            #                                   self.cond_stack[-1])
+            self.cond_stack[-1] = ast.parse(
+                f"Not()({astor.to_source(self.cond_stack[-1]).rstrip()})")
             result += flatten([self.visit(s) for s in node.orelse])
             false_name = dict(self.last_name)
 
@@ -91,7 +95,7 @@ class SSAVisitor(ast.NodeTransformer):
         return result
 
     def visit_Return(self, node):
-        self.return_values.append(self.cond_stack)
+        self.return_values.append(self.cond_stack[:])
         node.value = self.visit(node.value)
         return node
 
@@ -128,7 +132,7 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
     for i in reversed(range(num_return_values)):
         conds = ssa_visitor.return_values[i]
         name = f"__magma_ssa_return_value_{num_return_values - i - 1}"
-        if i == num_return_values or not conds:
+        if i == num_return_values - 1 or not conds:
             if isinstance(tree.returns, ast.Tuple):
                 tree.body.append(ast.Assign(
                     [ast.Tuple([ast.Name(f"O{i}", ast.Store())
@@ -139,12 +143,29 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
                 tree.body.append(ast.Assign([ast.Name("O", ast.Load)],
                                             ast.Name(name, ast.Load())))
         else:
-            prev_name = ssa_visitor.return_values[i + 1]
             cond = conds[-1]
             for c in conds[:-1]:
                 c = ast.BinOp(cond, ast.And(), c)
-            tree.body.append(ast.Call(ast.Name("phi", ast.Load()), [
-                ast.List([name, prev_name], ast.Load()), cond], []))
+            if isinstance(tree.returns, ast.Tuple):
+                for i in range(len(tree.returns.elts)):
+                    tree.body.append(ast.Assign(
+                        [ast.Name(f"O{i}", ast.Store())],
+                        ast.Call(ast.Name("phi", ast.Load()), [
+                            ast.List([
+                                ast.Subscript(ast.Name(name, ast.Load()),
+                                              ast.Index(ast.Num(i)),
+                                              ast.Load()),
+                                ast.Name(f"O{i}", ast.Load())], ast.Load()),
+                            cond], []))
+                    )
+            else:
+                tree.body.append(ast.Assign(
+                    [ast.Name("O", ast.Store())],
+                    ast.Call(ast.Name("phi", ast.Load()), [
+                        ast.List([ast.Name(name, ast.Load()), ast.Name("O",
+                                                                       ast.Load())],
+                                 ast.Load()), cond], []))
+                )
     return tree, ssa_visitor.args
 
 
