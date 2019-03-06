@@ -2,11 +2,12 @@ import magma as m
 from peak import Peak
 import peak
 import fault
-from peak.pe1.asm import add
+from peak.pe1.asm import add, sub, and_, or_, xor
 from peak.pe1.sim import PE as Peak_PE
 from hwtypes import BitVector
 import hwtypes as ht
 from dataclasses import fields, astuple
+import pytest
 
 Bit = m.Bit
 Bits = m.Bits
@@ -370,7 +371,8 @@ class PE:
         return alu_res, res_p, irq
 
 
-def test_pe1():
+@pytest.mark.parametrize('op', [add, sub, and_, or_, xor])
+def test_pe1(op):
     pe_functional_model = Peak_PE()
     tester = fault.Tester(PE, clock=PE.CLK)
 
@@ -391,8 +393,7 @@ def test_pe1():
 #             encoded = ht.BitVector.concat(encoded, result)
 #         return encoded
 
-    tester.step(2)
-    tester.circuit.inst = add()
+    tester.circuit.inst = op()
     data0 = fault.random.random_bv(DATAWIDTH // 2)
     data1 = fault.random.random_bv(DATAWIDTH // 2)
     data0 = BitVector[16](data0)
@@ -400,8 +401,7 @@ def test_pe1():
     tester.circuit.data0 = data0
     tester.circuit.data1 = data1
     tester.eval()
-    expected = pe_functional_model(add(), data0, data1)
-    tester.step(4)
+    expected = pe_functional_model(op(), data0, data1)
     for i, value in enumerate(expected):
         getattr(tester.circuit, f"O{i}").expect(value)
 
