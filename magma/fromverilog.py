@@ -16,6 +16,7 @@ import logging
 
 logger = logging.getLogger('magma').getChild('from_verilog')
 
+
 __all__  = ['DeclareFromVerilog']
 __all__ += ['DeclareFromVerilogFile']
 __all__ += ['DeclareFromTemplatedVerilog']
@@ -28,11 +29,34 @@ __all__ += ['DefineFromTemplatedVerilogFile']
 
 class ModuleVisitor(NodeVisitor):
     def __init__(self):
-        self.nodes = []
+        self.defns = {}
+        self.__defn_stack = []
+        self.__instances = {}
 
-    def visit_ModuleDef(self, node):
-        self.nodes.append(node)
-        return node
+    def visit_ModuleDef(self, defn):
+        if defn.name in self.defns:
+            raise Exception(f"Defn with name {defn.name} appears twice")
+        self.defns[defn.name] = defn
+        # Get ending line number.
+        end_lineno = max([item.lineno for item in defn.items])
+        end_lineno += 1
+        defn.end_lineno = end_lineno
+        # Collect instances in this definition.
+        self.__instances[defn] = set()
+        self.__defn_stack.append(defn)
+        self.generic_visit(defn)
+        self.__defn_stack.pop()
+        return defn
+
+    def visit_Instance(self, instance):
+        defn = self.__defn_stack[-1]
+        assert instance not in self.__instances[defn]
+        self.__instances[defn].add(instance)
+        return instance
+
+    def get_instances(self, defn):
+        return self.__instances[defn]
+
 
 def convert(input_type, target_type):
     if isinstance(input_type, _BitKind) and \
@@ -111,42 +135,41 @@ def ParseVerilogModule(node, type_map):
 
     return node.name, args
 
+
+def _get_lines(string, start_line, end_line):
+    lines = string.split("\n")
+    return "\n".join(lines[start_line - 1:end_line])
+
+
 def FromVerilog(source, func, type_map, target_modules=None):
+    if target_modules is not None:
+        raise Exception("'target_modules' argument deprecated")
     parser = VerilogParser()
-
     ast = parser.parse(source)
-    #ast.show()
+    visitor = ModuleVisitor()
+    visitor.visit(ast)
 
-    v = ModuleVisitor()
-    v.visit(ast)
+    magma_defns = {}
+    for name, verilog_defn in visitor.defns.items():
+        parsed_name, args = ParseVerilogModule(verilog_defn, type_map)
+        assert parsed_name == name
+        magma_defn = func(name, *args)
+        if func == DefineCircuit:
+            # Attach relevant lines of verilog source.
+            magma_defn.verilogFile = _get_lines(
+                source, verilog_defn.lineno, verilog_defn.end_lineno)
+            for instance in visitor.get_instances(verilog_defn):
+                instance_defn = magma_defns[instance.module]
+                instance_defn()
+            EndDefine()
+        magma_defn.verilog_source = source
+        magma_defns[name] = magma_defn
 
-    if func == DefineCircuit:
-        # Only allow a single verilog module unless we're only defining one
-        # circuit (only one module in target_modules), otherwise, they would all
-        # use the same source, so if they are compiled together, there will be
-        # multiple definitions of the same verilog module.
-        assert len(v.nodes) == 1 or (target_modules and len(target_modules) == 1)
-    modules = []
-    for node in v.nodes:
-        if target_modules is not None and node.name not in target_modules:
-            continue
-        try:
-            name, args = ParseVerilogModule(node, type_map)
-            circuit = func(name, *args)
-            if func == DefineCircuit:
-                # inline source
-                circuit.verilogFile = source
-                EndDefine()
-            circuit.verilog_source = source
-            modules.append(circuit)
-        except Exception as e:
-            logger.warning(f"Could not parse module {node.name} ({e}), "
-                           f"skipping")
-    if not modules:
+    if len(magma_defns) == 0:
         logger.warning(f"Did not import any modules from verilog, either could "
                        f"not parse or could not find any of the target_modules "
                        f"({target_modules})")
-    return modules
+    return list(magma_defns.values())
 
 def FromVerilogFile(file, func, type_map, target_modules=None):
     if file is None:
@@ -195,4 +218,3 @@ def DefineFromTemplatedVerilog(source, type_map={}, **kwargs):
 
 def DefineFromTemplatedVerilogFile(file, type_map={}, **kwargs):
     return FromTemplatedVerilogFile(file, DefineCircuit, type_map, **kwargs)
-
