@@ -37,10 +37,6 @@ class ModuleVisitor(NodeVisitor):
         if defn.name in self.defns:
             raise Exception(f"Defn with name {defn.name} appears twice")
         self.defns[defn.name] = defn
-        # Get ending line number.
-        end_lineno = max([item.lineno for item in defn.items])
-        end_lineno += 1
-        defn.end_lineno = end_lineno
         # Collect instances in this definition.
         self.__instances[defn] = set()
         self.__defn_stack.append(defn)
