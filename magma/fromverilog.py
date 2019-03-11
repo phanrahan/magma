@@ -132,18 +132,19 @@ def ParseVerilogModule(node, type_map):
     return node.name, args
 
 
-def _get_lines(string, start_line, end_line):
-    lines = string.split("\n")
-    return "\n".join(lines[start_line - 1:end_line])
-
-
-def FromVerilog(source, func, type_map, target_modules=None):
+def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
     if target_modules is not None:
         raise Exception("'target_modules' argument deprecated")
     parser = VerilogParser()
     ast = parser.parse(source)
     visitor = ModuleVisitor()
     visitor.visit(ast)
+
+    def _get_lines(start_line, end_line):
+        if shallow:
+            return source
+        lines = source.split("\n")
+        return "\n".join(lines[start_line - 1:end_line])
 
     magma_defns = {}
     for name, verilog_defn in visitor.defns.items():
@@ -153,10 +154,11 @@ def FromVerilog(source, func, type_map, target_modules=None):
         if func == DefineCircuit:
             # Attach relevant lines of verilog source.
             magma_defn.verilogFile = _get_lines(
-                source, verilog_defn.lineno, verilog_defn.end_lineno)
-            for instance in visitor.get_instances(verilog_defn):
-                instance_defn = magma_defns[instance.module]
-                instance_defn()
+                verilog_defn.lineno, verilog_defn.end_lineno)
+            if not shallow:
+                for instance in visitor.get_instances(verilog_defn):
+                    instance_defn = magma_defns[instance.module]
+                    instance_defn()
             EndDefine()
         magma_defn.verilog_source = source
         magma_defns[name] = magma_defn
@@ -167,11 +169,11 @@ def FromVerilog(source, func, type_map, target_modules=None):
                        f"({target_modules})")
     return list(magma_defns.values())
 
-def FromVerilogFile(file, func, type_map, target_modules=None):
+def FromVerilogFile(file, func, type_map, target_modules=None, shallow=False):
     if file is None:
         return None
     verilog = open(file).read()
-    result = FromVerilog(verilog, func, type_map, target_modules)
+    result = FromVerilog(verilog, func, type_map, target_modules, shallow)
     # Store the original verilog file name, currently used by m.compile to
     # generate a .sv when compiling a circuit that was defined from a verilog
     # file
@@ -203,11 +205,13 @@ def DeclareFromTemplatedVerilogFile(file, type_map={}, **kwargs):
     return FromTemplatedVerilogFile(file, DeclareCircuit, type_map, **kwargs)
 
 
-def DefineFromVerilog(source, type_map={}, target_modules=None):
-    return FromVerilog(source, DefineCircuit, type_map, target_modules)
+def DefineFromVerilog(source, type_map={}, target_modules=None, shallow=False):
+    return FromVerilog(source, DefineCircuit, type_map, target_modules,
+                       shallow=shallow)
 
-def DefineFromVerilogFile(file, target_modules=None, type_map={}):
-    return FromVerilogFile(file, DefineCircuit, type_map, target_modules)
+def DefineFromVerilogFile(file, target_modules=None, type_map={}, shallow=False):
+    return FromVerilogFile(file, DefineCircuit, type_map, target_modules,
+                           shallow=shallow)
 
 def DefineFromTemplatedVerilog(source, type_map={}, **kwargs):
     return FromTemplatedVerilog(source, DefineCircuit, type_map, **kwargs)
