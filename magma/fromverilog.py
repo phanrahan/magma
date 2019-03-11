@@ -133,8 +133,6 @@ def ParseVerilogModule(node, type_map):
 
 
 def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
-    if target_modules is not None:
-        raise Exception("'target_modules' argument deprecated")
     parser = VerilogParser()
     ast = parser.parse(source)
     visitor = ModuleVisitor()
@@ -167,7 +165,10 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
         logger.warning(f"Did not import any modules from verilog, either could "
                        f"not parse or could not find any of the target_modules "
                        f"({target_modules})")
-    return list(magma_defns.values())
+    if target_modules is None:
+        return list(magma_defns.values())
+    # Filter modules based on target_modules list.
+    return [v for k, v in magma_defns.items() if k in target_modules]
 
 def FromVerilogFile(file, func, type_map, target_modules=None, shallow=False):
     if file is None:
