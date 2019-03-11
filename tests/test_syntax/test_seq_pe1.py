@@ -192,14 +192,13 @@ def DefineRegisterMode(width, init=0):
         def __call__(self, mode: Mode, const_: Bits(width), value: Bits(width),
                      clk_en: Bit) -> Bits(width):
             if mode == Mode.CONST:
-                self.register(value, m.bit(False))
+                self.register(value, False)
                 return const_
             elif mode == Mode.BYPASS:
-                self.register(value, m.bit(False))
+                self.register(value, False)
                 return value
             elif mode == Mode.DELAY:
-                # return self.register(value, True)
-                return self.register(value, m.bit(True))
+                return self.register(value, True)
             elif mode == Mode.VALID:
                 return self.register(value, clk_en)
     return RegisterMode
@@ -379,7 +378,7 @@ def test_pe1(op, mode):
     tester = fault.Tester(PE, clock=PE.CLK)
 
     inst = op(ra_mode=mode, rb_mode=mode)
-    tester.circuit.inst = inst
+    tester.circuit.inst = inst.value
     data0 = fault.random.random_bv(DATAWIDTH // 2)
     data1 = fault.random.random_bv(DATAWIDTH // 2)
     data0 = BitVector[16](data0)
