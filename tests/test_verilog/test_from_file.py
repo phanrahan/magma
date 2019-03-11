@@ -76,7 +76,7 @@ def test_decl_list():
 
 def test_from_sv():
     file_path = os.path.dirname(__file__)
-    test_pe = m.DefineFromVerilogFile(os.path.join(file_path, "test_pe.sv"))[0]
+    test_pe = m.DefineFromVerilogFile(os.path.join(file_path, "test_pe.sv"), shallow=True)[0]
 
 
     if os.path.exists("build/test_pe.sv"):
