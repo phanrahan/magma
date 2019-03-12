@@ -1,6 +1,6 @@
 from magma.simulator.python_simulator import PythonSimulator
 import magma as m
-from bit_vector import BitVector as BV
+from hwtypes import BitVector as BV
 import pytest
 
 

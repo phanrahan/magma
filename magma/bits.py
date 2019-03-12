@@ -4,7 +4,7 @@ from .bit import Bit, VCC, GND
 from .array import ArrayType, ArrayKind
 from .debug import debug_wire
 
-from bit_vector import BitVector, SIntVector
+from hwtypes import BitVector, SIntVector
 
 __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
