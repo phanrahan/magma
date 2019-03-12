@@ -199,7 +199,7 @@ class CoreIRBackend:
                 if name in {"name", "loc"}:
                     continue  # Skip
                 elif isinstance(value, tuple):
-                    args[name] = BitVector(value[0], num_bits=value[1])
+                    args[name] = BitVector[value[1]](value[0])
                 else:
                     args[name] = value
             args = self.context.new_values(args)

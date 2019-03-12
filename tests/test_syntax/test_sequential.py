@@ -23,7 +23,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     if width is None:
         width = 1
     name = "reg_P"  # TODO: Add support for clock interface
-    config_args = {"init": coreir.type.BitVector(init, num_bits=width)}
+    config_args = {"init": coreir.type.BitVector[width](init)}
     gen_args = {"width": width}
     T = T(width)
     io = ["I", m.In(T), "clk", m.In(m.Clock), "O", m.Out(T)]
@@ -50,7 +50,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     #     gen_args["has_en"] = True
 
     # default_kwargs = gen_args.copy()
-    default_kwargs = {"init": coreir.type.BitVector(init, num_bits=width)}
+    default_kwargs = {"init": coreir.type.BitVector[width](init)}
     # default_kwargs.update(config_args)
 
     return DeclareCoreirCircuit(

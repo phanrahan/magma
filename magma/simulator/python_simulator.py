@@ -381,7 +381,7 @@ class PythonSimulator(CircuitSimulator):
                 val = largs[j]
                 if isinstance(port, ArrayType):
                     n = type(port).N
-                    val = BitVector(val, num_bits=n)
+                    val = BitVector[n](val)
                 self.set_value(getattr(circuit, name), val)
                 j += 1
 
