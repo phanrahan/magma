@@ -91,7 +91,7 @@ def _run_verilator(circuit, directory):
     top = circuit.name
     assert not run_from_directory(
         f"verilator -Wall -Wno-INCABSPATH -Wno-DECLFILENAME --cc {top}.v "
-        f"--exe {top}_driver.cpp --top-module {top}")
+        f"--exe ../{top}_driver.cpp --top-module {top}")
     assert not run_from_directory(
         f"make -C obj_dir -j -f V{top}.mk V{top}")
     assert not run_from_directory(
