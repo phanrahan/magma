@@ -90,10 +90,10 @@ def _run_verilator(circuit, directory):
         return subprocess.call(cmd, cwd=directory, shell=True)
     top = circuit.name
     assert not run_from_directory(
-        f"make -C obj_dir -j -f V{top}.mk V{top}")
-    assert not run_from_directory(
         f"verilator -Wall -Wno-INCABSPATH -Wno-DECLFILENAME --cc {top}.v "
         f"--exe {top}_driver.cpp --top-module {top}")
+    assert not run_from_directory(
+        f"make -C obj_dir -j -f V{top}.mk V{top}")
     assert not run_from_directory(
         f"./obj_dir/V{top}")
 
