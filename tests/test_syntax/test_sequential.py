@@ -1,7 +1,6 @@
 import magma as m
 from test_combinational import compile_and_check, phi
 from collections import Sequence
-import fault
 import coreir
 
 default_port_mapping = {
@@ -85,6 +84,20 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("target", ["coreir", "coreir-verilog"])
 
 
+def _run_verilator(circuit, directory):
+    import subprocess
+    def run_from_directory(cmd):
+        return subprocess.call(cmd, cwd=directory, shell=True)
+    top = circuit.name
+    assert not run_from_directory(
+        f"make -C obj_dir -j -f V{top}.mk V{top}")
+    assert not run_from_directory(
+        f"verilator -Wall -Wno-INCABSPATH -Wno-DECLFILENAME --cc {top}.v "
+        f"--exe {top}_driver.cpp --top-module {top}")
+    assert not run_from_directory(
+        f"./obj_dir/V{top}")
+
+
 def test_seq_simple(target):
     @m.circuit.sequential
     class TestBasic:
@@ -100,21 +113,7 @@ def test_seq_simple(target):
 
     compile_and_check("TestBasic", TestBasic, target)
     if target == "coreir-verilog":
-        tester = fault.Tester(TestBasic, clock=TestBasic.CLK)
-        tester.circuit.I = 1
-        tester.step(2)
-        tester.circuit.I = 2
-        tester.step(2)
-        tester.circuit.O.expect(1)
-        tester.circuit.I = 3
-        tester.step(2)
-        tester.circuit.O.expect(2)
-        tester.circuit.I = 0
-        tester.step(2)
-        tester.circuit.O.expect(3)
-        tester.compile_and_run(target="verilator",
-                               directory="tests/test_syntax/build",
-                               skip_compile=True)
+        _run_verilator(TestBasic, directory="tests/test_syntax/build")
 
 
 def test_seq_hierarchy(target):
@@ -155,18 +154,4 @@ def test_seq_hierarchy(target):
 
     compile_and_check("TestShiftRegister", TestShiftRegister, target)
     if target == "coreir-verilog":
-        tester = fault.Tester(TestShiftRegister, clock=TestShiftRegister.CLK)
-        tester.circuit.I = 1
-        tester.step(2)
-        tester.circuit.I = 2
-        tester.step(2)
-        tester.circuit.O.expect(1)
-        tester.circuit.I = 3
-        tester.step(2)
-        tester.circuit.O.expect(2)
-        tester.circuit.I = 0
-        tester.step(2)
-        tester.circuit.O.expect(3)
-        tester.compile_and_run(target="verilator",
-                               directory="tests/test_syntax/build",
-                               skip_compile=True)
+        _run_verilator(TestShiftRegister, directory="tests/test_syntax/build")
