@@ -14,7 +14,7 @@ from ..scope import *
 from ..bit import VCC, GND, BitType, _BitType
 from ..array import ArrayType
 from ..bits import SIntType, BitsType, UIntType
-from bit_vector import BitVector
+from hwtypes import BitVector
 from ..bitutils import seq2int
 from ..clock import ClockType
 
@@ -140,9 +140,10 @@ class ValueStore:
             elif isinstance(bit, BitsType) and isinstance(newval, int):
                 if not isinstance(bit, SIntType) and newval < 0:
                     raise ValueError(f"Can only set {bit} of type {type(bit)} with positive integer, not {newval}")
-                newval = BitVector(newval, len(bit))
+                newval = BitVector[len(bit)](newval).as_bool_list()
             elif not isinstance(newval, list):
                 raise TypeError(f"Calling set_value with {bit} of type {type(bit)} only works with a list of values or a BitVector")
+
             for b,v in zip(bit, newval):
                 self.set_value(b, v)
             return
@@ -381,7 +382,7 @@ class PythonSimulator(CircuitSimulator):
                 val = largs[j]
                 if isinstance(port, ArrayType):
                     n = type(port).N
-                    val = BitVector(val, num_bits=n)
+                    val = BitVector[n](val)
                 self.set_value(getattr(circuit, name), val)
                 j += 1
 
