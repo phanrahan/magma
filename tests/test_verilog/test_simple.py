@@ -33,7 +33,7 @@ def test_type_map_bit(target_type):
     assert repr(top.IO) == expected
 
 
-@pytest.mark.parametrize("target_type", [m.Bits(8), m.UInt(8), m.SInt(8)])
+@pytest.mark.parametrize("target_type", [m.Bits[8], m.UInt[8], m.SInt[8]])
 def test_type_map_bits(target_type):
     path = full_path("rxmod.v")
     with open(path, 'r') as f:

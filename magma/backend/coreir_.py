@@ -154,7 +154,7 @@ class CoreIRBackend:
         elif (coreir_type.kind == "BitIn"):
             return BitIn
         elif (coreir_type.kind == "Array"):
-            return Array(len(coreir_type), self.get_ports(coreir_type.element_type))
+            return Array[len(coreir_type), self.get_ports(coreir_type.element_type)]
         elif (coreir_type.kind == "Record"):
             elements = {}
             for item in coreir_type.items():

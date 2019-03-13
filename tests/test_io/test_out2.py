@@ -3,7 +3,7 @@ from magma.testing import check_files_equal
 
 
 def test():
-    main = DefineCircuit("main", "O", Out(Bits(2)))
+    main = DefineCircuit("main", "O", Out(Bits[2]))
 
     wire(array([0,1]), main.O)
 

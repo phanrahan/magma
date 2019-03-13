@@ -146,7 +146,7 @@ def get_io(call_def):
     assert not call_def.args.vararg
     assert not call_def.args.kwonlyargs
     assert not call_def.args.kwarg
-    assert not call_def.args.defaults
+    # assert not call_def.args.defaults
     assert not call_def.args.kw_defaults
 
     # Skips self
@@ -157,6 +157,9 @@ def get_io(call_def):
 
 
 circuit_definition_template = """
+from magma import In, Out, Bit
+
+
 class {circuit_name}(m.Circuit):
     IO = {io_list}
 

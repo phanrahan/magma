@@ -11,7 +11,7 @@ def test_lut():
     assert repr(lut3) == 'AnonymousCircuitType("I0", lut1.I0, "I1", lut1.I1, "O", lut1.O)'
 
 def test_rom():
-    ROM2 = DeclareCircuit('ROM2', "I", In(Array(2,Bit)), "O", Out(Bit))
+    ROM2 = DeclareCircuit('ROM2', "I", In(Array[2,Bit]), "O", Out(Bit))
     rom1 = ROM2(name='rom1')
     rom2 = curry(rom1)
     rom3 = uncurry(rom2)

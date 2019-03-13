@@ -8,7 +8,7 @@ def test_enum():
         one=1,
         two=2
     )
-    circuit = m.DefineCircuit('enum_test', "I", m.In(State), "O", m.Out(m.Array(2, State)))
+    circuit = m.DefineCircuit('enum_test', "I", m.In(State), "O", m.Out(m.Array[2, State]))
     m.wire(circuit.I, circuit.O[0])
     m.wire(State.zero, circuit.O[1])
     m.EndDefine()
@@ -22,7 +22,7 @@ def test_enum_max_value():
         one=1,
         four=4
     )
-    circuit = m.DefineCircuit('enum_test_max_value', "I", m.In(State), "O", m.Out(m.Array(2, State)))
+    circuit = m.DefineCircuit('enum_test_max_value', "I", m.In(State), "O", m.Out(m.Array[2, State]))
     m.wire(circuit.I, circuit.O[0])
     m.wire(State.four, circuit.O[1])
     m.EndDefine()

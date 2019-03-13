@@ -17,7 +17,7 @@ def test_compile(caplog):
                                          And2.debug_info.lineno,
                                          MockMantle)
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2 = And2()
 

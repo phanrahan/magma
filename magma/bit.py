@@ -102,6 +102,15 @@ class _BitKind(Kind):
         if not hasattr(cls, 'direction'):
             cls.direction = None
 
+    def __call__(cls, value=None, *args, **kwargs):
+        if value is not None:
+            if isinstance(value, (bool, IntegerTypes)):
+                return VCC if value else GND
+            else:
+                raise ValueError("Bit can only be initialized with None, bool, "
+                                 "or integer")
+        return super().__call__(*args, **kwargs)
+
     def __eq__(cls, rhs):
         if not isinstance(rhs, _BitKind):
             return False

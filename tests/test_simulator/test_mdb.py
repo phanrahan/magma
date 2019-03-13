@@ -15,7 +15,7 @@ def test(capsys):
         return [PRIM_FF() for i in range(n)]
     
     def Register(n):
-        args = ["I", In(Array(n, Bit)), "O", Out(Array(n, Bit))] + ClockInterface(False, False, False)
+        args = ["I", In(Array[n, Bit]), "O", Out(Array[n, Bit])] + ClockInterface(False, False, False)
     
         RegCircuit = DefineCircuit('Register' + str(n), *args)
         ffs = join(FFs(n))
@@ -39,13 +39,13 @@ def test(capsys):
             value_store.set_value(self.O, seq)
             value_store.set_value(self.COUT, cout)
     
-        args = ["I", In(Array(n, Bit)), "O", Out(Array(n, Bit)), "COUT", Out(Bit)]
+        args = ["I", In(Array[n, Bit]), "O", Out(Array[n, Bit]), "COUT", Out(Bit)]
         return DeclareCircuit('IncOne' + str(n), *args, stateful=False, primitive=True, simulate=sim_inc_one)()
     
     def TestCounter(n):
         args = []
     
-        args += ["O", Array(n, Out(Bit))]
+        args += ["O", Array[n, Out(Bit)]]
         args += ["COUT", Out(Bit)]
     
         args += ClockInterface(False, False, False)
@@ -67,7 +67,7 @@ def test(capsys):
     
         return Counter()
     
-    args = ['O', Array(5, Out(Bit)), 'COUT', Out(Bit)]
+    args = ['O', Array[5, Out(Bit)], 'COUT', Out(Bit)]
     args += ClockInterface(False, False, False)
     
     testcircuit = DefineCircuit('Test', *args)

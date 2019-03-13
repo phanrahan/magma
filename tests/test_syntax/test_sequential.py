@@ -25,7 +25,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     name = "reg_P"  # TODO: Add support for clock interface
     config_args = {"init": coreir.type.BitVector(init, num_bits=width)}
     gen_args = {"width": width}
-    T = T(width)
+    T = T[width]
     io = ["I", m.In(T), "clk", m.In(m.Clock), "O", m.Out(T)]
     methods = []
 
@@ -70,7 +70,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
 @m.cache_definition
 def DefineRegister(n, init=0, has_ce=False, has_reset=False,
                    has_async_reset=False, _type=m.Bits):
-    T = _type(n)
+    T = _type[n]
     return DefineCoreirReg(n, init, has_async_reset, _type)
 
 
@@ -89,10 +89,10 @@ def test_seq_simple(target):
     @m.circuit.sequential
     class TestBasic:
         def __init__(self):
-            self.x: m.Bits(2) = m.bits(0, 2)
-            self.y: m.Bits(2) = m.bits(0, 2)
+            self.x: m.Bits[2] = m.bits(0, 2)
+            self.y: m.Bits[2] = m.bits(0, 2)
 
-        def __call__(self, I: m.Bits(2)) -> m.Bits(2):
+        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
             O = self.y
             self.y = self.x
             self.x = I
@@ -123,9 +123,9 @@ def test_seq_hierarchy(target):
         @m.circuit.sequential
         class Register:
             def __init__(self):
-                self.value: m.Bits(width) = m.bits(init, width)
+                self.value: m.Bits[width] = m.bits(init, width)
 
-            def __call__(self, I: m.Bits(width)) -> m.Bits(width):
+            def __call__(self, I: m.Bits[width]) -> m.Bits[width]:
                 O = self.value
                 self.value = I
                 return O
@@ -144,10 +144,10 @@ def test_seq_hierarchy(target):
             # same meaning
 
             # Only supported in __init__ body for now
-            self.x: m.Bits(2) = [DefineCustomRegister(2, init=0)()]
-            self.y: m.Bits(2) = [DefineCustomRegister(2, init=1)()]
+            self.x: m.Bits[2] = [DefineCustomRegister(2, init=0)()]
+            self.y: m.Bits[2] = [DefineCustomRegister(2, init=1)()]
 
-        def __call__(self, I: m.Bits(2)) -> m.Bits(2):
+        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
             O = self.y
             self.y = self.x
             self.x = I

@@ -17,7 +17,7 @@ def test_named1():
 def test_named2():
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = And2()
 
@@ -30,7 +30,7 @@ def test_named2():
 def test_named3():
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = And2()
 
@@ -45,7 +45,7 @@ def test_named3():
 def test_named4():
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = And2()
 

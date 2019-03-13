@@ -151,7 +151,7 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
             INOUT: InOut
         }[T.direction](Bit)
 
-    return totypeconstructor(len(Ts), T)(*ts)
+    return totypeconstructor[len(Ts), T](*ts)
 
 
 def array(value, n=None):

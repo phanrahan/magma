@@ -6,7 +6,7 @@ from magma.testing import check_files_equal
 def test_new_types(output):
     # TODO: Make it easier to do a type alias like this (for a parametrized type)
     def Coordinate(num_bits):
-        return m.Bits(num_bits)
+        return m.Bits[num_bits]
 
 
     # Parametrized types should be implemented using a type constructure
@@ -17,7 +17,7 @@ def test_new_types(output):
         return m.Tuple(x=Coordinate(num_bits), y=Coordinate(num_bits))
 
     def Polygon(num_vertices, num_bits):
-        return m.Array(num_vertices, Point2D(num_bits))
+        return m.Array[num_vertices, Point2D(num_bits)]
 
     class TestCircuit(m.Circuit):
         IO = [
