@@ -113,6 +113,23 @@ def test_seq_simple(target):
 
     compile_and_check("TestBasic", TestBasic, target)
     if target == "coreir-verilog":
+        """
+        The following sequence was used to create the verilator driver:
+
+        tester = fault.Tester(TestBasic, clock=TestBasic.CLK)
+        tester.circuit.I = 1
+        tester.step(2)
+        tester.circuit.I = 2
+        tester.step(2)
+        tester.circuit.O.expect(1)
+        tester.circuit.I = 3
+        tester.step(2)
+        tester.circuit.O.expect(2)
+        tester.circuit.I = 0
+        tester.step(2)
+        tester.circuit.O.expect(3)
+
+        """
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
 
 
@@ -154,4 +171,21 @@ def test_seq_hierarchy(target):
 
     compile_and_check("TestShiftRegister", TestShiftRegister, target)
     if target == "coreir-verilog":
+        """
+        The following sequence was used to create the verilator driver:
+
+        tester = fault.Tester(TestShiftRegister, clock=TestShiftRegister.CLK)
+        tester.circuit.I = 1
+        tester.step(2)
+        tester.circuit.I = 2
+        tester.step(2)
+        tester.circuit.O.expect(1)
+        tester.circuit.I = 3
+        tester.step(2)
+        tester.circuit.O.expect(2)
+        tester.circuit.I = 0
+        tester.step(2)
+        tester.circuit.O.expect(3)
+
+        """
         _run_verilator(TestShiftRegister, directory="tests/test_syntax/build")
