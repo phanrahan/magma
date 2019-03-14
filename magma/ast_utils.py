@@ -65,8 +65,9 @@ def inspect_enclosing_env(fn):
         stack = inspect.stack()
         enclosing_env = {}
         for i in range(0, len(stack)):
-            enclosing_env.update(stack[i].frame.f_locals)
-            enclosing_env.update(stack[i].frame.f_globals)
+            for key, value in stack[i].frame.f_locals.items():
+                if key not in enclosing_env:
+                    enclosing_env[key] = value
         return fn(enclosing_env, *args, **kwargs)
     return wrapped
 

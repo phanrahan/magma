@@ -62,3 +62,16 @@ import magma.util
 
 from .is_primitive import isprimitive
 from .is_definition import isdefinition
+
+from .product import Product
+
+
+from hwtypes.bit_vector_abc import TypeFamily
+
+
+def get_family():
+    BitVector = Bits
+    UIntVector = UInt
+    SIntVector = SInt
+    _Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
+    return _Family_

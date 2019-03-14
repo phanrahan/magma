@@ -240,6 +240,10 @@ class SInt(Bits, metaclass=SIntKind):
             raise Exception("Can't call __int__ on a non-constant")
         return SIntVector(self.bits()).as_sint()
 
+    def sext(self, value):
+        from .conversions import sext
+        return sext(self, value)
+
 UIntType = UInt
 SIntType = SInt
 
