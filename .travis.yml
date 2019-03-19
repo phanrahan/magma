@@ -12,7 +12,7 @@ before_install:
 - source .travis/install_coreir.sh
 install:
 - pip install python-coveralls
-- pip install pytest-cov pytest-codestyle fault
+- pip install pytest-cov pytest-codestyle
 - pip install -r requirements.txt
 - pip install -e .
 after_success:
