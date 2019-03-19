@@ -110,7 +110,6 @@ class Bits(ArrayType, metaclass=BitsKind):
     def zext(self, value):
         from .conversions import zext
         t = zext(self, value)
-        print(t, type(t))
         return t
 
 
