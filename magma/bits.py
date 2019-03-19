@@ -14,6 +14,7 @@ __all__ += ['SInt', 'SIntType', 'SIntKind']
 
 class BitsKind(ArrayKind):
     _class_cache = weakref.WeakValueDictionary()
+
     def __str__(cls):
         if cls.isinput():
             return "In(Bits({}))".format(cls.N)
@@ -37,7 +38,8 @@ class BitsKind(ArrayKind):
             width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
                                            width]).as_uint()
         try:
-            return BitsKind._class_cache[width, T]
+            result = BitsKind._class_cache[width, T]
+            return result
         except KeyError:
             pass
         bases = [cls]
@@ -66,6 +68,10 @@ class BitsKind(ArrayKind):
 #                 raise ValueError("Bit can only be initialized with None, bool, "
 #                                  "or integer")
 #         return super().__call__(*args, **kwargs)
+
+    def get_family(self):
+        import magma as m
+        return m.get_family()
 
 
 class Bits(ArrayType, metaclass=BitsKind):
@@ -101,6 +107,12 @@ class Bits(ArrayType, metaclass=BitsKind):
             o = bits(o, len(i))
         super().wire(o, debug_info)
 
+    def zext(self, value):
+        from .conversions import zext
+        t = zext(self, value)
+        print(t, type(t))
+        return t
+
 
 BitsType = Bits
 
@@ -130,11 +142,7 @@ class UIntKind(BitsKind):
         else:
             width = index
             T = Bit
-        try:
-            return UIntKind._class_cache[width, T]
-        except KeyError:
-            pass
-        if isinstance(width, Bits):
+        if isinstance(width, UInt):
             assert width.const()
             # TODO: Move this logic to a method in BitsType
             bit_type_to_constant_map = {
@@ -143,6 +151,10 @@ class UIntKind(BitsKind):
             }
             width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
                                            width]).as_uint()
+        try:
+            return UIntKind._class_cache[width, T]
+        except KeyError:
+            pass
         bases = [cls]
         bases = tuple(bases)
         class_name = '{}[{}, {}]'.format(cls.__name__, width, T)
@@ -191,11 +203,7 @@ class SIntKind(BitsKind):
         else:
             width = index
             T = Bit
-        try:
-            return SIntKind._class_cache[width, T]
-        except KeyError:
-            pass
-        if isinstance(width, Bits):
+        if isinstance(width, SInt):
             assert width.const()
             # TODO: Move this logic to a method in BitsType
             bit_type_to_constant_map = {
@@ -203,7 +211,11 @@ class SIntKind(BitsKind):
                 VCC: 1
             }
             width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
-                                           width]).as_uint()
+                                           width]).as_sint()
+        try:
+            return SIntKind._class_cache[width, T]
+        except KeyError:
+            pass
         bases = [cls]
         bases = tuple(bases)
         class_name = '{}[{}, {}]'.format(cls.__name__, width, T)

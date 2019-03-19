@@ -8,7 +8,8 @@ from .clock import ClockType, Clock, \
     AsyncReset, AsyncResetType, \
     Enable, EnableType
 from .array import ArrayType, Array, ArrayKind
-from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
+from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
+    SIntKind
 from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 import magma as m
@@ -181,39 +182,33 @@ def concat(*arrays):
 
 def repeat(value, n):
     if isinstance(value, BitType):
-        repeats = bits(n*[value])
+        repeats = bits(n * [value])
     else:
-        repeats = array(n*[value])
+        repeats = array(n * [value])
     return repeats
 
 
-def check_value_is_output(fn):
-    @functools.wraps(fn)
-    def wrapped(value, n):
-        if isinstance(value, m.Type) and not value.isoutput():
-            raise Exception(f"{fn.__name__} only works with output values")
-        return fn(value, n)
-    return wrapped
-
-
-@check_value_is_output
 def zext(value, n):
-    assert isinstance(value, (UIntType, SIntType, BitsType))
+    assert isinstance(value, (UIntType, SIntType, BitsType)) or \
+        isinstance(value, ArrayType) and isinstance(value.T, _BitKind)
     if isinstance(value, UIntType):
         zeros = uint(0, n)
     elif isinstance(value, SIntType):
         zeros = sint(0, n)
     elif isinstance(value, BitsType):
         zeros = bits(0, n)
+    elif isinstance(value, ArrayType):
+        zeros = array(0, n)
     result = concat(value, zeros)
     if isinstance(value, UIntType):
         return uint(result)
     elif isinstance(value, SIntType):
         return sint(result)
+    elif isinstance(value, BitsType):
+        return bits(result)
     return result
 
 
-@check_value_is_output
 def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value), array(value[-1], n)))

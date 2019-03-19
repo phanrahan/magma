@@ -69,9 +69,9 @@ from .product import Product
 from hwtypes.bit_vector_abc import TypeFamily
 
 
+BitVector = Bits
+UIntVector = UInt
+SIntVector = SInt
+_Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
 def get_family():
-    BitVector = Bits
-    UIntVector = UInt
-    SIntVector = SInt
-    _Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
     return _Family_

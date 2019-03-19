@@ -201,10 +201,13 @@ def gen_register_instances(initial_value_map):
         if isinstance(eval_type, m.Kind):
             if isinstance(eval_type, m._BitKind):
                 n = None
-                assert eval_value.name.name in ["GND", "VCC"], eval_value.name
-                init = 0 if eval_value.name.name == "GND" else 1
+                if isinstance(eval_value, (bool, int)):
+                    init = bool(eval_value)
+                else:
+                    assert eval_value.name.name in ["GND", "VCC"], eval_value.name
+                    init = 0 if eval_value.name.name == "GND" else 1
             else:
-                n = len(eval_value)
+                n = len(eval_type)
                 init = int(eval_value)
             register_instances += f"{tab}{name} = DefineRegister({n}, init={init})()\n"
         else:
@@ -323,7 +326,6 @@ def sequential(defn_env: dict, cls):
         comb_out_wiring += f"io.O <= comb_out[{comb_out_count}]\n"
     circuit_combinational_output_type += output_type_str
 
-    print(initial_value_map)
     circuit_combinational_body = ""
     for stmt in call_def.body:
         rewriter = RewriteSelfAttributes(initial_value_map)
@@ -348,7 +350,6 @@ def sequential(defn_env: dict, cls):
         circuit_combinational_call_args=circuit_combinational_call_args,
         comb_out_wiring=comb_out_wiring
     )
-    print(circuit_definition_str)
     tree = ast.parse(circuit_definition_str)
     if "DefineRegister" not in defn_env:
         tree = ast.Module([

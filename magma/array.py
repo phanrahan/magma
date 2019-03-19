@@ -1,4 +1,5 @@
 from collections import Sequence
+from .bitutils import int2seq
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
@@ -71,6 +72,16 @@ class ArrayKind(Kind):
     def flip(cls):
         return Array[cls.N, cls.T.flip()]
 
+    def __call__(cls, *args, **kwargs):
+        result = super().__call__(*args, **kwargs)
+        if len(args) == 1 and isinstance(args[0], Array):
+            arg = args[0]
+            if len(arg) < len(result):
+                from .conversions import zext
+                arg = zext(arg, len(result) - len(arg))
+            result(arg)
+        return result
+
 
 class Array(Type, metaclass=ArrayKind):
     def __init__(self, *largs, **kwargs):
@@ -84,14 +95,22 @@ class Array(Type, metaclass=ArrayKind):
                     t = VCC if t else GND
                 assert type(t) == self.T, (type(t), self.T)
                 self.ts.append(t)
-        elif isinstance(largs, Sequence) and len(largs) == 1:
+        elif len(largs) == 1 and isinstance(largs[0], int):
             self.ts = []
-            value = array(largs[0], self.N)
-            for t in value:
-                if isinstance(t, IntegerTypes):
-                    t = VCC if t else GND
-                # assert type(t) is self.T, (type(t), self.T)
-                self.ts.append(t)
+            for bit in int2seq(largs[0], self.N):
+                self.ts.append(VCC if bit else GND)
+        elif len(largs) == 1 and isinstance(largs[0], Array):
+            assert len(largs[0]) <= self.N
+            T = self.T
+            self.ts = list(type(t)() for t in largs[0])
+            if len(largs[0]) < self.N:
+                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
+        elif len(largs) == 1 and isinstance(largs[0], list):
+            assert len(largs[0]) <= self.N
+            T = self.T
+            self.ts = largs[0][:]
+            if len(largs[0]) < self.N:
+                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
         else:
             self.ts = []
             for i in range(self.N):
