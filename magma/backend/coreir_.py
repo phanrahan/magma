@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from bit_vector import BitVector
+from hwtypes import BitVector
 import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
