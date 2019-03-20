@@ -63,7 +63,9 @@ def magma_port_to_coreir(port):
     name = get_top_name(name)
     if isinstance(name, DefnRef):
         if name.defn.name != "":
-            select = select.replace(name.defn.name, "self")
+            select_list = select.split(".")
+            select_list[0] = "self"
+            select = ".".join(select_list)
 
     return select.replace("[", ".").replace("]", "")
 
@@ -152,7 +154,7 @@ class CoreIRBackend:
         elif (coreir_type.kind == "BitIn"):
             return BitIn
         elif (coreir_type.kind == "Array"):
-            return Array(len(coreir_type), self.get_ports(coreir_type.element_type))
+            return Array[len(coreir_type), self.get_ports(coreir_type.element_type)]
         elif (coreir_type.kind == "Record"):
             elements = {}
             for item in coreir_type.items():

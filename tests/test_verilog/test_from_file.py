@@ -47,7 +47,7 @@ def test_coreir_compilation():
     top = m.DefineCircuit("top",
                           "RX", m.In(m.Bit),
                           "CLK", m.In(m.Bit),
-                          "data", m.Out(m.Bits(8)),
+                          "data", m.Out(m.Bits[8]),
                           "valid", m.Out(m.Bit))
     RXMOD_inst = RXMOD()
     m.wire(top.RX, RXMOD_inst.RX)

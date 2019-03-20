@@ -36,9 +36,9 @@ def test_const1():
 @pytest.mark.parametrize('T', [Bits, UInt, SInt])
 @pytest.mark.parametrize('N', range(1, 4))
 def test_const_bits(T, N):
-    Buf = DeclareCircuit('Buf', "I", In(T(N)), "O", Out(T(N)))
+    Buf = DeclareCircuit('Buf', "I", In(T[N]), "O", Out(T[N]))
 
-    main = DefineCircuit("main", "O", Out(T(N)))
+    main = DefineCircuit("main", "O", Out(T[N]))
 
     buf = Buf()
 

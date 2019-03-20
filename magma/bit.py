@@ -102,6 +102,16 @@ class _BitKind(Kind):
         if not hasattr(cls, 'direction'):
             cls.direction = None
 
+    def __call__(cls, value=None, *args, **kwargs):
+        if value is not None:
+            if isinstance(value, (bool, IntegerTypes)):
+                return VCC if value else GND
+        result = super().__call__(*args, **kwargs)
+        if value is not None:
+            assert isinstance(value, BitType), type(value)
+            result(value)
+        return result
+
     def __eq__(cls, rhs):
         if not isinstance(rhs, _BitKind):
             return False
@@ -130,6 +140,10 @@ class _BitKind(Kind):
     @abstractmethod
     def flip(cls):
         pass
+
+    def get_family(cls):
+        import magma as m
+        return m.get_family()
 
 
 class BitType(_BitType):

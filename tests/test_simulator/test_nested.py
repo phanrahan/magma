@@ -15,12 +15,12 @@ def simulator_nested(simple):
     cirb = CoreIRBackend(c)
     scope = Scope()
     inDims = [4, 3, width]
-    toNest = Array(inDims[1], Array(inDims[2], Bit))
-    inType = In(Array(inDims[0], toNest))
+    toNest = Array[inDims[1], Array[inDims[2], Bit]]
+    inType = In(Array[inDims[0], toNest])
     if simple:
-        outType = Out(Array(inDims[0], toNest))
+        outType = Out(Array[inDims[0], toNest])
     else:
-        outType = Out(Array(2, Array(2, toNest)))
+        outType = Out(Array[2, Array[2, toNest]])
     args = ['I', inType, 'O', outType] + ClockInterface(False, False)
 
     testcircuit = DefineCircuit('test_simulator_nested_simple{}'.format(str(simple)), *args)

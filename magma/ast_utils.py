@@ -6,6 +6,7 @@ import types
 import typing
 import astor
 import traceback
+import functools
 
 
 def get_ast(obj):
@@ -59,12 +60,18 @@ def inspect_enclosing_env(fn):
         * Maintain the stack hierarchy. Again, not currently used, but could be
         useful.
     """
+    @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         stack = inspect.stack()
         enclosing_env = {}
-        for i in range(1, len(stack)):
-            enclosing_env.update(stack[i].frame.f_locals)
-            enclosing_env.update(stack[i].frame.f_globals)
+        for i in range(0, len(stack)):
+            for key, value in stack[i].frame.f_locals.items():
+                if key not in enclosing_env:
+                    enclosing_env[key] = value
+        for i in range(0, len(stack)):
+            for key, value in stack[i].frame.f_globals.items():
+                if key not in enclosing_env:
+                    enclosing_env[key] = value
         return fn(enclosing_env, *args, **kwargs)
     return wrapped
 

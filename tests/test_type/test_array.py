@@ -1,14 +1,14 @@
 from magma import *
 
-Array2 = Array(2,Bit)
-Array4 = Array(4,Bit)
+Array2 = Array[2,Bit]
+Array4 = Array[4,Bit]
 
 def test():
     print(Array2)
 
-    A2 = Array(2,Bit)
-    B2 = Array(2,BitIn)
-    C2 = Array(2,BitOut)
+    A2 = Array[2,Bit]
+    B2 = Array[2,BitIn]
+    C2 = Array[2,BitOut]
     assert A2 == A2
     assert B2 == B2
     assert C2 == C2
@@ -17,14 +17,14 @@ def test():
     assert A2 != C2
     assert B2 != C2
 
-    A4 = Array(4,Bit)
+    A4 = Array[4,Bit]
     assert A4 == Array4
     assert A2 != A4
 
 
 def test_val():
-    Array4In = Array(4, BitIn)
-    Array4Out = Array(4, BitOut)
+    Array4In = Array[4, BitIn]
+    Array4Out = Array[4, BitOut]
 
     assert Flip(Array4In) == Array4Out
     assert Flip(Array4Out) == Array4In
@@ -69,12 +69,12 @@ def test_flip():
 def test_array2d():
     # types
 
-    A24 = Array(2,Array(4,Bit))
+    A24 = Array[2,Array[4,Bit]]
     print(A24)
 
     assert isinstance(A24, ArrayKind)
 
-    assert A24 == Array(2,Array4)
+    assert A24 == Array[2,Array4]
 
     # constructor
 

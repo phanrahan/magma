@@ -141,20 +141,21 @@ def test_sext(value):
     assert int(out) == value
 
 
+@pytest.mark.skip("Check removed so anonymous bits can be extended")
 @pytest.mark.parametrize("op", [m.zext, m.sext])
 def test_extension_error(op):
     try:
-        a = m.In(m.SInt(2))()
+        a = m.In(m.SInt[2])()
         op(a, 2)
         assert False, "This should raise an exception"
     except Exception as e:
-        assert str(e) == f"{op.__name__} only works with output values"
+        assert str(e) == f"{op.__name__} only works with non input values"
 
 
 @pytest.mark.parametrize("op", [m.zext, m.sext])
 def test_extension_no_error(op):
     try:
-        a = m.Out(m.SInt(2))()
+        a = m.Out(m.SInt[2])()
         op(a, 2)
     except Exception as e:
         assert False, "This should work"

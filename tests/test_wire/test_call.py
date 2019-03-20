@@ -19,12 +19,12 @@ def test_call1():
 def test_call2():
     def DefineAndN(n):
         name = 'AndN%d' % n
-        return DeclareCircuit(name, "I", In(Bits(n)), "O", Out(Bit))
+        return DeclareCircuit(name, "I", In(Bits[n]), "O", Out(Bit))
 
     def AndN(n):
         return DefineAndN(n)()
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = AndN(2)
 

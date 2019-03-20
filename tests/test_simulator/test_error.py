@@ -3,7 +3,7 @@ from magma.simulator import PythonSimulator
 
 def test_instance():
     N = 4
-    T = Bits(N)
+    T = Bits[N]
 
     class Test(Circuit):
         name = "Test"

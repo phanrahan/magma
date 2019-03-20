@@ -14,11 +14,11 @@ def test_simulator_tuple():
     cirb = CoreIRBackend(c)
     scope = Scope()
     inDims = [2, width]
-    tupleEl = Array(inDims[1], Bit)
-    nestedTuples = Array(inDims[0], Tuple(sel=tupleEl, data=tupleEl))
+    tupleEl = Array[inDims[1], Bit]
+    nestedTuples = Array[inDims[0], Tuple(sel=tupleEl, data=tupleEl)]
     tupleValues = {'sel':int2seq(testValInt, width), 'data':int2seq(testValInt+20, width)}
     inType = In(nestedTuples)
-    outType = Out(Array(2*inDims[0], tupleEl))
+    outType = Out(Array[2*inDims[0], tupleEl])
     args = ['I', inType, 'O', outType] + ClockInterface(False, False)
 
     testcircuit = DefineCircuit('test_simulator_tuple', *args)
