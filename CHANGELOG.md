@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.20] - 2019-03-19
+### Fixed
+Update to use hwtypes instead of bit_vector.
+
 ## [0.1.19] - 2019-02-25
 ### Fixed
 - Fixes issue with renamed input ports in `m.circuit.combinational`

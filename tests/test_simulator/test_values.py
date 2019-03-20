@@ -1,6 +1,6 @@
 from magma.simulator.python_simulator import PythonSimulator
 import magma as m
-from hwtypes import BitVector as BV
+from hwtypes import BitVector
 import pytest
 
 
@@ -35,7 +35,7 @@ def test_array():
 
     sim = PythonSimulator(Main)
     for value in range(0, 4):
-        bv = BV(value, 2)
+        bv = BitVector[2](value)
         bools = bv.as_bool_list()
         sim.set_value(Main.I, bools)
         sim.evaluate()
@@ -63,7 +63,7 @@ def test_uint(T):
 
     sim = PythonSimulator(Main)
     for value in range(0, 4):
-        bv = BV(value, 2)
+        bv = BitVector[2](value)
         bools = bv.as_bool_list()
         sim.set_value(Main.I, bools)
         sim.evaluate()
@@ -88,7 +88,7 @@ def test_sint():
 
     sim = PythonSimulator(Main)
     for value in range(-2, 2):
-        bv = BV(value, 2)
+        bv = BitVector[2](value)
         bools = bv.as_bool_list()
         sim.set_value(Main.I, bools)
         sim.evaluate()
