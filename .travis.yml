@@ -28,7 +28,6 @@ install:
 - pip install python-coveralls
 - pip install pytest-cov pytest-codestyle
 - pip install -r requirements.txt
-- pip install fault
 - pip install -e .
 after_success:
 - coveralls
