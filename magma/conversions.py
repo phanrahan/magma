@@ -197,7 +197,7 @@ def check_value_is_not_input(fn):
     return wrapped
 
 
-@check_value_is_not_input
+# @check_value_is_not_input
 def zext(value, n):
     assert isinstance(value, (UIntType, SIntType, BitsType)) or \
         isinstance(value, ArrayType) and isinstance(value.T, _BitKind)
@@ -219,7 +219,7 @@ def zext(value, n):
     return result
 
 
-@check_value_is_not_input
+# @check_value_is_not_input
 def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value), array(value[-1], n)))

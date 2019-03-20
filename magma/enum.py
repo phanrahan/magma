@@ -16,6 +16,8 @@ class EnumMeta(type):
         max_value = max(value for value in kwargs.values())
         num_bits = max(max_value.bit_length(), 1)
         type_ = m.Bits[num_bits]
+        # TODO: Make Enum a subtype of Bits instead
+        type_._is_magma_enum = True
         for key, value in kwargs.items():
             setattr(type_, key, m.bits(value, num_bits))
         return type_

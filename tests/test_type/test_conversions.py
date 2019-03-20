@@ -141,6 +141,7 @@ def test_sext(value):
     assert int(out) == value
 
 
+@pytest.mark.skip("Check removed so anonymous bits can be extended")
 @pytest.mark.parametrize("op", [m.zext, m.sext])
 def test_extension_error(op):
     try:
