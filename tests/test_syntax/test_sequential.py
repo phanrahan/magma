@@ -50,7 +50,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     #     gen_args["has_en"] = True
 
     # default_kwargs = gen_args.copy()
-    default_kwargs = {"init": coreir.type.BitVector(init, num_bits=width)}
+    default_kwargs = {"init": coreir.type.BitVector[width](init)}
     # default_kwargs.update(config_args)
 
     return DeclareCoreirCircuit(
@@ -68,7 +68,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
 
 
 @m.cache_definition
-def DefineRegister(n, init=0, has_ce=False, has_reset=False,
+def DefineRegister(n, init=None, has_ce=False, has_reset=False,
                    has_async_reset=False, _type=m.Bits):
     T = _type[n]
     return DefineCoreirReg(n, init, has_async_reset, _type)

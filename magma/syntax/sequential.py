@@ -267,8 +267,7 @@ class SpecializeConstantInts(ast.NodeTransformer):
         return node
 
 
-@ast_utils.inspect_enclosing_env
-def sequential(defn_env: dict, cls):
+def _sequential(defn_env: dict, cls):
     if not inspect.isclass(cls):
         raise ValueError("sequential decorator only works with classes")
 
@@ -361,3 +360,6 @@ def sequential(defn_env: dict, cls):
                                         inspect.getmodule(cls))
 
     return circuit_def
+
+
+sequential = ast_utils.inspect_enclosing_env(_sequential)
