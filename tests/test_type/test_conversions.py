@@ -148,7 +148,7 @@ def test_extension_error(op):
         op(a, 2)
         assert False, "This should raise an exception"
     except Exception as e:
-        assert str(e) == f"{op.__name__} only works with output values"
+        assert str(e) == f"{op.__name__} only works with non input values"
 
 
 @pytest.mark.parametrize("op", [m.zext, m.sext])

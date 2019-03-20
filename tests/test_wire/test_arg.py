@@ -17,7 +17,7 @@ def test_arg1():
 def test_arg2():
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = And2()
 
@@ -43,7 +43,7 @@ def test_pos():
 def test_arg_array1():
     def DefineAndN(n):
         name = 'AndN%d' % n
-        return DeclareCircuit(name, "I", In(Bits(n)), "O", Out(Bit))
+        return DeclareCircuit(name, "I", In(Bits[n]), "O", Out(Bit))
 
     def AndN(n):
         return DefineAndN(n)()
@@ -62,7 +62,7 @@ def test_arg_array1():
 def test_arg_array2():
     def DefineAndN(n):
         name = 'AndN%d' % n
-        return DeclareCircuit(name, "I", In(Bits(n)), "O", Out(Bit))
+        return DeclareCircuit(name, "I", In(Bits[n]), "O", Out(Bit))
 
     def AndN(n):
         return DefineAndN(n)()
@@ -81,12 +81,12 @@ def test_arg_array2():
 def test_arg_array3():
     def DefineAndN(n):
         name = 'AndN%d' % n
-        return DeclareCircuit(name, "I", In(Bits(n)), "O", Out(Bit))
+        return DeclareCircuit(name, "I", In(Bits[n]), "O", Out(Bit))
 
     def AndN(n):
         return DefineAndN(n)()
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = AndN(2)
 

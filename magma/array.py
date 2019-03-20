@@ -35,8 +35,7 @@ class ArrayKind(Kind):
         return t
 
     def __eq__(cls, rhs):
-        if not (issubclass(rhs, cls) or
-                issubclass(cls, rhs)):
+        if not issubclass(type(rhs), ArrayKind):
             return False
 
         if cls.N != rhs.N:

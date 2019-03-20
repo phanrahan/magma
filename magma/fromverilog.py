@@ -68,7 +68,7 @@ def get_type(io, type_map):
     else:
         msb = get_value(io.width.msb)
         lsb = get_value(io.width.lsb)
-        type_ = Bits(msb-lsb+1)
+        type_ = Bits[msb-lsb+1]
 
     type_ = direction(type_)
 

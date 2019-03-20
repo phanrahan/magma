@@ -16,9 +16,9 @@ def test():
     assert A2 != C2
     assert B2 != C2
 
-    # A4 = Bits[4]
-    # assert A4 == Array4
-    # assert A2 != A4
+    A4 = Bits[4]
+    assert A4 == Array4
+    assert A2 != A4
 
 
 def test_val():

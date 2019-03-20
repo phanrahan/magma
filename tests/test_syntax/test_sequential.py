@@ -23,7 +23,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     if width is None:
         width = 1
     name = "reg_P"  # TODO: Add support for clock interface
-    config_args = {"init": coreir.type.BitVector(init, num_bits=width)}
+    config_args = {"init": coreir.type.BitVector[width](init)}
     gen_args = {"width": width}
     T = T[width]
     io = ["I", m.In(T), "clk", m.In(m.Clock), "O", m.Out(T)]
@@ -132,6 +132,9 @@ def test_seq_hierarchy(target):
 
         return Register
 
+    CustomRegister0 = DefineCustomRegister(2, init=0)
+    CustomRegister1 = DefineCustomRegister(2, init=1)
+
     @m.circuit.sequential
     class TestShiftRegister:
         def __init__(self):
@@ -144,8 +147,8 @@ def test_seq_hierarchy(target):
             # same meaning
 
             # Only supported in __init__ body for now
-            self.x: m.Bits[2] = [DefineCustomRegister(2, init=0)()]
-            self.y: m.Bits[2] = [DefineCustomRegister(2, init=1)()]
+            self.x: CustomRegister0 = CustomRegister0()
+            self.y: CustomRegister1 = CustomRegister1()
 
         def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
             O = self.y

@@ -50,7 +50,7 @@ def test_type_map_error():
     path = full_path("simple.v")
     with open(path, 'r') as f:
         s = f.read()
-    type_map = {"a": m.In(m.Bits(4))}
+    type_map = {"a": m.In(m.Bits[4])}
     v = DeclareFromVerilog(s, type_map)
     assert len(v) == 0
 

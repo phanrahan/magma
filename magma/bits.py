@@ -22,6 +22,7 @@ class BitsKind(ArrayKind):
             return "Out(Bits({}))".format(cls.N)
         return "Bits({})".format(cls.N)
 
+
     def __getitem__(cls, index):
         if isinstance(index, tuple):
             width, T = index

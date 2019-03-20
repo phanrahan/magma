@@ -30,7 +30,7 @@ def test_output_as_input(caplog):
 def test_multiple_outputs_to_input_warning(caplog):
     A = DeclareCircuit('A', "I", In(Bit), "O", Out(Bit))
 
-    main = DefineCircuit("main", "I", In(Bits(2)), "O", Out(Bit))
+    main = DefineCircuit("main", "I", In(Bits[2]), "O", Out(Bit))
 
     a = A()
     wire(main.I[0], a.I)
@@ -107,9 +107,9 @@ def test_no_key(caplog):
 
 
 def test_const_array_error(caplog):
-    Buf = DeclareCircuit('Buf', "I", In(Array(1, Bit)), "O", Out(Array(1, Bit)))
+    Buf = DeclareCircuit('Buf', "I", In(Array[1, Bit]), "O", Out(Array[1, Bit]))
 
-    main = DefineCircuit("main", "O", Out(Array(1, Bit)))
+    main = DefineCircuit("main", "O", Out(Array[1, Bit]))
 
     buf = Buf()
 
@@ -117,6 +117,6 @@ def test_const_array_error(caplog):
     wire(buf.O, main.O)
 
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_wire/test_errors.py:116: Cannot wire 1 (type=<class 'int'>) to main.Buf_inst0.I (type=Array(1,In(Bit))) because conversions from IntegerTypes are only defined for Bits, not general Arrays
+\033[1mtests/test_wire/test_errors.py:116: Cannot wire 1 (type=<class 'int'>) to main.Buf_inst0.I (type=Array[1, In(Bit)]) because conversions from IntegerTypes are only defined for Bits, not general Arrays
     wire(1, buf.I)
 """
