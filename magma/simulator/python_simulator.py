@@ -14,7 +14,8 @@ from ..scope import *
 from ..bit import VCC, GND, BitType, _BitType
 from ..array import ArrayType
 from ..bits import SIntType, BitsType, UIntType
-from bit_vector import BitVector
+from hwtypes import BitVector
+import hwtypes
 from ..bitutils import seq2int
 from ..clock import ClockType
 
@@ -148,6 +149,8 @@ class ValueStore:
             return
 
         if isinstance(newval, int) and newval in {0, 1}:
+            newval = bool(newval)
+        if isinstance(newval, hwtypes.Bit):
             newval = bool(newval)
         if not isinstance(newval, bool):
             raise TypeError(f"Can only set Bit {bit} with a boolean value or 0 or 1, not {newval} (type={type(newval)})")
