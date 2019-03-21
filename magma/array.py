@@ -74,7 +74,7 @@ class ArrayKind(Kind):
     def __call__(cls, *args, **kwargs):
         result = super().__call__(*args, **kwargs)
         if len(args) == 1 and isinstance(args[0], Array) and not \
-                issubclass(cls.T, Array):
+                issubclass(cls.T, Array) and len(args[0]) == cls.N:
             arg = args[0]
             if len(arg) < len(result):
                 from .conversions import zext
