@@ -25,6 +25,7 @@ install:
 - conda install pip
 # End install conda
 
+- pip install twine
 - pip install python-coveralls
 - pip install pytest-cov pytest-codestyle
 - pip install -r requirements.txt
