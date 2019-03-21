@@ -17,10 +17,10 @@ class BitsKind(ArrayKind):
 
     def __str__(cls):
         if cls.isinput():
-            return "In(Bits({}))".format(cls.N)
+            return "In(Bits[{}])".format(cls.N)
         if cls.isoutput():
-            return "Out(Bits({}))".format(cls.N)
-        return "Bits({})".format(cls.N)
+            return "Out(Bits[{}])".format(cls.N)
+        return "Bits[{}]".format(cls.N)
 
 
     def __getitem__(cls, index):
