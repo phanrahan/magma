@@ -1,4 +1,5 @@
-from collections import Sequence, Mapping, OrderedDict
+from collections.abc import Sequence, Mapping
+from collections import OrderedDict
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
