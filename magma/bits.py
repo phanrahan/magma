@@ -114,6 +114,13 @@ class Bits(ArrayType, metaclass=BitsKind):
         t = zext(self, value)
         return t
 
+    def __getitem__(self, key):
+        from .conversions import bits
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return bits(result)
+        return result
+
 
 BitsType = Bits
 
@@ -186,6 +193,13 @@ class UInt(Bits, metaclass=UIntKind):
             return repr(self.name)
         ts = [repr(t) for t in self.ts]
         return 'uint([{}])'.format(', '.join(ts))
+
+    def __getitem__(self, key):
+        from .conversions import uint
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return uint(result)
+        return result
 
 
 # def UInt(N, T=None):
@@ -314,6 +328,13 @@ class BFloatKind(BitsKind):
     def flip(cls):
         return BFloat[cls.N, cls.T.flip()]
 
+    def __getitem__(self, key):
+        from .conversions import sint
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return sint(result)
+        return result
+
 
 class BFloat(Bits, metaclass=BFloatKind):
     def __repr__(self):
@@ -321,3 +342,10 @@ class BFloat(Bits, metaclass=BFloatKind):
             return repr(self.name)
         ts = [repr(t) for t in self.ts]
         return 'bfloat([{}])'.format(', '.join(ts))
+
+    def __getitem__(self, key):
+        from .conversions import bfloat
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return bfloat(result)
+        return result
