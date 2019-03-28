@@ -127,4 +127,7 @@ endmodule""")
     m.wire(top.I, bar_inst.I)
     m.wire(bar_inst.O, top.O)
     m.EndDefine()
-    m.compile("top", top, output="coreir")
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")
