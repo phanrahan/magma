@@ -63,6 +63,8 @@ import magma.util
 from .is_primitive import isprimitive
 from .is_definition import isdefinition
 
+from .uniquification import UniquificationPass
+
 from .product import Product
 
 

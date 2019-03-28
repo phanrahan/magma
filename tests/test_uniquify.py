@@ -150,3 +150,34 @@ endmodule""")
     assert pytest_e.type is Exception
     assert pytest_e.value.args == \
         ("Can not rename a verilog wrapped file",)
+
+
+def test_hash_verilog():
+    [foo0] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    foo1 = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    m.EndCircuit()
+
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    foo0_inst = foo0()
+    foo1_inst = foo1()
+    m.wire(top.I, foo0_inst.I)
+    m.wire(foo0_inst.O, foo1_inst.I)
+    m.wire(foo1_inst.O, top.O)
+    m.EndDefine()
+
+    assert repr(foo0) == repr(foo1)
+
+    # Run the uniquification pass as a mechanism to check that foo0 and foo1
+    # hash to two different things even though they have the same repr.
+    pass_ = m.UniquificationPass(top, None)
+    pass_._run(top)
+    foo_seen = pass_.seen["foo"]
+    assert len(foo_seen) == 2
+    for v in foo_seen.values():
+        assert len(v) == 1
+    expected_ids_ = {id(v[0]) for v in foo_seen.values()}
+    ids_ = {id(foo0), id(foo1)}
+    assert expected_ids_ == ids_
