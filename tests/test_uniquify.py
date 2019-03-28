@@ -1,3 +1,4 @@
+import pytest
 import magma as m
 from magma.testing import check_files_equal
 
@@ -123,3 +124,29 @@ def test_key_error():
     assert check_files_equal(__file__,
                              f"build/{top.name}.json",
                              "gold/uniquification_key_error_mux.json")
+
+
+def test_uniquify_verilog():
+    [foo0] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    [foo1] = m.DefineFromVerilog("""
+module foo(input II, output OO);
+    assign OO = II;
+endmodule""")
+    assert repr(foo0) != repr(foo1)
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    foo0_inst = foo0()
+    foo1_inst = foo1()
+    m.wire(top.I, foo0_inst.I)
+    m.wire(foo0_inst.O, foo1_inst.II)
+    m.wire(foo1_inst.OO, top.O)
+    m.EndDefine()
+
+    with pytest.raises(Exception) as pytest_e:
+        m.compile(f"top", top, output="coreir")
+        assert False
+    assert pytest_e.type is Exception
+    assert pytest_e.value.args == \
+        ("Can not rename a verilog wrapped file",)

@@ -145,6 +145,9 @@ class CircuitKind(type):
         return circuit_to_html(cls)
 
     def rename(cls, new_name):
+        if cls.verilogFile:
+            raise Exception("Can not rename a verilog wrapped file")
+
         old_name = cls.name
         cls.name = new_name
         cls.coreir_name = new_name
@@ -157,6 +160,10 @@ class CircuitKind(type):
         # <new_name>" existing anywhere else, most likely in comments etc. The
         # more robust way to do this would to modify the AST directly and
         # generate the new verilog code.
+        #
+        # Instead, at the top of this function, we raise an exception for
+        # verilog wrapped files. That is, for now it is considered an error to
+        # try to rename a verilog wrapped circuit.
         if cls.verilogFile:
             find_str = f"module {old_name}"
             replace_str = f"module {new_name}"
