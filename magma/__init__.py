@@ -64,6 +64,7 @@ from .is_primitive import isprimitive
 from .is_definition import isdefinition
 
 from .uniquification import UniquificationPass
+from .generator import *
 
 from .product import Product
 
