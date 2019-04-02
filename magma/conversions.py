@@ -9,7 +9,7 @@ from .clock import ClockType, Clock, \
     Enable, EnableType
 from .array import ArrayType, Array, ArrayKind
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
-    SIntKind
+    SIntKind, BFloat
 from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 import magma as m
@@ -173,6 +173,10 @@ def sint(value, n=None):
     if isinstance(value, UIntType):
         raise ValueError("uint cannot convert SInt")
     return convertbits(value, n, SIntType, SInt, True)
+
+
+def bfloat(value, n=None):
+    return convertbits(value, n, BFloat, BFloat, True)
 
 
 def concat(*arrays):

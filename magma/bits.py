@@ -10,6 +10,7 @@ from hwtypes import BitVector, SIntVector
 __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
 __all__ += ['SInt', 'SIntType', 'SIntKind']
+__all__ += ['BFloat', 'BFloatKind']
 
 
 class BitsKind(ArrayKind):
@@ -113,6 +114,13 @@ class Bits(ArrayType, metaclass=BitsKind):
         t = zext(self, value)
         return t
 
+    def __getitem__(self, key):
+        from .conversions import bits
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return bits(result)
+        return result
+
 
 BitsType = Bits
 
@@ -185,6 +193,13 @@ class UInt(Bits, metaclass=UIntKind):
             return repr(self.name)
         ts = [repr(t) for t in self.ts]
         return 'uint([{}])'.format(', '.join(ts))
+
+    def __getitem__(self, key):
+        from .conversions import uint
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return uint(result)
+        return result
 
 
 # def UInt(N, T=None):
@@ -266,3 +281,71 @@ SIntType = SInt
 #     assert isinstance(N, IntegerTypes)
 #     name = 'SInt({})'.format(N)
 #     return SIntKind(name, (SIntType,), dict(N=N, T=T))
+
+
+class BFloatKind(BitsKind):
+    _class_cache = weakref.WeakValueDictionary()
+
+    def __getitem__(cls, index):
+        if isinstance(index, tuple):
+            width, T = index
+        else:
+            width = index
+            T = Bit
+        if isinstance(width, BFloat):
+            assert width.const()
+            # TODO: Move this logic to a method in BitsType
+            bit_type_to_constant_map = {
+                GND: 0,
+                VCC: 1
+            }
+            width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
+                                           width]).as_uint()
+        try:
+            return BFloatKind._class_cache[width, T]
+        except KeyError:
+            pass
+        bases = [cls]
+        bases = tuple(bases)
+        class_name = '{}[{}, {}]'.format(cls.__name__, width, T)
+        t = type(cls)(class_name, bases, dict(T=T, N=width))
+        t.__module__ = cls.__module__
+        BFloatKind._class_cache[width, T] = t
+        return t
+
+    def __str__(cls):
+        if cls.isinput():
+            return "In(BFloat({}))".format(cls.N)
+        if cls.isoutput():
+            return "Out(BFloat({}))".format(cls.N)
+        return "BFloat({})".format(cls.N)
+
+    def qualify(cls, direction):
+        if cls.T.isoriented(direction):
+            return cls
+        return BFloat[cls.N, cls.T.qualify(direction)]
+
+    def flip(cls):
+        return BFloat[cls.N, cls.T.flip()]
+
+    def __getitem__(self, key):
+        from .conversions import sint
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return sint(result)
+        return result
+
+
+class BFloat(Bits, metaclass=BFloatKind):
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'bfloat([{}])'.format(', '.join(ts))
+
+    def __getitem__(self, key):
+        from .conversions import bfloat
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return bfloat(result)
+        return result
