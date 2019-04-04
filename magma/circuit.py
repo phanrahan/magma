@@ -18,6 +18,7 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
 from .is_definition import isdefinition
+from .ref import DefnRef, InstRef
 
 
 __all__  = ['AnonymousCircuitType']
@@ -32,6 +33,26 @@ __all__ += ['getCurrentDefinition']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
+__all__ += ['IO']
+
+
+class IO:
+    """
+    The `IO` object constructs a set of anonymous values to be used for the
+    ports of a circuit definition.  The circuit definition is defined in terms
+    of the anonymous values.  The `IO` object is processed at the end of the
+    `__new__` method of the circuit metaclass by the method
+    `process_new_style_definition`.
+    """
+    def __init__(self, **kwargs):
+        self.ports = {}
+        for key, value in kwargs.items():
+            # Inputs to a circuit are outputs in the context of the circuit
+            # definition (and vice versa), so we flip the types for the body of
+            # the class definition
+            value = value.flip()()
+            setattr(self, key, value)
+            self.ports[key] = value
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
@@ -475,8 +496,93 @@ class DefineCircuitKind(CircuitKind):
                  self.definition()
                  self._is_definition = True
                  EndCircuit()
+        io = set(v for k, v in dct.items() if isinstance(v, IO))
+        if hasattr(self, 'IO') and io:
+            raise Exception("Found mixed new and old style IO specification")
+        if len(io) > 1:
+            raise Exception("Found multiple instances of IO")
+        elif io:
+            io = next(iter(io))
+            self.process_new_style_definition(io, dct["renamed_ports"])
 
         return self
+
+    def process_new_style_definition(self, io, renamed_ports):
+        """
+        The `process_new_style_definition` method constructs an "old-style" IO
+        list (e.g. `["I0", m.In(m.Bit), ...]`) and passes this to the old logic
+        for setting up interfaces (`DeclareInterface`).  This required the
+        minimal amount of changes to the existing code, although we may consider
+        rearchitecting the entire interface pipeline given this opportunity.
+
+        Because we use the old-style interface setup logic, we must traverse the
+        definition graph defined on the temporary anonymous values setup by the
+        `IO` object and replace the anonymous interface values with the concrete
+        values from the old-style interface setup logic.
+
+        `process_new_style_definition` also traverses the definition graph and
+        "places" the instances (by using `self.place`) within the current
+        definition.
+        """
+        # Generate the old IO list and reuse the logic to setup the
+        # interface
+        io_list = []
+        for key, value in io.ports.items():
+            io_list += [key, type(value).flip()]
+        self.IO = DeclareInterface(*io_list)
+        self.interface = self.IO(defn=self, renamed_ports=renamed_ports)
+        setports(self, self.interface.ports)
+
+        # Traverse the definition graph to fixup the anonymous instances by
+        # placing them in the current definition
+        # Done using a worke queue algorithm, intialized with the drivers of
+        # the outputs (viewed as inputs) to the definition
+        worklist = []
+        for key, value in io.ports.items():
+            value.name = DefnRef(self, key)
+            if value.isinput():
+                driver = value.value()
+                if driver is not None:
+                    # Wire the driver up the definition bit setup by the old
+                    # interface logic
+                    getattr(self, key).wire(driver)
+                    worklist.append(driver)
+        if not worklist:
+            # Nothing wired up to the outputs, assume this is a declaration
+            # then
+            return
+        self._is_definition = True
+
+        while worklist:
+            curr = worklist.pop(0)
+            assert curr is not None, "Found unwired port"
+
+            if isinstance(curr.name, InstRef):
+                # For instance references, we place the instance in the current
+                # definition, then add the driver of its inputs to the queue
+                inst = curr.name.inst
+                self.place(inst)
+                for key, value in inst.interface.items():
+                    if value.isinput():
+                        value = getattr(inst, key)
+                        driver = value.value()
+                        if isinstance(driver.name, DefnRef):
+                            # If it's driven by a definition port, remove
+                            # temporary anonymous bit from the port wires and
+                            # replace with definition bit setup by the old
+                            # interface logic
+                            outputs = value.port.wires.outputs
+                            for i, output in enumerate(outputs):
+                                if output.bit is driver:
+                                    del value.port.wires.outputs[i]
+                                    break
+                            else:
+                                assert False, "Could not find temp anon bit"
+                            value.wire(getattr(self, driver.name.name))
+                        else:
+                            worklist.append(driver)
+            else:
+                raise NotImplementedError(type(value.name))
 
     @property
     def is_definition(self):

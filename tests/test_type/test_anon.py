@@ -14,7 +14,7 @@ def test():
     assert b0.port.wires is b1.port.wires
 
     wires = b0.port.wires
-    assert len(wires.inputs) == 0
-    assert len(wires.outputs) == 1
     print('inputs:', [str(p) for p in wires.inputs])
     print('outputs:', [str(p) for p in wires.outputs])
+    assert len(wires.inputs) == 0
+    assert len(wires.outputs) == 1

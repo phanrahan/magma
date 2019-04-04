@@ -78,7 +78,14 @@ class Wire:
         #print(str(o), o.anon(), o.bit.isinput(), o.bit.isoutput())
         #print(str(i), i.anon(), i.bit.isinput(), i.bit.isoutput())
 
-        if not o.anon():
+        # TODO: Need this check for tests/test_type/test_anon.py, basically if
+        # we have two anonymous ports, they share the same wire rather than
+        # using the same wiring logic as everything else. Why?
+        # For the new syntax without `def definition` we leverage the fact that
+        # we can normally wire up anonymous ports and give them names later. To
+        # do this, we need to restrict this check to only skip anonymous ports
+        # that are undirected (before it skipped all anonymous ports)
+        if not (o.anon() and o.bit.direction is None):
             #assert o.bit.direction is not None
             if o.bit.isinput():
                 report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as an output", debug_info)
@@ -91,7 +98,7 @@ class Wire:
                 #print('adding output', o)
                 self.outputs.append(o)
 
-        if not i.anon():
+        if not (i.anon() and i.bit.direction is None):
             #assert i.bit.direction is not None
             if i.bit.isoutput():
                 report_wiring_error(f"Using `{i.bit.debug_name}` (an output) as an input", debug_info)
