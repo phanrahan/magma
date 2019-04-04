@@ -9,8 +9,8 @@ def test_flatten():
     a1 = array([b0, b1])
     a2 = array([b0, b1])
     print(a1==a2)
-    A = Array(2,Bit)
-    B = Array(2,Bit)
+    A = Array[2,Bit]
+    B = Array[2,Bit]
     print(A==B)
     t = tuple_(dict(x=array([b0, b1]), y=array([b2, b3, b4])))
     print(type(t.name))

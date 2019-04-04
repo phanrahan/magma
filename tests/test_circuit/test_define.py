@@ -12,7 +12,7 @@ def test_simple_def(target, suffix):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2 = And2()
 
@@ -28,7 +28,7 @@ def test_simple_def(target, suffix):
 
     # Check that the subclassing pattern produces the same annotations
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bits(2)), "O", m.Out(m.Bit)]
+        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bit)]
 
         @classmethod
         def definition(io):
@@ -52,7 +52,7 @@ def test_for_loop_def(target, suffix):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2_prev = None
     for i in range(0, 4):
@@ -82,7 +82,7 @@ def test_interleaved_instance_wiring(target, suffix):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2_0 = And2()
     and2_1 = And2()
@@ -110,7 +110,7 @@ def test_unwired_ports_warnings(caplog):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits(2)), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2 = And2()
 
@@ -129,7 +129,7 @@ def test_2d_array_error(caplog):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Array(2, m.Array(3, m.Bit))),
+    main = m.DefineCircuit("main", "I", m.In(m.Array[2, m.Array[3, m.Bit]]),
                            "O", m.Out(m.Bit))
 
     and2 = And2()
@@ -142,12 +142,12 @@ def test_2d_array_error(caplog):
         m.compile("build/test_unwired_output", main)
         assert False, "Should raise exception"
     except Exception as e:
-        assert str(e) == "Argument main.I of type Array(2,Array(3,Out(Bit))) is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa
+        assert str(e) == "Argument main.I of type Array[2, Array[3, Out(Bit)]] is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa
 
 
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
-@pytest.mark.parametrize("T",[m.Bit, m.Bits(2), m.Array(2, m.Bit), m.Tuple(x=m.Bit, y=m.Bit)])
+@pytest.mark.parametrize("T",[m.Bit, m.Bits[2], m.Array[2, m.Bit], m.Tuple(x=m.Bit, y=m.Bit)])
 def test_anon_value(target, suffix, T):
     And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
                             "O", m.Out(T))
@@ -165,9 +165,10 @@ def test_anon_value(target, suffix, T):
 
     m.EndCircuit()
 
-    m.compile(f"build/test_anon_value_{T}", main, target)
-    assert check_files_equal(__file__, f"build/test_anon_value_{T}.{suffix}",
-                             f"gold/test_anon_value_{T}.{suffix}")
+    type_str = str(T).replace("[", "(").replace("]", ")")
+    m.compile(f"build/test_anon_value_{type_str}", main, target)
+    assert check_files_equal(__file__, f"build/test_anon_value_{type_str}.{suffix}",
+                             f"gold/test_anon_value_{type_str}.{suffix}")
 
 if __name__ == "__main__":
     test_simple_def("coreir", "json")

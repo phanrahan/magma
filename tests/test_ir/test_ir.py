@@ -7,7 +7,7 @@ def test_print_ir():
 
     And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit)) 
 
-    AndN2 = DefineCircuit("AndN2", "I", In(Array(2, Bit)), "O", Out(Bit) ) 
+    AndN2 = DefineCircuit("AndN2", "I", In(Array[2, Bit]), "O", Out(Bit) ) 
     and2 = And2() 
     wire( AndN2.I[0], and2.I0 ) 
     wire( AndN2.I[1], and2.I1 ) 
@@ -22,7 +22,7 @@ def test_print_ir():
     result = compile(main)
     #print(result)
     assert result == """\
-AndN2 = DefineCircuit("AndN2", "I", Array(2,In(Bit)), "O", Out(Bit))
+AndN2 = DefineCircuit("AndN2", "I", Array[2, In(Bit)], "O", Out(Bit))
 And2_inst0 = And2()
 wire(AndN2.I[0], And2_inst0.I0)
 wire(AndN2.I[1], And2_inst0.I1)

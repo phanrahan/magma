@@ -47,7 +47,7 @@ def test_coreir_compilation():
     top = m.DefineCircuit("top",
                           "RX", m.In(m.Bit),
                           "CLK", m.In(m.Bit),
-                          "data", m.Out(m.Bits(8)),
+                          "data", m.Out(m.Bits[8]),
                           "valid", m.Out(m.Bit))
     RXMOD_inst = RXMOD()
     m.wire(top.RX, RXMOD_inst.RX)
@@ -71,7 +71,7 @@ def test_decl_list():
     memory_core = m.DefineFromVerilogFile(
         os.path.join(file_path, "decl_list.v"), target_modules=["memory_core"],
         type_map=type_map)[0]
-    assert str(memory_core) == "memory_core(clk_in: In(Clock), clk_en: In(Enable), reset: In(AsyncReset), config_addr: In(Bits(32)), config_data: In(Bits(32)), config_read: In(Bit), config_write: In(Bit), config_en: In(Enable), config_en_sram: In(Bits(4)), config_en_linebuf: In(Bit), data_in: In(Bits(16)), data_out: Out(Bits(16)), wen_in: In(Bit), ren_in: In(Bit), valid_out: Out(Bit), chain_in: In(Bits(16)), chain_out: Out(Bits(16)), chain_wen_in: In(Bit), chain_valid_out: Out(Bit), almost_full: Out(Bit), almost_empty: Out(Bit), addr_in: In(Bits(16)), read_data: Out(Bits(32)), read_data_sram: Out(Bits(32)), read_data_linebuf: Out(Bits(32)), flush: In(Bit))"
+    assert str(memory_core) == "memory_core(clk_in: In(Clock), clk_en: In(Enable), reset: In(AsyncReset), config_addr: In(Bits[32]), config_data: In(Bits[32]), config_read: In(Bit), config_write: In(Bit), config_en: In(Enable), config_en_sram: In(Bits[4]), config_en_linebuf: In(Bit), data_in: In(Bits[16]), data_out: Out(Bits[16]), wen_in: In(Bit), ren_in: In(Bit), valid_out: Out(Bit), chain_in: In(Bits[16]), chain_out: Out(Bits[16]), chain_wen_in: In(Bit), chain_valid_out: Out(Bit), almost_full: Out(Bit), almost_empty: Out(Bit), addr_in: In(Bits[16]), read_data: Out(Bits[32]), read_data_sram: Out(Bits[32]), read_data_linebuf: Out(Bits[32]), flush: In(Bit))"
 
 
 def test_from_sv():

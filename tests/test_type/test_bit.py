@@ -1,3 +1,4 @@
+import magma as m
 from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip, VCC, \
     GND, wire
 
@@ -211,3 +212,10 @@ def test_wire5():
 
     assert b0.value() is None
     assert b1.value() is None
+
+
+def test_const():
+    zero = Bit(0)
+    one = Bit(1)
+    assert zero.name.name == "GND"
+    assert one.name.name == "VCC"

@@ -15,9 +15,9 @@ from magma.testing import check_files_equal
 @coreir_typegen
 def smax_type_gen(width: int):
     return Tuple(
-        in0=m.Array(width, m.In(m.Bit)),
-        in1=m.Array(width, m.In(m.BitIn)),
-        out=m.Array(width, m.In(m.Bit))
+        in0=m.Array[width, m.In(m.Bit)],
+        in1=m.Array[width, m.In(m.BitIn)],
+        out=m.Array[width, m.In(m.Bit)]
     )
 
 
@@ -27,8 +27,8 @@ def test_declare_generator():
 
     class LinkerTest(m.Circuit):
         name = "LinkerTest0"
-        IO = ["I0", m.In(m.Bits(width)), "I1", m.In(m.Bits(width)),
-              "O", m.Out(m.Bits(width))]
+        IO = ["I0", m.In(m.Bits[width]), "I1", m.In(m.Bits[width]),
+              "O", m.Out(m.Bits[width])]
 
         @classmethod
         def definition(self):

@@ -44,7 +44,7 @@ def test_uniquify_unequal():
     m.wire(foo.I, foo.O)
     m.EndCircuit()
 
-    bar = m.DefineCircuit("foo", "I", m.In(m.Bits(2)), "O", m.Out(m.Bits(2)))
+    bar = m.DefineCircuit("foo", "I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2]))
     m.wire(bar.I, bar.O)
     m.EndCircuit()
 
@@ -78,11 +78,11 @@ def test_key_error():
         return m.DeclareCircuit(*args, **kwargs,
                                 renamed_ports=default_port_mapping)
 
-    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits(6)), "I1", m.In(m.Bits(6)), "S", m.In(m.Bit), "O", m.Out(m.Bits(6)))
+    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
     mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
-                               *["I", m.In(m.Tuple(data=m.Array(2, m.Bits(6)),
-                                                   sel=m.Bits(m.bitutils.clog2(2)))),
-                                 "O", m.Out(m.Bits(6))],
+                               *["I", m.In(m.Tuple(data=m.Array[2, m.Bits[6]],
+                                                   sel=m.Bits[m.bitutils.clog2(2)])),
+                                 "O", m.Out(m.Bits[6])],
                                coreir_name="muxn",
                                coreir_lib="commonlib",
                                coreir_genargs={"width": 6, "N": 2})()
@@ -92,7 +92,7 @@ def test_key_error():
     m.wire(mux.O, Mux2x6.O)
     m.EndDefine()
 
-    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(1)), "O", m.Out(m.Bits(6)))
+    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
     Mux2x6_inst0 = Mux2x6()
     m.wire(MuxWrapper_2_6.I[0], Mux2x6_inst0.I0)
     m.wire(MuxWrapper_2_6.I[1], Mux2x6_inst0.I1)
@@ -100,7 +100,7 @@ def test_key_error():
     m.wire(Mux2x6_inst0.O, MuxWrapper_2_6.O)
     m.EndCircuit()
 
-    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(1)), "O", m.Out(m.Bits(6)))
+    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
     Mux2x6_inst0 = Mux2x6()
     m.wire(MuxWrapper_2_6_copy.I[0], Mux2x6_inst0.I0)
     m.wire(MuxWrapper_2_6_copy.I[1], Mux2x6_inst0.I1)
@@ -108,7 +108,7 @@ def test_key_error():
     m.wire(Mux2x6_inst0.O, MuxWrapper_2_6_copy.O)
     m.EndCircuit()
 
-    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array(2,m.In(m.Bits(6))), "S", m.In(m.Bits(19)), "O", m.Out(m.Bits(6)))
+    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[19]), "O", m.Out(m.Bits[6]))
     MuxWrapper_2_6_inst0 = MuxWrapper_2_6()
     MuxWrapper_2_6_inst1 = MuxWrapper_2_6_copy()
     m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst0.I)

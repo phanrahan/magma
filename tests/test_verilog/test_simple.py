@@ -33,7 +33,7 @@ def test_type_map_bit(target_type):
     assert repr(top.IO) == expected
 
 
-@pytest.mark.parametrize("target_type", [m.Bits(8), m.UInt(8), m.SInt(8)])
+@pytest.mark.parametrize("target_type", [m.Bits[8], m.UInt[8], m.SInt[8]])
 def test_type_map_bits(target_type):
     path = full_path("rxmod.v")
     with open(path, 'r') as f:
@@ -50,7 +50,7 @@ def test_type_map_error():
     path = full_path("simple.v")
     with open(path, 'r') as f:
         s = f.read()
-    type_map = {"a": m.In(m.Bits(4))}
+    type_map = {"a": m.In(m.Bits[4])}
     v = DeclareFromVerilog(s, type_map)
     assert len(v) == 0
 

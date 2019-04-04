@@ -6,7 +6,7 @@ from magma.testing import check_files_equal
 
 
 def test_error():
-    circ = m.DefineCircuit("test", "a", m.In(m.Bits(4)), "b", m.Out(m.Bits(4)))
+    circ = m.DefineCircuit("test", "a", m.In(m.Bits[4]), "b", m.Out(m.Bits[4]))
     try:
         ~circ.a
         assert False, \

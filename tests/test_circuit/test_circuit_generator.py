@@ -7,7 +7,7 @@ from collections import namedtuple
 
 @circuit_generator
 def DefineAdd(N, has_cout=False, has_cin=False):
-    T = Bits(N)
+    T = Bits[N]
     IO_ = ['I0', In(T), 'I1', In(T), 'O', Out(T)]
     name_ = "Add{}".format(N)
     if has_cout:
@@ -35,7 +35,7 @@ def DefineAdd(N, has_cout=False, has_cin=False):
             coreir_genargs = {"width": N} # , "has_cout": has_cout, "has_cin": has_cin}
             if has_cout:
                 coreir_genargs["width"] += 1
-            T = Bits(coreir_genargs["width"])
+            T = Bits[coreir_genargs["width"]]
             coreir_io = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
             CoreirAdd = DeclareCircuit("coreir_" + add.name, *coreir_io,
                     coreir_name="add", coreir_lib="coreir",
@@ -67,8 +67,8 @@ def test_add_generator():
     Add8cin = DefineAdd(8, has_cin=True, has_cout=False)
     assert Add8cin._generator_arguments.args == (8,)
     assert Add8cin._generator_arguments.kwargs == {"has_cin": True, "has_cout": False}
-    test_circuit = DefineCircuit("test", "I0", In(Bits(8)), "I1", In(Bits(8)),
-            "CIN", In(Bit), "O", Out(Bits(8)))
+    test_circuit = DefineCircuit("test", "I0", In(Bits[8]), "I1", In(Bits[8]),
+            "CIN", In(Bit), "O", Out(Bits[8]))
     adder = Add8cin()
     wire(test_circuit, adder)
     wire(test_circuit.O, adder.O)

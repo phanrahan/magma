@@ -5,7 +5,7 @@ import os
 def test_compile_coreir():
     width = 16
     numInputs = 4
-    doubleT = magma.Bits(width)
+    doubleT = magma.Bits[width]
     double = magma.DefineCircuit("double", "I", magma.In(doubleT), "O", magma.Out(doubleT))
     shift_amount = 2
     output = magma.concat(double.I[shift_amount:width], magma.bits(0, shift_amount))

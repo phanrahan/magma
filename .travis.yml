@@ -1,6 +1,7 @@
 language: python
-python:
-- '3.6'
+# python managed by conda until 3.7 available
+# python:
+# - '3.6'
 addons:
   apt:
     sources:
@@ -11,8 +12,22 @@ addons:
 before_install:
 - source .travis/install_coreir.sh
 install:
+# install conda for py 3.7
+- wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+- chmod +x miniconda.sh
+- ./miniconda.sh -b -p $TRAVIS_BUILD_DIR/miniconda
+- export PATH=$TRAVIS_BUILD_DIR/miniconda/bin:$PATH
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+- conda create -q -n test-env python=3.7
+- source activate test-env
+- conda install pip
+# End install conda
+
+- pip install twine
 - pip install python-coveralls
-- pip install pytest-cov pytest-codestyle fault
+- pip install pytest-cov pytest-codestyle
 - pip install -e .
 after_success:
 - coveralls

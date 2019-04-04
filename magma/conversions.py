@@ -8,7 +8,8 @@ from .clock import ClockType, Clock, \
     AsyncReset, AsyncResetType, \
     Enable, EnableType
 from .array import ArrayType, Array, ArrayKind
-from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt
+from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
+    SIntKind, BFloat
 from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 import magma as m
@@ -151,7 +152,7 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
             INOUT: InOut
         }[T.direction](Bit)
 
-    return totypeconstructor(len(Ts), T)(*ts)
+    return totypeconstructor[len(Ts), T](*ts)
 
 
 def array(value, n=None):
@@ -174,6 +175,10 @@ def sint(value, n=None):
     return convertbits(value, n, SIntType, SInt, True)
 
 
+def bfloat(value, n=None):
+    return convertbits(value, n, BFloat, BFloat, True)
+
+
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts]  # flatten
     return array(ts)
@@ -181,34 +186,44 @@ def concat(*arrays):
 
 def repeat(value, n):
     if isinstance(value, BitType):
-        repeats = bits(n*[value])
+        repeats = bits(n * [value])
     else:
-        repeats = array(n*[value])
+        repeats = array(n * [value])
     return repeats
 
 
-def check_value_is_output(fn):
+def check_value_is_not_input(fn):
     @functools.wraps(fn)
     def wrapped(value, n):
         if isinstance(value, m.Type) and not value.isoutput():
-            raise Exception(f"{fn.__name__} only works with output values")
+            raise Exception(f"{fn.__name__} only works with non input values")
         return fn(value, n)
     return wrapped
 
 
-@check_value_is_output
+# @check_value_is_not_input
 def zext(value, n):
-    assert isinstance(value, (UIntType, SIntType, BitsType))
+    assert isinstance(value, (UIntType, SIntType, BitsType)) or \
+        isinstance(value, ArrayType) and isinstance(value.T, _BitKind)
     if isinstance(value, UIntType):
         zeros = uint(0, n)
     elif isinstance(value, SIntType):
         zeros = sint(0, n)
     elif isinstance(value, BitsType):
         zeros = bits(0, n)
-    return concat(value, zeros)
+    elif isinstance(value, ArrayType):
+        zeros = array(0, n)
+    result = concat(value, zeros)
+    if isinstance(value, UIntType):
+        return uint(result)
+    elif isinstance(value, SIntType):
+        return sint(result)
+    elif isinstance(value, BitsType):
+        return bits(result)
+    return result
 
 
-@check_value_is_output
+# @check_value_is_not_input
 def sext(value, n):
     assert isinstance(value, SIntType)
     return sint(concat(array(value), array(value[-1], n)))

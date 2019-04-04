@@ -28,7 +28,7 @@ def test_check_interface_array():
     """
     class TestCircuit1(Circuit):
         name = "TestCircuit1"
-        IO = ["I", In(Array(8, Bit)), "O", Out(Array(8, Bit))]
+        IO = ["I", In(Array[8, Bit]), "O", Out(Array[8, Bit])]
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)
@@ -42,7 +42,7 @@ def test_check_interface_tuple():
     """
     class TestCircuit2(Circuit):
         name = "TestCircuit2"
-        IO = ["I", In(Tuple(a=Bit, b=Array(7, Bit))), "O", Out(Tuple(a=Bit, b=Array(7, Bit)))]
+        IO = ["I", In(Tuple(a=Bit, b=Array[7, Bit])), "O", Out(Tuple(a=Bit, b=Array[7, Bit]))]
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)
@@ -52,7 +52,7 @@ def test_check_interface_tuple():
 def test_nested_clocks():
     c = coreir.Context()
     cirb = CoreIRBackend(c)
-    args = ['clocks', In(Array(2, Clock))]
+    args = ['clocks', In(Array[2, Clock])]
 
     inner_test_circuit = DefineCircuit('inner_test_nested_clocks', *args)
     EndCircuit()

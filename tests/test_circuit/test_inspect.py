@@ -35,7 +35,7 @@ EndCircuit()\
 def test_str_repr_anon():
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
-    circ = m.DefineCircuit("Test", "I0", m.In(m.Bits(3)), "I1", m.In(m.Bits(3)), "O", m.Out(m.Bits(3)))
+    circ = m.DefineCircuit("Test", "I0", m.In(m.Bits[3]), "I1", m.In(m.Bits[3]), "O", m.Out(m.Bits[3]))
     anon = m.join(m.map_(And2, 3))
     m.wire(circ.I0, anon.I0)
     m.wire(circ.I1, anon.I1)
@@ -44,5 +44,5 @@ def test_str_repr_anon():
 
     string = str(anon)
     assert string[:len("AnonymousCircuitInst")] == "AnonymousCircuitInst"
-    assert string[-len("<I0: Array(3,In(Bit)), I1: Array(3,In(Bit)), O: Array(3,Out(Bit))>"):] == "<I0: Array(3,In(Bit)), I1: Array(3,In(Bit)), O: Array(3,Out(Bit))>"
+    assert string[-len("<I0: Array[3, In(Bit)], I1: Array[3, In(Bit)], O: Array[3, Out(Bit)]>"):] == "<I0: Array[3, In(Bit)], I1: Array[3, In(Bit)], O: Array[3, Out(Bit)]>"
     assert repr(anon) == 'AnonymousCircuitType("I0", array([And2_inst0.I0, And2_inst1.I0, And2_inst2.I0]), "I1", array([And2_inst0.I1, And2_inst1.I1, And2_inst2.I1]), "O", array([And2_inst0.O, And2_inst1.O, And2_inst2.O]))'

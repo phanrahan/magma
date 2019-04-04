@@ -1,4 +1,5 @@
 from collections import Sequence
+from .bitutils import int2seq
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
@@ -6,23 +7,110 @@ from .bit import VCC, GND
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
+import weakref
 
 __all__ = ['ArrayType', 'ArrayKind', 'Array']
 
 
-class ArrayType(Type):
+class ArrayKind(Kind):
+    _class_cache = weakref.WeakValueDictionary()
+    def __init__(cls, name, bases, dct):
+        Kind.__init__(cls, name, bases, dct)
+
+    def __str__(cls):
+        return "Array[%d, %s]" % (cls.N, cls.T)
+
+    def __getitem__(cls, index):
+        width, sub_type = index
+        try:
+            return ArrayKind._class_cache[width, sub_type]
+        except KeyError:
+            pass
+        bases = [cls]
+        bases = tuple(bases)
+        class_name = '{}[{}, {}]'.format(cls.__name__, width, sub_type.__name__)
+        t = type(cls)(class_name, bases, dict(N=width, T=sub_type))
+        t.__module__ = cls.__module__
+        ArrayKind._class_cache[width, sub_type] = t
+        return t
+
+    def __eq__(cls, rhs):
+        if not issubclass(type(rhs), ArrayKind):
+            return False
+
+        if cls.N != rhs.N:
+            return False
+        if cls.T != rhs.T:
+            return False
+
+        return True
+
+    __ne__ = Kind.__ne__
+    __hash__ = Kind.__hash__
+
+    def __len__(cls):
+        return cls.N
+
+#     def __getitem__(cls, key):
+#         if isinstance(key, slice):
+#             return array([cls[i] for i in range(*key.indices(len(cls)))])
+#         else:
+#             if not (0 <= key and key < cls.N):
+#                 raise IndexError
+
+#             return cls.ts[key]
+
+    def size(cls):
+        return cls.N * cls.T.size()
+
+    def qualify(cls, direction):
+        if cls.T.isoriented(direction):
+            return cls
+        return Array[cls.N, cls.T.qualify(direction)]
+
+    def flip(cls):
+        return Array[cls.N, cls.T.flip()]
+
+    def __call__(cls, *args, **kwargs):
+        result = super().__call__(*args, **kwargs)
+        if len(args) == 1 and isinstance(args[0], Array) and not \
+                (issubclass(cls.T, Array) and cls.N == 1):
+            arg = args[0]
+            if len(arg) < len(result):
+                from .conversions import zext
+                arg = zext(arg, len(result) - len(arg))
+            result(arg)
+        return result
+
+
+class Array(Type, metaclass=ArrayKind):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs)
 
-        if isinstance(largs, Sequence) and len(largs) > 0:
-            assert len(largs) == self.N
+        if isinstance(largs, Sequence) and len(largs) == self.N:
             self.ts = []
             for t in largs:
                 if isinstance(t, IntegerTypes):
                     t = VCC if t else GND
                 assert type(t) == self.T, (type(t), self.T)
                 self.ts.append(t)
+        elif len(largs) == 1 and isinstance(largs[0], int):
+            self.ts = []
+            for bit in int2seq(largs[0], self.N):
+                self.ts.append(VCC if bit else GND)
+        elif len(largs) == 1 and isinstance(largs[0], Array):
+            assert len(largs[0]) <= self.N
+            T = self.T
+            self.ts = list(type(t)() for t in largs[0])
+            if len(largs[0]) < self.N:
+                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
+        elif len(largs) == 1 and isinstance(largs[0], list):
+            assert len(largs[0]) <= self.N
+            T = self.T
+            self.ts = largs[0][:]
+            if len(largs[0]) < self.N:
+                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
         else:
             self.ts = []
             for i in range(self.N):
@@ -170,56 +258,13 @@ class ArrayType(Type):
         return sum([t.flatten() for t in self.ts], [])
 
 
-class ArrayKind(Kind):
-    def __init__(cls, name, bases, dct):
-        Kind.__init__(cls, name, bases, dct)
+# def Array(N, T):
+#     assert isinstance(N, IntegerTypes)
+#     assert isinstance(T, Kind)
+#     name = 'Array(%d,%s)' % (N, str(T))
+#     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
 
-    def __str__(cls):
-        return "Array(%d,%s)" % (cls.N, cls.T)
-
-    def __eq__(cls, rhs):
-        if not isinstance(rhs, ArrayKind):
-            return False
-
-        if cls.N != rhs.N:
-            return False
-        if cls.T != rhs.T:
-            return False
-
-        return True
-
-    __ne__ = Kind.__ne__
-    __hash__ = Kind.__hash__
-
-    def __len__(cls):
-        return cls.N
-
-    def __getitem__(cls, key):
-        if isinstance(key, slice):
-            return array([cls[i] for i in range(*key.indices(len(cls)))])
-        else:
-            if not (0 <= key and key < cls.N):
-                raise IndexError
-
-            return cls.ts[key]
-
-    def size(cls):
-        return cls.N * cls.T.size()
-
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return Array(cls.N, cls.T.qualify(direction))
-
-    def flip(cls):
-        return Array(cls.N, cls.T.flip())
-
-
-def Array(N, T):
-    assert isinstance(N, IntegerTypes)
-    assert isinstance(T, Kind)
-    name = 'Array(%d,%s)' % (N, str(T))
-    return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
+ArrayType = Array
 
 
 # Workaround for circular dependency
