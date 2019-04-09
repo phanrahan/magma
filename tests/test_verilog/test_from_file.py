@@ -131,3 +131,10 @@ endmodule""")
     m.compile(f"build/{FILENAME}", top, output="coreir")
     assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
                                        f"gold/{FILENAME}.json")
+
+
+def test_from_sv_mux():
+    file_path = os.path.dirname(__file__)
+    mux = m.DefineFromVerilogFile(os.path.join(file_path, "mux.sv"), target_modules=["onehot_mux_hier"])[0]
+    print(mux.verilogFile)
+    assert False, "Should not fail before this line"
