@@ -31,7 +31,7 @@ setup(
         "pyverilog",
         "numpy",
         "graphviz",
-        "coreir>=1.0.*",
+        "coreir>=2.0.*",
         "hwtypes>=1.0.*"
     ],
     python_requires='>=3.6',
