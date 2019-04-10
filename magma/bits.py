@@ -349,33 +349,40 @@ class SFixedKind(BitsKind):
     _class_cache = weakref.WeakValueDictionary()
 
     def __getitem__(cls, key):
-        low, high, step = key
+        # W - fixed-point word length in bits
+        # I - number of bits above the binary point (can be negative)
+        if len(key) == 2:
+            W, I = key
+            T = Bit
+        else:
+            assert len(key) == 3
+            W, I, T = key
         try:
             return SFixedKind._class_cache[key]
         except KeyError:
             pass
         bases = [cls]
         bases = tuple(bases)
-        class_name = '{}[{}, {}, {}]'.format(cls.__name__, low, high, step)
-        t = type(cls)(class_name, bases, dict(low=low, high=high, step=step))
+        class_name = '{}[{}, {}, {}]'.format(cls.__name__, W, I, T)
+        t = type(cls)(class_name, bases, dict(W=W, I=I, T=T))
         t.__module__ = cls.__module__
         SFixedKind._class_cache[key] = t
         return t
 
     def __str__(cls):
         if cls.isinput():
-            return "In(SFixed({}))".format(cls.N)
+            return "In(SFixed({}, {}, {}))".format(cls.W, cls.I, cls.T)
         if cls.isoutput():
-            return "Out(SFixed({}))".format(cls.N)
-        return "SFixed({})".format(cls.N)
+            return "Out(SFixed({}, {}, {}))".format(cls.W, cls.I, cls.T)
+        return "SFixed({},{}, {})".format(cls.W, cls.I, cls.T)
 
     def qualify(cls, direction):
         if cls.T.isoriented(direction):
             return cls
-        return SFixed[cls.N, cls.T.qualify(direction)]
+        return SFixed[cls.W, cls.I, cls.T.qualify(direction)]
 
     def flip(cls):
-        return SFixed[cls.N, cls.T.flip()]
+        return SFixed[cls.W, cls.I, cls.T.flip()]
 
 
 class SFixed(Bits, metaclass=SFixedKind):
