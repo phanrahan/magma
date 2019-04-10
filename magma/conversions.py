@@ -179,6 +179,10 @@ def bfloat(value, n=None):
     return convertbits(value, n, BFloat, BFloat, True)
 
 
+def sfixed(value, n=None):
+    return convertbits(value, n, SFixed, SFixed, True)
+
+
 def concat(*arrays):
     ts = [t for a in arrays for t in a.ts]  # flatten
     return array(ts)

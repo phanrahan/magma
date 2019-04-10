@@ -11,6 +11,7 @@ __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
 __all__ += ['SInt', 'SIntType', 'SIntKind']
 __all__ += ['BFloat', 'BFloatKind']
+__all__ += ['SFixed', 'SFixedKind']
 
 
 class BitsKind(ArrayKind):
@@ -292,7 +293,7 @@ class BFloatKind(BitsKind):
         else:
             width = index
             T = Bit
-        if isinstance(width, BFloat):
+        if isinstance(width, Bits):
             assert width.const()
             # TODO: Move this logic to a method in BitsType
             bit_type_to_constant_map = {
@@ -328,13 +329,6 @@ class BFloatKind(BitsKind):
     def flip(cls):
         return BFloat[cls.N, cls.T.flip()]
 
-    def __getitem__(self, key):
-        from .conversions import sint
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return sint(result)
-        return result
-
 
 class BFloat(Bits, metaclass=BFloatKind):
     def __repr__(self):
@@ -348,4 +342,52 @@ class BFloat(Bits, metaclass=BFloatKind):
         result = super().__getitem__(key)
         if isinstance(key, slice):
             return bfloat(result)
+        return result
+
+
+class SFixedKind(BitsKind):
+    _class_cache = weakref.WeakValueDictionary()
+
+    def __getitem__(cls, key):
+        low, high, step = key
+        try:
+            return SFixedKind._class_cache[key]
+        except KeyError:
+            pass
+        bases = [cls]
+        bases = tuple(bases)
+        class_name = '{}[{}, {}, {}]'.format(cls.__name__, low, high, step)
+        t = type(cls)(class_name, bases, dict(low=low, high=high, step=step))
+        t.__module__ = cls.__module__
+        SFixedKind._class_cache[key] = t
+        return t
+
+    def __str__(cls):
+        if cls.isinput():
+            return "In(SFixed({}))".format(cls.N)
+        if cls.isoutput():
+            return "Out(SFixed({}))".format(cls.N)
+        return "SFixed({})".format(cls.N)
+
+    def qualify(cls, direction):
+        if cls.T.isoriented(direction):
+            return cls
+        return SFixed[cls.N, cls.T.qualify(direction)]
+
+    def flip(cls):
+        return SFixed[cls.N, cls.T.flip()]
+
+
+class SFixed(Bits, metaclass=SFixedKind):
+    def __repr__(self):
+        if not isinstance(self.name, AnonRef):
+            return repr(self.name)
+        ts = [repr(t) for t in self.ts]
+        return 'sfixed([{}])'.format(', '.join(ts))
+
+    def __getitem__(self, key):
+        from .conversions import sfixed
+        result = super().__getitem__(key)
+        if isinstance(key, slice):
+            return sfixed(result)
         return result
