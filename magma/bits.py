@@ -345,7 +345,7 @@ class BFloat(Bits, metaclass=BFloatKind):
         return result
 
 
-class SFixedKind(BitsKind):
+class SFixedKind(SIntKind):
     _class_cache = weakref.WeakValueDictionary()
 
     def __getitem__(cls, key):
@@ -364,7 +364,7 @@ class SFixedKind(BitsKind):
         bases = [cls]
         bases = tuple(bases)
         class_name = '{}[{}, {}, {}]'.format(cls.__name__, W, I, T)
-        t = type(cls)(class_name, bases, dict(W=W, I=I, T=T))
+        t = type(cls)(class_name, bases, dict(W=W, I=I, T=T, N=W))
         t.__module__ = cls.__module__
         SFixedKind._class_cache[key] = t
         return t
@@ -385,7 +385,7 @@ class SFixedKind(BitsKind):
         return SFixed[cls.W, cls.I, cls.T.flip()]
 
 
-class SFixed(Bits, metaclass=SFixedKind):
+class SFixed(SInt, metaclass=SFixedKind):
     def __repr__(self):
         if not isinstance(self.name, AnonRef):
             return repr(self.name)
