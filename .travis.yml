@@ -9,8 +9,7 @@ addons:
     packages:
     - g++-4.9
     - verilator    
-before_install:
-- source .travis/install_coreir.sh
+
 install:
 # install conda for py 3.7
 - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
