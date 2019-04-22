@@ -146,7 +146,7 @@ class CoreIRSimulator(CircuitSimulator):
         self.ctx.run_passes(["rungenerators", "wireclocks-coreir", "verifyconnectivity --noclkrst",
                              "flattentypes", "flatten", "verifyconnectivity --noclkrst", "deletedeadinstances"],
                             namespaces=namespaces)
-        self.simulator_state = coreir.SimulatorState(coreir_circuit)
+        self.simulator_state = coreir.SimulatorState.make(coreir_circuit)
 
         if need_cleanup:
             os.remove(coreir_filename)
