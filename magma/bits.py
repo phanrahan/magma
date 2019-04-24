@@ -328,13 +328,6 @@ class BFloatKind(BitsKind):
     def flip(cls):
         return BFloat[cls.N, cls.T.flip()]
 
-    def __getitem__(self, key):
-        from .conversions import sint
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return sint(result)
-        return result
-
 
 class BFloat(Bits, metaclass=BFloatKind):
     def __repr__(self):
