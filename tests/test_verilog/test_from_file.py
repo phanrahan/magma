@@ -92,3 +92,22 @@ def test_from_sv():
 
     assert m.testing.check_files_equal(__file__, "build/test_pe.sv",
                                        "test_pe.sv")
+
+
+def test_from_pad():
+    file_path = os.path.dirname(__file__)
+    Pad = m.DeclareFromVerilogFile(os.path.join(file_path, "pad.v"))[0]
+
+    class Top(m.Circuit):
+        IO = ["pad", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            pad = Pad()
+            m.wire(io.pad, pad.PAD)
+            for port in ["DS0", "DS1", "DS2", "I", "IE", "OEN", "PU", "PD", "ST", "SL", "RTE"]:
+                m.wire(0, getattr(pad, port))
+
+
+    m.compile("build/test_pad", Top, output="coreir-verilog")
+    assert m.testing.check_files_equal(__file__, "build/test_pad.v",
+                                       "gold/test_pad.v")

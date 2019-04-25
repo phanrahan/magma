@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2019-04-25
+### Fixed
+- Fixed bug in coreir backend's handling of inout ports
+
 ## [1.0.2] - 2019-04-24
 ### Fixed
 - Fixed bug in `BFloatKind` to remove second `__getitem__` definition

@@ -223,12 +223,12 @@ class CoreIRBackend:
             return module_definition.add_generator_instance(instance.name,
                     generator, gen_args, config_args)
 
-    def add_output_port(self, output_ports, port):
-        if port.isoutput():
-            output_ports[port] = magma_port_to_coreir(port)
+    def add_non_input_ports(self, non_input_ports, port):
+        if not port.isinput():
+            non_input_ports[port] = magma_port_to_coreir(port)
         if isinstance(port, (TupleType, ArrayType)):
             for element in port:
-                self.add_output_port(output_ports, element)
+                self.add_non_input_ports(non_input_ports, element)
 
     def compile_declaration(self, declaration):
         if declaration.coreir_lib is not None:
@@ -257,10 +257,10 @@ class CoreIRBackend:
     def compile_definition_to_module_definition(self, definition, module_definition):
         if definition.coreir_lib is not None:
             self.libs_used.add(definition.coreir_lib)
-        output_ports = {}
+        non_input_ports = {}
         for name, port in definition.interface.ports.items():
             logger.debug("{}, {}, {}".format(name, port, port.isoutput()))
-            self.add_output_port(output_ports, port)
+            self.add_non_input_ports(non_input_ports, port)
 
         for instance in definition.instances:
             wiredefaultclock(definition, instance)
@@ -270,25 +270,25 @@ class CoreIRBackend:
                 coreir_instance.add_metadata("filename", json.dumps(make_relative(instance.debug_info.filename)))
                 coreir_instance.add_metadata("lineno", json.dumps(str(instance.debug_info.lineno)))
             for name, port in instance.interface.ports.items():
-                self.add_output_port(output_ports, port)
+                self.add_non_input_ports(non_input_ports, port)
 
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
-                self.connect_input(module_definition, port, output_ports)
+                self.connect_input(module_definition, port, non_input_ports)
 
         for port in definition.interface.ports.values():
             self.connect_input(module_definition, port,
-                               output_ports)
+                               non_input_ports)
 
     def connect_input(self, module_definition, port,
-                      output_ports):
+                      non_input_ports):
         if not port.isinput():
             if isinstance(port, (TupleType, ArrayType)):
                 for elem in port:
                     self.connect_input(module_definition, elem,
-                                       output_ports)
+                                       non_input_ports)
             return
-        self.connect(module_definition, port, port.value(), output_ports)
+        self.connect(module_definition, port, port.value(), non_input_ports)
 
     def compile_definition(self, definition):
         logger.debug(f"Compiling definition {definition}")
@@ -315,7 +315,7 @@ class CoreIRBackend:
         coreir_module.definition = module_definition
         return coreir_module
 
-    def connect(self, module_definition, port, value, output_ports):
+    def connect(self, module_definition, port, value, non_input_ports):
         self.__unique_concat_id
 
         # allow clocks or arrays of clocks to be unwired as CoreIR can wire them up
@@ -343,18 +343,18 @@ class CoreIRBackend:
                     module_definition)
         elif value.anon() and isinstance(value, ArrayType):
             for p, v in zip(port, value):
-                self.connect(module_definition, p, v, output_ports)
+                self.connect(module_definition, p, v, non_input_ports)
             return
         elif isinstance(value, TupleType) and value.anon():
             for p, v in zip(port, value):
-                self.connect(module_definition, p, v, output_ports)
+                self.connect(module_definition, p, v, non_input_ports)
             return
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
-            # logger.debug((value, output_ports))
-            # logger.debug((id(value), [id(key) for key in output_ports]))
-            source = module_definition.select(output_ports[value])
+            # logger.debug((value, non_input_ports))
+            # logger.debug((id(value), [id(key) for key in non_input_ports]))
+            source = module_definition.select(non_input_ports[value])
         sink = module_definition.select(magma_port_to_coreir(port))
         module_definition.connect(source, sink)
         if get_codegen_debug_info() and hasattr(port, "debug_info"):
