@@ -1,19 +1,15 @@
 import dataclasses as dc
+from hwtypes.adt_meta import ProductMeta
 import magma as m
 from collections import OrderedDict
 
 
-class ProductMeta(type):
-    def __new__(mcs, name, bases, namespace, **kwargs):
-        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
-        cls = dc.dataclass(eq=True, frozen=True)(cls)
-        fields = OrderedDict()
-        for field in dc.fields(cls):
-            fields[field.name] = field.type
-        if not fields:
-            return cls
+class MagmaProductMeta(ProductMeta):
+    @classmethod
+    def from_fields(mcs, fields, name, bases, ns, **kwargs):
+        assert fields
         return m.Tuple(**fields)
 
 
-class Product(metaclass=ProductMeta):
+class Product(metaclass=MagmaProductMeta):
     pass
