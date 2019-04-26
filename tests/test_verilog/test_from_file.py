@@ -94,7 +94,7 @@ def test_from_sv():
                                        "test_pe.sv")
 
 
-def test_from_pad_out():
+def test_from_pad_inout():
     file_path = os.path.dirname(__file__)
     Pad = m.DeclareFromVerilogFile(os.path.join(file_path, "pad.v"))[0]
 

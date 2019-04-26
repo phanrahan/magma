@@ -14,7 +14,7 @@ module PRWDWUWSWCDGH_V (
   input  I,
   input  IE,
   input  OEN,
-  output  PAD,
+  inout  PAD,
   input  PD,
   input  PU,
   input  RTE,
@@ -26,7 +26,7 @@ endmodule  // PRWDWUWSWCDGH_V
 
 */
 module Top (
-  output  pad
+  inout  pad
 );
 
 
