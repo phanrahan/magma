@@ -14,7 +14,7 @@ module PRWDWUWSWCDGH_V (
   input  I,
   input  IE,
   input  OEN,
-  output  PAD,
+  inout  PAD,
   input  PD,
   input  PU,
   input  RTE,
@@ -26,7 +26,7 @@ endmodule  // PRWDWUWSWCDGH_V
 
 */
 module Top (
-  output  pad
+  inout  pad
 );
 
 
@@ -76,7 +76,7 @@ module Top (
 
   assign PRWDWUWSWCDGH_V_inst0__OEN = bit_const_0_None__out;
 
-  assign pad = PRWDWUWSWCDGH_V_inst0__PAD;
+  assign PRWDWUWSWCDGH_V_inst0__PAD = pad;
 
   assign PRWDWUWSWCDGH_V_inst0__PD = bit_const_0_None__out;
 
