@@ -487,7 +487,8 @@ class DefineCircuitKind(CircuitKind):
             inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
             cls.instanced_circuits_counter[type(inst).name] += 1
         inst.defn = cls
-        inst.stack = inspect.stack()
+        if get_debug_mode():
+            inst.stack = inspect.stack()
         cls.instances.append(inst)
 
 
