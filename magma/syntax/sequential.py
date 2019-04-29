@@ -7,6 +7,7 @@ from magma.debug import debug_info
 import functools
 import magma as m
 from magma.ssa import convert_tree_to_ssa
+from magma.config import get_debug_mode
 from collections import Counter
 
 
@@ -355,7 +356,7 @@ def _sequential(defn_env: dict, cls):
             ast.parse("from mantle import DefineRegister").body[0],
         ] + tree.body)
     circuit_def = ast_utils.compile_function_to_file(tree, cls.__name__, defn_env)
-    if getattr(circuit_def, "debug_info", False):
+    if get_debug_mode() and getattr(circuit_def, "debug_info", False):
         circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
                                             circuit_def.debug_info.lineno,
                                             inspect.getmodule(cls))

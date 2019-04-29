@@ -12,6 +12,7 @@ import magma.ast_utils as ast_utils
 import types
 from magma.debug import debug_info
 from magma.ssa import convert_tree_to_ssa
+from magma.config import get_debug_mode
 
 
 class CircuitDefinitionSyntaxError(Exception):
@@ -213,7 +214,7 @@ def combinational(defn_env: dict, fn: types.FunctionType):
     debug(source)
     circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__,
                                                      defn_env)
-    if getattr(circuit_def, "debug_info", False):
+    if get_debug_mode() and getattr(circuit_def, "debug_info", False):
         circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
                                             circuit_def.debug_info.lineno,
                                             inspect.getmodule(fn))
