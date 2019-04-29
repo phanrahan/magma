@@ -213,9 +213,10 @@ def combinational(defn_env: dict, fn: types.FunctionType):
     debug(source)
     circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__,
                                                      defn_env)
-    circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
-                                        circuit_def.debug_info.lineno,
-                                        inspect.getmodule(fn))
+    if getattr(circuit_def, "debug_info", False):
+        circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
+                                            circuit_def.debug_info.lineno,
+                                            inspect.getmodule(fn))
 
     @functools.wraps(fn)
     def func(*args, **kwargs):

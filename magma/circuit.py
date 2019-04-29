@@ -74,15 +74,15 @@ class CircuitKind(type):
 
         if 'coreir_lib' not in dct:
             dct['coreir_lib'] = "global"
-        if get_debug_mode() and "debug_info" not in dct:
-            callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
-            module = inspect.getmodule(inspect.stack()[2][0])
-            debug_info = debug_info(callee_frame.filename, callee_frame.lineno,
-                                    module)
+        if get_debug_mode():
+            if not dct.get("debug_info", False):
+                callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
+                module = inspect.getmodule(inspect.stack()[2][0])
+                dct["debug_info"] = debug_info(callee_frame.filename,
+                                               callee_frame.lineno, module)
         else:
-            debug_info = None
+            dct["debug_info"] = None
 
-        dct["debug_info"] = debug_info
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
@@ -511,7 +511,10 @@ class Circuit(CircuitType):
 
 # DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
-    debug_info = get_callee_frame_info()
+    if get_debug_mode():
+        debug_info = get_callee_frame_info()
+    else:
+        debug_info = None
     global currentDefinition
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)

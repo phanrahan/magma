@@ -355,9 +355,10 @@ def _sequential(defn_env: dict, cls):
             ast.parse("from mantle import DefineRegister").body[0],
         ] + tree.body)
     circuit_def = ast_utils.compile_function_to_file(tree, cls.__name__, defn_env)
-    circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
-                                        circuit_def.debug_info.lineno,
-                                        inspect.getmodule(cls))
+    if getattr(circuit_def, "debug_info", False):
+        circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
+                                            circuit_def.debug_info.lineno,
+                                            inspect.getmodule(cls))
 
     return circuit_def
 
