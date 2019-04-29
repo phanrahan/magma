@@ -113,7 +113,7 @@ def compileinstance(self):
     args = []
     debug_str = ""
     for k, v in self.interface.ports.items():
-        if hasattr(v, "debug_info") and get_codegen_debug_info():
+        if getattr(v, "debug_info", False) and get_codegen_debug_info():
             filename, lineno, module = v.debug_info
         #print('arg', k, v,)
         if v.isinput():
@@ -131,7 +131,7 @@ def compileinstance(self):
             args.append( vname(v) )
         else:
             args.append( arg(k,vname(v)) )
-        if hasattr(v, "debug_info") and get_codegen_debug_info():
+        if getattr(v, "debug_info", False) and get_codegen_debug_info():
             debug_str += f"// Argument {k}({vname(v)}) wired at {make_relative(filename)}:{lineno}\n"
 
     params = []
@@ -220,7 +220,7 @@ def compiledefinition(cls):
                         else:
                             iname = vname(port)
                             oname = vname(output)
-                            if hasattr(port, "debug_info") and get_codegen_debug_info():
+                            if getattr(port, "debug_info", False) and get_codegen_debug_info():
                                 s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
                             s += 'assign %s = %s;\n' % (iname, oname)
                     else:

@@ -364,7 +364,7 @@ class CoreIRBackend:
             source = module_definition.select(non_input_ports[value])
         sink = module_definition.select(magma_port_to_coreir(port))
         module_definition.connect(source, sink)
-        if get_codegen_debug_info() and hasattr(port, "debug_info"):
+        if get_codegen_debug_info() and getattr(port, "debug_info", False):
             module_definition.add_metadata(source, sink, "filename", json.dumps(make_relative(port.debug_info.filename)))
             module_definition.add_metadata(source, sink, "lineno", json.dumps(str(port.debug_info.lineno)))
 
