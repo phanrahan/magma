@@ -269,8 +269,8 @@ class SpecializeConstantInts(ast.NodeTransformer):
 
 
 def _sequential(defn_env: dict, cls):
-    if not inspect.isclass(cls):
-        raise ValueError("sequential decorator only works with classes")
+    # if not inspect.isclass(cls):
+    #     raise ValueError("sequential decorator only works with classes")
 
     initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 

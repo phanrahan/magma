@@ -61,23 +61,33 @@ class IfTransformer(ast.NodeTransformer):
                 raise NotImplementedError("Assigning more than one value")
             key = ast.dump(stmt.targets[0])
             if key in seen:
-                # TODO: Print the line number
-                report_transformer_warning(
-                    "Assigning to value twice inside `if` block,"
-                    " taking the last value (first value is ignored)",
-                    self.filename, node.lineno + self.starting_line,
-                    self.lines[node.lineno])
+                if self.filename:
+                    # TODO: Print the line number
+                    report_transformer_warning(
+                        "Assigning to value twice inside `if` block,"
+                        " taking the last value (first value is ignored)",
+                        self.filename, node.lineno + self.starting_line,
+                        self.lines[node.lineno])
+                else:
+                    warning(
+                        "Assigning to value twice inside `if` block,"
+                        " taking the last value (first value is ignored)")
             seen[key] = stmt
         orelse_seen = set()
         for stmt in node.orelse:
             key = ast.dump(stmt.targets[0])
             if key in seen:
                 if key in orelse_seen:
-                    report_transformer_warning(
-                        "Assigning to value twice inside `else` block,"
-                        " taking the last value (first value is ignored)",
-                        self.filename, node.lineno + self.starting_line,
-                        self.lines[node.lineno])
+                    if self.filename:
+                        report_transformer_warning(
+                            "Assigning to value twice inside `else` block,"
+                            " taking the last value (first value is ignored)",
+                            self.filename, node.lineno + self.starting_line,
+                            self.lines[node.lineno])
+                    else:
+                        warning(
+                            "Assigning to value twice inside `else` block,"
+                            " taking the last value (first value is ignored)")
                 orelse_seen.add(key)
                 seen[key].value = ast.Call(
                     ast.Name("phi", ast.Load()),
@@ -85,11 +95,16 @@ class IfTransformer(ast.NodeTransformer):
                               ast.Load()), node.test],
                     [])
             else:
-                report_transformer_warning(
-                    "NOT IMPLEMENTED: Assigning to a variable once in"
-                    " `else` block (not in then block)",
-                    self.filename, node.lineno + self.starting_line,
-                    self.lines[node.lineno])
+                if self.filename:
+                    report_transformer_warning(
+                        "NOT IMPLEMENTED: Assigning to a variable once in"
+                        " `else` block (not in then block)",
+                        self.filename, node.lineno + self.starting_line,
+                        self.lines[node.lineno])
+                else:
+                    warning(
+                        "NOT IMPLEMENTED: Assigning to a variable once in"
+                        " `else` block (not in then block)")
                 raise NotImplementedError()
         return [node for node in seen.values()]
 
@@ -196,8 +211,12 @@ def combinational(defn_env: dict, fn: types.FunctionType):
     tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
     tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
     tree = ast.fix_missing_locations(tree)
-    tree = IfTransformer(inspect.getsourcefile(fn),
-                         inspect.getsourcelines(fn)).visit(tree)
+    filename = None
+    lines = None
+    if get_debug_mode():
+        filename = inspect.getsourcefile(fn)
+        lines = inspect.getsourcelines(fn)
+    tree = IfTransformer(filename, lines).visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(
         combinational, tree.decorator_list, defn_env)
