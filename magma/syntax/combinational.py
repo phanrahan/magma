@@ -32,7 +32,10 @@ class IfTransformer(ast.NodeTransformer):
     def __init__(self, filename, lines):
         super().__init__()
         self.filename = filename
-        self.lines, self.starting_line = lines
+        if lines:
+            self.lines, self.starting_line = lines
+        else:
+            self.lines, self.starting_line = None, None
 
     def flatten(self, _list):
         """1-deep flatten"""
