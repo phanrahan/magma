@@ -74,11 +74,15 @@ class CircuitKind(type):
 
         if 'coreir_lib' not in dct:
             dct['coreir_lib'] = "global"
-        if "debug_info" not in dct:
+        if get_debug_mode() and "debug_info" not in dct:
             callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
             module = inspect.getmodule(inspect.stack()[2][0])
-            dct["debug_info"] = debug_info(callee_frame.filename,
-                                           callee_frame.lineno, module)
+            debug_info = debug_info(callee_frame.filename, callee_frame.lineno,
+                                    module)
+        else:
+            debug_info = None
+
+        dct["debug_info"] = debug_info
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
