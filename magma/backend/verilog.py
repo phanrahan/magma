@@ -199,7 +199,9 @@ def compiledefinition(cls):
             # emit the structured verilog for each instance
             for instance in cls.instances:
                 wiredefaultclock(cls, instance)
-                if instance.debug_info.filename and instance.debug_info.lineno and get_codegen_debug_info():
+                if getattr(instance, "debug_info", False) and \
+                        instance.debug_info.filename and instance.debug_info.lineno and \
+                        get_codegen_debug_info():
                     s += f"// Instanced at {make_relative(instance.debug_info.filename)}:{instance.debug_info.lineno}\n"
                 s += compileinstance(instance) + ";\n"
 

@@ -268,7 +268,7 @@ class CoreIRBackend:
             wiredefaultclock(definition, instance)
             wireclock(definition, instance)
             coreir_instance = self.compile_instance(instance, module_definition)
-            if get_codegen_debug_info() and instance.debug_info:
+            if get_codegen_debug_info() and getattr(instance, "debug_info", False):
                 coreir_instance.add_metadata("filename", json.dumps(make_relative(instance.debug_info.filename)))
                 coreir_instance.add_metadata("lineno", json.dumps(str(instance.debug_info.lineno)))
             for name, port in instance.interface.ports.items():

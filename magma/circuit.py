@@ -13,6 +13,7 @@ from .t import Flip
 from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
+from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
@@ -95,9 +96,10 @@ class CircuitKind(type):
 
     def __call__(cls, *largs, **kwargs):
         #print('CircuitKind call:', largs, kwargs)
-        debug_info = get_callee_frame_info()
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
-        self.set_debug_info(debug_info)
+        if get_debug_mode():
+            debug_info = get_callee_frame_info()
+            self.set_debug_info(debug_info)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -262,7 +264,10 @@ class AnonymousCircuitType(object):
         return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
-        debug_info = get_callee_frame_info()
+        if get_debug_mode():
+            debug_info = get_callee_frame_info()
+        else:
+            debug_info = None
 
         no = len(outputs)
         if len(outputs) == 1:
@@ -364,7 +369,10 @@ class CircuitType(AnonymousCircuitType):
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
-    debug_info = get_callee_frame_info()
+    if get_debug_mode():
+        debug_info = get_callee_frame_info()
+    else:
+        debug_info = None
     dct = dict(
         IO=decl,
         debug_info=debug_info,
