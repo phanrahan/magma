@@ -133,8 +133,21 @@ endmodule""")
                                        f"gold/{FILENAME}.json")
 
 
-def test_from_sv_mux():
-    file_path = os.path.dirname(__file__)
-    mux = m.DefineFromVerilogFile(os.path.join(file_path, "mux.sv"), target_modules=["onehot_mux_hier"])[0]
-    print(mux.verilogFile)
-    assert False, "Should not fail before this line"
+def test_verilog_dependency_out_of_order():
+    [foo, bar] = m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule
+
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")

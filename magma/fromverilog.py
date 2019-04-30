@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
@@ -12,6 +12,9 @@ from .t import In, Out, InOut
 from .bit import Bit, _BitKind
 from .bits import Bits, BitsKind
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
+
+from .passes.tsort import tsort
+
 import logging
 
 logger = logging.getLogger('magma').getChild('from_verilog')
@@ -29,7 +32,7 @@ __all__ += ['DefineFromTemplatedVerilogFile']
 
 class ModuleVisitor(NodeVisitor):
     def __init__(self):
-        self.defns = {}
+        self.defns = OrderedDict()
         self.__defn_stack = []
         self.__instances = {}
 
@@ -52,6 +55,17 @@ class ModuleVisitor(NodeVisitor):
 
     def get_instances(self, defn):
         return self.__instances[defn]
+
+    def sort(self):
+        graph = []
+        for defn in self.defns.values():
+            insts = [inst.module for inst in self.get_instances(defn)]
+            graph.append((defn.name, insts))
+        sorted_ = tsort(graph)
+        defns = OrderedDict()
+        for defn_name, _ in sorted_:
+            defns[defn_name] = self.defns[defn_name]
+        self.defns = defns
 
 
 def convert(input_type, target_type):
@@ -137,6 +151,7 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
     ast = parser.parse(source)
     visitor = ModuleVisitor()
     visitor.visit(ast)
+    visitor.sort()
 
     def _get_lines(start_line, end_line):
         if shallow:
