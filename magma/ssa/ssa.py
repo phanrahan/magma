@@ -2,7 +2,6 @@ import magma.ast_utils as ast_utils
 import ast
 import types
 from collections import defaultdict
-import inspect
 import astor
 
 

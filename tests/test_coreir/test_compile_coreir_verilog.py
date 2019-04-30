@@ -3,6 +3,7 @@ import os
 from magma.testing.utils import check_files_equal
 import magma as m
 m.set_mantle_target("coreir")
+m.config.set_debug_mode(True)
 import pytest
 
 

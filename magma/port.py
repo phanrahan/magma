@@ -12,21 +12,27 @@ INOUT = 'inout'
 
 
 def report_wiring_error(message, debug_info):
-    error(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}",
-          include_wire_traceback=True)
-    try:
-        error(get_source_line(debug_info[0], debug_info[1]))
-    except FileNotFoundError:
-        error(f"    Could not find file {debug_info[0]}")
+    if debug_info:
+        error(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}",
+              include_wire_traceback=True)
+        try:
+            error(get_source_line(debug_info[0], debug_info[1]))
+        except FileNotFoundError:
+            error(f"    Could not find file {debug_info[0]}")
+    else:
+        error(message)
 
 
 def report_wiring_warning(message, debug_info):
     # TODO: Include wire traceback support
-    warning(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}")
-    try:
-        warning(get_source_line(debug_info[0], debug_info[1]))
-    except FileNotFoundError:
-        warning(f"    Could not find file {debug_info[0]}")
+    if debug_info:
+        warning(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}")
+        try:
+            warning(get_source_line(debug_info[0], debug_info[1]))
+        except FileNotFoundError:
+            warning(f"    Could not find file {debug_info[0]}")
+    else:
+        warning(message)
 
 
 def flip(direction):

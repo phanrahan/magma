@@ -13,6 +13,7 @@ from .t import Flip
 from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
+from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
@@ -73,11 +74,15 @@ class CircuitKind(type):
 
         if 'coreir_lib' not in dct:
             dct['coreir_lib'] = "global"
-        if "debug_info" not in dct:
-            callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
-            module = inspect.getmodule(inspect.stack()[2][0])
-            dct["debug_info"] = debug_info(callee_frame.filename,
-                                           callee_frame.lineno, module)
+        if get_debug_mode():
+            if not dct.get("debug_info", False):
+                callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
+                module = inspect.getmodule(inspect.stack()[2][0])
+                dct["debug_info"] = debug_info(callee_frame.filename,
+                                               callee_frame.lineno, module)
+        else:
+            dct["debug_info"] = None
+
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
@@ -95,9 +100,10 @@ class CircuitKind(type):
 
     def __call__(cls, *largs, **kwargs):
         #print('CircuitKind call:', largs, kwargs)
-        debug_info = get_callee_frame_info()
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
-        self.set_debug_info(debug_info)
+        if get_debug_mode():
+            debug_info = get_callee_frame_info()
+            self.set_debug_info(debug_info)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -262,7 +268,10 @@ class AnonymousCircuitType(object):
         return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
-        debug_info = get_callee_frame_info()
+        if get_debug_mode():
+            debug_info = get_callee_frame_info()
+        else:
+            debug_info = None
 
         no = len(outputs)
         if len(outputs) == 1:
@@ -364,7 +373,10 @@ class CircuitType(AnonymousCircuitType):
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
-    debug_info = get_callee_frame_info()
+    if get_debug_mode():
+        debug_info = get_callee_frame_info()
+    else:
+        debug_info = None
     dct = dict(
         IO=decl,
         debug_info=debug_info,
@@ -475,7 +487,8 @@ class DefineCircuitKind(CircuitKind):
             inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
             cls.instanced_circuits_counter[type(inst).name] += 1
         inst.defn = cls
-        inst.stack = inspect.stack()
+        if get_debug_mode():
+            inst.stack = inspect.stack()
         cls.instances.append(inst)
 
 
@@ -499,7 +512,10 @@ class Circuit(CircuitType):
 
 # DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
-    debug_info = get_callee_frame_info()
+    if get_debug_mode():
+        debug_info = get_callee_frame_info()
+    else:
+        debug_info = None
     global currentDefinition
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)

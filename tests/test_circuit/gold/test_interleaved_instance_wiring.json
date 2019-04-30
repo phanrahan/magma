@@ -8,7 +8,7 @@
           ["I1","BitIn"],
           ["O","Bit"]
         ]],
-        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"83"}
+        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"84"}
       },
       "main":{
         "type":["Record",[
@@ -18,27 +18,27 @@
         "instances":{
           "And2_inst0":{
             "modref":"global.And2",
-            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"87"}
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"88"}
           },
           "And2_inst1":{
             "modref":"global.And2",
-            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"88"}
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"89"}
           },
           "And2_inst2":{
             "modref":"global.And2",
-            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"94"}
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"95"}
           }
         },
         "connections":[
-          ["self.I.0","And2_inst0.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"90"}],
-          ["self.I.1","And2_inst0.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"91"}],
-          ["And2_inst1.I0","And2_inst0.O",{"filename":"tests/test_circuit/test_define.py","lineno":"92"}],
-          ["self.I.1","And2_inst1.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"93"}],
-          ["And2_inst2.I0","And2_inst1.O",{"filename":"tests/test_circuit/test_define.py","lineno":"95"}],
-          ["self.I.0","And2_inst2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"96"}],
-          ["self.O","And2_inst2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"98"}]
+          ["self.I.0","And2_inst0.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"91"}],
+          ["self.I.1","And2_inst0.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"92"}],
+          ["And2_inst1.I0","And2_inst0.O",{"filename":"tests/test_circuit/test_define.py","lineno":"93"}],
+          ["self.I.1","And2_inst1.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"94"}],
+          ["And2_inst2.I0","And2_inst1.O",{"filename":"tests/test_circuit/test_define.py","lineno":"96"}],
+          ["self.I.0","And2_inst2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"97"}],
+          ["self.O","And2_inst2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"99"}]
         ],
-        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"85"}
+        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"86"}
       }
     }
   }

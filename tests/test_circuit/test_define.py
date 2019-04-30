@@ -1,5 +1,6 @@
 import magma as m
 from magma.testing import check_files_equal
+m.config.set_debug_mode(True)
 import logging
 import pytest
 import coreir
