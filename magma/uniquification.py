@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum, auto
 from .is_definition import isdefinition
 from .logging import warning, error
@@ -14,6 +15,25 @@ class UniquificationMode(Enum):
     UNIQUIFY = auto()
 
 
+@dataclass(frozen=True)
+class _HashStruct:
+    defn_repr: str
+    is_verilog: bool
+    verilog_str: bool
+
+
+def _make_hash_struct(definition):
+    repr_ = repr(definition)
+    if hasattr(definition, "verilogFile") and definition.verilogFile:
+        return _HashStruct(repr_, True, definition.verilogFile)
+    return _HashStruct(repr_, False, "")
+
+
+def _hash(definition):
+    hash_struct = _make_hash_struct(definition)
+    return hash(hash_struct)
+
+
 class UniquificationPass(DefinitionPass):
     def __init__(self, main, mode):
         super(UniquificationPass, self).__init__(main)
@@ -24,7 +44,7 @@ class UniquificationPass(DefinitionPass):
 
     def __call__(self, definition):
         name = definition.name
-        key = hash(repr(definition))
+        key = _hash(definition)
 
         if name not in self.seen:
             self.seen[name] = {}

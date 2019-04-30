@@ -76,7 +76,7 @@ def test_decl_list():
 
 def test_from_sv():
     file_path = os.path.dirname(__file__)
-    test_pe = m.DefineFromVerilogFile(os.path.join(file_path, "test_pe.sv"))[0]
+    test_pe = m.DefineFromVerilogFile(os.path.join(file_path, "test_pe.sv"), shallow=True)[0]
 
 
     if os.path.exists("build/test_pe.sv"):
@@ -111,3 +111,43 @@ def test_from_pad_inout():
     m.compile("build/test_pad", Top, output="coreir-verilog")
     assert m.testing.check_files_equal(__file__, "build/test_pad.v",
                                        "gold/test_pad.v")
+
+
+def test_verilog_dependency():
+    [foo, bar] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule
+
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""")
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")
+
+
+def test_verilog_dependency_out_of_order():
+    [foo, bar] = m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule
+
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")

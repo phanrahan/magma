@@ -308,10 +308,15 @@ class CoreIRBackend:
 
         # If this module was imported from verilog, do not go through the
         # general module construction flow. Instead just attach the verilog
-        # source as metadata and return the module.
+        # source as metadata and return the module. Also, we attach any
+        # contained instances as CoreIR instances.
         if hasattr(definition, "verilogFile") and definition.verilogFile:
             verilog_metadata = {"verilog_string": definition.verilogFile}
             coreir_module.add_metadata("verilog", json.dumps(verilog_metadata))
+            module_definition = coreir_module.new_definition()
+            coreir_module.definition = module_definition
+            for instance in definition.instances:
+                self.compile_instance(instance, module_definition)
             return coreir_module
 
         module_definition = coreir_module.new_definition()
