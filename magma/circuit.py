@@ -561,6 +561,8 @@ class DefineCircuitKind(CircuitKind):
                 # For instance references, we place the instance in the current
                 # definition, then add the driver of its inputs to the queue
                 inst = curr.name.inst
+                if inst.defn:
+                    inst.defn.__unplace(inst)
                 self.place(inst)
                 for key, value in inst.interface.items():
                     if value.isinput():
@@ -600,6 +602,7 @@ class DefineCircuitKind(CircuitKind):
             raise Exception(f"Can not place instance twice. Instance "
                             f"{repr(inst)} already placed in defn {cls.name}.")
         type_ = type(inst)
+        inst.prev_name = inst.name
         if not inst.name:
             count = cls.instanced_circuits_counter[type_.name]
             inst.name = f"{type(inst).name}_inst{str(count)}"
@@ -608,6 +611,15 @@ class DefineCircuitKind(CircuitKind):
         if get_debug_mode():
             inst.stack = inspect.stack()
         cls.instances.append(inst)
+
+    def __unplace(cls, inst):
+        if inst not in cls.instances:
+            raise Exception(f"Instance {repr(inst)} not placed in {cls.name}")
+        inst.defn = None
+        inst.name = inst.prev_name
+        if hasattr(inst, "stack"):
+            delattr(inst, "stack")
+        cls.instances.remove(inst)
 
 
 # Register graphviz repr if running in IPython.
