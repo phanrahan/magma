@@ -503,13 +503,13 @@ class DefineCircuitKind(CircuitKind):
             raise Exception("Found multiple instances of IO")
         elif io:
             io = next(iter(io))
-            self.process_new_style_definition(io, dct["renamed_ports"])
+            self.__process_new_style_definition(io, dct["renamed_ports"])
 
         return self
 
-    def process_new_style_definition(self, io, renamed_ports):
+    def __process_new_style_definition(self, io, renamed_ports):
         """
-        The `process_new_style_definition` method constructs an "old-style" IO
+        The `__process_new_style_definition` method constructs an "old-style" IO
         list (e.g. `["I0", m.In(m.Bit), ...]`) and passes this to the old logic
         for setting up interfaces (`DeclareInterface`).  This required the
         minimal amount of changes to the existing code, although we may consider
@@ -520,7 +520,7 @@ class DefineCircuitKind(CircuitKind):
         `IO` object and replace the anonymous interface values with the concrete
         values from the old-style interface setup logic.
 
-        `process_new_style_definition` also traverses the definition graph and
+        `__process_new_style_definition` also traverses the definition graph and
         "places" the instances (by using `self.place`) within the current
         definition.
         """
