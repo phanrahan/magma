@@ -596,6 +596,9 @@ class DefineCircuitKind(CircuitKind):
     # place a circuit instance in this definition
     #
     def place(cls, inst):
+        if inst.defn:
+            raise Exception(f"Can not place instance twice. Instance "
+                            f"{repr(inst)} already placed in defn {cls.name}.")
         if not inst.name:
             inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
             cls.instanced_circuits_counter[type(inst).name] += 1
