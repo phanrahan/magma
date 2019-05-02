@@ -349,10 +349,12 @@ class CircuitType(AnonymousCircuitType):
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
 
-        # Circuit instances are placed if within a definition
+        # Circuit instances are placed if within a definition. Instead of
+        # placing them directly, we stage the placements until EndDefine() is
+        # called.
         global currentDefinition
         if currentDefinition:
-             currentDefinition.place(self)
+            currentDefinition.to_place.append(self)
 
     def __repr__(self):
         args = []
@@ -460,6 +462,7 @@ class DefineCircuitKind(CircuitKind):
         self.firrtl = None
 
         self._instances = []
+        self.to_place = []
         self.instanced_circuits_counter = Counter()
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
@@ -549,6 +552,10 @@ def EndDefine():
         debug_info = get_callee_frame_info()
         currentDefinition.end_circuit_filename = debug_info[0]
         currentDefinition.end_circuit_lineno   = debug_info[1]
+        # Place all the staged placements.
+        for inst in currentDefinition.to_place:
+            currentDefinition.place(inst)
+        currentDefinition.to_place.clear()
         popDefinition()
     else:
         raise Exception("EndDefine called without Define/DeclareCircuit")
