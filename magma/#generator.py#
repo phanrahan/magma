@@ -47,7 +47,8 @@ class _GeneratorMeta(type):
 
     def __call__(cls, *args, **kwargs):
         io = cls.__new__(cls, *args, **kwargs)
-        
+        class Circ
+        defn = magma.DefineCircuit(
 
     def __getitem__(cls, *args):
         return None

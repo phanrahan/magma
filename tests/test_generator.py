@@ -1,42 +1,44 @@
 import magma as m
 
 
-class SimpleGenerator(m.GeneratorBase):
-    width: int = 16
+class IO:
+    def __init__(self, **kwargs):
+        self.interface = {}
+        for k, v in kwargs.items():
+            port = v.flip()()
+            self.interface[k] = type(port)
+            setattr(self, k, port)
 
-    def elaborate(self):
-        class _Simple(m.Circuit):
-            IO = ["I", m.In(m.Bits[self.width]),
-                  "O", m.Out(m.Bits[self.width]),]
-            name = f"Simple{self.width}"
-
-            @classmethod
-            def definition(io):
-                m.wire(io.O, io.I)
-
-        return _Simple
+    def __repr__(self):
+        return repr(self.interface)
 
 
-def test_simple_generator():
-    gen = SimpleGenerator(width=10)
+class PassThroughGen(m.GeneratorBase):
+    def __new__(cls, width):
+        io = IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
+        m.wire(io.I, io.O)
+        return io
 
-    # Check a simple invocation of the generator.
-    Simple10 = gen.elaborate()
-    assert repr(Simple10) == """\
-Simple10 = DefineCircuit("Simple10", "I", In(Bits[10]), "O", Out(Bits[10]))
-wire(Simple10.I, Simple10.O)
-EndCircuit()"""
 
-    # Check that changing the parameter on the generator instance results in the
-    # correct elaboration.
-    gen.width = 20
-    Simple20 = gen.elaborate()
-    assert repr(Simple20) == """\
-Simple20 = DefineCircuit("Simple20", "I", In(Bits[20]), "O", Out(Bits[20]))
-wire(Simple20.I, Simple20.O)
-EndCircuit()"""
+"""
+class NewGen(m.GeneratorBase):
+    width : int
 
-    # Check that caching works as expected.
-    assert Simple20 is not Simple10
-    gen.width = 10
-    assert gen.elaborate() is Simple10
+    width * 2
+
+    def generate(params):
+        io = IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
+"""
+
+
+def test_new_generator():
+    metacls = PassThroughGen
+    cls = metacls(8)
+    inst = cls()
+    assert type(inst) == cls
+    assert type(cls) == metacls
+
+main_test = test_new_generator
+
+if __name__ == "__main__":
+    main_test()
