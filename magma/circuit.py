@@ -124,12 +124,13 @@ class CircuitKind(type):
         if hasattr(cls,"instances"):
             s = '{} = DefineCircuit("{}", {})\n'.format(name, name, args)
 
+            sorted_instances = sorted(cls.instances, key=lambda x : x.name)
             # emit instances
-            for instance in cls.instances:
+            for instance in sorted_instances:
                 s += repr(instance) + '\n'
 
             # emit wires from instances
-            for instance in cls.instances:
+            for instance in sorted_instances:
                 s += repr(instance.interface)
 
             # for input in cls.interface.inputs():

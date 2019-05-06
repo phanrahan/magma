@@ -14,12 +14,12 @@ def test_str_repr():
     print(repr(Logic2))
     assert repr(Logic2) == """\
 Logic2 = DefineCircuit("Logic2", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
-XOr2_inst0 = XOr2()
 And2_inst0 = And2()
-wire(And2_inst0.O, XOr2_inst0.I0)
-wire(1, XOr2_inst0.I1)
+XOr2_inst0 = XOr2()
 wire(Logic2.I0, And2_inst0.I0)
 wire(Logic2.I1, And2_inst0.I1)
+wire(And2_inst0.O, XOr2_inst0.I0)
+wire(1, XOr2_inst0.I1)
 wire(XOr2_inst0.O, Logic2.O)
 EndCircuit()\
 """
