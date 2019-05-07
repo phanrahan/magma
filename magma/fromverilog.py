@@ -146,7 +146,8 @@ def ParseVerilogModule(node, type_map):
     return node.name, args
 
 
-def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
+def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
+                external_modules={}):
     parser = VerilogParser()
     ast = parser.parse(source)
     visitor = ModuleVisitor()
@@ -159,7 +160,11 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
         lines = source.split("\n")
         return "\n".join(lines[start_line - 1:end_line])
 
-    magma_defns = {}
+    if not external_modules.keys().isdisjoint(visitor.defns.keys()):
+        intersection = external_modules.keys() & visitor.defns.keys()
+        raise Exception(f"Modules defined in both external_modules and in "
+                        f"parsed verilog: {intersection}")
+    magma_defns = external_modules.copy()
     for name, verilog_defn in visitor.defns.items():
         parsed_name, args = ParseVerilogModule(verilog_defn, type_map)
         assert parsed_name == name
@@ -180,16 +185,18 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False):
         logger.warning(f"Did not import any modules from verilog, either could "
                        f"not parse or could not find any of the target_modules "
                        f"({target_modules})")
+    # Filter back out external modules.
+    magma_defns = {name : magma_defns[name] for name in visitor.defns}
     if target_modules is None:
         return list(magma_defns.values())
     # Filter modules based on target_modules list.
     return [v for k, v in magma_defns.items() if k in target_modules]
 
-def FromVerilogFile(file, func, type_map, target_modules=None, shallow=False):
+def FromVerilogFile(file, func, type_map, target_modules=None, shallow=False, external_modules={}):
     if file is None:
         return None
     verilog = open(file).read()
-    result = FromVerilog(verilog, func, type_map, target_modules, shallow)
+    result = FromVerilog(verilog, func, type_map, target_modules, shallow, external_modules)
     # Store the original verilog file name, currently used by m.compile to
     # generate a .sv when compiling a circuit that was defined from a verilog
     # file
@@ -221,13 +228,13 @@ def DeclareFromTemplatedVerilogFile(file, type_map={}, **kwargs):
     return FromTemplatedVerilogFile(file, DeclareCircuit, type_map, **kwargs)
 
 
-def DefineFromVerilog(source, type_map={}, target_modules=None, shallow=False):
+def DefineFromVerilog(source, type_map={}, target_modules=None, shallow=False, external_modules={}):
     return FromVerilog(source, DefineCircuit, type_map, target_modules,
-                       shallow=shallow)
+                       shallow=shallow, external_modules=external_modules)
 
-def DefineFromVerilogFile(file, target_modules=None, type_map={}, shallow=False):
+def DefineFromVerilogFile(file, target_modules=None, type_map={}, shallow=False, external_modules={}):
     return FromVerilogFile(file, DefineCircuit, type_map, target_modules,
-                           shallow=shallow)
+                           shallow=shallow, external_modules=external_modules)
 
 def DefineFromTemplatedVerilog(source, type_map={}, **kwargs):
     return FromTemplatedVerilog(source, DefineCircuit, type_map, **kwargs)

@@ -1,6 +1,8 @@
 import magma as m
 import magma.testing
 import os
+import pytest
+
 
 def check_port(definition, port, type, direction):
     assert hasattr(definition, port)
@@ -151,3 +153,54 @@ endmodule""")
     m.compile(f"build/{FILENAME}", top, output="coreir")
     assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
                                        f"gold/{FILENAME}.json")
+
+
+def test_from_verilog_external_modules():
+    [foo] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    [bar] = m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""", external_modules={"foo": foo})
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")
+
+
+def test_from_verilog_external_modules_missing():
+    with pytest.raises(Exception) as pytest_e:
+        m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""")
+        assert False
+    assert pytest_e.type is KeyError
+    assert pytest_e.value.args == ("foo",)
+
+
+def test_from_verilog_external_modules_duplicate():
+    with pytest.raises(Exception) as pytest_e:
+        [foo] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+        [bar] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule
+
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""", external_modules={"foo": foo})
+        assert False
+    assert pytest_e.type is Exception
+    assert pytest_e.value.args == \
+        ("Modules defined in both external_modules and in parsed verilog: {'foo'}",)  # nopep8
