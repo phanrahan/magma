@@ -160,15 +160,12 @@ class CoreIRBackend:
         elif (coreir_type.kind == "Record"):
             elements = {}
             for item in coreir_type.items():
+                name = item[0]
                 # replace  the in port with I as can't reference that
-                name = "I" if (item[0] == "in") else item[0]
-                elements[name] = self.get_ports(item[1], renamed_ports)
-                # save the renaming data for later use
-                if item[0] == "in":
-                    if isinstance(elements[name], BitKind):
-                        # making a copy of bit, as don't want to affect all other bits
-                        elements[name] = MakeBit(direction=elements[name].direction)
+                if name == "in":
+                    name = "I"
                     renamed_ports[name] = "in"
+                elements[name] = self.get_ports(item[1], renamed_ports)
             return Tuple(**elements)
         elif (coreir_type.kind == "Named"):
             # exception to handle clock types, since other named types not handled
