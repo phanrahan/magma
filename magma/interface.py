@@ -206,8 +206,6 @@ class _DeclareInterface(_Interface):
             elif defn: ref = DefnRef(defn, name)
             else:      ref = AnonRef(name)
 
-            if hasattr(port, "origPortName"):
-                ref.name = port.origPortName
             if name in renamed_ports:
                 ref.name = renamed_ports[name]
 
