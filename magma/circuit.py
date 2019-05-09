@@ -94,7 +94,8 @@ class CircuitKind(type):
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
-            cls.interface = cls.IO
+            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            setports(cls, cls.interface.ports)
 
         return cls
 
@@ -466,9 +467,6 @@ class DefineCircuitKind(CircuitKind):
         self.is_instance = False
 
         if hasattr(self, 'IO'):
-            # instantiate interface
-            self.interface = self.IO(defn=self, renamed_ports=dct["renamed_ports"])
-            setports(self, self.interface.ports)
 
             # create circuit definition
             if hasattr(self, 'definition'):
