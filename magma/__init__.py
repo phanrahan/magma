@@ -70,6 +70,8 @@ from .product import Product
 
 from hwtypes.bit_vector_abc import TypeFamily
 
+from .generator import Generator
+
 
 BitVector = Bits
 UIntVector = UInt
