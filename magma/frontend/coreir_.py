@@ -6,7 +6,8 @@ from coreir.generator import Generator
 def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName, deps):
     class ModuleWrapper(Circuit):
         name = uniqueName
-        IO = cirb.get_ports_as_list(cirb.get_ports(coreirModule.type))
+        renamed_ports = {}
+        IO = cirb.get_ports_as_list(cirb.get_ports(coreirModule.type, renamed_ports))
         wrappedModule = coreirModule
         coreir_wrapped_modules_libs_used = set(deps)
 
