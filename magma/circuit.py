@@ -537,17 +537,25 @@ class DefineCircuitKind(CircuitKind):
         # placing them in the current definition
         # Done using a worke queue algorithm, intialized with the drivers of
         # the outputs (viewed as inputs) to the definition
-        worklist = []
         for key, value in io.ports.items():
             value.name = DefnRef(self, key)
+        worklist = []
+        has_wires = False
+        for key, value in io.ports.items():
             if value.isinput():
                 driver = value.value()
-                if driver is not None:
+                if isinstance(driver.name, DefnRef):
+                    assert driver.name.defn is self
+                    input_ = getattr(self, driver.name.name)
+                    output = getattr(self, key)
+                    output.wire(input_)
+                    has_wires = True
+                elif driver is not None:
                     # Wire the driver up the definition bit setup by the old
                     # interface logic
                     getattr(self, key).wire(driver)
                     worklist.append(driver)
-        if not worklist:
+        if not worklist and not has_wires:
             # Nothing wired up to the outputs, assume this is a declaration
             # then
             return
