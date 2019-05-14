@@ -62,18 +62,14 @@ class CircuitKind(type):
         #print('CircuitKind new:', name)
 
         # override circuit class name
-        if 'name' not in dct:
-            dct['name'] = name
-        name = dct['name']
+        name = dct.setdefault('name', name)
 
-        if 'renamed_ports' not in dct:
-            dct['renamed_ports'] = {}
+        dct.setdefault('renamed_ports', {})
 
-        if 'primitive' not in dct:
-            dct['primitive'] = False
+        dct.setdefault('primitive', False)
 
-        if 'coreir_lib' not in dct:
-            dct['coreir_lib'] = "global"
+        dct.setdefault('coreir_lib', 'global')
+
         if get_debug_mode():
             if not dct.get("debug_info", False):
                 callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
