@@ -50,21 +50,6 @@ def ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
     return I[0] if S[0] else I[1] if S[1] else I[2]
 ```
 
-Things that aren't supported:
-* Using anything other than an assignment statement in the if/else body
-* Assigning to a variable only once in the if or else body (not both). We could
-  support this if the variable is already defined in the enclosing scope, for
-  example using a default value
-    ```
-    x = 3
-    if S:
-       x = 4
-    ```
-* This brings up another issue, which is that it doesn't support a default
-  value. (So the above code would break even if x was assigned in the else
-  block.
-* If without an else (for the same reason as the above)
-
 ## Function composition:
 ```
 @m.circuit.combinational
