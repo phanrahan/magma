@@ -119,6 +119,9 @@ class CircuitKind(type):
         return f"{cls.__name__}{interface}"
 
     def __repr__(cls):
+        if not hasattr(cls, 'IO'):
+            return super().__repr__()
+
         name = cls.__name__
         args = str(cls.IO)
         if hasattr(cls,"instances"):
