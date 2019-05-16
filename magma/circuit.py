@@ -65,9 +65,7 @@ class CircuitKind(type):
         name = dct.setdefault('name', name)
 
         dct.setdefault('renamed_ports', {})
-
         dct.setdefault('primitive', False)
-
         dct.setdefault('coreir_lib', 'global')
 
         if get_debug_mode():
