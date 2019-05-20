@@ -62,18 +62,12 @@ class CircuitKind(type):
         #print('CircuitKind new:', name)
 
         # override circuit class name
-        if 'name' not in dct:
-            dct['name'] = name
-        name = dct['name']
+        name = dct.setdefault('name', name)
 
-        if 'renamed_ports' not in dct:
-            dct['renamed_ports'] = {}
+        dct.setdefault('renamed_ports', {})
+        dct.setdefault('primitive', False)
+        dct.setdefault('coreir_lib', 'global')
 
-        if 'primitive' not in dct:
-            dct['primitive'] = False
-
-        if 'coreir_lib' not in dct:
-            dct['coreir_lib'] = "global"
         if get_debug_mode():
             if not dct.get("debug_info", False):
                 callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
@@ -94,7 +88,8 @@ class CircuitKind(type):
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
-            cls.interface = cls.IO
+            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            setports(cls, cls.interface.ports)
 
         return cls
 
@@ -119,6 +114,9 @@ class CircuitKind(type):
         return f"{cls.__name__}{interface}"
 
     def __repr__(cls):
+        if not hasattr(cls, 'IO'):
+            return super().__repr__()
+
         name = cls.__name__
         args = str(cls.IO)
         if hasattr(cls,"instances"):
@@ -466,9 +464,6 @@ class DefineCircuitKind(CircuitKind):
         self.is_instance = False
 
         if hasattr(self, 'IO'):
-            # instantiate interface
-            self.interface = self.IO(defn=self, renamed_ports=dct["renamed_ports"])
-            setports(self, self.interface.ports)
 
             # create circuit definition
             if hasattr(self, 'definition'):

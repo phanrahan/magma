@@ -1,5 +1,16 @@
 import magma as m
 
+def test_str_repr_core():
+    #Dont care what values they return as long as they retun non empty strings
+    assert str(m.Circuit)
+    assert repr(m.Circuit)
+    assert str(m.circuit.CircuitKind)
+    assert repr(m.circuit.CircuitKind)
+    assert str(m.CircuitType)
+    assert repr(m.CircuitType)
+    assert str(m.AnonymousCircuitType)
+    assert repr(m.AnonymousCircuitType)
+
 
 def test_str_repr():
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
