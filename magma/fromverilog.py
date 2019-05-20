@@ -47,17 +47,21 @@ def convert(input_type, target_type):
     raise NotImplementedError(f"Conversion between {input_type} and "
                               f"{target_type} not supported")
 
-def get_value(v):
+def get_value(v, param_map):
     if isinstance(v, pyverilog_ast.IntConst):
         return int(v.value)
+    if isinstance(v, pyverilog_ast.Rvalue):
+        return get_value(v.var, param_map)
     if isinstance(v, pyverilog_ast.Minus):
-        return get_value(v.left) - get_value(v.right)
+        return get_value(v.left, param_map) - get_value(v.right, param_map)
     if isinstance(v, pyverilog_ast.Plus):
-        return get_value(v.left) + get_value(v.right)
+        return get_value(v.left, param_map) + get_value(v.right, param_map)
+    if isinstance(v, pyverilog_ast.Identifier):
+        return param_map[v.name]
     else:
         raise NotImplementedError(type(v))
 
-def get_type(io, type_map):
+def get_type(io, type_map, param_map):
     if isinstance(io, Input):
         direction = In
     elif isinstance(io, Output):
@@ -68,8 +72,8 @@ def get_type(io, type_map):
     if io.width is None:
         type_ = Bit
     else:
-        msb = get_value(io.width.msb)
-        lsb = get_value(io.width.lsb)
+        msb = get_value(io.width.msb, param_map)
+        lsb = get_value(io.width.lsb, param_map)
         type_ = Bits[msb-lsb+1]
 
     type_ = direction(type_)
@@ -83,15 +87,11 @@ def get_type(io, type_map):
 def ParseVerilogModule(node, type_map):
     args = []
     ports = []
-    for port in node.portlist.ports:
-        if isinstance(port, Ioport):
-            io = port.first
-            args.append(io.name)
-            args.append(get_type(io, type_map))
-        elif isinstance(port, Port):
-            ports.append(port.name)
-        else:
-            raise NotImplementedError(type(port))
+
+    param_map = {}
+    for param in node.paramlist.params:
+        for p in param.list:
+            param_map[p.name] = get_value(p.value, param_map)
 
     if ports:
         assert not args, "Can we have mixed declared and undeclared types in a Verilog module?"
