@@ -84,7 +84,7 @@ def convert(input_type, target_type):
 def get_value(v):
     if isinstance(v, pyverilog_ast.IntConst):
         return int(v.value)
-    if isinstance(v, pyverilog_ast.Minus):
+    if isinstance(v, (pyverilog_ast.Minus, pyverilog_ast.Uminus)):
         return get_value(v.left) - get_value(v.right)
     else:
         raise NotImplementedError(type(v))
