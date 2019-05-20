@@ -52,6 +52,8 @@ def get_value(v):
         return int(v.value)
     if isinstance(v, pyverilog_ast.Minus):
         return get_value(v.left) - get_value(v.right)
+    if isinstance(v, pyverilog_ast.Plus):
+        return get_value(v.left) + get_value(v.right)
     else:
         raise NotImplementedError(type(v))
 
