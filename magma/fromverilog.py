@@ -93,6 +93,16 @@ def ParseVerilogModule(node, type_map):
         for p in param.list:
             param_map[p.name] = get_value(p.value, param_map)
 
+    for port in node.portlist.ports:
+         if isinstance(port, Ioport):	    param_map = {}
+            io = port.first	    for param in node.paramlist.params:
+            args.append(io.name)	        for p in param.list:
+            args.append(get_type(io, type_map))	            param_map[p.name] = get_value(p.value, param_map)
+        elif isinstance(port, Port):
+            ports.append(port.name)
+        else:
+            raise NotImplementedError(type(port))
+
     if ports:
         assert not args, "Can we have mixed declared and undeclared types in a Verilog module?"
         for port in ports:
