@@ -61,12 +61,14 @@ def mergewires(new, old, debug_info):
 
 
 def fast_mergewires(w, i, o):
-    assert len(w.outputs) + len(o.wires.outputs) <= 2
     w.inputs = i.wires.inputs + o.wires.inputs
     w.outputs = i.wires.outputs + o.wires.outputs
     w.inputs = list(set(w.inputs))
     w.outputs = list(set(w.outputs))
-    assert len(w.outputs) <= 1
+    if len(w.outputs) > 1:
+        outputs = [o.bit.debug_name for o in w.outputs]
+        # use w.inputs[0] as i, similar to {i.bit.debug_name}
+        report_wiring_error(f"Connecting more than one output ({outputs}) to an input `{w.inputs[0].bit.debug_name}`", debug_info)  # noqa
     for p in w.inputs:
         p.wires = w
     for p in w.outputs:
