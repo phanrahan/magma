@@ -94,10 +94,10 @@ def ParseVerilogModule(node, type_map):
             param_map[p.name] = get_value(p.value, param_map)
 
     for port in node.portlist.ports:
-         if isinstance(port, Ioport):	    param_map = {}
-            io = port.first	    for param in node.paramlist.params:
-            args.append(io.name)	        for p in param.list:
-            args.append(get_type(io, type_map))	            param_map[p.name] = get_value(p.value, param_map)
+        if isinstance(port, Ioport):
+            io = port.first
+            args.append(io.name)
+            args.append(get_type(io, type_map))
         elif isinstance(port, Port):
             ports.append(port.name)
         else:
