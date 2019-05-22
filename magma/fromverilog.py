@@ -131,7 +131,7 @@ def ParseVerilogModule(node, type_map):
         if isinstance(port, Ioport):
             io = port.first
             args.append(io.name)
-            args.append(get_type(io, type_map))
+            args.append(get_type(io, type_map, param_map))
         elif isinstance(port, Port):
             ports.append(port.name)
         else:
@@ -147,7 +147,7 @@ def ParseVerilogModule(node, type_map):
                         if isinstance(sub_child, (parser.Input, parser.Output, parser.Inout)) and \
                                 sub_child.name == port:
                             args.append(sub_child.name)
-                            args.append(get_type(sub_child, type_map))
+                            args.append(get_type(sub_child, type_map, param_map))
                             found = True
                             break
                 if found:
