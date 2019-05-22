@@ -31,7 +31,8 @@ __all__ += ['DefineFromTemplatedVerilogFile']
 
 
 class ModuleVisitor(NodeVisitor):
-    def __init__(self):
+    def __init__(self, shallow):
+        self.__shallow = shallow
         self.defns = OrderedDict()
         self.__defn_stack = []
         self.__instances = {}
@@ -40,6 +41,8 @@ class ModuleVisitor(NodeVisitor):
         if defn.name in self.defns:
             raise Exception(f"Defn with name {defn.name} appears twice")
         self.defns[defn.name] = defn
+        if shallow:
+            return defn
         # Collect instances in this definition.
         self.__instances[defn] = set()
         self.__defn_stack.append(defn)
@@ -48,6 +51,8 @@ class ModuleVisitor(NodeVisitor):
         return defn
 
     def visit_Instance(self, instance):
+        if shallow:
+            return instance
         defn = self.__defn_stack[-1]
         assert instance not in self.__instances[defn]
         self.__instances[defn].add(instance)
@@ -150,9 +155,10 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
                 external_modules={}):
     parser = VerilogParser()
     ast = parser.parse(source)
-    visitor = ModuleVisitor()
+    visitor = ModuleVisitor(shallow)
     visitor.visit(ast)
-    visitor.sort()
+    if not shallow:
+        visitor.sort()
 
     def _get_lines(start_line, end_line):
         if shallow:
