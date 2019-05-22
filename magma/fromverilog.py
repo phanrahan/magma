@@ -86,7 +86,7 @@ def get_value(v, param_map):
         return int(v.value)
     if isinstance(v, pyverilog_ast.Rvalue):
         return get_value(v.var, param_map)
-    if isinstance(v, pyverilog_ast.Minus):
+    if isinstance(v, (pyverilog_ast.Minus, pyverilog_ast.Uminus)):
         return get_value(v.left, param_map) - get_value(v.right, param_map)
     if isinstance(v, pyverilog_ast.Plus):
         return get_value(v.left, param_map) + get_value(v.right, param_map)
