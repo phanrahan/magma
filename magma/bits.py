@@ -1,11 +1,17 @@
+"""
+Defines a subtype of m.Array called m.Bits
+
+m.Bits[N] is roughly equivalent ot m.Array[N, T]
+"""
+import weakref
+from hwtypes import BitVector, SIntVector
+
 from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import ArrayType, ArrayKind
 from .debug import debug_wire
-import weakref
 
-from hwtypes import BitVector, SIntVector
 
 __all__ = ['Bits', 'BitsType', 'BitsKind']
 __all__ += ['UInt', 'UIntType', 'UIntKind']
@@ -327,13 +333,6 @@ class BFloatKind(BitsKind):
 
     def flip(cls):
         return BFloat[cls.N, cls.T.flip()]
-
-    def __getitem__(self, key):
-        from .conversions import sint
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return sint(result)
-        return result
 
 
 class BFloat(Bits, metaclass=BFloatKind):

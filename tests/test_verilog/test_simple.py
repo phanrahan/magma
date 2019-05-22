@@ -51,8 +51,12 @@ def test_type_map_error():
     with open(path, 'r') as f:
         s = f.read()
     type_map = {"a": m.In(m.Bits[4])}
-    v = DeclareFromVerilog(s, type_map)
-    assert len(v) == 0
+    with pytest.raises(NotImplementedError) as pytest_e:
+        v = DeclareFromVerilog(s, type_map)
+        assert False
+    assert pytest_e.type is NotImplementedError
+    assert pytest_e.value.args == \
+        ("Conversion between In(Bit) and In(Bits[4]) not supported",)
 
 
 def test_small():

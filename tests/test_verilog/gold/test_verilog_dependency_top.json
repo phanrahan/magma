@@ -1,0 +1,42 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "bar":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "foo_inst0":{
+            "modref":"global.foo"
+          }
+        },
+        "metadata":{"verilog":{"verilog_string":"module bar(input I, output O);\n    foo foo_inst(I, O);\nendmodule"}}
+      },
+      "foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "metadata":{"verilog":{"verilog_string":"module foo(input I, output O);\n    assign O = I;\nendmodule"}}
+      },
+      "top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "bar_inst0":{
+            "modref":"global.bar"
+          }
+        },
+        "connections":[
+          ["self.I","bar_inst0.I"],
+          ["self.O","bar_inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}

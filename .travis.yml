@@ -4,13 +4,12 @@ language: python
 # - '3.6'
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
-    - g++-4.9
     - verilator    
-before_install:
-- source .travis/install_coreir.sh
+    - libgmp-dev
+    - libmpfr-dev
+    - libmpc-dev
+
 install:
 # install conda for py 3.7
 - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
@@ -52,11 +51,10 @@ jobs:
   - stage: deploy
     if: tag IS present
     script: skip
-    deploy: &pypi
-      provider: pypi
-      user: leonardt
+    deploy: 
+      provider: script
+      script: /bin/bash .travis/deploy.sh
+      skip_cleanup: true
       on:
         tags: true
         branch: master
-      password:
-        secure: edrdZkm/UehEqjZbys8TsR/3yiWme/f9KUwIfC9DgZHT2ALVPvwQB06ZSxEZ5cP4n4Zr8sSP3+A/SUcJUFFQ3i/3Tmz06ilJ081aAdhTEuZQx0XuDutDThPkZELt2gTSIjhpRIG0WpjCLFMy387Voih/QYy8qXYoUTNT93uWqLD/8MOgmsRVxL+tGiqZA1KvzQ95sI1GKB2R5cXW3CFJhL0WZRsrGN9srNHezbf35phmf/ii4ddmNrOqhL83slzA4afmENniPPctajxOLevU0qlJYj9iTS/qV7LG94FXn+v62vb+6aemG+7ky7vgXnfdRLAnSAKEninmQotUYm1FmYNQBcbKGO5ImC6t6KDP5f+pJzYUQA3z3bS2Pfp1kCHjcq0hlaqUC8JlvH8/zaGFYWJyGmQjgB7Fy3UUBMVAezu3+UqjW7WgCVKsAxAKtxs8mW0o+hmHQIjjPX1X+B3kvtHUs+EGLfNYlU7mNrulTj4eqEi1ZVxb7mDiUvMh4rszLBOYbD15ZvqFME5Mu+9ngviV+DQJSiqjQrPPhRIdtEEZvsCGux5ze0gRc2TJjZd0XfB7lELbp6fiZc1+rjkMYnLRmo9CuBe6dvznKxsC88FERTvSKtHezGBMnumGKwJAy64LkXNOoKBTWeyjS8FHwMR5TJz/xIGyWyyJMgmVhww=

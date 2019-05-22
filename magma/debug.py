@@ -1,6 +1,7 @@
 import inspect
 import collections
 import magma
+from magma.config import get_debug_mode
 
 
 debug_info = collections.namedtuple("debug_info", ["filename", "lineno", "module"])
@@ -28,7 +29,7 @@ def debug_wire(fn):
     # TODO: We could check that fn has the correct interface
     #       wire(i, o, debug_info)
     def wire(i, o, debug_info=None):
-        if debug_info is None:
+        if get_debug_mode() and debug_info is None:
             debug_info = get_callee_frame_info()
         return fn(i, o, debug_info)
     return wire

@@ -13,6 +13,7 @@ from .t import Flip
 from .array import ArrayType
 from .tuple import TupleType
 from .bit import VCC, GND
+from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning
@@ -61,23 +62,21 @@ class CircuitKind(type):
         #print('CircuitKind new:', name)
 
         # override circuit class name
-        if 'name' not in dct:
-            dct['name'] = name
-        name = dct['name']
+        name = dct.setdefault('name', name)
 
-        if 'renamed_ports' not in dct:
-            dct['renamed_ports'] = {}
+        dct.setdefault('renamed_ports', {})
+        dct.setdefault('primitive', False)
+        dct.setdefault('coreir_lib', 'global')
 
-        if 'primitive' not in dct:
-            dct['primitive'] = False
+        if get_debug_mode():
+            if not dct.get("debug_info", False):
+                callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
+                module = inspect.getmodule(inspect.stack()[2][0])
+                dct["debug_info"] = debug_info(callee_frame.filename,
+                                               callee_frame.lineno, module)
+        else:
+            dct["debug_info"] = None
 
-        if 'coreir_lib' not in dct:
-            dct['coreir_lib'] = "global"
-        if "debug_info" not in dct:
-            callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
-            module = inspect.getmodule(inspect.stack()[2][0])
-            dct["debug_info"] = debug_info(callee_frame.filename,
-                                           callee_frame.lineno, module)
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
@@ -89,15 +88,17 @@ class CircuitKind(type):
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
-            cls.interface = cls.IO
+            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            setports(cls, cls.interface.ports)
 
         return cls
 
     def __call__(cls, *largs, **kwargs):
         #print('CircuitKind call:', largs, kwargs)
-        debug_info = get_callee_frame_info()
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
-        self.set_debug_info(debug_info)
+        if get_debug_mode():
+            debug_info = get_callee_frame_info()
+            self.set_debug_info(debug_info)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -113,17 +114,21 @@ class CircuitKind(type):
         return f"{cls.__name__}{interface}"
 
     def __repr__(cls):
+        if not hasattr(cls, 'IO'):
+            return super().__repr__()
+
         name = cls.__name__
         args = str(cls.IO)
         if hasattr(cls,"instances"):
             s = '{} = DefineCircuit("{}", {})\n'.format(name, name, args)
 
+            sorted_instances = sorted(cls.instances, key=lambda x : x.name)
             # emit instances
-            for instance in cls.instances:
+            for instance in sorted_instances:
                 s += repr(instance) + '\n'
 
             # emit wires from instances
-            for instance in cls.instances:
+            for instance in sorted_instances:
                 s += repr(instance.interface)
 
             # for input in cls.interface.inputs():
@@ -139,6 +144,9 @@ class CircuitKind(type):
         return circuit_to_html(cls)
 
     def rename(cls, new_name):
+        if cls.verilogFile:
+            raise Exception("Can not rename a verilog wrapped file")
+
         old_name = cls.name
         cls.name = new_name
         cls.coreir_name = new_name
@@ -151,6 +159,10 @@ class CircuitKind(type):
         # <new_name>" existing anywhere else, most likely in comments etc. The
         # more robust way to do this would to modify the AST directly and
         # generate the new verilog code.
+        #
+        # Instead, at the top of this function, we raise an exception for
+        # verilog wrapped files. That is, for now it is considered an error to
+        # try to rename a verilog wrapped circuit.
         if cls.verilogFile:
             find_str = f"module {old_name}"
             replace_str = f"module {new_name}"
@@ -262,7 +274,10 @@ class AnonymousCircuitType(object):
         return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
-        debug_info = get_callee_frame_info()
+        if get_debug_mode():
+            debug_info = get_callee_frame_info()
+        else:
+            debug_info = None
 
         no = len(outputs)
         if len(outputs) == 1:
@@ -364,7 +379,10 @@ class CircuitType(AnonymousCircuitType):
 
 # DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
-    debug_info = get_callee_frame_info()
+    if get_debug_mode():
+        debug_info = get_callee_frame_info()
+    else:
+        debug_info = None
     dct = dict(
         IO=decl,
         debug_info=debug_info,
@@ -446,9 +464,6 @@ class DefineCircuitKind(CircuitKind):
         self.is_instance = False
 
         if hasattr(self, 'IO'):
-            # instantiate interface
-            self.interface = self.IO(defn=self, renamed_ports=dct["renamed_ports"])
-            setports(self, self.interface.ports)
 
             # create circuit definition
             if hasattr(self, 'definition'):
@@ -475,7 +490,8 @@ class DefineCircuitKind(CircuitKind):
             inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
             cls.instanced_circuits_counter[type(inst).name] += 1
         inst.defn = cls
-        inst.stack = inspect.stack()
+        if get_debug_mode():
+            inst.stack = inspect.stack()
         cls.instances.append(inst)
 
 
@@ -499,7 +515,10 @@ class Circuit(CircuitType):
 
 # DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
-    debug_info = get_callee_frame_info()
+    if get_debug_mode():
+        debug_info = get_callee_frame_info()
+    else:
+        debug_info = None
     global currentDefinition
     if currentDefinition:
         currentDefinitionStack.append(currentDefinition)
