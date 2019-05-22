@@ -1,3 +1,4 @@
+from magma.config import get_debug_mode
 from .logging import error, warning, get_source_line
 from .backend.util import make_relative
 from .ref import DefnRef, InstRef
@@ -58,6 +59,20 @@ def mergewires(new, old, debug_info):
         new.outputs.append(o)
         o.wires = new
 
+
+def fast_mergewires(w, i, o):
+    w.inputs = i.wires.inputs + o.wires.inputs
+    w.outputs = i.wires.outputs + o.wires.outputs
+    w.inputs = list(set(w.inputs))
+    w.outputs = list(set(w.outputs))
+    if len(w.outputs) > 1:
+        outputs = [o.bit.debug_name for o in w.outputs]
+        # use w.inputs[0] as i, similar to {i.bit.debug_name}
+        report_wiring_error(f"Connecting more than one output ({outputs}) to an input `{w.inputs[0].bit.debug_name}`", debug_info)  # noqa
+    for p in w.inputs:
+        p.wires = w
+    for p in w.outputs:
+        p.wires = w
 
 #
 # A Wire has a list of input and output Ports.
@@ -158,8 +173,11 @@ class Port:
             # print('merging', i.wires.inputs, i.wires.outputs)
             # print('merging', o.wires.inputs, o.wires.outputs)
             w = Wire()
-            mergewires(w, i.wires, debug_info)
-            mergewires(w, o.wires, debug_info)
+            if get_debug_mode():
+                mergewires(w, i.wires, debug_info)
+                mergewires(w, o.wires, debug_info)
+            else:
+                fast_mergewires(w, i, o)
             # print('after merge', w.inputs, w.outputs)
         elif o.wires:
             w = o.wires
