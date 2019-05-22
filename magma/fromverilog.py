@@ -41,7 +41,7 @@ class ModuleVisitor(NodeVisitor):
         if defn.name in self.defns:
             raise Exception(f"Defn with name {defn.name} appears twice")
         self.defns[defn.name] = defn
-        if shallow:
+        if self.__shallow:
             return defn
         # Collect instances in this definition.
         self.__instances[defn] = set()
@@ -51,7 +51,7 @@ class ModuleVisitor(NodeVisitor):
         return defn
 
     def visit_Instance(self, instance):
-        if shallow:
+        if self.__shallow:
             return instance
         defn = self.__defn_stack[-1]
         assert instance not in self.__instances[defn]
