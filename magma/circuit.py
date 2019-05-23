@@ -77,6 +77,9 @@ class CircuitKind(type):
         else:
             dct["debug_info"] = None
 
+        # Keep track of instances of this Circuit.
+        dct["my_instances"] = set()
+
 
         # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
@@ -185,6 +188,10 @@ class CircuitKind(type):
         cls.IO.ports.update({name: typ})
         cls.interface.add_port(name, typ, defn=cls, add_to_decl=True)
         setattr(cls, name, cls.interface.ports[name])
+        for inst in cls.my_instances:
+            inst.IO.ports.update({name: typ})
+            inst.interface.add_port(name, typ, inst=inst, add_to_decl=False)
+            setattr(inst, name, inst.interface.ports[name])
 
 
 #
@@ -360,6 +367,10 @@ class CircuitType(AnonymousCircuitType):
         global currentDefinition
         if currentDefinition:
              currentDefinition.place(self)
+
+        defn = type(self)
+        assert self not in defn.my_instances
+        defn.my_instances.add(self)
 
     def __repr__(self):
         args = []
