@@ -179,6 +179,14 @@ class CircuitKind(type):
             defn[name] = cls
         return defn
 
+    def add_port(cls, name, typ):
+        if name in cls.IO.ports or name in cls.interface.ports:
+            raise ValueError(f"{name} already is a port of {cls.name}")
+        cls.IO.ports.update({name: typ})
+        cls.interface.add_port(name, typ, defn=cls, add_to_decl=True)
+        setattr(cls, name, cls.interface.ports[name])
+
+
 #
 # Abstract base class for circuits
 #

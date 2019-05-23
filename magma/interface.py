@@ -182,6 +182,17 @@ class Interface(_Interface):
         return f'Interface({", ".join(f"{k}: {v}" for k, v in self.ports.items())})'
 
 
+def _make_port(name, typ, renamed_port, inst, defn):
+    if   inst: ref = InstRef(inst, name)
+    elif defn: ref = DefnRef(defn, name)
+    else:      ref = AnonRef(name)
+    if name in renamed_port:
+        ref.name = renamed_ports[name]
+    if defn:
+        typ = typ.flip()
+    return typ(name=ref)
+
+
 #
 # _DeclareInterface class
 #
@@ -202,19 +213,18 @@ class _DeclareInterface(_Interface):
         args = OrderedDict()
 
         for name, port in zip(names, ports):
-            if   inst: ref = InstRef(inst, name)
-            elif defn: ref = DefnRef(defn, name)
-            else:      ref = AnonRef(name)
-
-            if name in renamed_ports:
-                ref.name = renamed_ports[name]
-
-            if defn:
-               port = port.flip()
-
-            args[name] = port(name=ref)
+            args[name] = _make_port(name, port, renamed_ports, inst, defn)
 
         self.ports = args
+
+    def add_port(self, name, typ, renamed_ports={}, inst=None, defn=None,
+                 add_to_decl=False):
+        assert name not in self.ports
+        port = _make_port(name, typ, renamed_ports, inst, defn)
+        self.ports.update({name: port})
+        if add_to_decl:
+            assert name not in self.Decl
+            type(self).Decl += (name, typ)
 
 class InterfaceKind(Kind):
     def __init__(cls, *args, **kwargs):
