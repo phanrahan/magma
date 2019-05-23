@@ -24,8 +24,13 @@ def pretty_str(t):
         # Insert first newline + indent and last newline
         result = "\n    " + result + "\n"
         s = f"Tuple({result})"
+    elif isinstance(t, m.SIntKind):
+        s = f"SInt[{t.N}]"
+    elif isinstance(t, m.UIntKind):
+        s = f"UInt[{t.N}]"
+    elif isinstance(t, m.BitsKind):
+        s = f"Bits[{t.N}]"
     elif isinstance(t, m.ArrayKind):
-        s = "Array[%d, %s]" % (t.N, t.T)
         s = f"Array[{t.N}, {pretty_str(t.T)}]"
     else:
         s = str(t)

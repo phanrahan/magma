@@ -44,20 +44,20 @@ Array[3, Tuple(
 
 
 def test_pretty_print_array_of_nested_tuple():
-    t = m.Tuple(a=m.Bit, b=m.Bit, c=m.Bit)
+    t = m.Tuple(a=m.Bits[5], b=m.UInt[3], c=m.SInt[4])
     u = m.Tuple(x=t, y=t)
     v = m.Array[3, u]
     assert m.util.pretty_str(v) == """\
 Array[3, Tuple(
     x = Tuple(
-        a = Bit,
-        b = Bit,
-        c = Bit
+        a = Bits[5],
+        b = UInt[3],
+        c = SInt[4]
     ),
     y = Tuple(
-        a = Bit,
-        b = Bit,
-        c = Bit
+        a = Bits[5],
+        b = UInt[3],
+        c = SInt[4]
     )
 )]\
 """
