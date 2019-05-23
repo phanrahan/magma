@@ -182,11 +182,11 @@ class Interface(_Interface):
         return f'Interface({", ".join(f"{k}: {v}" for k, v in self.ports.items())})'
 
 
-def _make_port(name, typ, renamed_port, inst, defn):
+def _make_port(name, typ, renamed_ports, inst, defn):
     if   inst: ref = InstRef(inst, name)
     elif defn: ref = DefnRef(defn, name)
     else:      ref = AnonRef(name)
-    if name in renamed_port:
+    if name in renamed_ports:
         ref.name = renamed_ports[name]
     if defn:
         typ = typ.flip()
