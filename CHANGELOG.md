@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.8]
+### Added
+- https://github.com/phanrahan/magma/pull/399 adds support for `+` in the
+  verilog parser
+- https://github.com/phanrahan/magma/pull/397 adds a new implementation of
+  mergewires for better performance (use debug mode for the old implementation)
+
+### Fixed
+- https://github.com/phanrahan/magma/pull/401 fixes performance issue in
+  verilog parsing
+
 ## [1.0.4] - 2019-04-25
 ### Fixed
 - Fixed bug in coreir backend's handling of inout ports
