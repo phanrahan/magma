@@ -1,7 +1,7 @@
 import magma as m
 from test_combinational import compile_and_check, phi
-from collections import Sequence
 import coreir
+import mantle
 
 default_port_mapping = {
     "I": "in",
@@ -29,7 +29,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     methods = []
 
     def reset(self, condition):
-        wire(condition, self.rst)
+        m.wire(condition, self.rst)
         return self
 
     if has_reset:
@@ -39,7 +39,7 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
         # gen_args["has_rst"] = True
 
     def when(self, condition):
-        wire(condition, self.en)
+        m.wire(condition, self.en)
         return self
 
     # if has_ce:
@@ -69,7 +69,6 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
 @m.cache_definition
 def DefineRegister(n, init=None, has_ce=False, has_reset=False,
                    has_async_reset=False, _type=m.Bits):
-    T = _type[n]
     return DefineCoreirReg(n, init, has_async_reset, _type)
 
 
@@ -86,6 +85,7 @@ def pytest_generate_tests(metafunc):
 
 def _run_verilator(circuit, directory):
     import subprocess
+
     def run_from_directory(cmd):
         return subprocess.call(cmd, cwd=directory, shell=True)
     top = circuit.name
@@ -192,3 +192,39 @@ def test_seq_hierarchy(target):
 
         """
         _run_verilator(TestShiftRegister, directory="tests/test_syntax/build")
+
+
+def test_seq_recursive(target):
+    init = 2
+    width = 5
+
+    @m.circuit.sequential
+    class MyCounter:
+        def __init__(self):
+            self.count: m.UInt[width] = m.uint(init, width)
+            self.y: m.UInt[width] = m.uint(init, width)
+
+        def __call__(self, I0: m.UInt[width], I1: m.UInt[width]) -> \
+                m.UInt[width]: # (m.UInt[width], m.UInt[width]):
+            self.count = self.count + I0 + self.y
+            self.y = self.y + I1
+            # return self.count, self.count + I1
+            return self.count
+
+    @m.circuit.sequential
+    class TestRecursive:
+        def __init__(self):
+            self.x: m.UInt[width] = m.uint(init, width)
+            self.f: MyCounter = MyCounter(width)
+
+        def __call__(self, I: m.UInt[width]) -> m.UInt[width]:
+            y = None
+            while y is None:
+                # Don't support multiple outputs to call yet
+                # y, z = self.f(self.x + I, y)
+                y = self.f(self.x + I, y)
+            self.x = self.x + y
+            # return z
+            return self.x
+
+    m.compile("build/test_recursive", TestRecursive, output="coreir-verilog")

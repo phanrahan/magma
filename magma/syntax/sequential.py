@@ -25,6 +25,7 @@ class RewriteSelfAttributes(ast.NodeTransformer):
         return node
 
     def visit_Call(self, node):
+        node.args = [self.visit(arg) for arg in node.args]
         if isinstance(node.func, ast.Attribute) and \
                 isinstance(node.func.value, ast.Name) and \
                 node.func.value.id == "self":

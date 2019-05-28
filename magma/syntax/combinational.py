@@ -28,6 +28,19 @@ def report_transformer_warning(message, filename, lineno, line):
     warning(line)
 
 
+class WhileTransformer(ast.NodeTransformer):
+    def __init__(self, filename, lines):
+        super().__init__()
+        self.filename = filename
+        if lines:
+            self.lines, self.starting_line = lines
+        else:
+            self.lines, self.starting_line = None, None
+
+    def visit_While(self, node):
+        return ast.If(ast.NameConstant(True), node.body, [])
+
+
 class IfTransformer(ast.NodeTransformer):
     def __init__(self, filename, lines):
         super().__init__()
@@ -208,17 +221,41 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 #         return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
 
+class NoneReplacer(ast.NodeTransformer):
+    def __init__(self):
+        self.none_vars = set()
+
+    def visit_Assign(self, node):
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) \
+                and isinstance(node.value, ast.NameConstant) and \
+                node.value.value is None:
+            self.none_vars.add(node.targets[0].id)
+            self.none_vars.add(node.targets[0].id + "_orig")
+            # TODO: Need type annotation or inference
+            node.value = ast.parse("m.UInt[5]()").body[0].value
+            node.targets.append(ast.Name(node.targets[0].id + "_orig", ast.Store()))
+        return node
+
+
 @ast_utils.inspect_enclosing_env
 def combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
-    tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
-    tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
-    tree = ast.fix_missing_locations(tree)
     filename = None
     lines = None
     if get_debug_mode():
         filename = inspect.getsourcefile(fn)
         lines = inspect.getsourcelines(fn)
+    tree = WhileTransformer(filename, lines).visit(tree)
+    collector = NoneReplacer()
+    collector.visit(tree)
+    tree, renamed_args = convert_tree_to_ssa(tree, defn_env,
+                                             skip_vars=collector.none_vars)
+    tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
+    for var in collector.none_vars:
+        if "_orig" in var:
+            continue
+        tree.body[1].body.append(ast.parse(f"m.wire({var}_orig, {var})"))
+    tree = ast.fix_missing_locations(tree)
     tree = IfTransformer(filename, lines).visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(

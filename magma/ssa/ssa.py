@@ -18,13 +18,14 @@ def flatten(l: list):
 
 
 class SSAVisitor(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, skip_vars):
         super().__init__()
         self.last_name = defaultdict(lambda: "")
         self.var_counter = defaultdict(lambda: -1)
         self.args = []
         self.cond_stack = []
         self.return_values = []
+        self.skip_vars = skip_vars
 
     def write_name(self, var):
         self.var_counter[var] += 1
@@ -44,6 +45,8 @@ class SSAVisitor(ast.NodeTransformer):
         return node
 
     def visit_Name(self, node):
+        if node.id in self.skip_vars:
+            return node
         if node.id not in self.last_name:
             if node.id not in self.args and isinstance(node.ctx, ast.Store):
                 self.last_name[node.id] = f"{node.id}_0"
@@ -117,13 +120,13 @@ class MoveReturn(ast.NodeTransformer):
         )
 
 
-def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
+def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, skip_vars=set()):
     tree.decorator_list = ast_utils.filter_decorator(ssa, tree.decorator_list,
                                                      defn_env)
     # tree = MoveReturn().visit(tree)
     # tree.body.append(
     #     ast.Return(ast.Name("__magma_ssa_return_value", ast.Load())))
-    ssa_visitor = SSAVisitor()
+    ssa_visitor = SSAVisitor(skip_vars)
     tree = ssa_visitor.visit(tree)
     return_transformer = TransformReturn()
     tree = return_transformer.visit(tree)
