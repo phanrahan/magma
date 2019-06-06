@@ -1,4 +1,5 @@
 import magma as m
+import mantle
 from magma.testing import check_files_equal
 import pytest
 import logging
@@ -295,3 +296,18 @@ def test_renamed_args_wire(target):
             io.O <= inv.O
 
     compile_and_check("test_renamed_args_wire", Foo, target)
+
+
+def test_while_unstable(target):
+    @m.circuit.combinational
+    def f(a: m.UInt[4], b: m.UInt[4]) -> (m.UInt[4], m.UInt[4]):
+        return a + 1, b + 2
+
+    @m.circuit.combinational
+    def g(c: m.UInt[4]) -> m.UInt[4]:
+        d = m.Wire(m.UInt[4])
+        while m.unstable(d):
+            d, e = f(c, d)
+        return e
+
+    compile_and_check("test_circuit_combinational", g, target)

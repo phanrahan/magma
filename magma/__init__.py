@@ -77,3 +77,19 @@ SIntVector = SInt
 _Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
 def get_family():
     return _Family_
+
+
+# class Wire:
+#     """
+#     TODO: Reconcile name conflict with `port.Wire`, I believe that class is
+#     only used internally, so we might consider changing that name instead of
+#     this name (e.g. InternalWire or PortWire or _Wire)
+#     """
+#     def __init__(self, _type):
+#         self._type = _type
+def Wire(_type):
+    return _type()
+
+
+def unstable(*args):
+    pass

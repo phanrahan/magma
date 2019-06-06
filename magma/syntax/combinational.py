@@ -208,10 +208,44 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 #         return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
 
+class RemoveWhileUnstable(ast.NodeTransformer):
+    def visit(self, node):
+        node = super().visit(node)
+        if isinstance(getattr(node, 'body', None), list):
+            new_body = []
+            for stmt in node.body:
+                if isinstance(stmt, list):
+                    new_body.extend(stmt)
+                else:
+                    new_body.append(stmt)
+            node.body = new_body
+        return node
+
+    def visit_While(self, node):
+        # TODO: More robust check
+        if "unstable" in ast.dump(node):
+            return node.body
+        return node
+
+
+class ProcessWires(ast.NodeTransformer):
+    def __init__(self):
+        self.wires = set()
+
+    def visit_Assign(self, node):
+        # TODO: More robust check
+        if "Wire" in ast.dump(node.value) and \
+                "_0" in ast.dump(node.targets[0]):
+            self.wires.append(node.targets[0])
+        return node
+
+
 @ast_utils.inspect_enclosing_env
 def combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
+    tree = RemoveWhileUnstable().visit(tree)
     tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
+    tree = ProcessWires().visit(tree)
     tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
     tree = ast.fix_missing_locations(tree)
     filename = None
