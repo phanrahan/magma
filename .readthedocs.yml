@@ -1,0 +1,8 @@
+version: 2
+
+mkdocs:
+  configuration: mkdocs.yml
+
+# Set to 3.6 for mkdocs, see https://github.com/rtfd/readthedocs.org/issues/5474
+python:
+  version: 3.6
