@@ -257,6 +257,10 @@ class Array(Type, metaclass=ArrayKind):
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
+    @classmethod
+    def concat(cls, *args):
+        return concat(*args)
+
 
 # def Array(N, T):
 #     assert isinstance(N, IntegerTypes)
@@ -268,4 +272,4 @@ ArrayType = Array
 
 
 # Workaround for circular dependency
-from .conversions import array  # nopep8
+from .conversions import array, concat  # nopep8
