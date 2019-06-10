@@ -99,3 +99,37 @@ def test_const():
     data = m.Bits[16]
     zero = data(0)
     assert zero == m.bits(0, 16)
+
+
+def test_setitem_bfloat():
+    """
+    Test constant constructor interface
+    """
+    class TestCircuit(m.Circuit):
+        IO = ["I", m.In(m.BFloat[16]), "O", m.Out(m.BFloat[16])]
+        @classmethod
+        def definition(io):
+            a = io.I
+            b = a[0:-1].concat(m.bits(0, 1))
+            io.O <= b
+    print(repr(TestCircuit))
+    assert repr(TestCircuit) == """\
+TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat(16)), "O", Out(BFloat(16)))
+wire(TestCircuit.I[0], TestCircuit.O[0])
+wire(TestCircuit.I[1], TestCircuit.O[1])
+wire(TestCircuit.I[2], TestCircuit.O[2])
+wire(TestCircuit.I[3], TestCircuit.O[3])
+wire(TestCircuit.I[4], TestCircuit.O[4])
+wire(TestCircuit.I[5], TestCircuit.O[5])
+wire(TestCircuit.I[6], TestCircuit.O[6])
+wire(TestCircuit.I[7], TestCircuit.O[7])
+wire(TestCircuit.I[8], TestCircuit.O[8])
+wire(TestCircuit.I[9], TestCircuit.O[9])
+wire(TestCircuit.I[10], TestCircuit.O[10])
+wire(TestCircuit.I[11], TestCircuit.O[11])
+wire(TestCircuit.I[12], TestCircuit.O[12])
+wire(TestCircuit.I[13], TestCircuit.O[13])
+wire(TestCircuit.I[14], TestCircuit.O[14])
+wire(0, TestCircuit.O[15])
+EndCircuit()\
+"""  # noqa
