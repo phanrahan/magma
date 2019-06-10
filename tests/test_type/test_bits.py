@@ -110,7 +110,7 @@ def test_setitem_bfloat():
         @classmethod
         def definition(io):
             a = io.I
-            b = a[0:-1].concat(m.bits(0, 1))
+            b = m.BFloat.concat(a[0:-1], m.bits(0, 1))
             io.O <= b
     print(repr(TestCircuit))
     assert repr(TestCircuit) == """\

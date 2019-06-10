@@ -257,8 +257,9 @@ class Array(Type, metaclass=ArrayKind):
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
-    def concat(self, *args):
-        return concat(self, *args)
+    @classmethod
+    def concat(cls, *args):
+        return concat(*args)
 
 
 # def Array(N, T):
