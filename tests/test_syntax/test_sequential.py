@@ -134,7 +134,7 @@ def test_seq_simple(target):
 
 
 def test_seq_hierarchy(target):
-    @m.cache_definition
+
     def DefineCustomRegister(width, init=0):
         @m.circuit.sequential
         class Register:
@@ -192,3 +192,61 @@ def test_seq_hierarchy(target):
 
         """
         _run_verilator(TestShiftRegister, directory="tests/test_syntax/build")
+
+
+def test_fifo_ready_valid():
+    import mantle
+    @m.circuit.sequential
+    class ModuleA:
+        def __init__(self):
+            self.count: m.UInt[4] = m.uint(0, 4)
+
+        def __call__(self, ready_in: m.Bit) -> (m.UInt[4], m.Bit):
+            data = self.count
+            if ready_in:
+                self.count = self.count + m.uint(1, 4)
+            return data, self.count % m.uint(2, 4)
+
+    @m.circuit.sequential
+    class ModuleB:
+        def __init__(self):
+            self.count: m.UInt[4] = m.uint(0, 4)
+            self.data: m.UInt[4] = m.uint(0, 4)
+
+        def __call__(self, data: m.UInt[4], valid: m.Bit) -> m.Bit:
+            self.data = data
+            self.count = self.count + 1
+            return self.count % 2
+
+    @m.circuit.sequential
+    class FIFO:
+        def __init__(self):
+            # self.buffer: m.Array[4, m.UInt[4]] = m.array(
+            #     [m.uint(0, 4) for _ in range(4)])
+            self.write_ptr: m.UInt[2] = m.uint(0, 2)
+            # self.read_ptr: m.UInt[2] = m.uint(0, 2)
+
+        def __call__(self, valid_in: m.Bit, data_in: m.UInt[4], ready_in:
+                     m.Bit) -> (m.Bit, m.Bit, m.UInt[4]):
+            # TODO: Implement FIFO logic
+            self.write_ptr = self.write_ptr + m.uint(1, 2)
+            return m.bit(1), m.bit(1), data_in
+
+    @m.circuit.sequential
+    class Top:
+        def __init__(self):
+            self.module_a: ModuleA = ModuleA()
+            self.module_b: ModuleB = ModuleB()
+            self.fifo: FIFO = FIFO()
+
+        # TODO: Doesn't support no IO
+        def __call__(self, I: m.Bit) -> m.Bit:
+            ready_out = m.Wire(m.Bit)
+            ready_in = m.Wire(m.Bit)
+            while m.unstable(ready_out):
+                valid_in, data_in = self.module_a(ready_out)
+                ready_out, valid_out, data_out = self.fifo(valid_in, data_in, ready_in)
+                ready_in = self.module_b(valid_out, data_out)
+
+    print(repr(Top))
+    assert False
