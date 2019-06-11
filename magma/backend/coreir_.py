@@ -18,6 +18,7 @@ from ..interface import InterfaceKind
 import inspect
 import copy
 import json
+from .. import singleton
 
 from collections import defaultdict
 
@@ -69,21 +70,26 @@ def magma_port_to_coreir(port):
 
     return select.replace("[", ".").replace("]", "")
 
+# Singleton context meant to be used with coreir/magma code
+@singleton
+class CoreIRContextSingleton:
+    __instance = None
 
-magma_coreir_context = coreir.Context()  # Singleton context meant to be used with coreir/magma code
-def __reset_context():
-    """
-    Testing hook so every test has a fresh context
-    """
-    global magma_coreir_context
-    magma_coreir_context = coreir.Context()
+    def get_instance(self):
+        return self.__instance
 
+    def reset_instance(self):
+        self.__instance = coreir.Context()
+
+    def __init__(self):
+        self.__instance = coreir.Context()
+CoreIRContextSingleton()
 
 class CoreIRBackend:
     context_to_modules_map = {}
     def __init__(self, context=None):
         if context is None:
-            context = magma_coreir_context
+            context = CoreIRContextSingleton().get_instance()
         if context not in CoreIRBackend.context_to_modules_map:
             CoreIRBackend.context_to_modules_map[context] = {}
         self.modules = CoreIRBackend.context_to_modules_map[context]

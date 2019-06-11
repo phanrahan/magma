@@ -1,5 +1,5 @@
 from magma import cache_definition
-from magma.backend.coreir_ import CoreIRBackend, magma_coreir_context
+from magma.backend.coreir_ import CoreIRBackend, CoreIRContextSingleton
 from magma.circuit import DefineCircuitKind, Circuit
 from magma import cache_definition
 from coreir.generator import Generator
@@ -10,7 +10,7 @@ def GetCoreIRBackend():
 
 @cache_definition
 def GetMagmaContext():
-    return magma_coreir_context
+    return CoreIRContextSingleton().get_instance()
 
 def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName, deps):
     class ModuleWrapper(Circuit):

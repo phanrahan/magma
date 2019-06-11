@@ -8,4 +8,4 @@ def magma_test():
     import magma.config
     magma.config.set_compile_dir('callee_file_dir')
     clear_cachedFunctions()
-    magma.backend.coreir_.__reset_context()
+    magma.backend.coreir_.CoreIRContextSingleton().reset_instance()
