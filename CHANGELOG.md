@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.9]
+### Added
+- Added `concat` instance method for array types, example:
+  `a[0:-1].concat(m.bits(0, 1))`
+- Added `coreir_libs` option to coreir compile command (https://github.com/phanrahan/magma/pull/406)
+
 ## [1.0.8]
 ### Added
 - https://github.com/phanrahan/magma/pull/399 adds support for `+` in the
