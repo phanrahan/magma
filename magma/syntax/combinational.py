@@ -251,6 +251,10 @@ def combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
     tree = RemoveWhileUnstable().visit(tree)
     tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
+    # TODO: Does this work with multiple while unstable blocks?
+    # Basically, it should do this logic at the boundary of each while
+    # unstable, maybe we can keep the block structure and remove them
+    # after SSA (so we have the boundaries available)
     processor = ProcessWires()
     tree = processor.visit(tree)
     for var, count in processor.count.items():
