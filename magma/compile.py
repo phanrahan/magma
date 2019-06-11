@@ -56,7 +56,7 @@ def __compile_to_coreir(main, file_name, opts):
 
     backend.modules[main.coreir_name].save_to_file(file_name + ".json")
     if opts.get("output_verilog", False):
-        deps = set()
+        deps = opts.get("coreir_libs", set())
         pass_ = InstanceGraphPass(main)
         pass_.run()
         for key, _ in pass_.tsortedgraph:
