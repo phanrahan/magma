@@ -310,4 +310,12 @@ def test_while_unstable(target):
             d, e = f(c, d)
         return e
 
-    compile_and_check("test_circuit_combinational", g, target)
+    assert repr(g.circuit_definition) == """\
+g = DefineCircuit("g", "c", In(UInt(4)), "O", Out(UInt(4)))
+f_inst0 = f()
+wire(g.c, f_inst0.a)
+wire(f_inst0.O0, f_inst0.b)
+wire(f_inst0.O1, g.O)
+EndCircuit()\
+"""
+    compile_and_check("test_while_unstable", g.circuit_definition, target)

@@ -2,7 +2,7 @@ import functools
 import ast
 import inspect
 import textwrap
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from magma.logging import debug, warning, error
 from magma.backend.util import make_relative
 import astor
@@ -231,12 +231,18 @@ class RemoveWhileUnstable(ast.NodeTransformer):
 class ProcessWires(ast.NodeTransformer):
     def __init__(self):
         self.wires = set()
+        self.count = Counter()
 
     def visit_Assign(self, node):
         # TODO: More robust check
         if "Wire" in ast.dump(node.value) and \
-                "_0" in ast.dump(node.targets[0]):
-            self.wires.append(node.targets[0])
+           isinstance(node.targets[0], ast.Name) and \
+           "_0" in node.targets[0].id:
+            self.wires.add(node.targets[0].id[:-2])
+            self.count[node.targets[0].id[:-2]] += 1
+        elif isinstance(node.targets[0], ast.Name) and \
+             node.targets[0].id[:-2] in self.wires:
+            self.count[node.targets[0].id[:-2]] += 1
         return node
 
 
@@ -245,7 +251,11 @@ def combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
     tree = RemoveWhileUnstable().visit(tree)
     tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
-    tree = ProcessWires().visit(tree)
+    processor = ProcessWires()
+    tree = processor.visit(tree)
+    for var, count in processor.count.items():
+        tree.body.append(ast.parse(f"m.wire({var}_{count}, {var}_0)").body[0])
+        
     tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
     tree = ast.fix_missing_locations(tree)
     filename = None
