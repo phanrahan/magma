@@ -44,7 +44,7 @@ class RewriteSelfAttributes(ast.NodeTransformer):
                 return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
             else:
                 assert outputs, "Expected module with at least one output"
-                return ast.Tuple([ast.Name(f"self_{attr}_{outputs}",
+                return ast.Tuple([ast.Name(f"self_{attr}_{output}",
                                            ast.Load()) for output in outputs],
                                  ast.Load())
         return node

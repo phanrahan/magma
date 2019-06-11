@@ -13,6 +13,7 @@ from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
 from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 import magma as m
+import hwtypes
 
 __all__ = ['bit']
 __all__ += ['clock', 'reset', 'enable', 'asyncreset']
@@ -180,7 +181,12 @@ def bfloat(value, n=None):
 
 
 def concat(*arrays):
-    ts = [t for a in arrays for t in a.ts]  # flatten
+    ts = []
+    for a in arrays:
+        if isinstance(a, hwtypes.BitVector):
+            ts.extend(a.bits())
+        else:
+            ts.extend(a.ts)
     return array(ts)
 
 
