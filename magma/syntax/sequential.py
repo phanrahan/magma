@@ -40,8 +40,13 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             self.calls_seen.extend(ret)
             func = astor.to_source(node.func).rstrip()
             outputs = self.initial_value_map[attr][3].interface.outputs()
-            assert len(outputs) == 1, f"Expected one output: {outputs}"
-            return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
+            if len(outputs) == 1:
+                return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
+            else:
+                assert outputs, "Expected module with at least one output"
+                return ast.Tuple([ast.Name(f"self_{attr}_{outputs}",
+                                           ast.Load()) for output in outputs],
+                                 ast.Load())
         return node
 
     def visit_If(self, node):
