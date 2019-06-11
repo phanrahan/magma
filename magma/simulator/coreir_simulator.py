@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 
 from .simulator import CircuitSimulator, ExecutionState
 from ..backend import coreir_
+from ..frontend.coreir_ import GetMagmaContext
 from ..scope import Scope
 from ..ref import DefnRef, ArrayRef, TupleRef
 from ..array import ArrayType
@@ -134,7 +135,7 @@ class CoreIRSimulator(CircuitSimulator):
         setup_clocks(circuit)
 
         if context is None:
-            self.ctx = coreir.Context()
+            self.ctx = GetMagmaContext()
         else:
             self.ctx = context
         coreir_.compile(circuit, coreir_filename, context=self.ctx)
