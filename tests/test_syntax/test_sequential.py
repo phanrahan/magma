@@ -115,7 +115,7 @@ def test_seq_simple(target, async_reset):
             return O
 
     compile_and_check("TestBasic" + ("ARST" if async_reset else ""), TestBasic, target)
-    if target == "coreir-verilog":
+    if target == "coreir-verilog" and not async_reset:
         """
         The following sequence was used to create the verilator driver:
 
