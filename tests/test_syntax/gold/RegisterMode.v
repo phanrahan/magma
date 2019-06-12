@@ -29,63 +29,21 @@ module coreir_const #(parameter value=1, parameter width=1) (
 
 endmodule  // coreir_const
 
-module corebit_xor (
-  input in0,
-  input in1,
-  output out
-);
-  assign out = in0 ^ in1;
-
-endmodule  // corebit_xor
-
-module corebit_not (
-  input in,
-  output out
-);
-  assign out = ~in;
-
-endmodule  // corebit_not
-
-module corebit_eq (
-  input  I0,
-  input  I1,
-  output  O
-);
-
-
-  wire  not_inst0__in;
-  wire  not_inst0__out;
-  corebit_not not_inst0(
-    .in(not_inst0__in),
-    .out(not_inst0__out)
-  );
-
-  wire  xor_inst0__in0;
-  wire  xor_inst0__in1;
-  wire  xor_inst0__out;
-  corebit_xor xor_inst0(
-    .in0(xor_inst0__in0),
-    .in1(xor_inst0__in1),
-    .out(xor_inst0__out)
-  );
-
-  assign not_inst0__in = xor_inst0__out;
-
-  assign O = not_inst0__out;
-
-  assign xor_inst0__in0 = I0;
-
-  assign xor_inst0__in1 = I1;
-
-
-endmodule  // corebit_eq
-
 module corebit_const #(parameter value=1) (
   output out
 );
   assign out = value;
 
 endmodule  // corebit_const
+
+module corebit_and (
+  input in0,
+  input in1,
+  output out
+);
+  assign out = in0 & in1;
+
+endmodule  // corebit_and
 
 /* External Modules
 module Mux2_x4 (
@@ -456,207 +414,207 @@ module RegisterMode_comb (
     .out(const_1_2__out)
   );
 
-  wire  corebit_eq_inst0__I0;
-  wire  corebit_eq_inst0__I1;
-  wire  corebit_eq_inst0__O;
-  corebit_eq corebit_eq_inst0(
-    .I0(corebit_eq_inst0__I0),
-    .I1(corebit_eq_inst0__I1),
-    .O(corebit_eq_inst0__O)
-  );
-
-  wire  corebit_eq_inst1__I0;
-  wire  corebit_eq_inst1__I1;
-  wire  corebit_eq_inst1__O;
-  corebit_eq corebit_eq_inst1(
-    .I0(corebit_eq_inst1__I0),
-    .I1(corebit_eq_inst1__I1),
-    .O(corebit_eq_inst1__O)
-  );
-
-  wire  corebit_eq_inst2__I0;
-  wire  corebit_eq_inst2__I1;
-  wire  corebit_eq_inst2__O;
-  corebit_eq corebit_eq_inst2(
-    .I0(corebit_eq_inst2__I0),
-    .I1(corebit_eq_inst2__I1),
-    .O(corebit_eq_inst2__O)
-  );
-
-  wire  corebit_eq_inst3__I0;
-  wire  corebit_eq_inst3__I1;
-  wire  corebit_eq_inst3__O;
-  corebit_eq corebit_eq_inst3(
-    .I0(corebit_eq_inst3__I0),
-    .I1(corebit_eq_inst3__I1),
-    .O(corebit_eq_inst3__O)
-  );
-
-  wire  corebit_eq_inst4__I0;
-  wire  corebit_eq_inst4__I1;
-  wire  corebit_eq_inst4__O;
-  corebit_eq corebit_eq_inst4(
-    .I0(corebit_eq_inst4__I0),
-    .I1(corebit_eq_inst4__I1),
-    .O(corebit_eq_inst4__O)
-  );
-
-  wire  corebit_eq_inst5__I0;
-  wire  corebit_eq_inst5__I1;
-  wire  corebit_eq_inst5__O;
-  corebit_eq corebit_eq_inst5(
-    .I0(corebit_eq_inst5__I0),
-    .I1(corebit_eq_inst5__I1),
-    .O(corebit_eq_inst5__O)
-  );
-
-  wire  corebit_eq_inst6__I0;
-  wire  corebit_eq_inst6__I1;
-  wire  corebit_eq_inst6__O;
-  corebit_eq corebit_eq_inst6(
-    .I0(corebit_eq_inst6__I0),
-    .I1(corebit_eq_inst6__I1),
-    .O(corebit_eq_inst6__O)
+  // Instancing generated Module: coreir.eq(width:2)
+  wire [1:0] eq_inst0__in0;
+  wire [1:0] eq_inst0__in1;
+  wire  eq_inst0__out;
+  coreir_eq #(.width(2)) eq_inst0(
+    .in0(eq_inst0__in0),
+    .in1(eq_inst0__in1),
+    .out(eq_inst0__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst0__in0;
-  wire [1:0] coreir_eq_2_inst0__in1;
-  wire  coreir_eq_2_inst0__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst0(
-    .in0(coreir_eq_2_inst0__in0),
-    .in1(coreir_eq_2_inst0__in1),
-    .out(coreir_eq_2_inst0__out)
+  wire [1:0] eq_inst1__in0;
+  wire [1:0] eq_inst1__in1;
+  wire  eq_inst1__out;
+  coreir_eq #(.width(2)) eq_inst1(
+    .in0(eq_inst1__in0),
+    .in1(eq_inst1__in1),
+    .out(eq_inst1__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst1__in0;
-  wire [1:0] coreir_eq_2_inst1__in1;
-  wire  coreir_eq_2_inst1__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst1(
-    .in0(coreir_eq_2_inst1__in0),
-    .in1(coreir_eq_2_inst1__in1),
-    .out(coreir_eq_2_inst1__out)
+  wire [1:0] eq_inst10__in0;
+  wire [1:0] eq_inst10__in1;
+  wire  eq_inst10__out;
+  coreir_eq #(.width(2)) eq_inst10(
+    .in0(eq_inst10__in0),
+    .in1(eq_inst10__in1),
+    .out(eq_inst10__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst10__in0;
-  wire [1:0] coreir_eq_2_inst10__in1;
-  wire  coreir_eq_2_inst10__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst10(
-    .in0(coreir_eq_2_inst10__in0),
-    .in1(coreir_eq_2_inst10__in1),
-    .out(coreir_eq_2_inst10__out)
+  wire [1:0] eq_inst11__in0;
+  wire [1:0] eq_inst11__in1;
+  wire  eq_inst11__out;
+  coreir_eq #(.width(2)) eq_inst11(
+    .in0(eq_inst11__in0),
+    .in1(eq_inst11__in1),
+    .out(eq_inst11__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst11__in0;
-  wire [1:0] coreir_eq_2_inst11__in1;
-  wire  coreir_eq_2_inst11__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst11(
-    .in0(coreir_eq_2_inst11__in0),
-    .in1(coreir_eq_2_inst11__in1),
-    .out(coreir_eq_2_inst11__out)
+  wire [1:0] eq_inst12__in0;
+  wire [1:0] eq_inst12__in1;
+  wire  eq_inst12__out;
+  coreir_eq #(.width(2)) eq_inst12(
+    .in0(eq_inst12__in0),
+    .in1(eq_inst12__in1),
+    .out(eq_inst12__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst12__in0;
-  wire [1:0] coreir_eq_2_inst12__in1;
-  wire  coreir_eq_2_inst12__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst12(
-    .in0(coreir_eq_2_inst12__in0),
-    .in1(coreir_eq_2_inst12__in1),
-    .out(coreir_eq_2_inst12__out)
+  wire [1:0] eq_inst13__in0;
+  wire [1:0] eq_inst13__in1;
+  wire  eq_inst13__out;
+  coreir_eq #(.width(2)) eq_inst13(
+    .in0(eq_inst13__in0),
+    .in1(eq_inst13__in1),
+    .out(eq_inst13__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst13__in0;
-  wire [1:0] coreir_eq_2_inst13__in1;
-  wire  coreir_eq_2_inst13__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst13(
-    .in0(coreir_eq_2_inst13__in0),
-    .in1(coreir_eq_2_inst13__in1),
-    .out(coreir_eq_2_inst13__out)
+  wire [1:0] eq_inst14__in0;
+  wire [1:0] eq_inst14__in1;
+  wire  eq_inst14__out;
+  coreir_eq #(.width(2)) eq_inst14(
+    .in0(eq_inst14__in0),
+    .in1(eq_inst14__in1),
+    .out(eq_inst14__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst2__in0;
-  wire [1:0] coreir_eq_2_inst2__in1;
-  wire  coreir_eq_2_inst2__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst2(
-    .in0(coreir_eq_2_inst2__in0),
-    .in1(coreir_eq_2_inst2__in1),
-    .out(coreir_eq_2_inst2__out)
+  wire [1:0] eq_inst15__in0;
+  wire [1:0] eq_inst15__in1;
+  wire  eq_inst15__out;
+  coreir_eq #(.width(2)) eq_inst15(
+    .in0(eq_inst15__in0),
+    .in1(eq_inst15__in1),
+    .out(eq_inst15__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst3__in0;
-  wire [1:0] coreir_eq_2_inst3__in1;
-  wire  coreir_eq_2_inst3__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst3(
-    .in0(coreir_eq_2_inst3__in0),
-    .in1(coreir_eq_2_inst3__in1),
-    .out(coreir_eq_2_inst3__out)
+  wire [1:0] eq_inst16__in0;
+  wire [1:0] eq_inst16__in1;
+  wire  eq_inst16__out;
+  coreir_eq #(.width(2)) eq_inst16(
+    .in0(eq_inst16__in0),
+    .in1(eq_inst16__in1),
+    .out(eq_inst16__out)
+  );
+
+  wire  eq_inst17__in0;
+  wire  eq_inst17__in1;
+  wire  eq_inst17__out;
+  corebit_and eq_inst17(
+    .in0(eq_inst17__in0),
+    .in1(eq_inst17__in1),
+    .out(eq_inst17__out)
+  );
+
+  wire  eq_inst18__in0;
+  wire  eq_inst18__in1;
+  wire  eq_inst18__out;
+  corebit_and eq_inst18(
+    .in0(eq_inst18__in0),
+    .in1(eq_inst18__in1),
+    .out(eq_inst18__out)
+  );
+
+  wire  eq_inst19__in0;
+  wire  eq_inst19__in1;
+  wire  eq_inst19__out;
+  corebit_and eq_inst19(
+    .in0(eq_inst19__in0),
+    .in1(eq_inst19__in1),
+    .out(eq_inst19__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst4__in0;
-  wire [1:0] coreir_eq_2_inst4__in1;
-  wire  coreir_eq_2_inst4__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst4(
-    .in0(coreir_eq_2_inst4__in0),
-    .in1(coreir_eq_2_inst4__in1),
-    .out(coreir_eq_2_inst4__out)
+  wire [1:0] eq_inst2__in0;
+  wire [1:0] eq_inst2__in1;
+  wire  eq_inst2__out;
+  coreir_eq #(.width(2)) eq_inst2(
+    .in0(eq_inst2__in0),
+    .in1(eq_inst2__in1),
+    .out(eq_inst2__out)
+  );
+
+  wire  eq_inst20__in0;
+  wire  eq_inst20__in1;
+  wire  eq_inst20__out;
+  corebit_and eq_inst20(
+    .in0(eq_inst20__in0),
+    .in1(eq_inst20__in1),
+    .out(eq_inst20__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst5__in0;
-  wire [1:0] coreir_eq_2_inst5__in1;
-  wire  coreir_eq_2_inst5__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst5(
-    .in0(coreir_eq_2_inst5__in0),
-    .in1(coreir_eq_2_inst5__in1),
-    .out(coreir_eq_2_inst5__out)
+  wire [1:0] eq_inst3__in0;
+  wire [1:0] eq_inst3__in1;
+  wire  eq_inst3__out;
+  coreir_eq #(.width(2)) eq_inst3(
+    .in0(eq_inst3__in0),
+    .in1(eq_inst3__in1),
+    .out(eq_inst3__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst6__in0;
-  wire [1:0] coreir_eq_2_inst6__in1;
-  wire  coreir_eq_2_inst6__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst6(
-    .in0(coreir_eq_2_inst6__in0),
-    .in1(coreir_eq_2_inst6__in1),
-    .out(coreir_eq_2_inst6__out)
+  wire [1:0] eq_inst4__in0;
+  wire [1:0] eq_inst4__in1;
+  wire  eq_inst4__out;
+  coreir_eq #(.width(2)) eq_inst4(
+    .in0(eq_inst4__in0),
+    .in1(eq_inst4__in1),
+    .out(eq_inst4__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst7__in0;
-  wire [1:0] coreir_eq_2_inst7__in1;
-  wire  coreir_eq_2_inst7__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst7(
-    .in0(coreir_eq_2_inst7__in0),
-    .in1(coreir_eq_2_inst7__in1),
-    .out(coreir_eq_2_inst7__out)
+  wire [1:0] eq_inst5__in0;
+  wire [1:0] eq_inst5__in1;
+  wire  eq_inst5__out;
+  coreir_eq #(.width(2)) eq_inst5(
+    .in0(eq_inst5__in0),
+    .in1(eq_inst5__in1),
+    .out(eq_inst5__out)
+  );
+
+  wire  eq_inst6__in0;
+  wire  eq_inst6__in1;
+  wire  eq_inst6__out;
+  corebit_and eq_inst6(
+    .in0(eq_inst6__in0),
+    .in1(eq_inst6__in1),
+    .out(eq_inst6__out)
+  );
+
+  wire  eq_inst7__in0;
+  wire  eq_inst7__in1;
+  wire  eq_inst7__out;
+  corebit_and eq_inst7(
+    .in0(eq_inst7__in0),
+    .in1(eq_inst7__in1),
+    .out(eq_inst7__out)
+  );
+
+  wire  eq_inst8__in0;
+  wire  eq_inst8__in1;
+  wire  eq_inst8__out;
+  corebit_and eq_inst8(
+    .in0(eq_inst8__in0),
+    .in1(eq_inst8__in1),
+    .out(eq_inst8__out)
   );
 
   // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst8__in0;
-  wire [1:0] coreir_eq_2_inst8__in1;
-  wire  coreir_eq_2_inst8__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst8(
-    .in0(coreir_eq_2_inst8__in0),
-    .in1(coreir_eq_2_inst8__in1),
-    .out(coreir_eq_2_inst8__out)
-  );
-
-  // Instancing generated Module: coreir.eq(width:2)
-  wire [1:0] coreir_eq_2_inst9__in0;
-  wire [1:0] coreir_eq_2_inst9__in1;
-  wire  coreir_eq_2_inst9__out;
-  coreir_eq #(.width(2)) coreir_eq_2_inst9(
-    .in0(coreir_eq_2_inst9__in0),
-    .in1(coreir_eq_2_inst9__in1),
-    .out(coreir_eq_2_inst9__out)
+  wire [1:0] eq_inst9__in0;
+  wire [1:0] eq_inst9__in1;
+  wire  eq_inst9__out;
+  coreir_eq #(.width(2)) eq_inst9(
+    .in0(eq_inst9__in0),
+    .in1(eq_inst9__in1),
+    .out(eq_inst9__out)
   );
 
   assign Mux2_inst0__I0 = clk_en;
@@ -665,17 +623,17 @@ module RegisterMode_comb (
 
   assign Mux2_inst1__I0 = Mux2_inst0__O;
 
-  assign Mux2_inst0__S = coreir_eq_2_inst1__out;
+  assign Mux2_inst0__S = eq_inst1__out;
 
   assign Mux2_inst1__I1 = bit_const_0_None__out;
 
   assign Mux2_inst2__I0 = Mux2_inst1__O;
 
-  assign Mux2_inst1__S = coreir_eq_2_inst4__out;
+  assign Mux2_inst1__S = eq_inst4__out;
 
   assign Mux2_inst2__I1 = bit_const_1_None__out;
 
-  assign Mux2_inst2__S = corebit_eq_inst1__O;
+  assign Mux2_inst2__S = eq_inst7__out;
 
   assign Mux2_inst3__I0 = clk_en;
 
@@ -683,19 +641,19 @@ module RegisterMode_comb (
 
   assign Mux2_inst4__I0 = Mux2_inst3__O;
 
-  assign Mux2_inst3__S = coreir_eq_2_inst7__out;
+  assign Mux2_inst3__S = eq_inst10__out;
 
   assign Mux2_inst4__I1 = bit_const_0_None__out;
 
   assign Mux2_inst5__I0 = Mux2_inst4__O;
 
-  assign Mux2_inst4__S = coreir_eq_2_inst11__out;
+  assign Mux2_inst4__S = eq_inst14__out;
 
   assign Mux2_inst5__I1 = bit_const_1_None__out;
 
   assign O1 = Mux2_inst5__O;
 
-  assign Mux2_inst5__S = corebit_eq_inst4__O;
+  assign Mux2_inst5__S = eq_inst18__out;
 
   assign Mux2_x4_inst0__I0[3:0] = value[3:0];
 
@@ -703,7 +661,7 @@ module RegisterMode_comb (
 
   assign Mux2_x4_inst2__I0[3:0] = Mux2_x4_inst0__O[3:0];
 
-  assign Mux2_x4_inst0__S = coreir_eq_2_inst0__out;
+  assign Mux2_x4_inst0__S = eq_inst0__out;
 
   assign Mux2_x4_inst1__I0[3:0] = self_register_O[3:0];
 
@@ -711,7 +669,7 @@ module RegisterMode_comb (
 
   assign Mux2_x4_inst3__I0[3:0] = Mux2_x4_inst1__O[3:0];
 
-  assign Mux2_x4_inst1__S = coreir_eq_2_inst2__out;
+  assign Mux2_x4_inst1__S = eq_inst2__out;
 
   assign Mux2_x4_inst10__I0[3:0] = Mux2_x4_inst7__O[3:0];
 
@@ -719,7 +677,7 @@ module RegisterMode_comb (
 
   assign Mux2_x4_inst13__I0[3:0] = Mux2_x4_inst10__O[3:0];
 
-  assign Mux2_x4_inst10__S = coreir_eq_2_inst12__out;
+  assign Mux2_x4_inst10__S = eq_inst15__out;
 
   assign Mux2_x4_inst11__I0[3:0] = Mux2_x4_inst8__O[3:0];
 
@@ -727,7 +685,7 @@ module RegisterMode_comb (
 
   assign Mux2_x4_inst14__I0[3:0] = Mux2_x4_inst11__O[3:0];
 
-  assign Mux2_x4_inst11__S = coreir_eq_2_inst13__out;
+  assign Mux2_x4_inst11__S = eq_inst16__out;
 
   assign Mux2_x4_inst12__I0[3:0] = Mux2_x4_inst9__O[3:0];
 
@@ -735,39 +693,39 @@ module RegisterMode_comb (
 
   assign O0[3:0] = Mux2_x4_inst12__O[3:0];
 
-  assign Mux2_x4_inst12__S = corebit_eq_inst3__O;
+  assign Mux2_x4_inst12__S = eq_inst17__out;
 
   assign Mux2_x4_inst13__I1[3:0] = self_register_O[3:0];
 
   assign O2[3:0] = Mux2_x4_inst13__O[3:0];
 
-  assign Mux2_x4_inst13__S = corebit_eq_inst5__O;
+  assign Mux2_x4_inst13__S = eq_inst19__out;
 
   assign Mux2_x4_inst14__I1[3:0] = self_register_O[3:0];
 
   assign O3[3:0] = Mux2_x4_inst14__O[3:0];
 
-  assign Mux2_x4_inst14__S = corebit_eq_inst6__O;
+  assign Mux2_x4_inst14__S = eq_inst20__out;
 
   assign Mux2_x4_inst2__I1[3:0] = value[3:0];
 
   assign Mux2_x4_inst4__I0[3:0] = Mux2_x4_inst2__O[3:0];
 
-  assign Mux2_x4_inst2__S = coreir_eq_2_inst3__out;
+  assign Mux2_x4_inst2__S = eq_inst3__out;
 
   assign Mux2_x4_inst3__I1[3:0] = self_register_O[3:0];
 
   assign Mux2_x4_inst5__I0[3:0] = Mux2_x4_inst3__O[3:0];
 
-  assign Mux2_x4_inst3__S = coreir_eq_2_inst5__out;
+  assign Mux2_x4_inst3__S = eq_inst5__out;
 
   assign Mux2_x4_inst4__I1[3:0] = config_data[3:0];
 
-  assign Mux2_x4_inst4__S = corebit_eq_inst0__O;
+  assign Mux2_x4_inst4__S = eq_inst6__out;
 
   assign Mux2_x4_inst5__I1[3:0] = self_register_O[3:0];
 
-  assign Mux2_x4_inst5__S = corebit_eq_inst2__O;
+  assign Mux2_x4_inst5__S = eq_inst8__out;
 
   assign Mux2_x4_inst6__I0[3:0] = value[3:0];
 
@@ -775,107 +733,107 @@ module RegisterMode_comb (
 
   assign Mux2_x4_inst9__I0[3:0] = Mux2_x4_inst6__O[3:0];
 
-  assign Mux2_x4_inst6__S = coreir_eq_2_inst6__out;
+  assign Mux2_x4_inst6__S = eq_inst9__out;
 
   assign Mux2_x4_inst7__I0[3:0] = self_register_O[3:0];
 
   assign Mux2_x4_inst7__I1[3:0] = value[3:0];
 
-  assign Mux2_x4_inst7__S = coreir_eq_2_inst8__out;
+  assign Mux2_x4_inst7__S = eq_inst11__out;
 
   assign Mux2_x4_inst8__I0[3:0] = self_register_O[3:0];
 
   assign Mux2_x4_inst8__I1[3:0] = self_register_O[3:0];
 
-  assign Mux2_x4_inst8__S = coreir_eq_2_inst9__out;
+  assign Mux2_x4_inst8__S = eq_inst12__out;
 
   assign Mux2_x4_inst9__I1[3:0] = value[3:0];
 
-  assign Mux2_x4_inst9__S = coreir_eq_2_inst10__out;
+  assign Mux2_x4_inst9__S = eq_inst13__out;
 
-  assign corebit_eq_inst0__I1 = bit_const_1_None__out;
+  assign eq_inst17__in1 = bit_const_1_None__out;
 
-  assign corebit_eq_inst1__I1 = bit_const_1_None__out;
+  assign eq_inst18__in1 = bit_const_1_None__out;
 
-  assign corebit_eq_inst2__I1 = bit_const_1_None__out;
+  assign eq_inst19__in1 = bit_const_1_None__out;
 
-  assign corebit_eq_inst3__I1 = bit_const_1_None__out;
+  assign eq_inst20__in1 = bit_const_1_None__out;
 
-  assign corebit_eq_inst4__I1 = bit_const_1_None__out;
+  assign eq_inst6__in1 = bit_const_1_None__out;
 
-  assign corebit_eq_inst5__I1 = bit_const_1_None__out;
+  assign eq_inst7__in1 = bit_const_1_None__out;
 
-  assign corebit_eq_inst6__I1 = bit_const_1_None__out;
+  assign eq_inst8__in1 = bit_const_1_None__out;
 
-  assign coreir_eq_2_inst10__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst13__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst11__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst14__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst12__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst15__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst13__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst16__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst3__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst3__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst4__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst4__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst5__in1[1:0] = const_0_2__out[1:0];
+  assign eq_inst5__in1[1:0] = const_0_2__out[1:0];
 
-  assign coreir_eq_2_inst0__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst0__in1[1:0] = const_1_2__out[1:0];
 
-  assign coreir_eq_2_inst1__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst1__in1[1:0] = const_1_2__out[1:0];
 
-  assign coreir_eq_2_inst2__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst10__in1[1:0] = const_1_2__out[1:0];
 
-  assign coreir_eq_2_inst6__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst11__in1[1:0] = const_1_2__out[1:0];
 
-  assign coreir_eq_2_inst7__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst12__in1[1:0] = const_1_2__out[1:0];
 
-  assign coreir_eq_2_inst8__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst2__in1[1:0] = const_1_2__out[1:0];
 
-  assign coreir_eq_2_inst9__in1[1:0] = const_1_2__out[1:0];
+  assign eq_inst9__in1[1:0] = const_1_2__out[1:0];
 
-  assign corebit_eq_inst0__I0 = config_we;
+  assign eq_inst0__in0[1:0] = mode[1:0];
 
-  assign corebit_eq_inst1__I0 = config_we;
+  assign eq_inst1__in0[1:0] = mode[1:0];
 
-  assign corebit_eq_inst2__I0 = config_we;
+  assign eq_inst10__in0[1:0] = mode[1:0];
 
-  assign corebit_eq_inst3__I0 = config_we;
+  assign eq_inst11__in0[1:0] = mode[1:0];
 
-  assign corebit_eq_inst4__I0 = config_we;
+  assign eq_inst12__in0[1:0] = mode[1:0];
 
-  assign corebit_eq_inst5__I0 = config_we;
+  assign eq_inst13__in0[1:0] = mode[1:0];
 
-  assign corebit_eq_inst6__I0 = config_we;
+  assign eq_inst14__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst0__in0[1:0] = mode[1:0];
+  assign eq_inst15__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst1__in0[1:0] = mode[1:0];
+  assign eq_inst16__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst10__in0[1:0] = mode[1:0];
+  assign eq_inst17__in0 = config_we;
 
-  assign coreir_eq_2_inst11__in0[1:0] = mode[1:0];
+  assign eq_inst18__in0 = config_we;
 
-  assign coreir_eq_2_inst12__in0[1:0] = mode[1:0];
+  assign eq_inst19__in0 = config_we;
 
-  assign coreir_eq_2_inst13__in0[1:0] = mode[1:0];
+  assign eq_inst2__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst2__in0[1:0] = mode[1:0];
+  assign eq_inst20__in0 = config_we;
 
-  assign coreir_eq_2_inst3__in0[1:0] = mode[1:0];
+  assign eq_inst3__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst4__in0[1:0] = mode[1:0];
+  assign eq_inst4__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst5__in0[1:0] = mode[1:0];
+  assign eq_inst5__in0[1:0] = mode[1:0];
 
-  assign coreir_eq_2_inst6__in0[1:0] = mode[1:0];
+  assign eq_inst6__in0 = config_we;
 
-  assign coreir_eq_2_inst7__in0[1:0] = mode[1:0];
+  assign eq_inst7__in0 = config_we;
 
-  assign coreir_eq_2_inst8__in0[1:0] = mode[1:0];
+  assign eq_inst8__in0 = config_we;
 
-  assign coreir_eq_2_inst9__in0[1:0] = mode[1:0];
+  assign eq_inst9__in0[1:0] = mode[1:0];
 
 
 endmodule  // RegisterMode_comb

@@ -195,8 +195,26 @@ def test_seq_hierarchy(target):
 
 
 def test_multiple_return(target):
-    import mantle
     T = m.Bits[4]
+
+    m._BitType.__eq__ = lambda x, y: DeclareCoreirCircuit(
+        "eq",
+        *["I0", m.In(m.Bit),
+          "I1", m.In(m.Bit),
+          "O", m.Out(m.Bit)],
+        coreir_name="and",
+        coreir_lib="corebit"
+    )()(x, y)
+
+    m.BitsType.__eq__ = lambda x, y: DeclareCoreirCircuit(
+        "eq",
+        *["I0", m.In(m.Bits[len(x)]),
+          "I1", m.In(m.Bits[len(x)]),
+          "O", m.Out(m.Bit)],
+        coreir_genargs={"width": len(x)},
+        coreir_name="eq",
+        coreir_lib="coreir"
+    )()(x, y)
 
     @m.circuit.sequential
     class Register:
