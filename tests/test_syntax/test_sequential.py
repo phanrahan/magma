@@ -192,3 +192,43 @@ def test_seq_hierarchy(target):
 
         """
         _run_verilator(TestShiftRegister, directory="tests/test_syntax/build")
+
+
+def test_multiple_return(target):
+    import mantle
+    T = m.Bits[4]
+
+    @m.circuit.sequential
+    class Register:
+        def __init__(self):
+            self.value: T = T(0)
+
+        def __call__(self, value: T, en: m.Bit) -> T:
+            retvalue = self.value
+            if en:
+                self.value = value
+            else:
+                self.value = self.value
+            return retvalue
+
+    @m.circuit.sequential
+    class RegisterMode:
+        def __init__(self):
+            self.register: Register = Register(0)
+
+        def __call__(self, mode: m.Bits[2], const_: T, value: T, clk_en: m.Bit,
+                     config_we: m.Bit, config_data: T) -> (T, T):
+            if config_we == m.Bit(1):
+                reg_val = self.register(config_data, m.Bit(1))
+                return reg_val, reg_val
+            elif mode == m.bits(0, 2):
+                reg_val = self.register(value, m.Bit(False))
+                return const_, reg_val
+            elif mode == m.bits(1, 2):
+                reg_val = self.register(value, m.Bit(False))
+                return value, reg_val
+            elif mode == m.bits(2, 2):
+                reg_val = self.register(value, clk_en)
+                return reg_val, reg_val
+
+    compile_and_check("RegisterMode", RegisterMode, target)
