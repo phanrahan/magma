@@ -87,7 +87,7 @@ class RewriteReturn(ast.NodeTransformer):
                 elts.append(ast.Name(f"self_{name}_I", ast.Load()))
             else:
                 for port in eval_value.interface.inputs():
-                    if isinstance(port, m.ClockType):
+                    if isinstance(port, (m.ClockType, m.AsyncResetType)):
                         continue
                     elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
         if isinstance(node.value, ast.Tuple):
@@ -185,7 +185,7 @@ class {circuit_name}(m.Circuit):
 """
 
 
-def gen_register_instances(initial_value_map):
+def gen_register_instances(initial_value_map, async_reset):
     """
     Generates a sequence of statements to instance a set of registers from
     `initial_value_map`.
@@ -215,19 +215,21 @@ def gen_register_instances(initial_value_map):
             else:
                 n = len(eval_type)
                 init = int(eval_value)
-            register_instances += f"{tab}{name} = DefineRegister({n}, init={init})()\n"
+            register_instances += f"{tab}{name} = DefineRegister({n}, init={init}, has_async_reset={async_reset})()\n"  # noqa
         else:
             value = astor.to_source(value).rstrip()
             register_instances += f"{tab}{name} = {value}\n"
     return register_instances
 
 
-def gen_io_list(inputs, output_type):
+def gen_io_list(inputs, output_type, async_reset):
     io_list = "["
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
         io_list += f"\"{name}\", m.In({type_}), "
     io_list += f"\"CLK\", m.In(m.Clock), "
+    if async_reset:
+        io_list += f"\"ASYNCRESET\", m.In(m.AsyncReset), "
     if isinstance(output_type, ast.Tuple):
         outputs = []
         for i, elem in enumerate(output_type.elts):
@@ -273,7 +275,7 @@ class SpecializeConstantInts(ast.NodeTransformer):
         return node
 
 
-def _sequential(defn_env: dict, cls):
+def _sequential(defn_env: dict, async_reset: bool, cls):
     # if not inspect.isclass(cls):
     #     raise ValueError("sequential decorator only works with classes")
 
@@ -281,7 +283,7 @@ def _sequential(defn_env: dict, cls):
 
     call_def = get_ast(cls.__call__).body[0]
     inputs, output_type = get_io(call_def)
-    io_list = gen_io_list(inputs, output_type)
+    io_list = gen_io_list(inputs, output_type, async_reset)
 
     circuit_combinational_output_type = ""
     circuit_combinational_args = ""
@@ -304,7 +306,7 @@ def _sequential(defn_env: dict, cls):
             comb_out_count += 1
         else:
             for key, value in eval_value.interface.ports.items():
-                if isinstance(value, m.ClockType):
+                if isinstance(value, (m.ClockType, m.AsyncResetType)):
                     continue
                 type_ = repr(type(value))
                 if value.isoutput():
@@ -348,7 +350,7 @@ def _sequential(defn_env: dict, cls):
     circuit_definition_str = circuit_definition_template.format(
         circuit_name=cls.__name__,
         io_list=io_list,
-        register_instances=gen_register_instances(initial_value_map),
+        register_instances=gen_register_instances(initial_value_map, async_reset),
         circuit_combinational_args=circuit_combinational_args,
         circuit_combinational_output_type=circuit_combinational_output_type,
         circuit_combinational_body=circuit_combinational_body,
@@ -369,4 +371,14 @@ def _sequential(defn_env: dict, cls):
     return circuit_def
 
 
-sequential = ast_utils.inspect_enclosing_env(_sequential)
+def sequential(cls=None, async_reset=None):
+    wrapped_sequential = ast_utils.inspect_enclosing_env(_sequential)
+    if async_reset is not None:
+        assert isinstance(async_reset, bool)
+        @functools.wraps(wrapped_sequential)
+        def wrapped(*args, **kwargs):
+            return wrapped_sequential(async_reset, *args, **kwargs)
+        return wrapped
+    else:
+        assert cls is not None
+        return wrapped_sequential(True, cls)
