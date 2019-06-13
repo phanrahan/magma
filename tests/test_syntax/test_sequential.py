@@ -1,3 +1,4 @@
+import pytest
 import magma as m
 from test_combinational import compile_and_check, phi
 from collections import Sequence
@@ -82,6 +83,8 @@ def Register(n, init=0, has_ce=False, has_reset=False, has_async_reset=False,
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
         metafunc.parametrize("target", ["coreir", "coreir-verilog"])
+    if 'async_reset' in metafunc.fixturenames:
+        metafunc.parametrize("async_reset", [True, False])
 
 
 def _run_verilator(circuit, directory):
@@ -98,8 +101,8 @@ def _run_verilator(circuit, directory):
         f"./obj_dir/V{top}")
 
 
-def test_seq_simple(target):
-    @m.circuit.sequential
+def test_seq_simple(target, async_reset):
+    @m.circuit.sequential(async_reset=async_reset)
     class TestBasic:
         def __init__(self):
             self.x: m.Bits[2] = m.bits(0, 2)
@@ -111,8 +114,8 @@ def test_seq_simple(target):
             self.x = I
             return O
 
-    compile_and_check("TestBasic", TestBasic, target)
-    if target == "coreir-verilog":
+    compile_and_check("TestBasic" + ("ARST" if async_reset else ""), TestBasic, target)
+    if target == "coreir-verilog" and not async_reset:
         """
         The following sequence was used to create the verilator driver:
 
@@ -133,10 +136,10 @@ def test_seq_simple(target):
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
 
 
-def test_seq_hierarchy(target):
+def test_seq_hierarchy(target, async_reset):
     @m.cache_definition
     def DefineCustomRegister(width, init=0):
-        @m.circuit.sequential
+        @m.circuit.sequential(async_reset=async_reset)
         class Register:
             def __init__(self):
                 self.value: m.Bits[width] = m.bits(init, width)
@@ -151,7 +154,7 @@ def test_seq_hierarchy(target):
     CustomRegister0 = DefineCustomRegister(2, init=0)
     CustomRegister1 = DefineCustomRegister(2, init=1)
 
-    @m.circuit.sequential
+    @m.circuit.sequential(async_reset=async_reset)
     class TestShiftRegister:
         def __init__(self):
             # [<exp>] means execute the Python expression during the first
@@ -172,8 +175,8 @@ def test_seq_hierarchy(target):
             self.x = I
             return O
 
-    compile_and_check("TestShiftRegister", TestShiftRegister, target)
-    if target == "coreir-verilog":
+    compile_and_check("TestShiftRegister" + ("ARST" if async_reset else ""), TestShiftRegister, target)
+    if target == "coreir-verilog" and not async_reset:
         """
         The following sequence was used to create the verilator driver:
 
@@ -194,7 +197,7 @@ def test_seq_hierarchy(target):
         _run_verilator(TestShiftRegister, directory="tests/test_syntax/build")
 
 
-def test_multiple_return(target):
+def test_multiple_return(target, async_reset):
     T = m.Bits[4]
 
     m._BitType.__eq__ = lambda x, y: DeclareCoreirCircuit(
@@ -216,7 +219,7 @@ def test_multiple_return(target):
         coreir_lib="coreir"
     )()(x, y)
 
-    @m.circuit.sequential
+    @m.circuit.sequential(async_reset=async_reset)
     class Register:
         def __init__(self):
             self.value: T = T(0)
@@ -229,7 +232,7 @@ def test_multiple_return(target):
                 self.value = self.value
             return retvalue
 
-    @m.circuit.sequential
+    @m.circuit.sequential(async_reset=async_reset)
     class RegisterMode:
         def __init__(self):
             self.register: Register = Register(0)
@@ -249,4 +252,4 @@ def test_multiple_return(target):
                 reg_val = self.register(value, clk_en)
                 return reg_val, reg_val
 
-    compile_and_check("RegisterMode", RegisterMode, target)
+    compile_and_check("RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
