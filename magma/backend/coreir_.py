@@ -19,6 +19,7 @@ import inspect
 import copy
 import json
 from .. import singleton
+from warnings import warn
 
 from collections import defaultdict
 
@@ -87,9 +88,13 @@ CoreIRContextSingleton()
 
 class CoreIRBackend:
     context_to_modules_map = {}
-    def __init__(self, context=None):
+    def __init__(self, context=None, check_context_is_default=True):
         if context is None:
             context = CoreIRContextSingleton().get_instance()
+        elif check_context_is_default & (context != CoreIRContextSingleton().get_instance()):
+            warn("Creating CoreIRBackend with non-singleton CoreIR context. "
+                 "If you're sure you want to do this, set check_context_is_default "
+                 "when initializing the CoreIRBackend.")
         if context not in CoreIRBackend.context_to_modules_map:
             CoreIRBackend.context_to_modules_map[context] = {}
         self.modules = CoreIRBackend.context_to_modules_map[context]
