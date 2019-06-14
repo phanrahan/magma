@@ -27,7 +27,7 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName, deps):
 
 def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
                                       uniqueName: str, dependentNamespaces: list = [],
-                                      genargs: dict = {}, runGenerators = True, print_error=False):
+                                      genargs: dict = {}, runGenerators = True):
     moduleToWrap = cirb.context.import_generator(namespace,generator)(**genargs)
 
     deps = [namespace] + dependentNamespaces
