@@ -39,8 +39,7 @@ def test_simple_def(target, suffix):
             m.wire(and2.O, io.O)
 
     # Create a fresh context for second compilation.
-    m.compile("build/test_simple_def_class", Main, output=target,
-              context=coreir.Context())
+    m.compile("build/test_simple_def_class", Main, output=target)
     m.set_codegen_debug_info(False)
     assert check_files_equal(__file__, f"build/test_simple_def_class.{suffix}",
                              f"gold/test_simple_def_class.{suffix}")
