@@ -44,9 +44,8 @@ class CheckAnyMantleCircuits(DefinitionPass):
 def __compile_to_coreir(main, file_name, opts):
     # Underscore so our coreir module doesn't conflict with coreir bindings
     # package.
-    from .backend import coreir_
-    context = opts.get("context", None)
-    backend = coreir_.CoreIRBackend(context)
+    from .frontend import coreir_
+    backend = coreir_.GetCoreIRBackend()
     backend.compile(main)
     passes = opts.get("passes", [])
     if "markdirty" not in passes:
