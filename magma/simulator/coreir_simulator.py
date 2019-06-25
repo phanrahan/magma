@@ -53,9 +53,8 @@ def convert_to_coreir_path(bit, scope):
     # Handle renaming due to flatten types
     arrOrTuple = bit
     while isinstance(arrOrTuple.name, ArrayRef) or isinstance(arrOrTuple.name, TupleRef):
-        if isinstance(arrOrTuple, ArrayType) or isinstance(arrOrTuple, TupleType):
-            port, idx = port.split('.', 1)
-            port += '_' + idx
+        port, idx = port.split('.', 1)
+        port += '_' + idx
         if isinstance(arrOrTuple.name, ArrayRef):
             arrOrTuple = arrOrTuple.name.array
         elif isinstance(arrOrTuple.name, TupleRef):
