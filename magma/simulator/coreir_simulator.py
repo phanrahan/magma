@@ -8,6 +8,7 @@ from ..scope import Scope
 from ..ref import DefnRef, ArrayRef, TupleRef
 from ..array import ArrayType
 from ..tuple import TupleType
+from ..bit import BitKind
 from ..bitutils import int2seq
 from ..clock import ClockType
 from ..transforms import setup_clocks, flatten
@@ -51,14 +52,20 @@ def convert_to_coreir_path(bit, scope):
     insts.append(last_inst)
 
     # Handle renaming due to flatten types
-    arrOrTuple = bit
-    while isinstance(arrOrTuple.name, ArrayRef) or isinstance(arrOrTuple.name, TupleRef):
-        port, idx = port.split('.', 1)
-        port += '_' + idx
-        if isinstance(arrOrTuple.name, ArrayRef):
-            arrOrTuple = arrOrTuple.name.array
-        elif isinstance(arrOrTuple.name, TupleRef):
-            arrOrTuple = arrOrTuple.name.tuple
+    def flattened_name(name):
+        if isinstance(name, DefnRef):
+            return str(name)
+        if isinstance(name, ArrayRef):
+            array_name = flattened_name(name.array.name)
+            if isinstance(name.array.T, BitKind):
+                return f"{array_name}.{name.index}"
+            else:
+                return f"{array_name}_{name.index}"
+        if isinstance(name, TupleRef):
+            tuple_name = flattened_name(name.tuple.name)
+            return f"{tuple_name}_{name.index}"
+        raise NotImplementedError(name, type(name))
+    port = flattened_name(bit.name)
 
     ports = [port]
 
