@@ -64,14 +64,12 @@ def inspect_enclosing_env(fn):
     def wrapped(*args, **kwargs):
         stack = inspect.stack()
         enclosing_env = {}
-        for i in range(0, len(stack)):
-            for key, value in stack[i].frame.f_locals.items():
-                if key not in enclosing_env:
-                    enclosing_env[key] = value
-        for i in range(0, len(stack)):
+        for i in range(len(stack)-1, -1, -1):
             for key, value in stack[i].frame.f_globals.items():
-                if key not in enclosing_env:
-                    enclosing_env[key] = value
+                enclosing_env[key] = value
+        for i in range(len(stack)-1, -1, -1):
+            for key, value in stack[i].frame.f_locals.items():
+                enclosing_env[key] = value
         return fn(enclosing_env, *args, **kwargs)
     return wrapped
 
