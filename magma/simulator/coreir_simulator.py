@@ -57,6 +57,7 @@ def convert_to_coreir_path(bit, scope):
             return str(name)
         if isinstance(name, ArrayRef):
             array_name = flattened_name(name.array.name)
+            # CoreIR simulator doesn't flatten array of bits
             if isinstance(name.array.T, BitKind):
                 return f"{array_name}.{name.index}"
             else:
