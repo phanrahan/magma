@@ -64,7 +64,15 @@ def convert_to_coreir_path(bit, scope):
                 return f"{array_name}_{name.index}"
         if isinstance(name, TupleRef):
             tuple_name = flattened_name(name.tuple.name)
-            return f"{tuple_name}_{name.index}"
+            index = name.index
+            try:
+                int(index)
+                # If it's an int, insert `_` prefix because coreir doesn't
+                # allow fields to start with an int
+                index = f"_{index}"
+            except ValueError:
+                pass
+            return f"{tuple_name}_{index}"
         raise NotImplementedError(name, type(name))
     port = flattened_name(bit.name)
 
