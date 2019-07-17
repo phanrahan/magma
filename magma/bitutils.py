@@ -1,7 +1,7 @@
 # https://wiki.python.org/moin/BitManipulation
 # https://code.google.com/p/python-bitstring/
 from types import FunctionType
-from collections import Sequence
+from collections.abc import Sequence
 import inspect
 from .compatibility import StringTypes
 

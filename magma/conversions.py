@@ -1,5 +1,5 @@
 import functools
-from collections import Sequence
+from collections.abc import Sequence
 from .compatibility import IntegerTypes
 from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
 from .bit import _BitKind, _BitType, Bit, BitType, VCC, GND
