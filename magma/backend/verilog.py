@@ -2,7 +2,8 @@ import os
 import types
 import operator
 from functools import reduce
-from collections import OrderedDict, Sequence
+from collections import OrderedDict
+from collections.abc import Sequence
 from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes

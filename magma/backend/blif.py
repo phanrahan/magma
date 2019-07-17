@@ -1,5 +1,6 @@
 import types
-from collections import OrderedDict, Sequence
+from collections import OrderedDict
+from collections.abc import Sequence
 from ..bitutils import seq2int, fun2seq
 from ..bit import VCC, GND, BitType
 from ..array import ArrayType
