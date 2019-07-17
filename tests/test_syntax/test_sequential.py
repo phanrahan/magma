@@ -1,7 +1,7 @@
 import pytest
 import magma as m
 from test_combinational import compile_and_check, phi
-from collections import Sequence
+from collections.abc import Sequence
 import coreir
 
 default_port_mapping = {
