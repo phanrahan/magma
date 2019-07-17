@@ -1,5 +1,5 @@
 import inspect
-from collections import Sequence
+from collections.abc import Sequence
 from .port import INPUT, OUTPUT, INOUT
 from .compatibility import IntegerTypes
 from .t import Type

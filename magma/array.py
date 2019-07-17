@@ -1,4 +1,4 @@
-from collections import Sequence
+from collections.abc import Sequence
 from .bitutils import int2seq
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
