@@ -73,6 +73,34 @@ def inspect_enclosing_env(fn):
         return fn(enclosing_env, *args, **kwargs)
     return wrapped
 
+class NameCollector(ast.NodeVisitor):
+    def __init__(self):
+        self.names = set()
+
+    def visit_Name(self, node: ast.Name):
+        self.names.add(node.id)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        self.names.add(node.name)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        self.names.add(node.name)
+
+    def visit_ClassDef(self, node: ast.ClassDef):
+        self.names.add(node.name)
+
+def gen_free_name(tree: ast.AST, defn_env: dict, prefix: str = '__auto_name_'):
+    visitor = NameCollector()
+    visitor.visit(tree)
+    used_names = visitor.names | defn_env.keys()
+    f_str = prefix+'{}'
+    c = 0
+    name = f_str.format(c)
+    while name in used_names:
+        c += 1
+        name = f_str.format(c)
+
+    return name
 
 def filter_decorator(decorator : typing.Callable, decorator_list : typing.List[ast.AST], env : dict):
     def _filter(node):
