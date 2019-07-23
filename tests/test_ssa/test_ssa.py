@@ -1,10 +1,11 @@
 import magma as m
 from magma.ssa import ssa
 import inspect
+import re
 
 
 def test_basic():
-    @ssa
+    @ssa()
     def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
         if S:
             x = I[0]
@@ -24,7 +25,7 @@ def basic_if(I_0: m.Bits[2], S_0: m.Bit) ->m.Bit:
 
 
 def test_wat():
-    @ssa
+    @ssa()
     def basic_if(I: m.Bit, S: m.Bit) -> m.Bit:
         x = I
         if S:
@@ -46,7 +47,7 @@ def basic_if(I_0: m.Bit, S_0: m.Bit) ->m.Bit:
 
 
 def test_default():
-    @ssa
+    @ssa()
     def default(I: m.Bits[2], S: m.Bit) -> m.Bit:
         x = I[1]
         if S:
@@ -65,7 +66,7 @@ def default(I_0: m.Bits[2], S_0: m.Bit) ->m.Bit:
 
 
 def test_nested():
-    @ssa
+    @ssa()
     def nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
         if S[0]:
             if S[1]:
@@ -94,7 +95,7 @@ def nested(I_0: m.Bits[4], S_0: m.Bits[2]) ->m.Bit:
 """
 
 def test_weird():
-    @ssa
+    @ssa()
     def default(I: m.Bits[2], x_0: m.Bit) -> m.Bit:
         x = I[1]
         if x_0:
@@ -106,6 +107,71 @@ def default(I_0: m.Bits[2], x_0_0: m.Bit) ->m.Bit:
     x_0 = I_0[1]
     x_1 = I_0[0]
     x_2 = phi([x_0, x_1], x_0_0)
+    __magma_ssa_return_value_0 = x_2
+    O = __magma_ssa_return_value_0
+    return O
+"""
+
+
+def test_phi_name():
+    @ssa(phi='foo')
+    def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
+        if S:
+            x = I[0]
+        else:
+            x = I[1]
+        return x
+
+    assert inspect.getsource(basic_if) == """\
+def basic_if(I_0: m.Bits[2], S_0: m.Bit) ->m.Bit:
+    x_0 = I_0[0]
+    x_1 = I_0[1]
+    x_2 = foo([x_1, x_0], S_0)
+    __magma_ssa_return_value_0 = x_2
+    O = __magma_ssa_return_value_0
+    return O
+"""
+
+def test_phi_custom():
+    def bar(args, select):
+        return 'bar'
+
+    @ssa(phi=bar)
+    def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
+        if S:
+            x = I[0]
+        else:
+            x = I[1]
+        return x
+
+    assert basic_if([0, 1], 0) == 'bar'
+
+    assert inspect.getsource(basic_if) == """\
+def basic_if(I_0: m.Bits[2], S_0: m.Bit) ->m.Bit:
+    x_0 = I_0[0]
+    x_1 = I_0[1]
+    x_2 = __auto_name_0([x_1, x_0], S_0)
+    __magma_ssa_return_value_0 = x_2
+    O = __magma_ssa_return_value_0
+    return O
+"""
+
+def test_phi_lambda():
+    @ssa(phi=lambda args, s : args[s])
+    def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
+        if S:
+            x = I[0]
+        else:
+            x = I[1]
+        return x
+
+    assert basic_if([0, 1], 0) == 1
+
+    assert inspect.getsource(basic_if) == """\
+def basic_if(I_0: m.Bits[2], S_0: m.Bit) ->m.Bit:
+    x_0 = I_0[0]
+    x_1 = I_0[1]
+    x_2 = __auto_name_0([x_1, x_0], S_0)
     __magma_ssa_return_value_0 = x_2
     O = __magma_ssa_return_value_0
     return O
