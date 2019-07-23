@@ -104,6 +104,13 @@ def gen_free_name(tree: ast.AST, defn_env: dict, prefix: str = '__auto_name_'):
 
 def filter_decorator(decorator : typing.Callable, decorator_list : typing.List[ast.AST], env : dict):
     def _filter(node):
-        code = compile(ast.Expression(node), filename="<string>", mode="eval")
-        return eval(code, env) != decorator
+        if isinstance(node, ast.Call):
+            expr = ast.Expression(node.func)
+        elif isinstance(node, ast.Name):
+            expr = ast.Expression(node)
+        else:
+            return True
+        code = compile(expr, filename="<string>", mode="eval")
+        e = eval(code, env)
+        return e != decorator
     return list(filter(_filter, decorator_list))

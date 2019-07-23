@@ -3,6 +3,7 @@ import ast
 import typing
 from collections import defaultdict
 import astor
+import functools
 
 
 def flatten(l: list):
@@ -119,8 +120,6 @@ class MoveReturn(ast.NodeTransformer):
 
 
 def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, phi_name: str = "phi"):
-    tree.decorator_list = ast_utils.filter_decorator(ssa, tree.decorator_list,
-                                                     defn_env)
     # tree = MoveReturn().visit(tree)
     # tree.body.append(
     #     ast.Return(ast.Name("__magma_ssa_return_value", ast.Load())))
@@ -169,9 +168,26 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, phi_name: str = "phi"):
     return tree, ssa_visitor.args
 
 
-@ast_utils.inspect_enclosing_env
-def ssa(defn_env: dict, fn: typing.Callable):
+def _ssa(defn_env: dict, phi: typing.Union[str, typing.Callable],
+         fn: typing.Callable):
     tree = ast_utils.get_func_ast(fn)
-    tree, _ = convert_tree_to_ssa(tree, defn_env, phi_name="phi")
+    tree.decorator_list = ast_utils.filter_decorator(ssa,
+                                                     tree.decorator_list,
+                                                     defn_env)
+
+    if isinstance(phi, str):
+        phi_name = phi
+    else:
+        phi_name = ast_utils.gen_free_name(tree, defn_env)
+
+    tree, _ = convert_tree_to_ssa(tree, defn_env, phi_name=phi_name)
+
+    if not isinstance(phi, str):
+        defn_env[phi_name] = phi
+
     tree.body.append(ast.Return(ast.Name("O", ast.Load())))
     return ast_utils.compile_function_to_file(tree, defn_env=defn_env)
+
+@ast_utils.inspect_enclosing_env
+def ssa(defn_env: dict, phi: typing.Union[str, typing.Callable] = "phi"):
+    return functools.partial(_ssa, defn_env, phi)
