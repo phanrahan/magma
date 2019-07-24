@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 class MagmaProductMeta(ProductMeta):
     @classmethod
-    def from_fields(mcs, fields, name, bases, ns, **kwargs):
+    def _from_fields(mcs, fields, name, bases, ns, **kwargs):
         assert fields
         return m.Tuple(**fields)
 
