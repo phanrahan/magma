@@ -179,10 +179,10 @@ class UIntKind(BitsKind):
 
     def __str__(cls):
         if cls.isinput():
-            return "In(UInt({}))".format(cls.N)
+            return "In(UInt[{}])".format(cls.N)
         if cls.isoutput():
-            return "Out(UInt({}))".format(cls.N)
-        return "UInt({})".format(cls.N)
+            return "Out(UInt[{}])".format(cls.N)
+        return "UInt[{}]".format(cls.N)
 
     def qualify(cls, direction):
         if cls.T.isoriented(direction):
@@ -247,10 +247,10 @@ class SIntKind(BitsKind):
 
     def __str__(cls):
         if cls.isinput():
-            return "In(SInt({}))".format(cls.N)
+            return "In(SInt[{}])".format(cls.N)
         if cls.isoutput():
-            return "Out(SInt({}))".format(cls.N)
-        return "SInt({})".format(cls.N)
+            return "Out(SInt[{}])".format(cls.N)
+        return "SInt[{}]".format(cls.N)
 
     def qualify(cls, direction):
         if cls.T.isoriented(direction):
@@ -321,10 +321,10 @@ class BFloatKind(BitsKind):
 
     def __str__(cls):
         if cls.isinput():
-            return "In(BFloat({}))".format(cls.N)
+            return "In(BFloat[{}])".format(cls.N)
         if cls.isoutput():
-            return "Out(BFloat({}))".format(cls.N)
-        return "BFloat({})".format(cls.N)
+            return "Out(BFloat[{}])".format(cls.N)
+        return "BFloat[{}]".format(cls.N)
 
     def qualify(cls, direction):
         if cls.T.isoriented(direction):
