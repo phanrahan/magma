@@ -112,11 +112,11 @@ class ValueStore:
         if isinstance(bit, ArrayType):
             value = [self.get_value(b) for b in bit]
             if isinstance(bit, SIntType):
-                return BitVector(value).as_sint()
+                return BitVector[len(bit)](value).as_sint()
             elif isinstance(bit, UIntType):
-                return BitVector(value).as_uint()
+                return BitVector[len(bit)](value).as_uint()
             elif isinstance(bit, BitsType):
-                return BitVector(value)
+                return BitVector[len(bit)](value)
             return value
 
         if bit.isinput():

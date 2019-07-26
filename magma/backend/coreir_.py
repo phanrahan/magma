@@ -394,7 +394,7 @@ class CoreIRBackend:
         if constant in bit_type_to_constant_map:
             value = bit_type_to_constant_map[constant]
         elif isinstance(constant, ArrayType):
-            value = BitVector([bit_type_to_constant_map[x] for x in constant])
+            value = BitVector[len(constant)]([bit_type_to_constant_map[x] for x in constant])
         else:
             raise NotImplementedError(constant)
         if (value, num_bits) not in self.__constant_cache[module_definition]:

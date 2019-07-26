@@ -103,7 +103,7 @@ class Bits(ArrayType, metaclass=BitsKind):
     def __int__(self):
         if not self.const():
             raise Exception("Can't call __int__ on a non-constant")
-        return BitVector(self.bits()).as_int()
+        return BitVector[len(self)](self.bits()).as_int()
 
     @debug_wire
     def wire(i, o, debug_info):
@@ -271,7 +271,7 @@ class SInt(Bits, metaclass=SIntKind):
     def __int__(self):
         if not self.const():
             raise Exception("Can't call __int__ on a non-constant")
-        return SIntVector(self.bits()).as_sint()
+        return SIntVector[len(self)](self.bits()).as_sint()
 
     def sext(self, value):
         from .conversions import sext
