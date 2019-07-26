@@ -1,8 +1,9 @@
 import magma.ast_utils as ast_utils
 import ast
-import types
+import typing
 from collections import defaultdict
 import astor
+import functools
 
 
 def flatten(l: list):
@@ -18,13 +19,14 @@ def flatten(l: list):
 
 
 class SSAVisitor(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, phi_name):
         super().__init__()
         self.last_name = defaultdict(lambda: "")
         self.var_counter = defaultdict(lambda: -1)
         self.args = []
         self.cond_stack = []
         self.return_values = []
+        self.phi_name = phi_name
 
     def write_name(self, var):
         self.var_counter[var] += 1
@@ -87,7 +89,7 @@ class SSAVisitor(ast.NodeTransformer):
                 self.write_name(var)
                 result.append(ast.Assign(
                     [ast.Name(self.last_name[var], ast.Store())],
-                    ast.Call(ast.Name("phi", ast.Load()), [
+                    ast.Call(ast.Name(self.phi_name, ast.Load()), [
                         ast.List(phi_args, ast.Load()),
                         test
                     ], [])))
@@ -117,13 +119,11 @@ class MoveReturn(ast.NodeTransformer):
         )
 
 
-def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
-    tree.decorator_list = ast_utils.filter_decorator(ssa, tree.decorator_list,
-                                                     defn_env)
+def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, phi_name: str = "phi"):
     # tree = MoveReturn().visit(tree)
     # tree.body.append(
     #     ast.Return(ast.Name("__magma_ssa_return_value", ast.Load())))
-    ssa_visitor = SSAVisitor()
+    ssa_visitor = SSAVisitor(phi_name)
     tree = ssa_visitor.visit(tree)
     return_transformer = TransformReturn()
     tree = return_transformer.visit(tree)
@@ -149,7 +149,7 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
                 for i in range(len(tree.returns.elts)):
                     tree.body.append(ast.Assign(
                         [ast.Name(f"O{i}", ast.Store())],
-                        ast.Call(ast.Name("phi", ast.Load()), [
+                        ast.Call(ast.Name(phi_name, ast.Load()), [
                             ast.List([
                                 ast.Name(f"O{i}", ast.Load()),
                                 ast.Subscript(ast.Name(name, ast.Load()),
@@ -161,16 +161,33 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict):
             else:
                 tree.body.append(ast.Assign(
                     [ast.Name("O", ast.Store())],
-                    ast.Call(ast.Name("phi", ast.Load()), [
+                    ast.Call(ast.Name(phi_name, ast.Load()), [
                         ast.List([ast.Name("O", ast.Load()), ast.Name(name, ast.Load())],
                                  ast.Load()), cond], []))
                 )
     return tree, ssa_visitor.args
 
 
-@ast_utils.inspect_enclosing_env
-def ssa(defn_env: dict, fn: types.FunctionType):
+def _ssa(defn_env: dict, phi: typing.Union[str, typing.Callable],
+         fn: typing.Callable):
     tree = ast_utils.get_func_ast(fn)
-    tree, _ = convert_tree_to_ssa(tree, defn_env)
+    tree.decorator_list = ast_utils.filter_decorator(ssa,
+                                                     tree.decorator_list,
+                                                     defn_env)
+
+    if isinstance(phi, str):
+        phi_name = phi
+    else:
+        phi_name = ast_utils.gen_free_name(tree, defn_env)
+
+    tree, _ = convert_tree_to_ssa(tree, defn_env, phi_name=phi_name)
+
+    if not isinstance(phi, str):
+        defn_env[phi_name] = phi
+
     tree.body.append(ast.Return(ast.Name("O", ast.Load())))
     return ast_utils.compile_function_to_file(tree, defn_env=defn_env)
+
+@ast_utils.inspect_enclosing_env
+def ssa(defn_env: dict, phi: typing.Union[str, typing.Callable] = "phi"):
+    return functools.partial(_ssa, defn_env, phi)

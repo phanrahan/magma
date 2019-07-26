@@ -114,7 +114,7 @@ def test_setitem_bfloat():
             io.O <= b
     print(repr(TestCircuit))
     assert repr(TestCircuit) == """\
-TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat(16)), "O", Out(BFloat(16)))
+TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
 wire(TestCircuit.I[0], TestCircuit.O[0])
 wire(TestCircuit.I[1], TestCircuit.O[1])
 wire(TestCircuit.I[2], TestCircuit.O[2])
