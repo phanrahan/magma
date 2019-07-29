@@ -3,6 +3,9 @@ import magma as m
 from test_combinational import compile_and_check, phi
 from collections.abc import Sequence
 import coreir
+import ast_tools
+
+ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
 default_port_mapping = {
     "I": "in",

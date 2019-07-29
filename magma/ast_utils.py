@@ -8,6 +8,7 @@ import astor
 import traceback
 import functools
 
+from ast_tools.stack import inspect_enclosing_env
 
 def get_ast(obj):
     indented_program_txt = inspect.getsource(obj)
@@ -20,7 +21,10 @@ def get_func_ast(obj : types.FunctionType):
 
 
 def compile_function_to_file(tree : typing.Union[ast.Module, ast.FunctionDef],
-                             func_name : str = None, defn_env : dict = {}):
+                             func_name : str = None, defn_env : dict = None):
+    if defn_env is None:
+        defn_env = {}
+
     if isinstance(tree, ast.FunctionDef):
         if func_name is None:
             func_name = tree.name
@@ -37,41 +41,24 @@ def compile_function_to_file(tree : typing.Union[ast.Module, ast.FunctionDef],
     file_name = os.path.join(".magma", func_name + ".py")
     with open(file_name, "w") as fp:
         fp.write(astor.to_source(tree))
-    # exec(compile(tree, filename=file_name, mode="exec"), defn_env)
+
     try:
-        exec(compile(astor.to_source(tree), filename=file_name, mode="exec"), defn_env)
+        code = compile(astor.to_source(tree), filename=file_name, mode="exec")
     except:
         import sys
         tb = traceback.format_exc()
         print(tb)
-        raise Exception(f"Error occured when compiling and executing m.circuit.combinational function {func_name}, see above") from None
+        raise Exception(f"Error occured when compiling m.circuit.combinational function {func_name}, see above")
+
+    try:
+        exec(code, defn_env)
+    except:
+        import sys
+        tb = traceback.format_exc()
+        print(tb)
+        raise Exception(f"Error occured when executing m.circuit.combinational function {func_name}, see above")
+
     return defn_env[func_name]
-
-
-def inspect_enclosing_env(fn):
-    """
-    Traverses the current call stack to get the current locals and globals in
-    the environment.
-
-    Possible Improvements:
-        * Return a scope object that preserves the distinction between globals
-        and locals. This isn't currently required by the code using it, but
-        could be useful for other use cases.
-        * Maintain the stack hierarchy. Again, not currently used, but could be
-        useful.
-    """
-    @functools.wraps(fn)
-    def wrapped(*args, **kwargs):
-        stack = inspect.stack()
-        enclosing_env = {}
-        for i in range(len(stack)-1, -1, -1):
-            for key, value in stack[i].frame.f_globals.items():
-                enclosing_env[key] = value
-        for i in range(len(stack)-1, -1, -1):
-            for key, value in stack[i].frame.f_locals.items():
-                enclosing_env[key] = value
-        return fn(enclosing_env, *args, **kwargs)
-    return wrapped
 
 class NameCollector(ast.NodeVisitor):
     def __init__(self):

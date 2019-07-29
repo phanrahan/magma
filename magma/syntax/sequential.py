@@ -1,4 +1,5 @@
 import inspect
+import typing
 import ast
 from .util import get_ast
 import astor
@@ -9,7 +10,9 @@ import magma as m
 from magma.ssa import convert_tree_to_ssa
 from magma.config import get_debug_mode
 from collections import Counter
+import itertools
 
+from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
 
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
@@ -170,17 +173,19 @@ def get_io(call_def):
 circuit_definition_template = """
 from magma import In, Out, Bit
 
-class {circuit_name}(m.Circuit):
-    IO = {io_list}
+def make_{circuit_name}(combinational):
+    class {circuit_name}(m.Circuit):
+        IO = {io_list}
 
-    @classmethod
-    def definition(io):
-        {register_instances}
-        @m.circuit.combinational
-        def {circuit_name}_comb({circuit_combinational_args}) -> ({circuit_combinational_output_type}):
-            {circuit_combinational_body}
-        comb_out = {circuit_name}_comb({circuit_combinational_call_args})
-        {comb_out_wiring}
+        @classmethod
+        def definition(io):
+            {register_instances}
+            @combinational
+            def {circuit_name}_comb({circuit_combinational_args}) -> ({circuit_combinational_output_type}):
+                {circuit_combinational_body}
+            comb_out = {circuit_name}_comb({circuit_combinational_call_args})
+            {comb_out_wiring}
+    return {circuit_name}
 """
 
 
@@ -271,7 +276,11 @@ class SpecializeConstantInts(ast.NodeTransformer):
         return node
 
 
-def _sequential(defn_env: dict, async_reset: bool, cls):
+def _sequential(
+        defn_env: dict,
+        async_reset: bool,
+        cls,
+        combinational_decorator: typing.Callable):
     # if not inspect.isclass(cls):
     #     raise ValueError("sequential decorator only works with classes")
 
@@ -326,7 +335,7 @@ def _sequential(defn_env: dict, async_reset: bool, cls):
         comb_out_wiring.append(f"io.O <= comb_out[{comb_out_count}]\n")
 
     tab = 4 * ' '
-    comb_out_wiring = (2 * tab).join(comb_out_wiring)
+    comb_out_wiring = (3 * tab).join(comb_out_wiring)
     circuit_combinational_output_type = ', '.join(circuit_combinational_output_type)
     circuit_combinational_body = []
     for stmt in call_def.body:
@@ -340,9 +349,9 @@ def _sequential(defn_env: dict, async_reset: bool, cls):
             for line in astor.to_source(stmt).rstrip().splitlines():
                 circuit_combinational_body.append(line)
 
-    circuit_combinational_body = ('\n' + 3*tab).join(circuit_combinational_body)
+    circuit_combinational_body = ('\n' + 4*tab).join(circuit_combinational_body)
     register_instances = gen_register_instances(initial_value_map, async_reset)
-    register_instances = ('\n' + 2*tab).join(register_instances)
+    register_instances = ('\n' + 3*tab).join(register_instances)
 
     circuit_definition_str = circuit_definition_template.format(
         circuit_name=cls.__name__,
@@ -359,7 +368,10 @@ def _sequential(defn_env: dict, async_reset: bool, cls):
         tree = ast.Module([
             ast.parse("from mantle import DefineRegister").body[0],
         ] + tree.body)
-    circuit_def = ast_utils.compile_function_to_file(tree, cls.__name__, defn_env)
+
+    circuit_def_constructor = ast_utils.compile_function_to_file(tree, 'make_' + cls.__name__, defn_env)
+    circuit_def = circuit_def_constructor(combinational_decorator)
+
     if get_debug_mode() and getattr(circuit_def, "debug_info", False):
         circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
                                             circuit_def.debug_info.lineno,
@@ -367,15 +379,35 @@ def _sequential(defn_env: dict, async_reset: bool, cls):
 
     return circuit_def
 
+def sequential(
+        cls=None,
+        async_reset=None,
+        *,
+        decorators: typing.Optional[typing.Sequence[typing.Callable]] = None,
+        ):
 
-def sequential(cls=None, async_reset=None):
-    wrapped_sequential = ast_utils.inspect_enclosing_env(_sequential)
-    if async_reset is not None:
-        assert isinstance(async_reset, bool)
-        @functools.wraps(wrapped_sequential)
-        def wrapped(*args, **kwargs):
-            return wrapped_sequential(async_reset, *args, **kwargs)
+    exec(_SKIP_FRAME_DEBUG_STMT)
+    if async_reset is not None or decoratrs is not None:
+        assert async_reset is None or isinstance(async_reset, bool)
+        assert cls is None
+        if decorators is None:
+            decorators = ()
+
+        def wrapped(cls):
+            exec(_SKIP_FRAME_DEBUG_STMT)
+            nonlocal decorators
+            decorators = list(itertools.chain(decorators, [wrapped]))
+            wrapped_sequential = ast_utils.inspect_enclosing_env(
+                    _sequential,
+                    decorators=decorators)
+            combinational = m.circuit.combinational(decorators=decorators)
+            return wrapped_sequential(async_reset, cls, combinational)
         return wrapped
     else:
         assert cls is not None
-        return wrapped_sequential(True, cls)
+        wrapped_sequential = ast_utils.inspect_enclosing_env(
+                _sequential,
+                decorators=[sequential]
+        )
+        combinational = m.circuit.combinational(decorators=[sequential])
+        return wrapped_sequential(True, cls, combinational)

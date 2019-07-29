@@ -2,6 +2,9 @@ import magma as m
 from magma.testing import check_files_equal
 import pytest
 import logging
+import ast_tools
+
+ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
 
 Not = m.DefineCircuit("Not", "I", m.In(m.Bit), "O", m.Out(m.Bit))
