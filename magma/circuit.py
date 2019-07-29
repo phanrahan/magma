@@ -590,3 +590,4 @@ def circuit_generator(func):
 
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
+from magma.syntax.coroutine import coroutine

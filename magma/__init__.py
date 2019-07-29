@@ -85,3 +85,5 @@ SIntVector = SInt
 _Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
 def get_family():
     return _Family_
+
+from magma.syntax.coroutine import Channel
