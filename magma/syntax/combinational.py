@@ -13,7 +13,9 @@ import types
 from magma.debug import debug_info
 from magma.ssa import convert_tree_to_ssa
 from magma.config import get_debug_mode
-
+import itertools
+import typing
+from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
 
 class CircuitDefinitionSyntaxError(Exception):
     pass
@@ -208,8 +210,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 #         return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
 
-@ast_utils.inspect_enclosing_env
-def combinational(defn_env: dict, fn: types.FunctionType):
+def _combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
     tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
     tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
@@ -249,3 +250,29 @@ def combinational(defn_env: dict, fn: types.FunctionType):
     # Provide a mechanism for accessing the underlying circuit definition
     setattr(func, "circuit_definition", circuit_def)
     return func
+
+def combinational(
+        fn: typing.Callable = None,
+        *,
+        decorators: typing.Optional[typing.Sequence[typing.Callable]] = None,
+        ):
+
+    exec(_SKIP_FRAME_DEBUG_STMT)
+    if decorators is not None:
+        assert fn is None
+        def wrapped(fn):
+            exec(_SKIP_FRAME_DEBUG_STMT)
+            nonlocal decorators
+            decorators = list(itertools.chain(decorators, [wrapped]))
+            wrapped_combinational = ast_utils.inspect_enclosing_env(
+                    _combinational,
+                    decorators=decorators)
+            return wrapped_combinational(fn)
+        return wrapped
+
+    else:
+        wrapped_combinational = ast_utils.inspect_enclosing_env(
+                _combinational,
+                decorators=[combinational]
+        )
+        return wrapped_combinational(fn)
