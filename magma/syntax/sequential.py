@@ -387,7 +387,7 @@ def sequential(
         ):
 
     exec(_SKIP_FRAME_DEBUG_STMT)
-    if async_reset is not None or decoratrs is not None:
+    if async_reset is not None or decorators is not None:
         assert async_reset is None or isinstance(async_reset, bool)
         assert cls is None
         if decorators is None:
