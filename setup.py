@@ -33,7 +33,7 @@ setup(
         "graphviz",
         "coreir>=2.0.*",
         "hwtypes>=1.0.*",
-        "ast_tools>=0.0.2",
+        "ast_tools>=0.0.3",
     ],
     python_requires='>=3.6',
     long_description=long_description,
