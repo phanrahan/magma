@@ -1,0 +1,1 @@
+-e https://github.com/coetaur0/staticfg#egg=staticfg
