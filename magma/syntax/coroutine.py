@@ -53,31 +53,29 @@ def collect_IO(tree, defn_env):
 
 def rewrite_channel_interface(tree, IO):
     new_args = []
+    channel_returns = []
+    returns = ""
     for key, value in IO.items():
         type_ = repr(value.type_)
         if value.type_.isinput():
-            type_ = f"In({type_})"
-            valid_type = "In(Bit)"
+            new_args.extend((
+                ast.arg(key, type_),
+                ast.arg(key + "_valid", "Bit"),
+            ))
         elif value.type_.isoutput():
             type_ = f"Out({type_})"
             valid_type = "Out(Bit)"
+            returns += f"{type_}, Bit"
+            channel_returns.extend((ast.Name(key, ast.Load()),
+                                    ast.Name(key + "_valid", ast.Load())))
         else:
             assert False, "Found InOut"
-        type_ = ast.parse(type_).body[0].value
-        new_args.extend((
-            ast.arg(key, type_),
-            ast.arg(key + "_valid", valid_type),
-        ))
     tree.args.args = new_args
-    return tree
+    tree.returns = returns
+    return tree, channel_returns
 
 
-def rewrite_channel_references(tree, IO):
-    channels = set()
-    for key, value in IO.items():
-        if isinstance(value, Channel):
-            channels.add(key)
-
+def rewrite_channel_references(tree, channels):
     class Transformer(FlattenTransformer):
         def visit_Assign(self, node):
             if isinstance(node.value, ast.Call) and \
@@ -89,7 +87,8 @@ def rewrite_channel_references(tree, IO):
                 assert len(node.targets) == 1 and \
                     isinstance(node.targets[0], ast.Name), \
                     "Found unsupported pop target"
-                channels.add(node.targets[0].id)
+                channels[node.targets[0].id] = \
+                    channels[node.value.func.value.id]
                 valid = ast.Assign(
                     [ast.Name(node.targets[0].id + "_valid", ast.Store())],
                     ast.Name(node.value.func.value.id + "_valid", ast.Load())
@@ -119,10 +118,33 @@ def rewrite_channel_references(tree, IO):
     return Transformer().visit(tree)
 
 
+def add_channel_defaults(tree, channels):
+    for key, value in channels.items():
+        if value.direction == "output":
+            tree.body.insert(0, ast.Assign(
+                [ast.Name(key + "_valid", ast.Store())],
+                ast.Num(0)
+            ))
+            # For now we default channel output values to 0, ideally this is
+            # "X" and the compiler can choose something smarter (e.g. wire it
+            # to an input port of the same time, so we don't need a constant
+            # value, or one of the possible values, since there will already be
+            # a wire connecting them up)
+            tree.body.insert(0, ast.Assign(
+                [ast.Name(key, ast.Store())],
+                ast.Num(0)
+            ))
+    return tree
+
+
 def transform_for_loops_to_counters(tree):
     counters = {}
 
     class Transformer(FlattenTransformer):
+        def __init__(self):
+            super().__init__()
+            self.active_counters = []
+
         def visit_For(self, node):
             assert isinstance(node.iter, ast.Call) and \
                 isinstance(node.iter.func, ast.Name) and \
@@ -134,10 +156,37 @@ def transform_for_loops_to_counters(tree):
                 counters[node.target.id] = Counter(0, node.iter.args[0].n, 1)
             else:
                 assert False, "Case not implemented"
+            self.active_counters.append(node.target.id)
             node.body = [self.visit(s) for s in node.body]
+            self.active_counters.pop()
             return node.body
 
+        def visit_Name(self, node):
+            if node.id in self.active_counters:
+                return ast.Attribute(ast.Name("self", node.ctx), node.id)
+            return node
+
     return Transformer().visit(tree), counters
+
+
+def gen_counters(counters):
+    counter_decls = []
+    counter_types = set()
+    for key, value in counters.items():
+        if value.start != 0:
+            raise NotImplementedError()
+        counter_type = f"Counter_{value.start}_{value.end}_{value.step}"
+        counter_types.add(
+            f"{counter_type} ="
+            f" gen_counter({value.start}, {value.end}, {value.step})"
+        )
+        counter_decls.append(
+            f"self.{key}: {counter_type} = {counter_type}()"
+        )
+
+    counter_types = "\n".join(counter_types)
+    counter_decls = "\n        ".join(counter_decls)
+    return counter_types, counter_decls
 
 
 def add_counters_to_interface(tree, counters):
@@ -168,10 +217,20 @@ def strip_while_true_and_yields(tree):
 def coroutine(defn_env: dict, fn: types.FunctionType):
     tree = ast_utils.get_func_ast(fn)
     IO = collect_IO(tree, defn_env)
-    tree = rewrite_channel_interface(tree, IO)
-    tree = rewrite_channel_references(tree, IO)
+    tree, channel_returns = rewrite_channel_interface(tree, IO)
+
+    channels = {}
+    for key, value in IO.items():
+        if isinstance(value, Channel):
+            channels[key] = value
+
+    tree = rewrite_channel_references(tree, channels)
+    tree = add_channel_defaults(tree, channels)
     tree, counters = transform_for_loops_to_counters(tree)
-    tree = add_counters_to_interface(tree, counters)
+    counter_types, counter_decls = gen_counters(counters)
+
+
+    # tree = add_counters_to_interface(tree, counters)
 
     cfg = CFGBuilder().build(fn.__name__, ast.Module([tree]))
     cfg = cfg.functioncfgs[fn.__name__]
@@ -181,8 +240,37 @@ def coroutine(defn_env: dict, fn: types.FunctionType):
     else:
         raise NotImplementedError(f"num_states={num_states}")
 
-    # cfg.build_visual(fn.__name__, 'pdf')
-    print(IO)
-    print(counters)
-    print(astor.to_source(tree))
+    tree.decorator_list = []
+    tree.name = "__call__"
+    tree.args.args.insert(0, ast.Name("self", ast.Load()))
+    tree.body.append(ast.Return(ast.Tuple(channel_returns, ast.Load())))
+    call_str = "\n    ".join(astor.to_source(tree).splitlines())
+    circuit_def = f"""\
+def gen_counter(start, end, step):
+    T = m.Bits[(end - 1).bit_length()]
+    @circuit.sequential
+    class Counter:
+        def __init__(self):
+            self.value: T = start
+
+        def __call__(self) -> T:
+            value = self.value
+            if value == end:
+                self.value = start
+            else:
+                self.value = self.value + step
+            return value
+    return Counter
+
+{counter_types}
+
+@circuit.sequential
+class {fn.__name__}:
+    def __init__(self):
+        {counter_decls}
+
+    {call_str}
+"""
+    print(circuit_def)
+
     assert False
