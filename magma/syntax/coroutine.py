@@ -127,7 +127,7 @@ def add_channel_defaults(tree, channels):
             ))
             # For now we default channel output values to 0, ideally this is
             # "X" and the compiler can choose something smarter (e.g. wire it
-            # to an input port of the same time, so we don't need a constant
+            # to an input port of the same type, so we don't need a constant
             # value, or one of the possible values, since there will already be
             # a wire connecting them up)
             tree.body.insert(0, ast.Assign(
