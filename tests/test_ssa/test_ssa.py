@@ -1,7 +1,10 @@
 import magma as m
 from magma.ssa import ssa
+from hwtypes import Bit, BitVector
 import inspect
 import re
+
+import pytest
 
 
 def test_basic():
@@ -176,6 +179,30 @@ def basic_if(I_0: m.Bits[2], S_0: m.Bit) ->m.Bit:
     O = __magma_ssa_return_value_0
     return O
 """
+
+@pytest.mark.parametrize("i", range(4))
+@pytest.mark.parametrize("j", range(4))
+@pytest.mark.parametrize("k", range(4))
+def test_nested_returns(i, j, k):
+    BV = BitVector[2]
+    def nest_returns(x: BV, y: BV, z: BV):
+        if x[0]:
+            if x[1]:
+                return y + z
+            else:
+                return y - z
+        else:
+            if x[1]:
+                return y & z
+            else:
+                return y | z
+    def Not():
+        return lambda x : ~x
+
+    nest_returns_ssa = ssa(phi=lambda args, s :s.ite(*args))(nest_returns)
+    res = nest_returns(BV(i), BV(j), BV(k))
+    res_ssa = nest_returns_ssa(BV(i), BV(j), BV(k))
+    assert res == res_ssa
 
 # test_wat()
 # test_weird()
