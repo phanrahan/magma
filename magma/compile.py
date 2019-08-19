@@ -78,7 +78,8 @@ def __compile_to_coreir(main, file_name, opts):
             cmd += " --inline"
         if opts.get("verilator_debug", False):
             cmd += " --verilator_debug"
-        subprocess.run(cmd, shell=True)
+        assert not subprocess.run(cmd, shell=True).returncode, \
+            "Running coreir failed"
 
 
 def compile(basename, main, output='verilog', **kwargs):
