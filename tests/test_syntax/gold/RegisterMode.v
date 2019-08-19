@@ -110,8 +110,8 @@ Mux2_x4 Mux2_x4_inst6(.I0(value), .I1(value), .O(Mux2_x4_inst6_O), .S(eq_inst9_o
 Mux2_x4 Mux2_x4_inst7(.I0(self_register_O), .I1(value), .O(Mux2_x4_inst7_O), .S(eq_inst11_out));
 Mux2_x4 Mux2_x4_inst8(.I0(self_register_O), .I1(self_register_O), .O(Mux2_x4_inst8_O), .S(eq_inst12_out));
 Mux2_x4 Mux2_x4_inst9(.I0(Mux2_x4_inst6_O), .I1(value), .O(Mux2_x4_inst9_O), .S(eq_inst13_out));
-const #(.value(0)) bit_const_0_None(.out(bit_const_0_None_out));
-const #(.value(1)) bit_const_1_None(.out(bit_const_1_None_out));
+corebit_const #(.value(0)) bit_const_0_None(.out(bit_const_0_None_out));
+corebit_const #(.value(1)) bit_const_1_None(.out(bit_const_1_None_out));
 coreir_const #(.value(2'h0), .width(2)) const_0_2(.out(const_0_2_out));
 coreir_const #(.value(2'h1), .width(2)) const_1_2(.out(const_1_2_out));
 coreir_eq #(.width(2)) eq_inst0(.in0(mode), .in1(const_1_2_out), .out(eq_inst0_out));
