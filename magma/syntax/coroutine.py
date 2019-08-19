@@ -4,6 +4,9 @@ import magma.ast_utils as ast_utils
 import types
 import collections
 from staticfg import CFGBuilder
+import typing
+from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
+import magma as m
 
 
 class Channel:
@@ -63,7 +66,7 @@ def rewrite_channel_interface(tree, IO):
                 ast.arg(key + "_valid", "Bit"),
             ))
         elif value.type_.isoutput():
-            type_ = f"Out({type_})"
+            type_ = f"{type_}"
             valid_type = "Out(Bit)"
             returns += f"{type_}, Bit"
             channel_returns.extend((ast.Name(key, ast.Load()),
@@ -71,7 +74,7 @@ def rewrite_channel_interface(tree, IO):
         else:
             assert False, "Found InOut"
     tree.args.args = new_args
-    tree.returns = returns
+    tree.returns = "(" + returns + ")"
     return tree, channel_returns
 
 
@@ -123,7 +126,7 @@ def add_channel_defaults(tree, channels):
         if value.direction == "output":
             tree.body.insert(0, ast.Assign(
                 [ast.Name(key + "_valid", ast.Store())],
-                ast.Num(0)
+                ast.parse(f"m.bit(0)").body[0].value
             ))
             # For now we default channel output values to 0, ideally this is
             # "X" and the compiler can choose something smarter (e.g. wire it
@@ -132,7 +135,7 @@ def add_channel_defaults(tree, channels):
             # a wire connecting them up)
             tree.body.insert(0, ast.Assign(
                 [ast.Name(key, ast.Store())],
-                ast.Num(0)
+                ast.parse(f"m.bits(0, {len(value.type_)})").body[0].value
             ))
     return tree
 
@@ -185,7 +188,7 @@ def gen_counters(counters):
         )
 
     counter_types = "\n".join(counter_types)
-    counter_decls = "\n        ".join(counter_decls)
+    counter_decls = "\n            ".join(counter_decls)
     return counter_types, counter_decls
 
 
@@ -213,8 +216,10 @@ def strip_while_true_and_yields(tree):
     return Transformer().visit(tree)
 
 
-@ast_utils.inspect_enclosing_env
-def coroutine(defn_env: dict, fn: types.FunctionType):
+def _coroutine(
+        defn_env: dict,
+        fn: types.FunctionType,
+        combinational_decorator: typing.Callable):
     tree = ast_utils.get_func_ast(fn)
     IO = collect_IO(tree, defn_env)
     tree, channel_returns = rewrite_channel_interface(tree, IO)
@@ -244,33 +249,71 @@ def coroutine(defn_env: dict, fn: types.FunctionType):
     tree.name = "__call__"
     tree.args.args.insert(0, ast.Name("self", ast.Load()))
     tree.body.append(ast.Return(ast.Tuple(channel_returns, ast.Load())))
-    call_str = "\n    ".join(astor.to_source(tree).splitlines())
+    call_str = "\n        ".join(astor.to_source(tree).splitlines())
     circuit_def = f"""\
 def gen_counter(start, end, step):
-    T = m.Bits[(end - 1).bit_length()]
-    @circuit.sequential
+    N = (end - 1).bit_length()
+    T = m.UInt[N]
+    @m.circuit.sequential(async_reset=False)
     class Counter:
         def __init__(self):
-            self.value: T = start
+            self.value: T = m.bits(start, N)
 
         def __call__(self) -> T:
             value = self.value
-            if value == end:
-                self.value = start
+            if value == m.bits(end, N):
+                self.value = m.bits(start, N)
             else:
-                self.value = self.value + step
+                self.value = self.value + m.bits(step, N)
             return value
     return Counter
 
 {counter_types}
 
-@circuit.sequential
-class {fn.__name__}:
-    def __init__(self):
-        {counter_decls}
+def make_{fn.__name__}(sequential):
+    @sequential
+    class {fn.__name__}:
+        def __init__(self):
+            {counter_decls}
 
-    {call_str}
+        {call_str}
+    return {fn.__name__}
 """
     print(circuit_def)
+    tree = ast.parse(circuit_def)
+    tree.body.insert(0, ast.parse("import magma as m").body[0])
+    tree.body.insert(0, ast.parse("from magma import Bit, Bits").body[0])
+    circuit_def_constructor = ast_utils.compile_function_to_file(
+        tree, 'make_' + fn.__name__, defn_env)
+    circuit_def = circuit_def_constructor(combinational_decorator)
 
-    assert False
+    return circuit_def
+
+
+def coroutine(
+        fn=None,
+        *,
+        decorators: typing.Optional[typing.Sequence[typing.Callable]] = None,
+        ):
+
+    exec(_SKIP_FRAME_DEBUG_STMT)
+    if decorators is not None:
+        assert fn is None
+        def wrapped(fn):
+            exec(_SKIP_FRAME_DEBUG_STMT)
+            nonlocal decorators
+            decorators = list(itertools.chain(decorators, [wrapped]))
+            wrapped_coroutine = ast_utils.inspect_enclosing_env(
+                    _coroutine,
+                    decorators=decorators)
+            sequential = m.circuit.sequential(decorators=decorators)
+            return wrapped_coroutine(fn, sequential)
+        return wrapped
+    else:
+        assert fn is not None
+        wrapped_coroutine = ast_utils.inspect_enclosing_env(
+                _coroutine,
+                decorators=[coroutine]
+        )
+        sequential = m.circuit.sequential(decorators=[coroutine])
+        return wrapped_coroutine(fn, sequential)
