@@ -4,26 +4,13 @@ language: python
 # - '3.6'
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
     - verilator    
     - libgmp-dev
     - libmpfr-dev
     - libmpc-dev
-    - g++-7
 
 install:
-- export CXX="g++-7"  # For coreir/verilogAST
-- git clone https://github.com/leonardt/verilogAST-cpp
-- cd verilogAST-cpp
-- mkdir build && cd build && cmake .. && cmake --build . && sudo make install && cd ..
-- export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-- cd ..  # verilogAST-cpp
-- curl -s -L https://github.com/rdaly525/coreir/releases/latest | grep "href.*coreir.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"
-- mkdir coreir_release;
-- tar -xf coreir.tar.gz -C coreir_release --strip-components 1;
-- cd coreir_release && sudo make install && cd ..
 # install conda for py 3.7
 - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
 - chmod +x miniconda.sh
