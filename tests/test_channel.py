@@ -34,15 +34,19 @@ class Downsample(Coroutine):
         while True:
             for y in range(4):
                 for x in range(4):
-                    while ~(self.data_in.valid & self.data_out.ready):
-                        print("Waiting for data_in.valid and data_out.ready")
-                        yield
-                    self.data_in.ready = 1
                     if ((x % 2) == 0) & ((y % 2) == 0):
+                        while ~(self.data_in.valid & self.data_out.ready):
+                            print("Waiting for data_in.valid and data_out.ready")
+                            yield
+                        self.data_in.ready = 1
                         print("Passing data through")
                         self.data_out.data = self.data_in.data
                         self.data_out.valid = 1
                     else:
+                        while ~self.data_in.valid:
+                            print("Waiting for data_in.valid")
+                            yield
+                        self.data_in.ready = 1
                         print("Dropping data")
                     yield
                     self.data_out.valid = 0
@@ -110,7 +114,7 @@ def test_downsample_logic_random_stalls():
             downsample.data_in.valid = valid = Bit(random.getrandbits(1))
             downsample.data_out.ready = ready = Bit(random.getrandbits(1))
             downsample()
-            if ready & valid:
+            if downsample.data_in.ready:
                 break
         if downsample.data_out.valid:
             outputs.append(downsample.data_out.data)
@@ -177,9 +181,13 @@ def test_channel():
         while True:
             for y in range(32):
                 for x in range(32):
-                    data = data_in.pop()
                     if ((x % m.bits(2, 5)) == 0) & ((y % m.bits(2, 5)) == 0):
-                        data_out.push(data)
+                        while data_in.is_empty() | data_out.is_full():
+                            yield
+                        data = data_in.pop(blocking=False)
+                        data_out.push(data, blocking=False)
+                    else:
+                        data_in.pop(blocking=True)
                     yield
 
     m.compile("build/downsample", downsample, output="coreir-verilog")
