@@ -1,3 +1,4 @@
+from hwtypes import Bit
 import fault
 import random
 import pytest
@@ -13,22 +14,15 @@ class Coroutine:
         for key, value in self.IO.items():
             assert isinstance(value, m.Channel)
             if value.type_.isinput():
-                setattr(self, key, channel(0, 0, 0))
+                setattr(self, key, channel(0, Bit(0), Bit(0)))
             else:
                 assert value.type_.isoutput()
-                setattr(self, key, channel(0, 0, 0))
+                setattr(self, key, channel(0, Bit(0), Bit(0)))
         self.main = self.main()
         # Initialize main coroutine
         next(self.main)
 
     def __call__(self):
-        # Set default output values
-        for key, value in self.IO.items():
-            if value.type_.isoutput():
-                getattr(self, key).valid = 0
-            else:
-                assert value.type_.isinput()
-                getattr(self, key).ready = 0
         next(self.main)
 
 
@@ -40,61 +34,48 @@ class Downsample(Coroutine):
         while True:
             for y in range(4):
                 for x in range(4):
-                    # data = data_in.pop()
-                    # Wait until data_in valid, will not yield if it
-                    # already is
-                    while True:
-                        self.data_in.ready = 1
-                        if self.data_in.valid:
-                            break
-                        print("Waiting for data_in valid")
+                    while ~(self.data_in.valid & self.data_out.ready):
+                        print("Waiting for data_in.valid and data_out.ready")
                         yield
-                    # data_in is valid
-                    print("Received valid, accepting data")
-                    data = self.data_in.data
-                    # yield  # wait a cycle to complete hand shake
-                    # ready is implicitly reset to 0
-                    # self.data_in.ready = 0
+                    self.data_in.ready = 1
                     if ((x % 2) == 0) & ((y % 2) == 0):
-                        # data_out.push(data)
-                        # Wait until data_out is ready, will not yield if it
-                        # already is
-                        while True:
-                            self.data_out.data = data
-                            self.data_out.valid = 1
-                            if self.data_out.ready:
-                                break
-                            print("Waiting for data_out ready")
-                            yield
-                        # data_out is ready
-                        print("Received ready, sending data")
-                        yield  # wait a cycle to complete hand shake
+                        print("Passing data through")
+                        self.data_out.data = self.data_in.data
+                        self.data_out.valid = 1
                     else:
-                        yield  # wait a cycle to complete hand shake, drop data
+                        print("Dropping data")
+                    yield
+                    self.data_out.valid = 0
+                    self.data_in.ready = 0
 
 
 def test_basic():
     print("===== Begin basic test =====")
-    print("***** TEST EXPECTS: Should idle waiting for upstream data valid *****")
+    print("***** TEST EXPECTS: Should idle waiting for upstream valid and downstream ready *****")
     downsample = Downsample()
     downsample()
     downsample()
     downsample.data_in.data = 0xDEAD
-    downsample.data_in.valid = 1
-    print("***** TEST EXPECTS: Should hold for a cycle to accept valid data *****")
-    downsample()
-    downsample.data_in.valid = 0
-    print("***** TEST EXPECTS: Should idle waiting for downstream ready *****")
-    downsample()
-    downsample()
-    downsample.data_out.ready = 1
-    print("***** TEST EXPECTS: Should hold for a cycle to send valid data *****")
+    downsample.data_in.valid = Bit(1)
+    downsample.data_out.ready = Bit(1)
+    print("***** TEST EXPECTS: Should pass through valid data *****")
     downsample()
     assert downsample.data_out.valid
+    assert downsample.data_in.ready
     assert downsample.data_out.data == 0xDEAD
-    print("***** TEST EXPECTS: Should idle waiting for upstream data valid *****")
+    downsample.data_in.valid = Bit(0)
+    downsample.data_out.ready = Bit(0)
+    print("***** TEST EXPECTS: Should idle waiting for upstream valid and downstream ready *****")
     downsample()
     downsample()
+    print("***** TEST EXPECTS: Should drop valid data *****")
+    downsample.data_in.data = 0xBEEF
+    downsample.data_in.valid = Bit(1)
+    downsample.data_out.ready = Bit(1)
+    downsample()
+    assert not downsample.data_out.valid
+    assert downsample.data_in.ready
+    assert downsample.data_out.data == 0xDEAD
     print("===== End basic test =====")
 
 
@@ -104,8 +85,8 @@ def test_downsample_logic_pass_through():
     outputs = []
     for i in inputs:
         downsample.data_in.data = i
-        downsample.data_in.valid = 1
-        downsample.data_out.ready = 1
+        downsample.data_in.valid = Bit(1)
+        downsample.data_out.ready = Bit(1)
         downsample()
         if downsample.data_out.valid:
             outputs.append(downsample.data_out.data)
@@ -126,21 +107,13 @@ def test_downsample_logic_random_stalls():
     for i in inputs:
         downsample.data_in.data = i
         while True:
-            downsample.data_in.valid = random.getrandbits(1)
-            downsample.data_out.ready = random.getrandbits(1)
+            downsample.data_in.valid = valid = Bit(random.getrandbits(1))
+            downsample.data_out.ready = ready = Bit(random.getrandbits(1))
             downsample()
-            if downsample.data_in.valid:
+            if ready & valid:
                 break
-        downsample.data_in.valid = 0
-        if not downsample.data_out.ready:
-            while True:
-                downsample.data_out.ready = random.getrandbits(1)
-                downsample()
-                if downsample.data_out.ready:
-                    break
         if downsample.data_out.valid:
             outputs.append(downsample.data_out.data)
-        downsample.data_out.ready = 0
 
     expected = []
     for y in range(4):
@@ -158,9 +131,9 @@ def test_producer_consuemr():
                 downsample.data_in.data = y * 4 + x
                 print(f"Produced {y * 4 + x}")
                 while True:
-                    downsample.data_in.valid = random.getrandbits(1)
+                    downsample.data_in.valid = Bit(random.getrandbits(1))
                     yield
-                    if downsample.data_in.valid and downsample.data_in.ready:
+                    if downsample.data_in.valid & downsample.data_in.ready:
                         break
 
     def Consumer():
@@ -168,9 +141,9 @@ def test_producer_consuemr():
             for x in range(4):
                 if ((x % 2) == 0) & ((y % 2) == 0):
                     while True:
-                        downsample.data_out.ready = random.getrandbits(1)
+                        downsample.data_out.ready = Bit(random.getrandbits(1))
                         yield
-                        if downsample.data_out.ready and \
+                        if downsample.data_out.ready & \
                            downsample.data_out.valid:
                             break
                     assert downsample.data_out.data == y * 4 + x
