@@ -90,3 +90,77 @@ def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
 def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
     return m.namedtuple(x=I[0], y=I[1])
 ```
+
+# Sequential Circuit Definition
+The `@m.circuit.sequential` decorator extends the `@m.circuit.combinational`
+syntax with the ability to use Python's class system to describe stateful
+circuits.
+
+The basic pattern uses the `__init__` method to declare state, and a `__call__`
+function that uses `@m.circuit.combinational` syntax to describe the transition
+function from the current state to the next state, as well as a function from
+the inputs to the outputs.  State is referenced using the first argument `self`
+and is implicitly updated by writing to attributes of self (e.g. `self.x = 3`).
+
+Here's an example of a basic 2 element shift register:
+```python
+@m.circuit.sequential(async_reset=True)
+class DelayBy2:
+    def __init__(self):
+        self.x: m.Bits[2] = m.bits(0, 2)
+        self.y: m.Bits[2] = m.bits(0, 2)
+
+    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+        O = self.y
+        self.y = self.x
+        self.x = I
+        return O
+```
+
+In the `__init__` method, the circuit declares two state elements `self.x` and
+`self.y`.  Both are annotated with a type `m.Bits[2]` and initialized with a
+value `m.bits(0, 2)`.  The `__call__` method accepts an input `I` with the same
+type as the state elements. It stores the current value of `self.y` in
+atemporary variable `O`, sets `self.y` to be the value of `self.x`, sets
+`self.x` to be the input value `I` and returns `O`.  Notice that the inputs and
+output of the `__call__` method have type annotations just like
+`m.circuit.combinational` functions.  The `__call__` method should be treated
+as a standard `@m.circuit.combinational` function, with the special parameter
+`self` that provides access to the state.
+
+## Hierarchy
+Besides declaring magma values as state, the `sequential` syntax also supports
+using instances of other sequential circuits.  For example, suppose we have a 
+register defined as follows:
+
+```python
+@m.circuit.sequential(async_reset=True)
+class Register:
+    def __init__(self):
+        self.value: m.Bits[width] = m.bits(init, width)
+
+    def __call__(self, I: m.Bits[width]) -> m.Bits[width]:
+        O = self.value
+        self.value = I
+        return O
+```
+
+We can use the `Register` class in the definition of a `ShiftRegister` class:
+
+```python
+    @m.circuit.sequential(async_reset=async_reset)
+    class TestShiftRegister:
+        def __init__(self):
+            self.x: Register = Register()
+            self.y: Register = Register()
+
+        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+            x_prev = self.x(I)
+            y_prev = self.y(x_prev)
+            return y_prev
+```
+
+Notice that we annotate the type of the attribute with the class (sequential
+circuit definition) and we initialize it with an instance of the class.  Then,
+the attribute can be called with inputs to return the outputs. This corresponds
+to calling the `__call__` method of the sub instance.

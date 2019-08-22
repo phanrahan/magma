@@ -160,23 +160,13 @@ def test_seq_hierarchy(target, async_reset):
     @m.circuit.sequential(async_reset=async_reset)
     class TestShiftRegister:
         def __init__(self):
-            # [<exp>] means execute the Python expression during the first
-            # stage of compilation
-
-            # The type of a hierarchal output must have the same signature for
-            # the input and output (can have a tuple for multiple inputs). This
-            # reflects the ability to read and write to the variable with the
-            # same meaning
-
-            # Only supported in __init__ body for now
             self.x: CustomRegister0 = CustomRegister0()
             self.y: CustomRegister1 = CustomRegister1()
 
         def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-            O = self.y
-            self.y = self.x
-            self.x = I
-            return O
+            x_prev = self.x(I)
+            y_prev = self.y(x_prev)
+            return y_prev
 
     compile_and_check("TestShiftRegister" + ("ARST" if async_reset else ""), TestShiftRegister, target)
     if target == "coreir-verilog" and not async_reset:
