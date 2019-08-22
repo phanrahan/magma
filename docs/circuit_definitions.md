@@ -148,16 +148,16 @@ class Register:
 We can use the `Register` class in the definition of a `ShiftRegister` class:
 
 ```python
-    @m.circuit.sequential(async_reset=async_reset)
-    class TestShiftRegister:
-        def __init__(self):
-            self.x: Register = Register()
-            self.y: Register = Register()
+@m.circuit.sequential(async_reset=True)
+class TestShiftRegister:
+    def __init__(self):
+        self.x: Register = Register()
+        self.y: Register = Register()
 
-        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-            x_prev = self.x(I)
-            y_prev = self.y(x_prev)
-            return y_prev
+    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+        x_prev = self.x(I)
+        y_prev = self.y(x_prev)
+        return y_prev
 ```
 
 Notice that we annotate the type of the attribute with the class (sequential
