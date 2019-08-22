@@ -35,7 +35,6 @@ class IfExpTransformer(ast.NodeTransformer):
     def visit_IfExp(self, node):
         node.body = self.visit(node.body)
         node.orelse = self.visit(node.orelse)
-        print(ast.dump(node))
         return ast.Call(
             ast.Name("phi", ast.Load()),
             [ast.List([node.orelse, node.body],
