@@ -3,6 +3,7 @@ from magma.testing import check_files_equal
 import pytest
 import logging
 import ast_tools
+from ast_tools.passes import begin_rewrite, end_rewrite
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
@@ -48,7 +49,7 @@ def get_length(value):
         raise NotImplementedError(f"Cannot get_length of {type(value)}")
 
 
-def phi(I, S):
+def mux(I, S):
     if isinstance(S, int):
         return I[S]
     elif S.const():
@@ -74,19 +75,23 @@ def pytest_generate_tests(metafunc):
 
 
 def test_if_statement_basic(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
         if S:
             return I[0]
         else:
             return I[1]
-    compile_and_check("if_statement_basic", basic_if.circuit_definition,
+    compile_and_check("if_statement_basic", basic_if,
                       target)
 
 
 @pytest.mark.skip("Broken w.r.t. return value phis")
 def test_if_statement_nested(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def if_statement_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
         if S[0]:
             if S[1]:
@@ -99,34 +104,42 @@ def test_if_statement_nested(target):
             else:
                 return I[3]
     compile_and_check("if_statement_nested",
-                      if_statement_nested.circuit_definition,
+                      if_statement_nested,
                       target)
 
 
 def test_ternary(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def ternary(I: m.Bits[2], S: m.Bit) -> m.Bit:
         return I[0] if S else I[1]
-    compile_and_check("ternary", ternary.circuit_definition, target)
+    compile_and_check("ternary", ternary, target)
 
 
 def test_ternary_nested(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def ternary_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
         return I[0] if S[0] else I[1] if S[1] else I[2]
-    compile_and_check("ternary_nested", ternary_nested.circuit_definition,
+    compile_and_check("ternary_nested", ternary_nested,
                       target)
 
 
 def test_ternary_nested2(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def ternary_nested2(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
         return (I[0] if S[0] else I[1]) if S[1] else I[2]
-    compile_and_check("ternary_nested2", ternary_nested2.circuit_definition,
+    compile_and_check("ternary_nested2", ternary_nested2,
                       target)
 
 
-@m.circuit.combinational
+@end_rewrite()
+@m.circuit.combinational()
+@begin_rewrite()
 def basic_func(I: m.Bits[2], S: m.Bit) -> m.Bit:
     if S:
         return I[0]
@@ -135,44 +148,56 @@ def basic_func(I: m.Bits[2], S: m.Bit) -> m.Bit:
 
 
 def test_function_composition(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def basic_function_call(I: m.Bits[2], S: m.Bit) -> m.Bit:
-        return basic_func(I, S)
+        return basic_func()(I, S)
     compile_and_check("basic_function_call",
-                      basic_function_call.circuit_definition, target)
+                      basic_function_call, target)
 
 
 def test_return_py_tuple(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def return_py_tuple(I: m.Bits[2]) -> (m.Bit, m.Bit):
         return I[0], I[1]
-    compile_and_check("return_py_tuple", return_py_tuple.circuit_definition,
+    compile_and_check("return_py_tuple", return_py_tuple,
                       target)
 
 
 def test_return_magma_tuple(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def return_magma_tuple(I: m.Bits[2]) -> m.Tuple(m.Bit, m.Bit):
         return m.tuple_([I[0], I[1]])
     compile_and_check("return_magma_tuple",
-                      return_magma_tuple.circuit_definition, target)
+                      return_magma_tuple, target)
 
 
 def test_return_magma_named_tuple(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
         return m.namedtuple(x=I[0], y=I[1])
     compile_and_check("return_magma_named_tuple",
-                      return_magma_named_tuple.circuit_definition, target)
+                      return_magma_named_tuple, target)
+
+
+EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
+                     m.Out(m.Bit))
+m.wire(0, EQ.O)
+m.EndDefine()
 
 
 def test_simple_circuit_1(target):
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
 
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def logic(a: m.Bit) -> (m.Bit,):
         if EQ()(a, m.bit(0)):
             c = m.bit(1)
@@ -186,19 +211,16 @@ def test_simple_circuit_1(target):
 
         @classmethod
         def definition(io):
-            c = logic(io.a)
+            c = logic()(io.a)
             m.wire(c, io.c)
 
     compile_and_check("simple_circuit_1", Foo, target)
 
 
 def test_multiple_assign(target):
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
-
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def logic(a: m.Bit) -> (m.Bit,):
         if EQ()(a, m.bit(0)):
             c = m.bit(1)
@@ -214,37 +236,38 @@ def test_multiple_assign(target):
 
         @classmethod
         def definition(io):
-            c = logic(io.a)
+            c = logic()(io.a)
             m.wire(c, io.c)
 
     compile_and_check("multiple_assign", Foo, target)
 
 
 def test_optional_assignment(target):
-
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
+    EQ2 = m.DefineCircuit("eq2", "I0", m.In(m.Bits[2]), "I1", m.In(m.Bits[2]), "O",
+                          m.Out(m.Bit))
+    m.wire(0, EQ2.O)
     m.EndDefine()
 
-    @m.circuit.combinational
-    def logic(a: m.Bit) -> (m.Bit, m.Bit):
-        d = m.bit(1)
-        if EQ()(a, m.bit(0)):
-            c = m.bit(1)
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
+    def logic(a: m.Bits[2]) -> (m.Bits[2], m.Bits[2]):
+        d = m.bits(0, 2)
+        if EQ2()(a, m.bits(0, 2)):
+            c = m.bits(1, 2)
         else:
-            c = m.bit(0)
-            d = m.bit(1)
+            c = m.bits(2, 2)
+            d = m.bits(3, 2)
         return (c, d)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit),
-              "d", m.Out(m.Bit)]
+        IO = ["a", m.In(m.Bits[2]),
+              "c", m.Out(m.Bits[2]),
+              "d", m.Out(m.Bits[2])]
 
         @classmethod
         def definition(io):
-            c, d = logic(io.a)
+            c, d = logic()(io.a)
             m.wire(c, io.c)
             m.wire(d, io.d)
 
@@ -252,7 +275,9 @@ def test_optional_assignment(target):
 
 
 def test_map_circuit(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def logic(a: m.Bits[10]) -> m.Bits[10]:
         return m.join(m.map_(Not, 10))(a)
 
@@ -262,14 +287,16 @@ def test_map_circuit(target):
 
         @classmethod
         def definition(io):
-            c = logic(io.a)
+            c = logic()(io.a)
             m.wire(c, io.c)
 
     compile_and_check("test_map_circuit", Foo, target)
 
 
 def test_renamed_args(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def invert(a: m.Bit) -> m.Bit:
         return Not()(a)
 
@@ -278,13 +305,15 @@ def test_renamed_args(target):
 
         @classmethod
         def definition(io):
-            io.O <= invert(a=io.I)
+            io.O <= invert()(a=io.I)
 
     compile_and_check("test_renamed_args", Foo, target)
 
 
 def test_renamed_args_wire(target):
-    @m.circuit.combinational
+    @end_rewrite()
+    @m.circuit.combinational()
+    @begin_rewrite()
     def invert(a: m.Bit) -> m.Bit:
         return Not()(a)
 
@@ -293,7 +322,7 @@ def test_renamed_args_wire(target):
 
         @classmethod
         def definition(io):
-            inv = invert.circuit_definition()
+            inv = invert()
             inv.a <= io.I
             io.O <= inv.O
 

@@ -1,9 +1,10 @@
 import pytest
 import magma as m
-from test_combinational import compile_and_check, phi
+from test_combinational import compile_and_check, mux
 from collections.abc import Sequence
 import coreir
 import ast_tools
+from ast_tools.passes import begin_rewrite, end_rewrite
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
@@ -105,7 +106,9 @@ def _run_verilator(circuit, directory):
 
 
 def test_seq_simple(target, async_reset):
+    @end_rewrite()
     @m.circuit.sequential(async_reset=async_reset)
+    @begin_rewrite()
     class TestBasic:
         def __init__(self):
             self.x: m.Bits[2] = m.bits(0, 2)
@@ -142,8 +145,10 @@ def test_seq_simple(target, async_reset):
 def test_seq_hierarchy(target, async_reset):
     @m.cache_definition
     def DefineCustomRegister(width, init=0):
+        @end_rewrite()
         @m.circuit.sequential(async_reset=async_reset)
-        class Register:
+        @begin_rewrite()
+        class CustomRegister:
             def __init__(self):
                 self.value: m.Bits[width] = m.bits(init, width)
 
@@ -152,12 +157,14 @@ def test_seq_hierarchy(target, async_reset):
                 self.value = I
                 return O
 
-        return Register
+        return CustomRegister
 
     CustomRegister0 = DefineCustomRegister(2, init=0)
     CustomRegister1 = DefineCustomRegister(2, init=1)
 
+    @end_rewrite()
     @m.circuit.sequential(async_reset=async_reset)
+    @begin_rewrite()
     class TestShiftRegister:
         def __init__(self):
             self.x: CustomRegister0 = CustomRegister0()
@@ -212,7 +219,9 @@ def test_multiple_return(target, async_reset):
         coreir_lib="coreir"
     )()(x, y)
 
+    @end_rewrite()
     @m.circuit.sequential(async_reset=async_reset)
+    @begin_rewrite()
     class Register:
         def __init__(self):
             self.value: T = T(0)
@@ -225,7 +234,9 @@ def test_multiple_return(target, async_reset):
                 self.value = self.value
             return retvalue
 
+    @end_rewrite()
     @m.circuit.sequential(async_reset=async_reset)
+    @begin_rewrite()
     class RegisterMode:
         def __init__(self):
             self.register: Register = Register(0)
@@ -241,7 +252,7 @@ def test_multiple_return(target, async_reset):
             elif mode == m.bits(1, 2):
                 reg_val = self.register(value, m.Bit(False))
                 return value, reg_val
-            elif mode == m.bits(2, 2):
+            else:
                 reg_val = self.register(value, clk_en)
                 return reg_val, reg_val
 

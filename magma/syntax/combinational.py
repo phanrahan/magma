@@ -11,11 +11,12 @@ import traceback
 import magma.ast_utils as ast_utils
 import types
 from magma.debug import debug_info
-from magma.ssa import convert_tree_to_ssa
 from magma.config import get_debug_mode
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
+import ast_tools
+
 
 class CircuitDefinitionSyntaxError(Exception):
     pass
@@ -30,94 +31,11 @@ def report_transformer_warning(message, filename, lineno, line):
     warning(line)
 
 
-class IfTransformer(ast.NodeTransformer):
-    def __init__(self, filename, lines):
-        super().__init__()
-        self.filename = filename
-        if lines:
-            self.lines, self.starting_line = lines
-        else:
-            self.lines, self.starting_line = None, None
-
-    def flatten(self, _list):
-        """1-deep flatten"""
-        flat_list = []
-        for item in _list:
-            if isinstance(item, list):
-                flat_list.extend(item)
-            else:
-                flat_list.append(item)
-        return flat_list
-
-    def visit_If(self, node):
-        # Flatten in case there's a nest If statement that returns a list
-        node.body = self.flatten(map(self.visit, node.body))
-        if not hasattr(node, "orelse"):
-            raise NotImplementedError("If without else")
-        node.orelse = self.flatten(map(self.visit, node.orelse))
-        seen = OrderedDict()
-        for stmt in node.body:
-            if not isinstance(stmt, ast.Assign):
-                # TODO: Print info from original source file/line
-                raise CircuitDefinitionSyntaxError(
-                    f"Expected only assignment statements in if statement, got"
-                    f" {type(stmt)}")
-            if len(stmt.targets) > 1:
-                raise NotImplementedError("Assigning more than one value")
-            key = ast.dump(stmt.targets[0])
-            if key in seen:
-                if self.filename:
-                    # TODO: Print the line number
-                    report_transformer_warning(
-                        "Assigning to value twice inside `if` block,"
-                        " taking the last value (first value is ignored)",
-                        self.filename, node.lineno + self.starting_line,
-                        self.lines[node.lineno])
-                else:
-                    warning(
-                        "Assigning to value twice inside `if` block,"
-                        " taking the last value (first value is ignored)")
-            seen[key] = stmt
-        orelse_seen = set()
-        for stmt in node.orelse:
-            key = ast.dump(stmt.targets[0])
-            if key in seen:
-                if key in orelse_seen:
-                    if self.filename:
-                        report_transformer_warning(
-                            "Assigning to value twice inside `else` block,"
-                            " taking the last value (first value is ignored)",
-                            self.filename, node.lineno + self.starting_line,
-                            self.lines[node.lineno])
-                    else:
-                        warning(
-                            "Assigning to value twice inside `else` block,"
-                            " taking the last value (first value is ignored)")
-                orelse_seen.add(key)
-                seen[key].value = ast.Call(
-                    ast.Name("phi", ast.Load()),
-                    [ast.List([stmt.value, seen[key].value],
-                              ast.Load()), node.test],
-                    [])
-            else:
-                if self.filename:
-                    report_transformer_warning(
-                        "NOT IMPLEMENTED: Assigning to a variable once in"
-                        " `else` block (not in then block)",
-                        self.filename, node.lineno + self.starting_line,
-                        self.lines[node.lineno])
-                else:
-                    warning(
-                        "NOT IMPLEMENTED: Assigning to a variable once in"
-                        " `else` block (not in then block)")
-                raise NotImplementedError()
-        return [node for node in seen.values()]
-
+class IfExpTransformer(ast.NodeTransformer):
     def visit_IfExp(self, node):
-        if not hasattr(node, "orelse"):
-            raise NotImplementedError("If without else")
         node.body = self.visit(node.body)
         node.orelse = self.visit(node.orelse)
+        print(ast.dump(node))
         return ast.Call(
             ast.Name("phi", ast.Load()),
             [ast.List([node.orelse, node.body],
@@ -126,10 +44,9 @@ class IfTransformer(ast.NodeTransformer):
 
 
 class FunctionToCircuitDefTransformer(ast.NodeTransformer):
-    def __init__(self, renamed_args):
+    def __init__(self):
         super().__init__()
-        self.IO = {}
-        self.renamed_args = renamed_args
+        self.IO = set()
 
     def visit(self, node):
         new_node = super().visit(node)
@@ -141,13 +58,11 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         return ast.Call(m_dot(direction), [node], [])
 
     def visit_FunctionDef(self, node):
-        names = self.renamed_args
         types = [arg.annotation for arg in node.args.args]
         IO = []
-        for name, type_ in zip(names, types):
-            self.IO[name + "_0"] = name  # Add ssa rename
-            IO.extend([ast.Str(name),
-                       self.qualify(type_, "In")])
+        for arg in node.args.args:
+            self.IO.add(arg.arg)
+            IO.extend([ast.Str(arg.arg), self.qualify(arg.annotation, "In")])
         if isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
                 IO.extend([ast.Str(f"O{i}"), self.qualify(elt, "Out")])
@@ -155,7 +70,14 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
             IO.extend([ast.Str("O"), self.qualify(node.returns, "Out")])
         IO = ast.List(IO, ast.Load())
         node.body = [self.visit(s) for s in node.body]
+        assert isinstance(node.body[-1], ast.Return)
+        return_value = node.body.pop().value
         if isinstance(node.returns, ast.Tuple):
+            node.body.append(ast.Assign(
+                [ast.Tuple([ast.Name(f"O{i}", ast.Store())
+                 for i in range(len(node.returns.elts))], ast.Store())],
+                ast.Name(return_value, ast.Load())
+            ))
             for i, elt in enumerate(node.returns.elts):
                 node.body.append(ast.Expr(ast.Call(
                     m_dot("wire"),
@@ -167,7 +89,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         else:
             node.body.append(ast.Expr(ast.Call(
                 m_dot("wire"),
-                [ast.Name("O", ast.Load()),
+                [return_value,
                  ast.Attribute(ast.Name("io", ast.Load()), "O", ast.Load())],
                 []
             )))
@@ -195,7 +117,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
     def visit_Name(self, node):
         if node.id in self.IO and isinstance(node.ctx, ast.Load):
-            return ast.Attribute(ast.Name("io", ast.Load()), self.IO[node.id],
+            return ast.Attribute(ast.Name("io", ast.Load()), node.id,
                                  ast.Load())
         return node
 
@@ -210,69 +132,35 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 #         return ast.Assign([ast.Name("O", ast.Store())], node.value)
 
 
-def _combinational(defn_env: dict, fn: types.FunctionType):
-    tree = ast_utils.get_func_ast(fn)
-    tree, renamed_args = convert_tree_to_ssa(tree, defn_env)
-    tree = FunctionToCircuitDefTransformer(renamed_args).visit(tree)
+def _combinational(tree, env, metadata):
+    tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
-    filename = None
-    lines = None
-    if get_debug_mode():
-        filename = inspect.getsourcefile(fn)
-        lines = inspect.getsourcelines(fn)
-    tree = IfTransformer(filename, lines).visit(tree)
+    tree = IfExpTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(
-        combinational, tree.decorator_list, defn_env)
-    if "phi" not in defn_env:
-        tree = ast.Module([
-            ast.parse("import magma as m").body[0],
-            ast.parse("from mantle import mux as phi").body[0],
-            tree
-        ])
+        combinational, tree.decorator_list, env)
+    if "mux" not in env:
+        from mantle import mux
+        # TODO: Gen free name for mux
+        env.globals["mux"] = mux
+
+    def phi(args, cond):
+        if all(isinstance(arg, tuple) for arg in args):
+            return tuple(phi(list(zipped), cond) for zipped in zip(*args))
+        return env["mux"](args, cond)
+
+    # TODO: Gen free name for phi
+    assert "phi" not in env, "phi already defined"
+    env.globals["phi"] = phi
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"
 
     debug(source)
-    circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__,
-                                                     defn_env)
-    if get_debug_mode() and getattr(circuit_def, "debug_info", False):
-        circuit_def.debug_info = debug_info(circuit_def.debug_info.filename,
-                                            circuit_def.debug_info.lineno,
-                                            inspect.getmodule(fn))
+    return tree, env, metadata
 
-    @functools.wraps(fn)
-    def func(*args, **kwargs):
-        return circuit_def()(*args, **kwargs)
-    func.__name__ = fn.__name__
-    func.__qualname__ = fn.__name__
-    # Provide a mechanism for accessing the underlying circuit definition
-    setattr(func, "circuit_definition", circuit_def)
-    return func
 
-def combinational(
-        fn: typing.Callable = None,
-        *,
-        decorators: typing.Optional[typing.Sequence[typing.Callable]] = None,
-        ):
-
-    exec(_SKIP_FRAME_DEBUG_STMT)
-    if decorators is not None:
-        assert fn is None
-        def wrapped(fn):
-            exec(_SKIP_FRAME_DEBUG_STMT)
-            nonlocal decorators
-            decorators = list(itertools.chain(decorators, [wrapped]))
-            wrapped_combinational = ast_utils.inspect_enclosing_env(
-                    _combinational,
-                    decorators=decorators)
-            return wrapped_combinational(fn)
-        return wrapped
-
-    else:
-        wrapped_combinational = ast_utils.inspect_enclosing_env(
-                _combinational,
-                decorators=[combinational]
-        )
-        return wrapped_combinational(fn)
+class combinational(ast_tools.passes.Pass):
+    def rewrite(self, tree: ast.AST, env: ast_tools.SymbolTable, metadata: dict):
+        tree, env, metadata = ast_tools.passes.ssa().rewrite(tree, env, metadata)
+        return _combinational(tree, env, metadata)

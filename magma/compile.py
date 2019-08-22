@@ -26,7 +26,8 @@ class CheckAnyMantleCircuits(DefinitionPass):
 
     def __call__(self, definition):
         if getattr(definition, "debug_info", False) and \
-                definition.debug_info.module.__name__.split(".")[0] == "mantle":
+                definition.debug_info.module is not None \
+                and definition.debug_info.module.__name__.split(".")[0] == "mantle":
             self.has_mantle_circuit = True
 
     def _run(self, definition):

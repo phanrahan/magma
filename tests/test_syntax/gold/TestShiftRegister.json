@@ -2,15 +2,15 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Register":{
+      "CustomRegister":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
           ["CLK",["Named","coreir.clkIn"]],
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "Register_comb_inst0":{
-            "modref":"global.Register_comb"
+          "CustomRegister_comb_inst0":{
+            "modref":"global.CustomRegister_comb"
           },
           "reg_P_inst0":{
             "genref":"coreir.reg",
@@ -19,14 +19,14 @@
           }
         },
         "connections":[
-          ["self.I","Register_comb_inst0.I"],
-          ["reg_P_inst0.in","Register_comb_inst0.O0"],
-          ["self.O","Register_comb_inst0.O1"],
-          ["reg_P_inst0.out","Register_comb_inst0.self_value_O"],
+          ["self.I","CustomRegister_comb_inst0.I"],
+          ["reg_P_inst0.in","CustomRegister_comb_inst0.O0"],
+          ["self.O","CustomRegister_comb_inst0.O1"],
+          ["reg_P_inst0.out","CustomRegister_comb_inst0.self_value_O"],
           ["self.CLK","reg_P_inst0.clk"]
         ]
       },
-      "Register_comb":{
+      "CustomRegister_comb":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
           ["self_value_O",["Array",2,"BitIn"]],
@@ -38,15 +38,15 @@
           ["self.self_value_O","self.O1"]
         ]
       },
-      "Register_unq1":{
+      "CustomRegister_unq1":{
         "type":["Record",[
           ["I",["Array",2,"BitIn"]],
           ["CLK",["Named","coreir.clkIn"]],
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "Register_comb_inst0":{
-            "modref":"global.Register_comb"
+          "CustomRegister_comb_inst0":{
+            "modref":"global.CustomRegister_comb"
           },
           "reg_P_inst0":{
             "genref":"coreir.reg",
@@ -55,10 +55,10 @@
           }
         },
         "connections":[
-          ["self.I","Register_comb_inst0.I"],
-          ["reg_P_inst0.in","Register_comb_inst0.O0"],
-          ["self.O","Register_comb_inst0.O1"],
-          ["reg_P_inst0.out","Register_comb_inst0.self_value_O"],
+          ["self.I","CustomRegister_comb_inst0.I"],
+          ["reg_P_inst0.in","CustomRegister_comb_inst0.O0"],
+          ["self.O","CustomRegister_comb_inst0.O1"],
+          ["reg_P_inst0.out","CustomRegister_comb_inst0.self_value_O"],
           ["self.CLK","reg_P_inst0.clk"]
         ]
       },
@@ -69,23 +69,23 @@
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "Register_inst0":{
-            "modref":"global.Register"
+          "CustomRegister_inst0":{
+            "modref":"global.CustomRegister"
           },
-          "Register_inst1":{
-            "modref":"global.Register_unq1"
+          "CustomRegister_inst1":{
+            "modref":"global.CustomRegister_unq1"
           },
           "TestShiftRegister_comb_inst0":{
             "modref":"global.TestShiftRegister_comb"
           }
         },
         "connections":[
-          ["self.CLK","Register_inst0.CLK"],
-          ["TestShiftRegister_comb_inst0.O0","Register_inst0.I"],
-          ["TestShiftRegister_comb_inst0.self_x_O","Register_inst0.O"],
-          ["self.CLK","Register_inst1.CLK"],
-          ["TestShiftRegister_comb_inst0.O1","Register_inst1.I"],
-          ["TestShiftRegister_comb_inst0.self_y_O","Register_inst1.O"],
+          ["self.CLK","CustomRegister_inst0.CLK"],
+          ["TestShiftRegister_comb_inst0.O0","CustomRegister_inst0.I"],
+          ["TestShiftRegister_comb_inst0.self_x_O","CustomRegister_inst0.O"],
+          ["self.CLK","CustomRegister_inst1.CLK"],
+          ["TestShiftRegister_comb_inst0.O1","CustomRegister_inst1.I"],
+          ["TestShiftRegister_comb_inst0.self_y_O","CustomRegister_inst1.O"],
           ["self.I","TestShiftRegister_comb_inst0.I"],
           ["self.O","TestShiftRegister_comb_inst0.O2"]
         ]
