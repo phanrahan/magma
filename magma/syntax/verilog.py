@@ -117,8 +117,9 @@ def combinational_to_verilog(defn_env, fn):
     PromoteWidths(width_table, type_table).visit(tree)
 
     for name in names:
-        print(names)
-        ctx.declare_wire(name, width_table[name])
+        # TODO: We declare reg to avoid procedural assignment to wire, ideally
+        # we'd use logic in system verilog for clarity (not a register)
+        ctx.declare_reg(name, width_table[name])
     tree = ProcessReturns(outputs).visit(tree)
     body = list(filter(lambda x: x is not None, map(ctx.translate, tree.body)))
     ctx.module.Always(vg.SensitiveAll())(body)
