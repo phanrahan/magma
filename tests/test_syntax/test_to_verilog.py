@@ -1,6 +1,5 @@
 import magma as m
 from magma.testing import check_files_equal
-import mantle
 import hwtypes
 import operator
 import tempfile
