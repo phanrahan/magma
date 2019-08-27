@@ -168,6 +168,15 @@ class TupleType(Type):
 
         return True
 
+    def keys(self):
+        return self.Ks
+
+    def values(self):
+        return self.ts
+
+    def items(self):
+        return zip(self.Ks, self.ts)
+
 class TupleKind(Kind):
     def __init__(cls, name, bases, dct):
         super(TupleKind, cls).__init__(name, bases, dct)
