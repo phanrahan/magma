@@ -31,17 +31,6 @@ def report_transformer_warning(message, filename, lineno, line):
     warning(line)
 
 
-class IfExpTransformer(ast.NodeTransformer):
-    def visit_IfExp(self, node):
-        node.body = self.visit(node.body)
-        node.orelse = self.visit(node.orelse)
-        return ast.Call(
-            ast.Name("phi", ast.Load()),
-            [ast.List([node.orelse, node.body],
-                      ast.Load()), node.test],
-            [])
-
-
 class FunctionToCircuitDefTransformer(ast.NodeTransformer):
     def __init__(self):
         super().__init__()
@@ -134,23 +123,6 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 def _combinational(tree, env, metadata):
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
-    tree = IfExpTransformer().visit(tree)
-    tree = ast.fix_missing_locations(tree)
-    tree.decorator_list = ast_utils.filter_decorator(
-        combinational, tree.decorator_list, env)
-    if "mux" not in env:
-        from mantle import mux
-        # TODO: Gen free name for mux
-        env.globals["mux"] = mux
-
-    def phi(args, cond):
-        if all(isinstance(arg, tuple) for arg in args):
-            return tuple(phi(list(zipped), cond) for zipped in zip(*args))
-        return env["mux"](args, cond)
-
-    # TODO: Gen free name for phi
-    assert "phi" not in env, "phi already defined"
-    env.globals["phi"] = phi
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"
@@ -160,6 +132,29 @@ def _combinational(tree, env, metadata):
 
 
 class combinational(ast_tools.passes.Pass):
-    def rewrite(self, tree: ast.AST, env: ast_tools.SymbolTable, metadata: dict):
-        tree, env, metadata = ast_tools.passes.ssa().rewrite(tree, env, metadata)
+    def rewrite(self, tree: ast.AST, env: ast_tools.SymbolTable,
+                metadata: dict):
+        tree, env, metadata = ast_tools.passes.ssa().rewrite(
+            tree, env, metadata)
+
+        phi_name = ast_tools.gen_free_name(tree, env,
+                                           "magma_combinational_phi")
+
+        if "mux" not in env:
+            from mantle import mux
+            mux_name = ast_tools.gen_free_name(tree, env,
+                                               "magma_combinational_mux")
+            env.locals[mux_name] = mux
+        else:
+            mux_name = "mux"
+
+        def phi(cond, arg0, arg1):
+            if all(isinstance(arg, tuple) for arg in (arg0, arg1)):
+                return tuple(phi(cond, *zipped) for zipped in zip(arg0,
+                                                                       arg1))
+            return env[mux_name]([arg1, arg0], cond)
+
+        env.locals[phi_name] = phi
+        tree, env, metadata = ast_tools.passes.if_to_phi(phi_name).rewrite(
+            tree, env, metadata)
         return _combinational(tree, env, metadata)
