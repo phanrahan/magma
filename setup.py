@@ -20,7 +20,6 @@ setup(
         "magma.passes",
         "magma.simulator",
         "magma.syntax",
-        "magma.ssa",
         "magma.testing"
     ],
     install_requires=[
