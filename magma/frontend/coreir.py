@@ -4,7 +4,7 @@ import coreir
 context = coreir.Context()
 
 def get_lib(lib):
-    if lib in {"coreir", "mantle", "corebit"}:
+    if lib in {"coreir", "mantle", "corebit", "memory"}:
         return context.get_namespace(lib)
     elif lib == "global":
         return context.global_namespace
