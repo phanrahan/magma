@@ -13,6 +13,7 @@ from collections import Counter
 import itertools
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
+from ast_tools import immutable_ast as iast
 import ast_tools
 
 
@@ -279,6 +280,7 @@ class SpecializeConstantInts(ast.NodeTransformer):
 
 
 def _sequential(tree, env, metadata, async_reset: bool):
+    tree = iast.mutable(tree)
     cls__init__ = None
     cls__call__ = None
     for statement in tree.body:
@@ -386,6 +388,7 @@ def _sequential(tree, env, metadata, async_reset: bool):
         import ast_tools
         env["ast_tools"] = ast_tools
 
+    tree = iast.immutable(tree)
     return tree.body[0], env, metadata
 
 class sequential(ast_tools.passes.Pass):

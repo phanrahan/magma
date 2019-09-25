@@ -15,6 +15,7 @@ from magma.config import get_debug_mode
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
+from ast_tools import immutable_ast as iast
 import ast_tools
 
 
@@ -121,6 +122,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
 
 def _combinational(tree, env, metadata):
+    tree = iast.mutable(tree)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     source = "\n"
@@ -128,6 +130,7 @@ def _combinational(tree, env, metadata):
         source += f"    {i}: {line}\n"
 
     debug(source)
+    tree = iast.immutable(tree)
     return tree, env, metadata
 
 
