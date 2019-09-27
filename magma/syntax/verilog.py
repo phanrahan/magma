@@ -163,6 +163,4 @@ def combinational_to_verilog(defn_env, fn):
     defn = m.DefineCircuit(tree.name, *IO)
     with open(filename, 'r') as f:
         defn.verilogFile = f.read()
-    # defn =  m.DefineFromVerilogFile(filename, type_map={"CLK": m.In(m.Clock)},
-    #                                 target_modules=[tree.name])[0]
     return lambda *args: defn()(*args)
