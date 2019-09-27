@@ -1,11 +1,21 @@
+import os
 import magma.ast_utils as ast_utils
 import ast
 import astor
-from .verilog_utils import Context, CollectInitialWidthsAndTypes, PromoteWidths
-import ast
+from .verilog_utils import CollectInitialWidthsAndTypes, PromoteWidths, \
+    RemoveBits
 import magma as m
-from .combinational import m_dot
-import veriloggen as vg
+import kratos
+
+
+class ProcessNames(ast.NodeTransformer):
+    def __init__(self, inputs, outputs, names):
+        self.names = list(inputs.keys()) + list(outputs.keys()) + list(names)
+
+    def visit_Name(self, node):
+        if node.id in self.names:
+            return ast.parse(f"self.{node.id}").body[0].value
+        return node
 
 
 class ProcessReturns(ast.NodeTransformer):
@@ -17,14 +27,14 @@ class ProcessReturns(ast.NodeTransformer):
             assert isinstance(node.value, ast.Tuple)
             return [
                 ast.Assign(
-                    [ast.Name(f"O{i}", ast.Load())],
+                    [ast.parse(f"self.O{i}").body[0].value],
                     node.value.elts[0]
                 )
-                for i in range(len(self.outputs))
+                for i in range(self.len_outputs)
             ]
         else:
             return ast.Assign(
-                [ast.Name(f"O", ast.Load())],
+                [ast.parse(f"self.O").body[0].value],
                 node.value
             )
 
@@ -85,7 +95,6 @@ def get_length(t):
 def combinational_to_verilog(defn_env, fn):
     tree = ast_utils.get_ast(fn).body[0]
     # TODO: Flatten types pass
-    ctx = Context(tree.name)
     inputs = {}
     outputs = {}
     width_table = {}
@@ -106,7 +115,18 @@ def combinational_to_verilog(defn_env, fn):
         outputs["O"] = get_length(type_)
         width_table["O"] = get_io_width(type_)
         type_table["O"] = to_type_str(type_)
-    ctx.declare_ports(inputs, outputs)
+
+    names = [arg.arg for arg in tree.args.args]
+    types = [arg.annotation for arg in tree.args.args]
+    IO = []
+    for name, type_ in zip(names, types):
+        IO += [name, m.In(eval(compile(ast.Expression(type_), "", mode="eval")))]
+    if isinstance(tree.returns, ast.Tuple):
+        for i, elt in enumerate(tree.returns.elts):
+            IO += [f"O{i}", m.Out(eval(compile(ast.Expression(elt), "", mode="eval")))]
+    else:
+        IO += [f"O", m.Out(eval(compile(ast.Expression(tree.returns), "", mode="eval")))]
+
     names = collect_names(tree, ctx=ast.Store)
 
     for io_port in inputs.keys() | outputs.keys():
@@ -115,15 +135,34 @@ def combinational_to_verilog(defn_env, fn):
 
     CollectInitialWidthsAndTypes(width_table, type_table, defn_env).visit(tree)
     PromoteWidths(width_table, type_table).visit(tree)
-
-    for name in names:
-        # TODO: We declare reg to avoid procedural assignment to wire, ideally
-        # we'd use logic in system verilog for clarity (not a register)
-        ctx.declare_reg(name, width_table[name])
+    tree = ProcessNames(inputs, outputs, names).visit(tree)
     tree = ProcessReturns(outputs).visit(tree)
-    body = list(filter(lambda x: x is not None, map(ctx.translate, tree.body)))
-    ctx.module.Always(vg.SensitiveAll())(body)
-    verilog_str = ctx.to_verilog()
-    defn =  m.DefineFromVerilog(verilog_str, type_map={"CLK": m.In(m.Clock)},
-                               target_modules=[tree.name])[0]
+    tree = RemoveBits().visit(tree)
+    tree.args.args = [ast.arg("self", None)]
+    tree.decorator_list = []
+    tree.returns = None
+
+    print(astor.to_source(tree))
+    func = ast_utils.compile_function_to_file(tree, fn.__name__, defn_env)
+
+
+    class Module(kratos.Generator):
+        def __init__(self):
+            super().__init__(tree.name, False)
+            for key, value in inputs.items():
+                setattr(self, key, self.input(key, value))
+            for key, value in outputs.items():
+                setattr(self, key, self.output(key, value))
+            for name in names:
+                setattr(self, name, self.var(name, width_table[name]))
+            self.add_code(func)
+
+    os.makedirs(".magma", exist_ok=True)
+    filename = f".magma/{tree.name}-kratos.sv"
+    kratos.verilog(Module(), filename=filename)
+    defn = m.DefineCircuit(tree.name, *IO)
+    with open(filename, 'r') as f:
+        defn.verilogFile = f.read()
+    # defn =  m.DefineFromVerilogFile(filename, type_map={"CLK": m.In(m.Clock)},
+    #                                 target_modules=[tree.name])[0]
     return lambda *args: defn()(*args)

@@ -1,7 +1,6 @@
 import inspect
 import sys
 import re
-import veriloggen as vg
 import ast
 
 
@@ -30,195 +29,6 @@ def is_generator(name):
 
 for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if m[1].__module__ == '_ast'):
     is_generator(x)
-
-
-class Context:
-    def __init__(self, name, sub_coroutines=[]):
-        self.module = vg.Module(name)
-        self.sub_coroutines = sub_coroutines
-
-    def declare_ports(self, inputs, outputs):
-        if outputs:
-            for o,n in outputs.items():
-                if n > 1:
-                    self.module.Output(o, n)
-                else:
-                    self.module.Output(o)
-        if inputs:
-            for i,n in inputs.items():
-                if n > 1:
-                    self.module.Input(i, n)
-                else:
-                    self.module.Input(i)
-
-    def declare_wire(self, name, width=None, height=None):
-        self.module.Wire(name, width, height)
-
-    def declare_reg(self, name, width=None, height=None):
-        self.module.Reg(name, width, height)
-
-    def assign(self, lhs, rhs):
-        # return vg.Subst(lhs, rhs, not self.is_reg(lhs))
-        return vg.Subst(lhs, rhs, 1)
-
-    def initial(self, body=[]):
-        return self.module.Initial(body)
-
-    def get_by_name(self, name):
-        if name in self.module.get_vars():
-            return self.module.get_vars()[name]
-        elif name in self.module.get_ports():
-            return self.module.get_ports()[name]
-
-        raise KeyError(f"`{name}` is not a valid port or variable.")
-
-    def is_reg(self, obj):
-        return isinstance(obj, vg.core.vtypes.Reg)
-
-    def translate_assign(self, target, value, blk=1):
-        return vg.Subst(
-            self.translate(target),
-            value,
-            blk
-        )
-
-
-    # TODO: should reorder the switch into more sensible ordering
-    # TODO: should split this up into a few translate functions that translate certain classes of inputs
-    def translate(self, stmt):
-        if isinstance(stmt, bool):
-            return vg.Int(1 if stmt else 0)
-        elif is_add(stmt):
-            return vg.Add
-        elif is_mult(stmt):
-            return vg.Mul
-        elif is_or(stmt):
-            return vg.Or
-        elif is_r_shift(stmt):
-            return vg.Srl
-        elif is_l_shift(stmt):
-            return vg.Sll
-        elif is_bool_op(stmt):
-            result = self.translate(stmt.op)(
-                self.translate(stmt.values[0]),
-                self.translate(stmt.values[1])
-            )
-            for value in stmt.values[2:]:
-                result = self.translate(stmt.op)(result, self.translate(value))
-            return result
-        elif is_bin_op(stmt):
-            if is_list(stmt.left) or is_list(stmt.right):
-                if is_add(stmt.op): # list concatenation
-                    return vg.Cat(
-                        self.translate(stmt.left),
-                        self.translate(stmt.right)
-                    )
-                elif is_mult(stmt.op): # list replication
-                    var = self.translate(stmt.left) if is_list(stmt.left) else self.translate(stmt.right)
-                    times = self.translate(stmt.right) if is_list(stmt.left) else self.translate(stmt.left)
-                    return vg.Repeat(var, times)
-
-            return self.translate(stmt.op)(
-                self.translate(stmt.left),
-                self.translate(stmt.right)
-            )
-        elif is_bit_and(stmt):
-            return vg.And
-        elif is_bit_xor(stmt):
-            return vg.Xor
-        elif is_bit_or(stmt):
-            return vg.Or
-        elif is_compare(stmt):
-            curr = self.translate(stmt.ops[0])(
-                self.translate(stmt.left),
-                self.translate(stmt.comparators[0])
-            )
-            for op, comp in zip(stmt.ops[1:], stmt.comparators[1:]):
-                curr = self.translate(op)(curr, self.translate(comp))
-            return curr
-        elif is_eq(stmt):
-            return vg.Eq
-        elif is_if(stmt):
-            body = [self.translate(stmt) for stmt in stmt.body]
-            if_ = vg.If(
-                self.translate(stmt.test),
-            )(body)
-            if stmt.orelse:
-                if_.Else(
-                    [self.translate(stmt) for stmt in stmt.orelse]
-                )
-            return if_
-        elif is_if_exp(stmt):
-            return vg.Cond(
-                self.translate(stmt.test),
-                self.translate(stmt.body),
-                self.translate(stmt.orelse)
-            )
-        elif is_invert(stmt):
-            return vg.Unot
-        elif is_list(stmt):
-            return vg.Cat(*[self.translate(elt) for elt in stmt.elts])
-        elif is_lt(stmt):
-            return vg.LessThan
-        elif is_gt(stmt):
-            return vg.GreaterThan
-        elif is_gt_e(stmt):
-            return vg.GreaterEq
-        elif is_name(stmt):
-            return self.get_by_name(stmt.id)
-        elif is_name_constant(stmt):
-            # TODO: distinguish between int, bool, etc.
-            return self.translate(stmt.value)
-        elif is_not_eq(stmt):
-            return vg.NotEq
-        elif is_num(stmt):
-            return vg.Int(stmt.n)
-        elif is_sub(stmt):
-            return vg.Sub
-        elif is_subscript(stmt):
-            if is_index(stmt.slice):
-                return vg.Pointer(
-                    self.translate(stmt.value),
-                    self.translate(stmt.slice.value)
-                )
-            elif is_slice(stmt.slice):
-                return vg.Slice(
-                    self.translate(stmt.value),
-                    self.translate(stmt.slice.lower),
-                    self.translate(stmt.slice.upper)
-                )
-        elif is_tuple(stmt):
-            return vg.Cat(*[self.translate(elt) for elt in stmt.elts])
-        elif is_unary_op(stmt):
-            return self.translate(stmt.op)(self.translate(stmt.operand))
-        elif is_assign(stmt):
-            # blk = not self.is_reg(target)
-            return self.translate_assign(stmt.targets[0], self.translate(stmt.value))
-        elif isinstance(stmt, ast.Expr) and is_call(stmt.value) and is_name(stmt.value.func) and stmt.value.func.id == "print":
-            # Skip print statements for now, maybe translate to display?
-            return
-        elif is_call(stmt) and is_attribute(stmt.func) and \
-                is_name(stmt.func.value) and stmt.func.value.id == "m" and \
-                stmt.func.attr == "bits":
-            return self.translate(stmt.args[0])
-        elif is_pass(stmt):
-            return
-        raise NotImplementedError(ast.dump(stmt))
-
-    def to_verilog(self):
-        return self.module.to_verilog()
-
-
-class SwapSlices(ast.NodeTransformer):
-    def visit_Subscript(self, node):
-        node.slice = self.visit(node.slice)
-        if isinstance(node.slice, ast.Slice):
-            if node.slice.lower is None and isinstance(node.slice.upper, ast.Num):
-                if node.slice.step is not None:
-                    raise NotImplementedError()
-                node.slice.lower = ast.Num(node.slice.upper.n - 1)
-                node.slice.upper = ast.Num(0)
-        return node
 
 
 def get_width(node, width_table, defn_env={}):
@@ -470,3 +280,11 @@ class PromoteWidths(ast.NodeTransformer):
                     node.comparators[i] = self.make(node.comparators[i].n, width, type_)
         return node
 
+
+class RemoveBits(ast.NodeTransformer):
+    def visit_Call(self, node):
+        if is_attribute(node.func) and \
+                is_name(node.func.value) and node.func.value.id == "m" and \
+                node.func.attr == "bits":
+            return node.args[0]
+        return node
