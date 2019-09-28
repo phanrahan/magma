@@ -7,13 +7,13 @@ from collections.abc import Sequence
 from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
-from ..bit import _BitType, _BitKind, VCC, GND
-from ..clock import ClockType, EnableType, ResetType
-from ..array import ArrayKind, ArrayType
-from ..bits import SIntType
-from ..tuple import TupleType
+# from ..bit import _BitType, _BitKind, VCC, GND
+# from ..clock import ClockType, EnableType, ResetType
+# from ..array import ArrayKind, ArrayType
+# from ..bits import SIntType
+# from ..tuple import TupleType
 from ..is_definition import isdefinition
-from ..clock import wiredefaultclock
+# from ..clock import wiredefaultclock
 import logging
 import os
 

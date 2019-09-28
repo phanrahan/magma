@@ -31,25 +31,25 @@ from .wire import *
 # types
 from .t import *
 from .bit import *
-from .array import *
-from .bits import *
+# from .array import *
+# from .bits import *
 # Define default operators that raise exceptions, rename so it doesn't muck
 # with `from magma import *` code that also uses operator
-import magma.operators
-from .tuple import *
-from .clock import *
-from .conversions import *
-from .interface import *
+# import magma.operators
+# from .tuple import *
+# from .clock import *
+# from .conversions import *
+# from .interface import *
 
 # circuit
 from .circuit import *
 
 # higher-order operators
-from .braid import *
+# from .braid import *
 
 # verilog
-from .fromverilog import *
-from .backend.verilog import *
+# from .fromverilog import *
+# from .backend.verilog import *
 
 # compile
 from .compile import *
@@ -79,9 +79,9 @@ from .product import Product
 from hwtypes.bit_vector_abc import TypeFamily
 
 
-BitVector = Bits
-UIntVector = UInt
-SIntVector = SInt
-_Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
-def get_family():
-    return _Family_
+# BitVector = Bits
+# UIntVector = UInt
+# SIntVector = SInt
+# _Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
+# def get_family():
+#     return _Family_

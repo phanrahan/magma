@@ -10,8 +10,8 @@ from collections import namedtuple, Counter
 from .interface import *
 from .wire import *
 from .t import Flip
-from .array import ArrayType
-from .tuple import TupleType
+# from .array import ArrayType
+# from .tuple import TupleType
 from .bit import VCC, GND
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info

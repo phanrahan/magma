@@ -4,7 +4,7 @@ import inspect
 import subprocess
 
 from .passes import DefinitionPass, InstanceGraphPass
-from .backend import verilog, blif, firrtl, dot
+# from .backend import verilog, blif, firrtl, dot
 from .config import get_compile_dir
 from .logging import warning
 from .uniquification import uniquification_pass, UniquificationMode

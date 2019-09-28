@@ -1,76 +1,69 @@
 import magma as m
-from magma import Bit, BitIn, BitOut, BitType, BitKind, In, Out, Flip, VCC, \
-    GND, wire
+from magma.bit import In, Out, Bit, Flip, VCC, GND
+BitIn = Bit[In]
+BitOut = Bit[Out]
 
 
 def test_bit():
-    assert issubclass(Bit, BitType)
-    assert isinstance(Bit, BitKind)
+    assert m.Bit == m.Bit
+    assert m.BitIn == m.BitIn
+    assert m.BitOut == m.BitOut
 
-    assert issubclass(BitIn, BitType)
-    assert isinstance(BitIn,  BitKind)
+    assert m.Bit != m.BitIn
+    assert m.Bit != m.BitOut
+    assert m.BitIn != m.BitOut
 
-    assert issubclass(BitOut, BitType)
-    assert isinstance(BitOut, BitKind)
-
-    assert Bit == Bit
-    assert BitIn == BitIn
-    assert BitOut == BitOut
-
-    assert Bit != BitIn
-    assert Bit != BitOut
-    assert BitIn != BitOut
-
-    assert str(Bit) == 'Bit'
-    assert str(BitIn) == 'In(Bit)'
-    assert str(BitOut) == 'Out(Bit)'
+    assert str(m.Bit) == 'Bit'
+    assert str(m.BitIn) == 'Bit[In]'
+    assert str(m.BitOut) == 'Bit[Out]'
 
 
 def test_bit_flip():
-    bout = Out(Bit)
-    bin = In(Bit)
+
+    bout = Bit[Out]
+    bin = Bit[In]
     assert bout == BitOut
     assert bin == BitIn
 
-    bin = In(BitIn)
-    bout = Out(BitIn)
+    bin = BitIn[In]
+    bout = BitOut[Out]
     assert bout == BitOut
     assert bin == BitIn
 
-    bin = In(BitOut)
-    bout = Out(BitOut)
+    bin = BitOut[In]
+    bout = BitOut[Out]
     assert bout == BitOut
     assert bin == BitIn
 
-    bin = Flip(BitOut)
-    bout = Flip(BitIn)
+    bin = BitOut[Flip]
+    bout = BitIn[Flip]
     assert bout == BitOut
     assert bin == BitIn
 
 
 def test_bit_val():
     b = BitIn(name="a")
-    assert isinstance(b, BitType)
+    assert isinstance(b, Bit)
     assert isinstance(b, BitIn)
-    assert b.isinput()
+    assert b.is_input()
     assert str(b) == "a"
     assert isinstance(b, BitIn)
-    assert b.isinput()
+    assert b.is_input()
 
     b = BitOut(name="a")
-    assert b.isoutput()
+    assert b.is_output()
     assert str(b) == "a"
-    assert isinstance(b, BitType)
+    assert isinstance(b, Bit)
     assert isinstance(b, BitOut)
-    assert b.isoutput()
+    assert b.is_output()
 
     b = Bit(name="a")
     assert str(b) == "a"
-    assert isinstance(b, BitType)
     assert isinstance(b, Bit)
-    assert not b.isinput()
-    assert not b.isoutput()
-    assert not b.isinout()
+    assert isinstance(b, Bit)
+    assert not b.is_input()
+    assert not b.is_output()
+    assert not b.is_inout()
 
 
 def test_vcc():
@@ -87,13 +80,13 @@ def test_vcc():
 
 def test_wire1():
     b0 = BitOut(name='b0')
-    assert b0.isoutput()
+    assert b0.is_output()
 
     b1 = BitIn(name='b1')
-    assert b1.isinput()
+    assert b1.is_input()
 
     print('wire(b0,b1)')
-    wire(b0, b1)
+    m.wire(b0, b1)
     assert b0.port.wires is b1.port.wires
 
     # wires = b0.port.wires
@@ -114,13 +107,13 @@ def test_wire1():
 
 def test_wire2():
     b0 = BitOut(name='b0')
-    assert b0.isoutput()
+    assert b0.is_output()
 
     b1 = BitIn(name='b1')
-    assert b1.isinput()
+    assert b1.is_input()
 
     print('wire(b1,b0)')
-    wire(b1, b0)
+    m.wire(b1, b0)
     assert b0.port.wires is b1.port.wires
 
     # wires = b0.port.wires
@@ -145,7 +138,7 @@ def test_wire3():
     b1 = Bit(name='b1')
 
     print('wire(b0,b1)')
-    wire(b0, b1)
+    m.wire(b0, b1)
     assert b0.port.wires is b1.port.wires
 
     # wires = b0.port.wires
@@ -169,7 +162,7 @@ def test_wire4():
     b1 = BitIn(name='b1')
 
     print('wire(b0,b1)')
-    wire(b0, b1)
+    m.wire(b0, b1)
     # assert b0.port.wires is b1.port.wires
 
     # wires = b0.port.wires
@@ -194,7 +187,7 @@ def test_wire5():
     b1 = BitOut(name='b1')
 
     print('wire(b0,b1)')
-    wire(b0, b1)
+    m.wire(b0, b1)
     # assert b0.port.wires is b1.port.wires
 
     # wires = b0.port.wires
@@ -212,10 +205,3 @@ def test_wire5():
 
     assert b0.value() is None
     assert b1.value() is None
-
-
-def test_const():
-    zero = Bit(0)
-    one = Bit(1)
-    assert zero.name.name == "GND"
-    assert one.name.name == "VCC"

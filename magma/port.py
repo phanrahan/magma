@@ -95,7 +95,7 @@ class Wire:
 
         if not o.anon():
             #assert o.bit.direction is not None
-            if o.bit.isinput():
+            if o.bit.is_input():
                 report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as an output", debug_info)
                 return
 
@@ -108,7 +108,7 @@ class Wire:
 
         if not i.anon():
             #assert i.bit.direction is not None
-            if i.bit.isoutput():
+            if i.bit.is_output():
                 report_wiring_error(f"Using `{i.bit.debug_name}` (an output) as an input", debug_info)
                 return
 
@@ -124,11 +124,11 @@ class Wire:
 
     def check(self):
         for o in self.inputs:
-            if o.isoutput():
+            if o.is_output():
                 error("Output in the wire inputs: {}".format(o))
 
         for o in self.outputs:
-            if o.isinput():
+            if o.is_input():
                 error("Input in the wire outputs: {}".format(o))
                 return False
 

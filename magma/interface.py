@@ -3,12 +3,11 @@ from itertools import chain
 from collections import OrderedDict
 from .ref import AnonRef, InstRef, DefnRef
 from .t import Type, Kind, In, Out, Flip
-from .bit import BitKind, MakeBit
+from .bit import Bit
 from .port import INPUT, OUTPUT, INOUT
-#from .bit import *
-from .clock import ClockType, ClockTypes
-from .array import ArrayType
-from .tuple import TupleType
+# from .clock import ClockType, ClockTypes
+# from .array import ArrayType
+# from .tuple import TupleType
 from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']

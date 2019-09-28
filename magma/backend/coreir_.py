@@ -1,10 +1,10 @@
 from collections import OrderedDict
 from hwtypes import BitVector
 import os
-from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
-from ..array import ArrayKind, ArrayType, Array
-from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind
+from ..bit import VCC, GND, Bit
+# from ..array import ArrayKind, ArrayType, Array
+# from ..tuple import TupleKind, TupleType, Tuple
+# from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -157,8 +157,8 @@ class CoreIRBackend:
         return _type
 
     coreirNamedTypeToPortDict = {
-        "clk": Clock,
-        "coreir.clkIn": Clock
+        # "clk": Clock,
+        # "coreir.clkIn": Clock
     }
 
     def get_ports(self, coreir_type, renamed_ports):
