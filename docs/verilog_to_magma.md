@@ -51,3 +51,23 @@ class Circuit:
             self.rd_ptr = self._rd_ptr + 1
         return orig_rd_ptr
 ```
+
+# Array of registers
+
+## Verilog
+```verilog
+logic [1023:0][15:0] register_array
+```
+
+## Base magma
+```python
+register_array = m.array([mantle.Register(1024) for _ in range 15])
+```
+
+## Sequential Syntax
+```python
+@m.circuit.sequential
+class Circuit:
+    def __init__(self):
+        self.register_array: m.Array[15, m.Bits[1024]] = m.array([m.bits(0, 1024) for _ in range 15])
+```
