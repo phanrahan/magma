@@ -41,14 +41,14 @@ class Circuit:
         self.rd_ptr: m.Bits[10] = m.bits(0, 10)
 
     def __call__(self, read: m.Bit) -> m.Bits[10]:
-        orig_rd_ptr = self.read_ptr
+        orig_rd_ptr = self.rd_ptr
 
         # FIXME: Bug in magma sequential means we always have to specify a next
         # value (won't use current value by default)
         self.rd_ptr = orig_rd_ptr
 
         if read:
-            self.rd_ptr = self._rd_ptr + 1
+            self.rd_ptr = m.uint(self.rd_ptr) + 1
         return orig_rd_ptr
 ```
 

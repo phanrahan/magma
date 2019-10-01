@@ -262,3 +262,32 @@ def test_array_of_bits(target):
             return O
 
     compile_and_check("ArrayOfBitsSeq", ArrayOfBitsSeq, target)
+
+
+def test_rd_ptr(target):
+    m.UIntType.__add__ = lambda x, y: DeclareCoreirCircuit(
+        "add",
+        *["I0", m.In(m.UInt[len(x)]),
+          "I1", m.In(m.UInt[len(x)]),
+          "O", m.Out(m.UInt[len(x)])],
+        coreir_name="add",
+        coreir_genargs={"width": len(x)},
+        coreir_lib="coreir"
+    )()(x, y)
+    @m.circuit.sequential(async_reset=True)
+    class RdPtr:
+        def __init__(self):
+            self.rd_ptr: m.UInt[10] = m.uint(0, 10)
+
+        def __call__(self, read: m.Bit) -> m.Bits[10]:
+            orig_rd_ptr = self.rd_ptr
+
+            # FIXME: Bug in magma sequential means we always have to specify a next
+            # value (won't use current value by default)
+            self.rd_ptr = orig_rd_ptr
+
+            if read:
+                self.rd_ptr = self.rd_ptr + 1
+            return orig_rd_ptr
+
+    compile_and_check("RdPtr", RdPtr, target)
