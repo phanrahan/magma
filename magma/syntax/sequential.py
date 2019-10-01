@@ -189,6 +189,31 @@ def make_{circuit_name}(combinational):
 """
 
 
+def gen_array_str(eval_type, eval_value, async_reset):
+    arr = [gen_reg_inst_str(eval_type.T, eval_value[i], async_reset) for i
+           in range(len(eval_type))]
+    return f"m.join([{', '.join(arr)}])"
+
+
+def gen_reg_inst_str(eval_type, eval_value, async_reset):
+    if isinstance(eval_type, m._BitKind):
+        n = None
+        if isinstance(eval_value, (bool, int)):
+            init = bool(eval_value)
+        else:
+            assert eval_value.name.name in ["GND", "VCC"], eval_value.name
+            init = 0 if eval_value.name.name == "GND" else 1
+    elif isinstance(eval_type, m.ArrayKind) and \
+            isinstance(eval_type.T, m._BitKind):
+        n = len(eval_type)
+        init = int(eval_value)
+    elif isinstance(eval_type, m.ArrayKind):
+        return f"{gen_array_str(eval_type, eval_value, async_reset)}"
+    else:
+        raise NotADirectoryError((eval_type))
+    return f"DefineRegister({n}, init={init}, has_async_reset={async_reset})()"
+
+
 def gen_register_instances(initial_value_map, async_reset):
     """
     Generates a sequence of statements to instance a set of registers from
@@ -207,17 +232,9 @@ def gen_register_instances(initial_value_map, async_reset):
     register_instances = []
     for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
         if isinstance(eval_type, m.Kind):
-            if isinstance(eval_type, m._BitKind):
-                n = None
-                if isinstance(eval_value, (bool, int)):
-                    init = bool(eval_value)
-                else:
-                    assert eval_value.name.name in ["GND", "VCC"], eval_value.name
-                    init = 0 if eval_value.name.name == "GND" else 1
-            else:
-                n = len(eval_type)
-                init = int(eval_value)
-            register_instances.append(f"{name} = DefineRegister({n}, init={init}, has_async_reset={async_reset})()")  # noqa
+            reg_inst_str = gen_reg_inst_str(eval_type, eval_value,
+                                            async_reset)
+            register_instances.append(f"{name} = {reg_inst_str}")
         else:
             value = astor.to_source(value).rstrip()
             register_instances.append(f"{name} = {value}")

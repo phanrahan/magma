@@ -35,7 +35,7 @@ rd_ptr.I <= m.uint(rd.ptr.O) + 1
 (treating `read` as an input)
 
 ```python
-@m.circuit.sequential(has_async_reset=True)
+@m.circuit.sequential(async_reset=True)
 class Circuit:
     def __init__(self):
         self.rd_ptr: m.Bits[10] = m.bits(0, 10)
@@ -61,7 +61,7 @@ logic [1023:0][15:0] register_array
 
 ## Base magma
 ```python
-register_array = m.array([mantle.Register(1024) for _ in range 15])
+register_array = m.array([mantle.Register(1024) for _ in range(15)])
 ```
 
 ## Sequential Syntax
@@ -70,5 +70,5 @@ register_array = m.array([mantle.Register(1024) for _ in range 15])
 class Circuit:
     def __init__(self):
         self.register_array: m.Array[15, m.Bits[1024]] = \
-            m.array([m.bits(0, 1024) for _ in range 15])
+            m.array([m.bits(0, 1024) for _ in range(15)])
 ```
