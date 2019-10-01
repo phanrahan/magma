@@ -61,7 +61,7 @@ logic [1023:0][15:0] register_array
 
 ## Base magma
 ```python
-register_array = m.array([mantle.Register(1024) for _ in range(15)])
+register_array = m.join([mantle.Register(1024) for _ in range(15)])
 ```
 
 ## Sequential Syntax
