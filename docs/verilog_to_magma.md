@@ -35,7 +35,7 @@ rd_ptr.I <= m.uint(rd.ptr.O) + 1
 (treating `read` as an input)
 
 ```python
-m.circuit.sequential
+m.circuit.sequential(has_async_reset=True)
 class Circuit:
     def __init__(self):
         self.rd_ptr: m.Bits[10] = m.bits(0, 10)
