@@ -306,7 +306,10 @@ def test_for_loop(target):
     def logic(a: m.Bits[n]) -> m.Bits[n]:
         O = []
         for i in range(n):
-            O.append(a[n - 1 - i])
+            b = a[n - 1 - i]
+            if i % 2:
+                b = Not()(b)
+            O.append(b)
         return m.bits(O, n)
 
     class Foo(m.Circuit):
