@@ -109,7 +109,22 @@ def logic(a: m.Bits[n]) -> m.Bits[n]:
     return m.bits(O, n)
 ```
 
-produces this verilog
+compiles to this magma circuit
+```python
+class logic(m.Circuit):
+    IO = ['a', m.In(m.Bits[n]), 'O', m.Out(m.Bits[n])]
+
+    @classmethod
+    def definition(io):
+        O_0 = []
+        for i_0 in range(n):
+            O_0.append(io.a[n - 1 - i_0])
+        __magma_ssa_return_value_0 = m.bits(O_0, n)
+        O = __magma_ssa_return_value_0
+        m.wire(O, io.O)
+```
+
+which produces this verilog
 ```python
 module logic (input [3:0] a, output [3:0] O);
 assign O = {a[0],a[1],a[2],a[3]};
