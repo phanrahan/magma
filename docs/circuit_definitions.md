@@ -1,7 +1,26 @@
 # Combinational Circuit Definitions
-Circuit defintions can be marked with the `@m.circuit.combinational` decorator.
-This introduces a set of syntax level features for defining combinational magma
-circuits, including the use of `if` statements to generate `Mux`es.
+The `@m.circuit.combinational` decorator provides a way to use function syntax
+for describing combinational circuits.  Inputs are given names and annotated
+with a Magma type using Python 3's type annotation syntax.  Output type(s) are
+provided using Python 3's return annotation syntax (`->`).  If a single output
+type is specified, the magma circuit will have a single output named `O`.  If
+`n` types are specified separated by commas, the magma circuit will have `n`
+outputs named `O{i}` where `i` is the index of the type in the annotation.
+Inside the combinational function, circuits can be described using control
+flow, specifically `if` statements and `return` statements.  These constructs
+will be compiled by magma using an SSA transformation pass, that turns `if`
+statements into `phi` nodes that are equivalent to hardware muxes.  This
+essentially allows the user to define muxes using if statements instead of
+structural muxes.  All other code is untouched and will be passed through to
+the normal downstream magma compiler, so things like instantiating another
+magma circuit or basic for loops will work.
+
+### Limitations
+Because `if` statements are subject to the SSA transformation passes, normal
+Python `if` statements (e.g. dispatching on a parameter) to a circuit generator
+are not supported.  All `if` statements are treated as if they correspond to
+hardware mux.  Support for the use of both Python `if`s and Magma `if`s is
+forthcoming.
 
 This feature is currently experimental, and therefor expect bugs to occur.
 Please file any issues on the magma GitHub repository.
