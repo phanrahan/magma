@@ -298,3 +298,24 @@ def test_renamed_args_wire(target):
             io.O <= inv.O
 
     compile_and_check("test_renamed_args_wire", Foo, target)
+
+
+def test_for_loop(target):
+    n = 4
+    @m.circuit.combinational
+    def logic(a: m.Bits[n]) -> m.Bits[n]:
+        O = []
+        for i in range(n):
+            O.append(a[n - 1 - i])
+        return m.bits(O, n)
+
+    class Foo(m.Circuit):
+        IO = ["a", m.In(m.Bits[n]),
+              "c", m.Out(m.Bits[n])]
+
+        @classmethod
+        def definition(io):
+            c = logic(io.a)
+            m.wire(c, io.c)
+
+    compile_and_check("for_loop_simple", Foo, target)

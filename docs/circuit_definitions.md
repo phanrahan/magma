@@ -91,6 +91,31 @@ def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
     return m.namedtuple(x=I[0], y=I[1])
 ```
 
+## Basic for loops
+Basic for loops ranging over integer values are supported (they are ignored by
+the syntax transformations so they will be executed as standard Python/magma
+code). However, `if` statements are subject to an `ssa` transformation, so
+they use the above described form (you can only assign to values inside an if
+statement).
+
+This code:
+```python
+n = 4
+@m.circuit.combinational
+def logic(a: m.Bits[n]) -> m.Bits[n]:
+    O = []
+    for i in range(n):
+        O.append(a[n - 1 - i])
+    return m.bits(O, n)
+```
+
+produces this verilog
+```python
+module logic (input [3:0] a, output [3:0] O);
+assign O = {a[0],a[1],a[2],a[3]};
+endmodule
+```
+
 # Sequential Circuit Definition
 The `@m.circuit.sequential` decorator extends the `@m.circuit.combinational`
 syntax with the ability to use Python's class system to describe stateful
