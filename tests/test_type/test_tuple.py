@@ -130,6 +130,7 @@ def test_val():
 
 
 def test_nested():
+    # Test for https://github.com/phanrahan/magma/issues/445
     def hierIO():
         dictIO = {
             "baseIO": baseIO(),
