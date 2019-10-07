@@ -1,3 +1,4 @@
+import magma as m
 from magma import *
 
 def test_pair():
@@ -127,3 +128,45 @@ def test_val():
     assert isinstance(b, BitType)
     assert str(b) == 'a.x'
 
+
+def test_nested():
+    def hierIO():
+        dictIO = {
+            "baseIO": baseIO(),
+            "ctr": m.In(m.Bit)
+        }
+        return m.Tuple(**dictIO)
+
+    def DefineCtrModule():
+        class ctrModule(m.Circuit):
+            name = "ctr_module"
+            IO = ["ctr",m.In(m.Bit)]
+        return ctrModule
+
+    def baseIO():
+        dictIO = {
+            "in0":m.In(m.Bit),
+            "out0":m.Out(m.Bit)
+        }
+        return m.Tuple(**dictIO)
+
+    def DefineBaseModule():
+        class baseModule(m.Circuit):
+            name = "base_module"
+            IO = ["baseIO",baseIO()]
+        return baseModule
+
+    def DefineHier():
+        class HierModule(m.Circuit):
+            name = "hier_module"
+            IO = ["hier", hierIO()]
+            @classmethod
+            def definition(io):
+                baseM = DefineBaseModule()()
+                ctrM = DefineCtrModule()()
+                m.wire(baseM.baseIO,io.hier.baseIO)
+                m.wire(ctrM.ctr,io.hier.ctr)
+        return HierModule
+
+    baseMH = DefineHier()
+    m.compile("build/baseMH", baseMH, output="coreir-verilog")
