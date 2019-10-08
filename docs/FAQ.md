@@ -146,3 +146,21 @@ def make_Reduction(n):
             io.out1 <= reduce(operator.add, io.in_reduction)
 	return Reduction
 ```
+
+# Transpose Matrix
+## Question
+How can I tranpose a 2-d array?
+## Answer
+```python
+def make_Transpose(n0, n1):
+    class Transpose(m.Circuit):
+        IO = ["a", m.In(m.Array[n0, m.Array[n1, m.Bit]]),
+              "b", m.Out(m.Array[n1, m.Array[n0, m.Bit]])]
+        @classmethod
+        def definition(io):
+            for col in range(n0):
+                for row in range(n1):
+                    m.wire(io.b[row][col], io.a[col][row])
+
+    return Transpose
+```
