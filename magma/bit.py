@@ -228,6 +228,9 @@ class Bit(Type, AbstractBit, metaclass=BitMeta):
             t = t.bit
         return t
 
+    def driven(self):
+        return self.port.driven()
+
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]

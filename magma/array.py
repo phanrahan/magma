@@ -1,3 +1,4 @@
+import magma as m
 from abc import ABCMeta
 from collections.abc import Sequence
 from .bitutils import int2seq
@@ -97,41 +98,21 @@ class ArrayMeta(ABCMeta, Kind):
         return cls[cls.N, cls.T.qualify(direction)]
 
 
-class Array(metaclass=ArrayMeta):
+class Array(Type, metaclass=ArrayMeta):
     def __init__(self, *largs, **kwargs):
-
         Type.__init__(self, **kwargs)
-
-        if isinstance(largs, Sequence) and len(largs) == self.N:
-            self.ts = []
-            for t in largs:
-                if isinstance(t, IntegerTypes):
-                    t = VCC if t else GND
-                assert type(t) == self.T or isinstance(type(t), type(self.T)), \
-                    (type(t), self.T)
-                self.ts.append(t)
-        elif len(largs) == 1 and isinstance(largs[0], int):
-            self.ts = []
-            for bit in int2seq(largs[0], self.N):
-                self.ts.append(VCC if bit else GND)
-        elif len(largs) == 1 and isinstance(largs[0], Array):
-            assert len(largs[0]) <= self.N
+        self.ts = []
+        for i in range(self.N):
             T = self.T
-            self.ts = list(type(t)() for t in largs[0])
-            if len(largs[0]) < self.N:
-                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
-        elif len(largs) == 1 and isinstance(largs[0], list):
-            assert len(largs[0]) <= self.N
-            T = self.T
-            self.ts = largs[0][:]
-            if len(largs[0]) < self.N:
-                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
-        else:
-            self.ts = []
-            for i in range(self.N):
-                T = self.T
-                t = T(name=ArrayRef(self, i))
-                self.ts.append(t)
+            t = T(name=ArrayRef(self, i))
+            self.ts.append(t)
+        if largs:
+            if len(largs) == 1 and isinstance(largs[0], list) and \
+                    len(largs[0]) == self.N:
+                for o, i in zip(largs[0], self.ts):
+                    m.wire(o, i)
+                return
+            raise NotImplementedError(largs)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
