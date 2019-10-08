@@ -1,3 +1,5 @@
+import enum
+from abc import abstractclassmethod
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
@@ -6,15 +8,18 @@ __all__  = ['Type', 'Kind']
 __all__ += ['In', 'Out', 'InOut', 'Flip']
 
 
+class Direction(enum.Enum):
+    In = 0
+    Out = 1
+    InOut = 2
+    Flip = 3
+
+
 class Type(object):
     def __init__(self, **kwargs):
-        # ref is int, str or tuple
         name = kwargs.get('name', None)
         if name is None or isinstance(name, str):
-            #print('creating name ref',name)
             name = AnonRef(name=name)
-        #print('using',name)
-        #assert isinstance(name, Ref)
         self.name = name
 
     # subclasses only need to implement one of these methods
@@ -37,24 +42,20 @@ class Type(object):
 
     # abstract method - must be implemented by subclasses
     @classmethod
-    def isoriented(cls, direction):
+    def is_oriented(cls, direction):
         pass
 
     @classmethod
-    def isinput(cls):
-        return cls.isoriented(INPUT)
+    def is_input(cls):
+        return cls.is_oriented(INPUT)
 
     @classmethod
-    def isoutput(self):
-        return self.isoriented(OUTPUT)
+    def is_output(self):
+        return self.is_oriented(OUTPUT)
 
     @classmethod
-    def isinout(self):
-        return self.isoriented(INOUT)
-
-    @classmethod
-    def isbidir(self):
-        return False
+    def is_inout(self):
+        return self.is_oriented(INOUT)
 
     @property
     def debug_name(self):
@@ -75,14 +76,12 @@ class Type(object):
 
 
 class Kind(type):
-    def __init__(cls, name, bases, dct):
-        type.__init__( cls, name, bases, dct)
-
     # subclasses only need to implement one of these methods
     def __eq__(cls, rhs):
-        return not (cls != rhs)
+        return cls is rhs
+
     def __ne__(cls, rhs):
-        return not (cls == rhs)
+        return cls is not rhs
 
     __hash__ = type.__hash__
 
@@ -92,13 +91,12 @@ class Kind(type):
     def __str__(cls):
         return cls.__name__
 
-    # abstract method - must be implemented by subclasses
-    def qualify(cls):
-        pass
+#     @abstractclassmethod
+#     def qualify(cls):
+#         pass
 
-    # abstract method - must be implemented by subclasses
     def flip(cls):
-        pass
+        return cls.qualify(Direction.Flip)
 
 
 

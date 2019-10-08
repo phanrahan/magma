@@ -1,7 +1,8 @@
 import magma as m
-from magma.bit import In, Out, Bit, Flip, VCC, GND
-BitIn = Bit[In]
-BitOut = Bit[Out]
+from magma import In, Out, Flip
+from magma.bit import Bit, VCC, GND
+BitIn = In(Bit)
+BitOut = Out(Bit)
 
 
 def test_bit():
@@ -20,23 +21,23 @@ def test_bit():
 
 def test_bit_flip():
 
-    bout = Bit[Out]
-    bin = Bit[In]
+    bout = Out(Bit)
+    bin = In(Bit)
     assert bout == BitOut
     assert bin == BitIn
 
-    bin = BitIn[In]
-    bout = BitOut[Out]
+    bin = In(BitIn)
+    bout = Out(BitOut)
     assert bout == BitOut
     assert bin == BitIn
 
-    bin = BitOut[In]
-    bout = BitOut[Out]
+    bin = In(BitOut)
+    bout = Out(BitOut)
     assert bout == BitOut
     assert bin == BitIn
 
-    bin = BitOut[Flip]
-    bout = BitIn[Flip]
+    bin = Flip(BitOut)
+    bout = Flip(BitIn)
     assert bout == BitOut
     assert bin == BitIn
 

@@ -30,8 +30,19 @@ from .wire import *
 
 # types
 from .t import *
+
 from .bit import *
-# from .array import *
+
+def In(T):
+    return T.qualify(Direction.In)
+
+def Out(T):
+    return T.qualify(Direction.Out)
+
+def Flip(T):
+    return T.qualify(Direction.Flip)
+
+from .array import *
 # from .bits import *
 # Define default operators that raise exceptions, rename so it doesn't muck
 # with `from magma import *` code that also uses operator

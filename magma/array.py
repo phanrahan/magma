@@ -1,3 +1,4 @@
+from abc import ABCMeta
 from collections.abc import Sequence
 from .bitutils import int2seq
 from .ref import AnonRef, ArrayRef
@@ -9,81 +10,94 @@ from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
 import weakref
 
-__all__ = ['ArrayType', 'ArrayKind', 'Array']
 
-
-class ArrayKind(Kind):
+class ArrayMeta(ABCMeta, Kind):
+    # BitVectorType, size :  BitVectorType[size]
     _class_cache = weakref.WeakValueDictionary()
-    def __init__(cls, name, bases, dct):
-        Kind.__init__(cls, name, bases, dct)
 
-    def __str__(cls):
-        return "Array[%d, %s]" % (cls.N, cls.T)
+    def __new__(cls, name, bases, namespace, info=(None, None, None), **kwargs):
+        # TODO: A lot of this code is shared with AbstractBitVectorMeta, we
+        # should refactor to reuse
+        if '_info_' in namespace:
+            raise TypeError(
+                'class attribute _info_ is reversed by the type machinery')
 
-    def __getitem__(cls, index):
-        width, sub_type = index
+        N, T = info[1:3]
+        for base in bases:
+            if getattr(base, 'is_concrete', False):
+                if (N, T) is (None, None):
+                    (N, T) = (base.N, base.T)
+                elif (N, T) != (base.N, base.T):
+                    raise TypeError(
+                        "Can't inherit from multiple arrays with different N and/or T")
+
+        namespace['_info_'] = info[0], N, T
+        type_ = super().__new__(cls, name, bases, namespace, **kwargs)
+        if (N ,T) == (None, None):
+            #class is abstract so t.abstract -> t
+            type_._info_ = type_, N, T
+        elif info[0] is None:
+            #class inherited from concrete type so there is no abstract t
+            type_._info_ = None, N, T
+
+        return type_
+
+    def __getitem__(cls, index: tuple) -> 'ArrayMeta':
+        mcs = type(cls)
         try:
-            return ArrayKind._class_cache[width, sub_type]
+            return mcs._class_cache[cls, index]
         except KeyError:
             pass
+
+        if not (isinstance(index, tuple) and len(index) == 2):
+            raise TypeError('Parameters to array must be a tuple of length 2')
+
+        if cls.is_concrete:
+            if index == (cls.N, cls.T):
+                return cls
+            else:
+                return cls.abstract_t[index]
+
         bases = [cls]
+        bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
         bases = tuple(bases)
-        class_name = '{}[{}, {}]'.format(cls.__name__, width, sub_type.__name__)
-        t = type(cls)(class_name, bases, dict(N=width, T=sub_type))
-        t.__module__ = cls.__module__
-        ArrayKind._class_cache[width, sub_type] = t
-        return t
+        class_name = '{}[{}]'.format(cls.__name__, index)
+        type_ = mcs(class_name, bases, {}, info=(cls, ) + index)
+        type_.__module__ = cls.__module__
+        mcs._class_cache[cls, index] = type_
+        return type_
 
-    def __eq__(cls, rhs):
-        if not issubclass(type(rhs), ArrayKind):
-            return False
+    @property
+    def abstract_t(cls) -> 'BitMeta':
+        t = cls._info_[0]
+        if t is not None:
+            return t
+        else:
+            raise AttributeError('type {} has no abstract_t'.format(cls))
 
-        if cls.N != rhs.N:
-            return False
-        if cls.T != rhs.T:
-            return False
+    @property
+    def N(cls) -> int:
+        return cls._info_[1]
 
-        return True
+    @property
+    def T(cls):
+        return cls._info_[2]
 
-    __ne__ = Kind.__ne__
-    __hash__ = Kind.__hash__
+    @property
+    def is_concrete(cls) -> bool:
+        return (cls.N, cls.T) != (None, None)
 
     def __len__(cls):
         return cls.N
 
-#     def __getitem__(cls, key):
-#         if isinstance(key, slice):
-#             return array([cls[i] for i in range(*key.indices(len(cls)))])
-#         else:
-#             if not (0 <= key and key < cls.N):
-#                 raise IndexError
-
-#             return cls.ts[key]
-
-    def size(cls):
-        return cls.N * cls.T.size()
+    def __str__(cls):
+        return f"Array[{cls.N}, {cls.T}]"
 
     def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return Array[cls.N, cls.T.qualify(direction)]
-
-    def flip(cls):
-        return Array[cls.N, cls.T.flip()]
-
-    def __call__(cls, *args, **kwargs):
-        result = super().__call__(*args, **kwargs)
-        if len(args) == 1 and isinstance(args[0], Array) and not \
-                (issubclass(cls.T, Array) and cls.N == 1):
-            arg = args[0]
-            if len(arg) < len(result):
-                from .conversions import zext
-                arg = zext(arg, len(result) - len(arg))
-            result(arg)
-        return result
+        return cls[cls.N, cls.T.qualify(direction)]
 
 
-class Array(Type, metaclass=ArrayKind):
+class Array(metaclass=ArrayMeta):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs)
@@ -132,6 +146,14 @@ class Array(Type, metaclass=ArrayKind):
         ts = [repr(t) for t in self.ts]
         return 'array([{}])'.format(', '.join(ts))
 
+    @property
+    def T(self):
+        return type(self).T
+
+    @property
+    def N(self):
+        return type(self).N
+
     def __len__(self):
         return self.N
 
@@ -139,7 +161,8 @@ class Array(Type, metaclass=ArrayKind):
         if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
             key = seq2int([0 if t is GND else 1 for t in key.ts])
         if isinstance(key, slice):
-            return array([self[i] for i in range(*key.indices(len(self)))])
+            _slice = [self[i] for i in range(*key.indices(len(self)))]
+            return Array[len(_slice), self.T](_slice)
         else:
             if not (-self.N <= key and key < self.N):
                 raise IndexError
@@ -272,4 +295,4 @@ ArrayType = Array
 
 
 # Workaround for circular dependency
-from .conversions import array, concat  # nopep8
+# from .conversions import array, concat  # nopep8

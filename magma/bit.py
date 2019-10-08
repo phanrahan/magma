@@ -1,19 +1,12 @@
 import weakref
 import typing as tp
-import enum
 from abc import ABCMeta
 import functools
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .debug import debug_wire
 from .compatibility import IntegerTypes
 from .port import report_wiring_error, Port
-
-
-class Direction(enum.Enum):
-    In = 0
-    Out = 1
-    InOut = 2
-    Flip = 3
+from .t import Type, Kind, Direction
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -30,8 +23,7 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
     return wrapped
 
 
-class BitMeta(ABCMeta):
-    # BitVectorType, size :  BitVectorType[size]
+class BitMeta(ABCMeta, Kind):
     _class_cache = weakref.WeakValueDictionary()
 
     def __new__(cls, name, bases, namespace, info=(None, None), **kwargs):
@@ -61,7 +53,7 @@ class BitMeta(ABCMeta):
 
         return type_
 
-    def __getitem__(cls, direction: Direction) -> 'AbstractBitVectorMeta':
+    def __getitem__(cls, direction: Direction) -> 'BitMeta':
         mcs = type(cls)
         try:
             return mcs._class_cache[cls, direction]
@@ -118,8 +110,14 @@ class BitMeta(ABCMeta):
             return f"Bit[{cls.direction.name}]"
         return "Bit"
 
+    def qualify(cls, direction):
+        return cls[direction]
 
-class Bit(AbstractBit, metaclass=BitMeta):
+    def flip(cls):
+        return cls.qualify[direction.Flip]
+
+
+class Bit(Type, AbstractBit, metaclass=BitMeta):
     @staticmethod
     def get_family() -> TypeFamily:
         # TODO: We'll probably have a circular dependency issue if types are
@@ -129,9 +127,8 @@ class Bit(AbstractBit, metaclass=BitMeta):
         return _Family_
 
     def __init__(self, value=None, name=None):
-        self.name = name
+        super().__init__(name=name)
         # TODO: Port debug_name code
-        self.debug_name = name
         if value is None:
             self._value = None
         elif isinstance(value, Bit):
@@ -184,14 +181,6 @@ class Bit(AbstractBit, metaclass=BitMeta):
         # Don't think we can suppor this in magma
         raise NotImplementedError()
 
-    def __str__(self) -> str:
-        if self.name is not None:
-            return self.name
-        return 'Bit({})'.format(self._value)
-
-    def __repr__(self) -> str:
-        return 'Bit({})'.format(self._value)
-
     # def __hash__(self) -> int:
     #     return hash(self._value)
 
@@ -240,11 +229,8 @@ class Bit(AbstractBit, metaclass=BitMeta):
         return t
 
 
-In = Direction.In
-Out = Direction.Out
-Flip = Direction.Flip
-BitIn = Bit[In]
-BitOut = Bit[Out]
+BitIn = Bit[Direction.In]
+BitOut = Bit[Direction.Out]
 VCC = BitOut(1, name="VCC")
 GND = BitOut(0, name="GND")
 
