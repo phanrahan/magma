@@ -1,0 +1,172 @@
+{"top":"global.ArrayOfBitsSeq",
+"namespaces":{
+  "global":{
+    "modules":{
+      "ArrayOfBitsSeq":{
+        "type":["Record",[
+          ["I",["Array",15,["Array",1024,"BitIn"]]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]],
+          ["O",["Array",15,["Array",1024,"Bit"]]]
+        ]],
+        "instances":{
+          "ArrayOfBitsSeq_comb_inst0":{
+            "modref":"global.ArrayOfBitsSeq_comb"
+          },
+          "reg_PR_inst0":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst1":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst10":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst11":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst12":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst13":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst14":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst2":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst3":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst4":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst5":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst6":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst7":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst8":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          },
+          "reg_PR_inst9":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",1024]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",1024],"1024'h0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}
+          }
+        },
+        "connections":[
+          ["self.I","ArrayOfBitsSeq_comb_inst0.I"],
+          ["reg_PR_inst0.in","ArrayOfBitsSeq_comb_inst0.O0.0"],
+          ["reg_PR_inst10.in","ArrayOfBitsSeq_comb_inst0.O0.10"],
+          ["reg_PR_inst11.in","ArrayOfBitsSeq_comb_inst0.O0.11"],
+          ["reg_PR_inst12.in","ArrayOfBitsSeq_comb_inst0.O0.12"],
+          ["reg_PR_inst13.in","ArrayOfBitsSeq_comb_inst0.O0.13"],
+          ["reg_PR_inst14.in","ArrayOfBitsSeq_comb_inst0.O0.14"],
+          ["reg_PR_inst1.in","ArrayOfBitsSeq_comb_inst0.O0.1"],
+          ["reg_PR_inst2.in","ArrayOfBitsSeq_comb_inst0.O0.2"],
+          ["reg_PR_inst3.in","ArrayOfBitsSeq_comb_inst0.O0.3"],
+          ["reg_PR_inst4.in","ArrayOfBitsSeq_comb_inst0.O0.4"],
+          ["reg_PR_inst5.in","ArrayOfBitsSeq_comb_inst0.O0.5"],
+          ["reg_PR_inst6.in","ArrayOfBitsSeq_comb_inst0.O0.6"],
+          ["reg_PR_inst7.in","ArrayOfBitsSeq_comb_inst0.O0.7"],
+          ["reg_PR_inst8.in","ArrayOfBitsSeq_comb_inst0.O0.8"],
+          ["reg_PR_inst9.in","ArrayOfBitsSeq_comb_inst0.O0.9"],
+          ["self.O","ArrayOfBitsSeq_comb_inst0.O1"],
+          ["reg_PR_inst0.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.0"],
+          ["reg_PR_inst10.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.10"],
+          ["reg_PR_inst11.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.11"],
+          ["reg_PR_inst12.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.12"],
+          ["reg_PR_inst13.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.13"],
+          ["reg_PR_inst14.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.14"],
+          ["reg_PR_inst1.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.1"],
+          ["reg_PR_inst2.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.2"],
+          ["reg_PR_inst3.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.3"],
+          ["reg_PR_inst4.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.4"],
+          ["reg_PR_inst5.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.5"],
+          ["reg_PR_inst6.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.6"],
+          ["reg_PR_inst7.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.7"],
+          ["reg_PR_inst8.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.8"],
+          ["reg_PR_inst9.out","ArrayOfBitsSeq_comb_inst0.self_register_array_O.9"],
+          ["self.ASYNCRESET","reg_PR_inst0.arst"],
+          ["self.CLK","reg_PR_inst0.clk"],
+          ["self.ASYNCRESET","reg_PR_inst1.arst"],
+          ["self.CLK","reg_PR_inst1.clk"],
+          ["self.ASYNCRESET","reg_PR_inst10.arst"],
+          ["self.CLK","reg_PR_inst10.clk"],
+          ["self.ASYNCRESET","reg_PR_inst11.arst"],
+          ["self.CLK","reg_PR_inst11.clk"],
+          ["self.ASYNCRESET","reg_PR_inst12.arst"],
+          ["self.CLK","reg_PR_inst12.clk"],
+          ["self.ASYNCRESET","reg_PR_inst13.arst"],
+          ["self.CLK","reg_PR_inst13.clk"],
+          ["self.ASYNCRESET","reg_PR_inst14.arst"],
+          ["self.CLK","reg_PR_inst14.clk"],
+          ["self.ASYNCRESET","reg_PR_inst2.arst"],
+          ["self.CLK","reg_PR_inst2.clk"],
+          ["self.ASYNCRESET","reg_PR_inst3.arst"],
+          ["self.CLK","reg_PR_inst3.clk"],
+          ["self.ASYNCRESET","reg_PR_inst4.arst"],
+          ["self.CLK","reg_PR_inst4.clk"],
+          ["self.ASYNCRESET","reg_PR_inst5.arst"],
+          ["self.CLK","reg_PR_inst5.clk"],
+          ["self.ASYNCRESET","reg_PR_inst6.arst"],
+          ["self.CLK","reg_PR_inst6.clk"],
+          ["self.ASYNCRESET","reg_PR_inst7.arst"],
+          ["self.CLK","reg_PR_inst7.clk"],
+          ["self.ASYNCRESET","reg_PR_inst8.arst"],
+          ["self.CLK","reg_PR_inst8.clk"],
+          ["self.ASYNCRESET","reg_PR_inst9.arst"],
+          ["self.CLK","reg_PR_inst9.clk"]
+        ]
+      },
+      "ArrayOfBitsSeq_comb":{
+        "type":["Record",[
+          ["I",["Array",15,["Array",1024,"BitIn"]]],
+          ["self_register_array_O",["Array",15,["Array",1024,"BitIn"]]],
+          ["O0",["Array",15,["Array",1024,"Bit"]]],
+          ["O1",["Array",15,["Array",1024,"Bit"]]]
+        ]],
+        "connections":[
+          ["self.O0","self.I"],
+          ["self.self_register_array_O","self.O1"]
+        ]
+      }
+    }
+  }
+}
+}
