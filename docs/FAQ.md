@@ -1,3 +1,23 @@
+# fork 
+## Question
+For example, we have `in_data` as an input to a cell. Then I have a row module
+which instantiates 10 of those cells. How do I expand `in_data` to `[in_data]*10`?
+
+## Answer
+The most idiomatic way to do this would be to use magma's fork operator, here is an
+example of taking a single input `in_data` and *forking* the input to 10 instances
+of an `Invert` cell.
+```python
+class RowInvert(m.Circuit):
+    IO = ["in_data", m.In(m.Bits[8]), "out_data", m.Out(m.Array[10, m.Bits[8]])]
+    @classmethod
+    def definition(io):
+        io.out_data <= m.fork([mantle.Invert(8) for _ in range(10)])(io.in_data)
+```
+See the documentation on `fork`
+(https://github.com/phanrahan/magma/blob/master/docs/higher_order_circuits.md#join-flat-and-fork)
+for more information.
+
 # join vs array
 ## Question
 I tried to instantiate an array of `mantle.CounterLoad` as follows.
