@@ -112,3 +112,37 @@ def make_Declaration(n, ...):
     # circuit
     return m.DeclareCircuit("Declaration", *IO)
 ```
+
+# Reduction Tree
+## Question
+How can I implement the following example verilog code for a reduction tree?
+```verilog
+always_comb
+begin
+    out = 0;
+    for(int i=0;i<REDUCTION_LENGTH;i=i+1)
+        out = out + in_reduction[i]
+end
+```
+
+## Answer
+There are two options, the above example can be directly translated using a for loop, or you can use Python's `reduce` function:
+```python
+def make_Reduction(n):
+    class Reduction(m.Circuit):
+        IO = ["in_reduction", m.In(m.Array[n, m.UInt[8]]),
+              "out0", m.Out(m.UInt[8]), "out1", m.Out(m.UInt[8])]
+        @classmethod
+        def definition(io):
+            # Option 1 with for loop
+            out = m.uint(0, 8)
+            for i in range(n):
+                out += io.in_reduction[i]
+            io.out0 <= out
+
+            # Option 2 with reduce
+            from functools import reduce
+            import operator
+            io.out1 <= reduce(operator.add, io.in_reduction)
+	return Reduction
+```
