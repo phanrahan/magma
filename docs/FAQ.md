@@ -22,7 +22,7 @@ and convert them into an `m.Array` type.  In this case, you're trying to convert
 a list of instances and "join" there interfaces into an array. For this pattern,
 use magma's `m.join` higher order circuit operator:
 ```
-iter_num = m.array(
+iter_num = m.join(
     [mantle.CounterLoad(cntr_width, cin=False, cout=False, incr=1, has_ce=True,
                         has_reset=True, name=f"iter_num_{i}") 
      for i in range(num_cntrs)]
