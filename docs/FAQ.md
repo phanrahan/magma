@@ -1,3 +1,30 @@
+# Statically Elaborated For Loop in Combinational Circuit
+## Question
+How can I use a for loop that is evaluated at compile (Python) time inside
+a combinational circuit definition?  For example:
+```python
+@m.combinational.circuit
+def find_first(I: Bits[n]) -> Bits[n]:
+  for i in range(n):
+    if I[i]:
+      return m.Bits[n](2 ** i)
+  return m.Bits[n](0)
+```
+## Answer
+This feature is forthcoming, until then, it is recommended to not use combinational
+for this kind of metaprogramming, and instead use base magma. Here is an example of
+writing the above circuit without the combinational syntax.
+```python
+class FindFirst(m.Circuit):
+    IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
+    @classmethod
+    def definition(io):
+        out = m.bits(0, n)
+        for i in reversed(range(n)):
+            out = mantle.mux([out, m.bits(2 ** i, n)], io.I[i])
+        io.O <= out
+```
+
 # fork 
 ## Question
 For example, we have `in_data` as an input to a cell. Then I have a row module
