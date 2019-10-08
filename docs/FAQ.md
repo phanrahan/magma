@@ -78,3 +78,37 @@ iter_num = m.join(
 See
 https://github.com/phanrahan/magma/blob/master/docs/higher_order_circuits.md#join-flat-and-fork
 for more information.
+
+# Dynamically Declared Circuit Interface
+## Question
+How do I declare a dynamically constructed circuit interface?
+## Answer
+There are two ways to do this using the standard subclassing `m.Circuit` syntax
+and the `m.DeclareCircuit` syntax:
+
+Option 1:
+```python
+def make_Declaration(n, ...):
+    class Declaration(m.Circuit):
+        # Create IO list
+        IO = []
+        # Dynamically add things to the list
+        for i in range(n):
+            IO += [f"I{n}", m.In(m.Bits[i + 1])]
+        IO += ["O", m.Out(m.Bits[n + 1])]
+    return Declaration
+```
+
+Option 2:
+```python
+def make_Declaration(n, ...):
+    # Create IO list
+    IO = []
+    # Dynamically add things to the list
+    for i in range(n):
+        IO += [f"I{n}", m.In(m.Bits[i + 1])]
+    IO += ["O", m.Out(m.Bits[n + 1])]
+    # Use "splat/asterix" (*) operator to turn list into arguments to declare
+    # circuit
+    return m.DeclareCircuit("Declaration", *IO)
+```
