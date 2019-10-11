@@ -74,5 +74,34 @@ def test_array_nesting():
     assert check_files_equal(__file__, f"build/test_array_nesting.json",
                              f"gold/test_array_nesting.json")
 
+
+def test_anon_tuple():
+    foo = m.DefineCircuit("Foo", "ifc", m.Tuple(m.In(m.Bit), m.Out(m.Bit)))
+    m.wire(foo.ifc[0], foo.ifc[1])
+    m.EndCircuit()
+    m.compile("build/test_anon_tuple", foo, output="coreir")
+    assert check_files_equal(__file__, f"build/test_anon_tuple.json",
+                             f"gold/test_anon_tuple.json")
+
+
+def test_nested_anon_tuple():
+    foo = m.DefineCircuit("Foo", "ifc", m.Array[2, m.Tuple(m.In(m.Bit), m.Out(m.Bit))])
+    m.wire(foo.ifc[0][0], foo.ifc[1][1])
+    m.wire(foo.ifc[1][0], foo.ifc[0][1])
+    m.EndCircuit()
+    m.compile("build/test_nested_anon_tuple", foo, output="coreir")
+    assert check_files_equal(__file__, f"build/test_nested_anon_tuple.json",
+                             f"gold/test_nested_anon_tuple.json")
+
+
+def test_anon_tuple_nested_array():
+    foo = m.DefineCircuit("Foo", "ifc", m.Tuple(m.In(m.Bits[2]), m.Out(m.Bits[2])))
+    m.wire(foo.ifc[0][0], foo.ifc[1][1])
+    m.wire(foo.ifc[0][1], foo.ifc[1][0])
+    m.EndCircuit()
+    m.compile("build/test_anon_tuple_nested_array", foo, output="coreir")
+    assert check_files_equal(__file__, f"build/test_anon_tuple_nested_array.json",
+                             f"gold/test_anon_tuple_nested_array.json")
+
 if __name__ == "__main__":
     test_multi_direction_tuple()

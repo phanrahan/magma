@@ -1,0 +1,17 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["ifc",["Record",[["_0",["Array",2,"BitIn"]],["_1",["Array",2,"Bit"]]]]]
+        ]],
+        "connections":[
+          ["self.ifc._1.1","self.ifc._0.0"],
+          ["self.ifc._1.0","self.ifc._0.1"]
+        ]
+      }
+    }
+  }
+}
+}
