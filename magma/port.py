@@ -86,6 +86,9 @@ class Wire:
     def __init__(self):
         self.inputs = []
         self.outputs = []
+    def disconnect( self, o, i):
+        self.outputs.remove(o)
+        self.inputs.remove(i)
 
     def connect( self, o, i , debug_info):
         """
@@ -161,6 +164,10 @@ class Port:
     def anon(self):
         return self.bit.anon()
 
+    def unwire(i, o):
+        o.wires.disconnect(o, i)
+
+    # wire a port to a port
     def wire(i, o, debug_info):
         """
         Wire a port to a port.
