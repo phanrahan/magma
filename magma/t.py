@@ -4,9 +4,6 @@ from .ref import Ref, AnonRef, DefnRef, InstRef
 from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
 
-__all__  = ['Type', 'Kind']
-__all__ += ['In', 'Out', 'InOut', 'Flip']
-
 
 class Direction(enum.Enum):
     In = 0
@@ -25,6 +22,7 @@ class Type(object):
     # subclasses only need to implement one of these methods
     def __eq__(self, rhs):
         return not (self != rhs)
+
     def __ne__(self, rhs):
         return not (self == rhs)
 
@@ -43,19 +41,19 @@ class Type(object):
     # abstract method - must be implemented by subclasses
     @classmethod
     def is_oriented(cls, direction):
-        pass
+        raise NotImplementedError()
 
     @classmethod
     def is_input(cls):
-        return cls.is_oriented(INPUT)
+        return cls.is_oriented(Direction.In)
 
     @classmethod
     def is_output(self):
-        return self.is_oriented(OUTPUT)
+        return self.is_oriented(Direction.Out)
 
     @classmethod
     def is_inout(self):
-        return self.is_oriented(INOUT)
+        return self.is_oriented(Direction.InOut)
 
     @property
     def debug_name(self):
@@ -69,7 +67,7 @@ class Type(object):
         return f"{defn_str}{inst_str}{str(self)}"
 
     def __le__(self, other):
-        if self.isinput():
+        if self.is_input():
             self.wire(other)
         else:
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
@@ -78,10 +76,7 @@ class Type(object):
 class Kind(type):
     # subclasses only need to implement one of these methods
     def __eq__(cls, rhs):
-        return cls is rhs
-
-    def __ne__(cls, rhs):
-        return cls is not rhs
+        raise NotImplementedError()
 
     __hash__ = type.__hash__
 
@@ -99,16 +94,17 @@ class Kind(type):
         return cls.qualify(Direction.Flip)
 
 
-
-
 def In(T):
-    return T.qualify(direction=INPUT)
+    return T.qualify(Direction.In)
+
 
 def Out(T):
-    return T.qualify(direction=OUTPUT)
+    return T.qualify(Direction.Out)
+
 
 def InOut(T):
-    return T.qualify(direction=INOUT)
+    return T.qualify(Direction.InOut)
+
 
 def Flip(T):
-    return T.flip()
+    return T.qualify(Direction.Flip)

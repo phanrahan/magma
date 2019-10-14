@@ -116,6 +116,11 @@ class BitMeta(ABCMeta, Kind):
     def flip(cls):
         return cls.qualify[direction.Flip]
 
+    def __eq__(cls, rhs):
+        return cls is rhs
+
+    __hash__ = type.__hash__
+
 
 class Bit(Type, AbstractBit, metaclass=BitMeta):
     @staticmethod
@@ -144,6 +149,10 @@ class Bit(Type, AbstractBit, metaclass=BitMeta):
         else:
             raise TypeError("Can't coerce {} to Bit".format(type(value)))
         self.port = Port(self)
+
+    @classmethod
+    def is_oriented(cls, direction):
+        return cls.direction == direction
 
     def __invert__(self):
         return self.__invert()(self)
@@ -192,6 +201,14 @@ class Bit(Type, AbstractBit, metaclass=BitMeta):
 
     def is_inout(self):
         return type(self).direction == Direction.InOut
+
+    def __repr__(self):
+        if self is VCC:
+            return '1'
+        if self is GND:
+            return '0'
+
+        return super().__repr__()
 
     @debug_wire
     def wire(self, o, debug_info):

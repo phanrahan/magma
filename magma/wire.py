@@ -11,7 +11,7 @@ __all__ = ['wire']
 
 
 @debug_wire
-def wire(o, i, debug_info):
+def wire(o, i, debug_info=None):
 
     # Wire(o, Circuit)
     if hasattr(i, 'interface'):

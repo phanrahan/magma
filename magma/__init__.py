@@ -33,23 +33,14 @@ from .t import *
 
 from .bit import *
 
-def In(T):
-    return T.qualify(Direction.In)
-
-def Out(T):
-    return T.qualify(Direction.Out)
-
-def Flip(T):
-    return T.qualify(Direction.Flip)
-
 from .array import *
-# from .bits import *
+from .bits import *
 # Define default operators that raise exceptions, rename so it doesn't muck
 # with `from magma import *` code that also uses operator
 # import magma.operators
 # from .tuple import *
 # from .clock import *
-# from .conversions import *
+from .conversions import *
 # from .interface import *
 
 # circuit

@@ -1,7 +1,6 @@
-import magma as m
+import weakref
 from abc import ABCMeta
-from collections.abc import Sequence
-from .bitutils import int2seq
+import magma as m
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind
 from .compatibility import IntegerTypes
@@ -9,7 +8,6 @@ from .bit import VCC, GND
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
-import weakref
 
 
 class ArrayMeta(ABCMeta, Kind):
@@ -52,6 +50,9 @@ class ArrayMeta(ABCMeta, Kind):
 
         if not (isinstance(index, tuple) and len(index) == 2):
             raise TypeError('Parameters to array must be a tuple of length 2')
+        if not isinstance(index[0], int) or index[0] <= 0:
+            raise TypeError(f'Length of array must be an int greater than 0, got: {index[0]}')
+
 
         if cls.is_concrete:
             if index == (cls.N, cls.T):
@@ -62,8 +63,9 @@ class ArrayMeta(ABCMeta, Kind):
         bases = [cls]
         bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
         bases = tuple(bases)
+        orig_name = cls.__name__
         class_name = '{}[{}]'.format(cls.__name__, index)
-        type_ = mcs(class_name, bases, {}, info=(cls, ) + index)
+        type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, ) + index)
         type_.__module__ = cls.__module__
         mcs._class_cache[cls, index] = type_
         return type_
@@ -97,22 +99,55 @@ class ArrayMeta(ABCMeta, Kind):
     def qualify(cls, direction):
         return cls[cls.N, cls.T.qualify(direction)]
 
+    def __eq__(cls, rhs):
+        if not isinstance(rhs, ArrayMeta):
+            return False
+        return (cls.N == rhs.N) and (cls.T == rhs.T)
+
+    __hash__ = type.__hash__
+
 
 class Array(Type, metaclass=ArrayMeta):
-    def __init__(self, *largs, **kwargs):
+    def __init__(self, *args, **kwargs):
         Type.__init__(self, **kwargs)
         self.ts = []
-        for i in range(self.N):
-            T = self.T
-            t = T(name=ArrayRef(self, i))
-            self.ts.append(t)
-        if largs:
-            if len(largs) == 1 and isinstance(largs[0], list) and \
-                    len(largs[0]) == self.N:
-                for o, i in zip(largs[0], self.ts):
-                    m.wire(o, i)
-                return
-            raise NotImplementedError(largs)
+        if args:
+            if len(args) == self.N:
+                self.ts = []
+                for t in args:
+                    if isinstance(t, IntegerTypes):
+                        t = VCC if t else GND
+                    assert type(t) == self.T or isinstance(type(t), type(self.T)), \
+                        (type(t), self.T)
+                    self.ts.append(t)
+            elif len(args) == 1:
+                if isinstance(args[0], list):
+                    if len(args[0]) != self.N:
+                        raise ValueError("Array list constructor can only be used with list equal to array length")
+                    self.ts = args[0][:]
+                elif isinstance(args[0], Array):
+                    if len(args[0]) != len(self):
+                        raise TypeError(f"Will not do implicit conversion of arrays")
+                    self.ts = args[0].ts[:]
+                elif len(args) == 1 and isinstance(args[0], int):
+                    self.ts = []
+                    for bit in m.bitutils.int2seq(args[0], self.N):
+                        self.ts.append(VCC if bit else GND)
+                else:
+                    raise NotImplementedError(type(args[0]))
+            else:
+                raise NotImplementedError(args)
+        else:
+            for i in range(self.N):
+                T = self.T
+                t = T(name=ArrayRef(self, i))
+                self.ts.append(t)
+
+    @classmethod
+    def is_oriented(cls, direction):
+        if cls.T is None:
+            return False
+        return cls.T.is_oriented(direction)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
@@ -238,7 +273,7 @@ class Array(Type, metaclass=ArrayMeta):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(ts)
+        return type(self)(*ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -250,7 +285,7 @@ class Array(Type, metaclass=ArrayMeta):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(ts)
+        return type(self)(*ts)
 
     def const(self):
         for t in self.ts:
@@ -262,15 +297,9 @@ class Array(Type, metaclass=ArrayMeta):
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
-    def concat(self, *args):
-        return concat(self, *args)
+    def concat(self, other) -> 'AbstractBitVector':
+        return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
 
-
-# def Array(N, T):
-#     assert isinstance(N, IntegerTypes)
-#     assert isinstance(T, Kind)
-#     name = 'Array(%d,%s)' % (N, str(T))
-#     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
 
 ArrayType = Array
 

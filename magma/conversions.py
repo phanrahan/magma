@@ -2,37 +2,40 @@ import functools
 from collections.abc import Sequence
 from .compatibility import IntegerTypes
 from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
-from .bit import _BitKind, _BitType, Bit, BitType, VCC, GND
-from .clock import ClockType, Clock, \
-    Reset, ResetType, \
-    AsyncReset, AsyncResetType, \
-    Enable, EnableType
-from .array import ArrayType, Array, ArrayKind
-from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
-    SIntKind, BFloat
-from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
+from .bit import Bit, VCC, GND, BitMeta
+# from .clock import ClockType, Clock, \
+#     Reset, ResetType, \
+#     AsyncReset, AsyncResetType, \
+#     Enable, EnableType
+from .array import Array
+from .bits import Bits
+# from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
+#     SIntKind, BFloat
+# from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 import magma as m
 import hwtypes
 
-__all__ = ['bit']
-__all__ += ['clock', 'reset', 'enable', 'asyncreset']
+# __all__ = ['bit']
+# __all__ += ['clock', 'reset', 'enable', 'asyncreset']
 
-__all__ += ['array']
-__all__ += ['bits', 'uint', 'sint']
+# __all__ += ['array']
+# __all__ += ['bits', 'uint', 'sint']
 
-__all__ += ['tuple_', 'namedtuple']
+# __all__ += ['tuple_', 'namedtuple']
 
-__all__ += ['concat', 'repeat']
-__all__ += ['sext', 'zext']
+# __all__ += ['concat', 'repeat']
+# __all__ += ['sext', 'zext']
 
 
 def can_convert_to_bit(value):
-    return isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes))
+    # return isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes))
+    return isinstance(value, (Bit, Array, IntegerTypes))
 
 
 def can_convert_to_bit_type(value):
-    return isinstance(value, (_BitKind, ArrayKind, TupleKind))
+    # return isinstance(value, (_BitKind, ArrayKind, TupleKind))
+    return isinstance(value, (Bit, Array))
 
 
 def convertbit(value, totype, T):
@@ -90,13 +93,15 @@ def enable(value):
     return convertbit(value, EnableType, Enable)
 
 
-def convertbits(value, n, totype, totypeconstructor, checkbit):
+def convertbits(value, n, totype, checkbit):
     if isinstance(value, totype):
         if n is not None and n != len(value):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
         return value
 
-    convertible_types = (_BitType, TupleType, ArrayType, IntegerTypes,
+    # convertible_types = (_BitType, TupleType, ArrayType, IntegerTypes,
+    #                      Sequence)
+    convertible_types = (Bit, Array, IntegerTypes,
                          Sequence)
     if not isinstance(value, convertible_types):
         raise ValueError(
@@ -130,7 +135,7 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
     # check that they are all the same
     for t in Ts:
         if checkbit:
-            if not isinstance(t, _BitKind):
+            if not isinstance(t, BitMeta):
                 raise ValueError(
                     "bits can only be used on Arrays or Tuples containing bits"
                     f", not : {t}")
@@ -153,7 +158,7 @@ def convertbits(value, n, totype, totypeconstructor, checkbit):
             INOUT: InOut
         }[T.direction](Bit)
 
-    return totypeconstructor[len(Ts), T](*ts)
+    return totype[len(Ts), T](*ts)
 
 
 def array(value, n=None):
@@ -161,7 +166,7 @@ def array(value, n=None):
 
 
 def bits(value, n=None):
-    return convertbits(value, n, BitsType, Bits, True)
+    return convertbits(value, n, Bits, True)
 
 
 def uint(value, n=None):

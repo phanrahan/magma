@@ -39,10 +39,10 @@ def test_val():
     assert m.Flip(bits_4_out) == bits_4_in
 
     a_0 = bits_4_out(name='a0')
-    print(a_0)
+    print(a_0, type(a_0))
 
     a_1 = bits_4_in(name='a1')
-    print(a_1)
+    print(a_1, type(a_1))
 
     a_1.wire(a_0)
 
