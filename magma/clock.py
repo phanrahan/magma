@@ -9,8 +9,14 @@ __all__ += ['Clock', 'ClockIn', 'ClockOut']
 __all__ += ['ResetKind', 'ResetType']
 __all__ += ['Reset', 'ResetIn', 'ResetOut']
 
+__all__ += ['ResetNKind', 'ResetNType']
+__all__ += ['ResetN', 'ResetNIn', 'ResetNOut']
+
 __all__ += ['AsyncResetKind', 'AsyncResetType']
 __all__ += ['AsyncReset', 'AsyncResetIn', 'AsyncResetOut']
+
+__all__ += ['AsyncResetNKind', 'AsyncResetNType']
+__all__ += ['AsyncResetN', 'AsyncResetNIn', 'AsyncResetNOut']
 
 __all__ += ['EnableKind', 'EnableType']
 __all__ += ['Enable', 'EnableIn', 'EnableOut']
