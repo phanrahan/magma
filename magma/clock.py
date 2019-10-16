@@ -9,8 +9,14 @@ __all__ += ['Clock', 'ClockIn', 'ClockOut']
 __all__ += ['ResetKind', 'ResetType']
 __all__ += ['Reset', 'ResetIn', 'ResetOut']
 
+__all__ += ['ResetNKind', 'ResetNType']
+__all__ += ['ResetN', 'ResetNIn', 'ResetNOut']
+
 __all__ += ['AsyncResetKind', 'AsyncResetType']
 __all__ += ['AsyncReset', 'AsyncResetIn', 'AsyncResetOut']
+
+__all__ += ['AsyncResetNKind', 'AsyncResetNType']
+__all__ += ['AsyncResetN', 'AsyncResetNIn', 'AsyncResetNOut']
 
 __all__ += ['EnableKind', 'EnableType']
 __all__ += ['Enable', 'EnableIn', 'EnableOut']
@@ -45,7 +51,7 @@ Clock = ClockKind('Clock', (ClockType,), {})
 ClockIn = ClockKind('Clock', (ClockType,), dict(direction=INPUT))
 ClockOut = ClockKind('Clock', (ClockType,), dict(direction=OUTPUT))
 
-
+# synchronous reset, active high (i.e. reset when signal is 1)
 class ResetKind(_BitKind):
     def __str__(cls):
         if cls.isinput():  return 'In(Reset)'
@@ -70,6 +76,32 @@ Reset = ResetKind('Reset', (ResetType,), {})
 ResetIn = ResetKind('Reset', (ResetType,), dict(direction=INPUT))
 ResetOut = ResetKind('Reset', (ResetType,), dict(direction=OUTPUT))
 
+# synchronous reset, active low (i.e. reset when signal is 0)
+class ResetNKind(_BitKind):
+    def __str__(cls):
+        if cls.isinput():  return 'In(ResetN)'
+        if cls.isoutput(): return 'Out(ResetN)'
+        return 'ResetN'
+
+    def qualify(cls, direction):
+        if   direction is None:   return ResetN
+        elif direction == INPUT:  return ResetNIn
+        elif direction == OUTPUT: return ResetNOut
+        return cls
+
+    def flip(cls):
+        if   cls.isoriented(INPUT):  return ResetNOut
+        elif cls.isoriented(OUTPUT): return ResetNIn
+        return cls
+
+class ResetNType(_BitType):
+    pass
+
+ResetN = ResetNKind('ResetN', (ResetNType,), {})
+ResetNIn = ResetNKind('ResetN', (ResetNType,), dict(direction=INPUT))
+ResetNOut = ResetNKind('ResetN', (ResetNType,), dict(direction=OUTPUT))
+
+# asynchronous reset, active high (i.e. reset when signal is 1)
 class AsyncResetKind(_BitKind):
     def __str__(cls):
         if cls.isinput():  return 'In(AsyncReset)'
@@ -93,6 +125,31 @@ class AsyncResetType(_BitType):
 AsyncReset = AsyncResetKind('AsyncReset', (AsyncResetType,), {})
 AsyncResetIn = AsyncResetKind('AsyncReset', (AsyncResetType,), dict(direction=INPUT))
 AsyncResetOut = AsyncResetKind('AsyncReset', (AsyncResetType,), dict(direction=OUTPUT))
+
+# asynchronous reset, active low (i.e. reset when signal is 0)
+class AsyncResetNKind(_BitKind):
+    def __str__(cls):
+        if cls.isinput():  return 'In(AsyncResetN)'
+        if cls.isoutput(): return 'Out(AsyncResetN)'
+        return 'AsyncResetN'
+
+    def qualify(cls, direction):
+        if   direction is None:   return AsyncResetN
+        elif direction == INPUT:  return AsyncResetNIn
+        elif direction == OUTPUT: return AsyncResetNOut
+        return cls
+
+    def flip(cls):
+        if   cls.isoriented(INPUT):  return AsyncResetNOut
+        elif cls.isoriented(OUTPUT): return AsyncResetNIn
+        return cls
+
+class AsyncResetNType(_BitType):
+    pass
+
+AsyncResetN = AsyncResetNKind('AsyncResetN', (AsyncResetNType,), {})
+AsyncResetNIn = AsyncResetNKind('AsyncResetN', (AsyncResetNType,), dict(direction=INPUT))
+AsyncResetNOut = AsyncResetNKind('AsyncResetN', (AsyncResetNType,), dict(direction=OUTPUT))
 
 # Preset
 # Clear
