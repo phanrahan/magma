@@ -1,12 +1,8 @@
-import weakref
 import typing as tp
-from abc import ABCMeta
 import functools
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
-from .debug import debug_wire
-from .compatibility import IntegerTypes
-from .port import report_wiring_error, Port
-from .t import Type, Kind, Direction
+from .t import Direction
+from .digital import Digital
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -23,106 +19,9 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
     return wrapped
 
 
-class BitMeta(ABCMeta, Kind):
-    _class_cache = weakref.WeakValueDictionary()
+class Bit(Digital, AbstractBit):
+    __hash__ = Digital.__hash__
 
-    def __new__(cls, name, bases, namespace, info=(None, None), **kwargs):
-        # TODO: A lot of this code is shared with AbstractBitVectorMeta, we
-        # should refactor to reuse
-        if '_info_' in namespace:
-            raise TypeError(
-                'class attribute _info_ is reversed by the type machinery')
-
-        direction = info[1]
-        for base in bases:
-            if getattr(base, 'is_directed', False):
-                if direction is None:
-                    direction = base.direction
-                elif direction != base.direction:
-                    raise TypeError(
-                        "Can't inherit from multiple different directions")
-
-        namespace['_info_'] = info[0], direction
-        type_ = super().__new__(cls, name, bases, namespace, **kwargs)
-        if direction is None:
-            #class is unundirected so t.unundirected_t -> t
-            type_._info_ = type_, direction
-        elif info[0] is None:
-            #class inherited from directed types so there is no unundirected_t
-            type_._info_ = None, direction
-
-        return type_
-
-    def __getitem__(cls, direction: Direction) -> 'BitMeta':
-        mcs = type(cls)
-        try:
-            return mcs._class_cache[cls, direction]
-        except KeyError:
-            pass
-
-        if not isinstance(direction, Direction):
-            raise TypeError('Direction of Bit must be an instance of m.Direction')
-
-        if cls.is_directed:
-            if direction == cls.direction:
-                return cls
-            elif direction == direction.Flip:
-                if cls.direction == direction.In:
-                    return cls[direction.Out]
-                elif cls.direction == direction.Out:
-                    return cls[direction.In]
-                else:
-                    # Flip of inout is inout
-                    return cls
-            else:
-                return cls.undirected_t[direction]
-
-        bases = [cls]
-        bases.extend(b[direction] for b in cls.__bases__ if isinstance(b, mcs))
-        bases = tuple(bases)
-        class_name = '{}[{}]'.format(cls.__name__, direction)
-        type_ = mcs(class_name, bases, {}, info=(cls, direction))
-        type_.__module__ = cls.__module__
-        mcs._class_cache[cls, direction] = type_
-        return type_
-
-    @property
-    def undirected_t(cls) -> 'BitMeta':
-        t = cls._info_[0]
-        if t is not None:
-            return t
-        else:
-            raise AttributeError('type {} has no undirected_t'.format(cls))
-
-    @property
-    def direction(cls) -> int:
-        return cls._info_[1]
-
-    @property
-    def is_directed(cls) -> bool:
-        return cls.direction is not None
-
-    def __len__(cls):
-        return 1
-
-    def __str__(cls):
-        if cls.is_directed:
-            return f"Bit[{cls.direction.name}]"
-        return "Bit"
-
-    def qualify(cls, direction):
-        return cls[direction]
-
-    def flip(cls):
-        return cls.qualify[direction.Flip]
-
-    def __eq__(cls, rhs):
-        return cls is rhs
-
-    __hash__ = type.__hash__
-
-
-class Bit(Type, AbstractBit, metaclass=BitMeta):
     @staticmethod
     def get_family() -> TypeFamily:
         # TODO: We'll probably have a circular dependency issue if types are
@@ -148,11 +47,13 @@ class Bit(Type, AbstractBit, metaclass=BitMeta):
             self._value = bool(value)
         else:
             raise TypeError("Can't coerce {} to Bit".format(type(value)))
-        self.port = Port(self)
 
-    @classmethod
-    def is_oriented(cls, direction):
-        return cls.direction == direction
+    def const(self):
+        return self is VCC or self is GND
+
+    @property
+    def direction(self):
+        return type(self).direction
 
     def __invert__(self):
         return self.__invert()(self)
@@ -193,15 +94,6 @@ class Bit(Type, AbstractBit, metaclass=BitMeta):
     # def __hash__(self) -> int:
     #     return hash(self._value)
 
-    def is_input(self):
-        return type(self).direction == Direction.In
-
-    def is_output(self):
-        return type(self).direction == Direction.Out
-
-    def is_inout(self):
-        return type(self).direction == Direction.InOut
-
     def __repr__(self):
         if self is VCC:
             return '1'
@@ -209,44 +101,6 @@ class Bit(Type, AbstractBit, metaclass=BitMeta):
             return '0'
 
         return super().__repr__()
-
-    @debug_wire
-    def wire(self, o, debug_info):
-        i = self
-        # promote integer types to LOW/HIGH
-        if isinstance(o, IntegerTypes):
-            o = HIGH if o else LOW
-
-        if not isinstance(o, Bit):
-            report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} (type={type(o)}) because {o.debug_name} is not a Bit', debug_info)
-            return
-
-        i.port.wire(o.port, debug_info)
-        i.debug_info = debug_info
-        o.debug_info = debug_info
-
-    def anon(self):
-        return self.name is None
-
-    def wired(self):
-        return self.port.wired()
-
-    # return the input or output Bit connected to this Bit
-    def trace(self):
-        t = self.port.trace()
-        if t:
-            t = t.bit
-        return t
-
-    # return the output Bit connected to this input Bit
-    def value(self):
-        t = self.port.value()
-        if t:
-            t = t.bit
-        return t
-
-    def driven(self):
-        return self.port.driven()
 
 
 BitIn = Bit[Direction.In]

@@ -39,7 +39,7 @@ from .bits import *
 # with `from magma import *` code that also uses operator
 # import magma.operators
 # from .tuple import *
-# from .clock import *
+from .clock import *
 from .conversions import *
 # from .interface import *
 

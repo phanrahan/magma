@@ -1,8 +1,24 @@
+import warnings
 import enum
 from abc import abstractclassmethod
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
+
+
+# From http://code.activestate.com/recipes/391367-deprecated/
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+    def newFunc(*args, **kwargs):
+        warnings.warn("Call to deprecated function %s." % func.__name__,
+                      category=DeprecationWarning)
+        return func(*args, **kwargs)
+    newFunc.__name__ = func.__name__
+    newFunc.__doc__ = func.__doc__
+    newFunc.__dict__.update(func.__dict__)
+    return newFunc
 
 
 class Direction(enum.Enum):
@@ -48,12 +64,27 @@ class Type(object):
         return cls.is_oriented(Direction.In)
 
     @classmethod
-    def is_output(self):
-        return self.is_oriented(Direction.Out)
+    def is_output(cls):
+        return cls.is_oriented(Direction.Out)
 
     @classmethod
-    def is_inout(self):
-        return self.is_oriented(Direction.InOut)
+    def is_inout(cls):
+        return cls.is_oriented(Direction.InOut)
+
+    @classmethod
+    @deprecated
+    def isinput(cls):
+        return cls.is_input()
+
+    @classmethod
+    @deprecated
+    def isoutput(cls):
+        return cls.is_output()
+
+    @classmethod
+    @deprecated
+    def isinout(cls):
+        return cls.is_inout()
 
     @property
     def debug_name(self):

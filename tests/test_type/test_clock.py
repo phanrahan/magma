@@ -1,26 +1,31 @@
-import pytest
 import tempfile
+import pytest
 from magma import In, Out, Flip, \
-    Clock, ClockType, ClockKind, \
-    Reset, ResetType, ResetKind, reset, \
-    Enable, EnableType, EnableKind, enable, \
-    AsyncReset, AsyncResetType, AsyncResetKind, \
+    Clock, \
+    Reset, reset, \
+    Enable, enable, \
+    AsyncReset, \
     DeclareCircuit, DefineCircuit, EndCircuit, \
     Bit, bit, wire, compile
 
+from magma.digital import DigitalMeta
+
+
 def test_clock():
-    assert isinstance(Clock, ClockKind)
+    assert isinstance(Clock, DigitalMeta)
     assert Clock == Clock
+    assert not (Clock != Clock)
     assert str(Clock) == 'Clock'
+
 
 def test_clock_flip():
     ClockOut = Out(Clock)
-    assert isinstance(ClockOut, ClockKind)
-    assert str(ClockOut) == 'Out(Clock)'
+    assert issubclass(ClockOut, Clock)
+    assert str(ClockOut) == 'Clock[Out]'
 
     ClockIn = In(Clock)
-    assert isinstance(ClockIn, ClockKind)
-    assert str(ClockIn) == 'In(Clock)'
+    assert issubclass(ClockIn, Clock)
+    assert str(ClockIn) == 'Clock[In]'
 
     clockin = In(ClockIn)
     clockout = Out(ClockIn)
@@ -37,27 +42,30 @@ def test_clock_flip():
     assert clockout == ClockOut
     assert clockin == ClockIn
 
+
 def test_clock_val():
     b = Clock(name="a")
     assert str(b) == "a"
-    assert isinstance(b, ClockType)
     assert isinstance(b, Clock)
     assert not b.isinput()
     assert not b.isoutput()
 
+
 def test_reset():
-    assert isinstance(Reset, ResetKind)
+    assert isinstance(Reset, DigitalMeta)
     assert Reset == Reset
+    assert not (Reset != Reset)
     assert str(Reset) == 'Reset'
+
 
 def test_reset_flip():
     ResetOut = Out(Reset)
-    assert isinstance(ResetOut, ResetKind)
-    assert str(ResetOut) == 'Out(Reset)'
+    assert issubclass(ResetOut, Reset)
+    assert str(ResetOut) == 'Reset[Out]'
 
     ResetIn = In(Reset)
-    assert isinstance(ResetIn, ResetKind)
-    assert str(ResetIn) == 'In(Reset)'
+    assert issubclass(ResetIn, Reset)
+    assert str(ResetIn) == 'Reset[In]'
 
     resetin = In(ResetIn)
     resetout = Out(ResetIn)
@@ -74,28 +82,31 @@ def test_reset_flip():
     assert resetout == ResetOut
     assert resetin == ResetIn
 
+
 def test_reset_val():
     b = Reset(name="a")
     assert str(b) == "a"
-    assert isinstance(b, ResetType)
     assert isinstance(b, Reset)
     assert not b.isinput()
     assert not b.isoutput()
     assert not b.isinout()
 
+
 def test_enable():
-    assert isinstance(Enable, EnableKind)
+    assert isinstance(Enable, DigitalMeta)
     assert Enable == Enable
+    assert not (Enable != Enable)
     assert str(Enable) == 'Enable'
+
 
 def test_enable_flip():
     EnableOut = Out(Enable)
-    assert isinstance(EnableOut, EnableKind)
-    assert str(EnableOut) == 'Out(Enable)'
+    assert issubclass(EnableOut, Enable)
+    assert str(EnableOut) == 'Enable[Out]'
 
     EnableIn = In(Enable)
-    assert isinstance(EnableIn, EnableKind)
-    assert str(EnableIn) == 'In(Enable)'
+    assert issubclass(EnableIn, Enable)
+    assert str(EnableIn) == 'Enable[In]'
 
     enablein = In(EnableIn)
     enableout = Out(EnableIn)
@@ -112,13 +123,14 @@ def test_enable_flip():
     assert enableout == EnableOut
     assert enablein == EnableIn
 
+
 def test_enable_val():
     b = Enable(name="a")
     assert str(b) == "a"
-    assert isinstance(b, EnableType)
     assert isinstance(b, Enable)
     assert not b.isinput()
     assert not b.isoutput()
+
 
 @pytest.mark.parametrize("T", [Clock, AsyncReset])
 def test_coreir_wrap(T):

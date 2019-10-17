@@ -2,15 +2,13 @@ import functools
 from collections.abc import Sequence
 from .compatibility import IntegerTypes
 from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
-from .bit import Bit, VCC, GND, BitMeta
-# from .clock import ClockType, Clock, \
-#     Reset, ResetType, \
-#     AsyncReset, AsyncResetType, \
-#     Enable, EnableType
+from .digital import Digital
+from .bit import Bit, VCC, GND
+from .digital import DigitalMeta
+from .clock import Clock, Reset, AsyncReset, Enable
 from .array import Array
-from .bits import Bits
-# from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
-#     SIntKind, BFloat
+from .bits import Bits, UInt, SInt, BFloat
+from .digital import Digital
 # from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
 from .bitutils import int2seq
 import magma as m
@@ -30,15 +28,15 @@ import hwtypes
 
 def can_convert_to_bit(value):
     # return isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes))
-    return isinstance(value, (Bit, Array, IntegerTypes))
+    return isinstance(value, (Digital, Array, IntegerTypes))
 
 
 def can_convert_to_bit_type(value):
     # return isinstance(value, (_BitKind, ArrayKind, TupleKind))
-    return isinstance(value, (Bit, Array))
+    return isinstance(value, (Digital, Array))
 
 
-def convertbit(value, totype, T):
+def convertbit(value, totype):
     if isinstance(value, totype):
         return value
 
@@ -47,50 +45,51 @@ def convertbit(value, totype, T):
             "bit can only be used on a Bit, an Array, or an int"
             f"; not {type(value)}")
 
-    if isinstance(value, (ArrayType, TupleType)):
+    # if isinstance(value, (Array, Tuple)):
+    if isinstance(value, (Array)):
         if len(value) != 1:
             raise ValueError(
                 "bit can only be used on arrays and tuples of length 1"
                 f"; not {type(value)}")
         value = value[0]
-        if not isinstance(value, _BitType):
+        if not isinstance(value, Digital):
             raise ValueError(
                 "bit can only be used on arrays and tuples of bits"
                 f"; not {type(value)}")
 
-    assert isinstance(value, (IntegerTypes, _BitType))
+    assert isinstance(value, (IntegerTypes, Digital))
 
     if isinstance(value, IntegerTypes):
         value = VCC if value else GND
 
     if value.isinput():
-        b = In(T)(name=value.name)
+        b = In(totype)(name=value.name)
     elif value.isoutput():
-        b = Out(T)(name=value.name)
+        b = Out(totype)(name=value.name)
     else:
-        b = T()
+        b = totype()
     b.port = value.port
     return b
 
 
 def bit(value):
-    return convertbit(value, BitType, Bit)
+    return convertbit(value, Bit)
 
 
 def clock(value):
-    return convertbit(value, ClockType, Clock)
+    return convertbit(value, Clock)
 
 
 def reset(value):
-    return convertbit(value, ResetType, Reset)
+    return convertbit(value, Reset)
 
 
 def asyncreset(value):
-    return convertbit(value, AsyncResetType, AsyncReset)
+    return convertbit(value, AsyncReset)
 
 
 def enable(value):
-    return convertbit(value, EnableType, Enable)
+    return convertbit(value, Enable)
 
 
 def convertbits(value, n, totype, checkbit):
@@ -115,7 +114,7 @@ def convertbits(value, n, totype, checkbit):
         ts = int2seq(value, n)
     elif isinstance(value, Sequence):
         ts = list(value)
-    elif isinstance(value, _BitType):
+    elif isinstance(value, Digital):
         if n is None:
             ts = [value]
         else:
@@ -135,7 +134,7 @@ def convertbits(value, n, totype, checkbit):
     # check that they are all the same
     for t in Ts:
         if checkbit:
-            if not isinstance(t, BitMeta):
+            if not isinstance(t, DigitalMeta):
                 raise ValueError(
                     "bits can only be used on Arrays or Tuples containing bits"
                     f", not : {t}")
@@ -162,7 +161,7 @@ def convertbits(value, n, totype, checkbit):
 
 
 def array(value, n=None):
-    return convertbits(value, n, ArrayType, Array, False)
+    return convertbits(value, n, Array, False)
 
 
 def bits(value, n=None):
@@ -170,19 +169,19 @@ def bits(value, n=None):
 
 
 def uint(value, n=None):
-    if isinstance(value, SIntType):
+    if isinstance(value, SInt):
         raise ValueError("uint cannot convert SInt")
-    return convertbits(value, n, UIntType, UInt, True)
+    return convertbits(value, n, UInt, True)
 
 
 def sint(value, n=None):
-    if isinstance(value, UIntType):
+    if isinstance(value, UInt):
         raise ValueError("uint cannot convert SInt")
-    return convertbits(value, n, SIntType, SInt, True)
+    return convertbits(value, n, SInt, True)
 
 
 def bfloat(value, n=None):
-    return convertbits(value, n, BFloat, BFloat, True)
+    return convertbits(value, n, BFloat, True)
 
 
 def concat(*arrays):
@@ -196,7 +195,7 @@ def concat(*arrays):
 
 
 def repeat(value, n):
-    if isinstance(value, BitType):
+    if isinstance(value, Bit):
         repeats = bits(n * [value])
     else:
         repeats = array(n * [value])
@@ -214,29 +213,29 @@ def check_value_is_not_input(fn):
 
 # @check_value_is_not_input
 def zext(value, n):
-    assert isinstance(value, (UIntType, SIntType, BitsType)) or \
-        isinstance(value, ArrayType) and isinstance(value.T, _BitKind)
-    if isinstance(value, UIntType):
+    assert isinstance(value, (UInt, SInt, Bits)) or \
+        isinstance(value, Array) and isinstance(value.T, Digital)
+    if isinstance(value, UInt):
         zeros = uint(0, n)
-    elif isinstance(value, SIntType):
+    elif isinstance(value, SInt):
         zeros = sint(0, n)
-    elif isinstance(value, BitsType):
+    elif isinstance(value, Bits):
         zeros = bits(0, n)
-    elif isinstance(value, ArrayType):
+    elif isinstance(value, Array):
         zeros = array(0, n)
     result = concat(value, zeros)
-    if isinstance(value, UIntType):
+    if isinstance(value, UInt):
         return uint(result)
-    elif isinstance(value, SIntType):
+    elif isinstance(value, SInt):
         return sint(result)
-    elif isinstance(value, BitsType):
+    elif isinstance(value, Bits):
         return bits(result)
     return result
 
 
 # @check_value_is_not_input
 def sext(value, n):
-    assert isinstance(value, SIntType)
+    assert isinstance(value, SInt)
     return sint(concat(array(value), array(value[-1], n)))
 
 

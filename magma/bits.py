@@ -75,11 +75,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             o = bits(o, len(i))
         super().wire(o, debug_info)
 
-    def zext(self, value):
-        from .conversions import zext
-        t = zext(self, value)
-        return t
-
     def __getitem__(self, key):
         result = super().__getitem__(key)
         if isinstance(key, slice):
@@ -208,45 +203,13 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 BitsType = Bits
 
 
-# class UInt(Bits):
-#     def __repr__(self):
-#         if not isinstance(self.name, AnonRef):
-#             return repr(self.name)
-#         ts = [repr(t) for t in self.ts]
-#         return 'uint([{}])'.format(', '.join(ts))
-
-#     def __getitem__(self, key):
-#         from .conversions import uint
-#         result = super().__getitem__(key)
-#         if isinstance(key, slice):
-#             return uint(result)
-#         return result
+class UInt(Bits):
+    pass
 
 
-# class SInt(Bits):
-#     def __repr__(self):
-#         if not isinstance(self.name, AnonRef):
-#             return repr(self.name)
-#         ts = [repr(t) for t in self.ts]
-#         return 'sint([{}])'.format(', '.join(ts))
-
-#     def __int__(self):
-#         if not self.const():
-#             raise Exception("Can't call __int__ on a non-constant")
-#         return SIntVector[len(self)](self.bits()).as_sint()
-
-#     def sext(self, value):
-#         from .conversions import sext
-#         return sext(self, value)
-
-# UIntType = UInt
-# SIntType = SInt
+class SInt(Bits):
+    pass
 
 
 class BFloat(Bits):
     pass
-    # def __getitem__(self, key):
-    #     result = super().__getitem__(key)
-    #     if isinstance(key, slice):
-    #         return BFloat[len(result)](result)
-    #     return result

@@ -112,7 +112,25 @@ class Array(Type, metaclass=ArrayMeta):
         Type.__init__(self, **kwargs)
         self.ts = []
         if args:
-            if len(args) == self.N:
+            if len(args) == 1 and isinstance(args[0], (list, Array, int)):
+                if isinstance(args[0], list):
+                    if len(args[0]) != self.N:
+                        raise ValueError("Array list constructor can only be used with list equal to array length")
+                    self.ts = []
+                    for elem in args[0]:
+                        if isinstance(elem, int):
+                            self.ts.append(VCC if elem else GND)
+                        else:
+                            self.ts.append(elem)
+                elif isinstance(args[0], Array):
+                    if len(args[0]) != len(self):
+                        raise TypeError(f"Will not do implicit conversion of arrays")
+                    self.ts = args[0].ts[:]
+                elif isinstance(args[0], int):
+                    self.ts = []
+                    for bit in m.bitutils.int2seq(args[0], self.N):
+                        self.ts.append(VCC if bit else GND)
+            elif len(args) == self.N:
                 self.ts = []
                 for t in args:
                     if isinstance(t, IntegerTypes):
@@ -120,21 +138,6 @@ class Array(Type, metaclass=ArrayMeta):
                     assert type(t) == self.T or isinstance(type(t), type(self.T)), \
                         (type(t), self.T)
                     self.ts.append(t)
-            elif len(args) == 1:
-                if isinstance(args[0], list):
-                    if len(args[0]) != self.N:
-                        raise ValueError("Array list constructor can only be used with list equal to array length")
-                    self.ts = args[0][:]
-                elif isinstance(args[0], Array):
-                    if len(args[0]) != len(self):
-                        raise TypeError(f"Will not do implicit conversion of arrays")
-                    self.ts = args[0].ts[:]
-                elif len(args) == 1 and isinstance(args[0], int):
-                    self.ts = []
-                    for bit in m.bitutils.int2seq(args[0], self.N):
-                        self.ts.append(VCC if bit else GND)
-                else:
-                    raise NotImplementedError(type(args[0]))
             else:
                 raise NotImplementedError(args)
         else:
