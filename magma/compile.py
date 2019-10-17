@@ -63,6 +63,8 @@ def __compile_to_coreir(main, file_name, opts):
                 deps.add(key.coreir_lib)
             elif hasattr(key, 'wrappedModule'):
                 deps |= key.coreir_wrapped_modules_libs_used
+        for namespace in namespaces:
+            deps.add(namespace)
         # TODO(rsetaluri): Expose compilation to verilog in pycoreir rather than
         # calling the binary from the command line.
         lib_arg = ""

@@ -4,12 +4,12 @@ import os
 from ..bit import VCC, GND, Bit
 # from ..array import ArrayKind, ArrayType, Array
 # from ..tuple import TupleKind, TupleType, Tuple
-# from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind
+# from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind, ResetNKind, AsyncResetNKind
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
 import coreir
-from ..ref import ArrayRef, DefnRef, TupleRef
+from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
 from ..passes import InstanceGraphPass
 from ..t import In
 import logging
@@ -45,31 +45,28 @@ class keydefaultdict(defaultdict):
             ret = self[key] = self.default_factory(key)
             return ret
 
-def get_top_name(name):
-    if isinstance(name, TupleRef):
-        return get_top_name(name.tuple.name)
-    if isinstance(name, ArrayRef):
-        return get_top_name(name.array.name)
-    return name
+
+def name_to_coreir_select(name):
+    if isinstance(name, InstRef):
+        return name.inst.name + "." + str(name.name)
+    elif isinstance(name, DefnRef):
+        return "self." + name.name
+    elif isinstance(name, ArrayRef):
+        return name_to_coreir_select(name.array.name) + "." + str(name.index)
+    elif isinstance(name, TupleRef):
+        index = name.index
+        try:
+            int(index)
+            index = f"_{index}"
+        except ValueError:
+            pass
+        return name_to_coreir_select(name.tuple.name) + "." + index
+    else:
+        raise NotImplementedError(name)
+
 
 def magma_port_to_coreir(port):
-    select = repr(port)
-
-    name = port.name
-    if isinstance(name, TupleRef):
-        # Prefix integer indexes for unnamed tuples (e.g. 0, 1, 2) with "_"
-        if name.index.isdigit():
-            select = select.split(".")
-            select[-1] = "_" + select[-1]
-            select = ".".join(select)
-    name = get_top_name(name)
-    if isinstance(name, DefnRef):
-        if name.defn.name != "":
-            select_list = select.split(".")
-            select_list[0] = "self"
-            select = ".".join(select_list)
-
-    return select.replace("[", ".").replace("]", "")
+    return name_to_coreir_select(port.name)
 
 # Singleton context meant to be used with coreir/magma code
 @singleton
@@ -113,7 +110,7 @@ class CoreIRBackend:
             elif isinstance(port, TupleKind):
                 for (k, t) in zip(port.Ks, port.Ts):
                     check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
-            elif isinstance(port, (BitKind, ClockKind, EnableKind, ResetKind, AsyncResetKind)):
+            elif isinstance(port, (BitKind, ClockKind, EnableKind, ResetKind, AsyncResetKind, ResetNKind, AsyncResetNKind)):
                 return
             else:
                 raise CoreIRBackendError(errorMessage.format(str(port)))
