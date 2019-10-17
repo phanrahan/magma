@@ -204,3 +204,12 @@ endmodule""", external_modules={"foo": foo})
     assert pytest_e.type is Exception
     assert pytest_e.value.args == \
         ("Modules defined in both external_modules and in parsed verilog: {'foo'}",)  # nopep8
+
+
+def test_nested_array():
+    modules = m.DefineFromVerilog("""
+    module top (in);
+        input [7:0] in [0:3];
+    endmodule""")
+    for module in modules:
+        print (module)
