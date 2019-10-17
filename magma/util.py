@@ -10,11 +10,11 @@ def BitOrBits(width):
 
 
 def pretty_str(t):
-    if isinstance(t, m.TupleKind):
+    if issubclass(t, m.Tuple):
         args = []
-        for i in range(t.N):
-            key_str = str(t.Ks[i])
-            val_str = pretty_str(t.Ts[i])
+        for i in range(len(t)):
+            key_str = str(t.keys()[i])
+            val_str = pretty_str(t.types()[i])
             indent = " " * 4
             val_str = f"\n{indent}".join(val_str.splitlines())
             args.append(f"{key_str} = {val_str}")
@@ -24,9 +24,9 @@ def pretty_str(t):
         # Insert first newline + indent and last newline
         result = "\n    " + result + "\n"
         s = f"Tuple({result})"
-    elif isinstance(t, m.BitsKind):
+    elif issubclass(t, m.Bits):
         s = str(t)
-    elif isinstance(t, m.ArrayKind):
+    elif issubclass(t, m.Array):
         s = f"Array[{t.N}, {pretty_str(t.T)}]"
     else:
         s = str(t)

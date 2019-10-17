@@ -4,38 +4,43 @@ from magma import *
 def test_pair():
     # types
 
-    A2 = Tuple(Bit, Bit)
+    A2 = Tuple[Bit, Bit]
     print(A2)
-    assert isinstance(A2, TupleKind)
+    assert isinstance(A2, TupleMeta)
     print(str(A2))
     assert A2 == A2
 
-    B2 = Tuple(In(Bit), In(Bit))
-    assert isinstance(B2, TupleKind)
+    B2 = Tuple[In(Bit), In(Bit)]
+    assert isinstance(B2, TupleMeta)
     assert B2 == B2
 
-    C2 = Tuple(Out(Bit), Out(Bit))
-    assert isinstance(C2, TupleKind)
+    C2 = Tuple[Out(Bit), Out(Bit)]
+    assert isinstance(C2, TupleMeta)
     #assert str(C2) == 'Tuple(x=Out(Bit),y=Out(Bit))'
     assert C2 == C2
 
 def test_dict():
     # types
-
-    A2 = Tuple(x=Bit, y=Bit)
+    class A2(Product):
+        x = Bit
+        y = Bit
     print(A2)
-    assert isinstance(A2, TupleKind)
+    assert isinstance(A2, ProductMeta)
     print(str(A2))
     #assert str(A2) == 'Tuple(x=Bit,y=Bit)'
     assert A2 == A2
 
-    B2 = Tuple(x=In(Bit), y=In(Bit))
-    assert isinstance(B2, TupleKind)
+    class B2(Product):
+        x = In(Bit)
+        y = In(Bit)
+    assert isinstance(B2, ProductMeta)
     #assert str(B2) == 'Tuple(x=In(Bit),y=In(Bit))'
     assert B2 == B2
 
-    C2 = Tuple(x=Out(Bit), y=Out(Bit))
-    assert isinstance(C2, TupleKind)
+    class C2(Product):
+        x = Out(Bit)
+        y = Out(Bit)
+    assert isinstance(C2, ProductMeta)
     #assert str(C2) == 'Tuple(x=Out(Bit),y=Out(Bit))'
     assert C2 == C2
 
@@ -44,18 +49,20 @@ def test_dict():
     assert B2 != C2
 
 def test_flip():
-    Tuple2 = Tuple(x=In(Bit), y=Out(Bit))
-    print(Tuple2)
-    print(Flip(Tuple2))
+    class Product2(Product):
+        x = In(Bit)
+        y = Out(Bit)
+    print(Product2)
+    print(Flip(Product2))
 
-    Tin = In(Tuple2)
-    Tout = Out(Tuple2)
+    Tin = In(Product2)
+    Tout = Out(Product2)
 
     print(Tin)
     print(Tout)
 
-    assert Tin != Tuple2
-    assert Tout != Tuple2
+    assert Tin != Product2
+    assert Tout != Product2
     assert Tin != Tout
 
     T = In(Tout)
@@ -73,12 +80,14 @@ def test_flip():
     #print(T)
 
 def test_wire():
-    Tuple2 = Tuple(x=Bit, y=Bit)
+    class Product2(Product):
+        x = Bit
+        y = Bit
 
-    t0 = Tuple2(name='t0')
+    t0 = Product2(name='t0')
     #assert t0.direction is None
 
-    t1 = Tuple2(name='t1')
+    t1 = Product2(name='t1')
     #assert t1.direction is None
 
     wire(t0, t1)
@@ -107,36 +116,37 @@ def test_wire():
     print('outputs:', [str(p) for p in wires.outputs])
 
 def test_val():
-    A2 = Tuple(x=Bit, y=Bit)
+    class A2(Product):
+        x = Bit
+        y = Bit
 
     # constructor
 
     a = A2(name='a')
     print('created A2')
-    assert isinstance(a, TupleType)
+    assert isinstance(a, Product)
     assert str(a) == 'a'
 
     # selectors
 
     print('a["x"]')
     b = a['x']
-    assert isinstance(b, BitType)
+    assert isinstance(b, Bit)
     assert str(b) == 'a.x'
 
     print('a.x')
     b = a.x
-    assert isinstance(b, BitType)
+    assert isinstance(b, Bit)
     assert str(b) == 'a.x'
 
 
 def test_nested():
     # Test for https://github.com/phanrahan/magma/issues/445
     def hierIO():
-        dictIO = {
-            "baseIO": baseIO(),
-            "ctr": m.In(m.Bit)
-        }
-        return m.Tuple(**dictIO)
+        class dictIO(Product):
+            baseIO = make_baseIO()
+            ctr = m.In(m.Bit)
+        return dictIO
 
     def DefineCtrModule():
         class ctrModule(m.Circuit):
@@ -144,17 +154,16 @@ def test_nested():
             IO = ["ctr",m.In(m.Bit)]
         return ctrModule
 
-    def baseIO():
-        dictIO = {
-            "in0":m.In(m.Bit),
-            "out0":m.Out(m.Bit)
-        }
-        return m.Tuple(**dictIO)
+    def make_baseIO():
+        class dictIO(Product):
+            in0 = m.In(m.Bit),
+            out0 = m.Out(m.Bit)
+        return dictIO
 
     def DefineBaseModule():
         class baseModule(m.Circuit):
             name = "base_module"
-            IO = ["baseIO",baseIO()]
+            IO = ["baseIO",make_baseIO()]
         return baseModule
 
     def DefineHier():

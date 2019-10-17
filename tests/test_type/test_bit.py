@@ -15,8 +15,8 @@ def test_bit():
     assert m.BitIn != m.BitOut
 
     assert str(m.Bit) == 'Bit'
-    assert str(m.BitIn) == 'Bit[In]'
-    assert str(m.BitOut) == 'Bit[Out]'
+    assert str(m.BitIn) == 'In(Bit)'
+    assert str(m.BitOut) == 'Out(Bit)'
 
 
 def test_bit_flip():

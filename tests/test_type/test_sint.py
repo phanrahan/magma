@@ -69,4 +69,4 @@ def test_flip():
 def test_construct():
     a1 = sint([1,1])
     print(type(a1))
-    assert isinstance(a1, SIntType)
+    assert isinstance(a1, SInt)

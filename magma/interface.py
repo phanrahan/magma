@@ -36,7 +36,7 @@ def parse(decl):
             name = i//2
         port = decl[i+1] # type
 
-        assert isinstance(port, Kind) or isinstance(port, Type)
+        assert isinstance(port, Kind) or isinstance(port, Type), (port, type(port))
 
 
         names.append(name)

@@ -2,7 +2,7 @@ import typing as tp
 import functools
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
-from .digital import Digital
+from .digital import Digital, DigitalMeta
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -19,7 +19,19 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
     return wrapped
 
 
-class Bit(Digital, AbstractBit):
+class BitMeta(DigitalMeta):
+    def __str__(cls):
+        name = "Bit"
+        if cls.is_input():
+            name = f"In({name})"
+        elif cls.is_output():
+            name = f"Out({name})"
+        elif cls.is_output():
+            name = f"InOut({name})"
+        return name
+
+
+class Bit(Digital, AbstractBit, metaclass=BitMeta):
     __hash__ = Digital.__hash__
 
     @staticmethod

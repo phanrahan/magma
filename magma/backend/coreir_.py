@@ -3,7 +3,7 @@ from hwtypes import BitVector
 import os
 from ..bit import VCC, GND, Bit
 from ..array import Array
-# from ..tuple import TupleKind, TupleType, Tuple
+from ..tuple import Tuple
 from ..clock import wiredefaultclock, wireclock, Clock, Enable, Reset, \
     AsyncReset, ResetN, AsyncResetN
 from ..bitutils import seq2int
@@ -108,9 +108,9 @@ class CoreIRBackend:
             if issubclass(port, Array):
                 check_type(port.T, errorMessage.format("Array({}, {})").format(
                     str(port.N), "{}"))
-            # elif isinstance(port, TupleKind):
-            #     for (k, t) in zip(port.Ks, port.Ts):
-            #         check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
+            elif issubclass(port, Tuple):
+                for (k, t) in zip(port.keys(), port.types()):
+                    check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
             elif issubclass(port, (Bit, Clock, Enable, Reset, AsyncReset, ResetN, AsyncResetN)):
                 return
             else:
@@ -121,21 +121,21 @@ class CoreIRBackend:
     def get_type(self, port):
         if issubclass(port, Array):
             _type = self.context.Array(port.N, self.get_type(port.T))
-        # elif isinstance(port, (TupleType, TupleKind)):
-        #     def to_string(k):
-        #         """
-        #         Unnamed tuples have integer keys (e.g. 0, 1, 2),
-        #         we prefix them with "_" so they can be consumed by coreir's
-        #         Record type (key names are constrained such that they can't be
-        #         integers)
-        #         """
-        #         if isinstance(k, int):
-        #             return f"_{k}"
-        #         return k
-        #     _type = self.context.Record({
-        #         to_string(k): self.get_type(t) for (k, t) in
-        #         zip(port.Ks, port.Ts)
-        #     })
+        elif issubclass(port, Tuple):
+            def to_string(k):
+                """
+                Unnamed tuples have integer keys (e.g. 0, 1, 2),
+                we prefix them with "_" so they can be consumed by coreir's
+                Record type (key names are constrained such that they can't be
+                integers)
+                """
+                if isinstance(k, int):
+                    return f"_{k}"
+                return k
+            _type = self.context.Record({
+                to_string(k): self.get_type(t) for (k, t) in
+                zip(port.keys(), port.types())
+            })
         elif port.isinput():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clk")]
@@ -155,8 +155,8 @@ class CoreIRBackend:
         return _type
 
     coreirNamedTypeToPortDict = {
-        # "clk": Clock,
-        # "coreir.clkIn": Clock
+        "clk": Clock,
+        "coreir.clkIn": Clock
     }
 
     def get_ports(self, coreir_type, renamed_ports):
@@ -186,7 +186,7 @@ class CoreIRBackend:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
     def get_ports_as_list(self, ports):
-        return [item for i in range(ports.N) for item in [ports.Ks[i], ports.Ts[i]]]
+        return [item for i in range(ports.N) for item in [ports.keys()[i], ports.types()[i]]]
 
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
@@ -234,8 +234,7 @@ class CoreIRBackend:
     def add_non_input_ports(self, non_input_ports, port):
         if not port.isinput():
             non_input_ports[port] = magma_port_to_coreir(port)
-        # if isinstance(port, (TupleType, ArrayType)):
-        if isinstance(port, Array):
+        if isinstance(port, (Tuple, Array)):
             for element in port:
                 self.add_non_input_ports(non_input_ports, element)
 
@@ -292,9 +291,8 @@ class CoreIRBackend:
     def connect_non_outputs(self, module_definition, port,
                       non_input_ports):
         # Recurse into non input types that may contain inout children
-        # if isinstance(port, TupleType) and not port.isinput() or \
-        #         isinstance(port, ArrayType) and not port.T.isinput():
-        if isinstance(port, Array) and not port.T.isinput():
+        if isinstance(port, Tuple) and not port.isinput() or \
+                isinstance(port, Array) and not port.T.isinput():
             for elem in port:
                 self.connect_non_outputs(module_definition, elem,
                                          non_input_ports)
@@ -342,7 +340,7 @@ class CoreIRBackend:
             elif isinstance(p, Array):
                 return is_clock_or_nested_clock(p.T)
             elif isinstance(p, Tuple):
-                for item in p.Ts:
+                for item in p.types():
                     if is_clock_or_nested_clock(item):
                         return True
             return False
@@ -365,10 +363,10 @@ class CoreIRBackend:
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, non_input_ports)
             return
-        # elif isinstance(value, TupleType) and value.anon():
-        #     for p, v in zip(port, value):
-        #         self.connect(module_definition, p, v, non_input_ports)
-        #     return
+        elif isinstance(value, Tuple) and value.anon():
+            for p, v in zip(port, value):
+                self.connect(module_definition, p, v, non_input_ports)
+            return
         elif value is VCC or value is GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:

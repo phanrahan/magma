@@ -38,7 +38,7 @@ from .bits import *
 # Define default operators that raise exceptions, rename so it doesn't muck
 # with `from magma import *` code that also uses operator
 # import magma.operators
-# from .tuple import *
+from .tuple import *
 from .clock import *
 from .conversions import *
 # from .interface import *
@@ -74,8 +74,6 @@ from .is_primitive import isprimitive
 from .is_definition import isdefinition
 
 from .uniquification import UniquificationPass
-
-from .product import Product
 
 
 from hwtypes.bit_vector_abc import TypeFamily
