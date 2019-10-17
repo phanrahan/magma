@@ -2,7 +2,7 @@
 [![Documentation Status](https://readthedocs.org/projects/magma/badge/?version=latest)](https://magma.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/phanrahan/magma.svg?branch=master)](https://travis-ci.org/phanrahan/magma)
 [![Coverage Status](https://coveralls.io/repos/github/phanrahan/magma/badge.svg?branch=master)](https://coveralls.io/github/phanrahan/magma?branch=master)
-[![Gitter](https://badges.gitter.im/magma_hdl/community.svg)](https://gitter.im/magma_hdl/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Join the chat at https://gitter.im/Magma-HDL/community](https://badges.gitter.im/Magma-HDL/community.svg)](https://gitter.im/Magma-HDL/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/Magma-HDL/community](https://badges.gitter.im/Magma-HDL/community.svg)](https://gitter.im/Magma-HDL/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [CHANGELOG](https://github.com/phanrahan/magma/blob/master/CHANGELOG.md)
 
