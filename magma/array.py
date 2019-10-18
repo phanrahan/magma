@@ -135,8 +135,9 @@ class Array(Type, metaclass=ArrayMeta):
                 for t in args:
                     if isinstance(t, IntegerTypes):
                         t = VCC if t else GND
-                    assert type(t) == self.T or isinstance(type(t), type(self.T)), \
-                        (type(t), self.T)
+                    assert type(t) == self.T or type(t) == self.T.flip() or \
+                        issubclass(type(type(t)), type(self.T)) or \
+                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
                     self.ts.append(t)
             else:
                 raise NotImplementedError(args)
@@ -181,7 +182,7 @@ class Array(Type, metaclass=ArrayMeta):
             key = seq2int([0 if t is GND else 1 for t in key.ts])
         if isinstance(key, slice):
             _slice = [self[i] for i in range(*key.indices(len(self)))]
-            return Array[len(_slice), self.T](_slice)
+            return type(self)[len(_slice), self.T](_slice)
         else:
             if not (-self.N <= key and key < self.N):
                 raise IndexError

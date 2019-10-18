@@ -3,7 +3,7 @@ from collections import OrderedDict
 from hwtypes.adt import TupleMeta, Tuple, Product, ProductMeta
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .ref import AnonRef, TupleRef
-from .t import Type, Kind
+from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
@@ -18,7 +18,23 @@ from .port import report_wiring_error
 #  - creates a new tuple value where each field equals vi
 #
 
-class Tuple(Type, Tuple, metaclass=TupleMeta):
+class TupleKind(TupleMeta, Kind):
+    def qualify(cls, direction):
+        new_fields = []
+        for T in cls.fields:
+            new_fields.append(T.qualify(direction))
+        return cls.unbound_t[new_fields]
+
+    def __call__(cls, *args, **kwargs):
+        obj = cls.__new__(cls, *args)
+        obj.__init__(*args, **kwargs)
+        return obj
+
+    @property
+    def N(cls):
+        return len(cls)
+
+class Tuple(Type, Tuple, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs) # name=
@@ -26,16 +42,16 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
         self.ts = []
         if len(largs) > 0:
             assert len(largs) == len(self)
-            for k, T in zip(self.keys(), largs):
-                t = largs[i]
+            for k, t, T in zip(self.keys(), largs, self.types()):
                 if isinstance(t, IntegerTypes):
                     t = VCC if t else GND
-                assert type(t) == self.types()[i]
+                assert type(t) == T
                 self.ts.append(t)
-                setattr(self, k, t)
+                if not isinstance(self, Product):
+                    setattr(self, k, t)
         else:
             for k, T in zip(self.keys(), self.types()):
-                t = T(name=TupleRef(self,k))
+                t = T(name=TupleRef(self, k))
                 self.ts.append(t)
                 if not isinstance(self, Product):
                     setattr(self, k, t)
@@ -47,8 +63,8 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
         return all(v.is_oriented(direction) for v in cls.fields)
 
     @classmethod
-    def keys(self):
-        return [str(i) for i in range(self.fields)]
+    def keys(cls):
+        return [str(i) for i in range(len(cls.fields))]
 
     def __eq__(self, rhs):
         if not isinstance(rhs, Tuple): return False
@@ -63,7 +79,7 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
 
     def __getitem__(self, key):
         if key in self.keys():
-            key = self.keys().index(key)
+            key = list(self.keys()).index(key)
         return self.ts[key]
 
     def __len__(self):
@@ -89,7 +105,7 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
             return
 
         if i.keys() != o.keys():
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, keys={i.keys()}) to {i.debug_name} (type={type(i)}, keys={o.keys()}) because the tuples do not have the same keys', debug_info)  # noqa
+            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, keys={list(i.keys())}) to {i.debug_name} (type={type(i)}, keys={list(o.keys())}) because the tuples do not have the same keys', debug_info)  # noqa
             return
 
         #if i.Ts != o.Ts:
@@ -135,7 +151,7 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
 
         for i in range(len(ts)):
             # elements should be numbered consecutively
-            if ts[i].name.index != self.keys()[i]:
+            if ts[i].name.index != list(self.keys())[i]:
                 return False
 
         return True
@@ -175,11 +191,9 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
 
         return True
 
-    def keys(self):
-        return self.keys()
-
-    def types(self):
-        return type(self).fields
+    @classmethod
+    def types(cls):
+        return cls.fields
 
     def values(self):
         return self.ts
@@ -188,7 +202,7 @@ class Tuple(Type, Tuple, metaclass=TupleMeta):
         return zip(self.keys(), self.ts)
 
 
-class ProductKind(ProductMeta, Kind):
+class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
 
     @classmethod
@@ -237,16 +251,11 @@ class ProductKind(ProductMeta, Kind):
         t._field_table_ = OrderedFrozenDict(fields)
         return t
 
-    def __call__(cls, *args, **kwargs):
-        obj = cls.__new__(cls, *args)
-        obj.__init__(*args, **kwargs)
-        return obj
-
     def qualify(cls, direction):
-        new_cls = cls
-        for v in cls.field_dict.values():
-            new_cls = new_cls.rebind(v, v.qualify(direction))
-        return new_cls
+        new_fields = OrderedDict()
+        for k, v in cls.field_dict.items():
+            new_fields[k] = v.qualify(direction)
+        return cls.unbound_t.from_fields(cls.__name__, new_fields, cache=cls.is_cached)
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ProductKind):
@@ -271,7 +280,7 @@ class ProductKind(ProductMeta, Kind):
 class Product(Tuple, metaclass=ProductKind):
     @classmethod
     def keys(cls):
-        return [k for k in cls.field_dict.keys()]
+        return cls.field_dict.keys()
 
     @classmethod
     def types(cls):
@@ -373,11 +382,11 @@ from .bit import Digital, Bit, VCC, GND
 #   *value = tuple from positional arguments
 #   **kwargs = tuple from keyword arguments
 #
-def tuple_(value, n=None):
-    if isinstance(value, Tuple):
+def tuple_(value, n=None, t=Tuple):
+    if isinstance(value, t):
         return value
 
-    if not isinstance(value, (_Bit, Array, IntegerTypes, Sequence, Mapping)):
+    if not isinstance(value, (Digital, Array, IntegerTypes, Sequence, Mapping)):
         raise ValueError(
             "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
 
@@ -388,7 +397,7 @@ def tuple_(value, n=None):
         if n is None:
             n = max(value.bit_length(),1)
         value = int2seq(value, n)
-    elif isinstance(value, _Bit):
+    elif isinstance(value, Digital):
         value = [value]
     elif isinstance(value, Array):
         value = [value[i] for i in range(len(value))]
@@ -403,8 +412,8 @@ def tuple_(value, n=None):
             args.append(v)
             decl[k] = type(v)
 
-    return Tuple(decl)(*args)
+    return type("anon", (t,), decl)(*args)
 
 
 def namedtuple(**kwargs):
-    return tuple_(kwargs)
+    return tuple_(kwargs, t=Product)

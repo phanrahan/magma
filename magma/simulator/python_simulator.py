@@ -11,13 +11,13 @@ from .simulator import CircuitSimulator, ExecutionState
 from ..transforms import flatten, setup_clocks
 from ..circuit import *
 from ..scope import *
-from ..bit import VCC, GND, BitType, _BitType
-from ..array import ArrayType
-from ..bits import SIntType, BitsType, UIntType
+from ..bit import VCC, GND, Bit, Digital
+from ..array import Array
+from ..bits import SInt, Bits, UInt
 from hwtypes import BitVector
 import hwtypes
 from ..bitutils import seq2int
-from ..clock import ClockType
+from ..clock import Clock
 
 __all__ = ['PythonSimulator']
 
@@ -39,7 +39,7 @@ class SimPrimitive:
         self.state_store = {}
 
         for bit in self.primitive.interface.ports.values():
-            if not isinstance(bit, ArrayType):
+            if not isinstance(bit, Array):
                 bit = [bit]
             for b in bit:
                 if b.isinput():
@@ -93,7 +93,7 @@ class ValueStore:
         self.value_map = {}
 
     def value_initialized(self, bit):
-        if isinstance(bit, ArrayType):
+        if isinstance(bit, Array):
             for b in bit:
                 if not self.value_initialized(b):
                     return False
@@ -109,13 +109,13 @@ class ValueStore:
         return bit in self.value_map
 
     def get_value(self, bit):
-        if isinstance(bit, ArrayType):
+        if isinstance(bit, Array):
             value = [self.get_value(b) for b in bit]
-            if isinstance(bit, SIntType):
+            if isinstance(bit, SInt):
                 return BitVector[len(bit)](value).as_sint()
-            elif isinstance(bit, UIntType):
+            elif isinstance(bit, UInt):
                 return BitVector[len(bit)](value).as_uint()
-            elif isinstance(bit, BitsType):
+            elif isinstance(bit, Bits):
                 return BitVector[len(bit)](value)
             return value
 
@@ -131,15 +131,15 @@ class ValueStore:
         if not bit.isoutput():
             raise TypeError("Can only call set value on an input")
 
-        if isinstance(bit, ArrayType):
+        if isinstance(bit, Array):
             if isinstance(newval, BitVector):
                 newval = newval.as_bool_list()
-            elif isinstance(newval, BitsType):
+            elif isinstance(newval, Bits):
                 if not newval.const():
-                    raise ValueError("Calling set_value with a BitsType only works with a constant")
+                    raise ValueError("Calling set_value with a Bits only works with a constant")
                 newval = newval.bits()
-            elif isinstance(bit, BitsType) and isinstance(newval, int):
-                if not isinstance(bit, SIntType) and newval < 0:
+            elif isinstance(bit, Bits) and isinstance(newval, int):
+                if not isinstance(bit, SInt) and newval < 0:
                     raise ValueError(f"Can only set {bit} of type {type(bit)} with positive integer, not {newval}")
                 newval = BitVector[len(bit)](newval).as_bool_list()
             elif not isinstance(newval, list):
@@ -167,7 +167,7 @@ class PythonSimulator(CircuitSimulator):
         return wrapped
 
     def initialize(self, bit):
-        if isinstance(bit, ArrayType):
+        if isinstance(bit, Array):
             for b in bit:
                 self.initialize(b)
         else:
@@ -261,8 +261,8 @@ class PythonSimulator(CircuitSimulator):
     def __init__(self, main_circuit, clock=None):
         if isinstance(main_circuit, CircuitType):
             raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
-        if clock is not None and not isinstance(clock, ClockType):
-            raise ValueError("clock must be a ClockType or None")
+        if clock is not None and not isinstance(clock, Clock):
+            raise ValueError("clock must be a Clock or None")
         setup_clocks(main_circuit)
         self.main_circuit = main_circuit
         self.txfm = flatten(main_circuit)
@@ -306,11 +306,11 @@ class PythonSimulator(CircuitSimulator):
     def is_circuit_input(self, value):
         """
         Checks if `value` is in `self.circuit_inputs`.
-        If `value` is an `ArrayType`, it recursively checks the elements
+        If `value` is an `Array`, it recursively checks the elements
         """
-        if isinstance(value, _BitType):
+        if isinstance(value, Digital):
             return any(value is x for x in self.circuit_inputs)
-        elif isinstance(value, ArrayType):
+        elif isinstance(value, Array):
             return all(self.is_circuit_input(elem) for elem in value)
         else:
             raise NotImplementedError(type(value))
@@ -383,7 +383,7 @@ class PythonSimulator(CircuitSimulator):
         for name, port in circuit.interface.ports.items():
             if port.isoutput():
                 val = largs[j]
-                if isinstance(port, ArrayType):
+                if isinstance(port, Array):
                     n = type(port).N
                     val = BitVector[n](val)
                 self.set_value(getattr(circuit, name), val)

@@ -90,7 +90,7 @@ class RewriteReturn(ast.NodeTransformer):
                 elts.append(ast.Name(f"self_{name}_I", ast.Load()))
             else:
                 for port in eval_value.interface.inputs():
-                    if isinstance(port, (m.ClockType, m.AsyncResetType)):
+                    if isinstance(port, (m.Clock, m.AsyncReset)):
                         continue
                     elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
         if isinstance(node.value, ast.Tuple):
@@ -171,7 +171,7 @@ def get_io(call_def):
 
 
 circuit_definition_template = """
-from magma import In, Out, Bit
+from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt
 
 def make_{circuit_name}(combinational):
     class {circuit_name}(m.Circuit):
@@ -196,21 +196,21 @@ def gen_array_str(eval_type, eval_value, async_reset):
 
 
 def gen_reg_inst_str(eval_type, eval_value, async_reset):
-    if isinstance(eval_type, m._BitKind):
+    if issubclass(eval_type, m.Digital):
         n = None
         if isinstance(eval_value, (bool, int)):
             init = bool(eval_value)
         else:
             assert eval_value.name.name in ["GND", "VCC"], eval_value.name
             init = 0 if eval_value.name.name == "GND" else 1
-    elif isinstance(eval_type, m.ArrayKind) and \
-            isinstance(eval_type.T, m._BitKind):
+    elif issubclass(eval_type, m.Array) and \
+            issubclass(eval_type.T, m.Digital):
         n = len(eval_type)
         init = int(eval_value)
-    elif isinstance(eval_type, m.ArrayKind):
+    elif issubclass(eval_type, m.Array):
         return f"{gen_array_str(eval_type, eval_value, async_reset)}"
     else:
-        raise NotADirectoryError((eval_type))
+        raise NotImplementedError((eval_type))
     return f"DefineRegister({n}, init={init}, has_async_reset={async_reset})()"
 
 
@@ -327,7 +327,7 @@ def _sequential(
             comb_out_count += 1
         else:
             for key, value in eval_value.interface.ports.items():
-                if isinstance(value, (m.ClockType, m.AsyncResetType)):
+                if isinstance(value, (m.Clock, m.AsyncReset)):
                     continue
                 type_ = repr(type(value))
                 if value.isoutput():

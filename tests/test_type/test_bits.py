@@ -50,7 +50,7 @@ def test_val():
     assert b_0 is a_1[0], "getitem failed"
 
     a_3 = a_1[0:2]
-    assert a_3 == a_1[0:2], "getitem of slice failed"
+    assert all(a is b for a, b in zip(a_3, a_1[0:2])), "getitem of slice failed"
 
 
 def test_flip():
@@ -98,7 +98,7 @@ def test_const():
     """
     data = m.Bits[16]
     zero = data(0)
-    assert zero == m.bits(0, 16)
+    assert all(a is b for a, b in zip(zero, m.bits(0, 16)))
 
 
 def test_setitem_bfloat():
@@ -130,6 +130,6 @@ wire(TestCircuit.I[11], TestCircuit.O[11])
 wire(TestCircuit.I[12], TestCircuit.O[12])
 wire(TestCircuit.I[13], TestCircuit.O[13])
 wire(TestCircuit.I[14], TestCircuit.O[14])
-wire(0, TestCircuit.O[15])
+wire(GND, TestCircuit.O[15])
 EndCircuit()\
 """  # noqa

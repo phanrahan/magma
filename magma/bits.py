@@ -31,6 +31,9 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             index = (index, Bit)
         return ArrayMeta.__getitem__(cls, index)
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(cls):
         name = f"{cls.orig_name}[{cls.N}]"
         if cls.is_input():
@@ -74,12 +77,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             from .conversions import bits
             o = bits(o, len(i))
         super().wire(o, debug_info)
-
-    def __getitem__(self, key):
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return Bits[len(result)](result)
-        return result
 
     @classmethod
     def make_constant(self, value, num_bits:tp.Optional[int]=None) -> 'AbstractBitVector':

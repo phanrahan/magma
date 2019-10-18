@@ -21,11 +21,11 @@ def test_clock():
 def test_clock_flip():
     ClockOut = Out(Clock)
     assert issubclass(ClockOut, Clock)
-    assert str(ClockOut) == 'Clock[Out]'
+    assert str(ClockOut) == 'Out(Clock)'
 
     ClockIn = In(Clock)
     assert issubclass(ClockIn, Clock)
-    assert str(ClockIn) == 'Clock[In]'
+    assert str(ClockIn) == 'In(Clock)'
 
     clockin = In(ClockIn)
     clockout = Out(ClockIn)
@@ -61,11 +61,11 @@ def test_reset():
 def test_reset_flip():
     ResetOut = Out(Reset)
     assert issubclass(ResetOut, Reset)
-    assert str(ResetOut) == 'Reset[Out]'
+    assert str(ResetOut) == 'Out(Reset)'
 
     ResetIn = In(Reset)
     assert issubclass(ResetIn, Reset)
-    assert str(ResetIn) == 'Reset[In]'
+    assert str(ResetIn) == 'In(Reset)'
 
     resetin = In(ResetIn)
     resetout = Out(ResetIn)
@@ -102,11 +102,11 @@ def test_enable():
 def test_enable_flip():
     EnableOut = Out(Enable)
     assert issubclass(EnableOut, Enable)
-    assert str(EnableOut) == 'Enable[Out]'
+    assert str(EnableOut) == 'Out(Enable)'
 
     EnableIn = In(Enable)
     assert issubclass(EnableIn, Enable)
-    assert str(EnableIn) == 'Enable[In]'
+    assert str(EnableIn) == 'In(Enable)'
 
     enablein = In(EnableIn)
     enableout = Out(EnableIn)

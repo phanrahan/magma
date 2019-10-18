@@ -145,9 +145,14 @@ def test_2d_array_error(caplog):
         assert str(e) == "Argument main.I of type Array[2, Array[3, Out(Bit)]] is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa
 
 
+class XY(m.Product):
+    x = m.Bit
+    y = m.Bit
+
+
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
-@pytest.mark.parametrize("T",[m.Bit, m.Bits[2], m.Array[2, m.Bit], m.Tuple(x=m.Bit, y=m.Bit)])
+@pytest.mark.parametrize("T",[m.Bit, m.Bits[2], m.Array[2, m.Bit], XY])
 def test_anon_value(target, suffix, T):
     And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
                             "O", m.Out(T))

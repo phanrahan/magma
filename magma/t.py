@@ -1,6 +1,6 @@
 import warnings
 import enum
-from abc import abstractclassmethod
+from abc import abstractmethod
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
@@ -73,6 +73,11 @@ class Type(object):
 
     @classmethod
     @deprecated
+    def isoriented(cls, direction):
+        return cls.is_oriented(direction)
+
+    @classmethod
+    @deprecated
     def isinput(cls):
         return cls.is_input()
 
@@ -107,7 +112,7 @@ class Type(object):
 class Kind(type):
     # subclasses only need to implement one of these methods
     def __eq__(cls, rhs):
-        raise NotImplementedError()
+        return cls is rhs
 
     __hash__ = type.__hash__
 
@@ -117,9 +122,9 @@ class Kind(type):
     def __str__(cls):
         return cls.__name__
 
-#     @abstractclassmethod
-#     def qualify(cls):
-#         pass
+    @abstractmethod
+    def qualify(cls, direction):
+        raise NotImplementedError()
 
     def flip(cls):
         return cls.qualify(Direction.Flip)

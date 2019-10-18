@@ -1,7 +1,7 @@
 import functools
 from collections.abc import Sequence
 from .compatibility import IntegerTypes
-from .t import In, Out, InOut, INPUT, OUTPUT, INOUT
+from .t import In, Out, InOut, Direction
 from .digital import Digital
 from .bit import Bit, VCC, GND
 from .digital import DigitalMeta
@@ -9,31 +9,18 @@ from .clock import Clock, Reset, AsyncReset, Enable
 from .array import Array
 from .bits import Bits, UInt, SInt, BFloat
 from .digital import Digital
-# from .tuple import TupleType, tuple_ as tuple_imported, TupleKind, namedtuple
+from .tuple import Tuple, tuple_ as tuple_imported
 from .bitutils import int2seq
 import magma as m
 import hwtypes
 
-# __all__ = ['bit']
-# __all__ += ['clock', 'reset', 'enable', 'asyncreset']
-
-# __all__ += ['array']
-# __all__ += ['bits', 'uint', 'sint']
-
-# __all__ += ['tuple_', 'namedtuple']
-
-# __all__ += ['concat', 'repeat']
-# __all__ += ['sext', 'zext']
-
 
 def can_convert_to_bit(value):
-    # return isinstance(value, (_BitType, ArrayType, TupleType, IntegerTypes))
-    return isinstance(value, (Digital, Array, IntegerTypes))
+    return isinstance(value, (Digital, Array, Tuple, IntegerTypes))
 
 
 def can_convert_to_bit_type(value):
-    # return isinstance(value, (_BitKind, ArrayKind, TupleKind))
-    return isinstance(value, (Digital, Array))
+    return issubclass(value, (Digital, Array, Tuple))
 
 
 def convertbit(value, totype):
@@ -45,8 +32,7 @@ def convertbit(value, totype):
             "bit can only be used on a Bit, an Array, or an int"
             f"; not {type(value)}")
 
-    # if isinstance(value, (Array, Tuple)):
-    if isinstance(value, (Array)):
+    if isinstance(value, (Array, Tuple)):
         if len(value) != 1:
             raise ValueError(
                 "bit can only be used on arrays and tuples of length 1"
@@ -98,9 +84,7 @@ def convertbits(value, n, totype, checkbit):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
         return value
 
-    # convertible_types = (_BitType, TupleType, ArrayType, IntegerTypes,
-    #                      Sequence)
-    convertible_types = (Bit, Array, IntegerTypes,
+    convertible_types = (Digital, Tuple, Array, IntegerTypes,
                          Sequence)
     if not isinstance(value, convertible_types):
         raise ValueError(
@@ -152,9 +136,9 @@ def convertbits(value, n, totype, checkbit):
     if convert_to_bit is True:
         ts = [bit(t) for t in ts]
         T = {
-            INPUT: In,
-            OUTPUT: Out,
-            INOUT: InOut
+            Direction.In: In,
+            Direction.Out: Out,
+            Direction.InOut: InOut
         }[T.direction](Bit)
 
     return totype[len(Ts), T](*ts)

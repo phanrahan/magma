@@ -193,7 +193,7 @@ def test_seq_hierarchy(target, async_reset):
 def test_multiple_return(target, async_reset):
     T = m.Bits[4]
 
-    m._BitType.__eq__ = lambda x, y: DeclareCoreirCircuit(
+    m.Bit.__eq__ = lambda x, y: DeclareCoreirCircuit(
         "eq",
         *["I0", m.In(m.Bit),
           "I1", m.In(m.Bit),
@@ -202,7 +202,7 @@ def test_multiple_return(target, async_reset):
         coreir_lib="corebit"
     )()(x, y)
 
-    m.BitsType.__eq__ = lambda x, y: DeclareCoreirCircuit(
+    m.Bits.__eq__ = lambda x, y: DeclareCoreirCircuit(
         "eq",
         *["I0", m.In(m.Bits[len(x)]),
           "I1", m.In(m.Bits[len(x)]),
@@ -245,6 +245,7 @@ def test_multiple_return(target, async_reset):
                 reg_val = self.register(value, clk_en)
                 return reg_val, reg_val
 
+    print(repr(type(RegisterMode.instances[1])))
     compile_and_check("RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
 
 
@@ -265,7 +266,7 @@ def test_array_of_bits(target):
 
 
 def test_rd_ptr(target):
-    m.UIntType.__add__ = lambda x, y: DeclareCoreirCircuit(
+    m.UInt.__add__ = lambda x, y: DeclareCoreirCircuit(
         "add",
         *["I0", m.In(m.UInt[len(x)]),
           "I1", m.In(m.UInt[len(x)]),

@@ -41,17 +41,17 @@ from .bits import *
 from .tuple import *
 from .clock import *
 from .conversions import *
-# from .interface import *
+from .interface import *
 
 # circuit
 from .circuit import *
 
 # higher-order operators
-# from .braid import *
+from .braid import *
 
 # verilog
-# from .fromverilog import *
-# from .backend.verilog import *
+from .fromverilog import *
+from .backend.verilog import *
 
 # compile
 from .compile import *

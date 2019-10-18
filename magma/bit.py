@@ -2,7 +2,7 @@ import typing as tp
 import functools
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
-from .digital import Digital, DigitalMeta
+from .digital import Digital, DigitalMeta, VCC, GND, HIGH, LOW
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -20,15 +20,7 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
 
 
 class BitMeta(DigitalMeta):
-    def __str__(cls):
-        name = "Bit"
-        if cls.is_input():
-            name = f"In({name})"
-        elif cls.is_output():
-            name = f"Out({name})"
-        elif cls.is_output():
-            name = f"InOut({name})"
-        return name
+    pass
 
 
 class Bit(Digital, AbstractBit, metaclass=BitMeta):
@@ -59,9 +51,6 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
             self._value = bool(value)
         else:
             raise TypeError("Can't coerce {} to Bit".format(type(value)))
-
-    def const(self):
-        return self is VCC or self is GND
 
     @property
     def direction(self):
@@ -117,8 +106,3 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]
-VCC = BitOut(1, name="VCC")
-GND = BitOut(0, name="GND")
-
-HIGH = VCC
-LOW = GND

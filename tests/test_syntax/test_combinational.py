@@ -40,7 +40,7 @@ def Mux(height=2, width=None, **kwargs):
 
 
 def get_length(value):
-    if isinstance(value, m._BitType):
+    if isinstance(value, m.Bit):
         return None
     elif isinstance(value, m.ArrayType):
         return len(value)
@@ -152,15 +152,20 @@ def test_return_py_tuple(target):
 
 def test_return_magma_tuple(target):
     @m.circuit.combinational
-    def return_magma_tuple(I: m.Bits[2]) -> m.Tuple(m.Bit, m.Bit):
+    def return_magma_tuple(I: m.Bits[2]) -> m.Tuple[m.Bit, m.Bit]:
         return m.tuple_([I[0], I[1]])
     compile_and_check("return_magma_tuple",
                       return_magma_tuple.circuit_definition, target)
 
 
 def test_return_magma_named_tuple(target):
+
+    class O(m.Product):
+        x = m.Bit
+        y = m.Bit
+
     @m.circuit.combinational
-    def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
+    def return_magma_named_tuple(I: m.Bits[2]) -> O:
         return m.namedtuple(x=I[0], y=I[1])
     compile_and_check("return_magma_named_tuple",
                       return_magma_named_tuple.circuit_definition, target)

@@ -1,6 +1,6 @@
 import magma as m
 from magma import In, Out, Flip
-from magma.bit import Bit, VCC, GND
+from magma.bit import Bit, VCC, GND, Digital
 BitIn = In(Bit)
 BitOut = Out(Bit)
 
@@ -69,10 +69,10 @@ def test_bit_val():
 
 def test_vcc():
     assert str(VCC) == "VCC"
-    assert isinstance(VCC, BitOut)
+    assert isinstance(VCC, Digital)
 
     assert str(GND) == "GND"
-    assert isinstance(GND, BitOut)
+    assert isinstance(GND, Digital)
 
     assert VCC is VCC
     assert VCC is not GND

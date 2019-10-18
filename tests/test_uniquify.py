@@ -80,9 +80,14 @@ def test_key_error():
                                 renamed_ports=default_port_mapping)
 
     Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
+
+    class I(m.Product):
+        data = m.Array[2, m.Bits[6]]
+        sel = m.Bits[m.bitutils.clog2(2)]
+
+
     mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
-                               *["I", m.In(m.Tuple(data=m.Array[2, m.Bits[6]],
-                                                   sel=m.Bits[m.bitutils.clog2(2)])),
+                               *["I", m.In(I),
                                  "O", m.Out(m.Bits[6])],
                                coreir_name="muxn",
                                coreir_lib="commonlib",

@@ -13,7 +13,7 @@ def pretty_str(t):
     if issubclass(t, m.Tuple):
         args = []
         for i in range(len(t)):
-            key_str = str(t.keys()[i])
+            key_str = str(list(t.keys())[i])
             val_str = pretty_str(t.types()[i])
             indent = " " * 4
             val_str = f"\n{indent}".join(val_str.splitlines())

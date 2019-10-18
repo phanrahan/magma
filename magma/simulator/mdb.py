@@ -4,8 +4,8 @@ from ..passes.debug_name import DebugNamePass
 from ..is_definition import isdefinition
 from ..circuit import CircuitType, EndCircuit
 from ..scope import *
-from ..array import ArrayType
-from ..bit import BitType
+from ..array import Array
+from ..bit import Bit
 from ..bitutils import seq2int, int2seq
 from ..ref import InstRef, DefnRef
 from ..compatibility import builtins
@@ -69,7 +69,7 @@ def describe_interface(interface):
     print("\nInterface Inputs:")
     for name, bit in interface.ports.items():
         if bit.isoutput():
-            if isinstance(bit, ArrayType):
+            if isinstance(bit, Array):
                 print("  Bit[" + str(len(bit)) + "]:" + name)
             else:
                 print("  Bit: " + name)
@@ -77,7 +77,7 @@ def describe_interface(interface):
     print("\nInterface Outputs:")
     for name, bit in interface.ports.items():
         if bit.isinput():
-            if isinstance(bit, ArrayType):
+            if isinstance(bit, Array):
                 print("  Bit[" + str(len(bit)) + "]:" + name)
             else:
                 print("  Bit: " + name)
@@ -110,7 +110,7 @@ def format_val(val, bit, raw):
         if raw:
             return "".join(['1' if e else '0' for e in reversed(val)])
         else:
-            if not isinstance(bit, ArrayType) or isinstance(val, bool):
+            if not isinstance(bit, Array) or isinstance(val, bool):
                 val = [val]
             return seq2int(val)
 
@@ -355,7 +355,7 @@ class SimulationConsole(cmd.Cmd):
             print_err("Failed to print: {}".format(e))
             return
 
-        if isinstance(printme, BitType) or isinstance(printme, ArrayType):
+        if isinstance(printme, Bit) or isinstance(printme, Array):
             self.log_val(printme, scope, raw)
         elif isinstance(printme, CircuitType):
             inst_desc = describe_instance(printme) + ": "
@@ -429,7 +429,7 @@ class SimulationConsole(cmd.Cmd):
         else:
             value = None
 
-        if not isinstance(watchme, BitType) and not isinstance(watchme, ArrayType):
+        if not isinstance(watchme, Bit) and not isinstance(watchme, Array):
             print_err("Can only watch bits or arrays")
 
         watch_num = self.simulator.add_watchpoint(watchme, scope, value)
@@ -460,7 +460,7 @@ class SimulationConsole(cmd.Cmd):
 
         try:
             bit, scope = self.parse_circuit(arg)
-            if not isinstance(bit, BitType) and not isinstance(bit, ArrayType):
+            if not isinstance(bit, Bit) and not isinstance(bit, Array):
                 raise SimulationConsoleException("Can only display bits or arrays")
 
             display_expr = DisplayExpr(bit, arg, scope)
@@ -618,7 +618,7 @@ class SimulationConsole(cmd.Cmd):
             print_err("Invalid argument for waveform: {}".format(e))
             return
 
-        if not isinstance(waveme, BitType) and not isinstance(waveme, ArrayType):
+        if not isinstance(waveme, Bit) and not isinstance(waveme, Array):
             print_err("Can only provide waveforms for wires")
             return
 

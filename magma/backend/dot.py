@@ -1,5 +1,5 @@
-from ..array import ArrayKind, ArrayType
-from ..bit import BitType, VCC, GND
+from ..array import Array
+from ..bit import Bit, VCC, GND
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
 from collections import OrderedDict
@@ -21,7 +21,7 @@ def get_name(dot, port):
     if port is VCC: return "1"
     if port is GND: return "0"
 
-    if isinstance(port, ArrayType):
+    if isinstance(port, Array):
         if not port.iswhole(port.ts):
             # the sequence of values is concantenated
             port = [get_name(dot, i) for i in port.ts]
@@ -47,13 +47,13 @@ def compileinstance(dot, instance):
         if port.isinput():
             inputs.append('<{0}> {0}'.format(str(name)))
             value = port.value()
-            if not value:
+            if value is None:
                 logging.warning(f'Input {port.debug_name} not connected to an output')
                 continue
         else:
             outputs.append('<{0}> {0}'.format(str(name)))
             value = port
-        # if isinstance(value, ArrayType):
+        # if isinstance(value, Array):
         #     for index, subport in enumerate(value.ts):
         #         s += "{}.{}[{}] <= {}\n".format(instance_backend_name, name, index, get_name(subport))
         # else:
@@ -79,8 +79,8 @@ def compiledefinition(dot, cls):
 
     # for now only allow Bit or Array(n, Bit)
     for name, port in cls.interface.ports.items():
-        if isinstance(port, ArrayKind):
-            if not isinstance(port.T, BitKind):
+        if isinstance(port, Array):
+            if not issubclass(port.T, Bit):
                 print('Error: Argument', port, 'must be a an Array(n,Bit)')
 
     for name, port in cls.interface.ports.items():
@@ -104,7 +104,7 @@ def compiledefinition(dot, cls):
     # Assign to module output arguments.
     for input in cls.interface.inputs():
         output = input.value()
-        if output:
+        if output is not None:
             iname = get_name(dot, input)
             oname = get_name(dot, output)
             dot.edge(oname, iname)

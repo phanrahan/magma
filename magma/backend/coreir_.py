@@ -1,9 +1,9 @@
 from collections import OrderedDict
 from hwtypes import BitVector
 import os
-from ..bit import VCC, GND, Bit
+from ..bit import VCC, GND, Bit, BitIn, BitOut
 from ..array import Array
-from ..tuple import Tuple
+from ..tuple import Tuple, Product
 from ..clock import wiredefaultclock, wireclock, Clock, Enable, Reset, \
     AsyncReset, ResetN, AsyncResetN
 from ..bitutils import seq2int
@@ -129,9 +129,11 @@ class CoreIRBackend:
                 Record type (key names are constrained such that they can't be
                 integers)
                 """
-                if isinstance(k, int):
+                try:
+                    int(k)
                     return f"_{k}"
-                return k
+                except ValueError:
+                    return k
             _type = self.context.Record({
                 to_string(k): self.get_type(t) for (k, t) in
                 zip(port.keys(), port.types())
@@ -175,7 +177,7 @@ class CoreIRBackend:
                     name = "I"
                     renamed_ports[name] = "in"
                 elements[name] = self.get_ports(item[1], renamed_ports)
-            return Tuple(**elements)
+            return type("anon", (Product, ), elements)
         elif (coreir_type.kind == "Named"):
             # exception to handle clock types, since other named types not handled
             if coreir_type.name in self.coreirNamedTypeToPortDict:
@@ -186,7 +188,7 @@ class CoreIRBackend:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
     def get_ports_as_list(self, ports):
-        return [item for i in range(ports.N) for item in [ports.keys()[i], ports.types()[i]]]
+        return [item for i in range(ports.N) for item in [list(ports.keys())[i], ports.types()[i]]]
 
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
@@ -222,9 +224,9 @@ class CoreIRBackend:
             config_args = self.context.new_values(config_args)
             gen_args = {}
             for name, value in type(instance).coreir_genargs.items():
-                if issubclass(value, AsyncReset):
+                if isinstance(value, AsyncReset) or isinstance(value, type) and issubclass(value, AsyncReset):
                     value = self.context.named_types["coreir", "arst"]
-                elif issubclass(value, Clock):
+                elif isinstance(value, Clock) or isinstance(value, type) and issubclass(value, Clock):
                     value = self.context.named_types["coreir", "clk"]
                 gen_args[name] = value
             gen_args = self.context.new_values(gen_args)
@@ -335,11 +337,11 @@ class CoreIRBackend:
 
         # allow clocks or arrays of clocks to be unwired as CoreIR can wire them up
         def is_clock_or_nested_clock(p):
-            if isinstance(p, Clock):
+            if isinstance(p, Clock) or isinstance(p, type) and issubclass(p, Clock):
                 return True
-            elif isinstance(p, Array):
+            elif isinstance(p, Array) or isinstance(p, type) and issubclass(p, Array):
                 return is_clock_or_nested_clock(p.T)
-            elif isinstance(p, Tuple):
+            elif isinstance(p, Tuple) or isinstance(p, type) and issubclass(p, Tuple):
                 for item in p.types():
                     if is_clock_or_nested_clock(item):
                         return True

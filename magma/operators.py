@@ -1,4 +1,4 @@
-from magma import _BitType, BitType, BitsType, UIntType, SIntType
+from magma import Digital, Bit, Bits, UInt, SInt
 
 
 class MantleImportError(RuntimeError):
@@ -34,7 +34,7 @@ def define_raise_undefined_operator_error(type_str, operator, type_):
 
 
 for op in ("__eq__", "__ne__"):
-    setattr(_BitType, op, raise_mantle_import_error_binary)
+    setattr(Digital, op, raise_mantle_import_error_binary)
 
 for op in (
            "__and__",
@@ -52,12 +52,12 @@ for op in (
            "__ge__"
            ):
     if op == "__invert__":
-        setattr(_BitType, op,
-                define_raise_undefined_operator_error("_BitType", op, "unary"))
+        setattr(Digital, op,
+                define_raise_undefined_operator_error("Digital", op, "unary"))
     else:
         setattr(
-            _BitType, op,
-            define_raise_undefined_operator_error("_BitType", op, "binary"))
+            Digital, op,
+            define_raise_undefined_operator_error("Digital", op, "binary"))
 
 
 for op in ("__and__",
@@ -66,9 +66,9 @@ for op in ("__and__",
            "__invert__"
            ):
     if op == "__invert__":
-        setattr(BitType, op, raise_mantle_import_error_unary)
+        setattr(Bit, op, raise_mantle_import_error_unary)
     else:
-        setattr(BitType, op, raise_mantle_import_error_binary)
+        setattr(Bit, op, raise_mantle_import_error_binary)
 
 
 for op in ("__and__",
@@ -79,9 +79,9 @@ for op in ("__and__",
            "__rshift__",
            ):
     if op == "__invert__":
-        setattr(BitsType, op, raise_mantle_import_error_unary)
+        setattr(Bits, op, raise_mantle_import_error_unary)
     else:
-        setattr(BitsType, op, raise_mantle_import_error_binary)
+        setattr(Bits, op, raise_mantle_import_error_binary)
 
 for op in ("__add__",
            "__sub__",
@@ -93,8 +93,8 @@ for op in ("__add__",
            "__gt__",
            "__ge__"
            ):
-    setattr(BitsType, op,
-            define_raise_undefined_operator_error("BitsType", op, "binary"))
+    setattr(Bits, op,
+            define_raise_undefined_operator_error("Bits", op, "binary"))
 
 for op in ("__add__",
            "__sub__",
@@ -106,5 +106,5 @@ for op in ("__add__",
            "__gt__",
            "__ge__"
            ):
-    setattr(SIntType, op, raise_mantle_import_error_binary)
-    setattr(UIntType, op, raise_mantle_import_error_binary)
+    setattr(SInt, op, raise_mantle_import_error_binary)
+    setattr(UInt, op, raise_mantle_import_error_binary)

@@ -9,8 +9,9 @@ from pyverilog.dataflow.visit import NodeVisitor
 import pyverilog.vparser.ast as pyverilog_ast
 
 from .t import In, Out, InOut
-from .bit import Bit, _BitKind
-from .bits import Bits, BitsKind
+from .bit import Bit
+from .bits import Bits
+from .digital import Digital
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 
 from .passes.tsort import tsort
@@ -74,12 +75,12 @@ class ModuleVisitor(NodeVisitor):
 
 
 def convert(input_type, target_type):
-    if isinstance(input_type, _BitKind) and \
-       isinstance(target_type, _BitKind) and \
+    if issubclass(input_type, Digital) and \
+       issubclass(target_type, Digital) and \
        input_type.direction == target_type.direction:
         return target_type
-    if isinstance(input_type, BitsKind) and \
-       isinstance(target_type, BitsKind) and \
+    if issubclass(input_type, Bits) and \
+       issubclass(target_type, Bits) and \
        input_type.N == target_type.N and \
        input_type.T.direction == target_type.T.direction:
         return target_type

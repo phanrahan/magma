@@ -16,10 +16,10 @@ def check_port(definition, port, type, direction):
         raise NotImplementedError(direction)
 
 def check_rxmod(RXMOD):
-    check_port(RXMOD, "RX", m.BitType, "input")
-    check_port(RXMOD, "CLK", m.BitType, "input")
-    check_port(RXMOD, "data", m.ArrayType, "output")
-    check_port(RXMOD, "valid", m.BitType, "output")
+    check_port(RXMOD, "RX", m.Bit, "input")
+    check_port(RXMOD, "CLK", m.Bit, "input")
+    check_port(RXMOD, "data", m.Array, "output")
+    check_port(RXMOD, "valid", m.Bit, "output")
 
     m.compile("build/test_rxmod", RXMOD)
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",

@@ -1,14 +1,14 @@
 from collections import OrderedDict
-from ..bit import BitType, VCC, GND
-from ..array import ArrayKind, ArrayType
+from ..bit import Bit, VCC, GND
+from ..array import Array
 from ..clock import wiredefaultclock
 from .verilog import find
 
 def get_type(port):
-    if isinstance(port, ArrayType):
+    if isinstance(port, Array):
         width = port.N
     else:
-        assert isinstance(port, BitType)
+        assert isinstance(port, Bit)
         width = 1
     return "UInt<{}>".format(width)
 
@@ -16,7 +16,7 @@ def get_name(port):
     if port is VCC: return "UInt<1>(\"h1\")"
     if port is GND: return "UInt<1>(\"h0\")"
 
-    if isinstance(port, ArrayType):
+    if isinstance(port, Array):
         if not port.iswhole(port.ts):
             # the sequence of values is concantenated
             port = [get_name(i) for i in port.ts]
@@ -38,7 +38,7 @@ def compileinstance(instance):
                 value = port
         else:
             value = port
-        # if isinstance(value, ArrayType):
+        # if isinstance(value, Array):
         #     for index, subport in enumerate(value.ts):
         #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
         # else:

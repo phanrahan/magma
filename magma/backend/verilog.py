@@ -7,13 +7,13 @@ from collections.abc import Sequence
 from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
-# from ..bit import _BitType, _BitKind, VCC, GND
-# from ..clock import ClockType, EnableType, ResetType
-# from ..array import ArrayKind, ArrayType
-# from ..bits import SIntType
-# from ..tuple import TupleType
+from ..bit import Digital, VCC, GND
+from ..clock import Clock, Enable, Reset
+from ..array import Array
+from ..bits import SInt
+from ..tuple import Tuple
 from ..is_definition import isdefinition
-# from ..clock import wiredefaultclock
+from ..clock import wiredefaultclock
 import logging
 import os
 
@@ -64,7 +64,7 @@ def vname(t):
     if t is VCC: return "1'b1"
     if t is GND: return "1'b0"
 
-    if isinstance(t, ArrayType):
+    if isinstance(t, Array):
         # print(t.ts)
         if not t.iswhole(t.ts):
             # the sequence of values is concantenated
@@ -77,11 +77,11 @@ def vname(t):
 
 # return the verilog declaration for the data type
 def vdecl(t):
-    if isinstance(t, ArrayType):
-        signed = "signed " if isinstance(t, SIntType) else ""
+    if isinstance(t, Array):
+        signed = "signed " if isinstance(t, SInt) else ""
         return '{}[{}:{}]'.format(signed, t.N-1, 0)
     else:
-        assert isinstance(t, _BitType)
+        assert isinstance(t, Digital)
         return ""
 
 # return the verilog module args
@@ -94,7 +94,7 @@ def vmoduleargs(self):
 
     args = []
     for name, port in self.ports.items():
-        if isinstance(port, TupleType):
+        if isinstance(port, Tuple):
             for i in range(len(port)):
                 append(args, port[i], vname(port[i]))
         else:
@@ -120,11 +120,11 @@ def compileinstance(self):
         if v.isinput():
             # find the output connected to v
             w = v.value()
-            if not w:
+            if w is None:
                 logging.warning(f'{v.debug_name} not connected')
                 continue
             v = w
-        if isinstance(v, TupleType):
+        if isinstance(v, Tuple):
             for i in range(len(v)):
                 args.append(arg('%s_%s' %
                     (v[i].name.tuple.name, v[i].name.index), vname(v[i])))
@@ -159,8 +159,8 @@ def compiledefinition(cls):
 
     # for now only allow Bit or Array(n, Bit)
     for name, port in cls.interface.ports.items():
-        if isinstance(port, (ArrayKind, ArrayType)):
-            if not isinstance(port.T, (_BitType, _BitKind)):
+        if isinstance(port, Array):
+            if not issubclass(port.T, Digital):
                 raise Exception(f'Argument {cls.__name__}.{name} of type {type(port)} is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)')
 
 
@@ -189,7 +189,7 @@ def compiledefinition(cls):
             # declare a wire for each instance output
             for instance in cls.instances:
                 for port in instance.interface.ports.values():
-                    if isinstance(port, TupleType):
+                    if isinstance(port, Tuple):
                         for i in range(len(port)):
                             s += wire(port[i])
                     else:
@@ -210,12 +210,12 @@ def compiledefinition(cls):
             for port in cls.interface.ports.values():
                 if port.isinput():
                     output = port.value()
-                    if output:
-                        if isinstance(output, TupleType):
+                    if output is not None:
+                        if isinstance(output, Tuple):
                             for name, input in cls.interface.ports.items():
                                 if input.isinput():
                                     output = input.value()
-                                    assert isinstance(output, TupleType)
+                                    assert isinstance(output, Tuple)
                                     for i in range(len(input)):
                                         iname = vname(input[i])
                                         oname = vname(output[i])

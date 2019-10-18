@@ -5,7 +5,7 @@ from .ref import AnonRef, InstRef, DefnRef
 from .t import Type, Kind, In, Out, Flip
 from .bit import Bit
 from .port import INPUT, OUTPUT, INOUT
-# from .clock import ClockType, ClockTypes
+from .clock import Clock, ClockTypes
 from .array import Array
 # from .tuple import TupleType
 from .compatibility import IntegerTypes, StringTypes
@@ -99,8 +99,7 @@ class _Interface(Type):
     # return all the argument input ports
     def inputs(self, include_clocks=False):
         return [port for name, port in self.ports.items() \
-                    # if port.is_input() and (not isinstance(port, ClockTypes) or include_clocks) ]
-                    if port.is_input()]
+                    if port.is_input() and (not isinstance(port, ClockTypes) or include_clocks) ]
 #                                    name not in ['SET', 'CIN']]
 
     # return all the argument output ports
@@ -123,8 +122,7 @@ class _Interface(Type):
     def inputargs(self):
         return flatten( \
                 [name, port] for name, port in self.ports.items() \
-                    # if port.is_input() and not isinstance(port, ClockTypes) )
-                    if port.is_input() )
+                    if port.is_input() and not isinstance(port, ClockTypes) )
 #                                    name not in ['SET', 'CIN']] )
 
     # return all the output arguments as name, port
@@ -148,7 +146,7 @@ class _Interface(Type):
     # return True if this interface has a Clock
     def isclocked(self):
         for name, port in self.ports.items():
-            if isinstance(port, ClockType):
+            if isinstance(port, Clock):
                 return True
         return False
 
