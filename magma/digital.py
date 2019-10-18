@@ -65,7 +65,6 @@ class DigitalMeta(ABCMeta, Kind):
         bases = tuple(bases)
         orig_name = cls.__name__
         class_name = '{}[{}]'.format(orig_name, direction.name)
-        print(orig_name)
         type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, direction))
         type_.__module__ = cls.__module__
         mcs._class_cache[cls, direction] = type_
