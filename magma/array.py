@@ -306,7 +306,3 @@ class Array(Type, metaclass=ArrayMeta):
 
 
 ArrayType = Array
-
-
-# Workaround for circular dependency
-# from .conversions import array, concat  # nopep8
