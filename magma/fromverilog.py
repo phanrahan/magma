@@ -11,6 +11,7 @@ import pyverilog.vparser.ast as pyverilog_ast
 from .t import In, Out, InOut
 from .bit import Bit, _BitKind
 from .bits import Bits, BitsKind
+from .array import Array
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 
 from .passes.tsort import tsort
@@ -100,6 +101,13 @@ def get_value(v, param_map):
     else:
         raise NotImplementedError(type(v))
 
+
+def get_width(width, param_map):
+    msb = get_value(width.msb, param_map)
+    lsb = get_value(width.lsb, param_map)
+    return msb - lsb + 1
+
+
 def get_type(io, type_map, param_map):
     if isinstance(io, Input):
         direction = In
@@ -109,18 +117,24 @@ def get_type(io, type_map, param_map):
         direction = InOut
 
     if io.width is None:
-        type_ = Bit
+        typ = Bit
     else:
-        msb = get_value(io.width.msb, param_map)
-        lsb = get_value(io.width.lsb, param_map)
-        type_ = Bits[msb-lsb+1]
+        width = get_width(io.width, param_map)
+        typ = Bits[width]
 
-    type_ = direction(type_)
+    # Generate multidimensional arrays if necessary. Note that we guard with
+    # hasattr to make this backwards compatible.
+    if hasattr(io, "dimensions") and io.dimensions is not None:
+        for length in reversed(io.dimensions.lengths):
+            width = get_width(length, param_map)
+            typ = Array[width, typ]
+
+    typ = direction(typ)
 
     if io.name in type_map:
-        type_ = convert(type_, type_map[io.name])
+        typ = convert(typ, type_map[io.name])
 
-    return type_
+    return typ
 
 
 def ParseVerilogModule(node, type_map):
