@@ -66,7 +66,6 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
 
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
-        # TODO: Port debug_name code
         if value is None:
             self._value = None
         elif isinstance(value, Bit):
