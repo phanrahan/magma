@@ -109,10 +109,10 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         return self.declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
-        T = type(t_branch)
-        if T != type(f_branch):
+        type_ = type(t_branch)
+        if type_ != type(f_branch):
             raise TypeError("ite expects same type for both branches")
-        return self.declare_ite(T)()(t_branch, f_branch, self)
+        return self.declare_ite(type_)()(t_branch, f_branch, self)
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma value to bool not supported")
