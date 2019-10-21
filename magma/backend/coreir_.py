@@ -255,9 +255,9 @@ class CoreIRBackend:
             module_type = self.context.Flip(module_type)
 
         kwargs = {}
-        if hasattr(declaration, "verilog_param_types"):
+        if hasattr(declaration, "coreir_config_param_types"):
             kwargs["cparams"] = \
-                self.make_cparams(declaration.verilog_param_types)
+                self.make_cparams(declaration.coreir_config_param_types)
 
         coreir_module = \
             self.context.global_namespace.new_module(declaration.coreir_name,
@@ -329,9 +329,9 @@ class CoreIRBackend:
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
         kwargs = {}
-        if hasattr(definition, "verilog_param_types"):
+        if hasattr(definition, "coreir_config_param_types"):
             kwargs["cparams"] = \
-                self.make_cparams(definition.verilog_param_types)
+                self.make_cparams(definition.coreir_config_param_types)
 
         coreir_module = \
             self.context.global_namespace.new_module(definition.coreir_name,

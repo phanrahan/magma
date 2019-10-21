@@ -187,7 +187,7 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
         parsed_name, args = ParseVerilogModule(verilog_defn, type_map)
         assert parsed_name == name
         magma_defn = func(name, *args)
-        magma_defn.verilog_param_types = param_map
+        magma_defn.coreir_config_param_types = param_map
         if func == DefineCircuit:
             # Attach relevant lines of verilog source.
             magma_defn.verilogFile = _get_lines(
