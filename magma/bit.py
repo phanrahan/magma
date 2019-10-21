@@ -63,11 +63,13 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         # Sanitize
         t_str = t_str.replace("(", "_")
         t_str = t_str.replace(")", "")
-        return m.DeclareCircuit(f"magma_Bit_ite_{t_str}",
-                                "I0", m.In(T),
-                                "I1", m.In(T),
-                                "S", m.In(m.Bit),
-                                "O", m.Out(T))
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bit_ite_{t_str}",
+                                              "I0", m.In(T),
+                                              "I1", m.In(T),
+                                              "S", m.In(m.Bit),
+                                              "O", m.Out(T),
+                                              coreir_name="mux",
+                                              coreir_lib="corebit")
 
     def __init__(self, value=None, name=None):
         super().__init__(name=name)

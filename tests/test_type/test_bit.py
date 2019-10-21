@@ -298,10 +298,10 @@ def test_ite():
 TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), \
 "O", Out(Bit))
 magma_Bit_ite_Out_Bit_inst0 = magma_Bit_ite_Out_Bit()
-wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.I0)
-wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.I1)
-wire(TestITE.S, magma_Bit_ite_Out_Bit_inst0.S)
-wire(magma_Bit_ite_Out_Bit_inst0.O, TestITE.O)
+wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.in0)
+wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.in1)
+wire(TestITE.S, magma_Bit_ite_Out_Bit_inst0.sel)
+wire(magma_Bit_ite_Out_Bit_inst0.out, TestITE.O)
 EndCircuit()\
 """
 

@@ -2,6 +2,8 @@
 Test the `m.Bits` type
 """
 
+import operator
+import pytest
 import magma as m
 
 ARRAY2 = m.Array[2, m.Bit]
@@ -141,3 +143,88 @@ wire(TestCircuit.I[14], TestCircuit.O[14])
 wire(GND, TestCircuit.O[15])
 EndCircuit()\
 """  # noqa
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_invert(n):
+    class TestInvert(m.Circuit):
+        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
+        @classmethod
+        def definition(io):
+            io.O <= ~io.I
+
+    assert repr(TestInvert) == f"""\
+TestInvert = DefineCircuit("TestInvert", "I", In(Bits[{n}]), "O", Out(Bits[{n}]))
+magma_Bits_{n}_invert_inst0 = magma_Bits_{n}_invert()
+wire(TestInvert.I, magma_Bits_{n}_invert_inst0.in)
+wire(magma_Bits_{n}_invert_inst0.out, TestInvert.O)
+EndCircuit()\
+"""
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["and_", "or_", "xor", "lshift", "rshift"])
+def test_binary(op, n):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    magma_op = op.replace("_", "")
+    magma_op = magma_op.replace("lshift", "shl")
+    magma_op = magma_op.replace("rshift", "lshr")
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), \
+"O", Out(Bits[{n}]))
+magma_Bits_{n}_{magma_op}_inst0 = magma_Bits_{n}_{magma_op}()
+wire(TestBinary.I0, magma_Bits_{n}_{magma_op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{magma_op}_inst0.in1)
+wire(magma_Bits_{n}_{magma_op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_ite(n):
+    class TestITE(m.Circuit):
+        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "S", m.In(m.Bits[n]),
+              "O", m.Out(m.Bits[n])]
+        @classmethod
+        def definition(io):
+            io.O <= io.S.ite(io.I0, io.I1)
+
+    gnd_wires = '\n'.join(f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
+    assert repr(TestITE) == f"""\
+TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
+magma_Bit_not_inst0 = magma_Bit_not()
+magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
+magma_Bits_{n}_ite_Out_Bits_{n}_inst0 = magma_Bits_{n}_ite_Out_Bits_{n}()
+wire(magma_Bits_{n}_eq_inst0.out, magma_Bit_not_inst0.in)
+wire(TestITE.S, magma_Bits_{n}_eq_inst0.in0)
+{gnd_wires}
+wire(TestITE.I0, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in0)
+wire(TestITE.I1, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in1)
+wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
+wire(magma_Bits_{n}_ite_Out_Bits_{n}_inst0.out, TestITE.O)
+EndCircuit()\
+"""
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_eq(n):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            # Nasty precidence issue with <= operator means we need parens here
+            io.O <= (io.I0 == io.I1)
+
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bit))
+magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
+wire(TestBinary.I0, magma_Bits_{n}_eq_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_eq_inst0.in1)
+wire(magma_Bits_{n}_eq_inst0.out, TestBinary.O)
+EndCircuit()\
+"""

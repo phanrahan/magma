@@ -3,15 +3,37 @@ Defines a subtype of m.Array called m.Bits
 
 m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
+from functools import lru_cache, wraps
 import typing as tp
 from hwtypes import BitVector
-from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit
+from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
+    InconsistentSizeError
 
+import magma as m
 from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
+from .t import Type
+
+
+def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
+    if not isinstance(val, Bits):
+        return T(val)
+    elif len(val) != len(T):
+        raise InconsistentSizeError('Inconsistent size')
+    else:
+        return val
+
+
+def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
+        tp.Callable[['Bits', tp.Any], tp.Any]:
+    @wraps(fn)
+    def wrapped(self: 'Bits', other: tp.Any) -> tp.Any:
+        other = _coerce(type(self), other)
+        return fn(self, other)
+    return wrapped
 
 
 class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
@@ -38,6 +60,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
 
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
+    __hash__ = Array.__hash__
+
     def __repr__(self):
         if not isinstance(self.name, AnonRef):
             return repr(self.name)
@@ -78,35 +102,85 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return cls(value)
         return cls.unsized_t[num_bits](value)
 
-    def __setitem__(self, index : int, value: AbstractBit):
+    def __setitem__(self, index: int, value: AbstractBit):
         raise NotImplementedError()
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_unary_op(cls, op):
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
+                                              "I", m.In(m.Bits[N]),
+                                              "O", m.Out(m.Bits[N]),
+                                              coreir_name=op,
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_binary_op(cls, op):
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
+                                              "I0", m.In(m.Bits[N]),
+                                              "I1", m.In(m.Bits[N]),
+                                              "O", m.Out(m.Bits[N]),
+                                              coreir_name=op,
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_compare_op(cls, op):
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
+                                              "I0", m.In(m.Bits[N]),
+                                              "I1", m.In(m.Bits[N]),
+                                              "O", m.Out(m.Bit),
+                                              coreir_name=op,
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_ite(cls, T):
+        t_str = str(T)
+        # Sanitize
+        t_str = t_str.replace("(", "_")
+        t_str = t_str.replace(")", "")
+        t_str = t_str.replace("[", "_")
+        t_str = t_str.replace("]", "")
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_ite_{t_str}",
+                                              "I0", m.In(T),
+                                              "I1", m.In(T),
+                                              "S", m.In(m.Bit),
+                                              "O", m.Out(T),
+                                              coreir_name="mux",
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
 
     def bvnot(self) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_unary_op("invert")()(self)
 
+    @bits_cast
     def bvand(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("and")()(self, other)
 
-    def bvnand(self, other) -> 'AbstractBitVector':
-        return self.bvand(other).bvnot()
-
+    @bits_cast
     def bvor(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("or")()(self, other)
 
-    def bvnor(self, other) -> 'AbstractBitVector':
-        return self.bvor(other).bvnot()
-
+    @bits_cast
     def bvxor(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("xor")()(self, other)
 
-    def bvxnor(self, other) -> 'AbstractBitVector':
-        return self.bvxor(other).bvnot()
-
+    @bits_cast
     def bvshl(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("shl")()(self, other)
 
+    @bits_cast
     def bvlshr(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("lshr")()(self, other)
 
     def bvashr(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -121,34 +195,34 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def bveq(self, other) -> AbstractBit:
-        raise NotImplementedError()
-
-    def bvne(self, other) -> AbstractBit:
-        return ~self.bveq(other)
+        return self.declare_compare_op("eq")()(self, other)
 
     def bvult(self, other) -> AbstractBit:
         raise NotImplementedError()
 
     def bvule(self, other) -> AbstractBit:
-        return self.bvult(other) | self.bveq(other)
+        # For wiring
+        if self.is_input():
+            return Type.__le__(self, other)
+        raise NotImplementedError()
 
     def bvugt(self, other) -> AbstractBit:
-        return ~self.bvule(other)
+        raise NotImplementedError()
 
     def bvuge(self, other) -> AbstractBit:
-        return ~self.bvult(other)
+        raise NotImplementedError()
 
     def bvslt(self, other) -> AbstractBit:
         raise NotImplementedError()
 
     def bvsle(self, other) -> AbstractBit:
-        return self.bvslt(other) | self.bveq(other)
+        raise NotImplementedError()
 
     def bvsgt(self, other) -> AbstractBit:
-        return ~self.bvsle(other)
+        raise NotImplementedError()
 
     def bvsge(self, other) -> AbstractBit:
-        return ~self.bvslt(other)
+        raise NotImplementedError()
 
     def bvneg(self) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -156,8 +230,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def adc(self, other, carry) -> tp.Tuple['AbstractBitVector', AbstractBit]:
         raise NotImplementedError()
 
-    def ite(i,t,e) -> 'AbstractBitVector':
-        raise NotImplementedError()
+    def ite(self, t_branch, f_branch) -> 'AbstractBitVector':
+        type_ = type(t_branch)
+        if type_ != type(f_branch):
+            raise TypeError("ite expects same type for both branches")
+        return self.declare_ite(type_)()(t_branch, f_branch,
+                                         self != self.make_constant(0))
 
     def bvadd(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -191,6 +269,28 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def zext(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
+
+    __invert__ = bvnot
+    __and__ = bvand
+    __or__ = bvor
+    __xor__ = bvxor
+
+    __lshift__ = bvshl
+    __rshift__ = bvlshr
+
+    __neg__ = bvneg
+    __add__ = bvadd
+    __sub__ = bvsub
+    __mul__ = bvmul
+    __floordiv__ = bvudiv
+    __mod__ = bvurem
+
+    __eq__ = bveq
+    __ne__ = AbstractBitVector.bvne
+    __ge__ = bvuge
+    __gt__ = bvugt
+    __le__ = bvule
+    __lt__ = bvult
 
 
 BitsType = Bits
