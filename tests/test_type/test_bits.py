@@ -98,7 +98,15 @@ def test_const():
     """
     data = m.Bits[16]
     zero = data(0)
-    assert all(a is b for a, b in zip(zero, m.bits(0, 16)))
+
+    def check_equal(x, y):
+        return all(a is b for a, b in zip(x, y))
+
+    assert check_equal(zero, m.bits(0, 16))
+
+    assert check_equal(data(16), m.Bits[16].make_constant(16))
+    assert check_equal(m.Bits[4](0xe), m.Bits[16].make_constant(0xe, 4))
+    assert check_equal(m.Bits[4](0xe), m.Bits.make_constant(0xe, 4))
 
 
 def test_setitem_bfloat():

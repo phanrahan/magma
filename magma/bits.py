@@ -61,20 +61,24 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return BitVector[len(self)](self.bits()).as_int()
 
     @debug_wire
-    def wire(i, o, debug_info):
-        if isinstance(o, IntegerTypes):
-            if o.bit_length() > len(i):
+    def wire(self, other, debug_info):
+        if isinstance(other, IntegerTypes):
+            if other.bit_length() > len(self):
                 raise ValueError(
-                    f"Cannot convert integer {o} (bit_length={o.bit_length()}) to Bits({len(i)})")
+                    f"Cannot convert integer {other} "
+                    f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
             from .conversions import bits
-            o = bits(o, len(i))
-        super().wire(o, debug_info)
+            other = bits(other, len(self))
+        super().wire(other, debug_info)
 
     @classmethod
-    def make_constant(self, value, num_bits:tp.Optional[int]=None) -> 'AbstractBitVector':
-        raise NotImplementedError()
+    def make_constant(cls, value, num_bits: tp.Optional[int] = None) -> \
+            'AbstractBitVector':
+        if num_bits is None:
+            return cls(value)
+        return cls.unsized_t[num_bits](value)
 
-    def __setitem__(self, index : int, value : AbstractBit):
+    def __setitem__(self, index : int, value: AbstractBit):
         raise NotImplementedError()
 
     def bvnot(self) -> 'AbstractBitVector':
