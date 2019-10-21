@@ -216,6 +216,9 @@ wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
 wire(magma_Bits_{n}_ite_Out_Bits_{n}_inst0.out, TestITE.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBits{n}ITE", TestITE, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}ITE.v",
+                             f"gold/TestBits{n}ITE.v")
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -235,6 +238,9 @@ wire(TestBinary.I1, magma_Bits_{n}_eq_inst0.in1)
 wire(magma_Bits_{n}_eq_inst0.out, TestBinary.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBits{n}eq", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}eq.v",
+                             f"gold/TestBits{n}eq.v")
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -254,3 +260,6 @@ TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
 {gnd_wires}
 EndCircuit()\
 """
+    m.compile(f"build/TestBits{n}ext", TestExt, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}ext.v",
+                             f"gold/TestBits{n}ext.v")
