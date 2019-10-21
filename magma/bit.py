@@ -122,7 +122,8 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         type_ = type(t_branch)
         if type_ != type(f_branch):
             raise TypeError("ite expects same type for both branches")
-        return self.declare_ite(type_)()(t_branch, f_branch, self)
+        # Note: coreir flips t/f cases
+        return self.declare_ite(type_)()(f_branch, t_branch, self)
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma bit to bool not supported")

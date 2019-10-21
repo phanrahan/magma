@@ -272,6 +272,9 @@ wire(TestBinary.I1, magma_Bit_xor_inst0.in1)
 wire(magma_Bit_not_inst0.out, TestBinary.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBiteq", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBiteq.v",
+                             f"gold/TestBiteq.v")
 
 
 def test_ne():
@@ -291,6 +294,9 @@ wire(TestBinary.I1, magma_Bit_xor_inst0.in1)
 wire(magma_Bit_xor_inst0.out, TestBinary.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBitne", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBitne.v",
+                             f"gold/TestBitne.v")
 
 
 def test_ite():
@@ -305,12 +311,15 @@ def test_ite():
 TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), \
 "O", Out(Bit))
 magma_Bit_ite_Out_Bit_inst0 = magma_Bit_ite_Out_Bit()
-wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.in0)
-wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.in1)
+wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.in0)
+wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.in1)
 wire(TestITE.S, magma_Bit_ite_Out_Bit_inst0.sel)
 wire(magma_Bit_ite_Out_Bit_inst0.out, TestITE.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBitite", TestITE, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBitite.v",
+                             f"gold/TestBitite.v")
 
 
 @pytest.mark.parametrize("op", [int, bool])
