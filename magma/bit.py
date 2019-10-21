@@ -54,11 +54,11 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
     @classmethod
     @lru_cache(maxsize=None)
     def declare_ite(cls, T):
-        T_str = str(T)
+        t_str = str(T)
         # Sanitize
-        T_str = T_str.replace("(", "_")
-        T_str = T_str.replace(")", "")
-        return m.DeclareCircuit(f"magma_Bit_ite_{T_str}",
+        t_str = T_str.replace("(", "_")
+        t_str = T_str.replace(")", "")
+        return m.DeclareCircuit(f"magma_Bit_ite_{t_str}",
                                 "I0", m.In(T),
                                 "I1", m.In(T),
                                 "S", m.In(m.Bit),
