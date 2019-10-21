@@ -56,8 +56,8 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
     def declare_ite(cls, T):
         t_str = str(T)
         # Sanitize
-        t_str = T_str.replace("(", "_")
-        t_str = T_str.replace(")", "")
+        t_str = t_str.replace("(", "_")
+        t_str = t_str.replace(")", "")
         return m.DeclareCircuit(f"magma_Bit_ite_{t_str}",
                                 "I0", m.In(T),
                                 "I1", m.In(T),
