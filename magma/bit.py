@@ -115,10 +115,10 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         return self.declare_ite(type_)()(t_branch, f_branch, self)
 
     def __bool__(self) -> bool:
-        raise NotImplementedError("Converting magma value to bool not supported")
+        raise NotImplementedError("Converting magma bit to bool not supported")
 
     def __int__(self) -> int:
-        raise NotImplementedError("Converting magma value to int not supported")
+        raise NotImplementedError("Converting magma bit to int not supported")
 
     def __repr__(self):
         if self is VCC:
