@@ -40,17 +40,21 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
     @classmethod
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
-        return m.DeclareCircuit(f"magma_Bit_{op}",
-                                "I", m.In(m.Bit),
-                                "O", m.Out(m.Bit))
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bit_{op}",
+                                              "I", m.In(m.Bit),
+                                              "O", m.Out(m.Bit),
+                                              coreir_name=op,
+                                              coreir_lib="corebit")
 
     @classmethod
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
-        return m.DeclareCircuit(f"magma_Bit_{op}",
-                                "I0", m.In(m.Bit),
-                                "I1", m.In(m.Bit),
-                                "O", m.Out(m.Bit))
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bit_{op}",
+                                              "I0", m.In(m.Bit),
+                                              "I1", m.In(m.Bit),
+                                              "O", m.Out(m.Bit),
+                                              coreir_name=op,
+                                              coreir_lib="corebit")
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -87,15 +91,18 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         return type(self).direction
 
     def __invert__(self):
-        return self.declare_unary_op("invert")()(self)
+        # CoreIR uses not instead of invert name
+        return self.declare_unary_op("not")()(self)
 
     @bit_cast
     def __eq__(self, other):
-        return self.declare_binary_op("eq")()(self, other)
+        # CoreIR doesn't define an eq primitive for bits
+        return ~(self ^ other)
 
     @bit_cast
     def __ne__(self, other):
-        return self.declare_binary_op("ne")()(self, other)
+        # CoreIR doesn't define an ne primitive for bits
+        return self ^ other
 
     @bit_cast
     def __and__(self, other):

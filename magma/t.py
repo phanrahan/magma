@@ -35,13 +35,6 @@ class Type(object):
             name = AnonRef(name=name)
         self.name = name
 
-    # subclasses only need to implement one of these methods
-    def __eq__(self, rhs):
-        return not (self != rhs)
-
-    def __ne__(self, rhs):
-        return not (self == rhs)
-
     __hash__ = object.__hash__
 
     def __repr__(self):

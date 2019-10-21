@@ -588,5 +588,20 @@ def circuit_generator(func):
         return result
     return wrapped
 
+
+default_port_mapping = {
+    "I": "in",
+    "I0": "in0",
+    "I1": "in1",
+    "O": "out",
+    "S": "sel",
+}
+
+
+def DeclareCoreirCircuit(*args, **kwargs):
+    return DeclareCircuit(*args, **kwargs,
+                          renamed_ports=default_port_mapping)
+
+
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential

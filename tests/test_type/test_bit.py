@@ -219,14 +219,14 @@ def test_invert():
 
     assert repr(TestInvert) == """\
 TestInvert = DefineCircuit("TestInvert", "I", In(Bit), "O", Out(Bit))
-magma_Bit_invert_inst0 = magma_Bit_invert()
-wire(TestInvert.I, magma_Bit_invert_inst0.I)
-wire(magma_Bit_invert_inst0.O, TestInvert.O)
+magma_Bit_not_inst0 = magma_Bit_not()
+wire(TestInvert.I, magma_Bit_not_inst0.in)
+wire(magma_Bit_not_inst0.out, TestInvert.O)
 EndCircuit()\
 """
 
 
-@pytest.mark.parametrize("op", ["eq", "ne", "and_", "or_", "xor"])
+@pytest.mark.parametrize("op", ["and_", "or_", "xor"])
 def test_binary(op):
     class TestBinary(m.Circuit):
         IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
@@ -238,9 +238,47 @@ def test_binary(op):
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 magma_Bit_{clean_op}_inst0 = magma_Bit_{clean_op}()
-wire(TestBinary.I0, magma_Bit_{clean_op}_inst0.I0)
-wire(TestBinary.I1, magma_Bit_{clean_op}_inst0.I1)
-wire(magma_Bit_{clean_op}_inst0.O, TestBinary.O)
+wire(TestBinary.I0, magma_Bit_{clean_op}_inst0.in0)
+wire(TestBinary.I1, magma_Bit_{clean_op}_inst0.in1)
+wire(magma_Bit_{clean_op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+
+
+def test_eq():
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            # Nasty precidence issue with <= operator means we need parens here
+            io.O <= (io.I0 == io.I1)
+
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+magma_Bit_not_inst0 = magma_Bit_not()
+magma_Bit_xor_inst0 = magma_Bit_xor()
+wire(magma_Bit_xor_inst0.out, magma_Bit_not_inst0.in)
+wire(TestBinary.I0, magma_Bit_xor_inst0.in0)
+wire(TestBinary.I1, magma_Bit_xor_inst0.in1)
+wire(magma_Bit_not_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+
+
+def test_ne():
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            # Nasty precidence issue with <= operator means we need parens here
+            io.O <= (io.I0 != io.I1)
+
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+magma_Bit_xor_inst0 = magma_Bit_xor()
+wire(TestBinary.I0, magma_Bit_xor_inst0.in0)
+wire(TestBinary.I1, magma_Bit_xor_inst0.in1)
+wire(magma_Bit_xor_inst0.out, TestBinary.O)
 EndCircuit()\
 """
 

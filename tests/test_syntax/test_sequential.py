@@ -4,21 +4,9 @@ from test_combinational import compile_and_check, phi
 from collections.abc import Sequence
 import coreir
 import ast_tools
+from magma.circuit import DeclareCoreirCircuit
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
-
-default_port_mapping = {
-    "I": "in",
-    "I0": "in0",
-    "I1": "in1",
-    "O": "out",
-    "S": "sel",
-}
-
-
-def DeclareCoreirCircuit(*args, **kwargs):
-    return m.DeclareCircuit(*args, **kwargs,
-                            renamed_ports=default_port_mapping)
 
 
 @m.cache_definition
@@ -192,15 +180,6 @@ def test_seq_hierarchy(target, async_reset):
 
 def test_multiple_return(target, async_reset):
     T = m.Bits[4]
-
-    m.Bit.__eq__ = lambda x, y: DeclareCoreirCircuit(
-        "eq",
-        *["I0", m.In(m.Bit),
-          "I1", m.In(m.Bit),
-          "O", m.Out(m.Bit)],
-        coreir_name="and",
-        coreir_lib="corebit"
-    )()(x, y)
 
     m.Bits.__eq__ = lambda x, y: DeclareCoreirCircuit(
         "eq",
