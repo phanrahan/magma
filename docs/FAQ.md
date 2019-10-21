@@ -1,3 +1,77 @@
+# Instantiating a parametrized Verilog module
+## Question
+How can I instantiate a Verilog module with a set of parameters?
+## Answer
+Suppose I have the following module:
+```module
+// ff.v
+module FF(input clk, input rst, input d, output q);
+
+parameter init = 0;
+
+reg ff; 
+always @(posedge clk or posedge rst) begin
+  if (!rst)
+    ff <= init;
+  else
+    ff <= d; 
+end
+
+assign q = ff;
+endmodule
+```
+
+I can import it into magma as follows:
+```python
+import magma as m
+
+
+FF = m.DefineFromVerilogFile(
+    "ff.v", type_map={"clk": m.In(m.Clock), "rst": m.In(m.AsyncReset)}
+)[0]
+
+class Top(m.Circuit):
+    IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])] + \
+        m.ClockInterface(has_async_reset=True)
+    @classmethod
+    def definition(io):
+        # keyword arguments to instancing call are passed as verilog parameters
+        ff0 = FF(init=0)
+        ff1 = FF(init=1)
+        io.O <= m.join([ff0, ff1])(d=io.I, rst=io.ASYNCRESET)
+
+
+m.compile("top", Top, output="verilog")
+```
+
+This produces the following Verilog, notice how the arguments to the magma
+instancing call has been passed to the Verilog instancing statement.
+```verilog
+// top.v
+module FF(input clk, input rst, input d, output q);
+
+parameter init = 0;
+
+reg ff; 
+always @(posedge clk or posedge rst) begin
+  if (!rst)
+    ff <= init;
+  else
+    ff <= d; 
+end
+
+assign q = ff;
+endmodule
+module Top (input [1:0] I, output [1:0] O, input  CLK, input  ASYNCRESET);
+wire  FF_inst0_q;
+wire  FF_inst1_q;
+FF #(.init(0)) FF_inst0 (.clk(CLK), .rst(ASYNCRESET), .d(I[0]), .q(FF_inst0_q));
+FF #(.init(1)) FF_inst1 (.clk(CLK), .rst(ASYNCRESET), .d(I[1]), .q(FF_inst1_q));
+assign O = {FF_inst1_q,FF_inst0_q};
+endmodule
+
+```
+
 # Statically Elaborated For Loop in Combinational Circuit
 ## Question
 How can I use a for loop that is evaluated at compile (Python) time inside
