@@ -3,23 +3,15 @@ Defines a subtype of m.Array called m.Bits
 
 m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
-import weakref
 import typing as tp
-from hwtypes import BitVector, SIntVector
+from hwtypes import BitVector
 from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit
 
-import magma as m
 from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
-
-
-# __all__ = ['Bits', 'BitsType', 'BitsKind']
-# __all__ += ['UInt', 'UIntType', 'UIntKind']
-# __all__ += ['SInt', 'SIntType', 'SIntKind']
-# __all__ += ['BFloat', 'BFloatKind']
 
 
 class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
@@ -31,8 +23,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             index = (index, Bit)
         return ArrayMeta.__getitem__(cls, index)
 
-    def __repr__(self):
-        return str(self)
+    def __repr__(cls):
+        return str(cls)
 
     def __str__(cls):
         name = f"{cls.orig_name}[{cls.N}]"
