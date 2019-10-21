@@ -217,7 +217,7 @@ def FromVerilogFile(file, func, type_map, target_modules=None, shallow=False,
         return None
     verilog = open(file).read()
     result = FromVerilog(verilog, func, type_map, target_modules, shallow,
-                         external_modules, param_map)
+                         external_modules, param_map=param_map)
     # Store the original verilog file name, currently used by m.compile to
     # generate a .sv when compiling a circuit that was defined from a verilog
     # file
@@ -237,10 +237,10 @@ def FromTemplatedVerilogFile(file, func, type_map, **kwargs):
 
 
 def DeclareFromVerilog(source, type_map={}, param_map={}):
-    return FromVerilog(source, DeclareCircuit, type_map, param_map)
+    return FromVerilog(source, DeclareCircuit, type_map, param_map=param_map)
 
 def DeclareFromVerilogFile(file, target_modules=None, type_map={}, param_map={}):
-    return FromVerilogFile(file, DeclareCircuit, type_map, target_modules, param_map)
+    return FromVerilogFile(file, DeclareCircuit, type_map, target_modules, param_map=param_map)
 
 def DeclareFromTemplatedVerilog(source, type_map={}, **kwargs):
     return FromTemplatedVerilog(source, DeclareCircuit, type_map, **kwargs)
