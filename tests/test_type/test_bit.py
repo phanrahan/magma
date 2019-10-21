@@ -236,7 +236,8 @@ def test_binary(op):
 
     clean_op = op.replace("_", "")
     assert repr(TestBinary) == f"""\
-TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), \
+"O", Out(Bit))
 magma_Bit_{clean_op}_inst0 = magma_Bit_{clean_op}()
 wire(TestBinary.I0, magma_Bit_{clean_op}_inst0.in0)
 wire(TestBinary.I1, magma_Bit_{clean_op}_inst0.in1)
@@ -254,7 +255,8 @@ def test_eq():
             io.O <= (io.I0 == io.I1)
 
     assert repr(TestBinary) == f"""\
-TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), \
+"O", Out(Bit))
 magma_Bit_not_inst0 = magma_Bit_not()
 magma_Bit_xor_inst0 = magma_Bit_xor()
 wire(magma_Bit_xor_inst0.out, magma_Bit_not_inst0.in)
@@ -274,7 +276,8 @@ def test_ne():
             io.O <= (io.I0 != io.I1)
 
     assert repr(TestBinary) == f"""\
-TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), \
+"O", Out(Bit))
 magma_Bit_xor_inst0 = magma_Bit_xor()
 wire(TestBinary.I0, magma_Bit_xor_inst0.in0)
 wire(TestBinary.I1, magma_Bit_xor_inst0.in1)
@@ -285,13 +288,15 @@ EndCircuit()\
 
 def test_ite():
     class TestITE(m.Circuit):
-        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
+        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "S", m.In(m.Bit),
+              "O", m.Out(m.Bit)]
         @classmethod
         def definition(io):
             io.O <= io.S.ite(io.I0, io.I1)
 
     assert repr(TestITE) == """\
-TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), "O", Out(Bit))
+TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), \
+"O", Out(Bit))
 magma_Bit_ite_Out_Bit_inst0 = magma_Bit_ite_Out_Bit()
 wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.I0)
 wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.I1)
@@ -299,6 +304,7 @@ wire(TestITE.S, magma_Bit_ite_Out_Bit_inst0.S)
 wire(magma_Bit_ite_Out_Bit_inst0.O, TestITE.O)
 EndCircuit()\
 """
+
 
 @pytest.mark.parametrize("op", [int, bool])
 def test_errors(op):
