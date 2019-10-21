@@ -160,7 +160,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                                               coreir_lib="coreir")
 
     def bvnot(self) -> 'AbstractBitVector':
-        return self.declare_unary_op("invert")()(self)
+        return self.declare_unary_op("not")()(self)
 
     @bits_cast
     def bvand(self, other) -> 'AbstractBitVector':

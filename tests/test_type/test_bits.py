@@ -5,6 +5,7 @@ Test the `m.Bits` type
 import operator
 import pytest
 import magma as m
+from magma.testing import check_files_equal
 
 ARRAY2 = m.Array[2, m.Bit]
 ARRAY4 = m.Array[4, m.Bit]
@@ -155,11 +156,14 @@ def test_invert(n):
 
     assert repr(TestInvert) == f"""\
 TestInvert = DefineCircuit("TestInvert", "I", In(Bits[{n}]), "O", Out(Bits[{n}]))
-magma_Bits_{n}_invert_inst0 = magma_Bits_{n}_invert()
-wire(TestInvert.I, magma_Bits_{n}_invert_inst0.in)
-wire(magma_Bits_{n}_invert_inst0.out, TestInvert.O)
+magma_Bits_{n}_not_inst0 = magma_Bits_{n}_not()
+wire(TestInvert.I, magma_Bits_{n}_not_inst0.in)
+wire(magma_Bits_{n}_not_inst0.out, TestInvert.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBits{n}Invert", TestInvert, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}Invert.v",
+                             f"gold/TestBits{n}Invert.v")
 
 
 @pytest.mark.parametrize("n", [1, 3])
