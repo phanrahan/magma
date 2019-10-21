@@ -270,34 +270,174 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def zext(self, other) -> 'AbstractBitVector':
         return m.zext(self, other)
 
-    __invert__ = bvnot
-    __and__ = bvand
-    __or__ = bvor
-    __xor__ = bvxor
+    def __invert__(self):
+        return self.bvnot()
 
-    __lshift__ = bvshl
-    __rshift__ = bvlshr
+    def __and__(self, other):
+        try:
+            return self.bvand(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    __neg__ = bvneg
-    __add__ = bvadd
-    __sub__ = bvsub
-    __mul__ = bvmul
-    __floordiv__ = bvudiv
-    __mod__ = bvurem
+    def __or__(self, other):
+        try:
+            return self.bvor(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    __eq__ = bveq
-    __ne__ = AbstractBitVector.bvne
-    __ge__ = bvuge
-    __gt__ = bvugt
-    __le__ = bvule
-    __lt__ = bvult
+    def __xor__(self, other):
+        try:
+            return self.bvxor(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __lshift__(self, other):
+        try:
+            return self.bvshl(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __rshift__(self, other):
+        try:
+            return self.bvlshr(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __neg__(self):
+        return self.bvneg()
+
+    def __add__(self, other):
+        try:
+            return self.bvadd(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __sub__(self, other):
+        try:
+            return self.bvsub(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __mul__(self, other):
+        try:
+            return self.bvmul(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __floordiv__(self, other):
+        try:
+            return self.bvudiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __mod__(self, other):
+        try:
+            return self.bvurem(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __eq__(self, other):
+        try:
+            return self.bveq(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ne__(self, other):
+        try:
+            return self.bvne(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ge__(self, other):
+        try:
+            return self.bvuge(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __gt__(self, other):
+        try:
+            return self.bvugt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __le__(self, other):
+        try:
+            return self.bvule(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __lt__(self, other):
+        try:
+            return self.bvult(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
 
 BitsType = Bits
 
 
 class UInt(Bits):
-    pass
+    def bvult(self, other) -> AbstractBit:
+        return self.declare_compare_op("ult")()(self, other)
+
+    def bvule(self, other) -> AbstractBit:
+        # For wiring
+        if self.is_input():
+            return Type.__le__(self, other)
+        return self.declare_compare_op("ule")()(self, other)
+
+    def bvugt(self, other) -> AbstractBit:
+        return self.declare_compare_op("ugt")()(self, other)
+
+    def bvuge(self, other) -> AbstractBit:
+        return self.declare_compare_op("uge")()(self, other)
+
+    def bvadd(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvsub(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvmul(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvudiv(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvurem(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
 
 
 class SInt(Bits):

@@ -1,3 +1,6 @@
+from magma.testing import check_files_equal
+import operator
+import pytest
 from magma import *
 
 Array2 = Array[2,Bit]
@@ -70,3 +73,33 @@ def test_construct():
     a1 = uint([1,1])
     print(type(a1))
     assert isinstance(a1, UInt)
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
+def test_compare(n, op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.UInt[n]), "I1", m.In(m.UInt[n]), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            # Nasty precidence issue with <= operator means we need parens here
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    op = {
+        "eq": "eq",
+        "le": "ule",
+        "lt": "ult",
+        "ge": "uge",
+        "gt": "ugt"
+    }[op]
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(Bit))
+magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
+wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
+wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestUInt{n}{op}.v",
+                             f"gold/TestUInt{n}{op}.v")
