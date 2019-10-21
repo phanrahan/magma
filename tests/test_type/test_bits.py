@@ -187,6 +187,9 @@ wire(TestBinary.I1, magma_Bits_{n}_{magma_op}_inst0.in1)
 wire(magma_Bits_{n}_{magma_op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBits{n}{magma_op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}{magma_op}.v",
+                             f"gold/TestBits{n}{magma_op}.v")
 
 
 @pytest.mark.parametrize("n", [1, 3])
