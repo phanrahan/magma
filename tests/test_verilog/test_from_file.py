@@ -9,9 +9,9 @@ def check_port(definition, port, type, direction):
     port = getattr(definition, port)
     assert isinstance(port, type)
     if direction == "input":
-        assert port.isoutput()
+        assert port.is_output()
     elif direction == "output":
-        assert port.isinput()
+        assert port.is_input()
     else:
         raise NotImplementedError(direction)
 

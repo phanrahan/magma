@@ -2,7 +2,7 @@ import weakref
 from abc import ABCMeta
 import magma as m
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind
+from .t import Type, Kind, deprecated
 from .compatibility import IntegerTypes
 from .bit import VCC, GND
 from .bitutils import seq2int
@@ -153,6 +153,11 @@ class Array(Type, metaclass=ArrayMeta):
             return False
         return cls.T.is_oriented(direction)
 
+    @classmethod
+    @deprecated
+    def isoriented(cls, direction):
+        return cls.is_oriented(direction)
+
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
             return False
@@ -201,8 +206,8 @@ class Array(Type, metaclass=ArrayMeta):
         return self.wire(o, get_callee_frame_info())
 
     @classmethod
-    def isoriented(cls, direction):
-        return cls.T.isoriented(direction)
+    def is_oriented(cls, direction):
+        return cls.T.is_oriented(direction)
 
     def as_list(self):
         return [self[i] for i in range(len(self))]

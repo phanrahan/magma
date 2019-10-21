@@ -75,12 +75,12 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
 def wireclocktype(defn, inst, clocktype):
     defnclk = []
     for port in defn.interface.ports.values():
-        if isinstance(port, clocktype) and port.isoutput():
+        if isinstance(port, clocktype) and port.is_output():
             defnclk += [port]
     if defnclk:
         defnclk = defnclk[0]  # wire first clock
         for port in inst.interface.ports.values():
-            if isinstance(port, clocktype) and port.isinput() and not port.driven():
+            if isinstance(port, clocktype) and port.is_input() and not port.driven():
                 wire(defnclk, port)
 
 

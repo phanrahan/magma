@@ -14,5 +14,5 @@ def test_declare_interface_polarity():
     And2Defn = m.DefineCircuit("And2", "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                                "O", m.Out(m.Bit))
 
-    assert And2Decl.interface.ports["I0"].isinput() == \
-        And2Defn.interface.ports["I0"].isinput()
+    assert And2Decl.interface.ports["I0"].is_input() == \
+        And2Defn.interface.ports["I0"].is_input()

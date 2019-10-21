@@ -44,7 +44,7 @@ def compileinstance(dot, instance):
     outputs = []
 
     for name, port in instance.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             inputs.append('<{0}> {0}'.format(str(name)))
             value = port.value()
             if value is None:
@@ -58,7 +58,7 @@ def compileinstance(dot, instance):
         #         s += "{}.{}[{}] <= {}\n".format(instance_backend_name, name, index, get_name(subport))
         # else:
         value_name = get_name(dot, value)
-        if port.isinput():
+        if port.is_input():
             # s += "{}.{} <= {}\n".format(instance_backend_name, name, value_name)
             dot.edge(value_name, '{}:{}'.format(instance_backend_name, name))
         else:
@@ -84,7 +84,7 @@ def compiledefinition(dot, cls):
                 print('Error: Argument', port, 'must be a an Array(n,Bit)')
 
     for name, port in cls.interface.ports.items():
-        # TODO: Check whether port.isinput() or .isoutput().
+        # TODO: Check whether port.is_input() or .is_output().
         dot.node(name,
                  escape('{}\\n{}'.format(name, get_type(port))),
                  shape='ellipse')
@@ -92,7 +92,7 @@ def compiledefinition(dot, cls):
     # declare a wire for each instance output
     for instance in cls.instances:
         for port in instance.interface.ports.values():
-            if port.isoutput():
+            if port.is_output():
                 dot.node(get_name(dot, port),
                          escape('{}\\n{}'.format(get_name(dot, port), get_type(port))),
                          shape='none')

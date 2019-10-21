@@ -47,8 +47,8 @@ def test_clock_val():
     b = Clock(name="a")
     assert str(b) == "a"
     assert isinstance(b, Clock)
-    assert not b.isinput()
-    assert not b.isoutput()
+    assert not b.is_input()
+    assert not b.is_output()
 
 
 def test_reset():
@@ -87,9 +87,9 @@ def test_reset_val():
     b = Reset(name="a")
     assert str(b) == "a"
     assert isinstance(b, Reset)
-    assert not b.isinput()
-    assert not b.isoutput()
-    assert not b.isinout()
+    assert not b.is_input()
+    assert not b.is_output()
+    assert not b.is_inout()
 
 
 def test_enable():
@@ -128,8 +128,8 @@ def test_enable_val():
     b = Enable(name="a")
     assert str(b) == "a"
     assert isinstance(b, Enable)
-    assert not b.isinput()
-    assert not b.isoutput()
+    assert not b.is_input()
+    assert not b.is_output()
 
 
 @pytest.mark.parametrize("T", [Clock, AsyncReset])

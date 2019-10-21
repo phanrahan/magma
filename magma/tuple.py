@@ -3,7 +3,7 @@ from collections import OrderedDict
 from hwtypes.adt import TupleMeta, Tuple, Product, ProductMeta
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .ref import AnonRef, TupleRef
-from .t import Type, Kind, Direction
+from .t import Type, Kind, Direction, deprecated
 from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
@@ -63,6 +63,11 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
         return all(v.is_oriented(direction) for v in cls.fields)
 
     @classmethod
+    @deprecated
+    def isoriented(cls, direction):
+        return cls.is_oriented(direction)
+
+    @classmethod
     def keys(cls):
         return [str(i) for i in range(len(cls.fields))]
 
@@ -88,13 +93,6 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
-    @classmethod
-    def isoriented(cls, direction):
-        for T in cls.Ts:
-            if not T.isoriented(direction):
-                return False
-        return True
-
 
     @debug_wire
     def wire(i, o, debug_info):
@@ -113,7 +111,7 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
         #    return
 
         for i_elem, o_elem in zip(i, o):
-            if o_elem.isinput():
+            if o_elem.is_input():
                 o_elem.wire(i_elem, debug_info)
             else:
                 i_elem.wire(o_elem, debug_info)
@@ -324,7 +322,7 @@ class Product(Tuple, metaclass=ProductKind):
 #         return n
 
 #     def qualify(cls, direction):
-#         if cls.isoriented(direction):
+#         if cls.is_oriented(direction):
 #             return cls
 #         return Tuple(OrderedDict(zip(cls.Ks, [T.qualify(direction) for T in cls.Ts])))
 

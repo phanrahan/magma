@@ -33,7 +33,7 @@ def compileinput(prefix, from_, to):
 def compileinputs(instance, prefix):
     s = ''
     for k, v in instance.interface.ports.items():
-        if v.isinput():
+        if v.is_input():
             if isinstance(v, Array):
                 for i in range(len(v)):
                     w = v[i].value()

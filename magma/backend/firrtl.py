@@ -31,7 +31,7 @@ def compileinstance(instance):
     instance_name = str(instance.name)
     s = "inst {} of {}\n".format(instance_name, str(instance.__class__.__name__))
     for name, port in instance.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             value = port.value()
             if not value:
                 print('Warning (firrtl): input', str(port), 'not connected to an output')
@@ -43,7 +43,7 @@ def compileinstance(instance):
         #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
         # else:
         value_name = get_name(value)
-        if port.isinput():
+        if port.is_input():
             s += "{}.{} <= {}\n".format(instance_name, name, value_name)
         else:
             s += "{} <= {}.{}\n".format(value_name, instance_name, name)
@@ -59,7 +59,7 @@ def compile_primitive(instance):
     port = outputs[0]
     args = []
     for name, port in instance.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             value = port.value()
             if not value:
                 print('Warning (firrtl): input', str(port), 'not connected to an output')
@@ -77,9 +77,9 @@ def compiledefinition(cls):
 
     s = 'module {} :\n'.format(cls.__name__)
     for name, port in cls.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             direction = "output"
-        elif port.isoutput():
+        elif port.is_output():
             direction = "input"
         else:
             raise NotImplementedError()  # Does FIRRTL have an inout?
@@ -93,7 +93,7 @@ def compiledefinition(cls):
         # declare a wire for each instance output
         for instance in cls.instances:
             for port in instance.interface.ports.values():
-                if port.isoutput():
+                if port.is_output():
                     s += 'wire {} : {}\n'.format(get_name(port), get_type(port))
 
         #print('compile instances')

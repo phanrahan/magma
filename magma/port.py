@@ -90,8 +90,8 @@ class Wire:
         # add the non-anonymous port to the wire associated with the
         # anonymous port
 
-        #print(str(o), o.anon(), o.bit.isinput(), o.bit.isoutput())
-        #print(str(i), i.anon(), i.bit.isinput(), i.bit.isoutput())
+        #print(str(o), o.anon(), o.bit.is_input(), o.bit.is_output())
+        #print(str(i), i.anon(), i.bit.is_input(), i.bit.is_output())
 
         if not o.anon():
             #assert o.bit.direction is not None

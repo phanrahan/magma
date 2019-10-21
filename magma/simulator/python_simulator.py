@@ -42,7 +42,7 @@ class SimPrimitive:
             if not isinstance(bit, Array):
                 bit = [bit]
             for b in bit:
-                if b.isinput():
+                if b.is_input():
                     self.inputs.append(b)
                 else:
                     self.outputs.append(b)
@@ -100,7 +100,7 @@ class ValueStore:
 
             return True
 
-        if bit.isinput():
+        if bit.is_input():
             bit = bit.value()
 
         if bit.const():
@@ -119,7 +119,7 @@ class ValueStore:
                 return BitVector[len(bit)](value)
             return value
 
-        if bit.isinput():
+        if bit.is_input():
             bit = bit.value()
 
         if bit.const():
@@ -128,7 +128,7 @@ class ValueStore:
         return self.value_map[bit]
 
     def set_value(self, bit, newval):
-        if not bit.isoutput():
+        if not bit.is_output():
             raise TypeError("Can only call set value on an input")
 
         if isinstance(bit, Array):
@@ -171,7 +171,7 @@ class PythonSimulator(CircuitSimulator):
             for b in bit:
                 self.initialize(b)
         else:
-            if bit.isoutput():
+            if bit.is_output():
                 self.circuit_inputs.append(bit)
                 self.value_store.set_value(bit, False)
             else:
@@ -189,7 +189,7 @@ class PythonSimulator(CircuitSimulator):
 
     def __outputs_initialized(self):
         for bit in self.circuit_outputs:
-            assert bit.isinput()
+            assert bit.is_input()
             if not self.value_store.value_initialized(bit):
                 return False
 
@@ -381,7 +381,7 @@ class PythonSimulator(CircuitSimulator):
 
         j = 0
         for name, port in circuit.interface.ports.items():
-            if port.isoutput():
+            if port.is_output():
                 val = largs[j]
                 if isinstance(port, Array):
                     n = type(port).N
@@ -393,7 +393,7 @@ class PythonSimulator(CircuitSimulator):
 
         outs = []
         for name, port in circuit.interface.ports.items():
-            if port.isinput():
+            if port.is_input():
                 val = self.get_value(getattr(circuit, name))
                 val = int(val) if isinstance(val, bool) else seq2int(val)
                 outs.append(val)

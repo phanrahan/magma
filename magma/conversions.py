@@ -48,9 +48,9 @@ def convertbit(value, totype):
     if isinstance(value, IntegerTypes):
         value = VCC if value else GND
 
-    if value.isinput():
+    if value.is_input():
         b = In(totype)(name=value.name)
-    elif value.isoutput():
+    elif value.is_output():
         b = Out(totype)(name=value.name)
     else:
         b = totype()
@@ -189,7 +189,7 @@ def repeat(value, n):
 def check_value_is_not_input(fn):
     @functools.wraps(fn)
     def wrapped(value, n):
-        if isinstance(value, m.Type) and not value.isoutput():
+        if isinstance(value, m.Type) and not value.is_output():
             raise Exception(f"{fn.__name__} only works with non input values")
         return fn(value, n)
     return wrapped

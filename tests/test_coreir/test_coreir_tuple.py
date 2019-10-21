@@ -19,10 +19,10 @@ def test_multi_direction_tuple():
     assert check_files_equal(__file__, f"build/test_multi_direction_tuple.json",
                              f"gold/test_multi_direction_tuple.json")
 
-    assert [T.isinput() for T in foo.interface.ports["ifc"].types()] == \
+    assert [T.is_input() for T in foo.interface.ports["ifc"].types()] == \
            [False, True]
 
-    assert [T.isinput() for T in foo.IO.ports["ifc"].types()] == \
+    assert [T.is_input() for T in foo.IO.ports["ifc"].types()] == \
            [True, False]
 
 

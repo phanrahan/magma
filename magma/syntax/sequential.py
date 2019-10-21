@@ -330,10 +330,10 @@ def _sequential(
                 if isinstance(value, (m.Clock, m.AsyncReset)):
                     continue
                 type_ = repr(type(value))
-                if value.isoutput():
+                if value.is_output():
                     circuit_combinational_args.append(f"self_{name}_{value}: m.{type_}")
                     circuit_combinational_call_args.append(f"{name}.{value}")
-                if value.isinput():
+                if value.is_input():
                     circuit_combinational_output_type.append(f"m.{type_}")
                     comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
                     comb_out_count += 1

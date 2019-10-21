@@ -74,12 +74,12 @@ def get_primitives(outer_circuit, outer_scope):
                     for o, i in zip(outerbit, innerbit):
                         oqual = QualifiedBit(bit=o, scope=outer_scope)
                         iqual = QualifiedBit(bit=i, scope=inner_scope)
-                        if o.isinput():
+                        if o.is_input():
                             mapping[iqual] = oqual
                         else:
                             mapping[oqual] = iqual
 
-                if outerbit.isinput():
+                if outerbit.is_input():
                     mapping[innerloc] = outerloc
                 else:
                     mapping[outerloc] = innerloc
@@ -202,20 +202,20 @@ def flatten(circuit):
         orig_inst = qual_inst.instance
 
         for name, origbit in orig_inst.interface.ports.items():
-            if origbit.isinput():
+            if origbit.is_input():
                 newbit = new_inst.interface.ports[name]
                 wire_new_bit(origbit, newbit, qual_inst.scope, primitive_map, bit_map, circuit, flattened_circuit)
 
     # Finally, wire up the circuit outputs
     new_circuit = flattened_circuit.circuit
     for name, origbit in circuit.interface.ports.items():
-        if origbit.isinput(): # Circuit output
+        if origbit.is_input(): # Circuit output
             newbit = new_circuit.interface.ports[name]
             wire_new_bit(origbit, newbit, Scope(), primitive_map, bit_map, circuit, flattened_circuit)
 
     # Handle unwired inputs
     for name, origbit in circuit.interface.ports.items():
-        if origbit.isoutput() and origbit.value() is None:
+        if origbit.is_output() and origbit.value() is None:
             newbit = new_circuit.interface.ports[name]
             flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 

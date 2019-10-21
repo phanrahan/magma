@@ -68,7 +68,7 @@ def describe_instance(inst):
 def describe_interface(interface):
     print("\nInterface Inputs:")
     for name, bit in interface.ports.items():
-        if bit.isoutput():
+        if bit.is_output():
             if isinstance(bit, Array):
                 print("  Bit[" + str(len(bit)) + "]:" + name)
             else:
@@ -76,7 +76,7 @@ def describe_interface(interface):
 
     print("\nInterface Outputs:")
     for name, bit in interface.ports.items():
-        if bit.isinput():
+        if bit.is_input():
             if isinstance(bit, Array):
                 print("  Bit[" + str(len(bit)) + "]:" + name)
             else:

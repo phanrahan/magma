@@ -87,8 +87,8 @@ def vdecl(t):
 # return the verilog module args
 def vmoduleargs(self):
     def append(args, port, name):
-        if   port.isinput():  d = OUTPUT
-        elif port.isoutput(): d = INPUT
+        if   port.is_input():  d = OUTPUT
+        elif port.is_output(): d = INPUT
         else: d = INOUT
         args.append("%s %s %s" % (d, vdecl(port), name))
 
@@ -117,7 +117,7 @@ def compileinstance(self):
         if getattr(v, "debug_info", False) and get_codegen_debug_info():
             filename, lineno, module = v.debug_info
         #print('arg', k, v,)
-        if v.isinput():
+        if v.is_input():
             # find the output connected to v
             w = v.value()
             if w is None:
@@ -193,7 +193,7 @@ def compiledefinition(cls):
                         for i in range(len(port)):
                             s += wire(port[i])
                     else:
-                        if not port.isinput():
+                        if not port.is_input():
                             s += wire(port)
 
             #print('compile instances')
@@ -208,12 +208,12 @@ def compiledefinition(cls):
 
             # assign to module output arguments
             for port in cls.interface.ports.values():
-                if port.isinput():
+                if port.is_input():
                     output = port.value()
                     if output is not None:
                         if isinstance(output, Tuple):
                             for name, input in cls.interface.ports.items():
-                                if input.isinput():
+                                if input.is_input():
                                     output = input.value()
                                     assert isinstance(output, Tuple)
                                     for i in range(len(input)):

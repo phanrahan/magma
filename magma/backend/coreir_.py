@@ -138,14 +138,14 @@ class CoreIRBackend:
                 to_string(k): self.get_type(t) for (k, t) in
                 zip(port.keys(), port.types())
             })
-        elif port.isinput():
+        elif port.is_input():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clk")]
             elif issubclass(port, AsyncReset):
                 _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
-        elif port.isoutput():
+        elif port.is_output():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clkIn")]
             elif issubclass(port, AsyncReset):
@@ -234,7 +234,7 @@ class CoreIRBackend:
                     generator, gen_args, config_args)
 
     def add_non_input_ports(self, non_input_ports, port):
-        if not port.isinput():
+        if not port.is_input():
             non_input_ports[port] = magma_port_to_coreir(port)
         if isinstance(port, (Tuple, Array)):
             for element in port:
@@ -269,7 +269,7 @@ class CoreIRBackend:
             self.libs_used.add(definition.coreir_lib)
         non_input_ports = {}
         for name, port in definition.interface.ports.items():
-            logger.debug("{}, {}, {}".format(name, port, port.isoutput()))
+            logger.debug("{}, {}, {}".format(name, port, port.is_output()))
             self.add_non_input_ports(non_input_ports, port)
 
         for instance in definition.instances:
@@ -293,12 +293,12 @@ class CoreIRBackend:
     def connect_non_outputs(self, module_definition, port,
                       non_input_ports):
         # Recurse into non input types that may contain inout children
-        if isinstance(port, Tuple) and not port.isinput() or \
-                isinstance(port, Array) and not port.T.isinput():
+        if isinstance(port, Tuple) and not port.is_input() or \
+                isinstance(port, Array) and not port.T.is_input():
             for elem in port:
                 self.connect_non_outputs(module_definition, elem,
                                          non_input_ports)
-        elif not port.isoutput():
+        elif not port.is_output():
             self.connect(module_definition, port, port.value(),
                          non_input_ports)
 
@@ -350,7 +350,7 @@ class CoreIRBackend:
         if value is None and is_clock_or_nested_clock(port):
             return
         elif value is None:
-            if port.isinout():
+            if port.is_inout():
                 # Skip inouts because they might be connected as an input
                 return
             raise Exception(f"Got None for port '{port.debug_name}', is it "
