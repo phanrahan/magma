@@ -1,10 +1,15 @@
-import magma as m
+"""
+Definition of magma's Bit type
+* Subtype of the Digital type
+* Implementation of hwtypes.AbstractBit
+"""
 import typing as tp
 import functools
+from functools import lru_cache
+import magma as m
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
 from .digital import Digital, DigitalMeta, VCC, GND
-from functools import lru_cache
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -30,11 +35,7 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
 
     @staticmethod
     def get_family() -> TypeFamily:
-        # TODO: We'll probably have a circular dependency issue if types are
-        # defined in separate files, we could monkey patch a field in __init__
-        # after the files are loaded
-        raise NotImplementedError()
-        return _Family_
+        return m._Family_
 
     @classmethod
     @lru_cache(maxsize=None)
