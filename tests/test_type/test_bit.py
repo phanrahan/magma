@@ -1,6 +1,7 @@
 import pytest
 import magma as m
 from magma import In, Out, Flip
+from magma.testing import check_files_equal
 from magma.bit import Bit, VCC, GND, Digital
 import operator
 BitIn = In(Bit)
@@ -224,6 +225,9 @@ wire(TestInvert.I, magma_Bit_not_inst0.in)
 wire(magma_Bit_not_inst0.out, TestInvert.O)
 EndCircuit()\
 """
+    m.compile("build/TestBitInvert", TestInvert, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBitInvert.v",
+                             f"gold/TestBitInvert.v")
 
 
 @pytest.mark.parametrize("op", ["and_", "or_", "xor"])
