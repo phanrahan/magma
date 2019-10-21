@@ -248,6 +248,9 @@ wire(TestBinary.I1, magma_Bit_{clean_op}_inst0.in1)
 wire(magma_Bit_{clean_op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
+    m.compile(f"build/TestBit{clean_op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBit{clean_op}.v",
+                             f"gold/TestBit{clean_op}.v")
 
 
 def test_eq():
