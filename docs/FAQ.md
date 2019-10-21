@@ -3,7 +3,7 @@
 How can I instantiate a Verilog module with a set of parameters?
 ## Answer
 Suppose I have the following module:
-```module
+```verilog
 // ff.v
 module FF(input clk, input rst, input d, output q);
 
