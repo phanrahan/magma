@@ -181,16 +181,6 @@ def test_seq_hierarchy(target, async_reset):
 def test_multiple_return(target, async_reset):
     T = m.Bits[4]
 
-    m.Bits.__eq__ = lambda x, y: DeclareCoreirCircuit(
-        "eq",
-        *["I0", m.In(m.Bits[len(x)]),
-          "I1", m.In(m.Bits[len(x)]),
-          "O", m.Out(m.Bit)],
-        coreir_genargs={"width": len(x)},
-        coreir_name="eq",
-        coreir_lib="coreir"
-    )()(x, y)
-
     @m.circuit.sequential(async_reset=async_reset)
     class Register:
         def __init__(self):

@@ -175,62 +175,6 @@
             "genargs":{"width":["Int",2]},
             "modargs":{"value":[["BitVector",2],"2'h1"]}
           },
-          "eq_inst0":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst1":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst10":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst11":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst12":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst13":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst2":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst3":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst4":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst5":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst6":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst7":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst8":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
-          "eq_inst9":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
           "magma_Bit_not_inst0":{
             "modref":"corebit.not"
           },
@@ -272,44 +216,100 @@
           },
           "magma_Bit_xor_inst6":{
             "modref":"corebit.xor"
+          },
+          "magma_Bits_2_eq_inst0":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst1":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst10":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst11":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst12":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst13":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst2":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst3":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst4":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst5":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst6":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst7":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst8":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_Bits_2_eq_inst9":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
           }
         },
         "connections":[
           ["self.clk_en","Mux2_inst0.I0"],
           ["bit_const_0_None.out","Mux2_inst0.I1"],
           ["Mux2_inst1.I0","Mux2_inst0.O"],
-          ["eq_inst1.out","Mux2_inst0.S"],
+          ["magma_Bits_2_eq_inst1.out","Mux2_inst0.S"],
           ["bit_const_0_None.out","Mux2_inst1.I1"],
           ["Mux2_inst2.I0","Mux2_inst1.O"],
-          ["eq_inst4.out","Mux2_inst1.S"],
+          ["magma_Bits_2_eq_inst4.out","Mux2_inst1.S"],
           ["bit_const_1_None.out","Mux2_inst2.I1"],
           ["magma_Bit_not_inst1.out","Mux2_inst2.S"],
           ["self.clk_en","Mux2_inst3.I0"],
           ["bit_const_0_None.out","Mux2_inst3.I1"],
           ["Mux2_inst4.I0","Mux2_inst3.O"],
-          ["eq_inst7.out","Mux2_inst3.S"],
+          ["magma_Bits_2_eq_inst7.out","Mux2_inst3.S"],
           ["bit_const_0_None.out","Mux2_inst4.I1"],
           ["Mux2_inst5.I0","Mux2_inst4.O"],
-          ["eq_inst11.out","Mux2_inst4.S"],
+          ["magma_Bits_2_eq_inst11.out","Mux2_inst4.S"],
           ["bit_const_1_None.out","Mux2_inst5.I1"],
           ["self.O1","Mux2_inst5.O"],
           ["magma_Bit_not_inst4.out","Mux2_inst5.S"],
           ["self.value","Mux2_x4_inst0.I0"],
           ["self.value","Mux2_x4_inst0.I1"],
           ["Mux2_x4_inst2.I0","Mux2_x4_inst0.O"],
-          ["eq_inst0.out","Mux2_x4_inst0.S"],
+          ["magma_Bits_2_eq_inst0.out","Mux2_x4_inst0.S"],
           ["self.self_register_O","Mux2_x4_inst1.I0"],
           ["self.self_register_O","Mux2_x4_inst1.I1"],
           ["Mux2_x4_inst3.I0","Mux2_x4_inst1.O"],
-          ["eq_inst2.out","Mux2_x4_inst1.S"],
+          ["magma_Bits_2_eq_inst2.out","Mux2_x4_inst1.S"],
           ["Mux2_x4_inst7.O","Mux2_x4_inst10.I0"],
           ["self.const_","Mux2_x4_inst10.I1"],
           ["Mux2_x4_inst13.I0","Mux2_x4_inst10.O"],
-          ["eq_inst12.out","Mux2_x4_inst10.S"],
+          ["magma_Bits_2_eq_inst12.out","Mux2_x4_inst10.S"],
           ["Mux2_x4_inst8.O","Mux2_x4_inst11.I0"],
           ["self.self_register_O","Mux2_x4_inst11.I1"],
           ["Mux2_x4_inst14.I0","Mux2_x4_inst11.O"],
-          ["eq_inst13.out","Mux2_x4_inst11.S"],
+          ["magma_Bits_2_eq_inst13.out","Mux2_x4_inst11.S"],
           ["Mux2_x4_inst9.O","Mux2_x4_inst12.I0"],
           ["self.config_data","Mux2_x4_inst12.I1"],
           ["self.O0","Mux2_x4_inst12.O"],
@@ -322,10 +322,10 @@
           ["magma_Bit_not_inst6.out","Mux2_x4_inst14.S"],
           ["self.value","Mux2_x4_inst2.I1"],
           ["Mux2_x4_inst4.I0","Mux2_x4_inst2.O"],
-          ["eq_inst3.out","Mux2_x4_inst2.S"],
+          ["magma_Bits_2_eq_inst3.out","Mux2_x4_inst2.S"],
           ["self.self_register_O","Mux2_x4_inst3.I1"],
           ["Mux2_x4_inst5.I0","Mux2_x4_inst3.O"],
-          ["eq_inst5.out","Mux2_x4_inst3.S"],
+          ["magma_Bits_2_eq_inst5.out","Mux2_x4_inst3.S"],
           ["self.config_data","Mux2_x4_inst4.I1"],
           ["magma_Bit_not_inst0.out","Mux2_x4_inst4.S"],
           ["self.self_register_O","Mux2_x4_inst5.I1"],
@@ -333,15 +333,15 @@
           ["self.value","Mux2_x4_inst6.I0"],
           ["self.value","Mux2_x4_inst6.I1"],
           ["Mux2_x4_inst9.I0","Mux2_x4_inst6.O"],
-          ["eq_inst6.out","Mux2_x4_inst6.S"],
+          ["magma_Bits_2_eq_inst6.out","Mux2_x4_inst6.S"],
           ["self.self_register_O","Mux2_x4_inst7.I0"],
           ["self.value","Mux2_x4_inst7.I1"],
-          ["eq_inst8.out","Mux2_x4_inst7.S"],
+          ["magma_Bits_2_eq_inst8.out","Mux2_x4_inst7.S"],
           ["self.self_register_O","Mux2_x4_inst8.I0"],
           ["self.self_register_O","Mux2_x4_inst8.I1"],
-          ["eq_inst9.out","Mux2_x4_inst8.S"],
+          ["magma_Bits_2_eq_inst9.out","Mux2_x4_inst8.S"],
           ["self.value","Mux2_x4_inst9.I1"],
-          ["eq_inst10.out","Mux2_x4_inst9.S"],
+          ["magma_Bits_2_eq_inst10.out","Mux2_x4_inst9.S"],
           ["magma_Bit_xor_inst0.in1","bit_const_1_None.out"],
           ["magma_Bit_xor_inst1.in1","bit_const_1_None.out"],
           ["magma_Bit_xor_inst2.in1","bit_const_1_None.out"],
@@ -349,34 +349,20 @@
           ["magma_Bit_xor_inst4.in1","bit_const_1_None.out"],
           ["magma_Bit_xor_inst5.in1","bit_const_1_None.out"],
           ["magma_Bit_xor_inst6.in1","bit_const_1_None.out"],
-          ["eq_inst10.in1","const_0_2.out"],
-          ["eq_inst11.in1","const_0_2.out"],
-          ["eq_inst12.in1","const_0_2.out"],
-          ["eq_inst13.in1","const_0_2.out"],
-          ["eq_inst3.in1","const_0_2.out"],
-          ["eq_inst4.in1","const_0_2.out"],
-          ["eq_inst5.in1","const_0_2.out"],
-          ["eq_inst0.in1","const_1_2.out"],
-          ["eq_inst1.in1","const_1_2.out"],
-          ["eq_inst2.in1","const_1_2.out"],
-          ["eq_inst6.in1","const_1_2.out"],
-          ["eq_inst7.in1","const_1_2.out"],
-          ["eq_inst8.in1","const_1_2.out"],
-          ["eq_inst9.in1","const_1_2.out"],
-          ["self.mode","eq_inst0.in0"],
-          ["self.mode","eq_inst1.in0"],
-          ["self.mode","eq_inst10.in0"],
-          ["self.mode","eq_inst11.in0"],
-          ["self.mode","eq_inst12.in0"],
-          ["self.mode","eq_inst13.in0"],
-          ["self.mode","eq_inst2.in0"],
-          ["self.mode","eq_inst3.in0"],
-          ["self.mode","eq_inst4.in0"],
-          ["self.mode","eq_inst5.in0"],
-          ["self.mode","eq_inst6.in0"],
-          ["self.mode","eq_inst7.in0"],
-          ["self.mode","eq_inst8.in0"],
-          ["self.mode","eq_inst9.in0"],
+          ["magma_Bits_2_eq_inst10.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst11.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst12.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst13.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst3.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst4.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst5.in1","const_0_2.out"],
+          ["magma_Bits_2_eq_inst0.in1","const_1_2.out"],
+          ["magma_Bits_2_eq_inst1.in1","const_1_2.out"],
+          ["magma_Bits_2_eq_inst2.in1","const_1_2.out"],
+          ["magma_Bits_2_eq_inst6.in1","const_1_2.out"],
+          ["magma_Bits_2_eq_inst7.in1","const_1_2.out"],
+          ["magma_Bits_2_eq_inst8.in1","const_1_2.out"],
+          ["magma_Bits_2_eq_inst9.in1","const_1_2.out"],
           ["magma_Bit_xor_inst0.out","magma_Bit_not_inst0.in"],
           ["magma_Bit_xor_inst1.out","magma_Bit_not_inst1.in"],
           ["magma_Bit_xor_inst2.out","magma_Bit_not_inst2.in"],
@@ -390,7 +376,21 @@
           ["self.config_we","magma_Bit_xor_inst3.in0"],
           ["self.config_we","magma_Bit_xor_inst4.in0"],
           ["self.config_we","magma_Bit_xor_inst5.in0"],
-          ["self.config_we","magma_Bit_xor_inst6.in0"]
+          ["self.config_we","magma_Bit_xor_inst6.in0"],
+          ["self.mode","magma_Bits_2_eq_inst0.in0"],
+          ["self.mode","magma_Bits_2_eq_inst1.in0"],
+          ["self.mode","magma_Bits_2_eq_inst10.in0"],
+          ["self.mode","magma_Bits_2_eq_inst11.in0"],
+          ["self.mode","magma_Bits_2_eq_inst12.in0"],
+          ["self.mode","magma_Bits_2_eq_inst13.in0"],
+          ["self.mode","magma_Bits_2_eq_inst2.in0"],
+          ["self.mode","magma_Bits_2_eq_inst3.in0"],
+          ["self.mode","magma_Bits_2_eq_inst4.in0"],
+          ["self.mode","magma_Bits_2_eq_inst5.in0"],
+          ["self.mode","magma_Bits_2_eq_inst6.in0"],
+          ["self.mode","magma_Bits_2_eq_inst7.in0"],
+          ["self.mode","magma_Bits_2_eq_inst8.in0"],
+          ["self.mode","magma_Bits_2_eq_inst9.in0"]
         ]
       },
       "Register_comb":{
