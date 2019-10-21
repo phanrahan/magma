@@ -235,15 +235,6 @@ def test_array_of_bits(target):
 
 
 def test_rd_ptr(target):
-    m.UInt.__add__ = lambda x, y: DeclareCoreirCircuit(
-        "add",
-        *["I0", m.In(m.UInt[len(x)]),
-          "I1", m.In(m.UInt[len(x)]),
-          "O", m.Out(m.UInt[len(x)])],
-        coreir_name="add",
-        coreir_genargs={"width": len(x)},
-        coreir_lib="coreir"
-    )()(x, y)
     @m.circuit.sequential(async_reset=True)
     class RdPtr:
         def __init__(self):
