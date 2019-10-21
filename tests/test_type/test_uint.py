@@ -82,7 +82,6 @@ def test_compare(n, op):
         IO = ["I0", m.In(m.UInt[n]), "I1", m.In(m.UInt[n]), "O", m.Out(m.Bit)]
         @classmethod
         def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
             io.O <= getattr(operator, op)(io.I0, io.I1)
 
     op = {
@@ -94,6 +93,32 @@ def test_compare(n, op):
     }[op]
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(Bit))
+magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
+wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
+wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestUInt{n}{op}.v",
+                             f"gold/TestUInt{n}{op}.v")
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod"])
+def test_binary(n, op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.UInt[n]), "I1", m.In(m.UInt[n]), "O", m.Out(m.UInt[n])]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    if op == "floordiv":
+        op = "udiv"
+    elif op == "mod":
+        op = "urem"
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(UInt[{n}]))
 magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
 wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
 wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)

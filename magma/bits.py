@@ -425,19 +425,19 @@ class UInt(Bits):
         return self.declare_compare_op("uge")()(self, other)
 
     def bvadd(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("add")()(self, other)
 
     def bvsub(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("sub")()(self, other)
 
     def bvmul(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("mul")()(self, other)
 
     def bvudiv(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("udiv")()(self, other)
 
     def bvurem(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("urem")()(self, other)
 
 
 class SInt(Bits):
