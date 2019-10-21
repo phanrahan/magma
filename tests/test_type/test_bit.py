@@ -1,6 +1,8 @@
+import pytest
 import magma as m
 from magma import In, Out, Flip
 from magma.bit import Bit, VCC, GND, Digital
+import operator
 BitIn = In(Bit)
 BitOut = Out(Bit)
 
@@ -206,3 +208,61 @@ def test_wire5():
 
     assert b0.value() is None
     assert b1.value() is None
+
+
+def test_invert():
+    class TestInvert(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            io.O <= ~io.I
+
+    assert repr(TestInvert) == """\
+TestInvert = DefineCircuit("TestInvert", "I", In(Bit), "O", Out(Bit))
+magma_Bit_invert_inst0 = magma_Bit_invert()
+wire(TestInvert.I, magma_Bit_invert_inst0.I)
+wire(magma_Bit_invert_inst0.O, TestInvert.O)
+EndCircuit()\
+"""
+
+
+@pytest.mark.parametrize("op", ["eq", "ne", "and_", "or_", "xor"])
+def test_binary(op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    clean_op = op.replace("_", "")
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+magma_Bit_{clean_op}_inst0 = magma_Bit_{clean_op}()
+wire(TestBinary.I0, magma_Bit_{clean_op}_inst0.I0)
+wire(TestBinary.I1, magma_Bit_{clean_op}_inst0.I1)
+wire(magma_Bit_{clean_op}_inst0.O, TestBinary.O)
+EndCircuit()\
+"""
+
+
+def test_ite():
+    class TestITE(m.Circuit):
+        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "S", m.In(m.Bit), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            io.O <= io.S.ite(io.I0, io.I1)
+
+    assert repr(TestITE) == """\
+TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), "O", Out(Bit))
+magma_Bit_ite_Out_Bit_inst0 = magma_Bit_ite_Out_Bit()
+wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.I0)
+wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.I1)
+wire(TestITE.S, magma_Bit_ite_Out_Bit_inst0.S)
+wire(magma_Bit_ite_Out_Bit_inst0.O, TestITE.O)
+EndCircuit()\
+"""
+
+@pytest.mark.parametrize("op", [int, bool])
+def test_errors(op):
+    with pytest.raises(NotImplementedError):
+        op(m.Bit(name="b"))

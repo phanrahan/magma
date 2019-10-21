@@ -1,8 +1,10 @@
+import magma as m
 import typing as tp
 import functools
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
-from .digital import Digital, DigitalMeta, VCC, GND, HIGH, LOW
+from .digital import Digital, DigitalMeta, VCC, GND
+from functools import lru_cache
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -34,6 +36,34 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         raise NotImplementedError()
         return _Family_
 
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_unary_op(cls, op):
+        return m.DeclareCircuit(f"magma_Bit_{op}",
+                                "I", m.In(m.Bit),
+                                "O", m.Out(m.Bit))
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_binary_op(cls, op):
+        return m.DeclareCircuit(f"magma_Bit_{op}",
+                                "I0", m.In(m.Bit),
+                                "I1", m.In(m.Bit),
+                                "O", m.Out(m.Bit))
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_ite(cls, T):
+        T_str = str(T)
+        # Sanitize
+        T_str = T_str.replace("(", "_")
+        T_str = T_str.replace(")", "")
+        return m.DeclareCircuit(f"magma_Bit_ite_{T_str}",
+                                "I0", m.In(T),
+                                "I1", m.In(T),
+                                "S", m.In(m.Bit),
+                                "O", m.Out(T))
+
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
         # TODO: Port debug_name code
@@ -57,43 +87,39 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         return type(self).direction
 
     def __invert__(self):
-        return self.__invert()(self)
+        return self.declare_unary_op("invert")()(self)
 
     @bit_cast
     def __eq__(self, other):
-        return self.__eq(self, other)
+        return self.declare_binary_op("eq")()(self, other)
 
     @bit_cast
     def __ne__(self, other):
-        return self.__ne(self, other)
+        return self.declare_binary_op("ne")()(self, other)
 
     @bit_cast
     def __and__(self, other):
-        return self.__and(self, other)
+        return self.declare_binary_op("and")()(self, other)
 
     @bit_cast
     def __or__(self, other):
-        return self.__or(self, other)
+        return self.declare_binary_op("or")()(self, other)
 
     @bit_cast
     def __xor__(self, other):
-        return self.__xor(self, other)
+        return self.declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
-        # TODO: This is basically just a phi/mux, but if we need this func we
-        # can patch the same implementation in
-        raise NotImplementedError()
+        T = type(t_branch)
+        if T != type(f_branch):
+            raise TypeError("ite expects same type for both branches")
+        return self.declare_ite(T)()(t_branch, f_branch, self)
 
     def __bool__(self) -> bool:
-        # Don't think we can suppor this in magma
-        raise NotImplementedError()
+        raise NotImplementedError("Converting magma value to bool not supported")
 
     def __int__(self) -> int:
-        # Don't think we can suppor this in magma
-        raise NotImplementedError()
-
-    # def __hash__(self) -> int:
-    #     return hash(self._value)
+        raise NotImplementedError("Converting magma value to int not supported")
 
     def __repr__(self):
         if self is VCC:
