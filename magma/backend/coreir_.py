@@ -306,7 +306,26 @@ class CoreIRBackend:
             return self.modules[definition.name]
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        kwargs = {}
+        if hasattr(definition, "verilog_param_types"):
+            cparams = {}
+            for param, type_ in definition.verilog_param_types.items():
+                if type_ is int:
+                    type_ = self.context.Int()
+                elif type_ is bool:
+                    type_ = self.context.Bool()
+                elif type_ is str:
+                    type_ = self.context.String()
+                elif type_ is BitVector:
+                    type_ = self.context.BitVector()
+                else:
+                    raise NotImplementedError(type_)
+                cparams[param] = type_
+            kwargs["cparams"] = self.context.newParams(cparams)
+
+        coreir_module = \
+            self.context.global_namespace.new_module(definition.coreir_name,
+                                                     module_type, **kwargs)
         if get_codegen_debug_info() and definition.debug_info:
             coreir_module.add_metadata("filename", json.dumps(make_relative(definition.debug_info.filename)))
             coreir_module.add_metadata("lineno", json.dumps(str(definition.debug_info.lineno)))
