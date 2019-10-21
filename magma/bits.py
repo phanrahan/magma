@@ -441,7 +441,83 @@ class UInt(Bits):
 
 
 class SInt(Bits):
-    pass
+    def bvslt(self, other) -> AbstractBit:
+        return self.declare_compare_op("slt")()(self, other)
+
+    def bvsle(self, other) -> AbstractBit:
+        # For wiring
+        if self.is_input():
+            return Type.__le__(self, other)
+        return self.declare_compare_op("sle")()(self, other)
+
+    def bvsgt(self, other) -> AbstractBit:
+        return self.declare_compare_op("sgt")()(self, other)
+
+    def bvsge(self, other) -> AbstractBit:
+        return self.declare_compare_op("sge")()(self, other)
+
+    def bvadd(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("add")()(self, other)
+
+    def bvsub(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("sub")()(self, other)
+
+    def bvmul(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("mul")()(self, other)
+
+    def bvsdiv(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("sdiv")()(self, other)
+
+    def bvsrem(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("srem")()(self, other)
+
+    def __mod__(self, other):
+        try:
+            return self.bvsrem(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __floordiv__(self, other):
+        try:
+            return self.bvsdiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ge__(self, other):
+        try:
+            return self.bvsge(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __gt__(self, other):
+        try:
+            return self.bvsgt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __le__(self, other):
+        try:
+            return self.bvsle(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __lt__(self, other):
+        try:
+            return self.bvslt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
 
 class BFloat(Bits):

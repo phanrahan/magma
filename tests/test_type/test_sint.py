@@ -1,3 +1,6 @@
+import operator
+import pytest
+from magma.testing import check_files_equal
 from magma import *
 
 Array2 = Array[2,Bit]
@@ -70,3 +73,58 @@ def test_construct():
     a1 = sint([1,1])
     print(type(a1))
     assert isinstance(a1, SInt)
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
+def test_compare(n, op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    op = {
+        "eq": "eq",
+        "le": "sle",
+        "lt": "slt",
+        "ge": "sge",
+        "gt": "sgt"
+    }[op]
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "O", Out(Bit))
+magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
+wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
+wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestSInt{n}{op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestSInt{n}{op}.v",
+                             f"gold/TestSInt{n}{op}.v")
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod"])
+def test_binary(n, op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    if op == "floordiv":
+        op = "sdiv"
+    elif op == "mod":
+        op = "srem"
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "O", Out(SInt[{n}]))
+magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
+wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
+wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestSInt{n}{op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestSInt{n}{op}.v",
+                             f"gold/TestSInt{n}{op}.v")
