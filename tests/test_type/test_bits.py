@@ -263,3 +263,25 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}ext", TestExt, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}ext.v",
                              f"gold/TestBits{n}ext.v")
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_bvcomp(n):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bits[1])]
+        @classmethod
+        def definition(io):
+            # Nasty precidence issue with <= operator means we need parens here
+            io.O <= io.I0.bvcomp(io.I1)
+
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bits[1]))
+magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
+wire(TestBinary.I0, magma_Bits_{n}_eq_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_eq_inst0.in1)
+wire(magma_Bits_{n}_eq_inst0.out, TestBinary.O[0])
+EndCircuit()\
+"""
+    m.compile(f"build/TestBits{n}bvcomp", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}bvcomp.v",
+                             f"gold/TestBits{n}bvcomp.v")

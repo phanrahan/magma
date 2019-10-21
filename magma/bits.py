@@ -192,7 +192,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def bvcomp(self, other) -> 'AbstractBitVector[1]':
-        raise NotImplementedError()
+        return Bits[1](self == other)
 
     def bveq(self, other) -> AbstractBit:
         return self.declare_compare_op("eq")()(self, other)
