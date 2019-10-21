@@ -228,3 +228,22 @@ wire(TestBinary.I1, magma_Bits_{n}_eq_inst0.in1)
 wire(magma_Bits_{n}_eq_inst0.out, TestBinary.O)
 EndCircuit()\
 """
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_zext(n):
+    class TestExt(m.Circuit):
+        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n + 3])]
+        @classmethod
+        def definition(io):
+            # Nasty precidence issue with <= operator means we need parens here
+            io.O <= io.I.zext(3)
+
+    i_wires = '\n'.join(f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
+    gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
+    assert repr(TestExt) == f"""\
+TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
+{i_wires}
+{gnd_wires}
+EndCircuit()\
+"""

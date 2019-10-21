@@ -265,10 +265,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def ext(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.zext(other)
 
     def zext(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return m.zext(self, other)
 
     __invert__ = bvnot
     __and__ = bvand
