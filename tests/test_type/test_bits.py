@@ -285,3 +285,24 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}bvcomp", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}bvcomp.v",
                              f"gold/TestBits{n}bvcomp.v")
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("x", [4, 7])
+def test_repeat(n, x):
+    class TestRepeat(m.Circuit):
+        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n * x])]
+        @classmethod
+        def definition(io):
+            io.O <= io.I.repeat(x)
+
+    wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
+                      for j in range(x) for i in range(n))
+    assert repr(TestRepeat) == f"""\
+TestRepeat = DefineCircuit("TestRepeat", "I", In(Bits[{n}]), "O", Out(Bits[{n * x}]))
+{wires}
+EndCircuit()\
+"""
+    m.compile(f"build/TestBits{n}x{x}Repeat", TestRepeat, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestBits{n}x{x}Repeat.v",
+                             f"gold/TestBits{n}x{x}Repeat.v")

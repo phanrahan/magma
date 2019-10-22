@@ -259,7 +259,11 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def repeat(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        r = int(other)
+        if r <= 0:
+            raise ValueError()
+
+        return type(self).unsized_t[r * self.size](r * self.ts)
 
     def sext(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
