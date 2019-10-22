@@ -492,6 +492,9 @@ class SInt(Bits):
     def bvsrem(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("srem")()(self, other)
 
+    def bvneg(self) -> 'AbstractBitVector':
+        return self.declare_unary_op("neg")()(self)
+
     def __mod__(self, other):
         try:
             return self.bvsrem(other)

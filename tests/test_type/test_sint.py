@@ -75,7 +75,7 @@ def test_construct():
     assert isinstance(a1, SInt)
 
 
-@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("n", [7, 3])
 @pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
 def test_compare(n, op):
     class TestBinary(m.Circuit):
@@ -104,7 +104,7 @@ EndCircuit()\
                              f"gold/TestSInt{n}{op}.v")
 
 
-@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("n", [7, 3])
 @pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod"])
 def test_binary(n, op):
     class TestBinary(m.Circuit):
@@ -169,3 +169,23 @@ EndCircuit()\
     m.compile(f"build/TestSInt{n}adc", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestSInt{n}adc.v",
                              f"gold/TestSInt{n}adc.v")
+
+
+@pytest.mark.parametrize("n", [7, 3])
+def test_negate(n):
+    class TestNegate(m.Circuit):
+        IO = ["I", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
+        @classmethod
+        def definition(io):
+            io.O <= -io.I
+
+    assert repr(TestNegate) == f"""\
+TestNegate = DefineCircuit("TestNegate", "I", In(SInt[{n}]), "O", Out(SInt[{n}]))
+magma_Bits_{n}_neg_inst0 = magma_Bits_{n}_neg()
+wire(TestNegate.I, magma_Bits_{n}_neg_inst0.in)
+wire(magma_Bits_{n}_neg_inst0.out, TestNegate.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestSInt{n}neg", TestNegate, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestSInt{n}neg.v",
+                             f"gold/TestSInt{n}neg.v")
