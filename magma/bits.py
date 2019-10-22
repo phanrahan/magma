@@ -110,8 +110,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def declare_unary_op(cls, op):
         N = len(cls)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
-                                              "I", m.In(m.Bits[N]),
-                                              "O", m.Out(m.Bits[N]),
+                                              "I", m.In(cls),
+                                              "O", m.Out(cls),
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -121,9 +121,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def declare_binary_op(cls, op):
         N = len(cls)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
-                                              "I0", m.In(m.Bits[N]),
-                                              "I1", m.In(m.Bits[N]),
-                                              "O", m.Out(m.Bits[N]),
+                                              "I0", m.In(cls),
+                                              "I1", m.In(cls),
+                                              "O", m.Out(cls),
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -133,8 +133,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def declare_compare_op(cls, op):
         N = len(cls)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
-                                              "I0", m.In(m.Bits[N]),
-                                              "I1", m.In(m.Bits[N]),
+                                              "I0", m.In(cls),
+                                              "I1", m.In(cls),
                                               "O", m.Out(m.Bit),
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
@@ -268,7 +268,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return self.zext(other)
 
     def zext(self, other) -> 'AbstractBitVector':
-        return m.zext(self, other)
+        ext = int(other)
+        if ext < 0:
+            raise ValueError()
+
+        T = type(self).unsized_t
+        return self.concat(T[ext](0))
 
     def __invert__(self):
         return self.bvnot()
@@ -439,6 +444,22 @@ class UInt(Bits):
     def bvurem(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("urem")()(self, other)
 
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.zext(1)
+        b = other.zext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
+
 
 class SInt(Bits):
     def bvslt(self, other) -> AbstractBit:
@@ -518,6 +539,30 @@ class SInt(Bits):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.sext(1)
+        b = other.sext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
+
+    def sext(self, other) -> 'AbstractBitVector':
+        ext = int(other)
+        if ext < 0:
+            raise ValueError()
+
+        T = type(self).unsized_t
+        return self.concat(T[ext]([self[-1] for _ in range(ext)]))
 
 
 class BFloat(Bits):

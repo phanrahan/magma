@@ -128,3 +128,44 @@ EndCircuit()\
     m.compile(f"build/TestSInt{n}{op}", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestSInt{n}{op}.v",
                              f"gold/TestSInt{n}{op}.v")
+
+
+@pytest.mark.parametrize("n", [7, 3])
+def test_adc(n):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "CIN", m.In(m.Bit), "O", m.Out(m.SInt[n]), "COUT", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            result, carry = io.I0.adc(io.I1, io.CIN)
+            io.O <= result
+            io.COUT <= carry
+
+    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_Bits_{n + 1}_add_inst0.in0[{i}])"
+                          for i in range(n))
+    in0_wires += f"\nwire(TestBinary.I0[{n - 1}], magma_Bits_{n + 1}_add_inst0.in0[{n}])"
+
+    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_Bits_{n + 1}_add_inst0.in1[{i}])"
+                          for i in range(n))
+    in1_wires += f"\nwire(TestBinary.I1[{n - 1}], magma_Bits_{n + 1}_add_inst0.in1[{n}])"
+
+    carry_wires = "\n".join(f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+
+    out_wires = "\n".join(f"wire(magma_Bits_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
+                          for i in range(n))
+    out_wires += f"\nwire(magma_Bits_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
+
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "CIN", In(Bit), "O", Out(SInt[{n}]), "COUT", Out(Bit))
+magma_Bits_{n + 1}_add_inst0 = magma_Bits_{n + 1}_add()
+magma_Bits_{n + 1}_add_inst1 = magma_Bits_{n + 1}_add()
+{in0_wires}
+{in1_wires}
+wire(magma_Bits_{n + 1}_add_inst0.out, magma_Bits_{n + 1}_add_inst1.in0)
+wire(TestBinary.CIN, magma_Bits_{n + 1}_add_inst1.in1[0])
+{carry_wires}
+{out_wires}
+EndCircuit()\
+"""
+    m.compile(f"build/TestSInt{n}adc", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestSInt{n}adc.v",
+                             f"gold/TestSInt{n}adc.v")
