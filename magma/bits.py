@@ -418,33 +418,42 @@ BitsType = Bits
 
 
 class UInt(Bits):
+    @bits_cast
     def bvult(self, other) -> AbstractBit:
         return self.declare_compare_op("ult")()(self, other)
 
+    @bits_cast
     def bvule(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
             return Type.__le__(self, other)
         return self.declare_compare_op("ule")()(self, other)
 
+    @bits_cast
     def bvugt(self, other) -> AbstractBit:
         return self.declare_compare_op("ugt")()(self, other)
 
+    @bits_cast
     def bvuge(self, other) -> AbstractBit:
         return self.declare_compare_op("uge")()(self, other)
 
+    @bits_cast
     def bvadd(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("add")()(self, other)
 
+    @bits_cast
     def bvsub(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("sub")()(self, other)
 
+    @bits_cast
     def bvmul(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("mul")()(self, other)
 
+    @bits_cast
     def bvudiv(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("udiv")()(self, other)
 
+    @bits_cast
     def bvurem(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("urem")()(self, other)
 
@@ -466,38 +475,51 @@ class UInt(Bits):
 
 
 class SInt(Bits):
+    @bits_cast
     def bvslt(self, other) -> AbstractBit:
         return self.declare_compare_op("slt")()(self, other)
 
+    @bits_cast
     def bvsle(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
             return Type.__le__(self, other)
         return self.declare_compare_op("sle")()(self, other)
 
+    @bits_cast
     def bvsgt(self, other) -> AbstractBit:
         return self.declare_compare_op("sgt")()(self, other)
 
+    @bits_cast
     def bvsge(self, other) -> AbstractBit:
         return self.declare_compare_op("sge")()(self, other)
 
+    @bits_cast
     def bvadd(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("add")()(self, other)
 
+    @bits_cast
     def bvsub(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("sub")()(self, other)
 
+    @bits_cast
     def bvmul(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("mul")()(self, other)
 
+    @bits_cast
     def bvsdiv(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("sdiv")()(self, other)
 
+    @bits_cast
     def bvsrem(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("srem")()(self, other)
 
     def bvneg(self) -> 'AbstractBitVector':
         return self.declare_unary_op("neg")()(self)
+
+    @bits_cast
+    def bvashr(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("ashr")()(self, other)
 
     def __mod__(self, other):
         try:
@@ -542,6 +564,14 @@ class SInt(Bits):
     def __lt__(self, other):
         try:
             return self.bvslt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __rshift__(self, other):
+        try:
+            return self.bvashr(other)
         except InconsistentSizeError as e:
             raise e from None
         except TypeError:

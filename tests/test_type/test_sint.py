@@ -105,7 +105,7 @@ EndCircuit()\
 
 
 @pytest.mark.parametrize("n", [7, 3])
-@pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod"])
+@pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod", "rshift"])
 def test_binary(n, op):
     class TestBinary(m.Circuit):
         IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
@@ -117,6 +117,8 @@ def test_binary(n, op):
         op = "sdiv"
     elif op == "mod":
         op = "srem"
+    elif op == "rshift":
+        op = "ashr"
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "O", Out(SInt[{n}]))
 magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
