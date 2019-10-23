@@ -254,8 +254,14 @@ class CoreIRBackend:
         if isinstance(declaration.interface, InterfaceKind):
             module_type = self.context.Flip(module_type)
 
-        coreir_module = self.context.global_namespace.new_module(declaration.coreir_name,
-                                                                 module_type)
+        kwargs = {}
+        if hasattr(declaration, "coreir_config_param_types"):
+            kwargs["cparams"] = \
+                self.make_cparams(declaration.coreir_config_param_types)
+
+        coreir_module = \
+            self.context.global_namespace.new_module(declaration.coreir_name,
+                                                     module_type, **kwargs)
         if get_codegen_debug_info() and declaration.debug_info:
             coreir_module.add_metadata("filename", json.dumps(make_relative(declaration.debug_info.filename)))
             coreir_module.add_metadata("lineno", json.dumps(str(declaration.debug_info.lineno)))
@@ -299,6 +305,22 @@ class CoreIRBackend:
             self.connect(module_definition, port, port.value(),
                          non_input_ports)
 
+    def make_cparams(self, param_types):
+        cparams = {}
+        for param, type_ in param_types.items():
+            if type_ is int:
+                type_ = self.context.Int()
+            elif type_ is bool:
+                type_ = self.context.Bool()
+            elif type_ is str:
+                type_ = self.context.String()
+            elif type_ is BitVector:
+                type_ = self.context.BitVector()
+            else:
+                raise NotImplementedError(type_)
+            cparams[param] = type_
+        return self.context.newParams(cparams)
+
     def compile_definition(self, definition):
         logger.debug(f"Compiling definition {definition}")
         if definition.name in self.modules:
@@ -306,7 +328,14 @@ class CoreIRBackend:
             return self.modules[definition.name]
         self.check_interface(definition)
         module_type = self.convert_interface_to_module_type(definition.interface)
-        coreir_module = self.context.global_namespace.new_module(definition.coreir_name, module_type)
+        kwargs = {}
+        if hasattr(definition, "coreir_config_param_types"):
+            kwargs["cparams"] = \
+                self.make_cparams(definition.coreir_config_param_types)
+
+        coreir_module = \
+            self.context.global_namespace.new_module(definition.coreir_name,
+                                                     module_type, **kwargs)
         if get_codegen_debug_info() and definition.debug_info:
             coreir_module.add_metadata("filename", json.dumps(make_relative(definition.debug_info.filename)))
             coreir_module.add_metadata("lineno", json.dumps(str(definition.debug_info.lineno)))

@@ -1,0 +1,45 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "FF":{
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["rst",["Named","coreir.arstIn"]],
+          ["d","BitIn"],
+          ["q","Bit"]
+        ]],
+        "modparams":{"init":"Int"}
+      },
+      "Top":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]]
+        ]],
+        "instances":{
+          "FF_inst0":{
+            "modref":"global.FF",
+            "modargs":{"init":["Int",0]}
+          },
+          "FF_inst1":{
+            "modref":"global.FF",
+            "modargs":{"init":["Int",1]}
+          }
+        },
+        "connections":[
+          ["self.CLK","FF_inst0.clk"],
+          ["self.I.0","FF_inst0.d"],
+          ["self.O.0","FF_inst0.q"],
+          ["self.ASYNCRESET","FF_inst0.rst"],
+          ["self.CLK","FF_inst1.clk"],
+          ["self.I.1","FF_inst1.d"],
+          ["self.O.1","FF_inst1.q"],
+          ["self.ASYNCRESET","FF_inst1.rst"]
+        ]
+      }
+    }
+  }
+}
+}
