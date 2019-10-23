@@ -2,7 +2,7 @@ from __future__ import print_function
 from .python_simulator import PythonSimulator
 from ..passes.debug_name import DebugNamePass
 from ..is_definition import isdefinition
-from ..circuit import CircuitType
+from ..circuit import CircuitType, EndCircuit
 from ..scope import *
 from ..array import ArrayType
 from ..bit import BitType
