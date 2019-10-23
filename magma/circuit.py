@@ -489,35 +489,38 @@ class DefineCircuitKind(CircuitKind):
     def instances(self):
         return self._instances
 
+    def inspect_name(cls, inst):
+        # Try to fetch instance name
+        with open(inst.debug_info.filename, "r") as f:
+            line = f.read().splitlines()[inst.debug_info.lineno - 1]
+            tree = ast.parse(textwrap.dedent(line)).body[0]
+            # Simple case when <Name> = <Instance>()
+            if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
+                    and isinstance(tree.targets[0], ast.Name):
+                name = tree.targets[0].id
+                # Handle case when we've seen a name multiple times
+                # (e.g. reused inside a loop)
+                if cls.instance_name_counter[name] == 0:
+                    inst.name = name
+                    cls.instance_name_counter[name] += 1
+                else:
+                    if cls.instance_name_counter[name] == 1:
+                        # Append `_0` to the first instance with this
+                        # name
+                        orig = cls.instance_name_map[name]
+                        orig.name += "_0"
+                        del cls.instance_name_map[name]
+                        cls.instance_name_map[orig.name] = orig
+                    inst.name = f"{name}_{cls.instance_name_counter[name]}"
+                    cls.instance_name_counter[name] += 1
+
     #
     # place a circuit instance in this definition
     #
     def place(cls, inst):
         if not inst.name:
             if get_debug_mode():
-                # Try to fetch instance name
-                with open(inst.debug_info.filename, "r") as f:
-                    line = f.read().splitlines()[inst.debug_info.lineno - 1]
-                    tree = ast.parse(textwrap.dedent(line)).body[0]
-                    # Simple case when <Name> = <Instance>()
-                    if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
-                            and isinstance(tree.targets[0], ast.Name):
-                        name = tree.targets[0].id
-                        # Handle case when we've seen a name multiple times
-                        # (e.g. reused inside a loop)
-                        if cls.instance_name_counter[name] == 0:
-                            inst.name = name
-                            cls.instance_name_counter[name] += 1
-                        else:
-                            if cls.instance_name_counter[name] == 1:
-                                # Append `_0` to the first instance with this
-                                # name
-                                orig = cls.instance_name_map[name]
-                                orig.name += "_0"
-                                del cls.instance_name_map[name]
-                                cls.instance_name_map[orig.name] = orig
-                            inst.name = f"{name}_{cls.instance_name_counter[name]}"
-                            cls.instance_name_counter[name] += 1
+                cls.inspect_name(inst)
             if not inst.name:
                 # Default name if we could not find one or debug mode is off
                 inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
