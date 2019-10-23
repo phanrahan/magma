@@ -28,36 +28,36 @@ class SimpleALU(m.Circuit):
         io.c <= io.execute_alu(io.a, io.b, io.config_)
 
 
-def build_kratos_debug_info(circuit, top_name):
+def build_kratos_debug_info(circuit, is_top):
     symbols = []
     inst_to_defn_map = {}
     for instance in circuit.instances:
         instance_symbols, instance_inst_to_defn_map = \
-            build_kratos_debug_info(type(instance), top_name="")
+            build_kratos_debug_info(type(instance), is_top=False)
         for symbol in instance_symbols:
             symbol = instance.name + "." + symbol
-            if top_name != "":
-                symbol = top_name + "." + symbol
+            if is_top:
+                symbol = circuit.name + "." + symbol
             symbols.append(symbol)
         for k, v in instance_inst_to_defn_map.values():
             key = instance.name + "." + k
-            if top_name != "":
-                key = top_name + "." + key
+            if is_top:
+                key = circuit.name + "." + key
             inst_to_defn_map[key] = v
-        if top_name != "":
-            inst_to_defn_map[top_name + "." + instance.name] = type(instance).name
-        else:
-            inst_to_defn_map[instance.name] = type(instance).name
+        inst_name = instance.name
+        if is_top:
+            inst_name = circuit.name + "." + instance.name
+        inst_to_defn_map[inst_name] = type(instance).name
     for key in circuit.interface.ports.keys():
-        if top_name != "":
-            key = top_name + "." + key
+        if is_top:
+            key = circuit.name + "." + key
         symbols.append(key)
     return symbols, inst_to_defn_map
 
 
 def test_simple_alu():
     symbols, inst_to_defn_map = \
-        build_kratos_debug_info(SimpleALU, top_name=SimpleALU.name)
+        build_kratos_debug_info(SimpleALU, is_top=True)
     assert symbols == ['SimpleALU.execute_alu_inst0.a',
                        'SimpleALU.execute_alu_inst0.b',
                        'SimpleALU.execute_alu_inst0.config_',
