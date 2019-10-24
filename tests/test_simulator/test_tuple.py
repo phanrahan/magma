@@ -11,7 +11,7 @@ def test_simulator_tuple():
     width = 8
     testValInt = 80
     c = coreir.Context()
-    cirb = CoreIRBackend(c)
+    cirb = CoreIRBackend(c, check_context_is_default=False)
     scope = Scope()
     inDims = [2, width]
     tupleEl = Array[inDims[1], Bit]

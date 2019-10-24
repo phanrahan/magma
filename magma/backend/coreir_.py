@@ -496,8 +496,8 @@ class CoreIRBackend:
         self.context.run_passes(passes, namespaces)
         module.save_to_file(filename)
 
-def compile(main, file_name=None, context=None):
-    backend = CoreIRBackend(context)
+def compile(main, file_name=None, context=None, check_context_is_default=True):
+    backend = CoreIRBackend(context, check_context_is_default)
     backend.compile(main)
     if file_name is not None:
         return backend.modules[main.coreir_name].save_to_file(file_name)
