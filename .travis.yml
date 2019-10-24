@@ -32,6 +32,7 @@ install:
 - pip install python-coveralls
 - pip install pytest-cov pytest-codestyle
 - pip install -e .
+- pip install -I git+https://github.com/leonardt/ast_tools.git@use-immutable
 after_success:
 - coveralls
 jobs:

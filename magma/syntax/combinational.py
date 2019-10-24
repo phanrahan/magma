@@ -15,6 +15,7 @@ from magma.config import get_debug_mode
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
+from ast_tools import immutable_ast as iast
 import ast_tools
 
 
@@ -121,6 +122,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
 
 
 def _combinational(tree, env, metadata):
+    tree = iast.mutable(tree)
     tree = FunctionToCircuitDefTransformer().visit(tree)
     tree = ast.fix_missing_locations(tree)
     source = "\n"
@@ -128,6 +130,7 @@ def _combinational(tree, env, metadata):
         source += f"    {i}: {line}\n"
 
     debug(source)
+    tree = iast.immutable(tree)
     return tree, env, metadata
 
 
@@ -137,8 +140,6 @@ class combinational(ast_tools.passes.Pass):
         tree, env, metadata = ast_tools.passes.ssa().rewrite(
             tree, env, metadata)
 
-        phi_name = ast_tools.gen_free_name(tree, env,
-                                           "magma_combinational_phi")
 
         if "mux" not in env:
             from mantle import mux
@@ -148,13 +149,13 @@ class combinational(ast_tools.passes.Pass):
         else:
             mux_name = "mux"
 
+        phi_name = "magma_combinational_phi"
         def phi(cond, arg0, arg1):
             if all(isinstance(arg, tuple) for arg in (arg0, arg1)):
                 return tuple(phi(cond, *zipped) for zipped in zip(arg0,
                                                                        arg1))
             return env[mux_name]([arg1, arg0], cond)
 
-        env.locals[phi_name] = phi
-        tree, env, metadata = ast_tools.passes.if_to_phi(phi_name).rewrite(
+        tree, env, metadata = ast_tools.passes.if_to_phi(phi, phi_name).rewrite(
             tree, env, metadata)
         return _combinational(tree, env, metadata)
