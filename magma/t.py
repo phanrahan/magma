@@ -15,7 +15,7 @@ def deprecated(func):
     @functools.wraps(func)
     def newFunc(*args, **kwargs):
         warnings.warn("Call to deprecated function %s." % func.__name__,
-                      category=DeprecationWarning)
+                      category=DeprecationWarning, stacklevel=2)
         return func(*args, **kwargs)
     newFunc.__name__ = func.__name__
     newFunc.__doc__ = func.__doc__
