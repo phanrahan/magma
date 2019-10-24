@@ -4,7 +4,7 @@ import magma as m
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, deprecated
 from .compatibility import IntegerTypes
-from .bit import VCC, GND
+from .bit import VCC, GND, Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
@@ -127,6 +127,9 @@ class Array(Type, metaclass=ArrayMeta):
                         raise TypeError(f"Will not do implicit conversion of arrays")
                     self.ts = args[0].ts[:]
                 elif isinstance(args[0], int):
+                    if not issubclass(self.T, Bit):
+                        raise TypeError(f"Can only instantiate Array[N, Bit] "
+                                        "with int, not Array[N, {self.T}]")
                     self.ts = []
                     for bit in m.bitutils.int2seq(args[0], self.N):
                         self.ts.append(VCC if bit else GND)

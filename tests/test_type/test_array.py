@@ -1,4 +1,5 @@
 from magma import *
+import pytest
 
 Array2 = Array[2,Bit]
 Array4 = Array[4,Bit]
@@ -90,6 +91,12 @@ def test_construct():
     a1 = Array[2, Bit]([1,1])
     print(type(a1))
     assert isinstance(a1, ArrayType)
+
+    a1 = Array[2, Bit](0x3)
+    assert a1 == m.array([VCC, VCC])
+
+    with pytest.raises(TypeError):
+        a1 = Array[2, Array[3, Bit]](0x3)
 
 def test_whole():
     Reg2 = DefineCircuit("Reg2", "I0", In(Array2), "I1", In(Array2))
