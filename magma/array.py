@@ -101,7 +101,7 @@ class ArrayMeta(ABCMeta, Kind):
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ArrayMeta):
-            return False
+            return NotImplemented
         return (cls.N == rhs.N) and (cls.T == rhs.T)
 
     __hash__ = type.__hash__
