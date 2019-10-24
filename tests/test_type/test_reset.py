@@ -17,5 +17,7 @@ def test_asyncreset_n():
             foo = Foo()
 
     m.compile("build/Bar", Bar, "coreir-verilog")
+    assert check_files_equal(__file__, f"build/Bar.json",
+                             f"gold/Bar.json")
     assert check_files_equal(__file__, f"build/Bar.v",
                              f"gold/Bar.v")
