@@ -1,3 +1,5 @@
+import ast
+import textwrap
 import sys
 import six
 import inspect
@@ -95,10 +97,10 @@ class CircuitKind(type):
 
     def __call__(cls, *largs, **kwargs):
         #print('CircuitKind call:', largs, kwargs)
-        self = super(CircuitKind, cls).__call__(*largs, **kwargs)
         if get_debug_mode():
             debug_info = get_callee_frame_info()
-            self.set_debug_info(debug_info)
+            kwargs["debug_info"] = debug_info
+        self = super(CircuitKind, cls).__call__(*largs, **kwargs)
 
         # instance interface for this instance
         if hasattr(cls, 'IO'):
@@ -187,7 +189,10 @@ class AnonymousCircuitType(object):
 
     def __init__(self, *largs, **kwargs):
 
-        self.kwargs = kwargs
+        self.kwargs = dict(**kwargs)
+        if "debug_info" in self.kwargs:
+            # Not an instance parameter, internal debug argument
+            del self.kwargs["debug_info"]
         if hasattr(self, 'default_kwargs'):
             for key in self.default_kwargs:
                 if key not in kwargs:
@@ -204,7 +209,7 @@ class AnonymousCircuitType(object):
         self.used = False
         self.is_instance = True
 
-        self.debug_info = None
+        self.debug_info = kwargs.get("debug_info", None)
 
     def set_debug_info(self, debug_info):
         self.debug_info = debug_info
@@ -460,6 +465,8 @@ class DefineCircuitKind(CircuitKind):
 
         self._instances = []
         self.instanced_circuits_counter = Counter()
+        self.instance_name_counter = Counter()
+        self.instance_name_map = {}
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
 
@@ -482,13 +489,46 @@ class DefineCircuitKind(CircuitKind):
     def instances(self):
         return self._instances
 
+    def inspect_name(cls, inst):
+        # Try to fetch instance name
+        with open(inst.debug_info.filename, "r") as f:
+            line = f.read().splitlines()[inst.debug_info.lineno - 1]
+            tree = ast.parse(textwrap.dedent(line)).body[0]
+            # Simple case when <Name> = <Instance>()
+            if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
+                    and isinstance(tree.targets[0], ast.Name):
+                name = tree.targets[0].id
+                # Handle case when we've seen a name multiple times
+                # (e.g. reused inside a loop)
+                if cls.instance_name_counter[name] == 0:
+                    inst.name = name
+                    cls.instance_name_counter[name] += 1
+                else:
+                    if cls.instance_name_counter[name] == 1:
+                        # Append `_0` to the first instance with this
+                        # name
+                        orig = cls.instance_name_map[name]
+                        orig.name += "_0"
+                        del cls.instance_name_map[name]
+                        cls.instance_name_map[orig.name] = orig
+                    inst.name = f"{name}_{cls.instance_name_counter[name]}"
+                    cls.instance_name_counter[name] += 1
+
     #
     # place a circuit instance in this definition
     #
     def place(cls, inst):
         if not inst.name:
-            inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
-            cls.instanced_circuits_counter[type(inst).name] += 1
+            if get_debug_mode():
+                cls.inspect_name(inst)
+            if not inst.name:
+                # Default name if we could not find one or debug mode is off
+                inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
+                cls.instanced_circuits_counter[type(inst).name] += 1
+                cls.instance_name_counter[inst.name] += 1
+        else:
+            cls.instance_name_counter[inst.name] += 1
+        cls.instance_name_map[inst.name] = inst
         inst.defn = cls
         if get_debug_mode():
             inst.stack = inspect.stack()

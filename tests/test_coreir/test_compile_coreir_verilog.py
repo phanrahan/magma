@@ -3,11 +3,11 @@ import os
 from magma.testing.utils import check_files_equal
 import magma as m
 m.set_mantle_target("coreir")
-m.config.set_debug_mode(True)
 import pytest
 
 
 def test_compile(caplog):
+    m.config.set_debug_mode(True)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
     # Make it a mock mantle module
@@ -28,6 +28,7 @@ def test_compile(caplog):
 
     m.EndCircuit()
     m.compile("build/test_compile_coreir_verilog", main)
+    m.config.set_debug_mode(False)
     assert check_files_equal(__file__, "build/test_compile_coreir_verilog.v",
                              "gold/test_compile_coreir_verilog.v")
     assert caplog.records[0].msg == "`m.compile` called with `output == verilog` and `m.mantle_target == \"coreir\"` and mantle has been imported, When generating verilog from circuits from the \"coreir\" mantle target, you should set `output=\"coreir-verilog\"`. Doing this automatically."
