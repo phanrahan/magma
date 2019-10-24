@@ -16,6 +16,6 @@ def test_asyncreset_n():
             # backend
             foo = Foo()
 
-    m.compile("build/Foo", "coreir-verilog")
-    assert check_files_equal(__file__, f"build/Foo.v",
-                             f"gold/Foo.v")
+    m.compile("build/Bar", Bar, "coreir-verilog")
+    assert check_files_equal(__file__, f"build/Bar.v",
+                             f"gold/Bar.v")
