@@ -71,7 +71,7 @@ class ArrayMeta(ABCMeta, Kind):
         return type_
 
     @property
-    def abstract_t(cls) -> 'BitMeta':
+    def abstract_t(cls) -> 'ArrayMeta':
         t = cls._info_[0]
         if t is not None:
             return t
