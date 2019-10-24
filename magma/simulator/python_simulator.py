@@ -395,7 +395,7 @@ class PythonSimulator(CircuitSimulator):
         for name, port in circuit.interface.ports.items():
             if port.is_input():
                 val = self.get_value(getattr(circuit, name))
-                val = int(val) if isinstance(val, bool) else seq2int(val)
+                val = seq2int(val) if isinstance(val, list) else int(val) 
                 outs.append(val)
 
         if len(outs) == 1:
