@@ -1,0 +1,1 @@
+-e git+git://github.com/leonardt/Pyverilog.git@add-nd-arrays#egg=pyverilog
