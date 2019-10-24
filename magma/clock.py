@@ -182,7 +182,8 @@ ClockTypes = (ClockType, ResetType, AsyncResetType, EnableType)
 
 
 def ClockInterface(has_enable=False, has_reset=False, has_set=False,
-                   has_ce=False, has_async_reset=False):
+                   has_ce=False, has_async_reset=False,
+                   has_async_resetn=False):
     args = ['CLK', In(Clock)]
     has_enable |= has_ce
     if has_enable:
@@ -191,6 +192,8 @@ def ClockInterface(has_enable=False, has_reset=False, has_set=False,
         args += ['RESET', In(Reset)]
     if has_async_reset:
         args += ['ASYNCRESET', In(AsyncReset)]
+    if has_async_resetn:
+        args += ['ASYNCRESETN', In(AsyncResetN)]
     return args
 
 
@@ -214,4 +217,5 @@ def wiredefaultclock(defn, inst):
 def wireclock(define, circuit):
     wireclocktype(define, circuit, ResetType)
     wireclocktype(define, circuit, AsyncResetType)
+    wireclocktype(define, circuit, AsyncResetNType)
     wireclocktype(define, circuit, EnableType)
