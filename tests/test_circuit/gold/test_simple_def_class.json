@@ -16,15 +16,15 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "And2_inst0":{
+          "and2":{
             "modref":"global.And2",
             "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"36"}
           }
         },
         "connections":[
-          ["self.I.0","And2_inst0.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"37"}],
-          ["self.I.1","And2_inst0.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"38"}],
-          ["self.O","And2_inst0.O",{"filename":"tests/test_circuit/test_define.py","lineno":"39"}]
+          ["self.I.0","and2.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"37"}],
+          ["self.I.1","and2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"38"}],
+          ["self.O","and2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"39"}]
         ],
         "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"31"}
       },
@@ -34,15 +34,15 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "And2_inst0":{
+          "and2":{
             "modref":"global.And2",
             "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"18"}
           }
         },
         "connections":[
-          ["self.I.0","And2_inst0.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"20"}],
-          ["self.I.1","And2_inst0.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"21"}],
-          ["self.O","And2_inst0.O",{"filename":"tests/test_circuit/test_define.py","lineno":"22"}]
+          ["self.I.0","and2.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"20"}],
+          ["self.I.1","and2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"21"}],
+          ["self.O","and2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"22"}]
         ],
         "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"16"}
       }

@@ -12,7 +12,7 @@ def simulator_nested(simple):
     testValInt = 80
     testValBits = int2seq(testValInt)
     c = coreir.Context()
-    cirb = CoreIRBackend(c)
+    cirb = CoreIRBackend(c, check_context_is_default=False)
     scope = Scope()
     inDims = [4, 3, width]
     toNest = Array[inDims[1], Array[inDims[2], Bit]]
