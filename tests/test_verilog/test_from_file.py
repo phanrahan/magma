@@ -204,3 +204,28 @@ endmodule""", external_modules={"foo": foo})
     assert pytest_e.type is Exception
     assert pytest_e.value.args == \
         ("Modules defined in both external_modules and in parsed verilog: {'foo'}",)  # nopep8
+
+
+def _test_nd_array_port(verilog):
+    [top] = m.DefineFromVerilog(verilog)
+    assert len(top.interface.ports) == 1
+    assert "inp" in top.interface.ports
+
+    # Not sure why the following doesn't work, using repr as a workaround.
+    #assert type(top.inp) is m.In(m.Array[4, m.Array[2, m.Bits[8]]])
+    assert repr(type(top.inp)) == "Array[4, Array[2, Bits[8, Bit]]]"
+
+
+def test_nd_array_port_list():
+    verilog = """
+    module top (input [7:0] inp [3:0][1:0]);
+    endmodule"""
+    _test_nd_array_port(verilog)
+
+
+def test_nd_array_decl():
+    verilog = """
+    module top (inp);
+      input [7:0] inp [3:0][1:0];
+    endmodule"""
+    _test_nd_array_port(verilog)
