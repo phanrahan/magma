@@ -77,3 +77,39 @@ Contained in the module `magma.math`
 * `log2_ceil(x: int) -> int` - `log2(x)` rounded up
 * `log2_floor(x: int) -> int` - `log2(x)` rounded down
 * `is_pow2(x: int) -> bool` - `True` if `x` is a power of 2
+
+# Types
+## Bit
+* `m.Bit` - boolean value
+* `m.VCC, m.GND` - boolean literals
+
+## Array
+* `m.Array[N, T]` - fixed length array of length `N` containing values of type
+  `T` with equality operator (`==`) defined
+* `m.array(value, n=None)` - convert `value` to an array.  `value` must be a
+  magma type (`Bit`, `Tuple`, `Array`), a Python integer (e.g. literal), or a Python
+  sequence (e.g. list).  If `n` is `None`, the width of the Array is inferred
+  from `value` (e.g. length of the list, bit_length of the integer, length of
+  the magma type)
+* `m.Bits[N]` - length `N` bit vector with bitwise logical operators defined
+* `m.bits(value, n=None)` - convert `value` to an `Bits` (same rules as
+  `m.array` except if the input is a magma type or list, the members must be
+  convertible to a Bit (e.g. Bit, bool, 0, 1))
+* `m.UInt[N]` - length `N` unsigned integer that includes Bits operators and
+  adds unsigned arithmetic (e.g. `+`, `-`, ...) and comparison operators (e.g.
+  `<`, `<=`, ...)
+* `m.uint(value, n=None)` - convert `value` to an `UInt` (same rules as
+  `m.bits` except will not convert `m.SInt` to `m.UInt`)
+* `m.SInt[N]` - length `N` signed integer that includes Bits operators and
+  adds signed arithmetic (e.g. `+`, `-`, ...) and comparison operators (e.g.
+  `<`, `<=`, ...)
+* `m.sint(value, n=None)` - convert `value` to an `SInt` (same rules as
+  `m.bits` except will not convert `m.UInt` to `m.SInt`)
+
+## Tuple
+* `m.Tuple(t0,t1,...)` - heterogenous compound aggregate datat type containing members
+  of type `t0`, `t1`, ...  The anonymous variant uses integer keys like
+  Python's tuple (i.e. for a tuple value `x`, `type(x[0]) == t0` and
+  `type(x[1]) == t1`)
+* `m.Tuple(k0=t0,k1=t1)` - same as anonymous variant except uses named keys ala
+  Python's `namedtuple` (i.e. `type(x.k0) == t0`)
