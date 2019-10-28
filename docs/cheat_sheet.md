@@ -58,7 +58,19 @@ class Test(Circuit):
 **TODO**
 
 # Enum
-**TODO**
+```python
+class State(m.Enum):
+    zero = 0
+    one = 1
+    four = 4
+
+class EnumExample(m.Circuit):
+    IO = ["I", m.In(State), "O", m.Out(m.Array[2, State])]
+    @classmethod
+    def definition(io):
+        io.O[0] <= io.I
+        io.O[1] <= State.four
+```
 
 # Math Helpers
 Contained in the module `magma.math`
