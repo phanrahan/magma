@@ -50,3 +50,18 @@ class Test(Circuit):
         x <= y
         io.O <= x
 ```
+
+# When
+**TODO**
+
+# Switch
+**TODO**
+
+# Enum
+**TODO**
+
+# Math Helpers
+Contained in the module `magma.math`
+* `log2_ceil(x: int) -> int` - `log2(x)` rounded up
+* `log2_floor(x: int) -> int` - `log2(x)` rounded down
+* `is_pow2(x: int) -> bool` - `True` if `x` is a power of 2
