@@ -1,0 +1,29 @@
+{"top":"global.Bar",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Bar":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESETN",["Named","coreir.arstIn"]]
+        ]],
+        "instances":{
+          "Foo_inst0":{
+            "modref":"global.Foo"
+          }
+        },
+        "connections":[
+          ["self.ASYNCRESETN","Foo_inst0.ASYNCRESETN"],
+          ["self.CLK","Foo_inst0.CLK"]
+        ]
+      },
+      "Foo":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESETN",["Named","coreir.arstIn"]]
+        ]]
+      }
+    }
+  }
+}
+}

@@ -28,7 +28,7 @@ setup(
         "astor",
         "six",
         "mako",
-        "pyverilog",
+        # "pyverilog",
         "numpy",
         "graphviz",
         "coreir>=2.0.*",
