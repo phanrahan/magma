@@ -39,9 +39,12 @@ memory controllers,
 image and signal processing,
 and even processors.
 
-The best way to learn Magma is through examples.  The
+The best way to learn Magma is through examples.
+The [magma_register_file_tutorial](https://github.com/leonardt/magma_register_file_tutorial)
+provides an example of defining and verifying a register file generator.
+The
 [magmathon](https://github.com/phanrahan/magmathon) repository contains
-instructions for installing magma, as well as a set of [Jupyter
+a set of [Jupyter
 Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/tutorial)
 that introduce the system. There's also
 [magma_tutorial](https://github.com/leonardt/magma_tutorial) which contains a
