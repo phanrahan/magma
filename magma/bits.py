@@ -202,7 +202,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def bvule(self, other) -> AbstractBit:
         # For wiring
-        if self.is_input():
+        if not self.is_output():
             return Type.__le__(self, other)
         raise NotImplementedError()
 
