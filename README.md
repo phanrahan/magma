@@ -106,6 +106,9 @@ $ sudo apt-get install python3 python3-pip
 ```
 
 ## User Setup
+Magma requires [coreir](https://github.com/rdaly525/coreir), 
+please follow [these instructions](https://github.com/rdaly525/coreir/blob/master/INSTALL.md) to install it.
+
 Magma is available as a pip package, install the lastest release with:
 ```
 pip install magma-lang
