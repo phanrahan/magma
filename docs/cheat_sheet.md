@@ -113,3 +113,39 @@ Contained in the module `magma.math`
   `type(x[1]) == t1`)
 * `m.Tuple(k0=t0,k1=t1)` - same as anonymous variant except uses named keys ala
   Python's `namedtuple` (i.e. `type(x.k0) == t0`)
+
+# Registers
+Retain state until updated
+```python
+my_reg = mantle.Register(32)
+my_reg_init_7 = mantle.Register(32, init=7)
+my_reg_clock_enable = mantle.Register(32, init=7, has_ce=True)
+```
+Define update value by wiring to the input `I` port
+```
+my_reg.I <= next_val
+```
+Set `N` to `None` for a Register of a single `Bit` (setting `N` to `1` will
+produce a register of `Bits[1]`)
+```python
+bit_reg = mantle.Register(None)
+```
+
+# Memories
+```python
+MyMemCircuit = mantle.DefineMemory(height, width, readonly=False, read_latency=0)
+my_mem_inst = MyMemCircuit()
+```
+* `height` - number of elements
+* `width` - width of each element
+* `readonly` - ROM if True else RAM
+* `read_latency` - number of registers to append to read out port
+
+Ports
+`addr_width = max((height - 1).bit_length(), 1)` 
+* `RADDR` - `In(Bits[addr_width])`
+* `RDATA` - `Out(Bits[width])`
+* `WADDR` - `In(Bits[addr_width])`
+* `WDATA` - `In(Bits[width])`
+* `CLK` - `In(Clock)`
+* `WE` - `In(Bit)`
