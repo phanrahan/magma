@@ -1,20 +1,11 @@
 from collections import OrderedDict
 from hwtypes import BitVector
 import os
-<<<<<<< HEAD
 from ..bit import VCC, GND, Bit, BitIn, BitOut
 from ..array import Array
 from ..tuple import Tuple, Product
 from ..clock import wiredefaultclock, wireclock, Clock, Enable, Reset, \
     AsyncReset, ResetN, AsyncResetN
-=======
-from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
-from ..array import ArrayKind, ArrayType, Array
-from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, \
-    ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind, ResetNKind, \
-    AsyncResetNKind, AsyncResetNType, ResetType
->>>>>>> master
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -150,14 +141,14 @@ class CoreIRBackend:
         elif port.is_input():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clk")]
-            elif issubclass(port, AsyncReset, AsyncResetN):
+            elif issubclass(port, (AsyncReset, AsyncResetN)):
                 _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
         elif port.is_output():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clkIn")]
-            elif issubclass(port, AsyncReset, AsyncResetN):
+            elif issubclass(port, (AsyncReset, AsyncResetN)):
                 _type = self.context.named_types[("coreir", "arstIn")]
             else:
                 _type = self.context.BitIn()
