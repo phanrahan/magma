@@ -150,24 +150,14 @@ class CoreIRBackend:
         elif port.is_input():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clk")]
-<<<<<<< HEAD
-            elif issubclass(port, AsyncReset):
-=======
-            elif isinstance(port, (AsyncResetType, AsyncResetKind,
-                                   AsyncResetNType, AsyncResetNKind)):
->>>>>>> master
+            elif issubclass(port, AsyncReset, AsyncResetN):
                 _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
         elif port.is_output():
             if issubclass(port, Clock):
                 _type = self.context.named_types[("coreir", "clkIn")]
-<<<<<<< HEAD
-            elif issubclass(port, AsyncReset):
-=======
-            elif isinstance(port, (AsyncResetType, AsyncResetKind,
-                                   AsyncResetNType, AsyncResetNKind)):
->>>>>>> master
+            elif issubclass(port, AsyncReset, AsyncResetN):
                 _type = self.context.named_types[("coreir", "arstIn")]
             else:
                 _type = self.context.BitIn()
