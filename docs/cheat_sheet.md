@@ -208,3 +208,11 @@ as well as arithmetic and comparison operastors.
 
 Note that the the right shift operator when applied to an `SInt` becomes
 an arithmetic shift right operator (which replicates the sign bit as it shifts right).
+
+Other
+- `mantle.mux(I, S)` where `len(S) == log2_ceil(len(I))` and the value of `S`
+  corresponds to the index in `I` to be selected
+- `m.zext` - zero extend array type
+- `m.sext` - sign extend array type
+- `m.concat(*arrays)` - concat arrays together 
+- `m.repeat(value, n)` - create an array replicating `value` `n` times 
