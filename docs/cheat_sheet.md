@@ -172,3 +172,39 @@ my_module = Accum32()
 my_module.I <= some_data
 sum_ = my_module.O
 ```
+
+# Operators
+All types support the following operators:
+- Equal `==`
+- Not Equal `!=`
+
+The `Bit` type supports the following logical operators.
+- And `&`
+- Or `|`
+- Exclusive or `^`
+- Not `~`
+
+The `Array` type supports the following operator.
+- Dynamic bit selection `bits_obj[add.O]` (select a bit dynamically using a magma value)
+
+The `Bits` type supports the following logical operators.
+- And `&` (elementwise)
+- Or `|` (elementwise)
+- Exclusive or `^` (elementwise)
+- Not `~` (elementwise)
+- Logical right shift (with zeros) `>>`
+- Logical left shift (with zeros) `<<`
+
+The `UInt` and `SInt` types support all the logical operators
+as well as arithmetic and comparison operastors.
+- Add `+`
+- Subtract/Negate `-`
+- Multiply `*`
+- Divide `/`
+- Less than `<`
+- Less than or equal `<=`
+- Greater than `>`
+- Greater than or equal `>=`
+
+Note that the the right shift operator when applied to an `SInt` becomes
+an arithmetic shift right operator (which replicates the sign bit as it shifts right).

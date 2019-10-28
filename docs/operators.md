@@ -14,10 +14,10 @@ The `Array` type supports the following operator.
 - Dynamic bit selection `bits_obj[add.O]` (select a bit dynamically using a magma value)
 
 The `Bits` type supports the following logical operators.
-- And `&`
-- Or `|`
-- Exclusive or `^`
-- Not `~`
+- And `&` (elementwise)
+- Or `|` (elementwise)
+- Exclusive or `^` (elementwise)
+- Not `~` (elementwise)
 - Logical right shift (with zeros) `>>`
 - Logical left shift (with zeros) `<<`
 
