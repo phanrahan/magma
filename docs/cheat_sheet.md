@@ -143,7 +143,9 @@ my_mem_inst = MyMemCircuit()
 * `read_latency` - number of registers to append to read out port
 
 Ports
+
 `addr_width = max((height - 1).bit_length(), 1)` 
+
 * `RADDR` - `In(Bits[addr_width])`
 * `RDATA` - `Out(Bits[width])`
 * `WADDR` - `In(Bits[addr_width])`
