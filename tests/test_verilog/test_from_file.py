@@ -211,9 +211,7 @@ def _test_nd_array_port(verilog):
     assert len(top.interface.ports) == 1
     assert "inp" in top.interface.ports
 
-    # Not sure why the following doesn't work, using repr as a workaround.
-    #assert type(top.inp) is m.In(m.Array[4, m.Array[2, m.Bits[8]]])
-    assert repr(type(top.inp)) == "Array[4, Array[2, Bits[8, Bit]]]"
+    assert type(top.inp) is m.Out(m.Array[4, m.Array[2, m.Bits[8]]])
 
 
 def test_nd_array_port_list():
