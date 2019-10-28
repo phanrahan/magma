@@ -120,6 +120,7 @@ Retain state until updated
 my_reg = mantle.Register(32)
 my_reg_init_7 = mantle.Register(32, init=7)
 my_reg_clock_enable = mantle.Register(32, init=7, has_ce=True)
+my_reg_uint = mantle.Register(32, init=7, has_ce=True, T=m.UInt)
 ```
 Define update value by wiring to the input `I` port
 ```
@@ -149,3 +150,25 @@ Ports
 * `WDATA` - `In(Bits[width])`
 * `CLK` - `In(Clock)`
 * `WE` - `In(Bit)`
+
+# Circuits
+**Defining:** subclass `m.Circuit`
+```python
+def DefineAccum(width: int):
+    class Accum(m.Circuit):
+        IO = ["I", m.In(m.UInt[width]), "O", m.Out(m.UInt[width])] + m.ClockInterface()
+        @classmethod
+        def definition(io):
+            sum_ = mantle.Register(width)
+            io.O <= sum_(m.uint(sum_.O) + io.I)
+    return Accum
+```
+**Usage:** note that the `Define<Circuit>` methods return a class (this
+generates a definition based on the parameters), this class is then instanced
+inside another definition.
+```python
+Accum32 = DefineAccum(32)
+my_module = Accum32()
+my_module.I <= some_data
+sum_ = my_module.O
+```
