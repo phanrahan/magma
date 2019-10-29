@@ -15,7 +15,7 @@
   aggregate type mapping fields `k0, k1, ...` to types `T0, T1, ...`.
 * `Sum[T0, T1, ...]` - Type that can be one of multiple types `T0, T1, ...`
 
-**TODO**: Section on user defined types
+**TODO**: Section on user defined types and introspecting types
 
 
 # Circuits
@@ -38,6 +38,8 @@ def DefineAccum(width: int):
         # Register clock signal is automatically wired up
     return Accum
 ```
+
+**TODO** Introspecting circuits
 
 # Values and Wiring
 Basic values are constructed as instances of magma types.  A set of magma values
@@ -94,6 +96,7 @@ class Test(Circuit):
 ```
 
 **TODO** Discuss value conversions
+**TODO** Introspecting values
 
 # Primitives
 * `EQ`, `NEQ` - Check if two values are equal or not equal
@@ -165,7 +168,4 @@ an arithmetic shift right operator (which replicates the sign bit as it shifts r
 ## Combinational
 **TODO**
 ## Sequential
-**TODO**
-
-# Introspection
 **TODO**
