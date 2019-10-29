@@ -93,6 +93,8 @@ class Test(Circuit):
     IO.O <= x
 ```
 
+**TODO** Discuss value conversions
+
 # Primitives
 * `EQ`, `NEQ` - Check if two values are equal or not equal
 * `And`, `Or`, `XOr`, `Not` - Bitwise logical operators defined on `Bit`,
