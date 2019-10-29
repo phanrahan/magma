@@ -15,6 +15,8 @@
   aggregate type mapping fields `k0, k1, ...` to types `T0, T1, ...`.
 * `Sum[T0, T1, ...]` - Type that can be one of multiple types `T0, T1, ...`
 
+**TODO**: Section on user defined types
+
 
 # Circuits
 **Defining:** subclass `m.Circuit` defines a 
