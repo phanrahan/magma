@@ -115,6 +115,14 @@ class Test(Circuit):
 * `sext(arr, n)` - extend array value with `n` copies of the MSB
 * `concat(*arrays)` - concatenate multiple array values 
 * `repeat(value, n)` - create an array replicating 
+* `Register(T, init=0, has_ce=False, has_reset=False, reset_type=Reset)` -
+  creates a `Register` of type `T` with optional parameters for clock enable
+  (`has_ce`), reset (`has_reset`) and reset type (`reset_type`).
+* `Memory(height, width, read_latency=0, num_read_ports=1, num_write_ports=1)`
+  - `height` is the number of elements, `width` is the width of each element,
+  `read_latency` is the number of cycles of delay before a read is available,
+  `num_read_ports` specifies the number of read ports, `num_write_ports`
+  specifies the number of write ports (can be 0 for a ROM)
 
 # Operators
 All types support the following operators:
@@ -156,5 +164,4 @@ an arithmetic shift right operator (which replicates the sign bit as it shifts r
 ## Combinational
 **TODO**
 ## Sequential
-**TODO**
 **TODO**
