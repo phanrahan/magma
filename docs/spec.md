@@ -32,7 +32,7 @@ def DefineAccum(width: int):
         # register, which allows it to generalize over user defined types
         sum_ = mantle.Register(m.UInt[width])
         # Calling an instance corresponds to wiring up the inputs
-        io.O <= sum_(sum_.O + io.I)
+        IO.O <= sum_(sum_.O + IO.I)
         # Register clock signal is automatically wired up
     return Accum
 ```
@@ -61,7 +61,7 @@ class Test(Circuit):
         O1=m.Out(m.Bits[5])
     )
     # Legal, wire input to output
-    IO.O0 <= io.I0
+    IO.O0 <= IO.I0
 
     # Illegal, cannot wire output to input
     IO.I1 <= io.O1
