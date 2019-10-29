@@ -39,21 +39,18 @@ def DefineAccum(width: int):
     return Accum
 ```
 
-# Values
-Basic values are constructed as instances of magma's `Port` object, which are
-created as part of defining an `IO` (interface) object, or using `Wire` object
-for intermediate values. 
+# Values and Wiring
+Basic values are constructed as instances of magma types.  A set of magma values
+are implicitly constructed when defining an interface (`IO`) object.
 
-A `Port` contains a value of a directed digital type (input, output) or an
-undirected analog type.  
+Values corresponding to input types may be used to drive an arbitrary
+number of outputs, but may not be driven by any value.
 
-If a port contains an digital input type, it may be used to drive a digital
-output `Port` or digital `Wire`.  
+Values corresponding to output types must be driven by exactly one source value.
 
-If it contains a digital output type, it must be driven by one source value.
+Values corresponding to analog types, may be connected an arbitrary number 
+of times to any other analog values.
 
-If it contains an analog type, it may be connected an arbitrary number of times
-to any other analog values.
 ```python
 class Test(Circuit):
     IO = IO(
@@ -79,9 +76,9 @@ class Test(Circuit):
 
 ```
 
-Intermediate values are constructed using a `Wire` object of a specific type.
-At the end of a definition, a wire must have exactly one value driving the
-input but can be used to drive multiple outputs.
+Intermediate values are constructed by instancing a type.
+At the end of a definition, an intermediate value must have exactly one value driving the
+input but may be used to drive multiple outputs.
 ```python
 class Test(Circuit):
     IO = IO(
@@ -89,8 +86,8 @@ class Test(Circuit):
         O=m.Out(m.Bits[5])
     )
 
-    x = m.Wire(Bits[5])
-    y = m.Wire(Bits[5])
+    x = Bits[5]()
+    y = Bits[5]()
     y <= IO.I
     x <= y
     IO.O <= x
@@ -166,4 +163,7 @@ an arithmetic shift right operator (which replicates the sign bit as it shifts r
 ## Combinational
 **TODO**
 ## Sequential
+**TODO**
+
+# Introspection
 **TODO**
