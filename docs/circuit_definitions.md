@@ -1,3 +1,8 @@
+**NOTE** The combinational and sequential syntax exetensions have only been
+tested with the "coreir" and "coreir-verilog" compile targets.  Please set
+`output="coreir-verilog"` or `output="coreir"` when calling `m.compile` to use
+this feature.
+
 # Combinational Circuit Definitions
 Circuit defintions can be marked with the `@m.circuit.combinational` decorator.
 This introduces a set of syntax level features for defining combinational magma
@@ -5,6 +10,7 @@ circuits, including the use of `if` statements to generate `Mux`es.
 
 This feature is currently experimental, and therefor expect bugs to occur.
 Please file any issues on the magma GitHub repository.
+
 
 ## If and Ternary
 The condition must be an expression that evaluates to a `magma` value.
