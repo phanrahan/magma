@@ -11,7 +11,7 @@ def test_named1():
     buf(I=main.I)
     wire(buf.O, main.O)
 
-    compile("build/named1", main)
+    compile("build/named1", main, output="verilog")
     assert check_files_equal(__file__, "build/named1.v", "gold/named1.v")
 
 def test_named2():
@@ -24,7 +24,7 @@ def test_named2():
     a(I0=main.I[0], I1=main.I[1])
     wire(a.O, main.O)
 
-    compile("build/named2a", main)
+    compile("build/named2a", main, output="verilog")
     assert check_files_equal(__file__, "build/named2a.v", "gold/named2a.v")
 
 def test_named3():
@@ -38,7 +38,7 @@ def test_named3():
     a(I1=main.I[1])
     wire(a.O, main.O)
 
-    compile("build/named2b", main)
+    compile("build/named2b", main, output="verilog")
     assert check_files_equal(__file__, "build/named2b.v", "gold/named2b.v")
 
 
@@ -53,5 +53,5 @@ def test_named4():
     a(I0=main.I[0])
     wire(a.O, main.O)
 
-    compile("build/named2c", main)
+    compile("build/named2c", main, output="verilog")
     assert check_files_equal(__file__, "build/named2c.v", "gold/named2c.v")
