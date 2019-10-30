@@ -40,6 +40,6 @@ def test():
     print('wire O')
     wire(reg.O, O)
 
-    compile("build/creg", main)
+    compile("build/creg", main, output="verilog")
     assert check_files_equal(__file__, "build/creg.v", "gold/creg.v")
 

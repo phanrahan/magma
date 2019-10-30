@@ -10,7 +10,7 @@ def test_arg1():
     wire(main.I, buf.I)
     wire(buf.O, main.O)
 
-    compile("build/arg1", main)
+    compile("build/arg1", main, output="verilog")
     assert check_files_equal(__file__, "build/arg1.v", "gold/arg1.v")
 
 
@@ -25,7 +25,7 @@ def test_arg2():
     wire( main.I[1], a.I1 )
     wire(a.O, main.O)
 
-    compile("build/arg2", main)
+    compile("build/arg2", main, output="verilog")
     assert check_files_equal(__file__, "build/arg2.v", "gold/arg2.v")
 
 def test_pos():
@@ -37,7 +37,7 @@ def test_pos():
     wire(main.I, buf[0])
     wire(buf[1], main.O)
 
-    compile("build/pos", main)
+    compile("build/pos", main, output="verilog")
     assert check_files_equal(__file__, "build/pos.v", "gold/pos.v")
 
 def test_arg_array1():
@@ -55,7 +55,7 @@ def test_arg_array1():
     wire(array([0,1]), a.I)
     wire(a.O, main.O)
 
-    compile("build/array1", main)
+    compile("build/array1", main, output="verilog")
     assert check_files_equal(__file__, "build/array1.v", "gold/array1.v")
 
 
@@ -74,7 +74,7 @@ def test_arg_array2():
     wire(array([main.I, 1]), a.I)
     wire(a.O, main.O)
 
-    compile("build/array2", main)
+    compile("build/array2", main, output="verilog")
     assert check_files_equal(__file__, "build/array2.v", "gold/array2.v")
 
 
@@ -93,5 +93,5 @@ def test_arg_array3():
     wire(main.I, a.I)
     wire(a.O, main.O)
 
-    compile("build/array3", main)
+    compile("build/array3", main, output="verilog")
     assert check_files_equal(__file__, "build/array3.v", "gold/array3.v")
