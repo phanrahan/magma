@@ -6,6 +6,8 @@
 
 [CHANGELOG](https://github.com/phanrahan/magma/blob/master/CHANGELOG.md)
 
+[CHEAT SHEET](https://github.com/phanrahan/magma/blob/master/docs/cheat_sheet.md)
+
 Magma is a hardware design language embedded in python.
 
 The central abstraction in Magma is a circuit.
