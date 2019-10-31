@@ -7,7 +7,8 @@ from .bit import Bit, VCC, GND
 from .digital import DigitalMeta
 from .clock import Clock, Reset, AsyncReset, Enable
 from .array import Array
-from .bits import Bits, UInt, SInt, BFloat
+from .bits import Bits, UInt, SInt
+from .bfloat import BFloat
 from .digital import Digital
 from .tuple import Tuple, tuple_ as tuple_imported
 from .bitutils import int2seq
