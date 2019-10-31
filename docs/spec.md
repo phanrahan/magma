@@ -1,3 +1,6 @@
+**NOTE: This is a WIP specification for the core language, the information
+contained may not reflect the actual code base yet, rather it is the current
+proposal and is subject to change**
 # Types
 * `Analog` - Base type for analog signals
 * `Digital` - Base type for digital signals
