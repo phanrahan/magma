@@ -600,7 +600,3 @@ class SInt(Bits):
 
         T = type(self).unsized_t
         return self.concat(T[ext]([self[-1] for _ in range(ext)]))
-
-
-class BFloat(Bits):
-    pass

@@ -35,6 +35,7 @@ from .bit import *
 
 from .array import *
 from .bits import *
+from .bfloat import BFloat
 from .tuple import *
 from .clock import *
 from .conversions import *
