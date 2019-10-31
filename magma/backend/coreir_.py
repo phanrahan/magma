@@ -63,7 +63,7 @@ def name_to_coreir_select(name):
             pass
         return name_to_coreir_select(name.tuple.name) + "." + index
     else:
-        raise NotImplementedError(name)
+        raise NotImplementedError(name, type(name))
 
 
 def magma_port_to_coreir(port):
@@ -105,23 +105,23 @@ class CoreIRBackend:
     def check_interface(self, definition):
         # for now only allow Bit, Array, or Tuple
         def check_type(port, errorMessage=""):
-            if issubclass(port, Array):
+            if issubclass(port.type_, Array):
                 check_type(port.T, errorMessage.format("Array({}, {})").format(
                     str(port.N), "{}"))
-            elif issubclass(port, Tuple):
-                for (k, t) in zip(port.keys(), port.types()):
+            elif issubclass(port.type_, Tuple):
+                for (k, t) in port._get_items():
                     check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
-            elif issubclass(port, (Bit, Clock, Enable, Reset, AsyncReset, ResetN, AsyncResetN)):
+            elif issubclass(port.type_, (Bit, Clock, Enable, Reset, AsyncReset, ResetN, AsyncResetN)):
                 return
             else:
                 raise CoreIRBackendError(errorMessage.format(str(port)))
         for name, port in definition.interface.ports.items():
-            check_type(type(port), 'Error: Argument {} must be comprised only of Bit, Array, or Tuple')
+            check_type(port, 'Error: Argument {} must be comprised only of Bit, Array, or Tuple')
 
     def get_type(self, port):
-        if issubclass(port, Array):
+        if issubclass(port.type_, Array):
             _type = self.context.Array(port.N, self.get_type(port.T))
-        elif issubclass(port, Tuple):
+        elif issubclass(port.type_, Tuple):
             def to_string(k):
                 """
                 Unnamed tuples have integer keys (e.g. 0, 1, 2),
@@ -136,19 +136,19 @@ class CoreIRBackend:
                     return k
             _type = self.context.Record({
                 to_string(k): self.get_type(t) for (k, t) in
-                zip(port.keys(), port.types())
+                port._get_items()
             })
         elif port.is_input():
-            if issubclass(port, Clock):
+            if issubclass(port.type_, Clock):
                 _type = self.context.named_types[("coreir", "clk")]
-            elif issubclass(port, (AsyncReset, AsyncResetN)):
+            elif issubclass(port.type_, (AsyncReset, AsyncResetN)):
                 _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
         elif port.is_output():
-            if issubclass(port, Clock):
+            if issubclass(port.type_, Clock):
                 _type = self.context.named_types[("coreir", "clkIn")]
-            elif issubclass(port, (AsyncReset, AsyncResetN)):
+            elif issubclass(port.type_, (AsyncReset, AsyncResetN)):
                 _type = self.context.named_types[("coreir", "arstIn")]
             else:
                 _type = self.context.BitIn()
@@ -193,7 +193,7 @@ class CoreIRBackend:
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
         for name, port in interface.ports.items():
-            args[name] = self.get_type(type(port))
+            args[name] = self.get_type(port)
         return self.context.Record(args)
 
     def compile_instance(self, instance, module_definition):
@@ -235,9 +235,9 @@ class CoreIRBackend:
 
     def add_non_input_ports(self, non_input_ports, port):
         if not port.is_input():
-            non_input_ports[port] = magma_port_to_coreir(port)
-        if isinstance(port, (Tuple, Array)):
-            for element in port:
+            non_input_ports[port._value] = magma_port_to_coreir(port)
+        if issubclass(port.type_, (Tuple, Array)):
+            for element in port._get_values():
                 self.add_non_input_ports(non_input_ports, element)
 
     def compile_declaration(self, declaration):
@@ -296,12 +296,11 @@ class CoreIRBackend:
         for port in definition.interface.ports.values():
             self.connect_non_outputs(module_definition, port, non_input_ports)
 
-    def connect_non_outputs(self, module_definition, port,
-                      non_input_ports):
+    def connect_non_outputs(self, module_definition, port, non_input_ports):
         # Recurse into non input types that may contain inout children
-        if isinstance(port, Tuple) and not port.is_input() or \
-                isinstance(port, Array) and not port.T.is_input():
-            for elem in port:
+        if issubclass(port.type_, Tuple) and not port.is_input() or \
+                issubclass(port.type_, Array) and not port.T.is_input():
+            for elem in port._get_values():
                 self.connect_non_outputs(module_definition, elem,
                                          non_input_ports)
         elif not port.is_output():

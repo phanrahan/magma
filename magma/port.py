@@ -75,9 +75,9 @@ def fast_mergewires(w, i, o):
         p.wires = w
 
 #
-# A Wire has a list of input and output Ports.
+# A Wires object has a list of input and output Ports.
 #
-class Wire:
+class Wires:
     def __init__(self):
         self.inputs = []
         self.outputs = []
@@ -149,7 +149,7 @@ class Port:
 
         self.bit = bit
 
-        self.wires = Wire()
+        self.wires = Wires()
 
     def __repr__(self):
         return repr(self.bit)
@@ -172,7 +172,7 @@ class Port:
         if i.wires and o.wires and i.wires is not o.wires:
             # print('merging', i.wires.inputs, i.wires.outputs)
             # print('merging', o.wires.inputs, o.wires.outputs)
-            w = Wire()
+            w = Wires()
             if get_debug_mode():
                 mergewires(w, i.wires, debug_info)
                 mergewires(w, o.wires, debug_info)
@@ -184,7 +184,7 @@ class Port:
         elif i.wires:
             w = i.wires
         else:
-            w = Wire()
+            w = Wires()
 
         w.connect(o, i, debug_info)
 

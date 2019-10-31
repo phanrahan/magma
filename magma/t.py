@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import functools
 import warnings
 import enum
@@ -5,6 +6,7 @@ from abc import abstractmethod
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
+from hwtypes.adt import TupleMeta, ProductMeta
 
 
 # From http://code.activestate.com/recipes/391367-deprecated/
@@ -126,16 +128,40 @@ class Kind(type):
 
 
 def In(T):
+    if isinstance(T, TupleMeta):
+        return qualify(T, Direction.In)
     return T.qualify(Direction.In)
 
 
 def Out(T):
+    if isinstance(T, TupleMeta):
+        return qualify(T, Direction.Out)
     return T.qualify(Direction.Out)
 
 
 def InOut(T):
+    if isinstance(T, TupleMeta):
+        return qualify(T, Direction.In)
     return T.qualify(Direction.InOut)
 
 
 def Flip(T):
+    if isinstance(T, TupleMeta):
+        return qualify(T, Direction.Flip)
     return T.qualify(Direction.Flip)
+
+
+def qualify(T, direction):
+    if isinstance(T, ProductMeta):
+        new_fields = OrderedDict()
+        for k, v in T.field_dict.items():
+            new_fields[k] = qualify(v, direction)
+        result = T.unbound_t.from_fields(T.__name__, new_fields,
+                                         cache=T.is_cached)
+        return result
+    elif isinstance(T, TupleMeta):
+        new_fields = []
+        for field in T.fields:
+            new_fields.append(qualify(field, direction))
+        return T.unbound_t[new_fields]
+    return T.qualify(direction)

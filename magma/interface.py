@@ -7,8 +7,9 @@ from .bit import Bit
 from .port import INPUT, OUTPUT, INOUT
 from .clock import Clock, ClockTypes
 from .array import Array
-# from .tuple import TupleType
+from .tuple import Tuple, Product
 from .compatibility import IntegerTypes, StringTypes
+from .wire import Wire
 
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
@@ -36,7 +37,9 @@ def parse(decl):
             name = i//2
         port = decl[i+1] # type
 
-        assert isinstance(port, Kind) or isinstance(port, Type), (port, type(port))
+        assert isinstance(port, Kind) or isinstance(port, Type) or \
+            issubclass(port, Tuple) or issubclass(port, Product), \
+            (port, type(port))
 
 
         names.append(name)
@@ -173,7 +176,7 @@ class Interface(_Interface):
             if name in renamed_ports:
                 raise NotImplementedError()
 
-            args[name] = port
+            args[name] = Wire(port)
 
         self.ports = args
 
@@ -209,9 +212,9 @@ class _DeclareInterface(_Interface):
                 ref.name = renamed_ports[name]
 
             if defn:
-               port = port.flip()
+               port = Flip(port)
 
-            args[name] = port(name=ref)
+            args[name] = Wire(port, name=ref)
 
         self.ports = args
 

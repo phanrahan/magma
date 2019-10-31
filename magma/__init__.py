@@ -26,7 +26,7 @@ def singleton(cls):
 
 # wires
 from .port import *
-from .wire import *
+from .wire import Wire
 
 # types
 from .t import *

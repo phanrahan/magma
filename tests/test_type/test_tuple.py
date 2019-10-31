@@ -49,7 +49,7 @@ def test_dict():
     assert B2 != C2
 
 def test_flip():
-    class Product2(Product):
+    class Product2(Product, cache=True):
         x = In(Bit)
         y = Out(Bit)
     print(Product2)
@@ -80,14 +80,15 @@ def test_flip():
     #print(T)
 
 def test_wire():
-    class Product2(Product):
+    class Product2(Product, cache=True):
         x = Bit
         y = Bit
+    print(list(id(v) for v in Product2.field_dict.items()))
 
-    t0 = Product2(name='t0')
+    t0 = Wire(Product2, name='t0')
     #assert t0.direction is None
 
-    t1 = Product2(name='t1')
+    t1 = Wire(Product2, name='t1')
     #assert t1.direction is None
 
     wire(t0, t1)
@@ -104,8 +105,8 @@ def test_wire():
     assert t0.value() is None
     assert t1.value() is t0
 
-    b0 = t0.x
-    b1 = t1.x
+    b0 = t0.x._value
+    b1 = t1.x._value
 
     assert b0.port.wires is b1.port.wires
 
@@ -122,31 +123,33 @@ def test_val():
 
     # constructor
 
-    a = A2(name='a')
+    a = Wire(A2, name='a')
     print('created A2')
-    assert isinstance(a, Product)
+    assert isinstance(a._value, Product)
     assert str(a) == 'a'
 
     # selectors
 
     print('a["x"]')
-    b = a['x']
+    b = a['x']._value
     assert isinstance(b, Bit)
     assert str(b) == 'a.x'
 
     print('a.x')
-    b = a.x
+    b = a.x._value
     assert isinstance(b, Bit)
     assert str(b) == 'a.x'
 
 
 def test_nested():
     # Test for https://github.com/phanrahan/magma/issues/445
-    def hierIO():
-        class dictIO(Product):
-            baseIO = make_baseIO()
-            ctr = m.In(m.Bit)
-        return dictIO
+    class BaseIO(Product, cache=True):
+        in0 = m.In(m.Bit)
+        out0 = m.Out(m.Bit)
+
+    class HierIO(Product, cache=True):
+        baseIO = BaseIO
+        ctr = m.In(m.Bit)
 
     def DefineCtrModule():
         class ctrModule(m.Circuit):
@@ -154,22 +157,17 @@ def test_nested():
             IO = ["ctr",m.In(m.Bit)]
         return ctrModule
 
-    def make_baseIO():
-        class dictIO(Product):
-            in0 = m.In(m.Bit),
-            out0 = m.Out(m.Bit)
-        return dictIO
 
     def DefineBaseModule():
         class baseModule(m.Circuit):
             name = "base_module"
-            IO = ["baseIO",make_baseIO()]
+            IO = ["baseIO",BaseIO]
         return baseModule
 
     def DefineHier():
         class HierModule(m.Circuit):
             name = "hier_module"
-            IO = ["hier", hierIO()]
+            IO = ["hier", HierIO]
             @classmethod
             def definition(io):
                 baseM = DefineBaseModule()()
