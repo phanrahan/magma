@@ -18,7 +18,7 @@ from .bit import VCC, GND
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import warning
-from .port import report_wiring_warning
+from .port import report_wiring_warning, report_wiring_error
 from .is_definition import isdefinition
 
 
@@ -476,10 +476,21 @@ class DefineCircuitKind(CircuitKind):
             if hasattr(self, 'definition'):
                  pushDefinition(self)
                  self.definition()
+                 self.check_unconnected()
                  self._is_definition = True
                  EndCircuit()
 
         return self
+
+    def check_unconnected(self):
+        for port in self.interface.ports.values():
+            if port.isinput() and not port.driven():
+                report_wiring_error(f"Output port {self.name}.{port.name} not driven", self.debug_info)
+
+        for inst in self.instances:
+            for port in inst.interface.ports.values():
+                if port.isinput() and not port.driven():
+                    report_wiring_error(f"Input port {inst.name}.{port.name} not driven", inst.debug_info)
 
     @property
     def is_definition(self):

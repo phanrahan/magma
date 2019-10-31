@@ -5,6 +5,7 @@ import filecmp
 import os
 import sys
 import difflib
+from ..config import get_debug_mode, set_debug_mode
 
 
 def check_files_equal(callee_file, file1_name, file2_name):
@@ -29,3 +30,18 @@ def check_files_equal(callee_file, file1_name, file2_name):
                 for line in diff:
                     sys.stderr.write(line)
     return result
+
+
+class _MagmaDebugSection:
+    def __init__(self):
+        self.__restore = get_debug_mode()
+
+    def __enter__(self):
+        set_debug_mode(True)
+
+    def __exit__(self, typ, value, traceback):
+        set_debug_mode(self.__restore)
+
+
+def magma_debug_section():
+    return _MagmaDebugSection()

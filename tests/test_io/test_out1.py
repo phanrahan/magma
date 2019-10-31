@@ -7,5 +7,5 @@ def test():
 
     wire(1, main.O)
 
-    compile("build/out1", main)
+    compile("build/out1", main, output="verilog")
     assert check_files_equal(__file__, "build/out1.v", "gold/out1.v")

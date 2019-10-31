@@ -21,7 +21,7 @@ def check_rxmod(RXMOD):
     check_port(RXMOD, "data", m.Array, "output")
     check_port(RXMOD, "valid", m.Bit, "output")
 
-    m.compile("build/test_rxmod", RXMOD)
+    m.compile("build/test_rxmod", RXMOD, output="verilog")
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
             "gold/test_rxmod.v")
 
@@ -83,7 +83,7 @@ def test_from_sv():
 
     if os.path.exists("build/test_pe.sv"):
        os.remove("build/test_pe.sv")
-    m.compile("build/test_pe", test_pe)
+    m.compile("build/test_pe", test_pe, output="verilog")
 
     # Remove last line from generated file since magma adds an extra newline
     with open("tests/test_verilog/build/test_pe.sv", 'r') as f:

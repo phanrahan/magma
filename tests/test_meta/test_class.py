@@ -23,5 +23,5 @@ def test():
 
     O( and2(I) )
 
-    compile("build/class", main)
+    compile("build/class", main, output="verilog")
     assert check_files_equal(__file__, "build/class.v", "gold/class.v")

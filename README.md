@@ -6,6 +6,8 @@
 
 [CHANGELOG](https://github.com/phanrahan/magma/blob/master/CHANGELOG.md)
 
+[CHEAT SHEET](https://github.com/phanrahan/magma/blob/master/docs/cheat_sheet.md)
+
 Magma is a hardware design language embedded in python.
 
 The central abstraction in Magma is a circuit.
@@ -39,9 +41,12 @@ memory controllers,
 image and signal processing,
 and even processors.
 
-The best way to learn Magma is through examples.  The
+The best way to learn Magma is through examples.
+The [magma_register_file_tutorial](https://github.com/leonardt/magma_register_file_tutorial)
+provides an example of defining and verifying a register file generator.
+The
 [magmathon](https://github.com/phanrahan/magmathon) repository contains
-instructions for installing magma, as well as a set of [Jupyter
+a set of [Jupyter
 Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/tutorial)
 that introduce the system. There's also
 [magma_tutorial](https://github.com/leonardt/magma_tutorial) which contains a
@@ -103,6 +108,9 @@ $ sudo apt-get install python3 python3-pip
 ```
 
 ## User Setup
+Magma requires [coreir](https://github.com/rdaly525/coreir), 
+please follow [these instructions](https://github.com/rdaly525/coreir/blob/master/INSTALL.md) to install it.
+
 Magma is available as a pip package, install the lastest release with:
 ```
 pip install magma-lang

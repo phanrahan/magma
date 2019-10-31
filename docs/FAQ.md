@@ -1,3 +1,14 @@
+# Debugging generated verilog
+## Question
+How can I improve the readability of the generated Verilog?
+## Answer
+Set the following configuration flags at the top of your top file
+```python
+m.config.set_debug_mode(True)
+m.set_codegen_debug_info(True)
+```
+This will configure magma to try to automatically capture instance names from the assigned Python variable as well as tracking the filename and line number that instances and wires are created.  This information will be produced in the output verilog file.  Please let us know if there are ways we can improve this, or if there are cases when this does not work as expected.  Note that this relies on using the `inspect` module and traversing the stack every time an instance and wire are created, which can have implications on performance for designs with large numbers of instances and wires (although this issue can usually be mitigated by leveraging decomposition, reuse, and cacheing).
+
 # Instantiating a parametrized Verilog module
 ## Question
 How can I instantiate a Verilog module with a set of parameters?
