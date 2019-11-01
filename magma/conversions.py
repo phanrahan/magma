@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from .compatibility import IntegerTypes
 from .t import In, Out, InOut, Direction
 from .digital import Digital
-from .bit import Bit, VCC, GND
+from .bit import Bit
 from .digital import DigitalMeta
 from .clock import Clock, Reset, AsyncReset, Enable
 from .array import Array
@@ -12,6 +12,7 @@ from .bfloat import BFloat
 from .digital import Digital
 from .tuple import Tuple, tuple_ as tuple_imported
 from .bitutils import int2seq
+from .wire import Wire
 import magma as m
 import hwtypes
 
@@ -25,8 +26,9 @@ def can_convert_to_bit_type(value):
 
 
 def convertbit(value, totype):
-    if isinstance(value, totype):
+    if isinstance(value._value, totype):
         return value
+    value = value._value
 
     if not can_convert_to_bit(value):
         raise ValueError(
@@ -47,7 +49,7 @@ def convertbit(value, totype):
     assert isinstance(value, (IntegerTypes, Digital))
 
     if isinstance(value, IntegerTypes):
-        value = VCC if value else GND
+        value = m.VCC if value else m.GND
 
     if value.is_input():
         b = In(totype)(name=value.name)
@@ -56,7 +58,7 @@ def convertbit(value, totype):
     else:
         b = totype()
     b.port = value.port
-    return b
+    return Wire(value=b)
 
 
 def bit(value):
@@ -80,6 +82,8 @@ def enable(value):
 
 
 def convertbits(value, n, totype, checkbit):
+    if isinstance(value, Wire):
+        value = value._value
     if isinstance(value, totype):
         if n is not None and n != len(value):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
@@ -110,7 +114,12 @@ def convertbits(value, n, totype, checkbit):
     # create list of types
     Ts = []
     for t in ts:
-        T = type(t)
+        print(t, type(t))
+        if isinstance(t, Wire):
+            T = t.type_
+            print("Wire: ", t.type_, t._value, type(t._value))
+        else:
+            T = type(t)
         if T in IntegerTypes:
             T = Out(Bit)
         Ts.append(T)
@@ -142,7 +151,7 @@ def convertbits(value, n, totype, checkbit):
             Direction.InOut: InOut
         }[T.direction](Bit)
 
-    return totype[len(Ts), T](*ts)
+    return Wire(name="", value=totype[len(Ts), T](*ts))
 
 
 def array(value, n=None):
@@ -175,7 +184,7 @@ def concat(*arrays):
         if isinstance(a, hwtypes.BitVector):
             ts.extend(a.bits())
         else:
-            ts.extend(a.ts)
+            ts.extend(a._get_values())
     return array(ts)
 
 

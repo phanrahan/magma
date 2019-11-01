@@ -77,3 +77,10 @@ from .uniquification import UniquificationPass
 from hwtypes.bit_vector_abc import TypeFamily
 
 _Family_ = TypeFamily(Bit, Bits, UInt, SInt)
+
+
+VCC = Wire(name="VCC", value=Digital[Direction.Out](name="VCC"))
+GND = Wire(name="GND", value=Digital[Direction.Out](name="GND"))
+
+HIGH = VCC
+LOW = GND

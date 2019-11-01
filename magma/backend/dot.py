@@ -1,5 +1,5 @@
 from ..array import Array
-from ..bit import Bit, VCC, GND
+from ..bit import Bit
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
 from collections import OrderedDict
@@ -18,8 +18,8 @@ def get_type(port):
     return str(type(port))
 
 def get_name(dot, port):
-    if port is VCC: return "1"
-    if port is GND: return "0"
+    if port is m.VCC: return "1"
+    if port is m.GND: return "0"
 
     if isinstance(port, Array):
         if not port.iswhole(port.ts):

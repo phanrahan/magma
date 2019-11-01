@@ -40,12 +40,12 @@ def Mux(height=2, width=None, **kwargs):
 
 
 def get_length(value):
-    if isinstance(value, m.Bit):
+    if issubclass(value.type_, m.Digital):
         return None
-    elif isinstance(value, m.ArrayType):
+    elif issubclass(value.type_, m.Array):
         return len(value)
     else:
-        raise NotImplementedError(f"Cannot get_length of {type(value)}")
+        raise NotImplementedError(f"Cannot get_length of {value.type_}")
 
 
 def phi(I, S):

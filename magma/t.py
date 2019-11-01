@@ -30,6 +30,7 @@ class Direction(enum.Enum):
     Out = 1
     InOut = 2
     Flip = 3
+    Undirected = 4
 
 
 class Type(object):
@@ -149,6 +150,12 @@ def Flip(T):
     if isinstance(T, TupleMeta):
         return qualify(T, Direction.Flip)
     return T.qualify(Direction.Flip)
+
+
+def Undirected(T):
+    if isinstance(T, TupleMeta):
+        return qualify(T, Direction.Undirected)
+    return T.qualify(Direction.Undirected)
 
 
 def qualify(T, direction):

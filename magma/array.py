@@ -4,7 +4,7 @@ import magma as m
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, deprecated
 from .compatibility import IntegerTypes
-from .bit import VCC, GND, Bit
+from .bit import Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
@@ -119,7 +119,7 @@ class Array(Type, metaclass=ArrayMeta):
                     self.ts = []
                     for elem in args[0]:
                         if isinstance(elem, int):
-                            self.ts.append(VCC if elem else GND)
+                            self.ts.append(m.VCC if elem else m.GND)
                         else:
                             self.ts.append(elem)
                 elif isinstance(args[0], Array):
@@ -132,12 +132,12 @@ class Array(Type, metaclass=ArrayMeta):
                                         "with int, not Array[N, {self.T}]")
                     self.ts = []
                     for bit in m.bitutils.int2seq(args[0], self.N):
-                        self.ts.append(VCC if bit else GND)
+                        self.ts.append(m.VCC if bit else m.GND)
             elif len(args) == self.N:
                 self.ts = []
                 for t in args:
                     if isinstance(t, IntegerTypes):
-                        t = VCC if t else GND
+                        t = m.VCC if t else m.GND
                     assert type(t) == self.T or type(t) == self.T.flip() or \
                         issubclass(type(type(t)), type(self.T)) or \
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
@@ -186,8 +186,8 @@ class Array(Type, metaclass=ArrayMeta):
         return self.N
 
     def __getitem__(self, key):
-        if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
-            key = seq2int([0 if t is GND else 1 for t in key.ts])
+        if isinstance(key, ArrayType) and all(t in {m.VCC, m.GND} for t in key.ts):
+            key = seq2int([0 if t is m.GND else 1 for t in key.ts])
         if isinstance(key, slice):
             _slice = [self[i] for i in range(*key.indices(len(self)))]
             return type(self)[len(_slice), self.T](_slice)

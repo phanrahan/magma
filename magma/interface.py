@@ -37,11 +37,6 @@ def parse(decl):
             name = i//2
         port = decl[i+1] # type
 
-        assert isinstance(port, Kind) or isinstance(port, Type) or \
-            issubclass(port, Tuple) or issubclass(port, Product), \
-            (port, type(port))
-
-
         names.append(name)
         ports.append(port)
 
@@ -176,7 +171,7 @@ class Interface(_Interface):
             if name in renamed_ports:
                 raise NotImplementedError()
 
-            args[name] = Wire(port)
+            args[name] = port
 
         self.ports = args
 

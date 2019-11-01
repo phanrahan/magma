@@ -9,7 +9,7 @@ from functools import lru_cache
 import magma as m
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
-from .digital import Digital, DigitalMeta, VCC, GND
+from .digital import Digital, DigitalMeta
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -132,9 +132,9 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         raise NotImplementedError("Converting magma bit to int not supported")
 
     def __repr__(self):
-        if self is VCC:
+        if self is m.VCC:
             return '1'
-        if self is GND:
+        if self is m.GND:
             return '0'
 
         return super().__repr__()

@@ -1,7 +1,9 @@
 from collections import OrderedDict
 from hwtypes import BitVector
 import os
-from ..bit import VCC, GND, Bit, BitIn, BitOut
+import magma as m
+from ..wire import Wire
+from ..bit import Bit, BitIn, BitOut
 from ..array import Array
 from ..tuple import Tuple, Product
 from ..clock import wiredefaultclock, wireclock, Clock, Enable, Reset, \
@@ -106,8 +108,8 @@ class CoreIRBackend:
         # for now only allow Bit, Array, or Tuple
         def check_type(port, errorMessage=""):
             if issubclass(port.type_, Array):
-                check_type(port.T, errorMessage.format("Array({}, {})").format(
-                    str(port.N), "{}"))
+                check_type(port[0], errorMessage.format("Array({}, {})").format(
+                    str(port.type_.N), "{}"))
             elif issubclass(port.type_, Tuple):
                 for (k, t) in port._get_items():
                     check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
@@ -120,7 +122,7 @@ class CoreIRBackend:
 
     def get_type(self, port):
         if issubclass(port.type_, Array):
-            _type = self.context.Array(port.N, self.get_type(port.T))
+            _type = self.context.Array(port.type_.N, self.get_type(port[0]))
         elif issubclass(port.type_, Tuple):
             def to_string(k):
                 """
@@ -299,7 +301,7 @@ class CoreIRBackend:
     def connect_non_outputs(self, module_definition, port, non_input_ports):
         # Recurse into non input types that may contain inout children
         if issubclass(port.type_, Tuple) and not port.is_input() or \
-                issubclass(port.type_, Array) and not port.T.is_input():
+                issubclass(port.type_, Array) and not port[0].is_input():
             for elem in port._get_values():
                 self.connect_non_outputs(module_definition, elem,
                                          non_input_ports)
@@ -362,6 +364,9 @@ class CoreIRBackend:
 
     def connect(self, module_definition, port, value, non_input_ports):
         self.__unique_concat_id
+        is_anon = value.anon()
+        if isinstance(value, Wire):
+            value = value._value
 
         # allow clocks or arrays of clocks to be unwired as CoreIR can wire them up
         def is_clock_or_nested_clock(p):
@@ -386,18 +391,18 @@ class CoreIRBackend:
         elif isinstance(value, coreir.Wireable):
             source = value
 
-        elif isinstance(value, Array) and all(x in {VCC, GND} for x in value):
+        elif isinstance(value, Array) and all(x in {m.VCC, m.GND} for x in value):
             source = self.get_constant_instance(value, len(value),
                     module_definition)
-        elif value.anon() and isinstance(value, Array):
+        elif is_anon and isinstance(value, Array):
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, non_input_ports)
             return
-        elif isinstance(value, Tuple) and value.anon():
+        elif isinstance(value, Tuple) and is_anon:
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, non_input_ports)
             return
-        elif value is VCC or value is GND:
+        elif value is m.VCC or value is m.GND:
             source = self.get_constant_instance(value, None, module_definition)
         else:
             # logger.debug((value, non_input_ports))
@@ -416,8 +421,8 @@ class CoreIRBackend:
             self.__constant_cache[module_definition] = {}
 
         bit_type_to_constant_map = {
-            GND: 0,
-            VCC: 1
+            m.GND: 0,
+            m.VCC: 1
         }
         if constant in bit_type_to_constant_map:
             value = bit_type_to_constant_map[constant]

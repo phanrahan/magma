@@ -2,7 +2,7 @@ import pytest
 import magma as m
 from magma import In, Out, Flip
 from magma.testing import check_files_equal
-from magma.bit import Bit, VCC, GND, Digital
+from magma.bit import Bit, Digital
 import operator
 BitIn = In(Bit)
 BitOut = Out(Bit)
@@ -71,15 +71,15 @@ def test_bit_val():
 
 
 def test_vcc():
-    assert str(VCC) == "VCC"
-    assert isinstance(VCC, Digital)
+    assert str(m.VCC) == "VCC"
+    assert isinstance(m.VCC, Digital)
 
-    assert str(GND) == "GND"
-    assert isinstance(GND, Digital)
+    assert str(m.GND) == "GND"
+    assert isinstance(m.GND, Digital)
 
-    assert VCC is VCC
-    assert VCC is not GND
-    assert GND is GND
+    assert m.VCC is m.VCC
+    assert m.VCC is not m.GND
+    assert m.GND is m.GND
 
 
 def test_wire1():

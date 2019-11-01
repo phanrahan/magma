@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from ..bit import Bit, VCC, GND
+from ..bit import Bit
 from ..array import Array
 from ..clock import wiredefaultclock
 from .verilog import find
@@ -13,8 +13,8 @@ def get_type(port):
     return "UInt<{}>".format(width)
 
 def get_name(port):
-    if port is VCC: return "UInt<1>(\"h1\")"
-    if port is GND: return "UInt<1>(\"h0\")"
+    if port is m.VCC: return "UInt<1>(\"h1\")"
+    if port is m.GND: return "UInt<1>(\"h0\")"
 
     if isinstance(port, Array):
         if not port.iswhole(port.ts):

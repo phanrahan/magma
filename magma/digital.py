@@ -1,5 +1,6 @@
 import weakref
 from abc import ABCMeta
+import magma as m
 from .t import Kind, Direction, Type
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error, Port
@@ -46,6 +47,8 @@ class DigitalMeta(ABCMeta, Kind):
         if not isinstance(direction, Direction):
             raise TypeError('Direction of Digital must be an instance of m.Direction')
 
+        if direction == direction.Undirected:
+            return cls.undirected_t
         if cls.is_directed:
             if direction == cls.direction:
                 return cls
@@ -76,7 +79,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
             if isinstance(value, (bool, IntegerTypes)):
-                return VCC if value else GND
+                return m.VCC if value else m.GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
             assert isinstance(value, Digital), type(value)
@@ -178,11 +181,4 @@ class Digital(Type, metaclass=DigitalMeta):
         return [self]
 
     def const(self):
-        return self is VCC or self is GND
-
-
-VCC = Digital[Direction.Out](name="VCC")
-GND = Digital[Direction.Out](name="GND")
-
-HIGH = VCC
-LOW = GND
+        return self is m.VCC or self is m.GND

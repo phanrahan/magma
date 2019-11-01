@@ -4,10 +4,11 @@ import operator
 from functools import reduce
 from collections import OrderedDict
 from collections.abc import Sequence
+import magma as m
 from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
-from ..bit import Digital, VCC, GND
+from ..bit import Digital
 from ..clock import Clock, Enable, Reset
 from ..array import Array
 from ..bits import SInt
@@ -61,8 +62,8 @@ def bstr(n, bits):
 
 # return the verilog name of a data value
 def vname(t):
-    if t is VCC: return "1'b1"
-    if t is GND: return "1'b0"
+    if t is m.VCC: return "1'b1"
+    if t is m.GND: return "1'b0"
 
     if isinstance(t, Array):
         # print(t.ts)
@@ -77,11 +78,11 @@ def vname(t):
 
 # return the verilog declaration for the data type
 def vdecl(t):
-    if isinstance(t, Array):
+    if issubclass(t, Array):
         signed = "signed " if isinstance(t, SInt) else ""
         return '{}[{}:{}]'.format(signed, t.N-1, 0)
     else:
-        assert isinstance(t, Digital)
+        assert issubclass(t, Digital)
         return ""
 
 # return the verilog module args
@@ -90,11 +91,11 @@ def vmoduleargs(self):
         if   port.is_input():  d = OUTPUT
         elif port.is_output(): d = INPUT
         else: d = INOUT
-        args.append("%s %s %s" % (d, vdecl(port), name))
+        args.append("%s %s %s" % (d, vdecl(port.type_), name))
 
     args = []
     for name, port in self.ports.items():
-        if isinstance(port, Tuple):
+        if issubclass(port.type_, Tuple):
             for i in range(len(port)):
                 append(args, port[i], vname(port[i]))
         else:
@@ -159,9 +160,9 @@ def compiledefinition(cls):
 
     # for now only allow Bit or Array(n, Bit)
     for name, port in cls.interface.ports.items():
-        if isinstance(port, Array):
-            if not issubclass(port.T, Digital):
-                raise Exception(f'Argument {cls.__name__}.{name} of type {type(port)} is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)')
+        if issubclass(port.type_, Array):
+            if not issubclass(port[0].type_, Digital):
+                raise Exception(f'Argument {cls.__name__}.{name} of type {port.type_} is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)')
 
 
     if cls.verilogFile:
@@ -184,12 +185,12 @@ def compiledefinition(cls):
                         s = libName + s
         else:
             def wire(port):
-                return 'wire %s %s;\n' % (vdecl(port), vname(port))
+                return 'wire %s %s;\n' % (vdecl(port.type_), vname(port))
 
             # declare a wire for each instance output
             for instance in cls.instances:
                 for port in instance.interface.ports.values():
-                    if isinstance(port, Tuple):
+                    if issubclass(port.type_, Tuple):
                         for i in range(len(port)):
                             s += wire(port[i])
                     else:

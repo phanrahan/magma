@@ -1,9 +1,12 @@
+from collections.abc import Sequence, Mapping
+from collections import OrderedDict
 from hwtypes.adt import Tuple, Product, TupleMeta, ProductMeta
-
-
+import magma as m
 from .bitutils import int2seq
 from .array import Array
-from .bit import Digital, Bit, VCC, GND
+from .bit import Digital, Bit
+from .compatibility import IntegerTypes
+
 
 #
 # convert value to a tuple
@@ -40,7 +43,8 @@ def tuple_(value, n=None, t=Tuple):
             args.append(v)
             decl[k] = type(v)
 
-    return type("anon", (t,), decl)(*args)
+    T = type("anon", (t,), decl)
+    return m.Wire(name="", value=T(*args))
 
 
 def namedtuple(**kwargs):

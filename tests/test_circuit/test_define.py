@@ -150,7 +150,7 @@ def test_2d_array_error(caplog):
         assert str(e) == "Argument main.I of type Array[2, Array[3, Out(Bit)]] is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa
 
 
-class XY(m.Product):
+class XY(m.Product, cache=True):
     x = m.Bit
     y = m.Bit
 
@@ -169,7 +169,7 @@ def test_anon_value(target, suffix, T):
 
     m.wire(main.I0, and2.I0)
     m.wire(main.I1, and2.I1)
-    tmp = T()
+    tmp = m.Wire(T)
     m.wire(and2.O, tmp)
     m.wire(tmp, main.O)
 

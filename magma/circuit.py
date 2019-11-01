@@ -14,7 +14,6 @@ from .wire import *
 from .t import Flip
 # from .array import ArrayType
 # from .tuple import TupleType
-from .bit import VCC, GND
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import warning
@@ -227,6 +226,7 @@ class AnonymousCircuitType(object):
         args = []
         for k, v in self.interface.ports.items():
             args.append('"{}"'.format(k))
+            print(type(v), repr(v), type(v._value))
             args.append(repr(v))
         if self.name:
             return '{} = {}({})'.format(self.name, type(self).__name__, ', '.join(args))

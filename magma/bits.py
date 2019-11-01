@@ -12,7 +12,7 @@ from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
 import magma as m
 from .compatibility import IntegerTypes
 from .ref import AnonRef
-from .bit import Bit, VCC, GND
+from .bit import Bit
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type
@@ -73,9 +73,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise Exception("Not a constant")
 
         def convert(x):
-            if x is VCC:
+            if x is m.VCC:
                 return True
-            assert x is GND
+            assert x is m.GND
             return False
         return [convert(x) for x in self.ts]
 

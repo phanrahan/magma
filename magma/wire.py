@@ -4,7 +4,8 @@ from hwtypes.adt import TupleMeta, ProductMeta, Product, Tuple
 
 from .port import INPUT, OUTPUT, INOUT
 from .compatibility import IntegerTypes
-from .t import Type, deprecated, Flip
+from .t import Type, deprecated, Flip, Undirected
+from .array import Array
 from .tuple import tuple_
 from .debug import debug_wire
 from .logging import info, warning, error
@@ -39,6 +40,8 @@ def wire(o, i, debug_info=None):
         if isinstance(i, IntegerTypes) or not i.is_input():
             # flip i and o
             i, o = o, i
+    if isinstance(o, IntegerTypes):
+        o = Wire(name="", value=i.type_(o))
 
     #if hasattr(i, 'wire'):
     #    error('Wiring Error: The input must have a wire method -  {} to {}'.format(o, i))
@@ -50,7 +53,7 @@ def wire(o, i, debug_info=None):
 
 class Wire:
     def __init__(self, type_=None, name=None, value=None):
-        if isinstance(name, str):
+        if isinstance(name, str) or name is None:
             name = AnonRef(name)
         self.name = name
         if value is not None:
@@ -60,6 +63,8 @@ class Wire:
         else:
             self.type_ = type_
             self._value = self.construct(type_, self.name)
+        if self.type_ == Wire:
+            raise Exception()
 
     def construct(self, type_, name):
         if isinstance(type_, ProductMeta):
@@ -75,22 +80,38 @@ class Wire:
         if isinstance(self._value, Product):
             return (getattr(self, key) for key in self._value.value_dict.keys())
         elif isinstance(self._value, Tuple):
-            return (getattr(self, key) for key in self._value.fields())
+            return (self[key] for key in self._value.value_dict.keys())
+        elif isinstance(self._value, Array):
+            return (self[i] for i in range(len(self._value)))
         else:
-            raise NotImplementedError()
+            return [self._value]
 
     def _get_items(self):
         if isinstance(self._value, Product):
             return ((key, getattr(self, key)) for key in self._value.value_dict.keys())
         elif isinstance(self._value, Tuple):
-            return ((key, getattr(self, key)) for key in self._value.fields())
+            return ((key, self[key]) for key in self._value.value_dict.keys())
         else:
             raise NotImplementedError()
 
+    def const(self):
+        if isinstance(self._value, Tuple):
+            return all(x.const() for x in self._get_values())
+        else:
+            return self._value.const()
+
+    def is_oriented(self, direction):
+        if isinstance(self._value, Tuple):
+            return all(x.is_oriented(direction) for x in self._get_values())
+        else:
+            return self._value.is_oriented(direction)
+
+    @deprecated
+    def isoriented(self, direction):
+        return self.is_oriented(direction)
+
     def is_output(self):
-        if isinstance(self._value, Product):
-            return all(x.is_output() for x in self._get_values())
-        elif isinstance(self._value, Tuple):
+        if isinstance(self._value, Tuple):
             return all(x.is_output() for x in self._get_values())
         else:
             return self._value.is_output()
@@ -100,9 +121,7 @@ class Wire:
         return self.is_output()
 
     def is_input(self):
-        if isinstance(self._value, Product):
-            return all(x.is_input() for x in self._get_values())
-        elif isinstance(self._value, Tuple):
+        if isinstance(self._value, Tuple):
             return all(x.is_input() for x in self._get_values())
         else:
             return self._value.is_input()
@@ -112,9 +131,7 @@ class Wire:
         return self.is_input()
 
     def is_inout(self):
-        if isinstance(self._value, Product):
-            return all(x.is_inout() for x in self._get_values())
-        elif isinstance(self._value, Tuple):
+        if isinstance(self._value, Tuple):
             return all(x.is_inout() for x in self._get_values())
         else:
             return self._value.is_inout()
@@ -123,13 +140,29 @@ class Wire:
     def isinout(self):
         return self.is_inout()
 
-    def wire(self, other, debug_info):
-        assert isinstance(other, Wire)
-        if isinstance(self._value, Tuple):
+    @debug_wire
+    def wire(self, other, debug_info=None):
+        assert isinstance(other, Wire), (other, type(other))
+        if isinstance(self._value, (Tuple, Array)):
             i, o = self._value, other._value
-            if not isinstance(other._value, Flip(type(self._value))):
-                report_wiring_error(f'Cannot wire {other.name} (type={type(o)}) to {self.name} (type={type(i)}) because {other.name} because {other.name} is not an instance of Flip(type({self.name}))', debug_info)  # noqa
-                return
+            if isinstance(self._value, Tuple):
+                if not isinstance(other._value, (Flip(type(self._value)),
+                                                 Undirected(type(self._value)))) and \
+                        not isinstance(self._value, (Flip(type(other._value)),
+                                                     Undirected(type(other._value)))):
+                    report_wiring_error(f'Cannot wire {other.name} (type={type(o)}) to {self.name} (type={type(i)}) because {other.name} because {other.name} is not an instance of Flip(type({self.name}))', debug_info)  # noqa
+                    return
+            elif isinstance(self._value, Array):
+                if not isinstance(o, Array):
+                    if isinstance(o, IntegerTypes):
+                        report_wiring_error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info)  # noqa
+                    else:
+                        report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info)  # noqa
+                    return
+
+                if i.N != o.N:
+                    report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because the arrays do not have the same length', debug_info)  # noqa
+                    return
 
             for i_elem, o_elem in zip(self._get_values(), other._get_values()):
                 if o_elem.is_input():
@@ -194,7 +227,7 @@ class Wire:
             if self.iswhole(value):
                 return value[0].name.tuple
             if isinstance(self._value, Product):
-                return tuple_(dict(zip(self._value.fields, value)))
+                return tuple_(dict(zip(self._value.value_dict.keys(), value)))
             else:
                 return tuple_(value)
         return self._value.trace()
@@ -209,13 +242,21 @@ class Wire:
     def __getitem__(self, index):
         if isinstance(self._value, Tuple) and \
                 index in self._value.value_dict.keys():
-            result = getattr(self._value, index)
+            result = self._value[index]
+            assert isinstance(result, Wire)
+            return result
             return Wire(name=TupleRef(self, index), value=result)
-        return self._value[index]
+        result = self._value[index]
+        if not isinstance(result, Wire):
+            return Wire(name=result.name, value=result)
+        return result
 
     def __repr__(self):
-        if not isinstance(self.name, AnonRef) or self.name.name is not None:
+        if not isinstance(self.name, AnonRef):
             return repr(self.name)
+        elif isinstance(self._value, Array):
+            ts = [repr(t) for t in self._get_values()]
+            return 'array([{}])'.format(', '.join(ts))
         elif isinstance(self._value, Product):
             ts = [repr(t) for t in self._value.value_dict.values()]
             kts = ['{}={}'.format(k, v) for k, v in
@@ -229,4 +270,17 @@ class Wire:
 
     @property
     def debug_name(self):
-        return self.name
+        return self._value.debug_name
+
+    def flatten(self):
+        return sum([x.flatten() for x in self._get_values()], [])
+
+    def __len__(self):
+        return len(self.flatten())
+
+    def anon(self):
+        return self.name.anon()
+
+    @property
+    def debug_info(self):
+        return self._value.debug_info
