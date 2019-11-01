@@ -1,0 +1,58 @@
+{"top":"global.TestBasic",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestBasic":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]],
+          ["O",["Array",2,"Bit"]]
+        ]],
+        "instances":{
+          "TestBasic_comb_inst0":{
+            "modref":"global.TestBasic_comb"
+          },
+          "reg_PR_inst0":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h2"]}
+          },
+          "reg_PR_inst1":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
+          }
+        },
+        "connections":[
+          ["self.I","TestBasic_comb_inst0.I"],
+          ["reg_PR_inst0.in","TestBasic_comb_inst0.O0"],
+          ["reg_PR_inst1.in","TestBasic_comb_inst0.O1"],
+          ["self.O","TestBasic_comb_inst0.O2"],
+          ["reg_PR_inst0.out","TestBasic_comb_inst0.self_x_O"],
+          ["reg_PR_inst1.out","TestBasic_comb_inst0.self_y_O"],
+          ["self.ASYNCRESET","reg_PR_inst0.arst"],
+          ["self.CLK","reg_PR_inst0.clk"],
+          ["self.ASYNCRESET","reg_PR_inst1.arst"],
+          ["self.CLK","reg_PR_inst1.clk"]
+        ]
+      },
+      "TestBasic_comb":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["self_x_O",["Array",2,"BitIn"]],
+          ["self_y_O",["Array",2,"BitIn"]],
+          ["O0",["Array",2,"Bit"]],
+          ["O1",["Array",2,"Bit"]],
+          ["O2",["Array",2,"Bit"]]
+        ]],
+        "connections":[
+          ["self.O0","self.I"],
+          ["self.self_x_O","self.O1"],
+          ["self.self_y_O","self.O2"]
+        ]
+      }
+    }
+  }
+}
+}
