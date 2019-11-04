@@ -3,7 +3,7 @@ from .digital import DigitalMeta, Digital
 from .wire import wire
 
 
-class Clock(Digital, metaclass=DigitalMeta):
+class Clock(Digital):
     pass
 
 
@@ -12,7 +12,7 @@ ClockOut = Clock[Direction.Out]
 
 
 # synchronous reset, active high (i.e. reset when signal is 1)
-class Reset(Digital, metaclass=DigitalMeta):
+class Reset(Digital):
     pass
 
 
@@ -21,7 +21,7 @@ ResetOut = Reset[Direction.Out]
 
 
 # synchronous reset, active low (i.e. reset when signal is 0)
-class ResetN(Digital, metaclass=DigitalMeta):
+class ResetN(Digital):
     pass
 
 
@@ -30,7 +30,7 @@ ResetNOut = ResetN[Direction.Out]
 
 
 # asynchronous reset, active high (i.e. reset when signal is 1)
-class AsyncReset(Digital, metaclass=DigitalMeta):
+class AsyncReset(Digital):
     pass
 
 
@@ -39,7 +39,7 @@ AsyncResetOut = AsyncReset[Direction.Out]
 
 
 # asynchronous reset, active low (i.e. reset when signal is 0)
-class AsyncResetN(Digital, metaclass=DigitalMeta):
+class AsyncResetN(Digital):
     pass
 
 
@@ -49,7 +49,7 @@ AsyncResetNOut = AsyncResetN[Direction.Out]
 
 # Preset
 # Clear
-class Enable(Digital, metaclass=DigitalMeta):
+class Enable(Digital):
     pass
 
 
