@@ -1,6 +1,7 @@
 import os
 from tempfile import NamedTemporaryFile
 
+import magma as m
 from .simulator import CircuitSimulator, ExecutionState
 from ..backend import coreir_
 from ..frontend.coreir_ import GetMagmaContext
@@ -18,6 +19,14 @@ from ..uniquification import uniquification_pass, UniquificationMode
 import coreir
 
 __all__ = ['CoreIRSimulator']
+
+def create_zeros_init(arrOrTuple):
+    if issubclass(arrOrTuple.type_, Array):
+        return [create_zeros_init(el) for el in arrOrTuple]
+    elif issubclass(arrOrTuple.type_, Tuple):
+        return {k: create_zeros_init(v) for k,v in arrOrTuple._get_items()}
+    else:
+        return 0
 
 def is_defn_bit(bit):
     name = bit.name
@@ -170,17 +179,9 @@ class CoreIRSimulator(CircuitSimulator):
         if need_cleanup:
             os.remove(coreir_filename)
 
-        def create_zeros_init(arrOrTuple):
-            if isinstance(arrOrTuple, Array):
-                return [create_zeros_init(el) for el in arrOrTuple.ts]
-            elif isinstance(arrOrTuple, Tuple):
-                return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.keys(), arrOrTuple.values())}
-            else:
-                return 0
-
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
-            if not isinstance(topin, Clock):
+            if not issubclass(topin.type_, Clock):
                 arr = topin
                 init = create_zeros_init(arr)
 
@@ -193,7 +194,7 @@ class CoreIRSimulator(CircuitSimulator):
         self.simulator_state.reset_circuit()
 
         for topin in circuit.interface.outputs():
-            if isinstance(topin, Clock):
+            if issubclass(topin.type_, Clock):
                 insts, ports = convert_to_coreir_path(topin, Scope())
                 self.simulator_state.set_clock_value(old_style_path(insts, ports), True, False)
 
@@ -208,16 +209,18 @@ class CoreIRSimulator(CircuitSimulator):
             scope = self.default_scope
         if bit.const():
             return True if bit == VCC else False
+        if isinstance(bit, m.Wire):
+            bit = bit._value
 
         # Symbol table doesn't support arrays of arrays
-        if isinstance(bit, Array) and (isinstance(bit[0], Array) or isinstance(bit[0], Tuple)):
+        if isinstance(bit, Array) and (issubclass(bit[0].type_, Array) or issubclass(bit[0].type_, Tuple)):
             r = []
             for arr in bit:
                 r.append(self.get_value(arr, scope))
             return r
         elif isinstance(bit, Tuple):
             r = {}
-            for k,v in zip(bit.keys(), bit.values()):
+            for k,v in bit.value_dict.items():
                 r[k] = self.get_value(v, scope)
             return r
         else:
@@ -231,14 +234,16 @@ class CoreIRSimulator(CircuitSimulator):
     def set_value(self, bit, newval, scope=None):
         if scope is None:
             scope = self.default_scope
+        if isinstance(bit, m.Wire):
+            bit = bit._value
         if isinstance(bit, Array) and len(newval) != len(bit):
                 raise ValueError(f"Excepted a value of lengh {len(bit)} not"
                                  f" {len(newval)}")
-        if isinstance(bit, Array) and (isinstance(bit[0], Array) or isinstance(bit[0], Tuple)):
+        if isinstance(bit, Array) and (isinstance(bit[0]._value, Array) or isinstance(bit[0]._value, Tuple)):
             for i, arr in enumerate(bit):
                 self.set_value(arr, newval[i], scope)
         elif isinstance(bit, Tuple):
-            for k,v in zip(bit.keys(), bit.values()):
+            for k,v in bit.value_dict.items():
                 self.set_value(v, newval[k], scope)
         else:
             insts, ports = convert_to_coreir_path(bit, scope)

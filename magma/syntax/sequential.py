@@ -38,13 +38,13 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             ports = self.initial_value_map[attr][3].interface.inputs()
             for name, value in zip(ports, node.args):
                 ret.append(ast.parse(
-                    f"self_{attr}_{name} = {astor.to_source(value).rstrip()}"
+                    f"self_{attr}_{name.name} = {astor.to_source(value).rstrip()}"
                 ).body[0])
             self.calls_seen.extend(ret)
             func = astor.to_source(node.func).rstrip()
             outputs = self.initial_value_map[attr][3].interface.outputs()
             if len(outputs) == 1:
-                return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
+                return ast.Name(f"self_{attr}_{outputs[0].name}", ast.Load())
             else:
                 assert outputs, "Expected module with at least one output"
                 return ast.Tuple([ast.Name(f"self_{attr}_{output}",
@@ -90,9 +90,9 @@ class RewriteReturn(ast.NodeTransformer):
                 elts.append(ast.Name(f"self_{name}_I", ast.Load()))
             else:
                 for port in eval_value.interface.inputs():
-                    if isinstance(port, (m.Clock, m.AsyncReset)):
+                    if issubclass(port.type_, (m.Clock, m.AsyncReset)):
                         continue
-                    elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
+                    elts.append(ast.Name(f"self_{name}_{port.name}", ast.Load()))
         if isinstance(node.value, ast.Tuple):
             elts.extend(node.value.elts)
         else:
@@ -327,15 +327,15 @@ def _sequential(
             comb_out_count += 1
         else:
             for key, value in eval_value.interface.ports.items():
-                if isinstance(value, (m.Clock, m.AsyncReset)):
+                if issubclass(value.type_, (m.Clock, m.AsyncReset)):
                     continue
-                type_ = repr(type(value))
+                type_ = repr(value.type_)
                 if value.is_output():
-                    circuit_combinational_args.append(f"self_{name}_{value}: m.{type_}")
-                    circuit_combinational_call_args.append(f"{name}.{value}")
+                    circuit_combinational_args.append(f"self_{name}_{value.name}: m.{type_}")
+                    circuit_combinational_call_args.append(f"{name}.{value.name}")
                 if value.is_input():
                     circuit_combinational_output_type.append(f"m.{type_}")
-                    comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
+                    comb_out_wiring.append(f"{name}.{value.name} <= comb_out[{comb_out_count}]\n")
                     comb_out_count += 1
 
     circuit_combinational_args = ', '.join(circuit_combinational_args)

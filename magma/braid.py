@@ -343,8 +343,8 @@ def flat(circuit, flatargs=['I', 'O']):
     args = []
     for name, port in circuit.interface.ports.items():
         if not port.wired() and name in flatargs \
-               and isinstance(port, ArrayType) \
-                   and isinstance(port[0], ArrayType):
+               and issubclass(port.type_, ArrayType) \
+                   and issubclass(port[0].type_, ArrayType):
            #print('flat',name)
            ts = sum([p.as_list() for p in port], [])
            args += [name, array(ts)]
@@ -358,7 +358,7 @@ def partition(circuit, n, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?
-        if not port.wired() and name == prefix and isinstance(port, ArrayType):
+        if not port.wired() and name == prefix and issubclass(port.type_, ArrayType):
            l = port.as_list()
            l = [array(l[i:i + n]) for i in range(0, len(l), n)]
            for i in range(len(l)):

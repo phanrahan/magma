@@ -96,8 +96,8 @@ def test_seq_simple(target, async_reset):
     @m.circuit.sequential(async_reset=async_reset)
     class TestBasic:
         def __init__(self):
-            self.x: m.Bits[2] = m.bits(0, 2)
-            self.y: m.Bits[2] = m.bits(0, 2)
+            self.x: m.Bits[2] = m.Bits[2](0)
+            self.y: m.Bits[2] = m.Bits[2](0)
 
         def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
             O = self.y
@@ -133,7 +133,7 @@ def test_seq_hierarchy(target, async_reset):
         @m.circuit.sequential(async_reset=async_reset)
         class Register:
             def __init__(self):
-                self.value: m.Bits[width] = m.bits(init, width)
+                self.value: m.Bits[width] = m.Bits[width](init)
 
             def __call__(self, I: m.Bits[width]) -> m.Bits[width]:
                 O = self.value

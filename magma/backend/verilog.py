@@ -62,8 +62,8 @@ def bstr(n, bits):
 
 # return the verilog name of a data value
 def vname(t):
-    if t is m.VCC: return "1'b1"
-    if t is m.GND: return "1'b0"
+    if t is m.VCC._value: return "1'b1"
+    if t is m.GND._value: return "1'b0"
 
     if isinstance(t, Array):
         # print(t.ts)

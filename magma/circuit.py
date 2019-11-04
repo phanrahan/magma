@@ -219,14 +219,13 @@ class AnonymousCircuitType(object):
         else:
             name = f"AnonymousCircuitInst{id(self)}"
             interface = ""
-            interface = ", ".join(f"{name}: {type(value)}" for name, value in self.interface.ports.items())
+            interface = ", ".join(f"{name}: {value.type_}" for name, value in self.interface.ports.items())
             return f"{name}<{interface}>"
 
     def __repr__(self):
         args = []
         for k, v in self.interface.ports.items():
             args.append('"{}"'.format(k))
-            print(type(v), repr(v), type(v._value))
             args.append(repr(v))
         if self.name:
             return '{} = {}({})'.format(self.name, type(self).__name__, ', '.join(args))
@@ -484,12 +483,12 @@ class DefineCircuitKind(CircuitKind):
 
     def check_unconnected(self):
         for port in self.interface.ports.values():
-            if port.isinput() and not port.driven():
+            if port.is_input() and not port.driven():
                 report_wiring_error(f"Output port {self.name}.{port.name} not driven", self.debug_info)
 
         for inst in self.instances:
             for port in inst.interface.ports.values():
-                if port.isinput() and not port.driven():
+                if port.is_input() and not port.driven():
                     report_wiring_error(f"Input port {inst.name}.{port.name} not driven", inst.debug_info)
 
     @property

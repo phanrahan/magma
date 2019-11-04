@@ -63,16 +63,15 @@ class Wire:
         else:
             self.type_ = type_
             self._value = self.construct(type_, self.name)
-        if self.type_ == Wire:
-            raise Exception()
+        assert self.type_ != Wire
 
     def construct(self, type_, name):
         if isinstance(type_, ProductMeta):
             return type_(**{k: self.construct(v, TupleRef(self, k)) for k, v in
                             type_.field_dict.items()})
         elif isinstance(type_, TupleMeta):
-            return type_(self.construct(v, TupleRef(self, i)) for i, v in
-                         enumerate(type_.fields))
+            return type_(*(self.construct(v, TupleRef(self, i)) for i, v in
+                           enumerate(type_.fields)))
         else:
             return type_(name=name)
 
@@ -226,11 +225,18 @@ class Wire:
                 return None
             if self.iswhole(value):
                 return value[0].name.tuple
-            if isinstance(self._value, Product):
-                return tuple_(dict(zip(self._value.value_dict.keys(), value)))
+            if isinstance(value, Product):
+                T = type("anon", (Tuple,), {k: type(v) for k, v in
+                                            zip(self.type_.field_dict.keys(),
+                                                value)})
             else:
-                return tuple_(value)
-        return self._value.trace()
+                T = Tuple[tuple(type(v) for v in value)]
+            return T(*value)
+        return self._value.value()
+
+    def as_list(self):
+        assert isinstance(self._value, Array)
+        return [self._value[i] for i in range(len(self))]
 
     def __getattr__(self, name):
         if isinstance(self._value, Product) and \
@@ -240,12 +246,13 @@ class Wire:
         return object.__getattribute__(self, name)
 
     def __getitem__(self, index):
-        if isinstance(self._value, Tuple) and \
-                index in self._value.value_dict.keys():
+        if isinstance(self._value, Tuple):
             result = self._value[index]
-            assert isinstance(result, Wire)
+            if not isinstance(result, Wire):
+                if isinstance(self._value, Product):
+                    index = list(self._value.value_dict.keys())[index]
+                return Wire(name=TupleRef(self, index), value=result)
             return result
-            return Wire(name=TupleRef(self, index), value=result)
         result = self._value[index]
         if not isinstance(result, Wire):
             return Wire(name=result.name, value=result)
@@ -276,7 +283,9 @@ class Wire:
         return sum([x.flatten() for x in self._get_values()], [])
 
     def __len__(self):
-        return len(self.flatten())
+        if issubclass(self.type_, Tuple):
+            return len(self.type_.field_dict)
+        return len(self._value)
 
     def anon(self):
         return self.name.anon()
@@ -284,3 +293,16 @@ class Wire:
     @property
     def debug_info(self):
         return self._value.debug_info
+
+    def __le__(self, other):
+        return wire(self, other)
+
+    def __call__(self, other=None, **kwargs):
+        if kwargs:
+            assert issubclass(self.type_, Tuple)
+            for k, v in kwargs.items():
+                wire(v, getattr(self, k))
+            return self
+        else:
+            wire(self, other)
+            return self

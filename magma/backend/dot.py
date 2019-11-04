@@ -3,6 +3,7 @@ from ..bit import Bit
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
 from collections import OrderedDict
+import magma as m
 import magma.logging as logging
 
 from graphviz import Digraph

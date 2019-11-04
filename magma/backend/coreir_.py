@@ -190,7 +190,10 @@ class CoreIRBackend:
             raise NotImplementedError("Trying to convert unknown coreir type to magma type")
 
     def get_ports_as_list(self, ports):
-        return [item for i in range(ports.N) for item in [list(ports.keys())[i], ports.types()[i]]]
+        N = len(ports.field_dict)
+        keys = list(ports.field_dict.keys())
+        values = list(ports.field_dict.values())
+        return [item for i in range(N) for item in [keys[i], values[i]]]
 
     def convert_interface_to_module_type(self, interface):
         args = OrderedDict()
@@ -363,11 +366,6 @@ class CoreIRBackend:
         return coreir_module
 
     def connect(self, module_definition, port, value, non_input_ports):
-        self.__unique_concat_id
-        is_anon = value.anon()
-        if isinstance(value, Wire):
-            value = value._value
-
         # allow clocks or arrays of clocks to be unwired as CoreIR can wire them up
         def is_clock_or_nested_clock(p):
             if isinstance(p, Clock) or isinstance(p, type) and issubclass(p, Clock):
@@ -380,7 +378,7 @@ class CoreIRBackend:
                         return True
             return False
 
-        if value is None and is_clock_or_nested_clock(port):
+        if value is None and is_clock_or_nested_clock(port.type_):
             return
         elif value is None:
             if port.is_inout():
@@ -388,7 +386,16 @@ class CoreIRBackend:
                 return
             raise Exception(f"Got None for port '{port.debug_name}', is it "
                             "connected to anything?")
-        elif isinstance(value, coreir.Wireable):
+
+        def anon(value):
+            if isinstance(value, Tuple):
+                return True
+            return value.anon()
+        is_anon = anon(value)
+        if isinstance(value, Wire):
+            value = value._value
+
+        if isinstance(value, coreir.Wireable):
             source = value
 
         elif isinstance(value, Array) and all(x in {m.VCC, m.GND} for x in value):
@@ -402,7 +409,7 @@ class CoreIRBackend:
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, non_input_ports)
             return
-        elif value is m.VCC or value is m.GND:
+        elif value is m.VCC._value or value is m.GND._value:
             source = self.get_constant_instance(value, None, module_definition)
         else:
             # logger.debug((value, non_input_ports))
@@ -421,8 +428,8 @@ class CoreIRBackend:
             self.__constant_cache[module_definition] = {}
 
         bit_type_to_constant_map = {
-            m.GND: 0,
-            m.VCC: 1
+            m.GND._value: 0,
+            m.VCC._value: 1
         }
         if constant in bit_type_to_constant_map:
             value = bit_type_to_constant_map[constant]

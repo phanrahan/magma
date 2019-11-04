@@ -160,13 +160,13 @@ def test_return_magma_tuple(target):
 
 def test_return_magma_named_tuple(target):
 
-    class O(m.Product):
+    class XY(m.Product, cache=True):
         x = m.Bit
         y = m.Bit
 
     @m.circuit.combinational
-    def return_magma_named_tuple(I: m.Bits[2]) -> O:
-        return m.namedtuple(x=I[0], y=I[1])
+    def return_magma_named_tuple(I: m.Bits[2]) -> XY:
+        return m.Wire(XY)(x=I[0], y=I[1])
     compile_and_check("return_magma_named_tuple",
                       return_magma_named_tuple.circuit_definition, target)
 

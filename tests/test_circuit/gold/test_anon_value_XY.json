@@ -1,0 +1,32 @@
+{"top":"global.main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "And2":{
+        "type":["Record",[
+          ["I0",["Record",[["x","BitIn"],["y","BitIn"]]]],
+          ["I1",["Record",[["x","BitIn"],["y","BitIn"]]]],
+          ["O",["Record",[["x","Bit"],["y","Bit"]]]]
+        ]]
+      },
+      "main":{
+        "type":["Record",[
+          ["I0",["Record",[["x","BitIn"],["y","BitIn"]]]],
+          ["I1",["Record",[["x","BitIn"],["y","BitIn"]]]],
+          ["O",["Record",[["x","Bit"],["y","Bit"]]]]
+        ]],
+        "instances":{
+          "And2_inst0":{
+            "modref":"global.And2"
+          }
+        },
+        "connections":[
+          ["self.I0","And2_inst0.I0"],
+          ["self.I1","And2_inst0.I1"],
+          ["self.O","And2_inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}

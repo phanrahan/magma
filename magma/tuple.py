@@ -36,12 +36,20 @@ def tuple_(value, n=None, t=Tuple):
     if isinstance(value, Sequence):
         ts = list(value)
         for i in range(len(ts)):
-            args.append(ts[i])
-            decl[i] = type(ts[i])
+            if isinstance(ts[i], m.Wire):
+                args.append(ts[i]._value)
+                decl[i] = ts[i].type_
+            else:
+                args.append(ts[i])
+                decl[i] = type(ts[i])
     elif isinstance(value, Mapping):
         for k, v in value.items():
-            args.append(v)
-            decl[k] = type(v)
+            if isinstance(v, m.Wire):
+                decl[k] = v.type_
+                args.append(v._value)
+            else:
+                args.append(v)
+                decl[k] = type(v)
 
     T = type("anon", (t,), decl)
     return m.Wire(name="", value=T(*args))

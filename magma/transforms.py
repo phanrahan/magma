@@ -27,6 +27,8 @@ class TransformedCircuit:
 
     def get_new_bit(self, orig_bit, scope):
         assert isinstance(scope, Scope), "Second argument to get_new_bit should be an instance of Scope"
+        if isinstance(orig_bit, m.Wire):
+            orig_bit = orig_bit._value
         if isinstance(orig_bit, Array):
             arr = []
             for o in orig_bit:
@@ -44,15 +46,17 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert isinstance(new_bit,
+        assert issubclass(new_bit.type_,
                 (Bit, Array, Clock, Enable, Reset, AsyncReset))
+        if isinstance(orig_bit, m.Wire):
+            orig_bit = orig_bit._value
 
         if isinstance(orig_bit, Array):
             # Map the individual bits
             for o, n in zip(orig_bit, new_bit):
-                self.orig_to_new[QualifiedBit(bit=o, scope=orig_scope)] = n
+                self.orig_to_new[QualifiedBit(bit=o, scope=orig_scope)] = n._value
         else:
-            self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit
+            self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit._value
 
 def get_primitives(outer_circuit, outer_scope):
     primitives = []
@@ -67,13 +71,13 @@ def get_primitives(outer_circuit, outer_scope):
         else:
             for name, outerbit in instance.interface.ports.items():
                 innerbit = inner_circuit.interface.ports[name]
-                outerloc = QualifiedBit(bit=outerbit, scope=outer_scope)
-                innerloc = QualifiedBit(bit=innerbit, scope=inner_scope)
+                outerloc = QualifiedBit(bit=outerbit._value, scope=outer_scope)
+                innerloc = QualifiedBit(bit=innerbit._value, scope=inner_scope)
 
-                if isinstance(outerbit, Array):
+                if issubclass(outerbit.type_, Array):
                     for o, i in zip(outerbit, innerbit):
-                        oqual = QualifiedBit(bit=o, scope=outer_scope)
-                        iqual = QualifiedBit(bit=i, scope=inner_scope)
+                        oqual = QualifiedBit(bit=o._value, scope=outer_scope)
+                        iqual = QualifiedBit(bit=i._value, scope=inner_scope)
                         if o.is_input():
                             mapping[iqual] = oqual
                         else:
@@ -145,8 +149,8 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
     return newsource
 
 def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit):
-    if isinstance(origbit, Array):
-        assert isinstance(newbit, Array)
+    if issubclass(origbit.type_, Array):
+        assert issubclass(newbit.type_, Array)
         for x, y in zip(origbit, newbit):
             wire_new_bit(x, y, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit)
         return
@@ -155,13 +159,13 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
 
     sourcebit = origbit.value()
     if sourcebit is None:
-        if isinstance(origbit, Array):
+        if issubclass(origbit.type_, Array):
             # TODO: Raise an exception for now, can we handle this case silently (ignore unwired ports)?
             raise MagmaTransformException("Calling `.value()` on Array returned None. Array = {}, values = {}. Likely an unwired port.".format(origbit, [b.value() for b in origbit.ts]))
         else:
             raise MagmaTransformException("Calling `.value()` on {} returned None. Likely an unwired port.".format(origbit))
     source_qual = QualifiedBit(bit=sourcebit, scope=cur_scope)
-    orig_qual = QualifiedBit(bit=origbit, scope=cur_scope)
+    orig_qual = QualifiedBit(bit=origbit._value, scope=cur_scope)
     collapsed_out_bits = [source_qual]
     collapsed_in_bits = [orig_qual]
 

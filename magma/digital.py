@@ -79,7 +79,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
             if isinstance(value, (bool, IntegerTypes)):
-                return m.VCC if value else m.GND
+                return m.VCC._value if value else m.GND._value
         result = super().__call__(*args, **kwargs)
         if value is not None:
             assert isinstance(value, Digital), type(value)
@@ -181,4 +181,4 @@ class Digital(Type, metaclass=DigitalMeta):
         return [self]
 
     def const(self):
-        return self is m.VCC or self is m.GND
+        return self is m.VCC._value or self is m.GND._value

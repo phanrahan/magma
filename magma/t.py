@@ -172,3 +172,9 @@ def qualify(T, direction):
             new_fields.append(qualify(field, direction))
         return T.unbound_t[new_fields]
     return T.qualify(direction)
+
+def is_oriented(T, direction):
+    if isinstance(T, TupleMeta):
+        return all(is_oriented(x, direction) for x in T.field_dict.values())
+    else:
+        return T.is_oriented(direction)

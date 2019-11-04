@@ -300,12 +300,12 @@ class SimulationConsole(cmd.Cmd):
             # Last iteration, check for bit first
             if idx == len(components) - 1 and comp_name in cur.interface.ports:
                 if bit_idx is None:
-                    return cur.interface.ports[comp_name], scope
+                    return cur.interface.ports[comp_name]._value, scope
                 else:
                     port = cur.interface.ports[comp_name]
                     for i in bit_idx:
                         port = port[i]
-                    return port, scope
+                    return port._value, scope
 
             found = False
             for inst in defn.instances:

@@ -2,7 +2,7 @@ import magma as m
 from magma.testing import check_files_equal
 
 
-class T(m.Product):
+class T(m.Product, cache=True):
     I = m.In(m.Bit)
     O = m.Out(m.Bit)
 
@@ -19,10 +19,10 @@ def test_multi_direction_tuple():
     assert check_files_equal(__file__, f"build/test_multi_direction_tuple.json",
                              f"gold/test_multi_direction_tuple.json")
 
-    assert [T.is_input() for T in foo.interface.ports["ifc"].types()] == \
+    assert [T.is_input() for T in foo.interface.ports["ifc"]._get_values()] == \
            [False, True]
 
-    assert [T.is_input() for T in foo.IO.ports["ifc"].types()] == \
+    assert [T.is_input() for T in foo.IO.ports["ifc"].field_dict.values()] == \
            [True, False]
 
 
@@ -50,17 +50,17 @@ def test_multi_direction_tuple_instance_bulk():
                              f"gold/test_multi_direction_tuple_instance.json")
 
 
-class AB(m.Product):
+class AB(m.Product, cache=True):
     a = m.Bit
     b = m.Bit
 
 
-class Z(m.Product):
+class Z(m.Product, cache=True):
     a = m.In(m.Bit)
     b = m.Out(m.Bit)
 
 
-class Bar(m.Product):
+class Bar(m.Product, cache=True):
     x = m.In(AB)
     y = m.Out(AB)
     z = Z
@@ -83,7 +83,7 @@ def test_nesting():
                              f"gold/test_nesting.json")
 
 
-class IO(m.Product):
+class IO(m.Product, cache=True):
     I = m.In(m.Bit)
     O = m.Out(m.Bit)
 

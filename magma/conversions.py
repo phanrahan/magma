@@ -26,9 +26,10 @@ def can_convert_to_bit_type(value):
 
 
 def convertbit(value, totype):
-    if isinstance(value._value, totype):
+    if isinstance(value, m.Wire):
+        value = value._value
+    if isinstance(value, totype):
         return value
-    value = value._value
 
     if not can_convert_to_bit(value):
         raise ValueError(
@@ -49,7 +50,7 @@ def convertbit(value, totype):
     assert isinstance(value, (IntegerTypes, Digital))
 
     if isinstance(value, IntegerTypes):
-        value = m.VCC if value else m.GND
+        value = m.VCC._value if value else m.GND._value
 
     if value.is_input():
         b = In(totype)(name=value.name)
@@ -114,10 +115,8 @@ def convertbits(value, n, totype, checkbit):
     # create list of types
     Ts = []
     for t in ts:
-        print(t, type(t))
         if isinstance(t, Wire):
             T = t.type_
-            print("Wire: ", t.type_, t._value, type(t._value))
         else:
             T = type(t)
         if T in IntegerTypes:

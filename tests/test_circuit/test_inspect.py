@@ -54,6 +54,7 @@ def test_str_repr_anon():
     m.EndCircuit()
 
     string = str(anon)
+    print(string)
     assert string[:len("AnonymousCircuitInst")] == "AnonymousCircuitInst"
     assert string[-len("<I0: Array[3, In(Bit)], I1: Array[3, In(Bit)], O: Array[3, Out(Bit)]>"):] == "<I0: Array[3, In(Bit)], I1: Array[3, In(Bit)], O: Array[3, Out(Bit)]>"
     assert repr(anon) == 'AnonymousCircuitType("I0", array([And2_inst0.I0, And2_inst1.I0, And2_inst2.I0]), "I1", array([And2_inst0.I1, And2_inst1.I1, And2_inst2.I1]), "O", array([And2_inst0.O, And2_inst1.O, And2_inst2.O]))'

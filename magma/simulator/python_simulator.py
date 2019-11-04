@@ -7,6 +7,7 @@ else:
     from abc import ABC
 from collections import namedtuple
 from itertools import product
+import magma as m
 from .simulator import CircuitSimulator, ExecutionState
 from ..transforms import flatten, setup_clocks
 from ..circuit import *
@@ -18,6 +19,7 @@ from hwtypes import BitVector
 import hwtypes
 from ..bitutils import seq2int
 from ..clock import Clock
+from .coreir_simulator import create_zeros_init
 
 __all__ = ['PythonSimulator']
 
@@ -61,7 +63,8 @@ class SimPrimitive:
         # Initializes all outputs to False, should perhaps
         # initialize based on starting inputs?
         for o in self.outputs:
-            self.value_store.set_value(o, False)
+            init = create_zeros_init(o)
+            self.value_store.set_value(o, init)
 
     def simulate(self):
         self.primitive.simulate(self.value_store, self.state_store)
@@ -93,6 +96,8 @@ class ValueStore:
         self.value_map = {}
 
     def value_initialized(self, bit):
+        if isinstance(bit, m.Wire):
+            bit = bit._value
         if isinstance(bit, Array):
             for b in bit:
                 if not self.value_initialized(b):
@@ -109,6 +114,8 @@ class ValueStore:
         return bit in self.value_map
 
     def get_value(self, bit):
+        if isinstance(bit, m.Wire):
+            bit = bit._value
         if isinstance(bit, Array):
             value = [self.get_value(b) for b in bit]
             if isinstance(bit, SInt):
@@ -128,6 +135,8 @@ class ValueStore:
         return self.value_map[bit]
 
     def set_value(self, bit, newval):
+        if isinstance(bit, m.Wire):
+            bit = bit._value
         if not bit.is_output():
             raise TypeError("Can only call set value on an input")
 
@@ -167,12 +176,12 @@ class PythonSimulator(CircuitSimulator):
         return wrapped
 
     def initialize(self, bit):
-        if isinstance(bit, Array):
+        if issubclass(bit.type_, Array):
             for b in bit:
                 self.initialize(b)
         else:
             if bit.is_output():
-                self.circuit_inputs.append(bit)
+                self.circuit_inputs.append(bit._value)
                 self.value_store.set_value(bit, False)
             else:
                 self.circuit_outputs.append(bit)
@@ -261,7 +270,7 @@ class PythonSimulator(CircuitSimulator):
     def __init__(self, main_circuit, clock=None):
         if isinstance(main_circuit, CircuitType):
             raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
-        if clock is not None and not isinstance(clock, Clock):
+        if clock is not None and not issubclass(clock.type_, Clock):
             raise ValueError("clock must be a Clock or None")
         setup_clocks(main_circuit)
         self.main_circuit = main_circuit
@@ -284,6 +293,8 @@ class PythonSimulator(CircuitSimulator):
     def get_value(self, bit, scope=None):
         if scope is None:
             scope = self.default_scope
+        if isinstance(bit, m.Wire):
+            bit = bit._value
         newbit = self.txfm.get_new_bit(bit, scope)
         if newbit is None:
             return None
@@ -296,6 +307,8 @@ class PythonSimulator(CircuitSimulator):
     def set_value(self, bit, newval, scope=None):
         if scope is None:
             scope = self.default_scope
+        if isinstance(bit, m.Wire):
+            bit = bit._value
         newbit = self.txfm.get_new_bit(bit, scope)
         if not self.is_circuit_input(newbit):
             message = "Only setting main's inputs is supported (Trying to set: {})".format(bit)
@@ -308,6 +321,8 @@ class PythonSimulator(CircuitSimulator):
         Checks if `value` is in `self.circuit_inputs`.
         If `value` is an `Array`, it recursively checks the elements
         """
+        if isinstance(value, m.Wire):
+            value = value._value
         if isinstance(value, Digital):
             return any(value is x for x in self.circuit_inputs)
         elif isinstance(value, Array):

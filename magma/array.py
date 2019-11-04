@@ -2,7 +2,7 @@ import weakref
 from abc import ABCMeta
 import magma as m
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind, deprecated
+from .t import Type, Kind, deprecated, qualify, is_oriented
 from .compatibility import IntegerTypes
 from .bit import Bit
 from .bitutils import seq2int
@@ -97,7 +97,7 @@ class ArrayMeta(ABCMeta, Kind):
         return f"Array[{cls.N}, {cls.T}]"
 
     def qualify(cls, direction):
-        return cls[cls.N, cls.T.qualify(direction)]
+        return cls[cls.N, qualify(cls.T, direction)]
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ArrayMeta):
@@ -147,7 +147,7 @@ class Array(Type, metaclass=ArrayMeta):
         else:
             for i in range(self.N):
                 T = self.T
-                t = T(name=ArrayRef(self, i))
+                t = m.Wire(type_=T, name=ArrayRef(self, i))
                 self.ts.append(t)
 
     @classmethod
@@ -210,7 +210,7 @@ class Array(Type, metaclass=ArrayMeta):
 
     @classmethod
     def is_oriented(cls, direction):
-        return cls.T.is_oriented(direction)
+        return is_oriented(cls.T, direction)
 
     def as_list(self):
         return [self[i] for i in range(len(self))]

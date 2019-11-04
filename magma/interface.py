@@ -112,7 +112,7 @@ class _Interface(Type):
     # return all the arguments as name, flip(port)
     #   same as the declaration
     def decl(self):
-        return flatten([name, type(port).flip()] \
+        return flatten([name, Flip(port.type_)] \
                              for name, port in self.ports.items()  )
 
 
