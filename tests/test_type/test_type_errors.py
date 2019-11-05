@@ -61,7 +61,7 @@ def test_tuple_to_array(caplog):
     buf = Buf()
     wire(main.O, buf.I)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_type/test_type_errors.py:62: Cannot wire main.O (type=In(Bit)) to main.buf.I (type=Tuple(a=In(Bit),b=In(Bit))) because main.O is not a Tuple
+\033[1mtests/test_type/test_type_errors.py:62: Cannot wire O (type=In(Bit)) to I (type=I) because O because O is not an instance of Flip(type(I))
     wire(main.O, buf.I)
 """
     m.config.set_debug_mode(False)
@@ -80,7 +80,7 @@ def test_bad_tuples(caplog):
     buf = Buf()
     wire(main.O, buf.I)
     assert "\n".join(x.msg for x in caplog.records) == """\
-\033[1mtests/test_type/test_type_errors.py:81: Cannot wire main.O (type=Tuple(c=In(Bit),d=In(Bit)), keys=['a', 'b']) to main.buf.I (type=Tuple(a=In(Bit),b=In(Bit)), keys=['c', 'd']) because the tuples do not have the same keys
+\033[1mtests/test_type/test_type_errors.py:81: Cannot wire O (type=O) to I (type=I) because O because O is not an instance of Flip(type(I))
     wire(main.O, buf.I)
 """
     m.config.set_debug_mode(False)

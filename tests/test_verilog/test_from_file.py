@@ -7,7 +7,7 @@ import pytest
 def check_port(definition, port, type, direction):
     assert hasattr(definition, port)
     port = getattr(definition, port)
-    assert isinstance(port, type)
+    assert isinstance(port._value, type)
     if direction == "input":
         assert port.is_output()
     elif direction == "output":
@@ -211,7 +211,7 @@ def _test_nd_array_port(verilog):
     assert len(top.interface.ports) == 1
     assert "inp" in top.interface.ports
 
-    assert type(top.inp) is m.Out(m.Array[4, m.Array[2, m.Bits[8]]])
+    assert top.inp.type_ is m.Out(m.Array[4, m.Array[2, m.Bits[8]]])
 
 
 def test_nd_array_port_list():

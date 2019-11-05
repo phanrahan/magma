@@ -72,10 +72,10 @@ def test_bit_val():
 
 def test_vcc():
     assert str(m.VCC) == "VCC"
-    assert isinstance(m.VCC, Digital)
+    assert isinstance(m.VCC._value, Digital)
 
     assert str(m.GND) == "GND"
-    assert isinstance(m.GND, Digital)
+    assert isinstance(m.GND._value, Digital)
 
     assert m.VCC is m.VCC
     assert m.VCC is not m.GND

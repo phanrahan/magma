@@ -91,8 +91,8 @@ def test_construct():
     Test `m.bits` interface
     """
     a_1 = m.bits([1, 1])
-    print(type(a_1))
-    assert isinstance(a_1, m.BitsType)
+    print(type(a_1._value))
+    assert isinstance(a_1._value, m.Bits)
 
 
 def test_const():

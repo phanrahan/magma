@@ -26,10 +26,13 @@ def can_convert_to_bit_type(value):
 
 
 def convertbit(value, totype):
+    orig_value = value
     if isinstance(value, m.Wire):
         value = value._value
     if isinstance(value, totype):
-        return value
+        if not isinstance(orig_value, Wire):
+            orig_value = Wire(value=orig_value)
+        return orig_value
 
     if not can_convert_to_bit(value):
         raise ValueError(
@@ -41,7 +44,7 @@ def convertbit(value, totype):
             raise ValueError(
                 "bit can only be used on arrays and tuples of length 1"
                 f"; not {type(value)}")
-        value = value[0]
+        value = value[0]._value
         if not isinstance(value, Digital):
             raise ValueError(
                 "bit can only be used on arrays and tuples of bits"
@@ -83,12 +86,15 @@ def enable(value):
 
 
 def convertbits(value, n, totype, checkbit):
+    orig_value = value
     if isinstance(value, Wire):
         value = value._value
     if isinstance(value, totype):
         if n is not None and n != len(value):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
-        return value
+        if not isinstance(orig_value, Wire):
+            orig_value = Wire(value=orig_value)
+        return orig_value
 
     convertible_types = (Digital, Tuple, Array, IntegerTypes,
                          Sequence)
@@ -206,6 +212,8 @@ def check_value_is_not_input(fn):
 
 # @check_value_is_not_input
 def zext(value, n):
+    orig_value = value
+    value = value._value
     assert isinstance(value, (UInt, SInt, Bits)) or \
         isinstance(value, Array) and isinstance(value.T, Digital)
     if isinstance(value, UInt):
@@ -216,7 +224,7 @@ def zext(value, n):
         zeros = bits(0, n)
     elif isinstance(value, Array):
         zeros = array(0, n)
-    result = concat(value, zeros)
+    result = concat(orig_value, zeros)
     if isinstance(value, UInt):
         return uint(result)
     elif isinstance(value, SInt):
@@ -228,7 +236,7 @@ def zext(value, n):
 
 # @check_value_is_not_input
 def sext(value, n):
-    assert isinstance(value, SInt)
+    assert isinstance(value._value, SInt)
     return sint(concat(array(value), array(value[-1], n)))
 
 

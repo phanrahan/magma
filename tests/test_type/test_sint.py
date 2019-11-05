@@ -72,7 +72,7 @@ def test_flip():
 def test_construct():
     a1 = sint([1,1])
     print(type(a1))
-    assert isinstance(a1, SInt)
+    assert isinstance(a1._value, SInt)
 
 
 @pytest.mark.parametrize("n", [7, 3])

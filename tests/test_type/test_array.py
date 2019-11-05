@@ -79,21 +79,21 @@ def test_array2d():
 
     # constructor
 
-    a = A24(name='a')
-    assert isinstance(a, ArrayType)
+    a = Wire(A24, name='a')
+    assert isinstance(a._value, Array)
     print(a[0])
-    assert isinstance(a[0], ArrayType)
+    assert isinstance(a[0]._value, Array)
     print(a[0][0])
-    assert isinstance(a[0][0], Bit)
+    assert isinstance(a[0][0]._value, Bit)
 
 
 def test_construct():
     a1 = Array[2, Bit]([1,1])
     print(type(a1))
-    assert isinstance(a1, ArrayType)
+    assert isinstance(a1, Array)
 
-    a1 = Array[2, Bit](0x3)
-    assert a1 == m.array([VCC, VCC])
+    a1 = m.Wire(value=Array[2, Bit](0x3))
+    assert a1 == m.array([VCC, VCC]), a1
 
     with pytest.raises(TypeError):
         a1 = Array[2, Array[3, Bit]](0x3)
@@ -121,10 +121,10 @@ def test_whole():
     print((a4.iswhole(a4.ts)))
 
 def test_wire():
-    a0 = Array2(name='a0')
+    a0 = m.Wire(Array2, name='a0')
     #assert a0.direction is None
 
-    a1 = Array2(name='a1')
+    a1 = m.Wire(Array2, name='a1')
     #assert a1.direction is None
 
     wire(a0, a1)
@@ -134,15 +134,15 @@ def test_wire():
 
     assert a1.driven()
 
-    assert a0.trace() is a1
-    assert a1.trace() is a0
+    assert a0.trace() is a1._value
+    assert a1.trace() is a0._value
 
     #print a0.driven()
     assert a0.value() is None
-    assert a1.value() is a0
+    assert a1.value() is a0._value
 
-    b0 = a0[0]
-    b1 = a1[0]
+    b0 = a0[0]._value
+    b1 = a1[0]._value
 
     assert b0.port.wires is b1.port.wires
 

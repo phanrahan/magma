@@ -1,11 +1,13 @@
 import inspect
 from collections.abc import Sequence
 from hwtypes.adt import TupleMeta, ProductMeta, Product, Tuple
+from functools import wraps
 
 from .port import INPUT, OUTPUT, INOUT
 from .compatibility import IntegerTypes
 from .t import Type, deprecated, Flip, Undirected
 from .array import Array
+from .bits import Bits
 from .tuple import tuple_
 from .debug import debug_wire
 from .logging import info, warning, error
@@ -40,6 +42,10 @@ def wire(o, i, debug_info=None):
         if isinstance(i, IntegerTypes) or not i.is_input():
             # flip i and o
             i, o = o, i
+    if isinstance(i._value, Array) and not isinstance(i._value, Bits):
+        if isinstance(o, IntegerTypes):
+            report_wiring_error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={i.type_}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info)  # noqa
+            return
     if isinstance(o, IntegerTypes):
         o = Wire(name="", value=i.type_(o))
 
@@ -51,10 +57,21 @@ def wire(o, i, debug_info=None):
     i.wire(o, debug_info)
 
 
+def wire_cast(fn):
+    @wraps(fn)
+    def wrapped(self, other):
+        if not isinstance(other, Wire):
+            other = Wire(value=self.type_(other))
+        return fn(self, other)
+    return wrapped
+
+
 class Wire:
     def __init__(self, type_=None, name=None, value=None):
         if isinstance(name, str) or name is None:
             name = AnonRef(name)
+        if isinstance(value, Wire):
+            value = value._value
         self.name = name
         if value is not None:
             assert type_ is None
@@ -141,7 +158,8 @@ class Wire:
 
     @debug_wire
     def wire(self, other, debug_info=None):
-        assert isinstance(other, Wire), (other, type(other))
+        if not isinstance(other, Wire):
+            other = Wire(value=other)
         if isinstance(self._value, (Tuple, Array)):
             i, o = self._value, other._value
             if isinstance(self._value, Tuple):
@@ -205,7 +223,7 @@ class Wire:
                 return False
 
             # elements must refer to the same tuple
-            if not all(values[0].name.tuple == x.name.tuple for x in values):
+            if not all(values[0].name.tuple is x.name.tuple for x in values):
                 return False
 
             # elements should be numbered consecutively
@@ -259,7 +277,7 @@ class Wire:
         return result
 
     def __repr__(self):
-        if not isinstance(self.name, AnonRef):
+        if not self.name.anon():
             return repr(self.name)
         elif isinstance(self._value, Array):
             ts = [repr(t) for t in self._get_values()]
@@ -294,9 +312,6 @@ class Wire:
     def debug_info(self):
         return self._value.debug_info
 
-    def __le__(self, other):
-        return wire(self, other)
-
     def __call__(self, other=None, **kwargs):
         if kwargs:
             assert issubclass(self.type_, Tuple)
@@ -306,3 +321,105 @@ class Wire:
         else:
             wire(self, other)
             return self
+
+    def ite(self, t_branch, f_branch):
+        return self._value.ite(t_branch, f_branch)
+
+    @wire_cast
+    def __eq__(self, other):
+        return self._value == other._value
+
+    @wire_cast
+    def __ne__(self, other):
+        return self._value != other._value
+
+    def __hash__(self):
+        return hash(self._value)
+
+    def __invert__(self):
+        return ~self._value
+
+    @wire_cast
+    def __and__(self, other):
+        return self._value & other._value
+
+    @wire_cast
+    def __or__(self, other):
+        return self._value | other._value
+
+    @wire_cast
+    def __xor__(self, other):
+        return self._value ^ other._value
+
+    @wire_cast
+    def __lshift__(self, other):
+        return self._value << other._value
+
+    @wire_cast
+    def __rshift__(self, other):
+        return self._value >> other._value
+
+    def __neg__(self):
+        return -self._value
+
+    @wire_cast
+    def __add__(self, other):
+        return self._value + other._value
+
+    @wire_cast
+    def __sub__(self, other):
+        return self._value - other._value
+
+    @wire_cast
+    def __mul__(self, other):
+        return self._value * other._value
+
+    @wire_cast
+    def __floordiv__(self, other):
+        return self._value // other._value
+
+    @wire_cast
+    def __mod__(self, other):
+        return self._value % other._value
+
+    @wire_cast
+    def __ge__(self, other):
+        return self._value >= other._value
+
+    @wire_cast
+    def __gt__(self, other):
+        return self._value > other._value
+
+    @wire_cast
+    def __le__(self, other):
+        return self._value <= other._value
+
+    @wire_cast
+    def __lt__(self, other):
+        return self._value < other._value
+
+    def __int__(self):
+        return int(self._value)
+
+    @wire_cast
+    def concat(self, other):
+        return self._value.concat(other._value)
+
+    def zext(self, other):
+        return self._value.zext(other)
+
+    def sext(self, other):
+        return self._value.sext(other)
+
+    def bvcomp(self, other):
+        return self._value.bvcomp(other)
+
+    def repeat(self, other):
+        return self._value.repeat(other)
+
+    def bits(self):
+        return self._value.bits()
+
+    def adc(self, other, carry):
+        return self._value.adc(other, carry)
+

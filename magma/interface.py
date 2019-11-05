@@ -137,7 +137,7 @@ class _Interface(Type):
     # return all the clock argument names
     def clockargnames(self):
         return [name for name, port in self.ports.items() \
-                    if isinstance(port, ClockTypes) ]
+                    if isinstance(port._value, ClockTypes) ]
 #                                or name in ['SET'] ]
 
 

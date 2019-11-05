@@ -73,9 +73,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise Exception("Not a constant")
 
         def convert(x):
-            if x is m.VCC:
+            if x._value is m.VCC._value:
                 return True
-            assert x is m.GND
+            assert x._value is m.GND._value
             return False
         return [convert(x) for x in self.ts]
 
@@ -192,7 +192,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def bvcomp(self, other) -> 'AbstractBitVector[1]':
-        return Bits[1](self == other)
+        return m.Wire(value=Bits[1](self == other))
 
     def bveq(self, other) -> AbstractBit:
         return self.declare_compare_op("eq")()(self, other)
@@ -231,8 +231,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def ite(self, t_branch, f_branch) -> 'AbstractBitVector':
-        type_ = type(t_branch)
-        if type_ != type(f_branch):
+        type_ = t_branch.type_
+        if type_ != f_branch.type_:
             raise TypeError("ite expects same type for both branches")
         return self.declare_ite(type_)()(t_branch, f_branch,
                                          self != self.make_constant(0))
@@ -412,9 +412,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
-
-
-BitsType = Bits
 
 
 class UInt(Bits):

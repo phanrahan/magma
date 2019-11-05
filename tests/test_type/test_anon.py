@@ -27,8 +27,8 @@ def test_anon_bits():
 
         @classmethod
         def definition(io):
-            x = Bits[5]()
-            y = Bits[5]()
+            x = m.Wire(Bits[5])
+            y = m.Wire(Bits[5])
             y <= io.I
             x <= y
             io.O <= x

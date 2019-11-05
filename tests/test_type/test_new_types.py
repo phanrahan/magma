@@ -13,7 +13,7 @@ def test_new_types(output):
     # structure or at least autogenerate a PolygonType (or document how to
     # subclass and create a new Type/Kind)
     def Point2D(num_bits):
-        class Point2D(m.Product):
+        class Point2D(m.Product, cache=True):
             x = Coordinate(num_bits)
             y = Coordinate(num_bits)
 

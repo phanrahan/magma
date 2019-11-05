@@ -112,7 +112,7 @@ class Array(Type, metaclass=ArrayMeta):
         Type.__init__(self, **kwargs)
         self.ts = []
         if args:
-            if len(args) == 1 and isinstance(args[0], (list, Array, int)):
+            if len(args) == 1 and isinstance(args[0], (list, Array, m.Wire, int)):
                 if isinstance(args[0], list):
                     if len(args[0]) != self.N:
                         raise ValueError("Array list constructor can only be used with list equal to array length")
@@ -122,10 +122,15 @@ class Array(Type, metaclass=ArrayMeta):
                             self.ts.append(m.VCC if elem else m.GND)
                         else:
                             self.ts.append(elem)
-                elif isinstance(args[0], Array):
+                elif isinstance(args[0], m.Wire) and \
+                        isinstance(args[0]._value, Array) or \
+                        isinstance(args[0], Array):
                     if len(args[0]) != len(self):
                         raise TypeError(f"Will not do implicit conversion of arrays")
-                    self.ts = args[0].ts[:]
+                    arg = args[0]
+                    if isinstance(arg, m.Wire):
+                        arg = arg._value
+                    self.ts = arg.ts[:]
                 elif isinstance(args[0], int):
                     if not issubclass(self.T, Bit):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
@@ -133,6 +138,16 @@ class Array(Type, metaclass=ArrayMeta):
                     self.ts = []
                     for bit in m.bitutils.int2seq(args[0], self.N):
                         self.ts.append(m.VCC if bit else m.GND)
+                elif self.N == 1:
+                    t = args[0]
+                    if isinstance(t, IntegerTypes):
+                        t = m.VCC if t else m.GND
+                    assert type(t) == self.T or type(t) == self.T.flip() or \
+                        issubclass(type(type(t)), type(self.T)) or \
+                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
+                    self.ts = [t]
+                else:
+                    raise NotImplementedError(args[0], type(args[0]))
             elif len(args) == self.N:
                 self.ts = []
                 for t in args:
@@ -162,7 +177,7 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.is_oriented(direction)
 
     def __eq__(self, rhs):
-        if not isinstance(rhs, ArrayType):
+        if not isinstance(rhs, Array):
             return False
         return self.ts == rhs.ts
 
@@ -186,7 +201,7 @@ class Array(Type, metaclass=ArrayMeta):
         return self.N
 
     def __getitem__(self, key):
-        if isinstance(key, ArrayType) and all(t in {m.VCC, m.GND} for t in key.ts):
+        if isinstance(key, Array) and all(t in {m.VCC, m.GND} for t in key.ts):
             key = seq2int([0 if t is m.GND else 1 for t in key.ts])
         if isinstance(key, slice):
             _slice = [self[i] for i in range(*key.indices(len(self)))]
@@ -219,7 +234,7 @@ class Array(Type, metaclass=ArrayMeta):
     def wire(i, o, debug_info):
         # print('Array.wire(', o, ', ', i, ')')
 
-        if not isinstance(o, ArrayType):
+        if not isinstance(o, Array):
             if isinstance(o, IntegerTypes):
                 report_wiring_error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info)  # noqa
             else:
@@ -310,7 +325,4 @@ class Array(Type, metaclass=ArrayMeta):
         return sum([t.flatten() for t in self.ts], [])
 
     def concat(self, other) -> 'AbstractBitVector':
-        return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
-
-
-ArrayType = Array
+        return m.Wire(value=type(self)[len(self) + len(other), self.T](self.ts + other.ts))

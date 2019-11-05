@@ -368,17 +368,17 @@ class CoreIRBackend:
     def connect(self, module_definition, port, value, non_input_ports):
         # allow clocks or arrays of clocks to be unwired as CoreIR can wire them up
         def is_clock_or_nested_clock(p):
-            if isinstance(p, Clock) or isinstance(p, type) and issubclass(p, Clock):
+            if isinstance(p._value, Clock):
                 return True
-            elif isinstance(p, Array) or isinstance(p, type) and issubclass(p, Array):
-                return is_clock_or_nested_clock(p.T)
-            elif isinstance(p, Tuple) or isinstance(p, type) and issubclass(p, Tuple):
-                for item in p.types():
+            elif isinstance(p._value, Array):
+                return is_clock_or_nested_clock(p[0])
+            elif isinstance(p._value, Tuple):
+                for item in p._get_values():
                     if is_clock_or_nested_clock(item):
                         return True
             return False
 
-        if value is None and is_clock_or_nested_clock(port.type_):
+        if value is None and is_clock_or_nested_clock(port):
             return
         elif value is None:
             if port.is_inout():
@@ -398,9 +398,10 @@ class CoreIRBackend:
         if isinstance(value, coreir.Wireable):
             source = value
 
-        elif isinstance(value, Array) and all(x in {m.VCC, m.GND} for x in value):
+        elif isinstance(value, Array) and \
+            all(x in {m.VCC._value, m.GND._value} for x in value):
             source = self.get_constant_instance(value, len(value),
-                    module_definition)
+                                                module_definition)
         elif is_anon and isinstance(value, Array):
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, non_input_ports)

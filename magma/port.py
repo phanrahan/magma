@@ -60,7 +60,7 @@ def mergewires(new, old, debug_info):
         o.wires = new
 
 
-def fast_mergewires(w, i, o):
+def fast_mergewires(w, i, o, debug_info):
     w.inputs = i.wires.inputs + o.wires.inputs
     w.outputs = i.wires.outputs + o.wires.outputs
     w.inputs = list(set(w.inputs))
@@ -177,7 +177,7 @@ class Port:
                 mergewires(w, i.wires, debug_info)
                 mergewires(w, o.wires, debug_info)
             else:
-                fast_mergewires(w, i, o)
+                fast_mergewires(w, i, o, debug_info)
             # print('after merge', w.inputs, w.outputs)
         elif o.wires:
             w = o.wires

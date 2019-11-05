@@ -12,12 +12,11 @@ def BitOrBits(width):
 def pretty_str(t):
     if issubclass(t, m.Tuple):
         args = []
-        for i in range(len(t)):
-            key_str = str(list(t.keys())[i])
-            val_str = pretty_str(t.types()[i])
+        for key, value in t.field_dict.items():
+            val_str = pretty_str(value)
             indent = " " * 4
             val_str = f"\n{indent}".join(val_str.splitlines())
-            args.append(f"{key_str} = {val_str}")
+            args.append(f"{key} = {val_str}")
         # Pretty print by using newlines + indent
         joiner = ",\n    "
         result = joiner.join(args)

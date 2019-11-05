@@ -54,7 +54,7 @@ class TransformedCircuit:
         if isinstance(orig_bit, Array):
             # Map the individual bits
             for o, n in zip(orig_bit, new_bit):
-                self.orig_to_new[QualifiedBit(bit=o, scope=orig_scope)] = n._value
+                self.orig_to_new[QualifiedBit(bit=o._value, scope=orig_scope)] = n._value
         else:
             self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit._value
 

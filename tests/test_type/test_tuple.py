@@ -130,11 +130,6 @@ def test_val():
 
     # selectors
 
-    print('a["x"]')
-    b = a['x']._value
-    assert isinstance(b, Bit)
-    assert str(b) == 'a.x'
-
     print('a.x')
     b = a.x._value
     assert isinstance(b, Bit)

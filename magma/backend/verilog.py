@@ -79,7 +79,7 @@ def vname(t):
 # return the verilog declaration for the data type
 def vdecl(t):
     if issubclass(t, Array):
-        signed = "signed " if isinstance(t, SInt) else ""
+        signed = "signed " if issubclass(t, SInt) else ""
         return '{}[{}:{}]'.format(signed, t.N-1, 0)
     else:
         assert issubclass(t, Digital)

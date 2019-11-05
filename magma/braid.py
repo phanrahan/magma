@@ -1,5 +1,6 @@
+import magma as m
 from .port import INPUT, OUTPUT, INOUT
-from .array import Array, ArrayType
+from .array import Array
 from .conversions import array
 from .circuit import AnonymousCircuit
 from .wire import wire
@@ -99,7 +100,7 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 # return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
-    oarg = type(iargs[0])() # create a single anonymous value
+    oarg = m.Wire(iargs[0].type_) # create a single anonymous value
     for iarg in iargs:
          wire(oarg, iarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
@@ -343,8 +344,8 @@ def flat(circuit, flatargs=['I', 'O']):
     args = []
     for name, port in circuit.interface.ports.items():
         if not port.wired() and name in flatargs \
-               and issubclass(port.type_, ArrayType) \
-                   and issubclass(port[0].type_, ArrayType):
+               and issubclass(port.type_, Array) \
+                   and issubclass(port[0].type_, Array):
            #print('flat',name)
            ts = sum([p.as_list() for p in port], [])
            args += [name, array(ts)]
@@ -358,7 +359,7 @@ def partition(circuit, n, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?
-        if not port.wired() and name == prefix and issubclass(port.type_, ArrayType):
+        if not port.wired() and name == prefix and issubclass(port.type_, Array):
            l = port.as_list()
            l = [array(l[i:i + n]) for i in range(0, len(l), n)]
            for i in range(len(l)):

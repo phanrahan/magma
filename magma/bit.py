@@ -119,8 +119,8 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         return self.declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
-        type_ = type(t_branch)
-        if type_ != type(f_branch):
+        type_ = t_branch.type_
+        if type_ != f_branch.type_:
             raise TypeError("ite expects same type for both branches")
         # Note: coreir flips t/f cases
         return self.declare_ite(type_)()(f_branch, t_branch, self)
