@@ -303,3 +303,18 @@ def test_renamed_args_wire(target):
             io.O <= inv.O
 
     compile_and_check("test_renamed_args_wire", Foo, target)
+
+
+@pytest.mark.parametrize("val", [0,1])
+def test_custom_env(target, val):
+    def basic_fun(I: m.Bit, S: m.Bit) -> m.Bit:
+        if S:
+            return I
+        else:
+            return m.Bit(_custom_local_var_)
+
+    _globals = globals()
+    _globals.update({'_custom_local_var_':val})
+    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
+    _basic_fun = m.circuit.combinational(basic_fun,env=env)
+    compile_and_check(f"custom_env{val}", _basic_fun.circuit_definition, target)

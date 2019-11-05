@@ -40,6 +40,20 @@ def test_pos():
     compile("build/pos", main, output="verilog")
     assert check_files_equal(__file__, "build/pos.v", "gold/pos.v")
 
+
+def test_pos_slice():
+    Buf = DeclareCircuit("Buf", "I0", In(Bit), "I1", In(Bit), "O", Out(Bits[2]))
+
+    main = DefineCircuit("main", "I", In(Array[2, Bit]), "O", Out(Bit))
+    buf = Buf()
+    wire(buf[0:2], main.I)
+    wire(buf.O, main.O)
+    EndDefine()
+
+    compile("build/pos_slice", main, output="verilog")
+    assert check_files_equal(__file__, "build/pos.v", "gold/pos.v")
+
+
 def test_arg_array1():
     def DefineAndN(n):
         name = 'AndN%d' % n

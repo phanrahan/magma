@@ -3,10 +3,8 @@ import functools
 import warnings
 import enum
 from abc import abstractmethod
-from .ref import Ref, AnonRef, DefnRef, InstRef
-from .port import INOUT, INPUT, OUTPUT
-from .compatibility import IntegerTypes, StringTypes
-from hwtypes.adt import TupleMeta, ProductMeta
+from hwtypes.adt import TupleMeta, ProductMeta, Tuple
+from .ref import AnonRef, DefnRef, InstRef, TupleRef
 
 
 # From http://code.activestate.com/recipes/391367-deprecated/
@@ -166,15 +164,40 @@ def qualify(T, direction):
         result = T.unbound_t.from_fields(T.__name__, new_fields,
                                          cache=T.is_cached)
         return result
-    elif isinstance(T, TupleMeta):
+    if isinstance(T, TupleMeta):
         new_fields = []
         for field in T.fields:
             new_fields.append(qualify(field, direction))
         return T.unbound_t[new_fields]
     return T.qualify(direction)
 
+
 def is_oriented(T, direction):
     if isinstance(T, TupleMeta):
         return all(is_oriented(x, direction) for x in T.field_dict.values())
     else:
         return T.is_oriented(direction)
+
+
+def is_whole(T):
+    if isinstance(T, Tuple):
+        values = [x.value() for x in T]
+        if any(x is None for x in values):
+            return False
+        if any(x.anon() for x in values):
+            return False
+
+        # elements must be an tuple reference
+        if any(not isinstance(x.name, TupleRef) for x in values):
+            return False
+
+        # elements must refer to the same tuple
+        if not all(values[0].name.tuple is x.name.tuple for x in values):
+            return False
+
+        # elements should be numbered consecutively
+        for i, field in enumerate(T.value_dict):
+            if values[i].name.index != field:
+                return False
+        return True
+    raise NotImplementedError(T)

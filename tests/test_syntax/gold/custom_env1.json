@@ -1,0 +1,38 @@
+{"top":"global.basic_fun",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Mux2":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "basic_fun":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Mux2_inst0":{
+            "modref":"global.Mux2"
+          },
+          "bit_const_1_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          }
+        },
+        "connections":[
+          ["bit_const_1_None.out","Mux2_inst0.I0"],
+          ["self.I","Mux2_inst0.I1"],
+          ["self.O","Mux2_inst0.O"],
+          ["self.S","Mux2_inst0.S"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -1,6 +1,8 @@
 from .compatibility import IntegerTypes
 
+
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
+
 
 class Ref:
     def __str__(self):
@@ -8,6 +10,7 @@ class Ref:
 
     def __repr__(self):
         return self.qualifiedname()
+
 
 class AnonRef(Ref):
     def __init__(self, name=""):
@@ -22,63 +25,67 @@ class AnonRef(Ref):
     def anon(self):
         return False if self.name else True
 
+
 class InstRef(Ref):
     def __init__(self, inst, name):
-        assert inst
-        self.inst = inst # Inst
+        if not inst:
+            raise ValueError(f"Bad inst: {inst}")
+        self.inst = inst
         self.name = name
 
-    def qualifiedname(self, sep='.'):
+    def qualifiedname(self, sep="."):
         name = self.name
         if isinstance(self.name, IntegerTypes):
-            # Hack, Hack, Hack
-            if sep == '.':
-                return self.inst.name + '[%d]' % self.name
+            # Hack, Hack, Hack!
+            if sep == ".":
+                return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
 
     def anon(self):
         return False
 
+
 class DefnRef(Ref):
     def __init__(self, defn, name):
-        assert defn
-        self.defn = defn # Definition
+        if not defn:
+            raise ValueError(f"Bad defn: {defn}")
+        self.defn = defn
         self.name = name
 
-    def qualifiedname(self, sep='.'):
-        if sep == '.':
+    def qualifiedname(self, sep="."):
+        if sep == ".":
             return self.defn.__name__ + sep + self.name
-        else:
-            return self.name
+        return self.name
 
     def anon(self):
         return False
 
+
 class ArrayRef(Ref):
    def __init__(self, array, index):
-       self.array = array # Array
+       self.array = array
        self.index = index
 
    def __str__(self):
        return self.qualifiedname()
 
-   def qualifiedname(self, sep='.'):
-       return self.array.name.qualifiedname(sep=sep) + '[%d]' % self.index
+   def qualifiedname(self, sep="."):
+       return f"{self.array.name.qualifiedname(sep=sep)}[{self.index}]"
 
    def anon(self):
        return self.array.name.anon()
 
+
 class TupleRef(Ref):
    def __init__(self, tuple, index):
-       self.tuple = tuple # Tuple
+       self.tuple = tuple
        self.index = index
 
    def __str__(self):
        return self.qualifiedname()
 
-   def qualifiedname(self, sep='.'):
+   def qualifiedname(self, sep="."):
        return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
 
    def anon(self):
        return self.tuple.name.anon()
-
