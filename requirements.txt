@@ -1,1 +1,2 @@
+# Install branch for experimental support for parsing nd-arrays
 # -e git+git://github.com/leonardt/Pyverilog.git@add-nd-arrays#egg=pyverilog
