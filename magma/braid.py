@@ -102,7 +102,7 @@ def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
     oarg = m.Wire(iargs[0].type_) # create a single anonymous value
     for iarg in iargs:
-         wire(oarg, iarg) # wire the anonymous value to all the forked args
+        wire(oarg, iarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
 
 # return [arg, array] from a list of interfaces

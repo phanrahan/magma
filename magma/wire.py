@@ -176,10 +176,7 @@ class Wire:
                     return
 
             for i_elem, o_elem in zip(self._get_values(), other._get_values()):
-                if o_elem.is_input():
-                    o_elem.wire(i_elem, debug_info)
-                else:
-                    i_elem.wire(o_elem, debug_info)
+                i_elem.wire(o_elem, debug_info)
         else:
             self._value.wire(other._value, debug_info)
 

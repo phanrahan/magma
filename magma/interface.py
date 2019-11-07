@@ -96,7 +96,7 @@ class _Interface(Type):
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
         fn = lambda port: port.is_input() and \
-            (not isinstance(port, ClockTypes) or include_clocks)
+            (not issubclass(port.type_, ClockTypes) or include_clocks)
         return list(filter(fn, self.ports.values()))
 
     def outputs(self):
