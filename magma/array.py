@@ -122,9 +122,10 @@ class Array(Type, metaclass=ArrayMeta):
                             self.ts.append(m.VCC if elem else m.GND)
                         else:
                             self.ts.append(elem)
-                elif isinstance(args[0], m.Wire) and \
-                        isinstance(args[0]._value, Array) or \
-                        isinstance(args[0], Array) and self.N > 1:
+                elif len(self) > 1 and \
+                        (isinstance(args[0], m.Wire) and
+                         isinstance(args[0]._value, Array)) or \
+                        isinstance(args[0], Array):
                     if len(args[0]) != len(self):
                         raise TypeError(f"Will not do implicit conversion of arrays")
                     arg = args[0]

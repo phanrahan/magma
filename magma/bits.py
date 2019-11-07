@@ -49,6 +49,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         return str(cls)
 
     def __str__(cls):
+        if not cls.is_concrete:
+            return cls.__name__
         name = f"{cls.orig_name}[{cls.N}]"
         if cls.is_input():
             name = f"In({name})"
