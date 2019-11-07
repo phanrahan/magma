@@ -48,6 +48,8 @@ def build_kratos_debug_info(circuit, is_top):
 
 
 def test_simple_alu():
+    # turn the debug mode off
+    m.config.set_debug_mode(False)
     inst_to_defn_map = build_kratos_debug_info(SimpleALU, is_top=True)
     assert "SimpleALU.execute_alu_inst0" in inst_to_defn_map
     generators = []
@@ -88,3 +90,5 @@ def test_simple_alu():
 
     except ImportError:
         pass
+    m.config.set_debug_mode(False)
+
