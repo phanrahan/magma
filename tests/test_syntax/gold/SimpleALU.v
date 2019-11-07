@@ -5,7 +5,7 @@ module execute_alu (
   input logic [1:0] config_
 );
 
-logic  [15:0] c;
+logic [15:0] c;
 always_comb begin
   unique case (config_)
     2'h0: c = a + b;
