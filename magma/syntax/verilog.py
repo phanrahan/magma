@@ -6,6 +6,7 @@ from .verilog_utils import CollectInitialWidthsAndTypes, PromoteWidths, \
     RemoveBits
 import magma as m
 import kratos
+from magma.config import get_debug_mode
 
 
 class ProcessNames(ast.NodeTransformer):
@@ -142,25 +143,37 @@ def combinational_to_verilog(defn_env, fn):
     tree.decorator_list = []
     tree.returns = None
 
+    # obtain the filename and line number information
+    # due to the multi-line info, the offset calculation is a little bit
+    # complicated
+    lineno_offset = tree.body[0].lineno
+    fn_ln = kratos.pyast.get_fn(fn), kratos.pyast.get_ln(fn) + lineno_offset - 2
+
     print(astor.to_source(tree))
     func = ast_utils.compile_function_to_file(tree, fn.__name__, defn_env)
 
-
     class Module(kratos.Generator):
         def __init__(self):
-            super().__init__(tree.name, False)
+            super().__init__(tree.name, True)
             for key, value in inputs.items():
                 setattr(self, key, self.input(key, value))
             for key, value in outputs.items():
                 setattr(self, key, self.output(key, value))
             for name in names:
                 setattr(self, name, self.var(name, width_table[name]))
-            self.add_code(func)
+            block = self.add_code(func, fn_ln=fn_ln)
+            # set locals, which is the inputs and outputs
+            for key in inputs:
+                block.stmt().add_scope_variable(key, key, True)
+            for key in names:
+                block.stmt().add_scope_variable(key, key, True)
 
     os.makedirs(".magma", exist_ok=True)
     filename = f".magma/{tree.name}-kratos.sv"
-    kratos.verilog(Module(), filename=filename)
-    defn = m.DefineCircuit(tree.name, *IO)
+    mod = Module()
+
+    kratos.verilog(mod, filename=filename, insert_debug_info=get_debug_mode())
+    defn = m.DefineCircuit(tree.name, *IO, kratos=mod)
     with open(filename, 'r') as f:
         defn.verilogFile = f.read()
     return lambda *args: defn()(*args)
