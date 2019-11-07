@@ -154,7 +154,7 @@ def combinational_to_verilog(defn_env, fn):
 
     class Module(kratos.Generator):
         def __init__(self):
-            super().__init__(tree.name, True)
+            super().__init__(tree.name, get_debug_mode())
             for key, value in inputs.items():
                 setattr(self, key, self.input(key, value))
             for key, value in outputs.items():
