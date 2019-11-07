@@ -292,6 +292,7 @@ class CoreIRBackend:
                 coreir_instance.add_metadata("lineno", json.dumps(str(instance.debug_info.lineno)))
             for name, port in instance.interface.ports.items():
                 self.add_non_input_ports(non_input_ports, port)
+        print(non_input_ports)
 
         for instance in definition.instances:
             for name, port in instance.interface.ports.items():
@@ -309,6 +310,7 @@ class CoreIRBackend:
                 self.connect_non_outputs(module_definition, elem,
                                          non_input_ports)
         elif not port.is_output():
+            print(port, port.value())
             self.connect(module_definition, port, port.value(),
                          non_input_ports)
 
@@ -394,6 +396,7 @@ class CoreIRBackend:
         is_anon = anon(value)
         if isinstance(value, Wire):
             value = value._value
+        print(type(value), isinstance(value, Tuple), value, is_anon, anon(value))
 
         if isinstance(value, coreir.Wireable):
             source = value
@@ -407,6 +410,7 @@ class CoreIRBackend:
                 self.connect(module_definition, p, v, non_input_ports)
             return
         elif isinstance(value, Tuple) and is_anon:
+            print(value)
             for p, v in zip(port, value):
                 self.connect(module_definition, p, v, non_input_ports)
             return

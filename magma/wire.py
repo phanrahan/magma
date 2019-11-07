@@ -75,18 +75,16 @@ class Wire:
             self.type_ = type(value)
         else:
             self.type_ = type_
-            self._value = self.construct(type_, self.name)
+            if isinstance(type_, ProductMeta):
+                self._value = type_(**{k: Wire(v, TupleRef(self, k))._value for
+                                       k, v in type_.field_dict.items()})
+            elif isinstance(type_, TupleMeta):
+                self._value = type_(*(Wire(v, TupleRef(self, i))._value for i,
+                                      v in enumerate(type_.fields)))
+            else:
+                self._value = type_(name=name)
         assert self.type_ != Wire
 
-    def construct(self, type_, name):
-        if isinstance(type_, ProductMeta):
-            return type_(**{k: self.construct(v, TupleRef(self, k)) for k, v in
-                            type_.field_dict.items()})
-        elif isinstance(type_, TupleMeta):
-            return type_(*(self.construct(v, TupleRef(self, i)) for i, v in
-                           enumerate(type_.fields)))
-        else:
-            return type_(name=name)
 
     def _get_values(self):
         if isinstance(self._value, Product):
@@ -190,17 +188,20 @@ class Wire:
             return all(x.wired() for x in self._value)
         return self._value.wired()
 
+    def _driven(self, value):
+        if isinstance(value, Tuple):
+            return all(self._driven(x) for x in value)
+        return value.driven()
+
     def driven(self):
-        if isinstance(self._value, Tuple):
-            return all(x.driven() for x in self._value)
-        return self._value.driven()
+        return self._driven(self._value)
 
     def trace(self):
         if isinstance(self._value, Tuple):
             trace = [x.trace() for x in self._value]
             if any(x is None for x in trace):
                 return None
-            if self.iswhole(trace):
+            if len(self) == len(trace) and self.iswhole(trace):
                 return trace[0].name.tuple
             if isinstance(self._value, Product):
                 return tuple_(dict(zip(self._value.fields, trace)))
@@ -232,20 +233,26 @@ class Wire:
 
         return True
 
-    def value(self):
-        if isinstance(self._value, Tuple):
-            value = [x.value() for x in self._value]
+
+    def _val(self, val):
+        if isinstance(val, Tuple):
+            value = [self._val(x) for x in val]
             if any(x is None for x in value):
                 return None
-            if self.iswhole(value):
+            if len(value) == len(self) and self.iswhole(value):
                 return value[0].name.tuple
             if isinstance(value, Product):
                 T = type("anon", (Tuple,), {k: type(v) for k, v in
-                                            zip(self.type_.field_dict.keys(),
+                                            zip(val.field_dict.keys(),
                                                 value)})
             else:
                 T = Tuple[tuple(type(v) for v in value)]
             return T(*value)
+        return val.value()
+
+    def value(self):
+        if isinstance(self._value, Tuple):
+            return self._val(self._value)
         return self._value.value()
 
     def as_list(self):
@@ -388,6 +395,8 @@ class Wire:
 
     @wire_cast
     def __le__(self, other):
+        if not self.is_output():
+            return self.wire(other)
         return self._value <= other._value
 
     @wire_cast

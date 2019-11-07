@@ -124,7 +124,7 @@ class Array(Type, metaclass=ArrayMeta):
                             self.ts.append(elem)
                 elif isinstance(args[0], m.Wire) and \
                         isinstance(args[0]._value, Array) or \
-                        isinstance(args[0], Array):
+                        isinstance(args[0], Array) and self.N > 1:
                     if len(args[0]) != len(self):
                         raise TypeError(f"Will not do implicit conversion of arrays")
                     arg = args[0]
