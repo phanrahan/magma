@@ -147,7 +147,7 @@ class Digital(Type, metaclass=DigitalMeta):
         i = self
         # promote integer types to LOW/HIGH
         if isinstance(o, IntegerTypes):
-            o = HIGH if o else LOW
+            o = m.VCC._value if o else m.GND._value
 
         if not isinstance(o, Digital):
             report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} (type={type(o)}) because {o.debug_name} is not a Digital', debug_info)

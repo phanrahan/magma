@@ -19,7 +19,8 @@ from .t import Type
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
-    if not isinstance(val, Bits):
+    if isinstance(val, m.Wire) and not isinstance(val._value, m.Bits) and \
+            not isinstance(val, Bits):
         return T(val)
     elif len(val) != len(T):
         raise InconsistentSizeError('Inconsistent size')

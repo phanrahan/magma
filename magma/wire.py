@@ -46,9 +46,11 @@ def wire(o, i, debug_info=None):
         if isinstance(o, IntegerTypes):
             report_wiring_error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={i.type_}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info)  # noqa
             return
-    if isinstance(o, IntegerTypes):
+    if isinstance(o, IntegerTypes) and isinstance(i, Wire):
         o = Wire(name="", value=i.type_(o))
 
+    if isinstance(o, Wire) and not isinstance(i, Wire):
+        o = o._value
     # Wire(o, Type).
     i.wire(o, debug_info)
 
