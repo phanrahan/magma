@@ -382,6 +382,10 @@ class Wire:
         return self._value // other._value
 
     @wire_cast
+    def __truediv__(self, other):
+        return self._value / other._value
+
+    @wire_cast
     def __mod__(self, other):
         return self._value % other._value
 

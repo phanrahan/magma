@@ -219,7 +219,7 @@ def fork(*circuits):
     """Wire input to all the inputs, concatenate output"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    forkargs = getargbydirection(circuits[0].interface, INPUT)
+    forkargs = getargbydirection(circuits[0].interface, m.Direction.In)
     return braid(circuits, forkargs=forkargs)
 
 # join all inputs

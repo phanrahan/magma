@@ -46,17 +46,18 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert issubclass(new_bit.type_,
-                (Bit, Array, Clock, Enable, Reset, AsyncReset))
+        if isinstance(new_bit, m.Wire):
+            new_bit = new_bit._value
+        assert issubclass(type(new_bit), (Digital, Array)), type(new_bit)
         if isinstance(orig_bit, m.Wire):
             orig_bit = orig_bit._value
 
         if isinstance(orig_bit, Array):
             # Map the individual bits
             for o, n in zip(orig_bit, new_bit):
-                self.orig_to_new[QualifiedBit(bit=o._value, scope=orig_scope)] = n._value
+                self.orig_to_new[QualifiedBit(bit=o._value, scope=orig_scope)] = n
         else:
-            self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit._value
+            self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit
 
 def get_primitives(outer_circuit, outer_scope):
     primitives = []
