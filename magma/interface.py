@@ -36,7 +36,7 @@ def parse(decl):
     names = decl[::2]
     ports = decl[1::2]
     # If name is empty, convert to the index.
-    names = [name if name else str(i) for i, name in enumerate(names)]
+    names = [name if name else i for i, name in enumerate(names)]
     # Check that all ports are given as instances of Kind or Type.
     if not all(isinstance(port, (Kind, Type, Tuple, Wire)) or
                issubclass(port, Tuple) for port in ports):

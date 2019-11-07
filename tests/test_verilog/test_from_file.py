@@ -2,6 +2,7 @@ import magma as m
 import magma.testing
 import os
 import pytest
+import pyverilog
 
 
 def check_port(definition, port, type, direction):
@@ -207,11 +208,14 @@ endmodule""", external_modules={"foo": foo})
 
 
 def _test_nd_array_port(verilog):
-    [top] = m.DefineFromVerilog(verilog)
-    assert len(top.interface.ports) == 1
-    assert "inp" in top.interface.ports
+    try:
+        [top] = m.DefineFromVerilog(verilog)
+        assert len(top.interface.ports) == 1
+        assert "inp" in top.interface.ports
 
-    assert top.inp.type_ is m.Out(m.Array[4, m.Array[2, m.Bits[8]]])
+        assert top.inp.type_ is m.Out(m.Array[4, m.Array[2, m.Bits[8]]])
+    except pyverilog.vparser.plyparser.ParseError:
+        pytest.skip("Parsing ND array failed, requires pyverilog branch, skipping test")
 
 
 def test_nd_array_port_list():
