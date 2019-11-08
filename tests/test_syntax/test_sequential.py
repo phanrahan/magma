@@ -92,19 +92,18 @@ def _run_verilator(circuit, directory):
         f"./obj_dir/V{top}")
 
 
+
 def test_seq_simple(target, async_reset):
     @m.circuit.sequential(async_reset=async_reset)
     class TestBasic:
         def __init__(self):
             self.x: m.Bits[2] = m.Bits[2](0)
             self.y: m.Bits[2] = m.Bits[2](0)
-            self.z: m.Bit = m.Bit(0)
 
         def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
             O = self.y
             self.y = self.x
             self.x = I
-            self.z = self.z
             return O
 
     compile_and_check("TestBasic" + ("ARST" if async_reset else ""), TestBasic, target)
@@ -127,6 +126,29 @@ def test_seq_simple(target, async_reset):
 
         """
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
+
+def test_product(target, async_reset):
+    Data = m.Bits[16]
+
+    class Instr(m.Product):
+        a=m.Bit
+        b=Data
+
+    @m.circuit.sequential(async_reset=async_reset)
+    class Foo():
+        def __init__(self):
+            self.s: Data = Data(0)
+        def __call__(self, instr: Instr) -> (Data,m.Bit):
+            a = instr.a
+            b = instr.b
+            self.s = ~self.s
+            if a:
+                return b, s[0]
+            else:
+                return ~b, ~a
+
+    compile_and_check("TestProduct" + ("ARST" if async_reset else ""), Foo, target)
+
 
 def test_custom_env(target):
 
