@@ -229,6 +229,10 @@ class Wire:
             for i, field in enumerate(self._value.value_dict):
                 if values[i].name.index != field:
                     return False
+
+            if len(values) != len(values[0].name.tuple):
+                # elements should refer to a whole tuple
+                return False
             return True
         else:
             return self._value.iswhole(values)

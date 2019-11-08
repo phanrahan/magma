@@ -173,3 +173,39 @@ def test_nested():
 
     baseMH = DefineHier()
     m.compile("build/baseMH", baseMH, output="coreir-verilog")
+
+
+def test_tuple_nested_tuple_value():
+    def IFC0(params):
+        return m.Tuple(**{
+            "port0": m.In(m.Bits[params['param0']]),
+            "port1": m.In(m.Bits[params['param0']]),
+            "port2": m.In(m.Array[params['param0'], m.Bits[2]]),
+            "port3": m.In(m.Bits[params['param0']]),
+            "port4": m.In(m.Bit),
+            "port5": m.In(m.Bit),
+            "port7": m.In(m.Bit),
+            "port8": m.In(m.Bit),
+            "port9": m.In(m.Bit),
+            "port10": m.In(m.Bits[m.bitutils.clog2(params['param0'])]),
+        })
+
+    def IFC1(params):
+        dictOut = {"port4": m.Out(m.Bit)}
+        return m.Tuple(**dictOut)
+
+    def DefineMyCircuit(params):
+        class MyCircuit(m.Circuit):
+            IO = ["IFC0", IFC0(params).flip()]
+        return MyCircuit
+
+    def DefineTop(params):
+        class Top(m.Circuit):
+            IO = ["IFC1", IFC1(params)]
+            @classmethod
+            def definition(io):
+               m.wire(io.IFC1.port4, DefineMyCircuit(params)().IFC0.port4)
+        return Top
+
+
+    m.compile("top", DefineTop({'param0': 5}))
