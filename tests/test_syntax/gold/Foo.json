@@ -1,0 +1,40 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Foo_comb_inst0":{
+            "modref":"global.Foo_comb"
+          }
+        },
+        "connections":[
+          ["self.O","Foo_comb_inst0.O"],
+          ["self.a","Foo_comb_inst0.a"]
+        ]
+      },
+      "Foo_comb":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "magma_Bit_not_inst0":{
+            "modref":"corebit.not"
+          }
+        },
+        "connections":[
+          ["self.a","magma_Bit_not_inst0.in"],
+          ["self.O","magma_Bit_not_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}
