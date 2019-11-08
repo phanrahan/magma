@@ -9,6 +9,7 @@ if sys.version_info > (3, 0):
 from . import cache_definition
 import operator
 from collections import namedtuple, Counter
+from .clock import ClockTypes
 from .interface import *
 from .wire import *
 from .t import Flip
@@ -484,10 +485,14 @@ class DefineCircuitKind(CircuitKind):
 
     def check_unconnected(self):
         for port in self.interface.ports.values():
+            if issubclass(type(port), ClockTypes):
+                continue
             if port.isinput() and not port.driven():
                 report_wiring_error(f"Output port {self.name}.{port.name} not driven", self.debug_info)
 
         for inst in self.instances:
+            if issubclass(type(port), ClockTypes):
+                continue
             for port in inst.interface.ports.values():
                 if port.isinput() and not port.driven():
                     report_wiring_error(f"Input port {inst.name}.{port.name} not driven", inst.debug_info)
