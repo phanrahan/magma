@@ -177,7 +177,7 @@ def test_nested():
 
 def test_tuple_nested_tuple_value():
     def IFC0(params):
-        return m.Tuple(**{
+        return m.Product.from_fields("IFC0", {
             "port0": m.In(m.Bits[params['param0']]),
             "port1": m.In(m.Bits[params['param0']]),
             "port2": m.In(m.Array[params['param0'], m.Bits[2]]),
@@ -188,15 +188,15 @@ def test_tuple_nested_tuple_value():
             "port8": m.In(m.Bit),
             "port9": m.In(m.Bit),
             "port10": m.In(m.Bits[m.bitutils.clog2(params['param0'])]),
-        })
+        }, cache=True)
 
     def IFC1(params):
         dictOut = {"port4": m.Out(m.Bit)}
-        return m.Tuple(**dictOut)
+        return m.Product.from_fields("IFC1", dictOut)
 
     def DefineMyCircuit(params):
         class MyCircuit(m.Circuit):
-            IO = ["IFC0", IFC0(params).flip()]
+            IO = ["IFC0", m.Flip(IFC0(params))]
         return MyCircuit
 
     def DefineTop(params):
