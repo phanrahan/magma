@@ -98,11 +98,13 @@ def test_seq_simple(target, async_reset):
         def __init__(self):
             self.x: m.Bits[2] = m.Bits[2](0)
             self.y: m.Bits[2] = m.Bits[2](0)
+            self.z: m.Bit = m.Bit(0)
 
         def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
             O = self.y
             self.y = self.x
             self.x = I
+            self.z = self.z
             return O
 
     compile_and_check("TestBasic" + ("ARST" if async_reset else ""), TestBasic, target)
