@@ -97,7 +97,10 @@ class RewriteReturn(ast.NodeTransformer):
             elts.extend(node.value.elts)
         else:
             elts.append(node.value)
-        node.value = ast.Tuple(elts, ast.Load())
+        if len(elts) > 1:
+            node.value = ast.Tuple(elts, ast.Load())
+        else:
+            node.value = elts[0]
         return node
 
 
@@ -301,7 +304,9 @@ def _sequential(
     # if not inspect.isclass(cls):
     #     raise ValueError("sequential decorator only works with classes")
 
-    initial_value_map = get_initial_value_map(cls.__init__, defn_env)
+    initial_value_map = {}
+    if "__init__" in cls.__dict__:
+        initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 
     call_def = get_ast(cls.__call__).body[0]
     inputs, output_type = get_io(call_def)
@@ -349,7 +354,11 @@ def _sequential(
     else:
         output_type_str = astor.to_source(output_type).rstrip()
         circuit_combinational_output_type.append(output_type_str)
-        comb_out_wiring.append(f"io.O <= comb_out[{comb_out_count}]\n")
+        index_str = ""
+        if comb_out_count > 0:
+            # More than one output, tuple return
+            index_str = f"[{comb_out_count}]"
+        comb_out_wiring.append(f"io.O <= comb_out{index_str}\n")
 
     tab = 4 * ' '
     comb_out_wiring = (3 * tab).join(comb_out_wiring)

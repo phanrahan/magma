@@ -364,3 +364,12 @@ def test_rd_ptr(target):
             return orig_rd_ptr
 
     compile_and_check("RdPtr", RdPtr, target)
+
+
+def test_no_init(target):
+    @m.circuit.sequential(async_reset=True)
+    class Foo:
+        def __call__(self, a: m.Bit) -> m.Bit:
+            return ~a
+
+    compile_and_check("Foo", Foo, target)

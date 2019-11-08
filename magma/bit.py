@@ -94,7 +94,8 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
 
     def __invert__(self):
         # CoreIR uses not instead of invert name
-        return self.declare_unary_op("not")()(self)
+        result = self.declare_unary_op("not")()(self)
+        return result
 
     @bit_cast
     def __eq__(self, other):
