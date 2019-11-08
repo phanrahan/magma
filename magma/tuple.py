@@ -131,6 +131,10 @@ class TupleType(Type):
             if ts[i].name.index != self.Ks[i]:
                 return False
 
+        if len(ts) != len(ts[0].name.tuple):
+            # elements should refer to a whole tuple
+            return False
+
         return True
 
 
