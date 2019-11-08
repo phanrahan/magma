@@ -484,13 +484,13 @@ class DefineCircuitKind(CircuitKind):
 
     def check_unconnected(self):
         for port in self.interface.ports.values():
-            if issubclass(type(port), ClockTypes):
+            if issubclass(port.type_, ClockTypes):
                 continue
             if port.is_input() and not port.driven():
                 report_wiring_error(f"Output port {self.name}.{port.name} not driven", self.debug_info)
 
         for inst in self.instances:
-            if issubclass(type(port), ClockTypes):
+            if issubclass(port.type_, ClockTypes):
                 continue
             for port in inst.interface.ports.values():
                 if port.is_input() and not port.driven():
