@@ -11,6 +11,7 @@ class SimpleALU(m.Circuit):
     IO = ["a", m.In(m.UInt[16]), "b", m.In(m.UInt[16]), "c",
           m.Out(m.UInt[16]), "config_", m.In(m.Bits[2])]
 
+    m.config.set_debug_mode(False)
     @m.circuit.combinational_to_verilog
     def execute_alu(a: m.UInt[16], b: m.UInt[16], config_: m.Bits[2]) -> \
             m.UInt[16]:
