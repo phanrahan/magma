@@ -221,7 +221,7 @@ def test_seq_simple(target, async_reset):
 def test_product(target, async_reset):
     Data = m.Bits[16]
 
-    class Instr(m.Product):
+    class Instr(m.Product, cache=True):
         a=m.Bit
         b=Data
 
@@ -234,7 +234,7 @@ def test_product(target, async_reset):
             b = instr.b
             self.s = ~self.s
             if a:
-                return b, s[0]
+                return b, self.s[0]
             else:
                 return ~b, ~a
 
