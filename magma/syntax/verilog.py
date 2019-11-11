@@ -179,16 +179,30 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
                 self.CLK = self.clock("CLK")
                 self.ASYNCRESET = self.reset("ASYNCRESET")
 
-                reg_updates = "\n    ".join(
+                reg_updates = "\n        ".join(
                     f"self.self_{name}_O = self.self_{name}_I"
                     for name in registers
                 )
+                reg_inits = []
+                for reg, info in registers.items():
+                    eval_value = info[3]
+                    try:
+                        init = int(eval_value)
+                    except Exception as e:
+                        raise NotImplementedError(eval_value)
+                    reg_inits.append(
+                        f"self.self_{reg}_O = {init}"
+                    )
+                reg_inits = "\n        ".join(reg_inits)
                 code = f"""
 from kratos import always, posedge
 
 @always((posedge, "CLK"), (posedge, "ASYNCRESET"))
 def seq_code_block(self):
-    {reg_updates}
+    if self.ASYNCRESET:
+        {reg_inits}
+    else:
+        {reg_updates}
 """
                 lineno_offset = ast_utils.get_ast(init_fn).body[0].lineno
                 init_fn_ln = kratos.pyast.get_fn(init_fn), \
