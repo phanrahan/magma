@@ -91,7 +91,8 @@ def return_magma_tuple(I: m.Bits[2]) -> m.Tuple(m.Bit, m.Bit):
     return m.tuple_([I[0], I[1]])
 ```
 
-```
+```python
+@m.circuit.combinational
 def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
     return m.namedtuple(x=I[0], y=I[1])
 ```
