@@ -26,6 +26,18 @@ def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
 
 ```
 
+For reference, here is the code produced for the corresponding magma circuit
+definition where the if statement has been lowered into a multiplexer:
+```python
+basic_if = DefineCircuit("basic_if", "I", In(Bits[2]), "S", In(Bit), "O", Out(Bit))
+Mux2xOutBit_inst0 = Mux2xOutBit()
+wire(basic_if.I[1], Mux2xOutBit_inst0.I0)
+wire(basic_if.I[0], Mux2xOutBit_inst0.I1)
+wire(basic_if.S, Mux2xOutBit_inst0.S)
+wire(Mux2xOutBit_inst0.O, basic_if.O)
+EndCircuit()
+```
+
 Basic nesting:
 ```python
 @m.circuit.combinational
@@ -236,3 +248,33 @@ every cycle, so enable logic must be explicitly defined).  Support for optional
 calls (implicit enable logic on the state of the sub sequential circuit) is
 forthcoming (tracked by this issue
 https://github.com/phanrahan/magma/issues/432).
+
+The sequential syntax is implemented by compiling the above class definition
+into a magma circuit definition instantiating the registers declared in the
+`__init__` method and defining and wiring up a combinational function
+corresponding to the `__call__` method.  The references to self attributes are
+rewritten to be explicit arguments to the `__call__` method.  Here is the
+output code for the above example:
+
+```python
+class DelayBy2(m.Circuit):
+    IO = ['I', m.In(m.Bits[2]), 'CLK', m.In(m.Clock), 'ASYNCRESET', m.
+        In(m.AsyncReset), 'O', m.Out(m.Bits[2])]
+
+    @classmethod
+    def definition(io):
+        x = DefineRegister(2, init=0, has_async_reset=True)()
+        y = DefineRegister(2, init=0, has_async_reset=True)()
+
+        @combinational
+        def DelayBy2_comb(I: m.Bits[2], self_x_O: m.Bits[2], self_y_O:
+            m.Bits[2]) ->(m.Bits[2], m.Bits[2], m.Bits[2]):
+            O = self_y_O
+            self_y_I = self_x_O
+            self_x_I = I
+            return self_x_I, self_y_I, O
+        comb_out = DelayBy2_comb(io.I, x, y)
+        x.I <= comb_out[0]
+        y.I <= comb_out[1]
+        io.O <= comb_out[2]
+```
