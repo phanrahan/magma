@@ -175,7 +175,7 @@ In the `__init__` method, the circuit declares two state elements `self.x` and
 `self.y`.  Both are annotated with a type `m.Bits[2]` and initialized with a
 value `m.bits(0, 2)`.  The `__call__` method accepts an input `I` with the same
 type as the state elements. It stores the current value of `self.y` in
-atemporary variable `O`, sets `self.y` to be the value of `self.x`, sets
+a temporary variable `O`, sets `self.y` to be the value of `self.x`, sets
 `self.x` to be the input value `I` and returns `O`.  Notice that the inputs and
 output of the `__call__` method have type annotations just like
 `m.circuit.combinational` functions.  The `__call__` method should be treated
