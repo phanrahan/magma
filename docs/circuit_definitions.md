@@ -18,7 +18,7 @@ The condition must be an expression that evaluates to a `magma` value.
 Basic example:
 ```python
 @m.circuit.combinational
-def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
     if S:
         return I[0]
     else:
@@ -30,7 +30,7 @@ Basic nesting:
 ```python
 class IfStatementNested(m.Circuit):
 @m.circuit.combinational
-def if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+def if_statement_nested[I: m.Bits[4], S: m.Bits[2]] -> m.Bit:
     if S[0]:
         if S[1]:
             return I[0]
@@ -45,21 +45,21 @@ def if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
 
 Terneray expressions
 ```python
-def ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def ternary(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return I[0] if S else I[1]
 ```
 
 Nesting terneray expressions
 ```python
 @m.circuit.combinational
-def ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+def ternary_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
     return I[0] if S[0] else I[1] if S[1] else I[2]
 ```
 
 ## Function composition:
 ```
 @m.circuit.combinational
-def basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def basic_if_function_call(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return basic_if(I, S)
 ```
 Function calls must refer to another `m.circuit.combinational` element, or a
@@ -76,7 +76,7 @@ default to the naming convetion `O0, O1, ...` for the output ports.
 
 ```python
 @m.circuit.combinational
-def return_py_tuple(I: m.Bits(2)) -> (m.Bit, m.Bit):
+def return_py_tuple(I: m.Bits[2]) -> (m.Bit, m.Bit):
     return I[0], I[1]
 ```
 
@@ -88,12 +88,12 @@ with `m.Tuple(O0=m.Bit, O1=m.Bit)`.
 
 ```python
 @m.circuit.combinational
-def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
+def return_magma_tuple(I: m.Bits[2]) -> m.Tuple(m.Bit, m.Bit):
     return m.tuple_([I[0], I[1]])
 ```
 
 ```
-def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
+def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
     return m.namedtuple(x=I[0], y=I[1])
 ```
 
