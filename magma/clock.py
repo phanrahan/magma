@@ -178,7 +178,7 @@ Enable = EnableKind('Enable', (EnableType,), {})
 EnableIn = EnableKind('Enable', (EnableType,), dict(direction=INPUT))
 EnableOut = EnableKind('Enable', (EnableType,), dict(direction=OUTPUT))
 
-ClockTypes = (ClockType, ResetType, AsyncResetType, EnableType)
+ClockTypes = (ClockType, ResetType, AsyncResetType, AsyncResetNType, EnableType)
 
 
 def ClockInterface(has_enable=False, has_reset=False, has_set=False,
