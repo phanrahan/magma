@@ -28,7 +28,6 @@ def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
 
 Basic nesting:
 ```python
-class IfStatementNested(m.Circuit):
 @m.circuit.combinational
 def if_statement_nested[I: m.Bits[4], S: m.Bits[2]] -> m.Bit:
     if S[0]:
