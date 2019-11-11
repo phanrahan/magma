@@ -97,6 +97,53 @@ def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
     return m.namedtuple(x=I[0], y=I[1])
 ```
 
+## Using non-combinational magma circuits
+The combinational syntax allows the use of other combinational circuits using
+the function call syntax to wire inputs and retrieve outputs.
+
+Here is an example:
+```python
+class EQ(m.Circuit):
+    IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+@m.circuit.combinational
+def logic(a: m.Bit) -> (m.Bit,):
+    if EQ()(a, m.bit(0)):
+        c = m.bit(1)
+    else:
+        c = m.bit(0)
+    return (c,)
+```
+
+## Using magma's higher order circuits
+```python
+class Not(m.Circuit):
+    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+@m.circuit.combinational
+def logic(a: m.Bits[10]) -> m.Bits[10]:
+    return m.join(m.map_(Not, 10))(a)
+```
+
+## Using combinational circuits as a standard circuit definition
+Combinational circuits can also be used as standard circuit definitions by
+using the `.circuit_defintion` attribute to retrieve the corresponding magma
+circuit.
+```python
+@m.circuit.combinational
+def invert(a: m.Bit) -> m.Bit:
+    return Not()(a)
+
+class Foo(m.Circuit):
+    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+    @classmethod
+    def definition(io):
+        inv = invert.circuit_definition()
+        inv.a <= io.I
+        io.O <= inv.O
+```
+
 # Sequential Circuit Definition
 The `@m.circuit.sequential` decorator extends the `@m.circuit.combinational`
 syntax with the ability to use Python's class system to describe stateful
