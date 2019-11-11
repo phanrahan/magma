@@ -1,6 +1,5 @@
 import magma as m
 from magma.testing import check_files_equal
-m.config.set_debug_mode(True)
 import logging
 import pytest
 import coreir
@@ -9,6 +8,7 @@ import coreir
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
 def test_simple_def(target, suffix):
+    m.config.set_debug_mode(True)
     m.set_codegen_debug_info(True)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
@@ -41,6 +41,7 @@ def test_simple_def(target, suffix):
     # Create a fresh context for second compilation.
     m.compile("build/test_simple_def_class", Main, output=target)
     m.set_codegen_debug_info(False)
+    m.config.set_debug_mode(False)
     assert check_files_equal(__file__, f"build/test_simple_def_class.{suffix}",
                              f"gold/test_simple_def_class.{suffix}")
 
@@ -48,6 +49,7 @@ def test_simple_def(target, suffix):
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
 def test_for_loop_def(target, suffix):
+    m.config.set_debug_mode(True)
     m.set_codegen_debug_info(True)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
@@ -71,6 +73,7 @@ def test_for_loop_def(target, suffix):
 
     m.compile("build/test_for_loop_def", main, output=target)
     m.set_codegen_debug_info(False)
+    m.config.set_debug_mode(False)
     assert check_files_equal(__file__, f"build/test_for_loop_def.{suffix}",
                              f"gold/test_for_loop_def.{suffix}")
 
@@ -78,6 +81,7 @@ def test_for_loop_def(target, suffix):
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
 def test_interleaved_instance_wiring(target, suffix):
+    m.config.set_debug_mode(True)
     m.set_codegen_debug_info(True)
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
@@ -101,6 +105,7 @@ def test_interleaved_instance_wiring(target, suffix):
 
     m.compile("build/test_interleaved_instance_wiring", main, output=target)
     m.set_codegen_debug_info(False)
+    m.config.set_debug_mode(False)
     assert check_files_equal(__file__, f"build/test_interleaved_instance_wiring.{suffix}",
                              f"gold/test_interleaved_instance_wiring.{suffix}")
 
@@ -118,7 +123,7 @@ def test_unwired_ports_warnings(caplog):
 
     m.EndCircuit()
 
-    m.compile("build/test_unwired_output", main)
+    m.compile("build/test_unwired_output", main, "verilog")
     assert check_files_equal(__file__, f"build/test_unwired_output.v",
                              f"gold/test_unwired_output.v")
     assert caplog.records[-2].msg == "main.And2_inst0.I0 not connected"
@@ -139,7 +144,7 @@ def test_2d_array_error(caplog):
     m.EndCircuit()
 
     try:
-        m.compile("build/test_unwired_output", main)
+        m.compile("build/test_unwired_output", main, output="verilog")
         assert False, "Should raise exception"
     except Exception as e:
         assert str(e) == "Argument main.I of type Array[2, Array[3, Out(Bit)]] is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa

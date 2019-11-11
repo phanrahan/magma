@@ -19,28 +19,6 @@ def write_file(file_name, extension, code):
         file.write(code)
 
 
-class CheckAnyMantleCircuits(DefinitionPass):
-    def __init__(self, main):
-        super().__init__(main)
-        self.has_mantle_circuit = False
-
-    def __call__(self, definition):
-        if getattr(definition, "debug_info", False) and \
-                definition.debug_info.module.__name__.split(".")[0] == "mantle":
-            self.has_mantle_circuit = True
-
-    def _run(self, definition):
-        for instance in getattr(definition, "instances", []):
-            instancedefinition = type(instance)
-            self._run( instancedefinition )
-
-        self(definition)
-
-    def run(self):
-        super().run()
-        return self.has_mantle_circuit
-
-
 def __compile_to_coreir(main, file_name, opts):
     # Underscore so our coreir module doesn't conflict with coreir bindings
     # package.
@@ -84,20 +62,8 @@ def __compile_to_coreir(main, file_name, opts):
             "Running coreir failed"
 
 
-def compile(basename, main, output='verilog', **kwargs):
+def compile(basename, main, output='coreir-verilog', **kwargs):
     opts = kwargs.copy()
-
-    # If the output is verilog and the main circuit includes a mantle circuit
-    # and we're using the coreir mantle target, use coreir to generate verilog
-    # by setting the output to coreir-verilog
-    has_mantle_circuit = CheckAnyMantleCircuits(main).run()
-    if output == "verilog" and m.mantle_target == "coreir" and has_mantle_circuit:
-        warning("`m.compile` called with `output == verilog` and"
-                " `m.mantle_target == \"coreir\"` and mantle has been imported,"
-                " When generating verilog from circuits from the \"coreir\""
-                " mantle target, you should set `output=\"coreir-verilog\"`."
-                " Doing this automatically.")
-        output = 'coreir-verilog'
 
     # Rather than having separate logic for 'coreir-verilog' mode, we defer to
     # 'coreir' mode with the 'output_verilog' option set to True.

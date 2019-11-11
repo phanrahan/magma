@@ -11,5 +11,5 @@ def test():
     wire(inst0.O, main.O)
     EndCircuit()
 
-    compile("build/declaretest", main)
+    compile("build/declaretest", main, output="verilog")
     assert check_files_equal(__file__, "build/declaretest.v", "gold/declaretest.v")

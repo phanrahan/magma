@@ -23,6 +23,8 @@ class BitsKind(ArrayKind):
     _class_cache = weakref.WeakValueDictionary()
 
     def __str__(cls):
+        if not hasattr(cls, "T"):
+            return cls.__name__
         if cls.isinput():
             return "In(Bits[{}])".format(cls.N)
         if cls.isoutput():

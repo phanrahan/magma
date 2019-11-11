@@ -4,7 +4,9 @@ import os
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind, ResetNKind, AsyncResetNKind
+from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, \
+    ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind, ResetNKind, \
+    AsyncResetNKind, AsyncResetNType, ResetType
 from ..bitutils import seq2int
 from ..backend.verilog import find
 from ..logging import error
@@ -138,14 +140,16 @@ class CoreIRBackend:
         elif port.isinput():
             if isinstance(port, (ClockType, ClockKind)):
                 _type = self.context.named_types[("coreir", "clk")]
-            elif isinstance(port, (AsyncResetType, AsyncResetKind)):
+            elif isinstance(port, (AsyncResetType, AsyncResetKind,
+                                   AsyncResetNType, AsyncResetNKind)):
                 _type = self.context.named_types[("coreir", "arst")]
             else:
                 _type = self.context.Bit()
         elif port.isoutput():
             if isinstance(port, (ClockType, ClockKind)):
                 _type = self.context.named_types[("coreir", "clkIn")]
-            elif isinstance(port, (AsyncResetType, AsyncResetKind)):
+            elif isinstance(port, (AsyncResetType, AsyncResetKind,
+                                   AsyncResetNType, AsyncResetNKind)):
                 _type = self.context.named_types[("coreir", "arstIn")]
             else:
                 _type = self.context.BitIn()
@@ -493,8 +497,8 @@ class CoreIRBackend:
         self.context.run_passes(passes, namespaces)
         module.save_to_file(filename)
 
-def compile(main, file_name=None, context=None):
-    backend = CoreIRBackend(context)
+def compile(main, file_name=None, context=None, check_context_is_default=True):
+    backend = CoreIRBackend(context, check_context_is_default)
     backend.compile(main)
     if file_name is not None:
         return backend.modules[main.coreir_name].save_to_file(file_name)

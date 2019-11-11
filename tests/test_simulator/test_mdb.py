@@ -1,4 +1,5 @@
 from .test_primitives import *
+import magma as m
 from magma.simulator import PythonSimulator
 from magma.simulator.mdb import SimulationConsole
 from magma import *
@@ -6,6 +7,7 @@ from magma.scope import *
 from magma.passes.debug_name import DebugNamePass
 
 def test(capsys):
+    m.config.set_debug_mode(True)
     def get_out(capsys):
         out, err = capsys.readouterr()
         assert(err == "")
@@ -109,3 +111,4 @@ def test(capsys):
 
     console.runcmd("p counter.reg.O")
     assert get_out(capsys) == "2"
+    m.config.set_debug_mode(False)

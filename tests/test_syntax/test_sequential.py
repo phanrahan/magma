@@ -138,6 +138,25 @@ def test_seq_simple(target, async_reset):
         """
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
 
+def test_custom_env(target):
+
+    _globals = globals()
+    _globals.update({'_custom_local_var_':2})
+    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
+
+    class TestBasic:
+        def __init__(self):
+            self.x: m.Bits[2] = m.bits(_custom_local_var_, 2)
+            self.y: m.Bits[2] = m.bits(0, 2)
+
+        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+            O = self.y
+            self.y = self.x
+            self.x = I
+            return O
+
+    _TestBasic = m.circuit.sequential(TestBasic,env=env)
+    compile_and_check("CustomEnv", _TestBasic, target)
 
 def test_seq_hierarchy(target, async_reset):
     @m.cache_definition

@@ -12,7 +12,7 @@ def test_call1():
     a( main.I0, main.I1 )
     wire(a, main.O)
 
-    compile("build/call1", main)
+    compile("build/call1", main, output="verilog")
     assert check_files_equal(__file__, "build/call1.v", "gold/call1.v")
 
 
@@ -31,5 +31,5 @@ def test_call2():
     a( main.I )
     wire(a, main.O)
 
-    compile("build/call2", main)
+    compile("build/call2", main, output="verilog")
     assert check_files_equal(__file__, "build/call2.v", "gold/call2.v")

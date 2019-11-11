@@ -14,6 +14,6 @@ def test():
     buf2(buf1)
     wire(buf2, main.O)
 
-    compile("build/compose", main)
+    compile("build/compose", main, output="verilog")
     assert check_files_equal(__file__, "build/compose.v", "gold/compose.v")
 

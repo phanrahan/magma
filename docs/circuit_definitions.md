@@ -1,3 +1,8 @@
+**NOTE** The combinational and sequential syntax exetensions have only been
+tested with the "coreir" and "coreir-verilog" compile targets.  Please set
+`output="coreir-verilog"` or `output="coreir"` when calling `m.compile` to use
+this feature.
+
 # Combinational Circuit Definitions
 Circuit defintions can be marked with the `@m.circuit.combinational` decorator.
 This introduces a set of syntax level features for defining combinational magma
@@ -6,13 +11,14 @@ circuits, including the use of `if` statements to generate `Mux`es.
 This feature is currently experimental, and therefor expect bugs to occur.
 Please file any issues on the magma GitHub repository.
 
+
 ## If and Ternary
 The condition must be an expression that evaluates to a `magma` value.
 
 Basic example:
 ```python
 @m.circuit.combinational
-def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
     if S:
         return I[0]
     else:
@@ -20,11 +26,22 @@ def basic_if(I: m.Bits(2), S: m.Bit) -> m.Bit:
 
 ```
 
+For reference, here is the code produced for the corresponding magma circuit
+definition where the if statement has been lowered into a multiplexer:
+```python
+basic_if = DefineCircuit("basic_if", "I", In(Bits[2]), "S", In(Bit), "O", Out(Bit))
+Mux2xOutBit_inst0 = Mux2xOutBit()
+wire(basic_if.I[1], Mux2xOutBit_inst0.I0)
+wire(basic_if.I[0], Mux2xOutBit_inst0.I1)
+wire(basic_if.S, Mux2xOutBit_inst0.S)
+wire(Mux2xOutBit_inst0.O, basic_if.O)
+EndCircuit()
+```
+
 Basic nesting:
 ```python
-class IfStatementNested(m.Circuit):
 @m.circuit.combinational
-def if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+def if_statement_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
     if S[0]:
         if S[1]:
             return I[0]
@@ -39,21 +56,21 @@ def if_statement_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
 
 Terneray expressions
 ```python
-def ternary(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def ternary(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return I[0] if S else I[1]
 ```
 
 Nesting terneray expressions
 ```python
 @m.circuit.combinational
-def ternary_nested(I: m.Bits(4), S: m.Bits(2)) -> m.Bit:
+def ternary_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
     return I[0] if S[0] else I[1] if S[1] else I[2]
 ```
 
 ## Function composition:
-```
+```python
 @m.circuit.combinational
-def basic_if_function_call(I: m.Bits(2), S: m.Bit) -> m.Bit:
+def basic_if_function_call(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return basic_if(I, S)
 ```
 Function calls must refer to another `m.circuit.combinational` element, or a
@@ -70,7 +87,7 @@ default to the naming convetion `O0, O1, ...` for the output ports.
 
 ```python
 @m.circuit.combinational
-def return_py_tuple(I: m.Bits(2)) -> (m.Bit, m.Bit):
+def return_py_tuple(I: m.Bits[2]) -> (m.Bit, m.Bit):
     return I[0], I[1]
 ```
 
@@ -82,13 +99,62 @@ with `m.Tuple(O0=m.Bit, O1=m.Bit)`.
 
 ```python
 @m.circuit.combinational
-def return_magma_tuple(I: m.Bits(2)) -> m.Tuple(m.Bit, m.Bit):
+def return_magma_tuple(I: m.Bits[2]) -> m.Tuple(m.Bit, m.Bit):
     return m.tuple_([I[0], I[1]])
 ```
 
-```
-def return_magma_named_tuple(I: m.Bits(2)) -> m.Tuple(x=m.Bit, y=m.Bit):
+```python
+@m.circuit.combinational
+def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
     return m.namedtuple(x=I[0], y=I[1])
+```
+
+## Using non-combinational magma circuits
+The combinational syntax allows the use of other combinational circuits using
+the function call syntax to wire inputs and retrieve outputs.
+
+Here is an example:
+```python
+class EQ(m.Circuit):
+    IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+@m.circuit.combinational
+def logic(a: m.Bit) -> (m.Bit,):
+    if EQ()(a, m.bit(0)):
+        c = m.bit(1)
+    else:
+        c = m.bit(0)
+    return (c,)
+```
+
+## Using magma's higher order circuits
+```python
+class Not(m.Circuit):
+    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+@m.circuit.combinational
+def logic(a: m.Bits[10]) -> m.Bits[10]:
+    return m.join(m.map_(Not, 10))(a)
+```
+
+## Using combinational circuits as a standard circuit definition
+Combinational circuits can also be used as standard circuit definitions by
+using the `.circuit_definition` attribute to retrieve the corresponding magma
+circuit.
+```python
+@m.circuit.combinational
+def invert(a: m.Bit) -> m.Bit:
+    return Not()(a)
+
+class Foo(m.Circuit):
+    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+    @classmethod
+    def definition(io):
+        # reference circuit_definition and instance
+        inv = invert.circuit_definition()  
+        inv.a <= io.I
+        io.O <= inv.O
 ```
 
 # Sequential Circuit Definition
@@ -121,7 +187,7 @@ In the `__init__` method, the circuit declares two state elements `self.x` and
 `self.y`.  Both are annotated with a type `m.Bits[2]` and initialized with a
 value `m.bits(0, 2)`.  The `__call__` method accepts an input `I` with the same
 type as the state elements. It stores the current value of `self.y` in
-atemporary variable `O`, sets `self.y` to be the value of `self.x`, sets
+a temporary variable `O`, sets `self.y` to be the value of `self.x`, sets
 `self.x` to be the input value `I` and returns `O`.  Notice that the inputs and
 output of the `__call__` method have type annotations just like
 `m.circuit.combinational` functions.  The `__call__` method should be treated
@@ -134,6 +200,36 @@ that you would like to keep constant, you must still assign it with `self.x =
 self.x`.  Support for optional updates (implicit enable logic on the state) is
 forthcoming (tracked by this issue
 https://github.com/phanrahan/magma/issues/432).
+
+The sequential syntax is implemented by compiling the above class definition
+into a magma circuit definition instantiating the registers declared in the
+`__init__` method and defining and wiring up a combinational function
+corresponding to the `__call__` method.  The references to self attributes are
+rewritten to be explicit arguments to the `__call__` method.  Here is the
+output code for the above example:
+
+```python
+class DelayBy2(m.Circuit):
+    IO = ['I', m.In(m.Bits[2]), 'CLK', m.In(m.Clock), 'ASYNCRESET', m.
+        In(m.AsyncReset), 'O', m.Out(m.Bits[2])]
+
+    @classmethod
+    def definition(io):
+        x = DefineRegister(2, init=0, has_async_reset=True)()
+        y = DefineRegister(2, init=0, has_async_reset=True)()
+
+        @combinational
+        def DelayBy2_comb(I: m.Bits[2], self_x_O: m.Bits[2], self_y_O:
+            m.Bits[2]) ->(m.Bits[2], m.Bits[2], m.Bits[2]):
+            O = self_y_O
+            self_y_I = self_x_O
+            self_x_I = I
+            return self_x_I, self_y_I, O
+        comb_out = DelayBy2_comb(io.I, x, y)
+        x.I <= comb_out[0]
+        y.I <= comb_out[1]
+        io.O <= comb_out[2]
+```
 
 ## Hierarchy
 Besides declaring magma values as state, the `sequential` syntax also supports

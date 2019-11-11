@@ -12,5 +12,5 @@ def test_flip():
     wire(buf.I, bit(1))
     wire(main.O, buf.O)
 
-    compile("build/flip", main)
+    compile("build/flip", main, output="verilog")
     assert check_files_equal(__file__, "build/flip.v", "gold/flip.v")

@@ -2,6 +2,7 @@ import magma as m
 import magma.testing
 import os
 import pytest
+import pyverilog
 
 
 def check_port(definition, port, type, direction):
@@ -21,7 +22,7 @@ def check_rxmod(RXMOD):
     check_port(RXMOD, "data", m.ArrayType, "output")
     check_port(RXMOD, "valid", m.BitType, "output")
 
-    m.compile("build/test_rxmod", RXMOD)
+    m.compile("build/test_rxmod", RXMOD, output="verilog")
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
             "gold/test_rxmod.v")
 
@@ -83,7 +84,7 @@ def test_from_sv():
 
     if os.path.exists("build/test_pe.sv"):
        os.remove("build/test_pe.sv")
-    m.compile("build/test_pe", test_pe)
+    m.compile("build/test_pe", test_pe, output="verilog")
 
     # Remove last line from generated file since magma adds an extra newline
     with open("tests/test_verilog/build/test_pe.sv", 'r') as f:
@@ -204,3 +205,31 @@ endmodule""", external_modules={"foo": foo})
     assert pytest_e.type is Exception
     assert pytest_e.value.args == \
         ("Modules defined in both external_modules and in parsed verilog: {'foo'}",)  # nopep8
+
+
+def _test_nd_array_port(verilog):
+    try:
+        [top] = m.DefineFromVerilog(verilog)
+        assert len(top.interface.ports) == 1
+        assert "inp" in top.interface.ports
+
+        # Not sure why the following doesn't work, using repr as a workaround.
+        #assert type(top.inp) is m.In(m.Array[4, m.Array[2, m.Bits[8]]])
+        assert repr(type(top.inp)) == "Array[4, Array[2, Bits[8, Bit]]]"
+    except pyverilog.vparser.plyparser.ParseError:
+        pytest.skip("Parsing ND array failed, requires pyverilog branch, skipping test")
+
+
+def test_nd_array_port_list():
+    verilog = """
+    module top (input [7:0] inp [3:0][1:0]);
+    endmodule"""
+    _test_nd_array_port(verilog)
+
+
+def test_nd_array_decl():
+    verilog = """
+    module top (inp);
+      input [7:0] inp [3:0][1:0];
+    endmodule"""
+    _test_nd_array_port(verilog)
