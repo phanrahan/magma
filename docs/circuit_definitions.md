@@ -56,7 +56,7 @@ def ternary_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
 ```
 
 ## Function composition:
-```
+```python
 @m.circuit.combinational
 def basic_if_function_call(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return basic_if(I, S)
