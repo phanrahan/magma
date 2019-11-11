@@ -127,7 +127,7 @@ def logic(a: m.Bits[10]) -> m.Bits[10]:
 
 ## Using combinational circuits as a standard circuit definition
 Combinational circuits can also be used as standard circuit definitions by
-using the `.circuit_defintion` attribute to retrieve the corresponding magma
+using the `.circuit_definition` attribute to retrieve the corresponding magma
 circuit.
 ```python
 @m.circuit.combinational
