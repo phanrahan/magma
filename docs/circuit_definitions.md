@@ -139,7 +139,8 @@ class Foo(m.Circuit):
 
     @classmethod
     def definition(io):
-        inv = invert.circuit_definition()
+        # reference circuit_definition and instance
+        inv = invert.circuit_definition()  
         inv.a <= io.I
         io.O <= inv.O
 ```
