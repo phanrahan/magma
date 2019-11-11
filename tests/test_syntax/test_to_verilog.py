@@ -90,3 +90,48 @@ def test_simple_alu():
     except ImportError:
         pass
 
+
+def test_seq_simple():
+    @m.circuit.sequential_to_verilog(async_reset=True)
+    class TestBasic:
+        def __init__(self):
+            self.x: m.Bits[2] = m.bits(0, 2)
+            self.y: m.Bits[2] = m.bits(0, 2)
+
+        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+            # Issue: can't overload temporary name with output name
+            _O = self.y
+            self.y = self.x
+            self.x = I
+            return _O
+
+    m.compile('build/TestBasicToVerilog', TestBasic, output="verilog")
+    assert check_files_equal(__file__, f"build/TestBasicToVerilog.v",
+                             f"gold/TestBasicToVerilog.v")
+    try:
+        # Test with fault if available
+        import fault
+        target = "verilator"
+        tester = fault.Tester(TestBasic, TestBasic.CLK)
+        stream = hwtypes.BitVector.random(10)
+        tester.circuit.ASYNCRESET = 0
+        tester.eval()
+        tester.circuit.ASYNCRESET = 1
+        tester.eval()
+        tester.circuit.ASYNCRESET = 0
+        print(stream.as_bool_list())
+        for i in range(len(stream)):
+            tester.circuit.I = stream[i]
+            tester.print(f"%d\n", tester.circuit.O)
+            if i > 1:
+                tester.circuit.O.expect(stream[i - 2])
+            else:
+                tester.circuit.O.expect(0)
+            tester.step(2)
+        directory = f"{os.path.abspath(os.path.dirname(__file__))}/build/"
+        tester.compile_and_run(target,
+                               directory=directory,
+                               flags=["-Wno-fatal"], skip_compile=True)
+
+    except ImportError:
+        pass

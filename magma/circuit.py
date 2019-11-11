@@ -647,4 +647,4 @@ def circuit_generator(func):
 
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
-from magma.syntax.verilog import combinational_to_verilog
+from magma.syntax.verilog import combinational_to_verilog, sequential_to_verilog

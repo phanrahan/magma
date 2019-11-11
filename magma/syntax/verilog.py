@@ -4,6 +4,7 @@ import ast
 import astor
 from .verilog_utils import CollectInitialWidthsAndTypes, PromoteWidths, \
     RemoveBits
+from .sequential import get_initial_value_map, RewriteSelfAttributes
 import magma as m
 import kratos
 from magma.config import get_debug_mode
@@ -92,15 +93,24 @@ def get_length(t):
         return 1
 
 
-@ast_utils.inspect_enclosing_env
-def combinational_to_verilog(defn_env, fn):
+def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     tree = ast_utils.get_ast(fn).body[0]
     # TODO: Flatten types pass
     inputs = {}
     outputs = {}
     width_table = {}
     type_table = {}
+    if registers:
+        tree = RewriteSelfAttributes(registers).visit(tree)
+        for name, info in registers.items():
+            width = 1 if isinstance(info[3], m._BitKind) else len(info[3])
+            width_table["self_" + name + "_I"] = width
+            type_table["self_" + name + "_I"] = to_type_str(info[2])
+            width_table["self_" + name + "_O"] = width
+            type_table["self_" + name + "_O"] = to_type_str(info[2])
     for arg in tree.args.args:
+        if arg.arg == "self":
+            continue
         type_ = eval(astor.to_source(arg.annotation), defn_env)
         inputs[arg.arg] = get_length(type_)
         width_table[arg.arg] = get_io_width(type_)
@@ -117,8 +127,8 @@ def combinational_to_verilog(defn_env, fn):
         width_table["O"] = get_io_width(type_)
         type_table["O"] = to_type_str(type_)
 
-    names = [arg.arg for arg in tree.args.args]
-    types = [arg.annotation for arg in tree.args.args]
+    names = [arg.arg for arg in tree.args.args if arg.arg != "self"]
+    types = [arg.annotation for arg in tree.args.args if arg.arg != "self"]
     IO = []
     for name, type_ in zip(names, types):
         IO += [name, m.In(eval(compile(ast.Expression(type_), "", mode="eval")))]
@@ -127,8 +137,12 @@ def combinational_to_verilog(defn_env, fn):
             IO += [f"O{i}", m.Out(eval(compile(ast.Expression(elt), "", mode="eval")))]
     else:
         IO += [f"O", m.Out(eval(compile(ast.Expression(tree.returns), "", mode="eval")))]
+    if registers:
+        IO += m.ClockInterface(has_async_reset=True)
 
-    names = collect_names(tree, ctx=ast.Store)
+    names = collect_names(tree, ctx=ast.Store) | \
+        set(f"self_{name}_I" for name in registers) | \
+        set(f"self_{name}_O" for name in registers)
 
     for io_port in inputs.keys() | outputs.keys():
         if io_port in names:
@@ -154,13 +168,37 @@ def combinational_to_verilog(defn_env, fn):
 
     class Module(kratos.Generator):
         def __init__(self):
-            super().__init__(tree.name, get_debug_mode())
+            super().__init__(circ_name, get_debug_mode())
             for key, value in inputs.items():
                 setattr(self, key, self.input(key, value))
             for key, value in outputs.items():
                 setattr(self, key, self.output(key, value))
             for name in names:
                 setattr(self, name, self.var(name, width_table[name]))
+            if registers:
+                self.CLK = self.clock("CLK")
+                self.ASYNCRESET = self.reset("ASYNCRESET")
+
+                reg_updates = "\n    ".join(
+                    f"self.self_{name}_O = self.self_{name}_I"
+                    for name in registers
+                )
+                code = f"""
+from kratos import always, posedge
+
+@always((posedge, "CLK"), (posedge, "ASYNCRESET"))
+def seq_code_block(self):
+    {reg_updates}
+"""
+                lineno_offset = ast_utils.get_ast(init_fn).body[0].lineno
+                init_fn_ln = kratos.pyast.get_fn(init_fn), \
+                    kratos.pyast.get_ln(init_fn) + lineno_offset - 2
+                seq_code_block = ast_utils.compile_function_to_file(
+                    ast.parse(code), "seq_code_block", defn_env)
+                # TODO: What lines should this block map to?  This is implict
+                # in sequential, for now we can just map it to __init__
+                seq_block = self.add_code(seq_code_block, fn_ln=init_fn_ln)
+
             block = self.add_code(func, fn_ln=fn_ln)
             # set locals, which is the inputs and outputs
             for key in inputs:
@@ -169,11 +207,29 @@ def combinational_to_verilog(defn_env, fn):
                 block.stmt().add_scope_variable(key, key, True)
 
     os.makedirs(".magma", exist_ok=True)
-    filename = f".magma/{tree.name}-kratos.sv"
+    filename = f".magma/{circ_name}-kratos.sv"
     mod = Module()
 
     kratos.verilog(mod, filename=filename, insert_debug_info=get_debug_mode())
-    defn = m.DefineCircuit(tree.name, *IO, kratos=mod)
+    defn = m.DefineCircuit(circ_name, *IO, kratos=mod)
     with open(filename, 'r') as f:
         defn.verilogFile = f.read()
-    return lambda *args: defn()(*args)
+    m.EndCircuit()
+    return defn
+
+
+@ast_utils.inspect_enclosing_env
+def combinational_to_verilog(defn_env, fn):
+    return lambda *args: process_comb_func(defn_env, fn, fn.__name__)()(*args)
+
+
+def sequential_to_verilog(async_reset):
+    if not async_reset:
+        raise NotImplementedError()
+
+    @ast_utils.inspect_enclosing_env
+    def wrapped(defn_env, cls):
+        initial_value_map = get_initial_value_map(cls.__init__, defn_env)
+        return process_comb_func(defn_env, cls.__call__, cls.__name__,
+                                 initial_value_map, cls.__init__)
+    return wrapped
