@@ -222,7 +222,6 @@ class Port:
         if self in self.wires.inputs:
             if len(self.wires.outputs) < 1:
                 return None
-            assert len(self.wires.outputs) == 1
             return self.wires.outputs[0]
 
         return None
