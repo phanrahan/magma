@@ -182,11 +182,27 @@ def test_const_wire(T, t):
                                        (m.AsyncResetNOut, m.asyncresetn)])
 def test_asyncreset_cast(T, convert):
     class AsyncResetTest(m.Circuit):
-        IO = ['I', m.BitIn, 'O', T]
+        IO = ['I', m.BitIn, 'I_Arr', m.In(m.Array[3, Bit]),
+              'O', T, "O_Tuple", m.Tuple(R=T, B=Out(Bit)),
+              "O_Arr", m.Array[2, T],
+              'T_in', In(T), 'Bit_out', Out(Bit),
+              'T_Arr_in', In(m.Array[2, T]),
+              'Bit_Arr_out', Out(m.Array[3, Bit]),
+              'T_Tuple_in', In(m.Tuple(T=T)),
+              'Bit_Arr_out', Out(m.Array[3, Bit])]
 
         @classmethod
         def definition(io):
             io.O <= convert(io.I)
+            io.O_Tuple.R <= convert(io.I_Arr[0])
+            io.O_Arr[0] <= convert(io.I_Arr[1])
+            io.O_Arr[1] <= convert(io.I_Arr[2])
+            io.Bit_out <= m.bit(io.T_in)
+            io.O_Tuple.B <= m.bit(io.T_Tuple_in.T)
+            io.Bit_Arr_out[0] <= m.bit(io.T_Arr_in[0])
+            io.Bit_Arr_out[1] <= m.bit(io.T_Arr_in[1])
+            io.Bit_Arr_out[2] <= m.bit(io.T_Arr_in[0])
+
     m.compile(f"build/test_{T.__name__}_cast", AsyncResetTest)
     assert check_files_equal(__file__, f"build/test_{T.__name__}_cast.v",
                              f"gold/test_{T.__name__}_cast.v")

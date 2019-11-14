@@ -14,7 +14,7 @@ from ..logging import error
 import coreir
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
 from ..passes import InstanceGraphPass
-from ..t import In
+from ..t import In, Kind
 import logging
 from .util import make_relative, get_codegen_debug_info
 from ..interface import InterfaceKind
@@ -227,10 +227,16 @@ class CoreIRBackend:
             config_args = self.context.new_values(config_args)
             gen_args = {}
             for name, value in type(instance).coreir_genargs.items():
-                if isinstance(value, (AsyncResetKind, AsyncResetNKind)):
-                    value = self.context.named_types["coreir", "arst"]
-                elif isinstance(value, ClockKind):
-                    value = self.context.named_types["coreir", "clk"]
+                if isinstance(value, ClockKind):
+                    if value.isinput():
+                        value = self.context.named_types[("coreir", "clkIn")]
+                    else:
+                        value = self.context.named_types[("coreir", "clk")]
+                elif isinstance(value, (AsyncResetKind, AsyncResetNKind)):
+                    if value.isinput():
+                        value = self.context.named_types[("coreir", "arstIn")]
+                    else:
+                        value = self.context.named_types[("coreir", "arst")]
                 gen_args[name] = value
             gen_args = self.context.new_values(gen_args)
             return module_definition.add_generator_instance(instance.name,
@@ -501,30 +507,53 @@ class CoreIRBackend:
 
 
 class InsertWrapCasts(DefinitionPass):
-    def define_wrap(self, type_, in_type):
-        def sim_wrap(self, value_store, state_store):
-            input_val = value_store.get_value(getattr(self, "in"))
-            value_store.set_value(self.out, input_val)
+    def sim(self, value_store, state_store):
+        input_val = value_store.get_value(getattr(self, "in"))
+        value_store.set_value(self.out, input_val)
 
+    def define_wrap(self, wrap_type, in_type, out_type):
         return m.DeclareCircuit(
-            f'coreir_wrap{type_.__name__}',
-            "in", m.In(in_type), "out", m.Out(type_),
-            coreir_genargs={"type": type_},
+            f'coreir_wrap{wrap_type}'.replace("(", "").replace(")", ""),
+            "in", m.In(in_type), "out", m.Out(out_type),
+            coreir_genargs={"type": wrap_type},
             coreir_name="wrap",
             coreir_lib="coreir",
-            simulate=sim_wrap
+            simulate=self.sim
         )
 
-    def __call__(self, definition):
-        for name, port in definition.interface.ports.items():
-            if isinstance(port, (AsyncResetType, AsyncResetNType)):
+    def wrap_if_arst(self, port, definition):
+        if isinstance(port, (ArrayType, TupleType)):
+            for t in port:
+                self.wrap_if_arst(t, definition)
+        elif port.isinput():
+            if isinstance(port, (AsyncResetType, AsyncResetNType)) or \
+                    isinstance(port.value(), (AsyncResetType, AsyncResetNType)):
                 value = port.value()
-                if value is not None and not isinstance(value, type(port)):
+                print(port, value)
+                if value is not None and not isinstance(type(value),
+                                                        type(type(port))):
                     port.unwire(value)
-                    wrap_inst = self.define_wrap(type(port), type(value))()
-                    definition.place(wrap_inst)
-                    getattr(wrap_inst, "in") <= value
-                    m.wire(wrap_inst.out, port)
+                    if isinstance(port, (AsyncResetType, AsyncResetNType)):
+                        inst = self.define_wrap(type(port).flip(), type(port),
+                                                type(value))()
+                    else:
+                        inst = self.define_wrap(type(value).flip(), type(port),
+                                                type(value))()
+                    definition.place(inst)
+                    getattr(inst, "in") <= value
+                    m.wire(inst.out, port)
+
+    def __call__(self, definition):
+        # copy, because wrapping might add instances
+        instances = definition.instances[:]
+        for instance in definition.instances:
+            if type(instance).coreir_name == "wrap" or \
+                    type(instance).coreir_name == "unwrap":
+                continue
+            for port in instance.interface.ports.values():
+                self.wrap_if_arst(port, definition)
+        for port in definition.interface.ports.values():
+            self.wrap_if_arst(port, definition)
 
 
 def compile(main, file_name=None, context=None, check_context_is_default=True):

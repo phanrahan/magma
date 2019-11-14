@@ -88,7 +88,6 @@ class Wire:
         self.outputs = []
 
     def disconnect(self, o, i):
-        self.outputs.remove(o)
         self.inputs.remove(i)
 
     def connect( self, o, i , debug_info):
@@ -167,6 +166,8 @@ class Port:
 
     def unwire(i, o):
         o.wires.disconnect(o, i)
+        # Wire can only have one output, so we start with a fresh wire
+        i.wires = Wire()
 
     # wire a port to a port
     def wire(i, o, debug_info):
@@ -221,6 +222,7 @@ class Port:
         if self in self.wires.inputs:
             if len(self.wires.outputs) < 1:
                 return None
+            assert len(self.wires.outputs) == 1
             return self.wires.outputs[0]
 
         return None
