@@ -86,7 +86,8 @@ class Wire:
     def __init__(self):
         self.inputs = []
         self.outputs = []
-    def disconnect( self, o, i):
+
+    def disconnect(self, o, i):
         self.outputs.remove(o)
         self.inputs.remove(i)
 

@@ -1,5 +1,7 @@
 import pytest
 import tempfile
+import magma as m
+from magma.testing import check_files_equal
 from magma import In, Out, Flip, \
     Clock, ClockType, ClockKind, \
     Reset, ResetType, ResetKind, reset, \
@@ -174,3 +176,17 @@ def test_const_wire(T, t):
     expected_filename = f"tests/test_type/test_const_wire_golden.json"
     expected = open(expected_filename).read()
     assert got == expected
+
+
+@pytest.mark.parametrize("T,convert", [(m.AsyncResetOut, m.asyncreset),
+                                       (m.AsyncResetNOut, m.asyncresetn)])
+def test_asyncreset_cast(T, convert):
+    class AsyncResetTest(m.Circuit):
+        IO = ['I', m.BitIn, 'O', T]
+
+        @classmethod
+        def definition(io):
+            io.O <= convert(io.I)
+    m.compile(f"build/test_{T.__name__}_cast", AsyncResetTest)
+    assert check_files_equal(__file__, f"build/test_{T.__name__}_cast.v",
+                             f"gold/test_{T.__name__}_cast.v")

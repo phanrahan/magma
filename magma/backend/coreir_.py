@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from hwtypes import BitVector
 import os
+import magma as m
 from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
 from ..array import ArrayKind, ArrayType, Array
 from ..tuple import TupleKind, TupleType, Tuple
@@ -17,6 +18,7 @@ from ..t import In
 import logging
 from .util import make_relative, get_codegen_debug_info
 from ..interface import InterfaceKind
+from ..passes import DefinitionPass
 import inspect
 import copy
 import json
@@ -225,7 +227,7 @@ class CoreIRBackend:
             config_args = self.context.new_values(config_args)
             gen_args = {}
             for name, value in type(instance).coreir_genargs.items():
-                if isinstance(value, AsyncResetKind):
+                if isinstance(value, (AsyncResetKind, AsyncResetNKind)):
                     value = self.context.named_types["coreir", "arst"]
                 elif isinstance(value, ClockKind):
                     value = self.context.named_types["coreir", "clk"]
@@ -497,7 +499,36 @@ class CoreIRBackend:
         self.context.run_passes(passes, namespaces)
         module.save_to_file(filename)
 
+
+class InsertWrapCasts(DefinitionPass):
+    def define_wrap(self, type_, in_type):
+        def sim_wrap(self, value_store, state_store):
+            input_val = value_store.get_value(getattr(self, "in"))
+            value_store.set_value(self.out, input_val)
+
+        return m.DeclareCircuit(
+            f'coreir_wrap{type_.__name__}',
+            "in", m.In(in_type), "out", m.Out(type_),
+            coreir_genargs={"type": type_},
+            coreir_name="wrap",
+            coreir_lib="coreir",
+            simulate=sim_wrap
+        )
+
+    def __call__(self, definition):
+        for name, port in definition.interface.ports.items():
+            if isinstance(port, (AsyncResetType, AsyncResetNType)):
+                value = port.value()
+                if value is not None and not isinstance(value, type(port)):
+                    port.unwire(value)
+                    wrap_inst = self.define_wrap(type(port), type(value))()
+                    definition.place(wrap_inst)
+                    getattr(wrap_inst, "in") <= value
+                    m.wire(wrap_inst.out, port)
+
+
 def compile(main, file_name=None, context=None, check_context_is_default=True):
+    InsertWrapCasts(main).run()
     backend = CoreIRBackend(context, check_context_is_default)
     backend.compile(main)
     if file_name is not None:

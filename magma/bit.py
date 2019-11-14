@@ -46,6 +46,7 @@ class _BitType(Type):
         i.port.wire(o.port, debug_info)
         i.debug_info = debug_info
         o.debug_info = debug_info
+
     def unwire(i, o):
         i.port.unwire(o.port)
 

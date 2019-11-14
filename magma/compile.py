@@ -5,6 +5,7 @@ import subprocess
 
 from .passes import DefinitionPass, InstanceGraphPass
 from .backend import verilog, blif, firrtl, dot
+from .backend.coreir_ import InsertWrapCasts
 from .config import get_compile_dir
 from .logging import warning
 from .uniquification import uniquification_pass, UniquificationMode
@@ -24,6 +25,7 @@ def __compile_to_coreir(main, file_name, opts):
     # package.
     from .frontend import coreir_
     backend = coreir_.GetCoreIRBackend()
+    InsertWrapCasts(main).run()
     backend.compile(main)
     passes = opts.get("passes", [])
     if "markdirty" not in passes:
