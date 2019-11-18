@@ -8,7 +8,7 @@ class ParamDict(dict):
     Hashable dictionary for simple key: value parameters
     """
     def __hash__(self):
-        return hash(tuple(sorted(self.keys())))
+        return hash(tuple(sorted(self.items())))
 
 
 class GeneratorMeta(type):
