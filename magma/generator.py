@@ -18,8 +18,16 @@ class GeneratorMeta(type):
             cls.generate = functools.lru_cache(maxsize=None)(cls.generate)
         return cls
 
-    def __call__(cls, *args, **kwargs):
-        return cls.generate(*args, **kwargs)()
+    def __call__(cls, *args, name=None, **kwargs):
+        """
+        name is reserved kwarg for naming instances
+
+        TODO: Generalize handling of instance parameters
+        """
+        inst_kwargs = {}
+        if name is not None:
+            inst_kwargs["name"] = name
+        return cls.generate(*args, **kwargs)(**inst_kwargs)
 
 
 class Generator(metaclass=GeneratorMeta):
