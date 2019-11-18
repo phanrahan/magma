@@ -42,7 +42,7 @@ def test_add_gen():
         @classmethod
         def definition(io):
             # Define and instance circuit by instancing the generator class
-            io.O <= Add(8)(io.I0, io.I1)
+            io.O <= Add(8, name='add8')(io.I0, io.I1)
 
     m.compile("build/AddGen8Top", Top)
     assert check_files_equal(__file__, f"build/AddGen8Top.v",
