@@ -6,6 +6,7 @@ from .bit import _BitKind, _BitType, Bit, BitType, VCC, GND
 from .clock import ClockType, Clock, \
     Reset, ResetType, \
     AsyncReset, AsyncResetType, \
+    AsyncResetN, AsyncResetNType, \
     Enable, EnableType
 from .array import ArrayType, Array, ArrayKind
 from .bits import BitsType, Bits, UIntType, UInt, SIntType, SInt, UIntKind, \
@@ -16,7 +17,7 @@ import magma as m
 import hwtypes
 
 __all__ = ['bit']
-__all__ += ['clock', 'reset', 'enable', 'asyncreset']
+__all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
 
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
@@ -84,6 +85,10 @@ def reset(value):
 
 def asyncreset(value):
     return convertbit(value, AsyncResetType, AsyncReset)
+
+
+def asyncresetn(value):
+    return convertbit(value, AsyncResetNType, AsyncResetN)
 
 
 def enable(value):

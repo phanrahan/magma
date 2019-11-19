@@ -99,6 +99,13 @@ class TupleType(Type):
             else:
                 i_elem.wire(o_elem, debug_info)
 
+    def unwire(i, o):
+        for i_elem, o_elem in zip(i, o):
+            if o_elem.isinput():
+                o_elem.unwire(i_elem, debug_info)
+            else:
+                i_elem.unwire(o_elem, debug_info)
+
     def driven(self):
         for t in self.ts:
             if not t.driven():

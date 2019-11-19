@@ -186,6 +186,10 @@ class Array(Type, metaclass=ArrayKind):
         for k in range(len(i)):
             i[k].wire(o[k], debug_info)
 
+    def unwire(i, o):
+        for k in range(len(i)):
+            i[k].unwire(o[k])
+
     def driven(self):
         for t in self.ts:
             if not t.driven():
