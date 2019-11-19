@@ -135,6 +135,10 @@ class Array(Type, metaclass=ArrayKind):
     def __len__(self):
         return self.N
 
+    @classmethod
+    def flat_length(cls):
+        return cls.N * cls.T.flat_length()
+
     def __getitem__(self, key):
         if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
             key = seq2int([0 if t is GND else 1 for t in key.ts])
