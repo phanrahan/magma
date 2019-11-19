@@ -62,6 +62,10 @@ class TupleType(Type):
     def __len__(self):
         return self.N
 
+    @classmethod
+    def flat_length(cls):
+        return sum(T.flat_length() for T in cls.Ts)
+
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 

@@ -207,3 +207,8 @@ def test_tuple_nested_tuple_value():
 
 
     m.compile("top", DefineTop({'param0': 5}))
+
+
+def test_flat_length():
+    a = m.Tuple(x=m.Bits[5], y=m.Bits[3], z=m.Bit)
+    assert a.flat_length() == 9

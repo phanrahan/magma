@@ -53,6 +53,10 @@ class _BitType(Type):
     def wired(self):
         return self.port.wired()
 
+    @classmethod
+    def flat_length(cls):
+        return 1
+
     # return the input or output _Bit connected to this _Bit
     def trace(self):
         t = self.port.trace()
