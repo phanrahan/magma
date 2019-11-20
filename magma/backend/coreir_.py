@@ -4,6 +4,7 @@ import os
 import magma as m
 from ..wire import Wire
 from ..bit import Bit, BitIn, BitOut
+from ..digital import Digital
 from ..array import Array
 from ..tuple import Tuple, Product
 from ..clock import wiredefaultclock, wireclock, Clock, Enable, Reset, \
@@ -113,12 +114,12 @@ class CoreIRBackend:
             elif issubclass(port.type_, Tuple):
                 for (k, t) in port._get_items():
                     check_type(t, errorMessage.format("Tuple({}:{})".format(k, "{}")))
-            elif issubclass(port.type_, (Bit, Clock, Enable, Reset, AsyncReset, ResetN, AsyncResetN)):
+            elif issubclass(port.type_, Digital):
                 return
             else:
                 raise CoreIRBackendError(errorMessage.format(str(port)))
         for name, port in definition.interface.ports.items():
-            check_type(port, 'Error: Argument {} must be comprised only of Bit, Array, or Tuple')
+            check_type(port, 'Error: Argument {} must be comprised only of Digital, Array, or Tuple')
 
     def get_type(self, port):
         if issubclass(port.type_, Array):
