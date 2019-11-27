@@ -125,7 +125,6 @@ $ cd magma
 
 Install magma as a symbolic package
 ```
-$ pip install -r requirements.txt
 $ pip install -e .
 ```
 
