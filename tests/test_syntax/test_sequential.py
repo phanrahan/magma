@@ -373,3 +373,21 @@ def test_no_init(target):
             return ~a
 
     compile_and_check("Foo", Foo, target)
+
+def test_sint(target):
+    Data = m.Bits[16]
+    SData = m.SInt[16]
+    UData = m.UInt[16]
+    @m.circuit.sequential
+    class Square:
+        def __call__(self, a : Data) -> Data:
+            if a[0]:
+                a_ = SData(a).sext(16)
+            else:
+                a_ = UData(a).zext(16)
+            a__ = SData(a_)
+            return (a__*a__)[:16]
+
+    compile_and_check("square", Square, target)
+
+
