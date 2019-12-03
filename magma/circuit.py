@@ -40,14 +40,6 @@ __all__ += ['circuit_generator']
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 
-def circuit_to_html(cls):
-    if isdefinition(cls):
-        # Avoid circular dependency so dot backend can use passes
-        from .backend.dot import to_html
-        return to_html(cls)
-    else:
-        return repr(cls)
-
 # create an attribute for each port
 def setports(self, ports):
     #print('setports', ports)
@@ -551,19 +543,6 @@ class DefineCircuitKind(CircuitKind):
         cls.instances.append(inst)
 
 
-# Register graphviz repr if running in IPython.
-# There's a bug in IPython which breaks visual reprs
-# on types.
-try:
-    ip = get_ipython()
-    html_formatter = ip.display_formatter.formatters['text/html']
-    html_formatter.for_type(DefineCircuitKind, circuit_to_html)
-    html_formatter.for_type(CircuitKind, circuit_to_html)
-except NameError:
-    # Not running in IPython right now?
-    pass
-
-
 @six.add_metaclass(DefineCircuitKind)
 class Circuit(CircuitType):
     pass
@@ -613,23 +592,6 @@ def CopyInstance(instance):
     new_instance = circuit()
     new_instance.kwargs = instance.kwargs
     return new_instance
-
-def hex(i):
-    if i < 10: return chr(ord('0')+i)
-    else:      return chr(ord('A')+i-10)
-
-
-def hstr(init, nbits):
-    bits = 1 << int(nbits)
-    format = "0x"
-    nformat = []
-    for i in range(bits//4):
-        nformat.append(init%16)
-        init //= 16
-    nformat.reverse()
-    if nformat:
-        return format + reduce(operator.add, map(hex, nformat))
-    return format
 
 
 GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
