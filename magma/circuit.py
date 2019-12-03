@@ -30,7 +30,6 @@ __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
-__all__ += ['getCurrentDefinition']
 
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
@@ -38,6 +37,36 @@ __all__ += ['circuit_generator']
 
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
+
+
+# Maintain a stack of nested definitions.
+class _DefinitionBlock:
+    __stack = []
+
+    def __init__(self, defn):
+        self.__defn = defn
+
+    def __enter__(self):
+        _DefinitionBlock.push(self.__defn)
+
+    def __exit__(self, typ, value, traceback):
+        _DefinitionBlock.pop()
+
+    @classmethod
+    def push(cls, defn):
+        cls.__stack.append(defn)
+
+    @classmethod
+    def pop(cls):
+        if not cls.__stack:
+            return None
+        return cls.__stack.pop()
+
+    @classmethod
+    def peek(cls):
+        if not cls.__stack:
+            return None
+        return cls.__stack[-1]
 
 
 # create an attribute for each port
@@ -347,9 +376,9 @@ class CircuitType(AnonymousCircuitType):
         super(CircuitType, self).__init__(*largs, **kwargs)
 
         # Circuit instances are placed if within a definition
-        global currentDefinition
-        if currentDefinition:
-             currentDefinition.place(self)
+        top = _DefinitionBlock.peek()
+        if top:
+            top.place(self)
 
     def __repr__(self):
         args = []
@@ -401,29 +430,6 @@ def DeclareCircuit(name, *decl, **args):
     return CircuitKind( name, (CircuitType,), dct )
 
 
-
-# Maintain a current definition and stack of nested definitions
-
-currentDefinition = None
-currentDefinitionStack = []
-
-def getCurrentDefinition():
-    global currentDefinition
-    return currentDefinition
-
-def pushDefinition(defn):
-    global currentDefinition
-    if currentDefinition:
-        currentDefinitionStack.append(currentDefinition)
-    currentDefinition = defn
-
-def popDefinition():
-    global currentDefinition
-    if len(currentDefinitionStack) > 0:
-        currentDefinition = currentDefinitionStack.pop()
-    else:
-        currentDefinition = None
-
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
 
@@ -464,14 +470,12 @@ class DefineCircuitKind(CircuitKind):
         self.is_instance = False
 
         if hasattr(self, 'IO'):
-
-            # create circuit definition
+            # Create circuit definition.
             if hasattr(self, 'definition'):
-                 pushDefinition(self)
-                 self.definition()
-                 self.check_unconnected()
-                 self._is_definition = True
-                 EndCircuit()
+                with _DefinitionBlock(self):
+                    self.definition()
+                    self.check_unconnected()
+                    self._is_definition = True
 
         return self
 
@@ -554,10 +558,6 @@ def DefineCircuit(name, *decl, **args):
         debug_info = get_callee_frame_info()
     else:
         debug_info = None
-    global currentDefinition
-    if currentDefinition:
-        currentDefinitionStack.append(currentDefinition)
-
     dct = dict(IO             = decl,
                is_definition  = True,
                primitive      = args.get('primitive', False),
@@ -571,21 +571,23 @@ def DefineCircuit(name, *decl, **args):
                coreir_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}),
                renamed_ports = args.get('renamed_ports', {}),
-               kratos=args.get("kratos", None))
+               kratos=args.get("kratos", None)))
+    defn = DefineCircuitKind( name, (Circuit,), dct)
+    _DefinitionBlock.push(defn)
+    return defn
 
-    currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
-    return currentDefinition
 
 def EndDefine():
-    if currentDefinition:
-        debug_info = get_callee_frame_info()
-        currentDefinition.end_circuit_filename = debug_info[0]
-        currentDefinition.end_circuit_lineno   = debug_info[1]
-        popDefinition()
-    else:
+    top = _DefinitionBlock.pop()
+    if not top:
         raise Exception("EndDefine called without Define/DeclareCircuit")
+    debug_info = get_callee_frame_info()
+    top.end_circuit_filename = debug_info[0]
+    top.end_circuit_lineno = debug_info[1]
+
 
 EndCircuit = EndDefine
+
 
 def CopyInstance(instance):
     circuit = type(instance)
