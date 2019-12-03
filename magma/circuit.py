@@ -180,34 +180,30 @@ class CircuitKind(type):
             defn[name] = cls
         return defn
 
-#
-# Abstract base class for circuits
-#
+
 @six.add_metaclass(CircuitKind)
 class AnonymousCircuitType(object):
-
+    """Abstract base class for circuits"""
     def __init__(self, *largs, **kwargs):
-
         self.kwargs = dict(**kwargs)
+
         if "debug_info" in self.kwargs:
-            # Not an instance parameter, internal debug argument
+            # Not an instance parameter, internal debug argument.
             del self.kwargs["debug_info"]
+
         if hasattr(self, 'default_kwargs'):
             for key in self.default_kwargs:
                 if key not in kwargs:
                     self.kwargs[key] = self.default_kwargs[key]
 
         self.name = kwargs['name'] if 'name' in kwargs else ""
-
         self.loc = kwargs['loc'] if 'loc' in kwargs else None
         if self.loc and len(self.loc) == 2:
             self.loc = (self.loc[0], self.loc[1], 0)
-
         self.interface = None
         self.defn = None
         self.used = False
         self.is_instance = True
-
         self.debug_info = kwargs.get("debug_info", None)
 
     def set_debug_info(self, debug_info):
@@ -216,59 +212,58 @@ class AnonymousCircuitType(object):
     def __str__(self):
         if self.name:
             return f"{self.name}<{type(self)}>"
-        else:
-            name = f"AnonymousCircuitInst{id(self)}"
-            interface = ""
-            interface = ", ".join(f"{name}: {type(value)}" for name, value in self.interface.ports.items())
-            return f"{name}<{interface}>"
+        name = f"AnonymousCircuitInst{id(self)}"
+        interface = ", ".join(
+            f"{name}: {type(value)}"
+            for name, value in self.interface.ports.items())
+        return f"{name}<{interface}>"
 
     def __repr__(self):
         args = []
         for k, v in self.interface.ports.items():
-            args.append('"{}"'.format(k))
+            args.append(f"\"{k}\"")
             args.append(repr(v))
+        args = ", ".join(args)
+        typ = type(self).__name__
         if self.name:
-            return '{} = {}({})'.format(self.name, type(self).__name__, ', '.join(args))
-        else:
-            return '{}({})'.format(type(self).__name__, ', '.join(args))
-
-        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
-        #    ', '.join(args), self.filename, self.lineno)
-
-    def _repr_html_(self):
-        return circuit_to_html(self)
+            return f"{self.name} = {typ}({args})"
+        return f"{typ}({args})"
 
     def __getitem__(self, key):
         return self.interface[key]
 
-    # wire a list of outputs to the circuit's inputs
     def wireoutputs(self, outputs, debug_info):
+        """Wire a list of outputs to the circuit's inputs"""
         inputs = self.interface.inputs()
         ni = len(inputs)
         no = len(outputs)
         if ni != no:
-            report_wiring_warning(f"Number of inputs is not equal to the number of outputs, expected {ni} inputs, got {no}. Only {min(ni,no)} will be wired.",  # noqa
-                    debug_info)
+            msg = (f"Number of inputs is not equal to the number of outputs, "
+                   f"expected {ni} inputs, got {no}. Only {min(ni,no)} will be "
+                   f"wired.")
+            report_wiring_warning(msg, debug_info)
         for i in range(min(ni,no)):
             wire(outputs[i], inputs[i], debug_info)
 
-    # wire a single output to the circuit's inputs
     def wire(self, output, debug_info):
-
+        """Wire a single output to the circuit's inputs"""
         if hasattr(output, 'interface'):
-            # wire the circuit's outputs to this circuit's inputs
+            # Wire the circuit's outputs to this circuit's inputs.
             self.wireoutputs(output.interface.outputs(), debug_info)
-        else:
-            # wire the output to this circuit's input (should only have 1 input)
-            inputs = self.interface.inputs()
-            ni = len(inputs)
-            if ni == 0:
-                report_wiring_warning("Wiring an output to a circuit with no input arguments, skipping", debug_info)
-                return
-            if ni != 1:
-                report_wiring_warning(f"Wiring an output to a circuit with more than one input argument, using the first input {inputs[0].debug_name}", debug_info)
-            inputs[0].wire( output, debug_info )
-
+            return
+        # Wire the output to this circuit's input (should only have 1 input).
+        inputs = self.interface.inputs()
+        ni = len(inputs)
+        if ni == 0:
+            msg = ("Wiring an output to a circuit with no input arguments, "
+                   "skipping")
+            report_wiring_warning(msg, debug_info)
+            return
+        if ni != 1:
+            msg = (f"Wiring an output to a circuit with more than one input "
+                   f"argument, using the first input {inputs[0].debug_name}")
+            report_wiring_warning(msg, debug_info)
+        inputs[0].wire(output, debug_info)
 
     @property
     def debug_name(self):
@@ -278,10 +273,9 @@ class AnonymousCircuitType(object):
         return f"{defn_str}.{self.name}"
 
     def __call__(input, *outputs, **kw):
+        debug_info = None
         if get_debug_mode():
             debug_info = get_callee_frame_info()
-        else:
-            debug_info = None
 
         no = len(outputs)
         if len(outputs) == 1:
@@ -289,10 +283,8 @@ class AnonymousCircuitType(object):
         elif len(outputs) >= 1:  # In case there are only kw
             input.wireoutputs(outputs, debug_info)
 
-        # wire up extra arguments, name to name
-        #
-        # this code should be changed to use clock types ...
-        #
+        # Wire up extra arguments, name to name.
+        # TODO(rsetaluri): This code should be changed to use clock types.
         for key, value in kw.items():
             if key == 'enable': key = 'CE'
             if key == 'reset':  key = 'RESET'
@@ -302,7 +294,8 @@ class AnonymousCircuitType(object):
                 i = getattr(input, key)
                 wire( value, getattr(input, key), debug_info)
             else:
-                report_wiring_warning('Instance {} does not have input {}'.format(input.debug_name, key), debug_info)
+                msg = f"Instance {input.debug_name} does not have input {key}"
+                report_wiring_warning(msg, debug_info)
 
         o = input.interface.outputs()
         return o[0] if len(o) == 1 else tuple(o)
