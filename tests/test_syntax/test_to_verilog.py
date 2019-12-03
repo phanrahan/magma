@@ -135,3 +135,5 @@ def test_seq_simple():
 
     except ImportError:
         pass
+
+    assert False

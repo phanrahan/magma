@@ -2,6 +2,7 @@ import inspect
 import sys
 import re
 import ast
+import magma as m
 
 
 # The code in this file is adapted from the Silica compiler, shout out to Teguh
@@ -34,7 +35,7 @@ for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if
     is_generator(x)
 
 
-def get_width(node, width_table, defn_env={}):
+def get_width(node, width_table, defn_env={}, registers={}):
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and \
        node.func.id in {"bits", "uint", "BitVector"}:
         if isinstance(node.args[1], ast.Call) and \
@@ -148,6 +149,11 @@ def get_width(node, width_table, defn_env={}):
     elif isinstance(node, ast.Num):
         return max(node.n.bit_length(), 1)
     elif isinstance(node, ast.Attribute):
+        if isinstance(node.value, ast.Name) and node.value.id == "self" and \
+                node.attr in registers:
+            width = registers[node.attr][3]
+            return 1 if isinstance(width, m._BitKind) else len(width)
+
         type_ = width_table[node.value.id]._outputs[node.attr]
         if isinstance(type_, m.BitKind):
             return None
@@ -157,10 +163,11 @@ def get_width(node, width_table, defn_env={}):
 
 
 class CollectInitialWidthsAndTypes(ast.NodeVisitor):
-    def __init__(self, width_table, type_table, defn_env):
+    def __init__(self, width_table, type_table, defn_env, registers):
         self.width_table = width_table
         self.type_table = type_table
         self.defn_env = defn_env
+        self.registers = registers
 
     def visit_Assign(self, node):
         if len(node.targets) == 1:
@@ -173,7 +180,8 @@ class CollectInitialWidthsAndTypes(ast.NodeVisitor):
                     pass
                 elif node.targets[0].id not in self.width_table:
                     self.width_table[node.targets[0].id] = \
-                        get_width(node.value, self.width_table, self.defn_env)
+                        get_width(node.value, self.width_table, self.defn_env,
+                                  self.registers)
                     if isinstance(node.value, ast.Call) and \
                             isinstance(node.value.func, ast.Name) and \
                             node.value.func.id in {"bits", "uint", "bit"}:
