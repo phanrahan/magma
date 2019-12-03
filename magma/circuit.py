@@ -73,40 +73,32 @@ def _setattrs(obj, dct):
     for k, v in dct.items():
         setattr(obj, k, v)
 
-#
-# Metaclass for creating circuits
-#
 class CircuitKind(type):
-
+    """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
-        #print('CircuitKind new:', name)
-
-        # override circuit class name
+        # Override class name if supplied.
         name = dct.setdefault('name', name)
 
         dct.setdefault('renamed_ports', {})
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
 
-        if get_debug_mode():
-            if not dct.get("debug_info", False):
-                callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
-                module = inspect.getmodule(inspect.stack()[2][0])
-                dct["debug_info"] = debug_info(callee_frame.filename,
-                                               callee_frame.lineno, module)
-        else:
-            dct["debug_info"] = None
+        # If in debug_mode is active and debug_info is not supplied, attach
+        # callee stack info.
+        dct.setdefault("debug_info", None)
+        if get_debug_mode() and not dct["debug_info"]:
+            callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
+            module = inspect.getmodule(inspect.stack()[2][0])
+            dct["debug_info"] = debug_info(callee_frame.filename,
+                                           callee_frame.lineno, module)
 
-
-        # create a new circuit class
         cls = type.__new__(metacls, name, bases, dct)
 
         for method in dct.get('circuit_type_methods', []):
             setattr(cls, method.name, method.definition)
 
-        # create interface for this circuit class
+        # Create interface for this circuit class.
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
-            # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
             cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
@@ -114,22 +106,20 @@ class CircuitKind(type):
         return cls
 
     def __call__(cls, *largs, **kwargs):
-        #print('CircuitKind call:', largs, kwargs)
         if get_debug_mode():
             debug_info = get_callee_frame_info()
             kwargs["debug_info"] = debug_info
         self = super(CircuitKind, cls).__call__(*largs, **kwargs)
-
-        # instance interface for this instance
         if hasattr(cls, 'IO'):
-            self.setinterface(cls.IO(inst=self, renamed_ports=cls.renamed_ports))
-
+            interface = cls.IO(inst=self, renamed_ports=cls.renamed_ports)
+            self.setinterface(interface)
         return self
 
     def __str__(cls):
         interface = ""
         if hasattr(cls, "interface"):
-            interface = ", ".join(f"{name}: {_type}" for name, _type in cls.interface.items())
+            interface = ", ".join(f"{name}: {_type}"
+                                  for name, _type in cls.interface.items())
             interface = f"({interface})"
         return f"{cls.__name__}{interface}"
 
@@ -139,29 +129,20 @@ class CircuitKind(type):
 
         name = cls.__name__
         args = str(cls.IO)
-        if hasattr(cls,"instances"):
-            s = '{} = DefineCircuit("{}", {})\n'.format(name, name, args)
 
-            sorted_instances = sorted(cls.instances, key=lambda x : x.name)
-            # emit instances
-            for instance in sorted_instances:
-                s += repr(instance) + '\n'
-
-            # emit wires from instances
-            for instance in sorted_instances:
-                s += repr(instance.interface)
-
-            # for input in cls.interface.inputs():
-            s += repr( cls.interface )
-
-            s += "EndCircuit()"
-        else:
-            s = '{} = DeclareCircuit("{}", {})'.format(name, name, args)
-
+        if not hasattr(cls, "instances"):
+            return f"{name} = DeclareCircuit(\"{name}\", {args})"
+        s = f"{name} = DefineCircuit(\"{name}\", {args})\n"
+        sorted_instances = sorted(cls.instances, key=lambda x : x.name)
+        # Emit instances.
+        for instance in sorted_instances:
+            s += repr(instance) + '\n'
+        # Emit wires from instances.
+        for instance in sorted_instances:
+            s += repr(instance.interface)
+        s += repr(cls.interface)
+        s += "EndCircuit()"
         return s
-
-    def _repr_html_(cls):
-        return circuit_to_html(cls)
 
     def rename(cls, new_name):
         if cls.verilogFile:
