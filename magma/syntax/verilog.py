@@ -101,9 +101,13 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     width_table = {}
     type_table = {}
     if registers:
+        tree = RewriteSelfAttributes(registers).visit(tree)
         for name, info in registers.items():
             width = 1 if isinstance(info[3], m._BitKind) else len(info[3])
-            width_table[name] = width
+            width_table["self_" + name + "_I"] = width
+            type_table["self_" + name + "_I"] = to_type_str(info[2])
+            width_table["self_" + name + "_O"] = width
+            type_table["self_" + name + "_O"] = to_type_str(info[2])
     for arg in tree.args.args:
         if arg.arg == "self":
             continue
@@ -139,14 +143,15 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     if registers:
         IO += m.ClockInterface(has_async_reset=True)
 
-    names = collect_names(tree, ctx=ast.Store) | set(name for name in registers)
+    names = collect_names(tree, ctx=ast.Store) | \
+        set(f"self_{name}_I" for name in registers) | \
+        set(f"self_{name}_O" for name in registers)
 
     for io_port in inputs.keys() | outputs.keys():
         if io_port in names:
             names.remove(io_port)
 
-    CollectInitialWidthsAndTypes(width_table, type_table, defn_env,
-                                 registers).visit(tree)
+    CollectInitialWidthsAndTypes(width_table, type_table, defn_env).visit(tree)
     PromoteWidths(width_table, type_table).visit(tree)
     tree = ProcessNames(inputs, outputs, names).visit(tree)
     tree = ProcessReturns(outputs).visit(tree)
@@ -162,36 +167,6 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     fn_ln = kratos.pyast.get_fn(fn), kratos.pyast.get_ln(fn) + lineno_offset - 2
 
     print(astor.to_source(tree))
-    if registers:
-        tree.decorator_list = [
-            ast.Call(func=ast.Name(id='always', ctx=ast.Load()),
-                     args=[ast.Tuple(elts=[ast.Name(id='posedge',
-                                                    ctx=ast.Load()),
-                                           ast.Str(s='CLK')],
-                                     ctx=ast.Load()),
-                           ast.Tuple(elts=[ast.Name(id='posedge',
-                                                    ctx=ast.Load()),
-                                           ast.Str(s='ASYNCRESET')],
-                                     ctx=ast.Load())],
-                     keywords=[])]
-        defn_env["always"] = kratos.always
-        defn_env["posedge"] = kratos.posedge
-        reg_inits = []
-        for reg, info in registers.items():
-            eval_value = info[3]
-            try:
-                init = int(eval_value)
-            except Exception:
-                raise NotImplementedError(eval_value)
-            reg_inits.append(ast.parse(
-                f"self.{reg} = {init}"
-            ).body[0])
-        tree.body = [ast.If(
-            ast.Attribute(ast.Name("self", ast.Load()), "ASYNCRESET",
-                          ast.Load()),
-            reg_inits,
-            tree.body
-        )]
     func = ast_utils.compile_function_to_file(tree, fn.__name__, defn_env)
 
     class Module(kratos.Generator):
@@ -206,6 +181,40 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
             if registers:
                 self.CLK = self.clock("CLK")
                 self.ASYNCRESET = self.reset("ASYNCRESET")
+
+                reg_updates = "\n        ".join(
+                    f"self.self_{name}_O = self.self_{name}_I"
+                    for name in registers
+                )
+                reg_inits = []
+                for reg, info in registers.items():
+                    eval_value = info[3]
+                    try:
+                        init = int(eval_value)
+                    except Exception as e:
+                        raise NotImplementedError(eval_value)
+                    reg_inits.append(
+                        f"self.self_{reg}_O = {init}"
+                    )
+                reg_inits = "\n        ".join(reg_inits)
+                code = f"""
+from kratos import always, posedge
+
+@always((posedge, "CLK"), (posedge, "ASYNCRESET"))
+def seq_code_block(self):
+    if self.ASYNCRESET:
+        {reg_inits}
+    else:
+        {reg_updates}
+"""
+                lineno_offset = ast_utils.get_ast(init_fn).body[0].lineno
+                init_fn_ln = kratos.pyast.get_fn(init_fn), \
+                    kratos.pyast.get_ln(init_fn) + lineno_offset - 2
+                seq_code_block = ast_utils.compile_function_to_file(
+                    ast.parse(code), "seq_code_block", defn_env)
+                # TODO: What lines should this block map to?  This is implict
+                # in sequential, for now we can just map it to __init__
+                seq_block = self.add_code(seq_code_block, fn_ln=init_fn_ln)
 
             block = self.add_code(func, fn_ln=fn_ln)
             # set locals, which is the inputs and outputs

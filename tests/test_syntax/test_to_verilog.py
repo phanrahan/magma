@@ -99,9 +99,11 @@ def test_seq_simple():
             self.y: m.Bits[2] = m.bits(0, 2)
 
         def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+            # Issue: can't overload temporary name with output name
+            _O = self.y
             self.y = self.x
             self.x = I
-            return self.y
+            return _O
 
     m.compile('build/TestBasicToVerilog', TestBasic, output="verilog")
     assert check_files_equal(__file__, f"build/TestBasicToVerilog.v",
@@ -121,11 +123,11 @@ def test_seq_simple():
         for i in range(len(stream)):
             tester.circuit.I = stream[i]
             tester.print(f"%d\n", tester.circuit.O)
-            tester.step(2)
             if i > 1:
                 tester.circuit.O.expect(stream[i - 2])
             else:
                 tester.circuit.O.expect(0)
+            tester.step(2)
         directory = f"{os.path.abspath(os.path.dirname(__file__))}/build/"
         tester.compile_and_run(target,
                                directory=directory,

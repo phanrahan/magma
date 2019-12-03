@@ -5,19 +5,27 @@ module TestBasic (
   output logic [1:0] O
 );
 
-logic [1:0] x;
-logic [1:0] y;
+logic [1:0] _O;
+logic [1:0] self_x_I;
+logic [1:0] self_x_O;
+logic [1:0] self_y_I;
+logic [1:0] self_y_O;
 
 always_ff @(posedge CLK, posedge ASYNCRESET) begin
   if (ASYNCRESET) begin
-    x <= 2'h0;
-    y <= 2'h0;
+    self_x_O <= 2'h0;
+    self_y_O <= 2'h0;
   end
   else begin
-    y <= x;
-    x <= I;
-    O <= y;
+    self_x_O <= self_x_I;
+    self_y_O <= self_y_I;
   end
+end
+always_comb begin
+  _O = self_y_O;
+  self_y_I = self_x_O;
+  self_x_I = I;
+  O = _O;
 end
 endmodule   // TestBasic
 
