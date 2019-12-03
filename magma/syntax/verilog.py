@@ -101,13 +101,9 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     width_table = {}
     type_table = {}
     if registers:
-        # tree = RewriteSelfAttributes(registers).visit(tree)
         for name, info in registers.items():
             width = 1 if isinstance(info[3], m._BitKind) else len(info[3])
             width_table[name] = width
-    #         type_table["self_" + name + "_I"] = to_type_str(info[2])
-    #         width_table["self_" + name + "_O"] = width
-    #         type_table["self_" + name + "_O"] = to_type_str(info[2])
     for arg in tree.args.args:
         if arg.arg == "self":
             continue
