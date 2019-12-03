@@ -69,13 +69,9 @@ class _DefinitionBlock:
         return cls.__stack[-1]
 
 
-# create an attribute for each port
-def setports(self, ports):
-    #print('setports', ports)
-    for name, port in ports.items():
-        #print(self, port, type(port))
-        if isinstance(name, str):
-            setattr(self, name, port)
+def _setattrs(obj, dct):
+    for k, v in dct.items():
+        setattr(obj, k, v)
 
 #
 # Metaclass for creating circuits
@@ -113,7 +109,7 @@ class CircuitKind(type):
             # turn IO attribite into an Interface
             cls.IO = DeclareInterface(*cls.IO)
             cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
-            setports(cls, cls.interface.ports)
+            _setattrs(cls, cls.interface.ports)
 
         return cls
 
@@ -331,7 +327,7 @@ class AnonymousCircuitType(object):
         return o[0] if len(o) == 1 else tuple(o)
 
     def setinterface(self, interface):
-        setports(self, interface.ports)
+        _setattrs(self, interface.ports)
         self.interface = interface
         return self
 
