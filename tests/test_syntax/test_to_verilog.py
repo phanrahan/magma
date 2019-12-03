@@ -131,7 +131,7 @@ def test_seq_simple():
         directory = f"{os.path.abspath(os.path.dirname(__file__))}/build/"
         tester.compile_and_run(target,
                                directory=directory,
-                               flags=["-Wno-fatal"], skip_compile=True)
+                               flags=["-Wno-fatal"], magma_output="verilog")
 
     except ImportError:
         pass
