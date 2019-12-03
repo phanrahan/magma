@@ -87,6 +87,9 @@ class Wire:
         self.inputs = []
         self.outputs = []
 
+    def disconnect(self, o, i):
+        self.inputs.remove(i)
+
     def connect( self, o, i , debug_info):
         """
         Anon Ports are added to the input or output list of this wire.
@@ -161,6 +164,12 @@ class Port:
     def anon(self):
         return self.bit.anon()
 
+    def unwire(i, o):
+        o.wires.disconnect(o, i)
+        # Wire can only have one output, so we start with a fresh wire
+        i.wires = Wire()
+
+    # wire a port to a port
     def wire(i, o, debug_info):
         """
         Wire a port to a port.

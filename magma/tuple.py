@@ -62,6 +62,10 @@ class TupleType(Type):
     def __len__(self):
         return self.N
 
+    @classmethod
+    def flat_length(cls):
+        return sum(T.flat_length() for T in cls.Ts)
+
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
@@ -94,6 +98,13 @@ class TupleType(Type):
                 o_elem.wire(i_elem, debug_info)
             else:
                 i_elem.wire(o_elem, debug_info)
+
+    def unwire(i, o):
+        for i_elem, o_elem in zip(i, o):
+            if o_elem.isinput():
+                o_elem.unwire(i_elem, debug_info)
+            else:
+                i_elem.unwire(o_elem, debug_info)
 
     def driven(self):
         for t in self.ts:

@@ -47,11 +47,18 @@ class _BitType(Type):
         i.debug_info = debug_info
         o.debug_info = debug_info
 
+    def unwire(i, o):
+        i.port.unwire(o.port)
+
     def driven(self):
         return self.port.driven()
 
     def wired(self):
         return self.port.wired()
+
+    @classmethod
+    def flat_length(cls):
+        return 1
 
     # return the input or output _Bit connected to this _Bit
     def trace(self):
