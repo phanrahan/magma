@@ -275,7 +275,6 @@ def combinational(
     else:
         wrapped_combinational = ast_utils.inspect_enclosing_env(
                 _combinational,
-                decorators=[combinational],
-                st=env
+                decorators=[combinational]
         )
         return wrapped_combinational(fn)

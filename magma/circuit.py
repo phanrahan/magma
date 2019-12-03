@@ -596,8 +596,12 @@ def DefineCircuit(name, *decl, **args):
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
 
+__seenCircuitNames = {}
 def EndDefine():
     if currentDefinition:
+        if currentDefinition.name in __seenCircuitNames:
+            raise Exception(f"The circuit name '{currentDefinition.name}' was already used. Module names must be unique!")
+        __seenCircuitNames[currentDefinition.name] = 1
         debug_info = get_callee_frame_info()
         currentDefinition.end_circuit_filename = debug_info[0]
         currentDefinition.end_circuit_lineno   = debug_info[1]

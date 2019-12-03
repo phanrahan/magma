@@ -54,7 +54,7 @@ def test_for_loop_def(target, suffix):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main2", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2_prev = None
     for i in range(0, 4):
@@ -86,7 +86,7 @@ def test_interleaved_instance_wiring(target, suffix):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main3", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2_0 = And2()
     and2_1 = And2()
@@ -115,7 +115,7 @@ def test_unwired_ports_warnings(caplog):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
+    main = m.DefineCircuit("main4", "I", m.In(m.Bits[2]), "O", m.Out(m.Bit))
 
     and2 = And2()
 
@@ -134,7 +134,7 @@ def test_2d_array_error(caplog):
     And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
                             "O", m.Out(m.Bit))
 
-    main = m.DefineCircuit("main", "I", m.In(m.Array[2, m.Array[3, m.Bit]]),
+    main = m.DefineCircuit("main5", "I", m.In(m.Array[2, m.Array[3, m.Bit]]),
                            "O", m.Out(m.Bit))
 
     and2 = And2()
@@ -157,7 +157,7 @@ def test_anon_value(target, suffix, T):
     And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
                             "O", m.Out(T))
 
-    main = m.DefineCircuit("main", "I0", m.In(T), "I1", m.In(T),
+    main = m.DefineCircuit(f"main6_{target}_{suffix}_{T}", "I0", m.In(T), "I1", m.In(T),
                            "O", m.Out(T))
 
     and2 = And2()
