@@ -9,8 +9,10 @@ import ast
 # Automatically generate is_{} functions for classes in the ast module
 module_obj = sys.modules[__name__]
 
-_first_cap_re=re.compile(r'(.)([A-Z][a-z]+)')
-_all_cap_re=re.compile(r'([a-z0-9])([A-Z])')
+_first_cap_re = re.compile(r'(.)([A-Z][a-z]+)')
+_all_cap_re = re.compile(r'([a-z0-9])([A-Z])')
+
+
 def to_snake_case(name):
     """ Converts name from CamelCase to snake_case
 
@@ -27,44 +29,52 @@ def is_generator(name):
     setattr(module_obj, "is_" + to_snake_case(name), f)
 
 
-for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if m[1].__module__ == '_ast'):
+for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if
+          m[1].__module__ == '_ast'):
     is_generator(x)
 
 
 def get_width(node, width_table, defn_env={}):
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and \
        node.func.id in {"bits", "uint", "BitVector"}:
-        if isinstance(node.args[1], ast.Call) and node.args[1].func.id == "eval":
+        if isinstance(node.args[1], ast.Call) and \
+                node.args[1].func.id == "eval":
             return eval(astor.to_source(node.args[1]).rstrip())
         if not isinstance(node.args[1], ast.Num):
-            raise TypeError(f"Cannot get width of {astor.to_source(node.args[1]).rstrip()}, we should know all widths at compile time.")
+            raise TypeError(f"Cannot get width of "
+                            f"{astor.to_source(node.args[1]).rstrip()}, we "
+                            f"should know all widths at compile time.")
         return node.args[1].n
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and \
        node.func.id in {"bit"}:
         return None
     elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and \
-       node.func.id in {"memory"}:
-           return MemoryType(node.args[0].n, node.args[1].n)
+            node.func.id in {"memory"}:
+        return MemoryType(node.args[0].n, node.args[1].n)
     elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and \
-       node.func.id in {"zext"}:
-        assert isinstance(node.args[1], ast.Num), "We should know all widths at compile time"
+            node.func.id in {"zext"}:
+        assert isinstance(node.args[1], ast.Num), \
+            "We should know all widths at compile time"
         return get_width(node.args[0], width_table) + node.args[1].n
     elif isinstance(node, ast.Name):
         if node.id not in width_table:
-            raise Exception(f"Trying to get width of variable that hasn't been previously added to the width_table: {node.id} (width_table={width_table})")
+            raise Exception(f"Trying to get width of variable that hasn't "
+                            f"been previously added to the width_table: "
+                            f"{node.id} (width_table={width_table})")
         return width_table[node.id]
-    elif is_call(node) and is_name(node.func) and node.func.id == "coroutine_create":
-        return eval(astor.to_source(node.args[0]), defn_env)()
     elif isinstance(node, ast.Call):
         if isinstance(node.func, ast.Name):
             widths = [get_width(arg, width_table) for arg in node.args]
             if node.func.id in {"add", "xor", "sub", "and_", "not_"}:
                 if not all(widths[0] == x for x in widths):
-                    raise TypeError(f"Calling {node.func.id} with different length types")
+                    raise TypeError(f"Calling {node.func.id} with different "
+                                    "length types")
                 width = widths[0]
                 if node.func.id == "add":
                     for keyword in node.keywords:
-                        if keyword.arg == "cout" and isinstance(keyword.value, ast.NameConstant) and keyword.value.value == True:
+                        if keyword.arg == "cout" and \
+                                isinstance(keyword.value, ast.NameConstant) \
+                                and keyword.value.value is True:
                             width = (width, None)
                 return width
             elif node.func.id == "eq":
@@ -83,14 +93,16 @@ def get_width(node, width_table, defn_env={}):
         left_width = get_width(node.left, width_table)
         right_width = get_width(node.right, width_table)
         if left_width != right_width:
-            raise TypeError(f"Binary operation with mismatched widths ({left_width}, {right_width}) {ast.dump(node)}")
+            raise TypeError(f"Binary operation with mismatched widths "
+                            f"({left_width}, {right_width}) {ast.dump(node)}")
         return left_width
     elif isinstance(node, ast.IfExp):
         left_width = get_width(node.body, width_table)
         if node.orelse:
             right_width = get_width(node.orelse, width_table)
             if left_width != right_width:
-                raise TypeError(f"Binary operation with mismatched widths {ast.dump(node)}")
+                raise TypeError(f"Binary operation with mismatched widths "
+                                f"{ast.dump(node)}")
         return left_width
     elif isinstance(node, ast.Compare):
         # TODO: Check widths of operands
@@ -111,7 +123,8 @@ def get_width(node, width_table, defn_env={}):
             return None
         elif isinstance(node.slice, ast.Slice):
             width = get_width(node.value, width_table)
-            if node.slice.lower is None and isinstance(node.slice.upper, ast.Num):
+            if node.slice.lower is None and isinstance(node.slice.upper,
+                                                       ast.Num):
                 if node.slice.step is not None:
                     raise NotImplementedError()
                 return node.slice.upper.n
@@ -140,8 +153,6 @@ def get_width(node, width_table, defn_env={}):
             return None
         raise NotImplementedError(type_)
 
-
-
     raise NotImplementedError(ast.dump(node))
 
 
@@ -156,19 +167,24 @@ class CollectInitialWidthsAndTypes(ast.NodeVisitor):
             if isinstance(node.targets[0], ast.Name):
                 if isinstance(node.value, ast.Yield):
                     pass  # width specified at compile time
-                elif isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute) and \
-                     node.value.func.attr == "send":
+                elif isinstance(node.value, ast.Call) and \
+                        isinstance(node.value.func, ast.Attribute) and \
+                        node.value.func.attr == "send":
                     pass
                 elif node.targets[0].id not in self.width_table:
-                    self.width_table[node.targets[0].id] = get_width(node.value, self.width_table, self.defn_env)
-                    if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and \
-                       node.value.func.id in {"bits", "uint", "bit"}:
+                    self.width_table[node.targets[0].id] = \
+                        get_width(node.value, self.width_table, self.defn_env)
+                    if isinstance(node.value, ast.Call) and \
+                            isinstance(node.value.func, ast.Name) and \
+                            node.value.func.id in {"bits", "uint", "bit"}:
                         self.type_table[node.targets[0].id] = node.value.func.id
-                    elif isinstance(node.value, ast.NameConstant) and node.value.value in [True, False]:
+                    elif isinstance(node.value, ast.NameConstant) and \
+                            node.value.value in [True, False]:
                         self.type_table[node.targets[0].id] = "bit"
-                    elif isinstance(node.value, ast.Name) and node.value.id in self.type_table:
-                        self.type_table[node.targets[0].id] = self.type_table[node.value.id]
-
+                    elif isinstance(node.value, ast.Name) and \
+                            node.value.id in self.type_table:
+                        self.type_table[node.targets[0].id] = \
+                            self.type_table[node.value.id]
 
 
 class PromoteWidths(ast.NodeTransformer):
@@ -181,7 +197,8 @@ class PromoteWidths(ast.NodeTransformer):
             return
         if int_length <= expected_length:
             return
-        raise TypeError("Cannot promote integer with greater width than other operand")
+        raise TypeError("Cannot promote integer with greater width than other "
+                        "operand")
 
     def make(self, value, width, type_):
         if type_ == "bit":
@@ -198,7 +215,8 @@ class PromoteWidths(ast.NodeTransformer):
                 if type_ == "uint" and isinstance(node.slice, ast.Index):
                     return "bit"
                 elif type_ == "uint" and isinstance(node.slice, ast.Slice):
-                    if node.slice.lower is None and isinstance(node.slice.upper, ast.Num):
+                    if node.slice.lower is None and \
+                            isinstance(node.slice.upper, ast.Num):
                         if node.slice.step is not None:
                             raise NotImplementedError()
                         # return node.slice.upper.n
@@ -210,7 +228,8 @@ class PromoteWidths(ast.NodeTransformer):
             right_type = self.get_type(node.right)
             assert left_type == right_type, (left_type, right_type)
             return left_type
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in ["bits"]:
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) \
+                and node.func.id in ["bits"]:
             return node.func.id
         raise NotImplementedError(ast.dump(node))
 
@@ -219,7 +238,8 @@ class PromoteWidths(ast.NodeTransformer):
         if isinstance(node.value, ast.Num):
             width = get_width(node.targets[0], self.width_table)
             self.check_valid(node.value.n.bit_length(), width)
-            node.value = self.make(node.value.n, width, self.get_type(node.targets[0]))
+            node.value = self.make(node.value.n, width,
+                                   self.get_type(node.targets[0]))
         elif isinstance(node.value, ast.NameConstant):
             width = get_width(node.targets[0], self.width_table)
             node.value = ast.parse(f"bit({node.value.value})").body[0].value
@@ -230,7 +250,8 @@ class PromoteWidths(ast.NodeTransformer):
         if isinstance(node.value, ast.Num):
             width = get_width(node.target, self.width_table)
             self.check_valid(node.value.n.bit_length(), width)
-            node.value = self.make(node.value.n, width, self.get_type(node.target))
+            node.value = self.make(node.value.n, width,
+                                   self.get_type(node.target))
         return node
 
     def visit_BinOp(self, node):
@@ -243,7 +264,8 @@ class PromoteWidths(ast.NodeTransformer):
             except TypeError as e:
                 print(f"Error type checking node {ast.dump(node)}")
                 raise e
-            node.left = self.make(node.left.n, right_width, self.get_type(node.right))
+            node.left = self.make(node.left.n, right_width,
+                                  self.get_type(node.right))
         elif isinstance(node.right, ast.Num):
             left_width = get_width(node.left, self.width_table)
             try:
@@ -251,7 +273,8 @@ class PromoteWidths(ast.NodeTransformer):
             except TypeError as e:
                 print(f"Error type checking node {ast.dump(node)}")
                 raise e
-            node.right = self.make(node.right.n, left_width, self.get_type(node.left))
+            node.right = self.make(node.right.n, left_width,
+                                   self.get_type(node.left))
         return node
 
     def visit_Compare(self, node):
@@ -262,8 +285,10 @@ class PromoteWidths(ast.NodeTransformer):
             type_ = self.get_type(node.left)
             for i in range(len(node.comparators)):
                 if isinstance(node.comparators[i], ast.Num):
-                    self.check_valid(node.comparators[i].n.bit_length(), left_width)
-                    node.comparators[i] = self.make(node.comparators[i].n, left_width, type_)
+                    self.check_valid(node.comparators[i].n.bit_length(),
+                                     left_width)
+                    node.comparators[i] = self.make(node.comparators[i].n,
+                                                    left_width, type_)
         else:
             for comparator in node.comparators:
                 if not isinstance(comparator, ast.Num):
@@ -271,13 +296,16 @@ class PromoteWidths(ast.NodeTransformer):
                     type_ = self.get_type(comparator)
                     break
             else:
-                assert False, "Constant fold should have folded this expression {ast.dump(node)}"
+                assert False, \
+                    "Constant fold should have folded this expression " \
+                    f"{ast.dump(node)}"
             self.check_valid(node.left.n.bit_length(), width)
             node.left = self.make(node.left.n, width, type_)
             for i in range(len(node.comparators)):
                 if isinstance(node.comparators[i], ast.Num):
                     self.check_valid(node.comparators[i].n.bit_length(), width)
-                    node.comparators[i] = self.make(node.comparators[i].n, width, type_)
+                    node.comparators[i] = self.make(node.comparators[i].n,
+                                                    width, type_)
         return node
 
 

@@ -131,12 +131,15 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     types = [arg.annotation for arg in tree.args.args if arg.arg != "self"]
     IO = []
     for name, type_ in zip(names, types):
-        IO += [name, m.In(eval(compile(ast.Expression(type_), "", mode="eval")))]
+        IO += [name, m.In(eval(compile(ast.Expression(type_), "",
+                                       mode="eval")))]
     if isinstance(tree.returns, ast.Tuple):
         for i, elt in enumerate(tree.returns.elts):
-            IO += [f"O{i}", m.Out(eval(compile(ast.Expression(elt), "", mode="eval")))]
+            IO += [f"O{i}", m.Out(eval(compile(ast.Expression(elt), "",
+                                               mode="eval")))]
     else:
-        IO += [f"O", m.Out(eval(compile(ast.Expression(tree.returns), "", mode="eval")))]
+        IO += [f"O", m.Out(eval(compile(ast.Expression(tree.returns), "",
+                                        mode="eval")))]
     if registers:
         IO += m.ClockInterface(has_async_reset=True)
 
