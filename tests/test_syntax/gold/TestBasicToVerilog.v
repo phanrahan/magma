@@ -5,7 +5,6 @@ module TestBasic (
   output logic [1:0] O
 );
 
-logic [1:0] _O;
 logic [1:0] x;
 logic [1:0] y;
 
@@ -15,10 +14,9 @@ always_ff @(posedge CLK, posedge ASYNCRESET) begin
     y <= 2'h0;
   end
   else begin
-    _O <= y;
     y <= x;
     x <= I;
-    O <= _O;
+    O <= y;
   end
 end
 endmodule   // TestBasic
