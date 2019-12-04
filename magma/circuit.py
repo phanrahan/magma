@@ -4,8 +4,6 @@ import sys
 import six
 import inspect
 from functools import wraps
-if sys.version_info > (3, 0):
-    from functools import reduce
 from . import cache_definition
 import operator
 from collections import namedtuple, Counter
@@ -21,9 +19,15 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import warning
 from .port import report_wiring_warning, report_wiring_error
 from .is_definition import isdefinition
+from magma.syntax.combinational import combinational
+from magma.syntax.sequential import sequential
+from magma.syntax.combinational import combinational
+from magma.syntax.sequential import sequential
+from magma.syntax.verilog import combinational_to_verilog, sequential_to_verilog
+if sys.version_info > (3, 0):
+    from functools import reduce
 
-
-__all__  = ['AnonymousCircuitType']
+__all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
 
 __all__ += ['CircuitType']
@@ -34,7 +38,6 @@ __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
-
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
@@ -73,6 +76,7 @@ def _setattrs(obj, dct):
     for k, v in dct.items():
         setattr(obj, k, v)
 
+
 class CircuitKind(type):
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
@@ -87,7 +91,8 @@ class CircuitKind(type):
         # callee stack info.
         dct.setdefault("debug_info", None)
         if get_debug_mode() and not dct["debug_info"]:
-            callee_frame = inspect.getframeinfo(inspect.currentframe().f_back.f_back)
+            callee_frame = inspect.getframeinfo(
+                inspect.currentframe().f_back.f_back)
             module = inspect.getmodule(inspect.stack()[2][0])
             dct["debug_info"] = debug_info(callee_frame.filename,
                                            callee_frame.lineno, module)
@@ -100,7 +105,8 @@ class CircuitKind(type):
         # Create interface for this circuit class.
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
             cls.IO = DeclareInterface(*cls.IO)
-            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            cls.interface = cls.IO(defn=cls,
+                                   renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
 
         return cls
@@ -133,7 +139,7 @@ class CircuitKind(type):
         if not hasattr(cls, "instances"):
             return f"{name} = DeclareCircuit(\"{name}\", {args})"
         s = f"{name} = DefineCircuit(\"{name}\", {args})\n"
-        sorted_instances = sorted(cls.instances, key=lambda x : x.name)
+        sorted_instances = sorted(cls.instances, key=lambda x: x.name)
         # Emit instances.
         for instance in sorted_instances:
             s += repr(instance) + '\n'
@@ -213,9 +219,8 @@ class AnonymousCircuitType(object):
         if self.name:
             return f"{self.name}<{type(self)}>"
         name = f"AnonymousCircuitInst{id(self)}"
-        interface = ", ".join(
-            f"{name}: {type(value)}"
-            for name, value in self.interface.ports.items())
+        interface = ", ".join(f"{name}: {type(value)}"
+                              for name, value in self.interface.ports.items())
         return f"{name}<{interface}>"
 
     def __repr__(self):
@@ -238,11 +243,12 @@ class AnonymousCircuitType(object):
         ni = len(inputs)
         no = len(outputs)
         if ni != no:
-            msg = (f"Number of inputs is not equal to the number of outputs, "
-                   f"expected {ni} inputs, got {no}. Only {min(ni,no)} will be "
-                   f"wired.")
+            msg = (
+                f"Number of inputs is not equal to the number of outputs, "
+                f"expected {ni} inputs, got {no}. Only {min(ni,no)} will be "
+                f"wired.")
             report_wiring_warning(msg, debug_info)
-        for i in range(min(ni,no)):
+        for i in range(min(ni, no)):
             wire(outputs[i], inputs[i], debug_info)
 
     def wire(self, output, debug_info):
@@ -286,13 +292,17 @@ class AnonymousCircuitType(object):
         # Wire up extra arguments, name to name.
         # TODO(rsetaluri): This code should be changed to use clock types.
         for key, value in kw.items():
-            if key == 'enable': key = 'CE'
-            if key == 'reset':  key = 'RESET'
-            if key == 'set':    key = 'SET' # NYI
-            if key == 'ce':     key = 'CE'  # depreciated
+            if key == 'enable':
+                key = 'CE'
+            elif key == 'reset':
+                key = 'RESET'
+            elif key == 'set':
+                key = 'SET'  # NYI
+            elif key == 'ce':
+                key = 'CE'  # deprecated
             if hasattr(input, key):
                 i = getattr(input, key)
-                wire( value, getattr(input, key), debug_info)
+                wire(value, getattr(input, key), debug_info)
             else:
                 msg = f"Instance {input.debug_name} does not have input {key}"
                 report_wiring_warning(msg, debug_info)
@@ -356,7 +366,7 @@ class CircuitType(AnonymousCircuitType):
                 # 0:  # first parameter
                 # #   # use "0x" prefix
                 # 0   # fill with zeroes
-                # {1} # to a length of n characters (including 0x), defined by the second parameter
+                # {1} # to n characters (including 0x), per the second parameter
                 # x   # hexadecimal number, using lowercase letters for a-f
                 # }   # End of format identifier
                 if len(v) == 2:
@@ -377,24 +387,22 @@ def DeclareCircuit(name, *decl, **args):
         debug_info = get_callee_frame_info()
     else:
         debug_info = None
-    dct = dict(
-        IO=decl,
-        debug_info=debug_info,
-        is_definition=False,
-        primitive=args.get('primitive', True),
-        stateful=args.get('stateful', False),
-        simulate=args.get('simulate'),
-        firrtl_op=args.get('firrtl_op'),
-        circuit_type_methods=args.get('circuit_type_methods', []),
-        coreir_lib=args.get('coreir_lib', "global"),
-        coreir_name=args.get('coreir_name', name),
-        coreir_genargs=args.get('coreir_genargs', None),
-        coreir_configargs=args.get('coreir_configargs', {}),
-        verilog_name=args.get('verilog_name', name),
-        default_kwargs=args.get('default_kwargs', {}),
-        renamed_ports=args.get('renamed_ports', {})
-    )
-    return CircuitKind(name, (CircuitType,), dct)
+    dct = dict(IO=decl,
+               debug_info=debug_info,
+               is_definition=False,
+               primitive=args.get('primitive', True),
+               stateful=args.get('stateful', False),
+               simulate=args.get('simulate'),
+               firrtl_op=args.get('firrtl_op'),
+               circuit_type_methods=args.get('circuit_type_methods', []),
+               coreir_lib=args.get('coreir_lib', "global"),
+               coreir_name=args.get('coreir_name', name),
+               coreir_genargs=args.get('coreir_genargs', None),
+               coreir_configargs=args.get('coreir_configargs', {}),
+               verilog_name=args.get('verilog_name', name),
+               default_kwargs=args.get('default_kwargs', {}),
+               renamed_ports=args.get('renamed_ports', {}))
+    return CircuitKind(name, (CircuitType, ), dct)
 
 
 class DefineCircuitKind(CircuitKind):
@@ -404,8 +412,8 @@ class DefineCircuitKind(CircuitKind):
             for base in bases:
                 if base is not Circuit:
                     if not issubclass(base, Circuit):
-                        raise Exception("Must subclass from Circuit or a "
-                                "subclass of Circuit. {}".format(base))
+                        raise Exception(f"Must subclass from Circuit or a "
+                                        f"subclass of Circuit. {base}")
                     # If so, we will inherit the name of the first parent.
                     dct['name'] = base.name
                     break
@@ -522,20 +530,20 @@ def DefineCircuit(name, *decl, **args):
     debug_info = None
     if get_debug_mode():
         debug_info = get_callee_frame_info()
-    dct = dict(IO             = decl,
-               is_definition  = True,
-               primitive      = args.get('primitive', False),
-               stateful       = args.get('stateful', False),
-               simulate       = args.get('simulate'),
-               debug_info     = debug_info,
-               verilog_name   = args.get('verilog_name', name),
-               coreir_name    = args.get('coreir_name', name),
-               coreir_lib     = args.get('coreir_lib', "global"),
-               coreir_genargs = args.get('coreir_genargs', None),
-               coreir_configargs = args.get('coreir_configargs', None),
-               default_kwargs = args.get('default_kwargs', {}),
-               renamed_ports = args.get('renamed_ports', {}),
-               kratos=args.get("kratos", None)))
+    dct = dict(IO=decl,
+               is_definition=True,
+               primitive=args.get('primitive', False),
+               stateful=args.get('stateful', False),
+               simulate=args.get('simulate'),
+               debug_info=debug_info,
+               verilog_name=args.get('verilog_name', name),
+               coreir_name=args.get('coreir_name', name),
+               coreir_lib=args.get('coreir_lib', "global"),
+               coreir_genargs=args.get('coreir_genargs', None),
+               coreir_configargs=args.get('coreir_configargs', None),
+               default_kwargs=args.get('default_kwargs', {}),
+               renamed_ports=args.get('renamed_ports', {}),
+               kratos=args.get("kratos", None))
     defn = DefineCircuitKind(name, (Circuit,), dct)
     _DefinitionBlock.push(defn)
     return defn
@@ -571,8 +579,5 @@ def circuit_generator(func):
         # Store arguments to generate the circuit.
         result._generator_arguments = GeneratorArguments(args, kwargs)
         return result
-    return wrapped
 
-from magma.syntax.combinational import combinational
-from magma.syntax.sequential import sequential
-from magma.syntax.verilog import combinational_to_verilog, sequential_to_verilog
+    return wrapped
