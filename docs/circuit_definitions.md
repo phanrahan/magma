@@ -278,3 +278,94 @@ every cycle, so enable logic must be explicitly defined).  Support for optional
 calls (implicit enable logic on the state of the sub sequential circuit) is
 forthcoming (tracked by this issue
 https://github.com/phanrahan/magma/issues/432).
+
+## Experimental: Direct to Verilog Compilation
+`@combinational_to_verilog` and `@sequential_to_verilog` decorators provide
+support for an alternative compiler that passes `if` statements down to verilog
+and uses an `always_ff` block to implement the sequential registers.
+
+For example,
+```python
+@m.circuit.combinational_to_verilog
+def execute_alu(a: m.UInt[16], b: m.UInt[16], config_: m.Bits[2]) -> \
+        m.UInt[16]:
+    if config_ == m.bits(0, 2):
+        c = a + b
+    elif config_ == m.bits(1, 2):
+        c = a - b
+    elif config_ == m.bits(2, 2):
+        c = a * b
+    else:
+        c = m.bits(0, 16)
+    return c
+```
+
+compiles to
+```verilog
+module execute_alu (
+  output logic [15:0] O,
+  input logic [15:0] a,
+  input logic [15:0] b,
+  input logic [1:0] config_
+);
+
+logic [15:0] c;
+always_comb begin
+  unique case (config_)
+    2'h0: c = a + b;
+    2'h1: c = a - b;
+    2'h2: c = a * b;
+    default: c = 16'h0;
+  endcase
+  O = c;
+end
+endmodule   // execute_alu
+```
+
+and
+```python
+@m.circuit.sequential_to_verilog(async_reset=True)
+class TestBasic:
+    def __init__(self):
+        self.x: m.Bits[2] = m.bits(0, 2)
+        self.y: m.Bits[2] = m.bits(0, 2)
+
+    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+        _O = self.y
+        self.y = self.x
+        self.x = I
+        return _O
+```
+compiles to
+```verilog
+module TestBasic (
+  input logic ASYNCRESET,
+  input logic CLK,
+  input logic [1:0] I,
+  output logic [1:0] O
+);
+
+logic [1:0] _O;
+logic [1:0] self_x_I;
+logic [1:0] self_x_O;
+logic [1:0] self_y_I;
+logic [1:0] self_y_O;
+
+always_ff @(posedge CLK, posedge ASYNCRESET) begin
+  if (ASYNCRESET) begin
+    self_x_O <= 2'h0;
+    self_y_O <= 2'h0;
+  end
+  else begin
+    self_x_O <= self_x_I;
+    self_y_O <= self_y_I;
+  end
+end
+always_comb begin
+  _O = self_y_O;
+  self_y_I = self_x_O;
+  self_x_I = I;
+  O = _O;
+end
+endmodule   // TestBasic
+```
