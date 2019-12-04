@@ -399,15 +399,14 @@ def DeclareCircuit(name, *decl, **args):
 
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
-
         if 'name' not in dct:
-            # Check if we are a subclass of something other than Circuit
+            # Check if we are a subclass of something other than Circuit.
             for base in bases:
                 if base is not Circuit:
                     if not issubclass(base, Circuit):
                         raise Exception("Must subclass from Circuit or a "
                                 "subclass of Circuit. {}".format(base))
-                    # If so, we will inherit the name of the first parent
+                    # If so, we will inherit the name of the first parent.
                     dct['name'] = base.name
                     break
             else:
@@ -426,7 +425,6 @@ class DefineCircuitKind(CircuitKind):
         self.coreir_genargs = dct.get('coreir_genargs', None)
         self.coreir_configargs = dct.get('coreir_configargs', {})
         self.default_kwargs = dct.get('default_kwargs', {})
-
         self.firrtl = None
 
         self._instances = []
@@ -451,14 +449,16 @@ class DefineCircuitKind(CircuitKind):
             if issubclass(type(port), ClockTypes):
                 continue
             if port.isinput() and not port.driven():
-                report_wiring_error(f"Output port {self.name}.{port.name} not driven", self.debug_info)
+                msg = f"Output port {self.name}.{port.name} not driven"
+                report_wiring_error(msg, self.debug_info)
 
         for inst in self.instances:
             for port in inst.interface.ports.values():
                 if issubclass(type(port), ClockTypes):
                     continue
                 if port.isinput() and not port.driven():
-                    report_wiring_error(f"Input port {inst.name}.{port.name} not driven", inst.debug_info)
+                    msg = f"Input port {inst.name}.{port.name} not driven"
+                    report_wiring_error(msg, inst.debug_info)
 
     @property
     def is_definition(self):
@@ -469,23 +469,22 @@ class DefineCircuitKind(CircuitKind):
         return self._instances
 
     def inspect_name(cls, inst):
-        # Try to fetch instance name
+        # Try to fetch instance name.
         with open(inst.debug_info.filename, "r") as f:
             line = f.read().splitlines()[inst.debug_info.lineno - 1]
             tree = ast.parse(textwrap.dedent(line)).body[0]
-            # Simple case when <Name> = <Instance>()
+            # Simple case when <Name> = <Instance>().
             if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
                     and isinstance(tree.targets[0], ast.Name):
                 name = tree.targets[0].id
-                # Handle case when we've seen a name multiple times
-                # (e.g. reused inside a loop)
+                # Handle case when we've seen a name multiple times (e.g. reused
+                # inside a loop).
                 if cls.instance_name_counter[name] == 0:
                     inst.name = name
                     cls.instance_name_counter[name] += 1
                 else:
                     if cls.instance_name_counter[name] == 1:
-                        # Append `_0` to the first instance with this
-                        # name
+                        # Append `_0` to the first instance with this name.
                         orig = cls.instance_name_map[name]
                         orig.name += "_0"
                         del cls.instance_name_map[name]
@@ -493,16 +492,15 @@ class DefineCircuitKind(CircuitKind):
                     inst.name = f"{name}_{cls.instance_name_counter[name]}"
                     cls.instance_name_counter[name] += 1
 
-    #
-    # place a circuit instance in this definition
-    #
     def place(cls, inst):
+        """Place a circuit instance in this definition"""
         if not inst.name:
             if get_debug_mode():
                 cls.inspect_name(inst)
             if not inst.name:
-                # Default name if we could not find one or debug mode is off
-                inst.name = f"{type(inst).name}_inst{str(cls.instanced_circuits_counter[type(inst).name])}"
+                # Default name if we could not find one or debug mode is off.
+                inst_count = cls.instanced_circuits_counter[type(inst).name]
+                inst.name = f"{type(inst).name}_inst{str(inst_count)}"
                 cls.instanced_circuits_counter[type(inst).name] += 1
                 cls.instance_name_counter[inst.name] += 1
         else:
