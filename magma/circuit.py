@@ -329,23 +329,21 @@ class AnonymousCircuitType(object):
     def outputargs(self):
         return self.interface.outputargs()
 
-#
-# AnonymousCircuits are like macros - the circuit instances are not placed
-#
+
 def AnonymousCircuit(*decl):
+    """
+    AnonymousCircuits are like macros - the circuit instances are not placed
+    """
     if len(decl) == 1:
         decl = decl[0]
     return AnonymousCircuitType().setinterface(Interface(decl))
 
 
-#
-# Placed circuit - instances placed in a definition
-#
 class CircuitType(AnonymousCircuitType):
+    """Placed circuit - instances placed in a definition"""
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
-
-        # Circuit instances are placed if within a definition
+        # Circuit instances are placed if within a definition.
         top = _DefinitionBlock.peek()
         if top:
             top.place(self)
@@ -354,28 +352,27 @@ class CircuitType(AnonymousCircuitType):
         args = []
         for k, v in self.kwargs.items():
             if isinstance(v, tuple):
-                 # {   # Format identifier
-                 # 0:  # first parameter
-                 # #   # use "0x" prefix
-                 # 0   # fill with zeroes
-                 # {1} # to a length of n characters (including 0x), defined by the second parameter
-                 # x   # hexadecimal number, using lowercase letters for a-f
-                 # }   # End of format identifier
-                 if len(v) == 2:
-                     v = "{0:#0{1}x}".format(v[0], v[1] // 4)
+                # {   # Format identifier
+                # 0:  # first parameter
+                # #   # use "0x" prefix
+                # 0   # fill with zeroes
+                # {1} # to a length of n characters (including 0x), defined by the second parameter
+                # x   # hexadecimal number, using lowercase letters for a-f
+                # }   # End of format identifier
+                if len(v) == 2:
+                    v = "{0:#0{1}x}".format(v[0], v[1] // 4)
             else:
-                 v = '"{}"'.format(v)
-            args.append("%s=%s"%(k, v))
+                v = f"\"{v}\""
+            args.append(f"{k}={v}")
+        args = ", ".join(args)
+        typ = type(self).__name__
         if self.name:
-            return '{} = {}({})'.format(self.name, type(self).__name__, ', '.join(args))
-        else:
-            return '{}({})'.format(type(self).__name__, ', '.join(args))
+            return f"{self.name} = {typ}({args})"
+        return f"{typ}({args})"
 
-        #return '{} = {}({})  # {} {}'.format(str(self), str(type(self)),
-        # cls.filename, cls.lineno)
 
-# DeclareCircuit Factory
 def DeclareCircuit(name, *decl, **args):
+    """DeclareCircuit Factory"""
     if get_debug_mode():
         debug_info = get_callee_frame_info()
     else:
@@ -397,7 +394,7 @@ def DeclareCircuit(name, *decl, **args):
         default_kwargs=args.get('default_kwargs', {}),
         renamed_ports=args.get('renamed_ports', {})
     )
-    return CircuitKind( name, (CircuitType,), dct )
+    return CircuitKind(name, (CircuitType,), dct)
 
 
 class DefineCircuitKind(CircuitKind):
