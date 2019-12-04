@@ -517,12 +517,11 @@ class Circuit(CircuitType):
     pass
 
 
-# DefineCircuit Factory
 def DefineCircuit(name, *decl, **args):
+    """DefineCircuit Factory"""
+    debug_info = None
     if get_debug_mode():
         debug_info = get_callee_frame_info()
-    else:
-        debug_info = None
     dct = dict(IO             = decl,
                is_definition  = True,
                primitive      = args.get('primitive', False),
@@ -537,7 +536,7 @@ def DefineCircuit(name, *decl, **args):
                default_kwargs = args.get('default_kwargs', {}),
                renamed_ports = args.get('renamed_ports', {}),
                kratos=args.get("kratos", None)))
-    defn = DefineCircuitKind( name, (Circuit,), dct)
+    defn = DefineCircuitKind(name, (Circuit,), dct)
     _DefinitionBlock.push(defn)
     return defn
 
@@ -569,7 +568,7 @@ def circuit_generator(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
-        # Store arguments to generate the circuit
+        # Store arguments to generate the circuit.
         result._generator_arguments = GeneratorArguments(args, kwargs)
         return result
     return wrapped
