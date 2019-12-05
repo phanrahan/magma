@@ -2,7 +2,7 @@ import os
 from tempfile import NamedTemporaryFile
 
 from .simulator import CircuitSimulator, ExecutionState
-from ..backend import coreir_
+from ..backend import coreir_, coreir_utils
 from ..frontend.coreir_ import GetMagmaContext
 from ..scope import Scope
 from ..ref import DefnRef, ArrayRef, TupleRef
@@ -47,7 +47,7 @@ def convert_to_coreir_path(bit, scope):
         insts.insert(0, inst_name)
         scope = scope.parent
 
-    last_component = coreir_.magma_port_to_coreir(bit)
+    last_component = coreir_utils.magma_port_to_coreir_port(bit)
     last_inst, port = last_component.split('.', 1)
     insts.append(last_inst)
 
