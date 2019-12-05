@@ -157,6 +157,42 @@ class Foo(m.Circuit):
         io.O <= inv.O
 ```
 
+## Statically Elaborated For Loops
+Statically elaborated for loops are supported using the [ast_tools loop
+unrolling macro](https://github.com/leonardt/ast_tools#loop-unrolling).
+Here's an example:
+```python
+from ast_tools.passes import begin_rewrite, loop_unroll, end_rewrite
+
+n = 4
+@m.circuit.combinational
+@end_rewrite()
+@loop_unroll()
+@begin_rewrite()
+def logic(a: m.Bits[n]) -> m.Bits[n]:
+    O = []
+    for i in ast_tools.macros.unroll(range(n)):
+        O.append(a[n - 1 - i])
+    return m.bits(O, n)
+```
+which compiles to this magma circuit
+```python
+class logic(m.Circuit):
+    IO = ['a', m.In(m.Bits[n]), 'O', m.Out(m.Bits[n])]
+
+    @classmethod
+    def definition(io):
+        O_0 = []
+        O_0.append(io.a[n - 1 - 0])
+        O_0.append(io.a[n - 1 - 1])
+        O_0.append(io.a[n - 1 - 2])
+        O_0.append(io.a[n - 1 - 3])
+        __magma_ssa_return_value_0 = m.bits(O_0, n)
+        O = __magma_ssa_return_value_0
+        m.wire(O, io.O)
+```
+
+
 # Sequential Circuit Definition
 The `@m.circuit.sequential` decorator extends the `@m.circuit.combinational`
 syntax with the ability to use Python's class system to describe stateful
