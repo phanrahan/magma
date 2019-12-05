@@ -591,7 +591,8 @@ def DefineCircuit(name, *decl, **args):
                coreir_genargs = args.get('coreir_genargs', None),
                coreir_configargs = args.get('coreir_configargs', None),
                default_kwargs = args.get('default_kwargs', {}),
-               renamed_ports = args.get('renamed_ports', {}))
+               renamed_ports = args.get('renamed_ports', {}),
+               kratos=args.get("kratos", None))
 
     currentDefinition = DefineCircuitKind( name, (Circuit,), dct)
     return currentDefinition
@@ -646,3 +647,4 @@ def circuit_generator(func):
 
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
+from magma.syntax.verilog import combinational_to_verilog, sequential_to_verilog
