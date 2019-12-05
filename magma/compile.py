@@ -19,6 +19,9 @@ def _make_compiler(output, main, basename, opts):
         return dot.DotCompiler(main, basename)
     if output == "coreir":
         return coreir_compiler.CoreIRCompiler(main, basename, opts)
+    if output == "coreir-verilog":
+        opts["output_verilog"] = True
+        return coreir_compiler.CoreIRCompiler(main, basename, opts)
     raise NotImplementedError(f"Backend '{output}' not supported")
 
 
@@ -33,12 +36,6 @@ def _get_basename(basename):
 def compile(basename, main, output="coreir-verilog", **kwargs):
     basename = _get_basename(basename)
     opts = kwargs.copy()
-    # Rather than having separate logic for 'coreir-verilog' mode, we defer to
-    # 'coreir' mode with the 'output_verilog' option set to True.
-    # TODO(rsetaluri): Improve this codepath.
-    if output == "coreir-verilog":
-        opts["output_verilog"] = True
-        output = "coreir"
     compiler = _make_compiler(output, main, basename, opts)
 
     # Default behavior is to perform uniquification, but can be overriden.
