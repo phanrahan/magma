@@ -1,6 +1,5 @@
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
 
-
 from collections import OrderedDict
 from hwtypes import BitVector
 import os
@@ -64,19 +63,21 @@ def magma_port_to_coreir_port(port):
 
 _POD_KINDS = (BitKind, ClockKind, EnableKind, ResetKind, AsyncResetKind,
               ResetNKind, AsyncResetNKind)
-def check_magma_type(port, errorMessage=""):
+
+
+def check_magma_type(port, error_msg=""):
     if isinstance(port, ArrayKind):
-        msg = errorMessage.format("Array({}, {})").format(str(port.N), "{}")
+        msg = error_msg.format("Array({}, {})").format(str(port.N), "{}")
         check_magma_type(port.T, msg)
         return
     if isinstance(port, TupleKind):
         for (k, t) in zip(port.Ks, port.Ts):
-            msg = errorMessage.format("Tuple({}:{})".format(k, "{}"))
+            msg = error_msg.format("Tuple({}:{})".format(k, "{}"))
             check_magma_type(t, msg)
         return
     if isinstance(port, _POD_KINDS):
         return
-    raise CoreIRBackendError(errorMessage.format(str(port)))
+    raise CoreIRBackendError(error_msg.format(str(port)))
 
 
 def check_magma_interface(interface):
@@ -87,24 +88,26 @@ def check_magma_interface(interface):
 
 def magma_type_to_coreir_type(context, port):
     if isinstance(port, (ArrayType, ArrayKind)):
-        return context.Array(port.N, magma_type_to_coreir_type(context, port.T))
+        return context.Array(port.N,
+                             magma_type_to_coreir_type(context, port.T))
     if isinstance(port, (TupleType, TupleKind)):
         zipped = zip(port.Ks, port.Ts)
         return context.Record({
-            _tuple_key_to_string(k): magma_type_to_coreir_type(context, t) for (k, t) in zipped
+            _tuple_key_to_string(k): magma_type_to_coreir_type(context, t)
+            for (k, t) in zipped
         })
     if port.isinput():
         if isinstance(port, (ClockType, ClockKind)):
             return context.named_types[("coreir", "clk")]
-        if isinstance(port, (AsyncResetType, AsyncResetKind,
-                             AsyncResetNType, AsyncResetNKind)):
+        if isinstance(port, (AsyncResetType, AsyncResetKind, AsyncResetNType,
+                             AsyncResetNKind)):
             return context.named_types[("coreir", "arst")]
         return context.Bit()
     if port.isoutput():
         if isinstance(port, (ClockType, ClockKind)):
             return context.named_types[("coreir", "clkIn")]
-        if isinstance(port, (AsyncResetType, AsyncResetKind,
-                             AsyncResetNType, AsyncResetNKind)):
+        if isinstance(port, (AsyncResetType, AsyncResetKind, AsyncResetNType,
+                             AsyncResetNKind)):
             return context.named_types[("coreir", "arstIn")]
         return context.BitIn()
     return context.BitInOut()
@@ -138,7 +141,10 @@ def python_to_coreir_param_type(context, typ):
 
 
 def make_cparams(context, params):
-    cparams = {k: python_to_coreir_param_type(context, t) for k, t in params.items()}
+    cparams = {
+        k: python_to_coreir_param_type(context, t)
+        for k, t in params.items()
+    }
     return context.newParams(cparams)
 
 
@@ -155,12 +161,14 @@ def is_clock_or_nested_clock(p):
 
 
 def attach_debug_info(coreir_obj, debug_info, a=None, b=None):
-    fn = coreir_obj.add_metadata
-    if a and b:
-        fn = lambda k, v: coreir_obj.add_metadata(a, b, k, v)
+    def fn(k, v):
+        if a and b:
+            return coreir_obj.add_metadata(a, b, k, v)
+        return coreir_obj.add_metadata(k, v)
+
     fn("filename", json.dumps(make_relative(debug_info.filename)))
     fn("lineno", json.dumps(str(debug_info.lineno)))
-    
+
 
 def map_genarg(context, value):
     if isinstance(value, ClockKind):
@@ -191,3 +199,18 @@ def get_inst_args(inst):
         else:
             args[name] = value
     return args
+
+
+def is_const(array):
+    return all(x in {VCC, GND} for x in array)
+
+
+def constant_to_value(constant):
+    if constant is GND:
+        return 0
+    if constant is VCC:
+        return 1
+    if isinstance(constant, ArrayType):
+        values = [constant_to_value(c) for c in constant]
+        return BitVector[len(constant)](values)
+    raise NotImplementedError(constant)
