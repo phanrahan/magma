@@ -1,6 +1,23 @@
 from abc import ABC, abstractmethod
-from .coreir_utils import *
+from copy import copy
+import json
+import logging
+import os
+from ..array import ArrayType
+from ..bit import VCC, GND
+from ..clock import wiredefaultclock, wireclock
+from coreir import Wireable
+from .coreir_utils import (add_non_input_ports, attach_debug_info,
+                           check_magma_interface, constant_to_value,
+                           get_inst_args, get_module_of_inst,
+                           is_clock_or_nested_clock, is_const,
+                           magma_interface_to_coreir_module_type,
+                           magma_port_to_coreir_port, make_cparams, map_genarg)
+from ..interface import InterfaceKind
 from ..is_definition import isdefinition
+from ..passes import InstanceGraphPass
+from ..tuple import TupleType
+from .util import get_codegen_debug_info
 
 
 logger = logging.getLogger('magma').getChild('coreir_backend')
@@ -11,6 +28,7 @@ if level in ["DEBUG", "WARN", "INFO"]:
 elif level is not None:
     logger.warning("Unsupported value for MAGMA_COREIR_BACKEND_LOG_LEVEL:"
                    f" {level}")
+
 
 class TransformerBase(ABC):
     def __init__(self, backend):
@@ -181,8 +199,9 @@ class DefinitionTransformer(TransformerBase):
             if port.isinout():
                 return  # skip inouts because they might be conn. as an input.
             raise Exception(f"Found unconnected port: {port.debug_name}")
+
         def get_source():
-            if isinstance(value, coreir.Wireable):
+            if isinstance(value, Wireable):
                 return value
             if isinstance(value, ArrayType) and is_const(value):
                 return self.const_instance(value, len(value), module_defn)

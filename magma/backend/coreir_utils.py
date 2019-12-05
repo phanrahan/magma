@@ -1,32 +1,15 @@
-from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
-
 from collections import OrderedDict
-from hwtypes import BitVector
-import os
-import magma as m
-from ..bit import VCC, GND, BitType, BitIn, BitOut, MakeBit, BitKind
-from ..array import ArrayKind, ArrayType, Array
-from ..tuple import TupleKind, TupleType, Tuple
-from ..clock import wiredefaultclock, wireclock, ClockType, Clock, ResetType, \
-    ClockKind, EnableKind, ResetKind, AsyncResetType, AsyncResetKind, ResetNKind, \
-    AsyncResetNKind, AsyncResetNType, ResetType
-from ..bitutils import seq2int
-from ..backend.verilog import find
-from ..logging import error
-import coreir
-from ..passes import InstanceGraphPass
-from ..t import In, Kind
-import logging
-from .util import make_relative, get_codegen_debug_info
-from ..interface import InterfaceKind
-from ..passes import DefinitionPass
-import inspect
-from copy import copy
 import json
-from .. import singleton
-from warnings import warn
-
-from collections import defaultdict
+from hwtypes import BitVector
+from ..array import ArrayKind, ArrayType, Array
+from ..bit import VCC, GND, BitIn, BitOut, BitKind
+from ..clock import (wiredefaultclock, wireclock, ClockType, Clock, ResetType,
+                     ClockKind, EnableKind, ResetKind, AsyncResetType,
+                     AsyncResetKind, ResetNKind, AsyncResetNKind,
+                     AsyncResetNType, ResetType)
+from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
+from ..tuple import TupleKind, TupleType, Tuple
+from .util import make_relative
 
 
 class CoreIRBackendError(RuntimeError):
