@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from ..bitutils import seq2int, fun2seq
 from ..bit import VCC, GND, BitType
 from ..array import ArrayType
+from ..compiler import make_compiler
 from ..port import INPUT, OUTPUT, INOUT
 from ..clock import wiredefaultclock
 from ..is_definition import isdefinition
@@ -138,3 +139,5 @@ def compile(main, origin=None):
 
     return s
 
+
+BlifCompiler = make_compiler("blif", compile)

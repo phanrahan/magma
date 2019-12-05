@@ -94,10 +94,23 @@ class UniquificationPass(DefinitionPass):
                 warning(msg)
 
 
+def _get_mode(mode_or_str):
+    if isinstance(mode_or_str, str):
+        try:
+            return UniquificationMode[mode_or_str]
+        except KeyError as e:
+            modes = [k for k in UniquificationMode.__members__]
+            raise ValueError(f"Valid uniq. modes are {modes}")
+    if isinstance(mode_or_str, UniquificationMode):
+        return mode_or_str
+    raise NotImplementedError(f"Unsupported type: {type(mode_or_str)}")
+
+
 # This pass runs uniquification according to @mode and returns a dictionary
 # mapping any renamed circuits to their original names. If @mode is ERROR or
 # WARN the returned dictionary should be empty.
-def uniquification_pass(circuit, mode):
+def uniquification_pass(circuit, mode_or_str):
+    mode = _get_mode(mode_or_str)
     pass_ = UniquificationPass(circuit, mode)
     pass_.run()
     return pass_.original_names
