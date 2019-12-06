@@ -44,16 +44,13 @@ _context_to_modules = {}
 
 
 class CoreIRBackend:
-    def __init__(self, context=None, check_context_is_default=True):
-        # TODO(rsetaluri): prove this logic.
+    def __init__(self, context=None):
         singleton = CoreIRContextSingleton().get_instance()
         if context is None:
             context = singleton
-        elif check_context_is_default and context != singleton:
-            logger.warn("Creating CoreIRBackend with non-singleton CoreIR "
-                        "context. If you're sure you want to do this, set "
-                        "check_context_is_default when initializing the "
-                        "CoreIRBackend.")
+        if context is not singleton:
+            logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
+                           "context.")
         self.modules = _context_to_modules.setdefault(context, {})
         self.context = context
         self.libs = keydefaultdict(self.context.get_lib)
@@ -120,9 +117,9 @@ class InsertWrapCasts(DefinitionPass):
             self.wrap_if_arst(port, definition)
 
 
-def compile(main, file_name=None, context=None, check_context_is_default=True):
+def compile(main, file_name=None, context=None):
     InsertWrapCasts(main).run()
-    backend = CoreIRBackend(context, check_context_is_default)
+    backend = CoreIRBackend(context)
     backend.compile(main)
     if file_name is not None:
         return backend.modules[main.coreir_name].save_to_file(file_name)

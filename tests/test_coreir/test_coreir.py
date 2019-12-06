@@ -52,7 +52,7 @@ def test_check_interface_tuple():
 
 def test_nested_clocks():
     c = coreir.Context()
-    cirb = CoreIRBackend(c, check_context_is_default=False)
+    cirb = CoreIRBackend(c)
     args = ['clocks', In(Array[2, Clock])]
 
     inner_test_circuit = DefineCircuit('inner_test_nested_clocks', *args)

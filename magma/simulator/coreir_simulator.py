@@ -151,12 +151,9 @@ class CoreIRSimulator(CircuitSimulator):
 
         if context is None:
             self.ctx = GetMagmaContext()
-            check_context_is_default = True
         else:
             self.ctx = context
-            check_context_is_default = False
-        coreir_.compile(circuit, coreir_filename, context=self.ctx,
-                        check_context_is_default=check_context_is_default)
+        coreir_.compile(circuit, coreir_filename, context=self.ctx)
 
         # Initialize interpreter, get handle back to interpreter state
         self.ctx.get_lib("commonlib")
