@@ -133,12 +133,6 @@ def get_initial_value_map(init_func, defn_env):
         # TODO: Should we deal with multiple assignments? For now we take the
         # last one
         m.DefineCircuit("tmp")
-
-        # this is a fix when python is loaded with a third-party debugging
-        # tool such as pydev debugger, 'm' is not defined
-        import magma as __m
-        defn_env["m"] = __m
-        defn_env["__main__"] = __m
         eval_type = eval(astor.to_source(stmt.annotation).rstrip(), defn_env)
         eval_value = eval(astor.to_source(stmt.value).rstrip(), defn_env)
         m.EndCircuit()
