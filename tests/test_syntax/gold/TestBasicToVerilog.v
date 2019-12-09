@@ -10,6 +10,12 @@ logic [1:0] self_x_I;
 logic [1:0] self_x_O;
 logic [1:0] self_y_I;
 logic [1:0] self_y_O;
+always_comb begin
+  _O = self_y_O;
+  self_y_I = self_x_O;
+  self_x_I = I;
+  O = _O;
+end
 
 always_ff @(posedge CLK, posedge ASYNCRESET) begin
   if (ASYNCRESET) begin
@@ -20,12 +26,6 @@ always_ff @(posedge CLK, posedge ASYNCRESET) begin
     self_x_O <= self_x_I;
     self_y_O <= self_y_I;
   end
-end
-always_comb begin
-  _O = self_y_O;
-  self_y_I = self_x_O;
-  self_x_I = I;
-  O = _O;
 end
 endmodule   // TestBasic
 
