@@ -11,8 +11,9 @@ from magma import \
     bits, Bits, \
     uint, UInt, \
     sint, SInt, \
-    zext, sext
-    # tuple_, Tuple, \
+    zext, sext, \
+    tuple_, Tuple, \
+    namedtuple, Product
 from magma.bitutils import seq2int
 import magma as m
 
@@ -100,14 +101,15 @@ def test_sint():
      assert isinstance(sint(bits(1,4)), SInt)
      #assert isinstance(sint(sint(1,4)), SInt)
 
-# def test_tuple():
-#      assert isinstance(tuple_(OrderedDict(x=0, y=1)), Tuple)
-#      assert isinstance(tuple_([0,1]), Tuple)
-#      assert isinstance(tuple_(VCC), Tuple)
-#      assert isinstance(tuple_(array(1,4)), Tuple)
-#      assert isinstance(tuple_(bits(1,4)), Tuple)
-#      assert isinstance(tuple_(sint(1,4)), Tuple)
-#      assert isinstance(tuple_(uint(1,4)), Tuple)
+
+def test_tuple_product():
+     assert isinstance(namedtuple(x=False, y=True), Product)
+     assert isinstance(tuple_([0,1]), Tuple)
+     assert isinstance(tuple_(VCC), Tuple)
+     assert isinstance(tuple_(array(1,4)), Tuple)
+     assert isinstance(tuple_(bits(1,4)), Tuple)
+     assert isinstance(tuple_(sint(1,4)), Tuple)
+     assert isinstance(tuple_(uint(1,4)), Tuple)
 
 
 @pytest.mark.parametrize("type_,value",

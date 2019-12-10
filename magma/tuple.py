@@ -2,6 +2,7 @@ from collections.abc import Sequence, Mapping
 from collections import OrderedDict
 from hwtypes.adt import TupleMeta, Tuple, Product, ProductMeta
 from hwtypes.util import TypedProperty, OrderedFrozenDict
+import magma as m
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind, Direction, deprecated
 from .compatibility import IntegerTypes
@@ -44,9 +45,9 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
         if len(largs) > 0:
             assert len(largs) == len(self)
             for k, t, T in zip(self.keys(), largs, self.types()):
-                if isinstance(t, IntegerTypes):
+                if type(t) is bool:
                     t = VCC if t else GND
-                assert type(t) == T
+                assert issubclass(type(t), T), (t, type(t), T)
                 self.ts.append(t)
                 if not isinstance(self, Product):
                     setattr(self, k, t)
@@ -339,6 +340,13 @@ def tuple_(value, n=None, t=Tuple):
         for k, v in value.items():
             args.append(v)
             decl[k] = type(v)
+    for a, d in zip(args, decl):
+        # bool types to Bit
+        if decl[d] is bool:
+            decl[d] = m.Bit
+        # Promote integer types to Bits
+        elif decl[d] in IntegerTypes:
+            decl[d] = m.Bits[max(a.bit_length(), 1)]
 
     return type("anon", (t,), decl)(*args)
 
