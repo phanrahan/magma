@@ -99,7 +99,7 @@ class Wire:
         """
 
         if not o.anon():
-            if o.bit.isinput():
+            if o.bit.is_input():
                 report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as "
                                     f"an output", debug_info)
                 return
@@ -115,7 +115,7 @@ class Wire:
                 self.outputs.append(o)
 
         if not i.anon():
-            if i.bit.isoutput():
+            if i.bit.is_output():
                 report_wiring_error(f"Using `{i.bit.debug_name}` (an output) "
                                     f"as an input", debug_info)
                 return
