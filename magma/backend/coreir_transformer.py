@@ -193,7 +193,7 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value, non_input_ports):
         # Allow Clock or Array[Clock] to be unwired as CoreIR can wire them up.
-        if value is None and is_clock_or_nested_clock(port):
+        if value is None and is_clock_or_nested_clock(type(port)):
             return
         if value is None:
             if port.isinout():

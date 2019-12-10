@@ -1,12 +1,11 @@
 from collections import OrderedDict
 import json
 from hwtypes import BitVector
-from ..array import ArrayMeta, Array
-from ..bit import VCC, GND, BitIn, DigitalMeta
-from ..clock import (wiredefaultclock, wireclock, Clock, AsyncReset,
-                     AsyncResetN, Reset)
+from ..array import Array
+from ..bit import VCC, GND, Digital
+from ..clock import Clock, AsyncReset, AsyncResetN
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
-from ..tuple import Tuple, TupleMeta
+from ..tuple import Tuple
 from .util import make_relative
 
 
@@ -42,25 +41,27 @@ def magma_port_to_coreir_port(port):
     return magma_name_to_coreir_select(port.name)
 
 
-def check_magma_type(port, error_msg=""):
-    if isinstance(port, ArrayMeta):
-        msg = error_msg.format("Array({}, {})").format(str(port.N), "{}")
-        check_magma_type(port.T, msg)
+def check_magma_type(type_, error_msg=""):
+    if issubclass(type_, Array):
+        msg = error_msg.format("Array({}, {})").format(str(type_.N), "{}")
+        check_magma_type(type_.T, msg)
         return
-    if isinstance(port, TupleMeta):
-        for (k, t) in zip(port.keys(), port.types()):
+    if issubclass(type_, Tuple):
+        for (k, t) in zip(type_.keys(), type_.types()):
             msg = error_msg.format("Tuple({}:{})".format(k, "{}"))
             check_magma_type(t, msg)
         return
-    if isinstance(port, DigitalMeta):
+    if issubclass(type_, Digital):
         return
-    raise CoreIRBackendError(error_msg.format(str(port)))
+    raise CoreIRBackendError(error_msg.format(str(type_)))
 
 
 def check_magma_interface(interface):
     # For now only allow Bit, Array, or Tuple.
     for name, port in interface.ports.items():
-        check_magma_type(type(port), "Type {} not supported by CoreIR backend")
+        check_magma_type(
+            type(port), f"{name}: {type(port)} not supported by CoreIR backend"
+        )
 
 
 def magma_type_to_coreir_type(context, type_):
@@ -124,11 +125,11 @@ def make_cparams(context, params):
 
 
 def is_clock_or_nested_clock(p):
-    if isinstance(p, Clock) or isinstance(p, type) and issubclass(p, Clock):
+    if issubclass(p, Clock):
         return True
-    if isinstance(p, (Array, ArrayMeta)):
+    if issubclass(p, Array):
         return is_clock_or_nested_clock(p.T)
-    if isinstance(p, (Tuple, TupleMeta)):
+    if issubclass(p, Tuple):
         for item in p.Ts:
             if is_clock_or_nested_clock(item):
                 return True
