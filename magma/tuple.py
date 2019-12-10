@@ -10,7 +10,7 @@ from .t import Type, Kind, Direction, deprecated
 from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
-from .port import report_wiring_error
+from .logging import report_wiring_error
 
 #
 # Create an Tuple

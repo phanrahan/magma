@@ -1,6 +1,6 @@
 from .compatibility import IntegerTypes
 from .debug import debug_wire
-from .port import report_wiring_error
+from .logging import report_wiring_error
 
 
 __all__ = ['wire']

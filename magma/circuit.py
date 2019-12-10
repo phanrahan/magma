@@ -11,7 +11,7 @@ from .interface import *
 from .wire import *
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
-from .port import report_wiring_warning, report_wiring_error
+from .logging import report_wiring_warning, report_wiring_error
 from .is_definition import isdefinition
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential

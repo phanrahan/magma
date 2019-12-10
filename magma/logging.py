@@ -12,6 +12,7 @@ import sys
 import os
 from io import StringIO
 import colorlog
+from .backend.util import make_relative
 
 
 streams = {
@@ -100,6 +101,29 @@ def error(message, *args, **kwargs):
     log.error(message, *args, **kwargs)
 
 
-def get_source_line(filename, lineno):
+def _get_source_line(filename, lineno):
     with open(filename, "r") as f:
         return f.readlines()[lineno - 1]
+
+
+def _report_wiring_messgae(fn, message, debug_info):
+    if not debug_info:
+        error(message)
+        return
+    file = debug_info[0]
+    line = debug_info[1]
+    message = f"\033[1m{make_relative(file)}:{line}: {message}"
+    fn(message, include_wire_traceback=True)
+    try:
+        fn(_get_source_line(file, line))
+    except FileNotFoundError:
+        fn(f"    Could not file file {file}")
+
+
+def report_wiring_error(message, debug_info):
+    _report_wiring_messgae(error, message, debug_info)
+
+
+def report_wiring_warning(message, debug_info):
+    # TODO(rsetaluri): Include wire traceback support.
+    _report_wiring_messgae(warning, message, debug_info)
