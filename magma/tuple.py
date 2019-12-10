@@ -123,7 +123,7 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
 
     def unwire(i, o):
         for i_elem, o_elem in zip(i, o):
-            if o_elem.isinput():
+            if o_elem.is_input():
                 o_elem.unwire(i_elem, debug_info)
             else:
                 i_elem.unwire(o_elem, debug_info)

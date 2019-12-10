@@ -457,7 +457,7 @@ class DefineCircuitKind(CircuitKind):
         for port in self.interface.ports.values():
             if issubclass(type(port), ClockTypes):
                 continue
-            if port.isinput() and not port.driven():
+            if port.is_input() and not port.driven():
                 msg = f"Output port {self.name}.{port.name} not driven"
                 report_wiring_error(msg, self.debug_info)
 
@@ -465,7 +465,7 @@ class DefineCircuitKind(CircuitKind):
             for port in inst.interface.ports.values():
                 if issubclass(type(port), ClockTypes):
                     continue
-                if port.isinput() and not port.driven():
+                if port.is_input() and not port.driven():
                     msg = f"Input port {inst.name}.{port.name} not driven"
                     report_wiring_error(msg, inst.debug_info)
 

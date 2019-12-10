@@ -73,13 +73,13 @@ def magma_type_to_coreir_type(context, type_):
             _tuple_key_to_string(k): magma_type_to_coreir_type(context, t)
             for (k, t) in zipped
         })
-    if type_.isinput():
+    if type_.is_input():
         if issubclass(type_, Clock):
             return context.named_types[("coreir", "clk")]
         if issubclass(type_, (AsyncReset, AsyncResetN)):
             return context.named_types[("coreir", "arst")]
         return context.Bit()
-    if type_.isoutput():
+    if type_.is_output():
         if issubclass(type_, Clock):
             return context.named_types[("coreir", "clkIn")]
         if issubclass(type_, (AsyncReset, AsyncResetN)):
@@ -96,7 +96,7 @@ def magma_interface_to_coreir_module_type(context, interface):
 
 
 def add_non_input_ports(non_input_ports, port):
-    if not port.isinput():
+    if not port.is_input():
         non_input_ports[port] = magma_port_to_coreir_port(port)
     if isinstance(port, (Tuple, Array)):
         for element in port:
@@ -147,11 +147,11 @@ def attach_debug_info(coreir_obj, debug_info, a=None, b=None):
 
 def map_genarg(context, value):
     if isinstance(value, type) and issubclass(value, Clock):
-        if value.isinput():
+        if value.is_input():
             return context.named_types[("coreir", "clkIn")]
         return context.named_types[("coreir", "clk")]
     if isinstance(value, type) and issubclass(value, (AsyncReset, AsyncResetN)):
-        if value.isinput():
+        if value.is_input():
             return context.named_types[("coreir", "arstIn")]
         return context.named_types[("coreir", "arst")]
     return value

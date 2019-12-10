@@ -168,7 +168,7 @@ class DefinitionTransformer(TransformerBase):
             self.backend.libs_used.add(self.defn.coreir_lib)
         non_input_ports = {}
         for name, port in self.defn.interface.ports.items():
-            logger.debug(f"{name}, {port}, {port.isoutput()}")
+            logger.debug(f"{name}, {port}, {port.is_output()}")
             add_non_input_ports(non_input_ports, port)
         for inst, coreir_inst in coreir_insts.items():
             if get_codegen_debug_info() and getattr(inst, "debug_info", False):
@@ -184,11 +184,11 @@ class DefinitionTransformer(TransformerBase):
 
     def connect_non_outputs(self, module_defn, port, non_input_ports):
         # Recurse into non input types that may contain inout children.
-        if isinstance(port, Tuple) and not port.isinput() or \
-           isinstance(port, Array) and not port.T.isinput():
+        if isinstance(port, Tuple) and not port.is_input() or \
+           isinstance(port, Array) and not port.T.is_input():
             for elem in port:
                 self.connect_non_outputs(module_defn, elem, non_input_ports)
-        elif not port.isoutput():
+        elif not port.is_output():
             self.connect(module_defn, port, port.value(), non_input_ports)
 
     def connect(self, module_defn, port, value, non_input_ports):

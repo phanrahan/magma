@@ -100,7 +100,7 @@ class InsertWrapCasts(DefinitionPass):
         if isinstance(port, (Array, Tuple)):
             for t in port:
                 self.wrap_if_arst(t, definition)
-        elif port.isinput():
+        elif port.is_input():
             if isinstance(port, (AsyncReset, AsyncResetN)) or \
                     isinstance(port.value(), (AsyncReset, AsyncResetN)):
                 value = port.value()
