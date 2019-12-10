@@ -42,7 +42,7 @@ def convert_to_coreir_path(bit, scope):
 
     # Build instance path to this bit
     while scope.inst is not None:
-        assert(isinstance(scope.inst, Circuit))
+        assert(isinstance(scope.inst, CircuitType))
         inst_name = scope.inst.name
         insts.insert(0, inst_name)
         scope = scope.parent

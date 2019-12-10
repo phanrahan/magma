@@ -1,31 +1,22 @@
 import ast
 import textwrap
-import sys
-import six
 import inspect
 from functools import wraps
-from . import cache_definition
-import operator
 from collections import namedtuple, Counter
+
+import six
+from . import cache_definition
 from .clock import ClockTypes
 from .interface import *
 from .wire import *
-from .t import Flip
-# from .array import ArrayType
-# from .tuple import TupleType
-from .bit import VCC, GND
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
-from .logging import warning
 from .port import report_wiring_warning, report_wiring_error
 from .is_definition import isdefinition
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
-from magma.syntax.combinational import combinational
-from magma.syntax.sequential import sequential
-from magma.syntax.verilog import combinational_to_verilog, sequential_to_verilog
-if sys.version_info > (3, 0):
-    from functools import reduce
+from magma.syntax.verilog import combinational_to_verilog, \
+    sequential_to_verilog
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
