@@ -39,6 +39,7 @@ jobs:
   - stage: test
     script:
     - py.test --cov magma -v --cov-report term-missing tests
+    - pycodestyle magma/
   - stage: trigger downstream
     script: |
       # See https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh for documentation
