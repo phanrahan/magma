@@ -30,14 +30,16 @@ class ProcessReturns(ast.NodeTransformer):
             return [
                 ast.Assign(
                     [ast.parse(f"self.O{i}").body[0].value],
-                    node.value.elts[0]
+                    node.value.elts[0],
+                    lineno=node.lineno
                 )
                 for i in range(self.len_outputs)
             ]
         else:
             return ast.Assign(
                 [ast.parse(f"self.O").body[0].value],
-                node.value
+                node.value,
+                lineno=node.lineno
             )
 
 
@@ -93,14 +95,16 @@ def get_length(t):
         return 1
 
 
-def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
+def process_func(defn_env, fn, circ_name, registers=None, init_fn=None):
     tree = ast_utils.get_ast(fn).body[0]
     # TODO: Flatten types pass
     inputs = {}
     outputs = {}
     width_table = {}
     type_table = {}
-    if registers:
+    # determine if it's sequential or combinational
+    combinational = registers is None
+    if not combinational:
         tree = RewriteSelfAttributes(registers).visit(tree)
         for name, info in registers.items():
             width = 1 if isinstance(info[3], m._BitKind) else len(info[3])
@@ -108,6 +112,8 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
             type_table["self_" + name + "_I"] = to_type_str(info[2])
             width_table["self_" + name + "_O"] = width
             type_table["self_" + name + "_O"] = to_type_str(info[2])
+    else:
+        registers = {}
     for arg in tree.args.args:
         if arg.arg == "self":
             continue
@@ -161,13 +167,9 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
     tree.returns = None
 
     # obtain the filename and line number information
-    # due to the multi-line info, the offset calculation is a little bit
-    # complicated
-    lineno_offset = tree.body[0].lineno
-    fn_ln = kratos.pyast.get_fn(fn), kratos.pyast.get_ln(fn) + lineno_offset - 2
+    fn_ln = kratos.pyast.get_fn(fn), kratos.pyast.get_ln(fn)
 
     print(astor.to_source(tree))
-    func = ast_utils.compile_function_to_file(tree, fn.__name__, defn_env)
 
     class Module(kratos.Generator):
         def __init__(self):
@@ -178,50 +180,43 @@ def process_comb_func(defn_env, fn, circ_name, registers={}, init_fn=None):
                 setattr(self, key, self.output(key, value))
             for name in names:
                 setattr(self, name, self.var(name, width_table[name]))
-            if registers:
+
+            block = self.add_code(tree, fn_ln=fn_ln)
+            if not combinational:
+                # TODO: add option to do reset low
+                reset_high = True
                 self.CLK = self.clock("CLK")
                 self.ASYNCRESET = self.reset("ASYNCRESET")
-
-                reg_updates = "\n        ".join(
-                    f"self.self_{name}_O = self.self_{name}_I"
-                    for name in registers
-                )
-                reg_inits = []
-                for reg, info in registers.items():
-                    eval_value = info[3]
+                sensitivity = [(kratos.posedge, self.CLK),
+                               (kratos.posedge
+                                if reset_high else kratos.negedge,
+                                self.ASYNCRESET)]
+                seq = self.sequential(*sensitivity)
+                # add an if statement
+                if reset_high:
+                    if_ = seq.if_(self.ASYNCRESET)
+                else:
+                    if_ = seq.if_(self.ASYNCRESET.r_not())
+                for reg, values in registers.items():
                     try:
-                        init = int(eval_value)
-                    except Exception as e:
-                        raise NotImplementedError(eval_value)
-                    reg_inits.append(
-                        f"self.self_{reg}_O = {init}"
-                    )
-                reg_inits = "\n        ".join(reg_inits)
-                code = f"""
-from kratos import always, posedge
+                        init = int(values[3])
+                    except Exception:
+                        raise NotImplementedError(values[3])
+                    if_.then_(self.vars[f"self_{reg}_O"].assign(init))
+                for n in registers:
+                    if_.else_(self.vars[f"self_{n}_O"].assign(
+                        self.vars[f"self_{n}_I"]))
 
-@always((posedge, "CLK"), (posedge, "ASYNCRESET"))
-def seq_code_block(self):
-    if self.ASYNCRESET:
-        {reg_inits}
-    else:
-        {reg_updates}
-"""
-                lineno_offset = ast_utils.get_ast(init_fn).body[0].lineno
-                init_fn_ln = kratos.pyast.get_fn(init_fn), \
-                    kratos.pyast.get_ln(init_fn) + lineno_offset - 2
-                seq_code_block = ast_utils.compile_function_to_file(
-                    ast.parse(code), "seq_code_block", defn_env)
-                # TODO: What lines should this block map to?  This is implict
-                # in sequential, for now we can just map it to __init__
-                seq_block = self.add_code(seq_code_block, fn_ln=init_fn_ln)
-
-            block = self.add_code(func, fn_ln=fn_ln)
             # set locals, which is the inputs and outputs
             for key in inputs:
                 block.stmt().add_scope_variable(key, key, True)
             for key in names:
+                if "self_" in key:
+                    continue
                 block.stmt().add_scope_variable(key, key, True)
+            if registers:
+                for key in registers:
+                    block.stmt().add_scope_variable(key, f"self_{key}_I", True)
 
     os.makedirs(".magma", exist_ok=True)
     filename = f".magma/{circ_name}-kratos.sv"
@@ -237,7 +232,7 @@ def seq_code_block(self):
 
 @ast_utils.inspect_enclosing_env
 def combinational_to_verilog(defn_env, fn):
-    return lambda *args: process_comb_func(defn_env, fn, fn.__name__)()(*args)
+    return lambda *args: process_func(defn_env, fn, fn.__name__)()(*args)
 
 
 def sequential_to_verilog(async_reset):
@@ -247,6 +242,6 @@ def sequential_to_verilog(async_reset):
     @ast_utils.inspect_enclosing_env
     def wrapped(defn_env, cls):
         initial_value_map = get_initial_value_map(cls.__init__, defn_env)
-        return process_comb_func(defn_env, cls.__call__, cls.__name__,
-                                 initial_value_map, cls.__init__)
+        return process_func(defn_env, cls.__call__, cls.__name__,
+                            initial_value_map, cls.__init__)
     return wrapped

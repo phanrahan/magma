@@ -129,6 +129,14 @@ def test_seq_simple():
                 tester.circuit.O.expect(0)
             tester.step(2)
         directory = f"{os.path.abspath(os.path.dirname(__file__))}/build/"
+        target = "verilator"
+        if target == "verilator":
+            top_module_name = "TOP"
+        else:
+            top_module_name = "dut"
+        # TODO automatically obtain the kratos-based circuit
+        generators = [TestBasic.kratos]
+        kratos.debug.dump_external_database(generators, top_module_name, f"{directory}debug.db")
         tester.compile_and_run(target,
                                directory=directory,
                                flags=["-Wno-fatal"], magma_output="verilog")
