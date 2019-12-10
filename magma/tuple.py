@@ -47,7 +47,6 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
             for k, t, T in zip(self.keys(), largs, self.types()):
                 if type(t) is bool:
                     t = VCC if t else GND
-                assert issubclass(type(t), T), (t, type(t), T)
                 self.ts.append(t)
                 if not isinstance(self, Product):
                     setattr(self, k, t)
@@ -343,7 +342,7 @@ def tuple_(value, n=None, t=Tuple):
     for a, d in zip(args, decl):
         # bool types to Bit
         if decl[d] is bool:
-            decl[d] = m.Bit
+            decl[d] = m.Digital
         # Promote integer types to Bits
         elif decl[d] in IntegerTypes:
             decl[d] = m.Bits[max(a.bit_length(), 1)]
