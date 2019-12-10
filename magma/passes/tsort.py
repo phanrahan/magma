@@ -49,24 +49,3 @@ def tsort(graph):
             raise RuntimeError("A cyclic dependency occurred")
 
     return graph_sorted
-
-if __file__ == '__main__':
-    from pprint import pprint
-    graph = [(2, []),
-             (5, [11]),
-             (11, [2, 9, 10]),
-             (7, [11, 8]),
-             (9, []),
-             (10, []),
-             (8, [9]),
-             (3, [10, 8])]
-
-    pprint(tsort(graph))
-    #[(2, []),
-    # (9, []),
-    # (10, []),
-    # (11, [2, 9, 10]),
-    # (5, [11]),
-    # (8, [9]),
-    # (3, [10, 8]),
-    # (7, [11, 8])]
