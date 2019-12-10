@@ -74,7 +74,8 @@ class _DefinitionBlock:
 
 def _setattrs(obj, dct):
     for k, v in dct.items():
-        setattr(obj, k, v)
+        if isinstance(k, str):
+            setattr(obj, k, v)
 
 
 class CircuitKind(type):
