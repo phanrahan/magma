@@ -1,29 +1,14 @@
-from collections import OrderedDict
-from hwtypes import BitVector
 import os
-from ..bit import VCC, GND, Bit, BitIn, BitOut
-from ..array import Array
-from ..tuple import Tuple, Product
-from ..clock import wiredefaultclock, wireclock, Clock, Enable, Reset, \
-    AsyncReset, ResetN, AsyncResetN
-from ..bitutils import seq2int
-from ..backend.verilog import find
-from ..logging import error
-import coreir
-from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
-from ..passes import InstanceGraphPass
-from ..t import In
 import logging
-import os
-from .. import singleton
-from ..array import Array
-from ..circuit import DeclareCircuit
-from ..clock import AsyncReset, AsyncResetN
 from coreir import Context
+from ..array import Array
+from ..tuple import Tuple
+from ..clock import AsyncReset, AsyncResetN
+from ..t import In, Out
+from .. import singleton
+from ..circuit import DeclareCircuit
 from .coreir_transformer import DefnOrDeclTransformer
 from ..passes import DefinitionPass
-from ..t import In, Out
-from ..tuple import Tuple
 from .util import keydefaultdict
 from ..wire import wire
 
