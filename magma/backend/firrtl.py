@@ -2,6 +2,7 @@ from collections import OrderedDict
 from ..bit import Bit, VCC, GND
 from ..array import Array
 from ..clock import wiredefaultclock
+from ..compiler import make_compiler
 from .verilog import find
 
 def get_type(port):
@@ -125,3 +126,5 @@ def compile(main):
          code += "  " + "\n  ".join(compiledefinition(v).splitlines()) + '\n'
     return code
 
+
+FirrtlCompiler = make_compiler("fir", compile)

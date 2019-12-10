@@ -1,39 +1,39 @@
-from magma.config import get_debug_mode
+from .config import get_debug_mode
 from .logging import error, warning, get_source_line
 from .backend.util import make_relative
-from .ref import DefnRef, InstRef
+
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
 __all__ += ['flip']
 __all__ += ['Port']
+
 
 INPUT = 'input'
 OUTPUT = 'output'
 INOUT = 'inout'
 
 
-def report_wiring_error(message, debug_info):
-    if debug_info:
-        error(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}",
-              include_wire_traceback=True)
-        try:
-            error(get_source_line(debug_info[0], debug_info[1]))
-        except FileNotFoundError:
-            error(f"    Could not find file {debug_info[0]}")
-    else:
+def _report_wiring_messgae(fn, message, debug_info):
+    if not debug_info:
         error(message)
+        return
+    file = debug_info[0]
+    line = debug_info[1]
+    message = f"\033[1m{make_relative(file)}:{line}: {message}"
+    fn(message, include_wire_traceback=True)
+    try:
+        fn(get_source_line(file, line))
+    except FileNotFoundError:
+        fn(f"    Could not file file {file}")
+
+
+def report_wiring_error(message, debug_info):
+    _report_wiring_messgae(error, message, debug_info)
 
 
 def report_wiring_warning(message, debug_info):
-    # TODO: Include wire traceback support
-    if debug_info:
-        warning(f"\033[1m{make_relative(debug_info[0])}:{debug_info[1]}: {message}")
-        try:
-            warning(get_source_line(debug_info[0], debug_info[1]))
-        except FileNotFoundError:
-            warning(f"    Could not find file {debug_info[0]}")
-    else:
-        warning(message)
+    # TODO(rsetaluri): Include wire traceback support.
+    _report_wiring_messgae(warning, message, debug_info)
 
 
 def flip(direction):
@@ -42,7 +42,8 @@ def flip(direction):
     elif direction == OUTPUT: return INPUT
     elif direction == INOUT:  return INOUT
 
-def mergewires(new, old, debug_info):
+
+def merge_wires(new, old, debug_info):
     oldinputs = set(old.inputs)
     newinputs = set(new.inputs)
     oldoutputs = set(old.outputs)
@@ -55,70 +56,74 @@ def mergewires(new, old, debug_info):
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
             outputs = [o.bit.debug_name for o in new.outputs]
-            report_wiring_error(f"Connecting more than one output ({outputs}) to an input `{i.bit.debug_name}`", debug_info)  # noqa
+            report_wiring_error(f"Connecting more than one output ({outputs}) to "
+                                f"an input `{i.bit.debug_name}`", debug_info)
         new.outputs.append(o)
         o.wires = new
 
 
-def fast_mergewires(w, i, o):
+def fast_merge_wires(w, i, o):
     w.inputs = i.wires.inputs + o.wires.inputs
     w.outputs = i.wires.outputs + o.wires.outputs
     w.inputs = list(set(w.inputs))
     w.outputs = list(set(w.outputs))
     if len(w.outputs) > 1:
         outputs = [o.bit.debug_name for o in w.outputs]
-        # use w.inputs[0] as i, similar to {i.bit.debug_name}
-        report_wiring_error(f"Connecting more than one output ({outputs}) to an input `{w.inputs[0].bit.debug_name}`", debug_info)  # noqa
+        # Use w.inputs[0] as i, similar to {i.bit.debug_name}.
+        report_wiring_error(f"Connecting more than one output ({outputs}) to "
+                            f"an input `{w.inputs[0].bit.debug_name}`",
+                            debug_info)
     for p in w.inputs:
         p.wires = w
     for p in w.outputs:
         p.wires = w
 
-#
-# A Wire has a list of input and output Ports.
-#
+
 class Wire:
+    """
+    A Wire has a list of input and output Ports.
+    """
     def __init__(self):
         self.inputs = []
         self.outputs = []
 
+    def disconnect(self, o, i):
+        self.inputs.remove(i)
+
     def connect( self, o, i , debug_info):
+        """
+        Anon Ports are added to the input or output list of this wire.
 
-        # anon Ports are added to the input or output list of this wire
-        #
-        # connecting to a non-anonymous port to an anonymous port
-        # add the non-anonymous port to the wire associated with the
-        # anonymous port
-
-        #print(str(o), o.anon(), o.bit.is_input(), o.bit.is_output())
-        #print(str(i), i.anon(), i.bit.is_input(), i.bit.is_output())
+        Connecting to a non-anonymous port to an anonymous port add the
+        non-anonymous port to the wire associated with the anonymous port.
+        """
 
         if not o.anon():
-            #assert o.bit.direction is not None
-            if o.bit.is_input():
-                report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as an output", debug_info)
+            if o.bit.isinput():
+                report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as "
+                                    f"an output", debug_info)
                 return
 
             if o not in self.outputs:
                 if len(self.outputs) != 0:
-                    warn_str = "Adding the output `{}` to the wire `{}` which already has output(s) `[{}]`".format(o.bit.debug_name, i.bit.debug_name, ", ".join(output.bit.debug_name for output in self.outputs))
-                    report_wiring_warning(warn_str, debug_info)  # noqa
-                #print('adding output', o)
+                    output_str = ", ".join([output.bit.debug_name \
+                                            for output in self.outputs])
+                    msg = (f"Adding the output `{o.bit.debug_name}` to the "
+                           f"wire `{i.bit.debug_name}` which already has "
+                           f"output(s) `[{output_str}]`")
+                    report_wiring_warning(msg, debug_info)
                 self.outputs.append(o)
 
         if not i.anon():
-            #assert i.bit.direction is not None
-            if i.bit.is_output():
-                report_wiring_error(f"Using `{i.bit.debug_name}` (an output) as an input", debug_info)
+            if i.bit.isoutput():
+                report_wiring_error(f"Using `{i.bit.debug_name}` (an output) "
+                                    f"as an input", debug_info)
                 return
 
             if i not in self.inputs:
-                #print('adding input', i)
                 self.inputs.append(i)
 
-        # print(o.wires,i.wires,self,self.outputs,self.inputs)
-
-        # always update wires
+        # Always update wires.
         o.wires = self
         i.wires = self
 
@@ -132,23 +137,22 @@ class Wire:
                 error("Input in the wire outputs: {}".format(o))
                 return False
 
-        # check that this wire is only driven by a single output
+        # Check that this wire is only driven by a single output.
         if len(self.outputs) > 1:
             error("Multiple outputs on a wire: {}".format(self.outputs))
             return False
 
         return True
 
-#
-# Port implements wiring
-#
-# Each port is represented by a Bit()
-#
+
 class Port:
+    """
+    Ports implement wiring.
+
+    Each port is represented by a Bit().
+    """
     def __init__(self, bit):
-
         self.bit = bit
-
         self.wires = Wire()
 
     def __repr__(self):
@@ -160,25 +164,23 @@ class Port:
     def anon(self):
         return self.bit.anon()
 
+    def unwire(i, o):
+        o.wires.disconnect(o, i)
+        # Wire can only have one output, so we start with a fresh wire
+        i.wires = Wire()
+
     # wire a port to a port
     def wire(i, o, debug_info):
-        #if o.bit.direction is None:
-        #    o.bit.direction = OUTPUT
-        #if i.bit.direction is None:
-        #    i.bit.direction = INPUT
-
-        #print("Wiring", o.bit.direction, str(o), "->", i.bit.direction, str(i))
-
+        """
+        Wire a port to a port.
+        """
         if i.wires and o.wires and i.wires is not o.wires:
-            # print('merging', i.wires.inputs, i.wires.outputs)
-            # print('merging', o.wires.inputs, o.wires.outputs)
             w = Wire()
             if get_debug_mode():
-                mergewires(w, i.wires, debug_info)
-                mergewires(w, o.wires, debug_info)
+                merge_wires(w, i.wires, debug_info)
+                merge_wires(w, o.wires, debug_info)
             else:
-                fast_mergewires(w, i, o)
-            # print('after merge', w.inputs, w.outputs)
+                fast_merge_wires(w, i, o)
         elif o.wires:
             w = o.wires
         elif i.wires:
@@ -188,49 +190,44 @@ class Port:
 
         w.connect(o, i, debug_info)
 
-        #print("after",o,"->",i, w)
-
-
-    # if the port is an input or inout, return the output
-    # if the port is an output, return the first input
     def trace(self):
+        """
+        If the port is an input or inout, return the output.
+        If the port is an output, return the first input.
+        """
         if not self.wires:
             return None
 
         if self in self.wires.inputs:
             if len(self.wires.outputs) < 1:
-                # print('Warning:', str(self), 'is not connected to an output')
                 return None
             assert len(self.wires.outputs) == 1
             return self.wires.outputs[0]
 
         if self in self.wires.outputs:
             if len(self.wires.inputs) < 1:
-                # print('Warning:', str(self), 'is not connected to an input')
                 return None
             assert len(self.wires.inputs) == 1
             return self.wires.inputs[0]
 
         return None
 
-    # if the port is in the inputs, return the output
     def value(self):
+        """
+        If the port is in the inputs, return the output.
+        """
         if not self.wires:
             return None
 
         if self in self.wires.inputs:
             if len(self.wires.outputs) < 1:
-                # print('Warning:', str(self), 'is not connected to an output')
                 return None
-            #assert len(self.wires.outputs) == 1
             return self.wires.outputs[0]
 
         return None
-
 
     def driven(self):
         return self.value() is not None
 
     def wired(self):
         return self.trace() is not None
-

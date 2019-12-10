@@ -1,0 +1,53 @@
+{"top":"global.logic",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Not":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          }
+        },
+        "connections":[
+          ["self.O","bit_const_0_None.out"]
+        ]
+      },
+      "logic":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["O",["Array",4,"Bit"]]
+        ]],
+        "instances":{
+          "Not_inst0":{
+            "modref":"global.Not"
+          },
+          "Not_inst1":{
+            "modref":"global.Not"
+          },
+          "Not_inst2":{
+            "modref":"global.Not"
+          },
+          "Not_inst3":{
+            "modref":"global.Not"
+          }
+        },
+        "connections":[
+          ["self.a.3","Not_inst0.I"],
+          ["self.a.2","Not_inst1.I"],
+          ["self.O.1","Not_inst1.O"],
+          ["self.a.1","Not_inst2.I"],
+          ["self.a.0","Not_inst3.I"],
+          ["self.O.3","Not_inst3.O"],
+          ["self.a.3","self.O.0"],
+          ["self.a.1","self.O.2"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -1,7 +1,7 @@
 from magma import cache_definition
 from magma.backend.coreir_ import CoreIRBackend, CoreIRContextSingleton
 from magma.circuit import DefineCircuitKind, Circuit
-from magma import cache_definition
+from magma import cache_definition, Clock, Array, BitIn, BitOut, Product
 from coreir.generator import Generator
 
 @cache_definition
@@ -12,11 +12,50 @@ def GetCoreIRBackend():
 def GetMagmaContext():
     return CoreIRContextSingleton().get_instance()
 
+
+_coreirNamedTypeToPortDict = {
+    "clk": Clock,
+    "coreir.clkIn": Clock
+}
+
+
+def _get_ports_as_list(ports):
+    return [item for i in range(len(ports.keys())) for item in
+            [list(ports.keys())[i], list(ports.types())[i]]]
+
+
+def _get_ports(coreir_type, renamed_ports):
+    if (coreir_type.kind == "Bit"):
+        return BitOut
+    elif (coreir_type.kind == "BitIn"):
+        return BitIn
+    elif (coreir_type.kind == "Array"):
+        return Array[len(coreir_type), _get_ports(coreir_type.element_type, renamed_ports)]
+    elif (coreir_type.kind == "Record"):
+        elements = {}
+        for item in coreir_type.items():
+            name = item[0]
+            # replace  the in port with I as can't reference that
+            if name == "in":
+                name = "I"
+                renamed_ports[name] = "in"
+            elements[name] = _get_ports(item[1], renamed_ports)
+        return Product.from_fields("anon", elements)
+    elif (coreir_type.kind == "Named"):
+        # exception to handle clock types, since other named types not handled
+        if coreir_type.name in _coreirNamedTypeToPortDict:
+            return In(_coreirNamedTypeToPortDict[coreir_type.name])
+        else:
+            raise NotImplementedError("not all named types supported yet")
+    else:
+        raise NotImplementedError("Trying to convert unknown coreir type to magma type")
+
+
 def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName, deps):
     class ModuleWrapper(Circuit):
         name = uniqueName
         renamed_ports = {}
-        IO = cirb.get_ports_as_list(cirb.get_ports(coreirModule.type, renamed_ports))
+        IO = _get_ports_as_list(_get_ports(coreirModule.type, renamed_ports))
         wrappedModule = coreirModule
         coreir_wrapped_modules_libs_used = set(deps)
 

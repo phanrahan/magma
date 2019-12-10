@@ -12,7 +12,7 @@ from magma.config import get_debug_mode
 from collections import Counter
 import itertools
 
-from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT
+from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
 
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
@@ -401,7 +401,7 @@ def sequential(
         async_reset=None,
         *,
         decorators: typing.Optional[typing.Sequence[typing.Callable]] = None,
-        ):
+        env: SymbolTable = None):
 
     exec(_SKIP_FRAME_DEBUG_STMT)
     if async_reset is not None or decorators is not None:
@@ -416,15 +416,18 @@ def sequential(
             decorators = list(itertools.chain(decorators, [wrapped]))
             wrapped_sequential = ast_utils.inspect_enclosing_env(
                     _sequential,
-                    decorators=decorators)
-            combinational = m.circuit.combinational(decorators=decorators)
+                    decorators=decorators,
+                    st=env
+            )
+            combinational = m.circuit.combinational(decorators=decorators, env=env)
             return wrapped_sequential(async_reset, cls, combinational)
         return wrapped
     else:
         assert cls is not None
         wrapped_sequential = ast_utils.inspect_enclosing_env(
                 _sequential,
-                decorators=[sequential]
+                decorators=[sequential],
+                st=env
         )
-        combinational = m.circuit.combinational(decorators=[sequential])
+        combinational = m.circuit.combinational(decorators=[sequential], env=env)
         return wrapped_sequential(True, cls, combinational)

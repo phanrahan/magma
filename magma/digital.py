@@ -28,10 +28,10 @@ class DigitalMeta(ABCMeta, Kind):
         namespace['_info_'] = info[0], direction
         type_ = super().__new__(cls, name, bases, namespace, **kwargs)
         if direction is None:
-            #class is unundirected so t.unundirected_t -> t
+            # class is unundirected so t.unundirected_t -> t
             type_._info_ = type_, direction
         elif info[0] is None:
-            #class inherited from directed types so there is no unundirected_t
+            # class inherited from directed types so there is no unundirected_t
             type_._info_ = None, direction
 
         return type_
@@ -44,7 +44,8 @@ class DigitalMeta(ABCMeta, Kind):
             pass
 
         if not isinstance(direction, Direction):
-            raise TypeError('Direction of Digital must be an instance of m.Direction')
+            raise TypeError('Direction of Digital must be an instance of '
+                            'm.Direction')
 
         if cls.is_directed:
             if direction == cls.direction:
@@ -65,7 +66,8 @@ class DigitalMeta(ABCMeta, Kind):
         bases = tuple(bases)
         orig_name = cls.__name__
         class_name = '{}[{}]'.format(orig_name, direction.name)
-        type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, direction))
+        type_ = mcs(class_name, bases, {"orig_name": orig_name},
+                    info=(cls, direction))
         type_.__module__ = cls.__module__
         mcs._class_cache[cls, direction] = type_
         return type_
@@ -144,7 +146,9 @@ class Digital(Type, metaclass=DigitalMeta):
             o = HIGH if o else LOW
 
         if not isinstance(o, Digital):
-            report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} (type={type(o)}) because {o.debug_name} is not a Digital', debug_info)
+            report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) '
+                                f'to {o} (type={type(o)}) because '
+                                f'{o.debug_name} is not a Digital', debug_info)
             return
 
         i.port.wire(o.port, debug_info)
@@ -176,6 +180,13 @@ class Digital(Type, metaclass=DigitalMeta):
 
     def const(self):
         return self is VCC or self is GND
+
+    def unwire(i, o):
+        i.port.unwire(o.port)
+
+    @classmethod
+    def flat_length(cls):
+        return 1
 
 
 VCC = Digital[Direction.Out](name="VCC")

@@ -34,6 +34,7 @@ class TupleKind(TupleMeta, Kind):
     def N(cls):
         return len(cls)
 
+
 class Tuple(Type, Tuple, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
@@ -90,6 +91,10 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
     def __len__(self):
         return len(type(self).fields)
 
+    @classmethod
+    def flat_length(cls):
+        return sum(T.flat_length() for T in cls.types())
+
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
@@ -115,6 +120,13 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
                 o_elem.wire(i_elem, debug_info)
             else:
                 i_elem.wire(o_elem, debug_info)
+
+    def unwire(i, o):
+        for i_elem, o_elem in zip(i, o):
+            if o_elem.isinput():
+                o_elem.unwire(i_elem, debug_info)
+            else:
+                i_elem.unwire(o_elem, debug_info)
 
     def driven(self):
         for t in self.ts:
@@ -151,6 +163,10 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
             # elements should be numbered consecutively
             if ts[i].name.index != list(self.keys())[i]:
                 return False
+
+        if len(ts) != len(ts[0].name.tuple):
+            # elements should refer to a whole tuple
+            return False
 
         return True
 

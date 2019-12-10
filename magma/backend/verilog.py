@@ -4,6 +4,7 @@ import operator
 from functools import reduce
 from collections import OrderedDict
 from collections.abc import Sequence
+from ..compiler import Compiler
 from ..port import INPUT, OUTPUT, INOUT, flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
@@ -253,3 +254,14 @@ def compile(main):
          logging.debug(f'compiling circuit {k}')
          code += compiledefinition(v) + '\n'
     return code
+
+
+class VerilogCompiler(Compiler):
+    def suffix(self):
+        if hasattr(self.main, "verilog_file_name") and \
+           os.path.splitext(self.main.verilog_file_name)[-1] == ".sv":
+            return "sv"
+        return "v"
+
+    def generate_code(self):
+        return compile(self.main)

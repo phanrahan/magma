@@ -4,6 +4,7 @@ import magma
 from magma import *
 from magma.t import Type, Kind
 from magma.backend.coreir_ import CoreIRBackend
+from magma.backend.coreir_utils import check_magma_interface
 from magma.frontend.coreir_ import GetCoreIRModule
 
 
@@ -19,7 +20,7 @@ def test_check_interface_bit():
         def definition(cls):
             wire(cls.I, cls.O)
     backend = magma.backend.coreir_.CoreIRBackend()
-    backend.check_interface(TestCircuit0)
+    check_magma_interface(TestCircuit0.interface)
 
 
 def test_check_interface_array():
@@ -33,7 +34,7 @@ def test_check_interface_array():
         def definition(cls):
             wire(cls.I, cls.O)
     backend = magma.backend.coreir_.CoreIRBackend()
-    backend.check_interface(TestCircuit1)
+    check_magma_interface(TestCircuit1.interface)
 
 
 def test_check_interface_tuple():
@@ -52,11 +53,11 @@ def test_check_interface_tuple():
         def definition(cls):
             wire(cls.I, cls.O)
     backend = magma.backend.coreir_.CoreIRBackend()
-    backend.check_interface(TestCircuit2)
+    check_magma_interface(TestCircuit2.interface)
 
 def test_nested_clocks():
     c = coreir.Context()
-    cirb = CoreIRBackend(c, check_context_is_default=False)
+    cirb = CoreIRBackend(c)
     args = ['clocks', In(Array[2, Clock])]
 
     inner_test_circuit = DefineCircuit('inner_test_nested_clocks', *args)

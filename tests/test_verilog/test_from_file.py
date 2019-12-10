@@ -2,6 +2,7 @@ import magma as m
 import magma.testing
 import os
 import pytest
+import pyverilog
 
 
 def check_port(definition, port, type, direction):

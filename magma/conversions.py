@@ -5,16 +5,26 @@ from .t import In, Out, InOut, Direction
 from .digital import Digital
 from .bit import Bit, VCC, GND
 from .digital import DigitalMeta
-from .clock import Clock, Reset, AsyncReset, Enable
+from .clock import Clock, Reset, AsyncReset, AsyncResetN, Enable
 from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
-from .tuple import Tuple, tuple_ as tuple_imported
+from .tuple import Tuple, tuple_ as tuple_imported, namedtuple
 from .bitutils import int2seq
 import magma as m
 import hwtypes
 
+__all__ = ['bit']
+__all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
+
+__all__ += ['array']
+__all__ += ['bits', 'uint', 'sint']
+
+__all__ += ['tuple_', 'namedtuple']
+
+__all__ += ['concat', 'repeat']
+__all__ += ['sext', 'zext']
 
 def can_convert_to_bit(value):
     return isinstance(value, (Digital, Array, Tuple, IntegerTypes))
@@ -73,6 +83,10 @@ def reset(value):
 
 def asyncreset(value):
     return convertbit(value, AsyncReset)
+
+
+def asyncresetn(value):
+    return convertbit(value, AsyncResetN)
 
 
 def enable(value):

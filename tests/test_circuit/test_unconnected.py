@@ -32,6 +32,28 @@ def _make_unconnected_instance():
             # Leave buf.I unwired.
             io.O <= buf.O
 
+    return _Circuit
+
+
+def _make_unconnected_autowired(typ):
+    class _Buffer(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit), "X", m.In(typ)]
+
+        @classmethod
+        def definition(io):
+            io.O <= io.I
+
+    class _Circuit(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit), "X", m.In(typ)]
+
+        @classmethod
+        def definition(io):
+            buf = _Buffer()
+            buf.I <= io.I
+            io.O <= buf.O
+
+    return _Circuit
+
 
 def test_unconnected_io(caplog):
     with magma_debug_section():
@@ -53,3 +75,11 @@ def test_unconnected_instance(caplog):
             assert log.levelname == "ERROR"
         assert logs[0].msg == "\x1b[1mtests/test_circuit/test_unconnected.py:31: Input port buf.I not driven"  # nopep8
         assert logs[1].msg == "            buf = _Buffer()\n"
+
+
+@pytest.mark.parametrize("typ", [m.Clock, m.Reset, m.AsyncReset])
+def test_unconnected_autowired(typ, caplog):
+    with magma_debug_section():
+        Circuit = _make_unconnected_autowired(typ)
+        logs = caplog.records
+        assert len(logs) == 0

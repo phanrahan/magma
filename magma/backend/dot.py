@@ -1,5 +1,6 @@
 from ..array import Array
 from ..bit import Bit, VCC, GND
+from ..compiler import make_compiler
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
 from collections import OrderedDict
@@ -142,3 +143,5 @@ def compile(main):
     DebugNamePass(main).run()
     WireClockPass(main).run()
     return "\n".join([str(dot) for dot in dots(main)]) + '\n'
+
+DotCompiler = make_compiler("dot", compile)

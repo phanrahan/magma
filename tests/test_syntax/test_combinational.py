@@ -3,6 +3,7 @@ from magma.testing import check_files_equal
 import pytest
 import logging
 import ast_tools
+from ast_tools.passes import begin_rewrite, loop_unroll, end_rewrite
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
@@ -40,7 +41,7 @@ def Mux(height=2, width=None, **kwargs):
 
 
 def get_length(value):
-    if isinstance(value, m.Bit):
+    if isinstance(value, m.Digital):
         return None
     elif isinstance(value, m.ArrayType):
         return len(value)
@@ -303,3 +304,54 @@ def test_renamed_args_wire(target):
             io.O <= inv.O
 
     compile_and_check("test_renamed_args_wire", Foo, target)
+
+
+@pytest.mark.parametrize("val", [0,1])
+def test_custom_env(target, val):
+    def basic_fun(I: m.Bit, S: m.Bit) -> m.Bit:
+        if S:
+            return I
+        else:
+            return m.Bit(_custom_local_var_)
+
+    _globals = globals()
+    _globals.update({'_custom_local_var_':val})
+    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
+    _basic_fun = m.circuit.combinational(basic_fun,env=env)
+    compile_and_check(f"custom_env{val}", _basic_fun.circuit_definition, target)
+
+
+def test_loop_unroll(target):
+
+    n = 4
+    @m.circuit.combinational
+    @end_rewrite()
+    @loop_unroll()
+    @begin_rewrite()
+    def logic(a: m.Bits[n]) -> m.Bits[n]:
+        O = []
+        for i in ast_tools.macros.unroll(range(n)):
+            O.append(a[n - 1 - i])
+        return m.bits(O, n)
+
+    compile_and_check("test_loop_unroll", logic.circuit_definition,
+                      target)
+
+
+def test_loop_unroll_with_if(target):
+    n = 4
+    @m.circuit.combinational
+    @end_rewrite()
+    @loop_unroll()
+    @begin_rewrite()
+    def logic(a: m.Bits[n]) -> m.Bits[n]:
+        O = []
+        for i in ast_tools.macros.unroll(range(n)):
+            b = a[n - 1 - i]
+            if i % 2:
+                b = Not()(b)
+            O.append(b)
+        return m.bits(O, n)
+
+    compile_and_check("test_loop_unroll_nested_if", logic.circuit_definition,
+                      target)
