@@ -104,7 +104,6 @@ class InsertWrapCasts(DefinitionPass):
             if isinstance(port, (AsyncReset, AsyncResetN)) or \
                     isinstance(port.value(), (AsyncReset, AsyncResetN)):
                 value = port.value()
-                print(port, value, type(port), type(value))
                 if value is not None and not issubclass(
                         type(value), type(port).flip()):
                     port.unwire(value)
