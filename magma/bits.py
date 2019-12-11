@@ -545,6 +545,14 @@ class SInt(Bits):
         except TypeError:
             return NotImplemented
 
+    def __truediv__(self, other):
+        try:
+            return self.bvsdiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
     def __ge__(self, other):
         try:
             return self.bvsge(other)
