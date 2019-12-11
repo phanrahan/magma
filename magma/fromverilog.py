@@ -210,6 +210,11 @@ def ParseVerilogModule(node, type_map):
                     break
             else:
                 raise Exception(f"Could not find type declaration for port {port}")
+    for child in node.children():
+        if isinstance(child, Decl):
+            for sub_child in child.children():
+                if isinstance(sub_child, parser.Parameter):
+                    param_map[sub_child.name] = get_value(sub_child.value, param_map)
 
     return node.name, args, param_map
 
