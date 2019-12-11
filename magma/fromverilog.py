@@ -17,6 +17,7 @@ from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 from .passes.tsort import tsort
 
 import logging
+from hwtypes import UIntVector, SIntVector
 
 logger = logging.getLogger('magma').getChild('from_verilog')
 
@@ -89,7 +90,45 @@ def convert(input_type, target_type):
 
 def get_value(v, param_map):
     if isinstance(v, pyverilog_ast.IntConst):
-        return int(v.value)
+        if "'" in v.value:
+            # Parse literal specifier
+            size, value = v.value.split("'")
+            if size == "":
+                size = 32
+            else:
+                size = int(size)
+            if "s" in value:
+                signed = True
+                value = value.replace("s", "")
+            else:
+                signed = False
+            if "h" in value:
+                value = value.replace("h", "")
+                base = 16
+            elif "o" in value:
+                value = value.replace("o", "")
+                base = 8
+            elif "b" in value:
+                value = value.replace("b", "")
+                base = 2
+            elif "d" in value:
+                value = value.replace("d", "")
+                base = 10
+            else:
+                # default base 10
+                base = 10
+        else:
+            # Default no specifier
+            value = v.value
+            size = 32
+            base = 10
+            signed = False
+        value = int(value, base)
+        if signed:
+            value = SIntVector[size](value).as_uint()
+        else:
+            value = UIntVector[size](value).as_uint()
+        return value
     if isinstance(v, pyverilog_ast.Rvalue):
         return get_value(v.var, param_map)
     if isinstance(v, (pyverilog_ast.Minus, pyverilog_ast.Uminus)):
