@@ -196,7 +196,7 @@ class DefinitionTransformer(TransformerBase):
         if value is None and is_clock_or_nested_clock(type(port)):
             return
         if value is None:
-            if port.isinout():
+            if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
             raise Exception(f"Found unconnected port: {port.debug_name}")
 
