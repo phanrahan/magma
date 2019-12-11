@@ -5,7 +5,7 @@ from functools import reduce
 from collections import OrderedDict
 from collections.abc import Sequence
 from ..compiler import Compiler
-from ..port import INPUT, OUTPUT, INOUT, flip
+from ..port import flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
 from ..bit import Digital, VCC, GND
@@ -88,9 +88,9 @@ def vdecl(t):
 # return the verilog module args
 def vmoduleargs(self):
     def append(args, port, name):
-        if   port.is_input():  d = OUTPUT
-        elif port.is_output(): d = INPUT
-        else: d = INOUT
+        if   port.is_input():  d = "output"
+        elif port.is_output(): d = "input"
+        else: d = "inout"
         args.append("%s %s %s" % (d, vdecl(port), name))
 
     args = []
