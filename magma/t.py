@@ -98,7 +98,7 @@ class Type(object):
         return f"{defn_str}{inst_str}{str(self)}"
 
     def __le__(self, other):
-        if not self.isoutput():
+        if not self.is_output():
             self.wire(other)
         else:
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
