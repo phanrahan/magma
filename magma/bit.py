@@ -142,3 +142,4 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]
+BitInOut = Bit[Direction.InOut]
