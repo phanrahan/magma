@@ -217,7 +217,7 @@ def ParseVerilogModule(node, type_map):
 def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
                 external_modules={}, param_map={}):
     if param_map:
-        warnings.warn("param_map keyword parameter for verilog import is not "
+        warnings.warn("param_map keyword parameter for verilog import is no "
                       "longer required, magma will infer the parameters "
                       "instead", DeprecationWarning)
 
