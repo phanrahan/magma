@@ -22,8 +22,7 @@ def test_ff_param(target, circuit_type):
 
     FF = constructor(
         ff_file,
-        type_map={"clk": m.In(m.Clock), "rst": m.In(m.AsyncReset)},
-        param_map={"init": int}
+        type_map={"clk": m.In(m.Clock), "rst": m.In(m.AsyncReset)}
     )[0]
 
     class Top(m.Circuit):
