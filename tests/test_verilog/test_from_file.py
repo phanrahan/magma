@@ -262,7 +262,7 @@ endmodule   // mod
         IO = ["I", m.In(m.Bit)]
         @classmethod
         def definition(io):
-            for mod, val in zip(mods, literal):
+            for mod, val in zip(mods, literals):
                 mod()(io.I)
                 mod(KRATOS_INSTANCE_ID=parse_int_const(val))(io.I)
 
