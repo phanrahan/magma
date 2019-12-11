@@ -1,4 +1,4 @@
-module mod4 #(parameter KRATOS_INSTANCE_ID = 13'o7)
+module mod4 #(parameter KRATOS_INSTANCE_ID = 13'o742)
 (
     input I
 );

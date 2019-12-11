@@ -1,4 +1,4 @@
-module mod1 #(parameter KRATOS_INSTANCE_ID = 'h1)
+module mod1 #(parameter KRATOS_INSTANCE_ID = 'hEF)
 (
     input I
 );
