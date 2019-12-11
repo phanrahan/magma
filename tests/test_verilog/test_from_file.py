@@ -250,6 +250,12 @@ endmodule   // mod
 
     mods = m.DefineFromVerilog(verilog)
 
+    for mod in mods:
+        m.compile(f"build/test_int_literal_{mod.name}", mod, output="verilog")
+        assert m.testing.check_files_equal(
+            __file__, f"build/test_int_literal_{mod.name}.v",
+            f"gold/test_int_literal_{mod.name}.v")
+
     class Top(m.Circuit):
         IO = ["I", m.In(m.Bit)]
         @classmethod
