@@ -102,18 +102,11 @@ def parse_int_const(value):
             value = value.replace("s", "")
         else:
             signed = False
-        if "h" in value:
-            value = value.replace("h", "")
-            base = 16
-        elif "o" in value:
-            value = value.replace("o", "")
-            base = 8
-        elif "b" in value:
-            value = value.replace("b", "")
-            base = 2
-        elif "d" in value:
-            value = value.replace("d", "")
-            base = 10
+        for specifier, base in [("h", 16), ("o", 8), ("b", 2), ("d", 10)]:
+            if specifier in value:
+                # Remove specifier
+                value = value.replace(specifier, "")
+                break
         else:
             # default base 10
             base = 10

@@ -234,27 +234,28 @@ def test_nd_array_decl():
     endmodule"""
     _test_nd_array_port(verilog)
 
-def test_int_literal():
-    verilog = """
-    module mod #(parameter KRATOS_INSTANCE_ID = 32'h0)
-    (
-        input I
-    );
 
-    endmodule   // mod
+def test_int_literal():
+    literals = ["32'h0", "'h1", "24'd2", "16'b1", "13'o7", "17"]
+    verilog = ""
+    for i, literal in enumerate(literals):
+        verilog += f"""
+module mod{i} #(parameter KRATOS_INSTANCE_ID = {literal})
+(
+    input I
+);
+
+endmodule   // mod
     """
 
-    [mod] = m.DefineFromVerilog(verilog)
-    m.compile("build/test_int_literal_top", mod, output="verilog")
-    assert m.testing.check_files_equal(
-        __file__, "build/test_int_literal_top.v",
-        "gold/test_int_literal_top.v")
+    mods = m.DefineFromVerilog(verilog)
 
     class Top(m.Circuit):
         IO = ["I", m.In(m.Bit)]
         @classmethod
         def definition(io):
-            mod()(io.I)
+            for mod in mods:
+                mod()(io.I)
 
     m.compile("build/test_int_literal_inst", Top)
     assert m.testing.check_files_equal(
