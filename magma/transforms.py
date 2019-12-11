@@ -2,6 +2,7 @@ from collections import namedtuple, OrderedDict
 from .circuit import DefineCircuit, EndCircuit, CopyInstance
 from .is_definition import isdefinition
 from .is_primitive import isprimitive
+from .digital import Digital
 from .bit import *
 from .clock import Clock, Enable, Reset, AsyncReset, wiredefaultclock
 from .array import *
@@ -44,8 +45,7 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert isinstance(new_bit,
-                (Bit, Array, Clock, Enable, Reset, AsyncReset))
+        assert isinstance(new_bit, (Digital, Array)), type(new_bit)
 
         if isinstance(orig_bit, Array):
             # Map the individual bits
