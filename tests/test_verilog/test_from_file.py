@@ -3,6 +3,8 @@ import magma.testing
 import os
 import pytest
 import pyverilog
+from magma.fromverilog import parse_int_const
+from hwtypes import BitVector
 
 
 def check_port(definition, port, type, direction):
@@ -260,8 +262,9 @@ endmodule   // mod
         IO = ["I", m.In(m.Bit)]
         @classmethod
         def definition(io):
-            for mod in mods:
+            for mod, val in zip(mods, literal):
                 mod()(io.I)
+                mod(KRATOS_INSTANCE_ID=parse_int_const(val))(io.I)
 
     m.compile("build/test_int_literal_inst", Top)
     assert m.testing.check_files_equal(

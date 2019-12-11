@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from collections import namedtuple, OrderedDict
+import warnings
 
 from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
@@ -210,11 +211,16 @@ def ParseVerilogModule(node, type_map):
             else:
                 raise Exception(f"Could not find type declaration for port {port}")
 
-    return node.name, args
+    return node.name, args, param_map
 
 
 def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
                 external_modules={}, param_map={}):
+    if param_map:
+        warnings.warn("param_map keyword parameter for verilog import is not "
+                      "longer required, magma will infer the parameters "
+                      "instead", DeprecationWarning)
+
     parser = VerilogParser()
     ast = parser.parse(source)
     visitor = ModuleVisitor(shallow)
@@ -234,10 +240,13 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
                         f"parsed verilog: {intersection}")
     magma_defns = external_modules.copy()
     for name, verilog_defn in visitor.defns.items():
-        parsed_name, args = ParseVerilogModule(verilog_defn, type_map)
+        parsed_name, args, default_params = ParseVerilogModule(verilog_defn,
+                                                               type_map)
         assert parsed_name == name
         magma_defn = func(name, *args)
-        magma_defn.coreir_config_param_types = param_map
+        magma_defn.coreir_config_param_types = {key: type(value) for key, value
+                                                in default_params.items()}
+        magma_defn.default_kwargs = default_params
         if func == DefineCircuit:
             # Attach relevant lines of verilog source.
             magma_defn.verilogFile = _get_lines(
