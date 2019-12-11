@@ -3,7 +3,6 @@ import warnings
 import enum
 from abc import abstractmethod
 from .ref import Ref, AnonRef, DefnRef, InstRef
-from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
 
 

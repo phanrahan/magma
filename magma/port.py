@@ -1,6 +1,7 @@
 from .config import get_debug_mode
 from .logging import error, warning, get_source_line
 from .backend.util import make_relative
+from .t import Direction
 
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
@@ -8,9 +9,9 @@ __all__ += ['flip']
 __all__ += ['Port']
 
 
-INPUT = 'input'
-OUTPUT = 'output'
-INOUT = 'inout'
+INPUT = Direction.In
+OUTPUT = Direction.Out
+INOUT = Direction.InOut
 
 
 def _report_wiring_messgae(fn, message, debug_info):
