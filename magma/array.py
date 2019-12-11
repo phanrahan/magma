@@ -122,7 +122,7 @@ class Array(Type, metaclass=ArrayMeta):
                             self.ts.append(VCC if elem else GND)
                         else:
                             self.ts.append(elem)
-                elif isinstance(args[0], Array):
+                elif len(self) > 1 and isinstance(args[0], Array):
                     if len(args[0]) != len(self):
                         raise TypeError(f"Will not do implicit conversion of arrays")
                     self.ts = args[0].ts[:]
@@ -133,6 +133,14 @@ class Array(Type, metaclass=ArrayMeta):
                     self.ts = []
                     for bit in m.bitutils.int2seq(args[0], self.N):
                         self.ts.append(VCC if bit else GND)
+                elif self.N == 1:
+                    t = args[0]
+                    if isinstance(t, IntegerTypes):
+                        t = m.VCC if t else m.GND
+                    assert type(t) == self.T or type(t) == self.T.flip() or \
+                        issubclass(type(type(t)), type(self.T)) or \
+                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
+                    self.ts = [t]
             elif len(args) == self.N:
                 self.ts = []
                 for t in args:
