@@ -236,7 +236,7 @@ def test_nd_array_decl():
 
 
 def test_int_literal():
-    literals = ["32'h0", "'h1", "24'd2", "16'b1", "13'o7", "17"]
+    literals = ["32'h0", "'h1", "24'sd2", "16'b1", "13'o7", "17"]
     verilog = ""
     for i, literal in enumerate(literals):
         verilog += f"""
