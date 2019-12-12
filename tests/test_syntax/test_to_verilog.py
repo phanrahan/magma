@@ -11,8 +11,7 @@ class SimpleALU(m.Circuit):
     IO = ["a", m.In(m.UInt[16]), "b", m.In(m.UInt[16]), "c",
           m.Out(m.UInt[16]), "config_", m.In(m.Bits[2])]
 
-    m.config.set_debug_mode(False)
-    @m.circuit.combinational_to_verilog
+    @m.circuit.combinational_to_verilog(debug=False)
     def execute_alu(a: m.UInt[16], b: m.UInt[16], config_: m.Bits[2]) -> \
             m.UInt[16]:
         if config_ == m.bits(0, 2):
@@ -30,26 +29,8 @@ class SimpleALU(m.Circuit):
         io.c <= io.execute_alu(io.a, io.b, io.config_)
 
 
-def build_kratos_debug_info(circuit, is_top):
-    inst_to_defn_map = {}
-    for instance in circuit.instances:
-        instance_inst_to_defn_map = \
-            build_kratos_debug_info(type(instance), is_top=False)
-        for k, v in instance_inst_to_defn_map.values():
-            key = instance.name + "." + k
-            if is_top:
-                key = circuit.name + "." + key
-            inst_to_defn_map[key] = v
-        inst_name = instance.name
-        if is_top:
-            inst_name = circuit.name + "." + instance.name
-        if instance.kratos is not None:
-            inst_to_defn_map[inst_name] = instance.kratos
-    return inst_to_defn_map
-
-
 def test_simple_alu():
-    inst_to_defn_map = build_kratos_debug_info(SimpleALU, is_top=True)
+    inst_to_defn_map = m.circuit.build_kratos_debug_info(SimpleALU, is_top=True)
     assert "SimpleALU.execute_alu_inst0" in inst_to_defn_map
     generators = []
     for instance_name, mod in inst_to_defn_map.items():
@@ -92,7 +73,7 @@ def test_simple_alu():
 
 
 def test_seq_simple():
-    @m.circuit.sequential_to_verilog(async_reset=True)
+    @m.circuit.sequential_to_verilog(async_reset=True, debug=False)
     class TestBasic:
         def __init__(self):
             self.x: m.Bits[2] = m.bits(0, 2)
