@@ -4,7 +4,7 @@ from magma.testing import check_files_equal
 
 
 def test_verilog_field_uniquify():
-    # https://github.com/phanrahan/magma/issues/330
+    # https://github.com/phanrahan/magma/issues/330.
     HalfAdder = m.DefineCircuit('HalfAdder', 'A', m.In(m.Bit), 'B',
                                 m.In(m.Bit), 'S', m.Out(m.Bit), 'C',
                                 m.Out(m.Bit))
@@ -13,6 +13,7 @@ def test_verilog_field_uniquify():
         assign C = A & B;\
     '''
     m.EndCircuit()
+
 
 def test_uniquify_equal():
     foo = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
@@ -231,3 +232,50 @@ endmodule""")[0]
     # Check that uniq. pass runs successfully.
     pass_ = m.UniquificationPass(_Top, None)
     pass_.run()
+
+
+def test_multiple_renamed():
+    def _gen_foo(width):
+        class Foo(m.Circuit):
+            IO = ["I", m.In(m.Bits[width]), "O", m.Out(m.Bits[width])]
+
+            @classmethod
+            def definition(io):
+                io. O <= io.I
+
+        return Foo
+
+    Foo0 = _gen_foo(2)
+    Foo1 = _gen_foo(3)
+    Foo2 = _gen_foo(3)
+
+    class _Top(m.Circuit):
+        IO = [
+            "I0", m.In(m.Bits[2]),
+            "I1", m.In(m.Bits[3]),
+            "I2", m.In(m.Bits[3]),
+            "O0", m.Out(m.Bits[2]),
+            "O1", m.Out(m.Bits[3]),
+            "O2", m.Out(m.Bits[3]),
+        ]
+
+        @classmethod
+        def definition(io):
+            foo0 = Foo0()
+            foo1 = Foo1()
+            foo2 = Foo2()
+
+            foo0.I <= io.I0
+            io.O0 <= foo0.O
+
+            foo1.I <= io.I1
+            io.O1 <= foo1.O
+
+            foo2.I <= io.I2
+            io.O2 <= foo2.O
+
+    BASENAME = "uniquify_multiple_rename"
+    m.compile(f"build/{BASENAME}", _Top, output="coreir")
+    assert check_files_equal(__file__,
+                             f"build/{BASENAME}.json",
+                             f"gold/{BASENAME}.json")
