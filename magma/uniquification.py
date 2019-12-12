@@ -56,27 +56,10 @@ class UniquificationPass(DefinitionPass):
         else:
             if self.mode is not UniquificationMode.UNIQUIFY:
                 assert self.seen[name][key][0].name == definition.name
-            else:
-                type(definition).rename(definition, self.seen[name][key][0].name)
             self.seen[name][key].append(definition)
 
-    def _run(self, definition):
-        if not isdefinition(definition):
-            return
-
-        for instance in definition.instances:
-            instancedefinition = type(instance)
-            if isdefinition(instancedefinition):
-                self._run( instancedefinition )
-
-        id_ = id(definition)
-        if id_ in self.definitions:
-            return
-        self.definitions[id_] = definition
-        self(definition)
-
     def run(self):
-        super(UniquificationPass, self).run()
+        super().run()
         duplicated = []
         for name, definitions in self.seen.items():
             if len(definitions) > 1:

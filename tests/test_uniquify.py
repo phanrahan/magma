@@ -173,7 +173,7 @@ endmodule""")
     # Run the uniquification pass as a mechanism to check that foo0 and foo1
     # hash to two different things even though they have the same repr.
     pass_ = m.UniquificationPass(top, None)
-    pass_._run(top)
+    pass_.run()
     foo_seen = pass_.seen["foo"]
     assert len(foo_seen) == 2
     for v in foo_seen.values():
@@ -181,3 +181,53 @@ endmodule""")
     expected_ids_ = {id(v[0]) for v in foo_seen.values()}
     ids_ = {id(foo0), id(foo1)}
     assert expected_ids_ == ids_
+
+
+def test_same_verilog():
+    """
+    This test checks that if we have multiple verilog-wrapped circuits with the
+    same name and same source, the uniquification pass does *not* try to perform
+    a rename. As it does not need to.
+    """
+    def _generate_foo():
+        return m.DefineFromVerilog("""
+module foo(input i, output o);
+    assign o = i;
+endmodule""")[0]
+
+
+    class _Cell0(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            foo = _generate_foo()()
+            foo.i <= io.I
+            io.O <= foo.o
+
+
+    class _Cell1(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            foo = _generate_foo()()
+            foo.i <= io.I
+            io.O <= foo.o
+
+
+    class _Top(m.Circuit):
+        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])]
+
+        @classmethod
+        def definition(io):
+            cell0 = _Cell0()
+            cell1 = _Cell1()
+            cell0.I <= io.I[0]
+            cell1.I <= io.I[1]
+            io.O[0] <= cell0.O
+            io.O[1] <= cell1.O
+
+    # Check that uniq. pass runs successfully.
+    pass_ = m.UniquificationPass(_Top, None)
+    pass_.run()
