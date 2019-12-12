@@ -25,3 +25,7 @@
 * `isinput`, `isinout`, `isoutput` renamed to `is_input`, `is_inout`,
   `is_output` for clarity
 
+
+See these PRs for examples of these changes
+* Mantle: https://github.com/phanrahan/mantle/pull/165
+* Fault: https://github.com/leonardt/fault/pull/187
