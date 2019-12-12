@@ -36,8 +36,7 @@ def _hash(definition):
 
 class UniquificationPass(DefinitionPass):
     def __init__(self, main, mode):
-        super(UniquificationPass, self).__init__(main)
-        self.definitions = {}
+        super().__init__(main)
         self.mode = mode
         self.seen = {}
         self.original_names = {}
@@ -46,17 +45,19 @@ class UniquificationPass(DefinitionPass):
         name = definition.name
         key = _hash(definition)
 
-        if name not in self.seen:
-            self.seen[name] = {}
-        if key not in self.seen[name]:
-            if self.mode is UniquificationMode.UNIQUIFY and len(self.seen[name]) > 0:
-                new_name = name + "_unq" + str(len(self.seen[name]))
+        seen = self.seen.setdefault(name, {})
+        if key not in seen:
+            if self.mode is UniquificationMode.UNIQUIFY and len(seen) > 0:
+                new_name = name + "_unq" + str(len(seen))
                 type(definition).rename(definition, new_name)
-            self.seen[name][key] = [definition]
+            seen[key] = [definition]
         else:
             if self.mode is not UniquificationMode.UNIQUIFY:
-                assert self.seen[name][key][0].name == definition.name
-            self.seen[name][key].append(definition)
+                assert seen[key][0].name == name
+            elif name != seen[key][0].name:
+                new_name = seen[key][0].name
+                type(definition).rename(definition, new_name)
+            seen[key].append(definition)
 
     def run(self):
         super().run()
