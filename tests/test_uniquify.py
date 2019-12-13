@@ -4,7 +4,7 @@ from magma.testing import check_files_equal
 
 
 def test_verilog_field_uniquify():
-    # https://github.com/phanrahan/magma/issues/330
+    # https://github.com/phanrahan/magma/issues/330.
     HalfAdder = m.DefineCircuit('HalfAdder', 'A', m.In(m.Bit), 'B',
                                 m.In(m.Bit), 'S', m.Out(m.Bit), 'C',
                                 m.Out(m.Bit))
@@ -13,6 +13,7 @@ def test_verilog_field_uniquify():
         assign C = A & B;\
     '''
     m.EndCircuit()
+
 
 def test_uniquify_equal():
     foo = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
@@ -173,7 +174,7 @@ endmodule""")
     # Run the uniquification pass as a mechanism to check that foo0 and foo1
     # hash to two different things even though they have the same repr.
     pass_ = m.UniquificationPass(top, None)
-    pass_._run(top)
+    pass_.run()
     foo_seen = pass_.seen["foo"]
     assert len(foo_seen) == 2
     for v in foo_seen.values():
@@ -181,3 +182,100 @@ endmodule""")
     expected_ids_ = {id(v[0]) for v in foo_seen.values()}
     ids_ = {id(foo0), id(foo1)}
     assert expected_ids_ == ids_
+
+
+def test_same_verilog():
+    """
+    This test checks that if we have multiple verilog-wrapped circuits with the
+    same name and same source, the uniquification pass does *not* try to perform
+    a rename. As it does not need to.
+    """
+    def _generate_foo():
+        return m.DefineFromVerilog("""
+module foo(input i, output o);
+    assign o = i;
+endmodule""")[0]
+
+
+    class _Cell0(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            foo = _generate_foo()()
+            foo.i <= io.I
+            io.O <= foo.o
+
+
+    class _Cell1(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            foo = _generate_foo()()
+            foo.i <= io.I
+            io.O <= foo.o
+
+
+    class _Top(m.Circuit):
+        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])]
+
+        @classmethod
+        def definition(io):
+            cell0 = _Cell0()
+            cell1 = _Cell1()
+            cell0.I <= io.I[0]
+            cell1.I <= io.I[1]
+            io.O[0] <= cell0.O
+            io.O[1] <= cell1.O
+
+    # Check that uniq. pass runs successfully.
+    pass_ = m.UniquificationPass(_Top, None)
+    pass_.run()
+
+
+def test_multiple_renamed():
+    def _gen_foo(width):
+        class Foo(m.Circuit):
+            IO = ["I", m.In(m.Bits[width]), "O", m.Out(m.Bits[width])]
+
+            @classmethod
+            def definition(io):
+                io. O <= io.I
+
+        return Foo
+
+    Foo0 = _gen_foo(2)
+    Foo1 = _gen_foo(3)
+    Foo2 = _gen_foo(3)
+
+    class _Top(m.Circuit):
+        IO = [
+            "I0", m.In(m.Bits[2]),
+            "I1", m.In(m.Bits[3]),
+            "I2", m.In(m.Bits[3]),
+            "O0", m.Out(m.Bits[2]),
+            "O1", m.Out(m.Bits[3]),
+            "O2", m.Out(m.Bits[3]),
+        ]
+
+        @classmethod
+        def definition(io):
+            foo0 = Foo0()
+            foo1 = Foo1()
+            foo2 = Foo2()
+
+            foo0.I <= io.I0
+            io.O0 <= foo0.O
+
+            foo1.I <= io.I1
+            io.O1 <= foo1.O
+
+            foo2.I <= io.I2
+            io.O2 <= foo2.O
+
+    BASENAME = "uniquify_multiple_rename"
+    m.compile(f"build/{BASENAME}", _Top, output="coreir")
+    assert check_files_equal(__file__,
+                             f"build/{BASENAME}.json",
+                             f"gold/{BASENAME}.json")

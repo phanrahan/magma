@@ -1,0 +1,55 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]]
+        ]],
+        "connections":[
+          ["self.O","self.I"]
+        ]
+      },
+      "Foo_unq1":{
+        "type":["Record",[
+          ["I",["Array",3,"BitIn"]],
+          ["O",["Array",3,"Bit"]]
+        ]],
+        "connections":[
+          ["self.O","self.I"]
+        ]
+      },
+      "_Top":{
+        "type":["Record",[
+          ["I0",["Array",2,"BitIn"]],
+          ["I1",["Array",3,"BitIn"]],
+          ["I2",["Array",3,"BitIn"]],
+          ["O0",["Array",2,"Bit"]],
+          ["O1",["Array",3,"Bit"]],
+          ["O2",["Array",3,"Bit"]]
+        ]],
+        "instances":{
+          "Foo_inst0":{
+            "modref":"global.Foo"
+          },
+          "Foo_inst1":{
+            "modref":"global.Foo_unq1"
+          },
+          "Foo_inst2":{
+            "modref":"global.Foo_unq1"
+          }
+        },
+        "connections":[
+          ["self.I0","Foo_inst0.I"],
+          ["self.O0","Foo_inst0.O"],
+          ["self.I1","Foo_inst1.I"],
+          ["self.O1","Foo_inst1.O"],
+          ["self.I2","Foo_inst2.I"],
+          ["self.O2","Foo_inst2.O"]
+        ]
+      }
+    }
+  }
+}
+}
