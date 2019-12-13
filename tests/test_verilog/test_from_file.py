@@ -3,6 +3,8 @@ import magma.testing
 import os
 import pytest
 import pyverilog
+from magma.fromverilog import parse_int_const
+from hwtypes import BitVector
 
 
 def check_port(definition, port, type, direction):
@@ -228,3 +230,38 @@ def test_nd_array_decl():
       input [7:0] inp [3:0][1:0];
     endmodule"""
     _test_nd_array_port(verilog)
+
+
+def test_int_literal():
+    literals = ["32'hDEADBEEF", "'hEF", "24'sd23", "16'b10111", "13'o742", "17"]
+    verilog = ""
+    for i, literal in enumerate(literals):
+        verilog += f"""
+module mod{i} #(parameter KRATOS_INSTANCE_ID = {literal})
+(
+    input I
+);
+
+endmodule   // mod
+    """
+
+    mods = m.DefineFromVerilog(verilog)
+
+    for mod in mods:
+        m.compile(f"build/test_int_literal_{mod.name}", mod, output="verilog")
+        assert m.testing.check_files_equal(
+            __file__, f"build/test_int_literal_{mod.name}.v",
+            f"gold/test_int_literal_{mod.name}.v")
+
+    class Top(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+        @classmethod
+        def definition(io):
+            for mod, val in zip(mods, literals):
+                mod()(io.I)
+                mod(KRATOS_INSTANCE_ID=parse_int_const(val))(io.I)
+
+    m.compile("build/test_int_literal_inst", Top)
+    assert m.testing.check_files_equal(
+        __file__, "build/test_int_literal_inst.v",
+        "gold/test_int_literal_inst.v")

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from collections import namedtuple, OrderedDict
+import warnings
 
 from mako.template import Template
 from pyverilog.vparser.parser import VerilogParser, Node, Input, Output, ModuleDef, Ioport, Port, Decl
@@ -18,6 +19,7 @@ from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 from .passes.tsort import tsort
 
 import logging
+from hwtypes import UIntVector, SIntVector
 
 logger = logging.getLogger('magma').getChild('from_verilog')
 
@@ -88,9 +90,44 @@ def convert(input_type, target_type):
     raise NotImplementedError(f"Conversion between {input_type} and "
                               f"{target_type} not supported")
 
+
+def parse_int_const(value):
+    if "'" in value:
+        # Parse literal specifier
+        size, value = value.split("'")
+        if size == "":
+            size = 32
+        else:
+            size = int(size)
+        if "s" in value:
+            signed = True
+            value = value.replace("s", "")
+        else:
+            signed = False
+        for specifier, base in [("h", 16), ("o", 8), ("b", 2), ("d", 10)]:
+            if specifier in value:
+                # Remove specifier
+                value = value.replace(specifier, "")
+                break
+        else:
+            # default base 10
+            base = 10
+    else:
+        # Default no specifier
+        size = 32
+        base = 10
+        signed = False
+    value = int(value, base)
+    if signed:
+        value = SIntVector[size](value).as_uint()
+    else:
+        value = UIntVector[size](value).as_uint()
+    return value
+
+
 def get_value(v, param_map):
     if isinstance(v, pyverilog_ast.IntConst):
-        return int(v.value)
+        return parse_int_const(v.value)
     if isinstance(v, pyverilog_ast.Rvalue):
         return get_value(v.var, param_map)
     if isinstance(v, (pyverilog_ast.Minus, pyverilog_ast.Uminus)):
@@ -174,12 +211,22 @@ def ParseVerilogModule(node, type_map):
                     break
             else:
                 raise Exception(f"Could not find type declaration for port {port}")
+    for child in node.children():
+        if isinstance(child, Decl):
+            for sub_child in child.children():
+                if isinstance(sub_child, parser.Parameter):
+                    param_map[sub_child.name] = get_value(sub_child.value, param_map)
 
-    return node.name, args
+    return node.name, args, param_map
 
 
 def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
                 external_modules={}, param_map={}):
+    if param_map:
+        warnings.warn("param_map keyword parameter for verilog import is no "
+                      "longer required, magma will infer the parameters "
+                      "instead", DeprecationWarning)
+
     parser = VerilogParser()
     ast = parser.parse(source)
     visitor = ModuleVisitor(shallow)
@@ -199,10 +246,13 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
                         f"parsed verilog: {intersection}")
     magma_defns = external_modules.copy()
     for name, verilog_defn in visitor.defns.items():
-        parsed_name, args = ParseVerilogModule(verilog_defn, type_map)
+        parsed_name, args, default_params = ParseVerilogModule(verilog_defn,
+                                                               type_map)
         assert parsed_name == name
         magma_defn = func(name, *args)
-        magma_defn.coreir_config_param_types = param_map
+        magma_defn.coreir_config_param_types = {key: type(value) for key, value
+                                                in default_params.items()}
+        magma_defn.default_kwargs = default_params
         if func == DefineCircuit:
             # Attach relevant lines of verilog source.
             magma_defn.verilogFile = _get_lines(
