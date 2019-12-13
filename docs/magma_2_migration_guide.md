@@ -18,7 +18,9 @@
   is used for the key/value version (e.g. x.a, x.y, ...).  Magma previously
   used Tuple to represent both versions.  This change is in line with the
   `hwtypes` `Tuple` and `Product` types (as well as Python's `tuple` vs
-  `namedtuple`).
+  `namedtuple`). `"anon"` is the name of the type (before all magma tuples
+  were "anonymous").  We are considering an interface for declaring
+  anonymous Products so the user does not have to supply a name.
 * `<Tuple>.Ks` -> `<Tuple>.keys()` and `<Tuple>.Ts` -> `<Tuple>.types()` these
   attributes were refactored to methods to be more clear/consistent with the
   hwtypes tuple.
