@@ -95,7 +95,25 @@ def get_length(t):
         return 1
 
 
-def process_func(defn_env, fn, circ_name, registers=None, init_fn=None):
+def build_kratos_debug_info(circuit, is_top):
+    inst_to_defn_map = {}
+    for instance in circuit.instances:
+        instance_inst_to_defn_map = \
+            build_kratos_debug_info(type(instance), is_top=False)
+        for k, v in instance_inst_to_defn_map.values():
+            key = instance.name + "." + k
+            if is_top:
+                key = circuit.name + "." + key
+            inst_to_defn_map[key] = v
+        inst_name = instance.name
+        if is_top:
+            inst_name = circuit.name + "." + instance.name
+        if instance.kratos is not None:
+            inst_to_defn_map[inst_name] = instance.kratos
+    return inst_to_defn_map
+
+
+def process_func(defn_env, fn, circ_name, registers=None, debug=False):
     tree = ast_utils.get_ast(fn).body[0]
     # TODO: Flatten types pass
     inputs = {}
@@ -173,7 +191,7 @@ def process_func(defn_env, fn, circ_name, registers=None, init_fn=None):
 
     class Module(kratos.Generator):
         def __init__(self):
-            super().__init__(circ_name, get_debug_mode())
+            super().__init__(circ_name, get_debug_mode() or debug)
             for key, value in inputs.items():
                 setattr(self, key, self.input(key, value))
             for key, value in outputs.items():
@@ -222,7 +240,8 @@ def process_func(defn_env, fn, circ_name, registers=None, init_fn=None):
     filename = f".magma/{circ_name}-kratos.sv"
     mod = Module()
 
-    kratos.verilog(mod, filename=filename, insert_debug_info=get_debug_mode())
+    kratos.verilog(mod, filename=filename,
+                   insert_debug_info=get_debug_mode() or debug)
     defn = m.DefineCircuit(circ_name, *IO, kratos=mod)
     with open(filename, 'r') as f:
         defn.verilogFile = f.read()
@@ -230,12 +249,15 @@ def process_func(defn_env, fn, circ_name, registers=None, init_fn=None):
     return defn
 
 
-@ast_utils.inspect_enclosing_env
-def combinational_to_verilog(defn_env, fn):
-    return lambda *args: process_func(defn_env, fn, fn.__name__)()(*args)
+def combinational_to_verilog(debug=False):
+    @ast_utils.inspect_enclosing_env
+    def wrapped(defn_env, fn):
+        return lambda *args: process_func(defn_env, fn, fn.__name__,
+                                          debug=debug)()(*args)
+    return wrapped
 
 
-def sequential_to_verilog(async_reset):
+def sequential_to_verilog(async_reset, debug=False):
     if not async_reset:
         raise NotImplementedError()
 
@@ -243,5 +265,5 @@ def sequential_to_verilog(async_reset):
     def wrapped(defn_env, cls):
         initial_value_map = get_initial_value_map(cls.__init__, defn_env)
         return process_func(defn_env, cls.__call__, cls.__name__,
-                            initial_value_map, cls.__init__)
+                            initial_value_map, debug=debug)
     return wrapped
