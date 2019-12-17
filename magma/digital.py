@@ -48,6 +48,8 @@ class DigitalMeta(ABCMeta, Kind):
                             'm.Direction')
 
         if cls.is_directed:
+            if direction == direction.Undirected:
+                return cls.undirected_t
             if direction == cls.direction:
                 return cls
             elif direction == direction.Flip:

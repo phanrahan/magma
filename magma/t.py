@@ -27,6 +27,7 @@ class Direction(enum.Enum):
     Out = 1
     InOut = 2
     Flip = 3
+    Undirected = 4
 
 
 class Type(object):
