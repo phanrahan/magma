@@ -32,9 +32,21 @@ def test_inline_tuple():
     RVDATAIN = m.Array[2, m.Tuple(data=m.In(m.Bits[5]), valid=m.In(m.Bit),
                                   ready=m.Out(m.Bit))]
 
-    InnerDelayUnit = m.DeclareCircuit("InnerDelayUnit",
+    InnerInnerDelayUnit = m.DeclareCircuit("InnerInnerDelayUnit",
                                       "INPUT", RVDATAIN,
                                       "OUTPUT", m.Flip(RVDATAIN))
+
+    class InnerDelayUnit(m.Circuit):
+        IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
+            m.ClockInterface()
+
+        @classmethod
+        def definition(cls):
+            delay = InnerInnerDelayUnit(name="inner_inner_delay")
+            delay.INPUT[0] <= cls.INPUT[1]
+            delay.INPUT[1] <= cls.INPUT[0]
+            cls.OUTPUT[0] <= delay.OUTPUT[1]
+            cls.OUTPUT[1] <= delay.OUTPUT[0]
 
     class DelayUnit(m.Circuit):
         IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
@@ -72,6 +84,12 @@ assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
 assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
 """, valid_in=delay.inner_delay.INPUT[0].valid,
      ready_out=delay.inner_delay.OUTPUT[1].ready)
+
+            # Test double recursive ref
+            cls.inline_verilog("""\
+assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
+""", valid_in=delay.inner_delay.inner_inner_delay.INPUT[0].valid,
+     ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
 
     m.compile(f"build/test_inline_tuple", Main, output="coreir-verilog")
     assert m.testing.check_files_equal(__file__,
