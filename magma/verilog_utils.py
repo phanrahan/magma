@@ -4,6 +4,8 @@ import magma as m
 def verilog_name(name):
     if isinstance(name, m.ref.DefnRef):
         return str(name)
+    if isinstance(name, m.ref.InstRef):
+        return f"{name.inst.name}.{str(name)}"
     if isinstance(name, m.ref.ArrayRef):
         array_name = verilog_name(name.array.name)
         return f"{array_name}_{name.index}"
