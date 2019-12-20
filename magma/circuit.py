@@ -25,6 +25,7 @@ from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
+from magma.verilog_utils import verilog_name
 if sys.version_info > (3, 0):
     from functools import reduce
 
@@ -88,6 +89,7 @@ class CircuitKind(type):
         dct.setdefault('renamed_ports', {})
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
+        dct["inline_verilog_strs"] = []
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -187,6 +189,11 @@ class CircuitKind(type):
         if name not in defn:
             defn[name] = cls
         return defn
+
+    def inline_verilog(cls, inline_str, **kwargs):
+        cls.inline_verilog_strs.append(
+            inline_str.format(**{key: verilog_name(arg.name) for key, arg in
+                                 kwargs.items()}))
 
 
 @six.add_metaclass(CircuitKind)
