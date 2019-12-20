@@ -7,12 +7,8 @@ DelayUnit DelayUnit_inst0(.INPUT_data(I_data), .INPUT_ready(DelayUnit_inst0_INPU
 assign I_ready = DelayUnit_inst0_INPUT_ready;
 assign O_data = DelayUnit_inst0_OUTPUT_data;
 assign O_valid = DelayUnit_inst0_OUTPUT_valid;
-
 assert property { @(posedge CLK) I_valid |-> ##3 O_ready };
 
-
-
 assert property { @(posedge CLK) DelayUnit_inst0.INPUT_valid |-> ##3 DelayUnit_inst0.OUTPUT_ready };
-
 endmodule
 
