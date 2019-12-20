@@ -33,6 +33,6 @@ assert property { @(posedge CLK) I_0_valid |-> ##3 O_1_ready };
 
 assert property { @(posedge CLK) DelayUnit_inst0.INPUT_1_valid |-> ##3 DelayUnit_inst0.OUTPUT_0_ready };
 
-assert property { @(posedge CLK) DelayUnit_inst0.inner_delay.INPUT.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT.OUTPUT_1_ready };
+assert property { @(posedge CLK) DelayUnit_inst0.inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT_1_ready };
 endmodule
 

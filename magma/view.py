@@ -12,7 +12,7 @@ class PortView:
             raise Exception(f"Can only use getitem with arrays and "
                             f"tuples not {type(self.port)}")
 
-        return PortView(self.port[key], self)
+        return PortView(self.port[key], self.parent)
 
     def __getattr__(self, key):
         if isinstance(self.port, m.TupleType):
