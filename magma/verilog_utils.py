@@ -1,8 +1,18 @@
 import magma as m
+from magma.view import InstView, PortView
 
 
 def verilog_name(name):
-    if isinstance(name, m.ref.DefnRef):
+    if isinstance(name, PortView):
+        return f"{verilog_name(name.parent)}.{verilog_name(name.port.name)}"
+    if isinstance(name, InstView):
+        prefix = ""
+        if isinstance(name.parent, m.Circuit):
+            prefix = name.parent.name + "."
+        else:
+            prefix = verilog_name(name.parent) + "."
+        return prefix + name.inst.name
+    elif isinstance(name, m.ref.DefnRef):
         return str(name)
     if isinstance(name, m.ref.InstRef):
         return f"{name.inst.name}.{str(name)}"

@@ -26,6 +26,7 @@ from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from magma.verilog_utils import verilog_name
+from magma.view import InstView
 if sys.version_info > (3, 0):
     from functools import reduce
 
@@ -522,6 +523,8 @@ class DefineCircuitKind(CircuitKind):
                 cls.instance_name_counter[inst.name] += 1
         else:
             cls.instance_name_counter[inst.name] += 1
+        for sub_inst in getattr(type(inst), "instances", []):
+            setattr(inst, sub_inst.name, InstView(sub_inst, inst))
         cls.instance_name_map[inst.name] = inst
         inst.defn = cls
         if get_debug_mode():
