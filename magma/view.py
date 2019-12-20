@@ -36,7 +36,7 @@ class InstView:
             if attr in self.circuit.interface.ports.keys():
                 return PortView(self.circuit.interface.ports[attr], self)
             elif attr in self.instance_map:
-                return InstanceVieW(self.instance_map[attr], self)
+                return InstanceView(self.instance_map[attr], self)
         except AttributeError:
             pass
         return object.__getattribute__(self, attr)
