@@ -138,6 +138,21 @@ def test_seq_simple(target, async_reset):
         """
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
 
+def test_seq_call(target):
+    @m.circuit.sequential
+    class TestCall:
+        def __init__(self):
+            self.x: m.Bits[2] = m.bits(0, 2)
+            self.y: m.Bits[3] = m.bits(0, 3)
+
+        def __call__(self, I: m.Bits[2]) -> m.Bits[3]:
+            O = self.y
+            self.y = m.zext(self.x, 1)
+            self.x = I
+            return O
+
+    compile_and_check("TestCall", TestCall, target)
+
 def test_custom_env(target):
 
     _globals = globals()
