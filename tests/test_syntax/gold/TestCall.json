@@ -1,0 +1,66 @@
+{"top":"global.TestCall",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestCall":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]],
+          ["O",["Array",3,"Bit"]]
+        ]],
+        "instances":{
+          "TestCall_comb_inst0":{
+            "modref":"global.TestCall_comb"
+          },
+          "reg_PR_inst0":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
+          },
+          "reg_PR_inst1":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",3]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",3],"3'h0"]}
+          }
+        },
+        "connections":[
+          ["self.I","TestCall_comb_inst0.I"],
+          ["reg_PR_inst0.in","TestCall_comb_inst0.O0"],
+          ["reg_PR_inst1.in","TestCall_comb_inst0.O1"],
+          ["self.O","TestCall_comb_inst0.O2"],
+          ["reg_PR_inst0.out","TestCall_comb_inst0.self_x_O"],
+          ["reg_PR_inst1.out","TestCall_comb_inst0.self_y_O"],
+          ["self.ASYNCRESET","reg_PR_inst0.arst"],
+          ["self.CLK","reg_PR_inst0.clk"],
+          ["self.ASYNCRESET","reg_PR_inst1.arst"],
+          ["self.CLK","reg_PR_inst1.clk"]
+        ]
+      },
+      "TestCall_comb":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["self_x_O",["Array",2,"BitIn"]],
+          ["self_y_O",["Array",3,"BitIn"]],
+          ["O0",["Array",2,"Bit"]],
+          ["O1",["Array",3,"Bit"]],
+          ["O2",["Array",3,"Bit"]]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          }
+        },
+        "connections":[
+          ["self.O1.2","bit_const_0_None.out"],
+          ["self.O0","self.I"],
+          ["self.self_x_O.0","self.O1.0"],
+          ["self.self_x_O.1","self.O1.1"],
+          ["self.self_y_O","self.O2"]
+        ]
+      }
+    }
+  }
+}
+}
