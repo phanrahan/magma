@@ -45,6 +45,8 @@ class DefinitionPass(Pass):
         self.defns = {}
 
     def _run(self, defn):
+        if not isdefinition(defn):
+            return
         for inst in defn.instances:
             inst_defn = type(inst)
             if isdefinition(inst_defn):
