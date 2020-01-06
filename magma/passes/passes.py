@@ -45,11 +45,12 @@ class DefinitionPass(Pass):
         self.defns = {}
 
     def _run(self, defn):
-        if hasattr(defn, 'instances'):
-            for inst in defn.instances:
-                inst_defn = type(inst)
-                if isdefinition(inst_defn):
-                    self._run(inst_defn)
+        if not isdefinition(defn):
+            return
+        for inst in defn.instances:
+            inst_defn = type(inst)
+            if isdefinition(inst_defn):
+                self._run(inst_defn)
         # Call each definition only once.
         id_ = id(defn)
         if id_ not in self.defns:
