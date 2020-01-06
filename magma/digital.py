@@ -190,6 +190,14 @@ class Digital(Type, metaclass=DigitalMeta):
     def flat_length(cls):
         return 1
 
+    # Loam methods, TODO: rework this interface
+    def getinst(self):
+        t = self.trace()
+        return t.name.inst if t is not None else None
+
+    def getgpio(self):
+        return self.getinst()
+
 
 VCC = Digital[Direction.Out](name="VCC")
 GND = Digital[Direction.Out](name="GND")
