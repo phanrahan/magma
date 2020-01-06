@@ -27,6 +27,7 @@ setup(
         "colorlog",
         "astor",
         "six",
+        "dataclasses",
         "mako",
         "pyverilog",
         "numpy",
