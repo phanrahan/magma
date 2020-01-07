@@ -139,8 +139,8 @@ if __name__ == '__main__':
     diff = difflib.unified_diff(
         src_txt.splitlines(),
         new_src_txt.splitlines(),
-        fromfile=sys.argv[0],
-        tofile=sys.argv[1] + ' (pending)',
+        fromfile=sys.argv[1],
+        tofile=sys.argv[2] + ' (pending)',
         lineterm=''
     )
 
