@@ -50,6 +50,7 @@ jobs:
         sh trigger-travis.sh --pro David-Durst aetherling $TRAVIS_ACCESS_TOKEN
         sh trigger-travis.sh --pro StanfordAHA garnet $TRAVIS_ACCESS_TOKEN
         sh trigger-travis.sh phanrahan mantle $TRAVIS_ORG_ACCESS_TOKEN
+        sh trigger-travis.sh cdonovick peak $TRAVIS_ACCESS_TOKEN
       fi
   - stage: docs
     script: curl -X POST -d "token=$READ_THE_DOCS_TOKEN" https://readthedocs.org/api/v2/webhook/magma/55300/
