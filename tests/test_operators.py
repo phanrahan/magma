@@ -63,7 +63,7 @@ def test_assign_error_0(width, op):
     and2 = DeclareAnd(width)()
     with pytest.raises(
             TypeError,
-            match=rf"Cannot use \<\= to assign to output: {and2.O.debug_name} \(trying to assign {circ.a.debug_name}\)"):
+            match=rf"Cannot use [<,@]\= to assign to output: {and2.O.debug_name} \(trying to assign {circ.a.debug_name}\)"):
         op(and2.O, circ.a)
 
 @pytest.mark.parametrize("width", [None, 3])
@@ -76,5 +76,5 @@ def test_assign_error_1(width, op):
     and2 = DeclareAnd(width)()
     with pytest.raises(
             TypeError,
-            match=rf"Cannot use \<\= to assign to output: {circ.a.debug_name} \(trying to assign {and2.O.debug_name}\)"):
+            match=rf"Cannot use [<,@]\= to assign to output: {circ.a.debug_name} \(trying to assign {and2.O.debug_name}\)"):
         op(circ.a, and2.O)
