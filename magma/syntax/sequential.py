@@ -260,10 +260,14 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
 
 def gen_io_args(inputs, output_type, async_reset, magma_name):
     io_args = []
+    has_clk = False
     for name, type_ in inputs:
+        if name == "CLK":
+            has_clk = True
         type_ = astor.to_source(type_).rstrip()
         io_args.append(f"{name}={magma_name}.In({type_})")
-    io_args.append(f"CLK={magma_name}.In({magma_name}.Clock)")
+    if not has_clk:
+        io_args.append(f"CLK={magma_name}.In({magma_name}.Clock)")
     if async_reset:
         io_args.append(f"ASYNCRESET={magma_name}.In({magma_name}.AsyncReset)")
     if isinstance(output_type, ast.Tuple):
@@ -355,7 +359,7 @@ def _sequential(
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
         circuit_combinational_args.append(f"{name}: {type_}")
-        circuit_combinational_call_args.append(f"io.{name}")
+        circuit_combinational_call_args.append(f"{name}=io.{name}")
 
     comb_out_count = 0
     for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
@@ -379,7 +383,7 @@ def _sequential(
                 type_ = repr(type(value))
                 if value.is_output():
                     circuit_combinational_args.append(f"self_{name}_{value}: {magma_name}.{type_}")
-                    circuit_combinational_call_args.append(f"{name}.{value}")
+                    circuit_combinational_call_args.append(f"self_{name}_{value}={name}.{value}")
                 if value.is_input():
                     circuit_combinational_output_type.append(f"{magma_name}.{type_}")
                     comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
