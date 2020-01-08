@@ -543,3 +543,29 @@ def test_replace_product(target):
             return val1
 
     compile_and_check("TestReplaceProduct", TestReplaceProduct, target)
+
+
+def test_clock_arg(target):
+    @m.circuit.sequential(async_reset=False)
+    class TestClockArg:
+        def __init__(self):
+            self.x: m.Bits[1] = m.bits(0, 1)
+
+        def __call__(self, CLK: m.Clock) -> m.Bit:
+            self.x = self.x
+            return self.x[0]
+
+    compile_and_check("TestClockArg", TestClockArg, target)
+
+
+def test_clock_multi_arg(target):
+    @m.circuit.sequential(async_reset=False)
+    class TestClockMultiArg:
+        def __init__(self):
+            self.x: m.Bits[1] = m.bits(0, 1)
+
+        def __call__(self, CLK: m.Clock, CLK2: m.Clock) -> m.Bit:
+            self.x = self.x
+            return self.x[0]
+
+    compile_and_check("TestClockMultiArg", TestClockMultiArg, target)
