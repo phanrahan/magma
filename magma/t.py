@@ -73,6 +73,13 @@ class Type(object):
         else:
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
 
+    def __imatmul__(self, other):
+        if not self.isoutput():
+            self.wire(other)
+        else:
+            raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
+
+
 
 class Kind(type):
     def __init__(cls, name, bases, dct):
