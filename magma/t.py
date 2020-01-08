@@ -73,6 +73,7 @@ class Type(object):
         else:
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
 
+    __imatmul__ = __le__
 
 class Kind(type):
     def __init__(cls, name, bases, dct):
