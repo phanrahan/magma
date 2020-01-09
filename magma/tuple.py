@@ -26,6 +26,12 @@ class TupleKind(TupleMeta, Kind):
             new_fields.append(T.qualify(direction))
         return cls.unbound_t[new_fields]
 
+    def flip(cls):
+        new_fields = []
+        for T in cls.fields:
+            new_fields.append(T.flip())
+        return cls.unbound_t[new_fields]
+
     def __call__(cls, *args, **kwargs):
         obj = cls.__new__(cls, *args)
         obj.__init__(*args, **kwargs)
@@ -269,7 +275,15 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         new_fields = OrderedDict()
         for k, v in cls.field_dict.items():
             new_fields[k] = v.qualify(direction)
-        return cls.unbound_t.from_fields(cls.__name__, new_fields, cache=cls.is_cached)
+        return cls.unbound_t.from_fields(cls.__name__, new_fields,
+                                         cache=cls.is_cached)
+
+    def flip(cls):
+        new_fields = OrderedDict()
+        for k, v in cls.field_dict.items():
+            new_fields[k] = v.flip()
+        return cls.unbound_t.from_fields(cls.__name__, new_fields,
+                                         cache=cls.is_cached)
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ProductKind):

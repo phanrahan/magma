@@ -99,6 +99,9 @@ class ArrayMeta(ABCMeta, Kind):
     def qualify(cls, direction):
         return cls[cls.N, cls.T.qualify(direction)]
 
+    def flip(cls):
+        return cls[cls.N, cls.T.flip()]
+
     def __eq__(cls, rhs):
         if not isinstance(rhs, ArrayMeta):
             return NotImplemented

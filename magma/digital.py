@@ -52,14 +52,6 @@ class DigitalMeta(ABCMeta, Kind):
                 return cls.undirected_t
             if direction == cls.direction:
                 return cls
-            elif direction == direction.Flip:
-                if cls.direction == direction.In:
-                    return cls[direction.Out]
-                elif cls.direction == direction.Out:
-                    return cls[direction.In]
-                else:
-                    # Flip of inout is inout
-                    return cls
             else:
                 return cls.undirected_t[direction]
 
@@ -118,9 +110,6 @@ class DigitalMeta(ABCMeta, Kind):
 
     def qualify(cls, direction):
         return cls[direction]
-
-    def flip(cls):
-        return cls.qualify(Direction.Flip)
 
     def __eq__(cls, rhs):
         return cls is rhs

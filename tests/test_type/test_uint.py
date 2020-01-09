@@ -77,8 +77,8 @@ def test_construct():
     assert not isinstance(a1, SInt)
 
     # Test explicit conversion
-    assert isinstance(sint(a2), SInt)
-    assert not isinstance(sint(a2), UInt)
+    assert isinstance(sint(a1), SInt)
+    assert not isinstance(sint(a1), UInt)
 
     assert not isinstance(sint(1, 1), UInt)
 

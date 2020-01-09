@@ -26,8 +26,7 @@ class Direction(enum.Enum):
     In = 0
     Out = 1
     InOut = 2
-    Flip = 3
-    Undirected = 4
+    Undirected = 3
 
 
 class Type(object):
@@ -104,7 +103,7 @@ class Type(object):
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
 
     def __imatmul__(self, other):
-        if not self.isoutput():
+        if not self.is_output():
             self.wire(other)
         else:
             raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
@@ -129,7 +128,14 @@ class Kind(type):
         raise NotImplementedError()
 
     def flip(cls):
-        return cls.qualify(Direction.Flip)
+        if cls.direction == Direction.In:
+            return cls[Direction.Out]
+        elif cls.direction == Direction.Out:
+            return cls[Direction.In]
+        else:
+            # Flip of inout is inout
+            # Flip of undirected is undirected
+            return cls
 
 
 def In(T):
@@ -145,4 +151,4 @@ def InOut(T):
 
 
 def Flip(T):
-    return T.qualify(Direction.Flip)
+    return T.flip()

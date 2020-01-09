@@ -1,15 +1,9 @@
 import magma as m
 import operator
-from magma.operators import MantleImportError
 from common import DeclareAnd
 import pytest
 from magma.testing import check_files_equal
 
-
-def test_error():
-    circ = m.DefineCircuit("test", "a", m.In(m.Bits[4]), "b", m.Out(m.Bits[4]))
-    with pytest.raises(MantleImportError):
-        ~circ.a
 
 @pytest.mark.parametrize("width", [None, 3])
 @pytest.mark.parametrize("output", ["verilog", "coreir"])
@@ -29,7 +23,6 @@ def test_assign(width, output, op):
     suffix = "v" if output == "verilog" else "json"
     assert check_files_equal(__file__, f"build/{name}.{suffix}",
                              f"gold/{name}.{suffix}")
-
 
 
 @pytest.mark.parametrize("width", [None, 3])
@@ -54,8 +47,7 @@ def test_assign_to_var(width, output, op):
 
 
 @pytest.mark.parametrize("width", [None, 3])
-@pytest.mark.parametrize("op", [operator.imatmul, operator.le])
-def test_assign_error_0(width, op):
+def test_assign_error_0(width):
     T = m.util.BitOrBits(width)
     name = f"test_assign_operator_{width}"
     circ = m.DefineCircuit(name, "a", m.In(T), "b", m.In(T),
@@ -63,12 +55,12 @@ def test_assign_error_0(width, op):
     and2 = DeclareAnd(width)()
     with pytest.raises(
             TypeError,
-            match=rf"Cannot use [<,@]\= to assign to output: {and2.O.debug_name} \(trying to assign {circ.a.debug_name}\)"):
-        op(and2.O, circ.a)
+            match=rf"Cannot use @= to assign to output: {and2.O.debug_name} \(trying to assign {circ.a.debug_name}\)"):  # noqa
+        and2.O @= circ.a
+
 
 @pytest.mark.parametrize("width", [None, 3])
-@pytest.mark.parametrize("op", [operator.imatmul, operator.le])
-def test_assign_error_1(width, op):
+def test_assign_error_1(width):
     T = m.util.BitOrBits(width)
     name = f"test_assign_operator_{width}"
     circ = m.DefineCircuit(name, "a", m.In(T), "b", m.In(T),
@@ -76,5 +68,5 @@ def test_assign_error_1(width, op):
     and2 = DeclareAnd(width)()
     with pytest.raises(
             TypeError,
-            match=rf"Cannot use [<,@]\= to assign to output: {circ.a.debug_name} \(trying to assign {and2.O.debug_name}\)"):
-        op(circ.a, and2.O)
+            match=rf"Cannot use @= to assign to output: {circ.a.debug_name} \(trying to assign {and2.O.debug_name}\)"):  # noqa
+        circ.a @= and2.O
