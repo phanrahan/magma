@@ -70,3 +70,5 @@ def test_construct():
     a1 = uint([1,1])
     print(type(a1))
     assert isinstance(a1, UIntType)
+    assert isinstance(a1, BitsType)
+    assert not isinstance(a1, SIntType)
