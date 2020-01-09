@@ -19,6 +19,37 @@ def test_clock():
     assert not (Clock != Clock)
     assert str(Clock) == 'Clock'
 
+    assert issubclass(m.Clock, m.Digital)
+    assert isinstance(m.Clock(), m.Digital)
+
+    assert issubclass(m.Clock, m.Digital)
+    assert isinstance(m.Clock(), m.Digital)
+
+    assert issubclass(m.In(m.Clock), In(m.Digital))
+    assert isinstance(m.In(m.Clock)(), In(m.Digital))
+
+    assert not issubclass(m.In(m.Clock), Out(m.Digital))
+    assert not isinstance(m.In(m.Clock)(), Out(m.Digital))
+
+    assert issubclass(m.In(m.Clock), m.Clock)
+    assert isinstance(m.In(m.Clock)(), m.Clock)
+
+    assert not issubclass(m.In(m.Clock), m.Out(m.Clock))
+    assert not isinstance(m.In(m.Clock)(), m.Out(m.Clock))
+
+    assert issubclass(m.Out(m.Clock), Out(m.Digital))
+    assert isinstance(m.Out(m.Clock)(), Out(m.Digital))
+
+    assert not issubclass(m.Out(m.Clock), In(m.Digital))
+    assert not isinstance(m.Out(m.Clock)(), In(m.Digital))
+
+    assert issubclass(m.Out(m.Clock), m.Clock)
+    assert isinstance(m.Out(m.Clock)(), m.Clock)
+
+    assert not issubclass(m.Out(m.Clock), m.In(m.Clock))
+    assert not isinstance(m.Out(m.Clock)(), m.In(m.Clock))
+
+
 
 def test_clock_flip():
     ClockOut = Out(Clock)
@@ -59,6 +90,120 @@ def test_reset():
     assert not (Reset != Reset)
     assert str(Reset) == 'Reset'
 
+    assert issubclass(m.In(m.Reset), In(m.Digital))
+    assert isinstance(m.In(m.Reset)(), In(m.Digital))
+
+    assert not issubclass(m.In(m.Reset), Out(m.Digital))
+    assert not isinstance(m.In(m.Reset)(), Out(m.Digital))
+
+    assert issubclass(m.In(m.Reset), m.Reset)
+    assert isinstance(m.In(m.Reset)(), m.Reset)
+
+    assert not issubclass(m.In(m.Reset), m.Out(m.Reset))
+    assert not isinstance(m.In(m.Reset)(), m.Out(m.Reset))
+
+    assert issubclass(m.Out(m.Reset), Out(m.Digital))
+    assert isinstance(m.Out(m.Reset)(), Out(m.Digital))
+
+    assert not issubclass(m.Out(m.Reset), In(m.Digital))
+    assert not isinstance(m.Out(m.Reset)(), In(m.Digital))
+
+    assert issubclass(m.Out(m.Reset), m.Reset)
+    assert isinstance(m.Out(m.Reset)(), m.Reset)
+
+    assert not issubclass(m.Out(m.Reset), m.In(m.Reset))
+    assert not isinstance(m.Out(m.Reset)(), m.In(m.Reset))
+
+
+    assert issubclass(m.ResetN, m.Digital)
+    assert isinstance(m.ResetN(), m.Digital)
+
+    assert issubclass(m.ResetN, m.Digital)
+    assert isinstance(m.ResetN(), m.Digital)
+
+    assert issubclass(m.In(m.ResetN), In(m.Digital))
+    assert isinstance(m.In(m.ResetN)(), In(m.Digital))
+
+    assert not issubclass(m.In(m.ResetN), Out(m.Digital))
+    assert not isinstance(m.In(m.ResetN)(), Out(m.Digital))
+
+    assert issubclass(m.In(m.ResetN), m.ResetN)
+    assert isinstance(m.In(m.ResetN)(), m.ResetN)
+
+    assert not issubclass(m.In(m.ResetN), m.Out(m.ResetN))
+    assert not isinstance(m.In(m.ResetN)(), m.Out(m.ResetN))
+
+    assert issubclass(m.Out(m.ResetN), Out(m.Digital))
+    assert isinstance(m.Out(m.ResetN)(), Out(m.Digital))
+
+    assert not issubclass(m.Out(m.ResetN), In(m.Digital))
+    assert not isinstance(m.Out(m.ResetN)(), In(m.Digital))
+
+    assert issubclass(m.Out(m.ResetN), m.ResetN)
+    assert isinstance(m.Out(m.ResetN)(), m.ResetN)
+
+    assert not issubclass(m.Out(m.ResetN), m.In(m.ResetN))
+    assert not isinstance(m.Out(m.ResetN)(), m.In(m.ResetN))
+
+    assert issubclass(m.AsyncReset, m.Digital)
+    assert isinstance(m.AsyncReset(), m.Digital)
+
+    assert issubclass(m.AsyncReset, m.Digital)
+    assert isinstance(m.AsyncReset(), m.Digital)
+
+    assert issubclass(m.In(m.AsyncReset), In(m.Digital))
+    assert isinstance(m.In(m.AsyncReset)(), In(m.Digital))
+
+    assert not issubclass(m.In(m.AsyncReset), Out(m.Digital))
+    assert not isinstance(m.In(m.AsyncReset)(), Out(m.Digital))
+
+    assert issubclass(m.In(m.AsyncReset), m.AsyncReset)
+    assert isinstance(m.In(m.AsyncReset)(), m.AsyncReset)
+
+    assert not issubclass(m.In(m.AsyncReset), m.Out(m.AsyncReset))
+    assert not isinstance(m.In(m.AsyncReset)(), m.Out(m.AsyncReset))
+
+    assert issubclass(m.Out(m.AsyncReset), Out(m.Digital))
+    assert isinstance(m.Out(m.AsyncReset)(), Out(m.Digital))
+
+    assert not issubclass(m.Out(m.AsyncReset), In(m.Digital))
+    assert not isinstance(m.Out(m.AsyncReset)(), In(m.Digital))
+
+    assert issubclass(m.Out(m.AsyncReset), m.AsyncReset)
+    assert isinstance(m.Out(m.AsyncReset)(), m.AsyncReset)
+
+    assert not issubclass(m.Out(m.AsyncReset), m.In(m.AsyncReset))
+    assert not isinstance(m.Out(m.AsyncReset)(), m.In(m.AsyncReset))
+
+    assert issubclass(m.AsyncResetN, m.Digital)
+    assert isinstance(m.AsyncResetN(), m.Digital)
+
+    assert issubclass(m.AsyncResetN, m.Digital)
+    assert isinstance(m.AsyncResetN(), m.Digital)
+
+    assert issubclass(m.In(m.AsyncResetN), In(m.Digital))
+    assert isinstance(m.In(m.AsyncResetN)(), In(m.Digital))
+
+    assert not issubclass(m.In(m.AsyncResetN), Out(m.Digital))
+    assert not isinstance(m.In(m.AsyncResetN)(), Out(m.Digital))
+
+    assert issubclass(m.In(m.AsyncResetN), m.AsyncResetN)
+    assert isinstance(m.In(m.AsyncResetN)(), m.AsyncResetN)
+
+    assert not issubclass(m.In(m.AsyncResetN), m.Out(m.AsyncResetN))
+    assert not isinstance(m.In(m.AsyncResetN)(), m.Out(m.AsyncResetN))
+
+    assert issubclass(m.Out(m.AsyncResetN), Out(m.Digital))
+    assert isinstance(m.Out(m.AsyncResetN)(), Out(m.Digital))
+
+    assert not issubclass(m.Out(m.AsyncResetN), In(m.Digital))
+    assert not isinstance(m.Out(m.AsyncResetN)(), In(m.Digital))
+
+    assert issubclass(m.Out(m.AsyncResetN), m.AsyncResetN)
+    assert isinstance(m.Out(m.AsyncResetN)(), m.AsyncResetN)
+
+    assert not issubclass(m.Out(m.AsyncResetN), m.In(m.AsyncResetN))
+    assert not isinstance(m.Out(m.AsyncResetN)(), m.In(m.AsyncResetN))
 
 def test_reset_flip():
     ResetOut = Out(Reset)
@@ -99,6 +244,30 @@ def test_enable():
     assert Enable == Enable
     assert not (Enable != Enable)
     assert str(Enable) == 'Enable'
+
+    assert issubclass(m.In(m.Enable), In(m.Digital))
+    assert isinstance(m.In(m.Enable)(), In(m.Digital))
+
+    assert not issubclass(m.In(m.Enable), Out(m.Digital))
+    assert not isinstance(m.In(m.Enable)(), Out(m.Digital))
+
+    assert issubclass(m.In(m.Enable), m.Enable)
+    assert isinstance(m.In(m.Enable)(), m.Enable)
+
+    assert not issubclass(m.In(m.Enable), m.Out(m.Enable))
+    assert not isinstance(m.In(m.Enable)(), m.Out(m.Enable))
+
+    assert issubclass(m.Out(m.Enable), Out(m.Digital))
+    assert isinstance(m.Out(m.Enable)(), Out(m.Digital))
+
+    assert not issubclass(m.Out(m.Enable), In(m.Digital))
+    assert not isinstance(m.Out(m.Enable)(), In(m.Digital))
+
+    assert issubclass(m.Out(m.Enable), m.Enable)
+    assert isinstance(m.Out(m.Enable)(), m.Enable)
+
+    assert not issubclass(m.Out(m.Enable), m.In(m.Enable))
+    assert not isinstance(m.Out(m.Enable)(), m.In(m.Enable))
 
 
 def test_enable_flip():
