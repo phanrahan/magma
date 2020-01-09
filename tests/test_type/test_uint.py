@@ -73,6 +73,8 @@ def test_construct():
     a1 = uint([1,1])
     print(type(a1))
     assert isinstance(a1, UInt)
+    assert isinstance(a1, Bits)
+    assert not isinstance(a1, SInt)
 
 
 @pytest.mark.parametrize("n", [1, 3])

@@ -175,7 +175,7 @@ def uint(value, n=None):
 
 def sint(value, n=None):
     if isinstance(value, UInt):
-        raise ValueError("uint cannot convert SInt")
+        raise ValueError("sint cannot convert UInt")
     return convertbits(value, n, SInt, True)
 
 
