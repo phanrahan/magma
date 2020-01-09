@@ -4,7 +4,7 @@ import pytest
 Array2 = Array[2,Bit]
 Array4 = Array[4,Bit]
 
-def test():
+def test_array():
     print(Array2)
 
     A2 = Array[2,Bit]
@@ -21,6 +21,15 @@ def test():
     A4 = Array[4,Bit]
     assert A4 == Array4
     assert A2 != A4
+
+    assert issubclass(m.In(m.Array[2, m.Bit]), m.In(m.Array[2, m.Bit]))
+    assert isinstance(m.In(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
+
+    assert issubclass(m.In(m.Array[2, m.Bit]), m.Array[2, m.Bit])
+    assert isinstance(m.In(m.Array[2, m.Bit])(), m.Array[2, m.Bit])
+
+    assert not issubclass(m.In(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
+    assert not isinstance(m.In(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
 
 
 def test_val():

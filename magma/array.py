@@ -26,9 +26,12 @@ class ArrayMeta(ABCMeta, Kind):
             if getattr(base, 'is_concrete', False):
                 if (N, T) is (None, None):
                     (N, T) = (base.N, base.T)
-                elif (N, T) != (base.N, base.T):
+                elif N != base.N:
                     raise TypeError(
-                        "Can't inherit from multiple arrays with different N and/or T")
+                        "Can't inherit from multiple arrays with different N")
+                elif not issubclass(T, base.T):
+                    raise TypeError(
+                        "Can't inherit from multiple arrays with different T")
 
         namespace['_info_'] = info[0], N, T
         type_ = super().__new__(cls, name, bases, namespace, **kwargs)
@@ -60,8 +63,12 @@ class ArrayMeta(ABCMeta, Kind):
             else:
                 return cls.abstract_t[index]
 
-        bases = [cls]
+        bases = []
         bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
+        bases.extend(cls[index[0], b] for b in index[1].__bases__ if
+                     isinstance(b, type(index[1])))
+        if not any(issubclass(b, cls) for b in bases):
+            bases.insert(0, cls)
         bases = tuple(bases)
         orig_name = cls.__name__
         class_name = '{}[{}]'.format(cls.__name__, index)
