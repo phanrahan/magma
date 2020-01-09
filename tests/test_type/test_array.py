@@ -31,6 +31,15 @@ def test_array():
     assert not issubclass(m.In(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
     assert not isinstance(m.In(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
 
+    assert issubclass(m.Out(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
+    assert isinstance(m.Out(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
+
+    assert issubclass(m.Out(m.Array[2, m.Bit]), m.Array[2, m.Bit])
+    assert isinstance(m.Out(m.Array[2, m.Bit])(), m.Array[2, m.Bit])
+
+    assert not issubclass(m.Out(m.Array[2, m.Bit]), m.In(m.Array[2, m.Bit]))
+    assert not isinstance(m.Out(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
+
 
 def test_val():
     Array4In = Array[4, BitIn]
