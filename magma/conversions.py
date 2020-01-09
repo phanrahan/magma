@@ -168,14 +168,10 @@ def bits(value, n=None):
 
 
 def uint(value, n=None):
-    if isinstance(value, SInt):
-        raise ValueError("uint cannot convert SInt")
     return convertbits(value, n, UInt, True)
 
 
 def sint(value, n=None):
-    if isinstance(value, UInt):
-        raise ValueError("sint cannot convert UInt")
     return convertbits(value, n, SInt, True)
 
 

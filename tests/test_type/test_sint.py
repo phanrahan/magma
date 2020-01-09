@@ -76,6 +76,12 @@ def test_construct():
     assert isinstance(a1, Bits)
     assert not isinstance(a1, UInt)
 
+    # Test explicit conversion
+    assert isinstance(uint(a1), UInt)
+    assert not isinstance(uint(a1), SInt)
+
+    assert not isinstance(uint(1, 1), SInt)
+
 
 @pytest.mark.parametrize("n", [7, 3])
 @pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
