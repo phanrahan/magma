@@ -50,6 +50,8 @@ class RewriteSelfAttributes(ast.NodeTransformer):
                 return ast.Tuple([ast.Name(f"self_{attr}_{output}",
                                            ast.Load()) for output in outputs],
                                  ast.Load())
+        else:
+            self.generic_visit(node)
         return node
 
     def visit_If(self, node):
