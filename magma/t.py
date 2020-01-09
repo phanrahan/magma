@@ -107,6 +107,7 @@ class Type(object):
             self.wire(other)
         else:
             raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
+        return self
 
 
 

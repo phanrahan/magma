@@ -289,6 +289,9 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         if not isinstance(rhs, ProductKind):
             return False
 
+        if not cls.is_bound:
+            return not rhs.is_bound
+
         for k, v in cls.field_dict.items():
             if getattr(rhs, k) != v:
                 return False
