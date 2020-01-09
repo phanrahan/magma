@@ -159,3 +159,18 @@ def test_extension_no_error(op):
         op(a, 2)
     except Exception as e:
         assert False, "This should work"
+
+
+@pytest.mark.parametrize(
+    "value,cast,error",
+    [
+        (m.uint(0, 1), m.sint, "sint cannot convert UInt"),
+        (m.sint(0, 1), m.uint, "uint cannot convert SInt"),
+    ],
+)
+def test_cast_error(value, cast, error):
+    try:
+        cast(value)
+        assert False, "This should raise an exception"
+    except Exception as e:
+        assert str(e) == error
