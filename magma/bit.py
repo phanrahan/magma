@@ -26,11 +26,7 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
     return wrapped
 
 
-class BitMeta(DigitalMeta):
-    pass
-
-
-class Bit(Digital, AbstractBit, metaclass=BitMeta):
+class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     __hash__ = Digital.__hash__
 
     @staticmethod

@@ -27,6 +27,12 @@ def test_bit():
     assert issubclass(m.BitIn, m.Digital)
     assert isinstance(m.BitIn(), m.Digital)
 
+    assert issubclass(m.BitIn, In(m.Digital))
+    assert isinstance(m.BitIn(), In(m.Digital))
+
+    assert not issubclass(m.BitIn, Out(m.Digital))
+    assert not isinstance(m.BitIn(), Out(m.Digital))
+
     assert issubclass(m.BitIn, m.Bit)
     assert isinstance(m.BitIn(), m.Bit)
 
@@ -36,11 +42,17 @@ def test_bit():
     assert issubclass(m.BitOut, m.Digital)
     assert isinstance(m.BitOut(), m.Digital)
 
+    assert issubclass(m.BitOut, Out(m.Digital))
+    assert isinstance(m.BitOut(), Out(m.Digital))
+
     assert issubclass(m.BitOut, m.Bit)
     assert isinstance(m.BitOut(), m.Bit)
 
     assert not issubclass(m.BitOut, m.BitIn)
     assert not isinstance(m.BitOut(), m.BitIn)
+
+    assert not issubclass(m.BitOut, In(m.Digital))
+    assert not isinstance(m.BitOut(), In(m.Digital))
 
 
 def test_bit_flip():
