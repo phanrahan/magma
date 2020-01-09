@@ -225,7 +225,7 @@ class Array(Type, metaclass=ArrayMeta):
         res_bits = []
         for i in range(total):
             res_bits.append(self[i] if i < self.N else other[i - self.N])
-        return array(res_bits)
+        return type(self)[len(res_bits), self.T](res_bits)
 
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
