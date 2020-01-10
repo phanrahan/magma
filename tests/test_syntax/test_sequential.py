@@ -286,3 +286,29 @@ def test_rd_ptr(target):
             return orig_rd_ptr
 
     compile_and_check("RdPtr", RdPtr, target)
+
+
+
+def test_namedtuple_seq():
+    class A(Product):
+        a0 = Bit
+        a1 = SInt[8]
+
+    @circuit.sequential(async_reset=False)
+    class TestNamedTuple:
+        def __init__(self):
+            self.a0: Bit = bit(0)
+            self.a1: SInt[8] = 0
+
+        def __call__(self, a: A, b: Bit) -> A:
+            if b:
+                new_a = a
+            else:
+                new_a = namedtuple(a0=self.a0, a1=self.a1)
+
+            self.a0 = new_a.a0
+            self.a1 = new_a.a1
+
+            return new_a
+
+    m.compile("build/test_named_tuple_seq", TestNamedTuple, output="coreir-verilog")
