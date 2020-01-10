@@ -294,6 +294,12 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
 class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
 
+    def __new__(mcs, name, bases, namespace, cache=True, **kwargs):
+        return super().__new__(mcs, name, bases, namespace, cache, **kwargs)
+
+    def from_fields(cls, name, fields , cache=True):
+        return super().from_fields(name, fields, cache)
+
     @classmethod
     def _from_fields(mcs, fields, name, bases, ns, **kwargs):
 
@@ -360,6 +366,10 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         for k, v in cls.field_dict.items():
             if not issubclass(new_fields[k], v):
                 base = cls.unbound_t
+        if base.is_bound and all(v == base.field_dict[k] for k, v in
+                                 new_fields.items()):
+            return base
+
         return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
                                             cls.__name__, (base, ), {})
 
