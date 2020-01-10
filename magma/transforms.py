@@ -2,8 +2,9 @@ from collections import namedtuple, OrderedDict
 from .circuit import DefineCircuit, EndCircuit, CopyInstance
 from .is_definition import isdefinition
 from .is_primitive import isprimitive
+from .digital import Digital
 from .bit import *
-from .clock import ClockType, EnableType, ResetType, AsyncResetType, wiredefaultclock
+from .clock import Clock, Enable, Reset, AsyncReset, wiredefaultclock
 from .array import *
 from .wire import wire
 from .conversions import array
@@ -27,7 +28,7 @@ class TransformedCircuit:
 
     def get_new_bit(self, orig_bit, scope):
         assert isinstance(scope, Scope), "Second argument to get_new_bit should be an instance of Scope"
-        if isinstance(orig_bit, ArrayType):
+        if isinstance(orig_bit, Array):
             arr = []
             for o in orig_bit:
                 arr.append(self.get_new_bit(o, scope))
@@ -44,10 +45,9 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert isinstance(new_bit,
-                (BitType, ArrayType, ClockType, EnableType, ResetType, AsyncResetType))
+        assert isinstance(new_bit, (Digital, Array)), type(new_bit)
 
-        if isinstance(orig_bit, ArrayType):
+        if isinstance(orig_bit, Array):
             # Map the individual bits
             for o, n in zip(orig_bit, new_bit):
                 self.orig_to_new[QualifiedBit(bit=o, scope=orig_scope)] = n
@@ -70,16 +70,16 @@ def get_primitives(outer_circuit, outer_scope):
                 outerloc = QualifiedBit(bit=outerbit, scope=outer_scope)
                 innerloc = QualifiedBit(bit=innerbit, scope=inner_scope)
 
-                if isinstance(outerbit, ArrayType):
+                if isinstance(outerbit, Array):
                     for o, i in zip(outerbit, innerbit):
                         oqual = QualifiedBit(bit=o, scope=outer_scope)
                         iqual = QualifiedBit(bit=i, scope=inner_scope)
-                        if o.isinput():
+                        if o.is_input():
                             mapping[iqual] = oqual
                         else:
                             mapping[oqual] = iqual
 
-                if outerbit.isinput():
+                if outerbit.is_input():
                     mapping[innerloc] = outerloc
                 else:
                     mapping[outerloc] = innerloc
@@ -124,7 +124,7 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
         defn = bitref.defn.name
         assert defn == old_circuit.name, f"Collapsed bit to circuit other than outermost, {defn} {old_circuit.name}"
         newsource = get_renamed_port(new_circuit, bitref.name)
-    elif isinstance(old_source, ArrayType):
+    elif isinstance(old_source, Array):
         # Must not be a whole array
         assert bitref.anon()
 
@@ -145,8 +145,8 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
     return newsource
 
 def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit):
-    if isinstance(origbit, ArrayType):
-        assert isinstance(newbit, ArrayType)
+    if isinstance(origbit, Array):
+        assert isinstance(newbit, Array)
         for x, y in zip(origbit, newbit):
             wire_new_bit(x, y, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit)
         return
@@ -155,7 +155,7 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
 
     sourcebit = origbit.value()
     if sourcebit is None:
-        if isinstance(origbit, ArrayType):
+        if isinstance(origbit, Array):
             # TODO: Raise an exception for now, can we handle this case silently (ignore unwired ports)?
             raise MagmaTransformException("Calling `.value()` on Array returned None. Array = {}, values = {}. Likely an unwired port.".format(origbit, [b.value() for b in origbit.ts]))
         else:
@@ -202,20 +202,20 @@ def flatten(circuit):
         orig_inst = qual_inst.instance
 
         for name, origbit in orig_inst.interface.ports.items():
-            if origbit.isinput():
+            if origbit.is_input():
                 newbit = new_inst.interface.ports[name]
                 wire_new_bit(origbit, newbit, qual_inst.scope, primitive_map, bit_map, circuit, flattened_circuit)
 
     # Finally, wire up the circuit outputs
     new_circuit = flattened_circuit.circuit
     for name, origbit in circuit.interface.ports.items():
-        if origbit.isinput(): # Circuit output
+        if origbit.is_input(): # Circuit output
             newbit = new_circuit.interface.ports[name]
             wire_new_bit(origbit, newbit, Scope(), primitive_map, bit_map, circuit, flattened_circuit)
 
     # Handle unwired inputs
     for name, origbit in circuit.interface.ports.items():
-        if origbit.isoutput() and origbit.value() is None:
+        if origbit.is_output() and origbit.value() is None:
             newbit = new_circuit.interface.ports[name]
             flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 

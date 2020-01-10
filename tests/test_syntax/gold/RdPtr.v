@@ -1,4 +1,4 @@
-// Module `Mux2_x10` defined externally
+// Module `Mux2xOutUInt10` defined externally
 module coreir_reg_arst #(parameter width = 1, parameter arst_posedge = 1, parameter clk_posedge = 1, parameter init = 1) (input clk, input arst, input [width-1:0] in, output [width-1:0] out);
   reg [width-1:0] outReg;
   wire real_rst;
@@ -21,13 +21,13 @@ module coreir_add #(parameter width = 1) (input [width-1:0] in0, input [width-1:
 endmodule
 
 module RdPtr_comb (output [9:0] O0, output [9:0] O1, input read, input [9:0] self_rd_ptr_O);
-wire [9:0] Mux2_x10_inst0_O;
-wire [9:0] add_inst0_out;
+wire [9:0] Mux2xOutUInt10_inst0_O;
 wire [9:0] const_1_10_out;
-Mux2_x10 Mux2_x10_inst0(.I0(self_rd_ptr_O), .I1(add_inst0_out), .O(Mux2_x10_inst0_O), .S(read));
-coreir_add #(.width(10)) add_inst0(.in0(self_rd_ptr_O), .in1(const_1_10_out), .out(add_inst0_out));
+wire [9:0] magma_Bits_10_add_inst0_out;
+Mux2xOutUInt10 Mux2xOutUInt10_inst0(.I0(self_rd_ptr_O), .I1(magma_Bits_10_add_inst0_out), .O(Mux2xOutUInt10_inst0_O), .S(read));
 coreir_const #(.value(10'h001), .width(10)) const_1_10(.out(const_1_10_out));
-assign O0 = Mux2_x10_inst0_O;
+coreir_add #(.width(10)) magma_Bits_10_add_inst0(.in0(self_rd_ptr_O), .in1(const_1_10_out), .out(magma_Bits_10_add_inst0_out));
+assign O0 = Mux2xOutUInt10_inst0_O;
 assign O1 = self_rd_ptr_O;
 endmodule
 

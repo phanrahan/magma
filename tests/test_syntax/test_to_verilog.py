@@ -44,6 +44,7 @@ def test_simple_alu():
         # Test with fault if available
         import fault
         tester = fault.Tester(SimpleALU)
+        tester.circuit.CLK = 0
         ops = [operator.add, operator.sub, operator.mul, operator.floordiv]
         for i, op in enumerate(ops):
             tester.circuit.config_ = i

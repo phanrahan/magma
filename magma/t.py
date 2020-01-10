@@ -1,27 +1,40 @@
+import functools
+import warnings
+import enum
+from abc import abstractmethod
 from .ref import Ref, AnonRef, DefnRef, InstRef
-from .port import INOUT, INPUT, OUTPUT
 from .compatibility import IntegerTypes, StringTypes
 
-__all__  = ['Type', 'Kind']
-__all__ += ['In', 'Out', 'InOut', 'Flip']
+
+# From http://code.activestate.com/recipes/391367-deprecated/
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+    @functools.wraps(func)
+    def newFunc(*args, **kwargs):
+        warnings.warn("Call to deprecated function %s." % func.__name__,
+                      category=DeprecationWarning, stacklevel=2)
+        return func(*args, **kwargs)
+    newFunc.__name__ = func.__name__
+    newFunc.__doc__ = func.__doc__
+    newFunc.__dict__.update(func.__dict__)
+    return newFunc
+
+
+class Direction(enum.Enum):
+    In = 0
+    Out = 1
+    InOut = 2
+    Undirected = 3
 
 
 class Type(object):
     def __init__(self, **kwargs):
-        # ref is int, str or tuple
         name = kwargs.get('name', None)
         if name is None or isinstance(name, str):
-            #print('creating name ref',name)
             name = AnonRef(name=name)
-        #print('using',name)
-        #assert isinstance(name, Ref)
         self.name = name
-
-    # subclasses only need to implement one of these methods
-    def __eq__(self, rhs):
-        return not (self != rhs)
-    def __ne__(self, rhs):
-        return not (self == rhs)
 
     __hash__ = object.__hash__
 
@@ -37,24 +50,40 @@ class Type(object):
 
     # abstract method - must be implemented by subclasses
     @classmethod
+    def is_oriented(cls, direction):
+        raise NotImplementedError()
+
+    @classmethod
+    def is_input(cls):
+        return cls.is_oriented(Direction.In)
+
+    @classmethod
+    def is_output(cls):
+        return cls.is_oriented(Direction.Out)
+
+    @classmethod
+    def is_inout(cls):
+        return cls.is_oriented(Direction.InOut)
+
+    @classmethod
+    @deprecated
     def isoriented(cls, direction):
-        pass
+        return cls.is_oriented(direction)
 
     @classmethod
+    @deprecated
     def isinput(cls):
-        return cls.isoriented(INPUT)
+        return cls.is_input()
 
     @classmethod
-    def isoutput(self):
-        return self.isoriented(OUTPUT)
+    @deprecated
+    def isoutput(cls):
+        return cls.is_output()
 
     @classmethod
-    def isinout(self):
-        return self.isoriented(INOUT)
-
-    @classmethod
-    def isbidir(self):
-        return False
+    @deprecated
+    def isinout(cls):
+        return cls.is_inout()
 
     @property
     def debug_name(self):
@@ -68,28 +97,24 @@ class Type(object):
         return f"{defn_str}{inst_str}{str(self)}"
 
     def __le__(self, other):
-        if not self.isoutput():
+        if not self.is_output():
             self.wire(other)
         else:
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
 
     def __imatmul__(self, other):
-        if not self.isoutput():
+        if not self.is_output():
             self.wire(other)
         else:
             raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
+        return self
 
 
 
 class Kind(type):
-    def __init__(cls, name, bases, dct):
-        type.__init__( cls, name, bases, dct)
-
     # subclasses only need to implement one of these methods
     def __eq__(cls, rhs):
-        return not (cls != rhs)
-    def __ne__(cls, rhs):
-        return not (cls == rhs)
+        return cls is rhs
 
     __hash__ = type.__hash__
 
@@ -99,25 +124,32 @@ class Kind(type):
     def __str__(cls):
         return cls.__name__
 
-    # abstract method - must be implemented by subclasses
-    def qualify(cls):
-        pass
+    @abstractmethod
+    def qualify(cls, direction):
+        raise NotImplementedError()
 
-    # abstract method - must be implemented by subclasses
     def flip(cls):
-        pass
-
-
+        if cls.direction == Direction.In:
+            return cls[Direction.Out]
+        elif cls.direction == Direction.Out:
+            return cls[Direction.In]
+        else:
+            # Flip of inout is inout
+            # Flip of undirected is undirected
+            return cls
 
 
 def In(T):
-    return T.qualify(direction=INPUT)
+    return T.qualify(Direction.In)
+
 
 def Out(T):
-    return T.qualify(direction=OUTPUT)
+    return T.qualify(Direction.Out)
+
 
 def InOut(T):
-    return T.qualify(direction=INOUT)
+    return T.qualify(Direction.InOut)
+
 
 def Flip(T):
     return T.flip()

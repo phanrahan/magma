@@ -44,11 +44,11 @@ class ProcessReturns(ast.NodeTransformer):
 
 
 def to_type_str(type_):
-    if isinstance(type_, m.BitKind):
+    if issubclass(type_, m.Digital):
         return "bit"
-    elif isinstance(type_, m.UIntKind):
+    elif issubclass(type_, m.UInt):
         return "uint"
-    elif isinstance(type_, m.BitsKind):
+    elif issubclass(type_, m.Bits):
         return "bits"
     else:
         raise NotImplementedError(type_)
@@ -73,8 +73,8 @@ def collect_names(tree, ctx=None):
 def get_io_width(type_):
     if type_ is m.Bit:
         return None
-    elif isinstance(type_, m.ArrayKind):
-        if isinstance(type_.T, m.ArrayKind):
+    elif isinstance(type_, m.ArrayMeta):
+        if isinstance(type_.T, m.ArrayMeta):
             elem_width = get_io_width(type_.T)
             if isinstance(elem_width, tuple):
                 return (type_.N, ) + elem_width
@@ -125,7 +125,7 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
     if not combinational:
         tree = RewriteSelfAttributes(registers).visit(tree)
         for name, info in registers.items():
-            width = 1 if isinstance(info[3], m._BitKind) else len(info[3])
+            width = 1 if isinstance(info[3], m.DigitalMeta) else len(info[3])
             width_table["self_" + name + "_I"] = width
             type_table["self_" + name + "_I"] = to_type_str(info[2])
             width_table["self_" + name + "_O"] = width

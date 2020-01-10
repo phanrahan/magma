@@ -1,9 +1,10 @@
 from magma import *
+import pytest
 
 Array2 = Array[2,Bit]
 Array4 = Array[4,Bit]
 
-def test():
+def test_array():
     print(Array2)
 
     A2 = Array[2,Bit]
@@ -20,6 +21,24 @@ def test():
     A4 = Array[4,Bit]
     assert A4 == Array4
     assert A2 != A4
+
+    assert issubclass(m.In(m.Array[2, m.Bit]), m.In(m.Array[2, m.Bit]))
+    assert isinstance(m.In(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
+
+    assert issubclass(m.In(m.Array[2, m.Bit]), m.Array[2, m.Bit])
+    assert isinstance(m.In(m.Array[2, m.Bit])(), m.Array[2, m.Bit])
+
+    assert not issubclass(m.In(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
+    assert not isinstance(m.In(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
+
+    assert issubclass(m.Out(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
+    assert isinstance(m.Out(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
+
+    assert issubclass(m.Out(m.Array[2, m.Bit]), m.Array[2, m.Bit])
+    assert isinstance(m.Out(m.Array[2, m.Bit])(), m.Array[2, m.Bit])
+
+    assert not issubclass(m.Out(m.Array[2, m.Bit]), m.In(m.Array[2, m.Bit]))
+    assert not isinstance(m.Out(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
 
 
 def test_val():
@@ -72,7 +91,7 @@ def test_array2d():
     A24 = Array[2,Array[4,Bit]]
     print(A24)
 
-    assert isinstance(A24, ArrayKind)
+    assert isinstance(A24, ArrayMeta)
 
     assert A24 == Array[2,Array4]
 
@@ -83,31 +102,37 @@ def test_array2d():
     print(a[0])
     assert isinstance(a[0], ArrayType)
     print(a[0][0])
-    assert isinstance(a[0][0], BitType)
+    assert isinstance(a[0][0], Bit)
 
 
 def test_construct():
-    a1 = array([1,1])
+    a1 = Array[2, Bit]([1,1])
     print(type(a1))
     assert isinstance(a1, ArrayType)
+
+    a1 = Array[2, Bit](0x3)
+    assert a1 == m.array([VCC, VCC])
+
+    with pytest.raises(TypeError):
+        a1 = Array[2, Array[3, Bit]](0x3)
 
 def test_whole():
     Reg2 = DefineCircuit("Reg2", "I0", In(Array2), "I1", In(Array2))
     a = Reg2.I0
-    a1 = array([a[0], a[1]])
+    a1 = Array[2, Bit]([a[0], a[1]])
     print((a1.iswhole(a1.ts)))
 
     reg2 = Reg2()
     a = reg2.I0
     b = reg2.I1
 
-    a1 = array([a[0], a[1]])
+    a1 = Array[2, Bit]([a[0], a[1]])
     print((a1.iswhole(a1.ts)))
 
-    a2 = array([a[0], b[1]])
+    a2 = Array[2, Bit]([a[0], b[1]])
     print((a2.iswhole(a2.ts)))
 
-    a3 = array([0,1])
+    a3 = Array[2, Bit]([0,1])
     print((a3.iswhole(a3.ts)))
 
     a4 = a3[:1]

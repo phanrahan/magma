@@ -41,9 +41,14 @@ def test_check_interface_tuple():
     """
     This should work with valid types
     """
+
+    class T(m.Product):
+        a = Bit
+        b = Array[7, Bit]
+
     class TestCircuit2(Circuit):
         name = "TestCircuit2"
-        IO = ["I", In(Tuple(a=Bit, b=Array[7, Bit])), "O", Out(Tuple(a=Bit, b=Array[7, Bit]))]
+        IO = ["I", In(T), "O", Out(T)]
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)

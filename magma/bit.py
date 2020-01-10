@@ -1,94 +1,131 @@
-from abc import abstractmethod
-from .logging import error
-from .port import Port, INPUT, OUTPUT, INOUT
-from .t import Type, Kind
-from .compatibility import IntegerTypes
-from .debug import debug_wire, get_callee_frame_info
-from .port import report_wiring_error
+"""
+Definition of magma's Bit type
+* Subtype of the Digital type
+* Implementation of hwtypes.AbstractBit
+"""
+import typing as tp
+import functools
+from functools import lru_cache
+import magma as m
+from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
+from .t import Direction
+from .digital import Digital, DigitalMeta, VCC, GND
 
-__all__ = ['_BitType', '_BitKind']
-__all__ += ['BitType', 'BitKind']
-__all__ += ['Bit', 'BitIn', 'BitOut', 'BitInOut']
-__all__ += ['VCC', 'GND', 'HIGH', 'LOW']
+
+def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
+        tp.Callable[['Bit', tp.Union['Bit', bool]], 'Bit']:
+    @functools.wraps(fn)
+    def wrapped(self: 'Bit', other: tp.Union['Bit', bool]) -> 'Bit':
+        if isinstance(other, Bit):
+            return fn(self, other)
+        try:
+            other = Bit(other)
+        except TypeError:
+            return NotImplemented
+        return fn(self, other)
+    return wrapped
 
 
-class _BitType(Type):
-    """
-    Each bit is associated with a Port. The Port keeps track of how bits are
-    wired together.
-    """
+class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
+    __hash__ = Digital.__hash__
 
-    def __init__(self, *largs, **kwargs):
-        super(_BitType, self).__init__(*largs, **kwargs)
-
-        self.port = Port(self)
-
-    __ne__ = Type.__ne__
-    __hash__ = Type.__hash__
-
-    def __call__(self, output):
-        return self.wire(output, get_callee_frame_info())
-
-    @classmethod
-    def isoriented(cls, direction):
-        return cls.direction == direction
-
-    @debug_wire
-    def wire(i, o, debug_info):
-        # promote integer types to LOW/HIGH
-        if isinstance(o, IntegerTypes):
-            o = HIGH if o else LOW
-
-        if not isinstance(o, _BitType):
-            report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} (type={type(o)}) because {o.debug_name} is not a _Bit', debug_info)
-            return
-
-        i.port.wire(o.port, debug_info)
-        i.debug_info = debug_info
-        o.debug_info = debug_info
-
-    def unwire(i, o):
-        i.port.unwire(o.port)
-
-    def driven(self):
-        return self.port.driven()
-
-    def wired(self):
-        return self.port.wired()
+    @staticmethod
+    def get_family() -> TypeFamily:
+        return m._Family_
 
     @classmethod
-    def flat_length(cls):
-        return 1
+    @lru_cache(maxsize=None)
+    def declare_unary_op(cls, op):
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bit_{op}",
+                                              "I", m.In(m.Bit),
+                                              "O", m.Out(m.Bit),
+                                              coreir_name=op,
+                                              coreir_lib="corebit")
 
-    # return the input or output _Bit connected to this _Bit
-    def trace(self):
-        t = self.port.trace()
-        if t:
-            t = t.bit
-        return t
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_binary_op(cls, op):
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bit_{op}",
+                                              "I0", m.In(m.Bit),
+                                              "I1", m.In(m.Bit),
+                                              "O", m.Out(m.Bit),
+                                              coreir_name=op,
+                                              coreir_lib="corebit")
 
-    # return the output _Bit connected to this input _Bit
-    def value(self):
-        t = self.port.value()
-        if t:
-            t = t.bit
-        return t
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_ite(cls, T):
+        t_str = str(T)
+        # Sanitize
+        t_str = t_str.replace("(", "_")
+        t_str = t_str.replace(")", "")
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bit_ite_{t_str}",
+                                              "I0", m.In(T),
+                                              "I1", m.In(T),
+                                              "S", m.In(m.Bit),
+                                              "O", m.Out(T),
+                                              coreir_name="mux",
+                                              coreir_lib="corebit")
 
-    def const(self):
-        return self is VCC or self is GND
+    def __init__(self, value=None, name=None):
+        super().__init__(name=name)
+        if value is None:
+            self._value = None
+        elif isinstance(value, Bit):
+            self._value = value._value
+        elif isinstance(value, bool):
+            self._value = value
+        elif isinstance(value, int):
+            if value not in {0, 1}:
+                raise ValueError('Bit must have value 0 or 1 not {}'.format(value))
+            self._value = bool(value)
+        elif hasattr(value, '__bool__'):
+            self._value = bool(value)
+        else:
+            raise TypeError("Can't coerce {} to Bit".format(type(value)))
 
-    def getinst(self):
-        t = self.trace()
-        return t.name.inst if t else None
+    @property
+    def direction(self):
+        return type(self).direction
 
-    def getgpio(self):
-        return self.getinst()
+    def __invert__(self):
+        # CoreIR uses not instead of invert name
+        return self.declare_unary_op("not")()(self)
 
-    # return the bits driven by this bit
-    def dependencies(self):
-        assert self.isoutput(), "Trying to get dependencies from output bit"
-        deps = map(lambda i: i.bit, self.port.wires.inputs)
-        return deps
+    @bit_cast
+    def __eq__(self, other):
+        # CoreIR doesn't define an eq primitive for bits
+        return ~(self ^ other)
+
+    @bit_cast
+    def __ne__(self, other):
+        # CoreIR doesn't define an ne primitive for bits
+        return self ^ other
+
+    @bit_cast
+    def __and__(self, other):
+        return self.declare_binary_op("and")()(self, other)
+
+    @bit_cast
+    def __or__(self, other):
+        return self.declare_binary_op("or")()(self, other)
+
+    @bit_cast
+    def __xor__(self, other):
+        return self.declare_binary_op("xor")()(self, other)
+
+    def ite(self, t_branch, f_branch):
+        type_ = type(t_branch)
+        if type_ != type(f_branch):
+            raise TypeError("ite expects same type for both branches")
+        # Note: coreir flips t/f cases
+        return self.declare_ite(type_)()(f_branch, t_branch, self)
+
+    def __bool__(self) -> bool:
+        raise NotImplementedError("Converting magma bit to bool not supported")
+
+    def __int__(self) -> int:
+        raise NotImplementedError("Converting magma bit to int not supported")
 
     def __repr__(self):
         if self is VCC:
@@ -96,117 +133,9 @@ class _BitType(Type):
         if self is GND:
             return '0'
 
-        return self.name.qualifiedname(sep='.')
-
-    def flatten(self):
-        return [self]
+        return super().__repr__()
 
 
-class _BitKind(Kind):
-    def __init__(cls, name, bases, dct):
-        super(_BitKind, cls).__init__(name, bases, dct)
-
-        if not hasattr(cls, 'direction'):
-            cls.direction = None
-
-    def __call__(cls, value=None, *args, **kwargs):
-        if value is not None:
-            if isinstance(value, (bool, IntegerTypes)):
-                return VCC if value else GND
-        result = super().__call__(*args, **kwargs)
-        if value is not None:
-            assert isinstance(value, BitType), type(value)
-            result(value)
-        return result
-
-    def __eq__(cls, rhs):
-        if not isinstance(rhs, _BitKind):
-            return False
-
-        return cls.direction == rhs.direction
-
-    __ne__ = Kind.__ne__
-    __hash__ = Kind.__hash__
-
-    def __str__(cls):
-        if cls.isinput():
-            return 'In(_Bit)'
-        if cls.isoutput():
-            return 'Out(_Bit)'
-        if cls.isinout():
-            return 'InOut(_Bit)'
-        return '_Bit'
-
-    def size(self):
-        return 1
-
-    @abstractmethod
-    def qualify(cls, direction):
-        pass
-
-    @abstractmethod
-    def flip(cls):
-        pass
-
-    def get_family(cls):
-        import magma as m
-        return m.get_family()
-
-
-class BitType(_BitType):
-    __hash__ = Type.__hash__
-
-
-class BitKind(_BitKind):
-    def __eq__(cls, rhs):
-        if not isinstance(rhs, BitKind):
-            return False
-
-        return cls.direction == rhs.direction
-
-    __ne__ = _BitKind.__ne__
-    __hash__ = _BitKind.__hash__
-
-    def __str__(cls):
-        if cls.isinput():
-            return 'In(Bit)'
-        if cls.isoutput():
-            return 'Out(Bit)'
-        if cls.isinout():
-            return 'InOut(Bit)'
-        return 'Bit'
-
-    def qualify(cls, direction):
-        if direction is None:
-            return Bit
-        elif direction == INPUT:
-            return BitIn
-        elif direction == OUTPUT:
-            return BitOut
-        elif direction == INOUT:
-            return BitInOut
-        return cls
-
-    def flip(cls):
-        if cls.isoriented(INPUT):
-            return BitOut
-        elif cls.isoriented(OUTPUT):
-            return BitIn
-        return cls
-
-
-def MakeBit(**kwargs):
-    return BitKind('Bit', (BitType,), kwargs)
-
-
-Bit = MakeBit()
-BitIn = MakeBit(direction=INPUT)
-BitOut = MakeBit(direction=OUTPUT)
-BitInOut = MakeBit(direction=INOUT)
-
-VCC = BitOut(name="VCC")
-GND = BitOut(name="GND")
-
-HIGH = VCC
-LOW = GND
-
+BitIn = Bit[Direction.In]
+BitOut = Bit[Direction.Out]
+BitInOut = Bit[Direction.InOut]

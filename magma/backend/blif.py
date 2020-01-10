@@ -2,8 +2,8 @@ import types
 from collections import OrderedDict
 from collections.abc import Sequence
 from ..bitutils import seq2int, fun2seq
-from ..bit import VCC, GND, BitType
-from ..array import ArrayType
+from ..bit import VCC, GND, Bit
+from ..array import Array
 from ..compiler import make_compiler
 from ..port import INPUT, OUTPUT, INOUT
 from ..clock import wiredefaultclock
@@ -26,7 +26,7 @@ def fullinputname(prefix, v):
         return fullqualifiedname(prefix, v)
 
 def compileinput(prefix, from_, to):
-    assert isinstance(from_, BitType)
+    assert isinstance(from_, Bit)
     to = fullqualifiedname(prefix, to)
     from_ = fullinputname(prefix, from_)
     return '.names %s %s\n1 1\n' % (from_, to)
@@ -34,8 +34,8 @@ def compileinput(prefix, from_, to):
 def compileinputs(instance, prefix):
     s = ''
     for k, v in instance.interface.ports.items():
-        if v.isinput():
-            if isinstance(v, ArrayType):
+        if v.is_input():
+            if isinstance(v, Array):
                 for i in range(len(v)):
                     w = v[i].value()
                     if w:

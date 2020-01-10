@@ -6,11 +6,11 @@ from ..backend import coreir_, coreir_utils
 from ..frontend.coreir_ import GetMagmaContext
 from ..scope import Scope
 from ..ref import DefnRef, ArrayRef, TupleRef
-from ..array import ArrayType
-from ..tuple import TupleType
-from ..bit import BitKind
+from ..array import Array
+from ..tuple import Tuple
+from ..bit import Bit
 from ..bitutils import int2seq
-from ..clock import ClockType
+from ..clock import Clock
 from ..transforms import setup_clocks, flatten
 from ..circuit import CircuitType
 from ..uniquification import uniquification_pass, UniquificationMode
@@ -58,7 +58,7 @@ def convert_to_coreir_path(bit, scope):
         if isinstance(name, ArrayRef):
             array_name = flattened_name(name.array.name)
             # CoreIR simulator doesn't flatten array of bits
-            if isinstance(name.array.T, BitKind):
+            if issubclass(name.array.T, Bit):
                 return f"{array_name}.{name.index}"
             else:
                 return f"{array_name}_{name.index}"
@@ -168,16 +168,16 @@ class CoreIRSimulator(CircuitSimulator):
             os.remove(coreir_filename)
 
         def create_zeros_init(arrOrTuple):
-            if isinstance(arrOrTuple, ArrayType):
+            if isinstance(arrOrTuple, Array):
                 return [create_zeros_init(el) for el in arrOrTuple.ts]
-            elif isinstance(arrOrTuple, TupleType):
-                return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.Ks, arrOrTuple.ts)}
+            elif isinstance(arrOrTuple, Tuple):
+                return {k: create_zeros_init(v) for k,v in zip(arrOrTuple.keys(), arrOrTuple.values())}
             else:
                 return 0
 
         # Need to set values for all circuit inputs or interpreter crashes
         for topin in circuit.interface.outputs():
-            if not isinstance(topin, ClockType):
+            if not isinstance(topin, Clock):
                 arr = topin
                 init = create_zeros_init(arr)
 
@@ -190,7 +190,7 @@ class CoreIRSimulator(CircuitSimulator):
         self.simulator_state.reset_circuit()
 
         for topin in circuit.interface.outputs():
-            if isinstance(topin, ClockType):
+            if isinstance(topin, Clock):
                 insts, ports = convert_to_coreir_path(topin, Scope())
                 self.simulator_state.set_clock_value(old_style_path(insts, ports), True, False)
 
@@ -207,14 +207,14 @@ class CoreIRSimulator(CircuitSimulator):
             return True if bit == VCC else False
 
         # Symbol table doesn't support arrays of arrays
-        if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
+        if isinstance(bit, Array) and (isinstance(bit[0], Array) or isinstance(bit[0], Tuple)):
             r = []
             for arr in bit:
                 r.append(self.get_value(arr, scope))
             return r
-        elif isinstance(bit, TupleType):
+        elif isinstance(bit, Tuple):
             r = {}
-            for k,v in zip(bit.Ks, bit.ts):
+            for k,v in zip(bit.keys(), bit.values()):
                 r[k] = self.get_value(v, scope)
             return r
         else:
@@ -228,14 +228,14 @@ class CoreIRSimulator(CircuitSimulator):
     def set_value(self, bit, newval, scope=None):
         if scope is None:
             scope = self.default_scope
-        if isinstance(bit, ArrayType) and len(newval) != len(bit):
+        if isinstance(bit, Array) and len(newval) != len(bit):
                 raise ValueError(f"Excepted a value of lengh {len(bit)} not"
                                  f" {len(newval)}")
-        if isinstance(bit, ArrayType) and (isinstance(bit[0], ArrayType) or isinstance(bit[0], TupleType)):
+        if isinstance(bit, Array) and (isinstance(bit[0], Array) or isinstance(bit[0], Tuple)):
             for i, arr in enumerate(bit):
                 self.set_value(arr, newval[i], scope)
-        elif isinstance(bit, TupleType):
-            for k,v in zip(bit.Ks, bit.ts):
+        elif isinstance(bit, Tuple):
+            for k,v in zip(bit.keys(), bit.values()):
                 self.set_value(v, newval[k], scope)
         else:
             insts, ports = convert_to_coreir_path(bit, scope)

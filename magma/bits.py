@@ -3,88 +3,69 @@ Defines a subtype of m.Array called m.Bits
 
 m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
-import weakref
-from hwtypes import BitVector, SIntVector
+from functools import lru_cache, wraps
+import typing as tp
+from hwtypes import BitVector
+from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
+    InconsistentSizeError
 
+import magma as m
 from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit, VCC, GND
-from .array import ArrayType, ArrayKind
+from .array import Array, ArrayMeta
 from .debug import debug_wire
+from .t import Type
 
 
-__all__ = ['Bits', 'BitsType', 'BitsKind']
-__all__ += ['UInt', 'UIntType', 'UIntKind']
-__all__ += ['SInt', 'SIntType', 'SIntKind']
-__all__ += ['BFloat', 'BFloatKind']
+def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
+    if not isinstance(val, Bits):
+        return T(val)
+    elif len(val) != len(T):
+        raise InconsistentSizeError('Inconsistent size')
+    else:
+        return val
 
 
-class BitsKind(ArrayKind):
-    _class_cache = weakref.WeakValueDictionary()
+def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
+        tp.Callable[['Bits', tp.Any], tp.Any]:
+    @wraps(fn)
+    def wrapped(self: 'Bits', other: tp.Any) -> tp.Any:
+        other = _coerce(type(self), other)
+        return fn(self, other)
+    return wrapped
 
-    def __str__(cls):
-        if not hasattr(cls, "T"):
-            return cls.__name__
-        if cls.isinput():
-            return "In(Bits[{}])".format(cls.N)
-        if cls.isoutput():
-            return "Out(Bits[{}])".format(cls.N)
-        return "Bits[{}]".format(cls.N)
 
+class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
+    def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
+        return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
 
     def __getitem__(cls, index):
-        if isinstance(index, tuple):
-            width, T = index
-        else:
-            width = index
-            T = Bit
-        if isinstance(width, Bits):
-            assert width.const()
-            # TODO: Move this logic to a method in BitsType
-            bit_type_to_constant_map = {
-                GND: 0,
-                VCC: 1
-            }
-            width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
-                                           width]).as_uint()
-        try:
-            result = BitsKind._class_cache[width, T]
-            return result
-        except KeyError:
-            pass
-        bases = [cls]
-        bases = tuple(bases)
-        class_name = '{}[{}, {}]'.format(cls.__name__, width, T.__name__)
-        t = type(cls)(class_name, bases, dict(T=T, N=width))
-        t.__module__ = cls.__module__
-        BitsKind._class_cache[width, T] = t
-        return t
+        if isinstance(index, int):
+            index = (index, Bit)
+        return ArrayMeta.__getitem__(cls, index)
 
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return Bits[cls.N, cls.T.qualify(direction)]
+    def __repr__(cls):
+        return str(cls)
 
-    def flip(cls):
-        return Bits[cls.N, cls.T.flip()]
+    def __str__(cls):
+        name = getattr(cls, "orig_name", cls.__name__)
+        if not cls.is_concrete:
+            return name
 
-#     def __call__(cls, value=None, *args, **kwargs):
-#         print(cls, cls.__dict__)
-#         if value is not None:
-#             if isinstance(value, (bool, IntegerTypes)):
-#                 from .conversions import bits
-#                 return bits(value, cls.N)
-#             else:
-#                 raise ValueError("Bit can only be initialized with None, bool, "
-#                                  "or integer")
-#         return super().__call__(*args, **kwargs)
-
-    def get_family(self):
-        import magma as m
-        return m.get_family()
+        name += f"[{cls.N}]"
+        if cls.is_input():
+            name = f"In({name})"
+        elif cls.is_output():
+            name = f"Out({name})"
+        elif cls.is_output():
+            name = f"InOut({name})"
+        return name
 
 
-class Bits(ArrayType, metaclass=BitsKind):
+class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
+    __hash__ = Array.__hash__
+
     def __repr__(self):
         if not isinstance(self.name, AnonRef):
             return repr(self.name)
@@ -108,245 +89,534 @@ class Bits(ArrayType, metaclass=BitsKind):
         return BitVector[len(self)](self.bits()).as_int()
 
     @debug_wire
-    def wire(i, o, debug_info):
-        if isinstance(o, IntegerTypes):
-            if o.bit_length() > len(i):
+    def wire(self, other, debug_info):
+        if isinstance(other, IntegerTypes):
+            if other.bit_length() > len(self):
                 raise ValueError(
-                    f"Cannot convert integer {o} (bit_length={o.bit_length()}) to Bits({len(i)})")
+                    f"Cannot convert integer {other} "
+                    f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
             from .conversions import bits
-            o = bits(o, len(i))
-        super().wire(o, debug_info)
+            other = bits(other, len(self))
+        super().wire(other, debug_info)
 
-    def zext(self, value):
-        from .conversions import zext
-        t = zext(self, value)
-        return t
+    @classmethod
+    def make_constant(cls, value, num_bits: tp.Optional[int] = None) -> \
+            'AbstractBitVector':
+        if num_bits is None:
+            return cls(value)
+        return cls.unsized_t[num_bits](value)
 
-    def __getitem__(self, key):
-        from .conversions import bits
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return bits(result)
-        return result
+    def __setitem__(self, index: int, value: AbstractBit):
+        raise NotImplementedError()
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_unary_op(cls, op):
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
+                                              "I", m.In(cls),
+                                              "O", m.Out(cls),
+                                              coreir_name=op,
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_binary_op(cls, op):
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
+                                              "I0", m.In(cls),
+                                              "I1", m.In(cls),
+                                              "O", m.Out(cls),
+                                              coreir_name=op,
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_compare_op(cls, op):
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
+                                              "I0", m.In(cls),
+                                              "I1", m.In(cls),
+                                              "O", m.Out(m.Bit),
+                                              coreir_name=op,
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def declare_ite(cls, T):
+        t_str = str(T)
+        # Sanitize
+        t_str = t_str.replace("(", "_")
+        t_str = t_str.replace(")", "")
+        t_str = t_str.replace("[", "_")
+        t_str = t_str.replace("]", "")
+        N = len(cls)
+        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_ite_{t_str}",
+                                              "I0", m.In(T),
+                                              "I1", m.In(T),
+                                              "S", m.In(m.Bit),
+                                              "O", m.Out(T),
+                                              coreir_name="mux",
+                                              coreir_genargs={"width": N},
+                                              coreir_lib="coreir")
+
+    def bvnot(self) -> 'AbstractBitVector':
+        return self.declare_unary_op("not")()(self)
+
+    @bits_cast
+    def bvand(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("and")()(self, other)
+
+    @bits_cast
+    def bvor(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("or")()(self, other)
+
+    @bits_cast
+    def bvxor(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("xor")()(self, other)
+
+    @bits_cast
+    def bvshl(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("shl")()(self, other)
+
+    @bits_cast
+    def bvlshr(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("lshr")()(self, other)
+
+    def bvashr(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvrol(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvror(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvcomp(self, other) -> 'AbstractBitVector[1]':
+        return Bits[1](self == other)
+
+    def bveq(self, other) -> AbstractBit:
+        return self.declare_compare_op("eq")()(self, other)
+
+    def bvult(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvule(self, other) -> AbstractBit:
+        # For wiring
+        if not self.is_output():
+            return Type.__le__(self, other)
+        raise NotImplementedError()
+
+    def bvugt(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvuge(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvslt(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvsle(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvsgt(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvsge(self, other) -> AbstractBit:
+        raise NotImplementedError()
+
+    def bvneg(self) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def adc(self, other, carry) -> tp.Tuple['AbstractBitVector', AbstractBit]:
+        raise NotImplementedError()
+
+    def ite(self, t_branch, f_branch) -> 'AbstractBitVector':
+        type_ = type(t_branch)
+        if type_ != type(f_branch):
+            raise TypeError("ite expects same type for both branches")
+        return self.declare_ite(type_)()(t_branch, f_branch,
+                                         self != self.make_constant(0))
+
+    def bvadd(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvsub(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvmul(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvudiv(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvurem(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvsdiv(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def bvsrem(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def repeat(self, other) -> 'AbstractBitVector':
+        r = int(other)
+        if r <= 0:
+            raise ValueError()
+
+        return type(self).unsized_t[r * self.size](r * self.ts)
+
+    def sext(self, other) -> 'AbstractBitVector':
+        raise NotImplementedError()
+
+    def ext(self, other) -> 'AbstractBitVector':
+        return self.zext(other)
+
+    def zext(self, other) -> 'AbstractBitVector':
+        ext = int(other)
+        if ext < 0:
+            raise ValueError()
+
+        T = type(self).unsized_t
+        return self.concat(T[ext](0))
+
+    def __invert__(self):
+        return self.bvnot()
+
+    def __and__(self, other):
+        try:
+            return self.bvand(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __or__(self, other):
+        try:
+            return self.bvor(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __xor__(self, other):
+        try:
+            return self.bvxor(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __lshift__(self, other):
+        try:
+            return self.bvshl(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __rshift__(self, other):
+        try:
+            return self.bvlshr(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __neg__(self):
+        return self.bvneg()
+
+    def __add__(self, other):
+        try:
+            return self.bvadd(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __sub__(self, other):
+        try:
+            return self.bvsub(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __mul__(self, other):
+        try:
+            return self.bvmul(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __floordiv__(self, other):
+        try:
+            return self.bvudiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __truediv__(self, other):
+        try:
+            return self.bvudiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __mod__(self, other):
+        try:
+            return self.bvurem(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __eq__(self, other):
+        try:
+            return self.bveq(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ne__(self, other):
+        try:
+            return self.bvne(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ge__(self, other):
+        try:
+            return self.bvuge(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __gt__(self, other):
+        try:
+            return self.bvugt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __le__(self, other):
+        try:
+            return self.bvule(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __lt__(self, other):
+        try:
+            return self.bvult(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
 
 BitsType = Bits
 
 
-# def Bits(N, T=None):
-#     if T is None:
-#         T = Bit
-#     assert isinstance(N, (IntegerTypes, BitsType)), (N, type(N))
-#     if isinstance(N, BitsType):
-#         assert N.const()
-#         # TODO: Move this logic to a method in BitsType
-#         bit_type_to_constant_map = {
-#             GND: 0,
-#             VCC: 1
-#         }
-#         N = BitVector([bit_type_to_constant_map[x] for x in N]).as_uint()
-#     name = 'Bits({})'.format(N)
-#     return BitsKind(name, (BitsType,), dict(N=N, T=T))
+class UInt(Bits):
+    @bits_cast
+    def bvult(self, other) -> AbstractBit:
+        return self.declare_compare_op("ult")()(self, other)
+
+    @bits_cast
+    def bvule(self, other) -> AbstractBit:
+        # For wiring
+        if self.is_input():
+            return Type.__le__(self, other)
+        return self.declare_compare_op("ule")()(self, other)
+
+    @bits_cast
+    def bvugt(self, other) -> AbstractBit:
+        return self.declare_compare_op("ugt")()(self, other)
+
+    @bits_cast
+    def bvuge(self, other) -> AbstractBit:
+        return self.declare_compare_op("uge")()(self, other)
+
+    @bits_cast
+    def bvadd(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("add")()(self, other)
+
+    @bits_cast
+    def bvsub(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("sub")()(self, other)
+
+    @bits_cast
+    def bvmul(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("mul")()(self, other)
+
+    @bits_cast
+    def bvudiv(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("udiv")()(self, other)
+
+    @bits_cast
+    def bvurem(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("urem")()(self, other)
+
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.zext(1)
+        b = other.zext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
 
 
-class UIntKind(BitsKind):
-    _class_cache = weakref.WeakValueDictionary()
+class SInt(Bits):
+    @bits_cast
+    def bvslt(self, other) -> AbstractBit:
+        return self.declare_compare_op("slt")()(self, other)
 
-    def __getitem__(cls, index):
-        if isinstance(index, tuple):
-            width, T = index
-        else:
-            width = index
-            T = Bit
-        if isinstance(width, UInt):
-            assert width.const()
-            # TODO: Move this logic to a method in BitsType
-            bit_type_to_constant_map = {
-                GND: 0,
-                VCC: 1
-            }
-            width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
-                                           width]).as_uint()
+    @bits_cast
+    def bvsle(self, other) -> AbstractBit:
+        # For wiring
+        if self.is_input():
+            return Type.__le__(self, other)
+        return self.declare_compare_op("sle")()(self, other)
+
+    @bits_cast
+    def bvsgt(self, other) -> AbstractBit:
+        return self.declare_compare_op("sgt")()(self, other)
+
+    @bits_cast
+    def bvsge(self, other) -> AbstractBit:
+        return self.declare_compare_op("sge")()(self, other)
+
+    @bits_cast
+    def bvadd(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("add")()(self, other)
+
+    @bits_cast
+    def bvsub(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("sub")()(self, other)
+
+    @bits_cast
+    def bvmul(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("mul")()(self, other)
+
+    @bits_cast
+    def bvsdiv(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("sdiv")()(self, other)
+
+    @bits_cast
+    def bvsrem(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("srem")()(self, other)
+
+    def bvneg(self) -> 'AbstractBitVector':
+        return self.declare_unary_op("neg")()(self)
+
+    @bits_cast
+    def bvashr(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("ashr")()(self, other)
+
+    def __mod__(self, other):
         try:
-            return UIntKind._class_cache[width, T]
-        except KeyError:
-            pass
-        bases = [cls]
-        bases = tuple(bases)
-        class_name = '{}[{}, {}]'.format(cls.__name__, width, T)
-        t = type(cls)(class_name, bases, dict(T=T, N=width))
-        t.__module__ = cls.__module__
-        UIntKind._class_cache[width, T] = t
-        return t
+            return self.bvsrem(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    def __str__(cls):
-        if cls.isinput():
-            return "In(UInt[{}])".format(cls.N)
-        if cls.isoutput():
-            return "Out(UInt[{}])".format(cls.N)
-        return "UInt[{}]".format(cls.N)
-
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return UInt[cls.N, cls.T.qualify(direction)]
-
-    def flip(cls):
-        return UInt[cls.N, cls.T.flip()]
-
-
-class UInt(Bits, metaclass=UIntKind):
-    def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
-        ts = [repr(t) for t in self.ts]
-        return 'uint([{}])'.format(', '.join(ts))
-
-    def __getitem__(self, key):
-        from .conversions import uint
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return uint(result)
-        return result
-
-
-# def UInt(N, T=None):
-#     if T is None:
-#         T = Bit
-#     assert isinstance(N, IntegerTypes)
-#     name = 'UInt({})'.format(N)
-#     return UIntKind(name, (UIntType,), dict(N=N, T=T))
-
-
-class SIntKind(BitsKind):
-    _class_cache = weakref.WeakValueDictionary()
-    def __getitem__(cls, index):
-        if isinstance(index, tuple):
-            width, T = index
-        else:
-            width = index
-            T = Bit
-        if isinstance(width, SInt):
-            assert width.const()
-            # TODO: Move this logic to a method in BitsType
-            bit_type_to_constant_map = {
-                GND: 0,
-                VCC: 1
-            }
-            width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
-                                           width]).as_sint()
+    def __floordiv__(self, other):
         try:
-            return SIntKind._class_cache[width, T]
-        except KeyError:
-            pass
-        bases = [cls]
-        bases = tuple(bases)
-        class_name = '{}[{}, {}]'.format(cls.__name__, width, T)
-        t = type(cls)(class_name, bases, dict(T=T, N=width))
-        t.__module__ = cls.__module__
-        SIntKind._class_cache[width, T] = t
-        return t
+            return self.bvsdiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    def __str__(cls):
-        if cls.isinput():
-            return "In(SInt[{}])".format(cls.N)
-        if cls.isoutput():
-            return "Out(SInt[{}])".format(cls.N)
-        return "SInt[{}]".format(cls.N)
-
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return SInt[cls.N, cls.T.qualify(direction)]
-
-    def flip(cls):
-        return SInt[cls.N, cls.T.flip()]
-
-
-class SInt(Bits, metaclass=SIntKind):
-    def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
-        ts = [repr(t) for t in self.ts]
-        return 'sint([{}])'.format(', '.join(ts))
-
-    def __int__(self):
-        if not self.const():
-            raise Exception("Can't call __int__ on a non-constant")
-        return SIntVector[len(self)](self.bits()).as_sint()
-
-    def sext(self, value):
-        from .conversions import sext
-        return sext(self, value)
-
-UIntType = UInt
-SIntType = SInt
-
-
-# def SInt(N, T=None):
-#     if T is None:
-#         T = Bit
-#     assert isinstance(N, IntegerTypes)
-#     name = 'SInt({})'.format(N)
-#     return SIntKind(name, (SIntType,), dict(N=N, T=T))
-
-
-class BFloatKind(BitsKind):
-    _class_cache = weakref.WeakValueDictionary()
-
-    def __getitem__(cls, index):
-        if isinstance(index, tuple):
-            width, T = index
-        else:
-            width = index
-            T = Bit
-        if isinstance(width, BFloat):
-            assert width.const()
-            # TODO: Move this logic to a method in BitsType
-            bit_type_to_constant_map = {
-                GND: 0,
-                VCC: 1
-            }
-            width = BitVector[len(width)]([bit_type_to_constant_map[x] for x in
-                                           width]).as_uint()
+    def __truediv__(self, other):
         try:
-            return BFloatKind._class_cache[width, T]
-        except KeyError:
-            pass
-        bases = [cls]
-        bases = tuple(bases)
-        class_name = '{}[{}, {}]'.format(cls.__name__, width, T)
-        t = type(cls)(class_name, bases, dict(T=T, N=width))
-        t.__module__ = cls.__module__
-        BFloatKind._class_cache[width, T] = t
-        return t
+            return self.bvsdiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    def __str__(cls):
-        if cls.isinput():
-            return "In(BFloat[{}])".format(cls.N)
-        if cls.isoutput():
-            return "Out(BFloat[{}])".format(cls.N)
-        return "BFloat[{}]".format(cls.N)
+    def __ge__(self, other):
+        try:
+            return self.bvsge(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return BFloat[cls.N, cls.T.qualify(direction)]
+    def __gt__(self, other):
+        try:
+            return self.bvsgt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    def flip(cls):
-        return BFloat[cls.N, cls.T.flip()]
+    def __le__(self, other):
+        try:
+            return self.bvsle(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
+    def __lt__(self, other):
+        try:
+            return self.bvslt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-class BFloat(Bits, metaclass=BFloatKind):
-    def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
-        ts = [repr(t) for t in self.ts]
-        return 'bfloat([{}])'.format(', '.join(ts))
+    def __rshift__(self, other):
+        try:
+            return self.bvashr(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
-    def __getitem__(self, key):
-        from .conversions import bfloat
-        result = super().__getitem__(key)
-        if isinstance(key, slice):
-            return bfloat(result)
-        return result
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.sext(1)
+        b = other.sext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
+
+    def sext(self, other) -> 'AbstractBitVector':
+        ext = int(other)
+        if ext < 0:
+            raise ValueError()
+
+        T = type(self).unsized_t
+        return self.concat(T[ext]([self[-1] for _ in range(ext)]))

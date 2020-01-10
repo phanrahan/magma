@@ -1,15 +1,14 @@
-from collections import OrderedDict
-import logging
 import os
-from .. import singleton
-from ..array import ArrayType
-from ..circuit import DeclareCircuit
-from ..clock import AsyncResetType, AsyncResetNType
+import logging
 from coreir import Context
+from ..array import Array
+from ..tuple import Tuple
+from ..clock import AsyncReset, AsyncResetN
+from ..t import In, Out
+from .. import singleton
+from ..circuit import DeclareCircuit
 from .coreir_transformer import DefnOrDeclTransformer
 from ..passes import DefinitionPass
-from ..t import In, Out
-from ..tuple import TupleType
 from .util import keydefaultdict
 from ..wire import wire
 
@@ -83,18 +82,17 @@ class InsertWrapCasts(DefinitionPass):
                               simulate=self.sim)
 
     def wrap_if_arst(self, port, definition):
-        if isinstance(port, (ArrayType, TupleType)):
+        if isinstance(port, (Array, Tuple)):
             for t in port:
                 self.wrap_if_arst(t, definition)
-        elif port.isinput():
-            if isinstance(port, (AsyncResetType, AsyncResetNType)) or \
-                    isinstance(port.value(), (AsyncResetType, AsyncResetNType)):
+        elif port.is_input():
+            if isinstance(port, (AsyncReset, AsyncResetN)) or \
+                    isinstance(port.value(), (AsyncReset, AsyncResetN)):
                 value = port.value()
-                print(port, value)
-                if value is not None and not isinstance(
-                        type(value), type(type(port))):
+                if value is not None and not issubclass(
+                        type(value), type(port).flip()):
                     port.unwire(value)
-                    if isinstance(port, (AsyncResetType, AsyncResetNType)):
+                    if isinstance(port, (AsyncReset, AsyncResetN)):
                         inst = self.define_wrap(
                             type(port).flip(), type(port), type(value))()
                     else:
