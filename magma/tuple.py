@@ -370,7 +370,7 @@ class ProductKind(ProductMeta, TupleKind, Kind):
             new_fields[k] = v.flip()
         for k, v in cls.field_dict.items():
             if not issubclass(new_fields[k], v):
-                base = cls.unbound_t
+                base = cls.qualify(Direction.Undirected)
         return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
                                             cls.__name__, (base, ), {})
 
@@ -405,6 +405,18 @@ class Product(Tuple, metaclass=ProductKind):
     @classmethod
     def types(cls):
         return cls.fields
+
+    def value(self):
+        ts = [t.value() for t in self.ts]
+
+        for t in ts:
+            if t is None:
+                return None
+
+        if len(ts) == len(self) and self.iswhole(ts):
+            return ts[0].name.tuple
+
+        return namedtuple(**dict(zip(self.keys(),ts)))
 
 
 from .bitutils import int2seq
