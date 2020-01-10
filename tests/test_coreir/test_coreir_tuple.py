@@ -50,17 +50,17 @@ def test_multi_direction_tuple_instance_bulk():
                              f"gold/test_multi_direction_tuple_instance.json")
 
 
-class AB(m.Product):
+class AB(m.Product, cache=True):
     a = m.Bit
     b = m.Bit
 
 
-class Z(m.Product):
+class Z(m.Product, cache=True):
     a = m.In(m.Bit)
     b = m.Out(m.Bit)
 
 
-class Bar(m.Product):
+class Bar(m.Product, cache=True):
     x = m.In(AB)
     y = m.Out(AB)
     z = Z
