@@ -19,6 +19,24 @@ def test_pair():
     #assert str(C2) == 'Tuple(x=Out(Bit),y=Out(Bit))'
     assert C2 == C2
 
+    assert issubclass(m.In(m.Tuple[Bit, Bit]), m.In(m.Tuple[Bit, Bit]))
+    assert isinstance(m.In(m.Tuple[Bit, Bit])(), m.In(m.Tuple[Bit, Bit]))
+
+    assert issubclass(m.In(m.Tuple[Bit, Bit]), m.Tuple[Bit, Bit])
+    assert isinstance(m.In(m.Tuple[Bit, Bit])(), m.Tuple[Bit, Bit])
+
+    assert not issubclass(m.In(m.Tuple[Bit, Bit]), m.Out(m.Tuple[Bit, Bit]))
+    assert not isinstance(m.In(m.Tuple[Bit, Bit])(), m.Out(m.Tuple[Bit, Bit]))
+
+    assert issubclass(m.Out(m.Tuple[Bit, Bit]), m.Out(m.Tuple[Bit, Bit]))
+    assert isinstance(m.Out(m.Tuple[Bit, Bit])(), m.Out(m.Tuple[Bit, Bit]))
+
+    assert issubclass(m.Out(m.Tuple[Bit, Bit]), m.Tuple[Bit, Bit])
+    assert isinstance(m.Out(m.Tuple[Bit, Bit])(), m.Tuple[Bit, Bit])
+
+    assert not issubclass(m.Out(m.Tuple[Bit, Bit]), m.In(m.Tuple[Bit, Bit]))
+    assert not isinstance(m.Out(m.Tuple[Bit, Bit])(), m.In(m.Tuple[Bit, Bit]))
+
 def test_dict():
     # types
     class A2(Product):

@@ -1,6 +1,8 @@
+import itertools
 from collections.abc import Sequence, Mapping
 from collections import OrderedDict
 from hwtypes.adt import TupleMeta, Tuple, Product, ProductMeta
+from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 import magma as m
 from .ref import AnonRef, TupleRef
@@ -20,6 +22,73 @@ from .port import report_wiring_error
 #
 
 class TupleKind(TupleMeta, Kind):
+    def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
+        for rname in RESERVED_SUNDERS:
+            if rname in namespace:
+                raise ReservedNameError(f'class attribute {rname} is reserved by the type machinery')
+
+        bound_types = fields
+        has_bound_base = False
+        unbound_bases = []
+        for base in bases:
+            if isinstance(base, BoundMeta):
+                if base.is_bound:
+                    has_bound_base = True
+                    if bound_types is None:
+                        bound_types = base.fields
+                    elif any(not issubclass(x, y) for x, y in zip(bound_types,
+                                                                  base.fields)):
+                        raise TypeError("Can't inherit from multiple different bound_types")
+                else:
+                    unbound_bases.append(base)
+
+        t = type.__new__(mcs, name, bases, namespace, **kwargs)
+        t._fields_ = bound_types
+        t._unbound_base_ = None
+
+        if bound_types is None:
+            # t is a unbound type
+            t._unbound_base_ = t
+        elif len(unbound_bases) == 1:
+            # t is constructed from an unbound type
+            t._unbound_base_ = unbound_bases[0]
+        elif not has_bound_base:
+            # this shouldn't be reachable
+            raise AssertionError("Unreachable code")
+
+        return t
+
+    def _from_idx(cls, idx):
+        # Some of this should probably be in GetitemSyntax
+        mcs = type(cls)
+
+        try:
+            return mcs._class_cache[cls, idx]
+        except KeyError:
+            pass
+
+        if cls.is_bound:
+            raise TypeError('Type is already bound')
+
+        bases = []
+        bases.extend(b[idx] for b in cls.__bases__ if isinstance(b, BoundMeta))
+        idx_bases = [[b for b in i.__bases__ if isinstance(b, type(i))] for i
+                     in idx]
+        for i_b in itertools.product(*idx_bases):
+            if not any(issubclass(base, cls[i_b]) for base in bases):
+                bases.append(cls[i_b])
+        if not any(issubclass(b, cls) for b in bases):
+            bases.insert(0, cls)
+        bases = tuple(bases)
+        class_name = cls._name_cb(idx)
+
+        t = mcs(class_name, bases, {'__module__' : cls.__module__}, fields=idx)
+        if t._unbound_base_ is None:
+            t._unbound_base_ = cls
+        mcs._class_cache[cls, idx] = t
+        t._cached_ = True
+        return t
+
     def qualify(cls, direction):
         new_fields = []
         for T in cls.fields:
