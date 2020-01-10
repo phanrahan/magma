@@ -288,23 +288,22 @@ def test_rd_ptr(target):
     compile_and_check("RdPtr", RdPtr, target)
 
 
-
 def test_namedtuple_seq():
-    class A(Product):
-        a0 = Bit
-        a1 = SInt[8]
+    class A(m.Product):
+        a0 = m.Bit
+        a1 = m.SInt[8]
 
-    @circuit.sequential(async_reset=False)
+    @m.circuit.sequential(async_reset=False)
     class TestNamedTuple:
         def __init__(self):
-            self.a0: Bit = bit(0)
-            self.a1: SInt[8] = 0
+            self.a0: m.Bit = m.bit(0)
+            self.a1: m.SInt[8] = 0
 
-        def __call__(self, a: A, b: Bit) -> A:
+        def __call__(self, a: A, b: m.Bit) -> A:
             if b:
                 new_a = a
             else:
-                new_a = namedtuple(a0=self.a0, a1=self.a1)
+                new_a = m.namedtuple(a0=self.a0, a1=self.a1)
 
             self.a0 = new_a.a0
             self.a1 = new_a.a1
