@@ -14,7 +14,7 @@ def pretty_str(t):
         args = []
         for i in range(len(t)):
             key_str = str(list(t.keys())[i])
-            val_str = pretty_str(t.types()[i])
+            val_str = pretty_str(list(t.types())[i])
             indent = " " * 4
             val_str = f"\n{indent}".join(val_str.splitlines())
             args.append(f"{key_str} = {val_str}")
