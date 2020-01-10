@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2_x10":{
+      "Mux2xOutUInt10":{
         "type":["Record",[
           ["I0",["Array",10,"BitIn"]],
           ["I1",["Array",10,"BitIn"]],
@@ -44,8 +44,8 @@
           ["O1",["Array",10,"Bit"]]
         ]],
         "instances":{
-          "Mux2_x10_inst0":{
-            "modref":"global.Mux2_x10"
+          "Mux2xOutUInt10_inst0":{
+            "modref":"global.Mux2xOutUInt10"
           },
           "const_1_10":{
             "genref":"coreir.const",
@@ -58,10 +58,10 @@
           }
         },
         "connections":[
-          ["self.self_rd_ptr_O","Mux2_x10_inst0.I0"],
-          ["magma_Bits_10_add_inst0.out","Mux2_x10_inst0.I1"],
-          ["self.O0","Mux2_x10_inst0.O"],
-          ["self.read","Mux2_x10_inst0.S"],
+          ["self.self_rd_ptr_O","Mux2xOutUInt10_inst0.I0"],
+          ["magma_Bits_10_add_inst0.out","Mux2xOutUInt10_inst0.I1"],
+          ["self.O0","Mux2xOutUInt10_inst0.O"],
+          ["self.read","Mux2xOutUInt10_inst0.S"],
           ["magma_Bits_10_add_inst0.in1","const_1_10.out"],
           ["self.self_rd_ptr_O","magma_Bits_10_add_inst0.in0"],
           ["self.self_rd_ptr_O","self.O1"]

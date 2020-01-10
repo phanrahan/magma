@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2":{
+      "Mux2xOutBit":{
         "type":["Record",[
           ["I0","BitIn"],
           ["I1","BitIn"],
@@ -10,7 +10,7 @@
           ["O","Bit"]
         ]]
       },
-      "Mux2_x4":{
+      "Mux2xOutBits4":{
         "type":["Record",[
           ["I0",["Array",4,"BitIn"]],
           ["I1",["Array",4,"BitIn"]],
@@ -98,68 +98,68 @@
           ["O3",["Array",4,"Bit"]]
         ]],
         "instances":{
-          "Mux2_inst0":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst0":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_inst1":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst1":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_inst2":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst2":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_inst3":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst3":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_inst4":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst4":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_inst5":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst5":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_x4_inst0":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst0":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst1":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst1":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst10":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst10":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst11":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst11":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst12":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst12":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst13":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst13":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst14":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst14":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst2":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst2":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst3":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst3":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst4":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst4":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst5":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst5":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst6":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst6":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst7":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst7":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst8":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst8":{
+            "modref":"global.Mux2xOutBits4"
           },
-          "Mux2_x4_inst9":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst9":{
+            "modref":"global.Mux2xOutBits4"
           },
           "bit_const_0_None":{
             "modref":"corebit.const",
@@ -279,73 +279,73 @@
           }
         },
         "connections":[
-          ["self.clk_en","Mux2_inst0.I0"],
-          ["bit_const_0_None.out","Mux2_inst0.I1"],
-          ["Mux2_inst1.I0","Mux2_inst0.O"],
-          ["magma_Bits_2_eq_inst1.out","Mux2_inst0.S"],
-          ["bit_const_0_None.out","Mux2_inst1.I1"],
-          ["Mux2_inst2.I0","Mux2_inst1.O"],
-          ["magma_Bits_2_eq_inst4.out","Mux2_inst1.S"],
-          ["bit_const_1_None.out","Mux2_inst2.I1"],
-          ["magma_Bit_not_inst1.out","Mux2_inst2.S"],
-          ["self.clk_en","Mux2_inst3.I0"],
-          ["bit_const_0_None.out","Mux2_inst3.I1"],
-          ["Mux2_inst4.I0","Mux2_inst3.O"],
-          ["magma_Bits_2_eq_inst7.out","Mux2_inst3.S"],
-          ["bit_const_0_None.out","Mux2_inst4.I1"],
-          ["Mux2_inst5.I0","Mux2_inst4.O"],
-          ["magma_Bits_2_eq_inst11.out","Mux2_inst4.S"],
-          ["bit_const_1_None.out","Mux2_inst5.I1"],
-          ["self.O1","Mux2_inst5.O"],
-          ["magma_Bit_not_inst4.out","Mux2_inst5.S"],
-          ["self.value","Mux2_x4_inst0.I0"],
-          ["self.value","Mux2_x4_inst0.I1"],
-          ["Mux2_x4_inst2.I0","Mux2_x4_inst0.O"],
-          ["magma_Bits_2_eq_inst0.out","Mux2_x4_inst0.S"],
-          ["self.self_register_O","Mux2_x4_inst1.I0"],
-          ["self.self_register_O","Mux2_x4_inst1.I1"],
-          ["Mux2_x4_inst3.I0","Mux2_x4_inst1.O"],
-          ["magma_Bits_2_eq_inst2.out","Mux2_x4_inst1.S"],
-          ["Mux2_x4_inst7.O","Mux2_x4_inst10.I0"],
-          ["self.const_","Mux2_x4_inst10.I1"],
-          ["Mux2_x4_inst13.I0","Mux2_x4_inst10.O"],
-          ["magma_Bits_2_eq_inst12.out","Mux2_x4_inst10.S"],
-          ["Mux2_x4_inst8.O","Mux2_x4_inst11.I0"],
-          ["self.self_register_O","Mux2_x4_inst11.I1"],
-          ["Mux2_x4_inst14.I0","Mux2_x4_inst11.O"],
-          ["magma_Bits_2_eq_inst13.out","Mux2_x4_inst11.S"],
-          ["Mux2_x4_inst9.O","Mux2_x4_inst12.I0"],
-          ["self.config_data","Mux2_x4_inst12.I1"],
-          ["self.O0","Mux2_x4_inst12.O"],
-          ["magma_Bit_not_inst3.out","Mux2_x4_inst12.S"],
-          ["self.self_register_O","Mux2_x4_inst13.I1"],
-          ["self.O2","Mux2_x4_inst13.O"],
-          ["magma_Bit_not_inst5.out","Mux2_x4_inst13.S"],
-          ["self.self_register_O","Mux2_x4_inst14.I1"],
-          ["self.O3","Mux2_x4_inst14.O"],
-          ["magma_Bit_not_inst6.out","Mux2_x4_inst14.S"],
-          ["self.value","Mux2_x4_inst2.I1"],
-          ["Mux2_x4_inst4.I0","Mux2_x4_inst2.O"],
-          ["magma_Bits_2_eq_inst3.out","Mux2_x4_inst2.S"],
-          ["self.self_register_O","Mux2_x4_inst3.I1"],
-          ["Mux2_x4_inst5.I0","Mux2_x4_inst3.O"],
-          ["magma_Bits_2_eq_inst5.out","Mux2_x4_inst3.S"],
-          ["self.config_data","Mux2_x4_inst4.I1"],
-          ["magma_Bit_not_inst0.out","Mux2_x4_inst4.S"],
-          ["self.self_register_O","Mux2_x4_inst5.I1"],
-          ["magma_Bit_not_inst2.out","Mux2_x4_inst5.S"],
-          ["self.value","Mux2_x4_inst6.I0"],
-          ["self.value","Mux2_x4_inst6.I1"],
-          ["Mux2_x4_inst9.I0","Mux2_x4_inst6.O"],
-          ["magma_Bits_2_eq_inst6.out","Mux2_x4_inst6.S"],
-          ["self.self_register_O","Mux2_x4_inst7.I0"],
-          ["self.value","Mux2_x4_inst7.I1"],
-          ["magma_Bits_2_eq_inst8.out","Mux2_x4_inst7.S"],
-          ["self.self_register_O","Mux2_x4_inst8.I0"],
-          ["self.self_register_O","Mux2_x4_inst8.I1"],
-          ["magma_Bits_2_eq_inst9.out","Mux2_x4_inst8.S"],
-          ["self.value","Mux2_x4_inst9.I1"],
-          ["magma_Bits_2_eq_inst10.out","Mux2_x4_inst9.S"],
+          ["self.clk_en","Mux2xOutBit_inst0.I0"],
+          ["bit_const_0_None.out","Mux2xOutBit_inst0.I1"],
+          ["Mux2xOutBit_inst1.I0","Mux2xOutBit_inst0.O"],
+          ["magma_Bits_2_eq_inst1.out","Mux2xOutBit_inst0.S"],
+          ["bit_const_0_None.out","Mux2xOutBit_inst1.I1"],
+          ["Mux2xOutBit_inst2.I0","Mux2xOutBit_inst1.O"],
+          ["magma_Bits_2_eq_inst4.out","Mux2xOutBit_inst1.S"],
+          ["bit_const_1_None.out","Mux2xOutBit_inst2.I1"],
+          ["magma_Bit_not_inst1.out","Mux2xOutBit_inst2.S"],
+          ["self.clk_en","Mux2xOutBit_inst3.I0"],
+          ["bit_const_0_None.out","Mux2xOutBit_inst3.I1"],
+          ["Mux2xOutBit_inst4.I0","Mux2xOutBit_inst3.O"],
+          ["magma_Bits_2_eq_inst7.out","Mux2xOutBit_inst3.S"],
+          ["bit_const_0_None.out","Mux2xOutBit_inst4.I1"],
+          ["Mux2xOutBit_inst5.I0","Mux2xOutBit_inst4.O"],
+          ["magma_Bits_2_eq_inst11.out","Mux2xOutBit_inst4.S"],
+          ["bit_const_1_None.out","Mux2xOutBit_inst5.I1"],
+          ["self.O1","Mux2xOutBit_inst5.O"],
+          ["magma_Bit_not_inst4.out","Mux2xOutBit_inst5.S"],
+          ["self.value","Mux2xOutBits4_inst0.I0"],
+          ["self.value","Mux2xOutBits4_inst0.I1"],
+          ["Mux2xOutBits4_inst2.I0","Mux2xOutBits4_inst0.O"],
+          ["magma_Bits_2_eq_inst0.out","Mux2xOutBits4_inst0.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst1.I0"],
+          ["self.self_register_O","Mux2xOutBits4_inst1.I1"],
+          ["Mux2xOutBits4_inst3.I0","Mux2xOutBits4_inst1.O"],
+          ["magma_Bits_2_eq_inst2.out","Mux2xOutBits4_inst1.S"],
+          ["Mux2xOutBits4_inst7.O","Mux2xOutBits4_inst10.I0"],
+          ["self.const_","Mux2xOutBits4_inst10.I1"],
+          ["Mux2xOutBits4_inst13.I0","Mux2xOutBits4_inst10.O"],
+          ["magma_Bits_2_eq_inst12.out","Mux2xOutBits4_inst10.S"],
+          ["Mux2xOutBits4_inst8.O","Mux2xOutBits4_inst11.I0"],
+          ["self.self_register_O","Mux2xOutBits4_inst11.I1"],
+          ["Mux2xOutBits4_inst14.I0","Mux2xOutBits4_inst11.O"],
+          ["magma_Bits_2_eq_inst13.out","Mux2xOutBits4_inst11.S"],
+          ["Mux2xOutBits4_inst9.O","Mux2xOutBits4_inst12.I0"],
+          ["self.config_data","Mux2xOutBits4_inst12.I1"],
+          ["self.O0","Mux2xOutBits4_inst12.O"],
+          ["magma_Bit_not_inst3.out","Mux2xOutBits4_inst12.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst13.I1"],
+          ["self.O2","Mux2xOutBits4_inst13.O"],
+          ["magma_Bit_not_inst5.out","Mux2xOutBits4_inst13.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst14.I1"],
+          ["self.O3","Mux2xOutBits4_inst14.O"],
+          ["magma_Bit_not_inst6.out","Mux2xOutBits4_inst14.S"],
+          ["self.value","Mux2xOutBits4_inst2.I1"],
+          ["Mux2xOutBits4_inst4.I0","Mux2xOutBits4_inst2.O"],
+          ["magma_Bits_2_eq_inst3.out","Mux2xOutBits4_inst2.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst3.I1"],
+          ["Mux2xOutBits4_inst5.I0","Mux2xOutBits4_inst3.O"],
+          ["magma_Bits_2_eq_inst5.out","Mux2xOutBits4_inst3.S"],
+          ["self.config_data","Mux2xOutBits4_inst4.I1"],
+          ["magma_Bit_not_inst0.out","Mux2xOutBits4_inst4.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst5.I1"],
+          ["magma_Bit_not_inst2.out","Mux2xOutBits4_inst5.S"],
+          ["self.value","Mux2xOutBits4_inst6.I0"],
+          ["self.value","Mux2xOutBits4_inst6.I1"],
+          ["Mux2xOutBits4_inst9.I0","Mux2xOutBits4_inst6.O"],
+          ["magma_Bits_2_eq_inst6.out","Mux2xOutBits4_inst6.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst7.I0"],
+          ["self.value","Mux2xOutBits4_inst7.I1"],
+          ["magma_Bits_2_eq_inst8.out","Mux2xOutBits4_inst7.S"],
+          ["self.self_register_O","Mux2xOutBits4_inst8.I0"],
+          ["self.self_register_O","Mux2xOutBits4_inst8.I1"],
+          ["magma_Bits_2_eq_inst9.out","Mux2xOutBits4_inst8.S"],
+          ["self.value","Mux2xOutBits4_inst9.I1"],
+          ["magma_Bits_2_eq_inst10.out","Mux2xOutBits4_inst9.S"],
           ["magma_Bit_xor_inst0.in1","bit_const_1_None.out"],
           ["magma_Bit_xor_inst1.in1","bit_const_1_None.out"],
           ["magma_Bit_xor_inst2.in1","bit_const_1_None.out"],
@@ -406,15 +406,15 @@
           ["O1",["Array",4,"Bit"]]
         ]],
         "instances":{
-          "Mux2_x4_inst0":{
-            "modref":"global.Mux2_x4"
+          "Mux2xOutBits4_inst0":{
+            "modref":"global.Mux2xOutBits4"
           }
         },
         "connections":[
-          ["self.self_value_O","Mux2_x4_inst0.I0"],
-          ["self.value","Mux2_x4_inst0.I1"],
-          ["self.O0","Mux2_x4_inst0.O"],
-          ["self.en","Mux2_x4_inst0.S"],
+          ["self.self_value_O","Mux2xOutBits4_inst0.I0"],
+          ["self.value","Mux2xOutBits4_inst0.I1"],
+          ["self.O0","Mux2xOutBits4_inst0.O"],
+          ["self.en","Mux2xOutBits4_inst0.S"],
           ["self.self_value_O","self.O1"]
         ]
       }

@@ -14,11 +14,17 @@ m.EndDefine()
 
 
 @m.cache_definition
-def DefineMux(height=2, width=None):
-    if width is None:
-        T = m.Bit
+def DefineMux(height=2, width=None, T=None):
+    if T is not None:
+        assert width is None, "Can only specify width **or** T"
+        suffix = str(T).replace("(", "").replace(")", "").replace(",", "_").replace("=", "_").replace("[", "").replace("]", "").replace(" ", "")
+        T = T
     else:
-        T = m.Bits[width]
+        suffix = f"{width}"
+        if width is None:
+            T = m.Bit
+        else:
+            T = m.Bits[width]
 
     io = []
     for i in range(height):
@@ -31,30 +37,26 @@ def DefineMux(height=2, width=None):
     io += ['O', m.Out(T)]
 
     class _Mux(m.Circuit):
-        name = f"Mux{height}" + (f"_x{width}" if width else "")
+        name = "Mux{}x{}".format(height, suffix)
         IO = io
     return _Mux
 
 
-def Mux(height=2, width=None, **kwargs):
-    return DefineMux(height, width)(**kwargs)
+def Mux(height=2, width=None, T=None, **kwargs):
+    return DefineMux(height, width, T=T)(**kwargs)
 
 
-def get_length(value):
-    if isinstance(value, m.Digital):
-        return None
-    elif isinstance(value, m.ArrayType):
-        return len(value)
-    else:
-        raise NotImplementedError(f"Cannot get_length of {type(value)}")
-
-
-def phi(I, S):
+def phi(I, S, **kwargs):
     if isinstance(S, int):
         return I[S]
     elif S.const():
         return I[m.bitutils.seq2int(S.bits())]
-    return Mux(len(I), get_length(I[0]))(*I, S)
+    T = type(I[0])
+    # Support using Bits(1) for select on 2 elements
+    if len(I) == 2 and isinstance(S, m.Array) and \
+            issubclass(S.T, m.Digital) and len(S) == 1:
+        S = S[0]
+    return Mux(len(I), T=T, **kwargs)(*I, S)
 
 
 def compile_and_check(output_file, circuit_definition, target):

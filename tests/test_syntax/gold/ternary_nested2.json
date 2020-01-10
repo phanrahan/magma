@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2":{
+      "Mux2xOutBit":{
         "type":["Record",[
           ["I0","BitIn"],
           ["I1","BitIn"],
@@ -17,21 +17,21 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "Mux2_inst0":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst0":{
+            "modref":"global.Mux2xOutBit"
           },
-          "Mux2_inst1":{
-            "modref":"global.Mux2"
+          "Mux2xOutBit_inst1":{
+            "modref":"global.Mux2xOutBit"
           }
         },
         "connections":[
-          ["self.I.1","Mux2_inst0.I0"],
-          ["self.I.0","Mux2_inst0.I1"],
-          ["Mux2_inst1.I1","Mux2_inst0.O"],
-          ["self.S.0","Mux2_inst0.S"],
-          ["self.I.2","Mux2_inst1.I0"],
-          ["self.O","Mux2_inst1.O"],
-          ["self.S.1","Mux2_inst1.S"]
+          ["self.I.1","Mux2xOutBit_inst0.I0"],
+          ["self.I.0","Mux2xOutBit_inst0.I1"],
+          ["Mux2xOutBit_inst1.I1","Mux2xOutBit_inst0.O"],
+          ["self.S.0","Mux2xOutBit_inst0.S"],
+          ["self.I.2","Mux2xOutBit_inst1.I0"],
+          ["self.O","Mux2xOutBit_inst1.O"],
+          ["self.S.1","Mux2xOutBit_inst1.S"]
         ]
       }
     }
