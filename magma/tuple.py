@@ -342,7 +342,8 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         # this is all really gross but I don't know how to do this cleanly
         # need to build t so I can call super() in new and init
         # need to exec to get proper signatures
-        t = TupleKind.__new__(mcs, name, bases, ns, **kwargs)
+        t = TupleKind.__new__(mcs, name, bases, ns, fields=fields.values(),
+                              **kwargs)
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
 
