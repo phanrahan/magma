@@ -52,9 +52,35 @@ def test_dict():
     assert not issubclass(In(A2), Out(A2))
     assert not issubclass(Out(A2), In(A2))
 
-    print(Flip(In(A2)).__bases__, Out(A2).__bases__)
     assert issubclass(Flip(In(A2)), Out(A2))
     assert issubclass(Flip(Out(A2)), In(A2))
+
+    assert issubclass(Out(In(A2)), Out(A2))
+    assert issubclass(In(Out(A2)), In(A2))
+
+    assert not issubclass(Out(In(A2)), In(Out(A2)))
+    assert not issubclass(In(Out(A2)), Out(In(A2)))
+
+    assert not issubclass(Flip(In(A2)), Flip(Out(A2)))
+    assert not issubclass(Flip(Out(A2)), Flip(In(A2)))
+
+    assert isinstance(In(A2)(), A2)
+    assert isinstance(Out(A2)(), A2)
+    assert isinstance(Flip(A2)(), A2)
+    assert not isinstance(In(A2)(), Out(A2))
+    assert not isinstance(Out(A2)(), In(A2))
+
+    assert isinstance(Flip(In(A2))(), Out(A2))
+    assert isinstance(Flip(Out(A2))(), In(A2))
+
+    assert isinstance(Out(In(A2))(), Out(A2))
+    assert isinstance(In(Out(A2))(), In(A2))
+
+    assert not isinstance(Out(In(A2))(), In(Out(A2)))
+    assert not isinstance(In(Out(A2))(), Out(In(A2)))
+
+    assert not isinstance(Flip(In(A2))(), Flip(Out(A2)))
+    assert not isinstance(Flip(Out(A2))(), Flip(In(A2)))
 
     #assert str(A2) == 'Tuple(x=Bit,y=Bit)'
     assert A2 == A2
