@@ -36,8 +36,8 @@ class TupleKind(TupleMeta, Kind):
                     has_bound_base = True
                     if bound_types is None:
                         bound_types = base.fields
-                    elif any(not issubclass(x, y) for x, y in zip(bound_types,
-                                                                  base.fields)):
+                    elif any(not (issubclass(x, y) or issubclass(y, x)) for x,
+                             y in zip(bound_types, base.fields)):
                         raise TypeError("Can't inherit from multiple different bound_types")
                 else:
                     unbound_bases.append(base)
@@ -307,7 +307,16 @@ class ProductKind(ProductMeta, TupleKind, Kind):
             return None
 
         base = _get_tuple_base(bases)[tuple(fields.values())]
-        bases = *bases, base
+        assert len(bases) == 1
+        cls = bases[0]
+        bases = (base, )
+        field_bases = [[b for b in v.__bases__ if isinstance(b, type(v))] for v
+                       in fields.values()]
+        for i_b in itertools.product(*field_bases):
+            if not any(issubclass(base, Tuple[i_b]) for base in bases):
+                bases += (Tuple[i_b],)
+        if not any(issubclass(b, cls) for b in bases):
+            bases = (cls, ) + bases
 
         # field_name -> tuple index
         idx_table = dict((k, i) for i,k in enumerate(fields.keys()))
@@ -333,7 +342,9 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         # this is all really gross but I don't know how to do this cleanly
         # need to build t so I can call super() in new and init
         # need to exec to get proper signatures
-        t = TupleMeta.__new__(mcs, name, bases, ns, **kwargs)
+        t = TupleKind.__new__(mcs, name, bases, ns, **kwargs)
+        if t._unbound_base_ is None:
+            t._unbound_base_ = cls
 
         # not strictly necessary could iterative over class dict finding
         # TypedProperty to reconstruct _field_table_ but that seems bad
@@ -342,17 +353,25 @@ class ProductKind(ProductMeta, TupleKind, Kind):
 
     def qualify(cls, direction):
         new_fields = OrderedDict()
+        base = cls
         for k, v in cls.field_dict.items():
             new_fields[k] = v.qualify(direction)
-        return cls.unbound_t.from_fields(cls.__name__, new_fields,
-                                         cache=cls.is_cached)
+        for k, v in cls.field_dict.items():
+            if not issubclass(new_fields[k], v):
+                base = cls.unbound_t
+        return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
+                                            cls.__name__, (base, ), {})
 
     def flip(cls):
         new_fields = OrderedDict()
+        base = cls
         for k, v in cls.field_dict.items():
             new_fields[k] = v.flip()
-        return cls.unbound_t.from_fields(cls.__name__, new_fields,
-                                         cache=cls.is_cached)
+        for k, v in cls.field_dict.items():
+            if not issubclass(new_fields[k], v):
+                base = cls.unbound_t
+        return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
+                                            cls.__name__, (base, ), {})
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ProductKind):

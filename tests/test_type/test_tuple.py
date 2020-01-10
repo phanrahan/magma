@@ -39,26 +39,38 @@ def test_pair():
 
 def test_dict():
     # types
-    class A2(Product):
+    class A2(Product, cache=True):
         x = Bit
         y = Bit
     print(A2)
     assert isinstance(A2, ProductMeta)
     print(str(A2))
+
+    assert issubclass(In(A2), A2)
+    assert issubclass(Out(A2), A2)
+    assert issubclass(Flip(A2), A2)
+    assert not issubclass(In(A2), Out(A2))
+    assert not issubclass(Out(A2), In(A2))
+
+    print(Flip(In(A2)).__bases__, Out(A2).__bases__)
+    assert issubclass(Flip(In(A2)), Out(A2))
+    assert issubclass(Flip(Out(A2)), In(A2))
+
     #assert str(A2) == 'Tuple(x=Bit,y=Bit)'
     assert A2 == A2
 
-    class B2(Product):
+    class B2(Product, cache=True):
         x = In(Bit)
         y = In(Bit)
     assert isinstance(B2, ProductMeta)
     #assert str(B2) == 'Tuple(x=In(Bit),y=In(Bit))'
     assert B2 == B2
 
-    class C2(Product):
+    class C2(Product, cache=True):
         x = Out(Bit)
         y = Out(Bit)
     assert isinstance(C2, ProductMeta)
+
     #assert str(C2) == 'Tuple(x=Out(Bit),y=Out(Bit))'
     assert C2 == C2
 

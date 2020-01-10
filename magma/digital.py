@@ -54,6 +54,8 @@ class DigitalMeta(ABCMeta, Kind):
                 return cls
             else:
                 return cls.undirected_t[direction]
+        if direction == direction.Undirected:
+            return cls
 
         bases = [cls]
         bases.extend(b[direction] for b in cls.__bases__ if isinstance(b, mcs))
