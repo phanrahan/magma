@@ -27,7 +27,7 @@ wire [1:0] Register_comb_inst0_O0;
 wire [1:0] Register_comb_inst0_O1;
 wire [1:0] reg_PR_inst0_out;
 Register_comb Register_comb_inst0(.I(I), .O0(Register_comb_inst0_O0), .O1(Register_comb_inst0_O1), .self_value_O(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1), .clk_posedge(1), .init(2'h1), .width(2)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(Register_comb_inst0_O0), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(2'h1), .width(2)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(Register_comb_inst0_O0), .out(reg_PR_inst0_out));
 assign O = Register_comb_inst0_O1;
 endmodule
 
@@ -36,7 +36,7 @@ wire [1:0] Register_comb_inst0_O0;
 wire [1:0] Register_comb_inst0_O1;
 wire [1:0] reg_PR_inst0_out;
 Register_comb Register_comb_inst0(.I(I), .O0(Register_comb_inst0_O0), .O1(Register_comb_inst0_O1), .self_value_O(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1), .clk_posedge(1), .init(2'h0), .width(2)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(Register_comb_inst0_O0), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(2'h0), .width(2)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(Register_comb_inst0_O0), .out(reg_PR_inst0_out));
 assign O = Register_comb_inst0_O1;
 endmodule
 

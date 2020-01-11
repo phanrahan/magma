@@ -42,7 +42,7 @@ wire [3:0] Register_comb_inst0_O0;
 wire [3:0] Register_comb_inst0_O1;
 wire [3:0] reg_P_inst0_out;
 Register_comb Register_comb_inst0(.O0(Register_comb_inst0_O0), .O1(Register_comb_inst0_O1), .en(en), .self_value_O(reg_P_inst0_out), .value(value));
-coreir_reg #(.clk_posedge(1), .init(4'h0), .width(4)) reg_P_inst0(.clk(CLK), .in(Register_comb_inst0_O0), .out(reg_P_inst0_out));
+coreir_reg #(.clk_posedge(1'b1), .init(4'h0), .width(4)) reg_P_inst0(.clk(CLK), .in(Register_comb_inst0_O0), .out(reg_P_inst0_out));
 assign O = Register_comb_inst0_O1;
 endmodule
 
@@ -121,8 +121,8 @@ Mux2xOutBits4 Mux2xOutBits4_inst6(.I0(value), .I1(value), .O(Mux2xOutBits4_inst6
 Mux2xOutBits4 Mux2xOutBits4_inst7(.I0(self_register_O), .I1(value), .O(Mux2xOutBits4_inst7_O), .S(magma_Bits_2_eq_inst8_out));
 Mux2xOutBits4 Mux2xOutBits4_inst8(.I0(self_register_O), .I1(self_register_O), .O(Mux2xOutBits4_inst8_O), .S(magma_Bits_2_eq_inst9_out));
 Mux2xOutBits4 Mux2xOutBits4_inst9(.I0(Mux2xOutBits4_inst6_O), .I1(value), .O(Mux2xOutBits4_inst9_O), .S(magma_Bits_2_eq_inst10_out));
-corebit_const #(.value(0)) bit_const_0_None(.out(bit_const_0_None_out));
-corebit_const #(.value(1)) bit_const_1_None(.out(bit_const_1_None_out));
+corebit_const #(.value(1'b0)) bit_const_0_None(.out(bit_const_0_None_out));
+corebit_const #(.value(1'b1)) bit_const_1_None(.out(bit_const_1_None_out));
 coreir_const #(.value(2'h0), .width(2)) const_0_2(.out(const_0_2_out));
 coreir_const #(.value(2'h1), .width(2)) const_1_2(.out(const_1_2_out));
 corebit_not magma_Bit_not_inst0(.in(magma_Bit_xor_inst0_out), .out(magma_Bit_not_inst0_out));

@@ -17,7 +17,7 @@ endmodule
 
 module TestCall_comb (input [1:0] I, output [1:0] O0, output [2:0] O1, output [2:0] O2, input [1:0] self_x_O, input [2:0] self_y_O);
 wire bit_const_0_None_out;
-corebit_const #(.value(0)) bit_const_0_None(.out(bit_const_0_None_out));
+corebit_const #(.value(1'b0)) bit_const_0_None(.out(bit_const_0_None_out));
 assign O0 = I;
 assign O1 = {bit_const_0_None_out,self_x_O[1],self_x_O[0]};
 assign O2 = self_y_O;
@@ -30,8 +30,8 @@ wire [2:0] TestCall_comb_inst0_O2;
 wire [1:0] reg_PR_inst0_out;
 wire [2:0] reg_PR_inst1_out;
 TestCall_comb TestCall_comb_inst0(.I(I), .O0(TestCall_comb_inst0_O0), .O1(TestCall_comb_inst0_O1), .O2(TestCall_comb_inst0_O2), .self_x_O(reg_PR_inst0_out), .self_y_O(reg_PR_inst1_out));
-coreir_reg_arst #(.arst_posedge(1), .clk_posedge(1), .init(2'h0), .width(2)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(TestCall_comb_inst0_O0), .out(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1), .clk_posedge(1), .init(3'h0), .width(3)) reg_PR_inst1(.arst(ASYNCRESET), .clk(CLK), .in(TestCall_comb_inst0_O1), .out(reg_PR_inst1_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(2'h0), .width(2)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(TestCall_comb_inst0_O0), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(3'h0), .width(3)) reg_PR_inst1(.arst(ASYNCRESET), .clk(CLK), .in(TestCall_comb_inst0_O1), .out(reg_PR_inst1_out));
 assign O = TestCall_comb_inst0_O2;
 endmodule
 

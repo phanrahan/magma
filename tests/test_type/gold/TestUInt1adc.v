@@ -10,7 +10,7 @@ module TestBinary (input CIN, output COUT, input [0:0] I0, input [0:0] I1, outpu
 wire bit_const_0_None_out;
 wire [1:0] magma_Bits_2_add_inst0_out;
 wire [1:0] magma_Bits_2_add_inst1_out;
-corebit_const #(.value(0)) bit_const_0_None(.out(bit_const_0_None_out));
+corebit_const #(.value(1'b0)) bit_const_0_None(.out(bit_const_0_None_out));
 coreir_add #(.width(2)) magma_Bits_2_add_inst0(.in0({bit_const_0_None_out,I0[0]}), .in1({bit_const_0_None_out,I1[0]}), .out(magma_Bits_2_add_inst0_out));
 coreir_add #(.width(2)) magma_Bits_2_add_inst1(.in0(magma_Bits_2_add_inst0_out), .in1({bit_const_0_None_out,CIN}), .out(magma_Bits_2_add_inst1_out));
 assign COUT = magma_Bits_2_add_inst1_out[1];

@@ -36,7 +36,7 @@ wire [9:0] RdPtr_comb_inst0_O0;
 wire [9:0] RdPtr_comb_inst0_O1;
 wire [9:0] reg_PR_inst0_out;
 RdPtr_comb RdPtr_comb_inst0(.O0(RdPtr_comb_inst0_O0), .O1(RdPtr_comb_inst0_O1), .read(read), .self_rd_ptr_O(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1), .clk_posedge(1), .init(10'h000), .width(10)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(RdPtr_comb_inst0_O0), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(10'h000), .width(10)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(RdPtr_comb_inst0_O0), .out(reg_PR_inst0_out));
 assign O = RdPtr_comb_inst0_O1;
 endmodule
 
