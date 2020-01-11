@@ -1,0 +1,34 @@
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "FF":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "metadata":{"verilog":{"verilog_string":"module FF(input I, output O, input CLK);\nalways @(posedge CLK) begin\n  O <= I;\nend\nendmodule"}}
+      },
+      "Main":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances":{
+          "FF_inst0":{
+            "modref":"global.FF"
+          }
+        },
+        "connections":[
+          ["self.CLK","FF_inst0.CLK"],
+          ["self.I","FF_inst0.I"],
+          ["self.O","FF_inst0.O"]
+        ],
+        "metadata":{"inline_verilog":"\nassert property { @(posedge CLK) I |-> ##1 O };\n"}
+      }
+    }
+  }
+}
+}

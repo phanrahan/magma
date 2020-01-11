@@ -21,10 +21,10 @@ endmodule
 assert property {{ @(posedge CLK) {I} |-> ##1 {O} }};
 """, O=cls.O, I=cls.I)
 
-    m.compile(f"build/test_inline_simple", Main, output="coreir-verilog")
+    m.compile(f"build/test_inline_simple", Main, output="coreir")
     assert m.testing.check_files_equal(__file__,
-                                       f"build/test_inline_simple.v",
-                                       f"gold/test_inline_simple.v")
+                                       f"build/test_inline_simple.json",
+                                       f"gold/test_inline_simple.json")
 
 
 def test_inline_tuple():
@@ -91,7 +91,7 @@ assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
 """, valid_in=delay.inner_delay.inner_inner_delay.INPUT[0].valid,
      ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
 
-    m.compile(f"build/test_inline_tuple", Main, output="coreir-verilog")
+    m.compile(f"build/test_inline_tuple", Main, output="coreir")
     assert m.testing.check_files_equal(__file__,
-                                       f"build/test_inline_tuple.v",
-                                       f"gold/test_inline_tuple.v")
+                                       f"build/test_inline_tuple.json",
+                                       f"gold/test_inline_tuple.json")
