@@ -1,7 +1,7 @@
 from magma import cache_definition
 from magma.backend.coreir_ import CoreIRBackend, CoreIRContextSingleton
 from magma.circuit import DefineCircuitKind, Circuit
-from magma import cache_definition, Clock, Array, BitIn, BitOut, Tuple
+from magma import cache_definition, Clock, Array, BitIn, BitOut, Product
 from coreir.generator import Generator
 
 @cache_definition
@@ -20,7 +20,8 @@ _coreirNamedTypeToPortDict = {
 
 
 def _get_ports_as_list(ports):
-    return [item for i in range(ports.N) for item in [ports.Ks[i], ports.Ts[i]]]
+    return [item for i in range(len(ports.keys())) for item in
+            [list(ports.keys())[i], list(ports.types())[i]]]
 
 
 def _get_ports(coreir_type, renamed_ports):
@@ -39,7 +40,7 @@ def _get_ports(coreir_type, renamed_ports):
                 name = "I"
                 renamed_ports[name] = "in"
             elements[name] = _get_ports(item[1], renamed_ports)
-        return Tuple(**elements)
+        return Product.from_fields("anon", elements)
     elif (coreir_type.kind == "Named"):
         # exception to handle clock types, since other named types not handled
         if coreir_type.name in _coreirNamedTypeToPortDict:

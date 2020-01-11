@@ -15,7 +15,10 @@ def test_simulator_tuple():
     scope = Scope()
     inDims = [2, width]
     tupleEl = Array[inDims[1], Bit]
-    nestedTuples = Array[inDims[0], Tuple(sel=tupleEl, data=tupleEl)]
+    class T(Product):
+        sel = tupleEl
+        data = tupleEl
+    nestedTuples = Array[inDims[0], T]
     tupleValues = {'sel':int2seq(testValInt, width), 'data':int2seq(testValInt+20, width)}
     inType = In(nestedTuples)
     outType = Out(Array[2*inDims[0], tupleEl])

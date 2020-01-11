@@ -8,15 +8,15 @@ class PortView:
         self.name = self
 
     def __getitem__(self, key):
-        if not isinstance(self.port, (m.ArrayType, m.TupleType)):
+        if not isinstance(self.port, (m.ArrayType, m.Tuple)):
             raise Exception(f"Can only use getitem with arrays and "
                             f"tuples not {type(self.port)}")
 
         return PortView(self.port[key], self.parent)
 
     def __getattr__(self, key):
-        if isinstance(self.port, m.TupleType):
-            if key in self.port.Ks:
+        if isinstance(self.port, m.Tuple):
+            if key in self.port.keys():
                 return PortView(getattr(self.port, key), self.parent)
         return object.__getattribute__(self, key)
 

@@ -4,46 +4,40 @@ from test_combinational import compile_and_check, phi
 from collections.abc import Sequence
 import coreir
 import ast_tools
+from magma.circuit import DeclareCoreirCircuit
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
-default_port_mapping = {
-    "I": "in",
-    "I0": "in0",
-    "I1": "in1",
-    "O": "out",
-    "S": "sel",
-}
-
-
-def DeclareCoreirCircuit(*args, **kwargs):
-    return m.DeclareCircuit(*args, **kwargs,
-                            renamed_ports=default_port_mapping)
-
 
 @m.cache_definition
-def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
+def DefineCoreirReg(width, init=0, has_async_reset=False,
+                    has_async_resetn=False, T=m.Bits):
     if width is None:
         width = 1
     name = "reg_P"  # TODO: Add support for clock interface
     config_args = {"init": coreir.type.BitVector[width](init)}
     gen_args = {"width": width}
     T = T[width]
-    io = ["I", m.In(T), "clk", m.In(m.Clock), "O", m.Out(T)]
+    io = ["I", m.In(T), "CLK", m.In(m.Clock), "O", m.Out(T)]
     methods = []
 
     def reset(self, condition):
         wire(condition, self.rst)
         return self
 
-    if has_reset:
-        io.extend(["arst", m.In(m.AsyncReset)])
+    if has_async_resetn and has_async_reset:
+        raise ValueError("Cannot have posedge and negedge asynchronous reset")
+    if has_async_reset:
+        io.extend(["arst", m.In(m.AsyncResetIn)])
         name += "R"  # TODO: This assumes ordering of clock parameters
-        # methods.append(circuit_type_method("reset", reset))
-        # gen_args["has_rst"] = True
+        config_args["arst_posedge"] = True
+    if has_async_resetn:
+        io.extend(["arst", m.In(m.AsyncResetNIn)])
+        name += "R"  # TODO: This assumes ordering of clock parameters
+        config_args["arst_posedge"] = False
 
     def when(self, condition):
-        wire(condition, self.en)
+        m.wire(condition, self.en)
         return self
 
     # if has_ce:
@@ -56,6 +50,8 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
     default_kwargs = {"init": coreir.type.BitVector[width](init)}
     # default_kwargs.update(config_args)
 
+    coreir_name = "reg_arst" if (has_async_reset or has_async_resetn) else "reg"
+
     return DeclareCoreirCircuit(
         name,
         *io,
@@ -64,23 +60,106 @@ def DefineCoreirReg(width, init=0, has_reset=False, T=m.Bits):
         default_kwargs=default_kwargs,
         coreir_genargs=gen_args,
         coreir_configargs=config_args,
-        coreir_name="reg_arst" if has_reset else "reg",
-        verilog_name="coreir_" + ("reg_arst" if has_reset else "reg"),
+        coreir_name=coreir_name,
+        verilog_name="coreir_" + coreir_name,
         coreir_lib="coreir"
     )
 
 
 @m.cache_definition
-def DefineRegister(n, init=None, has_ce=False, has_reset=False,
-                   has_async_reset=False, _type=m.Bits):
-    T = _type[n]
-    return DefineCoreirReg(n, init, has_async_reset, _type)
+def DefineDFF(init=0, has_ce=False, has_reset=False, has_async_reset=False, has_async_resetn=False):
+    Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
+    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+    IO += m.ClockInterface(has_ce=has_ce, has_reset=has_reset,
+                           has_async_reset=has_async_reset,
+                           has_async_resetn=has_async_resetn)
+    circ = m.DefineCircuit("DFF_init{}_has_ce{}_has_reset{}_has_async_reset{}".format(
+        init, has_ce, has_reset, has_async_reset, has_async_resetn),
+        *IO)
+    value = Reg()
+    m.wiredefaultclock(circ, value)
+    m.wireclock(circ, value)
+    I = circ.I
+    if has_reset and (has_async_reset or has_async_resetn):
+        raise ValueError("Cannot have synchronous and asynchronous reset")
+    if has_async_resetn and has_async_reset:
+        raise ValueError("Cannot have posedge and negedge asynchronous reset")
+    if has_reset:
+        I = Mux()(circ.I, bit(init), circ.RESET)
+    if has_ce:
+        I = Mux()(value.O[0], I, circ.CE)
+    m.wire(I, value.I[0])
+    m.wire(value.O[0], circ.O)
+    m.EndDefine()
+    return circ
+
+
+@m.cache_definition
+def DefineRegister(n, init=0, has_ce=False, has_reset=False,
+                   has_async_reset=False, has_async_resetn=False, _type=m.Bits,
+                   reset_priority=True, ):
+    if has_reset and (has_async_reset or has_async_resetn):
+        raise ValueError("Cannot have synchronous and asynchronous reset")
+    if has_async_resetn and has_async_reset:
+        raise ValueError("Cannot have posedge and negedge asynchronous reset")
+
+    if has_reset or has_ce:
+        if n is None:
+            T = m.Bit
+        else:
+            T = _type[n]
+        class Register(m.Circuit):
+            name = f"Register_has_ce_{has_ce}_has_reset_{has_reset}_" \
+                   f"has_async_reset_{has_async_reset}_" \
+                   f"has_async_resetn_{has_async_resetn}_" \
+                   f"type_{_type.__name__}_n_{n}"
+            IO = ["I", m.In(T), "O", m.Out(T)]
+            IO += m.ClockInterface(has_ce=has_ce,
+                                   has_reset=has_reset,
+                                   has_async_reset=has_async_reset,
+                                   has_async_resetn=has_async_resetn)
+
+            @classmethod
+            def definition(io):
+                reg = DefineCoreirReg(n, init, has_async_reset,
+                                      has_async_resetn, _type)(name="value")
+                I = io.I
+                O = reg.O
+                if n is None:
+                    O = O[0]
+                if has_reset and has_ce:
+                    if reset_priority:
+                        I = mantle.mux([O, I], io.CE, name="enable_mux")
+                        I = mantle.mux([I, m.bits(init, n)], io.RESET)
+                    else:
+                        I = mantle.mux([I, m.bits(init, n)], io.RESET)
+                        I = mantle.mux([O, I], io.CE, name="enable_mux")
+                elif has_ce:
+                    I = mantle.mux([O, I], io.CE, name="enable_mux")
+                elif has_reset:
+                    I = mantle.mux([I, m.bits(init, n)], io.RESET)
+                if n is None:
+                    m.wire(I, reg.I[0])
+                else:
+                    m.wire(I, reg.I)
+                m.wire(io.O, O)
+                m.wireclock(io, reg)
+                m.wiredefaultclock(io, reg)
+
+        return Register
+    elif n is None:
+        if _type is not m.Bits:
+            raise NotImplementedError()
+        return DefineDFF(init, has_ce, has_async_reset=has_async_reset)
+    else:
+        return DefineCoreirReg(n, init, has_async_reset, has_async_resetn,
+                               _type)
 
 
 def Register(n, init=0, has_ce=False, has_reset=False, has_async_reset=False,
-             **kwargs):
-    return DefineRegister(n, init, has_ce, has_reset,
-                          has_async_reset)(**kwargs)
+             has_async_resetn=False, _type = m.Bits, **kwargs):
+    return DefineRegister(n, init, has_ce, has_reset, has_async_reset,
+                          has_async_resetn=has_async_resetn, _type=_type)(**kwargs)
 
 
 def pytest_generate_tests(metafunc):
@@ -137,6 +216,21 @@ def test_seq_simple(target, async_reset):
 
         """
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
+
+def test_seq_call(target):
+    @m.circuit.sequential
+    class TestCall:
+        def __init__(self):
+            self.x: m.Bits[2] = m.bits(0, 2)
+            self.y: m.Bits[3] = m.bits(0, 3)
+
+        def __call__(self, I: m.Bits[2]) -> m.Bits[3]:
+            O = self.y
+            self.y = m.zext(self.x, 1)
+            self.x = I
+            return O
+
+    compile_and_check("TestCall", TestCall, target)
 
 def test_custom_env(target):
 
@@ -212,25 +306,6 @@ def test_seq_hierarchy(target, async_reset):
 def test_multiple_return(target, async_reset):
     T = m.Bits[4]
 
-    m._BitType.__eq__ = lambda x, y: DeclareCoreirCircuit(
-        "eq",
-        *["I0", m.In(m.Bit),
-          "I1", m.In(m.Bit),
-          "O", m.Out(m.Bit)],
-        coreir_name="and",
-        coreir_lib="corebit"
-    )()(x, y)
-
-    m.BitsType.__eq__ = lambda x, y: DeclareCoreirCircuit(
-        "eq",
-        *["I0", m.In(m.Bits[len(x)]),
-          "I1", m.In(m.Bits[len(x)]),
-          "O", m.Out(m.Bit)],
-        coreir_genargs={"width": len(x)},
-        coreir_name="eq",
-        coreir_lib="coreir"
-    )()(x, y)
-
     @m.circuit.sequential(async_reset=async_reset)
     class Register:
         def __init__(self):
@@ -264,6 +339,7 @@ def test_multiple_return(target, async_reset):
                 reg_val = self.register(value, clk_en)
                 return reg_val, reg_val
 
+    print(repr(type(RegisterMode.instances[1])))
     compile_and_check("RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
 
 
@@ -284,15 +360,6 @@ def test_array_of_bits(target):
 
 
 def test_rd_ptr(target):
-    m.UIntType.__add__ = lambda x, y: DeclareCoreirCircuit(
-        "add",
-        *["I0", m.In(m.UInt[len(x)]),
-          "I1", m.In(m.UInt[len(x)]),
-          "O", m.Out(m.UInt[len(x)])],
-        coreir_name="add",
-        coreir_genargs={"width": len(x)},
-        coreir_lib="coreir"
-    )()(x, y)
     @m.circuit.sequential(async_reset=True)
     class RdPtr:
         def __init__(self):
@@ -310,3 +377,28 @@ def test_rd_ptr(target):
             return orig_rd_ptr
 
     compile_and_check("RdPtr", RdPtr, target)
+
+
+def test_namedtuple_seq():
+    class A(m.Product):
+        a0 = m.Bit
+        a1 = m.SInt[8]
+
+    @m.circuit.sequential(async_reset=False)
+    class TestNamedTuple:
+        def __init__(self):
+            self.a0: m.Bit = m.bit(0)
+            self.a1: m.SInt[8] = 0
+
+        def __call__(self, a: A, b: m.Bit) -> A:
+            if b:
+                new_a = a
+            else:
+                new_a = m.namedtuple(a0=self.a0, a1=self.a1)
+
+            self.a0 = new_a.a0
+            self.a1 = new_a.a1
+
+            return new_a
+
+    m.compile("build/test_named_tuple_seq", TestNamedTuple, output="coreir-verilog")

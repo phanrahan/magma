@@ -1,6 +1,7 @@
 from .config import get_debug_mode
 from .logging import error, warning, get_source_line
 from .backend.util import make_relative
+from .t import Direction
 
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
@@ -8,9 +9,9 @@ __all__ += ['flip']
 __all__ += ['Port']
 
 
-INPUT = 'input'
-OUTPUT = 'output'
-INOUT = 'inout'
+INPUT = Direction.In
+OUTPUT = Direction.Out
+INOUT = Direction.InOut
 
 
 def _report_wiring_messgae(fn, message, debug_info):
@@ -99,7 +100,7 @@ class Wire:
         """
 
         if not o.anon():
-            if o.bit.isinput():
+            if o.bit.is_input():
                 report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as "
                                     f"an output", debug_info)
                 return
@@ -115,7 +116,7 @@ class Wire:
                 self.outputs.append(o)
 
         if not i.anon():
-            if i.bit.isoutput():
+            if i.bit.is_output():
                 report_wiring_error(f"Using `{i.bit.debug_name}` (an output) "
                                     f"as an input", debug_info)
                 return
@@ -129,11 +130,11 @@ class Wire:
 
     def check(self):
         for o in self.inputs:
-            if o.isoutput():
+            if o.is_output():
                 error("Output in the wire inputs: {}".format(o))
 
         for o in self.outputs:
-            if o.isinput():
+            if o.is_input():
                 error("Input in the wire outputs: {}".format(o))
                 return False
 

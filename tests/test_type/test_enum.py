@@ -4,11 +4,12 @@ from magma.testing import check_files_equal
 
 def test_enum():
     class State(m.Enum):
-        zero=0
-        one=1
-        two=2
+        zero = 0
+        one = 1
+        two = 2
 
-    circuit = m.DefineCircuit('enum_test', "I", m.In(State), "O", m.Out(m.Array[2, State]))
+    circuit = m.DefineCircuit('enum_test', "I", m.In(State),
+                              "O", m.Out(m.Array[2, State]))
     m.wire(circuit.I, circuit.O[0])
     m.wire(State.zero, circuit.O[1])
     m.EndDefine()
@@ -18,11 +19,12 @@ def test_enum():
 
 def test_enum_max_value():
     class State(m.Enum):
-        zero=0
-        one=1
-        four=4
+        zero = 0
+        one = 1
+        four = 4
 
-    circuit = m.DefineCircuit('enum_test_max_value', "I", m.In(State), "O", m.Out(m.Array[2, State]))
+    circuit = m.DefineCircuit('enum_test_max_value', "I", m.In(State),
+                              "O", m.Out(m.Array[2, State]))
     m.wire(circuit.I, circuit.O[0])
     m.wire(State.four, circuit.O[1])
     m.EndDefine()

@@ -25,9 +25,9 @@ def getdirection(args):
     a = args[0]
     if isinstance(a, list):
         a = a[0]
-    if a.isinput():  return INPUT
-    if a.isoutput(): return OUTPUT
-    if a.isinout():  return INOUT
+    if a.is_input():  return INPUT
+    if a.is_output(): return OUTPUT
+    if a.is_inout():  return INOUT
     return None
 
 # return a list of all the arguments
@@ -35,7 +35,7 @@ def getdirection(args):
 def getargbydirection(interface, direction):
     args = []
     for name, port in interface.ports.items():
-        if port.isoriented(direction):
+        if port.is_oriented(direction):
             args.append(name)
     return args
 
@@ -298,7 +298,7 @@ def compose(*circuits):
 def curry(circuit, prefix='I'):
     args = []
     for name, port in circuit.interface.ports.items():
-        if not port.wired() and name == prefix and port.isinput():
+        if not port.wired() and name == prefix and port.is_input():
            for i in range(len(port)):
                args.append('{}{}'.format(name, i))
                args.append(port[i])
@@ -329,7 +329,7 @@ def uncurry(circuit, prefix='I'):
     uncurryargs = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?
-        if not port.wired() and name.startswith(prefix) and port.isinput():
+        if not port.wired() and name.startswith(prefix) and port.is_input():
            #print('uncurry', name)
            uncurryargs.append(port)
         else:

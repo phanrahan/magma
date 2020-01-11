@@ -49,7 +49,7 @@ def check(circuit, sim, number_of_cycles, inputs_generator=None):
             for name, port in circuit.interface.ports.items():
                 if name in ["CLK", "CE"]:
                     continue  # Skip clocks, TODO: Check the type
-                if port.isoutput():  # circuit input
+                if port.is_output():  # circuit input
                     input_value = getattr(inputs_generator, name)
                     inputs.append(input_value)
                     simulator.set_value(getattr(circuit, name), input_value)
@@ -64,7 +64,7 @@ def check(circuit, sim, number_of_cycles, inputs_generator=None):
         # Coroutine has an implicit __next__ call on construction so it already
         # is in it's initial state
         for name, port in circuit.interface.ports.items():
-            if port.isinput():  # circuit output
+            if port.is_input():  # circuit output
                 if getattr(sim, name) != BitVector(simulator.get_value(getattr(circuit, name))):
                     print(f"Failed on cycle {cycle}, port {name}, expected {getattr(sim, name)}, got {BitVector(simulator.get_value(getattr(circuit, name)))}")
                     failed = True
@@ -80,7 +80,7 @@ def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
             for name, port in circuit.interface.ports.items():
                 if name in ["CLK", "CE"]:
                     continue  # Skip clocks, TODO: Check the type
-                if port.isoutput():  # circuit input
+                if port.is_output():  # circuit input
                     input_value = getattr(inputs_generator, name)
                     next_inputs.append(input_value)
                     in_ports[name] = input_value
@@ -95,7 +95,7 @@ def testvectors(circuit, sim, number_of_cycles, inputs_generator=None):
         for name, port in circuit.interface.ports.items():
             if name == "CLK":
                 continue
-            if port.isinput():  # circuit output
+            if port.is_input():  # circuit output
                 out_ports[name] = getattr(sim, name)
         outputs.append(out_ports)
         inputs.append(in_ports)

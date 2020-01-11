@@ -1,34 +1,24 @@
 import ast
 import textwrap
-import sys
-import six
 import inspect
 from functools import wraps
-from . import cache_definition
-import operator
 from collections import namedtuple, Counter
+
+import six
+from . import cache_definition
 from .clock import ClockTypes
 from .interface import *
 from .wire import *
-from .t import Flip
-from .array import ArrayType
-from .tuple import TupleType
-from .bit import VCC, GND
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
-from .logging import warning
 from .port import report_wiring_warning, report_wiring_error
 from .is_definition import isdefinition
-from magma.syntax.combinational import combinational
-from magma.syntax.sequential import sequential
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from magma.verilog_utils import verilog_name
 from magma.view import InstView
-if sys.version_info > (3, 0):
-    from functools import reduce
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -466,7 +456,7 @@ class DefineCircuitKind(CircuitKind):
         for port in self.interface.ports.values():
             if issubclass(type(port), ClockTypes):
                 continue
-            if port.isinput() and not port.driven():
+            if port.is_input() and not port.driven():
                 msg = f"Output port {self.name}.{port.name} not driven"
                 report_wiring_error(msg, self.debug_info)
 
@@ -474,7 +464,7 @@ class DefineCircuitKind(CircuitKind):
             for port in inst.interface.ports.values():
                 if issubclass(type(port), ClockTypes):
                     continue
-                if port.isinput() and not port.driven():
+                if port.is_input() and not port.driven():
                     msg = f"Input port {inst.name}.{port.name} not driven"
                     report_wiring_error(msg, inst.debug_info)
 
@@ -591,5 +581,19 @@ def circuit_generator(func):
         # Store arguments to generate the circuit.
         result._generator_arguments = GeneratorArguments(args, kwargs)
         return result
-
     return wrapped
+
+
+default_port_mapping = {
+    "I": "in",
+    "I0": "in0",
+    "I1": "in1",
+    "O": "out",
+    "S": "sel",
+    "CLK": "clk",
+}
+
+
+def DeclareCoreirCircuit(*args, **kwargs):
+    return DeclareCircuit(*args, **kwargs,
+                          renamed_ports=default_port_mapping)

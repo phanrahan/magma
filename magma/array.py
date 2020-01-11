@@ -1,123 +1,183 @@
-from collections.abc import Sequence
-from .bitutils import int2seq
+import weakref
+from abc import ABCMeta
+import magma as m
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind
+from .t import Type, Kind, deprecated
 from .compatibility import IntegerTypes
-from .bit import VCC, GND
+from .bit import VCC, GND, Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
-import weakref
-
-__all__ = ['ArrayType', 'ArrayKind', 'Array']
 
 
-class ArrayKind(Kind):
+class ArrayMeta(ABCMeta, Kind):
+    # BitVectorType, size :  BitVectorType[size]
     _class_cache = weakref.WeakValueDictionary()
-    def __init__(cls, name, bases, dct):
-        Kind.__init__(cls, name, bases, dct)
 
-    def __str__(cls):
-        return "Array[%d, %s]" % (cls.N, cls.T)
+    def __new__(cls, name, bases, namespace, info=(None, None, None), **kwargs):
+        # TODO: A lot of this code is shared with AbstractBitVectorMeta, we
+        # should refactor to reuse
+        if '_info_' in namespace:
+            raise TypeError(
+                'class attribute _info_ is reversed by the type machinery')
 
-    def __getitem__(cls, index):
-        width, sub_type = index
+        N, T = info[1:3]
+        for base in bases:
+            if getattr(base, 'is_concrete', False):
+                if (N, T) is (None, None):
+                    (N, T) = (base.N, base.T)
+                elif N != base.N:
+                    raise TypeError(
+                        "Can't inherit from multiple arrays with different N")
+                elif not issubclass(T, base.T):
+                    raise TypeError(
+                        "Can't inherit from multiple arrays with different T")
+
+        namespace['_info_'] = info[0], N, T
+        type_ = super().__new__(cls, name, bases, namespace, **kwargs)
+        if (N ,T) == (None, None):
+            #class is abstract so t.abstract -> t
+            type_._info_ = type_, N, T
+        elif info[0] is None:
+            #class inherited from concrete type so there is no abstract t
+            type_._info_ = None, N, T
+
+        return type_
+
+    def __getitem__(cls, index: tuple) -> 'ArrayMeta':
+        mcs = type(cls)
         try:
-            return ArrayKind._class_cache[width, sub_type]
+            return mcs._class_cache[cls, index]
         except KeyError:
             pass
-        bases = [cls]
+
+        if not (isinstance(index, tuple) and len(index) == 2):
+            raise TypeError('Parameters to array must be a tuple of length 2')
+        if not isinstance(index[0], int) or index[0] <= 0:
+            raise TypeError(f'Length of array must be an int greater than 0, got: {index[0]}')
+
+
+        if cls.is_concrete:
+            if index == (cls.N, cls.T):
+                return cls
+            else:
+                return cls.abstract_t[index]
+
+        bases = []
+        bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
+        bases.extend(cls[index[0], b] for b in index[1].__bases__ if
+                     isinstance(b, type(index[1])))
+        if not any(issubclass(b, cls) for b in bases):
+            bases.insert(0, cls)
         bases = tuple(bases)
-        class_name = '{}[{}, {}]'.format(cls.__name__, width, sub_type.__name__)
-        t = type(cls)(class_name, bases, dict(N=width, T=sub_type))
-        t.__module__ = cls.__module__
-        ArrayKind._class_cache[width, sub_type] = t
-        return t
+        orig_name = cls.__name__
+        class_name = '{}[{}]'.format(cls.__name__, index)
+        type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, ) + index)
+        type_.__module__ = cls.__module__
+        mcs._class_cache[cls, index] = type_
+        return type_
 
-    def __eq__(cls, rhs):
-        if not issubclass(type(rhs), ArrayKind):
-            return False
+    @property
+    def abstract_t(cls) -> 'ArrayMeta':
+        t = cls._info_[0]
+        if t is not None:
+            return t
+        else:
+            raise AttributeError('type {} has no abstract_t'.format(cls))
 
-        if cls.N != rhs.N:
-            return False
-        if cls.T != rhs.T:
-            return False
+    @property
+    def N(cls) -> int:
+        return cls._info_[1]
 
-        return True
+    @property
+    def T(cls):
+        return cls._info_[2]
 
-    __ne__ = Kind.__ne__
-    __hash__ = Kind.__hash__
+    @property
+    def is_concrete(cls) -> bool:
+        return (cls.N, cls.T) != (None, None)
 
     def __len__(cls):
         return cls.N
 
-#     def __getitem__(cls, key):
-#         if isinstance(key, slice):
-#             return array([cls[i] for i in range(*key.indices(len(cls)))])
-#         else:
-#             if not (0 <= key and key < cls.N):
-#                 raise IndexError
-
-#             return cls.ts[key]
-
-    def size(cls):
-        return cls.N * cls.T.size()
+    def __str__(cls):
+        return f"Array[{cls.N}, {cls.T}]"
 
     def qualify(cls, direction):
-        if cls.T.isoriented(direction):
-            return cls
-        return Array[cls.N, cls.T.qualify(direction)]
+        return cls[cls.N, cls.T.qualify(direction)]
 
     def flip(cls):
-        return Array[cls.N, cls.T.flip()]
+        return cls[cls.N, cls.T.flip()]
 
-    def __call__(cls, *args, **kwargs):
-        result = super().__call__(*args, **kwargs)
-        if len(args) == 1 and isinstance(args[0], Array) and not \
-                (issubclass(cls.T, Array) and cls.N == 1):
-            arg = args[0]
-            if len(arg) < len(result):
-                from .conversions import zext
-                arg = zext(arg, len(result) - len(arg))
-            result(arg)
-        return result
+    def __eq__(cls, rhs):
+        if not isinstance(rhs, ArrayMeta):
+            return NotImplemented
+        return (cls.N == rhs.N) and (cls.T == rhs.T)
+
+    __hash__ = type.__hash__
 
 
-class Array(Type, metaclass=ArrayKind):
-    def __init__(self, *largs, **kwargs):
-
+class Array(Type, metaclass=ArrayMeta):
+    def __init__(self, *args, **kwargs):
         Type.__init__(self, **kwargs)
-
-        if isinstance(largs, Sequence) and len(largs) == self.N:
-            self.ts = []
-            for t in largs:
-                if isinstance(t, IntegerTypes):
-                    t = VCC if t else GND
-                assert type(t) == self.T or isinstance(type(t), type(self.T)), \
-                    (type(t), self.T)
-                self.ts.append(t)
-        elif len(largs) == 1 and isinstance(largs[0], int):
-            self.ts = []
-            for bit in int2seq(largs[0], self.N):
-                self.ts.append(VCC if bit else GND)
-        elif len(largs) == 1 and isinstance(largs[0], Array):
-            assert len(largs[0]) <= self.N
-            T = self.T
-            self.ts = list(type(t)() for t in largs[0])
-            if len(largs[0]) < self.N:
-                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
-        elif len(largs) == 1 and isinstance(largs[0], list):
-            assert len(largs[0]) <= self.N
-            T = self.T
-            self.ts = largs[0][:]
-            if len(largs[0]) < self.N:
-                self.ts += [self.T() for _ in range(self.N - len(largs[0]))]
+        self.ts = []
+        if args:
+            if len(args) == 1 and isinstance(args[0], (list, Array, int)):
+                if isinstance(args[0], list):
+                    if len(args[0]) != self.N:
+                        raise ValueError("Array list constructor can only be used with list equal to array length")
+                    self.ts = []
+                    for elem in args[0]:
+                        if isinstance(elem, int):
+                            self.ts.append(VCC if elem else GND)
+                        else:
+                            self.ts.append(elem)
+                elif len(self) > 1 and isinstance(args[0], Array):
+                    if len(args[0]) != len(self):
+                        raise TypeError(f"Will not do implicit conversion of arrays")
+                    self.ts = args[0].ts[:]
+                elif isinstance(args[0], int):
+                    if not issubclass(self.T, Bit):
+                        raise TypeError(f"Can only instantiate Array[N, Bit] "
+                                        "with int, not Array[N, {self.T}]")
+                    self.ts = []
+                    for bit in m.bitutils.int2seq(args[0], self.N):
+                        self.ts.append(VCC if bit else GND)
+                elif self.N == 1:
+                    t = args[0]
+                    if isinstance(t, IntegerTypes):
+                        t = m.VCC if t else m.GND
+                    assert type(t) == self.T or type(t) == self.T.flip() or \
+                        issubclass(type(type(t)), type(self.T)) or \
+                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
+                    self.ts = [t]
+            elif len(args) == self.N:
+                self.ts = []
+                for t in args:
+                    if isinstance(t, IntegerTypes):
+                        t = VCC if t else GND
+                    assert type(t) == self.T or type(t) == self.T.flip() or \
+                        issubclass(type(type(t)), type(self.T)) or \
+                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
+                    self.ts.append(t)
+            else:
+                raise NotImplementedError(args)
         else:
-            self.ts = []
             for i in range(self.N):
                 T = self.T
                 t = T(name=ArrayRef(self, i))
                 self.ts.append(t)
+
+    @classmethod
+    def is_oriented(cls, direction):
+        if cls.T is None:
+            return False
+        return cls.T.is_oriented(direction)
+
+    @classmethod
+    @deprecated
+    def isoriented(cls, direction):
+        return cls.is_oriented(direction)
 
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
@@ -132,6 +192,14 @@ class Array(Type, metaclass=ArrayKind):
         ts = [repr(t) for t in self.ts]
         return 'array([{}])'.format(', '.join(ts))
 
+    @property
+    def T(self):
+        return type(self).T
+
+    @property
+    def N(self):
+        return type(self).N
+
     def __len__(self):
         return self.N
 
@@ -143,7 +211,8 @@ class Array(Type, metaclass=ArrayKind):
         if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
             key = seq2int([0 if t is GND else 1 for t in key.ts])
         if isinstance(key, slice):
-            return array([self[i] for i in range(*key.indices(len(self)))])
+            _slice = [self[i] for i in range(*key.indices(len(self)))]
+            return type(self)[len(_slice), self.T](_slice)
         else:
             if not (-self.N <= key and key < self.N):
                 raise IndexError
@@ -156,14 +225,14 @@ class Array(Type, metaclass=ArrayKind):
         res_bits = []
         for i in range(total):
             res_bits.append(self[i] if i < self.N else other[i - self.N])
-        return array(res_bits)
+        return type(self)[len(res_bits), self.T](res_bits)
 
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
     @classmethod
-    def isoriented(cls, direction):
-        return cls.T.isoriented(direction)
+    def is_oriented(cls, direction):
+        return cls.T.is_oriented(direction)
 
     def as_list(self):
         return [self[i] for i in range(len(self))]
@@ -242,7 +311,7 @@ class Array(Type, metaclass=ArrayKind):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(ts)
+        return type(self)(*ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -254,7 +323,7 @@ class Array(Type, metaclass=ArrayKind):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return array(ts)
+        return type(self)(*ts)
 
     def const(self):
         for t in self.ts:
@@ -266,18 +335,8 @@ class Array(Type, metaclass=ArrayKind):
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
-    def concat(self, *args):
-        return concat(self, *args)
+    def concat(self, other) -> 'AbstractBitVector':
+        return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
 
-
-# def Array(N, T):
-#     assert isinstance(N, IntegerTypes)
-#     assert isinstance(T, Kind)
-#     name = 'Array(%d,%s)' % (N, str(T))
-#     return ArrayKind(name, (ArrayType,), dict(N=N, T=T))
 
 ArrayType = Array
-
-
-# Workaround for circular dependency
-from .conversions import array, concat  # nopep8

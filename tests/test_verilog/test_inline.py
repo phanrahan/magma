@@ -29,8 +29,9 @@ assert property {{ @(posedge CLK) {I} |-> ##1 {O} }};
 
 def test_inline_tuple():
 
-    RVDATAIN = m.Array[2, m.Tuple(data=m.In(m.Bits[5]), valid=m.In(m.Bit),
-                                  ready=m.Out(m.Bit))]
+    RVDATAIN = m.Array[2, m.Product.from_fields("", dict(data=m.In(m.Bits[5]),
+                                                         valid=m.In(m.Bit),
+                                                         ready=m.Out(m.Bit)))]
 
     InnerInnerDelayUnit = m.DeclareCircuit("InnerInnerDelayUnit",
                                       "INPUT", RVDATAIN,

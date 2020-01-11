@@ -3,7 +3,7 @@ from copy import copy
 import json
 import logging
 import os
-from ..array import ArrayType
+from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
 from coreir import Wireable
@@ -16,7 +16,7 @@ from .coreir_utils import (add_non_input_ports, attach_debug_info,
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..passes import InstanceGraphPass
-from ..tuple import TupleType
+from ..tuple import Tuple
 from .util import get_codegen_debug_info
 
 
@@ -172,7 +172,7 @@ class DefinitionTransformer(TransformerBase):
             self.backend.libs_used.add(self.defn.coreir_lib)
         non_input_ports = {}
         for name, port in self.defn.interface.ports.items():
-            logger.debug(f"{name}, {port}, {port.isoutput()}")
+            logger.debug(f"{name}, {port}, {port.is_output()}")
             add_non_input_ports(non_input_ports, port)
         for inst, coreir_inst in coreir_insts.items():
             if get_codegen_debug_info() and getattr(inst, "debug_info", False):
@@ -188,32 +188,32 @@ class DefinitionTransformer(TransformerBase):
 
     def connect_non_outputs(self, module_defn, port, non_input_ports):
         # Recurse into non input types that may contain inout children.
-        if isinstance(port, TupleType) and not port.isinput() or \
-           isinstance(port, ArrayType) and not port.T.isinput():
+        if isinstance(port, Tuple) and not port.is_input() or \
+           isinstance(port, Array) and not port.T.is_input():
             for elem in port:
                 self.connect_non_outputs(module_defn, elem, non_input_ports)
-        elif not port.isoutput():
+        elif not port.is_output():
             self.connect(module_defn, port, port.value(), non_input_ports)
 
     def connect(self, module_defn, port, value, non_input_ports):
         # Allow Clock or Array[Clock] to be unwired as CoreIR can wire them up.
-        if value is None and is_clock_or_nested_clock(port):
+        if value is None and is_clock_or_nested_clock(type(port)):
             return
         if value is None:
-            if port.isinout():
+            if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
             raise Exception(f"Found unconnected port: {port.debug_name}")
 
         def get_source():
             if isinstance(value, Wireable):
                 return value
-            if isinstance(value, ArrayType) and is_const(value):
+            if isinstance(value, Array) and is_const(value):
                 return self.const_instance(value, len(value), module_defn)
-            if value.anon() and isinstance(value, ArrayType):
+            if value.anon() and isinstance(value, Array):
                 for p, v in zip(port, value):
                     self.connect(module_defn, p, v, non_input_ports)
                 return None
-            if isinstance(value, TupleType) and value.anon():
+            if isinstance(value, Tuple) and value.anon():
                 for p, v in zip(port, value):
                     self.connect(module_defn, p, v, non_input_ports)
                 return None
