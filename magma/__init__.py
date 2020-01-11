@@ -78,3 +78,6 @@ from .uniquification import UniquificationPass
 from hwtypes.bit_vector_abc import TypeFamily
 
 _Family_ = TypeFamily(Bit, Bits, UInt, SInt)
+
+def get_family():
+    return _Family_
