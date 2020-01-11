@@ -1,34 +1,18 @@
-module TestBasic (
-  input logic ASYNCRESET,
-  input logic CLK,
-  input logic [1:0] I,
-  output logic [1:0] O
-);
-
-logic [1:0] _O;
-logic [1:0] self_x_I;
-logic [1:0] self_x_O;
-logic [1:0] self_y_I;
-logic [1:0] self_y_O;
-always_comb begin
-  _O = self_y_O;
-  self_y_I = self_x_O;
-  self_x_I = I;
-  O = _O;
-end
-
-always_ff @(posedge CLK, posedge ASYNCRESET) begin
-  if (ASYNCRESET) begin
-    self_x_O <= 2'h0;
-    self_y_O <= 2'h0;
+module coreir_reg #(parameter width = 1, parameter clk_posedge = 1, parameter init = 1) (input clk, input [width-1:0] in, output [width-1:0] out);
+  reg [width-1:0] outReg=init;
+  wire real_clk;
+  assign real_clk = clk_posedge ? clk : ~clk;
+  always @(posedge real_clk) begin
+    outReg <= in;
   end
-  else begin
-    self_x_O <= self_x_I;
-    self_y_O <= self_y_I;
-  end
-end
-endmodule   // TestBasic
+  assign out = outReg;
+endmodule
 
+module TestBasic_comb (input [1:0] I, output [1:0] O0, output [1:0] O1, output [1:0] O2, input [1:0] self_x_O, input [1:0] self_y_O);
+assign O0 = I;
+assign O1 = self_x_O;
+assign O2 = self_y_O;
+endmodule
 
 module TestBasic (input CLK, input [1:0] I, output [1:0] O);
 wire [1:0] TestBasic_comb_inst0_O0;
