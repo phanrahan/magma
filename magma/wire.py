@@ -7,7 +7,7 @@ __all__ = ['wire']
 
 
 @debug_wire
-def wire(o, i, debug_info):
+def wire(o, i, debug_info=None):
     # Wire(o, Circuit).
     if hasattr(i, 'interface'):
         i.wire(o, debug_info)
@@ -26,9 +26,9 @@ def wire(o, i, debug_info):
         o = o[0]
 
     # If o is an input.
-    if not isinstance(o, IntegerTypes) and o.isinput():
+    if not isinstance(o, IntegerTypes) and o.is_input():
         # If i is not an input.
-        if isinstance(i, IntegerTypes) or not i.isinput():
+        if isinstance(i, IntegerTypes) or not i.is_input():
             # Flip i and o.
             i, o = o, i
 

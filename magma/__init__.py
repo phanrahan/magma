@@ -30,12 +30,12 @@ from .wire import *
 
 # types
 from .t import *
+
 from .bit import *
+
 from .array import *
 from .bits import *
-# Define default operators that raise exceptions, rename so it doesn't muck
-# with `from magma import *` code that also uses operator
-import magma.operators
+from .bfloat import BFloat
 from .tuple import *
 from .clock import *
 from .conversions import *
@@ -74,15 +74,10 @@ from .is_definition import isdefinition
 
 from .uniquification import UniquificationPass
 
-from .product import Product
-
 
 from hwtypes.bit_vector_abc import TypeFamily
 
+_Family_ = TypeFamily(Bit, Bits, UInt, SInt)
 
-BitVector = Bits
-UIntVector = UInt
-SIntVector = SInt
-_Family_ = TypeFamily(Bit, BitVector, UIntVector, SIntVector)
 def get_family():
     return _Family_

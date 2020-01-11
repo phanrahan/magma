@@ -1,15 +1,15 @@
 from collections import OrderedDict
-from ..bit import BitType, VCC, GND
-from ..array import ArrayKind, ArrayType
+from ..bit import Bit, VCC, GND
+from ..array import Array
 from ..clock import wiredefaultclock
 from ..compiler import make_compiler
 from .verilog import find
 
 def get_type(port):
-    if isinstance(port, ArrayType):
+    if isinstance(port, Array):
         width = port.N
     else:
-        assert isinstance(port, BitType)
+        assert isinstance(port, Bit)
         width = 1
     return "UInt<{}>".format(width)
 
@@ -17,7 +17,7 @@ def get_name(port):
     if port is VCC: return "UInt<1>(\"h1\")"
     if port is GND: return "UInt<1>(\"h0\")"
 
-    if isinstance(port, ArrayType):
+    if isinstance(port, Array):
         if not port.iswhole(port.ts):
             # the sequence of values is concantenated
             port = [get_name(i) for i in port.ts]
@@ -32,19 +32,19 @@ def compileinstance(instance):
     instance_name = str(instance.name)
     s = "inst {} of {}\n".format(instance_name, str(instance.__class__.__name__))
     for name, port in instance.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             value = port.value()
             if not value:
                 print('Warning (firrtl): input', str(port), 'not connected to an output')
                 value = port
         else:
             value = port
-        # if isinstance(value, ArrayType):
+        # if isinstance(value, Array):
         #     for index, subport in enumerate(value.ts):
         #         s += "{}.{}[{}] <= {}\n".format(instance_name, name, index, get_name(subport))
         # else:
         value_name = get_name(value)
-        if port.isinput():
+        if port.is_input():
             s += "{}.{} <= {}\n".format(instance_name, name, value_name)
         else:
             s += "{} <= {}.{}\n".format(value_name, instance_name, name)
@@ -60,7 +60,7 @@ def compile_primitive(instance):
     port = outputs[0]
     args = []
     for name, port in instance.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             value = port.value()
             if not value:
                 print('Warning (firrtl): input', str(port), 'not connected to an output')
@@ -78,9 +78,9 @@ def compiledefinition(cls):
 
     s = 'module {} :\n'.format(cls.__name__)
     for name, port in cls.interface.ports.items():
-        if port.isinput():
+        if port.is_input():
             direction = "output"
-        elif port.isoutput():
+        elif port.is_output():
             direction = "input"
         else:
             raise NotImplementedError()  # Does FIRRTL have an inout?
@@ -94,7 +94,7 @@ def compiledefinition(cls):
         # declare a wire for each instance output
         for instance in cls.instances:
             for port in instance.interface.ports.values():
-                if port.isoutput():
+                if port.is_output():
                     s += 'wire {} : {}\n'.format(get_name(port), get_type(port))
 
         #print('compile instances')

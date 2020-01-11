@@ -12,17 +12,17 @@ def check_port(definition, port, type, direction):
     port = getattr(definition, port)
     assert isinstance(port, type)
     if direction == "input":
-        assert port.isoutput()
+        assert port.is_output()
     elif direction == "output":
-        assert port.isinput()
+        assert port.is_input()
     else:
         raise NotImplementedError(direction)
 
 def check_rxmod(RXMOD):
-    check_port(RXMOD, "RX", m.BitType, "input")
-    check_port(RXMOD, "CLK", m.BitType, "input")
-    check_port(RXMOD, "data", m.ArrayType, "output")
-    check_port(RXMOD, "valid", m.BitType, "output")
+    check_port(RXMOD, "RX", m.Bit, "input")
+    check_port(RXMOD, "CLK", m.Bit, "input")
+    check_port(RXMOD, "data", m.Array, "output")
+    check_port(RXMOD, "valid", m.Bit, "output")
 
     m.compile("build/test_rxmod", RXMOD, output="verilog")
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
@@ -210,16 +210,11 @@ endmodule""", external_modules={"foo": foo})
 
 
 def _test_nd_array_port(verilog):
-    try:
-        [top] = m.DefineFromVerilog(verilog)
-        assert len(top.interface.ports) == 1
-        assert "inp" in top.interface.ports
+    [top] = m.DefineFromVerilog(verilog)
+    assert len(top.interface.ports) == 1
+    assert "inp" in top.interface.ports
 
-        # Not sure why the following doesn't work, using repr as a workaround.
-        #assert type(top.inp) is m.In(m.Array[4, m.Array[2, m.Bits[8]]])
-        assert repr(type(top.inp)) == "Array[4, Array[2, Bits[8, Bit]]]"
-    except pyverilog.vparser.plyparser.ParseError:
-        pytest.skip("Parsing ND array failed, requires pyverilog branch, skipping test")
+    assert type(top.inp) is m.Out(m.Array[4, m.Array[2, m.Bits[8]]])
 
 
 def test_nd_array_port_list():

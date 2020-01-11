@@ -14,11 +14,11 @@ from magma.testing import check_files_equal
 
 @coreir_typegen
 def smax_type_gen(width: int):
-    return Tuple(
-        in0=m.Array[width, m.In(m.Bit)],
-        in1=m.Array[width, m.In(m.BitIn)],
-        out=m.Array[width, m.In(m.Bit)]
-    )
+    class T(m.Product):
+        in0 = m.Array[width, m.In(m.Bit)]
+        in1 = m.Array[width, m.In(m.BitIn)]
+        out = m.Array[width, m.In(m.Bit)]
+    return T
 
 
 def test_declare_generator():

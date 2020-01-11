@@ -3,111 +3,113 @@ from itertools import product
 from collections import OrderedDict
 from magma import \
     GND, VCC, \
-    bit, BitType, \
-    clock, ClockType, \
-    reset, ResetType, \
-    enable, EnableType, \
-    array, ArrayType, \
-    bits, BitsType, \
-    uint, UIntType, \
-    sint, SIntType, \
-    tuple_, TupleType, \
-    zext, sext
+    bit, Bit, \
+    clock, Clock, \
+    reset, Reset, \
+    enable, Enable, \
+    array, Array, \
+    bits, Bits, \
+    uint, UInt, \
+    sint, SInt, \
+    zext, sext, \
+    tuple_, Tuple, \
+    namedtuple, Product
 from magma.bitutils import seq2int
 import magma as m
 
 def test_bit():
-    assert isinstance(bit(0), BitType)
-    assert isinstance(bit(1), BitType)
-    assert isinstance(bit(VCC), BitType)
-    assert isinstance(bit(GND), BitType)
-    assert isinstance(bit(bit(0)), BitType)
-    assert isinstance(bit(clock(0)), BitType)
-    assert isinstance(bit(reset(0)), BitType)
-    assert isinstance(bit(enable(0)), BitType)
-    assert isinstance(bit(bits(0,1)), BitType)
-    assert isinstance(bit(uint(0,1)), BitType)
-    assert isinstance(bit(sint(0,1)), BitType)
+    assert isinstance(bit(0), Bit)
+    assert isinstance(bit(1), Bit)
+    assert isinstance(bit(VCC), Bit)
+    assert isinstance(bit(GND), Bit)
+    assert isinstance(bit(bit(0)), Bit)
+    assert isinstance(bit(clock(0)), Bit)
+    assert isinstance(bit(reset(0)), Bit)
+    assert isinstance(bit(enable(0)), Bit)
+    assert isinstance(bit(bits(0,1)), Bit)
+    assert isinstance(bit(uint(0,1)), Bit)
+    assert isinstance(bit(sint(0,1)), Bit)
 
 def test_enable():
-    assert isinstance(enable(0), EnableType)
-    assert isinstance(enable(1), EnableType)
-    assert isinstance(enable(VCC), EnableType)
-    assert isinstance(enable(GND), EnableType)
-    assert isinstance(enable(bit(0)), EnableType)
-    assert isinstance(enable(clock(0)), EnableType)
-    assert isinstance(enable(reset(0)), EnableType)
-    assert isinstance(enable(enable(0)), EnableType)
-    assert isinstance(enable(bits(0,1)), EnableType)
-    assert isinstance(enable(uint(0,1)), EnableType)
-    assert isinstance(enable(sint(0,1)), EnableType)
+    assert isinstance(enable(0), Enable)
+    assert isinstance(enable(1), Enable)
+    assert isinstance(enable(VCC), Enable)
+    assert isinstance(enable(GND), Enable)
+    assert isinstance(enable(bit(0)), Enable)
+    assert isinstance(enable(clock(0)), Enable)
+    assert isinstance(enable(reset(0)), Enable)
+    assert isinstance(enable(enable(0)), Enable)
+    assert isinstance(enable(bits(0,1)), Enable)
+    assert isinstance(enable(uint(0,1)), Enable)
+    assert isinstance(enable(sint(0,1)), Enable)
 
 def test_reset():
-    assert isinstance(reset(0), ResetType)
-    assert isinstance(reset(1), ResetType)
-    assert isinstance(reset(VCC), ResetType)
-    assert isinstance(reset(GND), ResetType)
-    assert isinstance(reset(bit(0)), ResetType)
-    assert isinstance(reset(clock(0)), ResetType)
-    assert isinstance(reset(enable(0)), ResetType)
-    assert isinstance(reset(reset(0)), ResetType)
-    assert isinstance(reset(bits(0,1)), ResetType)
-    assert isinstance(reset(uint(0,1)), ResetType)
-    assert isinstance(reset(sint(0,1)), ResetType)
+    assert isinstance(reset(0), Reset)
+    assert isinstance(reset(1), Reset)
+    assert isinstance(reset(VCC), Reset)
+    assert isinstance(reset(GND), Reset)
+    assert isinstance(reset(bit(0)), Reset)
+    assert isinstance(reset(clock(0)), Reset)
+    assert isinstance(reset(enable(0)), Reset)
+    assert isinstance(reset(reset(0)), Reset)
+    assert isinstance(reset(bits(0,1)), Reset)
+    assert isinstance(reset(uint(0,1)), Reset)
+    assert isinstance(reset(sint(0,1)), Reset)
 
 def test_clock():
-    assert isinstance(clock(0), ClockType)
-    assert isinstance(clock(1), ClockType)
-    assert isinstance(clock(VCC), ClockType)
-    assert isinstance(clock(GND), ClockType)
-    assert isinstance(clock(bit(0)), ClockType)
-    assert isinstance(clock(clock(0)), ClockType)
-    assert isinstance(clock(reset(0)), ClockType)
-    assert isinstance(clock(enable(0)), ClockType)
-    assert isinstance(clock(bits(0,1)), ClockType)
-    assert isinstance(clock(uint(0,1)), ClockType)
-    assert isinstance(clock(sint(0,1)), ClockType)
+    assert isinstance(clock(0), Clock)
+    assert isinstance(clock(1), Clock)
+    assert isinstance(clock(VCC), Clock)
+    assert isinstance(clock(GND), Clock)
+    assert isinstance(clock(bit(0)), Clock)
+    assert isinstance(clock(clock(0)), Clock)
+    assert isinstance(clock(reset(0)), Clock)
+    assert isinstance(clock(enable(0)), Clock)
+    assert isinstance(clock(bits(0,1)), Clock)
+    assert isinstance(clock(uint(0,1)), Clock)
+    assert isinstance(clock(sint(0,1)), Clock)
 
 def test_array():
-     assert isinstance(array(1,4), ArrayType)
-     assert isinstance(array([1,0,0,0]), ArrayType)
-     assert isinstance(array(VCC), ArrayType)
-     assert isinstance(array(array(1,4)), ArrayType)
-     assert isinstance(array(uint(1,4)), ArrayType)
-     assert isinstance(array(sint(1,4)), ArrayType)
+     assert isinstance(array(1,4), Array)
+     assert isinstance(array([1,0,0,0]), Array)
+     assert isinstance(array(VCC), Array)
+     assert isinstance(array(array(1,4)), Array)
+     assert isinstance(array(uint(1,4)), Array)
+     assert isinstance(array(sint(1,4)), Array)
 
 def test_bits():
-     assert isinstance(bits(1,4), BitsType)
-     assert isinstance(bits([1,0,0,0]), BitsType)
-     assert isinstance(bits(VCC), BitsType)
-     assert isinstance(bits(array(1,4)), BitsType)
-     assert isinstance(bits(uint(1,4)), BitsType)
-     assert isinstance(bits(sint(1,4)), BitsType)
+     assert isinstance(bits(1,4), Bits)
+     assert isinstance(bits([1,0,0,0]), Bits)
+     assert isinstance(bits(VCC), Bits)
+     assert isinstance(bits(array(1,4)), Bits)
+     assert isinstance(bits(uint(1,4)), Bits)
+     assert isinstance(bits(sint(1,4)), Bits)
 
 def test_uint():
-     assert isinstance(uint(1,4), UIntType)
-     assert isinstance(uint([1,0,0,0]), UIntType)
-     assert isinstance(uint(VCC), UIntType)
-     assert isinstance(uint(array(1,4)), UIntType)
-     assert isinstance(uint(bits(1,4)), UIntType)
-     #assert isinstance(uint(sint(1,4)), UIntType)
+     assert isinstance(uint(1,4), UInt)
+     assert isinstance(uint([1,0,0,0]), UInt)
+     assert isinstance(uint(VCC), UInt)
+     assert isinstance(uint(array(1,4)), UInt)
+     assert isinstance(uint(bits(1,4)), UInt)
+     #assert isinstance(uint(sint(1,4)), UInt)
 
 def test_sint():
-     assert isinstance(sint(1,4), SIntType)
-     assert isinstance(sint([1,0,0,0]), SIntType)
-     assert isinstance(sint(VCC), SIntType)
-     assert isinstance(sint(array(1,4)), SIntType)
-     assert isinstance(sint(bits(1,4)), SIntType)
-     #assert isinstance(sint(sint(1,4)), SIntType)
+     assert isinstance(sint(1,4), SInt)
+     assert isinstance(sint([1,0,0,0]), SInt)
+     assert isinstance(sint(VCC), SInt)
+     assert isinstance(sint(array(1,4)), SInt)
+     assert isinstance(sint(bits(1,4)), SInt)
+     #assert isinstance(sint(sint(1,4)), SInt)
 
-def test_tuple():
-     assert isinstance(tuple_(OrderedDict(x=0, y=1)), TupleType)
-     assert isinstance(tuple_([0,1]), TupleType)
-     assert isinstance(tuple_(VCC), TupleType)
-     assert isinstance(tuple_(array(1,4)), TupleType)
-     assert isinstance(tuple_(bits(1,4)), TupleType)
-     assert isinstance(tuple_(sint(1,4)), TupleType)
-     assert isinstance(tuple_(uint(1,4)), TupleType)
+
+def test_tuple_product():
+     assert isinstance(namedtuple(x=False, y=True), Product)
+     assert isinstance(tuple_([0,1]), Tuple)
+     assert isinstance(tuple_(VCC), Tuple)
+     assert isinstance(tuple_(array(1,4)), Tuple)
+     assert isinstance(tuple_(bits(1,4)), Tuple)
+     assert isinstance(tuple_(sint(1,4)), Tuple)
+     assert isinstance(tuple_(uint(1,4)), Tuple)
 
 
 @pytest.mark.parametrize("type_,value",
@@ -117,7 +119,7 @@ def test_zext(type_, value):
         value = abs(value)
     in_ = type_(value, 16)
     # TODO(rsetaluri): Ideally, zext(bits) should return an object of type
-    # BitsType, instead it returns an object of type ArrayType. For now, we wrap
+    # Bits, instead it returns an object of type Array. For now, we wrap
     # the result of zext() in bits().
     out = type_(zext(in_, 16))
     assert len(out.bits()) == 32
@@ -134,7 +136,7 @@ def test_zext(type_, value):
 def test_sext(value):
     in_ = sint(value, 16)
     # TODO(rsetaluri): Ideally, zext(sint) should return an object of type
-    # SintType, instead it returns an object of type ArrayType. For now, we wrap
+    # SintType, instead it returns an object of type Array. For now, we wrap
     # the result of zext() in sint().
     out = sint(sext(in_, 16))
     assert len(out.bits()) == 32

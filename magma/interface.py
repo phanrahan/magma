@@ -4,9 +4,9 @@ from .conversions import array
 from .ref import AnonRef, InstRef, DefnRef
 from .t import Type, Kind
 from .port import INPUT, OUTPUT, INOUT
-from .clock import ClockType, ClockTypes
-from .array import ArrayType
-from .tuple import TupleType
+from .clock import Clock, ClockTypes
+from .array import Array
+from .tuple import Tuple
 from .compatibility import IntegerTypes, StringTypes
 
 
@@ -52,10 +52,10 @@ class _Interface(Type):
     def __repr__(self):
         s = ""
         for name, input in self.ports.items():
-            if not input.isinput():
+            if not input.is_input():
                 continue
             output = input.value()
-            if isinstance(output, (ArrayType, TupleType)):
+            if isinstance(output, (Array, Tuple)):
                 if not output.iswhole(output.ts):
                     for i in range(len(input)):
                         iname = repr(input[i])
@@ -93,13 +93,13 @@ class _Interface(Type):
 
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
-        fn = lambda port: port.isinput() and \
+        fn = lambda port: port.is_input() and \
             (not isinstance(port, ClockTypes) or include_clocks)
         return list(filter(fn, self.ports.values()))
 
     def outputs(self):
         """Return all the argument output ports."""
-        return list(filter(lambda port: port.isoutput(), self.ports.values()))
+        return list(filter(lambda port: port.is_output(), self.ports.values()))
 
     def args(self):
         """Return all the arguments as name, port."""
@@ -115,12 +115,12 @@ class _Interface(Type):
     def inputargs(self):
         """Return all the input arguments as name, port."""
         return _flatten([name, port] for name, port in self.ports.items()
-                        if port.isinput() and not isinstance(port, ClockTypes))
+                        if port.is_input() and not isinstance(port, ClockTypes))
 
     def outputargs(self):
         """Return all the output arguments as name, port."""
         return _flatten([name, port] for name, port in self.ports.items()
-                        if port.isoutput())
+                        if port.is_output())
 
     def clockargs(self):
         """Return all the clock arguments as name, port."""

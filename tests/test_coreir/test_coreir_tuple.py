@@ -2,8 +2,12 @@ import magma as m
 from magma.testing import check_files_equal
 
 
+class T(m.Product):
+    I = m.In(m.Bit)
+    O = m.Out(m.Bit)
+
 def def_foo():
-    foo = m.DefineCircuit("Foo", "ifc", m.Tuple(I=m.In(m.Bit), O=m.Out(m.Bit)))
+    foo = m.DefineCircuit("Foo", "ifc", T)
     m.wire(foo.ifc.I, foo.ifc.O)
     m.EndCircuit()
     return foo
@@ -15,15 +19,15 @@ def test_multi_direction_tuple():
     assert check_files_equal(__file__, f"build/test_multi_direction_tuple.json",
                              f"gold/test_multi_direction_tuple.json")
 
-    assert [T.isinput() for T in foo.interface.ports["ifc"].Ts] == \
+    assert [T.is_input() for T in foo.interface.ports["ifc"].types()] == \
            [False, True]
 
-    assert [T.isinput() for T in foo.IO.ports["ifc"].Ts] == \
+    assert [T.is_input() for T in foo.IO.ports["ifc"].types()] == \
            [True, False]
 
 
 def test_multi_direction_tuple_instance():
-    bar = m.DefineCircuit("bar", "ifc", m.Tuple(I=m.In(m.Bit), O=m.Out(m.Bit)))
+    bar = m.DefineCircuit("bar", "ifc", T)
     foo_inst = def_foo()()
     m.wire(bar.ifc.I, foo_inst.ifc.I)
     m.wire(bar.ifc.O, foo_inst.ifc.O)
@@ -35,7 +39,7 @@ def test_multi_direction_tuple_instance():
 
 
 def test_multi_direction_tuple_instance_bulk():
-    bar = m.DefineCircuit("bar", "ifc", m.Tuple(I=m.In(m.Bit), O=m.Out(m.Bit)))
+    bar = m.DefineCircuit("bar", "ifc", T)
     foo_inst = def_foo()()
     m.wire(bar.ifc, foo_inst.ifc)
     m.EndCircuit()
@@ -45,10 +49,24 @@ def test_multi_direction_tuple_instance_bulk():
     assert check_files_equal(__file__, f"build/test_multi_direction_tuple_instance_bulk.json",
                              f"gold/test_multi_direction_tuple_instance.json")
 
+
+class AB(m.Product, cache=True):
+    a = m.Bit
+    b = m.Bit
+
+
+class Z(m.Product, cache=True):
+    a = m.In(m.Bit)
+    b = m.Out(m.Bit)
+
+
+class Bar(m.Product, cache=True):
+    x = m.In(AB)
+    y = m.Out(AB)
+    z = Z
+
 def test_nesting():
-    bar = m.DefineCircuit("bar", "I", m.Tuple(x=m.In(m.Tuple(a=m.Bit, b=m.Bit)),
-                                              y=m.Out(m.Tuple(a=m.Bit, b=m.Bit)),
-                                              z=m.Tuple(a=m.In(m.Bit), b=m.Out(m.Bit))))
+    bar = m.DefineCircuit("bar", "I", Bar)
     foo = def_foo()
     foo_inst0 = foo()
     foo_inst1 = foo()
@@ -64,8 +82,14 @@ def test_nesting():
     assert check_files_equal(__file__, f"build/test_nesting.json",
                              f"gold/test_nesting.json")
 
+
+class IO(m.Product):
+    I = m.In(m.Bit)
+    O = m.Out(m.Bit)
+
+
 def test_array_nesting():
-    T = m.Array[10, m.Tuple(I=m.In(m.Bit), O=m.Out(m.Bit))]
+    T = m.Array[10, IO]
     Foo = m.DefineCircuit("Foo", "IFC", T)
     for i in range(10):
         m.wire(Foo.IFC[i].I, Foo.IFC[i].O)
@@ -76,7 +100,7 @@ def test_array_nesting():
 
 
 def test_anon_tuple():
-    foo = m.DefineCircuit("Foo", "ifc", m.Tuple(m.In(m.Bit), m.Out(m.Bit)))
+    foo = m.DefineCircuit("Foo", "ifc", m.Tuple[m.In(m.Bit), m.Out(m.Bit)])
     m.wire(foo.ifc[0], foo.ifc[1])
     m.EndCircuit()
     m.compile("build/test_anon_tuple", foo, output="coreir")
@@ -85,7 +109,7 @@ def test_anon_tuple():
 
 
 def test_nested_anon_tuple():
-    foo = m.DefineCircuit("Foo", "ifc", m.Array[2, m.Tuple(m.In(m.Bit), m.Out(m.Bit))])
+    foo = m.DefineCircuit("Foo", "ifc", m.Array[2, m.Tuple[m.In(m.Bit), m.Out(m.Bit)]])
     m.wire(foo.ifc[0][0], foo.ifc[1][1])
     m.wire(foo.ifc[1][0], foo.ifc[0][1])
     m.EndCircuit()
@@ -95,7 +119,7 @@ def test_nested_anon_tuple():
 
 
 def test_anon_tuple_nested_array():
-    foo = m.DefineCircuit("Foo", "ifc", m.Tuple(m.In(m.Bits[2]), m.Out(m.Bits[2])))
+    foo = m.DefineCircuit("Foo", "ifc", m.Tuple[m.In(m.Bits[2]), m.Out(m.Bits[2])])
     m.wire(foo.ifc[0][0], foo.ifc[1][1])
     m.wire(foo.ifc[0][1], foo.ifc[1][0])
     m.EndCircuit()

@@ -1,3 +1,6 @@
+from magma.testing import check_files_equal
+import operator
+import pytest
 from magma import *
 
 Array2 = Array[2,Bit]
@@ -69,4 +72,108 @@ def test_flip():
 def test_construct():
     a1 = uint([1,1])
     print(type(a1))
-    assert isinstance(a1, UIntType)
+    assert isinstance(a1, UInt)
+    assert isinstance(a1, Bits)
+    assert not isinstance(a1, SInt)
+
+    # Test explicit conversion
+    assert isinstance(sint(a1), SInt)
+    assert not isinstance(sint(a1), UInt)
+
+    assert not isinstance(sint(1, 1), UInt)
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
+def test_compare(n, op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.UInt[n]), "I1", m.In(m.UInt[n]), "O", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    op = {
+        "eq": "eq",
+        "le": "ule",
+        "lt": "ult",
+        "ge": "uge",
+        "gt": "ugt"
+    }[op]
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(Bit))
+magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
+wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
+wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestUInt{n}{op}.v",
+                             f"gold/TestUInt{n}{op}.v")
+
+
+@pytest.mark.parametrize("n", [1, 3])
+@pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod"])
+def test_binary(n, op):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.UInt[n]), "I1", m.In(m.UInt[n]), "O", m.Out(m.UInt[n])]
+        @classmethod
+        def definition(io):
+            io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    if op == "floordiv":
+        op = "udiv"
+    elif op == "mod":
+        op = "urem"
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(UInt[{n}]))
+magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
+wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
+wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+EndCircuit()\
+"""
+    m.compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestUInt{n}{op}.v",
+                             f"gold/TestUInt{n}{op}.v")
+
+
+@pytest.mark.parametrize("n", [1, 3])
+def test_adc(n):
+    class TestBinary(m.Circuit):
+        IO = ["I0", m.In(m.UInt[n]), "I1", m.In(m.UInt[n]), "CIN", m.In(m.Bit), "O", m.Out(m.UInt[n]), "COUT", m.Out(m.Bit)]
+        @classmethod
+        def definition(io):
+            result, carry = io.I0.adc(io.I1, io.CIN)
+            io.O <= result
+            io.COUT <= carry
+
+    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_Bits_{n + 1}_add_inst0.in0[{i}])"
+                          for i in range(n))
+    in0_wires += f"\nwire(GND, magma_Bits_{n + 1}_add_inst0.in0[{n}])"
+
+    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_Bits_{n + 1}_add_inst0.in1[{i}])"
+                          for i in range(n))
+    in1_wires += f"\nwire(GND, magma_Bits_{n + 1}_add_inst0.in1[{n}])"
+
+    carry_wires = "\n".join(f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+
+    out_wires = "\n".join(f"wire(magma_Bits_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
+                          for i in range(n))
+    out_wires += f"\nwire(magma_Bits_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
+
+    assert repr(TestBinary) == f"""\
+TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "CIN", In(Bit), "O", Out(UInt[{n}]), "COUT", Out(Bit))
+magma_Bits_{n + 1}_add_inst0 = magma_Bits_{n + 1}_add()
+magma_Bits_{n + 1}_add_inst1 = magma_Bits_{n + 1}_add()
+{in0_wires}
+{in1_wires}
+wire(magma_Bits_{n + 1}_add_inst0.out, magma_Bits_{n + 1}_add_inst1.in0)
+wire(TestBinary.CIN, magma_Bits_{n + 1}_add_inst1.in1[0])
+{carry_wires}
+{out_wires}
+EndCircuit()\
+"""
+    m.compile(f"build/TestUInt{n}adc", TestBinary, output="coreir-verilog")
+    assert check_files_equal(__file__, f"build/TestUInt{n}adc.v",
+                             f"gold/TestUInt{n}adc.v")

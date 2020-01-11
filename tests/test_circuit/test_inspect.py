@@ -30,7 +30,7 @@ XOr2_inst0 = XOr2()
 wire(Logic2.I0, And2_inst0.I0)
 wire(Logic2.I1, And2_inst0.I1)
 wire(And2_inst0.O, XOr2_inst0.I0)
-wire(1, XOr2_inst0.I1)
+wire(VCC, XOr2_inst0.I1)
 wire(XOr2_inst0.O, Logic2.O)
 EndCircuit()\
 """
