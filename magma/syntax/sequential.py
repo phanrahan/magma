@@ -126,9 +126,6 @@ def get_initial_value_map(init_func, defn_env):
     design of this simpler
     """
     initial_value_map = {}
-    if init_func is object.__init__:
-        # Handle case when no __init__
-        return initial_value_map
     init_def = get_ast(init_func).body[0]
     # init_def = ExecuteEscapedPythonExpressions(defn_env).visit(init_def)
     init_def = SpecializeConstantInts(defn_env).visit(init_def)
@@ -150,6 +147,26 @@ def get_initial_value_map(init_func, defn_env):
     return initial_value_map
 
 
+def get_inputs(def_ast):
+    # Only support basic args for now
+    assert not def_ast.args.vararg
+    assert not def_ast.args.kwonlyargs
+    assert not def_ast.args.kwarg
+    # assert not def_ast.args.defaults
+    assert not def_ast.args.kw_defaults
+
+    # Skips self
+    assert def_ast.args.args[0].arg == "self"
+    args = [(arg.arg, arg.annotation) for arg in def_ast.args.args[1:]]
+    return args
+
+
+def get_init_inputs(init_func):
+    init_def = get_ast(init_func).body[0]
+    inputs = get_inputs(init_def)
+    return inputs
+
+
 def get_io(call_def):
     """
     Parses a __call__ method of the form
@@ -165,16 +182,7 @@ def get_io(call_def):
          excluding `self`
     [1]: the output type
     """
-    # Only support basic args for now
-    assert not call_def.args.vararg
-    assert not call_def.args.kwonlyargs
-    assert not call_def.args.kwarg
-    # assert not call_def.args.defaults
-    assert not call_def.args.kw_defaults
-
-    # Skips self
-    assert call_def.args.args[0].arg == "self"
-    inputs = [(arg.arg, arg.annotation) for arg in call_def.args.args[1:]]
+    inputs = get_inputs(call_def)
     returns = call_def.returns
     return inputs, call_def.returns
 
@@ -258,27 +266,33 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     return register_instances
 
 
+def update_io_args(io_args, name, type_):
+    if name in io_args:
+        assert type_ == io_args[name], "Expected same name args have same type"
+    io_args[name] = type_
+
+
 def gen_io_args(inputs, output_type, async_reset, magma_name):
-    io_args = []
+    io_args = {}
     has_clk = False
     for name, type_ in inputs:
-        if name == "CLK":
-            has_clk = True
         type_ = astor.to_source(type_).rstrip()
-        io_args.append(f"{name}={magma_name}.In({type_})")
+        if type_ == "m.Clock":
+            has_clk = True
+        update_io_args(io_args, name, f"{magma_name}.In({type_})")
     if not has_clk:
-        io_args.append(f"CLK={magma_name}.In({magma_name}.Clock)")
+        update_io_args(io_args, "CLK", f"{magma_name}.In({magma_name}.Clock)")
     if async_reset:
-        io_args.append(f"ASYNCRESET={magma_name}.In({magma_name}.AsyncReset)")
+        update_io_args(io_args, "ASYNCRESET", f"{magma_name}.In({magma_name}.AsyncReset)")
     if isinstance(output_type, ast.Tuple):
         outputs = []
         for i, elem in enumerate(output_type.elts):
             output_type_str = astor.to_source(elem).rstrip()
-            io_args.append(f"O{i}={magma_name}.Out({output_type_str})")
+            update_io_args(io_args, f"O{i}", f"{magma_name}.Out({output_type_str})")
     else:
         output_type_str = astor.to_source(output_type).rstrip()
-        io_args.append(f"O={magma_name}.Out({output_type_str})")
-    return ', '.join(io_args)
+        update_io_args(io_args, "O", f"{magma_name}.Out({output_type_str})")
+    return ', '.join([f"{name}={type_}" for name, type_ in io_args.items()])
 
 
 class EscapedExpression(ast.AST):
@@ -343,14 +357,20 @@ def _sequential(
     #     raise ValueError("sequential decorator only works with classes")
 
 
-    initial_value_map = get_initial_value_map(cls.__init__, defn_env)
+    if cls.__init__ is object.__init__:
+        # Handle case when no __init__
+        init_inputs = []
+        initial_value_map = {}
+    else:
+        init_inputs = get_init_inputs(cls.__init__)
+        initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 
     call_def = get_ast(cls.__call__).body[0]
     magma_name = gen_free_name(call_def, defn_env, 'm')
     defn_env[magma_name] = m
 
     inputs, output_type = get_io(call_def)
-    io_args = gen_io_args(inputs, output_type, async_reset, magma_name)
+    io_args = gen_io_args(init_inputs + inputs, output_type, async_reset, magma_name)
 
     circuit_combinational_output_type = []
     circuit_combinational_args = []
