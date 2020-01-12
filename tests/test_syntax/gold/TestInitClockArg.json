@@ -1,0 +1,44 @@
+{"top":"global.TestInitClockArg",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestInitClockArg":{
+        "type":["Record",[
+          ["CLK2",["Named","coreir.clkIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "TestInitClockArg_comb_inst0":{
+            "modref":"global.TestInitClockArg_comb"
+          },
+          "reg_P_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",1]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",1],"1'h0"]}
+          }
+        },
+        "connections":[
+          ["self.CLK","TestInitClockArg_comb_inst0.CLK"],
+          ["reg_P_inst0.in","TestInitClockArg_comb_inst0.O0"],
+          ["self.O","TestInitClockArg_comb_inst0.O1"],
+          ["reg_P_inst0.out","TestInitClockArg_comb_inst0.self_x_O"],
+          ["self.CLK2","reg_P_inst0.clk"]
+        ]
+      },
+      "TestInitClockArg_comb":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["self_x_O",["Array",1,"BitIn"]],
+          ["O0",["Array",1,"Bit"]],
+          ["O1","Bit"]
+        ]],
+        "connections":[
+          ["self.self_x_O","self.O0"],
+          ["self.self_x_O.0","self.O1"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -569,3 +569,29 @@ def test_clock_multi_arg(target):
             return self.x[0]
 
     compile_and_check("TestClockMultiArg", TestClockMultiArg, target)
+
+
+def test_init_clock_arg(target):
+    @m.circuit.sequential(async_reset=False)
+    class TestInitClockArg:
+        def __init__(self, CLK2: m.Clock):
+            self.x: m.Bits[1] = m.bits(0, 1)
+
+        def __call__(self, CLK: m.Clock) -> m.Bit:
+            self.x = self.x
+            return self.x[0]
+
+    compile_and_check("TestInitClockArg", TestInitClockArg, target)
+
+
+def test_init_call_same_arg(target):
+    @m.circuit.sequential(async_reset=False)
+    class TestInitCallSameArg:
+        def __init__(self, CLK2: m.Clock):
+            self.x: m.Bits[1] = m.bits(0, 1)
+
+        def __call__(self, CLK: m.Clock, CLK2: m.Clock) -> m.Bit:
+            self.x = self.x
+            return self.x[0]
+
+    compile_and_check("TestInitCallSameArg", TestInitCallSameArg, target)
