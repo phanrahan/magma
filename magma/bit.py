@@ -59,6 +59,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # Sanitize
         t_str = t_str.replace("(", "_")
         t_str = t_str.replace(")", "")
+        t_str = t_str.replace("[", "_")
+        t_str = t_str.replace("]", "")
         return m.circuit.DeclareCoreirCircuit(f"magma_Bit_ite_{t_str}",
                                               "I0", m.In(T),
                                               "I1", m.In(T),
