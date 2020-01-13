@@ -23,35 +23,33 @@ install:
 - pip install python-coveralls
 - pip install pytest-cov pytest-codestyle fault
 - pip install -e .
+script:
+- py.test --cov magma -v --cov-report term-missing tests
+- pycodestyle magma/
 after_success:
 - coveralls
-jobs:
-  include:
-  - stage: test
-    script:
-    - py.test --cov magma -v --cov-report term-missing tests
-    - pycodestyle magma/
-  - stage: trigger downstream
-    script: |
-      # See https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh for documentation
-      echo "TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
-      if [[ ($TRAVIS_BRANCH == master) &&
-            ($TRAVIS_PULL_REQUEST == false) ]] ; then
-        curl -LO --retry 3 https://raw.github.com/mernst/plume-lib/master/bin/trigger-travis.sh
-        sh trigger-travis.sh --pro David-Durst aetherling $TRAVIS_ACCESS_TOKEN
-        sh trigger-travis.sh --pro StanfordAHA garnet $TRAVIS_ACCESS_TOKEN
-        sh trigger-travis.sh phanrahan mantle $TRAVIS_ORG_ACCESS_TOKEN
-        sh trigger-travis.sh --pro cdonovick peak $TRAVIS_ACCESS_TOKEN
-      fi
-  - stage: docs
-    script: curl -X POST -d "token=$READ_THE_DOCS_TOKEN" https://readthedocs.org/api/v2/webhook/magma/55300/
-  - stage: deploy
-    if: tag IS present
-    script: skip
-    deploy: 
-      provider: script
-      script: /bin/bash .travis/deploy.sh
-      skip_cleanup: true
-      on:
-        tags: true
-        branch: master
+# Build docs
+- |
+  if [[ ($TRAVIS_BRANCH == master) && ($TRAVIS_PULL_REQUEST == false) ]] ; then
+    curl -X POST -d "token=$READ_THE_DOCS_TOKEN" https://readthedocs.org/api/v2/webhook/magma/55300/
+  fi
+# Trigger downstream repo builds
+- |
+  # See https://github.com/mernst/plume-lib/blob/master/bin/trigger-travis.sh for documentation
+  echo "TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
+  if [[ ($TRAVIS_BRANCH == master) &&
+        ($TRAVIS_PULL_REQUEST == false) ]] ; then
+    curl -LO --retry 3 https://raw.github.com/mernst/plume-lib/master/bin/trigger-travis.sh
+    sh trigger-travis.sh --pro David-Durst aetherling $TRAVIS_ACCESS_TOKEN
+    sh trigger-travis.sh --pro StanfordAHA garnet $TRAVIS_ACCESS_TOKEN
+    sh trigger-travis.sh phanrahan mantle $TRAVIS_ORG_ACCESS_TOKEN
+    sh trigger-travis.sh --pro cdonovick peak $TRAVIS_ACCESS_TOKEN
+  fi
+
+deploy: 
+  provider: script
+  script: /bin/bash .travis/deploy.sh
+  skip_cleanup: true
+  on:
+    tags: true
+    branch: master
