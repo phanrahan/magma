@@ -77,6 +77,7 @@ def test_construct():
     assert not isinstance(a1, UInt)
 
     assert isinstance(SInt[15](a1), SInt)
+    assert repr(m.SInt[16](a1)) == "bits([VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC])"
 
     # Test explicit conversion
     assert isinstance(uint(a1), UInt)
