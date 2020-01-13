@@ -1,7 +1,7 @@
 import magma as m
 
 
-class TestType(m.Product):
+class BigTuple(m.Product):
     V1 = m.UInt[32]
     V2 = m.UInt[32]
     V3 = m.UInt[32]
@@ -12,7 +12,7 @@ class TestType(m.Product):
 
 
 @m.circuit.sequential(async_reset=False)
-class TestLogic:
+class Top:
     def __init__(self):
         self.V1: m.UInt[32] = 0
         self.V2: m.UInt[32] = 0
@@ -22,7 +22,7 @@ class TestLogic:
         self.V6: m.UInt[32] = 0
         self.V7: m.UInt[32] = 0
 
-    def __call__(self, I: TestType, SEL: m.Bit) -> TestType:
+    def __call__(self, I: BigTuple, SEL: m.Bit) -> BigTuple:
         t = m.namedtuple(
             V1=self.V1,
             V2=self.V2,
@@ -49,4 +49,4 @@ class TestLogic:
 
 def test_tuple_perf():
     # for https://github.com/phanrahan/magma/issues/528#issuecomment-573510435
-    m.compile("build/top", TestLogic, output="coreir-verilog")
+    m.compile("build/top", Top, output="coreir-verilog")
