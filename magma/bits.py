@@ -436,6 +436,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def get_family(self):
+        return m.get_family()
+
 
 BitsType = Bits
 
