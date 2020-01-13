@@ -70,15 +70,11 @@ class TupleKind(TupleMeta, Kind):
         if cls.is_bound:
             raise TypeError('Type is already bound')
 
-        bases = []
-        bases.extend(b[idx] for b in cls.__bases__ if isinstance(b, BoundMeta))
-        idx_bases = [[b for b in i.__bases__ if isinstance(b, type(i))] for i
-                     in idx]
-        for i_b in itertools.product(*idx_bases):
-            if not any(issubclass(base, cls[i_b]) for base in bases):
-                bases.append(cls[i_b])
-        if not any(issubclass(b, cls) for b in bases):
-            bases.insert(0, cls)
+        undirected_idx = tuple(v.qualify(Direction.Undirected) for v in idx)
+        if undirected_idx != idx:
+            bases = [cls[undirected_idx]]
+        else:
+            bases = [cls]
         bases = tuple(bases)
         class_name = cls._name_cb(idx)
 
@@ -303,26 +299,7 @@ class ProductKind(ProductMeta, TupleKind, Kind):
     @classmethod
     def _from_fields(mcs, fields, name, bases, ns, **kwargs):
 
-        def _get_tuple_base(bases):
-            for base in bases:
-                if not isinstance(base, mcs) and isinstance(base, TupleMeta):
-                    return base
-                r_base =_get_tuple_base(base.__bases__)
-                if r_base is not None:
-                    return r_base
-            return None
-
-        base = _get_tuple_base(bases)[tuple(fields.values())]
-        assert len(bases) == 1
         cls = bases[0]
-        bases = (base, )
-        field_bases = [[b for b in v.__bases__ if isinstance(b, type(v))] for v
-                       in fields.values()]
-        for i_b in itertools.product(*field_bases):
-            if not any(issubclass(base, Tuple[i_b]) for base in bases):
-                bases += (Tuple[i_b],)
-        if not any(issubclass(b, cls) for b in bases):
-            bases = (cls, ) + bases
 
         # field_name -> tuple index
         idx_table = dict((k, i) for i,k in enumerate(fields.keys()))
@@ -475,7 +452,10 @@ def tuple_(value, n=None, t=Tuple):
         elif decl[d] in IntegerTypes:
             decl[d] = m.Bits[max(a.bit_length(), 1)]
 
-    return type("anon", (t,), decl)(*args)
+    if t == Tuple:
+        return t[tuple(decl.values())](*args)
+    assert t == Product
+    return t.from_fields("anon", decl)(*args)
 
 
 def namedtuple(**kwargs):
