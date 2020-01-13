@@ -1,3 +1,4 @@
+import warnings
 import os
 import types
 import operator
@@ -157,6 +158,8 @@ def compileinstance(self):
     return debug_str + '%s (%s)' % (s, ', '.join(args))
 
 def compiledefinition(cls):
+    if cls.verilogFile:
+       return cls.verilogFile
 
     # for now only allow Bit or Array(n, Bit)
     for name, port in cls.interface.ports.items():
@@ -165,72 +168,69 @@ def compiledefinition(cls):
                 raise Exception(f'Argument {cls.__name__}.{name} of type {type(port)} is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)')
 
 
-    if cls.verilogFile:
-       s = cls.verilogFile
+    args = ', '.join(vmoduleargs(cls.interface))
+    s = ''
+    if get_codegen_debug_info() and cls.debug_info.filename and cls.debug_info.lineno:
+        s += f'// Defined at {make_relative(cls.debug_info.filename)}:{cls.debug_info.lineno}\n'
+    s += 'module %s (%s);\n' % (cls.verilog_name, args)
+    if cls.verilog:
+        s += cls.verilog + '\n'
+        if cls.verilogLib:
+            import re
+            for libName in cls.verilogLib:
+                if re.search("\.v$",libName):
+                    with open(libName,'r') as libFile:
+                        s = libFile.read() + s
+                else:
+                    s = libName + s
     else:
-        args = ', '.join(vmoduleargs(cls.interface))
-        s = ''
-        if get_codegen_debug_info() and cls.debug_info.filename and cls.debug_info.lineno:
-            s += f'// Defined at {make_relative(cls.debug_info.filename)}:{cls.debug_info.lineno}\n'
-        s += 'module %s (%s);\n' % (cls.verilog_name, args)
-        if cls.verilog:
-            s += cls.verilog + '\n'
-            if cls.verilogLib:
-                import re
-                for libName in cls.verilogLib:
-                    if re.search("\.v$",libName):
-                        with open(libName,'r') as libFile:
-                            s = libFile.read() + s
+        def wire(port):
+            return 'wire %s %s;\n' % (vdecl(port), vname(port))
+
+        # declare a wire for each instance output
+        for instance in cls.instances:
+            for port in instance.interface.ports.values():
+                if isinstance(port, Tuple):
+                    for i in range(len(port)):
+                        s += wire(port[i])
+                else:
+                    if not port.is_input():
+                        s += wire(port)
+
+        #print('compile instances')
+        # emit the structured verilog for each instance
+        for instance in cls.instances:
+            wiredefaultclock(cls, instance)
+            if getattr(instance, "debug_info", False) and \
+                    instance.debug_info.filename and instance.debug_info.lineno and \
+                    get_codegen_debug_info():
+                s += f"// Instanced at {make_relative(instance.debug_info.filename)}:{instance.debug_info.lineno}\n"
+            s += compileinstance(instance) + ";\n"
+
+        # assign to module output arguments
+        for port in cls.interface.ports.values():
+            if port.is_input():
+                output = port.value()
+                if output is not None:
+                    if isinstance(output, Tuple):
+                        for name, input in cls.interface.ports.items():
+                            if input.is_input():
+                                output = input.value()
+                                assert isinstance(output, Tuple)
+                                for i in range(len(input)):
+                                    iname = vname(input[i])
+                                    oname = vname(output[i])
+                                    s += 'assign %s = %s;\n' % (iname, oname)
                     else:
-                        s = libName + s
-        else:
-            def wire(port):
-                return 'wire %s %s;\n' % (vdecl(port), vname(port))
+                        iname = vname(port)
+                        oname = vname(output)
+                        if getattr(port, "debug_info", False) and get_codegen_debug_info():
+                            s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
+                        s += 'assign %s = %s;\n' % (iname, oname)
+                else:
+                    logging.warning(f"{cls.__name__}.{port.name} is unwired")
 
-            # declare a wire for each instance output
-            for instance in cls.instances:
-                for port in instance.interface.ports.values():
-                    if isinstance(port, Tuple):
-                        for i in range(len(port)):
-                            s += wire(port[i])
-                    else:
-                        if not port.is_input():
-                            s += wire(port)
-
-            #print('compile instances')
-            # emit the structured verilog for each instance
-            for instance in cls.instances:
-                wiredefaultclock(cls, instance)
-                if getattr(instance, "debug_info", False) and \
-                        instance.debug_info.filename and instance.debug_info.lineno and \
-                        get_codegen_debug_info():
-                    s += f"// Instanced at {make_relative(instance.debug_info.filename)}:{instance.debug_info.lineno}\n"
-                s += compileinstance(instance) + ";\n"
-
-            # assign to module output arguments
-            for port in cls.interface.ports.values():
-                if port.is_input():
-                    output = port.value()
-                    if output is not None:
-                        if isinstance(output, Tuple):
-                            for name, input in cls.interface.ports.items():
-                                if input.is_input():
-                                    output = input.value()
-                                    assert isinstance(output, Tuple)
-                                    for i in range(len(input)):
-                                        iname = vname(input[i])
-                                        oname = vname(output[i])
-                                        s += 'assign %s = %s;\n' % (iname, oname)
-                        else:
-                            iname = vname(port)
-                            oname = vname(output)
-                            if getattr(port, "debug_info", False) and get_codegen_debug_info():
-                                s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
-                            s += 'assign %s = %s;\n' % (iname, oname)
-                    else:
-                        logging.warning(f"{cls.__name__}.{port.name} is unwired")
-
-        s += "endmodule\n"
+    s += "endmodule\n"
 
     return s
 
