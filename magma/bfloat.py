@@ -1,5 +1,5 @@
-from .bits import Bits
+from .bits import UInt
 
 
-class BFloat(Bits):
+class BFloat(UInt):
     pass
