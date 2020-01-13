@@ -1,4 +1,8 @@
 import magma as m
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "../test_syntax"))
+from test_sequential import DefineRegister
 
 
 class BigTuple(m.Product):
