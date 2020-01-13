@@ -72,7 +72,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             self.ts = args[0].ts[:]
             # zext for promoting width
             for i in range(len(self) - len(args[0])):
-                self.ts.append(m.VCC)
+                self.ts.append(m.GND)
             Type.__init__(self, **kwargs)
         else:
             Array.__init__(self, *args, **kwargs)
