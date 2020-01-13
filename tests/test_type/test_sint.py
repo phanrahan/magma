@@ -76,6 +76,8 @@ def test_construct():
     assert isinstance(a1, Bits)
     assert not isinstance(a1, UInt)
 
+    assert isinstance(SInt[15](a1), SInt)
+
     # Test explicit conversion
     assert isinstance(uint(a1), UInt)
     assert not isinstance(uint(a1), SInt)
