@@ -62,6 +62,9 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             name = f"InOut({name})"
         return name
 
+    def get_family(cls):
+        return m.get_family()
+
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__
@@ -435,9 +438,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
-
-    def get_family(self):
-        return m.get_family()
 
 
 BitsType = Bits
