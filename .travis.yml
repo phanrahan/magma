@@ -12,22 +12,13 @@ addons:
 
 install:
 # install conda for py 3.7
-- wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+- wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
 - chmod +x miniconda.sh
 - ./miniconda.sh -b -p $TRAVIS_BUILD_DIR/miniconda
 - export PATH=$TRAVIS_BUILD_DIR/miniconda/bin:$PATH
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda update -q conda
-- conda create -q -n test-env python=3.7
-- source activate test-env
-- conda install pip
 # End install conda
-- curl -s -L https://github.com/rdaly525/coreir/releases/latest | grep "href.*coreir-${TRAVIS_OS_NAME}.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"
-- mkdir coreir_release;
-- tar -xf coreir-${TRAVIS_OS_NAME}.tar.gz -C coreir_release --strip-components 1;
-- cd coreir_release && sudo make install && cd ..
-
 - pip install twine
 - pip install python-coveralls
 - pip install pytest-cov pytest-codestyle fault
