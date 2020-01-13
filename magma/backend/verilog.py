@@ -1,4 +1,3 @@
-import warnings
 import os
 import types
 import operator
