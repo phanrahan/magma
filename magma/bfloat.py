@@ -15,7 +15,7 @@ class BFloat(UInt):
                                               "I", m.In(cls),
                                               "O", m.Out(cls),
                                               coreir_name=op,
-					      coreir_genargs=coreir_genargs,
+                                              coreir_genargs=coreir_genargs,
                                               coreir_lib="float")
 
     @classmethod
@@ -30,7 +30,7 @@ class BFloat(UInt):
                                               "I1", m.In(cls),
                                               "O", m.Out(cls),
                                               coreir_name=op,
-					      coreir_genargs=coreir_genargs,
+                                              coreir_genargs=coreir_genargs,
                                               coreir_lib="float")
 
     @classmethod
@@ -45,7 +45,7 @@ class BFloat(UInt):
                                               "I1", m.In(cls),
                                               "O", m.Out(m.Bit),
                                               coreir_name=op,
-					      coreir_genargs=coreir_genargs,
+                                              coreir_genargs=coreir_genargs,
                                               coreir_lib="float")
 
     @classmethod
@@ -67,5 +67,5 @@ class BFloat(UInt):
                                               "S", m.In(m.Bit),
                                               "O", m.Out(T),
                                               coreir_name="mux",
-					      coreir_genargs=coreir_genargs,
+                                              coreir_genargs=coreir_genargs,
                                               coreir_lib="float")
