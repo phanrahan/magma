@@ -118,10 +118,7 @@ def test_zext(type_, value):
     if type_ != sint:
         value = abs(value)
     in_ = type_(value, 16)
-    # TODO(rsetaluri): Ideally, zext(bits) should return an object of type
-    # Bits, instead it returns an object of type Array. For now, we wrap
-    # the result of zext() in bits().
-    out = type_(zext(in_, 16))
+    out = zext(in_, 16)
     assert len(out.bits()) == 32
     # If we have a negative number, then zext should not return the same (signed
     # value). It will instead return the unsigned interpretation of the original
@@ -161,3 +158,15 @@ def test_extension_no_error(op):
         op(a, 2)
     except Exception as e:
         assert False, "This should work"
+
+
+def test_bits_of_bit():
+    assert repr(m.bits(m.Bit(1), 2)) == "bits([GND, VCC])"
+
+
+def test_uint_of_bit():
+    assert repr(m.uint(m.Bit(1), 2)) == "bits([GND, VCC])"
+
+
+def test_sint_of_bit():
+    assert repr(m.sint(m.Bit(1), 2)) == "bits([VCC, VCC])"
