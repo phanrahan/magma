@@ -59,13 +59,25 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # Sanitize
         t_str = t_str.replace("(", "_")
         t_str = t_str.replace(")", "")
+        t_str = t_str.replace("[", "_")
+        t_str = t_str.replace("]", "")
+        if issubclass(T, Bit):
+            return m.circuit.DeclareCoreirCircuit(f"magma_Bit_ite_{t_str}",
+                                                  "I0", m.In(T),
+                                                  "I1", m.In(T),
+                                                  "S", m.In(m.Bit),
+                                                  "O", m.Out(T),
+                                                  coreir_name="mux",
+                                                  coreir_lib="corebit")
+        assert issubclass(T, m.Bits)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bit_ite_{t_str}",
                                               "I0", m.In(T),
                                               "I1", m.In(T),
                                               "S", m.In(m.Bit),
                                               "O", m.Out(T),
+                                              coreir_genargs={"width": len(T)},
                                               coreir_name="mux",
-                                              coreir_lib="corebit")
+                                              coreir_lib="coreir")
 
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
