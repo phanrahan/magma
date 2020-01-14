@@ -8,7 +8,6 @@ from .bit import VCC, GND, Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .port import report_wiring_error
-import hwtypes
 
 
 class ArrayMeta(ABCMeta, Kind):
@@ -337,8 +336,6 @@ class Array(Type, metaclass=ArrayMeta):
         return sum([t.flatten() for t in self.ts], [])
 
     def concat(self, other) -> 'AbstractBitVector':
-        if isinstance(other, hwtypes.BitVector):
-            other = m.Bits[len(other)](other.as_uint())
         return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
 
 
