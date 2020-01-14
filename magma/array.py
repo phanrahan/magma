@@ -338,7 +338,7 @@ class Array(Type, metaclass=ArrayMeta):
 
     def concat(self, other) -> 'AbstractBitVector':
         if isinstance(other, hwtypes.BitVector):
-            other = m.Bits[len(other)](other)
+            other = m.Bits[len(other)](other.as_uint())
         return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
 
 
