@@ -94,6 +94,10 @@ def test_construct():
     print(type(a_1))
     assert isinstance(a_1, m.BitsType)
 
+    # test promote
+    assert isinstance(m.Bits[16](a_1), m.Bits)
+    assert repr(m.Bits[16](a_1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
+
 
 def test_const():
     """

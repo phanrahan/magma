@@ -66,6 +66,17 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__
 
+    def __init__(self, *args, **kwargs):
+        if args and len(args) == 1 and isinstance(args[0], m.Array) and \
+                len(self) > 1 and len(args[0]) <= len(self):
+            self.ts = args[0].ts[:]
+            # zext for promoting width
+            for i in range(len(self) - len(args[0])):
+                self.ts.append(m.GND)
+            Type.__init__(self, **kwargs)
+        else:
+            Array.__init__(self, *args, **kwargs)
+
     def __repr__(self):
         if not isinstance(self.name, AnonRef):
             return repr(self.name)
@@ -487,6 +498,17 @@ class UInt(Bits):
 
 
 class SInt(Bits):
+    def __init__(self, *args, **kwargs):
+        if args and len(args) == 1 and isinstance(args[0], m.Array) and \
+                len(self) > 1 and len(args[0]) <= len(self):
+            self.ts = args[0].ts[:]
+            # zext for promoting width
+            for i in range(len(self) - len(args[0])):
+                self.ts.append(args[0].ts[-1])
+            Type.__init__(self, **kwargs)
+        else:
+            Array.__init__(self, *args, **kwargs)
+
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
         return self.declare_compare_op("slt")()(self, other)
