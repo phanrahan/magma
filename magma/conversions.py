@@ -116,8 +116,12 @@ def convertbits(value, n, totype, checkbit):
     elif isinstance(value, Digital):
         if n is None:
             ts = [value]
+        elif issubclass(totype, SInt):
+            # sext
+            ts = n * [value]
         else:
-            ts = n*[value]
+            # zext
+            ts = [GND for _ in range(n - 1)] + [value]
     else:
         ts = [value[i] for i in range(len(value))]
 
@@ -231,7 +235,7 @@ def zext(value, n):
 # @check_value_is_not_input
 def sext(value, n):
     assert isinstance(value, SInt)
-    return sint(concat(array(value), array(value[-1], n)))
+    return sint(concat(array(value), array([value[-1]] * n)))
 
 
 def tuple_(value, n=None):
