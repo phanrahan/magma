@@ -1,4 +1,5 @@
 import weakref
+import magma as m
 from abc import ABCMeta
 from .t import Kind, Direction, Type
 from .debug import debug_wire, get_callee_frame_info
@@ -71,7 +72,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
             if isinstance(value, (bool, IntegerTypes)):
-                return VCC if value else GND
+                return m.VCC if value else m.GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
             assert isinstance(value, Digital), type(value)
@@ -136,7 +137,7 @@ class Digital(Type, metaclass=DigitalMeta):
         i = self
         # promote integer types to LOW/HIGH
         if isinstance(o, IntegerTypes):
-            o = HIGH if o else LOW
+            o = m.HIGH if o else m.LOW
 
         if not isinstance(o, Digital):
             report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) '
@@ -172,7 +173,7 @@ class Digital(Type, metaclass=DigitalMeta):
         return [self]
 
     def const(self):
-        return self is VCC or self is GND
+        return self is m.VCC or self is m.GND
 
     def unwire(i, o):
         i.port.unwire(o.port)
@@ -188,10 +189,3 @@ class Digital(Type, metaclass=DigitalMeta):
 
     def getgpio(self):
         return self.getinst()
-
-
-VCC = Digital[Direction.Out](name="VCC")
-GND = Digital[Direction.Out](name="GND")
-
-HIGH = VCC
-LOW = GND
