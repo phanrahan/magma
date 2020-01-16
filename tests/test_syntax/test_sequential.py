@@ -402,3 +402,54 @@ def test_namedtuple_seq():
             return new_a
 
     m.compile("build/test_named_tuple_seq", TestNamedTuple, output="coreir-verilog")
+
+
+def test_product_reg(target):
+    class A(m.Product):
+        a0 = m.Bit
+        a1 = m.SInt[8]
+
+    @m.circuit.sequential(async_reset=True)
+    class TestProductReg:
+        def __init__(self):
+            self.a: A = m.namedtuple(a0=1, a1=2)
+
+        def __call__(self, a: A, b: m.Bit) -> A:
+            if b:
+                new_a = a
+            else:
+                new_a = self.a
+
+            self.a = new_a
+
+            return new_a
+
+    compile_and_check("TestProductReg", TestProductReg, target)
+
+
+def test_nested_product_reg(target):
+    class Child(m.Product):
+        c0 = m.UInt[4]
+        c1 = m.Bit
+
+    class A(m.Product):
+        a0 = m.Bit
+        a1 = Child
+        a2 = m.SInt[8]
+
+    @m.circuit.sequential(async_reset=True)
+    class TestNestedProductReg:
+        def __init__(self):
+            self.a: A = m.namedtuple(a0=1, a1=m.namedtuple(c0=3, c1=0), a2=2)
+
+        def __call__(self, a: A, b: m.Bit) -> A:
+            if b:
+                new_a = a
+            else:
+                new_a = self.a
+
+            self.a = new_a
+
+            return new_a
+
+    compile_and_check("TestNestedProductReg", TestNestedProductReg, target)

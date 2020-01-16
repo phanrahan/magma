@@ -197,6 +197,14 @@ def gen_array_str(eval_type, eval_value, async_reset):
     return f"m.join([{', '.join(arr)}])"
 
 
+def gen_product_str(eval_type, eval_value, async_reset):
+    t = [
+        f"'{key}':" + gen_reg_inst_str(eval_type[key], eval_value[key], async_reset)
+        for key in eval_type.keys()
+    ]
+    return f"{{{', '.join(t)}}}"
+
+
 def gen_reg_inst_str(eval_type, eval_value, async_reset):
     if issubclass(eval_type, m.Digital):
         n = None
@@ -211,6 +219,8 @@ def gen_reg_inst_str(eval_type, eval_value, async_reset):
         init = int(eval_value)
     elif issubclass(eval_type, m.Array):
         return f"{gen_array_str(eval_type, eval_value, async_reset)}"
+    elif issubclass(eval_type, m.Product):
+        return f"{gen_product_str(eval_type, eval_value, async_reset)}"
     else:
         raise NotImplementedError((eval_type))
     return f"DefineRegister({n}, init={init}, has_async_reset={async_reset})()"
@@ -295,6 +305,26 @@ class SpecializeConstantInts(ast.NodeTransformer):
         return node
 
 
+def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring):
+    call_args = []
+    for key in eval_type.keys():
+        if isinstance(eval_type[key], m.ProductKind):
+            call_args.append(
+                f"{key}="
+                + gen_product_call_args(
+                    name, comb_out_count, eval_type[key], keys + [key], comb_out_wiring
+                )
+            )
+        else:
+            arrays = "".join([f"['{k}']" for k in keys + [key]])
+            dots = ".".join(keys + [key])
+            comb_out_wiring.append(
+                f"{name}{arrays}.I <= comb_out[{comb_out_count}].{dots} \n"
+            )
+            call_args.append(f"{key}={name}{arrays}.O")
+    return "m.namedtuple(" + ", ".join(call_args) + ")"
+
+
 def _sequential(
         defn_env: dict,
         async_reset: bool,
@@ -323,9 +353,15 @@ def _sequential(
         if isinstance(eval_type, m.Kind):
             type_ = astor.to_source(type_).rstrip()
             circuit_combinational_args.append(f"self_{name}_O: {type_}")
-            circuit_combinational_call_args.append(f"{name}")
             circuit_combinational_output_type.append(f"{type_}")
-            comb_out_wiring.append(f"{name}.I <= comb_out[{comb_out_count}]\n")
+            if isinstance(eval_type, m.ProductKind):
+                call_args = gen_product_call_args(
+                    name, comb_out_count, eval_type, [], comb_out_wiring
+                )
+                circuit_combinational_call_args.append(f"self_{name}_O=" + call_args)
+            else:
+                circuit_combinational_call_args.append(f"self_{name}_O={name}")
+                comb_out_wiring.append(f"{name}.I <= comb_out[{comb_out_count}]\n")
             comb_out_count += 1
         else:
             for key, value in eval_value.interface.ports.items():
