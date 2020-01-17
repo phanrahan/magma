@@ -537,13 +537,12 @@ Bind monitor interface does not match circuit interface
             ports.append(f".{mon_arg}({cls_arg})")
         extra_mon_args = list(
             monitor.interface.ports.keys()
-        )[len(cls.interface) - 1:]
+        )[len(cls.interface):]
         for mon_arg, bind_arg in zip(extra_mon_args, args):
             ports.append(f".{mon_arg}({verilog_name(bind_arg.name)})")
         ports_str = ", ".join(ports)
-        bind_str += f"\n\nbind {cls.name} {monitor.name} ({ports_str});\n"
+        bind_str += f"\n\nbind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});\n"
         cls.bind_modules.append(bind_str)
-        print(bind_str)
         assert False
 
 
