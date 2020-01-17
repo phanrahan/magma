@@ -526,7 +526,8 @@ class DefineCircuitKind(CircuitKind):
         bind_str = monitor.verilogFile
 
         ports = []
-        for mon_arg, cls_arg in zip(monitor.interface.ports, cls.interface.ports):
+        for mon_arg, cls_arg in zip(monitor.interface.ports,
+                                    cls.interface.ports):
             if mon_arg != cls_arg:
                 error_str = f"""
 Bind monitor interface does not match circuit interface
@@ -541,7 +542,7 @@ Bind monitor interface does not match circuit interface
         for mon_arg, bind_arg in zip(extra_mon_args, args):
             ports.append(f".{mon_arg}({verilog_name(bind_arg.name)})")
         ports_str = ", ".join(ports)
-        bind_str += f"\n\nbind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});\n"
+        bind_str += f"\n\nbind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});\n"  # noqa
         cls.bind_modules.append(bind_str)
         assert False
 
