@@ -81,6 +81,7 @@ class CircuitKind(type):
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
         dct["inline_verilog_strs"] = []
+        dct["bind_modules"] = []
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -520,6 +521,30 @@ class DefineCircuitKind(CircuitKind):
         if get_debug_mode():
             inst.stack = inspect.stack()
         cls.instances.append(inst)
+
+    def bind(cls, monitor, *args):
+        bind_str = monitor.verilogFile
+
+        ports = []
+        for mon_arg, cls_arg in zip(monitor.interface.ports, cls.interface.ports):
+            if mon_arg != cls_arg:
+                error_str = f"""
+Bind monitor interface does not match circuit interface
+    Monitor Ports: {list(monitor.interface.ports)}
+    Circuit Ports: {list(cls.interface.ports)}
+"""
+                raise TypeError(error_str)
+            ports.append(f".{mon_arg}({cls_arg})")
+        extra_mon_args = list(
+            monitor.interface.ports.keys()
+        )[len(cls.interface) - 1:]
+        for mon_arg, bind_arg in zip(extra_mon_args, args):
+            ports.append(f".{mon_arg}({verilog_name(bind_arg.name)})")
+        ports_str = ", ".join(ports)
+        bind_str += f"\n\nbind {cls.name} {monitor.name} ({ports_str});\n"
+        cls.bind_modules.append(bind_str)
+        print(bind_str)
+        assert False
 
 
 @six.add_metaclass(DefineCircuitKind)
