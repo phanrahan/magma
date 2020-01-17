@@ -542,8 +542,9 @@ Bind monitor interface does not match circuit interface
         for mon_arg, bind_arg in zip(extra_mon_args, args):
             ports.append(f".{mon_arg}({verilog_name(bind_arg.name)})")
         ports_str = ", ".join(ports)
-        bind_str += f"\n\nbind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});\n"  # noqa
-        cls.bind_modules.append(bind_str)
+        bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});"  # noqa
+        cls.bind_modules.append((monitor, bind_str))
+        print(cls.bind_modules)
         assert False
 
 
