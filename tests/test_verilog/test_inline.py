@@ -5,7 +5,7 @@ import pytest
 
 def test_inline_verilog():
     FF = m.DefineFromVerilog("""
-module FF(input I, output O, input CLK);
+module FF(input I, output reg O, input CLK);
 always @(posedge CLK) begin
   O <= I;
 end
@@ -18,13 +18,14 @@ endmodule
         def definition(cls):
             cls.O <= FF()(cls.I)
             cls.inline_verilog("""
-assert property {{ @(posedge CLK) {I} |-> ##1 {O} }};
+assert property (@(posedge CLK) {I} |-> ##1 {O});
 """, O=cls.O, I=cls.I)
 
-    m.compile(f"build/test_inline_simple", Main, output="coreir")
+    m.compile(f"build/test_inline_simple", Main, output="coreir-verilog",
+              sv=True, inline=True)
     assert m.testing.check_files_equal(__file__,
-                                       f"build/test_inline_simple.json",
-                                       f"gold/test_inline_simple.json")
+                                       f"build/test_inline_simple.sv",
+                                       f"gold/test_inline_simple.sv")
 
 
 def test_inline_tuple():
@@ -34,8 +35,8 @@ def test_inline_tuple():
                                                          ready=m.Out(m.Bit)))]
 
     InnerInnerDelayUnit = m.DeclareCircuit("InnerInnerDelayUnit",
-                                      "INPUT", RVDATAIN,
-                                      "OUTPUT", m.Flip(RVDATAIN))
+                                           "INPUT", RVDATAIN,
+                                           "OUTPUT", m.Flip(RVDATAIN))
 
     class InnerDelayUnit(m.Circuit):
         IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
@@ -72,27 +73,28 @@ def test_inline_tuple():
             cls.O[0] <= delay.OUTPUT[1]
 
             cls.inline_verilog("""\
-assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
+assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=cls.I[0].valid, ready_out=cls.O[1].ready)
 
             # Test inst ref
             cls.inline_verilog("""\
-assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
+assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.INPUT[1].valid, ready_out=delay.OUTPUT[0].ready)
 
             # Test recursive ref
             cls.inline_verilog("""\
-assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
+assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.INPUT[0].valid,
      ready_out=delay.inner_delay.OUTPUT[1].ready)
 
             # Test double recursive ref
             cls.inline_verilog("""\
-assert property {{ @(posedge CLK) {valid_in} |-> ##3 {ready_out} }};\
+assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.inner_inner_delay.INPUT[0].valid,
      ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
 
-    m.compile(f"build/test_inline_tuple", Main, output="coreir")
+    m.compile(f"build/test_inline_tuple", Main, output="coreir-verilog",
+              sv=True, inline=True)
     assert m.testing.check_files_equal(__file__,
-                                       f"build/test_inline_tuple.json",
-                                       f"gold/test_inline_tuple.json")
+                                       f"build/test_inline_tuple.sv",
+                                       f"gold/test_inline_tuple.sv")
