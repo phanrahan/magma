@@ -544,8 +544,6 @@ Bind monitor interface does not match circuit interface
         ports_str = ", ".join(ports)
         bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});"  # noqa
         cls.bind_modules.append((monitor, bind_str))
-        print(cls.bind_modules)
-        assert False
 
 
 @six.add_metaclass(DefineCircuitKind)

@@ -55,6 +55,7 @@ class CoreIRBackend:
         self.libs = keydefaultdict(self.context.get_lib)
         self.libs_used = set()
         self.constant_cache = {}
+        self.sv_bind_files = {}
 
     def compile(self, defn_or_decl):
         logger.debug(f"Compiling: {defn_or_decl.name}")

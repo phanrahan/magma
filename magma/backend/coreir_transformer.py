@@ -3,6 +3,7 @@ from copy import copy
 import json
 import logging
 import os
+import magma as m
 from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
@@ -155,6 +156,18 @@ class DefinitionTransformer(TransformerBase):
             inline_verilog = "\n\n".join(self.defn.inline_verilog_strs)
             self.coreir_module.add_metadata("inline_verilog",
                                             json.dumps(inline_verilog))
+        for bind_module, bind_stmt in self.defn.bind_modules:
+            if not os.path.isdir(".magma"):
+                os.mkdir(".magma")
+            curr_compile_dir = m.config.get_compile_dir()
+            m.config.set_compile_dir("normal")
+            m.compile(f".magma/{bind_module.name}", bind_module,
+                      output="verilog")
+            m.config.set_compile_dir(curr_compile_dir)
+            with open(f".magma/{bind_module.name}.v", "r") as f:
+                self.backend.sv_bind_files[bind_module.name] = f.read() + \
+                    "\n" + bind_stmt
+
         self.coreir_module.definition = self.get_coreir_defn()
 
     def get_coreir_defn(self):
