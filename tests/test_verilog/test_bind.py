@@ -33,8 +33,8 @@ endmodule""")
                 def definition(cls):
                     cls.verilog = """
                         logic temp1, temp2;
-                        temp1 = |(in1);
-                        temp2 = &(in1);
+                        assign temp1 = |(in1);
+                        assign temp2 = &(in1);
                         assert property (@(posedge CLK) out === temp1 && temp2);
                     """
 
