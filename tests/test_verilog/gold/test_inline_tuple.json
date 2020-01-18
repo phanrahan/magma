@@ -87,7 +87,7 @@
           ["self.O.0.ready","DelayUnit_inst0.OUTPUT.1.ready"],
           ["self.O.0.valid","DelayUnit_inst0.OUTPUT.1.valid"]
         ],
-        "metadata":{"inline_verilog":"assert property { @(posedge CLK) I_0_valid |-> ##3 O_1_ready };\n\nassert property { @(posedge CLK) DelayUnit_inst0.INPUT_1_valid |-> ##3 DelayUnit_inst0.OUTPUT_0_ready };\n\nassert property { @(posedge CLK) DelayUnit_inst0.inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT_1_ready };\n\nassert property { @(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay.OUTPUT_1_ready };"}
+        "metadata":{"inline_verilog":"assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.INPUT_1_valid |-> ##3 DelayUnit_inst0.OUTPUT_0_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT_1_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay.OUTPUT_1_ready);"}
       }
     }
   }

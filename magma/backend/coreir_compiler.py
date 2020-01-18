@@ -52,6 +52,7 @@ class CoreIRCompiler(Compiler):
         ret = subprocess.run(cmd, shell=True).returncode
         if ret:
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
+
         backend = coreir_frontend.GetCoreIRBackend()
         # TODO: We need fresh bind_files for each compile call
         for name, file in backend.sv_bind_files.items():
@@ -59,6 +60,8 @@ class CoreIRCompiler(Compiler):
             with open(f"{filename}.sv", "w") as f:
                 f.write(file)
 
+        if self.opts.get("sv", False):
+            subprocess.run(["mv", f"{self.basename}.v", f"{self.basename}.sv"])
 
     def __deps(self):
         deps = self.opts.get("coreir_libs", set())

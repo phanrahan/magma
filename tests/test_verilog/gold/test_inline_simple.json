@@ -26,7 +26,7 @@
           ["self.I","FF_inst0.I"],
           ["self.O","FF_inst0.O"]
         ],
-        "metadata":{"inline_verilog":"\nassert property { @(posedge CLK) I |-> ##1 O };\n"}
+        "metadata":{"inline_verilog":"\nassert property (@(posedge CLK) I |-> ##1 O);\n"}
       }
     }
   }
