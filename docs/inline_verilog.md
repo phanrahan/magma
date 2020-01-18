@@ -28,12 +28,13 @@ assert property (@(posedge CLK) {I} |-> ##1 {O});
 """, O=cls.O, I=cls.I)
 ```
 
-The `inline_verilog` interface accepts a templated verilog string as the first
-argument, then a dicitonary of keyword args (`**kwargs`) that map template
+The `inline_verilog` interface accepts a templated verilog string (using
+Python's format string with keyword arguments syntax) as the first argument,
+then a dicitonary of keyword args (`**kwargs`) that map template (format)
 variables to magma values.  This allows the user to pass arbitrary magma values
-(e.g. Python temporary variables, instance ports, and interface ports).  The 
-`inline_verilog` method will handle the conversion of the magma value to it's corresponding
-verilog name.
+(e.g. Python temporary variables, instance ports, and interface ports).  The
+`inline_verilog` method will handle the conversion of the magma value to it's
+corresponding verilog name.
 
 Note, since we're using system verilog assertion syntax, we'll need to
 pass the option `sv=True` to the `m.compile` command.
