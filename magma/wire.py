@@ -1,9 +1,12 @@
 from .compatibility import IntegerTypes
 from .debug import debug_wire
-from .logging import report_wiring_error
+from .logging import root_logger
 
 
 __all__ = ['wire']
+
+
+_logger = root_logger()
 
 
 @debug_wire
@@ -19,9 +22,9 @@ def wire(o, i, debug_info=None):
         o_orig = o
         o = o.interface.outputs()
         if len(o) != 1:
-            report_wiring_error(f"Can only wire circuits with one output. "
-                                f"Argument 0 to wire `{o_orig.debug_name}` has "
-                                f"outputs {o}", debug_info)
+            _logger.error(f"Can only wire circuits with one output. Argument "
+                          f"0 to wire `{o_orig.debug_name}` has outputs {o}",
+                          debug_info=debug_info)
             return
         o = o[0]
 

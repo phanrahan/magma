@@ -1,8 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from .is_definition import isdefinition
-from .logging import warning, error
+from .logging import root_logger
 from .passes import DefinitionPass
+
+
+_logger = root_logger()
 
 
 class MultipleDefinitionException(Exception):

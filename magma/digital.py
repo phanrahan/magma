@@ -3,8 +3,12 @@ import magma as m
 from abc import ABCMeta
 from .t import Kind, Direction, Type
 from .debug import debug_wire, get_callee_frame_info
-from .port import report_wiring_error, Port
 from .compatibility import IntegerTypes
+from .logging import root_logger
+from .port import Port
+
+
+_logger = root_logger()
 
 
 class DigitalMeta(ABCMeta, Kind):
@@ -140,9 +144,9 @@ class Digital(Type, metaclass=DigitalMeta):
             o = m.HIGH if o else m.LOW
 
         if not isinstance(o, Digital):
-            report_wiring_error(f'Cannot wire {i.debug_name} (type={type(i)}) '
-                                f'to {o} (type={type(o)}) because '
-                                f'{o.debug_name} is not a Digital', debug_info)
+            _logger.error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} '
+                          f'(type={type(o)}) because {o.debug_name} is not a '
+                          f'Digital', debug_info=debug_info)
             return
 
         i.port.wire(o.port, debug_info)

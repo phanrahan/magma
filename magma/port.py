@@ -1,7 +1,7 @@
 from .config import get_debug_mode
-from .logging import error, warning, get_source_line, report_wiring_error
 from .backend.util import make_relative
 from .t import Direction
+from .logging import root_logger
 
 
 __all__  = ['INPUT', 'OUTPUT', 'INOUT']
@@ -12,6 +12,8 @@ __all__ += ['Port']
 INPUT = Direction.In
 OUTPUT = Direction.Out
 INOUT = Direction.InOut
+
+_logger = root_logger()
 
 
 def flip(direction):
@@ -34,8 +36,8 @@ def merge_wires(new, old, debug_info):
     for o in oldoutputs - newoutputs:
         if len(new.outputs) > 0:
             outputs = [o.bit.debug_name for o in new.outputs]
-            report_wiring_error(f"Connecting more than one output ({outputs}) to "
-                                f"an input `{i.bit.debug_name}`", debug_info)
+            _logger.error(f"Connecting more than one output ({outputs}) to an "
+                          f"input `{i.bit.debug_name}`", debug_info=debug_info)
         new.outputs.append(o)
         o.wires = new
 
@@ -48,9 +50,9 @@ def fast_merge_wires(w, i, o):
     if len(w.outputs) > 1:
         outputs = [o.bit.debug_name for o in w.outputs]
         # Use w.inputs[0] as i, similar to {i.bit.debug_name}.
-        report_wiring_error(f"Connecting more than one output ({outputs}) to "
-                            f"an input `{w.inputs[0].bit.debug_name}`",
-                            debug_info)
+        _logger.error(f"Connecting more than one output ({outputs}) to an "
+                      f"input `{w.inputs[0].bit.debug_name}`",
+                      debug_info=debug_info)
     for p in w.inputs:
         p.wires = w
     for p in w.outputs:
@@ -78,8 +80,8 @@ class Wire:
 
         if not o.anon():
             if o.bit.is_input():
-                report_wiring_error(f"Using `{o.bit.debug_name}` (an input) as "
-                                    f"an output", debug_info)
+                _logger.error(f"Using `{o.bit.debug_name}` (an input) as an "
+                              f"output", debug_info=debug_info)
                 return
 
             if o not in self.outputs:
@@ -89,13 +91,13 @@ class Wire:
                     msg = (f"Adding the output `{o.bit.debug_name}` to the "
                            f"wire `{i.bit.debug_name}` which already has "
                            f"output(s) `[{output_str}]`")
-                    report_wiring_warning(msg, debug_info)
+                    _logger.warning(msg, debug_info=debug_info)
                 self.outputs.append(o)
 
         if not i.anon():
             if i.bit.is_output():
-                report_wiring_error(f"Using `{i.bit.debug_name}` (an output) "
-                                    f"as an input", debug_info)
+                _logger.error(f"Using `{i.bit.debug_name}` (an output) as an "
+                              f"input", debug_info=debug_info)
                 return
 
             if i not in self.inputs:
