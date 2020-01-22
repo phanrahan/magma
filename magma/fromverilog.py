@@ -17,6 +17,7 @@ from .array import Array
 from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 
 from .passes.tsort import tsort
+from .math import log2_ceil
 
 import logging
 from hwtypes import UIntVector, SIntVector
@@ -134,10 +135,19 @@ def get_value(v, param_map):
         return get_value(v.left, param_map) - get_value(v.right, param_map)
     if isinstance(v, pyverilog_ast.Plus):
         return get_value(v.left, param_map) + get_value(v.right, param_map)
+    if isinstance(v, pyverilog_ast.Divide):
+        l = get_value(v.left, param_map)
+        r = get_value(v.right, param_map)
+        # NOTE(rsetaluri): Assume integer division.
+        return int(l / r)
     if isinstance(v, pyverilog_ast.Identifier):
         return param_map[v.name]
-    else:
-        raise NotImplementedError(type(v))
+    if isinstance(v, pyverilog_ast.SystemCall):
+        syscall = v.syscall
+        if syscall == "clog2":
+            return log2_ceil(get_value(v.children()[0], param_map))
+        raise NotImplementedError(f"Verilog system call {syscall}")
+    raise NotImplementedError(type(v))
 
 
 def get_width(width, param_map):

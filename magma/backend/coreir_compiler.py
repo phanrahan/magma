@@ -54,7 +54,6 @@ class CoreIRCompiler(Compiler):
         if self.opts.get("sv", False):
             subprocess.run(["mv", f"{self.basename}.v", f"{self.basename}.sv"])
 
-
     def __deps(self):
         deps = self.opts.get("coreir_libs", set())
         pass_ = InstanceGraphPass(self.main)
