@@ -1,6 +1,9 @@
 import colorlog
+import inspect
+import io
 import logging
 import sys
+import traceback
 from .backend.util import make_relative
 from .config import config, EnvConfig
 
@@ -8,8 +11,8 @@ from .config import config, EnvConfig
 config._register(
     log_stream=EnvConfig("MAGMA_LOG_STREAM", "stderr"),
     log_level=EnvConfig("MAGMA_LOG_LEVEL", "INFO"),
-    include_wire_traceback=EnvConfig("MAGMA_INCLUDE_WIRE_TRACEBACK", False),
-    error_traceback_limit=EnvConfig("MAGMA_ERROR_TRACEBACK_LIMIT", "5"),
+    include_traceback=EnvConfig("MAGMA_INCLUDE_WIRE_TRACEBACK", False, bool),
+    traceback_limit=EnvConfig("MAGMA_ERROR_TRACEBACK_LIMIT", 5, int),
 )
 
 
@@ -36,17 +39,51 @@ def _attach_debug_info(msg, debug_info):
     return msg
 
 
-_MISSING = object()
+def _attach_traceback(msg, frame_selector, limit):
+    """
+    Attaches traceback string to @msg and returns new string.
+
+    @frame_selector is a function which takes a list of stack frames and selects
+    one. For example, it could select the frame based on an index, or based on
+    the function names.
+    """
+    frame = frame_selector(inspect.stack()).frame
+    with io.StringIO() as io_:
+        traceback.print_stack(f=frame, limit=limit, file=io_)
+        tb = io_.getvalue()
+    msg = f"{msg}\n{tb}"
+    return msg
+
+
+def _frame_selector(frames):
+    return frames[3]
+
+
+def _get_additional_kwarg(kwargs, key):
+    try:
+        value = kwargs.pop(key)
+        return value
+    except KeyError:
+        return None
 
 
 class _MagmaLogger(logging.Logger):
+    """
+    Derivative of logging.Logger class, with two additional keyword args:
+    * 'debug_info': Tuple of (file_name, line_no). If 'debug_info' is included,
+       this source-level information is logged along with the message.
+    * 'include_traceback': If True, a traceback is printed along with the
+       message.
+    """
     @staticmethod
     def __with_preamble(fn, msg, *args, **kwargs):
-        debug_info = kwargs.get("debug_info", _MISSING)
-        if debug_info is not _MISSING:
-            if debug_info:
-                msg = _attach_debug_info(msg, debug_info)
-            kwargs.pop("debug_info")
+        debug_info = _get_additional_kwarg(kwargs, "debug_info")
+        if debug_info:
+            msg = _attach_debug_info(msg, debug_info)
+        include_traceback = _get_additional_kwarg(kwargs, "include_traceback")
+        if include_traceback or config.include_traceback:
+            msg = _attach_traceback(
+                msg, _frame_selector, config.traceback_limit)
         fn(msg, *args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):
