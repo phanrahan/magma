@@ -24,16 +24,35 @@ class RuntimeConfig(ConfigBase):
 
 
 class EnvConfig(RuntimeConfig):
-    def __init__(self, env_key, default):
+    """
+    Class for capturing runtime variables which can be read from environment
+    variables.
+
+    @env_key: Key for environment variable. Can be different than magma runtime
+    config key.
+
+    @default: Default value for variable if not found in environment.
+
+    @typ: Optional argument for the type of this variable. Since all environment
+    variables are stored as strings, specifying this argument automatically
+    promotes strings to the provided type.
+    """
+    def __init__(self, env_key, default, typ=None):
         init = getenv(env_key, default)
+        if typ is not None:
+            init = typ(init)
         super().__init__(init)
         self.env_key = env_key
         self.default = default
+        self.typ = typ
 
     def reset(self, default=None):
         if not default:
             default = self.default
-        self.set(getenv(self.env_key, default))
+        value = getenv(self.env_key, default)
+        if self.typ is not None:
+            value = typ(value)
+        self.set(value)
 
 
 class ConfigManager:
