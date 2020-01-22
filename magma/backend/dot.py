@@ -4,7 +4,7 @@ from ..compiler import make_compiler
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
 from collections import OrderedDict
-from.logging import root_logger
+from ..logging import root_logger
 from graphviz import Digraph
 import re
 
