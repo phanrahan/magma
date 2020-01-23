@@ -252,6 +252,42 @@ def test_custom_env(target):
     _TestBasic = m.circuit.sequential(TestBasic,env=env)
     compile_and_check("CustomEnv", _TestBasic, target)
 
+def test_custom_env_hierarchy(target, async_reset):
+
+    @m.cache_definition
+    def DefineCustomRegister(width, init=0):
+        @m.circuit.sequential(async_reset=async_reset)
+        class Register:
+            def __init__(self):
+                self.value: m.Bits[width] = m.bits(init, width)
+
+            def __call__(self, I: m.Bits[width]) -> m.Bits[width]:
+                O = self.value
+                self.value = I
+                return O
+
+        return Register
+
+    Reg2 = DefineCustomRegister(2)
+
+    _globals = globals()
+    _globals.update({'_custom_local_var_':2})
+    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
+
+    class TestBasic:
+        def __init__(self):
+            self.x: m.Bits[2] = m.bits(_custom_local_var_, 2)
+            self.y: Reg2 = Reg2()
+
+        def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+            O = self.y
+            self.y = self.x
+            self.x = I
+            return O
+
+    _TestBasic = m.circuit.sequential(env=env,async_reset=async_reset)(TestBasic)
+    compile_and_check("CustomEnvHier" + ("ARST" if async_reset else ""), _TestBasic, target)
+
 def test_seq_hierarchy(target, async_reset):
     @m.cache_definition
     def DefineCustomRegister(width, init=0):
