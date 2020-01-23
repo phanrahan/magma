@@ -453,3 +453,12 @@ def test_nested_product_reg(target):
             return new_a
 
     compile_and_check("TestNestedProductReg", TestNestedProductReg, target)
+
+
+def test_no_init(target):
+    @m.circuit.sequential(async_reset=True)
+    class TestNoInit:
+        def __call__(self, a: m.Bit, b: m.Bit) -> m.Bit:
+            return a & b
+
+    compile_and_check("TestNoInit", TestNoInit, target)
