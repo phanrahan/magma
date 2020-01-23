@@ -454,6 +454,7 @@ def test_nested_product_reg(target):
 
     compile_and_check("TestNestedProductReg", TestNestedProductReg, target)
 
+
 def test_no_init(target):
     @m.circuit.sequential(async_reset=True)
     class TestNoInit:
