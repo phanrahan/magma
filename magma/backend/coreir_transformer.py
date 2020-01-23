@@ -3,7 +3,6 @@ from copy import copy
 import json
 import logging
 import os
-from ..config import get_compile_dir, set_compile_dir
 from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
@@ -156,10 +155,8 @@ class DefinitionTransformer(TransformerBase):
         for bind_module, bind_stmt in self.defn.bind_modules:
             if not os.path.isdir(".magma"):
                 os.mkdir(".magma")
-            curr_compile_dir = get_compile_dir()
-            set_compile_dir("normal")
-            VerilogCompiler(bind_module, f".magma/{bind_module.name}")
-            set_compile_dir(curr_compile_dir)
+            VerilogCompiler(bind_module,
+                            f".magma/{bind_module.name}").compile()
             with open(f".magma/{bind_module.name}.v", "r") as f:
                 content = "\n".join((f.read(), bind_stmt))
                 self.backend.sv_bind_files[bind_module.name] = content
