@@ -1,9 +1,9 @@
-import os
-import logging
 from coreir import Context
 from ..array import Array
 from ..tuple import Tuple
 from ..clock import AsyncReset, AsyncResetN
+from ..config import config, EnvConfig
+from ..logging import root_logger
 from ..t import In, Out
 from .. import singleton
 from ..circuit import DeclareCircuit
@@ -12,14 +12,14 @@ from ..passes import DefinitionPass
 from .util import keydefaultdict
 from ..wire import wire
 
-logger = logging.getLogger('magma').getChild('coreir_backend')
-level = os.getenv("MAGMA_COREIR_BACKEND_LOG_LEVEL", "WARN")
-# TODO: Factor this with magma.logging code for debug level validation
-if level in ["DEBUG", "WARN", "INFO"]:
-    logger.setLevel(getattr(logging, level))
-elif level is not None:
-    logger.warning("Unsupported value for MAGMA_COREIR_BACKEND_LOG_LEVEL:"
-                   f" {level}")
+
+config._register(
+    coreir_backend_log_level=EnvConfig(
+        "MAGMA_COREIR_BACKEND_LOG_LEVEL", "WARN"),
+)
+
+_logger = root_logger().getChild("coreir_backend")
+_logger.setLevel(config.coreir_backend_log_level)
 
 
 # Singleton context meant to be used with coreir/magma code
@@ -48,8 +48,8 @@ class CoreIRBackend:
         if context is None:
             context = singleton
         if context is not singleton:
-            logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
-                           "context.")
+            _logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
+                            "context.")
         self.modules = _context_to_modules.setdefault(context, {})
         self.context = context
         self.libs = keydefaultdict(self.context.get_lib)
@@ -57,7 +57,7 @@ class CoreIRBackend:
         self.constant_cache = {}
 
     def compile(self, defn_or_decl):
-        logger.debug(f"Compiling: {defn_or_decl.name}")
+        _logger.debug(f"Compiling: {defn_or_decl.name}")
         transformer = DefnOrDeclTransformer(self, defn_or_decl)
         transformer.run()
         self.modules[defn_or_decl.name] = transformer.coreir_module

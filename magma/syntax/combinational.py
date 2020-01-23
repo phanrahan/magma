@@ -3,7 +3,7 @@ import ast
 import inspect
 import textwrap
 from collections import OrderedDict
-from magma.logging import debug, warning, error
+from magma.logging import root_logger
 from magma.backend.util import make_relative
 import astor
 import os
@@ -16,6 +16,10 @@ from magma.config import get_debug_mode
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
+
+
+_logger = root_logger()
+
 
 class CircuitDefinitionSyntaxError(Exception):
     pass
@@ -234,7 +238,7 @@ def _combinational(defn_env: dict, fn: types.FunctionType):
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"
 
-    debug(source)
+    _logger.debug(source)
     circuit_def = ast_utils.compile_function_to_file(tree, fn.__name__,
                                                      defn_env)
     if get_debug_mode() and getattr(circuit_def, "debug_info", False):

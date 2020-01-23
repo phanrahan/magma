@@ -19,10 +19,10 @@ from .circuit import DeclareCircuit, DefineCircuit, EndDefine
 from .passes.tsort import tsort
 from .math import log2_ceil
 
-import logging
+from .logging import root_logger
 from hwtypes import UIntVector, SIntVector
 
-logger = logging.getLogger('magma').getChild('from_verilog')
+_logger = root_logger().getChild('from_verilog')
 
 
 __all__  = ['DeclareFromVerilog']
@@ -276,9 +276,9 @@ def FromVerilog(source, func, type_map, target_modules=None, shallow=False,
         magma_defns[name] = magma_defn
 
     if len(magma_defns) == 0:
-        logger.warning(f"Did not import any modules from verilog, either could "
-                       f"not parse or could not find any of the target_modules "
-                       f"({target_modules})")
+        _logger.warning(f"Did not import any modules from verilog, either "
+                        f"could not parse or could not find any of the "
+                        f"target_modules ({target_modules})")
     # Filter back out external modules.
     magma_defns = {name : magma_defns[name] for name in visitor.defns}
     if target_modules is None:

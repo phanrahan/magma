@@ -7,7 +7,10 @@ from .compatibility import IntegerTypes
 from .bit import VCC, GND, Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
-from .port import report_wiring_error
+from .logging import root_logger
+
+
+_logger = root_logger()
 
 
 class ArrayMeta(ABCMeta, Kind):
@@ -243,13 +246,13 @@ class Array(Type, metaclass=ArrayMeta):
 
         if not isinstance(o, ArrayType):
             if isinstance(o, IntegerTypes):
-                report_wiring_error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info)  # noqa
+                _logger.error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info=debug_info)  # noqa
             else:
-                report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info)  # noqa
+                _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info=debug_info)  # noqa
             return
 
         if i.N != o.N:
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because the arrays do not have the same length', debug_info)  # noqa
+            _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because the arrays do not have the same length', debug_info=debug_info)  # noqa
             return
 
         for k in range(len(i)):

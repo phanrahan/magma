@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import copy
 import json
-import logging
-import os
 from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
@@ -15,19 +13,15 @@ from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            magma_port_to_coreir_port, make_cparams, map_genarg)
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
+from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
 
 
-logger = logging.getLogger('magma').getChild('coreir_backend')
-level = os.getenv("MAGMA_COREIR_BACKEND_LOG_LEVEL", "WARN")
-# TODO: Factor this with magma.logging code for debug level validation
-if level in ["DEBUG", "WARN", "INFO"]:
-    logger.setLevel(getattr(logging, level))
-elif level is not None:
-    logger.warning("Unsupported value for MAGMA_COREIR_BACKEND_LOG_LEVEL:"
-                   f" {level}")
+# NOTE(rsetaluri): We do not need to set the level of this logger since it has
+# already been done in backend/coreir_.py.
+_logger = root_logger().getChild("coreir_backend")
 
 
 class TransformerBase(ABC):
@@ -66,7 +60,7 @@ class DefnOrDeclTransformer(TransformerBase):
 
     def children(self):
         if self.defn_or_decl.name in self.backend.modules:
-            logger.debug(f"{self.defn_or_decl} already compiled, skipping")
+            _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
             self.coreir_module = self.backend.modules[self.defn_or_decl.name]
             return []
         if not isdefinition(self.defn_or_decl):
@@ -99,7 +93,7 @@ class InstanceTransformer(LeafTransformer):
         self.coreir_inst_gen = self.run_self_impl()
 
     def run_self_impl(self):
-        logger.debug(f"Compiling instance {(self.inst.name, type(self.inst))}")
+        _logger.debug(f"Compiling instance {(self.inst.name, type(self.inst))}")
         if self.wire_clocks:
             wiredefaultclock(self.defn, self.inst)
             wireclock(self.defn, self.inst)
@@ -149,7 +143,7 @@ class DefinitionTransformer(TransformerBase):
         return children
 
     def run_self(self):
-        logger.debug(f"Compiling definition {self.defn}")
+        _logger.debug(f"Compiling definition {self.defn}")
         self.coreir_module = self.decl_tx.coreir_module
         if self.defn.inline_verilog_strs:
             inline_verilog = "\n\n".join(self.defn.inline_verilog_strs)
@@ -172,7 +166,7 @@ class DefinitionTransformer(TransformerBase):
             self.backend.libs_used.add(self.defn.coreir_lib)
         non_input_ports = {}
         for name, port in self.defn.interface.ports.items():
-            logger.debug(f"{name}, {port}, {port.is_output()}")
+            _logger.debug(f"{name}, {port}, {port.is_output()}")
             add_non_input_ports(non_input_ports, port)
         for inst, coreir_inst in coreir_insts.items():
             if get_codegen_debug_info() and getattr(inst, "debug_info", False):
@@ -260,7 +254,7 @@ class DeclarationTransformer(LeafTransformer):
 
     def run_self_impl(self):
         self.decl = self.decl
-        logger.debug(f"Compiling declaration {self.decl}")
+        _logger.debug(f"Compiling declaration {self.decl}")
         if self.decl.coreir_lib is not None:
             self.backend.libs_used.add(self.decl.coreir_lib)
         # These libraries are already available by default in coreir, so we
@@ -271,7 +265,7 @@ class DeclarationTransformer(LeafTransformer):
                 return lib.modules[self.decl.coreir_name]
             return lib.generators[self.decl.coreir_name]
         if self.decl.name in self.backend.modules:
-            logger.debug(f"{self.decl} already compiled, skipping")
+            _logger.debug(f"{self.decl} already compiled, skipping")
             return self.backend.modules[self.decl.name]
         check_magma_interface(self.decl.interface)
         module_type = magma_interface_to_coreir_module_type(

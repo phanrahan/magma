@@ -11,7 +11,7 @@ from .interface import *
 from .wire import *
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
-from .port import report_wiring_warning, report_wiring_error
+from .logging import root_logger
 from .is_definition import isdefinition
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
@@ -33,6 +33,8 @@ __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
+
+_logger = root_logger()
 
 
 # Maintain a stack of nested definitions.
@@ -247,7 +249,7 @@ class AnonymousCircuitType(object):
                 f"Number of inputs is not equal to the number of outputs, "
                 f"expected {ni} inputs, got {no}. Only {min(ni,no)} will be "
                 f"wired.")
-            report_wiring_warning(msg, debug_info)
+            _logger.warning(msg, debug_info=debug_info)
         for i in range(min(ni, no)):
             wire(outputs[i], inputs[i], debug_info)
 
@@ -263,12 +265,12 @@ class AnonymousCircuitType(object):
         if ni == 0:
             msg = ("Wiring an output to a circuit with no input arguments, "
                    "skipping")
-            report_wiring_warning(msg, debug_info)
+            _logger.warning(msg, debug_info=debug_info)
             return
         if ni != 1:
             msg = (f"Wiring an output to a circuit with more than one input "
                    f"argument, using the first input {inputs[0].debug_name}")
-            report_wiring_warning(msg, debug_info)
+            _logger.warning(msg, debug_info=debug_info)
         inputs[0].wire(output, debug_info)
 
     @property
@@ -305,7 +307,7 @@ class AnonymousCircuitType(object):
                 wire(value, getattr(input, key), debug_info)
             else:
                 msg = f"Instance {input.debug_name} does not have input {key}"
-                report_wiring_warning(msg, debug_info)
+                _logger.warning(msg, debug_info=debug_info)
 
         o = input.interface.outputs()
         return o[0] if len(o) == 1 else tuple(o)
@@ -458,7 +460,7 @@ class DefineCircuitKind(CircuitKind):
                 continue
             if port.is_input() and not port.driven():
                 msg = f"Output port {self.name}.{port.name} not driven"
-                report_wiring_error(msg, self.debug_info)
+                _logger.error(msg, debug_info=self.debug_info)
 
         for inst in self.instances:
             for port in inst.interface.ports.values():
@@ -466,7 +468,7 @@ class DefineCircuitKind(CircuitKind):
                     continue
                 if port.is_input() and not port.driven():
                     msg = f"Input port {inst.name}.{port.name} not driven"
-                    report_wiring_error(msg, inst.debug_info)
+                    _logger.error(msg, debug_info=inst.debug_info)
 
     @property
     def is_definition(self):

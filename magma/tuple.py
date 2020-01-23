@@ -10,7 +10,11 @@ from .t import Type, Kind, Direction, deprecated
 from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
-from .port import report_wiring_error
+from .logging import root_logger
+
+
+_logger = root_logger()
+
 
 #
 # Create an Tuple
@@ -175,11 +179,11 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
         # print('Tuple.wire(', o, ', ', i, ')')
 
         if not isinstance(o, Tuple):
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not a Tuple', debug_info)  # noqa
+            _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not a Tuple', debug_info=debug_info)  # noqa
             return
 
         if i.keys() != o.keys():
-            report_wiring_error(f'Cannot wire {o.debug_name} (type={type(o)}, keys={list(i.keys())}) to {i.debug_name} (type={type(i)}, keys={list(o.keys())}) because the tuples do not have the same keys', debug_info)  # noqa
+            _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}, keys={list(i.keys())}) to {i.debug_name} (type={type(i)}, keys={list(o.keys())}) because the tuples do not have the same keys', debug_info=debug_info)  # noqa
             return
 
         #if i.Ts != o.Ts:
