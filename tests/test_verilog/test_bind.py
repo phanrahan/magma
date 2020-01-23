@@ -2,8 +2,6 @@ import magma as m
 import magma.testing
 
 
-
-
 def test_bind():
     class RTL(m.Generator):
         @staticmethod
