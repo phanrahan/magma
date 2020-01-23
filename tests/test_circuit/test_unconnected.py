@@ -59,22 +59,24 @@ def test_unconnected_io(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_io()
         logs = caplog.records
-        assert len(logs) == 2
+        assert len(logs) == 1
         for log in logs:
             assert log.levelname == "ERROR"
-        assert logs[0].msg == "\x1b[1mtests/test_circuit/test_unconnected.py:7: Output port _Circuit.O not driven"  # nopep8
-        assert logs[1].msg == "    class _Circuit(m.Circuit):\n"
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:7\x1b[0m: Output port _Circuit.O not driven
+>>     class _Circuit(m.Circuit):"""
+        assert logs[0].msg == expected
 
 
 def test_unconnected_instance(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_instance()
         logs = caplog.records
-        assert len(logs) == 2
+        assert len(logs) == 1
         for log in logs:
             assert log.levelname == "ERROR"
-        assert logs[0].msg == "\x1b[1mtests/test_circuit/test_unconnected.py:31: Input port buf.I not driven"  # nopep8
-        assert logs[1].msg == "            buf = _Buffer()\n"
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:31\x1b[0m: Input port buf.I not driven
+>>             buf = _Buffer()"""
+        assert logs[0].msg == expected
 
 
 @pytest.mark.parametrize("typ", [m.Clock, m.Reset, m.AsyncReset])

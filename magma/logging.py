@@ -1,105 +1,115 @@
-"""
-Example usage:
-$ MAGMA_LOG_LEVEL=DEBUG MAGMA_LOG_STREAM=stdout pytest
-"""
-from __future__ import absolute_import
-from __future__ import print_function
-
-import logging
-import traceback
-import inspect
-import sys
-import os
-from io import StringIO
 import colorlog
+import inspect
+import io
+import logging
+import sys
+import traceback
+from .backend.util import make_relative
+from .config import config, EnvConfig
 
 
-streams = {
-    "stdout": sys.stdout,
-    "stderr": sys.stderr
-}
-
-stream = os.getenv("MAGMA_LOG_STREAM", "stderr")
-if stream not in streams:
-    logging.warning(f"Unsupported value for MAGMA_LOG_STREAM: {stream} "
-                    "using stderr instead")
-log_stream = streams.get(stream, sys.stderr)
-log = logging.getLogger("magma")
-handler = colorlog.StreamHandler(log_stream)
-handler.setFormatter(colorlog.ColoredFormatter(
-    '%(name)s:%(log_color)s%(levelname)s%(reset)s:%(message)s'))
-log.addHandler(handler)
+config._register(
+    log_stream=EnvConfig("MAGMA_LOG_STREAM", "stderr"),
+    log_level=EnvConfig("MAGMA_LOG_LEVEL", "INFO"),
+    include_traceback=EnvConfig("MAGMA_INCLUDE_WIRE_TRACEBACK", False, bool),
+    traceback_limit=EnvConfig("MAGMA_ERROR_TRACEBACK_LIMIT", 5, int),
+)
 
 
-level = os.getenv("MAGMA_LOG_LEVEL", "INFO")
-if level in ["DEBUG", "WARN", "INFO"]:
-    log.setLevel(getattr(logging, level))
-elif level is not None:
-    logging.warning(f"Unsupported value for MAGMA_LOG_LEVEL: {level}")
+def _make_bold(string):
+    return f"\033[1m{string}\033[0m"
 
 
-__magma_include_wire_traceback = os.getenv("MAGMA_INCLUDE_WIRE_TRACEBACK", False)
-
-
-traceback_limit = int(os.getenv("MAGMA_ERROR_TRACEBACK_LIMIT", "5"))
-
-
-def get_original_wire_call_stack_frame():
-    for frame in inspect.stack():
-        if sys.version_info < (3, 5):
-            function = inspect.getframeinfo(frame[0]).function
-        else:
-            function = frame.function
-        if function not in ["wire", "connect",
-                            "get_original_wire_call_stack_frame", "error",
-                            "warn", "print_wire_traceback_wrapped",
-                            "report_wiring_error", "report_wiring_warning",
-                            "__call__", "wireoutputs"]:
-            break
-    if sys.version_info < (3, 5):
-        return frame[0]
-    else:
-        return frame.frame
-
-
-def print_wire_traceback(fn):
-    def print_wire_traceback_wrapped(*args, **kwargs):
-        include_wire_traceback = kwargs.get("include_wire_traceback", False)
-        if include_wire_traceback:
-            del kwargs["include_wire_traceback"]
-        if include_wire_traceback and __magma_include_wire_traceback:
-            fn("="*20 + " BEGIN: MAGMA WIRING ERROR TRACEBACK " + "="*20)
-            stack_frame = get_original_wire_call_stack_frame()
-            with StringIO() as io:
-                traceback.print_stack(f=stack_frame, limit=traceback_limit, file=io)
-                for line in io.getvalue().splitlines():
-                    fn(line)
-            fn("="*20 + " END: MAGMA WIRING ERROR TRACEBACK " + "="*20)
-        res = fn(*args, **kwargs)
-        return res
-    return print_wire_traceback_wrapped
-
-
-@print_wire_traceback
-def debug(message, *args, **kwargs):
-    log.debug(message, *args, **kwargs)
-
-
-@print_wire_traceback
-def info(message, *args, **kwargs):
-    log.info(message, *args, **kwargs)
-
-
-@print_wire_traceback
-def warning(message, *args, **kwargs):
-    log.warning(message, *args, **kwargs)
-
-
-@print_wire_traceback
-def error(message, *args, **kwargs):
-    log.error(message, *args, **kwargs)
-
-
-def get_source_line(filename, lineno):
+def _get_source_line(filename, lineno):
     with open(filename, "r") as f:
         return f.readlines()[lineno - 1]
+
+
+def _attach_debug_info(msg, debug_info):
+    file = debug_info[0]
+    line = debug_info[1]
+    line_info = _make_bold(f"{make_relative(file)}:{line}")
+    msg = f"{line_info}: {msg}"
+    try:
+        source = _get_source_line(file, line).rstrip("\n")
+        source = f">> {source}"
+    except FileNotFoundError:
+        source = f"(Could not file file {file})"
+    msg = f"{msg}\n{source}"
+    return msg
+
+
+def _attach_traceback(msg, frame_selector, limit):
+    """
+    Attaches traceback string to @msg and returns new string.
+
+    @frame_selector is a function which takes a list of stack frames and selects
+    one. For example, it could select the frame based on an index, or based on
+    the function names.
+    """
+    frame = frame_selector(inspect.stack()).frame
+    with io.StringIO() as io_:
+        traceback.print_stack(f=frame, limit=limit, file=io_)
+        tb = io_.getvalue()
+    msg = f"{msg}\n{tb}"
+    return msg
+
+
+def _frame_selector(frames):
+    return frames[3]
+
+
+def _get_additional_kwarg(kwargs, key):
+    try:
+        value = kwargs.pop(key)
+        return value
+    except KeyError:
+        return None
+
+
+class _MagmaLogger(logging.Logger):
+    """
+    Derivative of logging.Logger class, with two additional keyword args:
+    * 'debug_info': Tuple of (file_name, line_no). If 'debug_info' is included,
+       this source-level information is logged along with the message.
+    * 'include_traceback': If True, a traceback is printed along with the
+       message.
+    """
+    @staticmethod
+    def __with_preamble(fn, msg, *args, **kwargs):
+        debug_info = _get_additional_kwarg(kwargs, "debug_info")
+        if debug_info:
+            msg = _attach_debug_info(msg, debug_info)
+        include_traceback = _get_additional_kwarg(kwargs, "include_traceback")
+        if include_traceback or config.include_traceback:
+            msg = _attach_traceback(
+                msg, _frame_selector, config.traceback_limit)
+        fn(msg, *args, **kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        _MagmaLogger.__with_preamble(super().debug, msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        _MagmaLogger.__with_preamble(super().info, msg, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        _MagmaLogger.__with_preamble(super().warning, msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        _MagmaLogger.__with_preamble(super().error, msg, *args, **kwargs)
+
+
+# Set logging class to _MagmaLogger to override logging behavior. Also, setup
+# root logger parameters.
+logging.setLoggerClass(_MagmaLogger)
+_log_stream = getattr(sys, config.log_stream)
+_root_logger = logging.getLogger("magma")
+_handler = colorlog.StreamHandler(_log_stream)
+_handler.setFormatter(colorlog.ColoredFormatter(
+    '%(log_color)s%(levelname)s%(reset)s:%(name)s:%(message)s'))
+_root_logger.addHandler(_handler)
+_root_logger.setLevel(config.log_level)
+
+
+def root_logger():
+    return logging.getLogger("magma")

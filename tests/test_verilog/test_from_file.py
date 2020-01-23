@@ -265,3 +265,21 @@ endmodule   // mod
     assert m.testing.check_files_equal(
         __file__, "build/test_int_literal_inst.v",
         "gold/test_int_literal_inst.v")
+
+
+def test_divide_param():
+    verilog = """
+module mod (input I);
+    localparam myparam = 10 / 2;
+endmodule
+"""
+    m.DefineFromVerilog(verilog)
+
+
+def test_divide_clog2():
+    verilog = """
+module mod (input I);
+    localparam myparam = $clog2(8);
+endmodule
+"""
+    m.DefineFromVerilog(verilog)

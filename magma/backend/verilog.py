@@ -15,22 +15,22 @@ from ..bits import SInt
 from ..tuple import Tuple
 from ..is_definition import isdefinition
 from ..clock import wiredefaultclock
-import logging
-import os
-
-logger = logging.getLogger('magma').getChild('verilog_backend')
-level = os.getenv("MAGMA_VERILOG_BACKEND_LOG_LEVEL", "WARN")
-# TODO: Factor this with magma.logging code for debug level validation
-if level in ["DEBUG", "WARN", "INFO"]:
-    logger.setLevel(getattr(logging, level))
-elif level is not None:
-    logging.warning("Unsupported value for MAGMA_VERILOG_BACKEND_LOG_LEVEL:"
-                    f" {level}")
-
+from ..logging import root_logger
 from .util import get_codegen_debug_info, make_relative
+from ..config import config, EnvConfig
+
+
+config._register(
+    verilog_backend_log_level=EnvConfig(
+        "MAGMA_VERILOG_BACKEND_LOG_LEVEL", "WARN"),
+)
+
+_logger = root_logger().getChild("verilog_backend")
+_logger.setLevel(config.verilog_backend_log_level)
 
 #__all__  = ['hstr', 'bstr']
 __all__  = ['hstr']
+
 
 # return the hex character for int n
 def hex(n):
@@ -122,7 +122,7 @@ def compileinstance(self):
             # find the output connected to v
             w = v.value()
             if w is None:
-                logging.warning(f'{v.debug_name} not connected')
+                _logger.warning(f'{v.debug_name} not connected')
                 continue
             v = w
         if isinstance(v, Tuple):
@@ -227,7 +227,7 @@ def compiledefinition(cls):
                             s += f"// Wired at {make_relative(port.debug_info[0])}:{port.debug_info[1]}\n"
                         s += 'assign %s = %s;\n' % (iname, oname)
                 else:
-                    logging.warning(f"{cls.__name__}.{port.name} is unwired")
+                    _logger.warning(f"{cls.__name__}.{port.name} is unwired")
 
     s += "endmodule\n"
 
@@ -250,7 +250,7 @@ def compile(main):
     code = ''
 
     for k, v in defn.items():
-         logging.debug(f'compiling circuit {k}')
+         _logger.debug(f'compiling circuit {k}')
          code += compiledefinition(v) + '\n'
     return code
 

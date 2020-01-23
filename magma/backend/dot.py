@@ -4,13 +4,15 @@ from ..compiler import make_compiler
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
 from collections import OrderedDict
-import magma.logging as logging
-
+from ..logging import root_logger
 from graphviz import Digraph
 import re
 
-# Initially based on the firrtl backend.
 
+_logger = root_logger()
+
+
+# Initially based on the firrtl backend.
 def escape(s):
     # Escape special characters for graphviz labels.
     return re.sub(r'([<>])', r'\\\1', s)
@@ -49,7 +51,7 @@ def compileinstance(dot, instance):
             inputs.append('<{0}> {0}'.format(str(name)))
             value = port.value()
             if value is None:
-                logging.warning(f'Input {port.debug_name} not connected to an output')
+                _logger.warning(f'Input {port.debug_name} not connected to an output')
                 continue
         else:
             outputs.append('<{0}> {0}'.format(str(name)))

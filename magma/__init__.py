@@ -54,14 +54,14 @@ from .backend.verilog import *
 # compile
 from .compile import *
 
-from .logging import warning
+from .logging import root_logger
 
 
 mantle_target = None
 def set_mantle_target(t):
      global mantle_target
      if mantle_target is not None and mantle_target != t:
-         warning('changing mantle target', mantle_target, t )
+         root_logger().warning('changing mantle target', mantle_target, t )
      mantle_target = t
 
 from .backend.util import set_codegen_debug_info
