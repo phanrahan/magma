@@ -99,7 +99,10 @@ class RewriteReturn(ast.NodeTransformer):
             elts.extend(node.value.elts)
         else:
             elts.append(node.value)
-        node.value = ast.Tuple(elts, ast.Load())
+        if len(elts) == 1:
+            node.value == 0
+        else:
+            node.value = ast.Tuple(elts, ast.Load())
         return node
 
 
@@ -122,6 +125,9 @@ def get_initial_value_map(init_func, defn_env):
     design of this simpler
     """
     initial_value_map = {}
+    if init_func is object.__init__:
+        # Handle case when no __init__
+        return initial_value_map
     init_def = get_ast(init_func).body[0]
     # init_def = ExecuteEscapedPythonExpressions(defn_env).visit(init_def)
     init_def = SpecializeConstantInts(defn_env).visit(init_def)
@@ -387,7 +393,11 @@ def _sequential(
     else:
         output_type_str = astor.to_source(output_type).rstrip()
         circuit_combinational_output_type.append(output_type_str)
-        comb_out_wiring.append(f"io.O <= comb_out[{comb_out_count}]\n")
+        # Handle case when no registers, so only one output
+        index_str = ""
+        if comb_out_count > 0:
+            index_str = f"[{comb_out_count}]"
+        comb_out_wiring.append(f"io.O <= comb_out{index_str}\n")
 
     tab = 4 * ' '
     comb_out_wiring = (3 * tab).join(comb_out_wiring)
