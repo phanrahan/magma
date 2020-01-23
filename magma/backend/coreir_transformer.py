@@ -3,7 +3,6 @@ from copy import copy
 import json
 import logging
 import os
-from ..compile import compile
 from ..config import get_compile_dir, set_compile_dir
 from ..array import Array
 from ..bit import VCC, GND
@@ -21,6 +20,7 @@ from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
+from .verilog import VerilogCompiler
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -158,8 +158,7 @@ class DefinitionTransformer(TransformerBase):
                 os.mkdir(".magma")
             curr_compile_dir = get_compile_dir()
             set_compile_dir("normal")
-            compile(f".magma/{bind_module.name}", bind_module,
-                    output="verilog")
+            VerilogCompiler(bind_module, f".magma/{bind_module.name}")
             set_compile_dir(curr_compile_dir)
             with open(f".magma/{bind_module.name}.v", "r") as f:
                 content = "\n".join((f.read(), bind_stmt))
