@@ -1,3 +1,4 @@
+import os
 import subprocess
 from .coreir_ import InsertWrapCasts
 from ..compiler import Compiler
@@ -51,6 +52,14 @@ class CoreIRCompiler(Compiler):
         ret = subprocess.run(cmd, shell=True).returncode
         if ret:
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
+
+        backend = coreir_frontend.GetCoreIRBackend()
+        # TODO: We need fresh bind_files for each compile call
+        for name, file in backend.sv_bind_files.items():
+            filename = os.path.join(os.path.dirname(self.basename), name)
+            with open(f"{filename}.sv", "w") as f:
+                f.write(file)
+
         if self.opts.get("sv", False):
             subprocess.run(["mv", f"{self.basename}.v", f"{self.basename}.sv"])
 

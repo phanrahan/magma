@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from copy import copy
 import json
+import logging
+import os
 from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
@@ -17,6 +19,7 @@ from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
+from .verilog import VerilogCompiler
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -149,6 +152,15 @@ class DefinitionTransformer(TransformerBase):
             inline_verilog = "\n\n".join(self.defn.inline_verilog_strs)
             self.coreir_module.add_metadata("inline_verilog",
                                             json.dumps(inline_verilog))
+        for bind_module, bind_stmt in self.defn.bind_modules:
+            if not os.path.isdir(".magma"):
+                os.mkdir(".magma")
+            VerilogCompiler(bind_module,
+                            f".magma/{bind_module.name}").compile()
+            with open(f".magma/{bind_module.name}.v", "r") as f:
+                content = "\n".join((f.read(), bind_stmt))
+                self.backend.sv_bind_files[bind_module.name] = content
+
         self.coreir_module.definition = self.get_coreir_defn()
 
     def get_coreir_defn(self):
