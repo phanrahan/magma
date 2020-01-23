@@ -1,0 +1,44 @@
+{"top":"global.TestNoInit",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestNoInit":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["b","BitIn"],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "TestNoInit_comb_inst0":{
+            "modref":"global.TestNoInit_comb"
+          }
+        },
+        "connections":[
+          ["self.O","TestNoInit_comb_inst0.O"],
+          ["self.a","TestNoInit_comb_inst0.a"],
+          ["self.b","TestNoInit_comb_inst0.b"]
+        ]
+      },
+      "TestNoInit_comb":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["b","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "magma_Bit_and_inst0":{
+            "modref":"corebit.and"
+          }
+        },
+        "connections":[
+          ["self.a","magma_Bit_and_inst0.in0"],
+          ["self.b","magma_Bit_and_inst0.in1"],
+          ["self.O","magma_Bit_and_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

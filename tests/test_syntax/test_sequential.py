@@ -459,3 +459,5 @@ def test_no_init(target):
     class TestNoInit:
         def __call__(self, a: m.Bit, b: m.Bit) -> m.Bit:
             return a & b
+
+    compile_and_check("TestNoInit", TestNoInit, target)
