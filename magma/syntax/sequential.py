@@ -13,6 +13,7 @@ from collections import Counter
 import itertools
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
+from ast_tools import gen_free_name
 
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
@@ -182,7 +183,7 @@ circuit_definition_template = """
 from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt
 
 def make_{circuit_name}(combinational):
-    class {circuit_name}(m.Circuit):
+    class {circuit_name}({magma_name}.Circuit):
         IO = {io_list}
 
         @classmethod
@@ -200,7 +201,7 @@ def make_{circuit_name}(combinational):
 def gen_array_str(eval_type, eval_value, async_reset, magma_name):
     arr = [gen_reg_inst_str(eval_type.T, eval_value[i], async_reset, magma_name) for i
            in range(len(eval_type))]
-    return f"m.join([{', '.join(arr)}])"
+    return f"{magma_name}.join([{', '.join(arr)}])"
 
 
 def gen_product_str(eval_type, eval_value, async_reset, magma_name):
@@ -263,18 +264,18 @@ def gen_io_list(inputs, output_type, async_reset, magma_name):
     io_list = []
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
-        io_list.append(f"\"{name}\", m.In({type_})")
-    io_list.append(f"\"CLK\", m.In(m.Clock)")
+        io_list.append(f"\"{name}\", {magma_name}.In({type_})")
+    io_list.append(f"\"CLK\", {magma_name}.In({magma_name}.Clock)")
     if async_reset:
-        io_list.append(f"\"ASYNCRESET\", m.In(m.AsyncReset)")
+        io_list.append(f"\"ASYNCRESET\", {magma_name}.In({magma_name}.AsyncReset)")
     if isinstance(output_type, ast.Tuple):
         outputs = []
         for i, elem in enumerate(output_type.elts):
             output_type_str = astor.to_source(elem).rstrip()
-            io_list.append(f"\"O{i}\", m.Out({output_type_str})")
+            io_list.append(f"\"O{i}\", {magma_name}.Out({output_type_str})")
     else:
         output_type_str = astor.to_source(output_type).rstrip()
-        io_list.append(f"\"O\", m.Out({output_type_str})")
+        io_list.append(f"\"O\", {magma_name}.Out({output_type_str})")
     return '[' + ', '.join(io_list) + ']'
 
 
@@ -328,7 +329,7 @@ def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring
                 f"{name}{arrays}.I <= comb_out[{comb_out_count}].{dots} \n"
             )
             call_args.append(f"{key}={name}{arrays}.O")
-    return "m.namedtuple(" + ", ".join(call_args) + ")"
+    return f"{magma_name}.namedtuple(" + ", ".join(call_args) + ")"
 
 
 def _sequential(
@@ -343,7 +344,9 @@ def _sequential(
     initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 
     call_def = get_ast(cls.__call__).body[0]
-    magma_name = 'm'
+    magma_name = gen_free_name(call_def, defn_env, 'm')
+    defn_env[magma_name] = m
+
     inputs, output_type = get_io(call_def)
     io_list = gen_io_list(inputs, output_type, async_reset, magma_name)
 
@@ -377,10 +380,10 @@ def _sequential(
                     continue
                 type_ = repr(type(value))
                 if value.is_output():
-                    circuit_combinational_args.append(f"self_{name}_{value}: m.{type_}")
+                    circuit_combinational_args.append(f"self_{name}_{value}: {magma_name}.{type_}")
                     circuit_combinational_call_args.append(f"{name}.{value}")
                 if value.is_input():
-                    circuit_combinational_output_type.append(f"m.{type_}")
+                    circuit_combinational_output_type.append(f"{magma_name}.{type_}")
                     comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
                     comb_out_count += 1
 
@@ -428,7 +431,8 @@ def _sequential(
         circuit_combinational_output_type=circuit_combinational_output_type,
         circuit_combinational_body=circuit_combinational_body,
         circuit_combinational_call_args=circuit_combinational_call_args,
-        comb_out_wiring=comb_out_wiring
+        comb_out_wiring=comb_out_wiring,
+        magma_name=magma_name,
     )
     tree = ast.parse(circuit_definition_str)
     if "DefineRegister" not in defn_env:
