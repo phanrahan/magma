@@ -1,3 +1,5 @@
+import pytest
+
 import magma as m
 
 def test_basic():
@@ -25,4 +27,11 @@ def test_compound():
             io.O[0] @= io.I0
             io.O[1] @= io.I1
 
+def test_errors():
+    with pytest.raises(ValueError):
+        class Test(m.Circuit):
+            IO = ["I", m.In(m.Bits[1]), "O", m.Out(m.Bits[1])]
 
+            @classmethod
+            def definition(io):
+                io.O[0] = io.I[0]
