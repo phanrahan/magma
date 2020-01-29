@@ -13,6 +13,7 @@ from collections import Counter
 import itertools
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
+from ast_tools import gen_free_name
 
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
@@ -182,7 +183,7 @@ circuit_definition_template = """
 from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt
 
 def make_{circuit_name}(combinational):
-    class {circuit_name}(m.Circuit):
+    class {circuit_name}({magma_name}.Circuit):
         IO = {io_list}
 
         @classmethod
@@ -197,21 +198,21 @@ def make_{circuit_name}(combinational):
 """
 
 
-def gen_array_str(eval_type, eval_value, async_reset):
-    arr = [gen_reg_inst_str(eval_type.T, eval_value[i], async_reset) for i
+def gen_array_str(eval_type, eval_value, async_reset, magma_name):
+    arr = [gen_reg_inst_str(eval_type.T, eval_value[i], async_reset, magma_name) for i
            in range(len(eval_type))]
-    return f"m.join([{', '.join(arr)}])"
+    return f"{magma_name}.join([{', '.join(arr)}])"
 
 
-def gen_product_str(eval_type, eval_value, async_reset):
+def gen_product_str(eval_type, eval_value, async_reset, magma_name):
     t = [
-        f"'{key}':" + gen_reg_inst_str(eval_type[key], eval_value[key], async_reset)
+        f"'{key}':" + gen_reg_inst_str(eval_type[key], eval_value[key], async_reset, magma_name)
         for key in eval_type.keys()
     ]
     return f"{{{', '.join(t)}}}"
 
 
-def gen_reg_inst_str(eval_type, eval_value, async_reset):
+def gen_reg_inst_str(eval_type, eval_value, async_reset, magma_name):
     if issubclass(eval_type, m.Digital):
         n = None
         if isinstance(eval_value, (bool, int)):
@@ -224,15 +225,15 @@ def gen_reg_inst_str(eval_type, eval_value, async_reset):
         n = len(eval_type)
         init = int(eval_value)
     elif issubclass(eval_type, m.Array):
-        return f"{gen_array_str(eval_type, eval_value, async_reset)}"
+        return f"{gen_array_str(eval_type, eval_value, async_reset, magma_name)}"
     elif issubclass(eval_type, m.Product):
-        return f"{gen_product_str(eval_type, eval_value, async_reset)}"
+        return f"{gen_product_str(eval_type, eval_value, async_reset, magma_name)}"
     else:
         raise NotImplementedError((eval_type))
     return f"DefineRegister({n}, init={init}, has_async_reset={async_reset})()"
 
 
-def gen_register_instances(initial_value_map, async_reset):
+def gen_register_instances(initial_value_map, async_reset, magma_name):
     """
     Generates a sequence of statements to instance a set of registers from
     `initial_value_map`.
@@ -251,7 +252,7 @@ def gen_register_instances(initial_value_map, async_reset):
     for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
         if isinstance(eval_type, m.Kind):
             reg_inst_str = gen_reg_inst_str(eval_type, eval_value,
-                                            async_reset)
+                                            async_reset, magma_name)
             register_instances.append(f"{name} = {reg_inst_str}")
         else:
             value = astor.to_source(value).rstrip()
@@ -259,22 +260,22 @@ def gen_register_instances(initial_value_map, async_reset):
     return register_instances
 
 
-def gen_io_list(inputs, output_type, async_reset):
+def gen_io_list(inputs, output_type, async_reset, magma_name):
     io_list = []
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
-        io_list.append(f"\"{name}\", m.In({type_})")
-    io_list.append(f"\"CLK\", m.In(m.Clock)")
+        io_list.append(f"\"{name}\", {magma_name}.In({type_})")
+    io_list.append(f"\"CLK\", {magma_name}.In({magma_name}.Clock)")
     if async_reset:
-        io_list.append(f"\"ASYNCRESET\", m.In(m.AsyncReset)")
+        io_list.append(f"\"ASYNCRESET\", {magma_name}.In({magma_name}.AsyncReset)")
     if isinstance(output_type, ast.Tuple):
         outputs = []
         for i, elem in enumerate(output_type.elts):
             output_type_str = astor.to_source(elem).rstrip()
-            io_list.append(f"\"O{i}\", m.Out({output_type_str})")
+            io_list.append(f"\"O{i}\", {magma_name}.Out({output_type_str})")
     else:
         output_type_str = astor.to_source(output_type).rstrip()
-        io_list.append(f"\"O\", m.Out({output_type_str})")
+        io_list.append(f"\"O\", {magma_name}.Out({output_type_str})")
     return '[' + ', '.join(io_list) + ']'
 
 
@@ -311,14 +312,14 @@ class SpecializeConstantInts(ast.NodeTransformer):
         return node
 
 
-def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring):
+def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring, magma_name):
     call_args = []
     for key in eval_type.keys():
         if isinstance(eval_type[key], m.ProductKind):
             call_args.append(
                 f"{key}="
                 + gen_product_call_args(
-                    name, comb_out_count, eval_type[key], keys + [key], comb_out_wiring
+                    name, comb_out_count, eval_type[key], keys + [key], comb_out_wiring, magma_name
                 )
             )
         else:
@@ -328,7 +329,7 @@ def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring
                 f"{name}{arrays}.I <= comb_out[{comb_out_count}].{dots} \n"
             )
             call_args.append(f"{key}={name}{arrays}.O")
-    return "m.namedtuple(" + ", ".join(call_args) + ")"
+    return f"{magma_name}.namedtuple(" + ", ".join(call_args) + ")"
 
 
 def _sequential(
@@ -339,11 +340,15 @@ def _sequential(
     # if not inspect.isclass(cls):
     #     raise ValueError("sequential decorator only works with classes")
 
+
     initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 
     call_def = get_ast(cls.__call__).body[0]
+    magma_name = gen_free_name(call_def, defn_env, 'm')
+    defn_env[magma_name] = m
+
     inputs, output_type = get_io(call_def)
-    io_list = gen_io_list(inputs, output_type, async_reset)
+    io_list = gen_io_list(inputs, output_type, async_reset, magma_name)
 
     circuit_combinational_output_type = []
     circuit_combinational_args = []
@@ -362,7 +367,7 @@ def _sequential(
             circuit_combinational_output_type.append(f"{type_}")
             if isinstance(eval_type, m.ProductKind):
                 call_args = gen_product_call_args(
-                    name, comb_out_count, eval_type, [], comb_out_wiring
+                    name, comb_out_count, eval_type, [], comb_out_wiring, magma_name
                 )
                 circuit_combinational_call_args.append(f"self_{name}_O=" + call_args)
             else:
@@ -375,10 +380,10 @@ def _sequential(
                     continue
                 type_ = repr(type(value))
                 if value.is_output():
-                    circuit_combinational_args.append(f"self_{name}_{value}: m.{type_}")
+                    circuit_combinational_args.append(f"self_{name}_{value}: {magma_name}.{type_}")
                     circuit_combinational_call_args.append(f"{name}.{value}")
                 if value.is_input():
-                    circuit_combinational_output_type.append(f"m.{type_}")
+                    circuit_combinational_output_type.append(f"{magma_name}.{type_}")
                     comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
                     comb_out_count += 1
 
@@ -415,7 +420,7 @@ def _sequential(
                 circuit_combinational_body.append(line)
 
     circuit_combinational_body = ('\n' + 4*tab).join(circuit_combinational_body)
-    register_instances = gen_register_instances(initial_value_map, async_reset)
+    register_instances = gen_register_instances(initial_value_map, async_reset, magma_name)
     register_instances = ('\n' + 3*tab).join(register_instances)
 
     circuit_definition_str = circuit_definition_template.format(
@@ -426,7 +431,8 @@ def _sequential(
         circuit_combinational_output_type=circuit_combinational_output_type,
         circuit_combinational_body=circuit_combinational_body,
         circuit_combinational_call_args=circuit_combinational_call_args,
-        comb_out_wiring=comb_out_wiring
+        comb_out_wiring=comb_out_wiring,
+        magma_name=magma_name,
     )
     tree = ast.parse(circuit_definition_str)
     if "DefineRegister" not in defn_env:
