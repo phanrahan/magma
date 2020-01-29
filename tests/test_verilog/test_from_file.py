@@ -3,7 +3,7 @@ import magma.testing
 import os
 import pytest
 import pyverilog
-from magma.fromverilog import parse_int_const
+from magma.frontend.verilog import parse_int_const
 from hwtypes import BitVector
 
 

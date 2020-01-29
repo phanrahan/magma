@@ -9,17 +9,17 @@ import pyverilog.vparser.parser as parser
 from pyverilog.dataflow.visit import NodeVisitor
 import pyverilog.vparser.ast as pyverilog_ast
 
-from .t import In, Out, InOut
-from .bit import Bit
-from .bits import Bits
-from .digital import Digital
-from .array import Array
-from .circuit import DeclareCircuit, DefineCircuit, EndDefine
+from ..t import In, Out, InOut
+from ..bit import Bit
+from ..bits import Bits
+from ..digital import Digital
+from ..array import Array
+from ..circuit import DeclareCircuit, DefineCircuit, EndDefine
 
-from .passes.tsort import tsort
-from .math import log2_ceil
+from ..passes.tsort import tsort
+from ..math import log2_ceil
 
-from .logging import root_logger
+from ..logging import root_logger
 from hwtypes import UIntVector, SIntVector
 
 _logger = root_logger().getChild('from_verilog')

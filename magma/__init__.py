@@ -48,7 +48,7 @@ from .circuit import *
 from .braid import *
 
 # verilog
-from .fromverilog import *
+from .frontend.verilog import *
 from .backend.verilog import *
 
 # compile
