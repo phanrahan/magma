@@ -27,6 +27,17 @@ def test_compound():
             io.O[0] @= io.I0
             io.O[1] @= io.I1
 
+def test_recursive():
+    class Test(m.Circuit):
+        IO = ["I", m.In(m.Array[3, m.Bits[2]]), "O", m.Out(m.Array[3, m.Bits[2]])]
+
+        @classmethod
+        def definition(io):
+            io.O[0:1][:][0] @= io.I[0:1][:][0] # [0]
+            io.O[1:2][0][0:1] @= io.I[1:2][0][0:1] # [1][0]
+            io.O[1][1:2] @= io.I[1][1:2] # [1][1]
+            io.O[2][:] @= io.I[2][:]
+
 def test_errors():
     with pytest.raises(ValueError):
         class Test(m.Circuit):
@@ -35,3 +46,4 @@ def test_errors():
             @classmethod
             def definition(io):
                 io.O[0] = io.I[0]
+
