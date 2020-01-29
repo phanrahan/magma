@@ -222,6 +222,21 @@ class Array(Type, metaclass=ArrayMeta):
 
             return self.ts[key]
 
+    def __setitem__(self, key, val):
+        error = False
+        old = self[key]
+        if isinstance(old, Array):
+            if len(old) != len(val):
+                error = True
+            elif any(old[i] is not val[i] for i in range(len(old))):
+                error = True
+        elif old is not val:
+            error = True
+
+        if error:
+            raise ValueError('May not mutate array')
+
+
     def __add__(self, other):
         other_len = other.N
         total = self.N + other_len
