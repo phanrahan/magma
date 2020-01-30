@@ -5,8 +5,8 @@ from rtl import RTL
 class RTLMonitor(m.MonitorGenerator):
     @staticmethod
     def generate_bind(circuit, width):
-        # circuit is a reference to the generated module (to retrieve
-        # internal signals)
+        # circuit is a reference to the generated module (to retrieve internal
+        # signals and bind to the module)
         class RTLMonitor(m.Circuit):
             IO = m.MonitorIO(circuit)
             IO += ["mon_temp1", m.In(m.Bit),
