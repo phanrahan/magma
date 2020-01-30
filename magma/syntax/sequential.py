@@ -14,6 +14,7 @@ import itertools
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
 from ast_tools import gen_free_name
+from ast_tools.passes import ssa, bool_to_bit
 
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
@@ -344,6 +345,8 @@ def _sequential(
     initial_value_map = get_initial_value_map(cls.__init__, defn_env)
 
     call_def = get_ast(cls.__call__).body[0]
+    call_def, defn_env, _ = ssa(strict=False).rewrite(call_def, defn_env, {})
+    call_def, defn_env, _ = bool_to_bit().rewrite(call_def, defn_env, _)
     magma_name = gen_free_name(call_def, defn_env, 'm')
     defn_env[magma_name] = m
 
