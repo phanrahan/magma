@@ -538,7 +538,9 @@ class DefineCircuitKind(CircuitKind):
                 result += cls.gen_bind_port(child1, child2)
             return result
         else:
-            return [(f".{verilog_name(mon_arg.name)}({verilog_name(bind_arg.name)})")]
+            port = verilog_name(mon_arg.name)
+            arg = verilog_name(bind_arg.name)
+            return [(f".{port}({arg})")]
 
     def bind(cls, monitor, *args):
         bind_str = monitor.verilogFile
