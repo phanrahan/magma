@@ -3,7 +3,6 @@ from copy import copy
 import json
 import logging
 import os
-import magma as m
 from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
