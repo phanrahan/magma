@@ -4,7 +4,7 @@ from rtl import RTL
 
 class RTLMonitor(m.MonitorGenerator):
     @staticmethod
-    def generate(circuit, width):
+    def generate_bind(circuit, width):
         # circuit is a reference to the generated module (to retrieve
         # internal signals)
         class RTLMonitor(m.Circuit):
@@ -22,7 +22,7 @@ class RTLMonitor(m.MonitorGenerator):
                     assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
                 """, valid=cls.handshake.valid)
 
-        return RTLMonitor
+        circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2)
 
 
 RTL.bind(RTLMonitor)

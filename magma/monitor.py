@@ -9,5 +9,5 @@ def MonitorIO(circuit):
     return IO
 
 
-class MonitorGenerator(Generator):
+class MonitorGenerator:
     pass

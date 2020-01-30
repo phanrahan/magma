@@ -23,7 +23,7 @@ class GeneratorMeta(type):
         def generate_wrapper(*args, **kwargs):
             result = old_generate(*args, **kwargs)
             for gen in cls.bind_generators:
-                result.bind(gen.generate(result, *args, **kwargs))
+                gen.generate_bind(result, *args, **kwargs)
             return result
 
         cls.generate = generate_wrapper
