@@ -117,9 +117,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return cls(value)
         return cls.unsized_t[num_bits](value)
 
-    def __setitem__(self, index: int, value: AbstractBit):
-        raise NotImplementedError()
-
     @classmethod
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
