@@ -13,9 +13,20 @@ class ParamDict(dict):
 
 class GeneratorMeta(type):
     def __new__(mcs, name, bases, attrs):
+        attrs["bind_generators"] = []
         cls = super().__new__(mcs, name, bases, attrs)
         if cls.cache:
             cls.generate = functools.lru_cache(maxsize=None)(cls.generate)
+
+        old_generate = cls.generate
+
+        def generate_wrapper(*args, **kwargs):
+            result = old_generate(*args, **kwargs)
+            for gen in cls.bind_generators:
+                result.bind(gen.generate(result, *args, **kwargs))
+            return result
+
+        cls.generate = generate_wrapper
         return cls
 
     def __call__(cls, *args, name=None, **kwargs):
@@ -33,9 +44,12 @@ class GeneratorMeta(type):
 class Generator(metaclass=GeneratorMeta):
     # User can disable cacheing by setting this attribute to False
     cache = True
-    __circuit_cache = {}
 
     @staticmethod
     @abstractmethod
     def generate(*args, **kwargs):
         raise NotImplementedError()
+
+    @classmethod
+    def bind(cls, monitor):
+        cls.bind_generators.append(monitor)
