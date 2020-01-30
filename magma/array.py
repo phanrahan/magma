@@ -234,7 +234,8 @@ class Array(Type, metaclass=ArrayMeta):
             error = True
 
         if error:
-            raise ValueError('May not mutate array')
+            _logger.error(f'May not mutate array, trying to replace '
+                          f'{self}[{key}] ({old}) with {val}')
 
 
     def __add__(self, other):

@@ -38,12 +38,12 @@ def test_recursive():
             io.O[1][1:2] @= io.I[1][1:2] # [1][1]
             io.O[2][:] @= io.I[2][:]
 
-def test_errors():
-    with pytest.raises(ValueError):
-        class Test(m.Circuit):
-            IO = ["I", m.In(m.Bits[1]), "O", m.Out(m.Bits[1])]
+def test_errors(caplog):
+    class Test(m.Circuit):
+        IO = ["I", m.In(m.Bits[1]), "O", m.Out(m.Bits[1])]
 
-            @classmethod
-            def definition(io):
-                io.O[0] = io.I[0]
+        @classmethod
+        def definition(io):
+            io.O[0] = io.I[0]
 
+    assert caplog.records[0].levelname == "ERROR"
