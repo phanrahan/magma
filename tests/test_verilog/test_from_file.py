@@ -3,7 +3,8 @@ import magma.testing
 import os
 import pytest
 import pyverilog
-from magma.frontend.verilog import parse_int_const
+from magma.frontend.verilog_utils import int_const_str_to_int as parse_int_const
+from magma.frontend.verilog_importer import MultipleModuleDeclarationError
 from hwtypes import BitVector
 
 
@@ -190,12 +191,12 @@ endmodule""")
 
 
 def test_from_verilog_external_modules_duplicate():
-    with pytest.raises(Exception) as pytest_e:
+    with pytest.raises(MultipleModuleDeclarationError) as pytest_e:
         [foo] = m.DefineFromVerilog("""
 module foo(input I, output O);
     assign O = I;
 endmodule""")
-        [bar] = m.DefineFromVerilog("""
+        _ = m.DefineFromVerilog("""
 module foo(input I, output O);
     assign O = I;
 endmodule
@@ -204,9 +205,8 @@ module bar(input I, output O);
     foo foo_inst(I, O);
 endmodule""", external_modules={"foo": foo})
         assert False
-    assert pytest_e.type is Exception
-    assert pytest_e.value.args == \
-        ("Modules defined in both external_modules and in parsed verilog: {'foo'}",)  # nopep8
+    assert pytest_e.type is MultipleModuleDeclarationError
+    assert pytest_e.value.args == ("foo",)
 
 
 def _test_nd_array_port(verilog):
