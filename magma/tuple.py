@@ -290,6 +290,14 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
     def items(self):
         return zip(self.keys(), self.ts)
 
+    def undriven(self):
+        for elem in self:
+            elem.undriven()
+
+    def unused(self):
+        for elem in self:
+            elem.unused()
+
 
 class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__

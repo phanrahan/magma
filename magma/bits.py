@@ -437,6 +437,37 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def get_family(cls):
         return m.get_family()
 
+    def unused(self):
+        if not self.is_output():
+            raise TypeError("unused can only be used on output")
+        m.wire(self, DefineUnused(len(self))().I)
+
+    def undriven(self):
+        if not self.is_input():
+            raise TypeError("undriven can only be used on input")
+        m.wire(DefineUndriven(len(self))().O, self)
+
+
+def make_Define(name, port, direction):
+    def simulate(self, value_store, state_store):
+        pass
+
+    @lru_cache(maxsize=None)
+    def Define(width):
+        return m.circuit.DeclareCoreirCircuit(
+            name,
+            port, direction(Bits[width]),
+            coreir_name=name,
+            coreir_lib="coreir",
+            coreir_genargs={"width": width},
+            simulate=simulate
+        )
+    return Define
+
+
+DefineUndriven = make_Define("undriven", "O", m.Out)
+DefineUnused = make_Define("term", "I", m.In)
+
 
 BitsType = Bits
 

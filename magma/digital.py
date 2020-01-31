@@ -1,3 +1,4 @@
+from functools import lru_cache
 import weakref
 import magma as m
 from abc import ABCMeta
@@ -193,3 +194,33 @@ class Digital(Type, metaclass=DigitalMeta):
 
     def getgpio(self):
         return self.getinst()
+
+    def unused(self):
+        if not self.is_output():
+            raise TypeError("unused can only be used on output")
+        m.wire(self, DefineUnused()().I)
+
+    def undriven(self):
+        if not self.is_input():
+            raise TypeError("undriven can only be used on input")
+        m.wire(DefineUndriven()().O, self)
+
+
+def make_Define(name, port, direction):
+    def simulate(self, value_store, state_store):
+        pass
+
+    @lru_cache(maxsize=None)
+    def DefineCorebit():
+        return m.circuit.DeclareCoreirCircuit(
+            f"corebit_{name}",
+            port, direction(Digital),
+            coreir_name=name,
+            coreir_lib="corebit",
+            simulate=simulate
+        )
+    return DefineCorebit
+
+
+DefineUndriven = make_Define("undriven", "O", m.Out)
+DefineUnused = make_Define("term", "I", m.In)

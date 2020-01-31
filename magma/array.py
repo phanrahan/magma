@@ -357,5 +357,13 @@ class Array(Type, metaclass=ArrayMeta):
     def concat(self, other) -> 'AbstractBitVector':
         return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
 
+    def undriven(self):
+        for elem in self:
+            elem.undriven()
+
+    def unused(self):
+        for elem in self:
+            elem.unused()
+
 
 ArrayType = Array

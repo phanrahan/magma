@@ -1,9 +1,7 @@
+import magma as m
 from .compatibility import IntegerTypes
 from .debug import debug_wire
 from .logging import root_logger
-
-
-__all__ = ['wire']
 
 
 _logger = root_logger()
