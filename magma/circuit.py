@@ -191,9 +191,13 @@ class CircuitKind(type):
         return defn
 
     def inline_verilog(cls, inline_str, **kwargs):
+        format_args = {}
+        for key, arg in kwargs.items():
+            if isinstance(arg, m.Type):
+                arg = verilog_name(arg.name)
+            format_args[key] = arg
         cls.inline_verilog_strs.append(
-            inline_str.format(**{key: verilog_name(arg.name) for key, arg in
-                                 kwargs.items()}))
+            inline_str.format(**format_args))
 
 
 @six.add_metaclass(CircuitKind)

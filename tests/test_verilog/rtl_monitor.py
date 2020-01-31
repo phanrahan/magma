@@ -16,11 +16,16 @@ class RTLMonitor(m.MonitorGenerator):
             @classmethod
             def definition(cls):
                 cls.inline_verilog("""
-                    logic temp1, temp2;
-                    assign temp1 = |(in1);
-                    assign temp2 = &(in1);
-                    assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
-                """, valid=cls.handshake.valid)
+logic temp1, temp2;
+logic [{width}:0] temp3;
+assign temp1 = |(in1);
+assign temp2 = &(in1) & {x};
+assign temp3 = in0 ^ in1;
+assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
+                                   """,
+                                   valid=cls.handshake.valid,
+                                   width=width,
+                                   x=cls.intermediate_tuple[0])
 
         circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2)
 
