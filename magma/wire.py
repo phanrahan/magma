@@ -2,7 +2,6 @@ import magma as m
 from .compatibility import IntegerTypes
 from .debug import debug_wire
 from .logging import root_logger
-from .t import In, Out
 
 
 _logger = root_logger()
