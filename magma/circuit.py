@@ -7,6 +7,7 @@ import os
 
 import six
 from .config import get_compile_dir, set_compile_dir
+# TODO: Remove circular dependency required for `circuit.bind` logic
 import magma as m
 from . import cache_definition
 from .clock import ClockTypes
@@ -537,10 +538,9 @@ class DefineCircuitKind(CircuitKind):
             for child1, child2 in zip(mon_arg, bind_arg):
                 result += cls.gen_bind_port(child1, child2)
             return result
-        else:
-            port = verilog_name(mon_arg.name)
-            arg = verilog_name(bind_arg.name)
-            return [(f".{port}({arg})")]
+        port = verilog_name(mon_arg.name)
+        arg = verilog_name(bind_arg.name)
+        return [(f".{port}({arg})")]
 
     def bind(cls, monitor, *args):
         bind_str = monitor.verilogFile
