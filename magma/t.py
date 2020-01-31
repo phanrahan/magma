@@ -157,7 +157,7 @@ class Kind(type):
             return cls
 
 
-def _magma_T_(func):
+def dispatch_magma_protocol(func):
     @functools.wraps(func)
     def wrapper(T):
         if issubclass(T, MagmaProtocol):
@@ -166,22 +166,22 @@ def _magma_T_(func):
     return wrapper
 
 
-@_magma_T_
+@dispatch_magma_protocol
 def In(T):
     return T.qualify(Direction.In)
 
 
-@_magma_T_
+@dispatch_magma_protocol
 def Out(T):
     return T.qualify(Direction.Out)
 
 
-@_magma_T_
+@dispatch_magma_protocol
 def InOut(T):
     return T.qualify(Direction.InOut)
 
 
-@_magma_T_
+@dispatch_magma_protocol
 def Flip(T):
     return T.flip()
 
