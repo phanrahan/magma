@@ -24,7 +24,7 @@ def check_rxmod(RXMOD):
     check_port(RXMOD, "data", m.Array, "output")
     check_port(RXMOD, "valid", m.Bit, "output")
 
-    m.compile("build/test_rxmod", RXMOD, output="verilog")
+    m.compile("build/test_rxmod", RXMOD)
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
             "gold/test_rxmod.v")
 
