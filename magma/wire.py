@@ -57,27 +57,33 @@ def DefineCorebitTerm():
     )
 
 
+def make_unused_undriven(bit_def, bits_def, attr):
+    def make_func(T):
+        if issubclass(T, m.Bit):
+            return getattr(bit_def()(), attr)
+        elif issubclass(T, m.Array) and issubclass(T.T, m.Digital):
+            return getattr(bits_def(len(T))(), attr)
+        elif issubclass(T, m.Array):
+            return m.array([make_func(T.T) for _ in range(len(T))])
+        elif issubclass(T, m.Product):
+            return m.namedtuple(
+                **{key: make_func(value) for key, value in T.field_dict.items()}
+            )
+        elif issubclass(T, m.Tuple):
+            return m.tuple_(
+                [make_func(t) for t in T.fields]
+            )
+        else:
+            raise NotImplementedError(T)
+    return make_func
+
+
+make_Unused = make_unused_undriven(DefineCorebitTerm, DefineTerm, "I")
+make_Undriven = make_unused_undriven(DefineCorebitUndriven, DefineUndriven, "O")
+
+
 class Undriven:
     pass
-
-
-def make_Unused(T):
-    if issubclass(T, m.Bit):
-        return DefineCorebitTerm()().I
-    elif issubclass(T, m.Array) and issubclass(T.T, m.Digital):
-        return DefineTerm(len(T))().I
-    elif issubclass(T, m.Array):
-        return m.array([make_Unused(T.T) for _ in range(len(T))])
-    elif issubclass(T, m.Product):
-        return m.namedtuple(
-            **{key: make_Unused(value) for key, value in T.field_dict.items()}
-        )
-    elif issubclass(T, m.Tuple):
-        return m.tuple_(
-            [make_Unused(t) for t in T.fields]
-        )
-    else:
-        raise NotImplementedError(T)
 
 
 class Unused:
@@ -89,24 +95,6 @@ class Unused:
 # Singleton hack to use __imatmul__ impl
 Unused = Unused()
 
-
-def make_Undriven(T):
-    if issubclass(T, m.Bit):
-        return DefineCorebitUndriven()().O
-    elif issubclass(T, m.Array) and issubclass(T.T, m.Digital):
-        return DefineUndriven(len(T))().O
-    elif issubclass(T, m.Array):
-        return m.array([make_Undriven(T.T) for _ in range(len(T))])
-    elif issubclass(T, m.Product):
-        return m.namedtuple(
-            **{key: make_Undriven(value) for key, value in T.field_dict.items()}
-        )
-    elif issubclass(T, m.Tuple):
-        return m.tuple_(
-            [make_Undriven(t) for t in T.fields]
-        )
-    else:
-        raise NotImplementedError(T)
 
 @debug_wire
 def wire(o, i, debug_info=None):
