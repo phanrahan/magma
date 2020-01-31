@@ -5,7 +5,7 @@ from magma.testing import check_files_equal
 import sys
 import os
 
-TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), 'test_syntax')
+TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), '../test_syntax')
 
 sys.path.append(TEST_SYNTAX_PATH)
 

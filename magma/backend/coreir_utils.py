@@ -43,6 +43,8 @@ def magma_port_to_coreir_port(port):
 
 
 def check_magma_type(type_, error_msg=""):
+    if issubclass(type_, MagmaProtocol):
+        type_ = type_._to_magma_()
     if issubclass(type_, Array):
         msg = error_msg.format("Array({}, {})").format(str(type_.N), "{}")
         check_magma_type(type_.T, msg)
@@ -53,8 +55,6 @@ def check_magma_type(type_, error_msg=""):
             check_magma_type(t, msg)
         return
     if issubclass(type_, Digital):
-        return
-    if issubclass(type_, MagmaProtocol):
         return
     raise CoreIRBackendError(error_msg.format(str(type_)))
 
