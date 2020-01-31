@@ -462,3 +462,12 @@ def test_no_init(target):
             return a & b
 
     compile_and_check("TestNoInit", TestNoInit, target)
+
+
+def test_ite_bug():
+    BV1 = m.Bits[1]
+    @m.circuit.sequential
+    class A:
+        def __call__(self, a: m.Bit, b: m.Bits[2]) -> m.Bits[1]:
+            return a.ite(BV1(a), b[0:1])
+
