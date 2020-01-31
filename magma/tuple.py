@@ -5,8 +5,9 @@ from hwtypes.adt import TupleMeta, Tuple, Product, ProductMeta
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 import magma as m
+from .common import deprecated
 from .ref import AnonRef, TupleRef
-from .t import Type, Kind, Direction, deprecated
+from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
