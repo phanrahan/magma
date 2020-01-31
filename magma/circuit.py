@@ -25,7 +25,7 @@ from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from magma.verilog_utils import verilog_name
-from magma.view import InstView
+from magma.view import InstView, PortView
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -196,6 +196,8 @@ class CircuitKind(type):
         for key, arg in kwargs.items():
             if isinstance(arg, m.Type):
                 arg = verilog_name(arg.name)
+            elif isinstance(arg, PortView):
+                arg = verilog_name(arg)
             format_args[key] = arg
         cls.inline_verilog_strs.append(
             inline_str.format(**format_args))
