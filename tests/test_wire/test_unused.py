@@ -17,10 +17,10 @@ def test_undriven():
 
         @classmethod
         def definition(io):
-            m.Unused @= io.I0
-            m.Unused @= io.I1
-            m.Unused @= io.I2
-            m.Unused @= io.I3
+            io.I0.unused()
+            io.I1.unused()
+            io.I2.unused()
+            io.I3.unused()
 
     m.compile("build/test_unused", Circuit)
     assert check_files_equal(__file__, f"build/test_unused.v",

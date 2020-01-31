@@ -8,79 +8,8 @@ from .t import In, Out
 _logger = root_logger()
 
 
-def make_Defines(name, port, direction):
-    def simulate(self, value_store, state_store):
-        pass
-
-    def Define(width):
-        return m.circuit.DeclareCoreirCircuit(
-            name,
-            port, direction(m.Bits[width]),
-            coreir_name=name,
-            coreir_lib="coreir",
-            coreir_genargs={"width": width},
-            simulate=simulate
-        )
-
-    def DefineCorebit():
-        return m.circuit.DeclareCoreirCircuit(
-            f"corebit_{name}",
-            port, direction(m.Bit),
-            coreir_name=name,
-            coreir_lib="corebit",
-            simulate=simulate
-        )
-    return Define, DefineCorebit
-
-
-DefineUndriven, DefineCorebitUndriven = make_Defines("undriven", "O", Out)
-DefineTerm, DefineCorebitTerm = make_Defines("term", "I", In)
-
-
-def make_unused_undriven(bit_def, bits_def, attr):
-    def make_func(T):
-        if issubclass(T, m.Bit):
-            return getattr(bit_def()(), attr)
-        elif issubclass(T, m.Array) and issubclass(T.T, m.Digital):
-            return getattr(bits_def(len(T))(), attr)
-        elif issubclass(T, m.Array):
-            return m.array([make_func(T.T) for _ in range(len(T))])
-        elif issubclass(T, m.Product):
-            return m.namedtuple(
-                **{key: make_func(value) for key, value in T.field_dict.items()}
-            )
-        elif issubclass(T, m.Tuple):
-            return m.tuple_(
-                [make_func(t) for t in T.fields]
-            )
-        else:
-            raise NotImplementedError(T)
-    return make_func
-
-
-make_Unused = make_unused_undriven(DefineCorebitTerm, DefineTerm, "I")
-make_Undriven = make_unused_undriven(DefineCorebitUndriven, DefineUndriven, "O")
-
-
-class Undriven:
-    pass
-
-
-class Unused:
-    def __imatmul__(self, other):
-        m.wire(make_Unused(type(other)), other)
-        return self
-
-
-# Singleton hack to use __imatmul__ impl
-Unused = Unused()
-
-
 @debug_wire
 def wire(o, i, debug_info=None):
-    if i is Undriven:
-        i = make_Undriven(type(o))
-
     # Wire(o, Circuit).
     if hasattr(i, 'interface'):
         i.wire(o, debug_info)
