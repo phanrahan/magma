@@ -110,6 +110,24 @@ class Type(object):
             raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
         return self
 
+    @abstractmethod
+    def unused(self):
+        # Mark value is unused by calling unused on the underlying magma
+        # elements
+        # For example, m.Bit is wired up to a coreir term primitive
+        # A general m.Array and m.Tuple will recursively call `unused` on its
+        # members
+        raise NotImplementedError()
+
+    @abstractmethod
+    def undriven(self):
+        # Mark value is undriven by calling undriven on the underlying magma
+        # elements
+        # For example, m.Bit is wired up to a coreir undriven primitive
+        # A general m.Array and m.Tuple will recursively call `undriven` on its
+        # members
+        raise NotImplementedError()
+
 
 
 class Kind(type):
