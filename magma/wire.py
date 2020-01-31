@@ -2,59 +2,39 @@ import magma as m
 from .compatibility import IntegerTypes
 from .debug import debug_wire
 from .logging import root_logger
+from .t import In, Out
 
 
 _logger = root_logger()
 
 
-def DefineUndriven(width):
-    def simulate_undriven(self, value_store, state_store):
+def make_Defines(name, port, direction):
+    def simulate(self, value_store, state_store):
         pass
-    return m.circuit.DeclareCoreirCircuit(
-        f"undriven",
-        "O", m.Out(m.Bits[width]),
-        coreir_name="undriven",
-        coreir_lib="coreir",
-        coreir_genargs={"width": width},
-        simulate=simulate_undriven
-    )
+
+    def Define(width):
+        return m.circuit.DeclareCoreirCircuit(
+            name,
+            port, direction(m.Bits[width]),
+            coreir_name=name,
+            coreir_lib="coreir",
+            coreir_genargs={"width": width},
+            simulate=simulate
+        )
+
+    def DefineCorebit():
+        return m.circuit.DeclareCoreirCircuit(
+            f"corebit_{name}",
+            port, direction(m.Bit),
+            coreir_name=name,
+            coreir_lib="corebit",
+            simulate=simulate
+        )
+    return Define, DefineCorebit
 
 
-def DefineCorebitUndriven():
-    def simulate_corebit_undriven(self, value_store, state_store):
-        pass
-    return m.circuit.DeclareCoreirCircuit(
-        f"corebit_undriven",
-        "O", m.Out(m.Bit),
-        coreir_name="undriven",
-        coreir_lib="corebit",
-        simulate=simulate_corebit_undriven
-    )
-
-
-def DefineTerm(width):
-    def simulate_term(self, value_store, state_store):
-        pass
-    return m.circuit.DeclareCoreirCircuit(
-        f"term",
-        "I", m.In(m.Bits[width]),
-        coreir_name="term",
-        coreir_lib="coreir",
-        coreir_genargs={"width": width},
-        simulate=simulate_term
-    )
-
-
-def DefineCorebitTerm():
-    def simulate_corebit_term(self, value_store, state_store):
-        pass
-    return m.circuit.DeclareCoreirCircuit(
-        f"corebit_term",
-        "I", m.In(m.Bit),
-        coreir_name="term",
-        coreir_lib="corebit",
-        simulate=simulate_corebit_term
-    )
+DefineUndriven, DefineCorebitUndriven = make_Defines("undriven", "O", Out)
+DefineTerm, DefineCorebitTerm = make_Defines("term", "I", In)
 
 
 def make_unused_undriven(bit_def, bits_def, attr):
