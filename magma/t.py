@@ -2,7 +2,6 @@ import functools
 import warnings
 import enum
 from abc import abstractmethod
-import magma as m
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
 
@@ -99,13 +98,13 @@ class Type(object):
 
     def __le__(self, other):
         if not self.is_output():
-            m.wire(self, other)
+            self.wire(other)
         else:
             raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
 
     def __imatmul__(self, other):
         if not self.is_output():
-            m.wire(self, other)
+            self.wire(other)
         else:
             raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
         return self
