@@ -2,6 +2,15 @@ from typing import Optional
 import magma as m
 from magma.testing import check_files_equal
 
+import sys
+import os
+
+TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), 'test_syntax')
+
+sys.path.append(TEST_SYNTAX_PATH)
+
+from test_sequential import DefineRegister, phi
+
 
 def test_foo_type_magma_protocol():
     class FooMeta(m.MagmaProtocolMeta):
