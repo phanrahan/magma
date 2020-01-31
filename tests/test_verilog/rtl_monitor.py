@@ -24,7 +24,7 @@ assign temp3 = in0 ^ in1;
 assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
                                    """,
                                    valid=cls.handshake.valid,
-                                   width=width,
+                                   width=width - 1,
                                    x=cls.intermediate_tuple[0])
 
         circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2)
