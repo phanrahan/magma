@@ -17,6 +17,7 @@ from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..logging import root_logger
 from ..passes import InstanceGraphPass
+from ..t import MagmaProtocol
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
 from .verilog import VerilogCompiler
