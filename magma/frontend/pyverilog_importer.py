@@ -118,7 +118,7 @@ class _ModuleGraphVisitor(pyverilog.dataflow.visit.NodeVisitor):
 
 class PyverilogImporter(VerilogImporter):
     """Implementation of VerilogImporter using pyverilog"""
-    def import_defn(self, defn, mode):
+    def _import_defn(self, defn, mode):
         ports = {}
         default_params = {}
         # Parse module declaration for parameters (and default values) and port
@@ -168,7 +168,7 @@ class PyverilogImporter(VerilogImporter):
         visitor = _ModuleGraphVisitor()
         visitor.visit(ast)
         for name, defn in visitor.defns.items():
-            circ, default_params = self.import_defn(defn, mode)
+            circ, default_params = self._import_defn(defn, mode)
             circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno)
             circ.verilog_source = src
             circ.coreir_config_param_types = {
