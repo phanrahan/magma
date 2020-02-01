@@ -51,16 +51,13 @@ class MixedPortDeclarationsError(VerilogImportError):
 
 
 class VerilogImporter(ABC):
-    def __init__(self, type_map, external_modules):
+    def __init__(self, type_map):
         self._type_map = type_map
-        self._external_modules = external_modules
         self._magma_modules = []
 
     def reset(self, type_map=None, external_modules=None):
         if type_map is not None:
             self._type_map = type_map
-        if external_modules is not None:
-            self._external_modules = external_modules
         self._magma_modules = []
 
     def map_type(self, name, magma_type):

@@ -3,7 +3,7 @@ import magma.testing
 
 
 def test_2d_array_from_verilog():
-    main = m.DefineFromVerilog(f"""
+    main = m.define_from_verilog(f"""
 module transpose_buffer (
   input logic clk,
   output logic [2:0] index_inner,

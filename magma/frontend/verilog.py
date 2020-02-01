@@ -22,22 +22,20 @@ __all__ += ['define_from_verilog']
 __all__ += ['define_from_verilog_file']
 
 
-def _from_verilog(source, func, type_map, target_modules=None, shallow=False,
-                  external_modules={}, param_map={}):
-    importer = PyverilogImporter(type_map, external_modules, shallow)
+def _from_verilog(source, func, *, target_modules=None, type_map={}):
+    importer = PyverilogImporter(type_map)
     mode = ImportMode.DECLARE if func is DeclareCircuit else ImportMode.DEFINE
     importer.import_(source, mode)
     return importer._magma_modules
 
 
-def _from_verilog_file(file, func, type_map, target_modules=None, shallow=False,
-                       external_modules={}, param_map={}):
+def _from_verilog_file(file, func, *, target_modules=None, type_map={}):
     if file is None:
         return None
     with open(file) as f:
         verilog = f.read()
-    circuits = _from_verilog(verilog, func, type_map, target_modules, shallow,
-                             external_modules, param_map=param_map)
+    circuits = _from_verilog(verilog, func, target_modules=target_modules,
+                             type_map=type_map)
     # Store the original verilog file name, currently used by m.compile to
     # generate a .sv when compiling a circuit that was defined from a verilog
     # file
@@ -46,29 +44,27 @@ def _from_verilog_file(file, func, type_map, target_modules=None, shallow=False,
     return circuits
 
 
-def declare_from_verilog(source, type_map={}, param_map={}):
-    return _from_verilog(source, DeclareCircuit, type_map, param_map=param_map)
+def declare_from_verilog(source, *, target_modules=None, type_map={}):
+    return _from_verilog(source, DeclareCircuit, target_modules=target_modules,
+                         type_map=type_map)
 
 
-def declare_from_verilog_file(file, target_modules=None, type_map={},
-                              param_map={}):
-    return _from_verilog_file(file, DeclareCircuit, type_map, target_modules,
-                              param_map=param_map)
+def declare_from_verilog_file(file, *, target_modules=None, type_map={}):
+    return _from_verilog_file(file, DeclareCircuit,
+                              target_modules=target_modules,
+                              type_map=type_map)
 
 
-def define_from_verilog(source, type_map={}, target_modules=None, shallow=False,
-                        external_modules={}, param_map={}):
-    return _from_verilog(source, DefineCircuit, type_map, target_modules,
-                         shallow=shallow, external_modules=external_modules,
-                         param_map=param_map)
+def define_from_verilog(source, *, target_modules=None, type_map={}):
+    return _from_verilog(source, DefineCircuit,
+                         target_modules=target_modules,
+                         type_map=type_map)
 
 
-def define_from_verilog_file(file, target_modules=None, type_map={},
-                             shallow=False, external_modules={}, param_map={}):
-    return _from_verilog_file(file, DefineCircuit, type_map, target_modules,
-                              shallow=shallow,
-                              external_modules=external_modules,
-                              param_map=param_map)
+def define_from_verilog_file(file, *, target_modules=None, type_map={}):
+    return _from_verilog_file(file, DefineCircuit,
+                              target_modules=target_modules,
+                              type_map=type_map)
 
 
 # The following functions call their analagous functions above, formatted as

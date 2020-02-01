@@ -98,67 +98,27 @@ def _magma_type(io, params):
     return direction(typ)
 
 
-def _get_lines(src, start, end, shallow):
-    if shallow:
-        return src
+def _get_lines(src, start, end):
     return "\n".join(src.split("\n")[start - 1:end])
 
 
 class _ModuleGraphVisitor(pyverilog.dataflow.visit.NodeVisitor):
     """
     This implementation of pyverilog's NodeVisitor collects all module
-    definitions in the root node. If @shallow is True, then instances of module
-    definitions are also collected and associated with each definition.
+    definitions in the root node.
     """
-    def __init__(self, shallow):
-        self.__shallow = shallow
+    def __init__(self):
         self.defns = OrderedDict()
-        self.__defn_stack = []
-        self.__instances = {}
 
     def visit_ModuleDef(self, defn):
         if defn.name in self.defns:
             raise MultipleModuleDeclarationError(defn.name)
         self.defns[defn.name] = defn
-        self.__instances[defn] = set()
-        if self.__shallow:
-            return defn
-        # Collect instances in this definition.
-        self.__defn_stack.append(defn)
-        self.generic_visit(defn)
-        self.__defn_stack.pop()
-        return defn
-
-    def visit_Instance(self, instance):
-        if self.__shallow:
-            return instance
-        defn = self.__defn_stack[-1]
-        assert instance not in self.__instances[defn]
-        self.__instances[defn].add(instance)
-        return instance
-
-    def get_instances(self, defn):
-        return self.__instances[defn]
-
-    def sort(self):
-        graph = []
-        for defn in self.defns.values():
-            insts = [inst.module for inst in self.get_instances(defn)]
-            graph.append((defn.name, insts))
-        sorted_ = tsort(graph)
-        defns = OrderedDict()
-        for defn_name, _ in sorted_:
-            defns[defn_name] = self.defns[defn_name]
-        self.defns = defns
 
 
 class PyverilogImporter(VerilogImporter):
     """Implementation of VerilogImporter using pyverilog"""
-    def __init__(self, type_map, external_modules, shallow):
-        super().__init__(type_map, external_modules)
-        self.__shallow = shallow
-
-    def import_defn(self, defn, instances, mode):
+    def import_defn(self, defn, mode):
         ports = {}
         default_params = {}
         # Parse module declaration for parameters (and default values) and port
@@ -199,34 +159,17 @@ class PyverilogImporter(VerilogImporter):
             decl.append(magma_type)
         circ = mode.func()(defn.name, *decl)
         if mode is ImportMode.DEFINE:
-            if not self.__shallow:
-                for instance in instances:
-                    inst_defns = [
-                        d for d in self._magma_modules
-                        if d.name == instance.module
-                    ]
-                    if inst_defns:
-                        inst_defn = inst_defns[0]
-                    else:
-                        inst_defn = self._external_modules[instance.module]
-                    inst_defn()
             EndCircuit()
         return circ, default_params
 
     def import_(self, src, mode):
         parser = pyverilog.vparser.parser.VerilogParser()
         ast = parser.parse(src)
-        visitor = _ModuleGraphVisitor(self.__shallow)
+        visitor = _ModuleGraphVisitor()
         visitor.visit(ast)
-        if not self.__shallow:
-            visitor.sort()
         for name, defn in visitor.defns.items():
-            if name in self._external_modules:
-                raise MultipleModuleDeclarationError(name)
-            instances = visitor.get_instances(defn)
-            circ, default_params = self.import_defn(defn, instances, mode)
-            circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno,
-                                          self.__shallow)
+            circ, default_params = self.import_defn(defn, mode)
+            circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno)
             circ.verilog_source = src
             circ.coreir_config_param_types = {
                 k: type(v)
