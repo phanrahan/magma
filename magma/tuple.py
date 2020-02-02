@@ -330,6 +330,9 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         # add properties to namespace
         # build properties
         for field_name, field_type in fields.items():
+            if field_name == "N":
+                # TODO: Make N unreserved
+                raise ValueError("N is a reserved name in Product")
             assert field_name not in ns
             idx = idx_table[field_name]
             ns[field_name] = _make_prop(field_type, idx)
