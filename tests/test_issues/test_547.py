@@ -47,3 +47,15 @@ def test_errors(caplog):
             io.O[0] = io.I[0]
 
     assert caplog.records[0].levelname == "ERROR"
+
+def test_product():
+    class HandShake(m.Product):
+        ready = m.In(m.Bit)
+        valid = m.Out(m.Bit)
+
+    class RTL(m.Circuit):
+        IO = ["handshake", HandShake]
+
+        @classmethod
+        def definition(cls):
+            cls.handshake.valid @= cls.handshake.ready
