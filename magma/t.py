@@ -206,11 +206,11 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def __init__(self, val: Type):
         assert isinstance(val, Type), \
             "MagmaProtocol must be initialized with an underlying magma Typ"
-        self._val = val
+        self._val_ = val
 
     def _get_magma_value_(self):
         # Access underlying magma value
-        return self._val
+        return self._val_
 
     @classmethod
     def is_input(cls):

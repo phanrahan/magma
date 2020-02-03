@@ -33,9 +33,9 @@ def test_foo_type_magma_protocol():
             super().__init__(val)
 
         def non_standard_operation(self):
-            v0 = self._val << 2
-            v1 = m.bits(self._val[0], len(self.T)) << 1
-            return Foo(v0 | v1 | m.bits(self._val[0], len(self.T)))
+            v0 = self._val_ << 2
+            v1 = m.bits(self._val_[0], len(self.T)) << 1
+            return Foo(v0 | v1 | m.bits(self._val_[0], len(self.T)))
 
     @m.circuit.sequential
     class Bar:
