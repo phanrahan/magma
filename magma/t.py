@@ -203,6 +203,11 @@ class MagmaProtocolMeta(ABCMeta):
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
+    def __init__(self, val: Type):
+        assert isinstance(val, Type), \
+            "MagmaProtocol must be initialized with an underlying magma Typ"
+        self._val = val
+
     @abstractmethod
     def _get_magma_value_(self):
         # Access underlying magma value

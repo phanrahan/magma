@@ -27,12 +27,10 @@ def test_foo_type_magma_protocol():
             return type(cls)(f"Foo{T}", (cls, ), {"T": T})
 
     class Foo(m.MagmaProtocol, metaclass=FooMeta):
-        def __init__(self, val: Optional = None, name: Optional = None):
+        def __init__(self, val: Optional[m.Type] = None):
             if val is None:
-                # Must define generic no val constructor with a specific name
-                # for interface
-                val = self.T(name=name)
-            self._val = val
+                val = self.T()
+            super().__init__(val)
 
         def _get_magma_value_(self):
             return self._val
