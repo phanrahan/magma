@@ -38,7 +38,7 @@ def _from_verilog_file(file, func, *, target_modules=None, type_map={}):
                              type_map=type_map)
     # Store the original verilog file name, currently used by m.compile to
     # generate a .sv when compiling a circuit that was defined from a verilog
-    # file
+    # file.
     for circuit in circuits:
         circuit.verilog_file_name = file
     return circuits
