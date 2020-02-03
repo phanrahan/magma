@@ -32,9 +32,6 @@ def test_foo_type_magma_protocol():
                 val = self.T()
             super().__init__(val)
 
-        def _get_magma_value_(self):
-            return self._val
-
         def non_standard_operation(self):
             v0 = self._val << 2
             v1 = m.bits(self._val[0], len(self.T)) << 1

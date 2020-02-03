@@ -208,10 +208,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
             "MagmaProtocol must be initialized with an underlying magma Typ"
         self._val = val
 
-    @abstractmethod
     def _get_magma_value_(self):
         # Access underlying magma value
-        raise NotImplementedError()
+        return self._val
 
     @classmethod
     def is_input(cls):
