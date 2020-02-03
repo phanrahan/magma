@@ -1,12 +1,8 @@
 from mako.template import Template
 from ..circuit import DeclareCircuit, DefineCircuit, EndDefine
 from ..common import deprecated
-from ..logging import root_logger
 from .pyverilog_importer import PyverilogImporter
 from .verilog_importer import ImportMode
-
-
-_logger = root_logger().getChild('from_verilog')
 
 
 def _from_verilog(source, func, *, target_modules=None, type_map={}):
