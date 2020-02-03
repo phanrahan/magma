@@ -8,19 +8,6 @@ from .verilog_importer import ImportMode
 
 _logger = root_logger().getChild('from_verilog')
 
-__all__ = ['DeclareFromVerilog']
-__all__ += ['DeclareFromVerilogFile']
-__all__ += ['DeclareFromTemplatedVerilog']
-__all__ += ['DeclareFromTemplatedVerilogFile']
-__all__ += ['DefineFromVerilog']
-__all__ += ['DefineFromVerilogFile']
-__all__ += ['DefineFromTemplatedVerilog']
-__all__ += ['DefineFromTemplatedVerilogFile']
-__all__ += ['declare_from_verilog']
-__all__ += ['declare_from_verilog_file']
-__all__ += ['define_from_verilog']
-__all__ += ['define_from_verilog_file']
-
 
 def _from_verilog(source, func, *, target_modules=None, type_map={}):
     importer = PyverilogImporter(type_map)
