@@ -6,6 +6,8 @@ from enum import Enum as pyEnum
 
 class EnumMeta(BitsMeta):
     def __new__(mcs, name, bases, attrs, **kwargs):
+        # Force Bits repr for now
+        attrs["orig_name"] = "Bits"
         cls = super().__new__(mcs, name, bases, attrs, **kwargs)
         fields = {}
         for key, value in attrs.items():
