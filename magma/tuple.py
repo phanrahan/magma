@@ -1,7 +1,7 @@
 import itertools
 from collections.abc import Sequence, Mapping
 from collections import OrderedDict
-from hwtypes.adt import TupleMeta, Tuple, Product, ProductMeta
+from hwtypes.adt import TupleMeta, Tuple as Tuple_, Product, ProductMeta
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 import magma as m
@@ -111,7 +111,7 @@ class TupleKind(TupleMeta, Kind):
         return len(cls)
 
 
-class Tuple(Type, Tuple, metaclass=TupleKind):
+class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs) # name=
@@ -148,8 +148,10 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
         return [str(i) for i in range(len(cls.fields))]
 
     def __eq__(self, rhs):
-        if not isinstance(rhs, Tuple): return False
-        return self.ts == rhs.ts
+        if not isinstance(rhs, type(self)):
+            return NotImplemented
+        else:
+            return self.ts == rhs.ts
 
     def __repr__(self):
         if not isinstance(self.name, AnonRef):
@@ -162,6 +164,12 @@ class Tuple(Type, Tuple, metaclass=TupleKind):
         if key in self.keys():
             key = list(self.keys()).index(key)
         return self.ts[key]
+
+    def __setitem__(self, key, val):
+        old = self[key]
+        if old is not val:
+            _logger.error(f'May not mutate Tuple, trying to replace '
+                          f'{self}[{key}] ({old}) with {val}')
 
     def __len__(self):
         return len(type(self).fields)
@@ -340,7 +348,7 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         # this is all really gross but I don't know how to do this cleanly
         # need to build t so I can call super() in new and init
         # need to exec to get proper signatures
-        t = TupleKind.__new__(mcs, name, bases, ns, fields=fields.values(),
+        t = TupleKind.__new__(mcs, name, bases, ns, fields=tuple(fields.values()),
                               **kwargs)
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
