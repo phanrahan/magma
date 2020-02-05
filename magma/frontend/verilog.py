@@ -9,7 +9,14 @@ def _from_verilog(source, func, *, target_modules=None, type_map={}):
     importer = PyverilogImporter(type_map)
     mode = ImportMode.DECLARE if func is DeclareCircuit else ImportMode.DEFINE
     importer.import_(source, mode)
-    return importer._magma_modules
+    modules = importer._magma_modules.copy()
+    if target_modules is None:
+        return modules
+
+    def _filter(mod):
+        return mod.name in target_modules
+
+    return list(filter(_filter, modules))
 
 
 def _from_verilog_file(file, func, *, target_modules=None, type_map={}):
