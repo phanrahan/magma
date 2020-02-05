@@ -11,6 +11,7 @@ from .config import get_compile_dir, set_compile_dir
 import magma as m
 from . import cache_definition
 from .clock import ClockTypes
+from .common import deprecated
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -403,6 +404,8 @@ class CircuitType(AnonymousCircuitType):
         return f"{typ}({args})"
 
 
+@deprecated(
+    msg="DeclareCircuit factory method is deprecated, subclass Circuit instead")
 def DeclareCircuit(name, *decl, **args):
     """DeclareCircuit Factory"""
     if get_debug_mode():
@@ -593,6 +596,8 @@ class Circuit(CircuitType):
     pass
 
 
+@deprecated(
+    msg="DefineCircuit factory method is deprecated, subclass Circuit instead")
 def DefineCircuit(name, *decl, **args):
     """DefineCircuit Factory"""
     debug_info = None
