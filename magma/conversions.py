@@ -10,7 +10,7 @@ from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
-from .tuple import Tuple, tuple_ as tuple_imported, namedtuple
+from .tuple import Tuple, Product, tuple_ as tuple_imported, namedtuple
 from .bitutils import int2seq
 import magma as m
 import hwtypes
@@ -25,6 +25,7 @@ __all__ += ['tuple_', 'namedtuple']
 
 __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext']
+__all__ += ['replace']
 
 def can_convert_to_bit(value):
     return isinstance(value, (Digital, Array, Tuple, IntegerTypes))
@@ -240,3 +241,22 @@ def sext(value, n):
 
 def tuple_(value, n=None):
     return tuple_imported(value, n)
+
+
+def replace(value, others: dict):
+    if isinstance(value, Product):
+        d = dict(value.items())
+        d.update(others)
+        return namedtuple(**d)
+    elif isinstance(value, Tuple):
+        a = value.values()
+        for idx, v in others.items():
+            a[int(idx)] = v
+        return tuple_(a)
+    elif isinstance(value, Array):
+        l = value.as_list()
+        for idx, v in others.items():
+            l[int(idx)] = v
+        return array(l)
+    else:
+        raise ValueError("replace can only be used with an Array, a Tuple, or Product")
