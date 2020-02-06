@@ -2,17 +2,27 @@ import magma as m
 from magma.view import InstView, PortView
 
 
-def verilog_name(name):
-    if isinstance(name, PortView):
-        return f"{verilog_name(name.parent)}.{verilog_name(name.port.name)}"
-    if isinstance(name, InstView):
+def convert_value_to_verilog_name(value):
+    if isinstance(value, m.Array) and not issubclass(value.T, m.Digital):
+        elems = ", ".join(convert_value_to_verilog_name(t) for t in value)
+        return f"'{{{elems}}}"
+    elif isinstance(value, m.Tuple):
+        raise NotImplementedError("Inlining unflattened tuple")
+    elif isinstance(value, PortView):
+        parent_name = convert_value_to_verilog_name(value.parent)
+        return f"{parent_name}.{verilog_name(value.port.name)}"
+    elif isinstance(value, InstView):
         prefix = ""
-        if isinstance(name.parent, m.Circuit):
-            prefix = name.parent.name + "."
+        if isinstance(value.parent, m.Circuit):
+            prefix = value.parent.name + "."
         else:
-            prefix = verilog_name(name.parent) + "."
-        return prefix + name.inst.name
-    elif isinstance(name, m.ref.DefnRef):
+            prefix = convert_value_to_verilog_name(value.parent) + "."
+        return prefix + value.inst.name
+    return verilog_name(value.name)
+
+
+def verilog_name(name):
+    if isinstance(name, m.ref.DefnRef):
         return str(name)
     if isinstance(name, m.ref.InstRef):
         return f"{name.inst.name}.{str(name)}"
