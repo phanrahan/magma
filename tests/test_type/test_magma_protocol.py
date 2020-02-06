@@ -18,10 +18,16 @@ def test_foo_type_magma_protocol():
             # Need way to retrieve underlying magma type
             return cls.T
 
-        def _from_magma_(cls, T):
+        def _from_magma_(cls, T: m.Kind):
             # Need way to create a new version (e.g. give me a Foo with the
             # underlying type qualified to be an input)
             return cls[T]
+
+        def _from_magma_value_(cls, val: m.Type):
+            # Need a way to create an instance of Foo from a value, this just
+            # dispatches to the __init__ logic, but you could define any
+            # custom behavior here
+            return cls._from_magma_(type(val))(val)
 
         def __getitem__(cls, T):
             return type(cls)(f"Foo{T}", (cls, ), {"T": T})
@@ -30,12 +36,16 @@ def test_foo_type_magma_protocol():
         def __init__(self, val: Optional[m.Type] = None):
             if val is None:
                 val = self.T()
-            super().__init__(val)
+            self._val = val
+
+        def _get_magma_value_(self):
+            # Need way to access underlying magma value
+            return self._val
 
         def non_standard_operation(self):
-            v0 = self._val_ << 2
-            v1 = m.bits(self._val_[0], len(self.T)) << 1
-            return Foo(v0 | v1 | m.bits(self._val_[0], len(self.T)))
+            v0 = self._val << 2
+            v1 = m.bits(self._val[0], len(self.T)) << 1
+            return Foo(v0 | v1 | m.bits(self._val[0], len(self.T)))
 
     @m.circuit.sequential
     class Bar:

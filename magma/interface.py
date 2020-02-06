@@ -188,7 +188,7 @@ class _DeclareInterface(_Interface):
             if defn:
                port = port.flip()
             if isinstance(port, MagmaProtocolMeta):
-                args[name] = port(port._to_magma_()(name=ref))
+                args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
             else:
                 args[name] = port(name=ref)
 

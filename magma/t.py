@@ -171,32 +171,33 @@ def Flip(T):
     return T.flip()
 
 
-class MagmaProtocolMeta(
-):
+class MagmaProtocolMeta(ABCMeta):
     @abstractmethod
     def _to_magma_(cls):
         # Need way to retrieve underlying magma type
         raise NotImplementedError()
 
     @abstractmethod
-    def _from_magma_(cls, T):
+    def _from_magma_(cls, T: Kind):
         # Need way to create a new version (e.g. give me a Foo with the
         # underlying type qualified to be an input)
         raise NotImplementedError()
+
+    @abstractmethod
+    def _from_magma_value_(cls, val: Type):
+        # Need a way to create an instance from a value
+        # By default, assumes constructor accepts a magma value
+        return cls._from_magma_(type(val))(val)
 
     def flip(cls):
         return cls._from_magma_(cls._to_magma_().flip())
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
-    def __init__(self, val: Type):
-        assert isinstance(val, Type), \
-            "MagmaProtocol must be initialized with an underlying magma Typ"
-        self._val_ = val
-
+    @abstractmethod
     def _get_magma_value_(self):
-        # Access underlying magma value
-        return self._val_
+        # Need way to access underlying magma value
+        raise NotImplementedError()
 
     @classmethod
     def is_input(cls):
