@@ -1,9 +1,8 @@
 import weakref
 from abc import ABCMeta
 import magma as m
-from .common import deprecated
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind
+from .t import Type, Kind, deprecated
 from .compatibility import IntegerTypes
 from .bit import VCC, GND, Bit
 from .bitutils import seq2int
