@@ -186,8 +186,7 @@ class MagmaProtocolMeta(ABCMeta):
     @abstractmethod
     def _from_magma_value_(cls, val: Type):
         # Need a way to create an instance from a value
-        # By default, assumes constructor accepts a magma value
-        return cls._from_magma_(type(val))(val)
+        raise NotImplementedError()
 
     def flip(cls):
         return cls._from_magma_(cls._to_magma_().flip())
