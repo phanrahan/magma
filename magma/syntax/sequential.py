@@ -26,7 +26,7 @@ class RewriteSelfAttributes(ast.NodeTransformer):
                 return ast.Name(f"self_{node.attr}_I", ast.Store())
             else:
                 return ast.Name(f"self_{node.attr}_O", ast.Load())
-        return node
+        return self.generic_visit(node)
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Attribute) and \

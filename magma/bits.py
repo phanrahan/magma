@@ -15,7 +15,7 @@ from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
-from .t import Type
+from .t import Type, Direction
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
@@ -39,6 +39,15 @@ def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
 class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
+
+    def __call__(cls, *args, **kwargs):
+        result = super().__call__(*args, **kwargs)
+        if all(x.is_output() for x in result.ts) and not cls.is_output():
+            if cls.is_input() or cls.is_inout():
+                raise TypeError("Can't construct output with input/inout")
+            # Make it an output
+            return cls.qualify(Direction.Out)(*args, **kwargs)
+        return result
 
     def __getitem__(cls, index):
         if isinstance(index, int):

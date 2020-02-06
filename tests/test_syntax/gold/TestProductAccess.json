@@ -1,0 +1,73 @@
+{"top":"global.TestProductAccess",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Mux2xTuplea0_OutBits8_a1_OutBits8":{
+        "type":["Record",[
+          ["I0",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
+          ["I1",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
+          ["S","BitIn"],
+          ["O",["Record",[["a0",["Array",8,"Bit"]],["a1",["Array",8,"Bit"]]]]]
+        ]]
+      },
+      "TestProductAccess":{
+        "type":["Record",[
+          ["sel","BitIn"],
+          ["value",["Array",8,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["O",["Record",[["a0",["Array",8,"Bit"]],["a1",["Array",8,"Bit"]]]]]
+        ]],
+        "instances":{
+          "TestProductAccess_comb_inst0":{
+            "modref":"global.TestProductAccess_comb"
+          },
+          "reg_P_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",8],"8'h00"]}
+          },
+          "reg_P_inst1":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",8],"8'h00"]}
+          }
+        },
+        "connections":[
+          ["reg_P_inst0.in","TestProductAccess_comb_inst0.O0.a0"],
+          ["reg_P_inst1.in","TestProductAccess_comb_inst0.O0.a1"],
+          ["self.O","TestProductAccess_comb_inst0.O1"],
+          ["self.sel","TestProductAccess_comb_inst0.sel"],
+          ["reg_P_inst0.out","TestProductAccess_comb_inst0.self_a_O.a0"],
+          ["reg_P_inst1.out","TestProductAccess_comb_inst0.self_a_O.a1"],
+          ["self.value","TestProductAccess_comb_inst0.value"],
+          ["self.CLK","reg_P_inst0.clk"],
+          ["self.CLK","reg_P_inst1.clk"]
+        ]
+      },
+      "TestProductAccess_comb":{
+        "type":["Record",[
+          ["sel","BitIn"],
+          ["value",["Array",8,"BitIn"]],
+          ["self_a_O",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
+          ["O0",["Record",[["a0",["Array",8,"Bit"]],["a1",["Array",8,"Bit"]]]]],
+          ["O1",["Record",[["a0",["Array",8,"Bit"]],["a1",["Array",8,"Bit"]]]]]
+        ]],
+        "instances":{
+          "Mux2xTuplea0_OutBits8_a1_OutBits8_inst0":{
+            "modref":"global.Mux2xTuplea0_OutBits8_a1_OutBits8"
+          }
+        },
+        "connections":[
+          ["self.self_a_O.a0","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I0.a0"],
+          ["self.value","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I0.a1"],
+          ["self.value","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I1.a0"],
+          ["self.self_a_O.a1","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I1.a1"],
+          ["self.O0","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.O"],
+          ["self.O1","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.O"],
+          ["self.sel","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.S"]
+        ]
+      }
+    }
+  }
+}
+}

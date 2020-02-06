@@ -455,6 +455,28 @@ def test_nested_product_reg(target):
     compile_and_check("TestNestedProductReg", TestNestedProductReg, target)
 
 
+def test_product_access(target):
+    class A(m.Product):
+        a0 = m.Bits[8]
+        a1 = m.Bits[8]
+
+    @m.circuit.sequential(async_reset=False)
+    class TestProductAccess:
+        def __init__(self):
+            self.a: A = m.namedtuple(a0=0, a1=0)
+
+        def __call__(self, sel: m.Bit, value: m.Bits[8]) -> A:
+            if sel:
+                a = m.namedtuple(a0=value, a1=self.a.a1)
+            else:
+                a = m.namedtuple(a0=self.a.a0, a1=value)
+
+            self.a = a
+            return a
+
+    compile_and_check("TestProductAccess", TestProductAccess, target)
+
+
 def test_no_init(target):
     @m.circuit.sequential(async_reset=True)
     class TestNoInit:

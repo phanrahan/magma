@@ -1,28 +1,37 @@
 import magma as m
+from .bits import BitsMeta, Bits
 from enum import Enum as pyEnum
 
 
 
-class EnumMeta(type):
+class EnumMeta(BitsMeta):
     def __new__(mcs, name, bases, attrs, **kwargs):
+        # Force Bits repr for now
+        attrs["orig_name"] = "Bits"
         cls = super().__new__(mcs, name, bases, attrs, **kwargs)
-        kwargs = {}
+        fields = {}
         for key, value in attrs.items():
-            if key[:2] == "__":
+            if key[:2] == "__" or key == "_info_":
                 continue
-            kwargs[key] = value
-        if not kwargs:
+            if key == "orig_name":
+                continue
+            fields[key] = value
+        if not fields:
             return cls
-        max_value = max(value for value in kwargs.values())
+        for field in fields:
+            if field == "N":
+                # TODO: Make N unreserved
+                raise ValueError("N is a reserved name in Enum")
+        max_value = max(value for value in fields.values())
         num_bits = max(max_value.bit_length(), 1)
-        type_ = m.Bits[num_bits]
-        # TODO: Make Enum a subtype of Bits instead
+        type_ = cls[num_bits]
         type_._is_magma_enum = True
-        for key, value in kwargs.items():
+        for key, value in fields.items():
             setattr(type_, key, m.bits(value, num_bits))
         return type_
 
-class Enum(metaclass=EnumMeta):
+
+class Enum(Bits, metaclass=EnumMeta):
     pass
 
 

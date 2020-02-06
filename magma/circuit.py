@@ -3,8 +3,12 @@ import textwrap
 import inspect
 from functools import wraps
 from collections import namedtuple, Counter
+import os
 
 import six
+from .config import get_compile_dir, set_compile_dir
+# TODO: Remove circular dependency required for `circuit.bind` logic
+import magma as m
 from . import cache_definition
 from .clock import ClockTypes
 from .interface import *
@@ -13,12 +17,15 @@ from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import root_logger
 from .is_definition import isdefinition
+from .ref import AnonRef
+from .array import Array
+from .tuple import Tuple
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from magma.verilog_utils import verilog_name
-from magma.view import InstView
+from magma.view import InstView, PortView
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -83,7 +90,7 @@ class CircuitKind(type):
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
         dct["inline_verilog_strs"] = []
-        dct["bind_modules"] = []
+        dct["bind_modules"] = {}
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -185,9 +192,15 @@ class CircuitKind(type):
         return defn
 
     def inline_verilog(cls, inline_str, **kwargs):
+        format_args = {}
+        for key, arg in kwargs.items():
+            if isinstance(arg, m.Type):
+                arg = verilog_name(arg.name)
+            elif isinstance(arg, PortView):
+                arg = verilog_name(arg)
+            format_args[key] = arg
         cls.inline_verilog_strs.append(
-            inline_str.format(**{key: verilog_name(arg.name) for key, arg in
-                                 kwargs.items()}))
+            inline_str.format(**format_args))
 
 
 @six.add_metaclass(CircuitKind)
@@ -530,28 +543,49 @@ class DefineCircuitKind(CircuitKind):
             inst.stack = inspect.stack()
         cls.instances.append(inst)
 
+    def gen_bind_port(cls, mon_arg, bind_arg):
+        if isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and \
+                not issubclass(mon_arg.T, m.Digital):
+            result = []
+            for child1, child2 in zip(mon_arg, bind_arg):
+                result += cls.gen_bind_port(child1, child2)
+            return result
+        port = verilog_name(mon_arg.name)
+        arg = verilog_name(bind_arg.name)
+        return [(f".{port}({arg})")]
+
     def bind(cls, monitor, *args):
         bind_str = monitor.verilogFile
 
         ports = []
-        for mon_arg, cls_arg in zip(monitor.interface.ports,
-                                    cls.interface.ports):
-            if mon_arg != cls_arg:
+        for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
+                                    cls.interface.ports.values()):
+            if str(mon_arg.name) != str(cls_arg.name):
                 error_str = f"""
 Bind monitor interface does not match circuit interface
     Monitor Ports: {list(monitor.interface.ports)}
     Circuit Ports: {list(cls.interface.ports)}
 """
                 raise TypeError(error_str)
-            ports.append(f".{mon_arg}({cls_arg})")
+            ports += cls.gen_bind_port(mon_arg, cls_arg)
         extra_mon_args = list(
-            monitor.interface.ports.keys()
+            monitor.interface.ports.values()
         )[len(cls.interface):]
         for mon_arg, bind_arg in zip(extra_mon_args, args):
-            ports.append(f".{mon_arg}({verilog_name(bind_arg.name)})")
+            ports += cls.gen_bind_port(mon_arg, bind_arg)
         ports_str = ", ".join(ports)
         bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});"  # noqa
-        cls.bind_modules.append((monitor, bind_str))
+        if not os.path.isdir(".magma"):
+            os.mkdir(".magma")
+        curr_compile_dir = get_compile_dir()
+        set_compile_dir("normal")
+        # Circular dependency, need coreir backend to compile, backend imports
+        # circuit (for wrap casts logic, we might be able to factor that out)
+        m.compile(f".magma/{monitor.name}", monitor)
+        set_compile_dir(curr_compile_dir)
+        with open(f".magma/{monitor.name}.v", "r") as f:
+            content = "\n".join((f.read(), bind_str))
+        cls.bind_modules[monitor.name] = content
 
 
 @six.add_metaclass(DefineCircuitKind)
@@ -586,7 +620,7 @@ def DefineCircuit(name, *decl, **args):
 def EndDefine():
     top = _DefinitionBlock.pop()
     if not top:
-        raise Exception("EndDefine called without Define/DeclareCircuit")
+        raise Exception("EndDefine called without DefineCircuit")
     debug_info = get_callee_frame_info()
     top.end_circuit_filename = debug_info[0]
     top.end_circuit_lineno = debug_info[1]
