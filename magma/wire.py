@@ -2,6 +2,7 @@ import magma as m
 from .compatibility import IntegerTypes
 from .debug import debug_wire
 from .logging import root_logger
+from .t import MagmaProtocol
 
 
 _logger = root_logger()
@@ -9,6 +10,11 @@ _logger = root_logger()
 
 @debug_wire
 def wire(o, i, debug_info=None):
+    if isinstance(o, MagmaProtocol):
+        o = o._get_magma_value_()
+    if isinstance(i, MagmaProtocol):
+        i = i._get_magma_value_()
+
     # Wire(o, Circuit).
     if hasattr(i, 'interface'):
         i.wire(o, debug_info)

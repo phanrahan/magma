@@ -1,7 +1,7 @@
 import functools
 import warnings
 import enum
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
 
@@ -157,17 +157,76 @@ class Kind(type):
             return cls
 
 
+def dispatch_magma_protocol(func):
+    @functools.wraps(func)
+    def wrapper(T):
+        if issubclass(T, MagmaProtocol):
+            return T._from_magma_(func(T._to_magma_()))
+        return func(T)
+    return wrapper
+
+
+@dispatch_magma_protocol
 def In(T):
     return T.qualify(Direction.In)
 
 
+@dispatch_magma_protocol
 def Out(T):
     return T.qualify(Direction.Out)
 
 
+@dispatch_magma_protocol
 def InOut(T):
     return T.qualify(Direction.InOut)
 
 
+@dispatch_magma_protocol
 def Flip(T):
     return T.flip()
+
+
+class MagmaProtocolMeta(ABCMeta):
+    @abstractmethod
+    def _to_magma_(cls):
+        # Need way to retrieve underlying magma type
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _from_magma_(cls, T: Kind):
+        # Need way to create a new version (e.g. give me a Foo with the
+        # underlying type qualified to be an input)
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _from_magma_value_(cls, val: Type):
+        # Need a way to create an instance from a value
+        raise NotImplementedError()
+
+    def flip(cls):
+        return cls._from_magma_(cls._to_magma_().flip())
+
+
+class MagmaProtocol(metaclass=MagmaProtocolMeta):
+    @abstractmethod
+    def _get_magma_value_(self):
+        # Need way to access underlying magma value
+        raise NotImplementedError()
+
+    @classmethod
+    def is_input(cls):
+        return cls._to_magma_().is_input()
+
+    @classmethod
+    def is_output(cls):
+        return cls._to_magma_().is_output()
+
+    def value(cls):
+        return cls._get_magma_value_().value()
+
+    def driven(cls):
+        return cls._get_magma_value_().driven()
+
+    @property
+    def name(cls):
+        return cls._get_magma_value_().name

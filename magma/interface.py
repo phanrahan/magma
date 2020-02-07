@@ -2,7 +2,7 @@ from itertools import chain
 from collections import OrderedDict
 from .conversions import array
 from .ref import AnonRef, InstRef, DefnRef
-from .t import Type, Kind
+from .t import Type, Kind, MagmaProtocolMeta
 from .port import INPUT, OUTPUT, INOUT
 from .clock import Clock, ClockTypes
 from .array import Array
@@ -22,6 +22,10 @@ def _flatten(l):
     return list(chain(*l))
 
 
+def is_valid_port(port):
+    return isinstance(port, (Kind, Type, MagmaProtocolMeta))
+
+
 def parse(decl):
     """
     Parse argument declaration of the form:
@@ -36,7 +40,7 @@ def parse(decl):
     # If name is empty, convert to the index.
     names = [name if name else i for i, name in enumerate(names)]
     # Check that all ports are given as instances of Kind or Type.
-    if not all(isinstance(port, (Kind, Type)) for port in ports):
+    if not all(is_valid_port(port) for port in ports):
         raise ValueError(f"Expected kinds or types, got {ports}")
 
     return names, ports
@@ -183,7 +187,10 @@ class _DeclareInterface(_Interface):
                 ref.name = renamed_ports[name]
             if defn:
                port = port.flip()
-            args[name] = port(name=ref)
+            if isinstance(port, MagmaProtocolMeta):
+                args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
+            else:
+                args[name] = port(name=ref)
 
         self.ports = args
 

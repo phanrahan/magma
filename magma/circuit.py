@@ -273,8 +273,14 @@ class AnonymousCircuitType(object):
             # Wire the circuit's outputs to this circuit's inputs.
             self.wireoutputs(output.interface.outputs(), debug_info)
             return
+        if isinstance(output, m.MagmaProtocol):
+            output = output._get_magma_value_()
         # Wire the output to this circuit's input (should only have 1 input).
-        inputs = self.interface.inputs()
+        inputs = []
+        for inp in self.interface.inputs():
+            if isinstance(inp, m.MagmaProtocol):
+                inp = inp._get_magma_value_()
+            inputs.append(inp)
         ni = len(inputs)
         if ni == 0:
             msg = ("Wiring an output to a circuit with no input arguments, "
