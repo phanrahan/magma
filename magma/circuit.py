@@ -620,7 +620,7 @@ def DefineCircuit(name, *decl, **args):
 def EndDefine():
     top = _DefinitionBlock.pop()
     if not top:
-        raise Exception("EndDefine called without DefineCircuit")
+        raise Exception("EndDefine called without Define/DeclareCircuit")
     debug_info = get_callee_frame_info()
     top.end_circuit_filename = debug_info[0]
     top.end_circuit_lineno = debug_info[1]

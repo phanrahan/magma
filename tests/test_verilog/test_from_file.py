@@ -3,8 +3,7 @@ import magma.testing
 import os
 import pytest
 import pyverilog
-from magma.frontend.verilog_utils import int_const_str_to_int
-from magma.frontend.verilog_importer import MultipleModuleDeclarationError
+from magma.fromverilog import parse_int_const
 from hwtypes import BitVector
 
 
@@ -19,7 +18,6 @@ def check_port(definition, port, type, direction):
     else:
         raise NotImplementedError(direction)
 
-
 def check_rxmod(RXMOD):
     check_port(RXMOD, "RX", m.Bit, "input")
     check_port(RXMOD, "CLK", m.Bit, "input")
@@ -33,15 +31,14 @@ def check_rxmod(RXMOD):
 
 def test_basic():
     file_path = os.path.dirname(__file__)
-    RXMOD = m.define_from_verilog_file(os.path.join(file_path, "rxmod.v"))[0]
+    RXMOD = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"))[0]
 
     check_rxmod(RXMOD)
 
 
 def test_target_modules_arg():
     file_path = os.path.dirname(__file__)
-    circuits = m.define_from_verilog_file(os.path.join(file_path, "rxmod.v"),
-                                          target_modules=["RXMOD"])
+    circuits = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"), ["RXMOD"])
     assert len(circuits) == 1
     assert circuits[0].name == "RXMOD"
 
@@ -50,7 +47,7 @@ def test_target_modules_arg():
 
 def test_coreir_compilation():
     file_path = os.path.dirname(__file__)
-    RXMOD = m.define_from_verilog_file(os.path.join(file_path, "rxmod.v"))[0]
+    RXMOD = m.DefineFromVerilogFile(os.path.join(file_path, "rxmod.v"))[0]
 
     top = m.DefineCircuit("top",
                           "RX", m.In(m.Bit),
@@ -76,7 +73,7 @@ def test_decl_list():
                 "reset"     : m.In(m.AsyncReset),
                 "config_en" : m.In(m.Enable),
                 "clk_en"    : m.In(m.Enable)}
-    memory_core = m.define_from_verilog_file(
+    memory_core = m.DefineFromVerilogFile(
         os.path.join(file_path, "decl_list.v"), target_modules=["memory_core"],
         type_map=type_map)[0]
     assert str(memory_core) == "memory_core(clk_in: In(Clock), clk_en: In(Enable), reset: In(AsyncReset), config_addr: In(Bits[32]), config_data: In(Bits[32]), config_read: In(Bit), config_write: In(Bit), config_en: In(Enable), config_en_sram: In(Bits[4]), config_en_linebuf: In(Bit), data_in: In(Bits[16]), data_out: Out(Bits[16]), wen_in: In(Bit), ren_in: In(Bit), valid_out: Out(Bit), chain_in: In(Bits[16]), chain_out: Out(Bits[16]), chain_wen_in: In(Bit), chain_valid_out: Out(Bit), almost_full: Out(Bit), almost_empty: Out(Bit), addr_in: In(Bits[16]), read_data: Out(Bits[32]), read_data_sram: Out(Bits[32]), read_data_linebuf: Out(Bits[32]), flush: In(Bit))"
@@ -84,7 +81,7 @@ def test_decl_list():
 
 def test_from_sv():
     file_path = os.path.dirname(__file__)
-    test_pe = m.define_from_verilog_file(os.path.join(file_path, "test_pe.sv"))[0]
+    test_pe = m.DefineFromVerilogFile(os.path.join(file_path, "test_pe.sv"), shallow=True)[0]
 
 
     if os.path.exists("build/test_pe.sv"):
@@ -99,12 +96,12 @@ def test_from_sv():
         f.write("".join(lines))
 
     assert m.testing.check_files_equal(__file__, "build/test_pe.sv",
-                                       "gold/test_pe.sv")
+                                       "test_pe.sv")
 
 
 def test_from_pad_inout():
     file_path = os.path.dirname(__file__)
-    Pad = m.declare_from_verilog_file(os.path.join(file_path, "pad.v"))[0]
+    Pad = m.DeclareFromVerilogFile(os.path.join(file_path, "pad.v"))[0]
 
     class Top(m.Circuit):
         IO = ["pad", m.InOut(m.Bit)]
@@ -121,8 +118,99 @@ def test_from_pad_inout():
                                        "gold/test_pad.v")
 
 
+def test_verilog_dependency():
+    [foo, bar] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule
+
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""")
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")
+
+
+def test_verilog_dependency_out_of_order():
+    [foo, bar] = m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule
+
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")
+
+
+def test_from_verilog_external_modules():
+    [foo] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+    [bar] = m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""", external_modules={"foo": foo})
+    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
+    bar_inst = bar()
+    m.wire(top.I, bar_inst.I)
+    m.wire(bar_inst.O, top.O)
+    m.EndDefine()
+    FILENAME = "test_verilog_dependency_top"
+    m.compile(f"build/{FILENAME}", top, output="coreir")
+    assert m.testing.check_files_equal(__file__, f"build/{FILENAME}.json",
+                                       f"gold/{FILENAME}.json")
+
+
+def test_from_verilog_external_modules_missing():
+    with pytest.raises(Exception) as pytest_e:
+        m.DefineFromVerilog("""
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""")
+        assert False
+    assert pytest_e.type is KeyError
+    assert pytest_e.value.args == ("foo",)
+
+
+def test_from_verilog_external_modules_duplicate():
+    with pytest.raises(Exception) as pytest_e:
+        [foo] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule""")
+        [bar] = m.DefineFromVerilog("""
+module foo(input I, output O);
+    assign O = I;
+endmodule
+
+module bar(input I, output O);
+    foo foo_inst(I, O);
+endmodule""", external_modules={"foo": foo})
+        assert False
+    assert pytest_e.type is Exception
+    assert pytest_e.value.args == \
+        ("Modules defined in both external_modules and in parsed verilog: {'foo'}",)  # nopep8
+
+
 def _test_nd_array_port(verilog):
-    [top] = m.define_from_verilog(verilog)
+    [top] = m.DefineFromVerilog(verilog)
     assert len(top.interface.ports) == 1
     assert "inp" in top.interface.ports
 
@@ -157,7 +245,7 @@ module mod{i} #(parameter KRATOS_INSTANCE_ID = {literal})
 endmodule   // mod
     """
 
-    mods = m.define_from_verilog(verilog)
+    mods = m.DefineFromVerilog(verilog)
 
     for mod in mods:
         m.compile(f"build/test_int_literal_{mod.name}", mod, output="verilog")
@@ -171,7 +259,7 @@ endmodule   // mod
         def definition(io):
             for mod, val in zip(mods, literals):
                 mod()(io.I)
-                mod(KRATOS_INSTANCE_ID=int_const_str_to_int(val))(io.I)
+                mod(KRATOS_INSTANCE_ID=parse_int_const(val))(io.I)
 
     m.compile("build/test_int_literal_inst", Top)
     assert m.testing.check_files_equal(
@@ -185,7 +273,7 @@ module mod (input I);
     localparam myparam = 10 / 2;
 endmodule
 """
-    m.define_from_verilog(verilog)
+    m.DefineFromVerilog(verilog)
 
 
 def test_divide_clog2():
@@ -194,4 +282,4 @@ module mod (input I);
     localparam myparam = $clog2(8);
 endmodule
 """
-    m.define_from_verilog(verilog)
+    m.DefineFromVerilog(verilog)

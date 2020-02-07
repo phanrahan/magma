@@ -2,9 +2,24 @@ import functools
 import warnings
 import enum
 from abc import abstractmethod, ABCMeta
-from .common import deprecated
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
+
+
+# From http://code.activestate.com/recipes/391367-deprecated/
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+    @functools.wraps(func)
+    def newFunc(*args, **kwargs):
+        warnings.warn("Call to deprecated function %s." % func.__name__,
+                      category=DeprecationWarning, stacklevel=2)
+        return func(*args, **kwargs)
+    newFunc.__name__ = func.__name__
+    newFunc.__doc__ = func.__doc__
+    newFunc.__dict__.update(func.__dict__)
+    return newFunc
 
 
 class Direction(enum.Enum):
