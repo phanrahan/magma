@@ -109,7 +109,12 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         # Create interface for this circuit class.
+        # TODO(setaluri): Simplify this logic and remove InterfaceKind check
+        # (this is a artifact of the circuit_generator decorator).
         if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
+            _logger.warning("'IO = [...]' syntax is deprecated, use "
+                            "'io = IO(...)' syntax instead",
+                            debug_info=dct["debug_info"])
             cls.IO = DeclareInterface(*cls.IO)
             cls.interface = cls.IO(defn=cls,
                                    renamed_ports=dct["renamed_ports"])
@@ -470,6 +475,9 @@ class DefineCircuitKind(CircuitKind):
         if hasattr(self, 'IO'):
             # Create circuit definition.
             if hasattr(self, 'definition'):
+                _logger.warning("'definition' class method syntax is "
+                                "deprecated, use inline definition syntax "
+                                "instead", debug_info=self.debug_info)
                 with _DefinitionBlock(self):
                     self.definition()
                     self.check_unconnected()
