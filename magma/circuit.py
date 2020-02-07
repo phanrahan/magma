@@ -81,6 +81,16 @@ def _setattrs(obj, dct):
             setattr(obj, k, v)
 
 
+def _get_interface_decl(cls):
+    # TODO(setaluri): Simplify this logic and remove InterfaceKind check
+    # (this is a artifact of the circuit_generator decorator).
+    if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
+        _logger.warning("'IO = [...]' syntax is deprecated, use "
+                        "'io = IO(...)' syntax instead",
+                        debug_info=cls.debug_info)
+        return DeclareInterface(*cls.IO)
+
+
 class CircuitKind(type):
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
@@ -109,13 +119,9 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         # Create interface for this circuit class.
-        # TODO(setaluri): Simplify this logic and remove InterfaceKind check
-        # (this is a artifact of the circuit_generator decorator).
-        if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
-            _logger.warning("'IO = [...]' syntax is deprecated, use "
-                            "'io = IO(...)' syntax instead",
-                            debug_info=dct["debug_info"])
-            cls.IO = DeclareInterface(*cls.IO)
+        IO = _get_interface_decl(cls)
+        if IO is not None:
+            cls.IO = IO
             cls.interface = cls.IO(defn=cls,
                                    renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
