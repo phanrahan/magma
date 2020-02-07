@@ -72,5 +72,4 @@ def slice(value: Bits, start: Bits, width: int):
     """
     # Construct an array where the index `i` is the slice of bits from `i` to
     # `i+width`, index into this array using `start`
-    return array([value[i:i+width] for i in range(len(value) - width
-)])[start]
+    return array([value[i:i+width] for i in range(len(value) - width)])[start]
