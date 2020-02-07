@@ -210,7 +210,13 @@ class Array(Type, metaclass=ArrayMeta):
     def flat_length(cls):
         return cls.N * cls.T.flat_length()
 
+    def dynamic_mux_select(self, key):
+        return m.operators.Mux(len(self), self.T)(*self.ts, key)
+
     def __getitem__(self, key):
+        if isinstance(key, Type):
+            # indexed using a dynamic magma value, generate mux circuit
+            return self.dynamic_mux_select(key)
         if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
             key = seq2int([0 if t is GND else 1 for t in key.ts])
         if isinstance(key, slice):
