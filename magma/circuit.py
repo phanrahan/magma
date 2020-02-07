@@ -82,6 +82,9 @@ def _setattrs(obj, dct):
 
 
 def _get_interface_decl(cls):
+    if hasattr(cls, "IO") and hasattr(cls, "io"):
+        _logger.warning("'IO' and 'io' should not both be specified, ignoring "
+                        "'io'", debug_info=cls.debug_info)
     # TODO(setaluri): Simplify this logic and remove InterfaceKind check
     # (this is a artifact of the circuit_generator decorator).
     if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
@@ -89,6 +92,9 @@ def _get_interface_decl(cls):
                         "'io = IO(...)' syntax instead",
                         debug_info=cls.debug_info)
         return DeclareInterface(*cls.IO)
+    if hasattr(cls, "io"):
+        return DeclareLazyInterface(cls.io)
+    return None
 
 
 class CircuitKind(type):

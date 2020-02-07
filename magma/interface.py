@@ -1,7 +1,7 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-from .ref import AnonRef, InstRef, DefnRef
+from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef
 from .t import Type, Kind, MagmaProtocolMeta
 from .port import INPUT, OUTPUT, INOUT
 from .clock import Clock, ClockTypes
@@ -13,6 +13,8 @@ from .compatibility import IntegerTypes, StringTypes
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
 __all__ += ['InterfaceKind']
+__all__ += ['DeclareLazyInterface']
+__all__ += ['IO']
 
 
 def _flatten(l):
@@ -195,6 +197,23 @@ class _DeclareInterface(_Interface):
         self.ports = args
 
 
+class _DeclareLazyInterface(_Interface):
+    """_DeclareLazyInterface class"""
+    def __init__(self, renamed_ports={}, inst=None, defn=None):
+        args = OrderedDict()
+        for name, port in self.io.ports.items():
+            ref = port.name
+            if inst:
+                ref.set_inst(inst)
+            elif defn:
+                ref.set_defn(defn)
+            if name in renamed_ports:
+                ref.name = renamed_ports[name]
+            args[name] = port
+
+        self.ports = args
+
+
 class InterfaceKind(Kind):
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -234,3 +253,34 @@ def DeclareInterface(*decl, **kwargs):
     name = f"Interface({', '.join([str(a) for a in decl])})"
     dct = dict(Decl=decl, **kwargs)
     return InterfaceKind(name, (_DeclareInterface,), dct)
+
+
+def DeclareLazyInterface(io, **kwargs):
+    """LazyInterface factory function"""
+    decl = io.decl()
+    name = f"Interface({', '.join([str(a) for a in decl])})"
+    dct = dict(io=io, Decl=io.decl(), **kwargs)
+    return InterfaceKind(name, (_DeclareLazyInterface,), dct)
+
+
+class IO:
+    """
+    Class for creating an interface bundle.
+
+    @kwargs: ordered dict of {name: type}, ala decl.
+    """
+    # Note that because we require kwargs to be ordered, we have a strong
+    # requirement here for >= python version 3.6. See
+    # https://www.python.org/dev/peps/pep-0468/.
+    def __init__(self, **kwargs):
+        self.ports = {}
+        self.__decl = []
+        for name, typ in kwargs.items():
+            ref = LazyDefnRef(name=name)
+            port = typ.flip()(name=ref)
+            self.ports[name] = port
+            self.__decl += [name, typ]
+            setattr(self, name, port)
+
+    def decl(self):
+        return self.__decl

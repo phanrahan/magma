@@ -2,7 +2,7 @@ from .compatibility import IntegerTypes
 
 
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
-
+__all__ += ['LazyDefnRef']
 
 class Ref:
     def __str__(self):
@@ -59,6 +59,22 @@ class DefnRef(Ref):
 
     def anon(self):
         return False
+
+
+class LazyDefnRef(DefnRef):
+    def __init__(self, name):
+        self.name = name
+        self.defn = None
+
+    def qualifiedname(self, sep="."):
+        if not self.defn:
+            raise Exception()
+        return super().qualifiedname(sep)
+
+    def set_defn(self, defn):
+        if self.defn is not None:
+            raise Exception()
+        self.defn = defn
 
 
 class ArrayRef(Ref):
