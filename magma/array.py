@@ -58,7 +58,7 @@ class ArrayMeta(ABCMeta, Kind):
             if not isinstance(index[1], Direction):
                 # Otherwise, we expect that we're qualifying a Type with the
                 # direction (e.g. In(Array)[5, Bit])
-                if not isinstance(index[1], Type):
+                if not issubclass(index[1], Type):
                     raise TypeError("Expected Type as second index to Array")
                 index = index[0], index[1].qualify(cls.T)
         elif cls.T is None:
