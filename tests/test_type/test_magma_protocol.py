@@ -23,6 +23,11 @@ def test_foo_type_magma_protocol():
             # underlying type qualified to be an input)
             return cls[cls.T.qualify(direction)]
 
+        def _flip_magma_(cls):
+            # Need way to create a new version (e.g. give me a Foo with the
+            # underlying type qualified to be an input)
+            return cls[cls.T.flip()]
+
         def _from_magma_value_(cls, val: m.Type):
             # Need a way to create an instance of Foo from a value, this just
             # dispatches to the __init__ logic, but you could define any

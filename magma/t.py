@@ -170,6 +170,12 @@ class MagmaProtocolMeta(ABCMeta):
         # underlying type qualified to be an input)
         raise NotImplementedError()
 
+    @abstractmethod
+    def _flip_magma_(cls):
+        # Need way to flip underlying type (e.g. give me a Foo with the
+        # underlying type flipped)
+        raise NotImplementedError()
+
     def qualify(cls, direction: Direction):
         return cls._qualify_magma_(direction)
 
@@ -179,12 +185,7 @@ class MagmaProtocolMeta(ABCMeta):
         raise NotImplementedError()
 
     def flip(cls):
-        T = cls._to_magma_()
-        if T.is_input():
-            return cls._qualify_magma_(Direction.Out)
-        elif T.is_output():
-            return cls._qualify_magma_(Direction.In)
-        return cls
+        return cls._flip_magma_()
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
