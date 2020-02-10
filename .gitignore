@@ -101,3 +101,4 @@ parsetab.py
 .pytest_cache
 build/
 tests/test_verilog/build/
+.ast_tools
