@@ -48,6 +48,26 @@ def parse(decl):
     return names, ports
 
 
+def _make_interface_args(decl, renamed_ports, inst, defn):
+    names, ports = parse(decl)  # parse the class Interface declaration
+    args = OrderedDict()
+    for name, port in zip(names, ports):
+        if   inst: ref = InstRef(inst, name)
+        elif defn: ref = DefnRef(defn, name)
+        else:      ref = AnonRef(name)
+
+        if name in renamed_ports:
+            ref.name = renamed_ports[name]
+        if defn:
+           port = port.flip()
+        if isinstance(port, MagmaProtocolMeta):
+            args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
+        else:
+            args[name] = port(name=ref)
+
+    return args
+
+
 class _Interface(Type):
     """
     Abstract Base Class for an Interface.
@@ -176,30 +196,19 @@ class _DeclareInterface(_Interface):
         interface = Interface()
     """
     def __init__(self, renamed_ports={}, inst=None, defn=None):
-        # Parse the class Interface declaration.
-        names, ports = parse(self.Decl)
-
-        args = OrderedDict()
-        for name, port in zip(names, ports):
-            if   inst: ref = InstRef(inst, name)
-            elif defn: ref = DefnRef(defn, name)
-            else:      ref = AnonRef(name)
-
-            if name in renamed_ports:
-                ref.name = renamed_ports[name]
-            if defn:
-               port = port.flip()
-            if isinstance(port, MagmaProtocolMeta):
-                args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
-            else:
-                args[name] = port(name=ref)
-
-        self.ports = args
+        self.ports = _make_interface_args(self.Decl, renamed_ports, inst, defn)
 
 
 class _DeclareLazyInterface(_Interface):
     """_DeclareLazyInterface class"""
     def __init__(self, renamed_ports={}, inst=None, defn=None):
+        # This interface declaration is only lazy for module definitions (not
+        # instances). If @defn is not supplied, then we use the standard
+        # (non-lazy) interface construction logic.
+        if not defn:
+            self.ports = _make_interface_args(self.Decl, renamed_ports, inst,
+                                              defn)
+            return
         args = OrderedDict()
         for name, port in self.io.ports.items():
             ref = port.name
