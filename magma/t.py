@@ -1,7 +1,7 @@
 import functools
 import warnings
 import enum
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod
 from .common import deprecated
 from .ref import Ref, AnonRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
@@ -158,7 +158,7 @@ def Flip(T):
     return T.flip()
 
 
-class MagmaProtocolMeta(ABCMeta):
+class MagmaProtocolMeta(type):
     @abstractmethod
     def _to_magma_(cls):
         # Need way to retrieve underlying magma type
