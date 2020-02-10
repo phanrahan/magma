@@ -571,6 +571,63 @@ def test_clock_multi_arg(target):
     compile_and_check("TestClockMultiArg", TestClockMultiArg, target)
 
 
+def test_clock_rom(target):
+    class ROM(m.Circuit):
+        IO = [
+            "RADDR", m.In(m.Bits[8]),
+            "RDATA", m.Out(m.Bits[8]),
+            "RCLK", m.In(m.Clock),
+        ]
+        @classmethod
+        def definition(io):
+            m.wire(m.bits(0, 8), io.RDATA)
+
+    @m.circuit.sequential(async_reset=False)
+    class TestClockROM:
+        def __call__(
+            self,
+            ADDR: m.Bits[8],
+            RCLK: m.Clock,
+        ) -> m.Bits[8]:
+            rdata = ROM()(RADDR=ADDR, RCLK=RCLK)
+            return rdata
+
+    compile_and_check("TestClockROM", TestClockROM, target)
+
+
+def test_dual_clock_ram(target):
+    class DualClockRAM(m.Circuit):
+        IO = [
+            "RADDR", m.In(m.Bits[8]),
+            "WADDR", m.In(m.Bits[8]),
+            "WDATA", m.In(m.Bits[8]),
+            "RDATA", m.Out(m.Bits[8]),
+            "WE", m.In(m.Bit),
+            "RCLK", m.In(m.Clock),
+            "WCLK", m.In(m.Clock),
+        ]
+        @classmethod
+        def definition(io):
+            m.wire(m.bits(0, 8), io.RDATA)
+
+    @m.circuit.sequential(async_reset=False)
+    class TestDualClockRAM:
+        def __call__(
+            self,
+            ADDR: m.Bits[8],
+            WDATA: m.Bits[8],
+            WE: m.Bit,
+            RCLK: m.Clock,
+            WCLK: m.Clock,
+        ) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=ADDR, WADDR=ADDR, WDATA=WDATA, WE=WE, RCLK=RCLK, WCLK=WCLK
+            )
+            return rdata
+
+    compile_and_check("TestDualClockRAM", TestDualClockRAM, target)
+
+
 def test_init_clock_arg(target):
     @m.circuit.sequential(async_reset=False)
     class TestInitClockArg:
