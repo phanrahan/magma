@@ -29,8 +29,6 @@ endmodule
 module A (
     input a,
     input [1:0] b,
-    input CLK,
-    input ASYNCRESET,
     output [0:0] O
 );
 wire [0:0] A_comb_inst0_O;

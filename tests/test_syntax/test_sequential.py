@@ -589,6 +589,7 @@ def test_clock_rom(target):
             ADDR: m.Bits[8],
             RCLK: m.Clock,
         ) -> m.Bits[8]:
+            # requires explicit clock wiring because this sequential doesn't have __init__ (no CLK)
             rdata = ROM()(RADDR=ADDR, RCLK=RCLK)
             return rdata
 

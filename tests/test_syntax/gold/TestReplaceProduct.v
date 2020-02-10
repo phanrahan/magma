@@ -21,7 +21,6 @@ assign O_y = bit_const_1_None_out;
 endmodule
 
 module TestReplaceProduct (
-    input CLK,
     output O_x,
     output O_y
 );

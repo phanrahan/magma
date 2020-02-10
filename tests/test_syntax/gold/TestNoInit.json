@@ -6,8 +6,6 @@
         "type":["Record",[
           ["a","BitIn"],
           ["b","BitIn"],
-          ["CLK",["Named","coreir.clkIn"]],
-          ["ASYNCRESET",["Named","coreir.arstIn"]],
           ["O","Bit"]
         ]],
         "instances":{

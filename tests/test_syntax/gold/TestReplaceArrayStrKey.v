@@ -21,7 +21,6 @@ assign O = const_3_2_out;
 endmodule
 
 module TestReplaceArrayStrKey (
-    input CLK,
     output [1:0] O
 );
 wire [1:0] TestReplaceArrayStrKey_comb_inst0_O;

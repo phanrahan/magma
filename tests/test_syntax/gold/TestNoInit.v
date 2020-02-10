@@ -23,8 +23,6 @@ endmodule
 module TestNoInit (
     input a,
     input b,
-    input CLK,
-    input ASYNCRESET,
     output O
 );
 wire TestNoInit_comb_inst0_O;

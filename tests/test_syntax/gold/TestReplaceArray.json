@@ -4,7 +4,6 @@
     "modules":{
       "TestReplaceArray":{
         "type":["Record",[
-          ["CLK",["Named","coreir.clkIn"]],
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{

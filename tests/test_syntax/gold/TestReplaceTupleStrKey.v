@@ -21,7 +21,6 @@ assign O__1 = bit_const_1_None_out;
 endmodule
 
 module TestReplaceTupleStrKey (
-    input CLK,
     output O__0,
     output O__1
 );

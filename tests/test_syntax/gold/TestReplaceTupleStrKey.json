@@ -4,7 +4,6 @@
     "modules":{
       "TestReplaceTuple":{
         "type":["Record",[
-          ["CLK",["Named","coreir.clkIn"]],
           ["O",["Record",[["_0","Bit"],["_1","Bit"]]]]
         ]],
         "instances":{
@@ -18,7 +17,6 @@
       },
       "TestReplaceTupleStrKey":{
         "type":["Record",[
-          ["CLK",["Named","coreir.clkIn"]],
           ["O",["Record",[["_0","Bit"],["_1","Bit"]]]]
         ]],
         "instances":{
