@@ -64,9 +64,13 @@ class ArrayMeta(ABCMeta, Kind):
         elif cls.T is None:
             # Else, it index[1] should be  Type (e.g. In(Bit)) or a Direction
             # (used internally for In(Array))
-            if not isinstance(index[1], (Type, Direction)):
+            valid_second_index = (isinstance(index[1], Direction) or
+                                  issubclass(index[1], Type))
+            if not valid_second_index:
                 raise TypeError(
-                    "Expected Type or Direction as second index to Array")
+                    "Expected Type or Direction as second index to Array"
+                    f" got: {index[1], type(index[1])}"
+                )
 
         try:
             return mcs._class_cache[cls, index]
