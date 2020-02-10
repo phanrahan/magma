@@ -142,31 +142,18 @@ class Kind(type):
             return cls
 
 
-def dispatch_magma_protocol(func):
-    @functools.wraps(func)
-    def wrapper(T):
-        if issubclass(T, MagmaProtocol):
-            return T._from_magma_(func(T._to_magma_()))
-        return func(T)
-    return wrapper
-
-
-@dispatch_magma_protocol
 def In(T):
     return T.qualify(Direction.In)
 
 
-@dispatch_magma_protocol
 def Out(T):
     return T.qualify(Direction.Out)
 
 
-@dispatch_magma_protocol
 def InOut(T):
     return T.qualify(Direction.InOut)
 
 
-@dispatch_magma_protocol
 def Flip(T):
     return T.flip()
 
@@ -178,10 +165,13 @@ class MagmaProtocolMeta(ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def _from_magma_(cls, T: Kind):
-        # Need way to create a new version (e.g. give me a Foo with the
+    def _qualify_magma_(cls, direction: Direction):
+        # Need way to qualify underlying type (e.g. give me a Foo with the
         # underlying type qualified to be an input)
         raise NotImplementedError()
+
+    def qualify(cls, direction: Direction):
+        return cls._qualify_magma_(direction)
 
     @abstractmethod
     def _from_magma_value_(cls, val: Type):
@@ -189,7 +179,12 @@ class MagmaProtocolMeta(ABCMeta):
         raise NotImplementedError()
 
     def flip(cls):
-        return cls._from_magma_(cls._to_magma_().flip())
+        T = cls._to_magma_()
+        if T.is_input():
+            return cls._qualify_magma_(Direction.Out)
+        elif T.is_output():
+            return cls._qualify_magma_(Direction.In)
+        return cls
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):

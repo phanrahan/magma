@@ -18,16 +18,16 @@ def test_foo_type_magma_protocol():
             # Need way to retrieve underlying magma type
             return cls.T
 
-        def _from_magma_(cls, T: m.Kind):
+        def _qualify_magma_(cls, direction: m.Direction):
             # Need way to create a new version (e.g. give me a Foo with the
             # underlying type qualified to be an input)
-            return cls[T]
+            return cls[cls.T.qualify(direction)]
 
         def _from_magma_value_(cls, val: m.Type):
             # Need a way to create an instance of Foo from a value, this just
             # dispatches to the __init__ logic, but you could define any
             # custom behavior here
-            return cls._from_magma_(type(val))(val)
+            return cls(val)
 
         def __getitem__(cls, T):
             return type(cls)(f"Foo{T}", (cls, ), {"T": T})
