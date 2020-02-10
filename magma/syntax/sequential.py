@@ -272,7 +272,7 @@ def update_io_args(io_args, name, type_):
     io_args[name] = type_
 
 
-def gen_io_args(inputs, output_type, async_reset, magma_name):
+def gen_io_args(inputs, output_type, async_reset, magma_name, has_init):
     io_args = {}
     has_clk = False
     for name, type_ in inputs:
@@ -280,10 +280,11 @@ def gen_io_args(inputs, output_type, async_reset, magma_name):
         if type_ == "m.Clock":
             has_clk = True
         update_io_args(io_args, name, f"{magma_name}.In({type_})")
-    if not has_clk:
-        update_io_args(io_args, "CLK", f"{magma_name}.In({magma_name}.Clock)")
-    if async_reset:
-        update_io_args(io_args, "ASYNCRESET", f"{magma_name}.In({magma_name}.AsyncReset)")
+    if has_init:
+        if not has_clk:
+            update_io_args(io_args, "CLK", f"{magma_name}.In({magma_name}.Clock)")
+        if async_reset:
+            update_io_args(io_args, "ASYNCRESET", f"{magma_name}.In({magma_name}.AsyncReset)")
     if isinstance(output_type, ast.Tuple):
         outputs = []
         for i, elem in enumerate(output_type.elts):
@@ -361,16 +362,18 @@ def _sequential(
         # Handle case when no __init__
         init_inputs = []
         initial_value_map = {}
+        has_init = False
     else:
         init_inputs = get_init_inputs(cls.__init__)
         initial_value_map = get_initial_value_map(cls.__init__, defn_env)
+        has_init = True
 
     call_def = get_ast(cls.__call__).body[0]
     magma_name = gen_free_name(call_def, defn_env, 'm')
     defn_env[magma_name] = m
 
     inputs, output_type = get_io(call_def)
-    io_args = gen_io_args(init_inputs + inputs, output_type, async_reset, magma_name)
+    io_args = gen_io_args(init_inputs + inputs, output_type, async_reset, magma_name, has_init)
 
     circuit_combinational_output_type = []
     circuit_combinational_args = []
