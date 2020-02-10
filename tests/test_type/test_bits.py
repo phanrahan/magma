@@ -5,6 +5,7 @@ Test the `m.Bits` type
 import operator
 import pytest
 import magma as m
+from magma import Bits
 from magma.testing import check_files_equal
 
 ARRAY2 = m.Array[2, m.Bit]
@@ -30,6 +31,24 @@ def test_bits_basic():
     bits_4 = m.Bits[4]
     assert bits_4 == ARRAY4
     assert bits_2 != bits_4
+
+
+def test_qualify_bits():
+    assert str(m.In(Bits)) == "In(Bits)"
+    assert str(m.Out(m.In(Bits))) == "Out(Bits)"
+    assert str(m.In(Bits)[5, m.Bit]) == "In(Bits[5])"
+    assert str(m.Out(m.In(Bits))[5, m.Bit]) == "Out(Bits[5])"
+
+    # Bits qualifer overrides child qualifer
+    assert str(m.In(Bits)[5, m.Out(m.Bit)]) == "In(Bits[5])"
+
+    assert m.In(Bits) is m.In(Bits)
+    assert m.Out(m.In(Bits)) is m.Out(Bits)
+    assert m.In(Bits)[5, m.Bit] is m.Bits[5, m.In(m.Bit)]
+    assert m.Out(m.In(Bits))[5, m.Bit] is Bits[5, m.Out(m.Bit)]
+
+    # Bits qualifer overrides child qualifer
+    assert m.In(Bits)[5, m.Out(m.Bit)] == Bits[5, m.In(m.Bit)]
 
 
 def test_val():

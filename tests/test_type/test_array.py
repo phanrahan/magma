@@ -41,6 +41,24 @@ def test_array():
     assert not isinstance(m.Out(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
 
 
+def test_qualify_array():
+    assert str(m.In(Array)) == "In(Array)"
+    assert str(m.Out(m.In(Array))) == "Out(Array)"
+    assert str(m.In(Array)[5, m.Bit]) == "Array[5, In(Bit)]"
+    assert str(m.Out(m.In(Array))[5, m.Bit]) == "Array[5, Out(Bit)]"
+
+    # Array qualifer overrides child qualifer
+    assert str(m.In(Array)[5, m.Out(m.Bit)]) == "Array[5, In(Bit)]"
+
+    assert m.In(Array) is m.In(Array)
+    assert m.Out(m.In(Array)) is m.Out(Array)
+    assert m.In(Array)[5, m.Bit] is m.Array[5, In(Bit)]
+    assert m.Out(m.In(Array))[5, m.Bit] is m.Array[5, Out(Bit)]
+
+    # Array qualifer overrides child qualifer
+    assert m.In(Array)[5, m.Out(m.Bit)] == Array[5, In(Bit)]
+
+
 def test_val():
     Array4In = Array[4, BitIn]
     Array4Out = Array[4, BitOut]
