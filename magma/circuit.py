@@ -24,7 +24,7 @@ from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from magma.verilog_utils import convert_value_to_verilog_name
+from magma.verilog_utils import value_to_verilog_name
 from magma.view import InstView, PortView
 
 __all__ = ['AnonymousCircuitType']
@@ -195,9 +195,9 @@ class CircuitKind(type):
         format_args = {}
         for key, arg in kwargs.items():
             if isinstance(arg, m.Type):
-                arg = convert_value_to_verilog_name(arg)
+                arg = value_to_verilog_name(arg)
             elif isinstance(arg, PortView):
-                arg = convert_value_to_verilog_name(arg)
+                arg = value_to_verilog_name(arg)
             format_args[key] = arg
         cls.inline_verilog_strs.append(
             inline_str.format(**format_args))
@@ -544,8 +544,8 @@ class DefineCircuitKind(CircuitKind):
             for child1, child2 in zip(mon_arg, bind_arg):
                 result += cls.gen_bind_port(child1, child2)
             return result
-        port = convert_value_to_verilog_name(mon_arg)
-        arg = convert_value_to_verilog_name(bind_arg)
+        port = value_to_verilog_name(mon_arg)
+        arg = value_to_verilog_name(bind_arg)
         return [(f".{port}({arg})")]
 
     def bind(cls, monitor, *args):
