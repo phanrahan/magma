@@ -3,7 +3,7 @@ from abc import ABCMeta
 import magma as m
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind
+from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .bit import VCC, GND, Bit
 from .bitutils import seq2int
@@ -88,6 +88,14 @@ class ArrayMeta(ABCMeta, Kind):
             return t
         else:
             raise AttributeError('type {} has no abstract_t'.format(cls))
+
+    @property
+    def undirected_t(cls) -> 'ArrayMeta':
+        T = cls.T
+        if cls.is_concrete:
+            return cls[cls.N, cls.T.qualify(Direction.Undirected)]
+        else:
+            raise AttributeError('type {} has no undirected_t'.format(cls))
 
     @property
     def N(cls) -> int:

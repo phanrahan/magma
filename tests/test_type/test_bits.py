@@ -18,6 +18,7 @@ def test_bits_basic():
     bits_2 = m.Bits[2]
     bits_in_2 = m.In(m.Bits[2])
     bits_out_2 = m.Out(m.Bits[2])
+    assert bits_in_2.undirected_t == bits_2
     assert bits_2 == m.Bits[2]
     assert bits_in_2 == m.In(bits_2)
     assert bits_out_2 == m.Out(bits_2)
