@@ -171,7 +171,7 @@ def Flip(T):
     return T.flip()
 
 
-class MagmaProtocolMeta(ABCMeta):
+class MagmaProtocolMeta(type):
     @abstractmethod
     def _to_magma_(cls):
         # Need way to retrieve underlying magma type

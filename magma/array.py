@@ -106,7 +106,10 @@ class ArrayMeta(ABCMeta, Kind):
             bases.insert(0, cls)
         bases = tuple(bases)
         orig_name = cls.__name__
-        class_name = '{}[{}]'.format(cls.__name__, index)
+        if isinstance(index[1], Direction):
+            class_name = f'{index[1].name}({cls.__name__})'
+        else:
+            class_name = '{}[{}]'.format(cls.__name__, index)
         type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, ) + index)
         type_.__module__ = cls.__module__
         mcs._class_cache[cls, index] = type_
