@@ -4,7 +4,6 @@ from .coreir_ import InsertWrapCasts
 from ..compiler import Compiler
 from ..frontend import coreir_ as coreir_frontend
 from ..passes import InstanceGraphPass
-from ..passes.insert_coreir_wires import InsertCoreIRWiresPass
 
 
 def _make_verilog_cmd(deps, basename, opts):
@@ -40,7 +39,6 @@ class CoreIRCompiler(Compiler):
 
     def __compile_coreir(self):
         backend = coreir_frontend.GetCoreIRBackend()
-        InsertCoreIRWiresPass(self.main).run()
         InsertWrapCasts(self.main).run()
         backend.compile(self.main)
         backend.context.run_passes(self.passes, self.namespaces)

@@ -2,8 +2,7 @@ from itertools import chain
 from collections import OrderedDict
 from .conversions import array
 from .ref import AnonRef, InstRef, DefnRef
-from .t import Type, Kind, MagmaProtocolMeta
-from .port import INPUT, OUTPUT, INOUT
+from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
 from .tuple import Tuple

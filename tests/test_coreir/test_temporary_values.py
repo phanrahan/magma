@@ -10,8 +10,7 @@ def test_temporary_named_value():
         def definition(io):
             x = m.Bit(name="x")
             m.wire(io.I, x)
-            x @= io.I
-            m.wire(io.O, x)
+            m.wire(x, io.O)
 
     m.compile("build/test_temporary_named_value", Main)
     check_files_equal(__file__, "build/test_temporary_named_value.v",

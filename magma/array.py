@@ -339,7 +339,7 @@ class Array(Type, metaclass=ArrayMeta):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return type(self)(*ts)
+        return type(self).flip()(*ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]

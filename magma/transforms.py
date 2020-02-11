@@ -215,7 +215,7 @@ def flatten(circuit):
 
     # Handle unwired inputs
     for name, origbit in circuit.interface.ports.items():
-        if origbit.is_output() and origbit.value() is None:
+        if origbit.is_output() and not origbit.wired():
             newbit = new_circuit.interface.ports[name]
             flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 
