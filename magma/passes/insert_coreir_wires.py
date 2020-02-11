@@ -45,7 +45,9 @@ class InsertCoreIRWires(DefinitionPass):
             driver = driver.value()
         if driver is not None:
             value.unwire(driver)
-            name = f"wire_{driver.name}_{value.name}"
+            driver_name = driver.name.qualifiedname("_")
+            value_name = value.name.qualifiedname("_")
+            name = f"wire_{driver_name}_{value_name}"
             wire_inst = definition.add_instance(
                 Wire, name, type(value), name=name
             )
@@ -55,10 +57,12 @@ class InsertCoreIRWires(DefinitionPass):
                 self.insert_wire(driver, definition)
 
     def __call__(self, definition):
-        for instance in definition.instances:
-            for name, value in instance.ports.items():
-                if value.is_input():
-                    print(name, value, value.value())
+        # Copy instances because inserting wire will append to instances
+        instances_copy = definition.instances[:]
+        for instance in instances_copy:
+            for value in instance.interface.ports.values():
+                if not value.is_output():
+                    self.insert_wire(value, definition)
         for value in definition.interface.ports.values():
             if value.is_input():
                 self.insert_wire(value, definition)

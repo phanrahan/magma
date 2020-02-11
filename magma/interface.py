@@ -62,16 +62,16 @@ class _Interface(Type):
                 if not value.is_output():
                     # Temporary, insert before wires
                     s += f"{value.name} = {repr(value)}\n"
-                if isinstance(value, (Array, Tuple)):
-                    if not value.iswhole(value.ts):
-                        for i in range(len(input)):
-                            iname = repr(input[i])
-                            oname = repr(value[i])
-                            s += f"wire({oname}, {iname})\n"
-                        break
-                iname = input.name.qualifiedname()
-                oname = value.name.qualifiedname()
-                s += f"wire({oname}, {iname})\n"
+                if isinstance(value, (Array, Tuple)) and \
+                        not value.iswhole(value.ts):
+                    for i in range(len(input)):
+                        iname = repr(input[i])
+                        oname = repr(value[i])
+                        s += f"wire({oname}, {iname})\n"
+                else:
+                    iname = input.name.qualifiedname()
+                    oname = value.name.qualifiedname()
+                    s += f"wire({oname}, {iname})\n"
                 if not value.is_output():
                     input = value
                     value = value.value()
