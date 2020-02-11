@@ -35,9 +35,6 @@ def _get_basename(basename):
 
 
 def compile(basename, main, output="coreir-verilog", **kwargs):
-    WireClockPass(main).run()
-    print(repr(main))
-
     basename = _get_basename(basename)
     opts = kwargs.copy()
     compiler = _make_compiler(output, main, basename, opts)
