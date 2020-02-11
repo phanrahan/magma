@@ -18,6 +18,7 @@ from .debug import get_callee_frame_info, debug_info
 from .logging import root_logger
 from .is_definition import isdefinition
 from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
+from .bit import VCC, GND
 from .array import Array
 from .tuple import Tuple
 from .digital import Digital
@@ -143,6 +144,9 @@ class CircuitKind(type):
         elif isinstance(value.name, TupleRef):
             cls.add_intermediate_value(value.name.tuple, values)
         elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
+            if value is VCC or value is GND:
+                # Skip VCC and GND because they are special
+                return
             if not any(value is x for x in values):
                 values.append(value)
 
@@ -182,9 +186,10 @@ class CircuitKind(type):
         intermediate_values = []
         for value in values:
             cls.get_intermediate_values(value, intermediate_values)
-        s += "\n".join(
-            f"{value.name} = {repr(value)}" for value in intermediate_values
-        ) + "\n"
+        if intermediate_values:
+            s += "\n".join(
+                f"{value.name} = {repr(value)}" for value in intermediate_values
+            ) + "\n"
 
         # Emit instances.
         for instance in sorted_instances:

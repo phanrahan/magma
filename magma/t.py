@@ -208,6 +208,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         return cls._to_magma_().is_input()
 
     @classmethod
+    def is_mixed(cls):
+        return cls._to_magma_().is_mixed()
+
+    @classmethod
     def is_output(cls):
         return cls._to_magma_().is_output()
 
