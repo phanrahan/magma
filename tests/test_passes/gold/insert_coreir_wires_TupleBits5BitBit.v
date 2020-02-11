@@ -2,6 +2,13 @@ module coreir_wire #(parameter width = 1) (input [width-1:0] in, output [width-1
   assign out = in;
 endmodule
 
+module WrappedWire_unq1 (input [4:0] I__0, input I__1, output [4:0] O__0, output O__1);
+wire [5:0] wire_I_x_out;
+coreir_wire #(.width(6)) wire_I_x(.in({I__1,I__0[4],I__0[3],I__0[2],I__0[1],I__0[0]}), .out(wire_I_x_out));
+assign O__0 = {wire_I_x_out[4],wire_I_x_out[3],wire_I_x_out[2],wire_I_x_out[1],wire_I_x_out[0]};
+assign O__1 = wire_I_x_out[5];
+endmodule
+
 module WrappedWire (input [4:0] I__0, input I__1, output [4:0] O__0, output O__1);
 wire [5:0] wire_x_O_out;
 coreir_wire #(.width(6)) wire_x_O(.in({I__1,I__0[4],I__0[3],I__0[2],I__0[1],I__0[0]}), .out(wire_x_O_out));
@@ -10,9 +17,12 @@ assign O__1 = wire_x_O_out[5];
 endmodule
 
 module Main (input [4:0] I__0, input I__1, output [4:0] O__0, output O__1);
+wire [4:0] wire_I_x_O__0;
+wire wire_I_x_O__1;
 wire [4:0] wire_x_O_O__0;
 wire wire_x_O_O__1;
-WrappedWire wire_x_O(.I__0(I__0), .I__1(I__1), .O__0(wire_x_O_O__0), .O__1(wire_x_O_O__1));
+WrappedWire_unq1 wire_I_x(.I__0(I__0), .I__1(I__1), .O__0(wire_I_x_O__0), .O__1(wire_I_x_O__1));
+WrappedWire wire_x_O(.I__0(wire_I_x_O__0), .I__1(wire_I_x_O__1), .O__0(wire_x_O_O__0), .O__1(wire_x_O_O__1));
 assign O__0 = wire_x_O_O__0;
 assign O__1 = wire_x_O_O__1;
 endmodule

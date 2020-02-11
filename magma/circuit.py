@@ -17,9 +17,10 @@ from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import root_logger
 from .is_definition import isdefinition
-from .ref import AnonRef
+from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
 from .array import Array
 from .tuple import Tuple
+from .digital import Digital
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
@@ -134,6 +135,34 @@ class CircuitKind(type):
             interface = f"({interface})"
         return f"{cls.__name__}{interface}"
 
+    def add_intermediate_value(cls, value, values):
+        # If we encounter a member of an array or tuple, add the entire parent
+        # value (only once)
+        if isinstance(value.name, ArrayRef):
+            cls.add_intermediate_value(value.name.array, values)
+        elif isinstance(value.name, TupleRef):
+            cls.add_intermediate_value(value.name.tuple, values)
+        elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
+            if not any(value is x for x in values):
+                values.append(value)
+
+    def get_intermediate_values(cls, value, values):
+        if value.is_output():
+            return
+        if value.is_mixed():
+            # Mixed
+            for v in value:
+                cls.get_intermediate_values(v, values)
+            return
+        driver = value.value()
+        while driver is not None:
+            cls.add_intermediate_value(driver, values)
+            if not driver.is_output():
+                value = driver
+                driver = driver.value()
+            else:
+                driver = None
+
     def __repr__(cls):
         if not hasattr(cls, 'IO'):
             return super().__repr__()
@@ -145,6 +174,18 @@ class CircuitKind(type):
             return f"{name} = DeclareCircuit(\"{name}\", {args})"
         s = f"{name} = DefineCircuit(\"{name}\", {args})\n"
         sorted_instances = sorted(cls.instances, key=lambda x: x.name)
+
+        values = []
+        for instance in sorted_instances:
+            values.extend(list(instance.interface.ports.values()))
+        values.extend(cls.interface.ports.values())
+        intermediate_values = []
+        for value in values:
+            cls.get_intermediate_values(value, intermediate_values)
+        s += "\n".join(
+            f"{value.name} = {repr(value)}" for value in intermediate_values
+        ) + "\n"
+
         # Emit instances.
         for instance in sorted_instances:
             s += repr(instance) + '\n'

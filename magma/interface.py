@@ -1,7 +1,7 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-from .ref import NamedRef, InstRef, DefnRef
+from .ref import NamedRef, InstRef, DefnRef, ArrayRef, TupleRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
@@ -52,31 +52,46 @@ class _Interface(Type):
     def __str__(self):
         return str(type(self))
 
+    def make_wire_str(self, driver, value):
+        s = ""
+        if isinstance(driver, (Array, Tuple)) and \
+                not driver.iswhole(driver.ts):
+            for d, v in zip(driver, value):
+                s += self.make_wire_str(d, v)
+        else:
+            iname = value.name.qualifiedname()
+            oname = driver.name.qualifiedname()
+            s += f"wire({oname}, {iname})\n"
+        return s
+
+    def make_wires(self, value):
+        s = ""
+        if value.is_output():
+            return s
+        if isinstance(value, (Array, Tuple)) and \
+                not value.is_input() and \
+                not value.is_output() and \
+                not value.is_inout():
+            # Mixed
+            for v in value:
+                s += self.make_wires(v)
+            return s
+        driver = value.value()
+        while driver is not None:
+            s += self.make_wire_str(driver, value)
+            if not driver.is_output():
+                value = driver
+                driver = driver.value()
+            else:
+                driver = None
+        return s
+
     def __repr__(self):
         s = ""
-        for name, input in self.ports.items():
-            if not input.is_input():
+        for name, value in self.ports.items():
+            if value.is_output():
                 continue
-            value = input.value()
-            while value is not None:
-                if not value.is_output():
-                    # Temporary, insert before wires
-                    s += f"{value.name} = {repr(value)}\n"
-                if isinstance(value, (Array, Tuple)) and \
-                        not value.iswhole(value.ts):
-                    for i in range(len(input)):
-                        iname = repr(input[i])
-                        oname = repr(value[i])
-                        s += f"wire({oname}, {iname})\n"
-                else:
-                    iname = input.name.qualifiedname()
-                    oname = value.name.qualifiedname()
-                    s += f"wire({oname}, {iname})\n"
-                if not value.is_output():
-                    input = value
-                    value = value.value()
-                else:
-                    value = None
+            s += self.make_wires(value)
         return s
 
     @classmethod

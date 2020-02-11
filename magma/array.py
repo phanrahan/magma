@@ -401,5 +401,10 @@ class Array(Type, metaclass=ArrayMeta):
         ]
         return cls(children)
 
+    @classmethod
+    def is_mixed(cls):
+        return cls.T.is_mixed()
+
+
 
 ArrayType = Array

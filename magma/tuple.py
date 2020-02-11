@@ -324,6 +324,15 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             offset += child_length
         return cls(*children)
 
+    @classmethod
+    def is_mixed(cls):
+        input, output, inout = False, False, False
+        for field in cls.fields:
+            input |= field.is_input()
+            output |= field.is_output()
+            inout |= field.is_inout()
+        return (input + output + inout) > 1
+
 class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
 

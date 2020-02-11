@@ -3,6 +3,8 @@ from ..digital import Digital
 from ..generator import Generator
 from ..circuit import Circuit, DeclareCoreirCircuit
 from ..t import In, Out
+from ..array import Array
+from ..tuple import Tuple
 from ..bits import Bits
 
 
@@ -39,7 +41,24 @@ class Wire(Generator):
 
 
 class InsertCoreIRWires(DefinitionPass):
+    def __init__(self, main):
+        super().__init__(main)
+        self.seen = set()
+
+    def sanitize_name(self, name):
+        return name.replace("[", "_").replace("]", "")
+
     def insert_wire(self, value, definition):
+        if value.is_mixed():
+            # mixed children
+            for child in value:
+                if not child.is_output():
+                    self.insert_wire(child, definition)
+            return
+        if value in self.seen:
+            # In the case of inouts, we may see more than once
+            return
+        self.seen.add(value)
         driver = value.value()
         while driver is not None and driver.name.anon():
             driver = driver.value()
@@ -47,6 +66,8 @@ class InsertCoreIRWires(DefinitionPass):
             value.unwire(driver)
             driver_name = driver.name.qualifiedname("_")
             value_name = value.name.qualifiedname("_")
+            driver_name = self.sanitize_name(driver_name)
+            value_name = self.sanitize_name(value_name)
             name = f"wire_{driver_name}_{value_name}"
             wire_inst = definition.add_instance(
                 Wire, name, type(value), name=name
@@ -64,5 +85,5 @@ class InsertCoreIRWires(DefinitionPass):
                 if not value.is_output():
                     self.insert_wire(value, definition)
         for value in definition.interface.ports.values():
-            if value.is_input():
+            if not value.is_output():
                 self.insert_wire(value, definition)

@@ -208,6 +208,10 @@ class Digital(Type, metaclass=DigitalMeta):
             raise TypeError("Can only convert from Bits[1] to Bit")
         return other[0]
 
+    @classmethod
+    def is_mixed(cls):
+        return False
+
 
 def make_Define(name, port, direction):
     def simulate(self, value_store, state_store):
