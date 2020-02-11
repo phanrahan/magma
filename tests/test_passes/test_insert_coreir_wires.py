@@ -21,10 +21,12 @@ def test_insert_coreir_wires(T):
     InsertCoreIRWires(Main).run()
     assert repr(Main) == f"""\
 Main = DefineCircuit("Main", "I", {m.In(T)}, "O", {m.Out(T)})
+wire_I_x = WrappedWire(name="wire_I_x")
 wire_x_O = WrappedWire(name="wire_x_O")
+wire(Main.I, wire_I_x.I)
 x = {T}(name="x")
 wire(x, wire_x_O.I)
-wire(Main.I, x)
+wire(wire_I_x.O, x)
 wire(wire_x_O.O, Main.O)
 EndCircuit()\
 """
