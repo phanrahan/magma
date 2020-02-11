@@ -192,8 +192,6 @@ class DefinitionTransformer(TransformerBase):
             for elem in port:
                 self.connect_non_outputs(module_defn, elem, non_input_ports)
         elif not port.is_output():
-            if port.trace() is None:
-                print(port)
             self.connect(module_defn, port, port.trace(), non_input_ports)
 
     def connect(self, module_defn, port, value, non_input_ports):
