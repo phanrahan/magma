@@ -156,8 +156,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             return self.ts == rhs.ts
 
     def __repr__(self):
-        if getattr(self.name, "name", None):
-            return f"{repr(type(self))}(name=\"{self.name}\")"
+        if not self.name.anon():
+            return super().__repr__()
         ts = [repr(t) for t in self.ts]
         kts = ['{}={}'.format(k, v) for k, v in zip(self.keys(), ts)]
         return 'tuple(dict({})'.format(', '.join(kts))

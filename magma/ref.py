@@ -13,17 +13,34 @@ class Ref:
 
 
 class AnonRef(Ref):
-    def __init__(self, name=""):
+    def __init__(self):
+        self.name = None
+
+    def __str__(self):
+        return f"AnonymousValue_{id(self)}"
+
+    def qualifiedname(self, sep='.'):
+        return f"AnonymousValue_{id(self)}"
+
+    def anon(self):
+        return True
+
+
+class NamedRef(Ref):
+    def __init__(self, name):
         self.name = name
 
     def __str__(self):
-        return str(self.name) if self.name else f"AnonymousValue_{id(self)}"
+        return self.name
 
-    def qualifiedname(self, sep='.'):
-        return str(self.name) if self.name else f"AnonymousValue_{id(self)}"
+    def __repr__(self):
+        return self.name
+
+    def qualifiedname(self, sep="."):
+        return self.name
 
     def anon(self):
-        return False if self.name else True
+        return False
 
 
 class InstRef(Ref):

@@ -1,7 +1,7 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-from .ref import AnonRef, InstRef, DefnRef
+from .ref import NamedRef, InstRef, DefnRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
@@ -189,7 +189,7 @@ class _DeclareInterface(_Interface):
         for name, port in zip(names, ports):
             if   inst: ref = InstRef(inst, name)
             elif defn: ref = DefnRef(defn, name)
-            else:      ref = AnonRef(name)
+            else:      ref = NamedRef(name)
 
             if name in renamed_ports:
                 ref.name = renamed_ports[name]

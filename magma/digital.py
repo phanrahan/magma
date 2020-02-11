@@ -208,9 +208,6 @@ class Digital(Type, metaclass=DigitalMeta):
             raise TypeError("Can only convert from Bits[1] to Bit")
         return other[0]
 
-    def __repr__(self):
-        return f"{type(self)}(name=\"{repr(self.name)}\")"
-
 
 def make_Define(name, port, direction):
     def simulate(self, value_store, state_store):

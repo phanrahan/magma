@@ -87,8 +87,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             Array.__init__(self, *args, **kwargs)
 
     def __repr__(self):
-        if getattr(self.name, "name", None):
-            return f"{repr(type(self))}(name=\"{self.name}\")"
+        if not self.name.anon():
+            return super().__repr__()
         ts = [repr(t) for t in self.ts]
         return 'bits([{}])'.format(', '.join(ts))
 

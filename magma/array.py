@@ -204,10 +204,10 @@ class Array(Type, metaclass=ArrayMeta):
     __hash__ = Type.__hash__
 
     def __repr__(self):
-        if getattr(self.name, "name", None):
-            return f"{repr(type(self))}(name=\"{self.name}\")"
-        ts = [repr(t) for t in self.ts]
-        return 'array([{}])'.format(', '.join(ts))
+        if self.name.anon():
+            ts = [repr(t) for t in self.ts]
+            return 'array([{}])'.format(', '.join(ts))
+        return super().__repr__()
 
     @property
     def T(self):
