@@ -1,10 +1,12 @@
 import weakref
+from functools import reduce
 from abc import ABCMeta
 import magma as m
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
+from .digital import Digital
 from .bit import VCC, GND, Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
@@ -115,6 +117,9 @@ class ArrayMeta(ABCMeta, Kind):
     def __str__(cls):
         return f"Array[{cls.N}, {cls.T}]"
 
+    def __repr__(cls):
+        return f"Array[{cls.N}, {cls.T}]"
+
     def qualify(cls, direction):
         return cls[cls.N, cls.T.qualify(direction)]
 
@@ -199,8 +204,8 @@ class Array(Type, metaclass=ArrayMeta):
     __hash__ = Type.__hash__
 
     def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
+        if getattr(self.name, "name", None):
+            return f"{repr(type(self))}(name=\"{self.name}\")"
         ts = [repr(t) for t in self.ts]
         return 'array([{}])'.format(', '.join(ts))
 
@@ -373,6 +378,28 @@ class Array(Type, metaclass=ArrayMeta):
     def unused(self):
         for elem in self:
             elem.unused()
+
+    def as_bits(self):
+        if isinstance(self.T, Digital):
+            return Bits[len(self)](self.ts)
+        else:
+            return reduce(lambda x, y: x.concat(y),
+                          map(lambda x: x.as_bits(), self.ts))
+
+    @classmethod
+    def from_bits(cls, value):
+        if isinstance(cls.T, Digital):
+            if not len(cls) == len(value):
+                raise TypeError("Width mismatch")
+            return cls(value.ts)
+        child_length = cls.T.flat_length()
+        children = [
+            cls.T.from_bits(
+                value[i * child_length:(i + 1) * child_length]
+            )
+            for i in range(child_length)
+        ]
+        return cls(children)
 
 
 ArrayType = Array

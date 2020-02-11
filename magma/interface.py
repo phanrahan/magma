@@ -57,17 +57,26 @@ class _Interface(Type):
         for name, input in self.ports.items():
             if not input.is_input():
                 continue
-            output = input.value()
-            if isinstance(output, (Array, Tuple)):
-                if not output.iswhole(output.ts):
-                    for i in range(len(input)):
-                        iname = repr(input[i])
-                        oname = repr(output[i])
-                        s += f"wire({oname}, {iname})\n"
-                    continue
-            iname = repr(input)
-            oname = repr(output)
-            s += f"wire({oname}, {iname})\n"
+            value = input.value()
+            while value is not None:
+                if not value.is_output():
+                    # Temporary, insert before wires
+                    s += f"{value.name} = {repr(value)}\n"
+                if isinstance(value, (Array, Tuple)):
+                    if not value.iswhole(value.ts):
+                        for i in range(len(input)):
+                            iname = repr(input[i])
+                            oname = repr(value[i])
+                            s += f"wire({oname}, {iname})\n"
+                        break
+                iname = input.name.qualifiedname()
+                oname = value.name.qualifiedname()
+                s += f"wire({oname}, {iname})\n"
+                if not value.is_output():
+                    input = value
+                    value = value.value()
+                else:
+                    value = None
         return s
 
     @classmethod
