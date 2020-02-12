@@ -232,9 +232,8 @@ class AnonymousCircuitType(object):
             del self.kwargs["debug_info"]
 
         if hasattr(self, 'default_kwargs'):
-            for key in self.default_kwargs:
-                if key not in kwargs:
-                    self.kwargs[key] = self.default_kwargs[key]
+            for key, value in self.default_kwargs.items():
+                self.kwargs.setdefault(key, value)
 
         self.name = kwargs['name'] if 'name' in kwargs else ""
         self.loc = kwargs['loc'] if 'loc' in kwargs else None
@@ -450,17 +449,17 @@ def DeclareCircuit(name, *decl, **args):
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
         if 'name' not in dct:
-            # Check if we are a subclass of something other than Circuit.
+            dct['name'] = name
+            # Check if we are a subclass of something other than Circuit; if so,
+            # inherit the name of the first parent.
             for base in bases:
-                if base is not Circuit:
-                    if not issubclass(base, Circuit):
-                        raise Exception(f"Must subclass from Circuit or a "
-                                        f"subclass of Circuit. {base}")
-                    # If so, we will inherit the name of the first parent.
-                    dct['name'] = base.name
-                    break
-            else:
-                dct['name'] = name
+                if base is Circuit:
+                    continue
+                if not issubclass(base, Circuit):
+                    raise Exception(f"Must subclass from Circuit or a "
+                                    f"subclass of Circuit ({base})")
+                dct['name'] = base.name
+                break
         name = dct['name']
         dct["renamed_ports"] = dct.get("renamed_ports", {})
 
