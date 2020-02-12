@@ -213,7 +213,7 @@ def check_value_is_not_input(fn):
 # @check_value_is_not_input
 def zext(value, n):
     assert isinstance(value, (UInt, SInt, Bits)) or \
-        isinstance(value, Array) and isinstance(value.T, Digital)
+        isinstance(value, Array) and issubclass(value.T, Digital)
     if isinstance(value, UInt):
         zeros = uint(0, n)
     elif isinstance(value, SInt):
