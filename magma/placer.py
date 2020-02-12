@@ -7,6 +7,24 @@ from .config import get_debug_mode
 from .view import InstView
 
 
+def _parse_name(inst):
+    """
+    Returns 'name' if the source where @inst is instanced looks like:
+
+      <name> = <type>(...)
+
+    otherwise, returns None.
+    """
+    with open(inst.debug_info.filename, "r") as f:
+        line = f.read().splitlines()[inst.debug_info.lineno - 1]
+    tree = ast.parse(textwrap.dedent(line)).body[0]
+    # Simple case when <Name> = <Instance>().
+    if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
+       and isinstance(tree.targets[0], ast.Name):
+        return tree.targets[0].id
+    return None
+
+
 class PlacerBase(ABC):
     @abstractmethod
     def place(self, inst):
@@ -23,55 +41,75 @@ class PlacerBase(ABC):
 class Placer:
     def __init__(self, defn):
         self._defn = defn
-        self._instances = []
-        self._instance_counter = Counter()
         self._name_counter = Counter()
-        self._name_to_instance = {}
-
-    def _inspect_name(self, inst):
-        # Try to fetch instance name.
-        with open(inst.debug_info.filename, "r") as f:
-            line = f.read().splitlines()[inst.debug_info.lineno - 1]
-            tree = ast.parse(textwrap.dedent(line)).body[0]
-            # Simple case when <Name> = <Instance>().
-            if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
-                    and isinstance(tree.targets[0], ast.Name):
-                name = tree.targets[0].id
-                # Handle case when we've seen a name multiple times (e.g. reused
-                # inside a loop).
-                if self._name_counter[name] == 0:
-                    inst.name = name
-                    self._name_counter[name] += 1
-                else:
-                    if self._name_counter[name] == 1:
-                        # Append `_0` to the first instance with this name.
-                        orig = self._name_to_instance[name]
-                        orig.name += "_0"
-                        del self._name_to_instance[name]
-                        self._name_to_instance[orig.name] = orig
-                    inst.name = f"{name}_{self._name_counter[name]}"
-                    self._name_counter[name] += 1
+        self._instance_counter = Counter()
+        self._instance_name_map = {}
+        self._instances = []
 
     def instances(self):
         return self._instances
 
-    def place(self, inst):
-        """Place a circuit instance in this definition"""
+    def _user_name(self, inst) -> bool:
+        """
+        Returns True if @inst already has a name, False otherwise. Does not
+        modify @inst in either case.
+        """
         if not inst.name:
-            if get_debug_mode():
-                self._inspect_name(inst)
-            if not inst.name:
-                # Default name if we could not find one or debug mode is off.
-                inst_count = self._instance_counter[type(inst).name]
-                inst.name = f"{type(inst).name}_inst{str(inst_count)}"
-                self._instance_counter[type(inst).name] += 1
-                self._name_counter[inst.name] += 1
-        else:
-            self._name_counter[inst.name] += 1
+            return False
+        self._name_counter[inst.name] += 1
+        return True
+
+    def _debug_name(self, inst) -> bool:
+        """
+        Tries to retrieve a debug name from the source of the instance; sets the
+        name of @inst and returns True if available. Otherwise (or if debug mode
+        is disabled), returns False.
+        """
+        if not get_debug_mode():
+            return False
+        basename = _parse_name(inst)
+        if not basename:
+            return False
+        count = self._name_counter[basename]
+        inst.name = basename if count == 0 else f"{basename}_{count}"
+        # If this is the first duplicate of basename we've seen (e.g. in a
+        # second-iteration of a loop), then we need to rename the first instance
+        # with a appended '_0'.
+        if count == 1:
+            first = self._instance_name_map[basename]
+            first.name += "_0"
+            del self._instance_name_map[basename]
+            self._instance_name_map[first.name] = first
+        self._name_counter[basename] += 1
+        return True
+
+    def _definition_name(self, inst) -> bool:
+        """
+        Sets name of @inst based on the type of @inst, of the form
+        {type.name}_inst{count}. Always returns True.
+        """
+        type_name = type(inst).name
+        count = self._instance_counter[type_name]
+        inst.name = f"{type_name}_inst{count}"
+        self._name_counter[inst.name] += 1
+        self._instance_counter[type_name] += 1
+        return True
+
+    def _name(self, inst):
+        # Sets the name of @inst by delegating to methods _user_name,
+        # _debug_name, _definition_name. Note that because the 'or' is
+        # short-circuited, we call as many of these as needed until one returns
+        # True. We expect exactly one to return True, and assert that.
+        assert (self._user_name(inst)
+                or self._debug_name(inst)
+                or self._definition_name(inst))
+        self._instance_name_map[inst.name] = inst
+
+    def place(self, inst):
+        self._name(inst)
+        self._instances.append(inst)
         for sub_inst in getattr(type(inst), "instances", []):
             setattr(inst, sub_inst.name, InstView(sub_inst, inst))
-        self._name_to_instance[inst.name] = inst
         inst.defn = self._defn
         if get_debug_mode():
             inst.stack = inspect.stack()
-        self._instances.append(inst)
