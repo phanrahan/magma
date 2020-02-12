@@ -60,6 +60,12 @@ class ArrayMeta(ABCMeta, Kind):
                 # direction (e.g. In(Array)[5, Bit])
                 if not issubclass(index[1], Type):
                     raise TypeError("Expected Type as second index to Array")
+                if not index[1].is_oriented(cls.T):
+                    _logger.warning(
+                        f"Parametrizing qualifed Array {cls} with inner type "
+                        f" {index[1]} which does match, will use array "
+                        "qualifier"
+                    )
                 index = index[0], index[1].qualify(cls.T)
         elif cls.T is None:
             # Else, it index[1] should be  Type (e.g. In(Bit)) or a Direction
