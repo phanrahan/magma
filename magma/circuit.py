@@ -47,21 +47,21 @@ _logger = root_logger()
 
 
 # Maintain a stack of nested definitions.
-class _DefinitionBlock:
+class _PlacerBlock:
     __stack = []
 
-    def __init__(self, defn):
-        self.__defn = defn
+    def __init__(self, placer):
+        self.__placer = placer
 
     def __enter__(self):
-        _DefinitionBlock.push(self.__defn)
+        _PlacerBlock.push(self.__placer)
 
     def __exit__(self, typ, value, traceback):
-        _DefinitionBlock.pop()
+        _PlacerBlock.pop()
 
     @classmethod
-    def push(cls, defn):
-        cls.__stack.append(defn)
+    def push(cls, placer):
+        cls.__stack.append(placer)
 
     @classmethod
     def pop(cls):
@@ -132,6 +132,7 @@ class CircuitKind(type):
             cls.interface = cls.IO(defn=cls,
                                    renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
+            cls._placer = Placer(cls)
 
         return cls
 
@@ -394,9 +395,9 @@ class CircuitType(AnonymousCircuitType):
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
         # Circuit instances are placed if within a definition.
-        top = _DefinitionBlock.peek()
-        if top:
-            top.place(self)
+        placer = _PlacerBlock.peek()
+        if placer:
+            placer.place(self)
 
     def __repr__(self):
         args = []
@@ -477,8 +478,6 @@ class DefineCircuitKind(CircuitKind):
         self.default_kwargs = dct.get('default_kwargs', {})
         self.firrtl = None
 
-        self._placer = Placer(self)
-
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
 
@@ -488,7 +487,7 @@ class DefineCircuitKind(CircuitKind):
                 _logger.warning("'definition' class method syntax is "
                                 "deprecated, use inline definition syntax "
                                 "instead", debug_info=self.debug_info)
-                with _DefinitionBlock(self):
+                with _PlacerBlock(self._placer):
                     self.definition()
                     self.check_unconnected()
                     self._is_definition = True
@@ -595,17 +594,17 @@ def DefineCircuit(name, *decl, **args):
                renamed_ports=args.get('renamed_ports', {}),
                kratos=args.get("kratos", None))
     defn = DefineCircuitKind(name, (Circuit,), dct)
-    _DefinitionBlock.push(defn)
+    _PlacerBlock.push(defn._placer)
     return defn
 
 
 def EndDefine():
-    top = _DefinitionBlock.pop()
-    if not top:
+    placer = _PlacerBlock.pop()
+    if not placer:
         raise Exception("EndDefine called without DefineCircuit")
     debug_info = get_callee_frame_info()
-    top.end_circuit_filename = debug_info[0]
-    top.end_circuit_lineno = debug_info[1]
+    placer._defn.end_circuit_filename = debug_info[0]
+    placer._defn.end_circuit_lineno = debug_info[1]
 
 
 EndCircuit = EndDefine
