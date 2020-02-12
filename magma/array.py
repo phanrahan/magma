@@ -63,7 +63,7 @@ class ArrayMeta(ABCMeta, Kind):
                 if not index[1].is_oriented(cls.T):
                     _logger.warning(
                         f"Parametrizing qualifed Array {cls} with inner type "
-                        f" {index[1]} which does match, will use array "
+                        f" {index[1]} which doesn't match, will use array "
                         "qualifier"
                     )
                 index = index[0], index[1].qualify(cls.T)
