@@ -15,10 +15,7 @@ def simulate_wire(self, value_store, state_store):
 class Wire(Generator):
     @staticmethod
     def generate(name, T):
-        if issubclass(T, Digital):
-            width = 1
-        else:
-            width = T.flat_length()
+        width = T.flat_length()
 
         CoreIRWire = DeclareCoreirCircuit(
             "Wire",
