@@ -88,8 +88,8 @@ class InsertWrapCasts(DefinitionPass):
                 self.wrap_if_arst(t, definition)
         elif port.is_input():
             if isinstance(port, (AsyncReset, AsyncResetN)) or \
-                    isinstance(port.value(), (AsyncReset, AsyncResetN)):
-                value = port.value()
+                    isinstance(port.trace(), (AsyncReset, AsyncResetN)):
+                value = port.trace()
                 if value is not None and not issubclass(
                         type(value), type(port).flip()):
                     port.unwire(value)
