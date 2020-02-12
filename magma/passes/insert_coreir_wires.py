@@ -45,7 +45,7 @@ class InsertCoreIRWires(DefinitionPass):
         super().__init__(main)
         self.seen = set()
 
-    def sanitize_name(self, name):
+    def _sanitize_name(self, name):
         return name.replace("[", "_").replace("]", "")
 
     def insert_wire(self, value, definition):
@@ -66,8 +66,8 @@ class InsertCoreIRWires(DefinitionPass):
             value.unwire(driver)
             driver_name = driver.name.qualifiedname("_")
             value_name = value.name.qualifiedname("_")
-            driver_name = self.sanitize_name(driver_name)
-            value_name = self.sanitize_name(value_name)
+            driver_name = self._sanitize_name(driver_name)
+            value_name = self._sanitize_name(value_name)
             name = f"wire_{driver_name}_{value_name}"
             wire_inst = definition.add_instance(
                 Wire, name, type(value), name=name
