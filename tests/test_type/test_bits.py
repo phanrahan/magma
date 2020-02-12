@@ -48,7 +48,7 @@ def test_qualify_bits():
     assert m.Out(m.In(Bits))[5, m.Bit] is Bits[5, m.Out(m.Bit)]
 
     # Bits qualifer overrides child qualifer
-    assert m.In(Bits)[5, m.Out(m.Bit)] == Bits[5, m.In(m.Bit)]
+    assert m.In(Bits)[5, m.Out(m.Bit)] is Bits[5, m.In(m.Bit)]
 
 
 def test_val():

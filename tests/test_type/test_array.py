@@ -56,7 +56,7 @@ def test_qualify_array():
     assert m.Out(m.In(Array))[5, m.Bit] is m.Array[5, Out(Bit)]
 
     # Array qualifer overrides child qualifer
-    assert m.In(Array)[5, m.Out(m.Bit)] == Array[5, In(Bit)]
+    assert m.In(Array)[5, m.Out(m.Bit)] is Array[5, In(Bit)]
 
 
 def test_val():
