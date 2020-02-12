@@ -25,6 +25,7 @@ def singleton(cls):
     return wrapper
 
 # wires
+from .port import *
 from .wire import wire
 
 # types

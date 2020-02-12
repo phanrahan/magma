@@ -1,8 +1,8 @@
+from .port import INPUT, OUTPUT, INOUT
 from .array import Array, ArrayType
 from .conversions import array
 from .circuit import AnonymousCircuit
 from .wire import wire
-from .t import Direction
 
 __ALL__  = ['compose']
 __ALL__ += ['curry', 'uncurry']
@@ -20,6 +20,15 @@ def flatten(l):
 # with a given name from a list of interfaces
 def getarg(arg, interfaces):
     return [i.ports[arg] for i in interfaces]
+
+def getdirection(args):
+    a = args[0]
+    if isinstance(a, list):
+        a = a[0]
+    if a.is_input():  return INPUT
+    if a.is_output(): return OUTPUT
+    if a.is_inout():  return INOUT
+    return None
 
 # return a list of all the arguments
 # in a given direction from a list of interfaces
@@ -90,7 +99,7 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 # return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
-    oarg = type(iargs[0]).qualify(Direction.Undirected)() # create a single anonymous value
+    oarg = type(iargs[0])() # create a single anonymous value
     for iarg in iargs:
          wire(oarg, iarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
@@ -98,6 +107,7 @@ def forkarg(arg, interfaces):
 # return [arg, array] from a list of interfaces
 def joinarg(arg, interfaces):
     args = getarg(arg, interfaces)
+    #direction = getdirection(args)
     #print('joinarg', args)
     return [arg, array(args)]
 
@@ -208,7 +218,7 @@ def fork(*circuits):
     """Wire input to all the inputs, concatenate output"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    forkargs = getargbydirection(circuits[0].interface, Direction.In)
+    forkargs = getargbydirection(circuits[0].interface, INPUT)
     return braid(circuits, forkargs=forkargs)
 
 # join all inputs

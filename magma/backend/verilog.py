@@ -5,6 +5,7 @@ from functools import reduce
 from collections import OrderedDict
 from collections.abc import Sequence
 from ..compiler import Compiler
+from ..port import flip
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
 from ..bit import Digital, VCC, GND
@@ -98,6 +99,7 @@ def vmoduleargs(self):
             for i in range(len(port)):
                 append(args, port[i], vname(port[i]))
         else:
+            #d = flip(port.direction)
             append(args, port, name)
     return args
 
@@ -118,7 +120,7 @@ def compileinstance(self):
         #print('arg', k, v,)
         if v.is_input():
             # find the output connected to v
-            w = v.trace()
+            w = v.value()
             if w is None:
                 _logger.warning(f'{v.debug_name} not connected')
                 continue
@@ -207,12 +209,12 @@ def compiledefinition(cls):
         # assign to module output arguments
         for port in cls.interface.ports.values():
             if port.is_input():
-                output = port.trace()
+                output = port.value()
                 if output is not None:
                     if isinstance(output, Tuple):
                         for name, input in cls.interface.ports.items():
                             if input.is_input():
-                                output = input.trace()
+                                output = input.value()
                                 assert isinstance(output, Tuple)
                                 for i in range(len(input)):
                                     iname = vname(input[i])

@@ -145,23 +145,27 @@ def test_wire():
     a1 = Array2(name='a1')
     #assert a1.direction is None
 
-    # a0 is treated as an output connected to a1 (treated as input)
     wire(a0, a1)
 
     assert a0.wired()
     assert a1.wired()
 
-    assert a1.driven() is False, "Not driven by an input"
+    assert a1.driven()
 
-    assert a0.trace() is None, "Cannot trace to input"
-    assert a1.trace() is None, "Cannot trace to input"
+    assert a0.trace() is a1
+    assert a1.trace() is a0
 
-    assert a0.value() is None, "No value"
+    #print a0.driven()
+    assert a0.value() is None
     assert a1.value() is a0
 
     b0 = a0[0]
     b1 = a1[0]
 
-    assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
-    assert b1.value() is b0
+    assert b0.port.wires is b1.port.wires
+
+    wires = b0.port.wires
+    assert len(b0.port.wires.inputs) == 1
+    assert len(b0.port.wires.outputs) == 1
+    print('inputs:', [str(p) for p in wires.inputs])
+    print('outputs:', [str(p) for p in wires.outputs])

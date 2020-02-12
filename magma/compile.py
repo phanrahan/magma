@@ -4,7 +4,6 @@ from .backend import verilog, blif, firrtl, dot, coreir_compiler
 from .compiler import Compiler
 from .config import get_compile_dir
 from .uniquification import uniquification_pass, UniquificationMode
-from .passes.clock import WireClockPass
 
 __all__ = ["compile"]
 

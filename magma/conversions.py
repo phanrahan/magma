@@ -65,7 +65,7 @@ def convertbit(value, totype):
         b = Out(totype)(name=value.name)
     else:
         b = totype()
-    b._wire = value._wire
+    b.port = value.port
     return b
 
 

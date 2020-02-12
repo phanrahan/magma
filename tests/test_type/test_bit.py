@@ -123,19 +123,23 @@ def test_wire1():
     assert b1.is_input()
 
     print('wire(b0,b1)')
-    # b0 is treated as an output connected to b1 (treated as input)
     m.wire(b0, b1)
+    assert b0.port.wires is b1.port.wires
+
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
+    assert len(b0.port.wires.inputs) == 1
+    assert len(b0.port.wires.outputs) == 1
 
     assert b0.wired()
     assert b1.wired()
 
-    assert b1.driven(), "Should be driven by input"
-    assert b1.trace() is b0, "Should trace to b0"
+    assert b0.trace() is b1
+    assert b1.trace() is b0
 
-    assert b1.value() is b0, "Value is b0"
-
-    assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b0.value() is None
+    assert b1.value() is b0
 
 
 def test_wire2():
@@ -145,31 +149,46 @@ def test_wire2():
     b1 = BitIn(name='b1')
     assert b1.is_input()
 
+    print('wire(b1,b0)')
     m.wire(b1, b0)
+    assert b0.port.wires is b1.port.wires
+
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
+
+    assert len(b0.port.wires.inputs) == 1
+    assert len(b0.port.wires.outputs) == 1
 
     assert b0.wired()
     assert b1.wired()
 
-    assert b0.wired()
-    assert b1.wired()
+    assert b0.trace() is b1
+    assert b1.trace() is b0
 
-    assert b1.driven(), "Should be driven by input"
-    assert b1.trace() is b0, "Should trace to b0"
-
-    assert b1.value() is b0, "Value is b0"
-
-    assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b0.value() is None
+    assert b1.value() is b0
 
 
 def test_wire3():
     b0 = Bit(name='b0')
     b1 = Bit(name='b1')
 
+    print('wire(b0,b1)')
     m.wire(b0, b1)
+    assert b0.port.wires is b1.port.wires
+
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
+    assert len(b0.port.wires.inputs) == 1
+    assert len(b0.port.wires.outputs) == 1
 
     assert b0.wired()
     assert b1.wired()
+
+    assert b0.trace() is b1
+    assert b1.trace() is b0
 
     assert b0.value() is None
     assert b1.value() is b0
@@ -179,7 +198,16 @@ def test_wire4():
     b0 = BitIn(name='b0')
     b1 = BitIn(name='b1')
 
+    print('wire(b0,b1)')
     m.wire(b0, b1)
+    # assert b0.port.wires is b1.port.wires
+
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
+
+    assert len(b0.port.wires.inputs) == 0
+    assert len(b0.port.wires.outputs) == 0
 
     assert not b0.wired()
     assert not b1.wired()
@@ -195,10 +223,25 @@ def test_wire5():
     b0 = BitOut(name='b0')
     b1 = BitOut(name='b1')
 
+    print('wire(b0,b1)')
     m.wire(b0, b1)
+    # assert b0.port.wires is b1.port.wires
+
+    # wires = b0.port.wires
+    # print 'inputs:', [str(p) for p in wires.inputs]
+    # print 'outputs:', [str(p) for p in wires.outputs]
+
+    assert len(b0.port.wires.inputs) == 0
+    assert len(b0.port.wires.outputs) == 0
 
     assert not b0.wired()
     assert not b1.wired()
+
+    assert b0.trace() is None
+    assert b1.trace() is None
+
+    assert b0.value() is None
+    assert b1.value() is None
 
 
 def test_invert():

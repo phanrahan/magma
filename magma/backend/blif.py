@@ -5,6 +5,7 @@ from ..bitutils import seq2int, fun2seq
 from ..bit import VCC, GND, Bit
 from ..array import Array
 from ..compiler import make_compiler
+from ..port import INPUT, OUTPUT, INOUT
 from ..clock import wiredefaultclock
 from ..is_definition import isdefinition
 
@@ -57,13 +58,13 @@ def compileprimitive(prim, prefix, location):
     # collect args
     args = []
     for k, v in prim.interface.ports.items():
-        if v.is_input() or v.is_inout():
+        if v.direction == INPUT or v.direction == INOUT:
             # connect input to an output by tracing the net
             w = v.value()
             if w:
                 w = fullinputname(prefix, w)
                 args.append( arg(k,w) )
-        elif v.is_output() or v.is_inout():
+        elif v.direction == OUTPUT or v.direction == INOUT:
             # connect output to a wire with a fully qualified name
             w = fullqualifiedname(prefix, v)
             args.append( arg(k,w) )
@@ -121,9 +122,9 @@ def compile(main, origin=None):
     inputs = []
     outputs = []
     for k, v in main.interface.ports.items():
-        if v.is_input() or v.s_inout():
+        if v.direction == INPUT or v.direction == INOUT:
             inputs.append(k)
-        if v.is_output() or v.is_inout():
+        if v.direction == OUTPUT or v.direction == INOUT:
             outputs.append(k)
     s += '.inputs '  + " ".join(outputs) + '\n' # flip inputs
     s += '.outputs ' + " ".join(inputs) + '\n'  # flip outputs

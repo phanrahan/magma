@@ -39,7 +39,7 @@ def test_multiple_outputs_to_input_warning(caplog):
     wire(main.I[0], a.I)
     wire(main.I[1], a.I)
     assert caplog.records[0].msg == """\
-\033[1mtests/test_wire/test_errors.py:40\033[0m: Wiring multiple outputs to same wire, using last connection. Input: main.a.I,  Old Output: main.I[0],  New Output: main.I[1]
+\033[1mtests/test_wire/test_errors.py:40\033[0m: Adding the output `main.I[1]` to the wire `main.a.I` which already has output(s) `[main.I[0]]`
 >>     wire(main.I[1], a.I)"""
     magma.config.set_debug_mode(False)
 

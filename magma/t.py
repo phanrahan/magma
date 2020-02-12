@@ -205,9 +205,6 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def value(cls):
         return cls._get_magma_value_().value()
 
-    def trace(cls):
-        return cls._get_magma_value_().trace()
-
     def driven(cls):
         return cls._get_magma_value_().driven()
 

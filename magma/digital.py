@@ -6,7 +6,7 @@ from .t import Kind, Direction, Type
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
-from .wire import Wire
+from .port import Port
 
 
 _logger = root_logger()
@@ -128,7 +128,7 @@ class DigitalMeta(ABCMeta, Kind):
 class Digital(Type, metaclass=DigitalMeta):
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
-        self._wire = Wire(self)
+        self.port = Port(self)
 
     @classmethod
     def is_oriented(cls, direction):
@@ -150,23 +150,29 @@ class Digital(Type, metaclass=DigitalMeta):
                           f'Digital', debug_info=debug_info)
             return
 
-        i._wire.connect(o._wire, debug_info)
+        i.port.wire(o.port, debug_info)
         i.debug_info = debug_info
         o.debug_info = debug_info
 
     def wired(self):
-        return self._wire.wired()
+        return self.port.wired()
 
     # return the input or output Bit connected to this Bit
     def trace(self):
-        return self._wire.trace()
+        t = self.port.trace()
+        if t:
+            t = t.bit
+        return t
 
     # return the output Bit connected to this input Bit
     def value(self):
-        return self._wire.value()
+        t = self.port.value()
+        if t:
+            t = t.bit
+        return t
 
     def driven(self):
-        return self._wire.driven()
+        return self.port.driven()
 
     def flatten(self):
         return [self]
@@ -175,7 +181,7 @@ class Digital(Type, metaclass=DigitalMeta):
         return self is m.VCC or self is m.GND
 
     def unwire(i, o):
-        i._wire.unwire(o._wire)
+        i.port.unwire(o.port)
 
     @classmethod
     def flat_length(cls):
