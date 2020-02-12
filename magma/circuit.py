@@ -2,7 +2,7 @@ import ast
 import textwrap
 import inspect
 from functools import wraps
-from collections import namedtuple, Counter
+from collections import namedtuple
 import os
 
 import six
@@ -20,13 +20,14 @@ from .logging import root_logger
 from .is_definition import isdefinition
 from .ref import AnonRef
 from .array import Array
+from .placer import Placer
 from .tuple import Tuple
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from magma.verilog_utils import value_to_verilog_name
-from magma.view import InstView, PortView
+from .verilog_utils import value_to_verilog_name
+from .view import PortView
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -476,10 +477,8 @@ class DefineCircuitKind(CircuitKind):
         self.default_kwargs = dct.get('default_kwargs', {})
         self.firrtl = None
 
-        self._instances = []
-        self.instanced_circuits_counter = Counter()
-        self.instance_name_counter = Counter()
-        self.instance_name_map = {}
+        self._placer = Placer(self)
+
         self._is_definition = dct.get('is_definition', False)
         self.is_instance = False
 
@@ -518,52 +517,11 @@ class DefineCircuitKind(CircuitKind):
 
     @property
     def instances(self):
-        return self._instances
-
-    def inspect_name(cls, inst):
-        # Try to fetch instance name.
-        with open(inst.debug_info.filename, "r") as f:
-            line = f.read().splitlines()[inst.debug_info.lineno - 1]
-            tree = ast.parse(textwrap.dedent(line)).body[0]
-            # Simple case when <Name> = <Instance>().
-            if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
-                    and isinstance(tree.targets[0], ast.Name):
-                name = tree.targets[0].id
-                # Handle case when we've seen a name multiple times (e.g. reused
-                # inside a loop).
-                if cls.instance_name_counter[name] == 0:
-                    inst.name = name
-                    cls.instance_name_counter[name] += 1
-                else:
-                    if cls.instance_name_counter[name] == 1:
-                        # Append `_0` to the first instance with this name.
-                        orig = cls.instance_name_map[name]
-                        orig.name += "_0"
-                        del cls.instance_name_map[name]
-                        cls.instance_name_map[orig.name] = orig
-                    inst.name = f"{name}_{cls.instance_name_counter[name]}"
-                    cls.instance_name_counter[name] += 1
+        return self._placer.instances()
 
     def place(cls, inst):
         """Place a circuit instance in this definition"""
-        if not inst.name:
-            if get_debug_mode():
-                cls.inspect_name(inst)
-            if not inst.name:
-                # Default name if we could not find one or debug mode is off.
-                inst_count = cls.instanced_circuits_counter[type(inst).name]
-                inst.name = f"{type(inst).name}_inst{str(inst_count)}"
-                cls.instanced_circuits_counter[type(inst).name] += 1
-                cls.instance_name_counter[inst.name] += 1
-        else:
-            cls.instance_name_counter[inst.name] += 1
-        for sub_inst in getattr(type(inst), "instances", []):
-            setattr(inst, sub_inst.name, InstView(sub_inst, inst))
-        cls.instance_name_map[inst.name] = inst
-        inst.defn = cls
-        if get_debug_mode():
-            inst.stack = inspect.stack()
-        cls.instances.append(inst)
+        cls._placer.place(inst)
 
     def gen_bind_port(cls, mon_arg, bind_arg):
         if isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and \
