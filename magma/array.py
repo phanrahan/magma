@@ -157,8 +157,7 @@ class ArrayMeta(ABCMeta, Kind):
         # Handle qualified, unsized/child e.g. In(Array) and In(Out(Array))
         if cls.T is None or isinstance(cls.T, Direction):
             return cls[None, direction]
-        else:
-            return cls[cls.N, cls.T.qualify(direction)]
+        return cls[cls.N, cls.T.qualify(direction)]
 
     def flip(cls):
         return cls[cls.N, cls.T.flip()]
