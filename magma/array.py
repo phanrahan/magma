@@ -382,9 +382,8 @@ class Array(Type, metaclass=ArrayMeta):
     def as_bits(self):
         if isinstance(self.T, Digital):
             return Bits[len(self)](self.ts)
-        else:
-            return reduce(lambda x, y: x.concat(y),
-                          map(lambda x: x.as_bits(), self.ts))
+        return reduce(lambda x, y: x.concat(y),
+                      map(lambda x: x.as_bits(), self.ts))
 
     @classmethod
     def from_bits(cls, value):
