@@ -24,6 +24,10 @@ def _flatten(l):
     return list(chain(*l))
 
 
+def _make_interface_name(decl):
+    return f"Interface({', '.join([str(d) for d in decl])})"
+
+
 def is_valid_port(port):
     return isinstance(port, (Kind, Type, MagmaProtocolMeta))
 
@@ -256,7 +260,7 @@ class InterfaceKind(Kind):
 
 def DeclareInterface(*decl, **kwargs):
     """Interface factory function."""
-    name = f"Interface({', '.join([str(a) for a in decl])})"
+    name = _make_interface_name(decl)
     dct = dict(Decl=decl, **kwargs)
     return InterfaceKind(name, (_DeclareInterface,), dct)
 
@@ -264,7 +268,7 @@ def DeclareInterface(*decl, **kwargs):
 def DeclareLazyInterface(io, **kwargs):
     """LazyInterface factory function"""
     decl = io.decl()
-    name = f"Interface({', '.join([str(a) for a in decl])})"
+    name = _make_interface_name(decl)
     dct = dict(io=io, Decl=io.decl(), **kwargs)
     return InterfaceKind(name, (_DeclareLazyInterface,), dct)
 
