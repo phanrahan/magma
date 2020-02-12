@@ -79,7 +79,7 @@ class InsertCoreIRWires(DefinitionPass):
 
     def __call__(self, definition):
         # Copy instances because inserting wire will append to instances
-        instances_copy = definition.instances[:]
+        instances_copy = definition.instances.copy()
         for instance in instances_copy:
             for value in instance.interface.ports.values():
                 if not value.is_output():
