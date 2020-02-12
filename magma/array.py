@@ -205,8 +205,8 @@ class Array(Type, metaclass=ArrayMeta):
 
     def __repr__(self):
         if self.name.anon():
-            ts = [repr(t) for t in self.ts]
-            return 'array([{}])'.format(', '.join(ts))
+            t_strs = ', '.join(repr(t) for t in self.ts)
+            return f'array([{t_strs}])'
         return super().__repr__()
 
     @property
