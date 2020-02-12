@@ -28,11 +28,11 @@ def _make_interface_name(decl):
     return f"Interface({', '.join([str(d) for d in decl])})"
 
 
-def is_valid_port(port):
+def _is_valid_port(port):
     return isinstance(port, (Kind, Type, MagmaProtocolMeta))
 
 
-def parse(decl):
+def _parse(decl):
     """
     Parse argument declaration of the form:
 
@@ -46,14 +46,14 @@ def parse(decl):
     # If name is empty, convert to the index.
     names = [name if name else i for i, name in enumerate(names)]
     # Check that all ports are given as instances of Kind or Type.
-    if not all(is_valid_port(port) for port in ports):
+    if not all(_is_valid_port(port) for port in ports):
         raise ValueError(f"Expected kinds or types, got {ports}")
 
     return names, ports
 
 
 def _make_interface_args(decl, renamed_ports, inst, defn):
-    names, ports = parse(decl)  # parse the class Interface declaration
+    names, ports = _parse(decl)  # parse the class Interface declaration
     args = OrderedDict()
     for name, port in zip(names, ports):
         if   inst: ref = InstRef(inst, name)
@@ -174,7 +174,7 @@ class Interface(_Interface):
         This function assumes the port instances are provided:
             e.g. Interface('I0', In(Bit)(), 'I1', In(Bit)(), 'O', Out(Bit)())
         """
-        names, ports = parse(decl)
+        names, ports = _parse(decl)
         args = OrderedDict()
         for name, port in zip(names, ports):
             if isinstance(name, IntegerTypes):
