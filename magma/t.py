@@ -3,7 +3,7 @@ import warnings
 import enum
 from abc import abstractmethod, ABCMeta
 from .common import deprecated
-from .ref import Ref, AnonRef, NamedRef, DefnRef, InstRef
+from .ref import AnonRef, NamedRef, DefnRef, InstRef, ArrayRef, TupleRef
 from .compatibility import IntegerTypes, StringTypes
 
 
@@ -27,7 +27,8 @@ class Type(object):
     def __repr__(self):
         if self.name.anon():
             return f"{type(self)}()"
-        if isinstance(self.name, NamedRef):
+        if isinstance(self.name, NamedRef) and \
+                not isinstance(self.name, (InstRef, DefnRef)):
             return f"{type(self)}(name=\"{repr(self.name)}\")"
         return repr(self.name)
 
