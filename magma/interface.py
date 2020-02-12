@@ -52,19 +52,19 @@ class _Interface(Type):
     def __str__(self):
         return str(type(self))
 
-    def make_wire_str(self, driver, value):
+    def _make_wire_str(self, driver, value):
         s = ""
         if isinstance(driver, (Array, Tuple)) and \
                 not driver.iswhole(driver.ts):
             for d, v in zip(driver, value):
-                s += self.make_wire_str(d, v)
+                s += self._make_wire_str(d, v)
         else:
             iname = value.name.qualifiedname()
             oname = driver.name.qualifiedname()
             s += f"wire({oname}, {iname})\n"
         return s
 
-    def make_wires(self, value):
+    def _make_wires(self, value):
         s = ""
         if value.is_output():
             return s
@@ -74,11 +74,11 @@ class _Interface(Type):
                 not value.is_inout():
             # Mixed
             for v in value:
-                s += self.make_wires(v)
+                s += self._make_wires(v)
             return s
         driver = value.value()
         while driver is not None:
-            s += self.make_wire_str(driver, value)
+            s += self._make_wire_str(driver, value)
             if not driver.is_output():
                 value = driver
                 driver = driver.value()
@@ -91,7 +91,7 @@ class _Interface(Type):
         for name, value in self.ports.items():
             if value.is_output():
                 continue
-            s += self.make_wires(value)
+            s += self._make_wires(value)
         return s
 
     @classmethod
