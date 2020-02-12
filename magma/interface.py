@@ -212,10 +212,7 @@ class _DeclareLazyInterface(_Interface):
         args = OrderedDict()
         for name, port in self.io.ports.items():
             ref = port.name
-            if inst:
-                ref.set_inst(inst)
-            elif defn:
-                ref.set_defn(defn)
+            ref.set_defn(defn)
             if name in renamed_ports:
                 ref.name = renamed_ports[name]
             args[name] = port
