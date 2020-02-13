@@ -24,14 +24,11 @@ def test_insert_coreir_wires_basic(T):
         wires = ""
         for i in range(5):
             for j in range(5):
-                wires += f"wire(Main.I[{i}][{j}], wire_I_x.in[{i * 5 + j}])\n"
+                wires += f"wire(x[{i}][{j}], x.in[{i * 5 + j}])\n"
+                wires += f"wire(Main.I[{i}][{j}], x[{i}][{j}])\n"
         for i in range(5):
             for j in range(5):
-                wires += f"wire(x[{i}][{j}], wire_x_O.in[{i * 5 + j}])\n"
-                wires += f"wire(wire_I_x.out[{i * 5 + j}], x[{i}][{j}])\n"
-        for i in range(5):
-            for j in range(5):
-                wires += f"wire(wire_x_O.out[{i * 5 + j}], Main.O[{i}][{j}])\n"
+                wires += f"wire(x.out[{i * 5 + j}], Main.O[{i}][{j}])\n"
         wires = wires[:-1]  # remove trailing newline
     elif T is m.Tuple[m.Bits[5], m.Bit]:
         wires = ""
@@ -39,42 +36,32 @@ def test_insert_coreir_wires_basic(T):
         for i in range(len(T.fields)):
             if issubclass(T[i], m.Array):
                 for j in range(len(T[i])):
-                    wires += f"wire(Main.I[{i}][{j}], wire_I_x.in[{i + offset + j}])\n"
+                    wires += f"wire(x[{i}][{j}], x.in[{i + offset + j}])\n"
+                    wires += f"wire(Main.I[{i}][{j}], x[{i}][{j}])\n"
             else:
-                wires += f"wire(Main.I[{i}], wire_I_x.in[{offset}])\n"
+                wires += f"wire(x[{i}], x.in[{offset}])\n"
+                wires += f"wire(Main.I[{i}], x[{i}])\n"
             offset += T.flat_length() - 1
         offset = 0
         for i in range(len(T.fields)):
             if issubclass(T[i], m.Array):
                 for j in range(len(T[i])):
-                    wires += f"wire(x[{i}][{j}], wire_x_O.in[{i + offset + j}])\n"
-                    wires += f"wire(wire_I_x.out[{i + offset + j}], x[{i}][{j}])\n"
+                    wires += f"wire(x.out[{i + offset + j}], Main.O[{i}][{j}])\n"
             else:
-                wires += f"wire(x[{i}], wire_x_O.in[{offset}])\n"
-                wires += f"wire(wire_I_x.out[{offset}], x[{i}])\n"
-            offset += T.flat_length() - 1
-        offset = 0
-        for i in range(len(T.fields)):
-            if issubclass(T[i], m.Array):
-                for j in range(len(T[i])):
-                    wires += f"wire(wire_x_O.out[{i + offset + j}], Main.O[{i}][{j}])\n"
-            else:
-                wires += f"wire(wire_x_O.out[{offset}], Main.O[{i}])\n"
+                wires += f"wire(x.out[{offset}], Main.O[{i}])\n"
             offset += T.flat_length() - 1
         wires = wires[:-1]  # remove trailing newline
     else:
         index = "[0]" if T is m.Bit else ""
         wires = f"""\
-wire(Main.I, wire_I_x.in{index})
-wire(x, wire_x_O.in{index})
-wire(wire_I_x.out{index}, x)
-wire(wire_x_O.out{index}, Main.O)\
+wire(x, x.in{index})
+wire(Main.I, x)
+wire(x.out{index}, Main.O)\
 """
     assert repr(Main) == f"""\
 Main = DefineCircuit("Main", "I", {m.In(T)}, "O", {m.Out(T)})
 x = {T}(name="x")
-wire_I_x = Wire(name="wire_I_x")
-wire_x_O = Wire(name="wire_x_O")
+x = Wire(name="x")
 {wires}
 EndCircuit()\
 """, repr(Main)

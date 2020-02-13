@@ -55,7 +55,7 @@ class InsertCoreIRWires(DefinitionPass):
             driver_name = self._sanitize_name(driver_name)
             value_name = self._sanitize_name(value_name)
 
-            name = f"wire_{driver_name}_{value_name}"
+            name = f"{driver_name}"
             T = type(driver)
             wire_inst = definition.add_instance(
                 Wire, T.flat_length(), name=name
