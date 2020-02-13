@@ -1,4 +1,5 @@
 import ast
+import enum
 import textwrap
 import inspect
 from functools import wraps
@@ -46,6 +47,12 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 _logger = root_logger()
 
 
+class _SyntaxStyle(enum.Enum):
+    NONE = enum.auto()
+    OLD = enum.auto()
+    NEW = enum.auto()
+
+
 # Maintain a stack of nested definitions.
 class _PlacerBlock:
     __stack = []
@@ -82,18 +89,38 @@ def _setattrs(obj, dct):
             setattr(obj, k, v)
 
 
+def _has_definition(cls, port=None):
+    if cls.instances:
+        return True
+    if port is None:
+        interface = getattr(cls, "interface", None)
+        if not interface:
+            return None
+        return any(_has_definition(cls, p) for p in interface.ports.values())
+    if isinstance(port, Tuple) and not port.is_input() or \
+       isinstance(port, Array) and not port.T.is_input():
+        return any(_has_definition(cls, elem) for elem in port)
+    if not port.is_output():
+        return port.value() is not None
+    return False
+
+
 def _get_interface_decl(cls):
     if hasattr(cls, "IO") and hasattr(cls, "io"):
         _logger.warning("'IO' and 'io' should not both be specified, ignoring "
                         "'io'", debug_info=cls.debug_info)
     # TODO(setaluri): Simplify this logic and remove InterfaceKind check
     # (this is a artifact of the circuit_generator decorator).
-    if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
+    if hasattr(cls, 'IO'):
+        cls._syntax_style_ = _SyntaxStyle.OLD
         _logger.warning("'IO = [...]' syntax is deprecated, use "
                         "'io = IO(...)' syntax instead",
                         debug_info=cls.debug_info)
+        if isinstance(cls.IO, InterfaceKind):
+            return None
         return DeclareInterface(*cls.IO)
     if hasattr(cls, "io"):
+        cls._syntax_style_ = _SyntaxStyle.NEW
         return DeclareLazyInterface(cls.io)
     return None
 
@@ -131,6 +158,7 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         # Create interface for this circuit class.
+        cls._syntax_style_ = _SyntaxStyle.NONE
         IO = _get_interface_decl(cls)
         if IO is not None:
             cls.IO = IO
@@ -141,6 +169,8 @@ class CircuitKind(type):
         if placer:
             assert placer.name == cls_name
             cls._placer = placer.finalize(cls)
+            if cls._syntax_style_ is _SyntaxStyle.NEW:
+                cls.check_unconnected()
         else:
             cls._placer = Placer(cls)
 
@@ -491,12 +521,12 @@ class DefineCircuitKind(CircuitKind):
         self.default_kwargs = dct.get('default_kwargs', {})
         self.firrtl = None
 
-        self._is_definition = dct.get('is_definition', False)
+        has_definition = _has_definition(self)
+        self._is_definition = dct.get('is_definition', has_definition)
         self.is_instance = False
 
-        if hasattr(self, 'IO'):
-            # Create circuit definition.
-            if hasattr(self, 'definition'):
+        if hasattr(self, "definition"):
+            if self._syntax_style_ is _SyntaxStyle.OLD:
                 _logger.warning("'definition' class method syntax is "
                                 "deprecated, use inline definition syntax "
                                 "instead", debug_info=self.debug_info)
@@ -504,6 +534,10 @@ class DefineCircuitKind(CircuitKind):
                     self.definition()
                     self.check_unconnected()
                     self._is_definition = True
+            elif self._syntax_style_ is _SyntaxStyle.NEW:
+                _logger.warning("Supplying method 'definition' with new inline "
+                                "definition syntax is not supported, ignoring "
+                                "'definition'")
 
         return self
 
