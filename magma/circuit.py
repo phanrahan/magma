@@ -159,13 +159,19 @@ class CircuitKind(type):
                 cls.get_intermediate_values(v, values)
             return
         driver = value.value()
-        while driver is not None:
-            cls.add_intermediate_value(driver, values)
-            if not driver.is_output():
-                value = driver
-                driver = driver.value()
-            else:
-                driver = None
+        if driver is None:
+            return
+        if isinstance(value, (Array, Tuple)) and driver.name.anon():
+            for elem in value:
+                cls.get_intermediate_values(elem, values)
+        else:
+            while driver is not None:
+                cls.add_intermediate_value(driver, values)
+                if not driver.is_output():
+                    value = driver
+                    driver = driver.value()
+                else:
+                    driver = None
 
     def __repr__(cls):
         if not hasattr(cls, 'IO'):

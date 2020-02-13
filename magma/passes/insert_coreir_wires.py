@@ -14,10 +14,8 @@ def simulate_wire(self, value_store, state_store):
 
 class Wire(Generator):
     @staticmethod
-    def generate(name, T):
-        width = T.flat_length()
-
-        CoreIRWire = DeclareCoreirCircuit(
+    def generate(width):
+        return DeclareCoreirCircuit(
             "Wire",
             'I', In(Bits[width]), 'O', Out(Bits[width]),
             simulate=simulate_wire,
@@ -25,16 +23,6 @@ class Wire(Generator):
             coreir_lib="coreir",
             coreir_genargs={"width": width}
         )
-
-        class WrappedWire(Circuit):
-            IO = ["I", In(T), "O", Out(T)]
-
-            @classmethod
-            def definition(circuit):
-                wire_inst = CoreIRWire(name=name)
-                wire_inst.I @= circuit.I.as_bits()
-                circuit.O @= T.from_bits(wire_inst.O)
-        return WrappedWire
 
 
 class InsertCoreIRWires(DefinitionPass):
@@ -61,16 +49,20 @@ class InsertCoreIRWires(DefinitionPass):
             driver = driver.value()
         if driver is not None:
             value.unwire(driver)
+
             driver_name = driver.name.qualifiedname("_")
             value_name = value.name.qualifiedname("_")
             driver_name = self._sanitize_name(driver_name)
             value_name = self._sanitize_name(value_name)
+
             name = f"wire_{driver_name}_{value_name}"
+            T = type(driver)
             wire_inst = definition.add_instance(
-                Wire, name, type(value), name=name
+                Wire, T.flat_length(), name=name
             )
-            wire_inst.I @= driver
-            value @= wire_inst.O
+            wire_inst.I @= driver.as_bits()
+            value @= T.from_bits(wire_inst.O)
+
             if not driver.is_output():
                 self.insert_wire(driver, definition)
 

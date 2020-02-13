@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "T", 
+    "T",
     [m.Bit, m.Bits[5], m.Array[5, m.Bits[5]], m.Tuple[m.Bits[5], m.Bit]]
 )
 def test_insert_coreir_wires_basic(T):
@@ -20,15 +20,62 @@ def test_insert_coreir_wires_basic(T):
             io.O @= x
 
     InsertCoreIRWires(Main).run()
+    if T is m.Array[5, m.Bits[5]]:
+        wires = ""
+        for i in range(5):
+            for j in range(5):
+                wires += f"wire(Main.I[{i}][{j}], wire_I_x.in[{i * 5 + j}])\n"
+        for i in range(5):
+            for j in range(5):
+                wires += f"wire(x[{i}][{j}], wire_x_O.in[{i * 5 + j}])\n"
+                wires += f"wire(wire_I_x.out[{i * 5 + j}], x[{i}][{j}])\n"
+        for i in range(5):
+            for j in range(5):
+                wires += f"wire(wire_x_O.out[{i * 5 + j}], Main.O[{i}][{j}])\n"
+        wires = wires[:-1]  # remove trailing newline
+    elif T is m.Tuple[m.Bits[5], m.Bit]:
+        wires = ""
+        offset = 0
+        for i in range(len(T.fields)):
+            if issubclass(T[i], m.Array):
+                for j in range(len(T[i])):
+                    wires += f"wire(Main.I[{i}][{j}], wire_I_x.in[{i + offset + j}])\n"
+            else:
+                wires += f"wire(Main.I[{i}], wire_I_x.in[{offset}])\n"
+            offset += T.flat_length() - 1
+        offset = 0
+        for i in range(len(T.fields)):
+            if issubclass(T[i], m.Array):
+                for j in range(len(T[i])):
+                    wires += f"wire(x[{i}][{j}], wire_x_O.in[{i + offset + j}])\n"
+                    wires += f"wire(wire_I_x.out[{i + offset + j}], x[{i}][{j}])\n"
+            else:
+                wires += f"wire(x[{i}], wire_x_O.in[{offset}])\n"
+                wires += f"wire(wire_I_x.out[{offset}], x[{i}])\n"
+            offset += T.flat_length() - 1
+        offset = 0
+        for i in range(len(T.fields)):
+            if issubclass(T[i], m.Array):
+                for j in range(len(T[i])):
+                    wires += f"wire(wire_x_O.out[{i + offset + j}], Main.O[{i}][{j}])\n"
+            else:
+                wires += f"wire(wire_x_O.out[{offset}], Main.O[{i}])\n"
+            offset += T.flat_length() - 1
+        wires = wires[:-1]  # remove trailing newline
+    else:
+        index = "[0]" if T is m.Bit else ""
+        wires = f"""\
+wire(Main.I, wire_I_x.in{index})
+wire(x, wire_x_O.in{index})
+wire(wire_I_x.out{index}, x)
+wire(wire_x_O.out{index}, Main.O)\
+"""
     assert repr(Main) == f"""\
 Main = DefineCircuit("Main", "I", {m.In(T)}, "O", {m.Out(T)})
 x = {T}(name="x")
-wire_I_x = WrappedWire(name="wire_I_x")
-wire_x_O = WrappedWire(name="wire_x_O")
-wire(Main.I, wire_I_x.I)
-wire(x, wire_x_O.I)
-wire(wire_I_x.O, x)
-wire(wire_x_O.O, Main.O)
+wire_I_x = Wire(name="wire_I_x")
+wire_x_O = Wire(name="wire_x_O")
+{wires}
 EndCircuit()\
 """, repr(Main)
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
@@ -39,7 +86,7 @@ EndCircuit()\
 
 
 @pytest.mark.parametrize(
-    "T", 
+    "T",
     [m.Bit, m.Bits[5], m.Array[5, m.Bits[5]], m.Tuple[m.Bits[5], m.Bit]]
 )
 def test_insert_coreir_wires_instance(T):
@@ -58,21 +105,6 @@ def test_insert_coreir_wires_instance(T):
             io.O @= x
 
     InsertCoreIRWires(Main).run()
-    assert repr(Main) == f"""\
-Main = DefineCircuit("Main", "I", {m.In(T)}, "O", {m.Out(T)})
-x = {T}(name="x")
-Foo_inst0 = Foo()
-wire_Foo_inst0_O_x = WrappedWire(name="wire_Foo_inst0_O_x")
-wire_I_Foo_inst0_I = WrappedWire(name="wire_I_Foo_inst0_I")
-wire_x_O = WrappedWire(name="wire_x_O")
-wire(wire_I_Foo_inst0_I.O, Foo_inst0.I)
-wire(Foo_inst0.O, wire_Foo_inst0_O_x.I)
-wire(Main.I, wire_I_Foo_inst0_I.I)
-wire(x, wire_x_O.I)
-wire(wire_Foo_inst0_O_x.O, x)
-wire(wire_x_O.O, Main.O)
-EndCircuit()\
-"""
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")
     m.compile(f"build/insert_coreir_wires_instance_{T_str}", Main)
@@ -102,24 +134,6 @@ def test_insert_coreir_wires_mixed_tuple():
             io.z.y @= a.x
 
     InsertCoreIRWires(Main).run()
-    assert repr(Main) == f"""\
-Main = DefineCircuit("Main", "z", Tuple(x=In(Bit),y=Out(Bit)))
-a = Tuple(x=Bit,y=Bit)(name="a")
-Foo_inst0 = Foo()
-wire_Foo_inst0_z_y_a_x = WrappedWire(name="wire_Foo_inst0_z_y_a_x")
-wire_a_x_z_y = WrappedWire(name="wire_a_x_z_y")
-wire_a_y_Foo_inst0_z_x = WrappedWire(name="wire_a_y_Foo_inst0_z_x")
-wire_z_x_a_y = WrappedWire(name="wire_z_x_a_y")
-wire(wire_a_y_Foo_inst0_z_x.O, Foo_inst0.z.x)
-wire(Foo_inst0.z.y, wire_Foo_inst0_z_y_a_x.I)
-wire(a.x, wire_a_x_z_y.I)
-wire(wire_Foo_inst0_z_y_a_x.O, a.x)
-wire(a.y, wire_a_y_Foo_inst0_z_x.I)
-wire(wire_z_x_a_y.O, a.y)
-wire(Main.z.x, wire_z_x_a_y.I)
-wire(wire_a_x_z_y.O, Main.z.y)
-EndCircuit()\
-""", repr(Main)
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
                   .replace("=", "")
@@ -152,30 +166,6 @@ def test_insert_coreir_wires_array_mixed_tuple():
             io.z[1].y @= foo.z[1].y
 
     InsertCoreIRWires(Main).run()
-    assert repr(Main) == f"""\
-Main = DefineCircuit("Main", "z", Array[2, Tuple(x=In(Bit),y=Out(Bit))])
-a = Tuple(x=Bit,y=Bit)(name="a")
-Foo_inst0 = Foo()
-wire_Foo_inst0_z_0_y_a_x = WrappedWire(name="wire_Foo_inst0_z_0_y_a_x")
-wire_Foo_inst0_z_1_y_z_1_y = WrappedWire(name="wire_Foo_inst0_z_1_y_z_1_y")
-wire_a_x_z_0_y = WrappedWire(name="wire_a_x_z_0_y")
-wire_a_y_Foo_inst0_z_0_x = WrappedWire(name="wire_a_y_Foo_inst0_z_0_x")
-wire_z_0_x_Foo_inst0_z_1_x = WrappedWire(name="wire_z_0_x_Foo_inst0_z_1_x")
-wire_z_0_x_a_y = WrappedWire(name="wire_z_0_x_a_y")
-wire(wire_a_y_Foo_inst0_z_0_x.O, Foo_inst0.z[0].x)
-wire(wire_z_0_x_Foo_inst0_z_1_x.O, Foo_inst0.z[1].x)
-wire(Foo_inst0.z[0].y, wire_Foo_inst0_z_0_y_a_x.I)
-wire(Foo_inst0.z[1].y, wire_Foo_inst0_z_1_y_z_1_y.I)
-wire(a.x, wire_a_x_z_0_y.I)
-wire(wire_Foo_inst0_z_0_y_a_x.O, a.x)
-wire(a.y, wire_a_y_Foo_inst0_z_0_x.I)
-wire(wire_z_0_x_a_y.O, a.y)
-wire(Main.z[0].x, wire_z_0_x_Foo_inst0_z_1_x.I)
-wire(Main.z[0].x, wire_z_0_x_a_y.I)
-wire(wire_a_x_z_0_y.O, Main.z[0].y)
-wire(wire_Foo_inst0_z_1_y_z_1_y.O, Main.z[1].y)
-EndCircuit()\
-""", repr(Main)
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
                   .replace("=", "")

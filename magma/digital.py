@@ -200,7 +200,9 @@ class Digital(Type, metaclass=DigitalMeta):
         m.wire(DefineUndriven()().O, self)
 
     def as_bits(self):
-        return m.bits(self, 1)
+        result = m.Bits[1]()
+        result[0] @= self
+        return result
 
     @classmethod
     def from_bits(cls, other):
