@@ -20,7 +20,7 @@ from .logging import root_logger
 from .is_definition import isdefinition
 from .ref import AnonRef
 from .array import Array
-from .placer import Placer
+from .placer import Placer, StagedPlacer
 from .tuple import Tuple
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
@@ -99,9 +99,14 @@ def _get_interface_decl(cls):
 
 
 class CircuitKind(type):
+    def __prepare__(name, bases, **kwargs):
+        _PlacerBlock.push(StagedPlacer(name))
+        return type.__prepare__(name, bases, **kwargs)
+
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
-        # Override class name if supplied.
+        # Override class name if supplied (and save class name).
+        cls_name = dct.get("_cls_name_", name)
         name = dct.setdefault('name', name)
 
         dct.setdefault('renamed_ports', {})
@@ -132,6 +137,11 @@ class CircuitKind(type):
             cls.interface = cls.IO(defn=cls,
                                    renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
+        placer = _PlacerBlock.pop()
+        if placer:
+            assert placer.name == cls_name
+            cls._placer = placer.finalize(cls)
+        else:
             cls._placer = Placer(cls)
 
         return cls
@@ -426,30 +436,33 @@ class CircuitType(AnonymousCircuitType):
     msg="DeclareCircuit factory method is deprecated, subclass Circuit instead")
 def DeclareCircuit(name, *decl, **args):
     """DeclareCircuit Factory"""
+    debug_info = None
     if get_debug_mode():
         debug_info = get_callee_frame_info()
-    else:
-        debug_info = None
-    dct = dict(IO=decl,
-               debug_info=debug_info,
-               is_definition=False,
-               primitive=args.get('primitive', True),
-               stateful=args.get('stateful', False),
-               simulate=args.get('simulate'),
-               firrtl_op=args.get('firrtl_op'),
-               circuit_type_methods=args.get('circuit_type_methods', []),
-               coreir_lib=args.get('coreir_lib', "global"),
-               coreir_name=args.get('coreir_name', name),
-               coreir_genargs=args.get('coreir_genargs', None),
-               coreir_configargs=args.get('coreir_configargs', {}),
-               verilog_name=args.get('verilog_name', name),
-               default_kwargs=args.get('default_kwargs', {}),
-               renamed_ports=args.get('renamed_ports', {}))
-    return CircuitKind(name, (CircuitType, ), dct)
+    metacls = CircuitKind
+    bases = (CircuitType,)
+    dct = metacls.__prepare__(name, bases)
+    dct.update(dict(IO=decl,
+                    debug_info=debug_info,
+                    is_definition=False,
+                    primitive=args.get('primitive', True),
+                    stateful=args.get('stateful', False),
+                    simulate=args.get('simulate'),
+                    firrtl_op=args.get('firrtl_op'),
+                    circuit_type_methods=args.get('circuit_type_methods', []),
+                    coreir_lib=args.get('coreir_lib', "global"),
+                    coreir_name=args.get('coreir_name', name),
+                    coreir_genargs=args.get('coreir_genargs', None),
+                    coreir_configargs=args.get('coreir_configargs', {}),
+                    verilog_name=args.get('verilog_name', name),
+                    default_kwargs=args.get('default_kwargs', {}),
+                    renamed_ports=args.get('renamed_ports', {})))
+    return metacls(name, bases, dct)
 
 
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
+        dct["_cls_name_"] = name  # save original name for debugging purposes
         if 'name' not in dct:
             dct['name'] = name
             # Check if we are a subclass of something other than Circuit; if so,
@@ -579,21 +592,24 @@ def DefineCircuit(name, *decl, **args):
     debug_info = None
     if get_debug_mode():
         debug_info = get_callee_frame_info()
-    dct = dict(IO=decl,
-               is_definition=True,
-               primitive=args.get('primitive', False),
-               stateful=args.get('stateful', False),
-               simulate=args.get('simulate'),
-               debug_info=debug_info,
-               verilog_name=args.get('verilog_name', name),
-               coreir_name=args.get('coreir_name', name),
-               coreir_lib=args.get('coreir_lib', "global"),
-               coreir_genargs=args.get('coreir_genargs', None),
-               coreir_configargs=args.get('coreir_configargs', None),
-               default_kwargs=args.get('default_kwargs', {}),
-               renamed_ports=args.get('renamed_ports', {}),
-               kratos=args.get("kratos", None))
-    defn = DefineCircuitKind(name, (Circuit,), dct)
+    metacls = DefineCircuitKind
+    bases = (Circuit,)
+    dct = metacls.__prepare__(name, bases)
+    dct.update(dict(IO=decl,
+                    is_definition=True,
+                    primitive=args.get('primitive', False),
+                    stateful=args.get('stateful', False),
+                    simulate=args.get('simulate'),
+                    debug_info=debug_info,
+                    verilog_name=args.get('verilog_name', name),
+                    coreir_name=args.get('coreir_name', name),
+                    coreir_lib=args.get('coreir_lib', "global"),
+                    coreir_genargs=args.get('coreir_genargs', None),
+                    coreir_configargs=args.get('coreir_configargs', None),
+                    default_kwargs=args.get('default_kwargs', {}),
+                    renamed_ports=args.get('renamed_ports', {}),
+                    kratos=args.get("kratos", None)))
+    defn = metacls(name, bases, dct)
     _PlacerBlock.push(defn._placer)
     return defn
 

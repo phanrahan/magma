@@ -34,9 +34,6 @@ class PlacerBase(ABC):
     def instances(self):
         raise NotImplementedError()
 
-    def finalize(self):
-        return
-
 
 class Placer:
     def __init__(self, defn):
@@ -113,3 +110,26 @@ class Placer:
         inst.defn = self._defn
         if get_debug_mode():
             inst.stack = inspect.stack()
+
+
+class StagedPlacer(ABC):
+    def __init__(self, name):
+        self._name = name
+        self._instances = []
+        self._finalized = False
+
+    @property
+    def name(self):
+        return self._name
+
+    def place(self, inst):
+        self._instances.append(inst)
+
+    def finalize(self, defn):
+        if self._finalized:
+            raise Exception("Can only call finalize on a staged placer once")
+        placer = Placer(defn)
+        for inst in self._instances:
+            placer.place(inst)
+        self._finalized = True
+        return placer
