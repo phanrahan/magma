@@ -47,7 +47,7 @@ class InsertCoreIRWires(DefinitionPass):
         driver = value.value()
         while driver is not None and driver.name.anon():
             driver = driver.value()
-        if driver is not None:
+        if driver is not None and not driver.is_output():
             value.unwire(driver)
 
             driver_name = driver.name.qualifiedname("_")
