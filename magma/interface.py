@@ -82,17 +82,17 @@ class _Interface(Type):
         if isinstance(value, (Array, Tuple)) and driver.name.anon():
             for elem in value:
                 s += self._make_wires(elem)
-        else:
-            while driver is not None:
-                while driver.name.anon():
-                    # Skip anon values
-                    driver = driver.value()
-                s += self._make_wire_str(driver, value)
-                if not driver.is_output():
-                    value = driver
-                    driver = driver.value()
-                else:
-                    driver = None
+            return s
+        while driver is not None and driver.name.anon():
+            # Skip anon values
+            driver = driver.value()
+        while driver is not None:
+            s += self._make_wire_str(driver, value)
+            if not driver.is_output():
+                value = driver
+                driver = driver.value()
+            else:
+                driver = None
         return s
 
     def __repr__(self):

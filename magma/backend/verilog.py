@@ -73,7 +73,7 @@ def vname(t):
             return '{' + ','.join(t) + '}'
 
     assert not t.anon(), (t.name)
-    return t.name.qualifiedname(sep='_')
+    return t.name.verilog_name()
 
 # return the verilog declaration for the data type
 def vdecl(t):

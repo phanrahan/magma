@@ -21,11 +21,11 @@ def value_to_verilog_name(value):
     return verilog_name(value.name)
 
 
-def verilog_name(name):
+def verilog_name(name, inst_sep="."):
     if isinstance(name, m.ref.DefnRef):
         return str(name)
     if isinstance(name, m.ref.InstRef):
-        return f"{name.inst.name}.{str(name)}"
+        return f"{name.inst.name}{inst_sep}{str(name)}"
     if isinstance(name, m.ref.ArrayRef):
         array_name = verilog_name(name.array.name)
         return f"{array_name}_{name.index}"

@@ -21,6 +21,9 @@ class Ref:
     def anon(self):
         raise NotImplementedError()
 
+    def verilog_name(self):
+        return self.qualifiedname("_")
+
 
 class AnonRef(Ref):
     def __init__(self):
@@ -110,6 +113,9 @@ class TupleRef(Ref):
             return self.tuple.name.qualifiedname(sep=sep) + "[" + str(self.index) + "]"
         except ValueError:
             return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
+
+    def verilog_name(self):
+        return self.tuple.name.verilog_name() + "_" + str(self.index)
 
     def anon(self):
         return self.tuple.name.anon()
