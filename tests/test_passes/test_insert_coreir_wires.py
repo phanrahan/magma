@@ -24,8 +24,8 @@ def test_insert_coreir_wires_basic(T):
         wires = ""
         for i in range(5):
             for j in range(5):
-                wires += f"wire(x[{i}][{j}], x.in[{i * 5 + j}])\n"
-                wires += f"wire(Main.I[{i}][{j}], x[{i}][{j}])\n"
+                wires += f"wire(_x[{i}][{j}], x.in[{i * 5 + j}])\n"
+                wires += f"wire(Main.I[{i}][{j}], _x[{i}][{j}])\n"
         for i in range(5):
             for j in range(5):
                 wires += f"wire(x.out[{i * 5 + j}], Main.O[{i}][{j}])\n"
@@ -36,11 +36,11 @@ def test_insert_coreir_wires_basic(T):
         for i in range(len(T.fields)):
             if issubclass(T[i], m.Array):
                 for j in range(len(T[i])):
-                    wires += f"wire(x[{i}][{j}], x.in[{i + offset + j}])\n"
-                    wires += f"wire(Main.I[{i}][{j}], x[{i}][{j}])\n"
+                    wires += f"wire(_x[{i}][{j}], x.in[{i + offset + j}])\n"
+                    wires += f"wire(Main.I[{i}][{j}], _x[{i}][{j}])\n"
             else:
-                wires += f"wire(x[{i}], x.in[{offset}])\n"
-                wires += f"wire(Main.I[{i}], x[{i}])\n"
+                wires += f"wire(_x[{i}], x.in[{offset}])\n"
+                wires += f"wire(Main.I[{i}], _x[{i}])\n"
             offset += T.flat_length() - 1
         offset = 0
         for i in range(len(T.fields)):
@@ -52,15 +52,14 @@ def test_insert_coreir_wires_basic(T):
             offset += T.flat_length() - 1
         wires = wires[:-1]  # remove trailing newline
     else:
-        index = "[0]" if T is m.Bit else ""
         wires = f"""\
-wire(x, x.in{index})
-wire(Main.I, x)
-wire(x.out{index}, Main.O)\
+wire(_x, x.in)
+wire(Main.I, _x)
+wire(x.out, Main.O)\
 """
     assert repr(Main) == f"""\
 Main = DefineCircuit("Main", "I", {m.In(T)}, "O", {m.Out(T)})
-x = {T}(name="x")
+_x = {T}(name="_x")
 x = Wire(name="x")
 {wires}
 EndCircuit()\
@@ -160,3 +159,20 @@ def test_insert_coreir_wires_array_mixed_tuple():
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_arr_tuple_{T_str}.v",
                              f"gold/insert_coreir_wires_arr_tuple_{T_str}.v")
+
+
+def test_insert_coreir_wires_fanout():
+    class Main(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O0", m.Out(m.Bit), "O1", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            x = m.Bit(name="x")
+            x @= io.I
+            io.O0 @= x
+            io.O1 @= x
+    InsertCoreIRWires(Main).run()
+    m.compile(f"build/insert_coreir_wires_fanout", Main)
+    assert check_files_equal(__file__,
+                             f"build/insert_coreir_wires_fanout.v",
+                             f"gold/insert_coreir_wires_fanout.v")
