@@ -62,19 +62,26 @@ class DefnRef(Ref):
 
 
 class LazyDefnRef(DefnRef):
+    class _LazyCircuit:
+        name = ""
+
     def __init__(self, name):
         self.name = name
-        self.defn = None
+        self._defn = None
+
+    @property
+    def defn(self):
+        if self._defn is not None:
+            return self._defn
+        return LazyDefnRef._LazyCircuit
 
     def qualifiedname(self, sep="."):
-        if not self.defn:
-            raise Exception()
         return super().qualifiedname(sep)
 
     def set_defn(self, defn):
-        if self.defn is not None:
-            raise Exception()
-        self.defn = defn
+        if self._defn is not None:
+            raise Exception("Can only set definition of LazyDefnRef once")
+        self._defn = defn
 
 
 class ArrayRef(Ref):
