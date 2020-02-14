@@ -7,7 +7,7 @@ def _check_foo_interface(Foo):
     assert isinstance(Foo.interface.ports["I"], m.Bit)
     assert Foo.interface.ports["I"].is_output()
     assert isinstance(Foo.interface.ports["O"], m.Bit)
-    assert Foo.interface.ports["O"].is_input()    
+    assert Foo.interface.ports["O"].is_input()
 
 
 def test_new_style_basic():
