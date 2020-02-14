@@ -97,8 +97,7 @@ def _has_definition(cls, port=None):
         if not interface:
             return None
         return any(_has_definition(cls, p) for p in interface.ports.values())
-    if isinstance(port, Tuple) and not port.is_input() or \
-       isinstance(port, Array) and not port.T.is_input():
+    if isinstance(port, Tuple) or isinstance(port, Array):
         return any(_has_definition(cls, elem) for elem in port)
     if not port.is_output():
         return port.value() is not None
