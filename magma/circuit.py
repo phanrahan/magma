@@ -532,8 +532,8 @@ class DefineCircuitKind(CircuitKind):
                                 "instead", debug_info=self.debug_info)
                 with _PlacerBlock(self._placer):
                     self.definition()
-                    self.check_unconnected()
-                    self._is_definition = True
+                self.check_unconnected()
+                self._is_definition = True
             elif self._syntax_style_ is _SyntaxStyle.NEW:
                 _logger.warning("Supplying method 'definition' with new inline "
                                 "definition syntax is not supported, ignoring "
