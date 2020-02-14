@@ -169,8 +169,6 @@ class CircuitKind(type):
         if placer:
             assert placer.name == cls_name
             cls._placer = placer.finalize(cls)
-            if cls._syntax_style_ is _SyntaxStyle.NEW:
-                cls.check_unconnected()
         else:
             cls._placer = Placer(cls)
 
@@ -525,6 +523,7 @@ class DefineCircuitKind(CircuitKind):
         self._is_definition = dct.get('is_definition', has_definition)
         self.is_instance = False
 
+        run_unconnected_check = False
         if hasattr(self, "definition"):
             if self._syntax_style_ is _SyntaxStyle.OLD:
                 _logger.warning("'definition' class method syntax is "
@@ -532,12 +531,16 @@ class DefineCircuitKind(CircuitKind):
                                 "instead", debug_info=self.debug_info)
                 with _PlacerBlock(self._placer):
                     self.definition()
-                self.check_unconnected()
                 self._is_definition = True
+                run_unconnected_check = True
             elif self._syntax_style_ is _SyntaxStyle.NEW:
                 _logger.warning("Supplying method 'definition' with new inline "
                                 "definition syntax is not supported, ignoring "
                                 "'definition'")
+        run_unconnected_check = run_unconnected_check or (
+            has_definition and self._syntax_style_ is _SyntaxStyle.NEW)
+        if run_unconnected_check:
+            self.check_unconnected()
 
         return self
 
@@ -652,6 +655,7 @@ def EndDefine():
     placer = _PlacerBlock.pop()
     if not placer:
         raise Exception("EndDefine called without DefineCircuit")
+    placer._defn.check_unconnected()
     debug_info = get_callee_frame_info()
     placer._defn.end_circuit_filename = debug_info[0]
     placer._defn.end_circuit_lineno = debug_info[1]
