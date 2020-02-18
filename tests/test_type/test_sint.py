@@ -139,6 +139,9 @@ def test_binary(n, op):
     for _ in range(2):
         I0 = SIntVector.random(n)
         I1 = SIntVector.random(n)
+        if op in ["floordiv", "mod"]:
+            while I1 == 0:
+                I1 = SIntVector.random(n)
         sim.set_value(TestBinary.I0, I0)
         sim.set_value(TestBinary.I1, I1)
         sim.evaluate()
