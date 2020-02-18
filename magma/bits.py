@@ -137,11 +137,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
         N = len(cls)
-        assert op == "not", f"simulate not implemented for {op}"
+        if op == "not":
+            python_op_name = "invert"
 
         def simulate(self, value_store, state_store):
             I = ht.BitVector[N](value_store.get_value(self.I))
-            O = int(~I)
+            O = int(getattr(operatr, python_op_name)(I))
             value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I", m.In(cls),
@@ -160,8 +161,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             python_op_name += "_"
         if op == "shl":
             python_op_name = "lshift"
-        if op == "lshr":
+        if op in ["lshr", "ashr"]:
             python_op_name = "rshift"
+        if op in ["urem", "srem"]:
+            python_op_name = "mod"
+        if op in ["udiv", "sdiv"]:
+            python_op_name = "floordiv"
         python_op = getattr(operator, python_op_name)
 
         def simulate(self, value_store, state_store):
