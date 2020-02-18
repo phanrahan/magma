@@ -3,7 +3,7 @@ import operator
 import pytest
 from magma import *
 from magma.simulator import PythonSimulator
-from hwtypes import BitVector
+from hwtypes import UIntVector
 
 Array2 = Array[2,Bit]
 Array4 = Array[4,Bit]
@@ -99,8 +99,8 @@ def test_compare(n, op):
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
+        I0 = UIntVector.random(n)
+        I1 = UIntVector.random(n)
         sim.set_value(TestBinary.I0, I0)
         sim.set_value(TestBinary.I1, I1)
         sim.evaluate()
@@ -137,8 +137,8 @@ def test_binary(n, op):
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
+        I0 = UIntVector.random(n)
+        I1 = UIntVector.random(n)
         sim.set_value(TestBinary.I0, I0)
         sim.set_value(TestBinary.I1, I1)
         sim.evaluate()
@@ -203,8 +203,8 @@ EndCircuit()\
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
-        I0 = BitVector.random(n)
-        I1 = BitVector.random(n)
+        I0 = UIntVector.random(n)
+        I1 = UIntVector.random(n)
         sim.set_value(TestBinary.I0, I0)
         sim.set_value(TestBinary.I1, I1)
         sim.evaluate()

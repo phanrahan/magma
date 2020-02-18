@@ -80,6 +80,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__
+    hwtypes_T = ht.BitVector
 
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], m.Array) and \
@@ -138,10 +139,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
         if op == "not":
             python_op_name = "invert"
+        else:
+            python_op_name = op
 
         def simulate(self, value_store, state_store):
-            I = ht.BitVector[N](value_store.get_value(self.I))
-            O = int(getattr(operatr, python_op_name)(I))
+            I = cls.hwtypes_T[N](value_store.get_value(self.I))
+            O = int(getattr(operator, python_op_name)(I))
             value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I", m.In(cls),
@@ -170,8 +173,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         python_op = getattr(operator, python_op_name)
 
         def simulate(self, value_store, state_store):
-            I0 = ht.BitVector[N](value_store.get_value(self.I0))
-            I1 = ht.BitVector[N](value_store.get_value(self.I1))
+            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
             O = int(python_op(I0, I1))
             value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
@@ -191,12 +194,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             "ule": "le",
             "ult": "lt",
             "uge": "ge",
-            "ugt": "gt"
+            "ugt": "gt",
+            "sle": "le",
+            "slt": "lt",
+            "sge": "ge",
+            "sgt": "gt"
         }.get(op, op)
 
         def simulate(self, value_store, state_store):
-            I0 = ht.BitVector[N](value_store.get_value(self.I0))
-            I1 = ht.BitVector[N](value_store.get_value(self.I1))
+            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
             O = int(getattr(operator, python_op_name)(I0, I1))
             value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
@@ -220,8 +227,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
 
         def simulate(self, value_store, state_store):
-            I0 = ht.BitVector[N](value_store.get_value(self.I0))
-            I1 = ht.BitVector[N](value_store.get_value(self.I1))
+            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
             S = ht.Bit(value_store.get_value(self.S))
             O = I1 if S else I0
             value_store.set_value(self.O, O)
@@ -537,6 +544,8 @@ BitsType = Bits
 
 
 class UInt(Bits):
+    hwtypes_T = ht.UIntVector
+
     @bits_cast
     def bvult(self, other) -> AbstractBit:
         return self.declare_compare_op("ult")()(self, other)
@@ -594,6 +603,8 @@ class UInt(Bits):
 
 
 class SInt(Bits):
+    hwtypes_T = ht.SIntVector
+
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], m.Array) and \
                 len(self) > 1 and len(args[0]) <= len(self):
