@@ -159,8 +159,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def declare_binary_op(cls, op):
         N = len(cls)
         python_op_name = {
-            "and_": "and",
-            "or_": "or",
+            "and": "and_",
+            "or": "or_",
             "xor": "xor",
             "shl": "lshift",
             "lshr": "rshift",
