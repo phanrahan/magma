@@ -3,8 +3,11 @@ Defines a subtype of m.Array called m.Bits
 
 m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
+import operator
+import keyword
 from functools import lru_cache, wraps
 import typing as tp
+import hwtypes as ht
 from hwtypes import BitVector
 from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
     InconsistentSizeError
@@ -134,9 +137,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
         N = len(cls)
+        assert op == "not", f"simulate not implemented for {op}"
+
+        def simulate(self, value_store, state_store):
+            I = ht.BitVector[N](value_store.get_value(self.I))
+            O = int(~I)
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I", m.In(cls),
                                               "O", m.Out(cls),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -145,10 +155,25 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
         N = len(cls)
+        python_op_name = op
+        if op in keyword.kwlist:
+            python_op_name += "_"
+        if op == "shl":
+            python_op_name = "lshift"
+        if op == "lshr":
+            python_op_name = "rshift"
+        python_op = getattr(operator, python_op_name)
+
+        def simulate(self, value_store, state_store):
+            I0 = ht.BitVector[N](value_store.get_value(self.I0))
+            I1 = ht.BitVector[N](value_store.get_value(self.I1))
+            O = int(python_op(I0, I1))
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I0", m.In(cls),
                                               "I1", m.In(cls),
                                               "O", m.Out(cls),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -157,10 +182,17 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_compare_op(cls, op):
         N = len(cls)
+
+        def simulate(self, value_store, state_store):
+            I0 = ht.BitVector[N](value_store.get_value(self.I0))
+            I1 = ht.BitVector[N](value_store.get_value(self.I1))
+            O = int(getattr(operator, op)(I0, I1))
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I0", m.In(cls),
                                               "I1", m.In(cls),
                                               "O", m.Out(m.Bit),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -175,11 +207,19 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         t_str = t_str.replace("[", "_")
         t_str = t_str.replace("]", "")
         N = len(cls)
+
+        def simulate(self, value_store, state_store):
+            I0 = ht.BitVector[N](value_store.get_value(self.I0))
+            I1 = ht.BitVector[N](value_store.get_value(self.I1))
+            S = ht.Bit(value_store.get_value(self.S))
+            O = I1 if S else I0
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_ite_{t_str}",
                                               "I0", m.In(T),
                                               "I1", m.In(T),
                                               "S", m.In(m.Bit),
                                               "O", m.Out(T),
+                                              simulate=simulate,
                                               coreir_name="mux",
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
