@@ -13,6 +13,7 @@ from ..circuit import *
 from ..scope import *
 from ..bit import VCC, GND, Bit, Digital
 from ..array import Array
+from ..tuple import Tuple
 from ..bits import SInt, Bits, UInt
 from hwtypes import BitVector
 import hwtypes
@@ -93,7 +94,7 @@ class ValueStore:
         self.value_map = {}
 
     def value_initialized(self, bit):
-        if isinstance(bit, Array):
+        if isinstance(bit, (Array, Tuple)):
             for b in bit:
                 if not self.value_initialized(b):
                     return False
