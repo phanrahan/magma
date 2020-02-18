@@ -4,7 +4,6 @@ Defines a subtype of m.Array called m.Bits
 m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
 import operator
-import keyword
 from functools import lru_cache, wraps
 import typing as tp
 import hwtypes as ht
@@ -156,17 +155,18 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
         N = len(cls)
-        python_op_name = op
-        if op in keyword.kwlist:
-            python_op_name += "_"
-        if op == "shl":
-            python_op_name = "lshift"
-        if op in ["lshr", "ashr"]:
-            python_op_name = "rshift"
-        if op in ["urem", "srem"]:
-            python_op_name = "mod"
-        if op in ["udiv", "sdiv"]:
-            python_op_name = "floordiv"
+        python_op_name = {
+            "and_": "and",
+            "or_": "or",
+            "xor": "xor",
+            "shl": "lshift",
+            "lshr": "rshift",
+            "ashr": "rshift",
+            "urem": "mod",
+            "srem": "mod",
+            "udiv": "floordiv",
+            "sdiv": "floordiv",
+        }.get(op, op)
         python_op = getattr(operator, python_op_name)
 
         def simulate(self, value_store, state_store):
@@ -187,11 +187,17 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_compare_op(cls, op):
         N = len(cls)
+        python_op_name = {
+            "ule": "le",
+            "ult": "lt",
+            "uge": "ge",
+            "ugt": "gt"
+        }.get(op, op)
 
         def simulate(self, value_store, state_store):
             I0 = ht.BitVector[N](value_store.get_value(self.I0))
             I1 = ht.BitVector[N](value_store.get_value(self.I1))
-            O = int(getattr(operator, op)(I0, I1))
+            O = int(getattr(operator, python_op_name)(I0, I1))
             value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I0", m.In(cls),
