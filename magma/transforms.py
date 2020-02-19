@@ -46,9 +46,9 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert isinstance(new_bit, (Digital, Array)), type(new_bit)
+        assert isinstance(new_bit, (Digital, Array, Tuple)), type(new_bit)
 
-        if isinstance(orig_bit, Array):
+        if isinstance(orig_bit, (Array, Tuple)):
             # Map the individual bits
             for o, n in zip(orig_bit, new_bit):
                 self.orig_to_new[QualifiedBit(bit=o, scope=orig_scope)] = n
