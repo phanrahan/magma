@@ -168,7 +168,7 @@ class PythonSimulator(CircuitSimulator):
         return wrapped
 
     def initialize(self, bit):
-        if isinstance(bit, Array):
+        if isinstance(bit, (Array, Tuple)):
             for b in bit:
                 self.initialize(b)
         else:
