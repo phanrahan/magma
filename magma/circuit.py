@@ -1,8 +1,9 @@
 import ast
+import enum
 import textwrap
 import inspect
 from functools import wraps
-from collections import namedtuple, Counter
+from collections import namedtuple
 import os
 
 import six
@@ -11,6 +12,7 @@ from .config import get_compile_dir, set_compile_dir
 import magma as m
 from . import cache_definition
 from .clock import ClockTypes
+from .common import deprecated
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -19,13 +21,14 @@ from .logging import root_logger
 from .is_definition import isdefinition
 from .ref import AnonRef
 from .array import Array
+from .placer import Placer, StagedPlacer
 from .tuple import Tuple
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from magma.verilog_utils import value_to_verilog_name
-from magma.view import InstView, PortView
+from .verilog_utils import value_to_verilog_name
+from .view import PortView
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -44,22 +47,28 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 _logger = root_logger()
 
 
+class _SyntaxStyle(enum.Enum):
+    NONE = enum.auto()
+    OLD = enum.auto()
+    NEW = enum.auto()
+
+
 # Maintain a stack of nested definitions.
-class _DefinitionBlock:
+class _PlacerBlock:
     __stack = []
 
-    def __init__(self, defn):
-        self.__defn = defn
+    def __init__(self, placer):
+        self.__placer = placer
 
     def __enter__(self):
-        _DefinitionBlock.push(self.__defn)
+        _PlacerBlock.push(self.__placer)
 
     def __exit__(self, typ, value, traceback):
-        _DefinitionBlock.pop()
+        _PlacerBlock.pop()
 
     @classmethod
-    def push(cls, defn):
-        cls.__stack.append(defn)
+    def push(cls, placer):
+        cls.__stack.append(placer)
 
     @classmethod
     def pop(cls):
@@ -80,10 +89,50 @@ def _setattrs(obj, dct):
             setattr(obj, k, v)
 
 
+def _has_definition(cls, port=None):
+    if cls.instances:
+        return True
+    if port is None:
+        interface = getattr(cls, "interface", None)
+        if not interface:
+            return None
+        return any(_has_definition(cls, p) for p in interface.ports.values())
+    if isinstance(port, Tuple) or isinstance(port, Array):
+        return any(_has_definition(cls, elem) for elem in port)
+    if not port.is_output():
+        return port.value() is not None
+    return False
+
+
+def _get_interface_decl(cls):
+    if hasattr(cls, "IO") and hasattr(cls, "io"):
+        _logger.warning("'IO' and 'io' should not both be specified, ignoring "
+                        "'io'", debug_info=cls.debug_info)
+    # TODO(setaluri): Simplify this logic and remove InterfaceKind check
+    # (this is a artifact of the circuit_generator decorator).
+    if hasattr(cls, 'IO'):
+        cls._syntax_style_ = _SyntaxStyle.OLD
+        _logger.warning("'IO = [...]' syntax is deprecated, use "
+                        "'io = IO(...)' syntax instead",
+                        debug_info=cls.debug_info)
+        if isinstance(cls.IO, InterfaceKind):
+            return None
+        return DeclareInterface(*cls.IO)
+    if hasattr(cls, "io"):
+        cls._syntax_style_ = _SyntaxStyle.NEW
+        return DeclareLazyInterface(cls.io)
+    return None
+
+
 class CircuitKind(type):
+    def __prepare__(name, bases, **kwargs):
+        _PlacerBlock.push(StagedPlacer(name))
+        return type.__prepare__(name, bases, **kwargs)
+
     """Metaclass for creating circuits."""
     def __new__(metacls, name, bases, dct):
-        # Override class name if supplied.
+        # Override class name if supplied (and save class name).
+        cls_name = dct.get("_cls_name_", name)
         name = dct.setdefault('name', name)
 
         dct.setdefault('renamed_ports', {})
@@ -108,11 +157,19 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         # Create interface for this circuit class.
-        if hasattr(cls, 'IO') and not isinstance(cls.IO, InterfaceKind):
-            cls.IO = DeclareInterface(*cls.IO)
+        cls._syntax_style_ = _SyntaxStyle.NONE
+        IO = _get_interface_decl(cls)
+        if IO is not None:
+            cls.IO = IO
             cls.interface = cls.IO(defn=cls,
                                    renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
+        placer = _PlacerBlock.pop()
+        if placer:
+            assert placer.name == cls_name
+            cls._placer = placer.finalize(cls)
+        else:
+            cls._placer = Placer(cls)
 
         return cls
 
@@ -214,9 +271,8 @@ class AnonymousCircuitType(object):
             del self.kwargs["debug_info"]
 
         if hasattr(self, 'default_kwargs'):
-            for key in self.default_kwargs:
-                if key not in kwargs:
-                    self.kwargs[key] = self.default_kwargs[key]
+            for key, value in self.default_kwargs.items():
+                self.kwargs.setdefault(key, value)
 
         self.name = kwargs['name'] if 'name' in kwargs else ""
         self.loc = kwargs['loc'] if 'loc' in kwargs else None
@@ -376,9 +432,9 @@ class CircuitType(AnonymousCircuitType):
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
         # Circuit instances are placed if within a definition.
-        top = _DefinitionBlock.peek()
-        if top:
-            top.place(self)
+        placer = _PlacerBlock.peek()
+        if placer:
+            placer.place(self)
 
     def __repr__(self):
         args = []
@@ -403,44 +459,49 @@ class CircuitType(AnonymousCircuitType):
         return f"{typ}({args})"
 
 
+@deprecated(
+    msg="DeclareCircuit factory method is deprecated, subclass Circuit instead")
 def DeclareCircuit(name, *decl, **args):
     """DeclareCircuit Factory"""
+    debug_info = None
     if get_debug_mode():
         debug_info = get_callee_frame_info()
-    else:
-        debug_info = None
-    dct = dict(IO=decl,
-               debug_info=debug_info,
-               is_definition=False,
-               primitive=args.get('primitive', True),
-               stateful=args.get('stateful', False),
-               simulate=args.get('simulate'),
-               firrtl_op=args.get('firrtl_op'),
-               circuit_type_methods=args.get('circuit_type_methods', []),
-               coreir_lib=args.get('coreir_lib', "global"),
-               coreir_name=args.get('coreir_name', name),
-               coreir_genargs=args.get('coreir_genargs', None),
-               coreir_configargs=args.get('coreir_configargs', {}),
-               verilog_name=args.get('verilog_name', name),
-               default_kwargs=args.get('default_kwargs', {}),
-               renamed_ports=args.get('renamed_ports', {}))
-    return CircuitKind(name, (CircuitType, ), dct)
+    metacls = CircuitKind
+    bases = (CircuitType,)
+    dct = metacls.__prepare__(name, bases)
+    dct.update(dict(IO=decl,
+                    debug_info=debug_info,
+                    is_definition=False,
+                    primitive=args.get('primitive', True),
+                    stateful=args.get('stateful', False),
+                    simulate=args.get('simulate'),
+                    firrtl_op=args.get('firrtl_op'),
+                    circuit_type_methods=args.get('circuit_type_methods', []),
+                    coreir_lib=args.get('coreir_lib', "global"),
+                    coreir_name=args.get('coreir_name', name),
+                    coreir_genargs=args.get('coreir_genargs', None),
+                    coreir_configargs=args.get('coreir_configargs', {}),
+                    verilog_name=args.get('verilog_name', name),
+                    default_kwargs=args.get('default_kwargs', {}),
+                    renamed_ports=args.get('renamed_ports', {})))
+    return metacls(name, bases, dct)
 
 
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
+        dct["_cls_name_"] = name  # save original name for debugging purposes
         if 'name' not in dct:
-            # Check if we are a subclass of something other than Circuit.
+            dct['name'] = name
+            # Check if we are a subclass of something other than Circuit; if so,
+            # inherit the name of the first parent.
             for base in bases:
-                if base is not Circuit:
-                    if not issubclass(base, Circuit):
-                        raise Exception(f"Must subclass from Circuit or a "
-                                        f"subclass of Circuit. {base}")
-                    # If so, we will inherit the name of the first parent.
-                    dct['name'] = base.name
-                    break
-            else:
-                dct['name'] = name
+                if base is Circuit:
+                    continue
+                if not issubclass(base, Circuit):
+                    raise Exception(f"Must subclass from Circuit or a "
+                                    f"subclass of Circuit ({base})")
+                dct['name'] = base.name
+                break
         name = dct['name']
         dct["renamed_ports"] = dct.get("renamed_ports", {})
 
@@ -457,20 +518,28 @@ class DefineCircuitKind(CircuitKind):
         self.default_kwargs = dct.get('default_kwargs', {})
         self.firrtl = None
 
-        self._instances = []
-        self.instanced_circuits_counter = Counter()
-        self.instance_name_counter = Counter()
-        self.instance_name_map = {}
-        self._is_definition = dct.get('is_definition', False)
+        has_definition = _has_definition(self)
+        self._is_definition = dct.get('is_definition', has_definition)
         self.is_instance = False
 
-        if hasattr(self, 'IO'):
-            # Create circuit definition.
-            if hasattr(self, 'definition'):
-                with _DefinitionBlock(self):
+        run_unconnected_check = False
+        if hasattr(self, "definition"):
+            if self._syntax_style_ is _SyntaxStyle.OLD:
+                _logger.warning("'definition' class method syntax is "
+                                "deprecated, use inline definition syntax "
+                                "instead", debug_info=self.debug_info)
+                with _PlacerBlock(self._placer):
                     self.definition()
-                    self.check_unconnected()
-                    self._is_definition = True
+                self._is_definition = True
+                run_unconnected_check = True
+            elif self._syntax_style_ is _SyntaxStyle.NEW:
+                _logger.warning("Supplying method 'definition' with new inline "
+                                "definition syntax is not supported, ignoring "
+                                "'definition'")
+        run_unconnected_check = run_unconnected_check or (
+            has_definition and self._syntax_style_ is _SyntaxStyle.NEW)
+        if run_unconnected_check:
+            self.check_unconnected()
 
         return self
 
@@ -496,52 +565,11 @@ class DefineCircuitKind(CircuitKind):
 
     @property
     def instances(self):
-        return self._instances
-
-    def inspect_name(cls, inst):
-        # Try to fetch instance name.
-        with open(inst.debug_info.filename, "r") as f:
-            line = f.read().splitlines()[inst.debug_info.lineno - 1]
-            tree = ast.parse(textwrap.dedent(line)).body[0]
-            # Simple case when <Name> = <Instance>().
-            if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
-                    and isinstance(tree.targets[0], ast.Name):
-                name = tree.targets[0].id
-                # Handle case when we've seen a name multiple times (e.g. reused
-                # inside a loop).
-                if cls.instance_name_counter[name] == 0:
-                    inst.name = name
-                    cls.instance_name_counter[name] += 1
-                else:
-                    if cls.instance_name_counter[name] == 1:
-                        # Append `_0` to the first instance with this name.
-                        orig = cls.instance_name_map[name]
-                        orig.name += "_0"
-                        del cls.instance_name_map[name]
-                        cls.instance_name_map[orig.name] = orig
-                    inst.name = f"{name}_{cls.instance_name_counter[name]}"
-                    cls.instance_name_counter[name] += 1
+        return self._placer.instances()
 
     def place(cls, inst):
         """Place a circuit instance in this definition"""
-        if not inst.name:
-            if get_debug_mode():
-                cls.inspect_name(inst)
-            if not inst.name:
-                # Default name if we could not find one or debug mode is off.
-                inst_count = cls.instanced_circuits_counter[type(inst).name]
-                inst.name = f"{type(inst).name}_inst{str(inst_count)}"
-                cls.instanced_circuits_counter[type(inst).name] += 1
-                cls.instance_name_counter[inst.name] += 1
-        else:
-            cls.instance_name_counter[inst.name] += 1
-        for sub_inst in getattr(type(inst), "instances", []):
-            setattr(inst, sub_inst.name, InstView(sub_inst, inst))
-        cls.instance_name_map[inst.name] = inst
-        inst.defn = cls
-        if get_debug_mode():
-            inst.stack = inspect.stack()
-        cls.instances.append(inst)
+        cls._placer.place(inst)
 
     def gen_bind_port(cls, mon_arg, bind_arg):
         if isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and \
@@ -593,37 +621,43 @@ class Circuit(CircuitType):
     pass
 
 
+@deprecated(
+    msg="DefineCircuit factory method is deprecated, subclass Circuit instead")
 def DefineCircuit(name, *decl, **args):
     """DefineCircuit Factory"""
     debug_info = None
     if get_debug_mode():
         debug_info = get_callee_frame_info()
-    dct = dict(IO=decl,
-               is_definition=True,
-               primitive=args.get('primitive', False),
-               stateful=args.get('stateful', False),
-               simulate=args.get('simulate'),
-               debug_info=debug_info,
-               verilog_name=args.get('verilog_name', name),
-               coreir_name=args.get('coreir_name', name),
-               coreir_lib=args.get('coreir_lib', "global"),
-               coreir_genargs=args.get('coreir_genargs', None),
-               coreir_configargs=args.get('coreir_configargs', None),
-               default_kwargs=args.get('default_kwargs', {}),
-               renamed_ports=args.get('renamed_ports', {}),
-               kratos=args.get("kratos", None))
-    defn = DefineCircuitKind(name, (Circuit,), dct)
-    _DefinitionBlock.push(defn)
+    metacls = DefineCircuitKind
+    bases = (Circuit,)
+    dct = metacls.__prepare__(name, bases)
+    dct.update(dict(IO=decl,
+                    is_definition=True,
+                    primitive=args.get('primitive', False),
+                    stateful=args.get('stateful', False),
+                    simulate=args.get('simulate'),
+                    debug_info=debug_info,
+                    verilog_name=args.get('verilog_name', name),
+                    coreir_name=args.get('coreir_name', name),
+                    coreir_lib=args.get('coreir_lib', "global"),
+                    coreir_genargs=args.get('coreir_genargs', None),
+                    coreir_configargs=args.get('coreir_configargs', None),
+                    default_kwargs=args.get('default_kwargs', {}),
+                    renamed_ports=args.get('renamed_ports', {}),
+                    kratos=args.get("kratos", None)))
+    defn = metacls(name, bases, dct)
+    _PlacerBlock.push(defn._placer)
     return defn
 
 
 def EndDefine():
-    top = _DefinitionBlock.pop()
-    if not top:
+    placer = _PlacerBlock.pop()
+    if not placer:
         raise Exception("EndDefine called without DefineCircuit")
+    placer._defn.check_unconnected()
     debug_info = get_callee_frame_info()
-    top.end_circuit_filename = debug_info[0]
-    top.end_circuit_lineno = debug_info[1]
+    placer._defn.end_circuit_filename = debug_info[0]
+    placer._defn.end_circuit_lineno = debug_info[1]
 
 
 EndCircuit = EndDefine
