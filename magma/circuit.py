@@ -698,7 +698,7 @@ def circuit_generator(func):
     return wrapped
 
 
-default_port_mapping = {
+coreir_port_mapping = {
     "I": "in",
     "I0": "in0",
     "I1": "in1",
@@ -710,6 +710,4 @@ default_port_mapping = {
 
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
-                          renamed_ports=default_port_mapping)
-
-coreir_port_mapping = default_port_mapping
+                          renamed_ports=coreir_port_mapping)

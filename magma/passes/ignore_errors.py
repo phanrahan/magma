@@ -18,7 +18,6 @@ class IgnoreErrorsPass(DefinitionPass):
                 self.ignore(instance.interface.ports.values())
 
 
-
 class IgnoreUndrivenPass(IgnoreErrorsPass):
     def ignore(self, port_values):
         for value in port_values:
