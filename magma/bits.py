@@ -18,6 +18,7 @@ from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type, Direction
+from .util import primitive_to_python_operator_name_map
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
@@ -137,10 +138,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
         N = len(cls)
-        if op == "not":
-            python_op_name = "invert"
-        else:
-            python_op_name = op
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
 
         def simulate(self, value_store, state_store):
             I = cls.hwtypes_T[N](value_store.get_value(self.I))
@@ -158,18 +156,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
         N = len(cls)
-        python_op_name = {
-            "and": "and_",
-            "or": "or_",
-            "xor": "xor",
-            "shl": "lshift",
-            "lshr": "rshift",
-            "ashr": "rshift",
-            "urem": "mod",
-            "srem": "mod",
-            "udiv": "floordiv",
-            "sdiv": "floordiv",
-        }.get(op, op)
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
         python_op = getattr(operator, python_op_name)
 
         def simulate(self, value_store, state_store):
@@ -190,16 +177,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_compare_op(cls, op):
         N = len(cls)
-        python_op_name = {
-            "ule": "le",
-            "ult": "lt",
-            "uge": "ge",
-            "ugt": "gt",
-            "sle": "le",
-            "slt": "lt",
-            "sge": "ge",
-            "sgt": "gt"
-        }.get(op, op)
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
 
         def simulate(self, value_store, state_store):
             I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))

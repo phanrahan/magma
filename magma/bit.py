@@ -13,6 +13,7 @@ import magma as m
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
 from .digital import Digital, DigitalMeta
+from .util import primitive_to_python_operator_name_map
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -56,9 +57,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @classmethod
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
-        python_op_name = op
-        if op in keyword.kwlist:
-            python_op_name += "_"
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
         python_op = getattr(operator, python_op_name)
 
         def simulate(self, value_store, state_store):
