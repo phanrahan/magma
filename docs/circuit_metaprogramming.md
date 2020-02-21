@@ -141,4 +141,4 @@ CSA4 = DefineFromTemplatedVerilog(source, **dict(N=4))[0]
 ```
 
 Examples using these two functions are in a [jupyter
-notebook](https://github.com/phanrahan/magma/blob/master/notebooks/tutorial/Verilog.ipynb)
+notebook](https://github.com/phanrahan/magmathon/blob/master/notebooks/advanced/verilog.ipynb)

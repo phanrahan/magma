@@ -8,7 +8,7 @@
           ["O","Bit"],
           ["CLK",["Named","coreir.clkIn"]]
         ]],
-        "metadata":{"verilog":{"verilog_string":"module FF(input I, output O, input CLK);\nalways @(posedge CLK) begin\n  O <= I;\nend\nendmodule"}}
+        "metadata":{"verilog":{"verilog_string":"module FF(input I, output reg O, input CLK);\nalways @(posedge CLK) begin\n  O <= I;\nend\nendmodule"}}
       },
       "Main":{
         "type":["Record",[

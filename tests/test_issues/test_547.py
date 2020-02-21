@@ -46,7 +46,9 @@ def test_errors(caplog):
         def definition(io):
             io.O[0] = io.I[0]
 
-    assert caplog.records[0].levelname == "ERROR"
+    logs = caplog.records
+    assert any("May not mutate array" in log.msg and log.levelname == "ERROR"
+               for log in logs)
 
 def test_product():
     class HandShake(m.Product):

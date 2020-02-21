@@ -1,7 +1,7 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-from .ref import AnonRef, InstRef, DefnRef
+from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
@@ -12,6 +12,8 @@ from .compatibility import IntegerTypes, StringTypes
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
 __all__ += ['InterfaceKind']
+__all__ += ['DeclareLazyInterface']
+__all__ += ['IO']
 
 
 def _flatten(l):
@@ -21,11 +23,15 @@ def _flatten(l):
     return list(chain(*l))
 
 
-def is_valid_port(port):
+def _make_interface_name(decl):
+    return f"Interface({', '.join([str(d) for d in decl])})"
+
+
+def _is_valid_port(port):
     return isinstance(port, (Kind, Type, MagmaProtocolMeta))
 
 
-def parse(decl):
+def _parse(decl):
     """
     Parse argument declaration of the form:
 
@@ -39,10 +45,30 @@ def parse(decl):
     # If name is empty, convert to the index.
     names = [name if name else i for i, name in enumerate(names)]
     # Check that all ports are given as instances of Kind or Type.
-    if not all(is_valid_port(port) for port in ports):
+    if not all(_is_valid_port(port) for port in ports):
         raise ValueError(f"Expected kinds or types, got {ports}")
 
     return names, ports
+
+
+def _make_interface_args(decl, renamed_ports, inst, defn):
+    names, ports = _parse(decl)  # parse the class Interface declaration
+    args = OrderedDict()
+    for name, port in zip(names, ports):
+        if   inst: ref = InstRef(inst, name)
+        elif defn: ref = DefnRef(defn, name)
+        else:      ref = AnonRef(name)
+
+        if name in renamed_ports:
+            ref.name = renamed_ports[name]
+        if defn:
+           port = port.flip()
+        if isinstance(port, MagmaProtocolMeta):
+            args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
+        else:
+            args[name] = port(name=ref)
+
+    return args
 
 
 class _Interface(Type):
@@ -147,7 +173,7 @@ class Interface(_Interface):
         This function assumes the port instances are provided:
             e.g. Interface('I0', In(Bit)(), 'I1', In(Bit)(), 'O', Out(Bit)())
         """
-        names, ports = parse(decl)
+        names, ports = _parse(decl)
         args = OrderedDict()
         for name, port in zip(names, ports):
             if isinstance(name, IntegerTypes):
@@ -173,23 +199,26 @@ class _DeclareInterface(_Interface):
         interface = Interface()
     """
     def __init__(self, renamed_ports={}, inst=None, defn=None):
-        # Parse the class Interface declaration.
-        names, ports = parse(self.Decl)
+        self.ports = _make_interface_args(self.Decl, renamed_ports, inst, defn)
 
+
+class _DeclareLazyInterface(_Interface):
+    """_DeclareLazyInterface class"""
+    def __init__(self, renamed_ports={}, inst=None, defn=None):
+        # This interface declaration is only lazy for module definitions (not
+        # instances). If @defn is not supplied, then we use the standard
+        # (non-lazy) interface construction logic.
+        if not defn:
+            self.ports = _make_interface_args(self.Decl, renamed_ports, inst,
+                                              defn)
+            return
         args = OrderedDict()
-        for name, port in zip(names, ports):
-            if   inst: ref = InstRef(inst, name)
-            elif defn: ref = DefnRef(defn, name)
-            else:      ref = AnonRef(name)
-
+        for name, port in self.io.ports.items():
+            ref = port.name
+            ref.set_defn(defn)
             if name in renamed_ports:
                 ref.name = renamed_ports[name]
-            if defn:
-               port = port.flip()
-            if isinstance(port, MagmaProtocolMeta):
-                args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
-            else:
-                args[name] = port(name=ref)
+            args[name] = port
 
         self.ports = args
 
@@ -230,6 +259,37 @@ class InterfaceKind(Kind):
 
 def DeclareInterface(*decl, **kwargs):
     """Interface factory function."""
-    name = f"Interface({', '.join([str(a) for a in decl])})"
+    name = _make_interface_name(decl)
     dct = dict(Decl=decl, **kwargs)
     return InterfaceKind(name, (_DeclareInterface,), dct)
+
+
+def DeclareLazyInterface(io, **kwargs):
+    """LazyInterface factory function"""
+    decl = io.decl()
+    name = _make_interface_name(decl)
+    dct = dict(io=io, Decl=io.decl(), **kwargs)
+    return InterfaceKind(name, (_DeclareLazyInterface,), dct)
+
+
+class IO:
+    """
+    Class for creating an interface bundle.
+
+    @kwargs: ordered dict of {name: type}, ala decl.
+    """
+    # Note that because we require kwargs to be ordered, we have a strong
+    # requirement here for >= python version 3.6. See
+    # https://www.python.org/dev/peps/pep-0468/.
+    def __init__(self, **kwargs):
+        self.ports = {}
+        self.__decl = []
+        for name, typ in kwargs.items():
+            ref = LazyDefnRef(name=name)
+            port = typ.flip()(name=ref)
+            self.ports[name] = port
+            self.__decl += [name, typ]
+            setattr(self, name, port)
+
+    def decl(self):
+        return self.__decl

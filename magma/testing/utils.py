@@ -45,3 +45,24 @@ class _MagmaDebugSection:
 
 def magma_debug_section():
     return _MagmaDebugSection()
+
+
+def has_log(caplog, level=None, msg=None):
+    if level is None and msg is None:
+        return len(caplog.records) > 0
+    if level and not msg:
+        gen = (log.levelname == level for log in caplog.records)
+    elif msg and not level:
+        gen = (log.msg == msg for log in caplog.records)
+    else:
+        gen = (log.levelname == level and log.msg == msg
+               for log in caplog.records)
+    return any(gen)
+
+
+def has_error(caplog, msg=None):
+    return has_log(caplog, "ERROR", msg)
+
+
+def has_warning(caplog, msg=None):
+    return has_log(caplog, "WARNING", msg)
