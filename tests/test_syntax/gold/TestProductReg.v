@@ -22,9 +22,9 @@ assign O1_a0 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0;
 assign O1_a1 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1;
 endmodule
 
-module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (input ASYNCRESET, input CLK, input I, output O);
+module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (input I, output O, input CLK, input ASYNCRESET);
 wire [0:0] reg_PR_inst0_out;
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h1), .width(1)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(I), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h1), .width(1)) reg_PR_inst0(.clk(CLK), .arst(ASYNCRESET), .in(I), .out(reg_PR_inst0_out));
 assign O = reg_PR_inst0_out[0];
 endmodule
 
@@ -35,9 +35,9 @@ wire [7:0] TestProductReg_comb_inst0_O0_a1;
 wire TestProductReg_comb_inst0_O1_a0;
 wire [7:0] TestProductReg_comb_inst0_O1_a1;
 wire [7:0] reg_PR_inst0_out;
-DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0(.ASYNCRESET(ASYNCRESET), .CLK(CLK), .I(TestProductReg_comb_inst0_O0_a0), .O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O));
+DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0(.I(TestProductReg_comb_inst0_O0_a0), .O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O), .CLK(CLK), .ASYNCRESET(ASYNCRESET));
 TestProductReg_comb TestProductReg_comb_inst0(.O0_a0(TestProductReg_comb_inst0_O0_a0), .O0_a1(TestProductReg_comb_inst0_O0_a1), .O1_a0(TestProductReg_comb_inst0_O1_a0), .O1_a1(TestProductReg_comb_inst0_O1_a1), .a_a0(a_a0), .a_a1(a_a1), .b(b), .self_a_O_a0(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O), .self_a_O_a1(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(8'h02), .width(8)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(TestProductReg_comb_inst0_O0_a1), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(8'h02), .width(8)) reg_PR_inst0(.clk(CLK), .arst(ASYNCRESET), .in(TestProductReg_comb_inst0_O0_a1), .out(reg_PR_inst0_out));
 assign O_a0 = TestProductReg_comb_inst0_O1_a0;
 assign O_a1 = TestProductReg_comb_inst0_O1_a1;
 endmodule

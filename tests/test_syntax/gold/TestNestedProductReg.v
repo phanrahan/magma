@@ -28,15 +28,15 @@ assign O1_a1_c1 = Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8_
 assign O1_a2 = Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8_inst0_O_a2;
 endmodule
 
-module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (input ASYNCRESET, input CLK, input I, output O);
+module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (input I, output O, input CLK, input ASYNCRESET);
 wire [0:0] reg_PR_inst0_out;
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h1), .width(1)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(I), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h1), .width(1)) reg_PR_inst0(.clk(CLK), .arst(ASYNCRESET), .in(I), .out(reg_PR_inst0_out));
 assign O = reg_PR_inst0_out[0];
 endmodule
 
-module DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue (input ASYNCRESET, input CLK, input I, output O);
+module DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue (input I, output O, input CLK, input ASYNCRESET);
 wire [0:0] reg_PR_inst0_out;
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h0), .width(1)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(I), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h0), .width(1)) reg_PR_inst0(.clk(CLK), .arst(ASYNCRESET), .in(I), .out(reg_PR_inst0_out));
 assign O = reg_PR_inst0_out[0];
 endmodule
 
@@ -53,11 +53,11 @@ wire TestNestedProductReg_comb_inst0_O1_a1_c1;
 wire [7:0] TestNestedProductReg_comb_inst0_O1_a2;
 wire [3:0] reg_PR_inst0_out;
 wire [7:0] reg_PR_inst1_out;
-DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0(.ASYNCRESET(ASYNCRESET), .CLK(CLK), .I(TestNestedProductReg_comb_inst0_O0_a1_c1), .O(DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O));
-DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0(.ASYNCRESET(ASYNCRESET), .CLK(CLK), .I(TestNestedProductReg_comb_inst0_O0_a0), .O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O));
+DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0(.I(TestNestedProductReg_comb_inst0_O0_a1_c1), .O(DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O), .CLK(CLK), .ASYNCRESET(ASYNCRESET));
+DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0(.I(TestNestedProductReg_comb_inst0_O0_a0), .O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O), .CLK(CLK), .ASYNCRESET(ASYNCRESET));
 TestNestedProductReg_comb TestNestedProductReg_comb_inst0(.O0_a0(TestNestedProductReg_comb_inst0_O0_a0), .O0_a1_c0(TestNestedProductReg_comb_inst0_O0_a1_c0), .O0_a1_c1(TestNestedProductReg_comb_inst0_O0_a1_c1), .O0_a2(TestNestedProductReg_comb_inst0_O0_a2), .O1_a0(TestNestedProductReg_comb_inst0_O1_a0), .O1_a1_c0(TestNestedProductReg_comb_inst0_O1_a1_c0), .O1_a1_c1(TestNestedProductReg_comb_inst0_O1_a1_c1), .O1_a2(TestNestedProductReg_comb_inst0_O1_a2), .a_a0(a_a0), .a_a1_c0(a_a1_c0), .a_a1_c1(a_a1_c1), .a_a2(a_a2), .b(b), .self_a_O_a0(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O), .self_a_O_a1_c0(reg_PR_inst0_out), .self_a_O_a1_c1(DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O), .self_a_O_a2(reg_PR_inst1_out));
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(4'h3), .width(4)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(TestNestedProductReg_comb_inst0_O0_a1_c0), .out(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(8'h02), .width(8)) reg_PR_inst1(.arst(ASYNCRESET), .clk(CLK), .in(TestNestedProductReg_comb_inst0_O0_a2), .out(reg_PR_inst1_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(4'h3), .width(4)) reg_PR_inst0(.clk(CLK), .arst(ASYNCRESET), .in(TestNestedProductReg_comb_inst0_O0_a1_c0), .out(reg_PR_inst0_out));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(8'h02), .width(8)) reg_PR_inst1(.clk(CLK), .arst(ASYNCRESET), .in(TestNestedProductReg_comb_inst0_O0_a2), .out(reg_PR_inst1_out));
 assign O_a0 = TestNestedProductReg_comb_inst0_O1_a0;
 assign O_a1_c0 = TestNestedProductReg_comb_inst0_O1_a1_c0;
 assign O_a1_c1 = TestNestedProductReg_comb_inst0_O1_a1_c1;
