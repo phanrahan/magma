@@ -7,14 +7,10 @@ import os
 
 def copy_golds(dir_path):
     for f in os.listdir(os.path.join(dir_path, "gold")):
-        try:
-            shutil.copy(
-                os.path.join(dir_path, "build", f),
-                os.path.join(dir_path, "gold", f),
-            )
-        except FileNotFoundError:
-            old_gold = os.path.join(dir_path, "gold", f)
-            os.system(f"git rm {old_gold}")
+        shutil.copy(
+            os.path.join(dir_path, "build", f),
+            os.path.join(dir_path, "gold", f),
+        )
 
 
 copy_golds("tests")
