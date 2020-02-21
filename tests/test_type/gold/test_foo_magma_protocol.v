@@ -27,7 +27,7 @@ module corebit_const #(parameter value = 1) (output out);
   assign out = value;
 endmodule
 
-module Bar_comb (output [0:0] O0, output [7:0] O1, input [7:0] foo, input [0:0] self_reg_O);
+module Bar_comb (input [7:0] foo, input [0:0] self_reg_O, output [0:0] O0, output [7:0] O1);
 wire bit_const_0_None_out;
 wire [7:0] const_1_8_out;
 wire [7:0] const_2_8_out;
@@ -46,12 +46,12 @@ assign O0 = self_reg_O;
 assign O1 = magma_Bits_8_or_inst1_out;
 endmodule
 
-module Bar (input ASYNCRESET, input CLK, output [7:0] O, input [7:0] foo);
+module Bar (input [7:0] foo, input CLK, input ASYNCRESET, output [7:0] O);
 wire [0:0] Bar_comb_inst0_O0;
 wire [7:0] Bar_comb_inst0_O1;
 wire [0:0] reg_PR_inst0_out;
-Bar_comb Bar_comb_inst0(.O0(Bar_comb_inst0_O0), .O1(Bar_comb_inst0_O1), .foo(foo), .self_reg_O(reg_PR_inst0_out));
-coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h0), .width(1)) reg_PR_inst0(.arst(ASYNCRESET), .clk(CLK), .in(Bar_comb_inst0_O0), .out(reg_PR_inst0_out));
+Bar_comb Bar_comb_inst0(.foo(foo), .self_reg_O(reg_PR_inst0_out), .O0(Bar_comb_inst0_O0), .O1(Bar_comb_inst0_O1));
+coreir_reg_arst #(.arst_posedge(1'b1), .clk_posedge(1'b1), .init(1'h0), .width(1)) reg_PR_inst0(.clk(CLK), .arst(ASYNCRESET), .in(Bar_comb_inst0_O0), .out(reg_PR_inst0_out));
 assign O = Bar_comb_inst0_O1;
 endmodule
 

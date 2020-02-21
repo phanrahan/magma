@@ -16,7 +16,7 @@ wire coreir_wrapOutAsyncReset_inst1_out;
 wire coreir_wrapOutAsyncReset_inst2_out;
 wire coreir_wrapOutAsyncReset_inst3_out;
 wire coreir_wrapOutAsyncReset_inst4_out;
-Inst Inst_inst0(.I(coreir_wrapOutAsyncReset_inst0_out), .O(Inst_inst0_O));
+Inst Inst_inst0(.O(Inst_inst0_O), .I(coreir_wrapOutAsyncReset_inst0_out));
 coreir_wrap coreir_wrapInAsyncReset_inst0(.in(T_Tuple_in_T), .out(coreir_wrapInAsyncReset_inst0_out));
 coreir_wrap coreir_wrapInAsyncReset_inst1(.in(T_in), .out(coreir_wrapInAsyncReset_inst1_out));
 coreir_wrap coreir_wrapInAsyncReset_inst2(.in(T_Arr_in[0]), .out(coreir_wrapInAsyncReset_inst2_out));

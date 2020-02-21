@@ -20,7 +20,7 @@ endmodule   // execute_alu
 
 module SimpleALU (input [15:0] a, input [15:0] b, output [15:0] c, input [1:0] config_);
 wire [15:0] execute_alu_inst0_O;
-execute_alu execute_alu_inst0(.O(execute_alu_inst0_O), .a(a), .b(b), .config_(config_));
+execute_alu execute_alu_inst0(.a(a), .b(b), .config_(config_), .O(execute_alu_inst0_O));
 assign c = execute_alu_inst0_O;
 endmodule
 

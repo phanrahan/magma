@@ -14,7 +14,7 @@ module corebit_not (input in, output out);
   assign out = ~in;
 endmodule
 
-module TestITE (input [0:0] I0, input [0:0] I1, output [0:0] O, input [0:0] S);
+module TestITE (input [0:0] I0, input [0:0] I1, input [0:0] S, output [0:0] O);
 wire [0:0] const_0_1_out;
 wire magma_Bit_not_inst0_out;
 wire magma_Bits_1_eq_inst0_out;
@@ -22,7 +22,7 @@ wire [0:0] magma_Bits_1_ite_Out_Bits_1_inst0_out;
 coreir_const #(.value(1'h0), .width(1)) const_0_1(.out(const_0_1_out));
 corebit_not magma_Bit_not_inst0(.in(magma_Bits_1_eq_inst0_out), .out(magma_Bit_not_inst0_out));
 coreir_eq #(.width(1)) magma_Bits_1_eq_inst0(.in0(S), .in1(const_0_1_out), .out(magma_Bits_1_eq_inst0_out));
-coreir_mux #(.width(1)) magma_Bits_1_ite_Out_Bits_1_inst0(.in0(I0), .in1(I1), .out(magma_Bits_1_ite_Out_Bits_1_inst0_out), .sel(magma_Bit_not_inst0_out));
+coreir_mux #(.width(1)) magma_Bits_1_ite_Out_Bits_1_inst0(.in0(I0), .in1(I1), .sel(magma_Bit_not_inst0_out), .out(magma_Bits_1_ite_Out_Bits_1_inst0_out));
 assign O = magma_Bits_1_ite_Out_Bits_1_inst0_out;
 endmodule
 
