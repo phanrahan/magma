@@ -51,7 +51,8 @@ from .braid import *
 from .frontend.verilog import (declare_from_verilog, declare_from_verilog_file,
                                define_from_verilog, define_from_verilog_file,
                                DeclareFromVerilog, DeclareFromVerilogFile,
-                               DefineFromVerilog, DefineFromVerilogFile)
+                               DefineFromVerilog, DefineFromVerilogFile,
+                               set_verilog_importer)
 from .backend.verilog import *
 
 # compile
