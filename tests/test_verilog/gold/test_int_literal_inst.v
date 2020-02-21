@@ -34,18 +34,68 @@ module mod0 #(parameter KRATOS_INSTANCE_ID = 32'hDEADBEEF)
 );
 
 endmodule   // mod
-module Top (input I);
-mod0 #(.KRATOS_INSTANCE_ID(-559038737)) mod0_inst0(.I(I));
-mod0 #(.KRATOS_INSTANCE_ID(-559038737)) mod0_inst1(.I(I));
-mod1 #(.KRATOS_INSTANCE_ID(239)) mod1_inst0(.I(I));
-mod1 #(.KRATOS_INSTANCE_ID(239)) mod1_inst1(.I(I));
-mod2 #(.KRATOS_INSTANCE_ID(23)) mod2_inst0(.I(I));
-mod2 #(.KRATOS_INSTANCE_ID(23)) mod2_inst1(.I(I));
-mod3 #(.KRATOS_INSTANCE_ID(23)) mod3_inst0(.I(I));
-mod3 #(.KRATOS_INSTANCE_ID(23)) mod3_inst1(.I(I));
-mod4 #(.KRATOS_INSTANCE_ID(482)) mod4_inst0(.I(I));
-mod4 #(.KRATOS_INSTANCE_ID(482)) mod4_inst1(.I(I));
-mod5 #(.KRATOS_INSTANCE_ID(17)) mod5_inst0(.I(I));
-mod5 #(.KRATOS_INSTANCE_ID(17)) mod5_inst1(.I(I));
+module Top (
+    input I
+);
+mod0 #(
+    .KRATOS_INSTANCE_ID(-559038737)
+) mod0_inst0 (
+    .I(I)
+);
+mod0 #(
+    .KRATOS_INSTANCE_ID(-559038737)
+) mod0_inst1 (
+    .I(I)
+);
+mod1 #(
+    .KRATOS_INSTANCE_ID(239)
+) mod1_inst0 (
+    .I(I)
+);
+mod1 #(
+    .KRATOS_INSTANCE_ID(239)
+) mod1_inst1 (
+    .I(I)
+);
+mod2 #(
+    .KRATOS_INSTANCE_ID(23)
+) mod2_inst0 (
+    .I(I)
+);
+mod2 #(
+    .KRATOS_INSTANCE_ID(23)
+) mod2_inst1 (
+    .I(I)
+);
+mod3 #(
+    .KRATOS_INSTANCE_ID(23)
+) mod3_inst0 (
+    .I(I)
+);
+mod3 #(
+    .KRATOS_INSTANCE_ID(23)
+) mod3_inst1 (
+    .I(I)
+);
+mod4 #(
+    .KRATOS_INSTANCE_ID(482)
+) mod4_inst0 (
+    .I(I)
+);
+mod4 #(
+    .KRATOS_INSTANCE_ID(482)
+) mod4_inst1 (
+    .I(I)
+);
+mod5 #(
+    .KRATOS_INSTANCE_ID(17)
+) mod5_inst0 (
+    .I(I)
+);
+mod5 #(
+    .KRATOS_INSTANCE_ID(17)
+) mod5_inst1 (
+    .I(I)
+);
 endmodule
 
