@@ -75,7 +75,7 @@ def test_simple_alu():
 
 def test_seq_simple():
     @m.circuit.sequential_to_verilog(async_reset=True, debug=False)
-    class TestBasic:
+    class TestBasicToVerilog:
         def __init__(self):
             self.x: m.Bits[2] = m.bits(0, 2)
             self.y: m.Bits[2] = m.bits(0, 2)
@@ -87,7 +87,7 @@ def test_seq_simple():
             self.x = I
             return _O
 
-    m.compile('build/TestBasicToVerilog', TestBasic, output="verilog")
+    m.compile('build/TestBasicToVerilog', TestBasicToVerilog, output="verilog")
     assert check_files_equal(__file__, f"build/TestBasicToVerilog.v",
                              f"gold/TestBasicToVerilog.v")
     try:
