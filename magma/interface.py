@@ -192,13 +192,14 @@ class Interface(_Interface):
 class AnonymousInterface(Interface):
     def outputs(self):
         """Return all the argument output ports."""
-        return list(filter(lambda port: port.trace() is None and not
+        return list(filter(lambda port: port.is_output() or port.trace() is None and not
                            port.wired(),
                            self.ports.values()))
 
     def inputs(self):
         """Return all the argument input ports."""
-        return list(filter(lambda port: port.trace() is not None, self.ports.values()))
+        return list(filter(lambda port: port.is_input() or port.trace() is not
+                           None, self.ports.values()))
 
 
 class _DeclareInterface(_Interface):
