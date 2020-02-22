@@ -94,7 +94,7 @@ def test_seq_simple():
         # Test with fault if available
         import fault
         target = "verilator"
-        tester = fault.Tester(TestBasic, TestBasic.CLK)
+        tester = fault.Tester(TestBasicToVerilog, TestBasicToVerilog.CLK)
         stream = hwtypes.BitVector.random(10)
         tester.circuit.ASYNCRESET = 0
         tester.eval()
@@ -117,7 +117,7 @@ def test_seq_simple():
         else:
             top_module_name = "dut"
         # TODO automatically obtain the kratos-based circuit
-        generators = [TestBasic.kratos]
+        generators = [TestBasicToVerilog.kratos]
         kratos.debug.dump_external_database(generators, top_module_name, f"{directory}debug.db")
         tester.compile_and_run(target,
                                directory=directory,

@@ -667,12 +667,6 @@ Bind monitor interface does not match circuit interface
             content = "\n".join((f.read(), bind_str))
         cls.bind_modules[monitor.name] = content
 
-    def add_instance(cls, circuit, *args, **kwargs):
-        _DefinitionBlock.push(cls)
-        inst = circuit(*args, **kwargs)
-        _DefinitionBlock.pop()
-        return inst
-
 
 @six.add_metaclass(DefineCircuitKind)
 class Circuit(CircuitType):

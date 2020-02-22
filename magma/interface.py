@@ -1,7 +1,7 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef, ArrayRef, TupleRef
+from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef, ArrayRef, TupleRef, NamedRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
@@ -58,7 +58,7 @@ def _make_interface_args(decl, renamed_ports, inst, defn):
     for name, port in zip(names, ports):
         if   inst: ref = InstRef(inst, name)
         elif defn: ref = DefnRef(defn, name)
-        else:      ref = AnonRef(name)
+        else:      ref = NamedRef(name)
 
         if name in renamed_ports:
             ref.name = renamed_ports[name]
@@ -231,12 +231,14 @@ class AnonymousInterface(Interface):
     """
     def outputs(self):
         return list(filter(lambda port: port.is_output() or port.trace() is
-                           None and not port.wired(),
+                           None and not port.wired() and not port.is_input()
+                           and not port.is_inout(),
                            self.ports.values()))
 
     def inputs(self):
         return list(filter(lambda port: port.is_input() or port.trace() is None
-                           and port.wired(), self.ports.values()))
+                           and port.wired() and not port.is_output() and not
+                           port.is_inout(), self.ports.values()))
 
 
 class _DeclareInterface(_Interface):
