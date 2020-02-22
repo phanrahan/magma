@@ -252,12 +252,6 @@ class _DeclareInterface(_Interface):
     def __init__(self, renamed_ports={}, inst=None, defn=None):
         self.ports = _make_interface_args(self.Decl, renamed_ports, inst, defn)
 
-        args = OrderedDict()
-        for name, port in zip(names, ports):
-            if   inst: ref = InstRef(inst, name)
-            elif defn: ref = DefnRef(defn, name)
-            else:      ref = NamedRef(name)
-
 class _DeclareLazyInterface(_Interface):
     """_DeclareLazyInterface class"""
     def __init__(self, renamed_ports={}, inst=None, defn=None):
