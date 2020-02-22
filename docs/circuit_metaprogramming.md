@@ -97,8 +97,8 @@ It is useful to be able to declare circuits from verilog source.
 
 We provide two utilities for doing this.
 ```python
-modules = DeclareFromVerilog(source)
-modules = DeclareFromVerilogFile(filename)
+modules = declare_from_verilog(source)
+modules = declare_from_verilog_file(filename)
 ```
 These functions return a list of Circuits, one for each module in the verilog file.
 The circuits will have the same name and interface as the modules in the verilog file.
@@ -107,7 +107,7 @@ which must be installed.
 
 Here is a simple example,
 ```python
-from magma import DeclareFromVerilog
+from magma import declare_from_verilog
 
 source = '''\
 module CSA4 ( input [3:0] a,b,c, output [3:0] s, co);
@@ -115,7 +115,7 @@ module CSA4 ( input [3:0] a,b,c, output [3:0] s, co);
    assign co = a&b | b&c | a&c;
 endmodule'''
 
-CSA4 = DeclareFromVerilog(source)[0]
+CSA4 = declare_from_verilog(source)[0]
 ```
 
 Another useful technique is to run a text templating engine over the verilog file before parsing.
@@ -141,4 +141,4 @@ CSA4 = DefineFromTemplatedVerilog(source, **dict(N=4))[0]
 ```
 
 Examples using these two functions are in a [jupyter
-notebook](https://github.com/phanrahan/magma/blob/master/notebooks/tutorial/Verilog.ipynb)
+notebook](https://github.com/phanrahan/magmathon/blob/master/notebooks/advanced/verilog.ipynb)

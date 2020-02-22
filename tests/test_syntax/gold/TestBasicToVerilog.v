@@ -1,4 +1,4 @@
-module TestBasic (
+module TestBasicToVerilog (
   input logic ASYNCRESET,
   input logic CLK,
   input logic [1:0] I,
@@ -27,6 +27,6 @@ always_ff @(posedge CLK, posedge ASYNCRESET) begin
     self_y_O <= self_y_I;
   end
 end
-endmodule   // TestBasic
+endmodule   // TestBasicToVerilog
 
 

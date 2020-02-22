@@ -61,6 +61,10 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         name = getattr(cls, "orig_name", cls.__name__)
         if not cls.is_concrete:
             return name
+        # Handle qualified, unsized e.g. In(Bits)
+        if isinstance(cls.T, Direction):
+            assert cls.N is None
+            return f"{cls.T.name}({name})"
 
         name += f"[{cls.N}]"
         if cls.is_input():

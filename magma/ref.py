@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
-
+__all__ += ['LazyDefnRef']
 
 class Ref:
     @abstractmethod
@@ -82,6 +82,29 @@ class DefnRef(NamedRef):
         if sep == ".":
             return self.defn.__name__ + sep + self.name
         return self.name
+
+
+class LazyDefnRef(DefnRef):
+    class _LazyCircuit:
+        name = ""
+
+    def __init__(self, name):
+        self.name = name
+        self._defn = None
+
+    @property
+    def defn(self):
+        if self._defn is not None:
+            return self._defn
+        return LazyDefnRef._LazyCircuit
+
+    def qualifiedname(self, sep="."):
+        return super().qualifiedname(sep)
+
+    def set_defn(self, defn):
+        if self._defn is not None:
+            raise Exception("Can only set definition of LazyDefnRef once")
+        self._defn = defn
 
 
 class ArrayRef(Ref):

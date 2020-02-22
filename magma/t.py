@@ -1,7 +1,7 @@
 import functools
 import warnings
 import enum
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod
 from .common import deprecated
 from .ref import AnonRef, NamedRef, DefnRef, InstRef, ArrayRef, TupleRef
 from .compatibility import IntegerTypes, StringTypes
@@ -148,46 +148,42 @@ class Kind(type):
             return cls
 
 
-def dispatch_magma_protocol(func):
-    @functools.wraps(func)
-    def wrapper(T):
-        if issubclass(T, MagmaProtocol):
-            return T._from_magma_(func(T._to_magma_()))
-        return func(T)
-    return wrapper
-
-
-@dispatch_magma_protocol
 def In(T):
     return T.qualify(Direction.In)
 
 
-@dispatch_magma_protocol
 def Out(T):
     return T.qualify(Direction.Out)
 
 
-@dispatch_magma_protocol
 def InOut(T):
     return T.qualify(Direction.InOut)
 
 
-@dispatch_magma_protocol
 def Flip(T):
     return T.flip()
 
 
-class MagmaProtocolMeta(ABCMeta):
+class MagmaProtocolMeta(type):
     @abstractmethod
     def _to_magma_(cls):
         # Need way to retrieve underlying magma type
         raise NotImplementedError()
 
     @abstractmethod
-    def _from_magma_(cls, T: Kind):
-        # Need way to create a new version (e.g. give me a Foo with the
+    def _qualify_magma_(cls, direction: Direction):
+        # Need way to qualify underlying type (e.g. give me a Foo with the
         # underlying type qualified to be an input)
         raise NotImplementedError()
+
+    @abstractmethod
+    def _flip_magma_(cls):
+        # Need way to flip underlying type (e.g. give me a Foo with the
+        # underlying type flipped)
+        raise NotImplementedError()
+
+    def qualify(cls, direction: Direction):
+        return cls._qualify_magma_(direction)
 
     @abstractmethod
     def _from_magma_value_(cls, val: Type):
@@ -195,7 +191,7 @@ class MagmaProtocolMeta(ABCMeta):
         raise NotImplementedError()
 
     def flip(cls):
-        return cls._from_magma_(cls._to_magma_().flip())
+        return cls._flip_magma_()
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):

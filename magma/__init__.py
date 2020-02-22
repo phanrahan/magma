@@ -47,7 +47,10 @@ from .circuit import *
 from .braid import *
 
 # verilog
-from .fromverilog import *
+from .frontend.verilog import (declare_from_verilog, declare_from_verilog_file,
+                               define_from_verilog, define_from_verilog_file,
+                               DeclareFromVerilog, DeclareFromVerilogFile,
+                               DefineFromVerilog, DefineFromVerilogFile)
 from .backend.verilog import *
 
 # compile

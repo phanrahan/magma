@@ -52,6 +52,34 @@ class ArrayMeta(ABCMeta, Kind):
 
     def __getitem__(cls, index: tuple) -> 'ArrayMeta':
         mcs = type(cls)
+
+        # If cls.T is a direction, and the new T (index[1])
+        if isinstance(cls.T, Direction):
+            # If we're replacing a direction (e.g. `In(Out(Array)))`, just use
+            # the default direction logic
+            if not isinstance(index[1], Direction):
+                # Otherwise, we expect that we're qualifying a Type with the
+                # direction (e.g. In(Array)[5, Bit])
+                if not issubclass(index[1], Type):
+                    raise TypeError("Expected Type as second index to Array")
+                if not index[1].is_oriented(cls.T):
+                    _logger.warning(
+                        f"Parametrizing qualifed Array {cls} with inner type "
+                        f" {index[1]} which doesn't match, will use array "
+                        "qualifier"
+                    )
+                index = index[0], index[1].qualify(cls.T)
+        elif cls.T is None:
+            # Else, it index[1] should be  Type (e.g. In(Bit)) or a Direction
+            # (used internally for In(Array))
+            valid_second_index = (isinstance(index[1], Direction) or
+                                  issubclass(index[1], Type))
+            if not valid_second_index:
+                raise TypeError(
+                    "Expected Type or Direction as second index to Array"
+                    f" got: {index[1], type(index[1])}"
+                )
+
         try:
             return mcs._class_cache[cls, index]
         except KeyError:
@@ -59,8 +87,14 @@ class ArrayMeta(ABCMeta, Kind):
 
         if not (isinstance(index, tuple) and len(index) == 2):
             raise TypeError('Parameters to array must be a tuple of length 2')
-        if not isinstance(index[0], int) or index[0] <= 0:
-            raise TypeError(f'Length of array must be an int greater than 0, got: {index[0]}')
+
+        # index[0] (N) can be None (used internally for In(Array))
+        if index[0] is not None:
+            if (not isinstance(index[0], int) or index[0] <= 0):
+                raise TypeError(
+                    'Length of array must be an int greater than 0, got:'
+                    f' {index[0]}'
+                )
 
 
         if cls.is_concrete:
@@ -71,13 +105,19 @@ class ArrayMeta(ABCMeta, Kind):
 
         bases = []
         bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
-        bases.extend(cls[index[0], b] for b in index[1].__bases__ if
-                     isinstance(b, type(index[1])))
+        # only add base classes if we're have a child type
+        # (skipped in the case of In(Array))
+        if not isinstance(index[1], Direction):
+            bases.extend(cls[index[0], b] for b in index[1].__bases__ if
+                         isinstance(b, type(index[1])))
         if not any(issubclass(b, cls) for b in bases):
             bases.insert(0, cls)
         bases = tuple(bases)
         orig_name = cls.__name__
-        class_name = '{}[{}]'.format(cls.__name__, index)
+        if isinstance(index[1], Direction):
+            class_name = f'{index[1].name}({cls.__name__})'
+        else:
+            class_name = '{}[{}]'.format(cls.__name__, index)
         type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, ) + index)
         type_.__module__ = cls.__module__
         mcs._class_cache[cls, index] = type_
@@ -115,12 +155,19 @@ class ArrayMeta(ABCMeta, Kind):
         return cls.N
 
     def __str__(cls):
+        # handle In(Array)
+        if isinstance(cls.T, Direction):
+            assert cls.N is None
+            return f"{cls.T.name}(Array)"
         return f"Array[{cls.N}, {cls.T}]"
 
     def __repr__(cls):
         return f"Array[{cls.N}, {cls.T}]"
 
     def qualify(cls, direction):
+        # Handle qualified, unsized/child e.g. In(Array) and In(Out(Array))
+        if cls.T is None or isinstance(cls.T, Direction):
+            return cls[None, direction]
         return cls[cls.N, cls.T.qualify(direction)]
 
     def flip(cls):
@@ -278,7 +325,8 @@ class Array(Type, metaclass=ArrayMeta):
             if isinstance(o, IntegerTypes):
                 _logger.error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info=debug_info)  # noqa
             else:
-                _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info=debug_info)  # noqa
+                o_str = getattr(o, "debug_name", str(o))
+                _logger.error(f'Cannot wire {o_str} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o_str} is not an Array', debug_info=debug_info)  # noqa
             return
 
         if i.N != o.N:

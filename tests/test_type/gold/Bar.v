@@ -1,5 +1,11 @@
 // Module `Foo` defined externally
-module Bar (input ASYNCRESETN, input CLK);
-Foo Foo_inst0(.ASYNCRESETN(ASYNCRESETN), .CLK(CLK));
+module Bar (
+    input CLK,
+    input ASYNCRESETN
+);
+Foo Foo_inst0 (
+    .CLK(CLK),
+    .ASYNCRESETN(ASYNCRESETN)
+);
 endmodule
 
