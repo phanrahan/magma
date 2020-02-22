@@ -1,6 +1,29 @@
 import magma as m
 
 
+primitive_to_python_operator_name_map = {
+    "and": "and_",
+    "or": "or_",
+    "xor": "xor",
+    "shl": "lshift",
+    "lshr": "rshift",
+    "ashr": "rshift",
+    "urem": "mod",
+    "srem": "mod",
+    "udiv": "floordiv",
+    "sdiv": "floordiv",
+    "ule": "le",
+    "ult": "lt",
+    "uge": "ge",
+    "ugt": "gt",
+    "sle": "le",
+    "slt": "lt",
+    "sge": "ge",
+    "sgt": "gt",
+    "not": "invert"
+}
+
+
 def BitOrBits(width):
     if width is None:
         return m.Bit

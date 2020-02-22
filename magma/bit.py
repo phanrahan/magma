@@ -3,13 +3,17 @@ Definition of magma's Bit type
 * Subtype of the Digital type
 * Implementation of hwtypes.AbstractBit
 """
+import keyword
+import operator
 import typing as tp
 import functools
 from functools import lru_cache
+import hwtypes as ht
 import magma as m
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
 from .digital import Digital, DigitalMeta
+from .util import primitive_to_python_operator_name_map
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -36,25 +40,50 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @classmethod
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
+        assert op == "not", f"simulate not implemented for {op}"
+
+        def simulate(self, value_store, state_store):
+            I = ht.Bit(value_store.get_value(self.I))
+            O = int(~I)
+            value_store.set_value(self.O, O)
+
         return m.circuit.DeclareCoreirCircuit(f"magma_Bit_{op}",
                                               "I", m.In(m.Bit),
                                               "O", m.Out(m.Bit),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_lib="corebit")
 
     @classmethod
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+        python_op = getattr(operator, python_op_name)
+
+        def simulate(self, value_store, state_store):
+            I0 = ht.Bit(value_store.get_value(self.I0))
+            I1 = ht.Bit(value_store.get_value(self.I1))
+            O = int(python_op(I0, I1))
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bit_{op}",
                                               "I0", m.In(m.Bit),
                                               "I1", m.In(m.Bit),
                                               "O", m.Out(m.Bit),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_lib="corebit")
 
     @classmethod
     @lru_cache(maxsize=None)
     def declare_ite(cls, T):
+
+        def simulate(self, value_store, state_store):
+            I0 = ht.Bit(value_store.get_value(self.I0))
+            I1 = ht.Bit(value_store.get_value(self.I1))
+            S = ht.Bit(value_store.get_value(self.S))
+            O = I1 if S else I0
+            value_store.set_value(self.O, O)
+
         t_str = str(T)
         # Sanitize
         t_str = t_str.replace("(", "_")
@@ -67,6 +96,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
                                                   "I1", m.In(T),
                                                   "S", m.In(m.Bit),
                                                   "O", m.Out(T),
+                                                  simulate=simulate,
                                                   coreir_name="mux",
                                                   coreir_lib="corebit")
         assert issubclass(T, m.Bits)
@@ -76,6 +106,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
                                               "S", m.In(m.Bit),
                                               "O", m.Out(T),
                                               coreir_genargs={"width": len(T)},
+                                              simulate=simulate,
                                               coreir_name="mux",
                                               coreir_lib="coreir")
 

@@ -7,6 +7,8 @@ import pytest
 import magma as m
 from magma import Bits
 from magma.testing import check_files_equal
+from magma.simulator import PythonSimulator
+from hwtypes import BitVector
 
 ARRAY2 = m.Array[2, m.Bit]
 ARRAY4 = m.Array[4, m.Bit]
@@ -189,6 +191,13 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}Invert.v",
                              f"gold/TestBits{n}Invert.v")
 
+    sim = PythonSimulator(TestInvert)
+    for _ in range(2):
+        I = BitVector.random(n)
+        sim.set_value(TestInvert.I, I)
+        sim.evaluate()
+        assert sim.get_value(TestInvert.O) == ~I
+
 
 @pytest.mark.parametrize("n", [1, 3])
 @pytest.mark.parametrize("op", ["and_", "or_", "xor", "lshift", "rshift"])
@@ -214,6 +223,15 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}{magma_op}", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}{magma_op}.v",
                              f"gold/TestBits{n}{magma_op}.v")
+
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = BitVector.random(n)
+        I1 = BitVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -244,6 +262,16 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}ITE.v",
                              f"gold/TestBits{n}ITE.v")
 
+    sim = PythonSimulator(TestITE)
+    for S in [0, 1]:
+        I0 = BitVector.random(n)
+        I1 = BitVector.random(n)
+        sim.set_value(TestITE.I0, I0)
+        sim.set_value(TestITE.I1, I1)
+        sim.set_value(TestITE.S, S)
+        sim.evaluate()
+        assert sim.get_value(TestITE.O) == (I1 if S else I0)
+
 
 @pytest.mark.parametrize("n", [1, 3])
 def test_eq(n):
@@ -265,6 +293,15 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}eq", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}eq.v",
                              f"gold/TestBits{n}eq.v")
+
+    sim = PythonSimulator(TestBinary)
+    for i in range(2):
+        I0 = BitVector.random(n)
+        I1 = BitVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == (I0 == I1)
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -288,6 +325,13 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}ext.v",
                              f"gold/TestBits{n}ext.v")
 
+    sim = PythonSimulator(TestExt)
+    for i in range(2):
+        I = BitVector.random(n)
+        sim.set_value(TestExt.I, I)
+        sim.evaluate()
+        assert sim.get_value(TestExt.O) == I.zext(3)
+
 
 @pytest.mark.parametrize("n", [1, 3])
 def test_bvcomp(n):
@@ -310,6 +354,15 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBits{n}bvcomp.v",
                              f"gold/TestBits{n}bvcomp.v")
 
+    sim = PythonSimulator(TestBinary)
+    for i in range(2):
+        I0 = BitVector.random(n)
+        I1 = BitVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == (I0 == I1)
+
 
 @pytest.mark.parametrize("n", [1, 3])
 @pytest.mark.parametrize("x", [4, 7])
@@ -330,3 +383,10 @@ EndCircuit()\
     m.compile(f"build/TestBits{n}x{x}Repeat", TestRepeat, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}x{x}Repeat.v",
                              f"gold/TestBits{n}x{x}Repeat.v")
+
+    sim = PythonSimulator(TestRepeat)
+    for i in range(2):
+        I = BitVector.random(n)
+        sim.set_value(TestRepeat.I, I)
+        sim.evaluate()
+        assert sim.get_value(TestRepeat.O) == I.repeat(x)

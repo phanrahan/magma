@@ -3,8 +3,10 @@ Defines a subtype of m.Array called m.Bits
 
 m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
+import operator
 from functools import lru_cache, wraps
 import typing as tp
+import hwtypes as ht
 from hwtypes import BitVector
 from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
     InconsistentSizeError
@@ -16,6 +18,7 @@ from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type, Direction
+from .util import primitive_to_python_operator_name_map
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
@@ -78,6 +81,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__
+    hwtypes_T = ht.BitVector
 
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], m.Array) and \
@@ -134,9 +138,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
         N = len(cls)
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+
+        def simulate(self, value_store, state_store):
+            I = cls.hwtypes_T[N](value_store.get_value(self.I))
+            O = int(getattr(operator, python_op_name)(I))
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I", m.In(cls),
                                               "O", m.Out(cls),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -145,10 +156,19 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
         N = len(cls)
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+        python_op = getattr(operator, python_op_name)
+
+        def simulate(self, value_store, state_store):
+            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
+            O = int(python_op(I0, I1))
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I0", m.In(cls),
                                               "I1", m.In(cls),
                                               "O", m.Out(cls),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -157,10 +177,18 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_compare_op(cls, op):
         N = len(cls)
+        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+
+        def simulate(self, value_store, state_store):
+            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
+            O = int(getattr(operator, python_op_name)(I0, I1))
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
                                               "I0", m.In(cls),
                                               "I1", m.In(cls),
                                               "O", m.Out(m.Bit),
+                                              simulate=simulate,
                                               coreir_name=op,
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -175,11 +203,19 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         t_str = t_str.replace("[", "_")
         t_str = t_str.replace("]", "")
         N = len(cls)
+
+        def simulate(self, value_store, state_store):
+            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
+            S = ht.Bit(value_store.get_value(self.S))
+            O = I1 if S else I0
+            value_store.set_value(self.O, O)
         return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_ite_{t_str}",
                                               "I0", m.In(T),
                                               "I1", m.In(T),
                                               "S", m.In(m.Bit),
                                               "O", m.Out(T),
+                                              simulate=simulate,
                                               coreir_name="mux",
                                               coreir_genargs={"width": N},
                                               coreir_lib="coreir")
@@ -486,6 +522,8 @@ BitsType = Bits
 
 
 class UInt(Bits):
+    hwtypes_T = ht.UIntVector
+
     @bits_cast
     def bvult(self, other) -> AbstractBit:
         return self.declare_compare_op("ult")()(self, other)
@@ -543,6 +581,8 @@ class UInt(Bits):
 
 
 class SInt(Bits):
+    hwtypes_T = ht.SIntVector
+
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], m.Array) and \
                 len(self) > 1 and len(args[0]) <= len(self):
