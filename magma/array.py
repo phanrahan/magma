@@ -320,7 +320,8 @@ class Array(Type, metaclass=ArrayMeta):
             if isinstance(o, IntegerTypes):
                 _logger.error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info=debug_info)  # noqa
             else:
-                _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info=debug_info)  # noqa
+                o_str = getattr(o, "debug_name", str(o))
+                _logger.error(f'Cannot wire {o_str} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o_str} is not an Array', debug_info=debug_info)  # noqa
             return
 
         if i.N != o.N:

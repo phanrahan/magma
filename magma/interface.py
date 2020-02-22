@@ -11,6 +11,7 @@ from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
+__all__ += ['AnonymousInterface']
 __all__ += ['InterfaceKind']
 __all__ += ['DeclareLazyInterface']
 __all__ += ['IO']
@@ -186,6 +187,18 @@ class Interface(_Interface):
     def __str__(self):
         s = ", ".join(f"{k}: {v}" for k, v in self.ports.items())
         return f"Interface({s})"
+
+
+class AnonymousInterface(Interface):
+    def outputs(self):
+        """Return all the argument output ports."""
+        return list(filter(lambda port: port.trace() is None and not
+                           port.wired(),
+                           self.ports.values()))
+
+    def inputs(self):
+        """Return all the argument input ports."""
+        return list(filter(lambda port: port.trace() is not None, self.ports.values()))
 
 
 class _DeclareInterface(_Interface):

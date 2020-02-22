@@ -90,9 +90,13 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 # return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
-    oarg = type(iargs[0]).qualify(Direction.Undirected)() # create a single anonymous value
+    T = type(iargs[0])
+    oarg = T.undirected_t() # create a single anonymous value
     for iarg in iargs:
-         wire(oarg, iarg) # wire the anonymous value to all the forked args
+        if iarg.is_input():
+            wire(oarg, iarg) # wire the anonymous value to all the forked args
+        else:
+            wire(iarg, oarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
 
 # return [arg, array] from a list of interfaces

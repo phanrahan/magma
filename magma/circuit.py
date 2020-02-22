@@ -424,7 +424,7 @@ def AnonymousCircuit(*decl):
     """
     if len(decl) == 1:
         decl = decl[0]
-    return AnonymousCircuitType().setinterface(Interface(decl))
+    return AnonymousCircuitType().setinterface(AnonymousInterface(decl))
 
 
 class CircuitType(AnonymousCircuitType):
