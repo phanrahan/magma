@@ -1,11 +1,7 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-<<<<<<< HEAD
-from .ref import NamedRef, InstRef, DefnRef, ArrayRef, TupleRef
-=======
-from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef
->>>>>>> named-temporary-values
+from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef, ArrayRef, TupleRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
