@@ -193,6 +193,8 @@ class AnonymousInterface(Interface):
     """
     Anonymous interfaces can have ports that are not inputs/output, so we need
     ot see if they trace to an input or if they are wired to inputs
+
+    TODO: Need tests for all these cases
     """
     def outputs(self):
         return list(filter(lambda port: port.is_output() or port.trace() is
