@@ -190,16 +190,20 @@ class Interface(_Interface):
 
 
 class AnonymousInterface(Interface):
+    """
+    Anonymous interfaces can have ports that are not inputs/output, so we need
+    ot see if they trace to an input or if they are wired to inputs
+    """
     def outputs(self):
-        """Return all the argument output ports."""
-        return list(filter(lambda port: port.is_output() or port.trace() is None and not
-                           port.wired(),
+        return list(filter(lambda port: port.is_output() or port.trace() is
+                           None and not port.wired() and not port.is_input()
+                           and not port.is_inout(),
                            self.ports.values()))
 
     def inputs(self):
-        """Return all the argument input ports."""
         return list(filter(lambda port: port.is_input() or port.trace() is not
-                           None, self.ports.values()))
+                           None and not port.is_output() and not
+                           port.is_inout(), self.ports.values()))
 
 
 class _DeclareInterface(_Interface):
