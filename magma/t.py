@@ -118,6 +118,30 @@ class Type(object):
         # members
         raise NotImplementedError()
 
+    @abstractmethod
+    def as_bits(self):
+        """
+        Convert value to "flat" representation as an instance of m.Bits
+
+        For example, flatten a multi-dimensional array `m.Array[4,
+        m.Bits[5]]` into `m.Bits[20]`.
+
+        This is the inverse of `from_bits`
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    @abstractmethod
+    def from_bits(self):
+        """
+        Create value from a "flat" representation as an instance of m.Bits.
+
+        For example, pack an `m.Bits[20]` into an `m.Array[4, m.Bits[5]]`.
+
+        This is the inverse of `as_bits`
+        """
+        raise NotImplementedError()
+
 
 
 class Kind(type):
