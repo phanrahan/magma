@@ -41,8 +41,8 @@ class AnonRef(Ref):
 
 class NamedRef(Ref):
     def __init__(self, name):
-        if not isinstance(name, str):
-            raise TypeError("Expected string")
+        if not isinstance(name, (str, int)):
+            raise TypeError("Expected string or int")
         self.name = name
 
     def __str__(self):
