@@ -83,18 +83,16 @@ def _make_wire_str(driver, value, wired):
     Handles non-whole values (e.g. arrays/tuple constructed with values coming
     from multiple sources) by emitting the wiring of the child values.
     """
-    s = ""
+    if (value, driver) in wired:
+        return ""
+    wired.add((value, driver))
     if isinstance(driver, (Array, Tuple)) and \
             not driver.iswhole(driver.ts):
-        for d, v in zip(driver, value):
-            s += _make_wire_str(d, v, wired)
-    else:
-        iname = value.name.qualifiedname()
-        oname = driver.name.qualifiedname()
-        if (value, driver) not in wired:
-            s += f"wire({oname}, {iname})\n"
-            wired.add((value, driver))
-    return s
+        return "".join(_make_wire_str(d, v, wired)
+                       for d, v in zip(driver, value))
+    iname = value.name.qualifiedname()
+    oname = driver.name.qualifiedname()
+    return f"wire({oname}, {iname})\n"
 
 
 def _make_wires(value, wired):
