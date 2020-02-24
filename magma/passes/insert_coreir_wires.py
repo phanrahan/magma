@@ -34,14 +34,15 @@ class Wire(Generator):
         )
 
 
+def _sanitize_name(name):
+    return name.replace("[", "_").replace("]", "")
+
+
 class InsertCoreIRWires(DefinitionPass):
     def __init__(self, main):
         super().__init__(main)
         self.seen = set()
         self.wire_map = {}
-
-    def _sanitize_name(self, name):
-        return name.replace("[", "_").replace("]", "")
 
     def insert_wire(self, value, definition):
         if value.is_mixed():
@@ -65,8 +66,8 @@ class InsertCoreIRWires(DefinitionPass):
         if driver not in self.wire_map:
             driver_name = driver.name.qualifiedname("_")
             value_name = value.name.qualifiedname("_")
-            driver_name = self._sanitize_name(driver_name)
-            value_name = self._sanitize_name(value_name)
+            driver_name = _sanitize_name(driver_name)
+            value_name = _sanitize_name(value_name)
 
             # Rename driver so it doesn't conflict with new wire instance name
             if isinstance(driver.name, NamedRef):
