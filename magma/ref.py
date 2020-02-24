@@ -1,37 +1,66 @@
 from .compatibility import IntegerTypes
+from abc import abstractmethod
 
 
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
 __all__ += ['LazyDefnRef']
 
 class Ref:
+    @abstractmethod
     def __str__(self):
-        return str(self.name)
+        raise NotImplementedError()
 
     def __repr__(self):
         return self.qualifiedname()
 
+    @abstractmethod
+    def qualifiedname(self, sep="."):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def anon(self):
+        raise NotImplementedError()
+
+    def verilog_name(self):
+        return self.qualifiedname("_")
+
 
 class AnonRef(Ref):
-    def __init__(self, name=""):
+    def __init__(self):
+        self.name = None
+
+    def __str__(self):
+        return f"AnonymousValue_{id(self)}"
+
+    def qualifiedname(self, sep='.'):
+        return f"AnonymousValue_{id(self)}"
+
+    def anon(self):
+        return True
+
+
+class NamedRef(Ref):
+    def __init__(self, name):
+        if not isinstance(name, str):
+            raise TypeError("Expected string")
         self.name = name
 
     def __str__(self):
-        return str(self.name) if self.name else f"AnonymousValue_{id(self)}"
+        return self.name
 
-    def qualifiedname(self, sep='.'):
-        return str(self.name) if self.name else f"AnonymousValue_{id(self)}"
+    def qualifiedname(self, sep="."):
+        return self.name
 
     def anon(self):
-        return False if self.name else True
+        return False
 
 
-class InstRef(Ref):
+class InstRef(NamedRef):
     def __init__(self, inst, name):
+        super().__init__(name)
         if not inst:
             raise ValueError(f"Bad inst: {inst}")
         self.inst = inst
-        self.name = name
 
     def qualifiedname(self, sep="."):
         name = self.name
@@ -41,24 +70,18 @@ class InstRef(Ref):
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
 
-    def anon(self):
-        return False
 
-
-class DefnRef(Ref):
+class DefnRef(NamedRef):
     def __init__(self, defn, name):
+        super().__init__(name)
         if not defn:
             raise ValueError(f"Bad defn: {defn}")
         self.defn = defn
-        self.name = name
 
     def qualifiedname(self, sep="."):
         if sep == ".":
             return self.defn.__name__ + sep + self.name
         return self.name
-
-    def anon(self):
-        return False
 
 
 class LazyDefnRef(DefnRef):
@@ -100,15 +123,22 @@ class ArrayRef(Ref):
 
 
 class TupleRef(Ref):
-   def __init__(self, tuple, index):
-       self.tuple = tuple
-       self.index = index
+    def __init__(self, tuple, index):
+        self.tuple = tuple
+        self.index = index
 
-   def __str__(self):
-       return self.qualifiedname()
+    def __str__(self):
+        return self.qualifiedname()
 
-   def qualifiedname(self, sep="."):
-       return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
+    def qualifiedname(self, sep="."):
+        try:
+            int(self.index)
+            return self.tuple.name.qualifiedname(sep=sep) + "[" + str(self.index) + "]"
+        except ValueError:
+            return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
 
-   def anon(self):
-       return self.tuple.name.anon()
+    def verilog_name(self):
+        return self.tuple.name.verilog_name() + "_" + str(self.index)
+
+    def anon(self):
+        return self.tuple.name.anon()

@@ -1,3 +1,4 @@
+from functools import reduce
 import itertools
 from collections.abc import Sequence, Mapping
 from collections import OrderedDict
@@ -155,8 +156,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             return self.ts == rhs.ts
 
     def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
+        if not self.name.anon():
+            return super().__repr__()
         ts = [repr(t) for t in self.ts]
         kts = ['{}={}'.format(k, v) for k, v in zip(self.keys(), ts)]
         return 'tuple(dict({})'.format(', '.join(kts))
@@ -208,9 +209,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def unwire(i, o):
         for i_elem, o_elem in zip(i, o):
             if o_elem.is_input():
-                o_elem.unwire(i_elem, debug_info)
+                o_elem.unwire(i_elem)
             else:
-                i_elem.unwire(o_elem, debug_info)
+                i_elem.unwire(o_elem)
 
     def driven(self):
         for t in self.ts:
@@ -307,6 +308,30 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         for elem in self:
             elem.unused()
 
+    def as_bits(self):
+        return reduce(lambda x, y: x.concat(y),
+                      map(lambda x: x.as_bits(), self.values()))
+
+    @classmethod
+    def from_bits(cls, value):
+        children = []
+        offset = 0
+        for child in cls.fields:
+            child_length = child.flat_length()
+            children.append(
+                child.from_bits(value[offset:offset + child_length])
+            )
+            offset += child_length
+        return cls(*children)
+
+    @classmethod
+    def is_mixed(cls):
+        input, output, inout = False, False, False
+        for field in cls.fields:
+            input |= field.is_input()
+            output |= field.is_output()
+            inout |= field.is_inout()
+        return (input + output + inout) > 1
 
 class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
