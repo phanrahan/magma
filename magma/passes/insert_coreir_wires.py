@@ -10,7 +10,7 @@ from ..bits import Bits
 from ..ref import NamedRef
 
 
-def simulate_wire(self, value_store, state_store):
+def _simulate_wire(self, value_store, state_store):
     value_store.set_value(self.O, value_store.get_value(self.I))
 
 
@@ -27,7 +27,7 @@ class Wire(Generator):
             coreir_genargs = {"width": width}
         return DeclareCoreirCircuit(
             "Wire", 'I', In(T), 'O', Out(T),
-            simulate=simulate_wire,
+            simulate=_simulate_wire,
             coreir_name="wire",
             coreir_lib=coreir_lib,
             coreir_genargs=coreir_genargs
