@@ -90,14 +90,37 @@ def test_new_style_with_definition_method(caplog):
     assert has_warning(caplog, expected)
 
 
-def test_new_style_wiring_error(caplog):
+def test_defn_wiring_error(caplog):
     class _Foo(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit))
+        io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit), O1=m.Out(m.Bits[1]))
 
         m.wire(io.I, io.O)
+        m.wire(io.I, io.O1)
 
     assert not m.isdefinition(_Foo)
     assert has_error(caplog, "Using `.O` (an output) as an input")
+    assert has_error(caplog, ("Cannot wire .I (type=Out(Bit)) to .O1 "
+                              "(type=In(Bits[1])) because .I is not an Array"))
+
+
+def test_inst_wiring_error(caplog):
+    class _Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[1]))
+
+    class _Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+
+        bar = _Bar()
+        m.wire(io.I, bar.I)
+        m.wire(bar.O, io.O)
+
+    assert has_error(caplog, ("Cannot wire .I (type=Out(Bit)) to ..I "
+                              "(type=In(Bits[1])) because .I is not an Array"))
+    assert has_error(caplog, ("Cannot wire .O (type=In(Bit)) to O "
+                              "(type=Out(Bits[1])) because ..O is not a "
+                              "Digital"))
+    assert has_error(caplog, "Output port _Foo.O not driven")
+    assert has_error(caplog, "Input port _Bar_inst0.I not driven")
 
 
 def test_nested_definition():

@@ -2,7 +2,8 @@ from .compatibility import IntegerTypes
 
 
 __all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
-__all__ += ['LazyDefnRef']
+__all__ += ['LazyDefnRef', 'LazyCircuit']
+
 
 class Ref:
     def __str__(self):
@@ -61,10 +62,11 @@ class DefnRef(Ref):
         return False
 
 
-class LazyDefnRef(DefnRef):
-    class _LazyCircuit:
-        name = ""
+class LazyCircuit:
+    name = ""
 
+
+class LazyDefnRef(DefnRef):
     def __init__(self, name):
         self.name = name
         self._defn = None
@@ -73,7 +75,7 @@ class LazyDefnRef(DefnRef):
     def defn(self):
         if self._defn is not None:
             return self._defn
-        return LazyDefnRef._LazyCircuit
+        return LazyCircuit
 
     def qualifiedname(self, sep="."):
         return super().qualifiedname(sep)
