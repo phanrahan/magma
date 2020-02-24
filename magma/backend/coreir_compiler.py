@@ -41,8 +41,7 @@ class CoreIRCompiler(Compiler):
     def __compile_coreir(self):
         backend = coreir_frontend.GetCoreIRBackend()
         InsertWrapCasts(self.main).run()
-        if self.opts.get("inline", False):
-            InsertCoreIRWires(self.main).run()
+        InsertCoreIRWires(self.main).run()
         backend.compile(self.main)
         backend.context.run_passes(self.passes, self.namespaces)
         main_key = self.main.coreir_name
