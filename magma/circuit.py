@@ -126,18 +126,18 @@ def _get_interface_decl(cls):
     return None
 
 
-def add_intermediate_value(value, values):
+def _add_intermediate_value(value, values):
     """
     Add an intermediate value `value` to `values`, handling members of
-    recursive types.  Used by `get_intermediate_values` as part of
+    recursive types.  Used by `_get_intermediate_values` as part of
     `CircuitKind.__repr__`.
     """
     # If we encounter a member of an array or tuple, add the entire parent
     # value (only once)
     if isinstance(value.name, ArrayRef):
-        add_intermediate_value(value.name.array, values)
+        _add_intermediate_value(value.name.array, values)
     elif isinstance(value.name, TupleRef):
-        add_intermediate_value(value.name.tuple, values)
+        _add_intermediate_value(value.name.tuple, values)
     elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
         if value is VCC or value is GND:
             # Skip VCC and GND because they are special
@@ -146,7 +146,7 @@ def add_intermediate_value(value, values):
             values.append(value)
 
 
-def get_intermediate_values(value, values):
+def _get_intermediate_values(value, values):
     """
     Retrieve the intermediate values connected to `value` and put them into
     `values`
@@ -159,17 +159,17 @@ def get_intermediate_values(value, values):
     if value.is_mixed():
         # Mixed
         for v in value:
-            get_intermediate_values(v, values)
+            _get_intermediate_values(v, values)
         return
     driver = value.value()
     if driver is None:
         return
     if isinstance(value, (Array, Tuple)) and driver.name.anon():
         for elem in value:
-            get_intermediate_values(elem, values)
+            _get_intermediate_values(elem, values)
     else:
         while driver is not None:
-            add_intermediate_value(driver, values)
+            _add_intermediate_value(driver, values)
             if not driver.is_output():
                 value = driver
                 driver = driver.value()
@@ -262,7 +262,7 @@ class CircuitKind(type):
         values.extend(cls.interface.ports.values())
         intermediate_values = []
         for value in values:
-            get_intermediate_values(value, intermediate_values)
+            _get_intermediate_values(value, intermediate_values)
         if intermediate_values:
             s += "\n".join(
                 f"{value.name} = {repr(value)}" for value in intermediate_values
