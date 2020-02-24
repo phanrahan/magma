@@ -427,6 +427,8 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         return len(cls.fields)
 
     def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
         s = "Tuple("
         s += ",".join(f'{k}={str(v)}' for k, v in cls.field_dict.items())
         s += ")"
