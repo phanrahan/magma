@@ -126,6 +126,57 @@ def _get_interface_decl(cls):
     return None
 
 
+def add_intermediate_value(value, values):
+    """
+    Add an intermediate value `value` to `values`, handling members of
+    recursive types.  Used by `get_intermediate_values` as part of
+    `CircuitKind.__repr__`.
+    """
+    # If we encounter a member of an array or tuple, add the entire parent
+    # value (only once)
+    if isinstance(value.name, ArrayRef):
+        add_intermediate_value(value.name.array, values)
+    elif isinstance(value.name, TupleRef):
+        add_intermediate_value(value.name.tuple, values)
+    elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
+        if value is VCC or value is GND:
+            # Skip VCC and GND because they are special
+            return
+        if not any(value is x for x in values):
+            values.append(value)
+
+
+def get_intermediate_values(value, values):
+    """
+    Retrieve the intermediate values connected to `value` and put them into
+    `values`
+
+    Used in the implementation of `CircuitKind.__repr__` to emit the temporary
+    values in a circuit.
+    """
+    if value.is_output():
+        return
+    if value.is_mixed():
+        # Mixed
+        for v in value:
+            get_intermediate_values(v, values)
+        return
+    driver = value.value()
+    if driver is None:
+        return
+    if isinstance(value, (Array, Tuple)) and driver.name.anon():
+        for elem in value:
+            get_intermediate_values(elem, values)
+    else:
+        while driver is not None:
+            add_intermediate_value(driver, values)
+            if not driver.is_output():
+                value = driver
+                driver = driver.value()
+            else:
+                driver = None
+
+
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         _PlacerBlock.push(StagedPlacer(name))
@@ -193,43 +244,6 @@ class CircuitKind(type):
             interface = f"({interface})"
         return f"{cls.__name__}{interface}"
 
-    def add_intermediate_value(cls, value, values):
-        # If we encounter a member of an array or tuple, add the entire parent
-        # value (only once)
-        if isinstance(value.name, ArrayRef):
-            cls.add_intermediate_value(value.name.array, values)
-        elif isinstance(value.name, TupleRef):
-            cls.add_intermediate_value(value.name.tuple, values)
-        elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
-            if value is VCC or value is GND:
-                # Skip VCC and GND because they are special
-                return
-            if not any(value is x for x in values):
-                values.append(value)
-
-    def get_intermediate_values(cls, value, values):
-        if value.is_output():
-            return
-        if value.is_mixed():
-            # Mixed
-            for v in value:
-                cls.get_intermediate_values(v, values)
-            return
-        driver = value.value()
-        if driver is None:
-            return
-        if isinstance(value, (Array, Tuple)) and driver.name.anon():
-            for elem in value:
-                cls.get_intermediate_values(elem, values)
-        else:
-            while driver is not None:
-                cls.add_intermediate_value(driver, values)
-                if not driver.is_output():
-                    value = driver
-                    driver = driver.value()
-                else:
-                    driver = None
-
     def __repr__(cls):
         if not hasattr(cls, 'IO'):
             return super().__repr__()
@@ -248,7 +262,7 @@ class CircuitKind(type):
         values.extend(cls.interface.ports.values())
         intermediate_values = []
         for value in values:
-            cls.get_intermediate_values(value, intermediate_values)
+            get_intermediate_values(value, intermediate_values)
         if intermediate_values:
             s += "\n".join(
                 f"{value.name} = {repr(value)}" for value in intermediate_values
