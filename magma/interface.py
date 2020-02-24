@@ -72,6 +72,79 @@ def _make_interface_args(decl, renamed_ports, inst, defn):
     return args
 
 
+def _make_wire_str(driver, value, wired):
+    """
+    Emit the wiring string for `driver` and `value` for the `__repr__` of an
+    interface.
+
+    Used by `_make_wires`, `wired` is a set of previously wired values, so in
+    cases of fan-out wires are not done more than once.
+
+    Handles non-whole values (e.g. arrays/tuple constructed with values coming
+    from multiple sources) by emitting the wiring of the child values.
+    """
+    s = ""
+    if isinstance(driver, (Array, Tuple)) and \
+            not driver.iswhole(driver.ts):
+        for d, v in zip(driver, value):
+            s += _make_wire_str(d, v, wired)
+    else:
+        iname = value.name.qualifiedname()
+        oname = driver.name.qualifiedname()
+        if (value, driver) not in wired:
+            s += f"wire({oname}, {iname})\n"
+            wired.add((value, driver))
+    return s
+
+
+def _make_wires(value, wired):
+    """
+    Make the wires used in the `__repr__` of an interface.
+
+    Handles the recursive types with mixed direction (e.g. Tuples containing
+    inputs and outputs)
+
+    Handles anonymous values by skipping them (we don't include anonymous
+    temporaries in the representation)
+
+    Handles non-whole values (e.g. arrays/tuple constructed with values coming
+    from multiple sources)
+
+    Traces from `value` to the source driver, emitting the wiring of the
+    temporaries along the way.
+    """
+    s = ""
+    if value.is_output():
+        return s
+    if isinstance(value, (Array, Tuple)) and \
+            not value.is_input() and \
+            not value.is_output() and \
+            not value.is_inout():
+        # Mixed
+        for v in value:
+            s += _make_wires(v, wired)
+        return s
+    driver = value.value()
+    if driver is None:
+        return s
+    if isinstance(value, (Array, Tuple)) and \
+            not driver.iswhole(driver.ts):
+        for elem in value:
+            s += _make_wires(elem, wired)
+        return s
+    while driver is not None and driver.name.anon():
+        # Skip anon values
+        driver = driver.value()
+    while driver is not None:
+        s += _make_wire_str(driver, value, wired)
+        if not driver.is_output():
+            value = driver
+            driver = driver.value()
+        else:
+            driver = None
+    return s
+
+
 class _Interface(Type):
     """
     Abstract Base Class for an Interface.
@@ -79,55 +152,13 @@ class _Interface(Type):
     def __str__(self):
         return str(type(self))
 
-    def _make_wire_str(self, driver, value):
-        s = ""
-        if isinstance(driver, (Array, Tuple)) and \
-                not driver.iswhole(driver.ts):
-            for d, v in zip(driver, value):
-                s += self._make_wire_str(d, v)
-        else:
-            iname = value.name.qualifiedname()
-            oname = driver.name.qualifiedname()
-            s += f"wire({oname}, {iname})\n"
-        return s
-
-    def _make_wires(self, value):
-        s = ""
-        if value.is_output():
-            return s
-        if isinstance(value, (Array, Tuple)) and \
-                not value.is_input() and \
-                not value.is_output() and \
-                not value.is_inout():
-            # Mixed
-            for v in value:
-                s += self._make_wires(v)
-            return s
-        driver = value.value()
-        if driver is None:
-            return s
-        if isinstance(value, (Array, Tuple)) and driver.name.anon():
-            for elem in value:
-                s += self._make_wires(elem)
-            return s
-        while driver is not None and driver.name.anon():
-            # Skip anon values
-            driver = driver.value()
-        while driver is not None:
-            s += self._make_wire_str(driver, value)
-            if not driver.is_output():
-                value = driver
-                driver = driver.value()
-            else:
-                driver = None
-        return s
-
     def __repr__(self):
         s = ""
+        wired = set()
         for name, value in self.ports.items():
             if value.is_output():
                 continue
-            s += self._make_wires(value)
+            s += _make_wires(value, wired)
         return s
 
     @classmethod
