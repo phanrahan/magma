@@ -1,7 +1,7 @@
 from .passes import DefinitionPass
 from ..digital import Digital
 from ..generator import Generator
-from ..circuit import Circuit, DeclareCoreirCircuit, _PlacerBlock
+from ..circuit import Circuit, DeclareCoreirCircuit
 from ..t import In, Out
 from ..digital import Digital
 from ..array import Array
@@ -73,7 +73,7 @@ class InsertCoreIRWires(DefinitionPass):
             if isinstance(driver.name, NamedRef):
                 driver.name.name = "_" + driver.name.name
             name = f"{driver_name}"
-            with _PlacerBlock(definition._placer):
+            with definition.open():
                 wire_inst = Wire(T, name=name)
             self.wire_map[driver] = wire_inst
             if issubclass(T, Digital):

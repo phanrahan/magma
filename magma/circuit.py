@@ -483,6 +483,10 @@ class AnonymousCircuitType(object):
     def outputargs(self):
         return self.interface.outputargs()
 
+    @classmethod
+    def open(cls):
+        return _PlacerBlock(cls._placer)
+
 
 def AnonymousCircuit(*decl):
     """
