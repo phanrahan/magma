@@ -3,7 +3,7 @@ import warnings
 import enum
 from abc import abstractmethod
 from .common import deprecated
-from .ref import AnonRef, NamedRef, DefnRef, InstRef, ArrayRef, TupleRef
+from .ref import AnonRef, NamedRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
 
 
