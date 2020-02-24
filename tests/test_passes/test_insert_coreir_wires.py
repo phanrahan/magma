@@ -20,7 +20,7 @@ def test_insert_coreir_wires_basic(T):
             io.O @= x
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")
-    m.compile(f"build/insert_coreir_wires_{T_str}", Main)
+    m.compile(f"build/insert_coreir_wires_{T_str}", Main, inline=True)
     assert check_files_equal(__file__, f"build/insert_coreir_wires_{T_str}.v",
                              f"gold/insert_coreir_wires_{T_str}.v")
 
@@ -91,7 +91,7 @@ def test_insert_coreir_wires_instance(T):
 
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")
-    m.compile(f"build/insert_coreir_wires_instance_{T_str}", Main)
+    m.compile(f"build/insert_coreir_wires_instance_{T_str}", Main, inline=True)
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_instance_{T_str}.v",
                              f"gold/insert_coreir_wires_instance_{T_str}.v")
@@ -120,7 +120,7 @@ def test_insert_coreir_wires_mixed_tuple():
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
                   .replace("=", "")
-    m.compile(f"build/insert_coreir_wires_tuple_{T_str}", Main)
+    m.compile(f"build/insert_coreir_wires_tuple_{T_str}", Main, inline=True)
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_tuple_{T_str}.v",
                              f"gold/insert_coreir_wires_tuple_{T_str}.v")
@@ -151,7 +151,7 @@ def test_insert_coreir_wires_array_mixed_tuple():
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
                   .replace("=", "")
-    m.compile(f"build/insert_coreir_wires_arr_tuple_{T_str}", Main)
+    m.compile(f"build/insert_coreir_wires_arr_tuple_{T_str}", Main, inline=True)
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_arr_tuple_{T_str}.v",
                              f"gold/insert_coreir_wires_arr_tuple_{T_str}.v")
@@ -167,7 +167,7 @@ def test_insert_coreir_wires_fanout():
             x @= io.I
             io.O0 @= x
             io.O1 @= x
-    m.compile(f"build/insert_coreir_wires_fanout", Main)
+    m.compile(f"build/insert_coreir_wires_fanout", Main, inline=True)
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_fanout.v",
                              f"gold/insert_coreir_wires_fanout.v")
