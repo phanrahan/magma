@@ -185,11 +185,20 @@ class _Interface(Type):
         """Return all the argument ports."""
         return list(self.ports.values())
 
+    def is_input(self, port):
+        return port.is_input() and \
+            (not isinstance(port, ClockTypes) or include_clocks)
+
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
-        fn = lambda port: port.is_input() and \
-            (not isinstance(port, ClockTypes) or include_clocks)
-        return list(filter(fn, self.ports.values()))
+        return list(filter(self.is_input, self.ports.values()))
+
+    def inputs_by_name(self, include_clocks=False):
+        inputs = []
+        for name, port in self.ports.items():
+            if self.is_input(port):
+                inputs.append(name)
+        return inputs
 
     def outputs(self):
         """Return all the argument output ports."""
@@ -266,12 +275,10 @@ class AnonymousInterface(Interface):
             not port.wired() and not port.is_input() and not port.is_inout(),
             self.ports.values()))
 
-    def inputs(self, include_clocks=False):
-        return list(filter(
-            lambda port: port.is_input() or port.trace() is None and
-            port.wired() and not port.is_output() and not port.is_inout() and
-            (not isinstance(port, ClockTypes) or include_clocks),
-            self.ports.values()))
+    def is_input(self, port):
+        return port.is_input() or port.trace() is None and \
+            port.wired() and not port.is_output() and not port.is_inout() and \
+            (not isinstance(port, ClockTypes) or include_clocks)
 
 
 class _DeclareInterface(_Interface):
