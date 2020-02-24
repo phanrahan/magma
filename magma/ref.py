@@ -66,6 +66,11 @@ class InstRef(NamedRef):
         name = self.name
         if isinstance(self.name, IntegerTypes):
             # Hack, Hack, Hack!
+            # NOTE: This is used for verilog instances that don't use named
+            # port (wired by index instead), so the ports are referred to by
+            # index instead of name and we use the array indexing syntax to
+            # represent them
+            # See mantle's generic verilog target for example use case
             if sep == ".":
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
