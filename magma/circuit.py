@@ -614,18 +614,14 @@ class DefineCircuitKind(CircuitKind):
         return self
 
     def check_unconnected(self):
-        for port in self.interface.ports.values():
-            if issubclass(type(port), ClockTypes):
-                continue
-            if port.is_input() and not port.driven():
+        for port in self.interface.inputs():
+            if not port.driven():
                 msg = f"Output port {self.name}.{port.name} not driven"
                 _logger.error(msg, debug_info=self.debug_info)
 
         for inst in self.instances:
-            for port in inst.interface.ports.values():
-                if issubclass(type(port), ClockTypes):
-                    continue
-                if port.is_input() and not port.driven():
+            for port in inst.interface.inputs():
+                if not port.driven():
                     msg = f"Input port {inst.name}.{port.name} not driven"
                     _logger.error(msg, debug_info=inst.debug_info)
 
