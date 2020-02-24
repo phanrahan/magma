@@ -56,9 +56,15 @@ class InsertCoreIRWires(DefinitionPass):
             return
         self.seen.add(value)
         driver = value.value()
+
         while driver is not None and driver.name.anon():
+            if isinstance(driver, (Array, Tuple)) and \
+                    not driver.iswhole(driver.ts):
+                for child in value:
+                    self.insert_wire(child, definition)
+                return
             driver = driver.value()
-        if driver is None or driver.is_output():
+        if driver is None or driver.is_output() or driver.is_inout():
             return
 
         value.unwire(driver)
@@ -88,8 +94,7 @@ class InsertCoreIRWires(DefinitionPass):
         else:
             value @= T.from_bits(wire_inst.O)
 
-        if not driver.is_output():
-            self.insert_wire(driver, definition)
+        self.insert_wire(driver, definition)
 
     def __call__(self, definition):
         # Copy instances because inserting wire will append to instances

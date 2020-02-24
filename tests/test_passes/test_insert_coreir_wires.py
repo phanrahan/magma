@@ -1,8 +1,8 @@
 import magma as m
 from magma.t import Direction
-from magma.passes.insert_coreir_wires import InsertCoreIRWires
 from magma.testing import check_files_equal
 import pytest
+import copy
 
 
 @pytest.mark.parametrize(
@@ -18,8 +18,12 @@ def test_insert_coreir_wires_basic(T):
             x = T(name="x")
             x @= io.I
             io.O @= x
+    T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
+                  .replace(" ", "").replace("(", "").replace(")", "")
+    m.compile(f"build/insert_coreir_wires_{T_str}", Main)
+    assert check_files_equal(__file__, f"build/insert_coreir_wires_{T_str}.v",
+                             f"gold/insert_coreir_wires_{T_str}.v")
 
-    InsertCoreIRWires(Main).run()
     if T is m.Array[5, m.Bits[5]]:
         wires = ""
         for i in range(5):
@@ -64,11 +68,6 @@ x = Wire(name="x")
 {wires}
 EndCircuit()\
 """, repr(Main)
-    T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
-                  .replace(" ", "").replace("(", "").replace(")", "")
-    m.compile(f"build/insert_coreir_wires_{T_str}", Main)
-    assert check_files_equal(__file__, f"build/insert_coreir_wires_{T_str}.v",
-                             f"gold/insert_coreir_wires_{T_str}.v")
 
 
 @pytest.mark.parametrize(
@@ -90,7 +89,6 @@ def test_insert_coreir_wires_instance(T):
             foo.I @= io.I
             io.O @= x
 
-    InsertCoreIRWires(Main).run()
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")
     m.compile(f"build/insert_coreir_wires_instance_{T_str}", Main)
@@ -119,7 +117,6 @@ def test_insert_coreir_wires_mixed_tuple():
             foo.z.x @= a.y
             io.z.y @= a.x
 
-    InsertCoreIRWires(Main).run()
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
                   .replace("=", "")
@@ -151,7 +148,6 @@ def test_insert_coreir_wires_array_mixed_tuple():
             foo.z[1].x @= io.z[0].x
             io.z[1].y @= foo.z[1].y
 
-    InsertCoreIRWires(Main).run()
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
                   .replace("=", "")
@@ -171,7 +167,6 @@ def test_insert_coreir_wires_fanout():
             x @= io.I
             io.O0 @= x
             io.O1 @= x
-    InsertCoreIRWires(Main).run()
     m.compile(f"build/insert_coreir_wires_fanout", Main)
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_fanout.v",
