@@ -261,15 +261,17 @@ class AnonymousInterface(Interface):
     TODO: Need tests for all these cases
     """
     def outputs(self):
-        return list(filter(lambda port: port.is_output() or port.trace() is
-                           None and not port.wired() and not port.is_input()
-                           and not port.is_inout(),
-                           self.ports.values()))
+        return list(filter(
+            lambda port: port.is_output() or port.trace() is None and
+            not port.wired() and not port.is_input() and not port.is_inout(),
+            self.ports.values()))
 
-    def inputs(self):
-        return list(filter(lambda port: port.is_input() or port.trace() is None
-                           and port.wired() and not port.is_output() and not
-                           port.is_inout(), self.ports.values()))
+    def inputs(self, include_clocks=False):
+        return list(filter(
+            lambda port: port.is_input() or port.trace() is None and
+            port.wired() and not port.is_output() and not port.is_inout() and
+            (not isinstance(port, ClockTypes) or include_clocks),
+            self.ports.values()))
 
 
 class _DeclareInterface(_Interface):

@@ -75,11 +75,11 @@ class InsertCoreIRWires(DefinitionPass):
             name = f"{driver_name}"
             with definition.open():
                 wire_inst = Wire(T, name=name)
-            self.wire_map[driver] = wire_inst
-            if issubclass(T, Digital):
-                wire_inst.I @= driver
-            else:
-                wire_inst.I @= driver.as_bits()
+                self.wire_map[driver] = wire_inst
+                if issubclass(T, Digital):
+                    wire_inst.I @= driver
+                else:
+                    wire_inst.I @= driver.as_bits()
         else:
             wire_inst = self.wire_map[driver]
 
