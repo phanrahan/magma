@@ -44,7 +44,7 @@ def _parse(decl):
     names = decl[::2]
     ports = decl[1::2]
     # If name is empty, convert to the index.
-    names = [name if name else i for i, name in enumerate(names)]
+    names = [name if name else str(i) for i, name in enumerate(names)]
     # Check that all ports are given as instances of Kind or Type.
     if not all(_is_valid_port(port) for port in ports):
         raise ValueError(f"Expected kinds or types, got {ports}")
