@@ -134,6 +134,8 @@ def _make_wires(value, wired):
         # Skip anon values
         driver = driver.value()
     while driver is not None:
+        if (driver, value) in wired:
+            break
         s += _make_wire_str(driver, value, wired)
         if not driver.is_output():
             value = driver
