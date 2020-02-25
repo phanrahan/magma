@@ -19,10 +19,12 @@ from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import root_logger
 from .is_definition import isdefinition
-from .ref import AnonRef
+from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
+from .bit import VCC, GND
 from .array import Array
 from .placer import Placer, StagedPlacer
 from .tuple import Tuple
+from .digital import Digital
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
@@ -124,6 +126,57 @@ def _get_interface_decl(cls):
     return None
 
 
+def _add_intermediate_value(value, values):
+    """
+    Add an intermediate value `value` to `values`, handling members of
+    recursive types.  Used by `_get_intermediate_values` as part of
+    `CircuitKind.__repr__`.
+    """
+    # If we encounter a member of an array or tuple, add the entire parent
+    # value (only once)
+    if isinstance(value.name, ArrayRef):
+        _add_intermediate_value(value.name.array, values)
+    elif isinstance(value.name, TupleRef):
+        _add_intermediate_value(value.name.tuple, values)
+    elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
+        if value is VCC or value is GND:
+            # Skip VCC and GND because they are special
+            return
+        if not any(value is x for x in values):
+            values.append(value)
+
+
+def _get_intermediate_values(value, values):
+    """
+    Retrieve the intermediate values connected to `value` and put them into
+    `values`
+
+    Used in the implementation of `CircuitKind.__repr__` to emit the temporary
+    values in a circuit.
+    """
+    if value.is_output():
+        return
+    if value.is_mixed():
+        # Mixed
+        for v in value:
+            _get_intermediate_values(v, values)
+        return
+    driver = value.value()
+    if driver is None:
+        return
+    if isinstance(value, (Array, Tuple)) and driver.name.anon():
+        for elem in value:
+            _get_intermediate_values(elem, values)
+    else:
+        while driver is not None:
+            _add_intermediate_value(driver, values)
+            if not driver.is_output():
+                value = driver
+                driver = driver.value()
+            else:
+                driver = None
+
+
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         _PlacerBlock.push(StagedPlacer(name))
@@ -202,6 +255,19 @@ class CircuitKind(type):
             return f"{name} = DeclareCircuit(\"{name}\", {args})"
         s = f"{name} = DefineCircuit(\"{name}\", {args})\n"
         sorted_instances = sorted(cls.instances, key=lambda x: x.name)
+
+        values = []
+        for instance in sorted_instances:
+            values.extend(list(instance.interface.ports.values()))
+        values.extend(cls.interface.ports.values())
+        intermediate_values = []
+        for value in values:
+            _get_intermediate_values(value, intermediate_values)
+        if intermediate_values:
+            s += "\n".join(
+                f"{value.name} = {repr(value)}" for value in intermediate_values
+            ) + "\n"
+
         # Emit instances.
         for instance in sorted_instances:
             s += repr(instance) + '\n'
@@ -417,6 +483,10 @@ class AnonymousCircuitType(object):
     def outputargs(self):
         return self.interface.outputargs()
 
+    @classmethod
+    def open(cls):
+        return _PlacerBlock(cls._placer)
+
 
 def AnonymousCircuit(*decl):
     """
@@ -424,7 +494,7 @@ def AnonymousCircuit(*decl):
     """
     if len(decl) == 1:
         decl = decl[0]
-    return AnonymousCircuitType().setinterface(Interface(decl))
+    return AnonymousCircuitType().setinterface(AnonymousInterface(decl))
 
 
 class CircuitType(AnonymousCircuitType):
@@ -544,18 +614,14 @@ class DefineCircuitKind(CircuitKind):
         return self
 
     def check_unconnected(self):
-        for port in self.interface.ports.values():
-            if issubclass(type(port), ClockTypes):
-                continue
-            if port.is_input() and not port.driven():
+        for port in self.interface.inputs():
+            if not port.driven():
                 msg = f"Output port {self.name}.{port.name} not driven"
                 _logger.error(msg, debug_info=self.debug_info)
 
         for inst in self.instances:
-            for port in inst.interface.ports.values():
-                if issubclass(type(port), ClockTypes):
-                    continue
-                if port.is_input() and not port.driven():
+            for port in inst.interface.inputs():
+                if not port.driven():
                     msg = f"Input port {inst.name}.{port.name} not driven"
                     _logger.error(msg, debug_info=inst.debug_info)
 

@@ -6,7 +6,7 @@ from .t import Kind, Direction, Type
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
-from .port import Port
+from .wire import Wire
 
 
 _logger = root_logger()
@@ -128,7 +128,7 @@ class DigitalMeta(ABCMeta, Kind):
 class Digital(Type, metaclass=DigitalMeta):
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
-        self.port = Port(self)
+        self._wire = Wire(self)
 
     @classmethod
     def is_oriented(cls, direction):
@@ -150,29 +150,23 @@ class Digital(Type, metaclass=DigitalMeta):
                           f'Digital', debug_info=debug_info)
             return
 
-        i.port.wire(o.port, debug_info)
+        i._wire.connect(o._wire, debug_info)
         i.debug_info = debug_info
         o.debug_info = debug_info
 
     def wired(self):
-        return self.port.wired()
+        return self._wire.wired()
 
     # return the input or output Bit connected to this Bit
     def trace(self):
-        t = self.port.trace()
-        if t:
-            t = t.bit
-        return t
+        return self._wire.trace()
 
     # return the output Bit connected to this input Bit
     def value(self):
-        t = self.port.value()
-        if t:
-            t = t.bit
-        return t
+        return self._wire.value()
 
     def driven(self):
-        return self.port.driven()
+        return self._wire.driven()
 
     def flatten(self):
         return [self]
@@ -181,7 +175,7 @@ class Digital(Type, metaclass=DigitalMeta):
         return self is m.VCC or self is m.GND
 
     def unwire(i, o):
-        i.port.unwire(o.port)
+        i._wire.unwire(o._wire)
 
     @classmethod
     def flat_length(cls):
@@ -204,6 +198,21 @@ class Digital(Type, metaclass=DigitalMeta):
         if not self.is_input():
             raise TypeError("undriven can only be used on input")
         m.wire(DefineUndriven()().O, self)
+
+    def as_bits(self):
+        result = m.Bits[1]()
+        result[0] @= self
+        return result
+
+    @classmethod
+    def from_bits(cls, other):
+        if not isinstance(other, m.Bits) and not len(other) == 1:
+            raise TypeError("Can only convert from Bits[1] to Bit")
+        return other[0]
+
+    @classmethod
+    def is_mixed(cls):
+        return False
 
 
 def make_Define(name, port, direction):

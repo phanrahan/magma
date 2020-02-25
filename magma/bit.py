@@ -170,6 +170,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def __int__(self) -> int:
         raise NotImplementedError("Converting magma bit to int not supported")
 
+    def __repr__(self):
+        if self is VCC:
+            return "VCC"
+        if self is GND:
+            return "GND"
+        return super().__repr__()
+
 
 VCC = Bit[Direction.Out](name="VCC")
 GND = Bit[Direction.Out](name="GND")

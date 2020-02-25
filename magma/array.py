@@ -1,10 +1,12 @@
 import weakref
+from functools import reduce
 from abc import ABCMeta
 import magma as m
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
+from .digital import Digital
 from .bit import VCC, GND, Bit
 from .bitutils import seq2int
 from .debug import debug_wire, get_callee_frame_info
@@ -159,6 +161,9 @@ class ArrayMeta(ABCMeta, Kind):
             return f"{cls.T.name}(Array)"
         return f"Array[{cls.N}, {cls.T}]"
 
+    def __repr__(cls):
+        return f"Array[{cls.N}, {cls.T}]"
+
     def qualify(cls, direction):
         # Handle qualified, unsized/child e.g. In(Array) and In(Out(Array))
         if cls.T is None or isinstance(cls.T, Direction):
@@ -246,10 +251,10 @@ class Array(Type, metaclass=ArrayMeta):
     __hash__ = Type.__hash__
 
     def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
-        ts = [repr(t) for t in self.ts]
-        return 'array([{}])'.format(', '.join(ts))
+        if self.name.anon():
+            t_strs = ', '.join(repr(t) for t in self.ts)
+            return f'array([{t_strs}])'
+        return super().__repr__()
 
     @property
     def T(self):
@@ -320,7 +325,8 @@ class Array(Type, metaclass=ArrayMeta):
             if isinstance(o, IntegerTypes):
                 _logger.error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info=debug_info)  # noqa
             else:
-                _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not an Array', debug_info=debug_info)  # noqa
+                o_str = getattr(o, "debug_name", str(o))
+                _logger.error(f'Cannot wire {o_str} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o_str} is not an Array', debug_info=debug_info)  # noqa
             return
 
         if i.N != o.N:
@@ -386,7 +392,7 @@ class Array(Type, metaclass=ArrayMeta):
         if self.iswhole(ts):
             return ts[0].name.array
 
-        return type(self)(*ts)
+        return type(self).flip()(*ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -420,6 +426,32 @@ class Array(Type, metaclass=ArrayMeta):
     def unused(self):
         for elem in self:
             elem.unused()
+
+    def as_bits(self):
+        if isinstance(self.T, Digital):
+            return Bits[len(self)](self.ts)
+        return reduce(lambda x, y: x.concat(y),
+                      map(lambda x: x.as_bits(), self.ts))
+
+    @classmethod
+    def from_bits(cls, value):
+        if isinstance(cls.T, Digital):
+            if not len(cls) == len(value):
+                raise TypeError("Width mismatch")
+            return cls(value.ts)
+        child_length = cls.T.flat_length()
+        children = [
+            cls.T.from_bits(
+                value[i * child_length:(i + 1) * child_length]
+            )
+            for i in range(child_length)
+        ]
+        return cls(children)
+
+    @classmethod
+    def is_mixed(cls):
+        return cls.T.is_mixed()
+
 
 
 ArrayType = Array

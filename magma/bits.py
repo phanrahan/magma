@@ -95,8 +95,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             Array.__init__(self, *args, **kwargs)
 
     def __repr__(self):
-        if not isinstance(self.name, AnonRef):
-            return repr(self.name)
+        if not self.name.anon():
+            return super().__repr__()
         ts = [repr(t) for t in self.ts]
         return 'bits([{}])'.format(', '.join(ts))
 
@@ -495,6 +495,13 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         if not self.is_input():
             raise TypeError("undriven can only be used on input")
         m.wire(DefineUndriven(len(self))().O, self)
+
+    def as_bits(self):
+        return self
+
+    @classmethod
+    def from_bits(cls, value):
+        return value
 
 
 def make_Define(name, port, direction):
