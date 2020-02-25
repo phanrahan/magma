@@ -763,3 +763,6 @@ default_port_mapping = {
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=default_port_mapping)
+
+
+coreir_port_mapping = default_port_mapping

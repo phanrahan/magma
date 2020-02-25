@@ -147,17 +147,16 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
     def visit_FunctionDef(self, node):
         names = self.renamed_args
         types = [arg.annotation for arg in node.args.args]
-        IO = []
+        keywords = []
         for name, type_ in zip(names, types):
             self.IO[name + "_0"] = name  # Add ssa rename
-            IO.extend([ast.Str(name),
-                       self.qualify(type_, "In")])
+            keywords.append(ast.keyword(name, self.qualify(type_, "In")))
         if isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
-                IO.extend([ast.Str(f"O{i}"), self.qualify(elt, "Out")])
+                keywords.append(ast.keyword(f"O{i}", self.qualify(elt, "Out")))
         else:
-            IO.extend([ast.Str("O"), self.qualify(node.returns, "Out")])
-        IO = ast.List(IO, ast.Load())
+            keywords.append(ast.keyword("O", self.qualify(node.returns, "Out")))
+        IO = ast.Call(m_dot("IO"), [], keywords)
         node.body = [self.visit(s) for s in node.body]
         if isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
@@ -183,17 +182,7 @@ class FunctionToCircuitDefTransformer(ast.NodeTransformer):
         class_def = ast.ClassDef(
             node.name,
             [ast.Attribute(ast.Name("m", ast.Load()), "Circuit", ast.Load())],
-            [], [
-                ast.Assign([ast.Name("IO", ast.Store())], IO),
-                ast.FunctionDef(
-                    "definition",
-                    ast.arguments([ast.arg("io", None)],
-                                  None, [], [],
-                                  None, []),
-                    node.body,
-                    [ast.Name("classmethod", ast.Load())],
-                    None
-                )],
+            [], [ast.Assign([ast.Name("io", ast.Store())], IO)] + node.body,
             [])
         return class_def
 

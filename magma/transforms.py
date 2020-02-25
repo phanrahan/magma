@@ -1,5 +1,5 @@
 from collections import namedtuple, OrderedDict
-from .circuit import DefineCircuit, EndCircuit, CopyInstance
+from .circuit import CopyInstance, Circuit, IO
 from .is_definition import isdefinition
 from .is_primitive import isprimitive
 from .digital import Digital
@@ -24,8 +24,14 @@ class TransformedCircuit:
     def __init__(self, orig_circuit, transform_name):
         # Maps from original bits to bits in transformed circuit
         self.orig_to_new = {}
-        self.circuit = DefineCircuit(orig_circuit.name + '_' + transform_name,
-                                     *orig_circuit.interface.decl())
+
+        class _TransformedCircuit(m.Circuit):
+            name = orig_circuit.name + '_' + transform_name
+            io_dict = {}
+            for name, port in orig_circuit.interface.ports.items():
+                io_dict[name] = type(port).flip()
+            io = IO(**io_dict)
+        self.circuit = _TransformedCircuit
 
     def get_new_bit(self, orig_bit, scope):
         assert isinstance(scope, Scope), "Second argument to get_new_bit should be an instance of Scope"
@@ -198,34 +204,33 @@ def flatten(circuit):
 
     primitive_map = {} # Maps from primitives in the old circuit to new circuits
     new_primitives = []
-    for old in orig_primitives:
-        new = CopyInstance(old.instance)
-        new_primitives.append(new)
-        primitive_map[old] = new
+    with flattened_circuit.circuit.open():
+        for old in orig_primitives:
+            new = CopyInstance(old.instance)
+            new_primitives.append(new)
+            primitive_map[old] = new
 
-    # Wire up all the new instances
-    for new_inst, qual_inst in zip(new_primitives, orig_primitives):
-        orig_inst = qual_inst.instance
+        # Wire up all the new instances
+        for new_inst, qual_inst in zip(new_primitives, orig_primitives):
+            orig_inst = qual_inst.instance
 
-        for name, origbit in orig_inst.interface.ports.items():
-            if origbit.is_input():
-                newbit = new_inst.interface.ports[name]
-                wire_new_bit(origbit, newbit, qual_inst.scope, primitive_map, bit_map, circuit, flattened_circuit)
+            for name, origbit in orig_inst.interface.ports.items():
+                if origbit.is_input():
+                    newbit = new_inst.interface.ports[name]
+                    wire_new_bit(origbit, newbit, qual_inst.scope, primitive_map, bit_map, circuit, flattened_circuit)
 
-    # Finally, wire up the circuit outputs
-    new_circuit = flattened_circuit.circuit
-    for name, origbit in circuit.interface.ports.items():
-        if origbit.is_input(): # Circuit output
-            newbit = new_circuit.interface.ports[name]
-            wire_new_bit(origbit, newbit, Scope(), primitive_map, bit_map, circuit, flattened_circuit)
+        # Finally, wire up the circuit outputs
+        new_circuit = flattened_circuit.circuit
+        for name, origbit in circuit.interface.ports.items():
+            if origbit.is_input(): # Circuit output
+                newbit = new_circuit.interface.ports[name]
+                wire_new_bit(origbit, newbit, Scope(), primitive_map, bit_map, circuit, flattened_circuit)
 
-    # Handle unwired inputs
-    for name, origbit in circuit.interface.ports.items():
-        if origbit.is_output() and not origbit.wired():
-            newbit = new_circuit.interface.ports[name]
-            flattened_circuit.set_new_bit(origbit, Scope(), newbit)
-
-    EndCircuit()  # For TransformedCircuit
+        # Handle unwired inputs
+        for name, origbit in circuit.interface.ports.items():
+            if origbit.is_output() and not origbit.wired():
+                newbit = new_circuit.interface.ports[name]
+                flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 
     return flattened_circuit
 
