@@ -9,11 +9,11 @@ from magma.testing import check_files_equal
 def test_ignore_unused_undriven_basic():
     class Main(m.Circuit):
         IGNORE_UNDRIVEN = True
-        IGNORE_UNUSED = True
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
 
-    m.compile("build/test_ignore_unused_undriven_basic", Main, inline=True)
+    m.compile("build/test_ignore_unused_undriven_basic", Main, inline=True,
+              drive_undriven=True, terminate_unused=True)
     assert check_files_equal(__file__,
                              "build/test_ignore_unused_undriven_basic.v",
                              "gold/test_ignore_unused_undriven_basic.v")
@@ -28,7 +28,6 @@ def test_ignore_unused_undriven_hierarchy():
 
     class Main(m.Circuit):
         IGNORE_UNDRIVEN = True
-        IGNORE_UNUSED = True
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit),
                   O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 
@@ -37,7 +36,8 @@ def test_ignore_unused_undriven_hierarchy():
         io.O0 @= foo.O0
 
 
-    m.compile("build/test_ignore_unused_undriven_hierarchy", Main, inline=True)
+    m.compile("build/test_ignore_unused_undriven_hierarchy", Main, inline=True,
+              drive_undriven=True, terminate_unused=True)
     assert check_files_equal(__file__,
                              "build/test_ignore_unused_undriven_hierarchy.v",
                              "gold/test_ignore_unused_undriven_hierarchy.v")

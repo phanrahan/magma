@@ -24,7 +24,6 @@ from .bit import VCC, GND
 from .array import Array
 from .placer import Placer, StagedPlacer
 from .tuple import Tuple
-from .passes.ignore_errors import IgnoreUndrivenPass, IgnoreUnusedPass
 from .digital import Digital
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
@@ -589,23 +588,10 @@ class DefineCircuitKind(CircuitKind):
         self.default_kwargs = dct.get('default_kwargs', {})
         self.firrtl = None
 
-        # If enabled, we first set interface ports undriven so it is treats a
-        # definition rather than a declaration (since nothing might be
-        # connected to the IO)
-        if dct.get("IGNORE_UNDRIVEN", False):
-            for value in self.interface.ports.values():
-                if not value.is_output() and value.value() is None:
-                    with _PlacerBlock(self._placer):
-                        value.undriven()
-
         has_definition = _has_definition(self)
         self._is_definition = dct.get('is_definition', has_definition)
         self.is_instance = False
 
-        if dct.get("IGNORE_UNDRIVEN", False):
-            IgnoreUndrivenPass(self, _PlacerBlock).run()
-        if dct.get("IGNORE_UNUSED", False):
-            IgnoreUnusedPass(self, _PlacerBlock).run()
         run_unconnected_check = False
         if hasattr(self, "definition"):
             if self._syntax_style_ is _SyntaxStyle.OLD:
@@ -621,7 +607,8 @@ class DefineCircuitKind(CircuitKind):
                                 "definition syntax is not supported, ignoring "
                                 "'definition'")
         run_unconnected_check = run_unconnected_check or (
-            has_definition and self._syntax_style_ is _SyntaxStyle.NEW)
+            has_definition and self._syntax_style_ is _SyntaxStyle.NEW) and \
+            not dct.get("IGNORE_UNDRIVEN", False)
         if run_unconnected_check:
             self.check_unconnected()
 

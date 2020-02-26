@@ -39,6 +39,30 @@ class InstancePass(Pass):
         return self
 
 
+class CircuitPass(Pass):
+    """
+    Run on all circuits (not just definitions)
+    """
+    def __init__(self, main):
+        super().__init__(main)
+        self.circuits = {}
+
+    def _run(self, circuit):
+        for inst in circuit.instances:
+            self._run(type(inst))
+        # Call each definition only once.
+        id_ = id(circuit)
+        if id_ not in self.circuits:
+            self.circuits[id_] = circuit
+            if callable(self):
+                self(circuit)
+
+    def run(self):
+        self._run(self.main)
+        self.done()
+        return self
+
+
 class DefinitionPass(Pass):
     def __init__(self, main):
         super().__init__(main)
