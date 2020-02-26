@@ -1,0 +1,37 @@
+{"top":"global.TestReplaceProduct",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestReplaceProduct":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["O",["Record",[["x","Bit"],["y","Bit"]]]]
+        ]],
+        "instances":{
+          "TestReplaceProduct_comb_inst0":{
+            "modref":"global.TestReplaceProduct_comb"
+          }
+        },
+        "connections":[
+          ["self.O","TestReplaceProduct_comb_inst0.O"]
+        ]
+      },
+      "TestReplaceProduct_comb":{
+        "type":["Record",[
+          ["O",["Record",[["x","Bit"],["y","Bit"]]]]
+        ]],
+        "instances":{
+          "bit_const_1_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          }
+        },
+        "connections":[
+          ["self.O.x","bit_const_1_None.out"],
+          ["self.O.y","bit_const_1_None.out"]
+        ]
+      }
+    }
+  }
+}
+}
