@@ -1,7 +1,6 @@
 import magma as m
 from magma.simulator import PythonSimulator
 from magma.simulator.coreir_simulator import CoreIRSimulator
-from magma.passes.clock import WireClockPass
 from hwtypes import BitVector as BV
 import sys
 sys.path.append(".")
@@ -20,8 +19,6 @@ def test_counter():
 
             O = self.count
             return O
-
-    WireClockPass(Counter).run()
 
     sim = PythonSimulator(Counter, Counter.CLK)
     sim.set_value(Counter.inc, True)

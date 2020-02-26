@@ -11,9 +11,10 @@ from ..tuple import Tuple
 from ..bit import Bit
 from ..bitutils import int2seq
 from ..clock import Clock
-from ..transforms import setup_clocks, flatten
+from ..transforms import flatten
 from ..circuit import CircuitType
 from ..uniquification import uniquification_pass, UniquificationMode
+from magma.passes.clock import WireClockPass
 
 import coreir
 
@@ -147,7 +148,7 @@ class CoreIRSimulator(CircuitSimulator):
             need_cleanup = True
 
         self.clock = clock
-        setup_clocks(circuit)
+        WireClockPass(circuit).run()
 
         if context is None:
             self.ctx = GetMagmaContext()

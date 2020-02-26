@@ -8,7 +8,7 @@ else:
 from collections import namedtuple
 from itertools import product
 from .simulator import CircuitSimulator, ExecutionState
-from ..transforms import flatten, setup_clocks
+from ..transforms import flatten
 from ..circuit import *
 from ..scope import *
 from ..bit import VCC, GND, Bit, Digital
@@ -19,6 +19,7 @@ from hwtypes import BitVector
 import hwtypes
 from ..bitutils import seq2int
 from ..clock import Clock
+from magma.passes.clock import WireClockPass
 
 __all__ = ['PythonSimulator']
 
@@ -264,7 +265,7 @@ class PythonSimulator(CircuitSimulator):
             raise ValueError("PythonSimulator must be called with a Circuit definition, not an instance")
         if clock is not None and not isinstance(clock, Clock):
             raise ValueError("clock must be a Clock or None")
-        setup_clocks(main_circuit)
+        WireClockPass(main_circuit).run()
         self.main_circuit = main_circuit
         self.txfm = flatten(main_circuit)
         self.circuit = self.txfm.circuit
