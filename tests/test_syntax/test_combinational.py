@@ -125,7 +125,7 @@ def compile_and_check(output_file, circuit_definition, target):
 
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
-        metafunc.parametrize("target", ["verilog", "coreir"])
+        metafunc.parametrize("target", ["coreir"])
 
 
 def test_if_statement_basic(target):
