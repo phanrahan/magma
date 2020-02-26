@@ -42,7 +42,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def declare_unary_op(cls, op):
         assert op == "not", f"simulate not implemented for {op}"
 
-        class MagmaBitOp(m.Circuit):
+        class _MagmaBitOp(m.Circuit):
             name = f"magma_Bit_{op}"
             coreir_name = op
             coreir_lib = "corebit"
@@ -57,7 +57,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
                 O = int(~I)
                 value_store.set_value(self.O, O)
 
-        return MagmaBitOp
+        return _MagmaBitOp
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -65,7 +65,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
         python_op = getattr(operator, python_op_name)
 
-        class MagmaBitOp(m.Circuit):
+        class _MagmaBitOp(m.Circuit):
             name = f"magma_Bit_{op}"
             coreir_name = op
             coreir_lib = "corebit"
@@ -81,7 +81,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
                 O = int(python_op(I0, I1))
                 value_store.set_value(self.O, O)
 
-        return MagmaBitOp
+        return _MagmaBitOp
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -94,7 +94,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         t_str = t_str.replace("[", "_")
         t_str = t_str.replace("]", "")
 
-        class MagmaBitOp(m.Circuit):
+        class _MagmaBitOp(m.Circuit):
             name = f"magma_Bit_ite_{t_str}"
             coreir_name = "mux"
             if issubclass(T, Bit):
@@ -116,7 +116,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
                 O = I1 if S else I0
                 value_store.set_value(self.O, O)
 
-        return MagmaBitOp
+        return _MagmaBitOp
 
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
