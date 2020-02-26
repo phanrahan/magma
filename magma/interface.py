@@ -379,7 +379,11 @@ class IO:
         self.__decl = []
         for name, typ in kwargs.items():
             ref = LazyDefnRef(name=name)
-            port = typ.flip()(name=ref)
+            if isinstance(typ, MagmaProtocolMeta):
+                port = typ.flip()
+                port = port._from_magma_value_(port._to_magma_()(name=ref))
+            else:
+                port = typ.flip()(name=ref)
             self.ports[name] = port
             self.__decl += [name, typ]
             setattr(self, name, port)

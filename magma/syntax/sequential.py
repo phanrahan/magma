@@ -180,20 +180,18 @@ def get_io(call_def):
 
 
 circuit_definition_template = """
-from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt
+from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt, IO
 
 def make_{circuit_name}(combinational):
     class {circuit_name}({magma_name}.Circuit):
-        IO = {io_list}
+        io = IO({io_args})
 
-        @classmethod
-        def definition(io):
-            {register_instances}
-            @combinational
-            def {circuit_name}_comb({circuit_combinational_args}) -> ({circuit_combinational_output_type}):
-                {circuit_combinational_body}
-            comb_out = {circuit_name}_comb({circuit_combinational_call_args})
-            {comb_out_wiring}
+        {register_instances}
+        @combinational
+        def {circuit_name}_comb({circuit_combinational_args}) -> ({circuit_combinational_output_type}):
+            {circuit_combinational_body}
+        comb_out = {circuit_name}_comb({circuit_combinational_call_args})
+        {comb_out_wiring}
     return {circuit_name}
 """
 
@@ -260,23 +258,23 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     return register_instances
 
 
-def gen_io_list(inputs, output_type, async_reset, magma_name):
-    io_list = []
+def gen_io_args(inputs, output_type, async_reset, magma_name):
+    io_args = []
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
-        io_list.append(f"\"{name}\", {magma_name}.In({type_})")
-    io_list.append(f"\"CLK\", {magma_name}.In({magma_name}.Clock)")
+        io_args.append(f"{name}={magma_name}.In({type_})")
+    io_args.append(f"CLK={magma_name}.In({magma_name}.Clock)")
     if async_reset:
-        io_list.append(f"\"ASYNCRESET\", {magma_name}.In({magma_name}.AsyncReset)")
+        io_args.append(f"ASYNCRESET={magma_name}.In({magma_name}.AsyncReset)")
     if isinstance(output_type, ast.Tuple):
         outputs = []
         for i, elem in enumerate(output_type.elts):
             output_type_str = astor.to_source(elem).rstrip()
-            io_list.append(f"\"O{i}\", {magma_name}.Out({output_type_str})")
+            io_args.append(f"O{i}={magma_name}.Out({output_type_str})")
     else:
         output_type_str = astor.to_source(output_type).rstrip()
-        io_list.append(f"\"O\", {magma_name}.Out({output_type_str})")
-    return '[' + ', '.join(io_list) + ']'
+        io_args.append(f"O={magma_name}.Out({output_type_str})")
+    return ', '.join(io_args)
 
 
 class EscapedExpression(ast.AST):
@@ -348,7 +346,7 @@ def _sequential(
     defn_env[magma_name] = m
 
     inputs, output_type = get_io(call_def)
-    io_list = gen_io_list(inputs, output_type, async_reset, magma_name)
+    io_args = gen_io_args(inputs, output_type, async_reset, magma_name)
 
     circuit_combinational_output_type = []
     circuit_combinational_args = []
@@ -405,7 +403,7 @@ def _sequential(
         comb_out_wiring.append(f"io.O <= comb_out{index_str}\n")
 
     tab = 4 * ' '
-    comb_out_wiring = (3 * tab).join(comb_out_wiring)
+    comb_out_wiring = (2 * tab).join(comb_out_wiring)
     circuit_combinational_output_type = ', '.join(circuit_combinational_output_type)
     circuit_combinational_body = []
     for stmt in call_def.body:
@@ -419,13 +417,13 @@ def _sequential(
             for line in astor.to_source(stmt).rstrip().splitlines():
                 circuit_combinational_body.append(line)
 
-    circuit_combinational_body = ('\n' + 4*tab).join(circuit_combinational_body)
+    circuit_combinational_body = ('\n' + 3*tab).join(circuit_combinational_body)
     register_instances = gen_register_instances(initial_value_map, async_reset, magma_name)
-    register_instances = ('\n' + 3*tab).join(register_instances)
+    register_instances = ('\n' + 2*tab).join(register_instances)
 
     circuit_definition_str = circuit_definition_template.format(
         circuit_name=cls.__name__,
-        io_list=io_list,
+        io_args=io_args,
         register_instances=register_instances,
         circuit_combinational_args=circuit_combinational_args,
         circuit_combinational_output_type=circuit_combinational_output_type,
