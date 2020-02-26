@@ -3,7 +3,9 @@ from magma.simulator import PythonSimulator
 from magma.simulator.coreir_simulator import CoreIRSimulator
 from magma.passes.clock import WireClockPass
 from hwtypes import BitVector as BV
-from .test_sequential import DefineRegister, phi
+import sys
+sys.path.append(".")
+from test_sequential import DefineRegister, phi
 
 
 def test_counter():
