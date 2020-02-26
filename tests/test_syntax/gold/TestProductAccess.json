@@ -2,51 +2,13 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2xOutBits8":{
-        "type":["Record",[
-          ["I0",["Array",8,"BitIn"]],
-          ["I1",["Array",8,"BitIn"]],
-          ["S","BitIn"],
-          ["O",["Array",8,"Bit"]]
-        ]],
-        "instances":{
-          "coreir_commonlib_mux2x8_inst0":{
-            "genref":"commonlib.muxn",
-            "genargs":{"N":["Int",2], "width":["Int",8]}
-          }
-        },
-        "connections":[
-          ["self.I0","coreir_commonlib_mux2x8_inst0.in.data.0"],
-          ["self.I1","coreir_commonlib_mux2x8_inst0.in.data.1"],
-          ["self.S","coreir_commonlib_mux2x8_inst0.in.sel.0"],
-          ["self.O","coreir_commonlib_mux2x8_inst0.out"]
-        ]
-      },
       "Mux2xTuplea0_OutBits8_a1_OutBits8":{
         "type":["Record",[
           ["I0",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
           ["I1",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
           ["S","BitIn"],
           ["O",["Record",[["a0",["Array",8,"Bit"]],["a1",["Array",8,"Bit"]]]]]
-        ]],
-        "instances":{
-          "Mux2xOutBits8_inst0":{
-            "modref":"global.Mux2xOutBits8"
-          },
-          "Mux2xOutBits8_inst1":{
-            "modref":"global.Mux2xOutBits8"
-          }
-        },
-        "connections":[
-          ["self.I0.a0","Mux2xOutBits8_inst0.I0"],
-          ["self.I1.a0","Mux2xOutBits8_inst0.I1"],
-          ["self.O.a0","Mux2xOutBits8_inst0.O"],
-          ["self.S","Mux2xOutBits8_inst0.S"],
-          ["self.I0.a1","Mux2xOutBits8_inst1.I0"],
-          ["self.I1.a1","Mux2xOutBits8_inst1.I1"],
-          ["self.O.a1","Mux2xOutBits8_inst1.O"],
-          ["self.S","Mux2xOutBits8_inst1.S"]
-        ]
+        ]]
       },
       "TestProductAccess":{
         "type":["Record",[
