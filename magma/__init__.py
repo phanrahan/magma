@@ -87,3 +87,5 @@ def get_family():
 
 from .generator import Generator
 from .monitor import MonitorIO, MonitorGenerator
+import magma.operators
+from .operators import slice

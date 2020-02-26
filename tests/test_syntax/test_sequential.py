@@ -527,6 +527,7 @@ def test_no_init(target):
     compile_and_check("TestNoInit", TestNoInit, target)
 
 
+
 def test_default(target):
     @m.circuit.sequential(async_reset=True)
     class TestDefault:
@@ -537,3 +538,62 @@ def test_default(target):
             return self.x[index]
 
     compile_and_check("TestDefault", TestDefault, target)
+
+    
+def test_replace_array(target):
+    A = m.Array[2, m.Bit]
+
+    @m.circuit.sequential(async_reset=False)
+    class TestReplaceArray:
+        def __call__(self) -> A:
+            val0 = A([m.bit(0), m.bit(1)])
+            val1 = m.replace(val0, dict([(0, m.bit(1))]))
+            return val1
+
+    compile_and_check("TestReplaceArray", TestReplaceArray, target)
+
+    @m.circuit.sequential(async_reset=False)
+    class TestReplaceArrayStrKey:
+        def __call__(self) -> A:
+            val0 = A([m.bit(0), m.bit(1)])
+            val1 = m.replace(val0, {"0": m.bit(1)})
+            return val1
+
+    compile_and_check("TestReplaceArrayStrKey", TestReplaceArrayStrKey, target)
+
+
+def test_replace_tuple(target):
+    A = m.Tuple[m.Bit, m.Bit]
+
+    @m.circuit.sequential(async_reset=False)
+    class TestReplaceTuple:
+        def __call__(self) -> A:
+            val0 = m.tuple_([m.bit(0), m.bit(1)])
+            val1 = m.replace(val0, dict([(0, m.bit(1))]))
+            return val1
+
+    compile_and_check("TestReplaceTuple", TestReplaceTuple, target)
+
+    @m.circuit.sequential(async_reset=False)
+    class TestReplaceTupleStrKey:
+        def __call__(self) -> A:
+            val0 = m.tuple_([m.bit(0), m.bit(1)])
+            val1 = m.replace(val0, {"0": m.bit(1)})
+            return val1
+
+    compile_and_check("TestReplaceTupleStrKey", TestReplaceTupleStrKey, target)
+
+
+def test_replace_product(target):
+    class A(m.Product):
+        x = m.Bit
+        y = m.Bit
+
+    @m.circuit.sequential(async_reset=False)
+    class TestReplaceProduct:
+        def __call__(self) -> A:
+            val0 = m.namedtuple(x=m.bit(0), y=m.bit(1))
+            val1 = m.replace(val0, dict(x=m.bit(1)))
+            return val1
+
+    compile_and_check("TestReplaceProduct", TestReplaceProduct, target)
