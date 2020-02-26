@@ -23,13 +23,71 @@
           ["self.O","reg_PR_inst0.out.0"]
         ]
       },
+      "Mux2xOutBit":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux2x1_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",1]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux2x1_inst0.in.data.0.0"],
+          ["self.I1","coreir_commonlib_mux2x1_inst0.in.data.1.0"],
+          ["self.S","coreir_commonlib_mux2x1_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x1_inst0.out.0"]
+        ]
+      },
+      "Mux2xOutSInt8":{
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["S","BitIn"],
+          ["O",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux2x8_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux2x8_inst0.in.data.0"],
+          ["self.I1","coreir_commonlib_mux2x8_inst0.in.data.1"],
+          ["self.S","coreir_commonlib_mux2x8_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x8_inst0.out"]
+        ]
+      },
       "Mux2xTuplea0_OutBit_a1_OutSInt8":{
         "type":["Record",[
           ["I0",["Record",[["a0","BitIn"],["a1",["Array",8,"BitIn"]]]]],
           ["I1",["Record",[["a0","BitIn"],["a1",["Array",8,"BitIn"]]]]],
           ["S","BitIn"],
           ["O",["Record",[["a0","Bit"],["a1",["Array",8,"Bit"]]]]]
-        ]]
+        ]],
+        "instances":{
+          "Mux2xOutBit_inst0":{
+            "modref":"global.Mux2xOutBit"
+          },
+          "Mux2xOutSInt8_inst0":{
+            "modref":"global.Mux2xOutSInt8"
+          }
+        },
+        "connections":[
+          ["self.I0.a0","Mux2xOutBit_inst0.I0"],
+          ["self.I1.a0","Mux2xOutBit_inst0.I1"],
+          ["self.O.a0","Mux2xOutBit_inst0.O"],
+          ["self.S","Mux2xOutBit_inst0.S"],
+          ["self.I0.a1","Mux2xOutSInt8_inst0.I0"],
+          ["self.I1.a1","Mux2xOutSInt8_inst0.I1"],
+          ["self.O.a1","Mux2xOutSInt8_inst0.O"],
+          ["self.S","Mux2xOutSInt8_inst0.S"]
+        ]
       },
       "TestProductReg":{
         "type":["Record",[

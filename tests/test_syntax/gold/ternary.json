@@ -8,7 +8,19 @@
           ["I1","BitIn"],
           ["S","BitIn"],
           ["O","Bit"]
-        ]]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux2x1_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",1]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux2x1_inst0.in.data.0.0"],
+          ["self.I1","coreir_commonlib_mux2x1_inst0.in.data.1.0"],
+          ["self.S","coreir_commonlib_mux2x1_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x1_inst0.out.0"]
+        ]
       },
       "ternary":{
         "type":["Record",[
