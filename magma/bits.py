@@ -505,10 +505,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def __getitem__(self, index):
         if isinstance(index, UInt):
-            if 2 ** len(index) == len(self):
-                index = m.zext(index, len(self) - len(index))
-            elif not len(index) == len(self):
-                raise TypeError("Unexpected index width")
+            if not 2 ** len(index) == len(self):
+                raise TypeError(f"Unexpected index width: {len(index)}")
+            index = m.zext(index, len(self) - len(index))
             return (self >> index)[0]
         return super().__getitem__(index)
 
