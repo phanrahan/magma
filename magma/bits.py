@@ -503,6 +503,15 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def from_bits(cls, value):
         return value
 
+    def __getitem__(self, index):
+        if isinstance(index, UInt):
+            if 2 ** len(index) == len(self):
+                index = m.zext(index, len(self) - len(index))
+            elif not len(index) == len(self):
+                raise TypeError("Unexpected index width")
+            return (self >> index)[0]
+        return super().__getitem__(index)
+
 
 def make_Define(name, port, direction):
     def simulate(self, value_store, state_store):

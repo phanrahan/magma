@@ -484,3 +484,15 @@ def test_no_init(target):
             return a & b
 
     compile_and_check("TestNoInit", TestNoInit, target)
+
+
+def test_default(target):
+    @m.circuit.sequential(async_reset=True)
+    class TestDefault:
+        def __init__(self):
+            self.x: m.Bits[8] = m.bits(0xFE, 8)
+
+        def __call__(self, index: m.UInt[3]) -> m.Bit:
+            return self.x[index]
+
+    compile_and_check("TestDefault", TestDefault, target)
