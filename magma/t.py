@@ -3,7 +3,7 @@ import warnings
 import enum
 from abc import abstractmethod
 from .common import deprecated
-from .ref import Ref, AnonRef, DefnRef, InstRef
+from .ref import AnonRef, NamedRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
 
 
@@ -15,15 +15,21 @@ class Direction(enum.Enum):
 
 
 class Type(object):
-    def __init__(self, **kwargs):
-        name = kwargs.get('name', None)
-        if name is None or isinstance(name, str):
-            name = AnonRef(name=name)
+    def __init__(self, name=None):
+        if name is None:
+            name = AnonRef()
+        elif isinstance(name, str):
+            name = NamedRef(name=name)
         self.name = name
 
     __hash__ = object.__hash__
 
     def __repr__(self):
+        if self.name.anon():
+            return f"{type(self)}()"
+        if isinstance(self.name, NamedRef) and \
+                not isinstance(self.name, (InstRef, DefnRef)):
+            return f"{type(self)}(name=\"{repr(self.name)}\")"
         return repr(self.name)
 
     def __str__(self):
@@ -110,6 +116,30 @@ class Type(object):
         # For example, m.Bit is wired up to a coreir undriven primitive
         # A general m.Array and m.Tuple will recursively call `undriven` on its
         # members
+        raise NotImplementedError()
+
+    @abstractmethod
+    def as_bits(self):
+        """
+        Convert value to "flat" representation as an instance of m.Bits
+
+        For example, flatten a multi-dimensional array `m.Array[4,
+        m.Bits[5]]` into `m.Bits[20]`.
+
+        This is the inverse of `from_bits`
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    @abstractmethod
+    def from_bits(self):
+        """
+        Create value from a "flat" representation as an instance of m.Bits.
+
+        For example, pack an `m.Bits[20]` into an `m.Array[4, m.Bits[5]]`.
+
+        This is the inverse of `as_bits`
+        """
         raise NotImplementedError()
 
 
@@ -199,11 +229,18 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         return cls._to_magma_().is_input()
 
     @classmethod
+    def is_mixed(cls):
+        return cls._to_magma_().is_mixed()
+
+    @classmethod
     def is_output(cls):
         return cls._to_magma_().is_output()
 
     def value(cls):
         return cls._get_magma_value_().value()
+
+    def trace(cls):
+        return cls._get_magma_value_().trace()
 
     def driven(cls):
         return cls._get_magma_value_().driven()

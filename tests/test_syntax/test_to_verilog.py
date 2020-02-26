@@ -75,7 +75,7 @@ def test_simple_alu():
 
 def test_seq_simple():
     @m.circuit.sequential_to_verilog(async_reset=True, debug=False)
-    class TestBasic:
+    class TestBasicToVerilog:
         def __init__(self):
             self.x: m.Bits[2] = m.bits(0, 2)
             self.y: m.Bits[2] = m.bits(0, 2)
@@ -87,14 +87,14 @@ def test_seq_simple():
             self.x = I
             return _O
 
-    m.compile('build/TestBasicToVerilog', TestBasic, output="verilog")
+    m.compile('build/TestBasicToVerilog', TestBasicToVerilog, output="verilog")
     assert check_files_equal(__file__, f"build/TestBasicToVerilog.v",
                              f"gold/TestBasicToVerilog.v")
     try:
         # Test with fault if available
         import fault
         target = "verilator"
-        tester = fault.Tester(TestBasic, TestBasic.CLK)
+        tester = fault.Tester(TestBasicToVerilog, TestBasicToVerilog.CLK)
         stream = hwtypes.BitVector.random(10)
         tester.circuit.ASYNCRESET = 0
         tester.eval()
@@ -117,7 +117,7 @@ def test_seq_simple():
         else:
             top_module_name = "dut"
         # TODO automatically obtain the kratos-based circuit
-        generators = [TestBasic.kratos]
+        generators = [TestBasicToVerilog.kratos]
         kratos.debug.dump_external_database(generators, top_module_name, f"{directory}debug.db")
         tester.compile_and_run(target,
                                directory=directory,

@@ -4,6 +4,7 @@ from collections import Counter
 import inspect
 import textwrap
 from .config import get_debug_mode
+from .ref import LazyCircuit
 from .view import InstView
 
 
@@ -124,6 +125,7 @@ class StagedPlacer(ABC):
 
     def place(self, inst):
         self._instances.append(inst)
+        inst.defn = LazyCircuit
 
     def finalize(self, defn):
         if self._finalized:

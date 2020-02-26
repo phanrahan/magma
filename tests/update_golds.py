@@ -1,13 +1,26 @@
+"""
+Expected to be run from repo root
+"""
 import shutil
-import os 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+import os
 
-test_pairs = [
-    ("test_circuit/build/test_add8cin.json", "test_circuit/gold/test_add8cin.json"),
-    ("test_coreir/mapParallel_test.json", "test_coreir/mapParallel_test_gold.json")
-]
 
-for output, gold in test_pairs:
-    output = os.path.join(dir_path, output)
-    gold = os.path.join(dir_path, gold)
-    shutil.copy(output, gold)
+def copy_golds(dir_path):
+    for f in os.listdir(os.path.join(dir_path, "gold")):
+        if f == "uniquification_key_error_mux.json":
+            # corresponding build has different name
+            continue
+        shutil.copy(
+            os.path.join(dir_path, "build", f),
+            os.path.join(dir_path, "gold", f),
+        )
+
+
+copy_golds("tests")
+
+
+for name in os.listdir("tests"):
+    if not os.path.isdir(os.path.join("tests", name)):
+        continue
+    if "gold" in os.listdir(os.path.join("tests", name)):
+        copy_golds(os.path.join("tests", name))

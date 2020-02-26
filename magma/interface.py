@@ -1,9 +1,8 @@
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
-from .ref import AnonRef, InstRef, DefnRef, LazyDefnRef
-from .t import Type, Kind, MagmaProtocolMeta
-from .port import INPUT, OUTPUT, INOUT
+from .ref import InstRef, DefnRef, LazyDefnRef, NamedRef
+from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
 from .tuple import Tuple
@@ -12,6 +11,7 @@ from .compatibility import IntegerTypes, StringTypes
 
 __all__  = ['DeclareInterface']
 __all__ += ['Interface']
+__all__ += ['AnonymousInterface']
 __all__ += ['InterfaceKind']
 __all__ += ['DeclareLazyInterface']
 __all__ += ['IO']
@@ -58,7 +58,7 @@ def _make_interface_args(decl, renamed_ports, inst, defn):
     for name, port in zip(names, ports):
         if   inst: ref = InstRef(inst, name)
         elif defn: ref = DefnRef(defn, name)
-        else:      ref = AnonRef(name)
+        else:      ref = NamedRef(name)
 
         if name in renamed_ports:
             ref.name = renamed_ports[name]
@@ -72,6 +72,79 @@ def _make_interface_args(decl, renamed_ports, inst, defn):
     return args
 
 
+def _make_wire_str(driver, value, wired):
+    """
+    Emit the wiring string for `driver` and `value` for the `__repr__` of an
+    interface.
+
+    Used by `_make_wires`, `wired` is a set of previously wired values, so in
+    cases of fan-out wires are not done more than once.
+
+    Handles non-whole values (e.g. arrays/tuple constructed with values coming
+    from multiple sources) by emitting the wiring of the child values.
+    """
+    if (value, driver) in wired:
+        return ""
+    wired.add((value, driver))
+    if isinstance(driver, (Array, Tuple)) and \
+            not driver.iswhole(driver.ts):
+        return "".join(_make_wire_str(d, v, wired)
+                       for d, v in zip(driver, value))
+    iname = value.name.qualifiedname()
+    oname = driver.name.qualifiedname()
+    return f"wire({oname}, {iname})\n"
+
+
+def _make_wires(value, wired):
+    """
+    Make the wires used in the `__repr__` of an interface.
+
+    Handles the recursive types with mixed direction (e.g. Tuples containing
+    inputs and outputs)
+
+    Handles anonymous values by skipping them (we don't include anonymous
+    temporaries in the representation)
+
+    Handles non-whole values (e.g. arrays/tuple constructed with values coming
+    from multiple sources)
+
+    Traces from `value` to the source driver, emitting the wiring of the
+    temporaries along the way.
+    """
+    s = ""
+    if value.is_output():
+        return s
+    if isinstance(value, (Array, Tuple)) and \
+            not value.is_input() and \
+            not value.is_output() and \
+            not value.is_inout():
+        # Mixed
+        for v in value:
+            s += _make_wires(v, wired)
+        return s
+    driver = value.value()
+    if driver is None:
+        return s
+    if isinstance(value, (Array, Tuple)) and \
+            not driver.iswhole(driver.ts):
+        for elem in value:
+            s += _make_wires(elem, wired)
+        return s
+    while driver is not None and driver.name.anon():
+        # Skip anon values
+        driver = driver.value()
+    while driver is not None:
+        if (driver, value) in wired:
+            break
+        s += _make_wire_str(driver, value, wired)
+        if not driver.is_output():
+            value = driver
+            driver = driver.value()
+        else:
+            driver = None
+    return s
+
+
 class _Interface(Type):
     """
     Abstract Base Class for an Interface.
@@ -81,20 +154,11 @@ class _Interface(Type):
 
     def __repr__(self):
         s = ""
-        for name, input in self.ports.items():
-            if not input.is_input():
+        wired = set()
+        for name, value in self.ports.items():
+            if value.is_output():
                 continue
-            output = input.value()
-            if isinstance(output, (Array, Tuple)):
-                if not output.iswhole(output.ts):
-                    for i in range(len(input)):
-                        iname = repr(input[i])
-                        oname = repr(output[i])
-                        s += f"wire({oname}, {iname})\n"
-                    continue
-            iname = repr(input)
-            oname = repr(output)
-            s += f"wire({oname}, {iname})\n"
+            s += _make_wires(value, wired)
         return s
 
     @classmethod
@@ -121,11 +185,21 @@ class _Interface(Type):
         """Return all the argument ports."""
         return list(self.ports.values())
 
+    def is_input(self, port, include_clocks=False):
+        return port.is_input() and \
+            (not isinstance(port, ClockTypes) or include_clocks)
+
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
-        fn = lambda port: port.is_input() and \
-            (not isinstance(port, ClockTypes) or include_clocks)
-        return list(filter(fn, self.ports.values()))
+        return list(filter(lambda x: self.is_input(x, include_clocks),
+                           self.ports.values()))
+
+    def inputs_by_name(self, include_clocks=False):
+        inputs = []
+        for name, port in self.ports.items():
+            if self.is_input(port):
+                inputs.append(name)
+        return inputs
 
     def outputs(self):
         """Return all the argument output ports."""
@@ -189,6 +263,25 @@ class Interface(_Interface):
         return f"Interface({s})"
 
 
+class AnonymousInterface(Interface):
+    """
+    Anonymous interfaces can have ports that are not inputs/output, so we need
+    ot see if they trace to an input or if they are wired to inputs
+
+    TODO: Need tests for all these cases
+    """
+    def outputs(self):
+        return list(filter(
+            lambda port: port.is_output() or port.trace() is None and
+            not port.wired() and not port.is_input() and not port.is_inout(),
+            self.ports.values()))
+
+    def is_input(self, port, include_clocks=False):
+        return port.is_input() or port.trace() is None and \
+            port.wired() and not port.is_output() and not port.is_inout() and \
+            (not isinstance(port, ClockTypes) or include_clocks)
+
+
 class _DeclareInterface(_Interface):
     """
     _DeclareInterface class.
@@ -201,7 +294,6 @@ class _DeclareInterface(_Interface):
     """
     def __init__(self, renamed_ports={}, inst=None, defn=None):
         self.ports = _make_interface_args(self.Decl, renamed_ports, inst, defn)
-
 
 class _DeclareLazyInterface(_Interface):
     """_DeclareLazyInterface class"""

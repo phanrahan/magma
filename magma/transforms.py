@@ -6,9 +6,10 @@ from .digital import Digital
 from .bit import *
 from .clock import Clock, Enable, Reset, AsyncReset, wiredefaultclock
 from .array import *
+from .tuple import Tuple
 from .wire import wire
-from .conversions import array
-from .ref import DefnRef, InstRef, ArrayRef
+from .conversions import array, tuple_
+from .ref import DefnRef, InstRef, ArrayRef, TupleRef
 from .scope import *
 
 __all__ = ['TransformedCircuit', 'flatten', 'setup_clocks', 'get_uniq_circuits']
@@ -45,9 +46,9 @@ class TransformedCircuit:
                 raise MagmaTransformException("Could not find bit in transform mapping. bit={}, scope={}".format(orig_bit, scope))
 
     def set_new_bit(self, orig_bit, orig_scope, new_bit):
-        assert isinstance(new_bit, (Digital, Array)), type(new_bit)
+        assert isinstance(new_bit, (Digital, Array, Tuple)), type(new_bit)
 
-        if isinstance(orig_bit, Array):
+        if isinstance(orig_bit, (Array, Tuple)):
             # Map the individual bits
             for o, n in zip(orig_bit, new_bit):
                 self.orig_to_new[QualifiedBit(bit=o, scope=orig_scope)] = n
@@ -109,9 +110,12 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
 
     bitref = old_source.name
     idxs = []
-    while isinstance(bitref, ArrayRef):
+    while isinstance(bitref, (ArrayRef, TupleRef)):
         idxs.append(bitref.index)
-        bitref = bitref.array.name
+        if isinstance(bitref, ArrayRef):
+            bitref = bitref.array.name
+        else:
+            bitref = bitref.tuple.name
 
     if isinstance(bitref, InstRef):
         # Get the primitive outbit is attached to,
@@ -124,17 +128,19 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
         defn = bitref.defn.name
         assert defn == old_circuit.name, f"Collapsed bit to circuit other than outermost, {defn} {old_circuit.name}"
         newsource = get_renamed_port(new_circuit, bitref.name)
-    elif isinstance(old_source, Array):
+    elif isinstance(old_source, (Array, Tuple)):
         # Must not be a whole array
         assert bitref.anon()
 
-        new_source_array = []
+        new_src = []
         for s in old_source:
             partial_qual = QualifiedBit(bit=s, scope=scope)
             ns = get_new_source(partial_qual, primitive_map, old_circuit, new_circuit)
-            new_source_array.append(ns)
+            new_src.append(ns)
 
-        return array(new_source_array)
+        if isinstance(old_source, Array):
+            return array(new_src)
+        return tuple_(new_src)
     else:
         assert False, f"Failed to collapse bit {bitref}"
 
@@ -145,8 +151,8 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
     return newsource
 
 def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit):
-    if isinstance(origbit, Array):
-        assert isinstance(newbit, Array)
+    if isinstance(origbit, (Array, Tuple)):
+        assert isinstance(newbit, type(origbit))
         for x, y in zip(origbit, newbit):
             wire_new_bit(x, y, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit)
         return
@@ -215,7 +221,7 @@ def flatten(circuit):
 
     # Handle unwired inputs
     for name, origbit in circuit.interface.ports.items():
-        if origbit.is_output() and origbit.value() is None:
+        if origbit.is_output() and not origbit.wired():
             newbit = new_circuit.interface.ports[name]
             flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 

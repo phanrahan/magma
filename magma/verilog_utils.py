@@ -4,7 +4,7 @@ from magma.view import InstView, PortView
 
 def value_to_verilog_name(value):
     if isinstance(value, m.Array) and not issubclass(value.T, m.Digital):
-        elems = ", ".join(value_to_verilog_name(t) for t in value)
+        elems = ", ".join(value_to_verilog_name(t) for t in reversed(value))
         return f"'{{{elems}}}"
     elif isinstance(value, m.Tuple):
         raise NotImplementedError("Inlining unflattened tuple")
@@ -21,11 +21,11 @@ def value_to_verilog_name(value):
     return verilog_name(value.name)
 
 
-def verilog_name(name):
+def verilog_name(name, inst_sep="."):
     if isinstance(name, m.ref.DefnRef):
         return str(name)
     if isinstance(name, m.ref.InstRef):
-        return f"{name.inst.name}.{str(name)}"
+        return f"{name.inst.name}{inst_sep}{str(name)}"
     if isinstance(name, m.ref.ArrayRef):
         array_name = verilog_name(name.array.name)
         return f"{array_name}_{name.index}"

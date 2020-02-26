@@ -2,6 +2,8 @@ from magma.testing import check_files_equal
 import operator
 import pytest
 from magma import *
+from magma.simulator import PythonSimulator
+from hwtypes import UIntVector
 
 Array2 = Array[2,Bit]
 Array4 = Array[4,Bit]
@@ -95,6 +97,15 @@ def test_compare(n, op):
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
 
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = UIntVector.random(n)
+        I1 = UIntVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
+
     op = {
         "eq": "eq",
         "le": "ule",
@@ -123,6 +134,18 @@ def test_binary(n, op):
         @classmethod
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = UIntVector.random(n)
+        I1 = UIntVector.random(n)
+        if op in ["floordiv", "mod"]:
+            while I1 == 0:
+                I1 = UIntVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
     if op == "floordiv":
         op = "udiv"
@@ -180,3 +203,13 @@ EndCircuit()\
     m.compile(f"build/TestUInt{n}adc", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestUInt{n}adc.v",
                              f"gold/TestUInt{n}adc.v")
+
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = UIntVector.random(n)
+        I1 = UIntVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == I0 + I1
+        assert sim.get_value(TestBinary.COUT) == (I0.zext(1) + I1.zext(1))[-1]

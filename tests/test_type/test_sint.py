@@ -2,6 +2,8 @@ import operator
 import pytest
 from magma.testing import check_files_equal
 from magma import *
+from magma.simulator import PythonSimulator
+from hwtypes import SIntVector
 
 Array2 = Array[2,Bit]
 Array4 = Array[4,Bit]
@@ -95,6 +97,15 @@ def test_compare(n, op):
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
 
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = SIntVector.random(n)
+        I1 = SIntVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
+
     op = {
         "eq": "eq",
         "le": "sle",
@@ -123,6 +134,18 @@ def test_binary(n, op):
         @classmethod
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
+
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = SIntVector.random(n)
+        I1 = SIntVector.random(n)
+        if op in ["floordiv", "mod"]:
+            while I1 == 0:
+                I1 = SIntVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
     if op == "floordiv":
         op = "sdiv"
@@ -183,6 +206,16 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestSInt{n}adc.v",
                              f"gold/TestSInt{n}adc.v")
 
+    sim = PythonSimulator(TestBinary)
+    for _ in range(2):
+        I0 = SIntVector.random(n)
+        I1 = SIntVector.random(n)
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == I0 + I1
+        assert sim.get_value(TestBinary.COUT) == (I0.sext(1) + I1.sext(1))[-1]
+
 
 @pytest.mark.parametrize("n", [7, 3])
 def test_negate(n):
@@ -202,3 +235,10 @@ EndCircuit()\
     m.compile(f"build/TestSInt{n}neg", TestNegate, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestSInt{n}neg.v",
                              f"gold/TestSInt{n}neg.v")
+
+    sim = PythonSimulator(TestNegate)
+    for _ in range(2):
+        I = SIntVector.random(n)
+        sim.set_value(TestNegate.I, I)
+        sim.evaluate()
+        assert sim.get_value(TestNegate.O) == -I

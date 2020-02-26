@@ -1,4 +1,3 @@
-from .port import INPUT, OUTPUT, INOUT
 from .array import Array, ArrayType
 from .conversions import array
 from .circuit import AnonymousCircuit
@@ -20,24 +19,6 @@ def flatten(l):
 # with a given name from a list of interfaces
 def getarg(arg, interfaces):
     return [i.ports[arg] for i in interfaces]
-
-def getdirection(args):
-    a = args[0]
-    if isinstance(a, list):
-        a = a[0]
-    if a.is_input():  return INPUT
-    if a.is_output(): return OUTPUT
-    if a.is_inout():  return INOUT
-    return None
-
-# return a list of all the arguments
-# in a given direction from a list of interfaces
-def getargbydirection(interface, direction):
-    args = []
-    for name, port in interface.ports.items():
-        if port.is_oriented(direction):
-            args.append(name)
-    return args
 
 #
 def lscanarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
@@ -99,15 +80,15 @@ def rfoldarg(iarg, oarg, interfaces, noiarg=False, nooarg=False):
 # return [arg, args] from a list of interfaces
 def forkarg(arg, interfaces):
     iargs = getarg(arg, interfaces)
-    oarg = type(iargs[0])() # create a single anonymous value
+    T = type(iargs[0])
+    oarg = T.undirected_t() # create a single anonymous value
     for iarg in iargs:
-         wire(oarg, iarg) # wire the anonymous value to all the forked args
+        wire(oarg, iarg) # wire the anonymous value to all the forked args
     return [arg, oarg]
 
 # return [arg, array] from a list of interfaces
 def joinarg(arg, interfaces):
     args = getarg(arg, interfaces)
-    #direction = getdirection(args)
     #print('joinarg', args)
     return [arg, array(args)]
 
@@ -218,8 +199,7 @@ def fork(*circuits):
     """Wire input to all the inputs, concatenate output"""
     if len(circuits) == 1:
         circuits = circuits[0]
-    forkargs = getargbydirection(circuits[0].interface, INPUT)
-    return braid(circuits, forkargs=forkargs)
+    return braid(circuits, forkargs=circuits[0].interface.inputs_by_name())
 
 # join all inputs
 def join(*circuits, joinargs=[]):
@@ -309,33 +289,36 @@ def curry(circuit, prefix='I'):
     #print(args)
     return AnonymousCircuit(args)
 
-#
-# uncurry a circuit
-#
-#  all input arguments whose names begin with prefix
-#  are collected into a single input argument named prefix,
-#  which is an array constructed from of the input arguments
-#
-#  for example, if prefix='I',
-#    then "I0", i0, "I1", i1 -> "I", array([i0, i1])
-#
-#  the uncurry argument is the first argument in the result
-#
-# all other inputs remain unchanged.
-#
-def uncurry(circuit, prefix='I'):
 
+def uncurry(circuit, prefix='I'):
+    """
+
+    uncurry a circuit
+
+    all input arguments whose names begin with prefix
+    are collected into a single input argument named prefix,
+    which is an array constructed from of the input arguments
+
+    for example, if prefix='I',
+        then "I0", i0, "I1", i1 -> "I", array([i0, i1])
+
+    the uncurry argument is the first argument in the result
+
+    all other inputs remain unchanged.
+
+
+    """
     otherargs = []
     uncurryargs = []
     for name, port in circuit.interface.ports.items():
         # should we insert the argument in the position of the first match?
-        if not port.wired() and name.startswith(prefix) and port.is_input():
-           #print('uncurry', name)
-           uncurryargs.append(port)
+        if not port.driven() and name.startswith(prefix) and \
+                circuit.interface.is_input(port):
+            uncurryargs.append(port)
         else:
-           otherargs += [name, port]
+            otherargs += [name, port]
 
-    return AnonymousCircuit( [prefix, array(uncurryargs)] + otherargs )
+    return AnonymousCircuit([prefix, array(uncurryargs)] + otherargs)
 
 # flatten all the args matching names in flatargs
 #  each input must be an array

@@ -3,6 +3,7 @@ import magma as m
 from magma import In, Out, Flip
 from magma.testing import check_files_equal
 from magma.bit import Bit, VCC, GND, Digital
+from magma.simulator import PythonSimulator
 import operator
 BitIn = In(Bit)
 BitOut = Out(Bit)
@@ -123,23 +124,19 @@ def test_wire1():
     assert b1.is_input()
 
     print('wire(b0,b1)')
+    # b0 is treated as an output connected to b1 (treated as input)
     m.wire(b0, b1)
-    assert b0.port.wires is b1.port.wires
-
-    # wires = b0.port.wires
-    # print 'inputs:', [str(p) for p in wires.inputs]
-    # print 'outputs:', [str(p) for p in wires.outputs]
-    assert len(b0.port.wires.inputs) == 1
-    assert len(b0.port.wires.outputs) == 1
 
     assert b0.wired()
     assert b1.wired()
 
-    assert b0.trace() is b1
-    assert b1.trace() is b0
+    assert b1.driven(), "Should be driven by input"
+    assert b1.trace() is b0, "Should trace to b0"
 
-    assert b0.value() is None
-    assert b1.value() is b0
+    assert b1.value() is b0, "Value is b0"
+
+    assert b0 is b1._wire.driver.bit
+    assert b1 is b0._wire.driving[0].bit
 
 
 def test_wire2():
@@ -149,46 +146,31 @@ def test_wire2():
     b1 = BitIn(name='b1')
     assert b1.is_input()
 
-    print('wire(b1,b0)')
     m.wire(b1, b0)
-    assert b0.port.wires is b1.port.wires
-
-    # wires = b0.port.wires
-    # print 'inputs:', [str(p) for p in wires.inputs]
-    # print 'outputs:', [str(p) for p in wires.outputs]
-
-    assert len(b0.port.wires.inputs) == 1
-    assert len(b0.port.wires.outputs) == 1
 
     assert b0.wired()
     assert b1.wired()
 
-    assert b0.trace() is b1
-    assert b1.trace() is b0
+    assert b0.wired()
+    assert b1.wired()
 
-    assert b0.value() is None
-    assert b1.value() is b0
+    assert b1.driven(), "Should be driven by input"
+    assert b1.trace() is b0, "Should trace to b0"
+
+    assert b1.value() is b0, "Value is b0"
+
+    assert b0 is b1._wire.driver.bit
+    assert b1 is b0._wire.driving[0].bit
 
 
 def test_wire3():
     b0 = Bit(name='b0')
     b1 = Bit(name='b1')
 
-    print('wire(b0,b1)')
     m.wire(b0, b1)
-    assert b0.port.wires is b1.port.wires
-
-    # wires = b0.port.wires
-    # print 'inputs:', [str(p) for p in wires.inputs]
-    # print 'outputs:', [str(p) for p in wires.outputs]
-    assert len(b0.port.wires.inputs) == 1
-    assert len(b0.port.wires.outputs) == 1
 
     assert b0.wired()
     assert b1.wired()
-
-    assert b0.trace() is b1
-    assert b1.trace() is b0
 
     assert b0.value() is None
     assert b1.value() is b0
@@ -198,16 +180,7 @@ def test_wire4():
     b0 = BitIn(name='b0')
     b1 = BitIn(name='b1')
 
-    print('wire(b0,b1)')
     m.wire(b0, b1)
-    # assert b0.port.wires is b1.port.wires
-
-    # wires = b0.port.wires
-    # print 'inputs:', [str(p) for p in wires.inputs]
-    # print 'outputs:', [str(p) for p in wires.outputs]
-
-    assert len(b0.port.wires.inputs) == 0
-    assert len(b0.port.wires.outputs) == 0
 
     assert not b0.wired()
     assert not b1.wired()
@@ -223,25 +196,10 @@ def test_wire5():
     b0 = BitOut(name='b0')
     b1 = BitOut(name='b1')
 
-    print('wire(b0,b1)')
     m.wire(b0, b1)
-    # assert b0.port.wires is b1.port.wires
-
-    # wires = b0.port.wires
-    # print 'inputs:', [str(p) for p in wires.inputs]
-    # print 'outputs:', [str(p) for p in wires.outputs]
-
-    assert len(b0.port.wires.inputs) == 0
-    assert len(b0.port.wires.outputs) == 0
 
     assert not b0.wired()
     assert not b1.wired()
-
-    assert b0.trace() is None
-    assert b1.trace() is None
-
-    assert b0.value() is None
-    assert b1.value() is None
 
 
 def test_invert():
@@ -261,6 +219,12 @@ EndCircuit()\
     m.compile("build/TestBitInvert", TestInvert, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBitInvert.v",
                              f"gold/TestBitInvert.v")
+
+    sim = PythonSimulator(TestInvert)
+    for I in [0, 1]:
+        sim.set_value(TestInvert.I, I)
+        sim.evaluate()
+        assert sim.get_value(TestInvert.O) == (0 if I else 1)
 
 
 @pytest.mark.parametrize("op", ["and_", "or_", "xor"])
@@ -284,6 +248,13 @@ EndCircuit()\
     m.compile(f"build/TestBit{clean_op}", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBit{clean_op}.v",
                              f"gold/TestBit{clean_op}.v")
+
+    sim = PythonSimulator(TestBinary)
+    for I0, I1 in zip([0, 1], [0, 1]):
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == getattr(operator, op)(I0, I1)
 
 
 def test_eq():
@@ -309,6 +280,13 @@ EndCircuit()\
     assert check_files_equal(__file__, f"build/TestBiteq.v",
                              f"gold/TestBiteq.v")
 
+    sim = PythonSimulator(TestBinary)
+    for I0, I1 in zip([0, 1], [0, 1]):
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == (I0 == I1)
+
 
 def test_ne():
     class TestBinary(m.Circuit):
@@ -330,6 +308,13 @@ EndCircuit()\
     m.compile(f"build/TestBitne", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBitne.v",
                              f"gold/TestBitne.v")
+
+    sim = PythonSimulator(TestBinary)
+    for I0, I1 in zip([0, 1], [0, 1]):
+        sim.set_value(TestBinary.I0, I0)
+        sim.set_value(TestBinary.I1, I1)
+        sim.evaluate()
+        assert sim.get_value(TestBinary.O) == (I0 != I1)
 
 
 def test_ite():
@@ -353,6 +338,14 @@ EndCircuit()\
     m.compile(f"build/TestBitite", TestITE, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBitite.v",
                              f"gold/TestBitite.v")
+
+    sim = PythonSimulator(TestITE)
+    for I0, I1, S in zip([0, 1], [0, 1], [0, 1]):
+        sim.set_value(TestITE.I0, I0)
+        sim.set_value(TestITE.I1, I1)
+        sim.set_value(TestITE.S, S)
+        sim.evaluate()
+        assert sim.get_value(TestITE.O) == (I1 if S else I0)
 
 
 @pytest.mark.parametrize("op", [int, bool])
