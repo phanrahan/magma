@@ -25,12 +25,11 @@ class TransformedCircuit:
         # Maps from original bits to bits in transformed circuit
         self.orig_to_new = {}
 
+        decl = orig_circuit.interface.decl()
+        ports = dict(zip(decl[::2], decl[1::2]))
         class _TransformedCircuit(m.Circuit):
             name = orig_circuit.name + '_' + transform_name
-            io_dict = {}
-            for name, port in orig_circuit.interface.ports.items():
-                io_dict[name] = type(port).flip()
-            io = IO(**io_dict)
+            io = IO(**ports)
         self.circuit = _TransformedCircuit
 
     def get_new_bit(self, orig_bit, scope):
