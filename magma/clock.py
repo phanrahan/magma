@@ -1,6 +1,8 @@
 from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from .wire import wire
+# Circular dependency on IO
+import magma as m
 
 
 class Clock(Digital, metaclass=DigitalMeta):
@@ -72,6 +74,21 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     if has_async_resetn:
         args += ['ASYNCRESETN', In(AsyncResetN)]
     return args
+
+
+def ClockIO(has_enable=False, has_reset=False, has_ce=False,
+            has_async_reset=False, has_async_resetn=False):
+    args = {'CLK': In(Clock)}
+    has_enable |= has_ce
+    if has_enable:
+        args['CE'] = In(Enable)
+    if has_reset:
+        args['RESET'] = In(Reset)
+    if has_async_reset:
+        args['ASYNCRESET'] = In(AsyncReset)
+    if has_async_resetn:
+        args['ASYNCRESETN'] = In(AsyncResetN)
+    return m.IO(**args)
 
 
 def wireclocktype(defn, inst, clocktype):

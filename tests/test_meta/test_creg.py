@@ -19,16 +19,14 @@ def test():
 
         class RegisterCircuit(Circuit):
             name = 'Register' + str(n)
-            io = m.IO(I=In(T), O=Out(T)) + ClockInterface(ce, r, s)
-            @classmethod
-            def definition(reg):
-                print('join')
-                ffs = join(FFs(n))
+            io = m.IO(I=In(T), O=Out(T)) + ClockIO(ce, r, s)
+            print('join')
+            ffs = join(FFs(n))
 
-                print('reg.I')
-                wire(reg.I, ffs.I)
-                print('reg.O')
-                wire(ffs.O, reg.O)
+            print('io.I')
+            wire(io.I, ffs.I)
+            print('io.O')
+            wire(ffs.O, io.O)
 
         return RegisterCircuit
 
