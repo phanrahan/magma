@@ -207,32 +207,26 @@ endmodule""")[0]
     class _Cell0(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            foo = _generate_foo()()
-            foo.i <= io.I
-            io.O <= foo.o
+        foo = _generate_foo()()
+        foo.i <= io.I
+        io.O <= foo.o
 
     class _Cell1(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            foo = _generate_foo()()
-            foo.i <= io.I
-            io.O <= foo.o
+        foo = _generate_foo()()
+        foo.i <= io.I
+        io.O <= foo.o
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))
 
-        @classmethod
-        def definition(io):
-            cell0 = _Cell0()
-            cell1 = _Cell1()
-            cell0.I <= io.I[0]
-            cell1.I <= io.I[1]
-            io.O[0] <= cell0.O
-            io.O[1] <= cell1.O
+        cell0 = _Cell0()
+        cell1 = _Cell1()
+        cell0.I <= io.I[0]
+        cell1.I <= io.I[1]
+        io.O[0] <= cell0.O
+        io.O[1] <= cell1.O
 
     # Check that uniq. pass runs successfully.
     pass_ = m.UniquificationPass(_Top, None)
@@ -244,9 +238,7 @@ def test_multiple_renamed():
         class Foo(m.Circuit):
             io = m.IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
 
-            @classmethod
-            def definition(io):
-                io. O <= io.I
+            io. O <= io.I
 
         return Foo
 
@@ -264,20 +256,18 @@ def test_multiple_renamed():
             O2=m.Out(m.Bits[3]),
         )
 
-        @classmethod
-        def definition(io):
-            foo0 = Foo0()
-            foo1 = Foo1()
-            foo2 = Foo2()
+        foo0 = Foo0()
+        foo1 = Foo1()
+        foo2 = Foo2()
 
-            foo0.I <= io.I0
-            io.O0 <= foo0.O
+        foo0.I <= io.I0
+        io.O0 <= foo0.O
 
-            foo1.I <= io.I1
-            io.O1 <= foo1.O
+        foo1.I <= io.I1
+        io.O1 <= foo1.O
 
-            foo2.I <= io.I2
-            io.O2 <= foo2.O
+        foo2.I <= io.I2
+        io.O2 <= foo2.O
 
     BASENAME = "uniquify_multiple_rename"
     m.compile(f"build/{BASENAME}", _Top, output="coreir")
