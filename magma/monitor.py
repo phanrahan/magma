@@ -3,7 +3,7 @@ from .generator import Generator
 
 
 def MonitorIO(circuit):
-    io = m.IO()
+    IO = []
     for name, port in circuit.interface.ports.items():
         IO += [name, In(type(port))]
     return IO
