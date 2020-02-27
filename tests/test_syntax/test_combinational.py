@@ -57,40 +57,39 @@ def DefineMux(height=2, width=None, T=None):
         select_type = m.Bits[m.bitutils.clog2(height)]
     io += ['S', m.In(select_type)]
     io += ['O', m.Out(T)]
+    io_dict = {key: value for key, value in zip(io[::2], io[1::2])}
 
     class _Mux(m.Circuit):
         name = "Mux{}x{}".format(height, suffix)
-        IO = io
-        @classmethod
-        def definition(interface):
-            if T is not None and not (issubclass(T, m.Digital) or issubclass(T, m.Array) and issubclass(T.T, m.Bit)):
-                if issubclass(T, m.Tuple):
-                    for i in range(len(T.keys())):
-                        Is = [getattr(interface, f"I{j}")[list(T.keys())[i]] for j in range(height)]
-                        interface.O[i] <= DefineMux(height, T=list(T.types())[i])()(*Is, interface.S)
-                else:
-                    assert issubclass(T, m.Array), f"Expected array or type type, got {T}, type is {type(T)}"
-                    for i in range(len(T)):
-                        Is = [getattr(interface, f"I{j}")[i] for j in range(height)]
-                        interface.O[i] <= DefineMux(height, T=type(Is[0]))()(*Is, interface.S)
+        io = m.IO(**io_dict)
+        if T is not None and not (issubclass(T, m.Digital) or issubclass(T, m.Array) and issubclass(T.T, m.Bit)):
+            if issubclass(T, m.Tuple):
+                for i in range(len(T.keys())):
+                    Is = [getattr(io, f"I{j}")[list(T.keys())[i]] for j in range(height)]
+                    io.O[i] <= DefineMux(height, T=list(T.types())[i])()(*Is, io.S)
             else:
+                assert issubclass(T, m.Array), f"Expected array or type type, got {T}, type is {type(T)}"
+                for i in range(len(T)):
+                    Is = [getattr(io, f"I{j}")[i] for j in range(height)]
+                    io.O[i] <= DefineMux(height, T=type(Is[0]))()(*Is, io.S)
+        else:
+            if T is None and width is None or issubclass(T, m.Digital):
+                mux = _declare_muxn(height, 1)()
+            else:
+                mux = _declare_muxn(height, width if T is None else len(T))()
+            for i in range(height):
                 if T is None and width is None or issubclass(T, m.Digital):
-                    mux = _declare_muxn(height, 1)()
+                    m.wire(getattr(io, f"I{i}"), mux.I.data[i][0])
                 else:
-                    mux = _declare_muxn(height, width if T is None else len(T))()
-                for i in range(height):
-                    if T is None and width is None or issubclass(T, m.Digital):
-                        m.wire(getattr(interface, f"I{i}"), mux.I.data[i][0])
-                    else:
-                        m.wire(getattr(interface, f"I{i}"), mux.I.data[i])
-                if height == 2:
-                    m.wire(interface.S, mux.I.sel[0])
-                else:
-                    m.wire(interface.S, mux.I.sel)
-                if T is None and width is None or issubclass(T, m.Digital):
-                    m.wire(mux.O[0], interface.O)
-                else:
-                    m.wire(mux.O, interface.O)
+                    m.wire(getattr(io, f"I{i}"), mux.I.data[i])
+            if height == 2:
+                m.wire(io.S, mux.I.sel[0])
+            else:
+                m.wire(io.S, mux.I.sel)
+            if T is None and width is None or issubclass(T, m.Digital):
+                m.wire(mux.O[0], io.O)
+            else:
+                m.wire(mux.O, io.O)
     return _Mux
 
 
@@ -244,10 +243,8 @@ def test_simple_circuit_1(target):
         io = m.IO(a=m.In(m.Bit),
                   c=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            c = logic(io.a)
-            m.wire(c, io.c)
+        c = logic(io.a)
+        m.wire(c, io.c)
 
     compile_and_check("simple_circuit_1", Foo, target)
 
@@ -272,10 +269,8 @@ def test_multiple_assign(target):
         io = m.IO(a=m.In(m.Bit),
                   c=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            c = logic(io.a)
-            m.wire(c, io.c)
+        c = logic(io.a)
+        m.wire(c, io.c)
 
     compile_and_check("multiple_assign", Foo, target)
 
@@ -302,11 +297,9 @@ def test_optional_assignment(target):
                   c=m.Out(m.Bit),
                   d=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            c, d = logic(io.a)
-            m.wire(c, io.c)
-            m.wire(d, io.d)
+        c, d = logic(io.a)
+        m.wire(c, io.c)
+        m.wire(d, io.d)
 
     compile_and_check("optional_assignment", Foo, target)
 
@@ -320,10 +313,8 @@ def test_map_circuit(target):
         io = m.IO(a=m.In(m.Bits[10]),
                   c=m.Out(m.Bits[10]))
 
-        @classmethod
-        def definition(io):
-            c = logic(io.a)
-            m.wire(c, io.c)
+        c = logic(io.a)
+        m.wire(c, io.c)
 
     compile_and_check("test_map_circuit", Foo, target)
 
@@ -336,9 +327,7 @@ def test_renamed_args(target):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            io.O <= invert(a=io.I)
+        io.O <= invert(a=io.I)
 
     compile_and_check("test_renamed_args", Foo, target)
 
@@ -351,11 +340,9 @@ def test_renamed_args_wire(target):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            inv = invert.circuit_definition()
-            inv.a <= io.I
-            io.O <= inv.O
+        inv = invert.circuit_definition()
+        inv.a <= io.I
+        io.O <= inv.O
 
     compile_and_check("test_renamed_args_wire", Foo, target)
 
