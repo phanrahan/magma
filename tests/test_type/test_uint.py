@@ -97,9 +97,7 @@ def test_construct():
 def test_compare(n, op):
     class TestBinary(m.Circuit):
         io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), O=m.Out(m.Bit))
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
@@ -135,9 +133,7 @@ EndCircuit()\
 def test_binary(n, op):
     class TestBinary(m.Circuit):
         io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), O=m.Out(m.UInt[n]))
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
@@ -174,11 +170,9 @@ def test_adc(n):
         io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), CIN=m.In(
             m.Bit), O=m.Out(m.UInt[n]), COUT=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            result, carry = io.I0.adc(io.I1, io.CIN)
-            io.O <= result
-            io.COUT <= carry
+        result, carry = io.I0.adc(io.I1, io.CIN)
+        io.O <= result
+        io.COUT <= carry
 
     in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_Bits_{n + 1}_add_inst0.in0[{i}])"
                           for i in range(n))
