@@ -38,6 +38,15 @@ def test_basic():
     check_rxmod(RXMOD)
 
 
+def test_basic_no_undriven_errors(caplog):
+    file_path = os.path.dirname(__file__)
+    RXMOD = m.define_from_verilog_file(os.path.join(file_path, "rxmod.v"))[0]
+    assert not any(record.msg == "Output port RXMOD.data not driven"
+                   for record in caplog.records)
+    assert not any(record.msg == "Output port RXMOD.valid not driven"
+                   for record in caplog.records)
+
+
 def test_target_modules_arg():
     file_path = os.path.dirname(__file__)
     circuits = m.define_from_verilog_file(os.path.join(file_path, "rxmod.v"),
