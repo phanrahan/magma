@@ -30,13 +30,11 @@ def test_declare_generator():
         io = m.IO(I0=m.In(m.Bits[width]), I1=m.In(m.Bits[width]),
                   O=m.Out(m.Bits[width]))
 
-        @classmethod
-        def definition(self):
-            Smax = DefineSmax(width=width)
-            smax = Smax()
-            m.wire(self.I0, smax.in0)
-            m.wire(self.I1, smax.in1)
-            m.wire(self.O, smax.out)
+        Smax = DefineSmax(width=width)
+        smax = Smax()
+        m.wire(io.I0, smax.in0)
+        m.wire(io.I1, smax.in1)
+        m.wire(io.O, smax.out)
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     m.compile(os.path.join(dir_path, "build/linker_test0"), LinkerTest,
