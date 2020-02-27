@@ -371,7 +371,6 @@ def test_asyncreset_cast(T, convert):
                   O_Arr=m.Array[2, T],
                   T_in=In(T), Bit_out=Out(Bit),
                   T_Arr_in=In(m.Array[2, T]),
-                  Bit_Arr_out=Out(m.Array[3, Bit]),
                   T_Tuple_in=In(m.Product.from_fields("anon", {"T": T})),
                   Bit_Arr_out=Out(m.Array[4, Bit]))
 
