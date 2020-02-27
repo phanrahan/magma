@@ -3,6 +3,7 @@ import magma as m
 import magma.testing
 from rtl import RTL
 import rtl_monitor
+from subprocess import run
 
 
 def test_bind():
@@ -20,5 +21,9 @@ def test_bind():
     assert m.testing.check_files_equal(__file__,
                                        f"build/RTLMonitor.sv",
                                        f"gold/RTLMonitor.sv")
-    assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only bind_test.v RTLMonitor.sv')
+
+    result = run('verilator --version', shell=True, capture_output=True)
+    version = float(result.stdout.split()[1])
+    if version >= 4.016:
+        assert not os.system('cd tests/test_verilog/build && '
+                             'verilator --lint-only bind_test.v RTLMonitor.sv')
