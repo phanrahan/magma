@@ -145,11 +145,9 @@ def test_setitem_bfloat():
     """
     class TestCircuit(m.Circuit):
         io = m.IO(I=m.In(m.BFloat[16]), O=m.Out(m.BFloat[16]))
-        @classmethod
-        def definition(io):
-            a = io.I
-            b = a[0:-1].concat(m.bits(0, 1))
-            io.O <= b
+        a = io.I
+        b = a[0:-1].concat(m.bits(0, 1))
+        io.O <= b
     print(repr(TestCircuit))
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
@@ -177,9 +175,7 @@ EndCircuit()\
 def test_invert(n):
     class TestInvert(m.Circuit):
         io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
-        @classmethod
-        def definition(io):
-            io.O <= ~io.I
+        io.O <= ~io.I
 
     assert repr(TestInvert) == f"""\
 TestInvert = DefineCircuit("TestInvert", "I", In(Bits[{n}]), "O", Out(Bits[{n}]))
@@ -205,9 +201,7 @@ EndCircuit()\
 def test_binary(op, n):
     class TestBinary(m.Circuit):
         io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     magma_op = op.replace("_", "")
     magma_op = magma_op.replace("lshift", "shl")
@@ -242,9 +236,7 @@ def test_ite(n):
         io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), S=m.In(m.Bits[n]),
                   O=m.Out(m.Bits[n]))
 
-        @classmethod
-        def definition(io):
-            io.O <= io.S.ite(io.I0, io.I1)
+        io.O <= io.S.ite(io.I0, io.I1)
 
     gnd_wires = '\n'.join(
         f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
@@ -281,10 +273,8 @@ EndCircuit()\
 def test_eq(n):
     class TestBinary(m.Circuit):
         io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bit))
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= (io.I0 == io.I1)
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= (io.I0 == io.I1)
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bit))
@@ -312,10 +302,8 @@ EndCircuit()\
 def test_zext(n):
     class TestExt(m.Circuit):
         io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n + 3]))
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= io.I.zext(3)
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= io.I.zext(3)
 
     i_wires = '\n'.join(
         f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
@@ -342,10 +330,8 @@ EndCircuit()\
 def test_bvcomp(n):
     class TestBinary(m.Circuit):
         io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bits[1]))
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= io.I0.bvcomp(io.I1)
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= io.I0.bvcomp(io.I1)
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bits[1]))
@@ -374,9 +360,7 @@ EndCircuit()\
 def test_repeat(n, x):
     class TestRepeat(m.Circuit):
         io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n * x]))
-        @classmethod
-        def definition(io):
-            io.O <= io.I.repeat(x)
+        io.O <= io.I.repeat(x)
 
     wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
                       for j in range(x) for i in range(n))
