@@ -63,29 +63,11 @@ class CircuitPass(Pass):
         return self
 
 
-class DefinitionPass(Pass):
-    def __init__(self, main):
-        super().__init__(main)
-        self.defns = {}
-
-    def _run(self, defn):
-        if not isdefinition(defn):
+class DefinitionPass(CircuitPass):
+    def _run(self, circuit):
+        if not isdefinition(circuit):
             return
-        for inst in defn.instances:
-            inst_defn = type(inst)
-            if isdefinition(inst_defn):
-                self._run(inst_defn)
-        # Call each definition only once.
-        id_ = id(defn)
-        if id_ not in self.defns:
-            self.defns[id_] = defn
-            if callable(self):
-                self(defn)
-
-    def run(self):
-        self._run(self.main)
-        self.done()
-        return self
+        super()._run(circuit)
 
 
 class BuildInstanceGraphPass(DefinitionPass):
