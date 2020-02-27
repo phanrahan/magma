@@ -15,9 +15,7 @@ def test_check_interface_bit():
     class TestCircuit0(Circuit):
         name = "TestCircuit0"
         io = m.IO(I=In(Bit), O=Out(Bit))
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit0.interface)
 
@@ -29,9 +27,7 @@ def test_check_interface_array():
     class TestCircuit1(Circuit):
         name = "TestCircuit1"
         io = m.IO(I=In(Array[8, Bit]), O=Out(Array[8, Bit]))
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit1.interface)
 
@@ -48,9 +44,7 @@ def test_check_interface_tuple():
     class TestCircuit2(Circuit):
         name = "TestCircuit2"
         io = m.IO(I=In(T), O=Out(T))
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit2.interface)
 
