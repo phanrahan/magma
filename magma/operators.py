@@ -13,15 +13,16 @@ from .wire import wire
 class CoreIRCommonLibMuxN(Generator):
     @staticmethod
     def generate(N: int, width: int):
-        return DeclareCoreirCircuit(f"coreir_commonlib_mux{N}x{width}",
-                                    *["I", In(Product.from_fields("anon",
-                                                                  dict(data=Array[N, Bits[width]],
-                                                                       sel=Bits[clog2(N)]))),
-                                      "O", Out(Bits[width])],
-                                    coreir_name="muxn",
-                                    coreir_lib="commonlib",
-                                    coreir_genargs={"width": width, "N": N}
-                                    )
+        return DeclareCoreirCircuit(
+            f"coreir_commonlib_mux{N}x{width}",
+            *["I", In(Product.from_fields("anon",
+                                          dict(data=Array[N, Bits[width]],
+                                               sel=Bits[clog2(N)]))),
+              "O", Out(Bits[width])],
+            coreir_name="muxn",
+            coreir_lib="commonlib",
+            coreir_genargs={"width": width, "N": N}
+        )
 
 
 class Mux(Generator):
