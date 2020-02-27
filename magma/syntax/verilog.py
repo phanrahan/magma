@@ -157,7 +157,7 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
 
     names = [arg.arg for arg in tree.args.args if arg.arg != "self"]
     types = [arg.annotation for arg in tree.args.args if arg.arg != "self"]
-    io = m.IO()
+    IO = []
     for name, type_ in zip(names, types):
         IO += [name, m.In(eval(compile(ast.Expression(type_), "",
                                        mode="eval")))]
@@ -246,11 +246,15 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
 
     kratos.verilog(mod, filename=filename,
                    insert_debug_info=get_debug_mode() or debug)
-    defn = m.DefineCircuit(circ_name, *IO, kratos=mod)
-    with open(filename, 'r') as f:
-        defn.verilogFile = f.read()
-    m.EndCircuit()
-    return defn
+    io_dict = {key: value for key, value in zip(IO[::2], IO[1::2])}
+
+    class _Defn(m.Circuit):
+        name = circ_name
+        io = m.IO(**io_dict)
+        kratos = mod
+        with open(filename, 'r') as f:
+            verilogFile = f.read()
+    return _Defn
 
 
 def combinational_to_verilog(debug=False):
