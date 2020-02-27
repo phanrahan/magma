@@ -19,7 +19,7 @@ from hwtypes import BitVector
 import hwtypes
 from ..bitutils import seq2int
 from ..clock import Clock
-from magma.passes.clock import WireClockPass
+from ..passes.clock import WireClockPass
 
 __all__ = ['PythonSimulator']
 

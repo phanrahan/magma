@@ -14,7 +14,7 @@ from ..clock import Clock
 from ..transforms import flatten
 from ..circuit import CircuitType
 from ..uniquification import uniquification_pass, UniquificationMode
-from magma.passes.clock import WireClockPass
+from ..passes.clock import WireClockPass
 
 import coreir
 
