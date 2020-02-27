@@ -203,7 +203,7 @@ endmodule""")[0]
 
 
     class _Cell0(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -213,7 +213,7 @@ endmodule""")[0]
 
 
     class _Cell1(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -223,7 +223,7 @@ endmodule""")[0]
 
 
     class _Top(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])]
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))
 
         @classmethod
         def definition(io):
@@ -242,7 +242,7 @@ endmodule""")[0]
 def test_multiple_renamed():
     def _gen_foo(width):
         class Foo(m.Circuit):
-            IO = ["I", m.In(m.Bits[width]), "O", m.Out(m.Bits[width])]
+            io = m.IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
 
             @classmethod
             def definition(io):
@@ -255,14 +255,14 @@ def test_multiple_renamed():
     Foo2 = _gen_foo(3)
 
     class _Top(m.Circuit):
-        IO = [
-            "I0", m.In(m.Bits[2]),
-            "I1", m.In(m.Bits[3]),
-            "I2", m.In(m.Bits[3]),
-            "O0", m.Out(m.Bits[2]),
-            "O1", m.Out(m.Bits[3]),
-            "O2", m.Out(m.Bits[3]),
-        ]
+        io = m.IO(
+            I0=m.In(m.Bits[2]),
+            I1=m.In(m.Bits[3]),
+            I2=m.In(m.Bits[3]),
+            O0=m.Out(m.Bits[2]),
+            O1=m.Out(m.Bits[3]),
+            O2=m.Out(m.Bits[3]),
+        )
 
         @classmethod
         def definition(io):

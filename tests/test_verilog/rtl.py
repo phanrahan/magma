@@ -23,12 +23,12 @@ class RTL(m.Generator):
             valid = m.Out(m.Bit)
 
         class RTL(m.Circuit):
-            IO = ["CLK", m.In(m.Clock),
-                  "in1", m.In(m.Bits[width]),
-                  "in2", m.In(m.Bits[width]),
-                  "out", m.Out(m.Bit),
-                  "handshake", HandShake,
-                  "handshake_arr", m.Array[3, HandShake]]
+            io = m.IO(CLK=m.In(m.Clock),
+                  in1=m.In(m.Bits[width]),
+                  in2=m.In(m.Bits[width]),
+                  out=m.Out(m.Bit),
+                  handshake=HandShake,
+                  handshake_arr=m.Array[3, HandShake])
 
             @classmethod
             def definition(cls):

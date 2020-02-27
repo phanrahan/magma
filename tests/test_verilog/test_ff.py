@@ -26,7 +26,7 @@ def test_ff_param(target, circuit_type):
     )[0]
 
     class Top(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])] + \
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2])) + \
             m.ClockInterface(has_async_reset=True)
 
         @classmethod

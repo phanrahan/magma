@@ -18,7 +18,7 @@ def test_anon_bit():
 
 def test_anon_bits():
     class Test(Circuit):
-        IO = ["I", In(Bits[5]), "O", Out(Bits[5])]
+        io = m.IO(I=In(Bits[5]), O=Out(Bits[5]))
 
         @classmethod
         def definition(io):

@@ -7,7 +7,7 @@ def test_instance():
 
     class Test(Circuit):
         name = "Test"
-        IO = ["I", In(T), "O", Out(T), "CLK", In(Bit)]
+        io = m.IO(I=In(T), O=Out(T), CLK=In(Bit))
         @classmethod
         def definition(io):
             wire(io.I, io.O)

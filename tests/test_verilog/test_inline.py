@@ -13,7 +13,7 @@ endmodule
 """, type_map={"CLK": m.In(m.Clock)})[0]
 
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)] + m.ClockInterface()
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockInterface()
         @classmethod
         def definition(cls):
             cls.O <= FF()(cls.I)
@@ -39,7 +39,7 @@ def test_inline_tuple():
                                            "OUTPUT", m.Flip(RVDATAIN))
 
     class InnerDelayUnit(m.Circuit):
-        IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
+        io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \
             m.ClockInterface()
 
         @classmethod
@@ -51,7 +51,7 @@ def test_inline_tuple():
             cls.OUTPUT[1] <= delay.OUTPUT[0]
 
     class DelayUnit(m.Circuit):
-        IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
+        io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \
             m.ClockInterface()
 
         @classmethod
@@ -63,7 +63,7 @@ def test_inline_tuple():
             cls.OUTPUT[1] <= delay.OUTPUT[0]
 
     class Main(m.Circuit):
-        IO = ["I", RVDATAIN, "O", m.Flip(RVDATAIN)] + m.ClockInterface()
+        io = m.IO(I=RVDATAIN, O=m.Flip(RVDATAIN)) + m.ClockInterface()
         @classmethod
         def definition(cls):
             delay = DelayUnit()

@@ -6,7 +6,7 @@ import pytest
 
 def test_bit():
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -27,7 +27,7 @@ def test_bit():
 
 def test_array():
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Array[2, m.Bit]), "O", m.Out(m.Array[2, m.Bit])]
+        io = m.IO(I=m.In(m.Array[2, m.Bit]), O=m.Out(m.Array[2, m.Bit]))
 
         @classmethod
         def definition(io):
@@ -55,7 +55,7 @@ def test_array():
 @pytest.mark.parametrize('T', [m.Bits, m.UInt])
 def test_uint(T):
     class Main(m.Circuit):
-        IO = ["I", m.In(T[2]), "O", m.Out(T[2])]
+        io = m.IO(I=m.In(T[2]), O=m.Out(T[2]))
 
         @classmethod
         def definition(io):
@@ -80,7 +80,7 @@ def test_uint(T):
 
 def test_sint():
     class Main(m.Circuit):
-        IO = ["I", m.In(m.SInt[2]), "O", m.Out(m.SInt[2])]
+        io = m.IO(I=m.In(m.SInt[2]), O=m.Out(m.SInt[2]))
 
         @classmethod
         def definition(io):

@@ -49,7 +49,7 @@ def test_new_style_with_instance():
 
 def test_old_style_override(caplog):
     class _Foo(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
         io = None  # doesn't matter what the value of io is.
 
     _check_foo_interface(_Foo)

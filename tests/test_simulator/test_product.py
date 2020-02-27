@@ -8,7 +8,7 @@ def test_product_python_sim_basic():
         b = m.Bits[4]
 
     class Main(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
         @classmethod
         def definition(io):

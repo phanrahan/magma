@@ -92,7 +92,7 @@ def test_construct():
 @pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
 def test_compare(n, op):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.Bit)]
+        io = m.IO(I0=m.In(m.SInt[n]), I1=m.In(m.SInt[n]), O=m.Out(m.Bit))
         @classmethod
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
@@ -130,7 +130,7 @@ EndCircuit()\
 @pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod", "rshift"])
 def test_binary(n, op):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
+        io = m.IO(I0=m.In(m.SInt[n]), I1=m.In(m.SInt[n]), O=m.Out(m.SInt[n]))
         @classmethod
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
@@ -169,7 +169,7 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [7, 3])
 def test_adc(n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "CIN", m.In(m.Bit), "O", m.Out(m.SInt[n]), "COUT", m.Out(m.Bit)]
+        io = m.IO(I0=m.In(m.SInt[n]), I1=m.In(m.SInt[n]), CIN=m.In(m.Bit), O=m.Out(m.SInt[n]), COUT=m.Out(m.Bit))
         @classmethod
         def definition(io):
             result, carry = io.I0.adc(io.I1, io.CIN)
@@ -220,7 +220,7 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [7, 3])
 def test_negate(n):
     class TestNegate(m.Circuit):
-        IO = ["I", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
+        io = m.IO(I=m.In(m.SInt[n]), O=m.Out(m.SInt[n]))
         @classmethod
         def definition(io):
             io.O <= -io.I

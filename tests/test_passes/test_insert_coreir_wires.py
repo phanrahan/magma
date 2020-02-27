@@ -11,7 +11,7 @@ import copy
 )
 def test_insert_coreir_wires_basic(T):
     class Main(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
         @classmethod
         def definition(io):
@@ -76,10 +76,10 @@ EndCircuit()\
 )
 def test_insert_coreir_wires_instance(T):
     class Foo(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
     class Main(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
         @classmethod
         def definition(io):
@@ -103,10 +103,10 @@ def test_insert_coreir_wires_mixed_tuple():
         y = m.Out(m.Bit)
 
     class Foo(m.Circuit):
-        IO = ["z", T]
+        io = m.IO(z=T)
 
     class Main(m.Circuit):
-        IO = ["z", T]
+        io = m.IO(z=T)
 
         @classmethod
         def definition(io):
@@ -132,10 +132,10 @@ def test_insert_coreir_wires_array_mixed_tuple():
         y = m.Out(m.Bit)
 
     class Foo(m.Circuit):
-        IO = ["z", m.Array[2, T]]
+        io = m.IO(z=m.Array[2, T])
 
     class Main(m.Circuit):
-        IO = ["z", m.Array[2, T]]
+        io = m.IO(z=m.Array[2, T])
 
         @classmethod
         def definition(io):
@@ -159,7 +159,7 @@ def test_insert_coreir_wires_array_mixed_tuple():
 
 def test_insert_coreir_wires_fanout():
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O0", m.Out(m.Bit), "O1", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 
         @classmethod
         def definition(io):

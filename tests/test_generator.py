@@ -11,11 +11,11 @@ def test_add_gen():
             Define and return magma circuit
             """
             class _Add(m.Circuit):
-                IO = [
-                    "I0", m.In(m.Bits[width]),
-                    "I1", m.In(m.Bits[width]),
-                    "O", m.Out(m.Bits[width]),
-                ]
+                io = m.IO(
+                    I0=m.In(m.Bits[width]),
+                    I1=m.In(m.Bits[width]),
+                    O=m.Out(m.Bits[width]),
+                )
 
                 @classmethod
                 def definition(io):
@@ -33,11 +33,11 @@ def test_add_gen():
     assert check_files_equal(__file__, f"build/AddGen8.v", f"gold/AddGen8.v")
 
     class Top(m.Circuit):
-        IO = [
-            "I0", m.In(m.Bits[8]),
-            "I1", m.In(m.Bits[8]),
-            "O", m.Out(m.Bits[8]),
-        ]
+        io = m.IO(
+            I0=m.In(m.Bits[8]),
+            I1=m.In(m.Bits[8]),
+            O=m.Out(m.Bits[8]),
+        )
 
         @classmethod
         def definition(io):
@@ -54,11 +54,11 @@ def test_gen_cache():
         @staticmethod
         def generate(params: ParamDict):
             class _Add(m.Circuit):
-                IO = [
-                    "I0", m.In(m.Bits[params["width"]]),
-                    "I1", m.In(m.Bits[params["width"]]),
-                    "O", m.Out(m.Bits[params["width"]]),
-                ]
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
 
                 @classmethod
                 def definition(io):
@@ -79,11 +79,11 @@ def test_gen_cache():
         @staticmethod
         def generate(params: ParamDict):
             class _Add(m.Circuit):
-                IO = [
-                    "I0", m.In(m.Bits[params["width"]]),
-                    "I1", m.In(m.Bits[params["width"]]),
-                    "O", m.Out(m.Bits[params["width"]]),
-                ]
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
 
                 @classmethod
                 def definition(io):

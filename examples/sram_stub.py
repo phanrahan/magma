@@ -14,12 +14,12 @@ SRAM_512W_16B = m.DefineFromVerilogFile("examples/sram_stub.v",
 # ported from
 # https://github.com/StanfordAHA/CGRAGenerator/blob/master/hardware/generator_z/memory_core/mem.vp
 class Mem(m.Circuit):
-    IO = ["data_out", m.Out(m.Bits[16]),
-          "data_in", m.In(m.Bits[16]),
-          "clk", m.In(m.Clock),
-          "cen", m.In(m.Enable),
-          "wen", m.In(m.Enable),
-          "addr", m.In(m.Bits[9])]
+    io = m.IO(data_out=m.Out(m.Bits[16]),
+          data_in=m.In(m.Bits[16]),
+          clk=m.In(m.Clock),
+          cen=m.In(m.Enable),
+          wen=m.In(m.Enable),
+          addr=m.In(m.Bits[9]))
 
     @classmethod
     def definition(io):

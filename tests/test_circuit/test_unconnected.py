@@ -6,7 +6,7 @@ from magma.testing.utils import has_error
 
 def _make_unconnected_io():
     class _Circuit(m.Circuit):
-        IO = ["I", m.In(m.Bits[1]), "O", m.Out(m.Bits[2])]
+        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[2]))
 
         @classmethod
         def definition(io):
@@ -18,14 +18,14 @@ def _make_unconnected_io():
 
 def _make_unconnected_instance():
     class _Buffer(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
             io.O <= io.I
 
     class _Circuit(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -38,14 +38,14 @@ def _make_unconnected_instance():
 
 def _make_unconnected_autowired(typ):
     class _Buffer(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit), "X", m.In(typ)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), X=m.In(typ))
 
         @classmethod
         def definition(io):
             io.O <= io.I
 
     class _Circuit(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit), "X", m.In(typ)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), X=m.In(typ))
 
         @classmethod
         def definition(io):

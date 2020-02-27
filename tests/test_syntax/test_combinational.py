@@ -189,8 +189,8 @@ def test_simple_circuit_1(target):
         return (c,)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit)]
+        io = m.IO(a=m.In(m.Bit),
+              c=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -217,8 +217,8 @@ def test_multiple_assign(target):
         return (c,)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit)]
+        io = m.IO(a=m.In(m.Bit),
+              c=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -246,9 +246,9 @@ def test_optional_assignment(target):
         return (c, d)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit),
-              "d", m.Out(m.Bit)]
+        io = m.IO(a=m.In(m.Bit),
+              c=m.Out(m.Bit),
+              d=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -265,8 +265,8 @@ def test_map_circuit(target):
         return m.join(m.map_(Not, 10))(a)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bits[10]),
-              "c", m.Out(m.Bits[10])]
+        io = m.IO(a=m.In(m.Bits[10]),
+              c=m.Out(m.Bits[10]))
 
         @classmethod
         def definition(io):
@@ -282,7 +282,7 @@ def test_renamed_args(target):
         return Not()(a)
 
     class Foo(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -297,7 +297,7 @@ def test_renamed_args_wire(target):
         return Not()(a)
 
     class Foo(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):

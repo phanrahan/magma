@@ -153,7 +153,7 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
 
     names = [arg.arg for arg in tree.args.args if arg.arg != "self"]
     types = [arg.annotation for arg in tree.args.args if arg.arg != "self"]
-    IO = []
+    io = m.IO()
     for name, type_ in zip(names, types):
         IO += [name, m.In(eval(compile(ast.Expression(type_), "",
                                        mode="eval")))]

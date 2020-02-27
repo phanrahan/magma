@@ -8,12 +8,12 @@ def test_undriven():
         C = m.Out(m.Bit)
 
     class Circuit(m.Circuit):
-        IO = [
-            "O0", m.Out(m.Bit),
-            "O1", m.Out(m.Bits[5]),
-            "O2", A,
-            "O3", m.Out(m.Array[5, A]),
-        ]
+        io = m.IO(
+            O0=m.Out(m.Bit),
+            O1=m.Out(m.Bits[5]),
+            O2=A,
+            O3=m.Out(m.Array[5, A]),
+        )
 
         @classmethod
         def definition(io):

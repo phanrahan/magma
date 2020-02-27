@@ -29,7 +29,7 @@ class Mux(Generator):
         # TODO: Type must be hashable so we can cache
         N = T.flat_length()
         class Mux(Circuit):
-            IO = []
+            io = m.IO()
             for i in range(height):
                 IO += [f"I{i}", In(T)]
             IO += ["S", In(Bits[clog2(height)])]

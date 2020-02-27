@@ -72,7 +72,7 @@ def unflatten_bits_to_fields(tuple_, bits_):
 
 def make_FIFO(data_in_type, data_out_type, depth):
     class FIFO(m.Circuit):
-        IO = ["data_in", data_in_type, "data_out", data_out_type]
+        io = m.IO(data_in=data_in_type, data_out=data_out_type)
         IO += m.ClockInterface()
 
         @classmethod

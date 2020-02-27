@@ -23,10 +23,10 @@ def test_new_types(output):
         return m.Array[num_vertices, Point2D(num_bits)]
 
     class TestCircuit(m.Circuit):
-        IO = [
-            "I", m.In(Polygon(12, 3)),
-            "O", m.Out(Polygon(12, 3))
-        ]
+        io = m.IO(
+            I=m.In(Polygon(12, 3)),
+            O=m.Out(Polygon(12, 3))
+        )
         @classmethod
         def definition(io):
             m.wire(io.I, io.O)

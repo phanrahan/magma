@@ -143,7 +143,7 @@ def test_setitem_bfloat():
     Test constant constructor interface
     """
     class TestCircuit(m.Circuit):
-        IO = ["I", m.In(m.BFloat[16]), "O", m.Out(m.BFloat[16])]
+        io = m.IO(I=m.In(m.BFloat[16]), O=m.Out(m.BFloat[16]))
         @classmethod
         def definition(io):
             a = io.I
@@ -175,7 +175,7 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_invert(n):
     class TestInvert(m.Circuit):
-        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
+        io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
         @classmethod
         def definition(io):
             io.O <= ~io.I
@@ -203,7 +203,7 @@ EndCircuit()\
 @pytest.mark.parametrize("op", ["and_", "or_", "xor", "lshift", "rshift"])
 def test_binary(op, n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
         @classmethod
         def definition(io):
             io.O <= getattr(operator, op)(io.I0, io.I1)
@@ -237,8 +237,8 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_ite(n):
     class TestITE(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "S", m.In(m.Bits[n]),
-              "O", m.Out(m.Bits[n])]
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), S=m.In(m.Bits[n]),
+              O=m.Out(m.Bits[n]))
         @classmethod
         def definition(io):
             io.O <= io.S.ite(io.I0, io.I1)
@@ -276,7 +276,7 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_eq(n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bit)]
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bit))
         @classmethod
         def definition(io):
             # Nasty precidence issue with <= operator means we need parens here
@@ -307,7 +307,7 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_zext(n):
     class TestExt(m.Circuit):
-        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n + 3])]
+        io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n + 3]))
         @classmethod
         def definition(io):
             # Nasty precidence issue with <= operator means we need parens here
@@ -336,7 +336,7 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_bvcomp(n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bits[1])]
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bits[1]))
         @classmethod
         def definition(io):
             # Nasty precidence issue with <= operator means we need parens here
@@ -368,7 +368,7 @@ EndCircuit()\
 @pytest.mark.parametrize("x", [4, 7])
 def test_repeat(n, x):
     class TestRepeat(m.Circuit):
-        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n * x])]
+        io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n * x]))
         @classmethod
         def definition(io):
             io.O <= io.I.repeat(x)

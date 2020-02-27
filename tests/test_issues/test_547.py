@@ -4,7 +4,7 @@ import magma as m
 
 def test_basic():
     class Test(m.Circuit):
-        IO = ["I", m.In(m.Bits[1]), "O", m.Out(m.Bits[1])]
+        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[1]))
 
         @classmethod
         def definition(io):
@@ -12,7 +12,7 @@ def test_basic():
 
 def test_slice():
     class Test(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])]
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))
 
         @classmethod
         def definition(io):
@@ -20,7 +20,7 @@ def test_slice():
 
 def test_compound():
     class Test(m.Circuit):
-        IO = ["I0", m.In(m.Bits[1]), "I1", m.In(m.Bits[1]), "O", m.Out(m.Bits[2])]
+        io = m.IO(I0=m.In(m.Bits[1]), I1=m.In(m.Bits[1]), O=m.Out(m.Bits[2]))
 
         @classmethod
         def definition(io):
@@ -29,7 +29,7 @@ def test_compound():
 
 def test_recursive():
     class Test(m.Circuit):
-        IO = ["I", m.In(m.Array[3, m.Bits[2]]), "O", m.Out(m.Array[3, m.Bits[2]])]
+        io = m.IO(I=m.In(m.Array[3, m.Bits[2]]), O=m.Out(m.Array[3, m.Bits[2]]))
 
         @classmethod
         def definition(io):
@@ -40,7 +40,7 @@ def test_recursive():
 
 def test_errors(caplog):
     class Test(m.Circuit):
-        IO = ["I", m.In(m.Bits[1]), "O", m.Out(m.Bits[1])]
+        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[1]))
 
         @classmethod
         def definition(io):
@@ -56,7 +56,7 @@ def test_product():
         valid = m.Out(m.Bit)
 
     class RTL(m.Circuit):
-        IO = ["handshake", HandShake]
+        io = m.IO(handshake=HandShake)
 
         @classmethod
         def definition(cls):

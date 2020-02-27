@@ -12,7 +12,7 @@ def test_declare_FF_with_params():
     }
 
     class Top(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit), "CLK", m.In(m.Clock)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), CLK=m.In(m.Clock))
         @classmethod
         def definition(io):
             ff0 = FF(init=0)

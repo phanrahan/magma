@@ -363,17 +363,17 @@ def test_const_wire(T, t):
                                        (m.AsyncResetNOut, m.asyncresetn)])
 def test_asyncreset_cast(T, convert):
     class Inst(m.Circuit):
-        IO = ['O', T, 'I', m.In(T)]
+        io = m.IO('O', T, 'I', m.In(T))
 
     class AsyncResetTest(m.Circuit):
-        IO = ['I', m.BitIn, 'I_Arr', m.In(m.Array[3, Bit]),
-              'O', T, "O_Tuple", m.Product.from_fields("anon", {"R":T, "B":Out(Bit)}),
-              "O_Arr", m.Array[2, T],
+        io = m.IO('I', m.BitIn, 'I_Arr', m.In(m.Array[3, Bit]),
+              'O', T, O_Tuple=m.Product.from_fields("anon", {"R":T, "B":Out(Bit)}),
+              O_Arr=m.Array[2, T],
               'T_in', In(T), 'Bit_out', Out(Bit),
               'T_Arr_in', In(m.Array[2, T]),
               'Bit_Arr_out', Out(m.Array[3, Bit]),
               'T_Tuple_in', In(m.Product.from_fields("anon", {"T":T})),
-              'Bit_Arr_out', Out(m.Array[4, Bit])]
+              'Bit_Arr_out', Out(m.Array[4, Bit]))
 
         @classmethod
         def definition(io):

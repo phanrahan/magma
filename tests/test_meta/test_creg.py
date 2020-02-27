@@ -17,7 +17,7 @@ def test():
          T = Array[n, Bit]
          class RegisterCircuit(Circuit):
               name = 'Register' + str(n)
-              IO = ["I", In(T), "O", Out(T)] + ClockInterface(ce,r,s)
+              io = m.IO(I=In(T), O=Out(T)) + ClockInterface(ce,r,s)
               @classmethod
               def definition(reg):
                   print('join')

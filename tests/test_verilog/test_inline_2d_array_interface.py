@@ -8,7 +8,7 @@ def test_inline_2d_array_interface():
         @staticmethod
         def generate(width, depth):
             class MonitorWrapper(m.Circuit):
-                IO = ["arr", m.In(m.Array[depth, m.Bits[width]])]
+                io = m.IO(arr=m.In(m.Array[depth, m.Bits[width]]))
 
                 @classmethod
                 def definition(io):

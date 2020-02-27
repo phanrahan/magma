@@ -8,8 +8,7 @@ import os
 
 
 class SimpleALU(m.Circuit):
-    IO = ["a", m.In(m.UInt[16]), "b", m.In(m.UInt[16]), "c",
-          m.Out(m.UInt[16]), "config_", m.In(m.Bits[2])]
+    io = m.IO(a=m.In(m.UInt[16]), b=m.In(m.UInt[16]), c=m.Out(m.UInt[16]), config_=m.In(m.Bits[2]))
 
     @m.circuit.combinational_to_verilog(debug=False)
     def execute_alu(a: m.UInt[16], b: m.UInt[16], config_: m.Bits[2]) -> \

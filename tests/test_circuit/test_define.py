@@ -29,7 +29,7 @@ def test_simple_def(target, suffix):
 
     # Check that the subclassing pattern produces the same annotations
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):

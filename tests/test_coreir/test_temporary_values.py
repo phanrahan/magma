@@ -4,7 +4,7 @@ from magma.testing import check_files_equal
 
 def test_temporary_named_value():
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
         @classmethod
         def definition(io):

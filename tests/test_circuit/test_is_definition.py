@@ -5,7 +5,7 @@ from magma.is_definition import isdefinition
 def test_is_definition():
     class IsDefinition(Circuit):
         name = "this_is_definition"
-        IO = ["I", In(Bit), "O", Out(Bit)]
+        io = m.IO(I=In(Bit), O=Out(Bit))
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)
@@ -21,7 +21,7 @@ def test_is_definition():
 def test_is_not_definition():
     class IsDefinition(Circuit):
         name = "this_is_not_definition"
-        IO = ["I", In(Bit), "O", Out(Bit)]
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
     assert not isdefinition(IsDefinition), "Should not be a definition"
 

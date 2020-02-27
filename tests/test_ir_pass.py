@@ -3,7 +3,7 @@ from magma import Bit, Circuit, In, Out, wire
 
 
 class _Cell(Circuit):
-    IO = ["I", In(Bit), "O", Out(Bit)]
+    io = m.IO(I=In(Bit), O=Out(Bit))
 
     @classmethod
     def definition(io):
@@ -11,7 +11,7 @@ class _Cell(Circuit):
 
 
 class _Top(Circuit):
-    IO = ["I", In(Bit), "O", Out(Bit)]
+    io = m.IO(I=In(Bit), O=Out(Bit))
 
     @classmethod
     def definition(io):

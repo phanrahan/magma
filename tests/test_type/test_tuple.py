@@ -196,7 +196,7 @@ def test_nested():
     def DefineCtrModule():
         class ctrModule(m.Circuit):
             name = "ctr_module"
-            IO = ["ctr",m.In(m.Bit)]
+            io = m.IO("ctr",m.In(m.Bit))
         return ctrModule
 
     def make_baseIO():
@@ -208,13 +208,13 @@ def test_nested():
     def DefineBaseModule():
         class baseModule(m.Circuit):
             name = "base_module"
-            IO = ["baseIO",make_baseIO()]
+            io = m.IO("baseIO",make_baseIO())
         return baseModule
 
     def DefineHier():
         class HierModule(m.Circuit):
             name = "hier_module"
-            IO = ["hier", hierIO()]
+            io = m.IO(hier=hierIO())
             @classmethod
             def definition(io):
                 baseM = DefineBaseModule()()
@@ -248,12 +248,12 @@ def test_tuple_nested_tuple_value():
 
     def DefineMyCircuit(params):
         class MyCircuit(m.Circuit):
-            IO = ["IFC0", IFC0(params).flip()]
+            io = m.IO(IFC0=IFC0(params).flip())
         return MyCircuit
 
     def DefineTop(params):
         class Top(m.Circuit):
-            IO = ["IFC1", IFC1(params)]
+            io = m.IO(IFC1=IFC1(params))
             @classmethod
             def definition(io):
                m.wire(io.IFC1.port4, DefineMyCircuit(params)().IFC0.port4)

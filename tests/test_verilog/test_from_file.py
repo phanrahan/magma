@@ -107,7 +107,7 @@ def test_from_pad_inout():
     Pad = m.declare_from_verilog_file(os.path.join(file_path, "pad.v"))[0]
 
     class Top(m.Circuit):
-        IO = ["pad", m.InOut(m.Bit)]
+        io = m.IO(pad=m.InOut(m.Bit))
         @classmethod
         def definition(io):
             pad = Pad()
@@ -166,7 +166,7 @@ endmodule   // mod
             f"gold/test_int_literal_{mod.name}.v")
 
     class Top(m.Circuit):
-        IO = ["I", m.In(m.Bit)]
+        io = m.IO(I=m.In(m.Bit))
         @classmethod
         def definition(io):
             for mod, val in zip(mods, literals):

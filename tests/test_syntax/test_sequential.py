@@ -69,7 +69,7 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
 @m.cache_definition
 def DefineDFF(init=0, has_ce=False, has_reset=False, has_async_reset=False, has_async_resetn=False):
     Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
-    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     IO += m.ClockInterface(has_ce=has_ce, has_reset=has_reset,
                            has_async_reset=has_async_reset,
                            has_async_resetn=has_async_resetn)
@@ -113,7 +113,7 @@ def DefineRegister(n, init=0, has_ce=False, has_reset=False,
                    f"has_async_reset_{has_async_reset}_" \
                    f"has_async_resetn_{has_async_resetn}_" \
                    f"type_{_type.__name__}_n_{n}"
-            IO = ["I", m.In(T), "O", m.Out(T)]
+            io = m.IO(I=m.In(T), O=m.Out(T))
             IO += m.ClockInterface(has_ce=has_ce,
                                    has_reset=has_reset,
                                    has_async_reset=has_async_reset,

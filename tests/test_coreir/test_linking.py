@@ -27,8 +27,8 @@ def test_declare_generator():
 
     class LinkerTest(m.Circuit):
         name = "LinkerTest0"
-        IO = ["I0", m.In(m.Bits[width]), "I1", m.In(m.Bits[width]),
-              "O", m.Out(m.Bits[width])]
+        io = m.IO(I0=m.In(m.Bits[width]), I1=m.In(m.Bits[width]),
+              O=m.Out(m.Bits[width]))
 
         @classmethod
         def definition(self):

@@ -15,7 +15,7 @@ def test_check_interface_bit():
     """
     class TestCircuit0(Circuit):
         name = "TestCircuit0"
-        IO = ["I", In(Bit), "O", Out(Bit)]
+        io = m.IO(I=In(Bit), O=Out(Bit))
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)
@@ -29,7 +29,7 @@ def test_check_interface_array():
     """
     class TestCircuit1(Circuit):
         name = "TestCircuit1"
-        IO = ["I", In(Array[8, Bit]), "O", Out(Array[8, Bit])]
+        io = m.IO(I=In(Array[8, Bit]), O=Out(Array[8, Bit]))
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)
@@ -48,7 +48,7 @@ def test_check_interface_tuple():
 
     class TestCircuit2(Circuit):
         name = "TestCircuit2"
-        IO = ["I", In(T), "O", Out(T)]
+        io = m.IO(I=In(T), O=Out(T))
         @classmethod
         def definition(cls):
             wire(cls.I, cls.O)
