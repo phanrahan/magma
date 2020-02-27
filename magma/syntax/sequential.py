@@ -403,9 +403,10 @@ def _sequential(
     comb_out_wiring = (2 * tab).join(comb_out_wiring)
     circuit_combinational_output_type = ', '.join(circuit_combinational_output_type)
     circuit_combinational_body = []
-    for register in initial_value_map:
-        circuit_combinational_body.append(
-            f"self_{register}_I = self_{register}_O")
+    for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
+        if isinstance(eval_type, m.Kind):
+            circuit_combinational_body.append(
+                f"self_{name}_I = self_{name}_O")
     for stmt in call_def.body:
         rewriter = RewriteSelfAttributes(initial_value_map)
         stmt = rewriter.visit(stmt)
