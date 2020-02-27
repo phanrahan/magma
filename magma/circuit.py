@@ -321,7 +321,14 @@ class CircuitKind(type):
                 # TODO: For now we assumed values aren't used elswhere, this
                 # forces it to be connected to an instance, so temporaries will
                 # appear in the code
-                arg.unused()
+                if arg.is_inout() and not arg.wired():
+                    raise NotImplementedError()
+                if arg.is_input() and not arg.wired():
+                    # TODO: Could be driven after, but that will just override
+                    # this wiring so it's okay for now
+                    arg.undriven()
+                elif not arg.wired():
+                    arg.unused()
                 arg = value_to_verilog_name(arg)
             elif isinstance(arg, PortView):
                 arg = value_to_verilog_name(arg)
