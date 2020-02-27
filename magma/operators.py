@@ -31,12 +31,15 @@ class Mux(Generator):
         # TODO: Type must be hashable so we can cache
         N = T.flat_length()
 
+        io_dict = {}
+        for i in range(height):
+            io_dict[f"I{i}"] = In(T)
+        io_dict["S"] = In(Bits[clog2(height)])
+        io_dict["O"] = Out(T)
+
         class Mux(Circuit):
-            io = m.IO()
-            for i in range(height):
-                IO += [f"I{i}", In(T)]
-            IO += ["S", In(Bits[clog2(height)])]
-            IO += ["O", Out(T)]
+            io = m.IO(**io_dict)
+
             @classmethod
             def definition(io):
                 mux = CoreIRCommonLibMuxN(height, N)
