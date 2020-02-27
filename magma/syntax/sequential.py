@@ -22,10 +22,7 @@ class RewriteSelfAttributes(ast.NodeTransformer):
 
     def visit_Attribute(self, node):
         if isinstance(node.value, ast.Name) and node.value.id == "self":
-            if isinstance(node.ctx, ast.Store):
-                return ast.Name(f"self_{node.attr}_I", ast.Store())
-            else:
-                return ast.Name(f"self_{node.attr}_O", ast.Load())
+            return ast.Name(f"self_{node.attr}_I", node.ctx)
         return self.generic_visit(node)
 
     def visit_Call(self, node):
@@ -433,6 +430,10 @@ def _sequential(
     comb_out_wiring = (2 * tab).join(comb_out_wiring)
     circuit_combinational_output_type = ', '.join(circuit_combinational_output_type)
     circuit_combinational_body = []
+    for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
+        if isinstance(eval_type, m.Kind):
+            circuit_combinational_body.append(
+                f"self_{name}_I = self_{name}_O")
     for stmt in call_def.body:
         rewriter = RewriteSelfAttributes(initial_value_map)
         stmt = rewriter.visit(stmt)

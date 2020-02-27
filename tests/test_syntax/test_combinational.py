@@ -4,6 +4,7 @@ import pytest
 import logging
 import ast_tools
 from ast_tools.passes import begin_rewrite, loop_unroll, end_rewrite
+from hwtypes import BitVector
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
@@ -13,18 +14,39 @@ m.wire(0, Not.O)
 m.EndDefine()
 
 
+# TODO: Revert this to using mux primitive when moved to magma
+@m.cache_definition
+def _declare_muxn(height, width):
+    def simulate(self, value_store, state_store):
+        sel = BitVector[m.bitutils.clog2(height)](value_store.get_value(self.I.sel))
+        out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+        value_store.set_value(self.O, out)
+    return m.circuit.DeclareCoreirCircuit(f"coreir_commonlib_mux{height}x{width}",
+        *["I", m.In(m.Product.from_fields("anon",
+                                          dict(data=m.Array[height, m.Bits[width]],
+                                               sel=m.Bits[m.bitutils.clog2(height)]))),
+          "O", m.Out(m.Bits[width])],
+        coreir_name="muxn",
+        coreir_lib="commonlib",
+        simulate=simulate,
+        coreir_genargs={"width": width, "N": height}
+    )
+
+
 @m.cache_definition
 def DefineMux(height=2, width=None, T=None):
     if T is not None:
         assert width is None, "Can only specify width **or** T"
+        # Sanitize names for verilog by removing parens
+        # TODO: Make this a reuseable feature
         suffix = str(T).replace("(", "").replace(")", "").replace(",", "_").replace("=", "_").replace("[", "").replace("]", "").replace(" ", "")
         T = T
     else:
         suffix = f"{width}"
         if width is None:
-            T = m.Bit
+            T = Bit
         else:
-            T = m.Bits[width]
+            T = Bits[width]
 
     io = []
     for i in range(height):
@@ -39,6 +61,36 @@ def DefineMux(height=2, width=None, T=None):
     class _Mux(m.Circuit):
         name = "Mux{}x{}".format(height, suffix)
         IO = io
+        @classmethod
+        def definition(interface):
+            if T is not None and not (issubclass(T, m.Digital) or issubclass(T, m.Array) and issubclass(T.T, m.Bit)):
+                if issubclass(T, m.Tuple):
+                    for i in range(len(T.keys())):
+                        Is = [getattr(interface, f"I{j}")[list(T.keys())[i]] for j in range(height)]
+                        interface.O[i] <= DefineMux(height, T=list(T.types())[i])()(*Is, interface.S)
+                else:
+                    assert issubclass(T, m.Array), f"Expected array or type type, got {T}, type is {type(T)}"
+                    for i in range(len(T)):
+                        Is = [getattr(interface, f"I{j}")[i] for j in range(height)]
+                        interface.O[i] <= DefineMux(height, T=type(Is[0]))()(*Is, interface.S)
+            else:
+                if T is None and width is None or issubclass(T, m.Digital):
+                    mux = _declare_muxn(height, 1)()
+                else:
+                    mux = _declare_muxn(height, width if T is None else len(T))()
+                for i in range(height):
+                    if T is None and width is None or issubclass(T, m.Digital):
+                        m.wire(getattr(interface, f"I{i}"), mux.I.data[i][0])
+                    else:
+                        m.wire(getattr(interface, f"I{i}"), mux.I.data[i])
+                if height == 2:
+                    m.wire(interface.S, mux.I.sel[0])
+                else:
+                    m.wire(interface.S, mux.I.sel)
+                if T is None and width is None or issubclass(T, m.Digital):
+                    m.wire(mux.O[0], interface.O)
+                else:
+                    m.wire(mux.O, interface.O)
     return _Mux
 
 
@@ -73,7 +125,7 @@ def compile_and_check(output_file, circuit_definition, target):
 
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
-        metafunc.parametrize("target", ["verilog", "coreir"])
+        metafunc.parametrize("target", ["coreir"])
 
 
 def test_if_statement_basic(target):

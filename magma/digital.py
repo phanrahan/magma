@@ -215,19 +215,20 @@ class Digital(Type, metaclass=DigitalMeta):
         return False
 
 
-def make_Define(name, port, direction):
-    def simulate(self, value_store, state_store):
-        pass
-
+def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
     def DefineCorebit():
-        return m.circuit.DeclareCoreirCircuit(
-            f"corebit_{name}",
-            port, direction(Digital),
-            coreir_name=name,
-            coreir_lib="corebit",
-            simulate=simulate
-        )
+        class _Primitive(m.Circuit):
+            renamed_ports = m.circuit.coreir_port_mapping
+            name = f"corebit_{_name}"
+            coreir_name = _name
+            coreir_lib = "corebit"
+
+            def simulate(self, value_store, state_store):
+                pass
+
+            io = m.IO(**{port: direction(Digital)})
+        return _Primitive
     return DefineCorebit
 
 
