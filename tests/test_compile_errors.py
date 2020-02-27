@@ -7,7 +7,7 @@ from magma.uniquification import MultipleDefinitionException
 def test_multiple_definitions_are_same():
     class Circ1(Circuit):
         name = "same"
-        io = m.IO('I', In(Bit), 'O', Out(Bit))
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
         @classmethod
         def definition(io):
@@ -15,7 +15,7 @@ def test_multiple_definitions_are_same():
 
     class Circ2(Circuit):
         name = "same"
-        io = m.IO('I', In(Bit), 'O', Out(Bit))
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
         @classmethod
         def definition(io):
@@ -38,7 +38,7 @@ def test_multiple_definitions_are_same():
 
 @pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_multiple_definitions_are_same_older_def_approach():
-    io = m.IO('I', In(Bit), 'O', Out(Bit))
+    io = m.IO(I=In(Bit), O=Out(Bit))
     Circ1 = DefineCircuit("same", *IO)
     wire(Circ1.I, Circ1.O)
     EndDefine()
@@ -65,7 +65,7 @@ def test_multiple_definitions_are_same_older_def_approach():
 def test_same_definitions():
     class Circ1(Circuit):
         name = "same"
-        io = m.IO('I', In(Bit), 'O', Out(Bit))
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
         @classmethod
         def definition(io):
