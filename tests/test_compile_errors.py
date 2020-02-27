@@ -9,17 +9,13 @@ def test_multiple_definitions_are_same():
         name = "same"
         io = m.IO(I=In(Bit), O=Out(Bit))
 
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
 
     class Circ2(Circuit):
         name = "same"
         io = m.IO(I=In(Bit), O=Out(Bit))
 
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
 
     test = DefineCircuit('test', 'I', In(Bit), 'O1', Out(Bit), 'O2', Out(Bit))
     circ1 = Circ1()
@@ -67,9 +63,7 @@ def test_same_definitions():
         name = "same"
         io = m.IO(I=In(Bit), O=Out(Bit))
 
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
     test = DefineCircuit('test', 'I', In(Bit), 'O1', Out(Bit), 'O2', Out(Bit))
     circ1 = Circ1()
     wire(test.I, circ1.I)
