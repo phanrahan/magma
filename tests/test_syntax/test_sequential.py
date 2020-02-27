@@ -5,8 +5,47 @@ from collections.abc import Sequence
 import coreir
 import ast_tools
 from magma.circuit import DeclareCoreirCircuit
+from hwtypes import BitVector
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
+
+
+def gen_sim_register(N, init, has_ce, has_async_reset, has_async_resetn):
+    def sim_register(self, value_store, state_store):
+        if has_async_resetn and has_async_reset:
+            raise ValueError("Cannot have posedge and negedge asynchronous reset")
+        cur_clock = value_store.get_value(self.CLK)
+
+        if not state_store:
+            state_store['prev_clock'] = cur_clock
+            state_store['cur_val'] = BitVector[N](init) if N is not None else bool(init)
+
+        if has_async_reset or has_async_resetn:
+            cur_reset = value_store.get_value(self.arst)
+        # if s:
+        #     cur_s = value_store.get_value(self.S)
+
+        prev_clock = state_store['prev_clock']
+        # if not n:
+        #     clock_edge = cur_clock and not prev_clock
+        # else:
+        #     clock_edge = not cur_clock and prev_clock
+        clock_edge = cur_clock and not prev_clock
+
+        new_val = state_store['cur_val'].as_bool_list() if N is not None else state_store['cur_val']
+
+        if clock_edge:
+            new_val = value_store.get_value(self.I)
+
+        if has_async_reset and cur_reset or has_async_resetn and not cur_reset:
+            new_val = BitVector[N](init) if N is not None else bool(init)
+        # if s and not sy and cur_s:
+        #     new_val = True
+
+        state_store['prev_clock'] = cur_clock
+        state_store['cur_val'] = BitVector[N](new_val) if N is not None else new_val
+        value_store.set_value(self.O, new_val)
+    return sim_register
 
 
 @m.cache_definition
@@ -62,7 +101,9 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
         coreir_configargs=config_args,
         coreir_name=coreir_name,
         verilog_name="coreir_" + coreir_name,
-        coreir_lib="coreir"
+        coreir_lib="coreir",
+        simulate=gen_sim_register(width, init, False, has_async_reset,
+                                  has_async_resetn)
     )
 
 
@@ -486,6 +527,19 @@ def test_no_init(target):
     compile_and_check("TestNoInit", TestNoInit, target)
 
 
+
+def test_default(target):
+    @m.circuit.sequential(async_reset=True)
+    class TestDefault:
+        def __init__(self):
+            self.x: m.Bits[8] = m.bits(0xFE, 8)
+
+        def __call__(self, index: m.UInt[3]) -> m.Bit:
+            return self.x[index]
+
+    compile_and_check("TestDefault", TestDefault, target)
+
+    
 def test_replace_array(target):
     A = m.Array[2, m.Bit]
 
