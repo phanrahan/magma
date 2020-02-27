@@ -31,12 +31,10 @@ def test_simple_def(target, suffix):
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            and2 = And2()
-            m.wire(io.I[0], and2.I0)
-            m.wire(io.I[1], and2.I1)
-            m.wire(and2.O, io.O)
+        and2 = And2()
+        m.wire(io.I[0], and2.I0)
+        m.wire(io.I[1], and2.I1)
+        m.wire(and2.O, io.O)
 
     # Create a fresh context for second compilation.
     m.compile("build/test_simple_def_class", Main, output=target)

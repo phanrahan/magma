@@ -8,10 +8,8 @@ def _make_unconnected_io():
     class _Circuit(m.Circuit):
         io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[2]))
 
-        @classmethod
-        def definition(io):
-            # Leave io.O[1] unwired.
-            io.O[0] <= io.I[0]
+        # Leave io.O[1] unwired.
+        io.O[0] <= io.I[0]
 
     return _Circuit
 
@@ -20,18 +18,14 @@ def _make_unconnected_instance():
     class _Buffer(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            io.O <= io.I
+        io.O <= io.I
 
     class _Circuit(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            buf = _Buffer()
-            # Leave buf.I unwired.
-            io.O <= buf.O
+        buf = _Buffer()
+        # Leave buf.I unwired.
+        io.O <= buf.O
 
     return _Circuit
 
@@ -40,17 +34,13 @@ def _make_unconnected_autowired(typ):
     class _Buffer(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), X=m.In(typ))
 
-        @classmethod
-        def definition(io):
-            io.O <= io.I
+        io.O <= io.I
 
     class _Circuit(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), X=m.In(typ))
 
-        @classmethod
-        def definition(io):
-            buf = _Buffer()
-            buf.I <= io.I
+        buf = _Buffer()
+        buf.I <= io.I
             io.O <= buf.O
 
     return _Circuit

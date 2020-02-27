@@ -73,47 +73,45 @@ def unflatten_bits_to_fields(tuple_, bits_):
 def make_FIFO(data_in_type, data_out_type, depth):
     class FIFO(m.Circuit):
         io = m.IO(data_in=data_in_type, data_out=data_out_type)
-        IO += m.ClockInterface()
+        io += m.ClockIO()
 
-        @classmethod
-        def definition(io):
-            addr_width = m.bitutils.clog2(depth)
+        addr_width = m.bitutils.clog2(depth)
 
-            buffer = mantle.RAM(addr_width, flat_length(io.data_in.data))
+        buffer = mantle.RAM(addr_width, flat_length(io.data_in.data))
 
-            # pack data into bits
-            buffer.WDATA <= flatten_fields_to_bits(io.data_in.data)
+        # pack data into bits
+        buffer.WDATA <= flatten_fields_to_bits(io.data_in.data)
 
-            # unpack bits into tuple
-            io.data_out.data <= unflatten_bits_to_fields(io.data_out.data,
-                                                         buffer.RDATA)
+        # unpack bits into tuple
+        io.data_out.data <= unflatten_bits_to_fields(io.data_out.data,
+                                                     buffer.RDATA)
 
-            read_pointer = mantle.Register(addr_width + 1)
-            write_pointer = mantle.Register(addr_width + 1)
-            buffer.RADDR <= read_pointer.O[:addr_width]
-            buffer.WADDR <= write_pointer.O[:addr_width]
+        read_pointer = mantle.Register(addr_width + 1)
+        write_pointer = mantle.Register(addr_width + 1)
+        buffer.RADDR <= read_pointer.O[:addr_width]
+        buffer.WADDR <= write_pointer.O[:addr_width]
 
-            full = \
-                (read_pointer.O[:addr_width] == write_pointer.O[:addr_width]) \
-                & \
-                (read_pointer.O[addr_width] != write_pointer.O[addr_width])
+        full = \
+            (read_pointer.O[:addr_width] == write_pointer.O[:addr_width]) \
+            & \
+            (read_pointer.O[addr_width] != write_pointer.O[addr_width])
 
-            empty = read_pointer == write_pointer
-            write_valid = io.data_in.valid & ~full
-            read_valid = io.data_out.ready & ~empty
+        empty = read_pointer == write_pointer
+        write_valid = io.data_in.valid & ~full
+        read_valid = io.data_out.ready & ~empty
 
-            io.data_in.ready <= ~full
+        io.data_in.ready <= ~full
 
-            buffer.WE <= write_valid
-            write_pointer.I <= mantle.mux([
-                write_pointer.O, m.uint(write_pointer.O) + 1
-            ], write_valid)
+        buffer.WE <= write_valid
+        write_pointer.I <= mantle.mux([
+            write_pointer.O, m.uint(write_pointer.O) + 1
+        ], write_valid)
 
-            io.data_out.valid <= read_valid
+        io.data_out.valid <= read_valid
 
-            read_pointer.I <= mantle.mux([
-                read_pointer.O, m.uint(read_pointer.O) + 1
-            ], read_valid)
+        read_pointer.I <= mantle.mux([
+            read_pointer.O, m.uint(read_pointer.O) + 1
+        ], read_valid)
     return FIFO
 
 

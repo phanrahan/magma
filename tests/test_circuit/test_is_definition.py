@@ -6,9 +6,7 @@ def test_is_definition():
     class IsDefinition(Circuit):
         name = "this_is_definition"
         io = m.IO(I=In(Bit), O=Out(Bit))
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        wire(io.I, io.O)
 
     assert isdefinition(IsDefinition), "Should be a definition"
 
