@@ -24,17 +24,18 @@ logic temp1, temp2;
 logic [{width}-1:0] temp3;
 assign temp1 = |(in1);
 assign temp2 = &(in1) & {x};
-assign temp3 = in0 ^ in1;
+assign temp3 = in1 ^ in2;
 assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
 logic [{width}-1:0] temp4 [1:0];
-assign temp4 = {arr_2d}
+assign temp4 = {arr_2d};
                                    """,
                                    valid=cls.handshake.valid,
-                                   width=width - 1,
+                                   width=width,
                                    x=cls.intermediate_tuple[0],
                                    arr_2d=arr_2d)
 
-        circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2)
+        circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2,
+                     circuit.intermediate_tuple)
 
 
 RTL.bind(RTLMonitor)

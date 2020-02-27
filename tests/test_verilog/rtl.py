@@ -34,7 +34,9 @@ class RTL(m.Generator):
             def definition(cls):
                 cls.temp1 = orr()(cls.in1)
                 cls.temp2 = andr()(cls.in1)
-                cls.out @= logical_and()(cls.temp1, cls.temp2)
+                cls.intermediate_tuple = m.tuple_([cls.temp1, cls.temp2])
+                cls.out @= logical_and()(cls.intermediate_tuple[0],
+                                         cls.intermediate_tuple[1])
                 m.wire(cls.handshake.valid, cls.handshake.ready)
                 for i in range(3):
                     m.wire(cls.handshake_arr[i].valid,

@@ -20,3 +20,5 @@ def test_bind():
     assert m.testing.check_files_equal(__file__,
                                        f"build/RTLMonitor.sv",
                                        f"gold/RTLMonitor.sv")
+    assert not os.system('cd tests/test_verilog/build && '
+                         'verilator --lint-only bind_test.v RTLMonitor.sv')
