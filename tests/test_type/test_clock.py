@@ -374,20 +374,18 @@ def test_asyncreset_cast(T, convert):
                   T_Tuple_in=In(m.Product.from_fields("anon", {"T": T})),
                   Bit_Arr_out=Out(m.Array[4, Bit]))
 
-        @classmethod
-        def definition(io):
-            inst = Inst()
-            io.O <= convert(io.I)
-            io.O_Tuple.R <= convert(io.I_Arr[0])
-            io.O_Arr[0] <= convert(io.I_Arr[1])
-            io.O_Arr[1] <= convert(io.I_Arr[2])
-            inst.I <= convert(io.I_Arr[2])
-            io.Bit_out <= m.bit(io.T_in)
-            io.O_Tuple.B <= m.bit(io.T_Tuple_in.T)
-            io.Bit_Arr_out[0] <= m.bit(io.T_Arr_in[0])
-            io.Bit_Arr_out[1] <= m.bit(io.T_Arr_in[1])
-            io.Bit_Arr_out[2] <= m.bit(io.T_Arr_in[0])
-            io.Bit_Arr_out[3] <= m.bit(inst.O)
+        inst = Inst()
+        io.O <= convert(io.I)
+        io.O_Tuple.R <= convert(io.I_Arr[0])
+        io.O_Arr[0] <= convert(io.I_Arr[1])
+        io.O_Arr[1] <= convert(io.I_Arr[2])
+        inst.I <= convert(io.I_Arr[2])
+        io.Bit_out <= m.bit(io.T_in)
+        io.O_Tuple.B <= m.bit(io.T_Tuple_in.T)
+        io.Bit_Arr_out[0] <= m.bit(io.T_Arr_in[0])
+        io.Bit_Arr_out[1] <= m.bit(io.T_Arr_in[1])
+        io.Bit_Arr_out[2] <= m.bit(io.T_Arr_in[0])
+        io.Bit_Arr_out[3] <= m.bit(inst.O)
 
     m.compile(f"build/test_{T.__name__}_cast", AsyncResetTest)
     assert check_files_equal(__file__, f"build/test_{T.__name__}_cast.v",
