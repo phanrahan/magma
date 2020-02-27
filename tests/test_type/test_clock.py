@@ -366,7 +366,8 @@ def test_asyncreset_cast(T, convert):
 
     class AsyncResetTest(m.Circuit):
         io = m.IO(I=m.BitIn, I_Arr=m.In(m.Array[3, Bit]),
-                  O=T, O_Tuple=m.Product.from_fields("anon", {"R": T, "B": Out(Bit)}),
+                  O=T, O_Tuple=m.Product.from_fields(
+                      "anon", {"R": T, "B": Out(Bit)}),
                   O_Arr=m.Array[2, T],
                   T_in=In(T), Bit_out=Out(Bit),
                   T_Arr_in=In(m.Array[2, T]),
