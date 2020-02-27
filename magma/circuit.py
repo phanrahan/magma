@@ -607,8 +607,9 @@ class DefineCircuitKind(CircuitKind):
                                 "definition syntax is not supported, ignoring "
                                 "'definition'")
         run_unconnected_check = run_unconnected_check or (
-            has_definition and self._syntax_style_ is _SyntaxStyle.NEW) and \
-            not dct.get("IGNORE_UNDRIVEN", False)
+            has_definition and self._syntax_style_ is _SyntaxStyle.NEW)
+        run_unconnected_check = run_unconnected_check and not \
+            not dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
             self.check_unconnected()
 

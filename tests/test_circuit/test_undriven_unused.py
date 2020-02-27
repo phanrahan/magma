@@ -8,7 +8,7 @@ from magma.testing import check_files_equal
 
 def test_ignore_unused_undriven_basic():
     class Main(m.Circuit):
-        IGNORE_UNDRIVEN = True
+        _ignore_undriven_ = True
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
 
@@ -27,7 +27,7 @@ def test_ignore_unused_undriven_hierarchy():
         io.O1 @= io.I0
 
     class Main(m.Circuit):
-        IGNORE_UNDRIVEN = True
+        _ignore_undriven_ = True
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit),
                   O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 
