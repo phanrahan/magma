@@ -327,7 +327,7 @@ class CircuitKind(type):
                     # TODO: Could be driven after, but that will just override
                     # this wiring so it's okay for now
                     arg.undriven()
-                else:
+                elif arg.is_output():
                     arg.unused()
                 arg = value_to_verilog_name(arg)
             elif isinstance(arg, PortView):
