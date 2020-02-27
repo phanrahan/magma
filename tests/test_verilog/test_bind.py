@@ -8,7 +8,7 @@ import rtl_monitor
 def test_bind():
     RTL4 = RTL.generate(4)
 
-    m.compile("build/bind_test", RTL4)
+    m.compile("build/bind_test", RTL4, inline=True)
     assert m.testing.check_files_equal(__file__,
                                        f"build/bind_test.v",
                                        f"gold/bind_test.v")

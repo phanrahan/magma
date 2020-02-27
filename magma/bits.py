@@ -487,13 +487,13 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return m.get_family()
 
     def unused(self):
-        if not self.is_output():
-            raise TypeError("unused can only be used on output")
+        if self.is_input() or self.is_inout():
+            raise TypeError("unused cannot be used with input/inout")
         m.wire(self, DefineUnused(len(self))().I)
 
     def undriven(self):
-        if not self.is_input():
-            raise TypeError("undriven can only be used on input")
+        if self.is_output() or self.is_inout():
+            raise TypeError("undriven cannot be used with output/inout")
         m.wire(DefineUndriven(len(self))().O, self)
 
     def as_bits(self):
