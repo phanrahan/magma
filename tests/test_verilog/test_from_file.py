@@ -108,12 +108,10 @@ def test_from_pad_inout():
 
     class Top(m.Circuit):
         io = m.IO(pad=m.InOut(m.Bit))
-        @classmethod
-        def definition(io):
-            pad = Pad()
-            m.wire(io.pad, pad.PAD)
-            for port in ["DS0", "DS1", "DS2", "I", "IE", "OEN", "PU", "PD", "ST", "SL", "RTE"]:
-                m.wire(0, getattr(pad, port))
+        pad = Pad()
+        m.wire(io.pad, pad.PAD)
+        for port in ["DS0", "DS1", "DS2", "I", "IE", "OEN", "PU", "PD", "ST", "SL", "RTE"]:
+            m.wire(0, getattr(pad, port))
 
     m.compile("build/test_pad", Top, output="coreir-verilog")
     assert m.testing.check_files_equal(__file__, "build/test_pad.v",
@@ -166,11 +164,9 @@ endmodule   // mod
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit))
-        @classmethod
-        def definition(io):
-            for mod, val in zip(mods, literals):
-                mod()(io.I)
-                mod(KRATOS_INSTANCE_ID=int_const_str_to_int(val))(io.I)
+        for mod, val in zip(mods, literals):
+            mod()(io.I)
+            mod(KRATOS_INSTANCE_ID=int_const_str_to_int(val))(io.I)
 
     m.compile("build/test_int_literal_inst", Top)
     assert m.testing.check_files_equal(

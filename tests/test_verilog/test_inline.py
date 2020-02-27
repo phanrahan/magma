@@ -13,7 +13,7 @@ endmodule
 """, type_map={"CLK": m.In(m.Clock)})[0]
 
     class Main(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockInterface()
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)] + m.ClockInterface()
         @classmethod
         def definition(cls):
             cls.O <= FF()(cls.I)
@@ -40,30 +40,26 @@ def test_inline_tuple():
 
     class InnerDelayUnit(m.Circuit):
         io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \
-            m.ClockInterface()
+            m.ClockIO()
 
-        @classmethod
-        def definition(cls):
-            delay = InnerInnerDelayUnit(name="inner_inner_delay")
-            delay.INPUT[0] <= cls.INPUT[1]
-            delay.INPUT[1] <= cls.INPUT[0]
-            cls.OUTPUT[0] <= delay.OUTPUT[1]
-            cls.OUTPUT[1] <= delay.OUTPUT[0]
+        delay = InnerInnerDelayUnit(name="inner_inner_delay")
+        delay.INPUT[0] <= io.INPUT[1]
+        delay.INPUT[1] <= io.INPUT[0]
+        io.OUTPUT[0] <= delay.OUTPUT[1]
+        io.OUTPUT[1] <= delay.OUTPUT[0]
 
     class DelayUnit(m.Circuit):
         io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \
-            m.ClockInterface()
+            m.ClockIO()
 
-        @classmethod
-        def definition(cls):
-            delay = InnerDelayUnit(name="inner_delay")
-            delay.INPUT[0] <= cls.INPUT[1]
-            delay.INPUT[1] <= cls.INPUT[0]
-            cls.OUTPUT[0] <= delay.OUTPUT[1]
-            cls.OUTPUT[1] <= delay.OUTPUT[0]
+        delay = InnerDelayUnit(name="inner_delay")
+        delay.INPUT[0] <= io.INPUT[1]
+        delay.INPUT[1] <= io.INPUT[0]
+        io.OUTPUT[0] <= delay.OUTPUT[1]
+        io.OUTPUT[1] <= delay.OUTPUT[0]
 
     class Main(m.Circuit):
-        io = m.IO(I=RVDATAIN, O=m.Flip(RVDATAIN)) + m.ClockInterface()
+        IO = ["I", RVDATAIN, "O", m.Flip(RVDATAIN)] + m.ClockInterface()
         @classmethod
         def definition(cls):
             delay = DelayUnit()
