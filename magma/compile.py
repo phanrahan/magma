@@ -5,7 +5,8 @@ from .compiler import Compiler
 from .config import get_compile_dir
 from .uniquification import uniquification_pass, UniquificationMode
 from .passes.clock import WireClockPass
-from .passes.unused_undriven import DriveUndrivenPass, TerminateUnusedPass
+from .passes.drive_undriven import DriveUndrivenPass
+from .passes.terminate_unused import TerminateUnusedPass
 
 __all__ = ["compile"]
 
