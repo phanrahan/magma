@@ -48,16 +48,16 @@ def DefineMux(height=2, width=None, T=None):
         else:
             T = Bits[width]
 
-    io = []
+    IO = []
     for i in range(height):
-        io += ["I{}".format(i), m.In(T)]
+        IO += ["I{}".format(i), m.In(T)]
     if height == 2:
         select_type = m.Bit
     else:
         select_type = m.Bits[m.bitutils.clog2(height)]
-    io += ['S', m.In(select_type)]
-    io += ['O', m.Out(T)]
-    io_dict = {key: value for key, value in zip(io[::2], io[1::2])}
+    IO += ['S', m.In(select_type)]
+    IO += ['O', m.Out(T)]
+    io_dict = {key: value for key, value in zip(IO[::2], IO[1::2])}
 
     class _Mux(m.Circuit):
         name = "Mux{}x{}".format(height, suffix)
@@ -65,7 +65,9 @@ def DefineMux(height=2, width=None, T=None):
         if T is not None and not (issubclass(T, m.Digital) or issubclass(T, m.Array) and issubclass(T.T, m.Bit)):
             if issubclass(T, m.Tuple):
                 for i in range(len(T.keys())):
-                    Is = [getattr(io, f"I{j}")[list(T.keys())[i]] for j in range(height)]
+                    Is = []
+                    for j in range(height):
+                        Is.append(getattr(io, f"I{j}")[list(T.keys())[i]])
                     io.O[i] <= DefineMux(height, T=list(T.types())[i])()(*Is, io.S)
             else:
                 assert issubclass(T, m.Array), f"Expected array or type type, got {T}, type is {type(T)}"

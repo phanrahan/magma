@@ -41,7 +41,7 @@ def _make_unconnected_autowired(typ):
 
         buf = _Buffer()
         buf.I <= io.I
-            io.O <= buf.O
+        io.O <= buf.O
 
     return _Circuit
 

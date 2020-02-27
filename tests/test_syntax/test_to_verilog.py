@@ -24,7 +24,7 @@ class SimpleALU(m.Circuit):
             c = m.bits(0, 16)
         return c
 
-    io.c <= io.execute_alu(io.a, io.b, io.config_)
+    io.c <= execute_alu(io.a, io.b, io.config_)
 
 
 def test_simple_alu():
