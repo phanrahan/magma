@@ -28,9 +28,7 @@ def test_new_types(output):
             I=m.In(Polygon(12, 3)),
             O=m.Out(Polygon(12, 3))
         )
-        @classmethod
-        def definition(io):
-            m.wire(io.I, io.O)
+        m.wire(io.I, io.O)
 
     suffix = 'v' if output == 'coreir-verilog' else 'json'
     m.compile('build/test_new_types', TestCircuit, output=output)
