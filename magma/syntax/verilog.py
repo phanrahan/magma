@@ -130,6 +130,10 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
             type_table["self_" + name + "_I"] = to_type_str(info[2])
             width_table["self_" + name + "_O"] = width
             type_table["self_" + name + "_O"] = to_type_str(info[2])
+        for name in reversed(tuple(registers.keys())):
+            tree.body.insert(
+                0, ast.parse(f"self_{name}_I = self_{name}_O")
+            )
     else:
         registers = {}
     for arg in tree.args.args:

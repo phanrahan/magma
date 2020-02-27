@@ -1,4 +1,3 @@
-// Module `Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8` defined externally
 module coreir_reg_arst #(
     parameter width = 1,
     parameter arst_posedge = 1,
@@ -20,6 +19,192 @@ module coreir_reg_arst #(
     else outReg <= in;
   end
   assign out = outReg;
+endmodule
+
+module coreir_mux #(
+    parameter width = 1
+) (
+    input [width-1:0] in0,
+    input [width-1:0] in1,
+    input sel,
+    output [width-1:0] out
+);
+  assign out = sel ? in1 : in0;
+endmodule
+
+module commonlib_muxn__N2__width8 (
+    input [7:0] in_data_0,
+    input [7:0] in_data_1,
+    input [0:0] in_sel,
+    output [7:0] out
+);
+wire [7:0] _join_out;
+coreir_mux #(
+    .width(8)
+) _join (
+    .in0(in_data_0),
+    .in1(in_data_1),
+    .sel(in_sel[0]),
+    .out(_join_out)
+);
+assign out = _join_out;
+endmodule
+
+module commonlib_muxn__N2__width4 (
+    input [3:0] in_data_0,
+    input [3:0] in_data_1,
+    input [0:0] in_sel,
+    output [3:0] out
+);
+wire [3:0] _join_out;
+coreir_mux #(
+    .width(4)
+) _join (
+    .in0(in_data_0),
+    .in1(in_data_1),
+    .sel(in_sel[0]),
+    .out(_join_out)
+);
+assign out = _join_out;
+endmodule
+
+module commonlib_muxn__N2__width1 (
+    input [0:0] in_data_0,
+    input [0:0] in_data_1,
+    input [0:0] in_sel,
+    output [0:0] out
+);
+wire [0:0] _join_out;
+coreir_mux #(
+    .width(1)
+) _join (
+    .in0(in_data_0),
+    .in1(in_data_1),
+    .sel(in_sel[0]),
+    .out(_join_out)
+);
+assign out = _join_out;
+endmodule
+
+module Mux2xOutUInt4 (
+    input [3:0] I0,
+    input [3:0] I1,
+    input S,
+    output [3:0] O
+);
+wire [3:0] coreir_commonlib_mux2x4_inst0_out;
+commonlib_muxn__N2__width4 coreir_commonlib_mux2x4_inst0 (
+    .in_data_0(I0),
+    .in_data_1(I1),
+    .in_sel(S),
+    .out(coreir_commonlib_mux2x4_inst0_out)
+);
+assign O = coreir_commonlib_mux2x4_inst0_out;
+endmodule
+
+module Mux2xOutSInt8 (
+    input [7:0] I0,
+    input [7:0] I1,
+    input S,
+    output [7:0] O
+);
+wire [7:0] coreir_commonlib_mux2x8_inst0_out;
+commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
+    .in_data_0(I0),
+    .in_data_1(I1),
+    .in_sel(S),
+    .out(coreir_commonlib_mux2x8_inst0_out)
+);
+assign O = coreir_commonlib_mux2x8_inst0_out;
+endmodule
+
+module Mux2xOutBit (
+    input I0,
+    input I1,
+    input S,
+    output O
+);
+wire [0:0] coreir_commonlib_mux2x1_inst0_out;
+commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
+    .in_data_0(I0),
+    .in_data_1(I1),
+    .in_sel(S),
+    .out(coreir_commonlib_mux2x1_inst0_out)
+);
+assign O = coreir_commonlib_mux2x1_inst0_out[0];
+endmodule
+
+module Mux2xTuplec0_OutUInt4_c1_OutBit (
+    input [3:0] I0_c0,
+    input I0_c1,
+    input [3:0] I1_c0,
+    input I1_c1,
+    output [3:0] O_c0,
+    output O_c1,
+    input S
+);
+wire Mux2xOutBit_inst0_O;
+wire [3:0] Mux2xOutUInt4_inst0_O;
+Mux2xOutBit Mux2xOutBit_inst0 (
+    .I0(I0_c1),
+    .I1(I1_c1),
+    .S(S),
+    .O(Mux2xOutBit_inst0_O)
+);
+Mux2xOutUInt4 Mux2xOutUInt4_inst0 (
+    .I0(I0_c0),
+    .I1(I1_c0),
+    .S(S),
+    .O(Mux2xOutUInt4_inst0_O)
+);
+assign O_c0 = Mux2xOutUInt4_inst0_O;
+assign O_c1 = Mux2xOutBit_inst0_O;
+endmodule
+
+module Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8 (
+    input I0_a0,
+    input [3:0] I0_a1_c0,
+    input I0_a1_c1,
+    input [7:0] I0_a2,
+    input I1_a0,
+    input [3:0] I1_a1_c0,
+    input I1_a1_c1,
+    input [7:0] I1_a2,
+    output O_a0,
+    output [3:0] O_a1_c0,
+    output O_a1_c1,
+    output [7:0] O_a2,
+    input S
+);
+wire Mux2xOutBit_inst0_O;
+wire [7:0] Mux2xOutSInt8_inst0_O;
+wire [3:0] Mux2xTuplec0_OutUInt4_c1_OutBit_inst0_O_c0;
+wire Mux2xTuplec0_OutUInt4_c1_OutBit_inst0_O_c1;
+Mux2xOutBit Mux2xOutBit_inst0 (
+    .I0(I0_a0),
+    .I1(I1_a0),
+    .S(S),
+    .O(Mux2xOutBit_inst0_O)
+);
+Mux2xOutSInt8 Mux2xOutSInt8_inst0 (
+    .I0(I0_a2),
+    .I1(I1_a2),
+    .S(S),
+    .O(Mux2xOutSInt8_inst0_O)
+);
+Mux2xTuplec0_OutUInt4_c1_OutBit Mux2xTuplec0_OutUInt4_c1_OutBit_inst0 (
+    .I0_c0(I0_a1_c0),
+    .I0_c1(I0_a1_c1),
+    .I1_c0(I1_a1_c0),
+    .I1_c1(I1_a1_c1),
+    .O_c0(Mux2xTuplec0_OutUInt4_c1_OutBit_inst0_O_c0),
+    .O_c1(Mux2xTuplec0_OutUInt4_c1_OutBit_inst0_O_c1),
+    .S(S)
+);
+assign O_a0 = Mux2xOutBit_inst0_O;
+assign O_a1_c0 = Mux2xTuplec0_OutUInt4_c1_OutBit_inst0_O_c0;
+assign O_a1_c1 = Mux2xTuplec0_OutUInt4_c1_OutBit_inst0_O_c1;
+assign O_a2 = Mux2xOutSInt8_inst0_O;
 endmodule
 
 module TestNestedProductReg_comb (
