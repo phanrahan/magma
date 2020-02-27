@@ -1,6 +1,7 @@
 from magma import *
 from magma.simulator import PythonSimulator
 
+
 def test_instance():
     N = 4
     T = Bits[N]

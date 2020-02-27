@@ -28,7 +28,7 @@ def check_rxmod(RXMOD):
 
     m.compile("build/test_rxmod", RXMOD)
     assert m.testing.check_files_equal(__file__, "build/test_rxmod.v",
-            "gold/test_rxmod.v")
+                                       "gold/test_rxmod.v")
 
 
 def test_basic():
@@ -72,10 +72,10 @@ def test_coreir_compilation():
 
 def test_decl_list():
     file_path = os.path.dirname(__file__)
-    type_map = {"clk_in"    : m.In(m.Clock),
-                "reset"     : m.In(m.AsyncReset),
-                "config_en" : m.In(m.Enable),
-                "clk_en"    : m.In(m.Enable)}
+    type_map = {"clk_in": m.In(m.Clock),
+                "reset": m.In(m.AsyncReset),
+                "config_en": m.In(m.Enable),
+                "clk_en": m.In(m.Enable)}
     memory_core = m.define_from_verilog_file(
         os.path.join(file_path, "decl_list.v"), target_modules=["memory_core"],
         type_map=type_map)[0]
@@ -84,11 +84,11 @@ def test_decl_list():
 
 def test_from_sv():
     file_path = os.path.dirname(__file__)
-    test_pe = m.define_from_verilog_file(os.path.join(file_path, "test_pe.sv"))[0]
-
+    test_pe = m.define_from_verilog_file(
+        os.path.join(file_path, "test_pe.sv"))[0]
 
     if os.path.exists("build/test_pe.sv"):
-       os.remove("build/test_pe.sv")
+        os.remove("build/test_pe.sv")
     m.compile("build/test_pe", test_pe, output="verilog")
 
     # Remove last line from generated file since magma adds an extra newline
@@ -114,7 +114,6 @@ def test_from_pad_inout():
             m.wire(io.pad, pad.PAD)
             for port in ["DS0", "DS1", "DS2", "I", "IE", "OEN", "PU", "PD", "ST", "SL", "RTE"]:
                 m.wire(0, getattr(pad, port))
-
 
     m.compile("build/test_pad", Top, output="coreir-verilog")
     assert m.testing.check_files_equal(__file__, "build/test_pad.v",

@@ -14,20 +14,22 @@ class CoreIRCommonLibMuxN(Generator):
     @staticmethod
     def generate(N: int, width: int):
         return DeclareCoreirCircuit(f"coreir_commonlib_mux{N}x{width}",
-            *["I", In(Product.from_fields("anon",
-                                          dict(data=Array[N, Bits[width]],
-                                               sel=Bits[clog2(N)]))),
-              "O", Out(Bits[width])],
-            coreir_name="muxn",
-            coreir_lib="commonlib",
-            coreir_genargs={"width": width, "N": N}
-        )
+                                    *["I", In(Product.from_fields("anon",
+                                                                  dict(data=Array[N, Bits[width]],
+                                                                       sel=Bits[clog2(N)]))),
+                                      "O", Out(Bits[width])],
+                                    coreir_name="muxn",
+                                    coreir_lib="commonlib",
+                                    coreir_genargs={"width": width, "N": N}
+                                    )
+
 
 class Mux(Generator):
     @staticmethod
     def generate(height: int, T: Type):
         # TODO: Type must be hashable so we can cache
         N = T.flat_length()
+
         class Mux(Circuit):
             io = m.IO()
             for i in range(height):
@@ -38,7 +40,7 @@ class Mux(Generator):
             def definition(io):
                 mux = CoreIRCommonLibMuxN(height, N)
                 wire(mux.I.data, array(
-                    [Bits[N](getattr(io, f"I{i}").flatten()) 
+                    [Bits[N](getattr(io, f"I{i}").flatten())
                      for i in range(height)]
                 ))
                 wire(mux.I.sel, io.S)
@@ -72,4 +74,4 @@ def slice(value: Bits, start: Bits, width: int):
     """
     # Construct an array where the index `i` is the slice of bits from `i` to
     # `i+width`, index into this array using `start`
-    return array([value[i:i+width] for i in range(len(value) - width)])[start]
+    return array([value[i:i + width] for i in range(len(value) - width)])[start]

@@ -320,7 +320,8 @@ EndCircuit()\
 def test_ite():
     class TestITE(m.Circuit):
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), S=m.In(m.Bit),
-              O=m.Out(m.Bit))
+                  O=m.Out(m.Bit))
+
         @classmethod
         def definition(io):
             io.O <= io.S.ite(io.I0, io.I1)

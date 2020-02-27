@@ -35,6 +35,7 @@ def test_multiple_definitions_are_same():
     except MultipleDefinitionException:
         pass
 
+
 @pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_multiple_definitions_are_same_older_def_approach():
     io = m.IO('I', In(Bit), 'O', Out(Bit))
@@ -58,6 +59,7 @@ def test_multiple_definitions_are_same_older_def_approach():
         assert Circ1 is Circ2
     except MultipleDefinitionException:
         pass
+
 
 @pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_same_definitions():

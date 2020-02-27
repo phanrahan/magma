@@ -17,7 +17,8 @@ m.EndDefine()
 def DefineMux(height=2, width=None, T=None):
     if T is not None:
         assert width is None, "Can only specify width **or** T"
-        suffix = str(T).replace("(", "").replace(")", "").replace(",", "_").replace("=", "_").replace("[", "").replace("]", "").replace(" ", "")
+        suffix = str(T).replace("(", "").replace(")", "").replace(",", "_").replace(
+            "=", "_").replace("[", "").replace("]", "").replace(" ", "")
         T = T
     else:
         suffix = f"{width}"
@@ -190,7 +191,7 @@ def test_simple_circuit_1(target):
 
     class Foo(m.Circuit):
         io = m.IO(a=m.In(m.Bit),
-              c=m.Out(m.Bit))
+                  c=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -218,7 +219,7 @@ def test_multiple_assign(target):
 
     class Foo(m.Circuit):
         io = m.IO(a=m.In(m.Bit),
-              c=m.Out(m.Bit))
+                  c=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -247,8 +248,8 @@ def test_optional_assignment(target):
 
     class Foo(m.Circuit):
         io = m.IO(a=m.In(m.Bit),
-              c=m.Out(m.Bit),
-              d=m.Out(m.Bit))
+                  c=m.Out(m.Bit),
+                  d=m.Out(m.Bit))
 
         @classmethod
         def definition(io):
@@ -266,7 +267,7 @@ def test_map_circuit(target):
 
     class Foo(m.Circuit):
         io = m.IO(a=m.In(m.Bits[10]),
-              c=m.Out(m.Bits[10]))
+                  c=m.Out(m.Bits[10]))
 
         @classmethod
         def definition(io):
@@ -308,7 +309,7 @@ def test_renamed_args_wire(target):
     compile_and_check("test_renamed_args_wire", Foo, target)
 
 
-@pytest.mark.parametrize("val", [0,1])
+@pytest.mark.parametrize("val", [0, 1])
 def test_custom_env(target, val):
     def basic_fun(I: m.Bit, S: m.Bit) -> m.Bit:
         if S:
@@ -317,9 +318,9 @@ def test_custom_env(target, val):
             return m.Bit(_custom_local_var_)
 
     _globals = globals()
-    _globals.update({'_custom_local_var_':val})
-    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
-    _basic_fun = m.circuit.combinational(basic_fun,env=env)
+    _globals.update({'_custom_local_var_': val})
+    env = ast_tools.stack.SymbolTable(locals=locals(), globals=_globals)
+    _basic_fun = m.circuit.combinational(basic_fun, env=env)
     compile_and_check(f"custom_env{val}", _basic_fun.circuit_definition, target)
 
 

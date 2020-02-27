@@ -50,7 +50,6 @@ def test_clock():
     assert not isinstance(m.Out(m.Clock)(), m.In(m.Clock))
 
 
-
 def test_clock_flip():
     ClockOut = Out(Clock)
     assert issubclass(ClockOut, Clock)
@@ -113,7 +112,6 @@ def test_reset():
 
     assert not issubclass(m.Out(m.Reset), m.In(m.Reset))
     assert not isinstance(m.Out(m.Reset)(), m.In(m.Reset))
-
 
     assert issubclass(m.ResetN, m.Digital)
     assert isinstance(m.ResetN(), m.Digital)
@@ -204,6 +202,7 @@ def test_reset():
 
     assert not issubclass(m.Out(m.AsyncResetN), m.In(m.AsyncResetN))
     assert not isinstance(m.Out(m.AsyncResetN)(), m.In(m.AsyncResetN))
+
 
 def test_reset_flip():
     ResetOut = Out(Reset)
@@ -313,7 +312,7 @@ def test_coreir_wrap(T):
         return DeclareCircuit(
             f'coreir_wrap{type_name}',
             "in", In(in_type), "out", Out(type_),
-            coreir_genargs = {"type": type_},
+            coreir_genargs={"type": type_},
             coreir_name="wrap",
             coreir_lib="coreir",
             simulate=sim_wrap
@@ -367,13 +366,13 @@ def test_asyncreset_cast(T, convert):
 
     class AsyncResetTest(m.Circuit):
         io = m.IO('I', m.BitIn, 'I_Arr', m.In(m.Array[3, Bit]),
-              'O', T, O_Tuple=m.Product.from_fields("anon", {"R":T, "B":Out(Bit)}),
-              O_Arr=m.Array[2, T],
-              'T_in', In(T), 'Bit_out', Out(Bit),
-              'T_Arr_in', In(m.Array[2, T]),
-              'Bit_Arr_out', Out(m.Array[3, Bit]),
-              'T_Tuple_in', In(m.Product.from_fields("anon", {"T":T})),
-              'Bit_Arr_out', Out(m.Array[4, Bit]))
+                  'O', T, O_Tuple=m.Product.from_fields("anon", {"R": T, "B": Out(Bit)}),
+                  O_Arr=m.Array[2, T],
+                  'T_in', In(T), 'Bit_out', Out(Bit),
+                  'T_Arr_in', In(m.Array[2, T]),
+                  'Bit_Arr_out', Out(m.Array[3, Bit]),
+                  'T_Tuple_in', In(m.Product.from_fields("anon", {"T": T})),
+                  'Bit_Arr_out', Out(m.Array[4, Bit]))
 
         @classmethod
         def definition(io):

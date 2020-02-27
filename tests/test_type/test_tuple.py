@@ -1,6 +1,7 @@
 import magma as m
 from magma import *
 
+
 def test_pair():
     # types
 
@@ -36,6 +37,7 @@ def test_pair():
 
     assert not issubclass(m.Out(m.Tuple[Bit, Bit]), m.In(m.Tuple[Bit, Bit]))
     assert not isinstance(m.Out(m.Tuple[Bit, Bit])(), m.In(m.Tuple[Bit, Bit]))
+
 
 def test_dict():
     # types
@@ -104,6 +106,7 @@ def test_dict():
     assert A2 != C2
     assert B2 != C2
 
+
 def test_flip():
     class Product2(Product):
         x = In(Bit)
@@ -126,14 +129,15 @@ def test_flip():
 
     #T = Flip(Tout)
     #assert T == Tin
-    #print(T)
+    # print(T)
 
     T = Out(Tin)
     assert T == Tout
 
     #T = Flip(Tin)
     #assert T == Tout
-    #print(T)
+    # print(T)
+
 
 def test_wire():
     class Product2(Product):
@@ -196,7 +200,7 @@ def test_nested():
     def DefineCtrModule():
         class ctrModule(m.Circuit):
             name = "ctr_module"
-            io = m.IO("ctr",m.In(m.Bit))
+            io = m.IO("ctr", m.In(m.Bit))
         return ctrModule
 
     def make_baseIO():
@@ -208,7 +212,7 @@ def test_nested():
     def DefineBaseModule():
         class baseModule(m.Circuit):
             name = "base_module"
-            io = m.IO("baseIO",make_baseIO())
+            io = m.IO("baseIO", make_baseIO())
         return baseModule
 
     def DefineHier():
@@ -219,8 +223,8 @@ def test_nested():
             def definition(io):
                 baseM = DefineBaseModule()()
                 ctrM = DefineCtrModule()()
-                m.wire(baseM.baseIO,io.hier.baseIO)
-                m.wire(ctrM.ctr,io.hier.ctr)
+                m.wire(baseM.baseIO, io.hier.baseIO)
+                m.wire(ctrM.ctr, io.hier.ctr)
         return HierModule
 
     baseMH = DefineHier()
@@ -256,9 +260,8 @@ def test_tuple_nested_tuple_value():
             io = m.IO(IFC1=IFC1(params))
             @classmethod
             def definition(io):
-               m.wire(io.IFC1.port4, DefineMyCircuit(params)().IFC0.port4)
+                m.wire(io.IFC1.port4, DefineMyCircuit(params)().IFC0.port4)
         return Top
-
 
     m.compile("top", DefineTop({'param0': 5}))
 

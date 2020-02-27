@@ -22,7 +22,8 @@ def test_bit():
         sim.set_value(Main.I, 22)
         assert False, "Should throw type error"
     except TypeError as e:
-        assert str(e) == "Can only set Bit I with a boolean value or 0 or 1, not 22 (type=<class 'int'>)"
+        assert str(
+            e) == "Can only set Bit I with a boolean value or 0 or 1, not 22 (type=<class 'int'>)"
 
 
 def test_array():
@@ -49,7 +50,8 @@ def test_array():
         sim.set_value(Main.I, 22)
         assert False, "Should throw type error"
     except TypeError as e:
-        assert str(e) == "Calling set_value with I of type Array[2, Out(Bit)] only works with a list of values or a BitVector"
+        assert str(
+            e) == "Calling set_value with I of type Array[2, Out(Bit)] only works with a list of values or a BitVector"
 
 
 @pytest.mark.parametrize('T', [m.Bits, m.UInt])

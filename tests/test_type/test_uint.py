@@ -5,8 +5,9 @@ from magma import *
 from magma.simulator import PythonSimulator
 from hwtypes import UIntVector
 
-Array2 = Array[2,Bit]
-Array4 = Array[4,Bit]
+Array2 = Array[2, Bit]
+Array4 = Array[4, Bit]
+
 
 def test():
 
@@ -45,6 +46,7 @@ def test_val():
 
     a3 = a1[0:2]
 
+
 def test_flip():
     UInt2 = UInt[2]
     AIn = In(UInt2)
@@ -53,7 +55,7 @@ def test_flip():
     print(AIn)
     print(AOut)
 
-    assert AIn  != Array2
+    assert AIn != Array2
     assert AOut != Array2
     assert AIn != AOut
 
@@ -71,15 +73,17 @@ def test_flip():
     assert A == AOut
     print(A)
 
+
 def test_construct():
-    a1 = uint([1,1])
+    a1 = uint([1, 1])
     print(type(a1))
     assert isinstance(a1, UInt)
     assert isinstance(a1, Bits)
     assert not isinstance(a1, SInt)
 
     assert isinstance(UInt[15](a1), UInt)
-    assert repr(m.UInt[16](a1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
+    assert repr(m.UInt[16](
+        a1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
 
     # Test explicit conversion
     assert isinstance(sint(a1), SInt)
@@ -167,7 +171,9 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_adc(n):
     class TestBinary(m.Circuit):
-        io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), CIN=m.In(m.Bit), O=m.Out(m.UInt[n]), COUT=m.Out(m.Bit))
+        io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), CIN=m.In(
+            m.Bit), O=m.Out(m.UInt[n]), COUT=m.Out(m.Bit))
+
         @classmethod
         def definition(io):
             result, carry = io.I0.adc(io.I1, io.CIN)
@@ -182,7 +188,8 @@ def test_adc(n):
                           for i in range(n))
     in1_wires += f"\nwire(GND, magma_Bits_{n + 1}_add_inst0.in1[{n}])"
 
-    carry_wires = "\n".join(f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+    carry_wires = "\n".join(
+        f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
 
     out_wires = "\n".join(f"wire(magma_Bits_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
                           for i in range(n))

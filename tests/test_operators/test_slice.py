@@ -6,8 +6,8 @@ from hwtypes import BitVector
 def test_slice_fixed_range():
     class TestSlice(m.Circuit):
         io = m.IO(
-            I=m.In(m.Bits[10]), 
-            x=m.In(m.Bits[2]), 
+            I=m.In(m.Bits[10]),
+            x=m.In(m.Bits[2]),
             O=m.Out(m.Bits[6])
         )
 
@@ -28,7 +28,7 @@ def test_slice_fixed_range():
         for x in range(0, 4):
             tester.circuit.x = x
             tester.eval()
-            tester.circuit.O.expect(I[x:x+6])
+            tester.circuit.O.expect(I[x:x + 6])
         import os
         build_dir = os.path.join(
             os.path.abspath(os.path.dirname(__file__)),

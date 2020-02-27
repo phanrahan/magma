@@ -1,12 +1,11 @@
+from magma.frontend.coreir_ import GetCoreIRModule
+from magma.backend.coreir_utils import check_magma_interface
+from magma.backend.coreir_ import CoreIRBackend
+from magma.t import Type, Kind
+from magma import *
+import magma
 import pytest
 coreir = pytest.importorskip("coreir")
-import magma
-from magma import *
-from magma.t import Type, Kind
-from magma.backend.coreir_ import CoreIRBackend
-from magma.backend.coreir_utils import check_magma_interface
-from magma.frontend.coreir_ import GetCoreIRModule
-
 
 
 def test_check_interface_bit():
@@ -54,6 +53,7 @@ def test_check_interface_tuple():
             wire(cls.I, cls.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit2.interface)
+
 
 def test_nested_clocks():
     c = coreir.Context()

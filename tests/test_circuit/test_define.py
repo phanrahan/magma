@@ -157,7 +157,7 @@ class XY(m.Product):
 
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
-@pytest.mark.parametrize("T",[m.Bit, m.Bits[2], m.Array[2, m.Bit], XY])
+@pytest.mark.parametrize("T", [m.Bit, m.Bits[2], m.Array[2, m.Bit], XY])
 def test_anon_value(target, suffix, T):
     And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
                             "O", m.Out(T))
@@ -179,6 +179,7 @@ def test_anon_value(target, suffix, T):
     m.compile(f"build/test_anon_value_{type_str}", main, target)
     assert check_files_equal(__file__, f"build/test_anon_value_{type_str}.{suffix}",
                              f"gold/test_anon_value_{type_str}.{suffix}")
+
 
 if __name__ == "__main__":
     test_simple_def("coreir", "json")

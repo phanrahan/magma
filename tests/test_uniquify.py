@@ -80,12 +80,12 @@ def test_key_error():
         return m.DeclareCircuit(*args, **kwargs,
                                 renamed_ports=default_port_mapping)
 
-    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
+    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(
+        m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
 
     class I(m.Product):
         data = m.Array[2, m.Bits[6]]
         sel = m.Bits[m.bitutils.clog2(2)]
-
 
     mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
                                *["I", m.In(I),
@@ -99,7 +99,8 @@ def test_key_error():
     m.wire(mux.O, Mux2x6.O)
     m.EndDefine()
 
-    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
+    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2, m.In(
+        m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
     Mux2x6_inst0 = Mux2x6()
     m.wire(MuxWrapper_2_6.I[0], Mux2x6_inst0.I0)
     m.wire(MuxWrapper_2_6.I[1], Mux2x6_inst0.I1)
@@ -107,7 +108,8 @@ def test_key_error():
     m.wire(Mux2x6_inst0.O, MuxWrapper_2_6.O)
     m.EndCircuit()
 
-    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
+    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2, m.In(
+        m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
     Mux2x6_inst0 = Mux2x6()
     m.wire(MuxWrapper_2_6_copy.I[0], Mux2x6_inst0.I0)
     m.wire(MuxWrapper_2_6_copy.I[1], Mux2x6_inst0.I1)
@@ -115,7 +117,8 @@ def test_key_error():
     m.wire(Mux2x6_inst0.O, MuxWrapper_2_6_copy.O)
     m.EndCircuit()
 
-    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[19]), "O", m.Out(m.Bits[6]))
+    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array[2, m.In(
+        m.Bits[6])], "S", m.In(m.Bits[19]), "O", m.Out(m.Bits[6]))
     MuxWrapper_2_6_inst0 = MuxWrapper_2_6()
     MuxWrapper_2_6_inst1 = MuxWrapper_2_6_copy()
     m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst0.I)
@@ -201,7 +204,6 @@ module foo(input i, output o);
     assign o = i;
 endmodule""")[0]
 
-
     class _Cell0(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -211,7 +213,6 @@ endmodule""")[0]
             foo.i <= io.I
             io.O <= foo.o
 
-
     class _Cell1(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -220,7 +221,6 @@ endmodule""")[0]
             foo = _generate_foo()()
             foo.i <= io.I
             io.O <= foo.o
-
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))

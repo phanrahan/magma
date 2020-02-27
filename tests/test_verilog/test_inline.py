@@ -85,13 +85,13 @@ assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
             cls.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.INPUT[0].valid,
-     ready_out=delay.inner_delay.OUTPUT[1].ready)
+                               ready_out=delay.inner_delay.OUTPUT[1].ready)
 
             # Test double recursive ref
             cls.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.inner_inner_delay.INPUT[0].valid,
-     ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
+                               ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
 
     m.compile(f"build/test_inline_tuple", Main, output="coreir-verilog",
               sv=True, inline=True)

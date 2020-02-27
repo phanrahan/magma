@@ -14,7 +14,6 @@ def test_product_python_sim_basic():
         def definition(io):
             io.O @= io.I
 
-
     simulator = PythonSimulator(Main)
     simulator.set_value(Main.I.a, 5)
     simulator.set_value(Main.I.b, 11)

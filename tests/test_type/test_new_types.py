@@ -2,6 +2,7 @@ import magma as m
 import pytest
 from magma.testing import check_files_equal
 
+
 @pytest.mark.parametrize('output', ['coreir-verilog', 'coreir'])
 def test_new_types(output):
     # TODO: Make it easier to do a type alias like this (for a parametrized type)

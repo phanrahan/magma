@@ -118,7 +118,8 @@ def test_construct():
 
     # test promote
     assert isinstance(m.Bits[16](a_1), m.Bits)
-    assert repr(m.Bits[16](a_1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
+    assert repr(m.Bits[16](
+        a_1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
 
 
 def test_const():
@@ -220,7 +221,8 @@ wire(TestBinary.I1, magma_Bits_{n}_{magma_op}_inst0.in1)
 wire(magma_Bits_{n}_{magma_op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
-    m.compile(f"build/TestBits{n}{magma_op}", TestBinary, output="coreir-verilog")
+    m.compile(f"build/TestBits{n}{magma_op}",
+              TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}{magma_op}.v",
                              f"gold/TestBits{n}{magma_op}.v")
 
@@ -238,12 +240,14 @@ EndCircuit()\
 def test_ite(n):
     class TestITE(m.Circuit):
         io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), S=m.In(m.Bits[n]),
-              O=m.Out(m.Bits[n]))
+                  O=m.Out(m.Bits[n]))
+
         @classmethod
         def definition(io):
             io.O <= io.S.ite(io.I0, io.I1)
 
-    gnd_wires = '\n'.join(f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
+    gnd_wires = '\n'.join(
+        f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
     assert repr(TestITE) == f"""\
 TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
 magma_Bit_not_inst0 = magma_Bit_not()
@@ -313,7 +317,8 @@ def test_zext(n):
             # Nasty precidence issue with <= operator means we need parens here
             io.O <= io.I.zext(3)
 
-    i_wires = '\n'.join(f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
+    i_wires = '\n'.join(
+        f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
     gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
@@ -380,7 +385,8 @@ TestRepeat = DefineCircuit("TestRepeat", "I", In(Bits[{n}]), "O", Out(Bits[{n * 
 {wires}
 EndCircuit()\
 """
-    m.compile(f"build/TestBits{n}x{x}Repeat", TestRepeat, output="coreir-verilog")
+    m.compile(f"build/TestBits{n}x{x}Repeat",
+              TestRepeat, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}x{x}Repeat.v",
                              f"gold/TestBits{n}x{x}Repeat.v")
 
