@@ -5,22 +5,18 @@ from magma import Bit, Circuit, IO, In, Out, wire
 class _Cell(Circuit):
     io = IO(I=In(Bit), O=Out(Bit))
 
-    @classmethod
-    def definition(io):
-        io.O <= io.I
+    io.O <= io.I
 
 
 class _Top(Circuit):
     io = IO(I=In(Bit), O=Out(Bit))
 
-    @classmethod
-    def definition(io):
-        in_ = io.I
-        for _ in range(5):
-            cell = _Cell()
-            cell.I <= in_
-            in_ = cell.O
-        io.O <= in_
+    in_ = io.I
+    for _ in range(5):
+        cell = _Cell()
+        cell.I <= in_
+        in_ = cell.O
+    io.O <= in_
 
 
 def test_basic():
