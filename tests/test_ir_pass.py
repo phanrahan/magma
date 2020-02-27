@@ -1,9 +1,9 @@
 from magma.passes import IRPass
-from magma import Bit, Circuit, In, Out, wire
+from magma import Bit, Circuit, IO, In, Out, wire
 
 
 class _Cell(Circuit):
-    io = m.IO(I=In(Bit), O=Out(Bit))
+    io = IO(I=In(Bit), O=Out(Bit))
 
     @classmethod
     def definition(io):
@@ -11,7 +11,7 @@ class _Cell(Circuit):
 
 
 class _Top(Circuit):
-    io = m.IO(I=In(Bit), O=Out(Bit))
+    io = IO(I=In(Bit), O=Out(Bit))
 
     @classmethod
     def definition(io):
