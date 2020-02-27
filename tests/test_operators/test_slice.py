@@ -11,9 +11,7 @@ def test_slice_fixed_range():
             O=m.Out(m.Bits[6])
         )
 
-        @classmethod
-        def definition(io):
-            io.O @= m.slice(io.I, start=io.x, width=6)
+        io.O @= m.slice(io.I, start=io.x, width=6)
 
     m.compile("build/TestSlice", TestSlice)
     assert check_files_equal(__file__,
