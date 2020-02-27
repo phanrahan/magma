@@ -9,9 +9,7 @@ def test_instance():
     class Test(Circuit):
         name = "Test"
         io = m.IO(I=In(T), O=Out(T), CLK=In(Bit))
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
 
     try:
         simulator = PythonSimulator(Test())

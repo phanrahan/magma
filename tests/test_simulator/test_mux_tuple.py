@@ -28,10 +28,8 @@ def test_muxn():
                   S=m.In(m.Bits[1]),
                   O=m.Out(m.Bits[5]))
 
-        @classmethod
-        def definition(io):
-            in_ = m.namedtuple(data=m.array([io.I0, io.I1]), sel=io.S)
-            io.O @= _declare_muxn(2, 5)()(in_)
+        in_ = m.namedtuple(data=m.array([io.I0, io.I1]), sel=io.S)
+        io.O @= _declare_muxn(2, 5)()(in_)
 
     sim = PythonSimulator(Main)
     for i in range(5):
