@@ -64,6 +64,9 @@ class CircuitPass(Pass):
 
 
 class DefinitionPass(CircuitPass):
+    """
+    Run only only on circuits with definitions
+    """
     def _run(self, circuit):
         if not isdefinition(circuit):
             return
