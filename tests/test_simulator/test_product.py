@@ -10,9 +10,7 @@ def test_product_python_sim_basic():
     class Main(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T))
 
-        @classmethod
-        def definition(io):
-            io.O @= io.I
+        io.O @= io.I
 
     simulator = PythonSimulator(Main)
     simulator.set_value(Main.I.a, 5)

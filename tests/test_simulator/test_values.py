@@ -8,9 +8,7 @@ def test_bit():
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            m.wire(io.I, io.O)
+        m.wire(io.I, io.O)
 
     sim = PythonSimulator(Main)
     for value in [False, True]:
@@ -30,9 +28,7 @@ def test_array():
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, m.Bit]), O=m.Out(m.Array[2, m.Bit]))
 
-        @classmethod
-        def definition(io):
-            m.wire(io.I, io.O)
+        m.wire(io.I, io.O)
 
     sim = PythonSimulator(Main)
     for value in range(0, 4):
@@ -59,9 +55,7 @@ def test_uint(T):
     class Main(m.Circuit):
         io = m.IO(I=m.In(T[2]), O=m.Out(T[2]))
 
-        @classmethod
-        def definition(io):
-            m.wire(io.I, io.O)
+        m.wire(io.I, io.O)
 
     sim = PythonSimulator(Main)
     for value in range(0, 4):
@@ -84,9 +78,7 @@ def test_sint():
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.SInt[2]), O=m.Out(m.SInt[2]))
 
-        @classmethod
-        def definition(io):
-            m.wire(io.I, io.O)
+        m.wire(io.I, io.O)
 
     sim = PythonSimulator(Main)
     for value in range(-2, 2):
