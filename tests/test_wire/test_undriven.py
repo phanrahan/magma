@@ -15,12 +15,10 @@ def test_undriven():
             O3=m.Out(m.Array[5, A]),
         )
 
-        @classmethod
-        def definition(io):
-            io.O0.undriven()
-            io.O1.undriven()
-            io.O2.undriven()
-            io.O3.undriven()
+        io.O0.undriven()
+        io.O1.undriven()
+        io.O2.undriven()
+        io.O3.undriven()
 
     m.compile("build/test_undriven", Circuit)
     assert check_files_equal(__file__, f"build/test_undriven.v",
