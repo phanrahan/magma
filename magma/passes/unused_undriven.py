@@ -1,12 +1,8 @@
 from abc import abstractmethod
-from .passes import CircuitPass
+from .passes import EditCircuitPass
 
 
-class UndrivenUnusedPass(CircuitPass):
-    @abstractmethod
-    def process(self, port_values):
-        raise NotImplementedError()
-
+class UndrivenUnusedPass(EditCircuitPass):
     def __call__(self, circuit):
         with circuit.open():
             self.process(circuit, circuit.interface.ports.values())
@@ -14,19 +10,35 @@ class UndrivenUnusedPass(CircuitPass):
                 self.process(circuit, instance.interface.ports.values())
 
 
-class DriveUndriven(UndrivenUnusedPass):
-    def process(self, circuit, port_values):
-        for value in port_values:
-            if value.is_input() and value.trace() is None:
-                # Turn decls into definition
-                circuit._is_definition = True
-                value.undriven()
+def _drive_undriven(interface):
+    undriven = False
+    for port in interface.ports.values():
+        if port.is_input() and port.trace() is None:
+            undriven = True
+            port.undriven()
+    return undriven
 
 
-class TerminateUnused(UndrivenUnusedPass):
-    def process(self, circuit, port_values):
-        for value in port_values:
-            if value.is_output() and value.wired() is False:
-                # Turn decls into definition
-                circuit._is_definition = True
-                value.unused()
+def _terminate_unused(interface):
+    terminated = False
+    for port in interface.ports.values():
+        if port.is_output() and port.wired() is False:
+            terminated = True
+            port.unused()
+    return terminated
+
+
+class DriveUndrivenPass(EditCircuitPass):
+    def edit(self, circuit):
+        if _drive_undriven(circuit.interface):
+            circuit._is_definition = True
+        for inst in circuit.instances:
+            _drive_undriven(inst.interface)
+
+
+class TerminateUnusedPass(EditCircuitPass):
+    def edit(self, circuit):
+        if _terminate_unused(circuit.interface):
+            circuit._is_definition = True
+        for inst in circuit.instances:
+            _terminate_unused(inst.interface)

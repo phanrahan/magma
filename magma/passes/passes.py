@@ -105,3 +105,13 @@ class InstanceGraphPass(Pass):
         if callable(self):
             for vert, edges in self.tsortedgraph:
                 self(vert, edges)
+
+
+class EditCircuitPass(CircuitPass):
+    @abstractmethod
+    def edit(self, circuit):
+        raise NotImplementedError()
+
+    def __call__(self, circuit):
+        with circuit.open():
+            self.edit(circuit)
