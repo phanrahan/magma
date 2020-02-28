@@ -111,7 +111,7 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
 def DefineDFF(init=0, has_ce=False, has_reset=False, has_async_reset=False, has_async_resetn=False):
     Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
-    IO += m.ClockIO(has_ce=has_ce, has_reset=has_reset,
+    io += m.ClockIO(has_ce=has_ce, has_reset=has_reset,
                     has_async_reset=has_async_reset,
                     has_async_resetn=has_async_resetn)
     circ = m.DefineCircuit("DFF_init{}_has_ce{}_has_reset{}_has_async_reset{}".format(
