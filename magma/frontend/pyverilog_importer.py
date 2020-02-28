@@ -5,7 +5,8 @@ import pyverilog.vparser.parser
 from ..array import Array
 from ..bit import Bit
 from ..bits import Bits
-from ..circuit import DeclareCircuit, DefineCircuit, EndCircuit
+from ..circuit import Circuit
+from ..interface import IO
 from ..math import log2_ceil
 from ..passes.tsort import tsort
 from ..t import In, Out, InOut
@@ -151,16 +152,14 @@ class PyverilogImporter(VerilogImporter):
                                            pyverilog.vparser.parser.Inout)):
                     ports[subchild.name] = subchild
         # Convert pyverilog ports to magma types and define a magma circuit.
-        decl = []
-        for name, port in ports.items():
-            decl.append(name)
-            magma_type = _magma_type(port, default_params)
-            magma_type = self.map_type(name, magma_type)
-            decl.append(magma_type)
-        circ = mode.func()(defn.name, *decl)
-        if mode is ImportMode.DEFINE:
-            EndCircuit()
-        return circ, default_params
+        decl = {n: self.map_type(n, _magma_type(port, default_params))
+                for n, port in ports.items()}
+
+        class _FromVerilog(Circuit):
+            name = defn.name
+            io = IO(**decl)
+
+        return _FromVerilog, default_params
 
     def import_(self, src, mode):
         parser = pyverilog.vparser.parser.VerilogParser()
@@ -169,8 +168,9 @@ class PyverilogImporter(VerilogImporter):
         visitor.visit(ast)
         for name, defn in visitor.defns.items():
             circ, default_params = self._import_defn(defn, mode)
-            circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno)
-            circ.verilog_source = src
+            if mode is ImportMode.DEFINE:
+                circ.verilogFile = _get_lines(src, defn.lineno, defn.end_lineno)
+                circ.verilog_source = src
             circ.coreir_config_param_types = {
                 k: type(v)
                 for k, v in default_params.items()
