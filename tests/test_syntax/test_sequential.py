@@ -109,30 +109,27 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
 
 @m.cache_definition
 def DefineDFF(init=0, has_ce=False, has_reset=False, has_async_reset=False, has_async_resetn=False):
-    Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
-    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
-    io += m.ClockIO(has_ce=has_ce, has_reset=has_reset,
-                    has_async_reset=has_async_reset,
-                    has_async_resetn=has_async_resetn)
-    circ = m.DefineCircuit("DFF_init{}_has_ce{}_has_reset{}_has_async_reset{}".format(
-        init, has_ce, has_reset, has_async_reset, has_async_resetn),
-        *IO)
-    value = Reg()
-    m.wiredefaultclock(circ, value)
-    m.wireclock(circ, value)
-    I = circ.I
-    if has_reset and (has_async_reset or has_async_resetn):
-        raise ValueError("Cannot have synchronous and asynchronous reset")
-    if has_async_resetn and has_async_reset:
-        raise ValueError("Cannot have posedge and negedge asynchronous reset")
-    if has_reset:
-        I = Mux()(circ.I, bit(init), circ.RESET)
-    if has_ce:
-        I = Mux()(value.O[0], I, circ.CE)
-    m.wire(I, value.I[0])
-    m.wire(value.O[0], circ.O)
-    m.EndDefine()
-    return circ
+    class _DFF(m.Circuit):
+        name = "DFF_init{}_has_ce{}_has_reset{}_has_async_reset{}".format(
+            init, has_ce, has_reset, has_async_reset, has_async_resetn)
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io += m.ClockIO(has_ce=has_ce, has_reset=has_reset,
+                        has_async_reset=has_async_reset,
+                        has_async_resetn=has_async_resetn)
+        Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
+        value = Reg()
+        I = io.I
+        if has_reset and (has_async_reset or has_async_resetn):
+            raise ValueError("Cannot have synchronous and asynchronous reset")
+        if has_async_resetn and has_async_reset:
+            raise ValueError("Cannot have posedge and negedge asynchronous reset")
+        if has_reset:
+            I = Mux()(io.I, bit(init), io.RESET)
+        if has_ce:
+            I = Mux()(value.O[0], I, io.CE)
+        m.wire(I, value.I[0])
+        m.wire(value.O[0], io.O)
+    return _DFF
 
 
 @m.cache_definition

@@ -27,7 +27,7 @@ def test_ff_param(target, circuit_type):
 
     class Top(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2])) + \
-            m.ClockInterface(has_async_reset=True)
+            m.ClockIO(has_async_reset=True)
 
         # keyword arguments to instancing call are passed as verilog
         # parameters

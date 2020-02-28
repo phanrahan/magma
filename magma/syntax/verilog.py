@@ -252,8 +252,8 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
         name = circ_name
         io = m.IO(**io_dict)
         kratos = mod
-        with open(filename, 'r') as f:
-            verilogFile = f.read()
+    with open(filename, 'r') as f:
+        _Defn.verilogFile = f.read()
     return _Defn
 
 
