@@ -1,10 +1,4 @@
 // Module `InnerInnerDelayUnit` defined externally
-module corebit_term (
-    input in
-);
-
-endmodule
-
 module InnerDelayUnit (
     input CLK,
     input [4:0] INPUT_0_data,
@@ -97,12 +91,6 @@ DelayUnit DelayUnit_inst0 (
     .OUTPUT_1_data(O_0_data),
     .OUTPUT_1_ready(O_0_ready),
     .OUTPUT_1_valid(O_0_valid)
-);
-corebit_term corebit_term_inst0 (
-    .in(I_0_valid)
-);
-corebit_term corebit_term_inst1 (
-    .in(O_1_ready)
 );
 assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);
 
