@@ -10,20 +10,19 @@ def test_add_gen():
             """
             Define and return magma circuit
             """
+            class AddPrim(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[width]),
+                    I1=m.In(m.Bits[width]),
+                    O=m.Out(m.Bits[width]),
+                )
             class _Add(m.Circuit):
                 io = m.IO(
                     I0=m.In(m.Bits[width]),
                     I1=m.In(m.Bits[width]),
                     O=m.Out(m.Bits[width]),
                 )
-
-                add = m.DeclareCircuit(
-                    "add",
-                    "I0", m.In(m.Bits[width]),
-                    "I1", m.In(m.Bits[width]),
-                    "O", m.Out(m.Bits[width])
-                )
-                io.O <= add()(io.I0, io.I1)
+                io.O <= AddPrim()(io.I0, io.I1)
             return _Add
 
     # Reference the generated circuit definition using generate method
