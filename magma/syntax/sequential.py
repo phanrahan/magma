@@ -142,7 +142,8 @@ def get_initial_value_map(init_func, defn_env):
             eval_type = eval(astor.to_source(stmt.annotation).rstrip(), defn_env)
             eval_value = eval(astor.to_source(stmt.value).rstrip(), defn_env)
         initial_value_map[stmt.target.attr] = (stmt.value, stmt.annotation,
-                                               eval_type, eval_value)
+                                               Tmp.eval_type,
+                                               Tmp.eval_value)
     return initial_value_map
 
 
