@@ -9,9 +9,9 @@ from hwtypes import BitVector
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
 
-Not = m.DefineCircuit("Not", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-m.wire(0, Not.O)
-m.EndDefine()
+class Not(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= 0
 
 
 # TODO: Revert this to using mux primitive when moved to magma
