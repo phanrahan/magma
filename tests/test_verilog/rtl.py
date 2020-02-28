@@ -32,7 +32,9 @@ class RTL(m.Generator):
 
             temp1 = orr()(io.in1)
             temp2 = andr()(io.in1)
-            io.out @= logical_and()(temp1, temp2)
+            intermediate_tuple = m.tuple_([temp1, temp2])
+            io.out @= logical_and()(intermediate_tuple[0],
+                                    intermediate_tuple[1])
             m.wire(io.handshake.valid, io.handshake.ready)
             for i in range(3):
                 m.wire(io.handshake_arr[i].valid,

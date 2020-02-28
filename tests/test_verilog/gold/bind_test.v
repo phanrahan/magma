@@ -22,7 +22,6 @@ module RTL (
     output out
 );
 wire andr_4_inst0_O;
-wire logical_and_inst0_O;
 wire orr_4_inst0_O;
 andr_4 andr_4_inst0 (
     .I(in1),
@@ -31,7 +30,7 @@ andr_4 andr_4_inst0 (
 logical_and logical_and_inst0 (
     .I0(orr_4_inst0_O),
     .I1(andr_4_inst0_O),
-    .O(logical_and_inst0_O)
+    .O(out)
 );
 orr_4 orr_4_inst0 (
     .I(in1),
@@ -41,6 +40,5 @@ assign handshake_arr_0_valid = handshake_arr_2_ready;
 assign handshake_arr_1_valid = handshake_arr_1_ready;
 assign handshake_arr_2_valid = handshake_arr_0_ready;
 assign handshake_valid = handshake_ready;
-assign out = logical_and_inst0_O;
 endmodule
 

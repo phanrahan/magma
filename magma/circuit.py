@@ -318,6 +318,19 @@ class CircuitKind(type):
         format_args = {}
         for key, arg in kwargs.items():
             if isinstance(arg, m.Type):
+                # TODO: For now we assumed values aren't used elswhere, this
+                # forces it to be connected to an instance, so temporaries will
+                # appear in the code
+                if arg.is_inout() and not arg.driven():
+                    raise NotImplementedError()
+                if arg.is_input() and not arg.driven():
+                    # TODO: Could be driven after, but that will just override
+                    # this wiring so it's okay for now
+                    arg.undriven()
+                elif arg.is_output() and not arg.wired():
+                    arg.unused()
+                elif not (arg.is_input() or arg.is_output() or arg.is_inout()):
+                    arg.unused()
                 arg = value_to_verilog_name(arg)
             elif isinstance(arg, PortView):
                 arg = value_to_verilog_name(arg)
@@ -677,7 +690,7 @@ Bind monitor interface does not match circuit interface
         set_compile_dir("normal")
         # Circular dependency, need coreir backend to compile, backend imports
         # circuit (for wrap casts logic, we might be able to factor that out)
-        m.compile(f".magma/{monitor.name}", monitor)
+        m.compile(f".magma/{monitor.name}", monitor, inline=True)
         set_compile_dir(curr_compile_dir)
         with open(f".magma/{monitor.name}.v", "r") as f:
             content = "\n".join((f.read(), bind_str))
