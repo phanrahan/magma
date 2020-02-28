@@ -1,41 +1,41 @@
 from .test_primitives import *
+import magma as m
 from magma.simulator import PythonSimulator
 from magma.scope import *
 
-def test():
-    args = ['I0', In(Bit), 'I1', In(Bit), 'O', Out(Bit)] + ClockInterface(False, False, False)
 
-    testcircuit = DefineCircuit('TestCircuit', *args)
-    andy = PRIM_AND()
-    ori = PRIM_OR()
-    ori2 = PRIM_OR()
-    n = PRIM_NOT()
+def test_sim_logic():
+    class TestCircuit(m.Circuit):
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        andy = PRIM_AND()
+        ori = PRIM_OR()
+        ori2 = PRIM_OR()
+        n = PRIM_NOT()
 
-    wire(testcircuit.I0, andy.I0)
-    wire(testcircuit.I1, andy.I1)
-    wire(testcircuit.I0, ori.I0)
-    wire(testcircuit.I1, n.I)
-    wire(n.O, ori.I1)
+        m.wire(io.I0, andy.I0)
+        m.wire(io.I1, andy.I1)
+        m.wire(io.I0, ori.I0)
+        m.wire(io.I1, n.I)
+        m.wire(n.O, ori.I1)
 
-    wire(ori.O, ori2.I0)
-    wire(andy.O, ori2.I1)
+        m.wire(ori.O, ori2.I0)
+        m.wire(andy.O, ori2.I1)
 
-    wire(ori2.O, testcircuit.O)
-    EndCircuit()
+        m.wire(ori2.O, io.O)
 
-    sim = PythonSimulator(testcircuit)
+    sim = PythonSimulator(TestCircuit)
     sim.evaluate()
-    v = sim.get_value(testcircuit.O)
-    assert v == True
+    v = sim.get_value(TestCircuit.O)
+    assert v is True
 
-    sim.set_value(testcircuit.I1, True)
+    sim.set_value(TestCircuit.I1, True)
     sim.evaluate()
-    v = sim.get_value(testcircuit.O)
-    assert v == False
+    v = sim.get_value(TestCircuit.O)
+    assert v is False
 
-    sim.set_value(testcircuit.I0, True)
+    sim.set_value(TestCircuit.I0, True)
     sim.evaluate()
-    v = sim.get_value(testcircuit.O)
+    v = sim.get_value(TestCircuit.O)
     assert v == True
 
 
