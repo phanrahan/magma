@@ -1,0 +1,52 @@
+{"top":"global.main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "And2":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["O","Bit"]
+        ]],
+        "metadata":{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"55"}
+      },
+      "main":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "and2_0":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"61"}
+          },
+          "and2_1":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"61"}
+          },
+          "and2_2":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"61"}
+          },
+          "and2_3":{
+            "modref":"global.And2",
+            "metadata":{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"61"}
+          }
+        },
+        "connections":[
+          ["self.I.0","and2_0.I0",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"63"}],
+          ["self.I.1","and2_0.I1",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"64"}],
+          ["and2_1.I0","and2_0.O",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"66"}],
+          ["self.I.1","and2_1.I1",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"67"}],
+          ["and2_2.I0","and2_1.O",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"66"}],
+          ["self.I.1","and2_2.I1",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"67"}],
+          ["and2_3.I0","and2_2.O",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"66"}],
+          ["self.I.1","and2_3.I1",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"67"}],
+          ["self.O","and2_3.O",{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"70"}]
+        ],
+        "metadata":{"filename":"tests/test_deprecated/test_old_io_syntax/test_define.py","lineno":"57"}
+      }
+    }
+  }
+}
+}
