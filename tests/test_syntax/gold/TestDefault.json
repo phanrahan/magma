@@ -1,0 +1,65 @@
+{"top":"global.TestDefault",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestDefault":{
+        "type":["Record",[
+          ["index",["Array",3,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["ASYNCRESET",["Named","coreir.arstIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "TestDefault_comb_inst0":{
+            "modref":"global.TestDefault_comb"
+          },
+          "reg_PR_inst0":{
+            "genref":"coreir.reg_arst",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"arst_posedge":["Bool",true], "clk_posedge":["Bool",true], "init":[["BitVector",8],"8'hfe"]}
+          }
+        },
+        "connections":[
+          ["reg_PR_inst0.in","TestDefault_comb_inst0.O0"],
+          ["self.O","TestDefault_comb_inst0.O1"],
+          ["self.index","TestDefault_comb_inst0.index"],
+          ["reg_PR_inst0.out","TestDefault_comb_inst0.self_x_O"],
+          ["self.ASYNCRESET","reg_PR_inst0.arst"],
+          ["self.CLK","reg_PR_inst0.clk"]
+        ]
+      },
+      "TestDefault_comb":{
+        "type":["Record",[
+          ["index",["Array",3,"BitIn"]],
+          ["self_x_O",["Array",8,"BitIn"]],
+          ["O0",["Array",8,"Bit"]],
+          ["O1","Bit"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "magma_Bits_8_lshr_inst0":{
+            "genref":"coreir.lshr",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["magma_Bits_8_lshr_inst0.in1.3","bit_const_0_None.out"],
+          ["magma_Bits_8_lshr_inst0.in1.4","bit_const_0_None.out"],
+          ["magma_Bits_8_lshr_inst0.in1.5","bit_const_0_None.out"],
+          ["magma_Bits_8_lshr_inst0.in1.6","bit_const_0_None.out"],
+          ["magma_Bits_8_lshr_inst0.in1.7","bit_const_0_None.out"],
+          ["self.self_x_O","magma_Bits_8_lshr_inst0.in0"],
+          ["self.index.0","magma_Bits_8_lshr_inst0.in1.0"],
+          ["self.index.1","magma_Bits_8_lshr_inst0.in1.1"],
+          ["self.index.2","magma_Bits_8_lshr_inst0.in1.2"],
+          ["self.O1","magma_Bits_8_lshr_inst0.out.0"],
+          ["self.self_x_O","self.O0"]
+        ]
+      }
+    }
+  }
+}
+}

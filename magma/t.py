@@ -97,7 +97,7 @@ class Type(object):
         if not self.is_output():
             self.wire(other)
         else:
-            raise TypeError(f"Cannot use @= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
+            raise TypeError(f"Cannot use @= to assign to output: {self} (trying to assign {other})")
         return self
 
     @abstractmethod

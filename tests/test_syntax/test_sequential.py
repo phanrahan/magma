@@ -5,8 +5,47 @@ from collections.abc import Sequence
 import coreir
 import ast_tools
 from magma.circuit import DeclareCoreirCircuit
+from hwtypes import BitVector
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
+
+
+def gen_sim_register(N, init, has_ce, has_async_reset, has_async_resetn):
+    def sim_register(self, value_store, state_store):
+        if has_async_resetn and has_async_reset:
+            raise ValueError("Cannot have posedge and negedge asynchronous reset")
+        cur_clock = value_store.get_value(self.CLK)
+
+        if not state_store:
+            state_store['prev_clock'] = cur_clock
+            state_store['cur_val'] = BitVector[N](init) if N is not None else bool(init)
+
+        if has_async_reset or has_async_resetn:
+            cur_reset = value_store.get_value(self.arst)
+        # if s:
+        #     cur_s = value_store.get_value(self.S)
+
+        prev_clock = state_store['prev_clock']
+        # if not n:
+        #     clock_edge = cur_clock and not prev_clock
+        # else:
+        #     clock_edge = not cur_clock and prev_clock
+        clock_edge = cur_clock and not prev_clock
+
+        new_val = state_store['cur_val'].as_bool_list() if N is not None else state_store['cur_val']
+
+        if clock_edge:
+            new_val = value_store.get_value(self.I)
+
+        if has_async_reset and cur_reset or has_async_resetn and not cur_reset:
+            new_val = BitVector[N](init) if N is not None else bool(init)
+        # if s and not sy and cur_s:
+        #     new_val = True
+
+        state_store['prev_clock'] = cur_clock
+        state_store['cur_val'] = BitVector[N](new_val) if N is not None else new_val
+        value_store.set_value(self.O, new_val)
+    return sim_register
 
 
 @m.cache_definition
@@ -62,36 +101,35 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
         coreir_configargs=config_args,
         coreir_name=coreir_name,
         verilog_name="coreir_" + coreir_name,
-        coreir_lib="coreir"
+        coreir_lib="coreir",
+        simulate=gen_sim_register(width, init, False, has_async_reset,
+                                  has_async_resetn)
     )
 
 
 @m.cache_definition
 def DefineDFF(init=0, has_ce=False, has_reset=False, has_async_reset=False, has_async_resetn=False):
-    Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
-    IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
-    IO += m.ClockInterface(has_ce=has_ce, has_reset=has_reset,
-                           has_async_reset=has_async_reset,
-                           has_async_resetn=has_async_resetn)
-    circ = m.DefineCircuit("DFF_init{}_has_ce{}_has_reset{}_has_async_reset{}".format(
-        init, has_ce, has_reset, has_async_reset, has_async_resetn),
-        *IO)
-    value = Reg()
-    m.wiredefaultclock(circ, value)
-    m.wireclock(circ, value)
-    I = circ.I
-    if has_reset and (has_async_reset or has_async_resetn):
-        raise ValueError("Cannot have synchronous and asynchronous reset")
-    if has_async_resetn and has_async_reset:
-        raise ValueError("Cannot have posedge and negedge asynchronous reset")
-    if has_reset:
-        I = Mux()(circ.I, bit(init), circ.RESET)
-    if has_ce:
-        I = Mux()(value.O[0], I, circ.CE)
-    m.wire(I, value.I[0])
-    m.wire(value.O[0], circ.O)
-    m.EndDefine()
-    return circ
+    class _DFF(m.Circuit):
+        name = "DFF_init{}_has_ce{}_has_reset{}_has_async_reset{}".format(
+            init, has_ce, has_reset, has_async_reset, has_async_resetn)
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io += m.ClockIO(has_ce=has_ce, has_reset=has_reset,
+                        has_async_reset=has_async_reset,
+                        has_async_resetn=has_async_resetn)
+        Reg = DefineCoreirReg(None, init, has_async_reset, has_async_resetn)
+        value = Reg()
+        I = io.I
+        if has_reset and (has_async_reset or has_async_resetn):
+            raise ValueError("Cannot have synchronous and asynchronous reset")
+        if has_async_resetn and has_async_reset:
+            raise ValueError("Cannot have posedge and negedge asynchronous reset")
+        if has_reset:
+            I = Mux()(io.I, bit(init), io.RESET)
+        if has_ce:
+            I = Mux()(value.O[0], I, io.CE)
+        m.wire(I, value.I[0])
+        m.wire(value.O[0], io.O)
+    return _DFF
 
 
 @m.cache_definition
@@ -108,43 +146,42 @@ def DefineRegister(n, init=0, has_ce=False, has_reset=False,
             T = m.Bit
         else:
             T = _type[n]
+
         class Register(m.Circuit):
             name = f"Register_has_ce_{has_ce}_has_reset_{has_reset}_" \
                    f"has_async_reset_{has_async_reset}_" \
                    f"has_async_resetn_{has_async_resetn}_" \
                    f"type_{_type.__name__}_n_{n}"
-            IO = ["I", m.In(T), "O", m.Out(T)]
-            IO += m.ClockInterface(has_ce=has_ce,
-                                   has_reset=has_reset,
-                                   has_async_reset=has_async_reset,
-                                   has_async_resetn=has_async_resetn)
+            io = m.IO(I=m.In(T), O=m.Out(T))
+            io += m.ClockIO(has_ce=has_ce,
+                            has_reset=has_reset,
+                            has_async_reset=has_async_reset,
+                            has_async_resetn=has_async_resetn)
 
-            @classmethod
-            def definition(io):
-                reg = DefineCoreirReg(n, init, has_async_reset,
-                                      has_async_resetn, _type)(name="value")
-                I = io.I
-                O = reg.O
-                if n is None:
-                    O = O[0]
-                if has_reset and has_ce:
-                    if reset_priority:
-                        I = mantle.mux([O, I], io.CE, name="enable_mux")
-                        I = mantle.mux([I, m.bits(init, n)], io.RESET)
-                    else:
-                        I = mantle.mux([I, m.bits(init, n)], io.RESET)
-                        I = mantle.mux([O, I], io.CE, name="enable_mux")
-                elif has_ce:
+            reg = DefineCoreirReg(n, init, has_async_reset,
+                                  has_async_resetn, _type)(name="value")
+            I = io.I
+            O = reg.O
+            if n is None:
+                O = O[0]
+            if has_reset and has_ce:
+                if reset_priority:
                     I = mantle.mux([O, I], io.CE, name="enable_mux")
-                elif has_reset:
                     I = mantle.mux([I, m.bits(init, n)], io.RESET)
-                if n is None:
-                    m.wire(I, reg.I[0])
                 else:
-                    m.wire(I, reg.I)
-                m.wire(io.O, O)
-                m.wireclock(io, reg)
-                m.wiredefaultclock(io, reg)
+                    I = mantle.mux([I, m.bits(init, n)], io.RESET)
+                    I = mantle.mux([O, I], io.CE, name="enable_mux")
+            elif has_ce:
+                I = mantle.mux([O, I], io.CE, name="enable_mux")
+            elif has_reset:
+                I = mantle.mux([I, m.bits(init, n)], io.RESET)
+            if n is None:
+                m.wire(I, reg.I[0])
+            else:
+                m.wire(I, reg.I)
+            m.wire(io.O, O)
+            m.wireclock(io, reg)
+            m.wiredefaultclock(io, reg)
 
         return Register
     elif n is None:
@@ -157,7 +194,7 @@ def DefineRegister(n, init=0, has_ce=False, has_reset=False,
 
 
 def Register(n, init=0, has_ce=False, has_reset=False, has_async_reset=False,
-             has_async_resetn=False, _type = m.Bits, **kwargs):
+             has_async_resetn=False, _type=m.Bits, **kwargs):
     return DefineRegister(n, init, has_ce, has_reset, has_async_reset,
                           has_async_resetn=has_async_resetn, _type=_type)(**kwargs)
 
@@ -171,6 +208,7 @@ def pytest_generate_tests(metafunc):
 
 def _run_verilator(circuit, directory):
     import subprocess
+
     def run_from_directory(cmd):
         return subprocess.call(cmd, cwd=directory, shell=True)
     top = circuit.name
@@ -196,7 +234,8 @@ def test_seq_simple(target, async_reset):
             self.x = I
             return O
 
-    compile_and_check("TestBasic" + ("ARST" if async_reset else ""), TestBasic, target)
+    compile_and_check(
+        "TestBasic" + ("ARST" if async_reset else ""), TestBasic, target)
     if target == "coreir-verilog" and not async_reset:
         """
         The following sequence was used to create the verilator driver:
@@ -217,6 +256,7 @@ def test_seq_simple(target, async_reset):
         """
         _run_verilator(TestBasic, directory="tests/test_syntax/build")
 
+
 def test_seq_call(target):
     @m.circuit.sequential
     class TestCall:
@@ -232,11 +272,12 @@ def test_seq_call(target):
 
     compile_and_check("TestCall", TestCall, target)
 
+
 def test_custom_env(target):
 
     _globals = globals()
-    _globals.update({'_custom_local_var_':2})
-    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
+    _globals.update({'_custom_local_var_': 2})
+    env = ast_tools.stack.SymbolTable(locals=locals(), globals=_globals)
 
     class TestBasic:
         def __init__(self):
@@ -249,8 +290,9 @@ def test_custom_env(target):
             self.x = I
             return O
 
-    _TestBasic = m.circuit.sequential(TestBasic,env=env)
+    _TestBasic = m.circuit.sequential(TestBasic, env=env)
     compile_and_check("CustomEnv", _TestBasic, target)
+
 
 def test_seq_hierarchy(target, async_reset):
     @m.cache_definition
@@ -281,7 +323,8 @@ def test_seq_hierarchy(target, async_reset):
             y_prev = self.y(x_prev)
             return y_prev
 
-    compile_and_check("TestShiftRegister" + ("ARST" if async_reset else ""), TestShiftRegister, target)
+    compile_and_check("TestShiftRegister" +
+                      ("ARST" if async_reset else ""), TestShiftRegister, target)
     if target == "coreir-verilog" and not async_reset:
         """
         The following sequence was used to create the verilator driver:
@@ -340,7 +383,8 @@ def test_multiple_return(target, async_reset):
                 return reg_val, reg_val
 
     print(repr(type(RegisterMode.instances[1])))
-    compile_and_check("RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
+    compile_and_check(
+        "RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
 
 
 def test_array_of_bits(target):
@@ -401,7 +445,8 @@ def test_namedtuple_seq():
 
             return new_a
 
-    m.compile("build/test_named_tuple_seq", TestNamedTuple, output="coreir-verilog")
+    m.compile("build/test_named_tuple_seq",
+              TestNamedTuple, output="coreir-verilog")
 
 
 def test_product_reg(target):
@@ -486,6 +531,19 @@ def test_no_init(target):
     compile_and_check("TestNoInit", TestNoInit, target)
 
 
+
+def test_default(target):
+    @m.circuit.sequential(async_reset=True)
+    class TestDefault:
+        def __init__(self):
+            self.x: m.Bits[8] = m.bits(0xFE, 8)
+
+        def __call__(self, index: m.UInt[3]) -> m.Bit:
+            return self.x[index]
+
+    compile_and_check("TestDefault", TestDefault, target)
+
+    
 def test_replace_array(target):
     A = m.Array[2, m.Bit]
 

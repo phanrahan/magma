@@ -621,6 +621,8 @@ class DefineCircuitKind(CircuitKind):
                                 "'definition'")
         run_unconnected_check = run_unconnected_check or (
             has_definition and self._syntax_style_ is _SyntaxStyle.NEW)
+        run_unconnected_check = run_unconnected_check and not \
+            dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
             self.check_unconnected()
 
@@ -763,7 +765,7 @@ def circuit_generator(func):
     return wrapped
 
 
-default_port_mapping = {
+coreir_port_mapping = {
     "I": "in",
     "I0": "in0",
     "I1": "in1",
@@ -775,7 +777,4 @@ default_port_mapping = {
 
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
-                          renamed_ports=default_port_mapping)
-
-
-coreir_port_mapping = default_port_mapping
+                          renamed_ports=coreir_port_mapping)

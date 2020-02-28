@@ -8,7 +8,19 @@
           ["I1","BitIn"],
           ["S","BitIn"],
           ["O","Bit"]
-        ]]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux2x1_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",1]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux2x1_inst0.in.data.0.0"],
+          ["self.I1","coreir_commonlib_mux2x1_inst0.in.data.1.0"],
+          ["self.S","coreir_commonlib_mux2x1_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x1_inst0.out.0"]
+        ]
       },
       "Mux2xOutBits4":{
         "type":["Record",[
@@ -16,7 +28,19 @@
           ["I1",["Array",4,"BitIn"]],
           ["S","BitIn"],
           ["O",["Array",4,"Bit"]]
-        ]]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux2x4_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux2x4_inst0.in.data.0"],
+          ["self.I1","coreir_commonlib_mux2x4_inst0.in.data.1"],
+          ["self.S","coreir_commonlib_mux2x4_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x4_inst0.out"]
+        ]
       },
       "Register":{
         "type":["Record",[

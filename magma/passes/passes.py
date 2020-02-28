@@ -39,29 +39,38 @@ class InstancePass(Pass):
         return self
 
 
-class DefinitionPass(Pass):
+class CircuitPass(Pass):
+    """
+    Run on all circuits (not just definitions)
+    """
     def __init__(self, main):
         super().__init__(main)
-        self.defns = {}
+        self.circuits = {}
 
-    def _run(self, defn):
-        if not isdefinition(defn):
-            return
-        for inst in defn.instances:
-            inst_defn = type(inst)
-            if isdefinition(inst_defn):
-                self._run(inst_defn)
+    def _run(self, circuit):
+        for inst in circuit.instances:
+            self._run(type(inst))
         # Call each definition only once.
-        id_ = id(defn)
-        if id_ not in self.defns:
-            self.defns[id_] = defn
+        id_ = id(circuit)
+        if id_ not in self.circuits:
+            self.circuits[id_] = circuit
             if callable(self):
-                self(defn)
+                self(circuit)
 
     def run(self):
         self._run(self.main)
         self.done()
         return self
+
+
+class DefinitionPass(CircuitPass):
+    """
+    Run only only on circuits with definitions
+    """
+    def _run(self, circuit):
+        if not isdefinition(circuit):
+            return
+        super()._run(circuit)
 
 
 class BuildInstanceGraphPass(DefinitionPass):
@@ -96,3 +105,13 @@ class InstanceGraphPass(Pass):
         if callable(self):
             for vert, edges in self.tsortedgraph:
                 self(vert, edges)
+
+
+class EditCircuitPass(CircuitPass):
+    @abstractmethod
+    def edit(self, circuit):
+        raise NotImplementedError()
+
+    def __call__(self, circuit):
+        with circuit.open():
+            self.edit(circuit)

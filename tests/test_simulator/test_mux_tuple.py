@@ -23,15 +23,13 @@ def _declare_muxn(height, width):
 
 def test_muxn():
     class Main(m.Circuit):
-        IO = ["I0", m.In(m.Bits[5]),
-              "I1", m.In(m.Bits[5]),
-              "S", m.In(m.Bits[1]),
-              "O", m.Out(m.Bits[5])]
+        io = m.IO(I0=m.In(m.Bits[5]),
+                  I1=m.In(m.Bits[5]),
+                  S=m.In(m.Bits[1]),
+                  O=m.Out(m.Bits[5]))
 
-        @classmethod
-        def definition(io):
-            in_ = m.namedtuple(data=m.array([io.I0, io.I1]), sel=io.S)
-            io.O @= _declare_muxn(2, 5)()(in_)
+        in_ = m.namedtuple(data=m.array([io.I0, io.I1]), sel=io.S)
+        io.O @= _declare_muxn(2, 5)()(in_)
 
     sim = PythonSimulator(Main)
     for i in range(5):

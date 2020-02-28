@@ -10,22 +10,20 @@ def test_add_gen():
             """
             Define and return magma circuit
             """
-            class _Add(m.Circuit):
-                IO = [
-                    "I0", m.In(m.Bits[width]),
-                    "I1", m.In(m.Bits[width]),
-                    "O", m.Out(m.Bits[width]),
-                ]
+            class AddPrim(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[width]),
+                    I1=m.In(m.Bits[width]),
+                    O=m.Out(m.Bits[width]),
+                )
 
-                @classmethod
-                def definition(io):
-                    add = m.DeclareCircuit(
-                        "add",
-                        "I0", m.In(m.Bits[width]),
-                        "I1", m.In(m.Bits[width]),
-                        "O", m.Out(m.Bits[width])
-                    )
-                    io.O <= add()(io.I0, io.I1)
+            class _Add(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[width]),
+                    I1=m.In(m.Bits[width]),
+                    O=m.Out(m.Bits[width]),
+                )
+                io.O <= AddPrim()(io.I0, io.I1)
             return _Add
 
     # Reference the generated circuit definition using generate method
@@ -33,16 +31,14 @@ def test_add_gen():
     assert check_files_equal(__file__, f"build/AddGen8.v", f"gold/AddGen8.v")
 
     class Top(m.Circuit):
-        IO = [
-            "I0", m.In(m.Bits[8]),
-            "I1", m.In(m.Bits[8]),
-            "O", m.Out(m.Bits[8]),
-        ]
+        io = m.IO(
+            I0=m.In(m.Bits[8]),
+            I1=m.In(m.Bits[8]),
+            O=m.Out(m.Bits[8]),
+        )
 
-        @classmethod
-        def definition(io):
-            # Define and instance circuit by instancing the generator class
-            io.O <= Add(8, name='add8')(io.I0, io.I1)
+        # Define and instance circuit by instancing the generator class
+        io.O <= Add(8, name='add8')(io.I0, io.I1)
 
     m.compile("build/AddGen8Top", Top)
     assert check_files_equal(__file__, f"build/AddGen8Top.v",
@@ -53,22 +49,20 @@ def test_gen_cache():
     class Add(Generator):
         @staticmethod
         def generate(params: ParamDict):
-            class _Add(m.Circuit):
-                IO = [
-                    "I0", m.In(m.Bits[params["width"]]),
-                    "I1", m.In(m.Bits[params["width"]]),
-                    "O", m.Out(m.Bits[params["width"]]),
-                ]
+            class AddPrim(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
 
-                @classmethod
-                def definition(io):
-                    add = m.DeclareCircuit(
-                        "add",
-                        "I0", m.In(m.Bits[params["width"]]),
-                        "I1", m.In(m.Bits[params["width"]]),
-                        "O", m.Out(m.Bits[params["width"]])
-                    )
-                    io.O <= add()(io.I0, io.I1)
+            class _Add(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
+                io.O <= AddPrim()(io.I0, io.I1)
             return _Add
 
     assert Add.generate(ParamDict(width=8)) is Add.generate(ParamDict(width=8))
@@ -78,22 +72,21 @@ def test_gen_cache():
 
         @staticmethod
         def generate(params: ParamDict):
-            class _Add(m.Circuit):
-                IO = [
-                    "I0", m.In(m.Bits[params["width"]]),
-                    "I1", m.In(m.Bits[params["width"]]),
-                    "O", m.Out(m.Bits[params["width"]]),
-                ]
+            class AddPrim(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
 
-                @classmethod
-                def definition(io):
-                    add = m.DeclareCircuit(
-                        "add",
-                        "I0", m.In(m.Bits[params["width"]]),
-                        "I1", m.In(m.Bits[params["width"]]),
-                        "O", m.Out(m.Bits[params["width"]])
-                    )
-                    io.O <= add()(io.I0, io.I1)
+            class _Add(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
+
+                io.O <= AddPrim()(io.I0, io.I1)
             return _Add
 
     assert AddNoCache.generate(ParamDict(width=8)) is not \

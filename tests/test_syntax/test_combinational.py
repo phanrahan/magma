@@ -4,41 +4,94 @@ import pytest
 import logging
 import ast_tools
 from ast_tools.passes import begin_rewrite, loop_unroll, end_rewrite
+from hwtypes import BitVector
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
 
 
-Not = m.DefineCircuit("Not", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-m.wire(0, Not.O)
-m.EndDefine()
+class Not(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= 0
+
+
+# TODO: Revert this to using mux primitive when moved to magma
+@m.cache_definition
+def _declare_muxn(height, width):
+    def simulate(self, value_store, state_store):
+        sel = BitVector[m.bitutils.clog2(height)](value_store.get_value(self.I.sel))
+        out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+        value_store.set_value(self.O, out)
+    return m.circuit.DeclareCoreirCircuit(f"coreir_commonlib_mux{height}x{width}",
+        *["I", m.In(m.Product.from_fields("anon",
+                                          dict(data=m.Array[height, m.Bits[width]],
+                                               sel=m.Bits[m.bitutils.clog2(height)]))),
+          "O", m.Out(m.Bits[width])],
+        coreir_name="muxn",
+        coreir_lib="commonlib",
+        simulate=simulate,
+        coreir_genargs={"width": width, "N": height}
+    )
 
 
 @m.cache_definition
 def DefineMux(height=2, width=None, T=None):
     if T is not None:
         assert width is None, "Can only specify width **or** T"
+        # Sanitize names for verilog by removing parens
+        # TODO: Make this a reuseable feature
         suffix = str(T).replace("(", "").replace(")", "").replace(",", "_").replace("=", "_").replace("[", "").replace("]", "").replace(" ", "")
         T = T
     else:
         suffix = f"{width}"
         if width is None:
-            T = m.Bit
+            T = Bit
         else:
-            T = m.Bits[width]
+            T = Bits[width]
 
-    io = []
+    IO = []
     for i in range(height):
-        io += ["I{}".format(i), m.In(T)]
+        IO += ["I{}".format(i), m.In(T)]
     if height == 2:
         select_type = m.Bit
     else:
         select_type = m.Bits[m.bitutils.clog2(height)]
-    io += ['S', m.In(select_type)]
-    io += ['O', m.Out(T)]
+    IO += ['S', m.In(select_type)]
+    IO += ['O', m.Out(T)]
+    io_dict = {key: value for key, value in zip(IO[::2], IO[1::2])}
 
     class _Mux(m.Circuit):
         name = "Mux{}x{}".format(height, suffix)
-        IO = io
+        io = m.IO(**io_dict)
+        if T is not None and not (issubclass(T, m.Digital) or issubclass(T, m.Array) and issubclass(T.T, m.Bit)):
+            if issubclass(T, m.Tuple):
+                for i in range(len(T.keys())):
+                    Is = []
+                    for j in range(height):
+                        Is.append(getattr(io, f"I{j}")[list(T.keys())[i]])
+                    io.O[i] <= DefineMux(height, T=list(T.types())[i])()(*Is, io.S)
+            else:
+                assert issubclass(T, m.Array), f"Expected array or type type, got {T}, type is {type(T)}"
+                for i in range(len(T)):
+                    Is = [getattr(io, f"I{j}")[i] for j in range(height)]
+                    io.O[i] <= DefineMux(height, T=type(Is[0]))()(*Is, io.S)
+        else:
+            if T is None and width is None or issubclass(T, m.Digital):
+                mux = _declare_muxn(height, 1)()
+            else:
+                mux = _declare_muxn(height, width if T is None else len(T))()
+            for i in range(height):
+                if T is None and width is None or issubclass(T, m.Digital):
+                    m.wire(getattr(io, f"I{i}"), mux.I.data[i][0])
+                else:
+                    m.wire(getattr(io, f"I{i}"), mux.I.data[i])
+            if height == 2:
+                m.wire(io.S, mux.I.sel[0])
+            else:
+                m.wire(io.S, mux.I.sel)
+            if T is None and width is None or issubclass(T, m.Digital):
+                m.wire(mux.O[0], io.O)
+            else:
+                m.wire(mux.O, io.O)
     return _Mux
 
 
@@ -73,7 +126,7 @@ def compile_and_check(output_file, circuit_definition, target):
 
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
-        metafunc.parametrize("target", ["verilog", "coreir"])
+        metafunc.parametrize("target", ["coreir"])
 
 
 def test_if_statement_basic(target):
@@ -189,13 +242,11 @@ def test_simple_circuit_1(target):
         return (c,)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit)]
+        io = m.IO(a=m.In(m.Bit),
+                  c=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            c = logic(io.a)
-            m.wire(c, io.c)
+        c = logic(io.a)
+        m.wire(c, io.c)
 
     compile_and_check("simple_circuit_1", Foo, target)
 
@@ -217,13 +268,11 @@ def test_multiple_assign(target):
         return (c,)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit)]
+        io = m.IO(a=m.In(m.Bit),
+                  c=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            c = logic(io.a)
-            m.wire(c, io.c)
+        c = logic(io.a)
+        m.wire(c, io.c)
 
     compile_and_check("multiple_assign", Foo, target)
 
@@ -246,15 +295,13 @@ def test_optional_assignment(target):
         return (c, d)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bit),
-              "c", m.Out(m.Bit),
-              "d", m.Out(m.Bit)]
+        io = m.IO(a=m.In(m.Bit),
+                  c=m.Out(m.Bit),
+                  d=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            c, d = logic(io.a)
-            m.wire(c, io.c)
-            m.wire(d, io.d)
+        c, d = logic(io.a)
+        m.wire(c, io.c)
+        m.wire(d, io.d)
 
     compile_and_check("optional_assignment", Foo, target)
 
@@ -265,13 +312,11 @@ def test_map_circuit(target):
         return m.join(m.map_(Not, 10))(a)
 
     class Foo(m.Circuit):
-        IO = ["a", m.In(m.Bits[10]),
-              "c", m.Out(m.Bits[10])]
+        io = m.IO(a=m.In(m.Bits[10]),
+                  c=m.Out(m.Bits[10]))
 
-        @classmethod
-        def definition(io):
-            c = logic(io.a)
-            m.wire(c, io.c)
+        c = logic(io.a)
+        m.wire(c, io.c)
 
     compile_and_check("test_map_circuit", Foo, target)
 
@@ -282,11 +327,9 @@ def test_renamed_args(target):
         return Not()(a)
 
     class Foo(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            io.O <= invert(a=io.I)
+        io.O <= invert(a=io.I)
 
     compile_and_check("test_renamed_args", Foo, target)
 
@@ -297,18 +340,16 @@ def test_renamed_args_wire(target):
         return Not()(a)
 
     class Foo(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            inv = invert.circuit_definition()
-            inv.a <= io.I
-            io.O <= inv.O
+        inv = invert.circuit_definition()
+        inv.a <= io.I
+        io.O <= inv.O
 
     compile_and_check("test_renamed_args_wire", Foo, target)
 
 
-@pytest.mark.parametrize("val", [0,1])
+@pytest.mark.parametrize("val", [0, 1])
 def test_custom_env(target, val):
     def basic_fun(I: m.Bit, S: m.Bit) -> m.Bit:
         if S:
@@ -317,9 +358,9 @@ def test_custom_env(target, val):
             return m.Bit(_custom_local_var_)
 
     _globals = globals()
-    _globals.update({'_custom_local_var_':val})
-    env = ast_tools.stack.SymbolTable(locals=locals(),globals=_globals)
-    _basic_fun = m.circuit.combinational(basic_fun,env=env)
+    _globals.update({'_custom_local_var_': val})
+    env = ast_tools.stack.SymbolTable(locals=locals(), globals=_globals)
+    _basic_fun = m.circuit.combinational(basic_fun, env=env)
     compile_and_check(f"custom_env{val}", _basic_fun.circuit_definition, target)
 
 

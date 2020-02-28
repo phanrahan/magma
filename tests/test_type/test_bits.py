@@ -118,7 +118,8 @@ def test_construct():
 
     # test promote
     assert isinstance(m.Bits[16](a_1), m.Bits)
-    assert repr(m.Bits[16](a_1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
+    assert repr(m.Bits[16](
+        a_1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
 
 
 def test_const():
@@ -143,12 +144,10 @@ def test_setitem_bfloat():
     Test constant constructor interface
     """
     class TestCircuit(m.Circuit):
-        IO = ["I", m.In(m.BFloat[16]), "O", m.Out(m.BFloat[16])]
-        @classmethod
-        def definition(io):
-            a = io.I
-            b = a[0:-1].concat(m.bits(0, 1))
-            io.O <= b
+        io = m.IO(I=m.In(m.BFloat[16]), O=m.Out(m.BFloat[16]))
+        a = io.I
+        b = a[0:-1].concat(m.bits(0, 1))
+        io.O <= b
     print(repr(TestCircuit))
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
@@ -175,10 +174,8 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_invert(n):
     class TestInvert(m.Circuit):
-        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
-        @classmethod
-        def definition(io):
-            io.O <= ~io.I
+        io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
+        io.O <= ~io.I
 
     assert repr(TestInvert) == f"""\
 TestInvert = DefineCircuit("TestInvert", "I", In(Bits[{n}]), "O", Out(Bits[{n}]))
@@ -203,10 +200,8 @@ EndCircuit()\
 @pytest.mark.parametrize("op", ["and_", "or_", "xor", "lshift", "rshift"])
 def test_binary(op, n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bits[n])]
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     magma_op = op.replace("_", "")
     magma_op = magma_op.replace("lshift", "shl")
@@ -220,7 +215,8 @@ wire(TestBinary.I1, magma_Bits_{n}_{magma_op}_inst0.in1)
 wire(magma_Bits_{n}_{magma_op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
-    m.compile(f"build/TestBits{n}{magma_op}", TestBinary, output="coreir-verilog")
+    m.compile(f"build/TestBits{n}{magma_op}",
+              TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}{magma_op}.v",
                              f"gold/TestBits{n}{magma_op}.v")
 
@@ -237,13 +233,13 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_ite(n):
     class TestITE(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "S", m.In(m.Bits[n]),
-              "O", m.Out(m.Bits[n])]
-        @classmethod
-        def definition(io):
-            io.O <= io.S.ite(io.I0, io.I1)
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), S=m.In(m.Bits[n]),
+                  O=m.Out(m.Bits[n]))
 
-    gnd_wires = '\n'.join(f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
+        io.O <= io.S.ite(io.I0, io.I1)
+
+    gnd_wires = '\n'.join(
+        f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
     assert repr(TestITE) == f"""\
 TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
 magma_Bit_not_inst0 = magma_Bit_not()
@@ -276,11 +272,9 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_eq(n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= (io.I0 == io.I1)
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bit))
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= (io.I0 == io.I1)
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bit))
@@ -307,13 +301,12 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_zext(n):
     class TestExt(m.Circuit):
-        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n + 3])]
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= io.I.zext(3)
+        io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n + 3]))
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= io.I.zext(3)
 
-    i_wires = '\n'.join(f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
+    i_wires = '\n'.join(
+        f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
     gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
@@ -336,11 +329,9 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 def test_bvcomp(n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bits[n]), "I1", m.In(m.Bits[n]), "O", m.Out(m.Bits[1])]
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= io.I0.bvcomp(io.I1)
+        io = m.IO(I0=m.In(m.Bits[n]), I1=m.In(m.Bits[n]), O=m.Out(m.Bits[1]))
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= io.I0.bvcomp(io.I1)
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bits[1]))
@@ -368,10 +359,8 @@ EndCircuit()\
 @pytest.mark.parametrize("x", [4, 7])
 def test_repeat(n, x):
     class TestRepeat(m.Circuit):
-        IO = ["I", m.In(m.Bits[n]), "O", m.Out(m.Bits[n * x])]
-        @classmethod
-        def definition(io):
-            io.O <= io.I.repeat(x)
+        io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n * x]))
+        io.O <= io.I.repeat(x)
 
     wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
                       for j in range(x) for i in range(n))
@@ -380,7 +369,8 @@ TestRepeat = DefineCircuit("TestRepeat", "I", In(Bits[{n}]), "O", Out(Bits[{n * 
 {wires}
 EndCircuit()\
 """
-    m.compile(f"build/TestBits{n}x{x}Repeat", TestRepeat, output="coreir-verilog")
+    m.compile(f"build/TestBits{n}x{x}Repeat",
+              TestRepeat, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBits{n}x{x}Repeat.v",
                              f"gold/TestBits{n}x{x}Repeat.v")
 

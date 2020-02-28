@@ -29,14 +29,12 @@ def test_simple_def(target, suffix):
 
     # Check that the subclassing pattern produces the same annotations
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            and2 = And2()
-            m.wire(io.I[0], and2.I0)
-            m.wire(io.I[1], and2.I1)
-            m.wire(and2.O, io.O)
+        and2 = And2()
+        m.wire(io.I[0], and2.I0)
+        m.wire(io.I[1], and2.I1)
+        m.wire(and2.O, io.O)
 
     # Create a fresh context for second compilation.
     m.compile("build/test_simple_def_class", Main, output=target)
@@ -157,7 +155,7 @@ class XY(m.Product):
 
 @pytest.mark.parametrize("target,suffix",
                          [("verilog", "v"), ("coreir", "json")])
-@pytest.mark.parametrize("T",[m.Bit, m.Bits[2], m.Array[2, m.Bit], XY])
+@pytest.mark.parametrize("T", [m.Bit, m.Bits[2], m.Array[2, m.Bit], XY])
 def test_anon_value(target, suffix, T):
     And2 = m.DeclareCircuit('And2', "I0", m.In(T), "I1", m.In(T),
                             "O", m.Out(T))
@@ -179,6 +177,7 @@ def test_anon_value(target, suffix, T):
     m.compile(f"build/test_anon_value_{type_str}", main, target)
     assert check_files_equal(__file__, f"build/test_anon_value_{type_str}.{suffix}",
                              f"gold/test_anon_value_{type_str}.{suffix}")
+
 
 if __name__ == "__main__":
     test_simple_def("coreir", "json")

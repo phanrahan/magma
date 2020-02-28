@@ -130,6 +130,10 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
             type_table["self_" + name + "_I"] = to_type_str(info[2])
             width_table["self_" + name + "_O"] = width
             type_table["self_" + name + "_O"] = to_type_str(info[2])
+        for name in reversed(tuple(registers.keys())):
+            tree.body.insert(
+                0, ast.parse(f"self_{name}_I = self_{name}_O")
+            )
     else:
         registers = {}
     for arg in tree.args.args:
@@ -242,11 +246,15 @@ def process_func(defn_env, fn, circ_name, registers=None, debug=False):
 
     kratos.verilog(mod, filename=filename,
                    insert_debug_info=get_debug_mode() or debug)
-    defn = m.DefineCircuit(circ_name, *IO, kratos=mod)
+    io_dict = {key: value for key, value in zip(IO[::2], IO[1::2])}
+
+    class _Defn(m.Circuit):
+        name = circ_name
+        io = m.IO(**io_dict)
+        kratos = mod
     with open(filename, 'r') as f:
-        defn.verilogFile = f.read()
-    m.EndCircuit()
-    return defn
+        _Defn.verilogFile = f.read()
+    return _Defn
 
 
 def combinational_to_verilog(debug=False):

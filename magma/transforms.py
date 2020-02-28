@@ -232,23 +232,3 @@ def flatten(circuit):
                 flattened_circuit.set_new_bit(origbit, Scope(), newbit)
 
     return flattened_circuit
-
-def get_uniq_children(circuit, circuits):
-    name = circuit.__name__
-    if not isdefinition(circuit):
-        return circuits
-    for i in circuit.instances:
-        get_uniq_children(type(i), circuits)
-    if name not in circuits:
-        circuits[name] = circuit
-    return circuits
-
-def get_uniq_circuits(circuit):
-    return get_uniq_children(circuit, OrderedDict()).values()
-
-def setup_clocks(main):
-    # This should probably return a TransformedCircuit
-    circuits = get_uniq_circuits(main)
-    for circuit in circuits:
-        for inst in circuit.instances:
-            wiredefaultclock(circuit, inst)
