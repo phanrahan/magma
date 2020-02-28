@@ -1,16 +1,15 @@
 from magma import *
 from magma.simulator import PythonSimulator
 
+
 def test_instance():
     N = 4
     T = Bits[N]
 
     class Test(Circuit):
         name = "Test"
-        IO = ["I", In(T), "O", Out(T), "CLK", In(Bit)]
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        io = m.IO(I=In(T), O=Out(T), CLK=In(Bit))
+        wire(io.I, io.O)
 
     try:
         simulator = PythonSimulator(Test())

@@ -204,10 +204,8 @@ def test_wire5():
 
 def test_invert():
     class TestInvert(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            io.O <= ~io.I
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O <= ~io.I
 
     assert repr(TestInvert) == """\
 TestInvert = DefineCircuit("TestInvert", "I", In(Bit), "O", Out(Bit))
@@ -230,10 +228,8 @@ EndCircuit()\
 @pytest.mark.parametrize("op", ["and_", "or_", "xor"])
 def test_binary(op):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     clean_op = op.replace("_", "")
     assert repr(TestBinary) == f"""\
@@ -259,11 +255,9 @@ EndCircuit()\
 
 def test_eq():
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= (io.I0 == io.I1)
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= (io.I0 == io.I1)
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), \
@@ -290,11 +284,9 @@ EndCircuit()\
 
 def test_ne():
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            # Nasty precidence issue with <= operator means we need parens here
-            io.O <= (io.I0 != io.I1)
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        # Nasty precidence issue with <= operator means we need parens here
+        io.O <= (io.I0 != io.I1)
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bit), "I1", In(Bit), \
@@ -319,11 +311,10 @@ EndCircuit()\
 
 def test_ite():
     class TestITE(m.Circuit):
-        IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "S", m.In(m.Bit),
-              "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            io.O <= io.S.ite(io.I0, io.I1)
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), S=m.In(m.Bit),
+                  O=m.Out(m.Bit))
+
+        io.O <= io.S.ite(io.I0, io.I1)
 
     assert repr(TestITE) == """\
 TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), \

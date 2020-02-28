@@ -26,16 +26,14 @@ def test_ff_param(target, circuit_type):
     )[0]
 
     class Top(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])] + \
-            m.ClockInterface(has_async_reset=True)
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2])) + \
+            m.ClockIO(has_async_reset=True)
 
-        @classmethod
-        def definition(io):
-            # keyword arguments to instancing call are passed as verilog
-            # parameters
-            ff0 = FF(init=0)
-            ff1 = FF(init=1)
-            io.O <= m.join([ff0, ff1])(d=io.I, rst=io.ASYNCRESET)
+        # keyword arguments to instancing call are passed as verilog
+        # parameters
+        ff0 = FF(init=0)
+        ff1 = FF(init=1)
+        io.O <= m.join([ff0, ff1])(d=io.I, rst=io.ASYNCRESET)
 
     m.compile(f"build/top-{circuit_type}-{target}", Top, output=target)
     assert m.testing.check_files_equal(__file__,

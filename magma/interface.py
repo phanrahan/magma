@@ -390,3 +390,12 @@ class IO:
 
     def decl(self):
         return self.__decl
+
+    def __add__(self, other):
+        if not isinstance(other, IO):
+            return NotImplemented
+        io_dict = {name: typ for name, typ in zip(self.__decl[::2],
+                                                  self.__decl[1::2])}
+        io_dict.update({name: typ for name, typ in zip(other.__decl[::2],
+                                                       other.__decl[1::2])})
+        return IO(**io_dict)

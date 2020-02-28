@@ -138,12 +138,12 @@ def get_initial_value_map(init_func, defn_env):
         assert stmt.target.value.id == "self"
         # TODO: Should we deal with multiple assignments? For now we take the
         # last one
-        m.DefineCircuit("tmp")
-        eval_type = eval(astor.to_source(stmt.annotation).rstrip(), defn_env)
-        eval_value = eval(astor.to_source(stmt.value).rstrip(), defn_env)
-        m.EndCircuit()
+        class Tmp(m.Circuit):
+            eval_type = eval(astor.to_source(stmt.annotation).rstrip(), defn_env)
+            eval_value = eval(astor.to_source(stmt.value).rstrip(), defn_env)
         initial_value_map[stmt.target.attr] = (stmt.value, stmt.annotation,
-                                               eval_type, eval_value)
+                                               Tmp.eval_type,
+                                               Tmp.eval_value)
     return initial_value_map
 
 

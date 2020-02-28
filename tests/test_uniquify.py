@@ -80,12 +80,12 @@ def test_key_error():
         return m.DeclareCircuit(*args, **kwargs,
                                 renamed_ports=default_port_mapping)
 
-    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
+    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(
+        m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
 
     class I(m.Product):
         data = m.Array[2, m.Bits[6]]
         sel = m.Bits[m.bitutils.clog2(2)]
-
 
     mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
                                *["I", m.In(I),
@@ -99,7 +99,8 @@ def test_key_error():
     m.wire(mux.O, Mux2x6.O)
     m.EndDefine()
 
-    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
+    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2, m.In(
+        m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
     Mux2x6_inst0 = Mux2x6()
     m.wire(MuxWrapper_2_6.I[0], Mux2x6_inst0.I0)
     m.wire(MuxWrapper_2_6.I[1], Mux2x6_inst0.I1)
@@ -107,7 +108,8 @@ def test_key_error():
     m.wire(Mux2x6_inst0.O, MuxWrapper_2_6.O)
     m.EndCircuit()
 
-    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
+    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2, m.In(
+        m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
     Mux2x6_inst0 = Mux2x6()
     m.wire(MuxWrapper_2_6_copy.I[0], Mux2x6_inst0.I0)
     m.wire(MuxWrapper_2_6_copy.I[1], Mux2x6_inst0.I1)
@@ -115,7 +117,8 @@ def test_key_error():
     m.wire(Mux2x6_inst0.O, MuxWrapper_2_6_copy.O)
     m.EndCircuit()
 
-    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array[2,m.In(m.Bits[6])], "S", m.In(m.Bits[19]), "O", m.Out(m.Bits[6]))
+    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array[2, m.In(
+        m.Bits[6])], "S", m.In(m.Bits[19]), "O", m.Out(m.Bits[6]))
     MuxWrapper_2_6_inst0 = MuxWrapper_2_6()
     MuxWrapper_2_6_inst1 = MuxWrapper_2_6_copy()
     m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst0.I)
@@ -201,38 +204,29 @@ module foo(input i, output o);
     assign o = i;
 endmodule""")[0]
 
-
     class _Cell0(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            foo = _generate_foo()()
-            foo.i <= io.I
-            io.O <= foo.o
-
+        foo = _generate_foo()()
+        foo.i <= io.I
+        io.O <= foo.o
 
     class _Cell1(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            foo = _generate_foo()()
-            foo.i <= io.I
-            io.O <= foo.o
-
+        foo = _generate_foo()()
+        foo.i <= io.I
+        io.O <= foo.o
 
     class _Top(m.Circuit):
-        IO = ["I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2])]
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))
 
-        @classmethod
-        def definition(io):
-            cell0 = _Cell0()
-            cell1 = _Cell1()
-            cell0.I <= io.I[0]
-            cell1.I <= io.I[1]
-            io.O[0] <= cell0.O
-            io.O[1] <= cell1.O
+        cell0 = _Cell0()
+        cell1 = _Cell1()
+        cell0.I <= io.I[0]
+        cell1.I <= io.I[1]
+        io.O[0] <= cell0.O
+        io.O[1] <= cell1.O
 
     # Check that uniq. pass runs successfully.
     pass_ = m.UniquificationPass(_Top, None)
@@ -242,11 +236,9 @@ endmodule""")[0]
 def test_multiple_renamed():
     def _gen_foo(width):
         class Foo(m.Circuit):
-            IO = ["I", m.In(m.Bits[width]), "O", m.Out(m.Bits[width])]
+            io = m.IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
 
-            @classmethod
-            def definition(io):
-                io. O <= io.I
+            io. O <= io.I
 
         return Foo
 
@@ -255,29 +247,27 @@ def test_multiple_renamed():
     Foo2 = _gen_foo(3)
 
     class _Top(m.Circuit):
-        IO = [
-            "I0", m.In(m.Bits[2]),
-            "I1", m.In(m.Bits[3]),
-            "I2", m.In(m.Bits[3]),
-            "O0", m.Out(m.Bits[2]),
-            "O1", m.Out(m.Bits[3]),
-            "O2", m.Out(m.Bits[3]),
-        ]
+        io = m.IO(
+            I0=m.In(m.Bits[2]),
+            I1=m.In(m.Bits[3]),
+            I2=m.In(m.Bits[3]),
+            O0=m.Out(m.Bits[2]),
+            O1=m.Out(m.Bits[3]),
+            O2=m.Out(m.Bits[3]),
+        )
 
-        @classmethod
-        def definition(io):
-            foo0 = Foo0()
-            foo1 = Foo1()
-            foo2 = Foo2()
+        foo0 = Foo0()
+        foo1 = Foo1()
+        foo2 = Foo2()
 
-            foo0.I <= io.I0
-            io.O0 <= foo0.O
+        foo0.I <= io.I0
+        io.O0 <= foo0.O
 
-            foo1.I <= io.I1
-            io.O1 <= foo1.O
+        foo1.I <= io.I1
+        io.O1 <= foo1.O
 
-            foo2.I <= io.I2
-            io.O2 <= foo2.O
+        foo2.I <= io.I2
+        io.O2 <= foo2.O
 
     BASENAME = "uniquify_multiple_rename"
     m.compile(f"build/{BASENAME}", _Top, output="coreir")
