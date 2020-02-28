@@ -57,8 +57,8 @@ def test_unconnected_io(caplog):
 def test_unconnected_instance(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_instance()
-        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:32\x1b[0m: Input port buf.I not driven
->>             buf = _Buffer()"""
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:26\x1b[0m: Input port buf.I not driven
+>>         buf = _Buffer()"""
         assert has_error(caplog, expected)
 
 
