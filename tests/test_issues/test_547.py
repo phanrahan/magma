@@ -54,4 +54,4 @@ def test_product():
     class RTL(m.Circuit):
         io = m.IO(handshake=HandShake)
 
-        cls.handshake.valid @= cls.handshake.ready
+        io.handshake.valid @= io.handshake.ready
