@@ -775,6 +775,7 @@ def DeclareCoreirCircuit(*args, **kwargs):
 
 
 class StagedCircuit(Circuit):
+    finalized = False
     @classmethod
     @abstractmethod
     def finalize(cls):

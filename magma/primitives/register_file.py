@@ -188,7 +188,7 @@ class RegisterFile(Generator):
                             else:
                                 value = register.O
                             register.I @= Mux(2, Bits[data_width])(
-                                port.data, value,
+                                value, port.data,
                                 Bits[1](port.addr == i))
                         for read_port in cls._get_read_ports():
                             # Forward write
@@ -196,6 +196,6 @@ class RegisterFile(Generator):
                             read_port.data.unwire(value)
                             read_port.data @= Mux(
                                 2, Bits[data_width])(
-                                    port.data, value,
+                                    value, port.data,
                                     Bits[1](port.addr == read_port.addr))
         return _RegisterFile

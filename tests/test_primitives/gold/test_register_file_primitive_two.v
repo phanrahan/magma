@@ -92,14 +92,25 @@ module StagedCircuit (
     input CLK,
     input [1:0] read_0_addr,
     output [3:0] read_0_data,
+    input [1:0] read_1_addr,
+    output [3:0] read_1_data,
     input [1:0] write_0_addr,
-    input [3:0] write_0_data
+    input [3:0] write_0_data,
+    input [1:0] write_1_addr,
+    input [3:0] write_1_data
 );
 wire [3:0] Mux_inst0_O;
 wire [3:0] Mux_inst1_O;
-wire [3:0] Mux_inst2_O;
-wire [3:0] Mux_inst3_O;
-wire [3:0] Mux_inst4_O;
+wire [3:0] Mux_unq1_inst0_O;
+wire [3:0] Mux_unq1_inst1_O;
+wire [3:0] Mux_unq1_inst2_O;
+wire [3:0] Mux_unq1_inst3_O;
+wire [3:0] Mux_unq1_inst4_O;
+wire [3:0] Mux_unq1_inst5_O;
+wire [3:0] Mux_unq1_inst6_O;
+wire [3:0] Mux_unq1_inst7_O;
+wire [3:0] Mux_unq1_inst8_O;
+wire [3:0] Mux_unq1_inst9_O;
 wire [3:0] reg_PR_inst0_out;
 wire [3:0] reg_PR_inst1_out;
 wire [3:0] reg_PR_inst2_out;
@@ -112,35 +123,85 @@ Mux Mux_inst0 (
     .S(read_0_addr),
     .O(Mux_inst0_O)
 );
-Mux_unq1 Mux_inst1 (
+Mux Mux_inst1 (
+    .I0(reg_PR_inst0_out),
+    .I1(reg_PR_inst1_out),
+    .I2(reg_PR_inst2_out),
+    .I3(reg_PR_inst3_out),
+    .S(read_1_addr),
+    .O(Mux_inst1_O)
+);
+Mux_unq1 Mux_unq1_inst0 (
     .I0(reg_PR_inst0_out),
     .I1(write_0_data),
     .S(write_0_addr == 2'h0),
-    .O(Mux_inst1_O)
+    .O(Mux_unq1_inst0_O)
 );
-Mux_unq1 Mux_inst2 (
+Mux_unq1 Mux_unq1_inst1 (
     .I0(reg_PR_inst1_out),
     .I1(write_0_data),
     .S(write_0_addr == 2'h1),
-    .O(Mux_inst2_O)
+    .O(Mux_unq1_inst1_O)
 );
-Mux_unq1 Mux_inst3 (
+Mux_unq1 Mux_unq1_inst10 (
+    .I0(Mux_unq1_inst4_O),
+    .I1(write_1_data),
+    .S(write_1_addr == read_0_addr),
+    .O(read_0_data)
+);
+Mux_unq1 Mux_unq1_inst11 (
+    .I0(Mux_unq1_inst5_O),
+    .I1(write_1_data),
+    .S(write_1_addr == read_1_addr),
+    .O(read_1_data)
+);
+Mux_unq1 Mux_unq1_inst2 (
     .I0(reg_PR_inst2_out),
     .I1(write_0_data),
     .S(write_0_addr == 2'h2),
-    .O(Mux_inst3_O)
+    .O(Mux_unq1_inst2_O)
 );
-Mux_unq1 Mux_inst4 (
+Mux_unq1 Mux_unq1_inst3 (
     .I0(reg_PR_inst3_out),
     .I1(write_0_data),
     .S(write_0_addr == 2'h3),
-    .O(Mux_inst4_O)
+    .O(Mux_unq1_inst3_O)
 );
-Mux_unq1 Mux_inst5 (
+Mux_unq1 Mux_unq1_inst4 (
     .I0(Mux_inst0_O),
     .I1(write_0_data),
     .S(write_0_addr == read_0_addr),
-    .O(read_0_data)
+    .O(Mux_unq1_inst4_O)
+);
+Mux_unq1 Mux_unq1_inst5 (
+    .I0(Mux_inst1_O),
+    .I1(write_0_data),
+    .S(write_0_addr == read_1_addr),
+    .O(Mux_unq1_inst5_O)
+);
+Mux_unq1 Mux_unq1_inst6 (
+    .I0(Mux_unq1_inst0_O),
+    .I1(write_1_data),
+    .S(write_1_addr == 2'h0),
+    .O(Mux_unq1_inst6_O)
+);
+Mux_unq1 Mux_unq1_inst7 (
+    .I0(Mux_unq1_inst1_O),
+    .I1(write_1_data),
+    .S(write_1_addr == 2'h1),
+    .O(Mux_unq1_inst7_O)
+);
+Mux_unq1 Mux_unq1_inst8 (
+    .I0(Mux_unq1_inst2_O),
+    .I1(write_1_data),
+    .S(write_1_addr == 2'h2),
+    .O(Mux_unq1_inst8_O)
+);
+Mux_unq1 Mux_unq1_inst9 (
+    .I0(Mux_unq1_inst3_O),
+    .I1(write_1_data),
+    .S(write_1_addr == 2'h3),
+    .O(Mux_unq1_inst9_O)
 );
 coreir_reg_arst #(
     .arst_posedge(1'b1),
@@ -150,7 +211,7 @@ coreir_reg_arst #(
 ) reg_PR_inst0 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(Mux_inst1_O),
+    .in(Mux_unq1_inst6_O),
     .out(reg_PR_inst0_out)
 );
 coreir_reg_arst #(
@@ -161,7 +222,7 @@ coreir_reg_arst #(
 ) reg_PR_inst1 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(Mux_inst2_O),
+    .in(Mux_unq1_inst7_O),
     .out(reg_PR_inst1_out)
 );
 coreir_reg_arst #(
@@ -172,7 +233,7 @@ coreir_reg_arst #(
 ) reg_PR_inst2 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(Mux_inst3_O),
+    .in(Mux_unq1_inst8_O),
     .out(reg_PR_inst2_out)
 );
 coreir_reg_arst #(
@@ -183,26 +244,34 @@ coreir_reg_arst #(
 ) reg_PR_inst3 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(Mux_inst4_O),
+    .in(Mux_unq1_inst9_O),
     .out(reg_PR_inst3_out)
 );
 endmodule
 
 module Main (
-    input [1:0] write_addr,
-    input [3:0] write_data,
-    input [1:0] read_addr,
-    output [3:0] read_data,
+    input [1:0] write_addr0,
+    input [3:0] write_data0,
+    input [1:0] write_addr1,
+    input [3:0] write_data1,
+    input [1:0] read_addr0,
+    output [3:0] read_data0,
+    input [1:0] read_addr1,
+    output [3:0] read_data1,
     input CLK,
     input ASYNCRESET
 );
 StagedCircuit StagedCircuit_inst0 (
     .ASYNCRESET(ASYNCRESET),
     .CLK(CLK),
-    .read_0_addr(read_addr),
-    .read_0_data(read_data),
-    .write_0_addr(write_addr),
-    .write_0_data(write_data)
+    .read_0_addr(read_addr0),
+    .read_0_data(read_data0),
+    .read_1_addr(read_addr1),
+    .read_1_data(read_data1),
+    .write_0_addr(write_addr0),
+    .write_0_data(write_data0),
+    .write_1_addr(write_addr1),
+    .write_1_data(write_data1)
 );
 endmodule
 
