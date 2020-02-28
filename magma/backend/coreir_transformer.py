@@ -6,6 +6,7 @@ import os
 from ..array import Array
 from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
+from ..circuit import StagedCircuit
 from coreir import Wireable
 from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            check_magma_interface, constant_to_value,

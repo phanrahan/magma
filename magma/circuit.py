@@ -1,4 +1,5 @@
 import ast
+from abc import abstractmethod
 import enum
 import textwrap
 import inspect
@@ -211,12 +212,7 @@ class CircuitKind(type):
 
         # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
-        IO = _get_interface_decl(cls)
-        if IO is not None:
-            cls.IO = IO
-            cls.interface = cls.IO(defn=cls,
-                                   renamed_ports=dct["renamed_ports"])
-            _setattrs(cls, cls.interface.ports)
+        cls.setup_interface()
         placer = _PlacerBlock.pop()
         if placer:
             assert placer.name == cls_name
@@ -225,6 +221,13 @@ class CircuitKind(type):
             cls._placer = Placer(cls)
 
         return cls
+
+    def setup_interface(cls):
+        IO = _get_interface_decl(cls)
+        if IO is not None:
+            cls.IO = IO
+            cls.interface = cls.IO(defn=cls, renamed_ports=cls.renamed_ports)
+            _setattrs(cls, cls.interface.ports)
 
     def __call__(cls, *largs, **kwargs):
         if get_debug_mode():
@@ -610,6 +613,10 @@ class DefineCircuitKind(CircuitKind):
             has_definition and self._syntax_style_ is _SyntaxStyle.NEW)
         run_unconnected_check = run_unconnected_check and not \
             dct.get("_ignore_undriven_", False)
+        # Ports may not be wired until finalize
+        # TODO: We should run the check at finalize
+        run_unconnected_check = run_unconnected_check and not \
+            issubclass(self, StagedCircuit)
         if run_unconnected_check:
             self.check_unconnected()
 
@@ -765,3 +772,10 @@ coreir_port_mapping = {
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=coreir_port_mapping)
+
+
+class StagedCircuit(Circuit):
+    @classmethod
+    @abstractmethod
+    def finalize(cls):
+        raise NotImplementedError()

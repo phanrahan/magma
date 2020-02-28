@@ -1,4 +1,4 @@
-from .circuit import Circuit, DeclareCoreirCircuit
+from .circuit import Circuit, DeclareCoreirCircuit, coreir_port_mapping
 from .array import Array
 from .bits import Bits
 from .conversions import array
@@ -14,16 +14,19 @@ from .interface import IO
 class CoreIRCommonLibMuxN(Generator):
     @staticmethod
     def generate(N: int, width: int):
-        return DeclareCoreirCircuit(
-            f"coreir_commonlib_mux{N}x{width}",
-            *["I", In(Product.from_fields("anon",
-                                          dict(data=Array[N, Bits[width]],
-                                               sel=Bits[clog2(N)]))),
-              "O", Out(Bits[width])],
-            coreir_name="muxn",
-            coreir_lib="commonlib",
-            coreir_genargs={"width": width, "N": N}
-        )
+        class In_T(Product):
+            data = Array[N, Bits[width]]
+            sel = Bits[clog2(N)]
+
+        class _MuxN(Circuit):
+            name = f"coreir_commonlib_mux{N}x{width}"
+            io = IO(I=In(In_T), O=Out(Bits[width]))
+            coreir_name = "muxn"
+            coreir_lib = "commonlib"
+            coreir_genargs = {"width": width, "N": N}
+            renamed_ports = coreir_port_mapping
+
+        return _MuxN
 
 
 class Mux(Generator):

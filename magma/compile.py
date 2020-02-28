@@ -5,6 +5,7 @@ from .compiler import Compiler
 from .config import get_compile_dir
 from .uniquification import uniquification_pass, UniquificationMode
 from .passes.clock import WireClockPass
+from .passes.staged_circuit_passes import FinalizeStagedCircuitPass
 from .passes.drive_undriven import DriveUndrivenPass
 from .passes.terminate_unused import TerminateUnusedPass
 
@@ -39,6 +40,7 @@ def _get_basename(basename):
 def compile(basename, main, output="coreir-verilog", **kwargs):
     basename = _get_basename(basename)
     opts = kwargs.copy()
+    FinalizeStagedCircuitPass(main).run()
     compiler = _make_compiler(output, main, basename, opts)
 
     # Default behavior is to perform uniquification, but can be overriden.
@@ -47,7 +49,6 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
         DriveUndrivenPass(main).run()
     if opts.get("terminate_unused", False):
         TerminateUnusedPass(main).run()
-
 
     compiler.compile()
 
