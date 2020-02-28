@@ -16,6 +16,7 @@ def test_add_gen():
                     I1=m.In(m.Bits[width]),
                     O=m.Out(m.Bits[width]),
                 )
+
             class _Add(m.Circuit):
                 io = m.IO(
                     I0=m.In(m.Bits[width]),
@@ -48,20 +49,20 @@ def test_gen_cache():
     class Add(Generator):
         @staticmethod
         def generate(params: ParamDict):
-            class _Add(m.Circuit):
+            class AddPrim(m.Circuit):
                 io = m.IO(
                     I0=m.In(m.Bits[params["width"]]),
                     I1=m.In(m.Bits[params["width"]]),
                     O=m.Out(m.Bits[params["width"]]),
                 )
 
-                add = m.DeclareCircuit(
-                    "add",
-                    "I0", m.In(m.Bits[params["width"]]),
-                    "I1", m.In(m.Bits[params["width"]]),
-                    "O", m.Out(m.Bits[params["width"]])
+            class _Add(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
                 )
-                io.O <= add()(io.I0, io.I1)
+                io.O <= AddPrim()(io.I0, io.I1)
             return _Add
 
     assert Add.generate(ParamDict(width=8)) is Add.generate(ParamDict(width=8))
@@ -71,6 +72,13 @@ def test_gen_cache():
 
         @staticmethod
         def generate(params: ParamDict):
+            class AddPrim(m.Circuit):
+                io = m.IO(
+                    I0=m.In(m.Bits[params["width"]]),
+                    I1=m.In(m.Bits[params["width"]]),
+                    O=m.Out(m.Bits[params["width"]]),
+                )
+
             class _Add(m.Circuit):
                 io = m.IO(
                     I0=m.In(m.Bits[params["width"]]),
@@ -78,13 +86,7 @@ def test_gen_cache():
                     O=m.Out(m.Bits[params["width"]]),
                 )
 
-                add = m.DeclareCircuit(
-                    "add",
-                    "I0", m.In(m.Bits[params["width"]]),
-                    "I1", m.In(m.Bits[params["width"]]),
-                    "O", m.Out(m.Bits[params["width"]])
-                )
-                io.O <= add()(io.I0, io.I1)
+                io.O <= AddPrim()(io.I0, io.I1)
             return _Add
 
     assert AddNoCache.generate(ParamDict(width=8)) is not \
