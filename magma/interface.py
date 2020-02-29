@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
@@ -368,7 +369,33 @@ def DeclareLazyInterface(io, **kwargs):
     return InterfaceKind(name, (_DeclareLazyInterface,), dct)
 
 
-class IO:
+class IOInterface(ABC):
+    """Abstract base class for IO-like classes"""
+    @property
+    @abstractmethod
+    def ports(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def bind(self, defn):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def decl(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __add__(self, other):
+        raise NotImplementedError()
+
+    def __iadd__(self, other):
+        """
+        __iadd__ is explicitly overriden to enforce that it is non-mutating.
+        """
+        return self + other
+
+
+class IO(IOInterface):
     """
     Class for creating an interface bundle.
 
@@ -406,9 +433,6 @@ class IO:
 
     def decl(self):
         return self._decl
-
-    def __iadd__(self, other):
-        return self + other
 
     def __add__(self, other):
         if not isinstance(other, IO):
