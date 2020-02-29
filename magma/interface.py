@@ -409,9 +409,13 @@ class IO:
 
     def __add__(self, other):
         if not isinstance(other, IO):
-            return NotImplemented
-        io_dict = {name: typ for name, typ in zip(self._decl[::2],
-                                                  self._decl[1::2])}
-        io_dict.update({name: typ for name, typ in zip(other._decl[::2],
-                                                       other._decl[1::2])})
-        return IO(**io_dict)
+            raise TypeError(f"unsupported operand type(s) for +: 'IO' and "
+                            f"'{type(other)}'")
+        if self._bound or other._bound:
+            _logger.error("Adding bound IO not allowed")
+            return self
+        if self._ports.keys() & other._ports.keys():
+            _logger.error("Adding IO with duplicate port names not allowed")
+            return self
+        decl = self._decl + other._decl
+        return IO(**dict(zip(decl[::2], decl[1::2])))
