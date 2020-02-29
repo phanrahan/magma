@@ -23,7 +23,8 @@ class CoreIRRegister(Generator):
         io = ["I", In(T), "CLK", In(Clock), "O", Out(T)]
 
         if has_async_resetn and has_async_reset:
-            raise ValueError("Cannot have posedge and negedge asynchronous reset")
+            raise ValueError("Cannot have posedge and negedge asynchronous "
+                             "reset")
 
         if has_async_reset:
             io.extend(["arst", In(AsyncResetIn)])
@@ -35,7 +36,6 @@ class CoreIRRegister(Generator):
             circuit_name += "R"
             config_args["arst_posedge"] = False
 
-
         io_dict = {}
         for key, value in zip(io[::2], io[1::2]):
             io_dict[key] = value
@@ -43,7 +43,7 @@ class CoreIRRegister(Generator):
         class _CoreIRReg(Circuit):
             name = circuit_name
             io = IO(**io_dict)
-            stateful=True
+            stateful = True
             default_kwargs = {"init": coreir.type.BitVector[width](init)}
             coreir_genargs = {"width": width}
             coreir_configargs = config_args
@@ -75,7 +75,8 @@ class CoreIRRegister(Generator):
                 if clock_edge:
                     new_val = value_store.get_value(self.I)
 
-                if has_async_reset and cur_reset or has_async_resetn and not cur_reset:
+                if has_async_reset and cur_reset or \
+                        has_async_resetn and not cur_reset:
                     new_val = BitVector[width](init)
 
                 state_store['prev_clock'] = cur_clock
@@ -179,7 +180,8 @@ class RegisterFile(Generator):
                 with cls.open():
                     for port in cls._get_read_ports():
                         port.data @= Mux(height, Bits[data_width])(
-                            *[register.O for register in cls.registers], port.addr)
+                            *[register.O for register in cls.registers],
+                            port.addr)
                     for port in cls._get_write_ports():
                         for i, register in enumerate(cls.registers):
                             if register.I.driven():
