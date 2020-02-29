@@ -435,7 +435,17 @@ class IO(IOInterface):
         return self._decl
 
     def __add__(self, other):
-        if not isinstance(other, IO):
+        """
+        Attempts to combine this IO and @other. Returns a new IO object with the
+        combined ports, unless:
+          * @other is not of type IOInterface, in which case a TypeError is
+            raised
+          * this or @other has already been bound, in which case an error is
+            logged and self is returned, unchanged
+          * this and @other have common port names, in which case an error is
+            logged and self is returned, unchanged
+        """
+        if not isinstance(other, IOInterface):
             raise TypeError(f"unsupported operand type(s) for +: 'IO' and "
                             f"'{type(other)}'")
         if self._bound or other._bound:
