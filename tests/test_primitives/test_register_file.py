@@ -87,18 +87,8 @@ def test_register_file_primitive_two():
             tester.circuit.read_addr0 = i
             tester.circuit.read_addr1 = 3 - i
             tester.eval()
-            if i == 0:
-                tester.circuit.read_data0.expect(3 - i)
-                tester.circuit.read_data1.expect(i)
-            elif i == 1:
-                tester.circuit.read_data0.expect(3 - i)
-                tester.circuit.read_data1.expect(i)
-            elif i == 2:
-                tester.circuit.read_data0.expect(3 - i)
-                tester.circuit.read_data1.expect(i)
-            elif i == 3:
-                tester.circuit.read_data0.expect(3 - i)
-                tester.circuit.read_data1.expect(i)
+            tester.circuit.read_data0.expect(3 - i)
+            tester.circuit.read_data1.expect(i)
 
         # Test priority
         tester.circuit.write_addr0 = 3
