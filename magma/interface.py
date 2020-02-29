@@ -5,8 +5,12 @@ from .ref import InstRef, DefnRef, LazyDefnRef, NamedRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
+from .logging import root_logger
 from .tuple import Tuple
 from .compatibility import IntegerTypes, StringTypes
+
+
+_logger = root_logger()
 
 
 __all__  = ['DeclareInterface']
@@ -305,12 +309,11 @@ class _DeclareLazyInterface(_Interface):
             self.ports = _make_interface_args(self.Decl, renamed_ports, inst,
                                               defn)
             return
+        self.io.bind(defn)  # bind IO to @defn
         args = OrderedDict()
         for name, port in self.io.ports.items():
-            ref = port.name
-            ref.set_defn(defn)
             if name in renamed_ports:
-                ref.name = renamed_ports[name]
+                port.name.name = renamed_ports[name]
             args[name] = port
 
         self.ports = args
@@ -375,8 +378,8 @@ class IO:
     # requirement here for >= python version 3.6. See
     # https://www.python.org/dev/peps/pep-0468/.
     def __init__(self, **kwargs):
-        self.ports = {}
-        self.__decl = []
+        self._ports = {}
+        self._decl = []
         for name, typ in kwargs.items():
             ref = LazyDefnRef(name=name)
             if isinstance(typ, MagmaProtocolMeta):
@@ -384,18 +387,31 @@ class IO:
                 port = port._from_magma_value_(port._to_magma_()(name=ref))
             else:
                 port = typ.flip()(name=ref)
-            self.ports[name] = port
-            self.__decl += [name, typ]
+            self._ports[name] = port
+            self._decl += [name, typ]
             setattr(self, name, port)
+        self._bound = False
+
+    @property
+    def ports(self):
+        return self._ports.copy()
+
+    def bind(self, defn):
+        if self._bound:
+            _logger.error("Can not bind IO multiple times")
+            return
+        for port in self._ports.values():
+            port.name.set_defn(defn)
+        self._bound = True
 
     def decl(self):
-        return self.__decl
+        return self._decl
 
     def __add__(self, other):
         if not isinstance(other, IO):
             return NotImplemented
-        io_dict = {name: typ for name, typ in zip(self.__decl[::2],
-                                                  self.__decl[1::2])}
-        io_dict.update({name: typ for name, typ in zip(other.__decl[::2],
-                                                       other.__decl[1::2])})
+        io_dict = {name: typ for name, typ in zip(self._decl[::2],
+                                                  self._decl[1::2])}
+        io_dict.update({name: typ for name, typ in zip(other._decl[::2],
+                                                       other._decl[1::2])})
         return IO(**io_dict)
