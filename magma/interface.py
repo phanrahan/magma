@@ -407,6 +407,9 @@ class IO:
     def decl(self):
         return self._decl
 
+    def __iadd__(self, other):
+        return self + other
+
     def __add__(self, other):
         if not isinstance(other, IO):
             raise TypeError(f"unsupported operand type(s) for +: 'IO' and "
