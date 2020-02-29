@@ -59,7 +59,7 @@ def _make_unconnected_autowired(typ):
 def test_unconnected_io(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_io()
-        expected = """\x1b[1mtests/test_deprecated/test_old_io_syntax/test_unconnected.py:8\x1b[0m: Output port _Circuit.O not driven
+        expected = """\x1b[1mtests/test_deprecated/test_old_io_syntax/test_old_io_syntax_unconnected.py:8\x1b[0m: Output port _Circuit.O not driven
 >>     class _Circuit(m.Circuit):"""
         assert has_error(caplog, expected)
 
@@ -67,7 +67,7 @@ def test_unconnected_io(caplog):
 def test_unconnected_instance(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_instance()
-        expected = """\x1b[1mtests/test_deprecated/test_old_io_syntax/test_unconnected.py:32\x1b[0m: Input port buf.I not driven
+        expected = """\x1b[1mtests/test_deprecated/test_old_io_syntax/test_old_io_syntax_unconnected.py:32\x1b[0m: Input port buf.I not driven
 >>             buf = _Buffer()"""
         assert has_error(caplog, expected)
 
