@@ -6,12 +6,8 @@ from .ref import InstRef, DefnRef, LazyDefnRef, NamedRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .clock import Clock, ClockTypes
 from .array import Array
-from .logging import root_logger
 from .tuple import Tuple
 from .compatibility import IntegerTypes, StringTypes
-
-
-_logger = root_logger()
 
 
 __all__  = ['DeclareInterface']
@@ -425,8 +421,7 @@ class IO(IOInterface):
 
     def bind(self, defn):
         if self._bound:
-            _logger.error("Can not bind IO multiple times")
-            return
+            raise Exception("Can not bind IO multiple times")
         for port in self._ports.values():
             port.name.set_defn(defn)
         self._bound = True
@@ -440,19 +435,17 @@ class IO(IOInterface):
         combined ports, unless:
           * @other is not of type IOInterface, in which case a TypeError is
             raised
-          * this or @other has already been bound, in which case an error is
-            logged and self is returned, unchanged
-          * this and @other have common port names, in which case an error is
-            logged and self is returned, unchanged
+          * this or @other has already been bound, in which case an Exception is
+            raised
+          * this and @other have common port names, in which case an Exception
+            is raised
         """
         if not isinstance(other, IOInterface):
             raise TypeError(f"unsupported operand type(s) for +: 'IO' and "
-                            f"'{type(other)}'")
+                            f"'{type(other).__name__}'")
         if self._bound or other._bound:
-            _logger.error("Adding bound IO not allowed")
-            return self
+            raise Exception("Adding bound IO not allowed")
         if self._ports.keys() & other._ports.keys():
-            _logger.error("Adding IO with duplicate port names not allowed")
-            return self
+            raise Exception("Adding IO with duplicate port names not allowed")
         decl = self._decl + other._decl
         return IO(**dict(zip(decl[::2], decl[1::2])))
