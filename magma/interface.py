@@ -129,7 +129,7 @@ def _make_wires(value, wired):
         for elem in value:
             s += _make_wires(elem, wired)
         return s
-    while driver is not None and driver.name.anon():
+    while driver is not None and driver.name.anon() and not driver.is_output():
         # Skip anon values
         driver = driver.value()
     while driver is not None:
