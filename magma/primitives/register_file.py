@@ -3,7 +3,8 @@ from ..circuit import Circuit, StagedCircuit, coreir_port_mapping
 from ..t import In, Out
 from ..interface import IO
 from ..bits import Bits
-from ..clock import ClockIO, Clock, AsyncResetIn, AsyncResetIn
+from ..clock import Clock, AsyncResetIn, AsyncResetIn
+from ..clock_io import ClockIO
 from ..bitutils import clog2
 from ..operators import Mux
 from ..wire import wire
