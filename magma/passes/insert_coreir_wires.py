@@ -57,7 +57,8 @@ class InsertCoreIRWires(DefinitionPass):
         self.seen.add(value)
         driver = value.value()
 
-        while driver is not None and driver.name.anon():
+        while driver is not None and driver.name.anon() and \
+                not driver.is_output():
             if isinstance(driver, (Array, Tuple)) and \
                     not driver.iswhole(driver.ts):
                 for child in value:
