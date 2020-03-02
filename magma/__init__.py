@@ -37,6 +37,7 @@ from .bits import *
 from .bfloat import BFloat
 from .tuple import *
 from .clock import *
+from .clock_io import ClockIO
 from .conversions import *
 from .interface import *
 

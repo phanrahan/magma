@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from itertools import chain
 from collections import OrderedDict
 from .conversions import array
@@ -115,9 +116,7 @@ def _make_wires(value, wired):
     if value.is_output():
         return s
     if isinstance(value, (Array, Tuple)) and \
-            not value.is_input() and \
-            not value.is_output() and \
-            not value.is_inout():
+            value.is_mixed():
         # Mixed
         for v in value:
             s += _make_wires(v, wired)
@@ -130,7 +129,7 @@ def _make_wires(value, wired):
         for elem in value:
             s += _make_wires(elem, wired)
         return s
-    while driver is not None and driver.name.anon():
+    while driver is not None and driver.name.anon() and not driver.is_output():
         # Skip anon values
         driver = driver.value()
     while driver is not None:
@@ -305,12 +304,11 @@ class _DeclareLazyInterface(_Interface):
             self.ports = _make_interface_args(self.Decl, renamed_ports, inst,
                                               defn)
             return
+        self.io.bind(defn)  # bind IO to @defn
         args = OrderedDict()
         for name, port in self.io.ports.items():
-            ref = port.name
-            ref.set_defn(defn)
             if name in renamed_ports:
-                ref.name = renamed_ports[name]
+                port.name.name = renamed_ports[name]
             args[name] = port
 
         self.ports = args
@@ -365,7 +363,33 @@ def DeclareLazyInterface(io, **kwargs):
     return InterfaceKind(name, (_DeclareLazyInterface,), dct)
 
 
-class IO:
+class IOInterface(ABC):
+    """Abstract base class for IO-like classes"""
+    @property
+    @abstractmethod
+    def ports(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def bind(self, defn):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def decl(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __add__(self, other):
+        raise NotImplementedError()
+
+    def __iadd__(self, other):
+        """
+        __iadd__ is explicitly overriden to enforce that it is non-mutating.
+        """
+        return self + other
+
+
+class IO(IOInterface):
     """
     Class for creating an interface bundle.
 
@@ -375,8 +399,8 @@ class IO:
     # requirement here for >= python version 3.6. See
     # https://www.python.org/dev/peps/pep-0468/.
     def __init__(self, **kwargs):
-        self.ports = {}
-        self.__decl = []
+        self._ports = {}
+        self._decl = []
         for name, typ in kwargs.items():
             ref = LazyDefnRef(name=name)
             if isinstance(typ, MagmaProtocolMeta):
@@ -384,18 +408,42 @@ class IO:
                 port = port._from_magma_value_(port._to_magma_()(name=ref))
             else:
                 port = typ.flip()(name=ref)
-            self.ports[name] = port
-            self.__decl += [name, typ]
+            self._ports[name] = port
+            self._decl += [name, typ]
             setattr(self, name, port)
+        self._bound = False
+
+    @property
+    def ports(self):
+        return self._ports.copy()
+
+    def bind(self, defn):
+        if self._bound:
+            raise Exception("Can not bind IO multiple times")
+        for port in self._ports.values():
+            port.name.set_defn(defn)
+        self._bound = True
 
     def decl(self):
-        return self.__decl
+        return self._decl
 
     def __add__(self, other):
-        if not isinstance(other, IO):
-            return NotImplemented
-        io_dict = {name: typ for name, typ in zip(self.__decl[::2],
-                                                  self.__decl[1::2])}
-        io_dict.update({name: typ for name, typ in zip(other.__decl[::2],
-                                                       other.__decl[1::2])})
-        return IO(**io_dict)
+        """
+        Attempts to combine this IO and @other. Returns a new IO object with the
+        combined ports, unless:
+          * @other is not of type IOInterface, in which case a TypeError is
+            raised
+          * this or @other has already been bound, in which case an Exception is
+            raised
+          * this and @other have common port names, in which case an Exception
+            is raised
+        """
+        if not isinstance(other, IOInterface):
+            raise TypeError(f"unsupported operand type(s) for +: 'IO' and "
+                            f"'{type(other).__name__}'")
+        if self._bound or other._bound:
+            raise Exception("Adding bound IO not allowed")
+        if self._ports.keys() & other._ports.keys():
+            raise Exception("Adding IO with duplicate port names not allowed")
+        decl = self._decl + other._decl
+        return IO(**dict(zip(decl[::2], decl[1::2])))

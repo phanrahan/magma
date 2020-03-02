@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='magma-lang',
-    version='2.0.11',
+    version='2.0.12',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
@@ -35,7 +35,7 @@ setup(
         "coreir>=2.0.*",
         "hwtypes>=1.0.*",
         "ast_tools>=0.0.10",
-        "kratos==0.0.25"
+        "kratos"
     ],
     python_requires='>=3.6',
     long_description=long_description,

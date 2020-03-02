@@ -26,6 +26,8 @@ def verilog_name(name, inst_sep="."):
         return str(name)
     if isinstance(name, m.ref.InstRef):
         return f"{name.inst.name}{inst_sep}{str(name)}"
+    if isinstance(name, m.ref.NamedRef):
+        return str(name)
     if isinstance(name, m.ref.ArrayRef):
         array_name = verilog_name(name.array.name)
         return f"{array_name}_{name.index}"
