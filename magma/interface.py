@@ -116,9 +116,7 @@ def _make_wires(value, wired):
     if value.is_output():
         return s
     if isinstance(value, (Array, Tuple)) and \
-            not value.is_input() and \
-            not value.is_output() and \
-            not value.is_inout():
+            value.is_mixed():
         # Mixed
         for v in value:
             s += _make_wires(v, wired)
@@ -131,7 +129,7 @@ def _make_wires(value, wired):
         for elem in value:
             s += _make_wires(elem, wired)
         return s
-    while driver is not None and driver.name.anon():
+    while driver is not None and driver.name.anon() and not driver.is_output():
         # Skip anon values
         driver = driver.value()
     while driver is not None:
