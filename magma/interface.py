@@ -116,9 +116,7 @@ def _make_wires(value, wired):
     if value.is_output():
         return s
     if isinstance(value, (Array, Tuple)) and \
-            not value.is_input() and \
-            not value.is_output() and \
-            not value.is_inout():
+            value.is_mixed():
         # Mixed
         for v in value:
             s += _make_wires(v, wired)
