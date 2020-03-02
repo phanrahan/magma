@@ -132,10 +132,10 @@ class RegisterFile(Generator):
             def _add_port(self, name, type_):
                 cls = type(self)
                 # Add to Circuit IO
-                curr_IO = IO(
-                    **{key: value for key, value in cls.IO.items()}
+                cls.io = IO(
+                    **{key: value for key, value in cls.IO.items()},
+                    **{name: type_}
                 )
-                cls.io += curr_IO + IO(**{name: type_})
                 del cls.IO
                 cls.setup_interface()
                 # Add to instance interface
