@@ -190,13 +190,13 @@ class Digital(Type, metaclass=DigitalMeta):
         return self.getinst()
 
     def unused(self):
-        if not self.is_output():
-            raise TypeError("unused can only be used on output")
+        if self.is_input() or self.is_inout():
+            raise TypeError("unused cannot be used with input/inout")
         m.wire(self, DefineUnused()().I)
 
     def undriven(self):
-        if not self.is_input():
-            raise TypeError("undriven can only be used on input")
+        if self.is_output() or self.is_inout():
+            raise TypeError("undriven cannot be used with output/inout")
         m.wire(DefineUndriven()().O, self)
 
     def as_bits(self):

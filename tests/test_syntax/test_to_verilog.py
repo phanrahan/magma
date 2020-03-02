@@ -8,8 +8,8 @@ import os
 
 
 class SimpleALU(m.Circuit):
-    IO = ["a", m.In(m.UInt[16]), "b", m.In(m.UInt[16]), "c",
-          m.Out(m.UInt[16]), "config_", m.In(m.Bits[2])]
+    io = m.IO(a=m.In(m.UInt[16]), b=m.In(m.UInt[16]),
+              c=m.Out(m.UInt[16]), config_=m.In(m.Bits[2]))
 
     @m.circuit.combinational_to_verilog(debug=False)
     def execute_alu(a: m.UInt[16], b: m.UInt[16], config_: m.Bits[2]) -> \
@@ -24,9 +24,7 @@ class SimpleALU(m.Circuit):
             c = m.bits(0, 16)
         return c
 
-    @classmethod
-    def definition(io):
-        io.c <= io.execute_alu(io.a, io.b, io.config_)
+    io.c <= execute_alu(io.a, io.b, io.config_)
 
 
 def test_simple_alu():
@@ -64,7 +62,8 @@ def test_simple_alu():
             top_module_name = "TOP"
         else:
             top_module_name = "dut"
-        kratos.debug.dump_external_database(generators, top_module_name, f"{directory}debug.db")
+        kratos.debug.dump_external_database(
+            generators, top_module_name, f"{directory}debug.db")
         tester.compile_and_run(target,
                                directory=directory,
                                flags=["-Wno-fatal"], skip_compile=True)
@@ -118,7 +117,8 @@ def test_seq_simple():
             top_module_name = "dut"
         # TODO automatically obtain the kratos-based circuit
         generators = [TestBasicToVerilog.kratos]
-        kratos.debug.dump_external_database(generators, top_module_name, f"{directory}debug.db")
+        kratos.debug.dump_external_database(
+            generators, top_module_name, f"{directory}debug.db")
         tester.compile_and_run(target,
                                directory=directory,
                                flags=["-Wno-fatal"], magma_output="verilog")

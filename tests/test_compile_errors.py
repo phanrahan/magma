@@ -7,19 +7,15 @@ from magma.uniquification import MultipleDefinitionException
 def test_multiple_definitions_are_same():
     class Circ1(Circuit):
         name = "same"
-        IO = ['I', In(Bit), 'O', Out(Bit)]
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
 
     class Circ2(Circuit):
         name = "same"
-        IO = ['I', In(Bit), 'O', Out(Bit)]
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
 
     test = DefineCircuit('test', 'I', In(Bit), 'O1', Out(Bit), 'O2', Out(Bit))
     circ1 = Circ1()
@@ -35,9 +31,10 @@ def test_multiple_definitions_are_same():
     except MultipleDefinitionException:
         pass
 
+
 @pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_multiple_definitions_are_same_older_def_approach():
-    IO = ['I', In(Bit), 'O', Out(Bit)]
+    io = m.IO(I=In(Bit), O=Out(Bit))
     Circ1 = DefineCircuit("same", *IO)
     wire(Circ1.I, Circ1.O)
     EndDefine()
@@ -59,15 +56,14 @@ def test_multiple_definitions_are_same_older_def_approach():
     except MultipleDefinitionException:
         pass
 
+
 @pytest.mark.skip("Multiple Definitions no longer supported because we cache on names")
 def test_same_definitions():
     class Circ1(Circuit):
         name = "same"
-        IO = ['I', In(Bit), 'O', Out(Bit)]
+        io = m.IO(I=In(Bit), O=Out(Bit))
 
-        @classmethod
-        def definition(io):
-            wire(io.I, io.O)
+        wire(io.I, io.O)
     test = DefineCircuit('test', 'I', In(Bit), 'O1', Out(Bit), 'O2', Out(Bit))
     circ1 = Circ1()
     wire(test.I, circ1.I)

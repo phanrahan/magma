@@ -18,13 +18,13 @@
         "instances":{
           "and2":{
             "modref":"global.And2",
-            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"36"}
+            "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"34"}
           }
         },
         "connections":[
-          ["self.I.0","and2.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"37"}],
-          ["self.I.1","and2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"38"}],
-          ["self.O","and2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"39"}]
+          ["self.I.0","and2.I0",{"filename":"tests/test_circuit/test_define.py","lineno":"35"}],
+          ["self.I.1","and2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"36"}],
+          ["self.O","and2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"37"}]
         ],
         "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"31"}
       },

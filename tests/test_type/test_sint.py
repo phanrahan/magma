@@ -5,8 +5,9 @@ from magma import *
 from magma.simulator import PythonSimulator
 from hwtypes import SIntVector
 
-Array2 = Array[2,Bit]
-Array4 = Array[4,Bit]
+Array2 = Array[2, Bit]
+Array4 = Array[4, Bit]
+
 
 def test():
 
@@ -45,6 +46,7 @@ def test_val():
 
     a3 = a1[0:2]
 
+
 def test_flip():
     SInt2 = SInt[2]
     AIn = In(SInt2)
@@ -53,7 +55,7 @@ def test_flip():
     print(AIn)
     print(AOut)
 
-    assert AIn  != Array2
+    assert AIn != Array2
     assert AOut != Array2
     assert AIn != AOut
 
@@ -71,15 +73,17 @@ def test_flip():
     assert A == AOut
     print(A)
 
+
 def test_construct():
-    a1 = sint([1,1])
+    a1 = sint([1, 1])
     print(type(a1))
     assert isinstance(a1, SInt)
     assert isinstance(a1, Bits)
     assert not isinstance(a1, UInt)
 
     assert isinstance(SInt[15](a1), SInt)
-    assert repr(m.SInt[16](a1)) == "bits([VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC])"
+    assert repr(m.SInt[16](
+        a1)) == "bits([VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC, VCC])"
 
     # Test explicit conversion
     assert isinstance(uint(a1), UInt)
@@ -92,10 +96,8 @@ def test_construct():
 @pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
 def test_compare(n, op):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io = m.IO(I0=m.In(m.SInt[n]), I1=m.In(m.SInt[n]), O=m.Out(m.Bit))
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
@@ -130,10 +132,8 @@ EndCircuit()\
 @pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod", "rshift"])
 def test_binary(n, op):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
-        @classmethod
-        def definition(io):
-            io.O <= getattr(operator, op)(io.I0, io.I1)
+        io = m.IO(I0=m.In(m.SInt[n]), I1=m.In(m.SInt[n]), O=m.Out(m.SInt[n]))
+        io.O <= getattr(operator, op)(io.I0, io.I1)
 
     sim = PythonSimulator(TestBinary)
     for _ in range(2):
@@ -169,12 +169,12 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [7, 3])
 def test_adc(n):
     class TestBinary(m.Circuit):
-        IO = ["I0", m.In(m.SInt[n]), "I1", m.In(m.SInt[n]), "CIN", m.In(m.Bit), "O", m.Out(m.SInt[n]), "COUT", m.Out(m.Bit)]
-        @classmethod
-        def definition(io):
-            result, carry = io.I0.adc(io.I1, io.CIN)
-            io.O <= result
-            io.COUT <= carry
+        io = m.IO(I0=m.In(m.SInt[n]), I1=m.In(m.SInt[n]), CIN=m.In(
+            m.Bit), O=m.Out(m.SInt[n]), COUT=m.Out(m.Bit))
+
+        result, carry = io.I0.adc(io.I1, io.CIN)
+        io.O <= result
+        io.COUT <= carry
 
     in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_Bits_{n + 1}_add_inst0.in0[{i}])"
                           for i in range(n))
@@ -184,7 +184,8 @@ def test_adc(n):
                           for i in range(n))
     in1_wires += f"\nwire(TestBinary.I1[{n - 1}], magma_Bits_{n + 1}_add_inst0.in1[{n}])"
 
-    carry_wires = "\n".join(f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+    carry_wires = "\n".join(
+        f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
 
     out_wires = "\n".join(f"wire(magma_Bits_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
                           for i in range(n))
@@ -220,10 +221,8 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [7, 3])
 def test_negate(n):
     class TestNegate(m.Circuit):
-        IO = ["I", m.In(m.SInt[n]), "O", m.Out(m.SInt[n])]
-        @classmethod
-        def definition(io):
-            io.O <= -io.I
+        io = m.IO(I=m.In(m.SInt[n]), O=m.Out(m.SInt[n]))
+        io.O <= -io.I
 
     assert repr(TestNegate) == f"""\
 TestNegate = DefineCircuit("TestNegate", "I", In(SInt[{n}]), "O", Out(SInt[{n}]))

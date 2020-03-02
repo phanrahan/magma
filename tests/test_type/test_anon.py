@@ -18,15 +18,13 @@ def test_anon_bit():
 
 def test_anon_bits():
     class Test(Circuit):
-        IO = ["I", In(Bits[5]), "O", Out(Bits[5])]
+        io = m.IO(I=In(Bits[5]), O=Out(Bits[5]))
 
-        @classmethod
-        def definition(io):
-            x = Bits[5]()
-            y = Bits[5]()
-            y @= io.I
-            x @= y
-            io.O @= x
+        x = Bits[5]()
+        y = Bits[5]()
+        y @= io.I
+        x @= y
+        io.O @= x
     compile("build/test_anon_bits", Test, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/test_anon_bits.v",
                              f"gold/test_anon_bits.v")

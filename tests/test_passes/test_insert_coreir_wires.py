@@ -11,13 +11,11 @@ import copy
 )
 def test_insert_coreir_wires_basic(T):
     class Main(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
-        @classmethod
-        def definition(io):
-            x = T(name="x")
-            x @= io.I
-            io.O @= x
+        x = T(name="x")
+        x @= io.I
+        io.O @= x
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")
     m.compile(f"build/insert_coreir_wires_{T_str}", Main, inline=True)
@@ -76,18 +74,16 @@ EndCircuit()\
 )
 def test_insert_coreir_wires_instance(T):
     class Foo(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
     class Main(m.Circuit):
-        IO = ["I", m.In(T), "O", m.Out(T)]
+        io = m.IO(I=m.In(T), O=m.Out(T))
 
-        @classmethod
-        def definition(io):
-            x = T(name="x")
-            foo = Foo()
-            x @= foo.O
-            foo.I @= io.I
-            io.O @= x
+        x = T(name="x")
+        foo = Foo()
+        x @= foo.O
+        foo.I @= io.I
+        io.O @= x
 
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")
@@ -103,19 +99,17 @@ def test_insert_coreir_wires_mixed_tuple():
         y = m.Out(m.Bit)
 
     class Foo(m.Circuit):
-        IO = ["z", T]
+        io = m.IO(z=T)
 
     class Main(m.Circuit):
-        IO = ["z", T]
+        io = m.IO(z=T)
 
-        @classmethod
-        def definition(io):
-            a = T.qualify(Direction.Undirected)(name="a")
-            foo = Foo()
-            a.x @= foo.z.y
-            a.y @= io.z.x
-            foo.z.x @= a.y
-            io.z.y @= a.x
+        a = T.qualify(Direction.Undirected)(name="a")
+        foo = Foo()
+        a.x @= foo.z.y
+        a.y @= io.z.x
+        foo.z.x @= a.y
+        io.z.y @= a.x
 
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
@@ -132,21 +126,19 @@ def test_insert_coreir_wires_array_mixed_tuple():
         y = m.Out(m.Bit)
 
     class Foo(m.Circuit):
-        IO = ["z", m.Array[2, T]]
+        io = m.IO(z=m.Array[2, T])
 
     class Main(m.Circuit):
-        IO = ["z", m.Array[2, T]]
+        io = m.IO(z=m.Array[2, T])
 
-        @classmethod
-        def definition(io):
-            a = T.qualify(Direction.Undirected)(name="a")
-            foo = Foo()
-            a.x @= foo.z[0].y
-            a.y @= io.z[0].x
-            foo.z[0].x @= a.y
-            io.z[0].y @= a.x
-            foo.z[1].x @= io.z[0].x
-            io.z[1].y @= foo.z[1].y
+        a = T.qualify(Direction.Undirected)(name="a")
+        foo = Foo()
+        a.x @= foo.z[0].y
+        a.y @= io.z[0].x
+        foo.z[0].x @= a.y
+        io.z[0].y @= a.x
+        foo.z[1].x @= io.z[0].x
+        io.z[1].y @= foo.z[1].y
 
     T_str = str(T).replace("[", "").replace("]", "").replace(",", "")\
                   .replace(" ", "").replace("(", "").replace(")", "")\
@@ -159,14 +151,12 @@ def test_insert_coreir_wires_array_mixed_tuple():
 
 def test_insert_coreir_wires_fanout():
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O0", m.Out(m.Bit), "O1", m.Out(m.Bit)]
+        io = m.IO(I=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 
-        @classmethod
-        def definition(io):
-            x = m.Bit(name="x")
-            x @= io.I
-            io.O0 @= x
-            io.O1 @= x
+        x = m.Bit(name="x")
+        x @= io.I
+        io.O0 @= x
+        io.O1 @= x
     m.compile(f"build/insert_coreir_wires_fanout", Main, inline=True)
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_fanout.v",

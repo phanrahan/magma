@@ -1,12 +1,11 @@
+from magma.frontend.coreir_ import GetCoreIRModule
+from magma.backend.coreir_utils import check_magma_interface
+from magma.backend.coreir_ import CoreIRBackend
+from magma.t import Type, Kind
+from magma import *
+import magma
 import pytest
 coreir = pytest.importorskip("coreir")
-import magma
-from magma import *
-from magma.t import Type, Kind
-from magma.backend.coreir_ import CoreIRBackend
-from magma.backend.coreir_utils import check_magma_interface
-from magma.frontend.coreir_ import GetCoreIRModule
-
 
 
 def test_check_interface_bit():
@@ -15,10 +14,8 @@ def test_check_interface_bit():
     """
     class TestCircuit0(Circuit):
         name = "TestCircuit0"
-        IO = ["I", In(Bit), "O", Out(Bit)]
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        io = m.IO(I=In(Bit), O=Out(Bit))
+        wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit0.interface)
 
@@ -29,10 +26,8 @@ def test_check_interface_array():
     """
     class TestCircuit1(Circuit):
         name = "TestCircuit1"
-        IO = ["I", In(Array[8, Bit]), "O", Out(Array[8, Bit])]
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        io = m.IO(I=In(Array[8, Bit]), O=Out(Array[8, Bit]))
+        wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit1.interface)
 
@@ -48,12 +43,11 @@ def test_check_interface_tuple():
 
     class TestCircuit2(Circuit):
         name = "TestCircuit2"
-        IO = ["I", In(T), "O", Out(T)]
-        @classmethod
-        def definition(cls):
-            wire(cls.I, cls.O)
+        io = m.IO(I=In(T), O=Out(T))
+        wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit2.interface)
+
 
 def test_nested_clocks():
     c = coreir.Context()

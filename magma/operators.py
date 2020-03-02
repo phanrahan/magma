@@ -8,12 +8,14 @@ from .bitutils import clog2
 from .generator import Generator
 from .frontend.coreir_ import DefineCircuitFromGeneratorWrapper, GetCoreIRBackend
 from .wire import wire
+from .interface import IO
 
 
 class CoreIRCommonLibMuxN(Generator):
     @staticmethod
     def generate(N: int, width: int):
-        return DeclareCoreirCircuit(f"coreir_commonlib_mux{N}x{width}",
+        return DeclareCoreirCircuit(
+            f"coreir_commonlib_mux{N}x{width}",
             *["I", In(Product.from_fields("anon",
                                           dict(data=Array[N, Bits[width]],
                                                sel=Bits[clog2(N)]))),
@@ -23,26 +25,29 @@ class CoreIRCommonLibMuxN(Generator):
             coreir_genargs={"width": width, "N": N}
         )
 
+
 class Mux(Generator):
     @staticmethod
     def generate(height: int, T: Type):
         # TODO: Type must be hashable so we can cache
         N = T.flat_length()
+
+        io_dict = {}
+        for i in range(height):
+            io_dict[f"I{i}"] = In(T)
+        io_dict["S"] = In(Bits[clog2(height)])
+        io_dict["O"] = Out(T)
+
         class Mux(Circuit):
-            IO = []
+            io = IO(**io_dict)
+
+            mux = CoreIRCommonLibMuxN(height, N)
+            data = []
             for i in range(height):
-                IO += [f"I{i}", In(T)]
-            IO += ["S", In(Bits[clog2(height)])]
-            IO += ["O", Out(T)]
-            @classmethod
-            def definition(io):
-                mux = CoreIRCommonLibMuxN(height, N)
-                wire(mux.I.data, array(
-                    [Bits[N](getattr(io, f"I{i}").flatten()) 
-                     for i in range(height)]
-                ))
-                wire(mux.I.sel, io.S)
-                wire(mux.O, io.O)
+                data.append(Bits[N](getattr(io, f"I{i}").flatten()))
+            wire(mux.I.data, array(data))
+            wire(mux.I.sel, io.S)
+            wire(mux.O, io.O)
         return Mux
 
 
@@ -54,15 +59,13 @@ def slice(value: Bits, start: Bits, width: int):
     ```
     class TestSlice(m.Circuit):
         # Slice a 6 bit window of I using x as the start index
-        IO = [
-            "I", m.In(m.Bits[10]), 
-            "x", m.In(m.Bits[2]), 
-            "O", m.Out(m.Bits[6])
-        ]
+        IO = m.IO(
+            I=m.In(m.Bits[10]),
+            x=m.In(m.Bits[2]),
+            O=m.Out(m.Bits[6])
+        )
 
-        @classmethod
-        def definition(io):
-            io.O @= m.slice(io.I, start=io.x, width=6)
+        io.O @= m.slice(io.I, start=io.x, width=6)
     ```
 
     Notes:
@@ -72,4 +75,4 @@ def slice(value: Bits, start: Bits, width: int):
     """
     # Construct an array where the index `i` is the slice of bits from `i` to
     # `i+width`, index into this array using `start`
-    return array([value[i:i+width] for i in range(len(value) - width)])[start]
+    return array([value[i:i + width] for i in range(len(value) - width)])[start]

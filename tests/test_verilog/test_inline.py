@@ -39,28 +39,24 @@ def test_inline_tuple():
                                            "OUTPUT", m.Flip(RVDATAIN))
 
     class InnerDelayUnit(m.Circuit):
-        IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
-            m.ClockInterface()
+        io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \
+            m.ClockIO()
 
-        @classmethod
-        def definition(cls):
-            delay = InnerInnerDelayUnit(name="inner_inner_delay")
-            delay.INPUT[0] <= cls.INPUT[1]
-            delay.INPUT[1] <= cls.INPUT[0]
-            cls.OUTPUT[0] <= delay.OUTPUT[1]
-            cls.OUTPUT[1] <= delay.OUTPUT[0]
+        delay = InnerInnerDelayUnit(name="inner_inner_delay")
+        delay.INPUT[0] <= io.INPUT[1]
+        delay.INPUT[1] <= io.INPUT[0]
+        io.OUTPUT[0] <= delay.OUTPUT[1]
+        io.OUTPUT[1] <= delay.OUTPUT[0]
 
     class DelayUnit(m.Circuit):
-        IO = ["INPUT", RVDATAIN, "OUTPUT", m.Flip(RVDATAIN)] + \
-            m.ClockInterface()
+        io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \
+            m.ClockIO()
 
-        @classmethod
-        def definition(cls):
-            delay = InnerDelayUnit(name="inner_delay")
-            delay.INPUT[0] <= cls.INPUT[1]
-            delay.INPUT[1] <= cls.INPUT[0]
-            cls.OUTPUT[0] <= delay.OUTPUT[1]
-            cls.OUTPUT[1] <= delay.OUTPUT[0]
+        delay = InnerDelayUnit(name="inner_delay")
+        delay.INPUT[0] <= io.INPUT[1]
+        delay.INPUT[1] <= io.INPUT[0]
+        io.OUTPUT[0] <= delay.OUTPUT[1]
+        io.OUTPUT[1] <= delay.OUTPUT[0]
 
     class Main(m.Circuit):
         IO = ["I", RVDATAIN, "O", m.Flip(RVDATAIN)] + m.ClockInterface()
@@ -85,13 +81,13 @@ assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
             cls.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.INPUT[0].valid,
-     ready_out=delay.inner_delay.OUTPUT[1].ready)
+                               ready_out=delay.inner_delay.OUTPUT[1].ready)
 
             # Test double recursive ref
             cls.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.inner_inner_delay.INPUT[0].valid,
-     ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
+                               ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)
 
     m.compile(f"build/test_inline_tuple", Main, output="coreir-verilog",
               sv=True, inline=True)
