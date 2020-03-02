@@ -326,12 +326,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
     @classmethod
     def is_mixed(cls):
-        input, output, inout = False, False, False
+        input, output, inout, mixed = False, False, False, False
         for field in cls.fields:
             input |= field.is_input()
             output |= field.is_output()
             inout |= field.is_inout()
-        return (input + output + inout) > 1
+            mixed |= field.is_mixed()
+        return mixed or (input + output + inout) > 1
 
 class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
