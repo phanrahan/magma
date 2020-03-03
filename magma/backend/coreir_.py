@@ -6,7 +6,8 @@ from ..config import config, EnvConfig
 from ..logging import root_logger
 from ..t import In, Out
 from .. import singleton
-from ..circuit import DeclareCircuit
+from ..circuit import Circuit
+from ..interface import IO
 from .coreir_transformer import DefnOrDeclTransformer
 from ..passes import DefinitionPass
 from .util import keydefaultdict
@@ -66,21 +67,18 @@ class CoreIRBackend:
 
 
 class InsertWrapCasts(DefinitionPass):
-    def sim(self, value_store, state_store):
-        input_val = value_store.get_value(getattr(self, "in"))
-        value_store.set_value(self.out, input_val)
-
     def define_wrap(self, wrap_type, in_type, out_type):
-        name = f"coreir_wrap{wrap_type}".replace("(", "").replace(")", "")
-        return DeclareCircuit(name,
-                              "in",
-                              In(in_type),
-                              "out",
-                              Out(out_type),
-                              coreir_genargs={"type": wrap_type},
-                              coreir_name="wrap",
-                              coreir_lib="coreir",
-                              simulate=self.sim)
+        class Wrap(Circuit):
+            name = f"coreir_wrap{wrap_type}".replace("(", "").replace(")", "")
+            io = IO(**{"in": In(in_type), "out": Out(out_type)})
+            coreir_genargs = {"type": wrap_type}
+            coreir_name = "wrap"
+            coreir_lib = "coreir"
+
+            def simulate(self, value_store, state_store):
+                input_val = value_store.get_value(getattr(self, "in"))
+                value_store.set_value(self.out, input_val)
+        return Wrap
 
     def wrap_if_named_type(self, port, definition):
         if isinstance(port, (Array, Tuple)):
