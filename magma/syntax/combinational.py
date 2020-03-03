@@ -240,7 +240,7 @@ def _combinational(defn_env: dict, fn: types.FunctionType):
     def func(*args, **kwargs):
         if (len(args) + len(kwargs) and
             not any(isinstance(x, (Type, MagmaProtocol)) for x in args +
-                    list(kwargs.values()))):
+                    tuple(kwargs.values()))):
                 # If not called with at least one magma value, use the Python
                 # implementation
                 return fn(*args, **kwargs)
