@@ -20,37 +20,6 @@ class Test(Circuit):
         io.O <= x
 ```
 
-**NOTE** Currently magma only supports wiring two intermediate temporary values
-if the driver already has a driver.  The following example will work, because `y` is 
-driven by `io.I` before wiring to the temporary `x`.
-
-```python
-class Test(Circuit):
-    IO = ["I", In(Bits[5]), "O", Out(Bits[5])]
-
-    @classmethod
-    def definition(io):
-        x = Bits[5]()
-        y = Bits[5]()
-        y <= io.I
-        x <= y
-        io.O <= x
-```
-while this example will not work, because `y` has no driver when being wired to
-`x`.  A fix for this issue is forthcoming.
-```python
-class Test(Circuit):
-    IO = ["I", In(Bits[5]), "O", Out(Bits[5])]
-
-    @classmethod
-    def definition(io):
-        x = Bits[5]()
-        y = Bits[5]()
-        y <= io.I
-        x <= y
-        io.O <= x
-```
-
 # When
 **TODO**
 
