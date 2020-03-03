@@ -1,7 +1,7 @@
 from coreir import Context
 from ..array import Array
 from ..tuple import Tuple
-from ..clock import AsyncReset, AsyncResetN
+from ..clock import AsyncReset, AsyncResetN, Clock
 from ..config import config, EnvConfig
 from ..logging import root_logger
 from ..t import In, Out
@@ -82,18 +82,18 @@ class InsertWrapCasts(DefinitionPass):
                               coreir_lib="coreir",
                               simulate=self.sim)
 
-    def wrap_if_arst(self, port, definition):
+    def wrap_if_named_type(self, port, definition):
         if isinstance(port, (Array, Tuple)):
             for t in port:
-                self.wrap_if_arst(t, definition)
+                self.wrap_if_named_type(t, definition)
         elif port.is_input():
-            if isinstance(port, (AsyncReset, AsyncResetN)) or \
-                    isinstance(port.trace(), (AsyncReset, AsyncResetN)):
+            if isinstance(port, (AsyncReset, AsyncResetN, Clock)) or \
+                    isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock)):
                 value = port.trace()
                 if value is not None and not issubclass(
                         type(value), type(port).flip()):
                     port.unwire(value)
-                    if isinstance(port, (AsyncReset, AsyncResetN)):
+                    if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
                         inst = self.define_wrap(
                             type(port).flip(), type(port), type(value))()
                     else:
@@ -111,9 +111,9 @@ class InsertWrapCasts(DefinitionPass):
                     type(instance).coreir_name == "unwrap":
                 continue
             for port in instance.interface.ports.values():
-                self.wrap_if_arst(port, definition)
+                self.wrap_if_named_type(port, definition)
         for port in definition.interface.ports.values():
-            self.wrap_if_arst(port, definition)
+            self.wrap_if_named_type(port, definition)
 
 
 def compile(main, file_name=None, context=None):
