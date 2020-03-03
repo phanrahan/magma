@@ -13,7 +13,7 @@ import types
 from magma.debug import debug_info
 from magma.ssa import convert_tree_to_ssa
 from magma.config import get_debug_mode
-from ..t import Type
+from ..t import Type, MagmaProtocol
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
@@ -239,11 +239,11 @@ def _combinational(defn_env: dict, fn: types.FunctionType):
     @functools.wraps(fn)
     def func(*args, **kwargs):
         if (len(args) + len(kwargs) and
-                not any(isinstance(x, Type) for x in args) and
-                not any(isinstance(x, Type) for x in kwargs.values())):
-            # If not called with at least one magma value, use the Python
-            # implementation
-            return fn(*args, **kwargs)
+            not any(isinstance(x, (Type, MagmaProtocol)) for x in args +
+                    list(kwargs.values()))):
+                # If not called with at least one magma value, use the Python
+                # implementation
+                return fn(*args, **kwargs)
         return circuit_def()(*args, **kwargs)
     func.__name__ = fn.__name__
     func.__qualname__ = fn.__name__
