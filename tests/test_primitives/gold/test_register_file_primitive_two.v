@@ -87,7 +87,7 @@ commonlib_muxn__N4__width4 coreir_commonlib_mux4x4_inst0 (
 );
 endmodule
 
-module StagedCircuit (
+module RegisterFile_w2_r2 (
     input ASYNCRESET,
     input CLK,
     input [1:0] read_0_addr,
@@ -261,7 +261,7 @@ module Main (
     input CLK,
     input ASYNCRESET
 );
-StagedCircuit StagedCircuit_inst0 (
+RegisterFile_w2_r2 StagedCircuit_inst0 (
     .ASYNCRESET(ASYNCRESET),
     .CLK(CLK),
     .read_0_addr(read_addr0),
