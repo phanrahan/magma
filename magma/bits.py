@@ -140,11 +140,11 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
 
-        class _MagmaBitOp(m.Circuit):
+        class _MagmBitsOp(m.Circuit):
             name = f"magma_Bits_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
-            coreir_genargs={"width": N}
+            coreir_genargs = {"width": N}
             renamed_ports = m.circuit.coreir_port_mapping
             primitive = True
             stateful = False
@@ -156,7 +156,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                 O = int(getattr(operator, python_op_name)(I))
                 value_store.set_value(self.O, O)
 
-        return _MagmaBitOp
+        return _MagmBitsOp
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -165,11 +165,11 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
         python_op = getattr(operator, python_op_name)
 
-        class _MagmaBitOp(m.Circuit):
+        class _MagmBitsOp(m.Circuit):
             name = f"magma_Bits_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
-            coreir_genargs={"width": N}
+            coreir_genargs = {"width": N}
             renamed_ports = m.circuit.coreir_port_mapping
             primitive = True
             stateful = False
@@ -182,7 +182,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                 O = int(python_op(I0, I1))
                 value_store.set_value(self.O, O)
 
-        return _MagmaBitOp
+        return _MagmBitsOp
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -190,19 +190,24 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
 
-        def simulate(self, value_store, state_store):
-            I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
-            I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
-            O = int(getattr(operator, python_op_name)(I0, I1))
-            value_store.set_value(self.O, O)
-        return m.circuit.DeclareCoreirCircuit(f"magma_Bits_{N}_{op}",
-                                              "I0", m.In(cls),
-                                              "I1", m.In(cls),
-                                              "O", m.Out(m.Bit),
-                                              simulate=simulate,
-                                              coreir_name=op,
-                                              coreir_genargs={"width": N},
-                                              coreir_lib="coreir")
+        class _MagmBitsOp(m.Circuit):
+            name = f"magma_Bits_{N}_{op}"
+            coreir_name = op
+            coreir_lib = "coreir"
+            coreir_genargs = {"width": N}
+            renamed_ports = m.circuit.coreir_port_mapping
+            primitive = True
+            stateful = False
+
+            io = m.IO(I0=m.In(cls), I1=m.In(cls), O=m.Out(m.Bit))
+
+            def simulate(self, value_store, state_store):
+                I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
+                I1 = cls.hwtypes_T[N](value_store.get_value(self.I1))
+                O = int(getattr(operator, python_op_name)(I0, I1))
+                value_store.set_value(self.O, O)
+
+        return _MagmBitsOp
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -215,7 +220,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         t_str = t_str.replace("]", "")
         N = len(cls)
 
-        class _MagmaBitOp(m.Circuit):
+        class _MagmBitsOp(m.Circuit):
             name = f"magma_Bits_{N}_ite_{t_str}"
             coreir_name = "mux"
             coreir_lib = "coreir"
@@ -234,7 +239,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                 O = I1 if S else I0
                 value_store.set_value(self.O, O)
 
-        return _MagmaBitOp
+        return _MagmBitsOp
 
     def bvnot(self) -> 'AbstractBitVector':
         return self.declare_unary_op("not")()(self)
