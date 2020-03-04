@@ -105,7 +105,7 @@ def return_magma_tuple(I: m.Bits[2]) -> m.Tuple[m.Bit, m.Bit]:
 
 ```python
 @m.circuit.combinational
-def return_magma_named_tuple(I: m.Bits[2]) -> m.Product.from_fields("anon", {"x"=m.Bit, "y"=m.Bit}):
+def return_magma_named_tuple(I: m.Bits[2]) -> m.Product.from_fields("anon", {"x": m.Bit, "y": m.Bit}):
     return m.namedtuple(x=I[0], y=I[1])
 ```
 
