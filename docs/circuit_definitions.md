@@ -230,13 +230,6 @@ output of the `__call__` method have type annotations just like
 as a standard `@m.circuit.combinational` function, with the special parameter
 `self` that provides access to the state.
 
-**NOTE** Currently it is required that every state element receive an explicit
-value in the `__call__` method. For example, if you have a variable `self.x`
-that you would like to keep constant, you must still assign it with `self.x =
-self.x`.  Support for optional updates (implicit enable logic on the state) is
-forthcoming (tracked by this issue
-https://github.com/phanrahan/magma/issues/432).
-
 The sequential syntax is implemented by compiling the above class definition
 into a magma circuit definition instantiating the registers declared in the
 `__init__` method and defining and wiring up a combinational function
@@ -303,6 +296,14 @@ Notice that we annotate the type of the attribute with the class (sequential
 circuit definition) and we initialize it with an instance of the class.  Then,
 the attribute can be called with inputs to return the outputs. This corresponds
 to calling the `__call__` method of the sub instance.
+
+**NOTE** Currently it is required that every sub
+sequential circuit element receive an explicit invocation in the `__call__`
+method. For example, if you have a sub sequential circuit `self.x` that you
+would like to keep constant, you must still call it with `self.x(...)` to
+ensure that some input value is provided every cycle (the sub sequential
+circuit must similarly be designed in such a way that the logic expects inputs
+every cycle, so enable logic must be explicitly defined).
 
 ## Experimental: Direct to Verilog Compilation
 `@combinational_to_verilog` and `@sequential_to_verilog` decorators provide
