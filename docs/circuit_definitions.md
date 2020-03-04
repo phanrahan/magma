@@ -297,6 +297,14 @@ circuit definition) and we initialize it with an instance of the class.  Then,
 the attribute can be called with inputs to return the outputs. This corresponds
 to calling the `__call__` method of the sub instance.
 
+**NOTE** Currently it is required that every sub
+sequential circuit element receive an explicit invocation in the `__call__`
+method. For example, if you have a sub sequential circuit `self.x` that you
+would like to keep constant, you must still call it with `self.x(...)` to
+ensure that some input value is provided every cycle (the sub sequential
+circuit must similarly be designed in such a way that the logic expects inputs
+every cycle, so enable logic must be explicitly defined).
+
 ## Experimental: Direct to Verilog Compilation
 `@combinational_to_verilog` and `@sequential_to_verilog` decorators provide
 support for an alternative compiler that passes `if` statements down to verilog
