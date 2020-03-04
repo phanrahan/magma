@@ -1,12 +1,13 @@
 from coreir import Context
 from ..array import Array
 from ..tuple import Tuple
-from ..clock import AsyncReset, AsyncResetN
+from ..clock import AsyncReset, AsyncResetN, Clock
 from ..config import config, EnvConfig
 from ..logging import root_logger
 from ..t import In, Out
 from .. import singleton
-from ..circuit import DeclareCircuit
+from ..circuit import Circuit
+from ..interface import IO
 from .coreir_transformer import DefnOrDeclTransformer
 from ..passes import DefinitionPass
 from .util import keydefaultdict
@@ -66,34 +67,31 @@ class CoreIRBackend:
 
 
 class InsertWrapCasts(DefinitionPass):
-    def sim(self, value_store, state_store):
-        input_val = value_store.get_value(getattr(self, "in"))
-        value_store.set_value(self.out, input_val)
-
     def define_wrap(self, wrap_type, in_type, out_type):
-        name = f"coreir_wrap{wrap_type}".replace("(", "").replace(")", "")
-        return DeclareCircuit(name,
-                              "in",
-                              In(in_type),
-                              "out",
-                              Out(out_type),
-                              coreir_genargs={"type": wrap_type},
-                              coreir_name="wrap",
-                              coreir_lib="coreir",
-                              simulate=self.sim)
+        class Wrap(Circuit):
+            name = f"coreir_wrap{wrap_type}".replace("(", "").replace(")", "")
+            io = IO(**{"in": In(in_type), "out": Out(out_type)})
+            coreir_genargs = {"type": wrap_type}
+            coreir_name = "wrap"
+            coreir_lib = "coreir"
 
-    def wrap_if_arst(self, port, definition):
+            def simulate(self, value_store, state_store):
+                input_val = value_store.get_value(getattr(self, "in"))
+                value_store.set_value(self.out, input_val)
+        return Wrap
+
+    def wrap_if_named_type(self, port, definition):
         if isinstance(port, (Array, Tuple)):
             for t in port:
-                self.wrap_if_arst(t, definition)
+                self.wrap_if_named_type(t, definition)
         elif port.is_input():
-            if isinstance(port, (AsyncReset, AsyncResetN)) or \
-                    isinstance(port.trace(), (AsyncReset, AsyncResetN)):
+            if isinstance(port, (AsyncReset, AsyncResetN, Clock)) or \
+                    isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock)):
                 value = port.trace()
                 if value is not None and not issubclass(
                         type(value), type(port).flip()):
                     port.unwire(value)
-                    if isinstance(port, (AsyncReset, AsyncResetN)):
+                    if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
                         inst = self.define_wrap(
                             type(port).flip(), type(port), type(value))()
                     else:
@@ -111,9 +109,9 @@ class InsertWrapCasts(DefinitionPass):
                     type(instance).coreir_name == "unwrap":
                 continue
             for port in instance.interface.ports.values():
-                self.wrap_if_arst(port, definition)
+                self.wrap_if_named_type(port, definition)
         for port in definition.interface.ports.values():
-            self.wrap_if_arst(port, definition)
+            self.wrap_if_named_type(port, definition)
 
 
 def compile(main, file_name=None, context=None):
