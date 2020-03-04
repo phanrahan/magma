@@ -99,13 +99,13 @@ with `m.Tuple(O0=m.Bit, O1=m.Bit)`.
 
 ```python
 @m.circuit.combinational
-def return_magma_tuple(I: m.Bits[2]) -> m.Tuple(m.Bit, m.Bit):
+def return_magma_tuple(I: m.Bits[2]) -> m.Tuple[m.Bit, m.Bit]:
     return m.tuple_([I[0], I[1]])
 ```
 
 ```python
 @m.circuit.combinational
-def return_magma_named_tuple(I: m.Bits[2]) -> m.Tuple(x=m.Bit, y=m.Bit):
+def return_magma_named_tuple(I: m.Bits[2]) -> m.Product.from_fields("anon", {"x": m.Bit, "y": m.Bit}):
     return m.namedtuple(x=I[0], y=I[1])
 ```
 
@@ -230,13 +230,6 @@ output of the `__call__` method have type annotations just like
 as a standard `@m.circuit.combinational` function, with the special parameter
 `self` that provides access to the state.
 
-**NOTE** Currently it is required that every state element receive an explicit
-value in the `__call__` method. For example, if you have a variable `self.x`
-that you would like to keep constant, you must still assign it with `self.x =
-self.x`.  Support for optional updates (implicit enable logic on the state) is
-forthcoming (tracked by this issue
-https://github.com/phanrahan/magma/issues/432).
-
 The sequential syntax is implemented by compiling the above class definition
 into a magma circuit definition instantiating the registers declared in the
 `__init__` method and defining and wiring up a combinational function
@@ -276,9 +269,9 @@ register defined as follows:
 @m.circuit.sequential(async_reset=True)
 class Register:
     def __init__(self):
-        self.value: m.Bits[width] = m.bits(init, width)
+        self.value: m.Bits[2] = m.bits(init, 2)
 
-    def __call__(self, I: m.Bits[width]) -> m.Bits[width]:
+    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
         O = self.value
         self.value = I
         return O
@@ -304,16 +297,13 @@ circuit definition) and we initialize it with an instance of the class.  Then,
 the attribute can be called with inputs to return the outputs. This corresponds
 to calling the `__call__` method of the sub instance.
 
-**NOTE** Similarly to state elements, currently it is required that every sub
+**NOTE** Currently it is required that every sub
 sequential circuit element receive an explicit invocation in the `__call__`
 method. For example, if you have a sub sequential circuit `self.x` that you
 would like to keep constant, you must still call it with `self.x(...)` to
 ensure that some input value is provided every cycle (the sub sequential
 circuit must similarly be designed in such a way that the logic expects inputs
-every cycle, so enable logic must be explicitly defined).  Support for optional
-calls (implicit enable logic on the state of the sub sequential circuit) is
-forthcoming (tracked by this issue
-https://github.com/phanrahan/magma/issues/432).
+every cycle, so enable logic must be explicitly defined).
 
 ## Experimental: Direct to Verilog Compilation
 `@combinational_to_verilog` and `@sequential_to_verilog` decorators provide

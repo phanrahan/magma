@@ -512,3 +512,7 @@ def tuple_(value, n=None, t=Tuple):
 
 def namedtuple(**kwargs):
     return tuple_(kwargs, t=Product)
+
+
+def product(**kwargs):
+    return tuple_(kwargs, t=Product)

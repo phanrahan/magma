@@ -38,6 +38,8 @@ def _get_basename(basename):
 
 
 def compile(basename, main, output="coreir-verilog", **kwargs):
+    if hasattr(main, "circuit_definition"):
+        main = main.circuit_definition
     basename = _get_basename(basename)
     opts = kwargs.copy()
     FinalizeStagedCircuitPass(main).run()
