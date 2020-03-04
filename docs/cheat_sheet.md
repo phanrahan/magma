@@ -184,3 +184,43 @@ an arithmetic shift right operator (which replicates the sign bit as it shifts r
 - `m.sext(v, n)`: sign extend array `v` by `n`
 - `m.concat(*arrays)`: concat arrays together
 - `m.repeat(value, n)`: create an array repeating `value` `n` times
+
+# Combinational
+```python
+@m.circuit.combinational
+def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
+    if S:
+        return I[0]
+    else:
+        return I[1]
+
+```
+
+produces
+
+```python
+basic_if = DefineCircuit("basic_if", "I", In(Bits[2]), "S", In(Bit), "O", Out(Bit))
+Mux2xOutBit_inst0 = Mux2xOutBit()
+wire(basic_if.I[1], Mux2xOutBit_inst0.I0)
+wire(basic_if.I[0], Mux2xOutBit_inst0.I1)
+wire(basic_if.S, Mux2xOutBit_inst0.S)
+wire(Mux2xOutBit_inst0.O, basic_if.O)
+EndCircuit()
+```
+See [here](circuit_definitions.md) for more details.
+
+# Sequential
+```python
+@m.circuit.sequential(async_reset=True)
+class DelayBy2:
+    def __init__(self):
+        self.x: m.Bits[2] = m.bits(0, 2)
+        self.y: m.Bits[2] = m.bits(0, 2)
+
+    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
+        O = self.y
+        self.y = self.x
+        self.x = I
+        return O
+```
+See [here](circuit_definitions.md) for more details.
