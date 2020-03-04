@@ -441,7 +441,7 @@ class Array(Type, metaclass=ArrayMeta):
 
     @classmethod
     def from_bits(cls, value):
-        if isinstance(cls.T, Digital):
+        if issubclass(cls.T, Digital):
             if not len(cls) == len(value):
                 raise TypeError("Width mismatch")
             return cls(value.ts)
