@@ -5,26 +5,30 @@ As in python, all Magma types are python classes.
 Instances of Magma types are Magma values.
 
 The first major set of types are single bit types. 
-They are subclasses of `_Bit`.
+They are subclasses of `Bit`, which itself is a subclass of `Digital`:
 ```python
-class _Bit(Type):
-  class Clock(_Bit):
-  class Reset(_Bit):
-  class Enable(_Bit):
-  class Bit(_Bit):
+class Digital(Type):
+  class Bit(Digital):
+    class Clock(Bit):
+    class Reset(Bit):
+    class Enable(Bit):
 ```
 The `Bit` type can be used in logical operations.
 
 The second major type in Magma is the `Array` type.
 An `Array` consists of `n` values of the same type `T`.
 ```python
-Array(n, T)
+Array[n, T]
 ```
 
-The third major type in Magma is the `Tuple` type.
-An `Tuple` consists of `n` named values of different types `Tn`.
+The third major type in Magma is the `Tuple` (and `Product`) type.
+A `Tuple` consists of `n` unnamed values of different types `Tn`.
 ```python
-Tuple(name0, T0, name1, T1, …, namen, Tn)
+Tuple[T0, T1, ..., Tn]
+```
+A `Product` consists of `n` named values of different types `Tn`.
+```python
+Product.from_fields(name, dict(name0=T0, name1=T1, ..., namen=Tn))
 ```
 
 The `Bits` type is equivalent to an array of `Bit`.
@@ -43,15 +47,7 @@ UInt(n) # +, -, *, /, <, <=, >=, >
 
 `Array`, `Tuple`, `Bits`, `UInt`, and `SInt` (Type Constructors) 
 are python functions that return new python classes.
-The classes returned are subclasses of the Magma class `Kind`,
-the abstract base class for all Magma types.
-The `Bit` class is a subclass of `BitKind`;
-the `Clock` class is a subclass of `ClockKind;
-All constructed Array classes are subclasses of `ArrayKind`;
-and so on.
 Types can be tested for equality and inequality.
 
 Values are instances of Magma type classes.
 All values are subclasses of the Magma type `Type`.
-An instance of `Bit` is a subclass of `BitType`, 
-and so on.
