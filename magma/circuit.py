@@ -254,7 +254,7 @@ class CircuitKind(type):
         name = cls.__name__
         args = str(cls.IO)
 
-        if not hasattr(cls, "instances"):
+        if not isdefinition(cls):
             return f"{name} = DeclareCircuit(\"{name}\", {args})"
         s = f"{name} = DefineCircuit(\"{name}\", {args})\n"
         sorted_instances = sorted(cls.instances, key=lambda x: x.name)

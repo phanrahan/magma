@@ -352,7 +352,7 @@ def _sequential(
     for name, type_ in inputs:
         type_ = astor.to_source(type_).rstrip()
         circuit_combinational_args.append(f"{name}: {type_}")
-        circuit_combinational_call_args.append(f"io.{name}")
+        circuit_combinational_call_args.append(f"{name}=io.{name}")
 
     comb_out_count = 0
     for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
@@ -376,7 +376,7 @@ def _sequential(
                 type_ = repr(type(value))
                 if value.is_output():
                     circuit_combinational_args.append(f"self_{name}_{value}: {magma_name}.{type_}")
-                    circuit_combinational_call_args.append(f"{name}.{value}")
+                    circuit_combinational_call_args.append(f"self_{name}_{value}={name}.{value}")
                 if value.is_input():
                     circuit_combinational_output_type.append(f"{magma_name}.{type_}")
                     comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
