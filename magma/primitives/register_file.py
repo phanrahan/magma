@@ -178,6 +178,11 @@ class RegisterFile(Generator):
 
             @classmethod
             def finalize(cls):
+                # Hack to rename circuit
+                cls.name = (f"RegisterFile_w{cls.num_write_ports}"
+                            f"_r{cls.num_read_ports}")
+                cls.coreir_name = (f"RegisterFile_w{cls.num_write_ports}"
+                                   f"_r{cls.num_read_ports}")
                 with cls.open():
                     for port in cls._get_read_ports():
                         port.data @= Mux(height, Bits[data_width])(
