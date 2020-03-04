@@ -276,9 +276,9 @@ register defined as follows:
 @m.circuit.sequential(async_reset=True)
 class Register:
     def __init__(self):
-        self.value: m.Bits[width] = m.bits(init, width)
+        self.value: m.Bits[2] = m.bits(init, 2)
 
-    def __call__(self, I: m.Bits[width]) -> m.Bits[width]:
+    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
         O = self.value
         self.value = I
         return O
