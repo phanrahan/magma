@@ -23,16 +23,14 @@ def simulator_nested(simple):
         outType = Out(Array[2, Array[2, toNest]])
     args = ['I', inType, 'O', outType] + ClockInterface(False, False)
 
-    testcircuit = DefineCircuit('test_simulator_nested_simple{}'.format(str(simple)), *args)
-
-    if simple:
-        wire(testcircuit.I, testcircuit.O)
-    else:
-        wire(testcircuit.I[:2], testcircuit.O[0])
-        wire(testcircuit.I[2:4], testcircuit.O[1])
-
-    EndCircuit()
-
+    class testcircuit(Circuit):
+        name = 'test_simulator_nested_simple{}'.format(str(simple))
+        io = m.IO(**dict(zip(args[::2], args[1::2])))
+        if simple:
+            wire(io.I, io.O)
+        else:
+            wire(io.I[:2], io.O[0])
+            wire(io.I[2:4], io.O[1])
 
     sim = CoreIRSimulator(testcircuit, testcircuit.CLK, context=cirb.context,
                           namespaces=["aetherlinglib", "commonlib", "mantle", "coreir", "global"])

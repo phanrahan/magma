@@ -32,14 +32,19 @@ def DefineAdd(N, has_cout=False, has_cin=False):
     class Add(primitives.DefineAdd(N, has_cin=has_cin, has_cout=has_cout)):
         @classmethod
         def definition(add):
-            coreir_genargs = {"width": N} # , "has_cout": has_cout, "has_cin": has_cin}
+            coreir_genargs_ = {"width": N} # , "has_cout": has_cout, "has_cin": has_cin}
             if has_cout:
-                coreir_genargs["width"] += 1
-            T = Bits[coreir_genargs["width"]]
+                coreir_genargs_["width"] += 1
+            T = Bits[coreir_genargs_["width"]]
             coreir_io = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
-            CoreirAdd = DeclareCircuit("coreir_" + add.name, *coreir_io,
-                    coreir_name="add", coreir_lib="coreir",
-                    coreir_genargs=coreir_genargs)
+
+            class CoreirAdd(Circuit):
+                name = "coreir_" + add.name
+                io = m.IO(**dict(zip(coreir_io[::2], coreir_io[1::2])))
+                coreir_name = "add"
+                coreir_lib = "coreir"
+                coreir_genargs = coreir_genargs_
+
             coreir_add = CoreirAdd()
             I0 = add.I0
             I1 = add.I1
@@ -48,7 +53,7 @@ def DefineAdd(N, has_cout=False, has_cin=False):
                 I1 = concat(add.I1, bits(0, n=1))
             if has_cin:
                 coreir_add_cin = CoreirAdd()
-                wire(coreir_add_cin.in0, concat(bits(0, n=coreir_genargs["width"]-1), bits(add.CIN)))
+                wire(coreir_add_cin.in0, concat(bits(0, n=coreir_genargs_["width"]-1), bits(add.CIN)))
                 wire(coreir_add_cin.in1, I0)
                 I0 = coreir_add_cin.out
             wire(I0, coreir_add.in0)
@@ -67,12 +72,13 @@ def test_add_generator():
     Add8cin = DefineAdd(8, has_cin=True, has_cout=False)
     assert Add8cin._generator_arguments.args == (8,)
     assert Add8cin._generator_arguments.kwargs == {"has_cin": True, "has_cout": False}
-    test_circuit = DefineCircuit("test", "I0", In(Bits[8]), "I1", In(Bits[8]),
-            "CIN", In(Bit), "O", Out(Bits[8]))
-    adder = Add8cin()
-    wire(test_circuit, adder)
-    wire(test_circuit.O, adder.O)
-    EndDefine()
+    class test_circuit(Circuit):
+        name = "test"
+        io = IO(I0=In(Bits[8]), I1=In(Bits[8]),
+            CIN=In(Bit), O=Out(Bits[8]))
+        adder = Add8cin()
+        wire(io.O, adder.O)
+    wire(test_circuit, test_circuit.adder)
     print(repr(test_circuit))
     compile("build/test_add8cin", test_circuit, output="coreir")
     assert check_files_equal(__file__,

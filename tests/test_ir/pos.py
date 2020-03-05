@@ -2,7 +2,9 @@ import sys
 from magma import *
 from magma.ir import compile
 
-Buf = DeclareCircuit('Buf', "I", In(Bit), "O", Out(Bit))
+class Buf(Circuit):
+    name = "Buf"
+    io = IO(I=In(Bit), O=Out(Bit))
 
 main = DefineCircuit("main", "I", In(Bit), "O", Out(Bit))
 

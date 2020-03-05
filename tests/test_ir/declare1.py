@@ -2,7 +2,9 @@ import sys
 from magma import *
 from magma.ir import compile
 
-And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+class And2(Circuit):
+    name = "And2"
+    io = IO(I0=In(Bit), I1=In(Bit), O=Out(Bit))
 
 main = DefineCircuit("main", "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
 and2 = And2()

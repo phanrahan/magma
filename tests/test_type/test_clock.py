@@ -2,14 +2,8 @@ import tempfile
 import pytest
 import magma as m
 from magma.testing import check_files_equal
-from magma import In, Out, Flip, \
-    Clock, \
-    Reset, reset, \
-    Enable, enable, \
-    AsyncReset, \
-    DeclareCircuit, DefineCircuit, EndCircuit, \
-    Bit, bit, wire, compile
-
+from magma import (IO, In, Out, Flip, Clock, Reset, reset, Enable, enable,
+                   AsyncReset, Circuit, Bit, bit, wire, compile)
 from magma.digital import DigitalMeta
 
 
@@ -309,25 +303,30 @@ def test_coreir_wrap(T):
             input_val = value_store.get_value(getattr(self, "in"))
             value_store.set_value(self.out, input_val)
 
-        return DeclareCircuit(
-            f'coreir_wrap{type_name}',
-            "in", In(in_type), "out", Out(type_),
-            coreir_genargs={"type": type_},
-            coreir_name="wrap",
-            coreir_lib="coreir",
-            simulate=sim_wrap
-        )
+        args = {"in": In(in_type), "out": Out(type_)}
 
-    foo = DefineCircuit("foo", "r", In(T))
-    EndCircuit()
+        class _Wrap(Circuit):
+            name = f'coreir_wrap{type_name}'
+            io = m.IO(**args)
+            coreir_genargs = {"type": type_}
+            coreir_name = "wrap"
+            coreir_lib = "coreir"
+            simulate = sim_wrap
 
-    top = DefineCircuit("top", "O", Out(Bit))
-    foo_inst = foo()
-    wrap = define_wrap(T, "Bit", Bit)()
-    wire(bit(0), wrap.interface.ports["in"])
-    wire(wrap.out, foo_inst.r)
-    wire(bit(0), top.O)
-    EndCircuit()
+        return _Wrap
+
+    class foo(Circuit):
+        name = "foo"
+        io = IO(r=In(T))
+
+    class top(Circuit):
+        name = "top"
+        io = IO(O=Out(Bit))
+        foo_inst = foo()
+        wrap = define_wrap(T, "Bit", Bit)()
+        wire(bit(0), wrap.interface.ports["in"])
+        wire(wrap.out, foo_inst.r)
+        wire(bit(0), io.O)
 
     with tempfile.TemporaryDirectory() as tempdir:
         filename = f"{tempdir}/top"
@@ -340,14 +339,16 @@ def test_coreir_wrap(T):
 
 @pytest.mark.parametrize("T,t", [(Reset, reset), (Enable, enable)])
 def test_const_wire(T, t):
-    foo = DefineCircuit("foo", "I", In(T))
-    EndCircuit()
+    class foo(Circuit):
+        name = "foo"
+        io = IO(I=In(T))
 
-    top = DefineCircuit("top", "O", Out(Bit))
-    foo_inst = foo()
-    wire(t(0), foo_inst.I)
-    wire(bit(0), top.O)
-    EndCircuit()
+    class top(Circuit):
+        name = "top"
+        io = IO(O=Out(Bit))
+        foo_inst = foo()
+        wire(t(0), foo_inst.I)
+        wire(bit(0), io.O)
 
     with tempfile.TemporaryDirectory() as tempdir:
         filename = f"{tempdir}/top"

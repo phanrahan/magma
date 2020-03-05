@@ -2,7 +2,9 @@ import sys
 from magma import *
 
 def test():
-    And2 = DeclareCircuit('And2', "I0", In(Bit), "I1", In(Bit), "O", Out(Bit))
+    class And2(Circuit):
+        name = "And2"
+        io = IO(I0=In(Bit), I1=In(Bit), O=Out(Bit))
     print(repr(And2))
 
     and2 = And2()
