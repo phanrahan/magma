@@ -1,3 +1,12 @@
+module _InlineVerilog (
+    input O,
+    input I
+);
+
+assert property (@(posedge CLK) I |-> ##1 O);
+
+endmodule
+
 module FF(input I, output reg O, input CLK);
 always @(posedge CLK) begin
   O <= I;
@@ -13,8 +22,9 @@ FF FF_inst0 (
     .O(O),
     .CLK(CLK)
 );
-
-assert property (@(posedge CLK) I |-> ##1 O);
-
+_InlineVerilog _InlineVerilog_inst0 (
+    .O(O),
+    .I(I)
+);
 endmodule
 

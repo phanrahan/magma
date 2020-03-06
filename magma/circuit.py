@@ -642,7 +642,8 @@ class DefineCircuitKind(CircuitKind):
 
     @property
     def is_definition(self):
-        return self._is_definition or self.verilog or self.verilogFile
+        return self._is_definition or self.verilog or self.verilogFile or \
+            self._inline_verilog_
 
     @property
     def instances(self):

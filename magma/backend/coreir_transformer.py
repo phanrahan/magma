@@ -147,7 +147,12 @@ class DefinitionTransformer(TransformerBase):
     def run_self(self):
         _logger.debug(f"Compiling definition {self.defn}")
         self.coreir_module = self.decl_tx.coreir_module
-        if self.defn.inline_verilog_strs:
+        if getattr(self.defn, "_inline_verilog_", False):
+            self.coreir_module.add_metadata(
+                "inline_verilog",
+                json.dumps(getattr(self.defn, "_inline_verilog_", False))
+            )
+        elif self.defn.inline_verilog_strs:
             inline_verilog = "\n\n".join(self.defn.inline_verilog_strs)
             self.coreir_module.add_metadata("inline_verilog",
                                             json.dumps(inline_verilog))

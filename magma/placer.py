@@ -106,8 +106,6 @@ class Placer:
     def place(self, inst):
         self._name(inst)
         self._instances.append(inst)
-        for sub_inst in getattr(type(inst), "instances", []):
-            setattr(inst, sub_inst.name, InstView(sub_inst, inst))
         inst.defn = self._defn
         if get_debug_mode():
             inst.stack = inspect.stack()
@@ -126,6 +124,8 @@ class StagedPlacer(ABC):
     def place(self, inst):
         self._instances.append(inst)
         inst.defn = LazyCircuit
+        for sub_inst in getattr(type(inst), "instances", []):
+            setattr(inst, sub_inst.name, InstView(sub_inst, inst))
 
     def finalize(self, defn):
         if self._finalized:
