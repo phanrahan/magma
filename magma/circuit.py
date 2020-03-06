@@ -74,14 +74,10 @@ class _PlacerBlock:
 
     @classmethod
     def pop(cls):
-        if not cls.__stack:
-            return None
         return cls.__stack.pop()
 
     @classmethod
     def peek(cls):
-        if not cls.__stack:
-            return None
         return cls.__stack[-1]
 
 
@@ -217,11 +213,11 @@ class CircuitKind(type):
             cls.interface = cls.IO(defn=cls,
                                    renamed_ports=dct["renamed_ports"])
             _setattrs(cls, cls.interface.ports)
-        placer = _PlacerBlock.pop()
-        if placer:
+        try:
+            placer = _PlacerBlock.pop()
             assert placer.name == cls_name
             cls._placer = placer.finalize(cls)
-        else:
+        except IndexError:  # no staged placer
             cls._placer = Placer(cls)
 
         return cls
@@ -514,10 +510,11 @@ class CircuitType(AnonymousCircuitType):
     """Placed circuit - instances placed in a definition"""
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
-        # Circuit instances are placed if within a definition.
-        placer = _PlacerBlock.peek()
-        if placer:
+        try:
+            placer = _PlacerBlock.peek()
             placer.place(self)
+        except IndexError:  # instances must happen inside a definition context
+            raise Exception("Can not instance a circuit outside a definition")
 
     def __repr__(self):
         args = []
@@ -732,9 +729,10 @@ def DefineCircuit(name, *decl, **args):
 
 
 def EndDefine():
-    placer = _PlacerBlock.pop()
-    if not placer:
-        raise Exception("EndDefine called without DefineCircuit")
+    try:
+        placer = _PlacerBlock.pop()
+    except IndexError:
+        raise Exception("EndDefine not matched to DefineCircuit")
     placer._defn.check_unconnected()
     debug_info = get_callee_frame_info()
     placer._defn.end_circuit_filename = debug_info[0]

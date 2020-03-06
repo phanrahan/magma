@@ -21,5 +21,3 @@ def test_fork():
     assert len(lut.interface) == 3
     #print(type(lut))
     #print(repr(lut))
-
-test_fork()
