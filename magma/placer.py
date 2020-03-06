@@ -16,14 +16,10 @@ def _parse_name(inst):
 
     otherwise, returns None.
     """
+    with open(inst.debug_info.filename, "r") as f:
+        line = f.read().splitlines()[inst.debug_info.lineno - 1]
     try:
-        with open(inst.debug_info.filename, "r") as f:
-            line = f.read().splitlines()[inst.debug_info.lineno - 1]
         tree = ast.parse(textwrap.dedent(line)).body[0]
-        # Simple case when <Name> = <Instance>().
-        if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
-           and isinstance(tree.targets[0], ast.Name):
-            return tree.targets[0].id
     except Exception:
         # Sometimes we cannot parse the line, e.g.
         # x = [Circuit()
@@ -34,6 +30,11 @@ def _parse_name(inst):
         # For now, we just silently ignore exceptions and just assume we can't
         # find a good debug name
         return None
+    # Simple case when <Name> = <Instance>().
+    if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
+       and isinstance(tree.targets[0], ast.Name):
+        return tree.targets[0].id
+    return None
 
 
 class PlacerBase(ABC):
