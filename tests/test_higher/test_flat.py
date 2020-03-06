@@ -17,6 +17,3 @@ def test_partition():
     assert len(g.interface) == 3
     assert len(g.I0) == 2
     assert len(g.I1) == 2
-
-test_flat()
-
