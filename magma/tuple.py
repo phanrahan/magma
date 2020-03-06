@@ -266,7 +266,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         if len(ts) == len(self) and self.iswhole(ts):
             return ts[0].name.tuple
 
-        return tuple_(dict(zip(self.keys(),ts)))
+        return type(self).flip()(*ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -278,7 +278,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         if len(ts) == len(self) and self.iswhole(ts):
             return ts[0].name.tuple
 
-        return tuple_(dict(zip(self.keys(),ts)))
+        return type(self).flip()(*ts)
 
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
