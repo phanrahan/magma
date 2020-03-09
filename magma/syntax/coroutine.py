@@ -115,9 +115,6 @@ def _coroutine(defn_env, fn):
             and tree.body[1].name == "__call__")
     call_method = tree.body[1]
 
-    # insert while true to simplify CFG construction
-    call_method.body = [ast.While(ast.NameConstant(True), call_method.body, [])]
-
     # build cfg
     cfg = CFGBuilder().build(call_method.name, call_method)
     # debug cfg visualizer
