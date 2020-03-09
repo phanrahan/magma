@@ -48,7 +48,8 @@ class RewriteSelfAttributes(ast.NodeTransformer):
                 return ast.Tuple([ast.Name(f"self_{attr}_{output}",
                                            ast.Load()) for output in outputs],
                                  ast.Load())
-        elif (isinstance(node.func.value, ast.Attribute) and
+        elif (isinstance(node.func, ast.Attribute) and
+                isinstance(node.func.value, ast.Attribute) and
                 isinstance(node.func.value.value, ast.Name) and
                 node.func.value.value.id == "self" and
                 node.func.attr == "prev"):
