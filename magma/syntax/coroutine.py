@@ -10,6 +10,9 @@ from ..bitutils import clog2
 
 
 class RemoveIfTrues(ast.NodeTransformer):
+    """
+    Remove `if True:` nodes by replacing them with their body
+    """
     def visit_If(self, node):
         if isinstance(node.test, ast.NameConstant) and node.test.value is True:
             return node.body
@@ -17,9 +20,32 @@ class RemoveIfTrues(ast.NodeTransformer):
 
 
 class MergeInverseIf(ast.NodeTransformer):
+    """
+    Merge cases where
+    ```
+    if cond:
+        ...
+    if invert(cond):
+        ...
+    ```
+    into
+    ```
+    if cond:
+        ...
+    else:
+        ...
+    ```
+
+    `invert` comes from the `staticfg` library, which is used in marking
+    control flow graph paths, so this just tries to reconstruct the if/else
+    structure found in the original code based on the control flow graph
+    construction
+    """
     def visit(self, node):
         if hasattr(node, 'body'):
             node.body = self.visit_body(node.body)
+        if hasattr(node, 'orelse'):
+            node.orelse = self.visit_body(node.orelse)
         return self.generic_visit(node)
 
     def visit_body(self, body):
@@ -43,11 +69,23 @@ class MergeInverseIf(ast.NodeTransformer):
 
 
 def is_yield(statement):
+    """
+    Is this a statement of the form `yield <expr>`
+    """
     return (isinstance(statement, ast.Expr) and \
             isinstance(statement.value, ast.Yield))
 
 
 def collect_paths_to_yield(start_idx, block):
+    """
+    Given a start idx in a block, collect the paths to the next yield.
+
+    Use a start offset because some yields occur inside a basic block, so the
+    start of a path may not be the start of the block.
+
+    Copies branch nodes and stores their `exitcase` into the test for use later
+    (so we know the required condition of this path)
+    """
     path = []
     for statement in block.statements[start_idx:]:
         path.append(statement)
@@ -57,10 +95,11 @@ def collect_paths_to_yield(start_idx, block):
     for exit in block.exits:
         _path = path
         if exit.exitcase is not None:
-            assert len(_path) == 1
+            assert (len(_path) == 1 and
+                    isinstance(_path[0], (ast.If, ast.While))), "Expect branch"
             _path = _path.copy()
             _path[0] = copy.copy(_path[0])
-            _path[0].exitcase = exit.exitcase
+            _path[0].test = exit.exitcase
         paths.extend(_path + p for p in collect_paths_to_yield(0, exit.target))
     return paths
 
@@ -109,9 +148,7 @@ def coroutine(fn):
                 body.append(copy.deepcopy(statement))
                 if isinstance(statement, ast.While):
                     body[-1] = ast.If(body[-1].test, body[-1].body, [])
-                    body[-1].exitcase = statement.exitcase
                 if isinstance(statement, (ast.If, ast.While)):
-                    body[-1].test = body[-1].exitcase
                     body[-1].body = []
                     body = body[-1].body
             body.append(ast.parse(
