@@ -1,3 +1,4 @@
+from string import Formatter
 import ast
 import enum
 import textwrap
@@ -175,6 +176,29 @@ def _get_intermediate_values(value, values):
                 driver = None
 
 
+def _convert_values_to_verilog_str(value):
+    if isinstance(value, Type):
+        # TODO: For now we assumed values aren't used elswhere, this
+        # forces it to be connected to an instance, so temporaries will
+        # appear in the code
+        if value.is_inout() and not value.driven():
+            raise NotImplementedError()
+        if value.is_input() and not value.driven():
+            # TODO: Could be driven after, but that will just override
+            # this wiring so it's okay for now
+            value.undriven()
+        elif value.is_output() and not value.wired():
+            value.unused()
+        elif not (value.is_input() or value.is_output() or value.is_inout()):
+            value.unused()
+        value = value_to_verilog_name(value)
+    elif isinstance(value, PortView):
+        value = value_to_verilog_name(value)
+    else:
+        value = str(value)
+    return value
+
+
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         _PlacerBlock.push(StagedPlacer(name))
@@ -222,13 +246,42 @@ class CircuitKind(type):
         except IndexError:  # no staged placer
             cls._placer = Placer(cls)
         if "_inline_verilog_" in dct:
-            # inline logic may introduce unused instances
-            with cls.open():
-                _inline_verilog_ = dct["_inline_verilog_"]
-                for format_str, format_args in _inline_verilog_:
-                    cls.inline_verilog(format_str, **format_args)
+            cls._process_inline_verilog(dct)
 
         return cls
+
+    def _process_inline_verilog(cls, dct):
+        # inline logic may introduce unused instances
+        with cls.open():
+            _inline_verilog_ = dct["_inline_verilog_"]
+            for format_str, format_args, frame in _inline_verilog_:
+                fieldnames = [fname for _, fname, _, _ in
+                              Formatter().parse(format_str) if fname]
+                for field in fieldnames:
+                    if field not in format_args:
+                        curr_frame = frame
+                        while curr_frame:
+                            try:
+                                value = eval(field, curr_frame.f_globals,
+                                             curr_frame.f_locals)
+                                # These have special handling, don't convert to
+                                # string
+                                value = _convert_values_to_verilog_str(value)
+                                value = value.replace("{", "{{")\
+                                             .replace("}", "}}")
+                                format_str = format_str.replace(f"{{{field}}}",
+                                                                value)
+                                break
+                            except NameError:
+                                prev_frame = curr_frame
+                                curr_frame = curr_frame.f_back
+                                # See
+                                # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
+                                # on deleting frames
+                                del prev_frame
+
+                del frame
+                cls.inline_verilog(format_str, **format_args)
 
     def __call__(cls, *largs, **kwargs):
         if get_debug_mode():
@@ -321,24 +374,7 @@ class CircuitKind(type):
     def inline_verilog(cls, inline_str, **kwargs):
         format_args = {}
         for key, arg in kwargs.items():
-            if isinstance(arg, Type):
-                # TODO: For now we assumed values aren't used elswhere, this
-                # forces it to be connected to an instance, so temporaries will
-                # appear in the code
-                if arg.is_inout() and not arg.driven():
-                    raise NotImplementedError()
-                if arg.is_input() and not arg.driven():
-                    # TODO: Could be driven after, but that will just override
-                    # this wiring so it's okay for now
-                    arg.undriven()
-                elif arg.is_output() and not arg.wired():
-                    arg.unused()
-                elif not (arg.is_input() or arg.is_output() or arg.is_inout()):
-                    arg.unused()
-                arg = value_to_verilog_name(arg)
-            elif isinstance(arg, PortView):
-                arg = value_to_verilog_name(arg)
-            format_args[key] = arg
+            format_args[key] = _convert_values_to_verilog_str(arg)
         cls.inline_verilog_strs.append(inline_str.format(**format_args))
 
 
@@ -686,8 +722,8 @@ Bind monitor interface does not match circuit interface
         )[len(cls.interface):]
         for mon_arg, bind_arg in zip(extra_mon_args, args):
             ports += cls.gen_bind_port(mon_arg, bind_arg)
-        ports_str = ", ".join(ports)
-        bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});"  # noqa
+        ports_str = ",\n    ".join(ports)
+        bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
         if not os.path.isdir(".magma"):
             os.mkdir(".magma")
         curr_compile_dir = get_compile_dir()
