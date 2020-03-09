@@ -221,8 +221,9 @@ class CircuitKind(type):
             cls._placer = placer.finalize(cls)
         except IndexError:  # no staged placer
             cls._placer = Placer(cls)
-        with cls.open():
-            if "_inline_verilog_" in dct:
+        if "_inline_verilog_" in dct:
+            # inline logic may introduce unused instances
+            with cls.open():
                 _inline_verilog_ = dct["_inline_verilog_"]
                 for format_str, format_args in _inline_verilog_:
                     cls.inline_verilog(format_str, **format_args)
