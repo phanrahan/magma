@@ -86,6 +86,7 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
         io = m.IO(**io_dict)
         renamed_ports = m.circuit.coreir_port_mapping
         stateful = True
+        primitive = True
         circuit_type_methods = methods
         default_kwargs = {"init": coreir.type.BitVector[width](init)}
         coreir_genargs = gen_args

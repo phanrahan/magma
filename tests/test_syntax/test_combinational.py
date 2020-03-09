@@ -17,20 +17,26 @@ class Not(m.Circuit):
 # TODO: Revert this to using mux primitive when moved to magma
 @m.cache_definition
 def _declare_muxn(height, width):
-    def simulate(self, value_store, state_store):
-        sel = BitVector[m.bitutils.clog2(height)](value_store.get_value(self.I.sel))
-        out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
-        value_store.set_value(self.O, out)
-    return m.circuit.DeclareCoreirCircuit(f"coreir_commonlib_mux{height}x{width}",
-        *["I", m.In(m.Product.from_fields("anon",
-                                          dict(data=m.Array[height, m.Bits[width]],
-                                               sel=m.Bits[m.bitutils.clog2(height)]))),
-          "O", m.Out(m.Bits[width])],
-        coreir_name="muxn",
-        coreir_lib="commonlib",
-        simulate=simulate,
-        coreir_genargs={"width": width, "N": height}
-    )
+    class MuxN(m.Circuit):
+        name = f"coreir_commonlib_mux{height}x{width}"
+        io = m.IO(
+            I=m.In(m.Product.from_fields("anon", dict(data=m.Array[height,
+                                                                   m.Bits[width]],
+                                                      sel=m.Bits[m.bitutils.clog2(height)]))),
+            O=m.Out(m.Bits[width])
+        )
+        renamed_ports = m.circuit.coreir_port_mapping
+        coreir_name = "muxn"
+        coreir_lib = "commonlib"
+        coreir_genargs = {"width": width, "N": height}
+        primitive = True
+        stateful = False
+
+        def simulate(self, value_store, state_store):
+            sel = BitVector[m.bitutils.clog2(height)](value_store.get_value(self.I.sel))
+            out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+            value_store.set_value(self.O, out)
+    return MuxN
 
 
 @m.cache_definition
