@@ -59,21 +59,19 @@ class MergeInverseIf(ast.NodeTransformer):
             if i == len(body) - 1:
                 break
             if (isinstance(node, ast.If) and isinstance(body[i + 1], ast.If)
-                    and ast.dump(invert(node.test)) ==
-                        ast.dump(body[i + 1].test)):
-                node.orelse = body[i + 1].body
-                skip_next = True
+                and ast.dump(invert(node.test)) == ast.dump(body[i + 1].test)):
+                    node.orelse = body[i + 1].body
+                    skip_next = True
             else:
                 skip_next = False
         return new_body
-
 
 
 def is_yield(statement):
     """
     Is this a statement of the form `yield <expr>`
     """
-    return (isinstance(statement, ast.Expr) and \
+    return (isinstance(statement, ast.Expr) and
             isinstance(statement.value, ast.Yield))
 
 
@@ -96,8 +94,9 @@ def collect_paths_to_yield(start_idx, block):
     for exit in block.exits:
         _path = path
         if exit.exitcase is not None:
-            assert (len(_path) == 1 and
-                    isinstance(_path[0], (ast.If, ast.While))), "Expect branch"
+            assert (len(_path) == 1
+                    and isinstance(_path[0], (ast.If, ast.While))), \
+                "Expect branch"
             _path = _path.copy()
             _path[0] = copy.copy(_path[0])
             _path[0].test = exit.exitcase
@@ -109,10 +108,10 @@ def _coroutine(defn_env, fn):
     tree = get_ast(fn).body[0]
 
     # validate assumptions on program format
-    assert (isinstance(tree.body[0], ast.FunctionDef) and
-            tree.body[0].name == "__init__")
-    assert (isinstance(tree.body[1], ast.FunctionDef) and
-            tree.body[1].name == "__call__")
+    assert (isinstance(tree.body[0], ast.FunctionDef)
+            and tree.body[0].name == "__init__")
+    assert (isinstance(tree.body[1], ast.FunctionDef)
+            and tree.body[1].name == "__call__")
     call_method = tree.body[1]
 
     # insert while true to simplify CFG construction
@@ -185,7 +184,7 @@ def _coroutine(defn_env, fn):
             # of the path
             body.append(ast.parse(
                 f"self.yield_state = m.bits({yield_id_map[end_yield]}, "
-                                          f"{yield_state_width})"
+                f"{yield_state_width})"
             ).body[0])
 
             # Return the value of the original end yield
