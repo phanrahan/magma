@@ -11,4 +11,3 @@ def inline_verilog(format_str, **kwargs):
     # realized (during defn it is anonymous)
     # Return tuple so you can += multiple inline strings
     return ((format_str, kwargs, calling_frame), )
-
