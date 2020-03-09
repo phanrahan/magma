@@ -1,8 +1,15 @@
 import os
 import tempfile
+import sys
 
 import magma as m
 import fault
+
+TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), '../')
+
+sys.path.append(TEST_SYNTAX_PATH)
+
+from test_sequential import DefineRegister, phi
 
 
 def test_uart():
