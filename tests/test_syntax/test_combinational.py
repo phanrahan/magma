@@ -228,10 +228,10 @@ def test_return_magma_named_tuple(target):
 
 
 def test_simple_circuit_1(target):
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
+    class EQ(m.Circuit):
+        name = "eq"
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(0, io.O)
 
     @m.circuit.combinational
     def logic(a: m.Bit) -> (m.Bit,):
@@ -252,10 +252,10 @@ def test_simple_circuit_1(target):
 
 
 def test_multiple_assign(target):
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
+    class EQ(m.Circuit):
+        name = "eq"
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(0, io.O)
 
     @m.circuit.combinational
     def logic(a: m.Bit) -> (m.Bit,):
@@ -279,10 +279,10 @@ def test_multiple_assign(target):
 
 def test_optional_assignment(target):
 
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
+    class EQ(m.Circuit):
+        name = "eq"
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(0, io.O)
 
     @m.circuit.combinational
     def logic(a: m.Bit) -> (m.Bit, m.Bit):

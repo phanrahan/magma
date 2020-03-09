@@ -4,28 +4,34 @@ import pytest
 
 
 def test_const0():
-    Buf = DeclareCircuit('Buf', "I", In(Bit), "O", Out(Bit))
+    class Buf(Circuit):
+        name = "Buf"
+        io = IO(I=In(Bit), O=Out(Bit))
 
-    main = DefineCircuit("main", "O", Out(Bit))
+    class main(Circuit):
+        name = "main"
+        io = IO(O=Out(Bit))
+        buf = Buf()
 
-    buf = Buf()
-
-    wire(0, buf.I)
-    wire(buf.O, main.O)
+        wire(0, buf.I)
+        wire(buf.O, io.O)
 
     compile("build/const0", main, output="verilog")
     assert check_files_equal(__file__, "build/const0.v", "gold/const0.v")
 
 
 def test_const1():
-    Buf = DeclareCircuit('Buf', "I", In(Bit), "O", Out(Bit))
+    class Buf(Circuit):
+        name = "Buf"
+        io = IO(I=In(Bit), O=Out(Bit))
 
-    main = DefineCircuit("main", "O", Out(Bit))
+    class main(Circuit):
+        name = "main"
+        io = IO(O=Out(Bit))
+        buf = Buf()
 
-    buf = Buf()
-
-    wire(1, buf.I)
-    wire(buf.O, main.O)
+        wire(1, buf.I)
+        wire(buf.O, io.O)
 
     compile("build/const1", main, output="verilog")
     assert check_files_equal(__file__, "build/const1.v", "gold/const1.v")
@@ -36,14 +42,17 @@ def test_const1():
 @pytest.mark.parametrize('T', [Bits, UInt, SInt])
 @pytest.mark.parametrize('N', range(1, 4))
 def test_const_bits(T, N):
-    Buf = DeclareCircuit('Buf', "I", In(T[N]), "O", Out(T[N]))
+    class Buf(Circuit):
+        name = "Buf"
+        io = IO(I=In(T[N]), O=Out(T[N]))
 
-    main = DefineCircuit("main", "O", Out(T[N]))
+    class main(Circuit):
+        name = "main"
+        io = IO(O=Out(T[N]))
+        buf = Buf()
 
-    buf = Buf()
-
-    wire(1, buf.I)
-    wire(buf.O, main.O)
+        wire(1, buf.I)
+        wire(buf.O, io.O)
 
     compile(f"build/const_bits_{T.__name__}_{N}", main, output="verilog")
     assert check_files_equal(__file__, f"build/const_bits_{T.__name__}_{N}.v",
