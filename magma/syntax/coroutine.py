@@ -59,9 +59,10 @@ class MergeInverseIf(ast.NodeTransformer):
             if i == len(body) - 1:
                 break
             if (isinstance(node, ast.If) and isinstance(body[i + 1], ast.If)
-                and ast.dump(invert(node.test)) == ast.dump(body[i + 1].test)):
-                    node.orelse = body[i + 1].body
-                    skip_next = True
+                    and ast.dump(invert(node.test))
+                    == ast.dump(body[i + 1].test)):
+                node.orelse = body[i + 1].body
+                skip_next = True
             else:
                 skip_next = False
         return new_body
@@ -71,8 +72,8 @@ def is_yield(statement):
     """
     Is this a statement of the form `yield <expr>`
     """
-    return (isinstance(statement, ast.Expr) and
-            isinstance(statement.value, ast.Yield))
+    return (isinstance(statement, ast.Expr)
+            and isinstance(statement.value, ast.Yield))
 
 
 def collect_paths_to_yield(start_idx, block):
