@@ -4,7 +4,6 @@ from test_combinational import compile_and_check, phi
 from collections.abc import Sequence
 import coreir
 import ast_tools
-from magma.circuit import DeclareCoreirCircuit
 from hwtypes import BitVector
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
@@ -53,7 +52,7 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
                     has_async_resetn=False, T=m.Bits):
     if width is None:
         width = 1
-    name = "reg_P"  # TODO: Add support for clock interface
+    _name = "reg_P"  # TODO: Add support for clock interface
     config_args = {"init": coreir.type.BitVector[width](init)}
     gen_args = {"width": width}
     T = T[width]
@@ -68,43 +67,35 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
         raise ValueError("Cannot have posedge and negedge asynchronous reset")
     if has_async_reset:
         io.extend(["arst", m.In(m.AsyncResetIn)])
-        name += "R"  # TODO: This assumes ordering of clock parameters
+        _name += "R"  # TODO: This assumes ordering of clock parameters
         config_args["arst_posedge"] = True
     if has_async_resetn:
         io.extend(["arst", m.In(m.AsyncResetNIn)])
-        name += "R"  # TODO: This assumes ordering of clock parameters
+        _name += "R"  # TODO: This assumes ordering of clock parameters
         config_args["arst_posedge"] = False
 
     def when(self, condition):
         m.wire(condition, self.en)
         return self
 
-    # if has_ce:
-    #     io.extend(["en", In(Enable)])
-    #     name += "E"  # TODO: This assumes ordering of clock parameters
-    #     methods.append(circuit_type_method("when", when))
-    #     gen_args["has_en"] = True
 
-    # default_kwargs = gen_args.copy()
-    default_kwargs = {"init": coreir.type.BitVector[width](init)}
-    # default_kwargs.update(config_args)
+    io_dict = {key: value for key, value in zip(io[::2], io[1::2])}
 
-    coreir_name = "reg_arst" if (has_async_reset or has_async_resetn) else "reg"
-
-    return DeclareCoreirCircuit(
-        name,
-        *io,
-        stateful=True,
-        circuit_type_methods=methods,
-        default_kwargs=default_kwargs,
-        coreir_genargs=gen_args,
-        coreir_configargs=config_args,
-        coreir_name=coreir_name,
-        verilog_name="coreir_" + coreir_name,
-        coreir_lib="coreir",
+    class CoreIRReg(m.Circuit):
+        name = _name
+        io = m.IO(**io_dict)
+        renamed_ports = m.circuit.coreir_port_mapping
+        stateful = True
+        circuit_type_methods = methods
+        default_kwargs = {"init": coreir.type.BitVector[width](init)}
+        coreir_genargs = gen_args
+        coreir_configargs = config_args
+        coreir_name = "reg_arst" if (has_async_reset or has_async_resetn) else "reg"
+        verilog_name = "coreir_" + coreir_name
+        coreir_lib = "coreir"
         simulate=gen_sim_register(width, init, False, has_async_reset,
                                   has_async_resetn)
-    )
+    return CoreIRReg
 
 
 @m.cache_definition
