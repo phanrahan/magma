@@ -84,22 +84,24 @@ class InsertWrapCasts(DefinitionPass):
         if isinstance(port, (Array, Tuple)):
             for t in port:
                 self.wrap_if_named_type(t, definition)
-        elif port.is_input():
-            if isinstance(port, (AsyncReset, AsyncResetN, Clock)) or \
-                    isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock)):
-                value = port.trace()
-                if value is not None and not issubclass(
-                        type(value), type(port).flip()):
-                    port.unwire(value)
-                    if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
-                        inst = self.define_wrap(
-                            type(port).flip(), type(port), type(value))()
-                    else:
-                        inst = self.define_wrap(
-                            type(value).flip(), type(port), type(value))()
-                    definition.place(inst)
-                    getattr(inst, "in") <= value
-                    wire(inst.out, port)
+            return
+        if not port.is_input():
+            return
+        if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
+                isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock))):
+            return
+        value = port.trace()
+        if value is None or issubclass(type(value), type(port).flip()):
+            return
+        if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
+            T = type(port).flip()
+        else:
+            T = type(value).flip()
+        with definition.open():
+            port.unwire(value)
+            inst = self.define_wrap(T, type(port), type(value))()
+            wire(getattr(inst, "in"), value)
+            wire(inst.out, port)
 
     def __call__(self, definition):
         # copy, because wrapping might add instances
