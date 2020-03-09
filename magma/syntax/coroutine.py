@@ -197,7 +197,9 @@ def _coroutine(defn_env, fn):
     call_method = MergeInverseIf().visit(call_method)
 
     # Sequential stage
-    tree.decorator_list = [ast.parse(f"m.circuit.sequential").body[0].value]
+    tree.decorator_list = [ast.parse(
+        f"m.circuit.sequential(async_reset=True)"
+    ).body[0].value]
 
     # print(astor.to_source(tree))
     circuit = compile_function_to_file(tree, tree.name, defn_env)
