@@ -74,6 +74,14 @@ module corebit_const #(
   assign out = value;
 endmodule
 
+module corebit_and (
+    input in0,
+    input in1,
+    output out
+);
+  assign out = in0 & in1;
+endmodule
+
 module commonlib_muxn__N2__width4 (
     input [3:0] in_data_0,
     input [3:0] in_data_1,
@@ -229,26 +237,70 @@ wire bit_const_0_None_out;
 wire bit_const_1_None_out;
 wire [1:0] const_0_2_out;
 wire [1:0] const_1_2_out;
+wire magma_Bit_and_inst0_out;
+wire magma_Bit_and_inst1_out;
+wire magma_Bit_and_inst10_out;
+wire magma_Bit_and_inst11_out;
+wire magma_Bit_and_inst2_out;
+wire magma_Bit_and_inst3_out;
+wire magma_Bit_and_inst4_out;
+wire magma_Bit_and_inst5_out;
+wire magma_Bit_and_inst6_out;
+wire magma_Bit_and_inst7_out;
+wire magma_Bit_and_inst8_out;
+wire magma_Bit_and_inst9_out;
 wire magma_Bit_not_inst0_out;
 wire magma_Bit_not_inst1_out;
+wire magma_Bit_not_inst10_out;
+wire magma_Bit_not_inst11_out;
+wire magma_Bit_not_inst12_out;
+wire magma_Bit_not_inst13_out;
+wire magma_Bit_not_inst14_out;
+wire magma_Bit_not_inst15_out;
+wire magma_Bit_not_inst16_out;
+wire magma_Bit_not_inst17_out;
+wire magma_Bit_not_inst18_out;
+wire magma_Bit_not_inst19_out;
 wire magma_Bit_not_inst2_out;
+wire magma_Bit_not_inst20_out;
+wire magma_Bit_not_inst21_out;
+wire magma_Bit_not_inst22_out;
+wire magma_Bit_not_inst23_out;
+wire magma_Bit_not_inst24_out;
+wire magma_Bit_not_inst25_out;
+wire magma_Bit_not_inst26_out;
 wire magma_Bit_not_inst3_out;
 wire magma_Bit_not_inst4_out;
 wire magma_Bit_not_inst5_out;
 wire magma_Bit_not_inst6_out;
+wire magma_Bit_not_inst7_out;
+wire magma_Bit_not_inst8_out;
+wire magma_Bit_not_inst9_out;
 wire magma_Bit_xor_inst0_out;
 wire magma_Bit_xor_inst1_out;
+wire magma_Bit_xor_inst10_out;
+wire magma_Bit_xor_inst11_out;
+wire magma_Bit_xor_inst12_out;
+wire magma_Bit_xor_inst13_out;
+wire magma_Bit_xor_inst14_out;
 wire magma_Bit_xor_inst2_out;
 wire magma_Bit_xor_inst3_out;
 wire magma_Bit_xor_inst4_out;
 wire magma_Bit_xor_inst5_out;
 wire magma_Bit_xor_inst6_out;
+wire magma_Bit_xor_inst7_out;
+wire magma_Bit_xor_inst8_out;
+wire magma_Bit_xor_inst9_out;
 wire magma_Bits_2_eq_inst0_out;
 wire magma_Bits_2_eq_inst1_out;
 wire magma_Bits_2_eq_inst10_out;
 wire magma_Bits_2_eq_inst11_out;
 wire magma_Bits_2_eq_inst12_out;
 wire magma_Bits_2_eq_inst13_out;
+wire magma_Bits_2_eq_inst14_out;
+wire magma_Bits_2_eq_inst15_out;
+wire magma_Bits_2_eq_inst16_out;
+wire magma_Bits_2_eq_inst17_out;
 wire magma_Bits_2_eq_inst2_out;
 wire magma_Bits_2_eq_inst3_out;
 wire magma_Bits_2_eq_inst4_out;
@@ -278,19 +330,19 @@ Mux2xOutBit Mux2xOutBit_inst2 (
 Mux2xOutBit Mux2xOutBit_inst3 (
     .I0(clk_en),
     .I1(bit_const_0_None_out),
-    .S(magma_Bits_2_eq_inst7_out),
+    .S(magma_Bit_and_inst3_out),
     .O(Mux2xOutBit_inst3_O)
 );
 Mux2xOutBit Mux2xOutBit_inst4 (
     .I0(Mux2xOutBit_inst3_O),
     .I1(bit_const_0_None_out),
-    .S(magma_Bits_2_eq_inst11_out),
+    .S(magma_Bit_and_inst9_out),
     .O(Mux2xOutBit_inst4_O)
 );
 Mux2xOutBit Mux2xOutBit_inst5 (
     .I0(Mux2xOutBit_inst4_O),
     .I1(bit_const_1_None_out),
-    .S(magma_Bit_not_inst4_out),
+    .S(magma_Bit_not_inst24_out),
     .O(Mux2xOutBit_inst5_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst0 (
@@ -308,31 +360,31 @@ Mux2xOutBits4 Mux2xOutBits4_inst1 (
 Mux2xOutBits4 Mux2xOutBits4_inst10 (
     .I0(Mux2xOutBits4_inst7_O),
     .I1(const_),
-    .S(magma_Bits_2_eq_inst12_out),
+    .S(magma_Bit_and_inst10_out),
     .O(Mux2xOutBits4_inst10_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst11 (
     .I0(Mux2xOutBits4_inst8_O),
     .I1(self_register_O),
-    .S(magma_Bits_2_eq_inst13_out),
+    .S(magma_Bit_and_inst11_out),
     .O(Mux2xOutBits4_inst11_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst12 (
     .I0(Mux2xOutBits4_inst9_O),
     .I1(config_data),
-    .S(magma_Bit_not_inst3_out),
+    .S(magma_Bit_not_inst23_out),
     .O(Mux2xOutBits4_inst12_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst13 (
     .I0(Mux2xOutBits4_inst10_O),
     .I1(self_register_O),
-    .S(magma_Bit_not_inst5_out),
+    .S(magma_Bit_not_inst25_out),
     .O(Mux2xOutBits4_inst13_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst14 (
     .I0(Mux2xOutBits4_inst11_O),
     .I1(self_register_O),
-    .S(magma_Bit_not_inst6_out),
+    .S(magma_Bit_not_inst26_out),
     .O(Mux2xOutBits4_inst14_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst2 (
@@ -362,25 +414,25 @@ Mux2xOutBits4 Mux2xOutBits4_inst5 (
 Mux2xOutBits4 Mux2xOutBits4_inst6 (
     .I0(value),
     .I1(value),
-    .S(magma_Bits_2_eq_inst6_out),
+    .S(magma_Bit_and_inst1_out),
     .O(Mux2xOutBits4_inst6_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst7 (
     .I0(self_register_O),
     .I1(value),
-    .S(magma_Bits_2_eq_inst8_out),
+    .S(magma_Bit_and_inst5_out),
     .O(Mux2xOutBits4_inst7_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst8 (
     .I0(self_register_O),
     .I1(self_register_O),
-    .S(magma_Bits_2_eq_inst9_out),
+    .S(magma_Bit_and_inst7_out),
     .O(Mux2xOutBits4_inst8_O)
 );
 Mux2xOutBits4 Mux2xOutBits4_inst9 (
     .I0(Mux2xOutBits4_inst6_O),
     .I1(value),
-    .S(magma_Bits_2_eq_inst10_out),
+    .S(magma_Bit_and_inst8_out),
     .O(Mux2xOutBits4_inst9_O)
 );
 corebit_const #(
@@ -405,6 +457,66 @@ coreir_const #(
 ) const_1_2 (
     .out(const_1_2_out)
 );
+corebit_and magma_Bit_and_inst0 (
+    .in0(magma_Bits_2_eq_inst6_out),
+    .in1(magma_Bit_not_inst4_out),
+    .out(magma_Bit_and_inst0_out)
+);
+corebit_and magma_Bit_and_inst1 (
+    .in0(magma_Bit_and_inst0_out),
+    .in1(magma_Bit_not_inst5_out),
+    .out(magma_Bit_and_inst1_out)
+);
+corebit_and magma_Bit_and_inst10 (
+    .in0(magma_Bits_2_eq_inst16_out),
+    .in1(magma_Bit_not_inst20_out),
+    .out(magma_Bit_and_inst10_out)
+);
+corebit_and magma_Bit_and_inst11 (
+    .in0(magma_Bits_2_eq_inst17_out),
+    .in1(magma_Bit_not_inst22_out),
+    .out(magma_Bit_and_inst11_out)
+);
+corebit_and magma_Bit_and_inst2 (
+    .in0(magma_Bits_2_eq_inst8_out),
+    .in1(magma_Bit_not_inst7_out),
+    .out(magma_Bit_and_inst2_out)
+);
+corebit_and magma_Bit_and_inst3 (
+    .in0(magma_Bit_and_inst2_out),
+    .in1(magma_Bit_not_inst8_out),
+    .out(magma_Bit_and_inst3_out)
+);
+corebit_and magma_Bit_and_inst4 (
+    .in0(magma_Bits_2_eq_inst10_out),
+    .in1(magma_Bit_not_inst10_out),
+    .out(magma_Bit_and_inst4_out)
+);
+corebit_and magma_Bit_and_inst5 (
+    .in0(magma_Bit_and_inst4_out),
+    .in1(magma_Bit_not_inst11_out),
+    .out(magma_Bit_and_inst5_out)
+);
+corebit_and magma_Bit_and_inst6 (
+    .in0(magma_Bits_2_eq_inst12_out),
+    .in1(magma_Bit_not_inst13_out),
+    .out(magma_Bit_and_inst6_out)
+);
+corebit_and magma_Bit_and_inst7 (
+    .in0(magma_Bit_and_inst6_out),
+    .in1(magma_Bit_not_inst14_out),
+    .out(magma_Bit_and_inst7_out)
+);
+corebit_and magma_Bit_and_inst8 (
+    .in0(magma_Bits_2_eq_inst14_out),
+    .in1(magma_Bit_not_inst16_out),
+    .out(magma_Bit_and_inst8_out)
+);
+corebit_and magma_Bit_and_inst9 (
+    .in0(magma_Bits_2_eq_inst15_out),
+    .in1(magma_Bit_not_inst18_out),
+    .out(magma_Bit_and_inst9_out)
+);
 corebit_not magma_Bit_not_inst0 (
     .in(magma_Bit_xor_inst0_out),
     .out(magma_Bit_not_inst0_out)
@@ -413,25 +525,105 @@ corebit_not magma_Bit_not_inst1 (
     .in(magma_Bit_xor_inst1_out),
     .out(magma_Bit_not_inst1_out)
 );
+corebit_not magma_Bit_not_inst10 (
+    .in(magma_Bit_not_inst9_out),
+    .out(magma_Bit_not_inst10_out)
+);
+corebit_not magma_Bit_not_inst11 (
+    .in(magma_Bits_2_eq_inst11_out),
+    .out(magma_Bit_not_inst11_out)
+);
+corebit_not magma_Bit_not_inst12 (
+    .in(magma_Bit_xor_inst6_out),
+    .out(magma_Bit_not_inst12_out)
+);
+corebit_not magma_Bit_not_inst13 (
+    .in(magma_Bit_not_inst12_out),
+    .out(magma_Bit_not_inst13_out)
+);
+corebit_not magma_Bit_not_inst14 (
+    .in(magma_Bits_2_eq_inst13_out),
+    .out(magma_Bit_not_inst14_out)
+);
+corebit_not magma_Bit_not_inst15 (
+    .in(magma_Bit_xor_inst7_out),
+    .out(magma_Bit_not_inst15_out)
+);
+corebit_not magma_Bit_not_inst16 (
+    .in(magma_Bit_not_inst15_out),
+    .out(magma_Bit_not_inst16_out)
+);
+corebit_not magma_Bit_not_inst17 (
+    .in(magma_Bit_xor_inst8_out),
+    .out(magma_Bit_not_inst17_out)
+);
+corebit_not magma_Bit_not_inst18 (
+    .in(magma_Bit_not_inst17_out),
+    .out(magma_Bit_not_inst18_out)
+);
+corebit_not magma_Bit_not_inst19 (
+    .in(magma_Bit_xor_inst9_out),
+    .out(magma_Bit_not_inst19_out)
+);
 corebit_not magma_Bit_not_inst2 (
     .in(magma_Bit_xor_inst2_out),
     .out(magma_Bit_not_inst2_out)
+);
+corebit_not magma_Bit_not_inst20 (
+    .in(magma_Bit_not_inst19_out),
+    .out(magma_Bit_not_inst20_out)
+);
+corebit_not magma_Bit_not_inst21 (
+    .in(magma_Bit_xor_inst10_out),
+    .out(magma_Bit_not_inst21_out)
+);
+corebit_not magma_Bit_not_inst22 (
+    .in(magma_Bit_not_inst21_out),
+    .out(magma_Bit_not_inst22_out)
+);
+corebit_not magma_Bit_not_inst23 (
+    .in(magma_Bit_xor_inst11_out),
+    .out(magma_Bit_not_inst23_out)
+);
+corebit_not magma_Bit_not_inst24 (
+    .in(magma_Bit_xor_inst12_out),
+    .out(magma_Bit_not_inst24_out)
+);
+corebit_not magma_Bit_not_inst25 (
+    .in(magma_Bit_xor_inst13_out),
+    .out(magma_Bit_not_inst25_out)
+);
+corebit_not magma_Bit_not_inst26 (
+    .in(magma_Bit_xor_inst14_out),
+    .out(magma_Bit_not_inst26_out)
 );
 corebit_not magma_Bit_not_inst3 (
     .in(magma_Bit_xor_inst3_out),
     .out(magma_Bit_not_inst3_out)
 );
 corebit_not magma_Bit_not_inst4 (
-    .in(magma_Bit_xor_inst4_out),
+    .in(magma_Bit_not_inst3_out),
     .out(magma_Bit_not_inst4_out)
 );
 corebit_not magma_Bit_not_inst5 (
-    .in(magma_Bit_xor_inst5_out),
+    .in(magma_Bits_2_eq_inst7_out),
     .out(magma_Bit_not_inst5_out)
 );
 corebit_not magma_Bit_not_inst6 (
-    .in(magma_Bit_xor_inst6_out),
+    .in(magma_Bit_xor_inst4_out),
     .out(magma_Bit_not_inst6_out)
+);
+corebit_not magma_Bit_not_inst7 (
+    .in(magma_Bit_not_inst6_out),
+    .out(magma_Bit_not_inst7_out)
+);
+corebit_not magma_Bit_not_inst8 (
+    .in(magma_Bits_2_eq_inst9_out),
+    .out(magma_Bit_not_inst8_out)
+);
+corebit_not magma_Bit_not_inst9 (
+    .in(magma_Bit_xor_inst5_out),
+    .out(magma_Bit_not_inst9_out)
 );
 corebit_xor magma_Bit_xor_inst0 (
     .in0(config_we),
@@ -442,6 +634,31 @@ corebit_xor magma_Bit_xor_inst1 (
     .in0(config_we),
     .in1(bit_const_1_None_out),
     .out(magma_Bit_xor_inst1_out)
+);
+corebit_xor magma_Bit_xor_inst10 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst10_out)
+);
+corebit_xor magma_Bit_xor_inst11 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst11_out)
+);
+corebit_xor magma_Bit_xor_inst12 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst12_out)
+);
+corebit_xor magma_Bit_xor_inst13 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst13_out)
+);
+corebit_xor magma_Bit_xor_inst14 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst14_out)
 );
 corebit_xor magma_Bit_xor_inst2 (
     .in0(config_we),
@@ -468,6 +685,21 @@ corebit_xor magma_Bit_xor_inst6 (
     .in1(bit_const_1_None_out),
     .out(magma_Bit_xor_inst6_out)
 );
+corebit_xor magma_Bit_xor_inst7 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst7_out)
+);
+corebit_xor magma_Bit_xor_inst8 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst8_out)
+);
+corebit_xor magma_Bit_xor_inst9 (
+    .in0(config_we),
+    .in1(bit_const_1_None_out),
+    .out(magma_Bit_xor_inst9_out)
+);
 coreir_eq #(
     .width(2)
 ) magma_Bits_2_eq_inst0 (
@@ -486,7 +718,7 @@ coreir_eq #(
     .width(2)
 ) magma_Bits_2_eq_inst10 (
     .in0(mode),
-    .in1(const_0_2_out),
+    .in1(const_1_2_out),
     .out(magma_Bits_2_eq_inst10_out)
 );
 coreir_eq #(
@@ -500,7 +732,7 @@ coreir_eq #(
     .width(2)
 ) magma_Bits_2_eq_inst12 (
     .in0(mode),
-    .in1(const_0_2_out),
+    .in1(const_1_2_out),
     .out(magma_Bits_2_eq_inst12_out)
 );
 coreir_eq #(
@@ -509,6 +741,34 @@ coreir_eq #(
     .in0(mode),
     .in1(const_0_2_out),
     .out(magma_Bits_2_eq_inst13_out)
+);
+coreir_eq #(
+    .width(2)
+) magma_Bits_2_eq_inst14 (
+    .in0(mode),
+    .in1(const_0_2_out),
+    .out(magma_Bits_2_eq_inst14_out)
+);
+coreir_eq #(
+    .width(2)
+) magma_Bits_2_eq_inst15 (
+    .in0(mode),
+    .in1(const_0_2_out),
+    .out(magma_Bits_2_eq_inst15_out)
+);
+coreir_eq #(
+    .width(2)
+) magma_Bits_2_eq_inst16 (
+    .in0(mode),
+    .in1(const_0_2_out),
+    .out(magma_Bits_2_eq_inst16_out)
+);
+coreir_eq #(
+    .width(2)
+) magma_Bits_2_eq_inst17 (
+    .in0(mode),
+    .in1(const_0_2_out),
+    .out(magma_Bits_2_eq_inst17_out)
 );
 coreir_eq #(
     .width(2)
@@ -549,7 +809,7 @@ coreir_eq #(
     .width(2)
 ) magma_Bits_2_eq_inst7 (
     .in0(mode),
-    .in1(const_1_2_out),
+    .in1(const_0_2_out),
     .out(magma_Bits_2_eq_inst7_out)
 );
 coreir_eq #(
@@ -563,7 +823,7 @@ coreir_eq #(
     .width(2)
 ) magma_Bits_2_eq_inst9 (
     .in0(mode),
-    .in1(const_1_2_out),
+    .in1(const_0_2_out),
     .out(magma_Bits_2_eq_inst9_out)
 );
 assign O0 = Mux2xOutBits4_inst12_O;
