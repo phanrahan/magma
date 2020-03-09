@@ -4,8 +4,9 @@ import copy
 import astor
 from staticfg import CFGBuilder
 from staticfg.builder import invert
+from ast_tools.stack import inspect_enclosing_env
 
-from ..ast_utils import get_ast
+from ..ast_utils import get_ast, compile_function_to_file
 from ..bitutils import clog2
 
 
@@ -104,59 +105,103 @@ def collect_paths_to_yield(start_idx, block):
     return paths
 
 
-def coroutine(fn):
+def _coroutine(defn_env, fn):
     tree = get_ast(fn).body[0]
+
+    # validate assumptions on program format
     assert (isinstance(tree.body[0], ast.FunctionDef) and
             tree.body[0].name == "__init__")
     assert (isinstance(tree.body[1], ast.FunctionDef) and
             tree.body[1].name == "__call__")
     call_method = tree.body[1]
-    # insert while true
+
+    # insert while true to simplify CFG construction
     call_method.body = [ast.While(ast.NameConstant(True), call_method.body, [])]
+
+    # build cfg
     cfg = CFGBuilder().build(call_method.name, call_method)
+    # debug cfg visualizer
     # cfg.build_visual(tree.name, 'pdf')
+
+    # map from yield ast node (by id) to paths to other yields
     yield_paths = {}
+    # map from yield ast node (by id) to numeric id (for state encoding)
     yield_id_map = {}
+
+    # populate maps
     for block in cfg:
         for i, statement in enumerate(block.statements):
             if is_yield(statement):
+                # Encode by index
                 yield_id_map[statement] = len(yield_id_map)
+
                 paths = collect_paths_to_yield(i + 1, block)
                 yield_paths[statement] = paths
+
+    # add yield state register declaration
+    yield_state_width = clog2(len(yield_id_map))
     tree.body[0].body.append(ast.parse(
-        f"self.yield_state: m.Bits[{clog2(len(yield_id_map))}] = 0"
+        f"self.yield_state: m.Bits[{yield_state_width}] = 0"
     ).body[0])
+
+    # create new call body
     call_method.body = []
     for i, (yield_, paths) in enumerate(yield_paths.items()):
+        # condition based on yield state encoding for current start yield
         test = ast.parse(
             f"self.yield_state == {yield_id_map[yield_]}"
         ).body[0].value
+
         if i == 0:
+            # for first if, populate new call method body
             curr_body = []
             call_method.body.append(ast.If(test, curr_body, []))
             prev_if = call_method.body[0]
         elif i == len(yield_paths) - 1:
+            # Use the previous if's orelse block for final state
             curr_body = prev_if.orelse
         else:
+            # use the previous if's orelse block (so we generate an if/elif
+            # chain)
             curr_body = []
             prev_if.orelse.append(ast.If(test, curr_body, []))
             prev_if = prev_if.orelse[-1]
+
+        # Emite code for each path
         for path in paths:
             body = curr_body
             end_yield = path[-1]
             for statement in path[:-1]:
                 body.append(copy.deepcopy(statement))
+                # If we encounter a branch, subsequent statements go inside the
+                # branch
                 if isinstance(statement, ast.While):
                     body[-1] = ast.If(body[-1].test, body[-1].body, [])
                 if isinstance(statement, (ast.If, ast.While)):
                     body[-1].body = []
                     body = body[-1].body
+
+            # Finish with updating the yield state register with the end yield
+            # of the path
             body.append(ast.parse(
-                f"self.yield_state = {yield_id_map[end_yield]}"
+                f"self.yield_state = m.bits({yield_id_map[end_yield]}, "
+                                          f"{yield_state_width})"
             ).body[0])
+
+            # Return the value of the original end yield
             body.append(ast.Return(end_yield.value.value))
+
+    # Remove if trues for readability
     call_method = RemoveIfTrues().visit(call_method)
+    # Merge `if cond:` with `if not cond` for readability
     call_method = MergeInverseIf().visit(call_method)
+
+    # Sequential stage
     tree.decorator_list = [ast.parse(f"m.circuit.sequential").body[0].value]
-    print(astor.to_source(tree))
-    raise Exception()
+
+    # print(astor.to_source(tree))
+    circuit = compile_function_to_file(tree, tree.name, defn_env)
+    return circuit
+
+
+coroutine = inspect_enclosing_env(_coroutine)
