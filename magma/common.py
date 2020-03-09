@@ -2,21 +2,6 @@ from functools import wraps, partial
 import warnings
 
 
-class Stack:
-    """Lightweight wrapper over builtin lists to provide a stack interface"""
-    def __init__(self):
-        self._stack = []
-
-    def push(self, value):
-        self._stack.append(value)
-
-    def pop(self):
-        return self._stack.pop()
-
-    def peek(self):
-        return self._stack[-1]
-
-
 def deprecated(func=None, *, msg=None):
     """
     Inspired by https://pybit.es/decorator-optional-argument.html.
