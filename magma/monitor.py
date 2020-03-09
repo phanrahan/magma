@@ -9,5 +9,12 @@ def MonitorIO(circuit):
     return IO
 
 
+def make_monitor_ports(circuit):
+    io_dict = {}
+    for name, port in circuit.interface.ports.items():
+        io_dict[name] = In(type(port))
+    return io_dict
+
+
 class MonitorGenerator:
     pass

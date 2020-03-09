@@ -13,13 +13,11 @@ endmodule
 """, type_map={"CLK": m.In(m.Clock)})[0]
 
     class Main(m.Circuit):
-        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)] + m.ClockInterface()
-        @classmethod
-        def definition(cls):
-            cls.O <= FF()(cls.I)
-            cls.inline_verilog("""
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        io.O <= FF()(io.I)
+        _inline_verilog_ = m.inline_verilog("""
 assert property (@(posedge CLK) {I} |-> ##1 {O});
-""", O=cls.O, I=cls.I)
+""", O=io.O, I=io.I)
 
     m.compile(f"build/test_inline_simple", Main, output="coreir-verilog",
               sv=True, inline=True)
@@ -59,32 +57,32 @@ def test_inline_tuple():
         io.OUTPUT[1] <= delay.OUTPUT[0]
 
     class Main(m.Circuit):
-        IO = ["I", RVDATAIN, "O", m.Flip(RVDATAIN)] + m.ClockInterface()
-        @classmethod
-        def definition(cls):
-            delay = DelayUnit()
-            delay.INPUT[0] <= cls.I[1]
-            delay.INPUT[1] <= cls.I[0]
-            cls.O[1] <= delay.OUTPUT[0]
-            cls.O[0] <= delay.OUTPUT[1]
+        io = m.IO(I=RVDATAIN, O=m.Flip(RVDATAIN)) + \
+            m.ClockIO()
 
-            cls.inline_verilog("""\
+        delay = DelayUnit()
+        delay.INPUT[0] <= io.I[1]
+        delay.INPUT[1] <= io.I[0]
+        io.O[1] <= delay.OUTPUT[0]
+        io.O[0] <= delay.OUTPUT[1]
+
+        _inline_verilog_ = m.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
-""", valid_in=cls.I[0].valid, ready_out=cls.O[1].ready)
+""", valid_in=io.I[0].valid, ready_out=io.O[1].ready)
 
-            # Test inst ref
-            cls.inline_verilog("""\
+        # Test inst ref
+        _inline_verilog_ += m.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.INPUT[1].valid, ready_out=delay.OUTPUT[0].ready)
 
-            # Test recursive ref
-            cls.inline_verilog("""\
+        # Test recursive ref
+        _inline_verilog_ += m.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.INPUT[0].valid,
                                ready_out=delay.inner_delay.OUTPUT[1].ready)
 
-            # Test double recursive ref
-            cls.inline_verilog("""\
+        # Test double recursive ref
+        _inline_verilog_ += m.inline_verilog("""\
 assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
 """, valid_in=delay.inner_delay.inner_inner_delay.INPUT[0].valid,
                                ready_out=delay.inner_delay.inner_inner_delay.OUTPUT[1].ready)

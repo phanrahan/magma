@@ -87,6 +87,7 @@ def get_family():
     return _Family_
 
 from .generator import Generator
-from .monitor import MonitorIO, MonitorGenerator
+from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
 import magma.operators
 from .operators import slice
+from .inline_verilog import inline_verilog

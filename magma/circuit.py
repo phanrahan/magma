@@ -31,6 +31,8 @@ from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from .verilog_utils import value_to_verilog_name
 from .view import PortView
+from .inline_verilog import inline_verilog
+from .t import Type
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -219,6 +221,11 @@ class CircuitKind(type):
             cls._placer = placer.finalize(cls)
         except IndexError:  # no staged placer
             cls._placer = Placer(cls)
+        with cls.open():
+            if "_inline_verilog_" in dct:
+                _inline_verilog_ = dct["_inline_verilog_"]
+                for format_str, format_args in _inline_verilog_:
+                    cls.inline_verilog(format_str, **format_args)
 
         return cls
 
@@ -313,7 +320,7 @@ class CircuitKind(type):
     def inline_verilog(cls, inline_str, **kwargs):
         format_args = {}
         for key, arg in kwargs.items():
-            if isinstance(arg, m.Type):
+            if isinstance(arg, Type):
                 # TODO: For now we assumed values aren't used elswhere, this
                 # forces it to be connected to an instance, so temporaries will
                 # appear in the code
@@ -331,8 +338,7 @@ class CircuitKind(type):
             elif isinstance(arg, PortView):
                 arg = value_to_verilog_name(arg)
             format_args[key] = arg
-        cls.inline_verilog_strs.append(
-            inline_str.format(**format_args))
+        cls.inline_verilog_strs.append(inline_str.format(**format_args))
 
 
 @six.add_metaclass(CircuitKind)
