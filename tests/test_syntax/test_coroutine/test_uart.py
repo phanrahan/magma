@@ -30,6 +30,7 @@ def test_uart():
     m.compile("build/UART", UART)
 
     tester = fault.Tester(UART, UART.CLK)
+    tester.poke(UART.CLK, 0)
     tester.poke(UART.ASYNCRESET, 0)
     tester.eval()
     tester.poke(UART.ASYNCRESET, 1)
