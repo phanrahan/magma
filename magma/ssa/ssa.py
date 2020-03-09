@@ -140,7 +140,7 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, phi_name: str = "phi"):
         else:
             cond = conds[-1]
             for c in conds[:-1]:
-                c = ast.BinOp(cond, ast.BitAnd(), c)
+                cond = ast.BinOp(cond, ast.BitAnd(), c)
             if isinstance(tree.returns, ast.Tuple):
                 for i in range(len(tree.returns.elts)):
                     tree.body.append(ast.Assign(
@@ -152,14 +152,14 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, phi_name: str = "phi"):
                                               ast.Index(ast.Num(i)),
                                               ast.Load())
                             ], ast.Load()),
-                            c], []))
+                            cond], []))
                     )
             else:
                 tree.body.append(ast.Assign(
                     [ast.Name("O", ast.Store())],
                     ast.Call(ast.Name(phi_name, ast.Load()), [
                         ast.List([ast.Name("O", ast.Load()), ast.Name(name, ast.Load())],
-                                 ast.Load()), c], []))
+                                 ast.Load()), cond], []))
                 )
     return tree, ssa_visitor.args
 
