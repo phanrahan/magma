@@ -72,7 +72,6 @@ class DefinitionContext:
         return DefinitionContext(final_placer)
 
 
-
 _definition_context_stack = Stack()
 
 
