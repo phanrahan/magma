@@ -10,9 +10,10 @@ def test_is_definition():
 
     assert isdefinition(IsDefinition), "Should be a definition"
 
-    circ = DefineCircuit('another_definition', 'I', In(Bit), 'O', Out(Bit))
-    wire(circ.I, circ.O)
-    EndDefine()
+    class circ(Circuit):
+        name = "another_definition"
+        io = IO(I=In(Bit), O=Out(Bit))
+        wire(io.I, io.O)
     assert isdefinition(circ), "Should be a definition"
 
 
@@ -23,5 +24,7 @@ def test_is_not_definition():
 
     assert not isdefinition(IsDefinition), "Should not be a definition"
 
-    circ = DeclareCircuit('another_not_definition', 'I', In(Bit), 'O', Out(Bit))
+    class circ(Circuit):
+        name = "another_not_definition"
+        io = IO(I=In(Bit), O=Out(Bit))
     assert not isdefinition(circ), "Should not be a definition"

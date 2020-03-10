@@ -4,7 +4,7 @@ import pytest
 
 
 def test_inline_verilog():
-    FF = m.DefineFromVerilog("""
+    FF = m.define_from_verilog("""
 module FF(input I, output reg O, input CLK);
 always @(posedge CLK) begin
   O <= I;
@@ -32,9 +32,9 @@ def test_inline_tuple():
                                                          valid=m.In(m.Bit),
                                                          ready=m.Out(m.Bit)))]
 
-    InnerInnerDelayUnit = m.DeclareCircuit("InnerInnerDelayUnit",
-                                           "INPUT", RVDATAIN,
-                                           "OUTPUT", m.Flip(RVDATAIN))
+    class InnerInnerDelayUnit(m.Circuit):
+        name = "InnerInnerDelayUnit"
+        io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN))
 
     class InnerDelayUnit(m.Circuit):
         io = m.IO(INPUT=RVDATAIN, OUTPUT=m.Flip(RVDATAIN)) + \

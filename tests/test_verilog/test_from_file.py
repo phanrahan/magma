@@ -61,17 +61,17 @@ def test_coreir_compilation():
     file_path = os.path.dirname(__file__)
     RXMOD = m.define_from_verilog_file(os.path.join(file_path, "rxmod.v"))[0]
 
-    top = m.DefineCircuit("top",
-                          "RX", m.In(m.Bit),
-                          "CLK", m.In(m.Bit),
-                          "data", m.Out(m.Bits[8]),
-                          "valid", m.Out(m.Bit))
-    RXMOD_inst = RXMOD()
-    m.wire(top.RX, RXMOD_inst.RX)
-    m.wire(top.CLK, RXMOD_inst.CLK)
-    m.wire(top.data, RXMOD_inst.data)
-    m.wire(top.valid, RXMOD_inst.valid)
-    m.EndCircuit()
+    class top(m.Circuit):
+        name = "top"
+        io = m.IO(RX=m.In(m.Bit),
+                          CLK=m.In(m.Bit),
+                          data=m.Out(m.Bits[8]),
+                          valid=m.Out(m.Bit))
+        RXMOD_inst = RXMOD()
+        m.wire(io.RX, RXMOD_inst.RX)
+        m.wire(io.CLK, RXMOD_inst.CLK)
+        m.wire(io.data, RXMOD_inst.data)
+        m.wire(io.valid, RXMOD_inst.valid)
 
     m.compile("build/test_rxmod_top", top, output="coreir")
 

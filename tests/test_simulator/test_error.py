@@ -11,8 +11,12 @@ def test_instance():
         io = m.IO(I=In(T), O=Out(T), CLK=In(Bit))
         wire(io.I, io.O)
 
+    class _Top(Circuit):
+        io = m.IO()
+        test = Test()
+
     try:
-        simulator = PythonSimulator(Test())
+        simulator = PythonSimulator(_Top.test)
         assert False, "Should raise a ValueError when passing an instance to the Python Simulator"
     except ValueError as e:
         pass

@@ -1,16 +1,21 @@
-import magma
-import coreir
 import os
+import coreir
+import magma as m
+
 
 def test_compile_coreir():
     width = 16
     numInputs = 4
-    doubleT = magma.Bits[width]
-    double = magma.DefineCircuit("double", "I", magma.In(doubleT), "O", magma.Out(doubleT))
-    shift_amount = 2
-    output = magma.concat(double.I[shift_amount:width], magma.bits(0, shift_amount))
-    magma.wire(output, double.O)
-    coreir_double = magma.backend.coreir_.compile(double)
+    doubleT = m.Bits[width]
+
+    class double(m.Circuit):
+        name = "double"
+        io = m.IO(I=m.In(doubleT), O=m.Out(doubleT))
+        shift_amount = 2
+        output = m.concat(io.I[shift_amount:width], m.bits(0, shift_amount))
+        m.wire(output, io.O)
+
+    coreir_double = m.backend.coreir_.compile(double)
     c = coreir_double.context
 
     def get_lib(lib):

@@ -7,8 +7,7 @@
           ["I0","BitIn"],
           ["I1","BitIn"],
           ["O","Bit"]
-        ]],
-        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"85"}
+        ]]
       },
       "main":{
         "type":["Record",[
@@ -38,7 +37,7 @@
           ["self.I.0","and2_2.I1",{"filename":"tests/test_circuit/test_define.py","lineno":"98"}],
           ["self.O","and2_2.O",{"filename":"tests/test_circuit/test_define.py","lineno":"100"}]
         ],
-        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"87"}
+        "metadata":{"filename":"tests/test_circuit/test_define.py","lineno":"86"}
       }
     }
   }
