@@ -5,5 +5,5 @@ from .view import PortView
 
 
 def inline_verilog(format_str, **kwargs):
-    placer = _definition_context_stack.peek().placer
-    placer.add_inline_verilog(format_str, kwargs)
+    context = _definition_context_stack.peek()
+    context.add_inline_verilog(format_str, kwargs)

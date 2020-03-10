@@ -59,6 +59,16 @@ class _SyntaxStyle(enum.Enum):
 class DefinitionContext:
     def __init__(self, placer):
         self.placer = placer
+        self._inline_verilog = []
+
+    def add_inline_verilog(self, format_str, format_args):
+        self._inline_verilog.append((format_str, format_args))
+
+    def finalize(self, defn):
+        with defn.open():
+            for format_str, format_args in self._inline_verilog:
+                defn.inline_verilog(format_str, **format_args)
+
 
 
 _definition_context_stack = Stack()
@@ -211,8 +221,9 @@ class CircuitKind(type):
         try:
             context = _definition_context_stack.pop()
             assert context.placer.name == cls_name
-            placer = context.placer.finalize(cls, _DefinitionContextManager(context))
+            placer = context.placer.finalize(cls)
             cls._context_ = DefinitionContext(placer)
+            context.finalize(cls)
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
 

@@ -126,7 +126,6 @@ class StagedPlacer(ABC):
     def __init__(self, name):
         self._name = name
         self._instances = []
-        self._inline_verilog = []
         self._finalized = False
 
     @property
@@ -140,17 +139,11 @@ class StagedPlacer(ABC):
         for sub_inst in getattr(type(inst), "instances", []):
             setattr(inst, sub_inst.name, InstView(sub_inst, inst))
 
-    def finalize(self, defn, context_manager):
+    def finalize(self, defn):
         if self._finalized:
             raise Exception("Can only call finalize on a staged placer once")
         placer = Placer(defn)
         for inst in self._instances:
             placer.place(inst)
-        with context_manager:
-            for format_str, format_args in self._inline_verilog:
-                defn.inline_verilog(format_str, **format_args)
         self._finalized = True
         return placer
-
-    def add_inline_verilog(self, format_str, format_args):
-        self._inline_verilog.append((format_str, format_args))
