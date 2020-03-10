@@ -29,9 +29,10 @@ from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from .verilog_utils import value_to_verilog_name
+from .verilog_utils import (value_to_verilog_name,
+                            convert_values_to_verilog_str,
+                            process_inline_verilog)
 from .view import PortView
-from .t import Type
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -61,15 +62,17 @@ class DefinitionContext:
         self.placer = placer
         self._inline_verilog = []
 
-    def add_inline_verilog(self, format_str, format_args):
-        self._inline_verilog.append((format_str, format_args))
+    def add_inline_verilog(self, format_str, format_args, calling_frame):
+        self._inline_verilog.append((format_str, format_args, calling_frame))
 
     def finalize(self, defn):
         final_placer = self.placer.finalize(defn)
         final_context = DefinitionContext(final_placer)
+        # inline logic may introduce instances
         with _DefinitionContextManager(final_context):
-            for format_str, format_args in self._inline_verilog:
-                defn._inline_verilog(format_str, **format_args)
+            for format_str, format_args, calling_frame in self._inline_verilog:
+                process_inline_verilog(defn, format_str, format_args,
+                                       calling_frame)
         return final_context
 
 
@@ -320,24 +323,7 @@ class CircuitKind(type):
     def _inline_verilog(cls, inline_str, **kwargs):
         format_args = {}
         for key, arg in kwargs.items():
-            if isinstance(arg, Type):
-                # TODO: For now we assumed values aren't used elswhere, this
-                # forces it to be connected to an instance, so temporaries will
-                # appear in the code
-                if arg.is_inout() and not arg.driven():
-                    raise NotImplementedError()
-                if arg.is_input() and not arg.driven():
-                    # TODO: Could be driven after, but that will just override
-                    # this wiring so it's okay for now
-                    arg.undriven()
-                elif arg.is_output() and not arg.wired():
-                    arg.unused()
-                elif not (arg.is_input() or arg.is_output() or arg.is_inout()):
-                    arg.unused()
-                arg = value_to_verilog_name(arg)
-            elif isinstance(arg, PortView):
-                arg = value_to_verilog_name(arg)
-            format_args[key] = arg
+            format_args[key] = convert_values_to_verilog_str(arg)
         cls.inline_verilog_strs.append(inline_str.format(**format_args))
 
     @deprecated(msg="cls.inline_verilog is deprecated, use m.inline_verilog"
@@ -690,8 +676,8 @@ Bind monitor interface does not match circuit interface
         )[len(cls.interface):]
         for mon_arg, bind_arg in zip(extra_mon_args, args):
             ports += cls.gen_bind_port(mon_arg, bind_arg)
-        ports_str = ", ".join(ports)
-        bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst ({ports_str});"  # noqa
+        ports_str = ",\n    ".join(ports)
+        bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
         if not os.path.isdir(".magma"):
             os.mkdir(".magma")
         curr_compile_dir = get_compile_dir()
