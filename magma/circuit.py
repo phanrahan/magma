@@ -67,12 +67,13 @@ class DefinitionContext:
 
     def finalize(self, defn):
         final_placer = self.placer.finalize(defn)
-        # inline logic may introduce unused instances
-        with defn.open():
+        final_context = DefinitionContext(final_placer)
+        # inline logic may introduce instances
+        with _DefinitionContextManager(final_context):
             for format_str, format_args, calling_frame in self._inline_verilog:
                 defn._process_inline_verilog(format_str, format_args,
                                              calling_frame)
-        return DefinitionContext(final_placer)
+        return final_context
 
 
 _definition_context_stack = Stack()
