@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABCMeta
 import collections
 import functools
+import weakref
 from .circuit import DefineCircuitKind, Circuit
 
 
@@ -58,7 +59,26 @@ class Generator(metaclass=GeneratorMeta):
         cls.bind_generators.append(monitor)
 
 
+def _make_key(*args, **kwargs):
+    _SECRET_KEY = "__magma_generator2_secret_key__"
+    dct = {f"{_SECRET_KEY}{i}": v for i, v in enumerate(args)}
+    dct.update(kwargs)
+    return ParamDict(dct)
+
+
+def _make_type(cls, *args, **kwargs):
+    dummy = type.__new__(cls, "", (), {})
+    name = cls.__name__
+    bases = (Circuit,)
+    dct = DefineCircuitKind.__prepare__(name, bases)
+    cls.__init__(dummy, *args, **kwargs)
+    dct.update(dict(dummy.__dict__))
+    return DefineCircuitKind.__new__(cls, name, bases, dct)
+
+
 class _Generator2Meta(type):
+    _cache = weakref.WeakValueDictionary()
+
     def __new__(metacls, name, bases, dct):
         bases = bases + (DefineCircuitKind,)
         return type.__new__(metacls, name, bases, dct)
@@ -73,13 +93,16 @@ class _Generator2Meta(type):
                 raise Exception("Can not initialize base Generator class")
             assert not kwargs
             return type.__new__(cls, name, bases, dct)
-        dummy = type.__new__(cls, "", (), {})
-        name = cls.__name__
-        bases = (Circuit,)
-        dct = DefineCircuitKind.__prepare__(name, bases)
-        cls.__init__(dummy, *args, **kwargs)
-        dct.update(dict(dummy.__dict__))
-        t = DefineCircuitKind.__new__(cls, name, bases, dct)
+        cache = not getattr(cls, "_no_cache_", False)
+        if not cache:
+            return _make_type(cls, *args, **kwargs)
+        key = _make_key(*args, **kwargs)        
+        try:
+            return _Generator2Meta._cache[key]
+        except KeyError:
+            pass
+        t = _make_type(cls, *args, **kwargs)
+        _Generator2Meta._cache[key] = t
         return t
 
 

@@ -58,3 +58,25 @@ def test_compilation():
 
     m.compile("build/TopGen", _Top, output="coreir")
     assert check_files_equal(__file__, "build/TopGen.json", "gold/TopGen.json")
+
+
+def test_cache():
+    MyMux4x8 = _MyMux(4, 8)
+    MyMux4x8_other = _MyMux(4, 8)
+    assert MyMux4x8 is MyMux4x8_other
+    MyMux4x16 = _MyMux(4, 16)
+    assert MyMux4x16 is not MyMux4x8
+
+
+def test_no_cache():
+
+    class _MyGen(m.Generator2):
+        _no_cache_ = True
+
+        def __init__(self):
+            self.io = m.IO(x=m.In(m.Bit))
+
+    my_gen = _MyGen()
+    my_gen_other = _MyGen()
+    assert my_gen is not my_gen_other
+    assert repr(my_gen) == repr(my_gen_other)
