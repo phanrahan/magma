@@ -25,5 +25,7 @@ def test_is_not_definition():
 
     assert not isdefinition(IsDefinition), "Should not be a definition"
 
-    circ = DeclareCircuit('another_not_definition', 'I', In(Bit), 'O', Out(Bit))
+    class circ(Circuit):
+        name = "another_not_definition"
+        io = IO(I=In(Bit), O=Out(Bit))
     assert not isdefinition(circ), "Should not be a definition"

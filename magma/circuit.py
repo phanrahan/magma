@@ -13,7 +13,7 @@ from .config import get_compile_dir, set_compile_dir
 import magma as m
 from . import cache_definition
 from .clock import ClockTypes
-from .common import deprecated
+from .common import deprecated, Stack
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -56,34 +56,23 @@ class _SyntaxStyle(enum.Enum):
     NEW = enum.auto()
 
 
-# Maintain a stack of nested definitions.
-class _PlacerBlock:
-    __stack = []
-
+class DefinitionContext:
     def __init__(self, placer):
-        self.__placer = placer
+        self.placer = placer
+
+
+_definition_context_stack = Stack()
+
+
+class _DefinitionContextManager:
+    def __init__(self, context):
+        self._context = context
 
     def __enter__(self):
-        _PlacerBlock.push(self.__placer)
+        _definition_context_stack.push(self._context)
 
     def __exit__(self, typ, value, traceback):
-        _PlacerBlock.pop()
-
-    @classmethod
-    def push(cls, placer):
-        cls.__stack.append(placer)
-
-    @classmethod
-    def pop(cls):
-        if not cls.__stack:
-            return None
-        return cls.__stack.pop()
-
-    @classmethod
-    def peek(cls):
-        if not cls.__stack:
-            return None
-        return cls.__stack[-1]
+        _definition_context_stack.pop()
 
 
 def _setattrs(obj, dct):
@@ -180,7 +169,8 @@ def _get_intermediate_values(value, values):
 
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
-        _PlacerBlock.push(StagedPlacer(name))
+        context = DefinitionContext(StagedPlacer(name))
+        _definition_context_stack.push(context)
         return type.__prepare__(name, bases, **kwargs)
 
     """Metaclass for creating circuits."""
@@ -212,13 +202,15 @@ class CircuitKind(type):
 
         # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
+
         cls.setup_interface()
-        placer = _PlacerBlock.pop()
-        if placer:
-            assert placer.name == cls_name
-            cls._placer = placer.finalize(cls)
-        else:
-            cls._placer = Placer(cls)
+        try:
+            context = _definition_context_stack.pop()
+            assert context.placer.name == cls_name
+            placer = context.placer.finalize(cls)
+            cls._context_ = DefinitionContext(placer)
+        except IndexError:  # no staged placer
+            cls._context_ = DefinitionContext(Placer(cls))
 
         return cls
 
@@ -501,7 +493,7 @@ class AnonymousCircuitType(object):
 
     @classmethod
     def open(cls):
-        return _PlacerBlock(cls._placer)
+        return _DefinitionContextManager(cls._context_)
 
 
 def AnonymousCircuit(*decl):
@@ -517,10 +509,11 @@ class CircuitType(AnonymousCircuitType):
     """Placed circuit - instances placed in a definition"""
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
-        # Circuit instances are placed if within a definition.
-        placer = _PlacerBlock.peek()
-        if placer:
-            placer.place(self)
+        try:
+            context = _definition_context_stack.peek()
+            context.placer.place(self)
+        except IndexError:  # instances must happen inside a definition context
+            raise Exception("Can not instance a circuit outside a definition")
 
     def __repr__(self):
         args = []
@@ -614,7 +607,7 @@ class DefineCircuitKind(CircuitKind):
                 _logger.warning("'definition' class method syntax is "
                                 "deprecated, use inline definition syntax "
                                 "instead", debug_info=self.debug_info)
-                with _PlacerBlock(self._placer):
+                with _DefinitionContextManager(self._context_):
                     self.definition()
                 self._is_definition = True
                 run_unconnected_check = True
@@ -653,11 +646,11 @@ class DefineCircuitKind(CircuitKind):
 
     @property
     def instances(self):
-        return self._placer.instances()
+        return self._context_.placer.instances()
 
     def place(cls, inst):
         """Place a circuit instance in this definition"""
-        cls._placer.place(inst)
+        cls._context_.placer.place(inst)
 
     def gen_bind_port(cls, mon_arg, bind_arg):
         if isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and \
@@ -734,14 +727,16 @@ def DefineCircuit(name, *decl, **args):
                     renamed_ports=args.get('renamed_ports', {}),
                     kratos=args.get("kratos", None)))
     defn = metacls(name, bases, dct)
-    _PlacerBlock.push(defn._placer)
+    _definition_context_stack.push(defn._context_)
     return defn
 
 
 def EndDefine():
-    placer = _PlacerBlock.pop()
-    if not placer:
-        raise Exception("EndDefine called without DefineCircuit")
+    try:
+        context = _definition_context_stack.pop()
+    except IndexError:
+        raise Exception("EndDefine not matched to DefineCircuit")
+    placer = context.placer
     placer._defn.check_unconnected()
     debug_info = get_callee_frame_info()
     placer._defn.end_circuit_filename = debug_info[0]

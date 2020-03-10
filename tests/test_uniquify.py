@@ -5,33 +5,35 @@ from magma.testing import check_files_equal
 
 def test_verilog_field_uniquify():
     # https://github.com/phanrahan/magma/issues/330.
-    HalfAdder = m.DefineCircuit('HalfAdder', 'A', m.In(m.Bit), 'B',
-                                m.In(m.Bit), 'S', m.Out(m.Bit), 'C',
-                                m.Out(m.Bit))
-    HalfAdder.verilog = '''\
-        assign S = A ^ B;
-        assign C = A & B;\
-    '''
-    m.EndCircuit()
+    class HalfAdder(m.Circuit):
+        name = "HalfAdder"
+        io = m.IO(A=m.In(m.Bit), B=m.In(m.Bit), S=m.Out(m.Bit), C=m.Out(m.Bit))
+        io.verilog = """\
+            assign S = A ^ B;
+            assign C = A & B;\
+        """
 
 
 def test_uniquify_equal():
-    foo = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    m.wire(foo.I, foo.O)
-    m.EndCircuit()
+    class foo(m.Circuit):
+        name = "foo"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(io.I, io.O)
 
-    bar = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    m.wire(bar.I, bar.O)
-    m.EndCircuit()
+    class bar(m.Circuit):
+        name = "foo"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(io.I, io.O)
 
-    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    curr = top.I
-    for circ in (foo, bar):
-        inst = circ()
-        m.wire(inst.I, curr)
-        curr = inst.O
-    m.wire(curr, top.O)
-    m.EndCircuit()
+    class top(m.Circuit):
+        name = "top"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        curr = io.I
+        for circ in (foo, bar):
+            inst = circ()
+            m.wire(inst.I, curr)
+            curr = inst.O
+        m.wire(curr, io.O)
 
     assert hash(repr(foo)) == hash(repr(bar))
 
@@ -42,22 +44,25 @@ def test_uniquify_equal():
 
 
 def test_uniquify_unequal():
-    foo = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    m.wire(foo.I, foo.O)
-    m.EndCircuit()
+    class foo(m.Circuit):
+        name = "foo"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(io.I, io.O)
 
-    bar = m.DefineCircuit("foo", "I", m.In(m.Bits[2]), "O", m.Out(m.Bits[2]))
-    m.wire(bar.I, bar.O)
-    m.EndCircuit()
+    class bar(m.Circuit):
+        name = "foo"
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))
+        m.wire(io.I, io.O)
 
-    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    foo_inst = foo()
-    m.wire(top.I, foo_inst.I)
-    bar_inst = bar()
-    m.wire(foo_inst.O, bar_inst.I[0])
-    m.wire(foo_inst.O, bar_inst.I[1])
-    m.wire(bar_inst.O[0], top.O)
-    m.EndCircuit()
+    class top(m.Circuit):
+        name = "top"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        foo_inst = foo()
+        m.wire(io.I, foo_inst.I)
+        bar_inst = bar()
+        m.wire(foo_inst.O, bar_inst.I[0])
+        m.wire(foo_inst.O, bar_inst.I[1])
+        m.wire(bar_inst.O[0], io.O)
 
     assert hash(repr(foo)) != hash(repr(bar))
 
@@ -75,58 +80,61 @@ def test_key_error():
         "O": "out",
         "S": "sel",
     }
-
-    def DeclareCoreirCircuit(*args, **kwargs):
-        return m.DeclareCircuit(*args, **kwargs,
-                                renamed_ports=default_port_mapping)
-
-    Mux2x6 = m.DefineCircuit("Mux2x6", "I0", m.In(m.Bits[6]), "I1", m.In(
-        m.Bits[6]), "S", m.In(m.Bit), "O", m.Out(m.Bits[6]))
-
+    
     class I(m.Product):
         data = m.Array[2, m.Bits[6]]
         sel = m.Bits[m.bitutils.clog2(2)]
 
-    mux = DeclareCoreirCircuit(f"coreir_commonlib_mux{2}x{6}",
-                               *["I", m.In(I),
-                                 "O", m.Out(m.Bits[6])],
-                               coreir_name="muxn",
-                               coreir_lib="commonlib",
-                               coreir_genargs={"width": 6, "N": 2})()
-    m.wire(Mux2x6.I0, mux.I.data[0])
-    m.wire(Mux2x6.I1, mux.I.data[1])
-    m.wire(Mux2x6.S, mux.I.sel[0])
-    m.wire(mux.O, Mux2x6.O)
-    m.EndDefine()
+    class _Mux(m.Circuit):
+        name = f"coreir_commonlib_mux{2}x{6}"
+        io = m.IO(I=m.In(I), O=m.Out(m.Bits[6]))
+        coreir_name = "muxn"
+        coreir_lib = "commonlib"
+        coreir_genargs = {"width": 6, "N": 2}
+        renamed_ports = default_port_mapping
 
-    MuxWrapper_2_6 = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2, m.In(
-        m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
-    Mux2x6_inst0 = Mux2x6()
-    m.wire(MuxWrapper_2_6.I[0], Mux2x6_inst0.I0)
-    m.wire(MuxWrapper_2_6.I[1], Mux2x6_inst0.I1)
-    m.wire(MuxWrapper_2_6.S[0], Mux2x6_inst0.S)
-    m.wire(Mux2x6_inst0.O, MuxWrapper_2_6.O)
-    m.EndCircuit()
+    class Mux2x6(m.Circuit):
+        name = "Mux2x6"
+        io = m.IO(I0=m.In(m.Bits[6]), I1=m.In(
+        m.Bits[6]), S=m.In(m.Bit), O=m.Out(m.Bits[6]))
 
-    MuxWrapper_2_6_copy = m.DefineCircuit("MuxWrapper_2_6", "I", m.Array[2, m.In(
-        m.Bits[6])], "S", m.In(m.Bits[1]), "O", m.Out(m.Bits[6]))
-    Mux2x6_inst0 = Mux2x6()
-    m.wire(MuxWrapper_2_6_copy.I[0], Mux2x6_inst0.I0)
-    m.wire(MuxWrapper_2_6_copy.I[1], Mux2x6_inst0.I1)
-    m.wire(MuxWrapper_2_6_copy.S[0], Mux2x6_inst0.S)
-    m.wire(Mux2x6_inst0.O, MuxWrapper_2_6_copy.O)
-    m.EndCircuit()
+        mux = _Mux()
+        m.wire(io.I0, mux.I.data[0])
+        m.wire(io.I1, mux.I.data[1])
+        m.wire(io.S, mux.I.sel[0])
+        m.wire(mux.O, io.O)
 
-    MuxWithDefaultWrapper_2_6_19_0 = m.DefineCircuit("MuxWithDefaultWrapper_2_6_19_0", "I", m.Array[2, m.In(
-        m.Bits[6])], "S", m.In(m.Bits[19]), "O", m.Out(m.Bits[6]))
-    MuxWrapper_2_6_inst0 = MuxWrapper_2_6()
-    MuxWrapper_2_6_inst1 = MuxWrapper_2_6_copy()
-    m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst0.I)
-    m.wire(MuxWithDefaultWrapper_2_6_19_0.I, MuxWrapper_2_6_inst1.I)
-    m.wire(MuxWithDefaultWrapper_2_6_19_0.S[0], MuxWrapper_2_6_inst0.S[0])
-    m.wire(MuxWithDefaultWrapper_2_6_19_0.S[0], MuxWrapper_2_6_inst1.S[0])
-    m.wire(MuxWrapper_2_6_inst1.O, MuxWithDefaultWrapper_2_6_19_0.O)
-    m.EndCircuit()
+    class MuxWrapper_2_6(m.Circuit):
+        name = "MuxWrapper_2_6"
+        io = m.IO(I=m.Array[2, m.In(
+        m.Bits[6])], S=m.In(m.Bits[1]), O=m.Out(m.Bits[6]))
+        Mux2x6_inst0 = Mux2x6()
+        m.wire(io.I[0], Mux2x6_inst0.I0)
+        m.wire(io.I[1], Mux2x6_inst0.I1)
+        m.wire(io.S[0], Mux2x6_inst0.S)
+        m.wire(Mux2x6_inst0.O, io.O)
+
+    class MuxWrapper_2_6_copy(m.Circuit):
+        name = "MuxWrapper_2_6"
+        io = m.IO(I=m.Array[2, m.In(
+        m.Bits[6])], S=m.In(m.Bits[1]), O=m.Out(m.Bits[6]))
+        Mux2x6_inst0 = Mux2x6()
+        m.wire(io.I[0], Mux2x6_inst0.I0)
+        m.wire(io.I[1], Mux2x6_inst0.I1)
+        m.wire(io.S[0], Mux2x6_inst0.S)
+        m.wire(Mux2x6_inst0.O, io.O)
+
+    class MuxWithDefaultWrapper_2_6_19_0(m.Circuit):
+        name = "MuxWithDefaultWrapper_2_6_19_0"
+        io = m.IO(I=m.Array[2, m.In(
+        m.Bits[6])], S=m.In(m.Bits[19]), O=m.Out(m.Bits[6]))
+        MuxWrapper_2_6_inst0 = MuxWrapper_2_6()
+        MuxWrapper_2_6_inst1 = MuxWrapper_2_6_copy()
+        m.wire(io.I, MuxWrapper_2_6_inst0.I)
+        m.wire(io.I, MuxWrapper_2_6_inst1.I)
+        m.wire(io.S[0], MuxWrapper_2_6_inst0.S[0])
+        m.wire(io.S[0], MuxWrapper_2_6_inst1.S[0])
+        m.wire(MuxWrapper_2_6_inst1.O, io.O)
 
     top = MuxWithDefaultWrapper_2_6_19_0
     m.compile(f"build/{top.name}", top, output="coreir")
@@ -136,22 +144,23 @@ def test_key_error():
 
 
 def test_uniquify_verilog():
-    [foo0] = m.DefineFromVerilog("""
+    [foo0] = m.define_from_verilog("""
 module foo(input I, output O);
     assign O = I;
 endmodule""")
-    [foo1] = m.DefineFromVerilog("""
+    [foo1] = m.define_from_verilog("""
 module foo(input II, output OO);
     assign OO = II;
 endmodule""")
     assert repr(foo0) != repr(foo1)
-    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    foo0_inst = foo0()
-    foo1_inst = foo1()
-    m.wire(top.I, foo0_inst.I)
-    m.wire(foo0_inst.O, foo1_inst.II)
-    m.wire(foo1_inst.OO, top.O)
-    m.EndDefine()
+    class top(m.Circuit):
+        name = "top"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        foo0_inst = foo0()
+        foo1_inst = foo1()
+        m.wire(io.I, foo0_inst.I)
+        m.wire(foo0_inst.O, foo1_inst.II)
+        m.wire(foo1_inst.OO, io.O)
 
     with pytest.raises(Exception) as pytest_e:
         m.compile(f"top", top, output="coreir")
@@ -162,20 +171,23 @@ endmodule""")
 
 
 def test_hash_verilog():
-    [foo0] = m.DefineFromVerilog("""
+    [foo0] = m.define_from_verilog("""
 module foo(input I, output O);
     assign O = I;
 endmodule""")
-    foo1 = m.DefineCircuit("foo", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    m.EndCircuit()
+    class foo1(m.Circuit):
+        name = "foo"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        is_definition = True
 
-    top = m.DefineCircuit("top", "I", m.In(m.Bit), "O", m.Out(m.Bit))
-    foo0_inst = foo0()
-    foo1_inst = foo1()
-    m.wire(top.I, foo0_inst.I)
-    m.wire(foo0_inst.O, foo1_inst.I)
-    m.wire(foo1_inst.O, top.O)
-    m.EndDefine()
+    class top(m.Circuit):
+        name = "top"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        foo0_inst = foo0()
+        foo1_inst = foo1()
+        m.wire(io.I, foo0_inst.I)
+        m.wire(foo0_inst.O, foo1_inst.I)
+        m.wire(foo1_inst.O, io.O)
 
     assert repr(foo0) == repr(foo1)
 
@@ -199,7 +211,7 @@ def test_same_verilog():
     a rename. As it does not need to.
     """
     def _generate_foo():
-        return m.DefineFromVerilog("""
+        return m.define_from_verilog("""
 module foo(input i, output o);
     assign o = i;
 endmodule""")[0]

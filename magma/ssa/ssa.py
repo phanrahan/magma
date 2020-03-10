@@ -66,12 +66,8 @@ class SSAVisitor(ast.NodeTransformer):
 
         if node.orelse:
             self.last_name = false_name
-            # Using explicit Not because invert is not defined during magma
-            # tests
-            # self.cond_stack[-1] = ast.UnaryOp(ast.Invert(),
-            #                                   self.cond_stack[-1])
-            self.cond_stack[-1] = ast.parse(
-                f"Not()({astor.to_source(self.cond_stack[-1]).rstrip()})")
+            self.cond_stack[-1] = ast.UnaryOp(ast.Invert(),
+                                              self.cond_stack[-1])
             result += flatten([self.visit(s) for s in node.orelse])
             false_name = dict(self.last_name)
 
@@ -144,7 +140,7 @@ def convert_tree_to_ssa(tree: ast.AST, defn_env: dict, phi_name: str = "phi"):
         else:
             cond = conds[-1]
             for c in conds[:-1]:
-                c = ast.BinOp(cond, ast.And(), c)
+                cond = ast.BinOp(cond, ast.BitAnd(), c)
             if isinstance(tree.returns, ast.Tuple):
                 for i in range(len(tree.returns.elts)):
                     tree.body.append(ast.Assign(

@@ -24,14 +24,14 @@ def test_simulator_tuple():
     outType = Out(Array[2*inDims[0], tupleEl])
     args = ['I', inType, 'O', outType] + ClockInterface(False, False)
 
-    testcircuit = DefineCircuit('test_simulator_tuple', *args)
+    class testcircuit(Circuit):
+        name = "test_simulator_tuple"
+        io = IO(**dict(zip(args[::2], args[1::2])))
+        wire(io.I[0].data, io.O[0])
+        wire(io.I[0].sel, io.O[1])
+        wire(io.I[1].data, io.O[2])
+        wire(io.I[1].sel, io.O[3])
 
-    wire(testcircuit.I[0].data, testcircuit.O[0])
-    wire(testcircuit.I[0].sel, testcircuit.O[1])
-    wire(testcircuit.I[1].data, testcircuit.O[2])
-    wire(testcircuit.I[1].sel, testcircuit.O[3])
-
-    EndCircuit()
 
     sim = CoreIRSimulator(testcircuit, testcircuit.CLK, context=cirb.context,
                           namespaces=["aetherlinglib", "commonlib", "mantle", "coreir", "global"])

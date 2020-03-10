@@ -17,20 +17,26 @@ class Not(m.Circuit):
 # TODO: Revert this to using mux primitive when moved to magma
 @m.cache_definition
 def _declare_muxn(height, width):
-    def simulate(self, value_store, state_store):
-        sel = BitVector[m.bitutils.clog2(height)](value_store.get_value(self.I.sel))
-        out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
-        value_store.set_value(self.O, out)
-    return m.circuit.DeclareCoreirCircuit(f"coreir_commonlib_mux{height}x{width}",
-        *["I", m.In(m.Product.from_fields("anon",
-                                          dict(data=m.Array[height, m.Bits[width]],
-                                               sel=m.Bits[m.bitutils.clog2(height)]))),
-          "O", m.Out(m.Bits[width])],
-        coreir_name="muxn",
-        coreir_lib="commonlib",
-        simulate=simulate,
-        coreir_genargs={"width": width, "N": height}
-    )
+    class MuxN(m.Circuit):
+        name = f"coreir_commonlib_mux{height}x{width}"
+        io = m.IO(
+            I=m.In(m.Product.from_fields("anon", dict(data=m.Array[height,
+                                                                   m.Bits[width]],
+                                                      sel=m.Bits[m.bitutils.clog2(height)]))),
+            O=m.Out(m.Bits[width])
+        )
+        renamed_ports = m.circuit.coreir_port_mapping
+        coreir_name = "muxn"
+        coreir_lib = "commonlib"
+        coreir_genargs = {"width": width, "N": height}
+        primitive = True
+        stateful = False
+
+        def simulate(self, value_store, state_store):
+            sel = BitVector[m.bitutils.clog2(height)](value_store.get_value(self.I.sel))
+            out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+            value_store.set_value(self.O, out)
+    return MuxN
 
 
 @m.cache_definition
@@ -228,10 +234,10 @@ def test_return_magma_named_tuple(target):
 
 
 def test_simple_circuit_1(target):
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
+    class EQ(m.Circuit):
+        name = "eq"
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(0, io.O)
 
     @m.circuit.combinational
     def logic(a: m.Bit) -> (m.Bit,):
@@ -252,10 +258,10 @@ def test_simple_circuit_1(target):
 
 
 def test_multiple_assign(target):
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
+    class EQ(m.Circuit):
+        name = "eq"
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(0, io.O)
 
     @m.circuit.combinational
     def logic(a: m.Bit) -> (m.Bit,):
@@ -279,10 +285,10 @@ def test_multiple_assign(target):
 
 def test_optional_assignment(target):
 
-    EQ = m.DefineCircuit("eq", "I0", m.In(m.Bit), "I1", m.In(m.Bit), "O",
-                         m.Out(m.Bit))
-    m.wire(0, EQ.O)
-    m.EndDefine()
+    class EQ(m.Circuit):
+        name = "eq"
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+        m.wire(0, io.O)
 
     @m.circuit.combinational
     def logic(a: m.Bit) -> (m.Bit, m.Bit):

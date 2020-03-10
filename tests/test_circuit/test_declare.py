@@ -10,7 +10,12 @@ def test_declare_repr():
     assert str(_And2) == 'And2(I0: In(Bit), I1: In(Bit), O: Out(Bit))'
     assert repr(_And2) == ('And2 = DeclareCircuit("And2", "I0", In(Bit), "I1", '
                            'In(Bit), "O", Out(Bit))')
-    and2 = _And2(name="and2")
+
+    class _Top(m.Circuit):
+        io = m.IO()
+        and2 = _And2(name="and2")
+
+    and2 = _Top.and2
     assert str(and2) == "and2<And2(I0: In(Bit), I1: In(Bit), O: Out(Bit))>"
     assert str(and2.I0) == "I0"
 

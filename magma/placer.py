@@ -18,7 +18,18 @@ def _parse_name(inst):
     """
     with open(inst.debug_info.filename, "r") as f:
         line = f.read().splitlines()[inst.debug_info.lineno - 1]
-    tree = ast.parse(textwrap.dedent(line)).body[0]
+    try:
+        tree = ast.parse(textwrap.dedent(line)).body[0]
+    except Exception:
+        # Sometimes we cannot parse the line, e.g.
+        # x = [Circuit()
+        #      for _ in range(8)]
+        # Will give use the second line for the list comprehension, which
+        # cannot be parsed.  It's probably generally difficult to catch all
+        # these cases
+        # For now, we just silently ignore exceptions and just assume we can't
+        # find a good debug name
+        return None
     # Simple case when <Name> = <Instance>().
     if isinstance(tree, ast.Assign) and len(tree.targets) == 1 \
        and isinstance(tree.targets[0], ast.Name):

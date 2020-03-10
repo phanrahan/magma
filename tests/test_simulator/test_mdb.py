@@ -18,12 +18,13 @@ def test(capsys):
     
     def Register(n):
         args = ["I", In(Array[n, Bit]), "O", Out(Array[n, Bit])] + ClockInterface(False, False, False)
-    
-        RegCircuit = DefineCircuit('Register' + str(n), *args)
-        ffs = join(FFs(n))
-        wire(RegCircuit.I, ffs.D)
-        wire(ffs.Q, RegCircuit.O)
-        EndCircuit()
+
+        class RegCircuit(m.Circuit):
+            name = 'Register' + str(n)
+            io = m.IO(**dict(zip(args[::2], args[1::2])))
+            ffs = join(FFs(n))
+            wire(io.I, ffs.D)
+            wire(ffs.Q, io.O)
     
         return RegCircuit()
     
@@ -42,7 +43,14 @@ def test(capsys):
             value_store.set_value(self.COUT, cout)
     
         args = ["I", In(Array[n, Bit]), "O", Out(Array[n, Bit]), "COUT", Out(Bit)]
-        return DeclareCircuit('IncOne' + str(n), *args, stateful=False, primitive=True, simulate=sim_inc_one)()
+        class _Circuit(Circuit):
+            name = 'IncOne' + str(n)
+            io = IO(**dict(zip(args[::2], args[1::2])))
+            stateful = False
+            primitive = True
+            simulate = sim_inc_one
+
+        return _Circuit()
     
     def TestCounter(n):
         args = []
@@ -52,32 +60,35 @@ def test(capsys):
     
         args += ClockInterface(False, False, False)
     
-        Counter = DefineCircuit('Counter' + str(n), *args)
+        class Counter(m.Circuit):
+            name = 'Counter' + str(n)
+            io = m.IO(**dict(zip(args[::2], args[1::2])))
     
-        inc = IncOne(n)
-        reg = Register(n)
+            inc = IncOne(n)
+            reg = Register(n)
+            reg.name = "reg"
     
-        wire(reg.O, inc.I)
-        wire(inc.O, reg.I)
-        wire(reg.O, Counter.O)
+            wire(reg.O, inc.I)
+            wire(inc.O, reg.I)
+            wire(reg.O, io.O)
     
-        wire(inc.COUT, Counter.COUT)
+            wire(inc.COUT, io.COUT)
     
-        wireclock(Counter, reg)
-    
-        EndCircuit()
+        wireclock(Counter, Counter.reg)
     
         return Counter()
     
     args = ['O', Array[5, Out(Bit)], 'COUT', Out(Bit)]
     args += ClockInterface(False, False, False)
     
-    testcircuit = DefineCircuit('Test', *args)
-    counter = TestCounter(5)
-    wire(counter.O, testcircuit.O)
-    wire(counter.COUT, testcircuit.COUT)
-    EndCircuit()
-    
+    class testcircuit(Circuit):
+        name = "Test"
+        io = IO(**dict(zip(args[::2], args[1::2])))
+        counter = TestCounter(5)
+        counter.name = "counter"
+        wire(counter.O, io.O)
+        wire(counter.COUT, io.COUT)
+
     sim = PythonSimulator(testcircuit, testcircuit.CLK)
 
     DebugNamePass(testcircuit).run()
@@ -106,9 +117,9 @@ def test(capsys):
     console.runcmd("p self.O")
     assert get_out(capsys) == "2"
 
-    console.runcmd("p counter.O")
+    console.runcmd("p self.counter.O")
     assert get_out(capsys) == "2"
 
-    console.runcmd("p counter.reg.O")
+    console.runcmd("p self.counter.reg.O")
     assert get_out(capsys) == "2"
     m.config.set_debug_mode(False)
