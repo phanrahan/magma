@@ -66,10 +66,11 @@ class DefinitionContext:
 
     def finalize(self, defn):
         final_placer = self.placer.finalize(defn)
-        with defn.open():
+        final_context = DefinitionContext(final_placer)
+        with _DefinitionContextManager(final_context):
             for format_str, format_args in self._inline_verilog:
                 defn.inline_verilog(format_str, **format_args)
-        return DefinitionContext(final_placer)
+        return final_context
 
 
 _definition_context_stack = Stack()
