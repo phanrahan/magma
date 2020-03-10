@@ -62,17 +62,17 @@ class DefinitionContext:
         self.placer = placer
         self._inline_verilog = []
 
-    def add_inline_verilog(self, format_str, format_args, calling_frame):
-        self._inline_verilog.append((format_str, format_args, calling_frame))
+    def add_inline_verilog(self, format_str, format_args, symbol_table):
+        self._inline_verilog.append((format_str, format_args, symbol_table))
 
     def finalize(self, defn):
         final_placer = self.placer.finalize(defn)
         final_context = DefinitionContext(final_placer)
         # inline logic may introduce instances
         with _DefinitionContextManager(final_context):
-            for format_str, format_args, calling_frame in self._inline_verilog:
+            for format_str, format_args, symbol_table in self._inline_verilog:
                 process_inline_verilog(defn, format_str, format_args,
-                                       calling_frame)
+                                       symbol_table)
         return final_context
 
 
