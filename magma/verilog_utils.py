@@ -68,6 +68,7 @@ def convert_values_to_verilog_str(value):
         value = str(value)
     return value
 
+
 def process_inline_verilog(cls, format_str, format_args, frame):
     fieldnames = [fname for _, fname, _, _ in
                   Formatter().parse(format_str) if fname]
