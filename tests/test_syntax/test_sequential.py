@@ -94,8 +94,8 @@ def DefineCoreirReg(width, init=0, has_async_reset=False,
         coreir_name = "reg_arst" if (has_async_reset or has_async_resetn) else "reg"
         verilog_name = "coreir_" + coreir_name
         coreir_lib = "coreir"
-        simulate=gen_sim_register(width, init, False, has_async_reset,
-                                  has_async_resetn)
+        simulate = gen_sim_register(width, init, False, has_async_reset,
+                                    has_async_resetn)
     return CoreIRReg
 
 
