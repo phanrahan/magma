@@ -86,7 +86,7 @@ _Family_ = TypeFamily(Bit, Bits, UInt, SInt)
 def get_family():
     return _Family_
 
-from .generator import Generator
+from .generator import Generator, Generator2
 from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
 import magma.operators
 from .operators import slice

@@ -1,0 +1,39 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "MyMux1x2":{
+        "type":["Record",[
+          ["I0",["Array",1,"BitIn"]],
+          ["I1",["Array",1,"BitIn"]],
+          ["O",["Array",1,"Bit"]],
+          ["S",["Array",1,"BitIn"]]
+        ]]
+      },
+      "_Top":{
+        "type":["Record",[
+          ["x","BitIn"],
+          ["y","BitIn"],
+          ["z","Bit"]
+        ]],
+        "instances":{
+          "MyMux1x2_inst0":{
+            "modref":"global.MyMux1x2"
+          },
+          "const_0_1":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",1]},
+            "modargs":{"value":[["BitVector",1],"1'h0"]}
+          }
+        },
+        "connections":[
+          ["self.x","MyMux1x2_inst0.I0.0"],
+          ["self.y","MyMux1x2_inst0.I1.0"],
+          ["self.z","MyMux1x2_inst0.O.0"],
+          ["const_0_1.out","MyMux1x2_inst0.S"]
+        ]
+      }
+    }
+  }
+}
+}

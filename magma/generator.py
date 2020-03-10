@@ -1,6 +1,7 @@
-from abc import abstractmethod
-import functools
+from abc import abstractmethod, ABCMeta
 import collections
+import functools
+from .circuit import DefineCircuitKind, Circuit
 
 
 class ParamDict(dict):
@@ -55,3 +56,36 @@ class Generator(metaclass=GeneratorMeta):
     @classmethod
     def bind(cls, monitor):
         cls.bind_generators.append(monitor)
+
+
+class _Generator2Meta(type):
+    def __new__(metacls, name, bases, dct):
+        bases = bases + (DefineCircuitKind,)
+        return type.__new__(metacls, name, bases, dct)
+
+    def __call__(*args, **kwargs):
+        cls = args[0]
+        args = args[1:]
+        if cls is Generator2:
+            try:
+                name, bases, dct = args
+            except ValueError:
+                raise Exception("Can not initialize base Generator class")
+            assert not kwargs
+            return type.__new__(cls, name, bases, dct)
+        dummy = type.__new__(cls, "", (), {})
+        name = cls.__name__
+        bases = (Circuit,)
+        dct = DefineCircuitKind.__prepare__(name, bases)
+        cls.__init__(dummy, *args, **kwargs)
+        dct.update(dict(dummy.__dict__))
+        t = DefineCircuitKind.__new__(cls, name, bases, dct)
+        return t
+
+
+class Generator2(metaclass=_Generator2Meta):
+    def __new__(metacls, name, bases, dct):
+        return type.__new__(metacls, name, bases, dct)
+
+    def __call__(cls, *args, **kwargs):
+        return DefineCircuitKind.__call__(cls, *args, **kwargs)
