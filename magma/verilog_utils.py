@@ -1,5 +1,7 @@
+from string import Formatter
 import magma as m
 from magma.view import InstView, PortView
+from .t import Type
 
 
 def value_to_verilog_name(value):
@@ -42,3 +44,55 @@ def verilog_name(name, inst_sep="."):
             pass
         return f"{tuple_name}_{index}"
     raise NotImplementedError(name, type(name))
+
+
+def convert_values_to_verilog_str(value):
+    if isinstance(value, Type):
+        # TODO: For now we assumed values aren't used elswhere, this
+        # forces it to be connected to an instance, so temporaries will
+        # appear in the code
+        if value.is_inout() and not value.driven():
+            raise NotImplementedError()
+        if value.is_input() and not value.driven():
+            # TODO: Could be driven after, but that will just override
+            # this wiring so it's okay for now
+            value.undriven()
+        elif value.is_output() and not value.wired():
+            value.unused()
+        elif not (value.is_input() or value.is_output() or value.is_inout()):
+            value.unused()
+        value = value_to_verilog_name(value)
+    elif isinstance(value, PortView):
+        value = value_to_verilog_name(value)
+    else:
+        value = str(value)
+    return value
+
+def process_inline_verilog(cls, format_str, format_args, frame):
+    fieldnames = [fname for _, fname, _, _ in
+                  Formatter().parse(format_str) if fname]
+    for field in fieldnames:
+        if field not in format_args:
+            curr_frame = frame
+            while curr_frame:
+                try:
+                    value = eval(field, curr_frame.f_globals,
+                                 curr_frame.f_locals)
+                    # These have special handling, don't convert to
+                    # string
+                    value = convert_values_to_verilog_str(value)
+                    value = value.replace("{", "{{")\
+                                 .replace("}", "}}")
+                    format_str = format_str.replace(f"{{{field}}}",
+                                                    value)
+                    break
+                except NameError:
+                    prev_frame = curr_frame
+                    curr_frame = curr_frame.f_back
+                    # See
+                    # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
+                    # on deleting frames
+                    del prev_frame
+
+    del frame
+    cls._inline_verilog(format_str, **format_args)

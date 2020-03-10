@@ -1,4 +1,3 @@
-from string import Formatter
 import ast
 import enum
 import textwrap
@@ -30,9 +29,10 @@ from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from .verilog_utils import value_to_verilog_name
+from .verilog_utils import (value_to_verilog_name,
+                            convert_values_to_verilog_str,
+                            process_inline_verilog)
 from .view import PortView
-from .t import Type
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -71,8 +71,8 @@ class DefinitionContext:
         # inline logic may introduce instances
         with _DefinitionContextManager(final_context):
             for format_str, format_args, calling_frame in self._inline_verilog:
-                defn._process_inline_verilog(format_str, format_args,
-                                             calling_frame)
+                process_inline_verilog(defn, format_str, format_args,
+                                       calling_frame)
         return final_context
 
 
@@ -182,29 +182,6 @@ def _get_intermediate_values(value, values):
                 driver = None
 
 
-def _convert_values_to_verilog_str(value):
-    if isinstance(value, Type):
-        # TODO: For now we assumed values aren't used elswhere, this
-        # forces it to be connected to an instance, so temporaries will
-        # appear in the code
-        if value.is_inout() and not value.driven():
-            raise NotImplementedError()
-        if value.is_input() and not value.driven():
-            # TODO: Could be driven after, but that will just override
-            # this wiring so it's okay for now
-            value.undriven()
-        elif value.is_output() and not value.wired():
-            value.unused()
-        elif not (value.is_input() or value.is_output() or value.is_inout()):
-            value.unused()
-        value = value_to_verilog_name(value)
-    elif isinstance(value, PortView):
-        value = value_to_verilog_name(value)
-    else:
-        value = str(value)
-    return value
-
-
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         context = DefinitionContext(StagedPlacer(name))
@@ -254,35 +231,6 @@ class CircuitKind(type):
             cls._context_ = DefinitionContext(Placer(cls))
 
         return cls
-
-    def _process_inline_verilog(cls, format_str, format_args, frame):
-        fieldnames = [fname for _, fname, _, _ in
-                      Formatter().parse(format_str) if fname]
-        for field in fieldnames:
-            if field not in format_args:
-                curr_frame = frame
-                while curr_frame:
-                    try:
-                        value = eval(field, curr_frame.f_globals,
-                                     curr_frame.f_locals)
-                        # These have special handling, don't convert to
-                        # string
-                        value = _convert_values_to_verilog_str(value)
-                        value = value.replace("{", "{{")\
-                                     .replace("}", "}}")
-                        format_str = format_str.replace(f"{{{field}}}",
-                                                        value)
-                        break
-                    except NameError:
-                        prev_frame = curr_frame
-                        curr_frame = curr_frame.f_back
-                        # See
-                        # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
-                        # on deleting frames
-                        del prev_frame
-
-        del frame
-        cls._inline_verilog(format_str, **format_args)
 
     def __call__(cls, *largs, **kwargs):
         if get_debug_mode():
@@ -375,7 +323,7 @@ class CircuitKind(type):
     def _inline_verilog(cls, inline_str, **kwargs):
         format_args = {}
         for key, arg in kwargs.items():
-            format_args[key] = _convert_values_to_verilog_str(arg)
+            format_args[key] = convert_values_to_verilog_str(arg)
         cls.inline_verilog_strs.append(inline_str.format(**format_args))
 
     @deprecated(msg="cls.inline_verilog is deprecated, use m.inline_verilog"
