@@ -342,7 +342,7 @@ class CircuitKind(type):
     @deprecated(msg="cls.inline_verilog is deprecated, use m.inline_verilog"
                 "instead")
     def inline_verilog(cls, inline_str, **kwargs):
-        self._inline_verilog(inline_str, **kwargs)
+        cls._inline_verilog(inline_str, **kwargs)
 
 
 @six.add_metaclass(CircuitKind)
