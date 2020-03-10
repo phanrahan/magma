@@ -317,7 +317,7 @@ class CircuitKind(type):
             defn[name] = cls
         return defn
 
-    def inline_verilog(cls, inline_str, **kwargs):
+    def _inline_verilog(cls, inline_str, **kwargs):
         format_args = {}
         for key, arg in kwargs.items():
             if isinstance(arg, Type):
@@ -339,6 +339,11 @@ class CircuitKind(type):
                 arg = value_to_verilog_name(arg)
             format_args[key] = arg
         cls.inline_verilog_strs.append(inline_str.format(**format_args))
+
+    @deprecated(msg="cls.inline_verilog is deprecated, use m.inline_verilog"
+                "instead")
+    def inline_verilog(cls, inline_str, **kwargs):
+        self._inline_verilog(inline_str, **kwargs)
 
 
 @six.add_metaclass(CircuitKind)
