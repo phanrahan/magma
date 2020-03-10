@@ -21,7 +21,7 @@ class Main(m.Circuit):
 
 We can add an inline assertion using the `m.inline_verilog` function
 ```python
-        m.inline_verilog("""
+    m.inline_verilog("""
 assert property (@(posedge CLK) {I} |-> ##1 {O});
 """, O=io.O, I=io.I)
 ```
