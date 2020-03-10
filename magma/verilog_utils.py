@@ -1,5 +1,7 @@
+from string import Formatter
 import magma as m
 from magma.view import InstView, PortView
+from .t import Type
 
 
 def value_to_verilog_name(value):
@@ -42,3 +44,43 @@ def verilog_name(name, inst_sep="."):
             pass
         return f"{tuple_name}_{index}"
     raise NotImplementedError(name, type(name))
+
+
+def convert_values_to_verilog_str(value):
+    if isinstance(value, Type):
+        # TODO: For now we assumed values aren't used elswhere, this
+        # forces it to be connected to an instance, so temporaries will
+        # appear in the code
+        if value.is_inout() and not value.driven():
+            raise NotImplementedError()
+        if value.is_input() and not value.driven():
+            # TODO: Could be driven after, but that will just override
+            # this wiring so it's okay for now
+            value.undriven()
+        elif value.is_output() and not value.wired():
+            value.unused()
+        elif not (value.is_input() or value.is_output() or value.is_inout()):
+            value.unused()
+        return value_to_verilog_name(value)
+    if isinstance(value, PortView):
+        return value_to_verilog_name(value)
+    return str(value)
+
+
+def process_inline_verilog(cls, format_str, format_args, symbol_table):
+    fieldnames = [fname
+                  for _, fname, _, _ in Formatter().parse(format_str)
+                  if fname]
+    for field in fieldnames:
+        if field in format_args:
+            continue
+        try:
+            value = eval(field, {}, symbol_table)
+        except NameError:
+            continue
+        # These have special handling, don't convert to string.
+        value = convert_values_to_verilog_str(value)
+        value = value.replace("{", "{{").replace("}", "}}")
+        format_str = format_str.replace(f"{{{field}}}", value)
+
+    cls._inline_verilog(format_str, **format_args)

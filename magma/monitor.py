@@ -9,5 +9,10 @@ def MonitorIO(circuit):
     return IO
 
 
+def make_monitor_ports(circuit):
+    return {name: In(type(port))
+            for name, port in circuit.interface.ports.items()}
+
+
 class MonitorGenerator:
     pass
