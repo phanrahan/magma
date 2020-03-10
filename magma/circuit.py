@@ -69,7 +69,7 @@ class DefinitionContext:
         final_context = DefinitionContext(final_placer)
         with _DefinitionContextManager(final_context):
             for format_str, format_args in self._inline_verilog:
-                defn.inline_verilog(format_str, **format_args)
+                defn._inline_verilog(format_str, **format_args)
         return final_context
 
 
