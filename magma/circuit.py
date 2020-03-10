@@ -214,7 +214,6 @@ class CircuitKind(type):
             placer = context.placer.finalize(cls, _DefinitionContextManager(context))
             cls._context_ = DefinitionContext(placer)
         except IndexError:  # no staged placer
-            cls._placer = Placer(cls)
             cls._context_ = DefinitionContext(Placer(cls))
 
         return cls
