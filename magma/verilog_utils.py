@@ -61,12 +61,10 @@ def convert_values_to_verilog_str(value):
             value.unused()
         elif not (value.is_input() or value.is_output() or value.is_inout()):
             value.unused()
-        value = value_to_verilog_name(value)
-    elif isinstance(value, PortView):
-        value = value_to_verilog_name(value)
-    else:
-        value = str(value)
-    return value
+        return value_to_verilog_name(value)
+    if isinstance(value, PortView):
+        return value_to_verilog_name(value)
+    return str(value)
 
 
 def process_inline_verilog(cls, format_str, format_args, frame):
