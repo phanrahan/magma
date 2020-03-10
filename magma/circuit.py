@@ -31,7 +31,6 @@ from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from .verilog_utils import value_to_verilog_name
 from .view import PortView
-from .inline_verilog import inline_verilog
 from .t import Type
 
 __all__ = ['AnonymousCircuitType']
@@ -212,17 +211,11 @@ class CircuitKind(type):
         try:
             context = _definition_context_stack.pop()
             assert context.placer.name == cls_name
-            placer = context.placer.finalize(cls)
+            placer = context.placer.finalize(cls, _DefinitionContextManager(context))
             cls._context_ = DefinitionContext(placer)
         except IndexError:  # no staged placer
             cls._placer = Placer(cls)
             cls._context_ = DefinitionContext(Placer(cls))
-        if "_inline_verilog_" in dct:
-            # inline logic may introduce unused instances
-            with cls.open():
-                _inline_verilog_ = dct["_inline_verilog_"]
-                for format_str, format_args in _inline_verilog_:
-                    cls.inline_verilog(format_str, **format_args)
 
         return cls
 
