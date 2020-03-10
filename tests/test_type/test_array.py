@@ -135,12 +135,17 @@ def test_construct():
         a1 = Array[2, Array[3, Bit]](0x3)
 
 def test_whole():
-    Reg2 = DefineCircuit("Reg2", "I0", In(Array2), "I1", In(Array2))
+    class Reg2(Circuit):
+        name = "Reg2"
+        io = IO(I0=In(Array2), I1=In(Array2))
     a = Reg2.I0
     a1 = Array[2, Bit]([a[0], a[1]])
     print((a1.iswhole(a1.ts)))
 
-    reg2 = Reg2()
+    class _Top(Circuit):
+        reg2 = Reg2()
+
+    reg2 = _Top.reg2
     a = reg2.I0
     b = reg2.I1
 

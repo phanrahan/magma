@@ -54,10 +54,12 @@ def test_nested_clocks():
     cirb = CoreIRBackend(c)
     args = ['clocks', In(Array[2, Clock])]
 
-    inner_test_circuit = DefineCircuit('inner_test_nested_clocks', *args)
-    EndCircuit()
+    class inner_test_circuit(Circuit):
+        name = "inner_test_nested_clocks"
+        io = IO(**dict(zip(args[::2], args[1::2])))
 
-    test_circuit = DefineCircuit('test_nested_clocks', *args)
-    inner_test_circuit()
-    EndCircuit()
+    class test_circuit(Circuit):
+        name = "test_nested_clocks"
+        io = IO(**dict(zip(args[::2], args[1::2])))
+        inner_test_circuit()
     GetCoreIRModule(cirb, test_circuit)

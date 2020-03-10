@@ -17,7 +17,7 @@ class RTLMonitor(m.MonitorGenerator):
             arr_2d = m.Array[2, m.Bits[width]](name="arr_2d")
             for i in range(2):
                 arr_2d[i] @= getattr(io, f"in{i + 1}")
-            _inline_verilog_ = m.inline_verilog("""
+            m.inline_verilog("""
 logic temp1, temp2;
 logic [{width-1}:0] temp3;
 assign temp1 = |(in1);

@@ -14,8 +14,8 @@ def test_ff_param(target, circuit_type):
     }[target]
 
     constructor = {
-        "declare": m.DeclareFromVerilogFile,
-        "define": m.DefineFromVerilogFile
+        "declare": m.declare_from_verilog_file,
+        "define": m.define_from_verilog_file
     }[circuit_type]
 
     ff_file = os.path.join(os.path.dirname(__file__), "ff.v")

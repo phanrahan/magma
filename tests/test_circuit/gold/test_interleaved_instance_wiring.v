@@ -1,4 +1,4 @@
-// Defined at tests/test_circuit/test_define.py:87
+// Defined at tests/test_circuit/test_define.py:86
 module main (input [1:0] I, output  O);
 wire  and2_0_O;
 wire  and2_1_O;
