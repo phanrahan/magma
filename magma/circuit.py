@@ -748,16 +748,18 @@ def CopyInstance(instance):
     return new_instance
 
 
-GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
+_GeneratorArguments = namedtuple('GeneratorArguments', ['args', 'kwargs'])
 
 
+@deprecated(msg="circuit_generator decorator is deprecated, subclass Generator "
+            "instead")
 def circuit_generator(func):
     @cache_definition
     @wraps(func)
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
         # Store arguments to generate the circuit.
-        result._generator_arguments = GeneratorArguments(args, kwargs)
+        result._generator_arguments = _GeneratorArguments(args, kwargs)
         return result
     return wrapped
 

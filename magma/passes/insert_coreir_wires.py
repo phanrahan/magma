@@ -1,41 +1,40 @@
-from .passes import DefinitionPass
-from ..digital import Digital
-from ..generator import Generator
-from ..circuit import Circuit, DeclareCoreirCircuit
-from ..t import In, Out
-from ..digital import Digital
 from ..array import Array
-from ..tuple import Tuple
 from ..bits import Bits
+from ..circuit import coreir_port_mapping
+from ..digital import Digital
+from ..generator import Generator2
+from ..interface import IO
+from .passes import DefinitionPass
 from ..ref import NamedRef
+from ..t import In, Out
+from ..tuple import Tuple
 
 
 def _simulate_wire(self, value_store, state_store):
     value_store.set_value(self.O, value_store.get_value(self.I))
 
 
-class Wire(Generator):
-    @staticmethod
-    def generate(T):
+def _sanitize_name(name):
+    return name.replace("[", "_").replace("]", "")
+
+
+class _Wire(Generator2):
+    def __init__(self, T):
         if issubclass(T, Digital):
             coreir_lib = "corebit"
             coreir_genargs = None
         else:
-            coreir_lib = "coreir"
             width = T.flat_length()
             T = Bits[width]
+            coreir_lib = "coreir"
             coreir_genargs = {"width": width}
-        return DeclareCoreirCircuit(
-            "Wire", 'I', In(T), 'O', Out(T),
-            simulate=_simulate_wire,
-            coreir_name="wire",
-            coreir_lib=coreir_lib,
-            coreir_genargs=coreir_genargs
-        )
-
-
-def _sanitize_name(name):
-    return name.replace("[", "_").replace("]", "")
+        self.name = "Wire"
+        self.io = IO(I=In(T), O=Out(T))
+        self.simulate = _simulate_wire
+        self.coreir_name = "wire"
+        self.coreir_lib = coreir_lib
+        self.coreir_genargs = coreir_genargs
+        self.renamed_ports = coreir_port_mapping
 
 
 class InsertCoreIRWires(DefinitionPass):
@@ -45,22 +44,21 @@ class InsertCoreIRWires(DefinitionPass):
         self.wire_map = {}
 
     def insert_wire(self, value, definition):
-        if value.is_mixed():
-            # mixed children
+        if value.is_mixed():  # mixed children
             for child in value:
                 if not child.is_output():
                     self.insert_wire(child, definition)
             return
         if value in self.seen:
-            # In the case of inouts, we may see more than once
-            return
+            return  # in the case of inouts, we may see more than once
         self.seen.add(value)
         driver = value.value()
 
-        while driver is not None and driver.name.anon() and \
-                not driver.is_output():
-            if isinstance(driver, (Array, Tuple)) and \
-                    not driver.iswhole(driver.ts):
+        while (driver is not None and driver.name.anon() and
+               not driver.is_output()):
+            descend = (isinstance(driver, (Array, Tuple)) and
+                       not driver.iswhole(driver.ts))
+            if descend:
                 for child in value:
                     self.insert_wire(child, definition)
                 return
@@ -81,7 +79,7 @@ class InsertCoreIRWires(DefinitionPass):
                 driver.name.name = "_" + driver.name.name
             name = f"{driver_name}"
             with definition.open():
-                wire_inst = Wire(T, name=name)
+                wire_inst = _Wire(T)(name=name)
                 self.wire_map[driver] = wire_inst
                 if issubclass(T, Digital):
                     wire_inst.I @= driver
@@ -98,7 +96,7 @@ class InsertCoreIRWires(DefinitionPass):
         self.insert_wire(driver, definition)
 
     def __call__(self, definition):
-        # Copy instances because inserting wire will append to instances
+        # Copy instances because inserting wire will append to instances.
         instances_copy = definition.instances.copy()
         for instance in instances_copy:
             for value in instance.interface.ports.values():

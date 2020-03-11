@@ -1,35 +1,30 @@
-from .circuit import Circuit, DeclareCoreirCircuit
 from .array import Array
 from .bits import Bits
+from .bitutils import clog2
+from .circuit import coreir_port_mapping
 from .conversions import array
+from .generator import Generator2
+from .interface import IO
 from .t import Type, In, Out
 from .tuple import Product
-from .bitutils import clog2
-from .generator import Generator
-from .frontend.coreir_ import DefineCircuitFromGeneratorWrapper, GetCoreIRBackend
 from .wire import wire
-from .interface import IO
 
 
-class CoreIRCommonLibMuxN(Generator):
-    @staticmethod
-    def generate(N: int, width: int):
-        return DeclareCoreirCircuit(
-            f"coreir_commonlib_mux{N}x{width}",
-            *["I", In(Product.from_fields("anon",
-                                          dict(data=Array[N, Bits[width]],
-                                               sel=Bits[clog2(N)]))),
-              "O", Out(Bits[width])],
-            coreir_name="muxn",
-            coreir_lib="commonlib",
-            coreir_genargs={"width": width, "N": N}
-        )
+class CoreIRCommonLibMuxN(Generator2):
+    def __init__(self, N: int, width: int):
+        self.name = f"coreir_commonlib_mux{N}x{width}"
+        MuxInT = Product.from_fields("anon", dict(data=Array[N, Bits[width]],
+                                                  sel=Bits[clog2(N)]))
+        self.io = IO(I=In(MuxInT), O=Out(Bits[width]))
+        self.renamed_ports = coreir_port_mapping
+        self.coreir_name = "muxn"
+        self.coreir_lib = "commonlib"
+        self.coreir_genargs = {"width": width, "N": N}
 
 
-class Mux(Generator):
-    @staticmethod
-    def generate(height: int, T: Type):
-        # TODO: Type must be hashable so we can cache
+class Mux(Generator2):
+    def __init__(self, height: int, T: Type):
+        # TODO: Type must be hashable so we can cache.
         N = T.flat_length()
 
         io_dict = {}
@@ -38,22 +33,19 @@ class Mux(Generator):
         io_dict["S"] = In(Bits[clog2(height)])
         io_dict["O"] = Out(T)
 
-        class Mux(Circuit):
-            io = IO(**io_dict)
-
-            mux = CoreIRCommonLibMuxN(height, N)
-            data = []
-            for i in range(height):
-                data.append(Bits[N](getattr(io, f"I{i}").flatten()))
-            wire(mux.I.data, array(data))
-            wire(mux.I.sel, io.S)
-            wire(mux.O, io.O)
-        return Mux
+        self.name = "Mux"
+        self.io = IO(**io_dict)
+        mux = CoreIRCommonLibMuxN(height, N)()
+        data = [Bits[N](getattr(self.io, f"I{i}").flatten())
+                for i in range(height)]
+        wire(mux.I.data, array(data))
+        wire(mux.I.sel, self.io.S)
+        wire(mux.O, self.io.O)
 
 
 def slice(value: Bits, start: Bits, width: int):
     """
-    Dynamic slice based off the value of `start` with constant `width`
+    Dynamic slice based off the value of `start` with constant `width`.
 
     Example:
     ```
@@ -69,10 +61,10 @@ def slice(value: Bits, start: Bits, width: int):
     ```
 
     Notes:
-    * For now we only support slicing bits with bits index
-    * We could add support for slicing Arrays
-    * We could restrict index to be a UInt
+      * For now we only support slicing bits with bits index
+      * We could add support for slicing Arrays
+      * We could restrict index to be a UInt
     """
     # Construct an array where the index `i` is the slice of bits from `i` to
-    # `i+width`, index into this array using `start`
+    # `i+width`, index into this array using `start`.
     return array([value[i:i + width] for i in range(len(value) - width)])[start]

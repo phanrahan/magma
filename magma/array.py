@@ -272,7 +272,7 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.N * cls.T.flat_length()
 
     def dynamic_mux_select(self, key):
-        return m.operators.Mux(len(self), self.T)(*self.ts, key)
+        return m.operators.Mux(len(self), self.T)()(*self.ts, key)
 
     def __getitem__(self, key):
         if isinstance(key, Type):
