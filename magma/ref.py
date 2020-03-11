@@ -77,6 +77,26 @@ class InstRef(NamedRef):
         return self.inst.name + sep + str(name)
 
 
+class LazyInstRef(InstRef):
+    def __init__(self, name):
+        self.name = name
+        self._inst = None
+
+    @property
+    def inst(self):
+        if self._inst is not None:
+            return self._inst
+        return LazyCircuit
+
+    def qualifiedname(self, sep="."):
+        return super().qualifiedname(sep)
+
+    def set_inst(self, inst):
+        if self._inst is not None:
+            raise Exception("Can only set definition of LazyInstRef once")
+        self._inst = inst
+
+
 class DefnRef(NamedRef):
     def __init__(self, defn, name):
         super().__init__(name)

@@ -46,6 +46,7 @@ __all__ += ['DefineCircuitKind']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
+__all__ += ['CircuitBuilder']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
@@ -79,6 +80,10 @@ class DefinitionContext:
         self._displays = []
         self._insert_default_log_level = False
         self._files = []
+        self._builders = []
+
+    def add_builder(self, builder):
+        self._builders.append(builder)
 
     def add_file(self, file):
         self._files.append(file)
@@ -88,15 +93,13 @@ class DefinitionContext:
             self.add_inline_verilog(
                 _VERILOG_FILE_OPEN.format(filename=file.filename,
                                           mode=file.mode),
-                {}, {}
-            )
+                {}, {})
 
     def _finalize_file_close(self):
         for file in self._files:
             self.add_inline_verilog(
                 _VERILOG_FILE_CLOSE.format(filename=file.filename),
-                {}, {}
-            )
+                {}, {})
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
@@ -112,22 +115,20 @@ class DefinitionContext:
             self.add_inline_verilog(*display.get_inline_verilog())
 
     def finalize(self, defn):
-        final_placer = self.placer.finalize(defn)
-        final_context = DefinitionContext(final_placer)
-        if self._insert_default_log_level:
-            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
-        # So displays can refer to open files
-        self._finalize_file_opens()
-        self._finalize_displays()
-        # Close after displays
-        self._finalize_file_close()
-
-        # inline logic may introduce instances
-        with _DefinitionContextManager(final_context):
+        self.placer = self.placer.finalize(defn)
+        # Inline logic may introduce instances.
+        with _DefinitionContextManager(self):
             for format_str, format_args, symbol_table in self._inline_verilog:
                 process_inline_verilog(defn, format_str, format_args,
                                        symbol_table)
-        return final_context
+        if self._insert_default_log_level:
+            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
+        self._finalize_file_opens()  # so displays can refer to open files
+        self._finalize_displays()        
+        self._finalize_file_close()  # close after displays
+        for builder in self._builders:
+            inst = builder.finalize()
+            self.placer.place(inst)
 
 
 _definition_context_stack = Stack()
@@ -175,7 +176,7 @@ def _get_interface_type(cls):
         return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
-        return make_singleton_interface(cls.io)
+        return cls.io.make_interface()
     return None
 
 
@@ -273,7 +274,12 @@ class CircuitKind(type):
         try:
             context = _definition_context_stack.pop()
             assert context.placer.name == cls_name
-            cls._context_ = context.finalize(cls)
+            try:
+                context = dct["_context_"]
+            except KeyError:
+                pass
+            cls._context_ = context
+            context.finalize(cls)
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
 
@@ -621,9 +627,9 @@ class DefineCircuitKind(CircuitKind):
             for base in bases:
                 if base is Circuit:
                     continue
-                if not issubclass(base, Circuit):
-                    raise Exception(f"Must subclass from Circuit or a "
-                                    f"subclass of Circuit ({base})")
+                if not issubclass(base, AnonymousCircuitType):
+                    raise Exception(f"Must subclass from AnonymousCircuitType or a "
+                                    f"subclass of AnonymousCircuitType ({base})")
                 dct['name'] = base.name
                 break
         name = dct['name']
@@ -823,3 +829,33 @@ coreir_port_mapping = {
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=coreir_port_mapping)
+
+
+class CircuitBuilder:
+    def __init__(self, name):
+        try:
+            context = _definition_context_stack.peek()
+            context.add_builder(self)
+        except IndexError:  # instances must happen inside a definition context
+            raise Exception("Can not instance a circuit builder outside a "
+                            "definition")
+        self._name = name
+        self._io = SingletonInstanceIO()
+        self._finalized = False
+        self._context = DefinitionContext(StagedPlacer(""))
+
+    def _open(self):
+        return _DefinitionContextManager(self._context)
+
+    def add(self, name, typ):
+        self._io.add(name, typ)
+        setattr(self, name, self._io.inst_ports[name])
+
+    def finalize(self):
+        if self._finalized:
+            raise Exception("Can only call finalize on a CircuitBuilder once")
+        bases = (AnonymousCircuitType,)
+        dct = {"io": self._io, "_context_": self._context, "name": self._name}
+        DefineCircuitKind.__prepare__(self._name, bases)
+        t = DefineCircuitKind(self._name, bases, dct)
+        return t(name=self._name)

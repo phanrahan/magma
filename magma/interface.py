@@ -6,14 +6,14 @@ from .clock import Clock, ClockTypes
 from .common import setattrs
 from .compatibility import IntegerTypes, StringTypes
 from .conversions import array
-from .ref import InstRef, DefnRef, LazyDefnRef, NamedRef
+from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
 from .t import Type, Kind, MagmaProtocolMeta, Direction
 from .tuple import Tuple
 
 
-__all__  = ['make_interface', 'make_singleton_interface']
+__all__  = ['make_interface']
 __all__ += ['InterfaceKind', 'Interface', 'AnonymousInterface']
-__all__ += ['IO']
+__all__ += ['IO', 'SingletonInstanceIO']
 
 
 def _flatten(l):
@@ -347,19 +347,40 @@ class _DeclareSingletonInterface(_DeclareInterface):
         cls._initialized = True
 
 
+class _DeclareSingletonInstanceInterface(_DeclareInterface):
+    """_DeclareSingletonInterface class"""
+    def __init__(self, renamed_ports={}, *, inst=None, defn=None):
+        assert not (inst is not None and defn is not None)
+        # This interface declaration has singleton semantics for its module
+        # definition (not instances or further definition instancing).
+        cls = type(self)
+
+        if defn:
+            if cls._initialized:
+                super().__init__(renamed_ports, inst=inst, defn=defn)
+                return
+            cls._io.bind(defn)  # bind IO to @defn
+            self.ports = OrderedDict(cls._io.ports.items())
+            _rename_ports(self.ports, renamed_ports)  # rename ports
+            cls._initialized = True
+            return
+        if inst:
+            if cls._initialized_inst:
+                super().__init__(renamed_ports, inst=inst, defn=defn)
+                return
+            cls._io.bind_inst(inst)  # bind IO to @inst
+            self.ports = OrderedDict(cls._io.inst_ports.items())
+            _rename_ports(self.ports, renamed_ports)  # rename ports
+            cls._initialized_inst = True
+            return
+        super().__init__(renamed_ports, inst=inst, defn=defn)
+
+
 def make_interface(*decl):
     """Interface factory function."""
     name = _make_interface_name(decl)
     dct = dict(_decl=decl)
     return InterfaceKind(name, (_DeclareInterface,), dct)
-
-
-def make_singleton_interface(io):
-    """SingletonInterface factory function"""
-    decl = io.decl()
-    name = _make_interface_name(decl)
-    dct = dict(_io=io, _decl=io.decl(), _initialized=False)
-    return InterfaceKind(name, (_DeclareSingletonInterface,), dct)
 
 
 class IOInterface(ABC):
@@ -375,6 +396,10 @@ class IOInterface(ABC):
 
     @abstractmethod
     def decl(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def make_interface(self):
         raise NotImplementedError()
 
     @abstractmethod
@@ -421,6 +446,12 @@ class IO(IOInterface):
     def decl(self):
         return self._decl
 
+    def make_interface(self):
+        decl = self.decl()
+        name = _make_interface_name(decl)
+        dct = dict(_io=self, _decl=decl, _initialized=False)
+        return InterfaceKind(name, (_DeclareSingletonInterface,), dct)
+
     def __add__(self, other):
         """
         Attempts to combine this IO and @other. Returns a new IO object with the
@@ -441,3 +472,48 @@ class IO(IOInterface):
             raise Exception("Adding IO with duplicate port names not allowed")
         decl = self._decl + other._decl
         return IO(**dict(zip(decl[::2], decl[1::2])))
+
+
+class SingletonInstanceIO(IO):
+    """
+    Class for creating an interface bundle for a singleton instance.
+
+    @kwargs: ordered dict of {name: type}, ala decl.
+    """
+    def __init__(self):
+        super().__init__()
+        self._inst_ports = {}
+        self._bound_inst = False
+
+    def bind_inst(self, inst):
+        if self._bound_inst:
+            raise Exception("Can not bind IO multiple times")
+        for port in self._inst_ports.values():
+            port.name.set_inst(inst)
+        self._bound = True
+
+    @property
+    def inst_ports(self):
+        return self._inst_ports.copy()
+
+    def make_interface(self):
+        decl = self.decl()
+        name = _make_interface_name(decl)
+        dct = dict(_io=self, _decl=decl, _initialized=False,
+                   _initialized_inst=False)
+        return InterfaceKind(name, (_DeclareSingletonInstanceInterface,), dct)
+
+    def add(self, name, typ):
+        # Definition port.
+        ref = LazyDefnRef(name=name)
+        port = _make_port(typ, ref, flip=True)
+        self._ports[name] = port
+        setattr(self, name, port)
+        # Instance port.
+        inst_ref = LazyInstRef(name=name)
+        inst_port = _make_port(typ, inst_ref, flip=False)
+        self._inst_ports[name] = inst_port
+
+    def __add__(self, other):
+        raise NotImplementedError(f"Addition operator disallowed on "
+                                  f"{cls.__name__}")

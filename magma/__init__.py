@@ -40,6 +40,7 @@ from .clock import *
 from .clock_io import ClockIO
 from .conversions import *
 from .interface import *
+from .ref import LazyDefnRef, LazyInstRef
 
 # circuit
 from .circuit import *
