@@ -127,24 +127,6 @@ def get_options(tree):
     return class_vars
 
 
-def get_manual_encoding(paths):
-    encoding = None
-    for path in paths:
-        for stmt in path:
-            print(ast.dump(stmt))
-            if isinstance(stmt, ast.Assign) and len(stmt.targets) == 0 \
-                    and isinstance(stmt.targets[0], ast.Attribute) and \
-                    isinstance(stmt.targets[0].value, ast.Name) and \
-                    stmt.targets[0].value.id == "self" and \
-                    stmt.targets[0].attr == "yield_state":
-                if encoding is None:
-                    encoding = stmt.value
-                else:
-                    assert ast.dump(encoding) == ast.dump(stmt.value)
-    assert encoding is not None
-    return encoding
-
-
 def _coroutine(defn_env, fn):
     tree = get_ast(fn).body[0]
     method_name_map = build_method_name_map(tree)
