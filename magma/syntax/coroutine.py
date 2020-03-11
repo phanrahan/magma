@@ -1,3 +1,4 @@
+import functools
 import ast
 import copy
 
@@ -6,6 +7,7 @@ from staticfg import CFGBuilder
 from staticfg.builder import invert
 from ast_tools.stack import inspect_enclosing_env
 
+from .transforms import inline_yield_from_functions
 from ..ast_utils import get_ast, compile_function_to_file
 from ..bitutils import clog2
 
@@ -15,9 +17,10 @@ class RemoveIfTrues(ast.NodeTransformer):
     Remove `if True:` nodes by replacing them with their body
     """
     def visit_If(self, node):
+        node = self.generic_visit(node)
         if isinstance(node.test, ast.NameConstant) and node.test.value is True:
             return node.body
-        return self.generic_visit(node)
+        return node
 
 
 class MergeInverseIf(ast.NodeTransformer):
@@ -105,15 +108,34 @@ def collect_paths_to_yield(start_idx, block):
     return paths
 
 
+def build_method_name_map(tree):
+    name_map = {}
+    for stmt in tree.body:
+        if isinstance(stmt, ast.FunctionDef):
+            name_map[stmt.name] = stmt
+    return name_map
+
+
+def get_options(tree):
+    class_vars = {}
+    for stmt in tree.body:
+        if isinstance(stmt, ast.Assign):
+            assert len(stmt.targets) == 1 and \
+                isinstance(stmt.targets[0], ast.Name)
+            assert isinstance(stmt.value, ast.NameConstant)
+            class_vars[stmt.targets[0].id] = stmt.value.value
+    return class_vars
+
+
 def _coroutine(defn_env, fn):
     tree = get_ast(fn).body[0]
+    method_name_map = build_method_name_map(tree)
 
-    # validate assumptions on program format
-    assert (isinstance(tree.body[0], ast.FunctionDef)
-            and tree.body[0].name == "__init__")
-    assert (isinstance(tree.body[1], ast.FunctionDef)
-            and tree.body[1].name == "__call__")
-    call_method = tree.body[1]
+    options = get_options(tree)
+    manual_encoding = options.get("_manual_encoding_", False)
+
+    call_method = method_name_map["__call__"]
+    call_method = inline_yield_from_functions(call_method, method_name_map)
 
     # build cfg
     cfg = CFGBuilder().build(call_method.name, call_method)
@@ -123,30 +145,37 @@ def _coroutine(defn_env, fn):
     # map from yield ast node (by id) to paths to other yields
     yield_paths = {}
     # map from yield ast node (by id) to numeric id (for state encoding)
-    yield_id_map = {}
+    yield_encoding_map = {}
 
     # populate maps
     for block in cfg:
         for i, statement in enumerate(block.statements):
             if is_yield(statement):
-                # Encode by index
-                yield_id_map[statement] = len(yield_id_map)
-
                 paths = collect_paths_to_yield(i + 1, block)
                 yield_paths[statement] = paths
+                if not manual_encoding:
+                    # Encode by index
+                    encoding = len(yield_encoding_map)
+                else:
+                    # TODO: Assumes previous stmt sets encoding
+                    encoding = astor.to_source(
+                        block.statements[i - 1].value
+                    ).rstrip()
+                yield_encoding_map[statement] = encoding
 
     # add yield state register declaration
-    yield_state_width = clog2(len(yield_id_map))
-    tree.body[0].body.append(ast.parse(
-        f"self.yield_state: m.Bits[{yield_state_width}] = 0"
-    ).body[0])
+    yield_state_width = clog2(len(yield_encoding_map))
+    if not manual_encoding:
+        method_name_map["__init__"].body.append(ast.parse(
+            f"self.yield_state: m.Bits[{yield_state_width}] = 0"
+        ).body[0])
 
     # create new call body
     call_method.body = []
     for i, (yield_, paths) in enumerate(yield_paths.items()):
         # condition based on yield state encoding for current start yield
         test = ast.parse(
-            f"self.yield_state == {yield_id_map[yield_]}"
+            f"self.yield_state == {yield_encoding_map[yield_]}"
         ).body[0].value
 
         if i == 0:
@@ -167,8 +196,11 @@ def _coroutine(defn_env, fn):
         # Emite code for each path
         for path in paths:
             body = curr_body
-            end_yield = path[-1]
-            for statement in path[:-1]:
+            end_yield = None
+            for statement in path:
+                if is_yield(statement):
+                    end_yield = statement
+                    break
                 body.append(copy.deepcopy(statement))
                 # If we encounter a branch, subsequent statements go inside the
                 # branch
@@ -177,11 +209,12 @@ def _coroutine(defn_env, fn):
                 if isinstance(statement, (ast.If, ast.While)):
                     body[-1].body = []
                     body = body[-1].body
+            assert end_yield is not None, "Found path not ending in yield"
 
             # Finish with updating the yield state register with the end yield
             # of the path
             body.append(ast.parse(
-                f"self.yield_state = m.bits({yield_id_map[end_yield]}, "
+                f"self.yield_state = m.bits({yield_encoding_map[end_yield]}, "
                 f"{yield_state_width})"
             ).body[0])
 
