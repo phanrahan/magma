@@ -168,7 +168,7 @@ def _coroutine(defn_env, fn):
     if not manual_encoding:
         method_name_map["__init__"].body.append(ast.parse(
             f"self.yield_state: m.Bits[{yield_state_width}] = 0"
-    ).body[0])
+        ).body[0])
 
     # create new call body
     call_method.body = []
