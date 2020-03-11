@@ -83,9 +83,7 @@ class _Generator2Meta(type):
         bases = bases + (DefineCircuitKind,)
         return type.__new__(metacls, name, bases, dct)
 
-    def __call__(*args, **kwargs):
-        cls = args[0]
-        args = args[1:]
+    def __call__(cls, *args, **kwargs):
         if cls is Generator2:
             try:
                 name, bases, dct = args
@@ -93,17 +91,16 @@ class _Generator2Meta(type):
                 raise Exception("Can not initialize base Generator class")
             assert not kwargs
             return type.__new__(cls, name, bases, dct)
-        cache = not getattr(cls, "_no_cache_", False)
-        if not cache:
+        if not getattr(cls, "_cache_", True):
             return _make_type(cls, *args, **kwargs)
         key = _make_key(*args, **kwargs)        
         try:
             return _Generator2Meta._cache[key]
         except KeyError:
             pass
-        t = _make_type(cls, *args, **kwargs)
-        _Generator2Meta._cache[key] = t
-        return t
+        this = _make_type(cls, *args, **kwargs)
+        _Generator2Meta._cache[key] = this
+        return this
 
 
 class Generator2(metaclass=_Generator2Meta):

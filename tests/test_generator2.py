@@ -71,7 +71,7 @@ def test_cache():
 def test_no_cache():
 
     class _MyGen(m.Generator2):
-        _no_cache_ = True
+        _cache_ = False
 
         def __init__(self):
             self.io = m.IO(x=m.In(m.Bit))
