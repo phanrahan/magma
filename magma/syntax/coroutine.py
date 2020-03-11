@@ -158,9 +158,10 @@ def _coroutine(defn_env, fn):
                     encoding = len(yield_encoding_map)
                 else:
                     # TODO: Assumes previous stmt sets encoding
-                    encoding = block.statements[i - 1].value
-                yield_encoding_map[statement] = \
-                    astor.to_source(encoding).rstrip()
+                    encoding = astor.to_source(
+                        block.statements[i - 1].value
+                    ).rstrip()
+                yield_encoding_map[statement] = encoding
 
     # add yield state register declaration
     yield_state_width = clog2(len(yield_encoding_map))
