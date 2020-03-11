@@ -1,5 +1,4 @@
 from .t import In
-from .generator import Generator
 
 
 def MonitorIO(circuit):
