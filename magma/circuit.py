@@ -41,6 +41,7 @@ __all__ += ['CircuitType']
 __all__ += ['Circuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
+__all__ += ['DefineCircuitKind']
 
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
