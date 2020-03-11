@@ -111,14 +111,46 @@ def collect_paths_to_yield(start_idx, block):
 def build_method_name_map(tree):
     name_map = {}
     for stmt in tree.body:
-        assert isinstance(stmt, ast.FunctionDef)
-        name_map[stmt.name] = stmt
+        if isinstance(stmt, ast.FunctionDef):
+            name_map[stmt.name] = stmt
     return name_map
+
+
+def get_options(tree):
+    class_vars = {}
+    for stmt in tree.body:
+        if isinstance(stmt, ast.Assign):
+            assert len(stmt.targets) == 1 and \
+                isinstance(stmt.targets[0], ast.Name)
+            assert isinstance(stmt.value, ast.NameConstant)
+            class_vars[stmt.targets[0].id] = stmt.value.value
+    return class_vars
+
+
+def get_manual_encoding(paths):
+    encoding = None
+    for path in paths:
+        for stmt in path:
+            print(ast.dump(stmt))
+            if isinstance(stmt, ast.Assign) and len(stmt.targets) == 0 \
+                    and isinstance(stmt.targets[0], ast.Attribute) and \
+                    isinstance(stmt.targets[0].value, ast.Name) and \
+                    stmt.targets[0].value.id == "self" and \
+                    stmt.targets[0].attr == "yield_state":
+                if encoding is None:
+                    encoding = stmt.value
+                else:
+                    assert ast.dump(encoding) == ast.dump(stmt.value)
+    assert encoding is not None
+    return encoding
 
 
 def _coroutine(defn_env, fn):
     tree = get_ast(fn).body[0]
     method_name_map = build_method_name_map(tree)
+
+    options = get_options(tree)
+    manual_encoding = options.get("_manual_encoding_", False)
 
     call_method = method_name_map["__call__"]
     call_method = inline_yield_from_functions(call_method, method_name_map)
@@ -131,22 +163,28 @@ def _coroutine(defn_env, fn):
     # map from yield ast node (by id) to paths to other yields
     yield_paths = {}
     # map from yield ast node (by id) to numeric id (for state encoding)
-    yield_id_map = {}
+    yield_encoding_map = {}
 
     # populate maps
     for block in cfg:
         for i, statement in enumerate(block.statements):
             if is_yield(statement):
-                # Encode by index
-                yield_id_map[statement] = len(yield_id_map)
-
                 paths = collect_paths_to_yield(i + 1, block)
                 yield_paths[statement] = paths
+                if not manual_encoding:
+                    # Encode by index
+                    encoding = len(yield_encoding_map)
+                else:
+                    # TODO: Assumes previous stmt sets encoding
+                    encoding = block.statements[i - 1].value
+                yield_encoding_map[statement] = \
+                    astor.to_source(encoding).rstrip()
 
     # add yield state register declaration
-    yield_state_width = clog2(len(yield_id_map))
-    method_name_map["__init__"].body.append(ast.parse(
-        f"self.yield_state: m.Bits[{yield_state_width}] = 0"
+    yield_state_width = clog2(len(yield_encoding_map))
+    if not manual_encoding:
+        method_name_map["__init__"].body.append(ast.parse(
+            f"self.yield_state: m.Bits[{yield_state_width}] = 0"
     ).body[0])
 
     # create new call body
@@ -154,7 +192,7 @@ def _coroutine(defn_env, fn):
     for i, (yield_, paths) in enumerate(yield_paths.items()):
         # condition based on yield state encoding for current start yield
         test = ast.parse(
-            f"self.yield_state == {yield_id_map[yield_]}"
+            f"self.yield_state == {yield_encoding_map[yield_]}"
         ).body[0].value
 
         if i == 0:
@@ -193,7 +231,7 @@ def _coroutine(defn_env, fn):
             # Finish with updating the yield state register with the end yield
             # of the path
             body.append(ast.parse(
-                f"self.yield_state = m.bits({yield_id_map[end_yield]}, "
+                f"self.yield_state = m.bits({yield_encoding_map[end_yield]}, "
                 f"{yield_state_width})"
             ).body[0])
 

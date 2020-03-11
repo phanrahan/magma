@@ -32,33 +32,34 @@ def test_jtag():
 
     @m.syntax.coroutine
     class JTAG:
+        _manual_encoding_ = True
+
         def __init__(self):
-            # TODO: Reuse for yield state
-            self.state: m.Bits[4] = TEST_LOGIC_RESET
+            self.yield_state: m.Bits[4] = TEST_LOGIC_RESET
 
         def __call__(self, tms: m.Bit) -> m.Bits[4]:
             # TODO: Prune infeasible paths (or check if synthesis optimizes
             # them out)
             while True:
                 while True:
-                    self.state = TEST_LOGIC_RESET
-                    yield self.state.prev()
+                    self.yield_state = TEST_LOGIC_RESET
+                    yield self.yield_state.prev()
                     if tms == 0:
                         break
                 while tms == 0:
-                    self.state = RUN_TEST_IDLE
-                    yield self.state.prev()
+                    self.yield_state = RUN_TEST_IDLE
+                    yield self.yield_state.prev()
                 while tms == 1:
-                    self.state = SELECT_DR_SCAN
-                    yield self.state.prev()
+                    self.yield_state = SELECT_DR_SCAN
+                    yield self.yield_state.prev()
                     if tms == 0:
                         # dr
                         yield from self.make_scan(CAPTURE_DR, SHIFT_DR,
                                                   EXIT1_DR, PAUSE_DR, EXIT2_DR,
                                                   UPDATE_DR)
                     else:
-                        self.state = SELECT_IR_SCAN
-                        yield self.state.prev()
+                        self.yield_state = SELECT_IR_SCAN
+                        yield self.yield_state.prev()
                         if tms == 0:
                             # ir
                             yield from self.make_scan(CAPTURE_IR, SHIFT_IR,
@@ -69,31 +70,31 @@ def test_jtag():
 
         def make_scan(self, capture, shift, exit_1, pause, exit_2, update):
             def scan(self, tms: m.Bit) -> m.Bits[4]:
-                self.state = capture
-                yield self.state.prev()
+                self.yield_state = capture
+                yield self.yield_state.prev()
                 while True:
                     if tms == 0:
                         while True:
-                            self.state = shift
-                            yield self.state.prev()
+                            self.yield_state = shift
+                            yield self.yield_state.prev()
                             if tms != 0:
                                 break
-                    self.state = exit_1
-                    yield self.state.prev()
+                    self.yield_state = exit_1
+                    yield self.yield_state.prev()
                     if tms == 0:
                         while True:
-                            self.state = pause
-                            yield self.state.prev()
+                            self.yield_state = pause
+                            yield self.yield_state.prev()
                             if tms != 0:
                                 break
-                        self.state = exit_2
-                        yield self.state.prev()
+                        self.yield_state = exit_2
+                        yield self.yield_state.prev()
                         if tms != 0:
                             break
                     else:
                         break
-                self.state = update
-                yield self.state.prev()
+                self.yield_state = update
+                yield self.yield_state.prev()
                 return tms
             return scan()
 
