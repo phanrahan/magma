@@ -53,7 +53,6 @@ class YieldFromFunctionInliner(ast.NodeTransformer):
             return node.value
         return node
 
-
     def visit_YieldFrom(self, node):
         if isinstance(node.value, ast.Call):
             func = node.value
@@ -74,7 +73,5 @@ class YieldFromFunctionInliner(ast.NodeTransformer):
             return node
 
 
-
 def inline_yield_from_functions(tree, method_name_map):
     return YieldFromFunctionInliner(method_name_map).visit(tree)
-

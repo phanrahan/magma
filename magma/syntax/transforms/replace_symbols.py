@@ -17,5 +17,6 @@ class SymbolReplacer(ast.NodeTransformer):
                 return deepcopy(self.symbol_table[node.id])
         return node
 
+
 def replace_symbols(tree, symbol_table, ctx=None):
     return SymbolReplacer(symbol_table, ctx).visit(tree)
