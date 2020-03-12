@@ -232,6 +232,31 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     return register_instances
 
 
+def get_io_from_annotations(f, tree, defn_env):
+    inputs = []
+    outputs = []
+    tuple_out = False
+    for k, v in f.__annotations__.items():
+        if k == 'return':
+            if isinstance(v, tuple):
+                tuple_out = True
+                for idx, t in enumerate(v):
+                    t_name = gen_free_name(tree, defn_env, 'T')
+                    outputs.append((f'O{idx}', t_name))
+                    defn_env[t_name] = t
+            else:
+                t_name = gen_free_name(tree, defn_env, 'T')
+                outputs.append(('O', t_name))
+                defn_env[t_name] = v
+        else:
+            t_name = gen_free_name(tree, defn_env, 'T')
+            defn_env[t_name] = v
+            inputs.append((k, t_name))
+
+    return inputs, outputs, tuple_out
+
+
+
 def gen_io_args(inputs, outputs, async_reset, magma_name):
     io_args = []
     for name, type_ in inputs:
@@ -312,26 +337,7 @@ def _sequential(
     magma_name = gen_free_name(call_def, defn_env, 'm')
     defn_env[magma_name] = m
 
-    inputs = []
-    outputs = []
-    tuple_out = False
-    for k, v in cls.__call__.__annotations__.items():
-        if k == 'return':
-            if isinstance(v, tuple):
-                tuple_out = True
-                for idx, t in enumerate(v):
-                    t_name = gen_free_name(call_def, defn_env, 'T')
-                    outputs.append((f'O{idx}', t_name))
-                    defn_env[t_name] = t
-            else:
-                t_name = gen_free_name(call_def, defn_env, 'T')
-                outputs.append(('O', t_name))
-                defn_env[t_name] = v
-        else:
-            t_name = gen_free_name(call_def, defn_env, 'T')
-            defn_env[t_name] = v
-            inputs.append((k, t_name))
-
+    inputs, outputs, tuple_out = get_io_from_annotations(cls.__call__, call_def, defn_env)
     io_args = gen_io_args(inputs, outputs, async_reset, magma_name)
 
     circuit_combinational_output_type = []
