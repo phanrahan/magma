@@ -68,6 +68,18 @@ def test_cache():
     assert MyMux4x16 is not MyMux4x8
 
 
+def test_cache_miss():
+
+    # Different class, with same parameters; internals don't matter.
+    class _MyOtherMux(m.Generator2):
+        def __init__(self, width, height):
+            pass
+
+    MyMux4x8 = _MyMux(4, 8)
+    MyOtherMux4x8 = _MyOtherMux(4, 8)
+    assert MyMux4x8 is not MyOtherMux4x8
+
+
 def test_no_cache():
 
     class _MyGen(m.Generator2):

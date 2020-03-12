@@ -59,11 +59,11 @@ class Generator(metaclass=GeneratorMeta):
         cls.bind_generators.append(monitor)
 
 
-def _make_key(*args, **kwargs):
+def _make_key(cls, *args, **kwargs):
     _SECRET_KEY = "__magma_generator2_secret_key__"
     dct = {f"{_SECRET_KEY}{i}": v for i, v in enumerate(args)}
     dct.update(kwargs)
-    return ParamDict(dct)
+    return (cls, ParamDict(dct))
 
 
 def _make_type(cls, *args, **kwargs):
@@ -93,7 +93,7 @@ class _Generator2Meta(type):
             return type.__new__(cls, name, bases, dct)
         if not getattr(cls, "_cache_", True):
             return _make_type(cls, *args, **kwargs)
-        key = _make_key(*args, **kwargs)        
+        key = _make_key(cls, *args, **kwargs)        
         try:
             return _Generator2Meta._cache[key]
         except KeyError:
