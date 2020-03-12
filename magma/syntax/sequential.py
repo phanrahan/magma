@@ -153,35 +153,6 @@ def get_initial_value_map(init_func, defn_env):
     return initial_value_map
 
 
-def get_io(call_def):
-    """
-    Parses a __call__ method of the form
-
-        def __call__(self, I):
-            O = self.y
-            self.y = self.x
-            self.x = I
-            return O
-
-    Returns a tuple
-    [0]: the list of tuples containing the name and type of each input argument
-         excluding `self`
-    [1]: the output type
-    """
-    # Only support basic args for now
-    assert not call_def.args.vararg
-    assert not call_def.args.kwonlyargs
-    assert not call_def.args.kwarg
-    # assert not call_def.args.defaults
-    assert not call_def.args.kw_defaults
-
-    # Skips self
-    assert call_def.args.args[0].arg == "self"
-    inputs = [(arg.arg, arg.annotation) for arg in call_def.args.args[1:]]
-    returns = call_def.returns
-    return inputs, call_def.returns
-
-
 circuit_definition_template = """
 from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt, IO
 
