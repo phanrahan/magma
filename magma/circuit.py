@@ -831,12 +831,16 @@ def DeclareCoreirCircuit(*args, **kwargs):
                           renamed_ports=coreir_port_mapping)
 
 
-class CircuitBuilder:
+class _CircuitBuilderMeta(type):
+    pass
+
+
+class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def __init__(self, name):
         try:
             context = _definition_context_stack.peek()
             context.add_builder(self)
-        except IndexError:  # instances must happen inside a definition context
+        except IndexError:  # builders must be inside a definition context
             raise Exception("Can not instance a circuit builder outside a "
                             "definition")
         self._name = name
