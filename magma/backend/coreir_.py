@@ -91,8 +91,6 @@ class InsertWrapCasts(DefinitionPass):
                 isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock))):
             return
         value = port.trace()
-        print(port, value)
-        print(type(value), type(port).flip())
         if value is None or issubclass(type(value), type(port).flip()):
             return
         if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
