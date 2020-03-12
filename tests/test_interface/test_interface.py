@@ -23,7 +23,7 @@ def _io_similar(lhs, rhs):
 
 
 def test_1():
-    I0 = m.DeclareInterface("a", m.In(m.Bit), "b", m.Out(m.Bits[2]))
+    I0 = m.make_interface("a", m.In(m.Bit), "b", m.Out(m.Bits[2]))
     assert str(I0) == '"a", In(Bit), "b", Out(Bits[2])'
 
     i0 = I0()

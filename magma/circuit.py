@@ -12,7 +12,7 @@ from .config import get_compile_dir, set_compile_dir
 import magma as m
 from . import cache_definition
 from .clock import ClockTypes
-from .common import deprecated, Stack
+from .common import deprecated, setattrs, Stack
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -144,12 +144,6 @@ class _DefinitionContextManager:
         _definition_context_stack.pop()
 
 
-def _setattrs(obj, dct):
-    for k, v in dct.items():
-        if isinstance(k, str):
-            setattr(obj, k, v)
-
-
 def _has_definition(cls, port=None):
     if cls.instances:
         return True
@@ -165,7 +159,7 @@ def _has_definition(cls, port=None):
     return False
 
 
-def _get_interface_decl(cls):
+def _get_interface_type(cls):
     if hasattr(cls, "IO") and hasattr(cls, "io"):
         _logger.warning("'IO' and 'io' should not both be specified, ignoring "
                         "'io'", debug_info=cls.debug_info)
@@ -178,10 +172,10 @@ def _get_interface_decl(cls):
                         debug_info=cls.debug_info)
         if isinstance(cls.IO, InterfaceKind):
             return None
-        return DeclareInterface(*cls.IO)
+        return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
-        return DeclareLazyInterface(cls.io)
+        return make_singleton_interface(cls.io)
     return None
 
 
@@ -271,12 +265,11 @@ class CircuitKind(type):
 
         # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
-        IO = _get_interface_decl(cls)
+        IO = _get_interface_type(cls)
         if IO is not None:
             cls.IO = IO
-            cls.interface = cls.IO(defn=cls,
-                                   renamed_ports=dct["renamed_ports"])
-            _setattrs(cls, cls.interface.ports)
+            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
         try:
             context = _definition_context_stack.pop()
             assert context.placer.name == cls_name
@@ -515,7 +508,7 @@ class AnonymousCircuitType(object):
         return o[0] if len(o) == 1 else tuple(o)
 
     def setinterface(self, interface):
-        _setattrs(self, interface.ports)
+        setattrs(self, interface.ports, lambda k, v: isinstance(k, str))
         self.interface = interface
         return self
 
