@@ -93,7 +93,7 @@ class _Generator2Meta(type):
             return type.__new__(cls, name, bases, dct)
         if not getattr(cls, "_cache_", True):
             return _make_type(cls, *args, **kwargs)
-        key = _make_key(cls, *args, **kwargs)        
+        key = _make_key(cls, *args, **kwargs)
         try:
             return _Generator2Meta._cache[key]
         except KeyError:
