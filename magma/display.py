@@ -28,6 +28,7 @@ def negedge(value):
 def _make_display_format_arg(value, format_args):
     # Unique name based on object id
     var = f"_display_var_{id(value)}"
+    # Insert into a format kwargs map
     format_args[var] = value
     # Wrap in format braces so it is replaced later on
     var = f"{{{var}}}"
@@ -91,7 +92,7 @@ class Display:
                 # Could be sensitive to plain signal
                 if isinstance(event, Event):
                     value = value.value
-                var = _make_display_format_arg(value)
+                var = _make_display_format_arg(value, format_args)
                 # prepend event if not just plain signal
                 if isinstance(event, Event):
                     var = f"{event.verilog_str} {var}"
@@ -100,7 +101,7 @@ class Display:
 
         cond_str = ""
         if self.cond is not None:
-            var = _make_display_format_arg(self.cond)
+            var = _make_display_format_arg(self.cond, format_args)
             cond_str = f"if ({var}) "
 
         format_str = f"""\
