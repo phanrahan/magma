@@ -153,35 +153,6 @@ def get_initial_value_map(init_func, defn_env):
     return initial_value_map
 
 
-def get_io(call_def):
-    """
-    Parses a __call__ method of the form
-
-        def __call__(self, I):
-            O = self.y
-            self.y = self.x
-            self.x = I
-            return O
-
-    Returns a tuple
-    [0]: the list of tuples containing the name and type of each input argument
-         excluding `self`
-    [1]: the output type
-    """
-    # Only support basic args for now
-    assert not call_def.args.vararg
-    assert not call_def.args.kwonlyargs
-    assert not call_def.args.kwarg
-    # assert not call_def.args.defaults
-    assert not call_def.args.kw_defaults
-
-    # Skips self
-    assert call_def.args.args[0].arg == "self"
-    inputs = [(arg.arg, arg.annotation) for arg in call_def.args.args[1:]]
-    returns = call_def.returns
-    return inputs, call_def.returns
-
-
 circuit_definition_template = """
 from magma import Bit, Array, Tuple, Product, Bits, SInt, UInt, IO
 
@@ -261,22 +232,40 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     return register_instances
 
 
-def gen_io_args(inputs, output_type, async_reset, magma_name):
+def get_io_from_annotations(f, tree, defn_env):
+    inputs = []
+    outputs = []
+    tuple_out = False
+    for k, v in f.__annotations__.items():
+        if k == 'return':
+            if isinstance(v, tuple):
+                tuple_out = True
+                for idx, t in enumerate(v):
+                    t_name = gen_free_name(tree, defn_env, 'T')
+                    outputs.append((f'O{idx}', t_name))
+                    defn_env[t_name] = t
+            else:
+                t_name = gen_free_name(tree, defn_env, 'T')
+                outputs.append(('O', t_name))
+                defn_env[t_name] = v
+        else:
+            t_name = gen_free_name(tree, defn_env, 'T')
+            defn_env[t_name] = v
+            inputs.append((k, t_name))
+
+    return inputs, outputs, tuple_out
+
+
+
+def gen_io_args(inputs, outputs, async_reset, magma_name):
     io_args = []
     for name, type_ in inputs:
-        type_ = astor.to_source(type_).rstrip()
         io_args.append(f"{name}={magma_name}.In({type_})")
     io_args.append(f"CLK={magma_name}.In({magma_name}.Clock)")
     if async_reset:
         io_args.append(f"ASYNCRESET={magma_name}.In({magma_name}.AsyncReset)")
-    if isinstance(output_type, ast.Tuple):
-        outputs = []
-        for i, elem in enumerate(output_type.elts):
-            output_type_str = astor.to_source(elem).rstrip()
-            io_args.append(f"O{i}={magma_name}.Out({output_type_str})")
-    else:
-        output_type_str = astor.to_source(output_type).rstrip()
-        io_args.append(f"O={magma_name}.Out({output_type_str})")
+    for name, type_ in outputs:
+        io_args.append(f"{name}={magma_name}.Out({type_})")
     return ', '.join(io_args)
 
 
@@ -348,15 +337,14 @@ def _sequential(
     magma_name = gen_free_name(call_def, defn_env, 'm')
     defn_env[magma_name] = m
 
-    inputs, output_type = get_io(call_def)
-    io_args = gen_io_args(inputs, output_type, async_reset, magma_name)
+    inputs, outputs, tuple_out = get_io_from_annotations(cls.__call__, call_def, defn_env)
+    io_args = gen_io_args(inputs, outputs, async_reset, magma_name)
 
     circuit_combinational_output_type = []
     circuit_combinational_args = []
     circuit_combinational_call_args = []
     comb_out_wiring = []
     for name, type_ in inputs:
-        type_ = astor.to_source(type_).rstrip()
         circuit_combinational_args.append(f"{name}: {type_}")
         circuit_combinational_call_args.append(f"{name}=io.{name}")
 
@@ -391,14 +379,14 @@ def _sequential(
     circuit_combinational_args = ', '.join(circuit_combinational_args)
     circuit_combinational_call_args = ', '.join(circuit_combinational_call_args)
 
-    if isinstance(output_type, ast.Tuple):
-        output_types = []
-        for i, elem in enumerate(output_type.elts):
-            circuit_combinational_output_type.append(astor.to_source(elem).rstrip())
-            comb_out_wiring.append(f"io.O{i} <= comb_out[{comb_out_count + i}]\n")
+    if tuple_out:
+        for i, (n, t) in enumerate(outputs):
+            circuit_combinational_output_type.append(t)
+            comb_out_wiring.append(f"io.{n} <= comb_out[{comb_out_count + i}]\n")
     else:
-        output_type_str = astor.to_source(output_type).rstrip()
-        circuit_combinational_output_type.append(output_type_str)
+        assert len(outputs) == 1
+        n, t = outputs[0]
+        circuit_combinational_output_type.append(t)
         # Handle case when no registers, so only one output
         index_str = ""
         if comb_out_count > 0:
