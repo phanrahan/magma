@@ -110,7 +110,7 @@ endmodule
     tester.compile_and_run(target="verilator", directory=directory,
                            flags=['-Wno-unused'], skip_compile=True)
     with open(os.path.join(directory, "test_fdisplay.log"), "r") as f:
-        assert f"""
+        assert f"""\
 ff.O=0, ff.I=1
 ff.O=1, ff.I=0
 ff.O=0, ff.I=1
