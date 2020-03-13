@@ -36,12 +36,13 @@ def _make_display_format_arg(value, format_args):
 
 
 class Display:
-    def __init__(self, display_str, args):
+    def __init__(self, display_str, args, file):
         # Encode to handle newlines, etc... properly
         self.display_str = display_str.encode('unicode_escape').decode()
         self.args = args
         self.events = []
         self.cond = None
+        self.file = file
 
     def if_(self, cond):
         """
@@ -108,16 +109,35 @@ class Display:
         if cond_str:
             cond_str = f"if ({cond_str}) "
 
+        display_str = f"$display("
+        if self.file is not None:
+            display_str = f"$fdisplay(\_file_{self.file.filename} , "
         format_str = f"""\
 always @({event_str}) begin
-    {cond_str}$display(\"{self.display_str}\"{display_args_str});
+    {cond_str}{display_str}\"{self.display_str}\"{display_args_str});
 end
 """
         return format_str, format_args, {}
 
 
-def display(display_str, *args):
+def display(display_str, *args, file=None):
     context = _definition_context_stack.peek()
-    disp = Display(display_str, args)
+    disp = Display(display_str, args, file)
     context.add_display(disp)
     return disp
+
+
+class File:
+    def __init__(self, filename, mode):
+        self.filename = filename
+        self.mode = mode
+
+        context = _definition_context_stack.peek()
+        context.add_file(self)
+
+    def __enter__(self):
+        return self
+
+
+    def __exit__(self, *args):
+        pass

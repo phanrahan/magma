@@ -133,3 +133,80 @@ endmodule
 [WARNING] ff.O=1, ff.I=1
 [ERROR] ff.O=1, ff.I=1
 """ in out, out
+
+
+def test_flog():
+    FF = m.define_from_verilog("""
+module FF(input I, output reg O, input CLK, input CE);
+always @(posedge CLK) begin
+  if (CE) O <= I;
+end
+endmodule
+    """, type_map={"CLK": m.In(m.Clock), "CE": m.In(m.Enable)})[0]
+
+    class TestFLog(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO(has_enable=True)
+        ff = FF()
+        io.O @= ff(io.I)
+        with m.File("test_flog.log", "a") as log_file:
+            m.log.debug("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+                .when(m.posedge(io.CLK))\
+                .if_(io.CE)
+            m.log.info("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+                .when(m.posedge(io.CLK))\
+                .if_(io.CE)
+            m.log.warning("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+                .when(m.posedge(io.CLK))\
+                .if_(io.CE)
+            m.log.error("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+                .when(m.posedge(io.CLK))\
+                .if_(io.CE)
+
+    m.compile("build/TestFLog", TestFLog)
+    assert not os.system('cd tests/test_verilog/build && '
+                         'verilator --lint-only TestFLog.v')
+    assert m.testing.check_files_equal(__file__,
+                                       f"build/TestFLog.v",
+                                       f"gold/TestFLog.v")
+
+    tester = fault.SynchronousTester(TestFLog, TestFLog.CLK)
+    tester.poke(TestFLog.CE, 1)
+    tester.poke(TestFLog.I, 1)
+    tester.expect(TestFLog.O, 0)
+    tester.advance_cycle()
+    tester.poke(TestFLog.I, 0)
+    tester.expect(TestFLog.O, 1)
+    tester.advance_cycle()
+    tester.expect(TestFLog.O, 0)
+    tester.poke(TestFLog.CE, 0)
+    tester.poke(TestFLog.I, 1)
+    tester.advance_cycle()
+    tester.expect(TestFLog.O, 0)
+    tester.poke(TestFLog.I, 1)
+    tester.advance_cycle()
+    tester.expect(TestFLog.O, 0)
+    tester.poke(TestFLog.CE, 1)
+    tester.advance_cycle()
+    tester.expect(TestFLog.O, 1)
+    tester.advance_cycle()
+
+    directory = f"{os.path.abspath(os.path.dirname(__file__))}/build/"
+    tester.compile_and_run(target="verilator", directory=directory,
+                           flags=['-Wno-unused'], skip_compile=True,
+                           disp_type="realtime")
+    # No debug
+    with open(os.path.join(directory, "test_flog.log"), "r") as f:
+        assert f"""
+[INFO] ff.O=0, ff.I=1
+[WARNING] ff.O=0, ff.I=1
+[ERROR] ff.O=0, ff.I=1
+[INFO] ff.O=1, ff.I=0
+[WARNING] ff.O=1, ff.I=0
+[ERROR] ff.O=1, ff.I=0
+[INFO] ff.O=0, ff.I=1
+[WARNING] ff.O=0, ff.I=1
+[ERROR] ff.O=0, ff.I=1
+[INFO] ff.O=1, ff.I=1
+[WARNING] ff.O=1, ff.I=1
+[ERROR] ff.O=1, ff.I=1
+""" in f.read()
