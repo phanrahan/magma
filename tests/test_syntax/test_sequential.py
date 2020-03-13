@@ -593,3 +593,52 @@ def test_replace_product(target):
             return val1
 
     compile_and_check("TestReplaceProduct", TestReplaceProduct, target)
+
+
+def test_protocol_hierarchy(target):
+    class MWrapperMeta(m.MagmaProtocolMeta):
+        def __getitem__(cls, T):
+            assert cls is MWrapper
+            return type(cls)(f'MWrapper[{T}]', (cls,), {'_T_': T})
+
+        def _to_magma_(cls):
+            return cls._T_
+
+        def _qualify_magma_(cls, d):
+            return MWrapper[cls._T_.qualify(d)]
+
+        def _flip_magma_(cls):
+            return MWrapper[cls._T_.flip()]
+
+        def _from_magma_value_(cls, value):
+            return cls(value)
+
+    class MWrapper(m.MagmaProtocol, metaclass=MWrapperMeta):
+        def __init__(self, val):
+            if not isinstance(val, type(self)._T_):
+                raise TypeError()
+            self._value_ = val
+
+        def _get_magma_value_(self):
+            return self._value_
+
+        def apply(self, f):
+            return f(self._value_)
+
+    WrappedBits8 = MWrapper[m.UInt[8]]
+
+    @m.circuit.sequential(async_reset=False)
+    class Foo:
+        def __call__(self, val: WrappedBits8) -> m.UInt[8]:
+            return val.apply(lambda x: x + 1)
+
+
+    @m.circuit.sequential(async_reset=False)
+    class Bar:
+        def __init__(self):
+            self.f : Foo = Foo()
+
+        def __call__(self, val: WrappedBits8) -> m.UInt[8]:
+            return self.f(val)
+
+    compile_and_check("TestProtocolHierarchy", Bar, target)

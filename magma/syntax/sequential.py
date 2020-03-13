@@ -2,6 +2,7 @@ import inspect
 import typing
 import ast
 from .util import get_ast
+from ..t import MagmaProtocol
 import astor
 import magma.ast_utils as ast_utils
 from magma.debug import debug_info
@@ -35,6 +36,8 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             ret = []
             ports = self.initial_value_map[attr][3].interface.inputs()
             for name, value in zip(ports, node.args):
+                if isinstance(name, MagmaProtocol):
+                    name = name._get_magma_value_()
                 ret.append(ast.parse(
                     f"self_{attr}_{name} = {astor.to_source(value).rstrip()}"
                 ).body[0])
@@ -98,6 +101,8 @@ class RewriteReturn(ast.NodeTransformer):
                 for port in eval_value.interface.inputs():
                     if isinstance(port, (m.Clock, m.AsyncReset)):
                         continue
+                    if isinstance(port, MagmaProtocol):
+                        port = port._get_magma_value_()
                     elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
         if isinstance(node.value, ast.Tuple):
             elts.extend(node.value.elts)
@@ -316,7 +321,7 @@ def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring
             arrays = "".join([f"['{k}']" for k in keys + [key]])
             dots = ".".join(keys + [key])
             comb_out_wiring.append(
-                f"{name}{arrays}.I <= comb_out[{comb_out_count}].{dots} \n"
+                f"{name}{arrays}.I @= comb_out[{comb_out_count}].{dots} \n"
             )
             call_args.append(f"{key}={name}{arrays}.O")
     return f"{magma_name}.namedtuple(" + ", ".join(call_args) + ")"
@@ -361,19 +366,20 @@ def _sequential(
                 circuit_combinational_call_args.append(f"self_{name}_O=" + call_args)
             else:
                 circuit_combinational_call_args.append(f"self_{name}_O={name}")
-                comb_out_wiring.append(f"{name}.I <= comb_out[{comb_out_count}]\n")
+                comb_out_wiring.append(f"{name}.I @= comb_out[{comb_out_count}]\n")
             comb_out_count += 1
         else:
             for key, value in eval_value.interface.ports.items():
                 if isinstance(value, (m.Clock, m.AsyncReset)):
                     continue
-                type_ = repr(type(value))
+                t_name = gen_free_name(call_def, defn_env, 'T')
+                defn_env[t_name] = type(value)
                 if value.is_output():
-                    circuit_combinational_args.append(f"self_{name}_{value}: {magma_name}.{type_}")
-                    circuit_combinational_call_args.append(f"self_{name}_{value}={name}.{value}")
+                    circuit_combinational_args.append(f"self_{name}_{key}: {t_name}")
+                    circuit_combinational_call_args.append(f"self_{name}_{key}={name}.{key}")
                 if value.is_input():
-                    circuit_combinational_output_type.append(f"{magma_name}.{type_}")
-                    comb_out_wiring.append(f"{name}.{value} <= comb_out[{comb_out_count}]\n")
+                    circuit_combinational_output_type.append(t_name)
+                    comb_out_wiring.append(f"{name}.{key} @= comb_out[{comb_out_count}]\n")
                     comb_out_count += 1
 
     circuit_combinational_args = ', '.join(circuit_combinational_args)
@@ -382,7 +388,7 @@ def _sequential(
     if tuple_out:
         for i, (n, t) in enumerate(outputs):
             circuit_combinational_output_type.append(t)
-            comb_out_wiring.append(f"io.{n} <= comb_out[{comb_out_count + i}]\n")
+            comb_out_wiring.append(f"io.{n} @= comb_out[{comb_out_count + i}]\n")
     else:
         assert len(outputs) == 1
         n, t = outputs[0]
@@ -391,7 +397,7 @@ def _sequential(
         index_str = ""
         if comb_out_count > 0:
             index_str = f"[{comb_out_count}]"
-        comb_out_wiring.append(f"io.O <= comb_out{index_str}\n")
+        comb_out_wiring.append(f"io.O @= comb_out{index_str}\n")
 
     tab = 4 * ' '
     comb_out_wiring = (2 * tab).join(comb_out_wiring)
@@ -427,6 +433,7 @@ def _sequential(
         comb_out_wiring=comb_out_wiring,
         magma_name=magma_name,
     )
+    print(circuit_definition_str)
     tree = ast.parse(circuit_definition_str)
     if "DefineRegister" not in defn_env:
         tree = ast.Module([
