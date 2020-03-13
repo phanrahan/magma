@@ -211,12 +211,13 @@ def _coroutine(defn_env, fn):
                     body = body[-1].body
             assert end_yield is not None, "Found path not ending in yield"
 
-            # Finish with updating the yield state register with the end yield
-            # of the path
-            body.append(ast.parse(
-                f"self.yield_state = m.bits({yield_encoding_map[end_yield]}, "
-                f"{yield_state_width})"
-            ).body[0])
+            if not manual_encoding:
+                # Finish with updating the yield state register with the end
+                # yield of the path
+                body.append(ast.parse(
+                    f"self.yield_state = m.bits({yield_encoding_map[end_yield]}, "
+                    f"{yield_state_width})"
+                ).body[0])
 
             # Return the value of the original end yield
             body.append(ast.Return(end_yield.value.value))
