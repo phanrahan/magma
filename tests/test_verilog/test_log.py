@@ -196,7 +196,7 @@ endmodule
                            disp_type="realtime")
     # No debug
     with open(os.path.join(directory, "test_flog.log"), "r") as f:
-        assert f"""
+        assert f"""\
 [INFO] ff.O=0, ff.I=1
 [WARNING] ff.O=0, ff.I=1
 [ERROR] ff.O=0, ff.I=1
