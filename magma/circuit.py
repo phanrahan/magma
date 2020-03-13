@@ -63,9 +63,13 @@ class DefinitionContext:
         self.placer = placer
         self._inline_verilog = []
         self._displays = []
+        self._insert_default_log_level = False
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
+
+    def insert_default_log_level(self):
+        self._insert_default_log_level = True
 
     def add_display(self, display):
         self._displays.append(display)
@@ -77,6 +81,11 @@ class DefinitionContext:
     def finalize(self, defn):
         final_placer = self.placer.finalize(defn)
         final_context = DefinitionContext(final_placer)
+        if self._insert_default_log_level:
+            self.add_inline_verilog(f"""
+`ifndef MAGMA_LOG_LEVEL
+    `define MAGMA_LOG_LEVEL 1
+`endif""", {}, {})
         self.finalize_displays()
 
         # inline logic may introduce instances

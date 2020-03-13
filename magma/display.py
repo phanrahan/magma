@@ -70,6 +70,11 @@ class Display:
         self.events.append(event)
         return self
 
+    def _make_cond_str(self, format_args):
+        if self.cond is not None:
+            return _make_display_format_arg(self.cond, format_args)
+        return ""
+
     def get_inline_verilog(self):
         format_args = {}
         display_args = []
@@ -99,10 +104,9 @@ class Display:
                 event_strs.append(var)
             event_str = ", ".join(event_strs)
 
-        cond_str = ""
-        if self.cond is not None:
-            var = _make_display_format_arg(self.cond, format_args)
-            cond_str = f"if ({var}) "
+        cond_str = self._make_cond_str(format_args)
+        if cond_str:
+            cond_str = f"if ({cond_str}) "
 
         format_str = f"""\
 always @({event_str}) begin
