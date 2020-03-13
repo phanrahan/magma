@@ -640,3 +640,5 @@ def test_protocol_hierarchy(target):
 
         def __call__(self, val: WrappedBits8) -> m.UInt[8]:
             return self.f(val)
+
+    compile_and_check("TestProtocolHierarchy", Bar, target)

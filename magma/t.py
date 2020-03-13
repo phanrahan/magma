@@ -2,6 +2,7 @@ import functools
 import warnings
 import enum
 from abc import abstractmethod
+import magma as m
 from .common import deprecated
 from .ref import AnonRef, NamedRef, DefnRef, InstRef
 from .compatibility import IntegerTypes, StringTypes
@@ -236,15 +237,18 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def is_output(cls):
         return cls._to_magma_().is_output()
 
-    def value(cls):
-        return cls._get_magma_value_().value()
+    def value(self):
+        return self._get_magma_value_().value()
 
-    def trace(cls):
-        return cls._get_magma_value_().trace()
+    def trace(self):
+        return self._get_magma_value_().trace()
 
-    def driven(cls):
-        return cls._get_magma_value_().driven()
+    def driven(self):
+        return self._get_magma_value_().driven()
 
     @property
-    def name(cls):
-        return cls._get_magma_value_().name
+    def name(self):
+        return self._get_magma_value_().name
+
+    def __imatmul__(self, other):
+        m.wire(other, self._get_magma_value_())
