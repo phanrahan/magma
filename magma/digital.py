@@ -227,7 +227,7 @@ def make_Define(_name, port, direction):
             def simulate(self, value_store, state_store):
                 pass
 
-            io = m.IO(**{port: direction(Digital)})
+            io = m.IO(**{port: direction(m.Bit)})
         return _Primitive
     return DefineCorebit
 
