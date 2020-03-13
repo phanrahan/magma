@@ -75,14 +75,14 @@ class DefinitionContext:
                 f"""
 integer \_file_{file.filename} ;
 initial \_file_{file.filename} = $fopen(\"{file.filename}\", \"{file.mode}\");
-""", {}, {})
+""", {}, {})  # noqa
 
     def finalize_file_close(self):
         for file in self._files:
             self.add_inline_verilog(
                 f"""
 final $fclose(\_file_{file.filename} );
-""", {}, {})
+""", {}, {})  # noqa
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
