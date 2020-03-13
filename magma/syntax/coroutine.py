@@ -215,8 +215,8 @@ def _coroutine(defn_env, fn):
                 # Finish with updating the yield state register with the end
                 # yield of the path
                 body.append(ast.parse(
-                    f"self.yield_state = m.bits({yield_encoding_map[end_yield]}, "
-                    f"{yield_state_width})"
+                    f"self.yield_state = m.bits("
+                    f"{yield_encoding_map[end_yield]}, {yield_state_width})"
                 ).body[0])
 
             # Return the value of the original end yield
