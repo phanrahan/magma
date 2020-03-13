@@ -98,7 +98,7 @@ def test_jtag():
                 return tms
             return scan()
 
-    m.compile("build/JTAG", JTAG)
+    m.compile("build/JTAG", JTAG, inline=True)
 
     tester = fault.Tester(JTAG, JTAG.CLK)
     tester.circuit.tms = 1
