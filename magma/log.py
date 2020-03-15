@@ -7,9 +7,9 @@ from .display import Display
 class Log(Display):
     level = None
 
-    def __init__(self, display_str, args):
+    def __init__(self, display_str, args, file=None):
         display_prefix = type(self).__name__.upper()
-        super().__init__(f"[{display_prefix}] {display_str}", args)
+        super().__init__(f"[{display_prefix}] {display_str}", args, file=file)
 
     def _make_cond_str(self, format_args):
         cond_str = super()._make_cond_str(format_args)
@@ -37,9 +37,9 @@ class Error(Log):
 
 def make_log_func(T):
     @functools.wraps(make_log_func)
-    def log_func(log_str, *args):
+    def log_func(log_str, *args, file=None):
         context = _definition_context_stack.peek()
-        log = T(log_str, args)
+        log = T(log_str, args, file=file)
         context.add_display(log)
         context.insert_default_log_level()
         return log

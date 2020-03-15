@@ -64,6 +64,25 @@ class DefinitionContext:
         self._inline_verilog = []
         self._displays = []
         self._insert_default_log_level = False
+        self._files = []
+
+    def add_file(self, file):
+        self._files.append(file)
+
+    def finalize_file_opens(self):
+        for file in self._files:
+            self.add_inline_verilog(
+                f"""
+integer \_file_{file.filename} ;
+initial \_file_{file.filename} = $fopen(\"{file.filename}\", \"{file.mode}\");
+""", {}, {})  # noqa
+
+    def finalize_file_close(self):
+        for file in self._files:
+            self.add_inline_verilog(
+                f"""
+final $fclose(\_file_{file.filename} );
+""", {}, {})  # noqa
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
@@ -86,7 +105,11 @@ class DefinitionContext:
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1
 `endif""", {}, {})
+        # So displays can refer to open files
+        self.finalize_file_opens()
         self.finalize_displays()
+        # Close after displays
+        self.finalize_file_close()
 
         # inline logic may introduce instances
         with _DefinitionContextManager(final_context):
