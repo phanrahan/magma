@@ -848,10 +848,13 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._finalized = False
         self._context = DefinitionContext(StagedPlacer(""))
 
+    def _port(self, name):
+        return self._io.ports[name]
+
     def _open(self):
         return _DefinitionContextManager(self._context)
 
-    def add(self, name, typ):
+    def _add(self, name, typ):
         self._io.add(name, typ)
         setattr(self, name, self._io.inst_ports[name])
 
