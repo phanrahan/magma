@@ -65,6 +65,7 @@ _DEFAULT_VERILOG_LOG_STR = f"""
     `define MAGMA_LOG_LEVEL 1
 `endif"""
 
+
 class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
     OLD = enum.auto()
