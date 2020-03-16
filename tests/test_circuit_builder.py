@@ -6,13 +6,13 @@ class _PassThroughBuilder(m.CircuitBuilder):
         super().__init__(name)
         self._added = False
 
+    @m.builder_method
     def add(self):
         if self._added:
             return
         self._add("I", m.In(m.Bit))
         self._add("O", m.Out(m.Bit))
-        with self._open():
-            m.wire(self._port("I"), self._port("O"))
+        m.wire(~self._port("I"), self._port("O"))
 
 
 def test_basic():

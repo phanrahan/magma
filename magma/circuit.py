@@ -46,7 +46,7 @@ __all__ += ['DefineCircuitKind']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
-__all__ += ['CircuitBuilder']
+__all__ += ['CircuitBuilder', 'builder_method']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
@@ -835,6 +835,17 @@ class _CircuitBuilderMeta(type):
     pass
 
 
+def builder_method(func):
+
+    @wraps(func)
+    def _wrapped(this, *args, **kwargs):
+        with _DefinitionContextManager(this._context):
+            result = func(this, *args, **kwargs)
+        return result
+
+    return _wrapped
+
+
 class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def __init__(self, name):
         try:
@@ -850,9 +861,6 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
 
     def _port(self, name):
         return self._io.ports[name]
-
-    def _open(self):
-        return _DefinitionContextManager(self._context)
 
     def _add(self, name, typ):
         self._io.add(name, typ)
