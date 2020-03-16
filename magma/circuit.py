@@ -51,6 +51,20 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
 
+_VERILOG_FILE_OPEN = """
+integer \_file_{filename} ;
+initial \_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
+"""  # noqa
+
+_VERILOG_FILE_CLOSE = """
+final $fclose(\_file_{filename} );
+"""  # noqa
+
+_DEFAULT_VERILOG_LOG_STR = f"""
+`ifndef MAGMA_LOG_LEVEL
+    `define MAGMA_LOG_LEVEL 1
+`endif"""
+
 
 class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
@@ -62,13 +76,52 @@ class DefinitionContext:
     def __init__(self, placer):
         self.placer = placer
         self._inline_verilog = []
+        self._displays = []
+        self._insert_default_log_level = False
+        self._files = []
+
+    def add_file(self, file):
+        self._files.append(file)
+
+    def _finalize_file_opens(self):
+        for file in self._files:
+            self.add_inline_verilog(
+                _VERILOG_FILE_OPEN.format(filename=file.filename,
+                                          mode=file.mode),
+                {}, {}
+            )
+
+    def _finalize_file_close(self):
+        for file in self._files:
+            self.add_inline_verilog(
+                _VERILOG_FILE_CLOSE.format(filename=file.filename),
+                {}, {}
+            )
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
 
+    def insert_default_log_level(self):
+        self._insert_default_log_level = True
+
+    def add_display(self, display):
+        self._displays.append(display)
+
+    def _finalize_displays(self):
+        for display in self._displays:
+            self.add_inline_verilog(*display.get_inline_verilog())
+
     def finalize(self, defn):
         final_placer = self.placer.finalize(defn)
         final_context = DefinitionContext(final_placer)
+        if self._insert_default_log_level:
+            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
+        # So displays can refer to open files
+        self._finalize_file_opens()
+        self._finalize_displays()
+        # Close after displays
+        self._finalize_file_close()
+
         # inline logic may introduce instances
         with _DefinitionContextManager(final_context):
             for format_str, format_args, symbol_table in self._inline_verilog:

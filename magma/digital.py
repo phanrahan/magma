@@ -227,6 +227,9 @@ def make_Define(_name, port, direction):
             def simulate(self, value_store, state_store):
                 pass
 
+            # Type must be a bit because coreir uses Bit for the primitive,
+            # insert_wrap_casts will handle the conversion of other digital
+            # types like Clock
             io = m.IO(**{port: direction(m.Bit)})
         return _Primitive
     return DefineCorebit

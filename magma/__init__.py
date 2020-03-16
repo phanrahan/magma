@@ -91,3 +91,5 @@ from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
 import magma.operators
 from .operators import slice
 from .inline_verilog import inline_verilog
+from .display import display, posedge, negedge, File
+from .log import info, debug, warning, error
