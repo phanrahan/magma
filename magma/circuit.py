@@ -628,8 +628,9 @@ class DefineCircuitKind(CircuitKind):
                 if base is Circuit:
                     continue
                 if not issubclass(base, AnonymousCircuitType):
-                    raise Exception(f"Must subclass from AnonymousCircuitType or a "
-                                    f"subclass of AnonymousCircuitType ({base})")
+                    raise Exception(f"Must subclass from AnonymousCircuitType "
+                                    f"or a subclass of AnonymousCircuitType "
+                                    f"({base})")
                 dct['name'] = base.name
                 break
         name = dct['name']
