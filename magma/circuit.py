@@ -54,11 +54,11 @@ _logger = root_logger()
 _VERILOG_FILE_OPEN = """
 integer \_file_{filename} ;
 initial \_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
-"""
+"""  # noqa
 
 _VERILOG_FILE_CLOSE = """
 final $fclose(\_file_{filename} );
-"""
+"""  # noqa
 
 _DEFAULT_VERILOG_LOG_STR = f"""
 `ifndef MAGMA_LOG_LEVEL
