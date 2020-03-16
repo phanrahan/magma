@@ -857,7 +857,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._name = name
         self._io = SingletonInstanceIO()
         self._finalized = False
-        self._context = DefinitionContext(StagedPlacer(""))
+        self._context = DefinitionContext(StagedPlacer(self._name))
 
     def _port(self, name):
         return self._io.ports[name]
