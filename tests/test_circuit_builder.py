@@ -10,9 +10,12 @@ class _PassThroughBuilder(m.CircuitBuilder):
     def add(self):
         if self._added:
             return
-        self._add("I", m.In(m.Bit))
-        self._add("O", m.Out(m.Bit))
+        self._add_port("I", m.In(m.Bit))
+        self._add_port("O", m.Out(m.Bit))
         m.wire(~self._port("I"), self._port("O"))
+
+    def _finalize(self):
+        print (f"Hey I'm {self._name} and finalizing!")
 
 
 def test_basic():
@@ -26,7 +29,5 @@ def test_basic():
         builder.I @= io.x
         io.y @= builder.O
 
-    print (_Top._context_._builders)
     print (repr(_Top))
-
-    m.compile("_Top", _Top, output="coreir")
+    m.compile("build/builder_top", _Top, output="coreir")

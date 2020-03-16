@@ -862,13 +862,17 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def _port(self, name):
         return self._io.ports[name]
 
-    def _add(self, name, typ):
+    def _add_port(self, name, typ):
         self._io.add(name, typ)
         setattr(self, name, self._io.inst_ports[name])
+
+    def _finalize(self):
+        pass
 
     def finalize(self):
         if self._finalized:
             raise Exception("Can only call finalize on a CircuitBuilder once")
+        self._finalize()
         bases = (AnonymousCircuitType,)
         dct = {"io": self._io, "_context_": self._context, "name": self._name}
         DefineCircuitKind.__prepare__(self._name, bases)
