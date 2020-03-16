@@ -51,6 +51,14 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
 
+_VERILOG_FILE_OPEN = """
+integer \_file_{filename} ;
+initial \_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
+"""
+
+_VERILOG_FILE_CLOSE = """
+final $fclose(\_file_{filename} );
+"""
 
 class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
@@ -72,17 +80,17 @@ class DefinitionContext:
     def _finalize_file_opens(self):
         for file in self._files:
             self.add_inline_verilog(
-                f"""
-integer \_file_{file.filename} ;
-initial \_file_{file.filename} = $fopen(\"{file.filename}\", \"{file.mode}\");
-""", {}, {})  # noqa
+                _VERILOG_FILE_OPEN.format(filename=file.filename,
+                                          mode=file.mode),
+                {}, {}
+            )
 
     def _finalize_file_close(self):
         for file in self._files:
             self.add_inline_verilog(
-                f"""
-final $fclose(\_file_{file.filename} );
-""", {}, {})  # noqa
+                _VERILOG_FILE_CLOSE.format(filename=file.filename),
+                {}, {}
+            )
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
