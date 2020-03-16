@@ -47,6 +47,6 @@ def _make_log_func(T):
 
 
 debug = _make_log_func(Debug)
-info = make_log_func(Info)
-warning = make_log_func(Warning)
-error = make_log_func(Error)
+info = _make_log_func(Info)
+warning = _make_log_func(Warning)
+error = _make_log_func(Error)
