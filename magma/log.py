@@ -35,8 +35,8 @@ class Error(Log):
     level = 3
 
 
-def make_log_func(T):
-    @functools.wraps(make_log_func)
+def _make_log_func(T):
+    @functools.wraps(_make_log_func)
     def log_func(log_str, *args, file=None):
         context = _definition_context_stack.peek()
         log = T(log_str, args, file=file)
@@ -46,7 +46,7 @@ def make_log_func(T):
     return log_func
 
 
-debug = make_log_func(Debug)
+debug = _make_log_func(Debug)
 info = make_log_func(Info)
 warning = make_log_func(Warning)
 error = make_log_func(Error)
