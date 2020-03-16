@@ -2,27 +2,27 @@ from .circuit import _definition_context_stack
 from .t import Type
 
 
-class Event:
+class _Event:
     def __init__(self, value):
         if not isinstance(value, Type):
             raise TypeError("Expected magma value for event")
         self.value = value
 
 
-class Posedge(Event):
+class _Posedge(_Event):
     verilog_str = "posedge"
 
 
-class Negedge(Event):
+class _Negedge(_Event):
     verilog_str = "negedge"
 
 
 def posedge(value):
-    return Posedge(value)
+    return _Posedge(value)
 
 
 def negedge(value):
-    return Negedge(value)
+    return _Negedge(value)
 
 
 def _make_display_format_arg(value, format_args):
@@ -66,7 +66,7 @@ class Display:
                                 .when(m.negedge(io.ASYNCRESET))
 
         """
-        if not isinstance(event, (Type, Event)):
+        if not isinstance(event, (Type, _Event)):
             raise TypeError("Expected magma value or event for when argument")
         self.events.append(event)
         return self
@@ -96,11 +96,11 @@ class Display:
             for event in self.events:
                 value = event
                 # Could be sensitive to plain signal
-                if isinstance(event, Event):
+                if isinstance(event, _Event):
                     value = value.value
                 var = _make_display_format_arg(value, format_args)
                 # prepend event if not just plain signal
-                if isinstance(event, Event):
+                if isinstance(event, _Event):
                     var = f"{event.verilog_str} {var}"
                 event_strs.append(var)
             event_str = ", ".join(event_strs)
