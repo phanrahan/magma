@@ -60,6 +60,11 @@ _VERILOG_FILE_CLOSE = """
 final $fclose(\_file_{filename} );
 """
 
+_DEFAULT_VERILOG_LOG_STR = f"""
+`ifndef MAGMA_LOG_LEVEL
+    `define MAGMA_LOG_LEVEL 1
+`endif"""
+
 class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
     OLD = enum.auto()
@@ -109,10 +114,7 @@ class DefinitionContext:
         final_placer = self.placer.finalize(defn)
         final_context = DefinitionContext(final_placer)
         if self._insert_default_log_level:
-            self.add_inline_verilog(f"""
-`ifndef MAGMA_LOG_LEVEL
-    `define MAGMA_LOG_LEVEL 1
-`endif""", {}, {})
+            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
         # So displays can refer to open files
         self._finalize_file_opens()
         self._finalize_displays()
