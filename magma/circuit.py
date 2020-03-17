@@ -116,16 +116,16 @@ class DefinitionContext:
 
     def finalize(self, defn):
         self.placer = self.placer.finalize(defn)
+        if self._insert_default_log_level:
+            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
+        self._finalize_file_opens()  # so displays can refer to open files
+        self._finalize_displays()
+        self._finalize_file_close()  # close after displays
         # Inline logic may introduce instances.
         with _DefinitionContextManager(self):
             for format_str, format_args, symbol_table in self._inline_verilog:
                 process_inline_verilog(defn, format_str, format_args,
                                        symbol_table)
-        if self._insert_default_log_level:
-            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
-        self._finalize_file_opens()  # so displays can refer to open files
-        self._finalize_displays()        
-        self._finalize_file_close()  # close after displays
         for builder in self._builders:
             inst = builder.finalize()
             self.placer.place(inst)
