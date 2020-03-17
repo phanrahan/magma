@@ -2,6 +2,7 @@ from string import Formatter
 import magma as m
 from magma.view import InstView, PortView
 from .t import Type
+from .digital import Digital
 
 
 def value_to_verilog_name(value):
@@ -32,7 +33,11 @@ def verilog_name(name, inst_sep="."):
         return str(name)
     if isinstance(name, m.ref.ArrayRef):
         array_name = verilog_name(name.array.name)
-        return f"{array_name}_{name.index}"
+        if issubclass(name.array.T, Digital):
+            index = f"[{name.index}]"
+        else:
+            index = f"_{name.index}"
+        return f"{array_name}{index}"
     if isinstance(name, m.ref.TupleRef):
         tuple_name = verilog_name(name.tuple.name)
         index = name.index
