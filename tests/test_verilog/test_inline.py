@@ -13,11 +13,15 @@ endmodule
 """, type_map={"CLK": m.In(m.Clock)})[0]
 
     class Main(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2]))
+        io += m.ClockIO()
         io.O <= FF()(io.I)
         m.inline_verilog("""
 assert property (@(posedge CLK) {I} |-> ##1 {O});
 """, O=io.O, I=io.I)
+        m.inline_verilog("""
+assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});
+""")
 
     m.compile(f"build/test_inline_simple", Main, output="coreir-verilog",
               sv=True, inline=True)
