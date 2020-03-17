@@ -48,8 +48,9 @@ class CircuitPass(Pass):
         self.circuits = {}
 
     def _run(self, circuit):
-        for inst in circuit.instances:
-            self._run(type(inst))
+        if isdefinition(circuit):
+            for inst in circuit.instances:
+                self._run(type(inst))
         # Call each definition only once.
         id_ = id(circuit)
         if id_ not in self.circuits:

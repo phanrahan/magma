@@ -1,3 +1,4 @@
+// Module `Bar` defined externally
 module corebit_undriven (
     output out
 );
@@ -9,6 +10,9 @@ module Foo (
     input I1,
     output O0,
     output O1
+);
+Bar Bar_inst0 (
+    .I(I1)
 );
 corebit_undriven corebit_undriven_inst0 (
     .out(O0)

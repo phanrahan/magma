@@ -1,4 +1,5 @@
 from .passes import EditCircuitPass
+from ..is_definition import isdefinition
 
 
 def _terminate_unused(interface):
@@ -14,5 +15,6 @@ class TerminateUnusedPass(EditCircuitPass):
     def edit(self, circuit):
         if _terminate_unused(circuit.interface):
             circuit._is_definition = True
-        for inst in circuit.instances:
-            _terminate_unused(inst.interface)
+        if isdefinition(circuit):
+            for inst in circuit.instances:
+                _terminate_unused(inst.interface)
