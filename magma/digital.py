@@ -132,6 +132,8 @@ class Digital(Type, metaclass=DigitalMeta):
 
     @classmethod
     def is_oriented(cls, direction):
+        if not cls.is_directed:
+            return direction == Direction.Undirected
         return cls.direction == direction
 
     def __call__(self, output):
