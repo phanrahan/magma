@@ -594,37 +594,36 @@ def test_replace_product(target):
 
     compile_and_check("TestReplaceProduct", TestReplaceProduct, target)
 
+class MWrapperMeta(m.MagmaProtocolMeta):
+    def __getitem__(cls, T):
+        assert cls is MWrapper
+        return type(cls)(f'MWrapper[{T}]', (cls,), {'_T_': T})
+
+    def _to_magma_(cls):
+        return cls._T_
+
+    def _qualify_magma_(cls, d):
+        return MWrapper[cls._T_.qualify(d)]
+
+    def _flip_magma_(cls):
+        return MWrapper[cls._T_.flip()]
+
+    def _from_magma_value_(cls, value):
+        return cls(value)
+
+class MWrapper(m.MagmaProtocol, metaclass=MWrapperMeta):
+    def __init__(self, val):
+        if not isinstance(val, type(self)._T_):
+            raise TypeError()
+        self._value_ = val
+
+    def _get_magma_value_(self):
+        return self._value_
+
+    def apply(self, f):
+        return f(self._value_)
 
 def test_protocol_hierarchy(target):
-    class MWrapperMeta(m.MagmaProtocolMeta):
-        def __getitem__(cls, T):
-            assert cls is MWrapper
-            return type(cls)(f'MWrapper[{T}]', (cls,), {'_T_': T})
-
-        def _to_magma_(cls):
-            return cls._T_
-
-        def _qualify_magma_(cls, d):
-            return MWrapper[cls._T_.qualify(d)]
-
-        def _flip_magma_(cls):
-            return MWrapper[cls._T_.flip()]
-
-        def _from_magma_value_(cls, value):
-            return cls(value)
-
-    class MWrapper(m.MagmaProtocol, metaclass=MWrapperMeta):
-        def __init__(self, val):
-            if not isinstance(val, type(self)._T_):
-                raise TypeError()
-            self._value_ = val
-
-        def _get_magma_value_(self):
-            return self._value_
-
-        def apply(self, f):
-            return f(self._value_)
-
     WrappedBits8 = MWrapper[m.UInt[8]]
 
     @m.circuit.sequential(async_reset=False)
@@ -642,3 +641,33 @@ def test_protocol_hierarchy(target):
             return self.f(val)
 
     compile_and_check("TestProtocolHierarchy", Bar, target)
+
+def test_protocol_composition(target):
+    WrappedBit = MWrapper[m.Bit]
+    WrappedUint = MWrapper[m.UInt[8]]
+
+    @m.circuit.sequential(async_reset=False)
+    class Foo:
+        def __call__(self, val: WrappedUint) -> m.UInt[8]:
+            return val.apply(lambda x : x + 1)
+
+    @m.circuit.sequential(async_reset=False)
+    class Bar:
+        def __call__(self, val: WrappedUint) -> m.UInt[8]:
+            return val.apply(lambda x : x - 1)
+
+
+    @m.circuit.sequential(async_reset=False)
+    class FooBar:
+        def __init__(self):
+            self.foo : Foo = Foo()
+            self.bar : Bar = Bar()
+
+        def __call__(self, select : WrappedBit, val: WrappedUint) -> m.UInt[8]:
+            data0 = self.foo(val)
+            data1 = self.bar(val)
+
+            if select.apply(lambda x : x):
+                return data0
+            else:
+                return data1
