@@ -1,11 +1,15 @@
+from hwtypes import BitVector
+
 from .array import Array
+from .digital import Digital
+from .bit import Bit
 from .bits import Bits
-from .bitutils import clog2
+from .bitutils import clog2, seq2int
 from .circuit import coreir_port_mapping
 from .conversions import array
 from .generator import Generator2
 from .interface import IO
-from .t import Type, In, Out
+from .t import Type, In, Out, MagmaProtocol
 from .tuple import Product
 from .wire import wire
 
@@ -20,27 +24,55 @@ class CoreIRCommonLibMuxN(Generator2):
         self.coreir_name = "muxn"
         self.coreir_lib = "commonlib"
         self.coreir_genargs = {"width": width, "N": N}
+        self.primitive = True
+        self.stateful = False
+
+        def simulate(self, value_store, state_store):
+            sel = BitVector[clog2(N)](value_store.get_value(self.I.sel))
+            out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+            value_store.set_value(self.O, out)
+
+        self.simulate = simulate
 
 
 class Mux(Generator2):
     def __init__(self, height: int, T: Type):
+        if issubclass(T, MagmaProtocol):
+            T = T._to_magma_()
+        T_str = str(T).replace("(", "").replace(")", "")\
+                      .replace(",", "_").replace("=", "_")\
+                      .replace("[", "").replace("]", "").replace(" ", "")
+        self.name = f"Mux{height}x{T_str}"
         # TODO: Type must be hashable so we can cache.
         N = T.flat_length()
 
         io_dict = {}
         for i in range(height):
             io_dict[f"I{i}"] = In(T)
-        io_dict["S"] = In(Bits[clog2(height)])
+        if height == 2:
+            io_dict["S"] = In(Bit)
+        else:
+            io_dict["S"] = In(Bits[clog2(height)])
         io_dict["O"] = Out(T)
 
-        self.name = "Mux"
         self.io = IO(**io_dict)
         mux = CoreIRCommonLibMuxN(height, N)()
-        data = [Bits[N](getattr(self.io, f"I{i}").flatten())
-                for i in range(height)]
+        data = [getattr(self.io, f"I{i}").as_bits() for i in range(height)]
         wire(mux.I.data, array(data))
-        wire(mux.I.sel, self.io.S)
-        wire(mux.O, self.io.O)
+        if height == 2:
+            wire(mux.I.sel[0], self.io.S)
+        else:
+            wire(mux.I.sel, self.io.S)
+        wire(T.from_bits(mux.O), self.io.O)
+
+
+def mux(I, S, **kwargs):
+    if isinstance(S, Type) and S.const():
+        S = seq2int(S.bits())
+    if isinstance(S, int):
+        return I[S]
+    T = type(I[0])
+    return Mux(len(I), T, **kwargs)()(*I, S)
 
 
 def slice(value: Bits, start: Bits, width: int):

@@ -201,7 +201,7 @@ class DefinitionTransformer(TransformerBase):
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
-            if self.defn._ignore_undriven_:
+            if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise Exception(f"Found unconnected port: {port.debug_name}")
 

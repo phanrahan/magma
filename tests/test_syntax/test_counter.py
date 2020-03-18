@@ -4,7 +4,7 @@ from magma.simulator.coreir_simulator import CoreIRSimulator
 from hwtypes import BitVector as BV
 import sys
 sys.path.append(".")
-from test_sequential import DefineRegister, phi
+from test_sequential import DefineRegister
 
 
 def test_counter():

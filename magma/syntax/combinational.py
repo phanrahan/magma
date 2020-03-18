@@ -17,6 +17,7 @@ from ..t import Type, MagmaProtocol
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
+import magma as m
 
 
 _logger = root_logger()
@@ -218,12 +219,10 @@ def _combinational(defn_env: dict, fn: types.FunctionType):
     tree = ast.fix_missing_locations(tree)
     tree.decorator_list = ast_utils.filter_decorator(
         combinational, tree.decorator_list, defn_env)
+    if "m" not in defn_env:
+        defn_env["m"] = m
     if "phi" not in defn_env:
-        tree = ast.Module([
-            ast.parse("import magma as m").body[0],
-            ast.parse("from mantle import mux as phi").body[0],
-            tree
-        ])
+        defn_env["phi"] = m.operators.mux
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"

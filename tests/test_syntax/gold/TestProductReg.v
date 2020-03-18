@@ -32,15 +32,15 @@ module coreir_mux #(
   assign out = sel ? in1 : in0;
 endmodule
 
-module commonlib_muxn__N2__width8 (
-    input [7:0] in_data_0,
-    input [7:0] in_data_1,
+module commonlib_muxn__N2__width9 (
+    input [8:0] in_data_0,
+    input [8:0] in_data_1,
     input [0:0] in_sel,
-    output [7:0] out
+    output [8:0] out
 );
-wire [7:0] _join_out;
+wire [8:0] _join_out;
 coreir_mux #(
-    .width(8)
+    .width(9)
 ) _join (
     .in0(in_data_0),
     .in1(in_data_1),
@@ -48,56 +48,6 @@ coreir_mux #(
     .out(_join_out)
 );
 assign out = _join_out;
-endmodule
-
-module commonlib_muxn__N2__width1 (
-    input [0:0] in_data_0,
-    input [0:0] in_data_1,
-    input [0:0] in_sel,
-    output [0:0] out
-);
-wire [0:0] _join_out;
-coreir_mux #(
-    .width(1)
-) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
-    .sel(in_sel[0]),
-    .out(_join_out)
-);
-assign out = _join_out;
-endmodule
-
-module Mux2xOutSInt8 (
-    input [7:0] I0,
-    input [7:0] I1,
-    input S,
-    output [7:0] O
-);
-wire [7:0] coreir_commonlib_mux2x8_inst0_out;
-commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
-    .in_sel(S),
-    .out(coreir_commonlib_mux2x8_inst0_out)
-);
-assign O = coreir_commonlib_mux2x8_inst0_out;
-endmodule
-
-module Mux2xOutBit (
-    input I0,
-    input I1,
-    input S,
-    output O
-);
-wire [0:0] coreir_commonlib_mux2x1_inst0_out;
-commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
-    .in_sel(S),
-    .out(coreir_commonlib_mux2x1_inst0_out)
-);
-assign O = coreir_commonlib_mux2x1_inst0_out[0];
 endmodule
 
 module Mux2xTuplea0_OutBit_a1_OutSInt8 (
@@ -109,22 +59,15 @@ module Mux2xTuplea0_OutBit_a1_OutSInt8 (
     output [7:0] O_a1,
     input S
 );
-wire Mux2xOutBit_inst0_O;
-wire [7:0] Mux2xOutSInt8_inst0_O;
-Mux2xOutBit Mux2xOutBit_inst0 (
-    .I0(I0_a0),
-    .I1(I1_a0),
-    .S(S),
-    .O(Mux2xOutBit_inst0_O)
+wire [8:0] coreir_commonlib_mux2x9_inst0_out;
+commonlib_muxn__N2__width9 coreir_commonlib_mux2x9_inst0 (
+    .in_data_0({I0_a1[7],I0_a1[6],I0_a1[5],I0_a1[4],I0_a1[3],I0_a1[2],I0_a1[1],I0_a1[0],I0_a0}),
+    .in_data_1({I1_a1[7],I1_a1[6],I1_a1[5],I1_a1[4],I1_a1[3],I1_a1[2],I1_a1[1],I1_a1[0],I1_a0}),
+    .in_sel(S),
+    .out(coreir_commonlib_mux2x9_inst0_out)
 );
-Mux2xOutSInt8 Mux2xOutSInt8_inst0 (
-    .I0(I0_a1),
-    .I1(I1_a1),
-    .S(S),
-    .O(Mux2xOutSInt8_inst0_O)
-);
-assign O_a0 = Mux2xOutBit_inst0_O;
-assign O_a1 = Mux2xOutSInt8_inst0_O;
+assign O_a0 = coreir_commonlib_mux2x9_inst0_out[0];
+assign O_a1 = {coreir_commonlib_mux2x9_inst0_out[8],coreir_commonlib_mux2x9_inst0_out[7],coreir_commonlib_mux2x9_inst0_out[6],coreir_commonlib_mux2x9_inst0_out[5],coreir_commonlib_mux2x9_inst0_out[4],coreir_commonlib_mux2x9_inst0_out[3],coreir_commonlib_mux2x9_inst0_out[2],coreir_commonlib_mux2x9_inst0_out[1]};
 endmodule
 
 module TestProductReg_comb (
