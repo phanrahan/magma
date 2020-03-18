@@ -44,66 +44,6 @@
           ["self.O","reg_PR_inst0.out.0"]
         ]
       },
-      "Mux2xOutBit":{
-        "type":["Record",[
-          ["I0","BitIn"],
-          ["I1","BitIn"],
-          ["S","BitIn"],
-          ["O","Bit"]
-        ]],
-        "instances":{
-          "coreir_commonlib_mux2x1_inst0":{
-            "genref":"commonlib.muxn",
-            "genargs":{"N":["Int",2], "width":["Int",1]}
-          }
-        },
-        "connections":[
-          ["self.I0","coreir_commonlib_mux2x1_inst0.in.data.0.0"],
-          ["self.I1","coreir_commonlib_mux2x1_inst0.in.data.1.0"],
-          ["self.S","coreir_commonlib_mux2x1_inst0.in.sel.0"],
-          ["self.O","coreir_commonlib_mux2x1_inst0.out.0"]
-        ]
-      },
-      "Mux2xOutSInt8":{
-        "type":["Record",[
-          ["I0",["Array",8,"BitIn"]],
-          ["I1",["Array",8,"BitIn"]],
-          ["S","BitIn"],
-          ["O",["Array",8,"Bit"]]
-        ]],
-        "instances":{
-          "coreir_commonlib_mux2x8_inst0":{
-            "genref":"commonlib.muxn",
-            "genargs":{"N":["Int",2], "width":["Int",8]}
-          }
-        },
-        "connections":[
-          ["self.I0","coreir_commonlib_mux2x8_inst0.in.data.0"],
-          ["self.I1","coreir_commonlib_mux2x8_inst0.in.data.1"],
-          ["self.S","coreir_commonlib_mux2x8_inst0.in.sel.0"],
-          ["self.O","coreir_commonlib_mux2x8_inst0.out"]
-        ]
-      },
-      "Mux2xOutUInt4":{
-        "type":["Record",[
-          ["I0",["Array",4,"BitIn"]],
-          ["I1",["Array",4,"BitIn"]],
-          ["S","BitIn"],
-          ["O",["Array",4,"Bit"]]
-        ]],
-        "instances":{
-          "coreir_commonlib_mux2x4_inst0":{
-            "genref":"commonlib.muxn",
-            "genargs":{"N":["Int",2], "width":["Int",4]}
-          }
-        },
-        "connections":[
-          ["self.I0","coreir_commonlib_mux2x4_inst0.in.data.0"],
-          ["self.I1","coreir_commonlib_mux2x4_inst0.in.data.1"],
-          ["self.S","coreir_commonlib_mux2x4_inst0.in.sel.0"],
-          ["self.O","coreir_commonlib_mux2x4_inst0.out"]
-        ]
-      },
       "Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8":{
         "type":["Record",[
           ["I0",["Record",[["a0","BitIn"],["a1",["Record",[["c0",["Array",4,"BitIn"]],["c1","BitIn"]]]],["a2",["Array",8,"BitIn"]]]]],
@@ -112,55 +52,55 @@
           ["O",["Record",[["a0","Bit"],["a1",["Record",[["c0",["Array",4,"Bit"]],["c1","Bit"]]]],["a2",["Array",8,"Bit"]]]]]
         ]],
         "instances":{
-          "Mux2xOutBit_inst0":{
-            "modref":"global.Mux2xOutBit"
-          },
-          "Mux2xOutSInt8_inst0":{
-            "modref":"global.Mux2xOutSInt8"
-          },
-          "Mux2xTuplec0_OutUInt4_c1_OutBit_inst0":{
-            "modref":"global.Mux2xTuplec0_OutUInt4_c1_OutBit"
+          "coreir_commonlib_mux2x14_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",14]}
           }
         },
         "connections":[
-          ["self.I0.a0","Mux2xOutBit_inst0.I0"],
-          ["self.I1.a0","Mux2xOutBit_inst0.I1"],
-          ["self.O.a0","Mux2xOutBit_inst0.O"],
-          ["self.S","Mux2xOutBit_inst0.S"],
-          ["self.I0.a2","Mux2xOutSInt8_inst0.I0"],
-          ["self.I1.a2","Mux2xOutSInt8_inst0.I1"],
-          ["self.O.a2","Mux2xOutSInt8_inst0.O"],
-          ["self.S","Mux2xOutSInt8_inst0.S"],
-          ["self.I0.a1","Mux2xTuplec0_OutUInt4_c1_OutBit_inst0.I0"],
-          ["self.I1.a1","Mux2xTuplec0_OutUInt4_c1_OutBit_inst0.I1"],
-          ["self.O.a1","Mux2xTuplec0_OutUInt4_c1_OutBit_inst0.O"],
-          ["self.S","Mux2xTuplec0_OutUInt4_c1_OutBit_inst0.S"]
-        ]
-      },
-      "Mux2xTuplec0_OutUInt4_c1_OutBit":{
-        "type":["Record",[
-          ["I0",["Record",[["c0",["Array",4,"BitIn"]],["c1","BitIn"]]]],
-          ["I1",["Record",[["c0",["Array",4,"BitIn"]],["c1","BitIn"]]]],
-          ["S","BitIn"],
-          ["O",["Record",[["c0",["Array",4,"Bit"]],["c1","Bit"]]]]
-        ]],
-        "instances":{
-          "Mux2xOutBit_inst0":{
-            "modref":"global.Mux2xOutBit"
-          },
-          "Mux2xOutUInt4_inst0":{
-            "modref":"global.Mux2xOutUInt4"
-          }
-        },
-        "connections":[
-          ["self.I0.c1","Mux2xOutBit_inst0.I0"],
-          ["self.I1.c1","Mux2xOutBit_inst0.I1"],
-          ["self.O.c1","Mux2xOutBit_inst0.O"],
-          ["self.S","Mux2xOutBit_inst0.S"],
-          ["self.I0.c0","Mux2xOutUInt4_inst0.I0"],
-          ["self.I1.c0","Mux2xOutUInt4_inst0.I1"],
-          ["self.O.c0","Mux2xOutUInt4_inst0.O"],
-          ["self.S","Mux2xOutUInt4_inst0.S"]
+          ["self.I0.a0","coreir_commonlib_mux2x14_inst0.in.data.0.0"],
+          ["self.I0.a2.4","coreir_commonlib_mux2x14_inst0.in.data.0.10"],
+          ["self.I0.a2.5","coreir_commonlib_mux2x14_inst0.in.data.0.11"],
+          ["self.I0.a2.6","coreir_commonlib_mux2x14_inst0.in.data.0.12"],
+          ["self.I0.a2.7","coreir_commonlib_mux2x14_inst0.in.data.0.13"],
+          ["self.I0.a1.c0.0","coreir_commonlib_mux2x14_inst0.in.data.0.1"],
+          ["self.I0.a1.c0.1","coreir_commonlib_mux2x14_inst0.in.data.0.2"],
+          ["self.I0.a1.c0.2","coreir_commonlib_mux2x14_inst0.in.data.0.3"],
+          ["self.I0.a1.c0.3","coreir_commonlib_mux2x14_inst0.in.data.0.4"],
+          ["self.I0.a1.c1","coreir_commonlib_mux2x14_inst0.in.data.0.5"],
+          ["self.I0.a2.0","coreir_commonlib_mux2x14_inst0.in.data.0.6"],
+          ["self.I0.a2.1","coreir_commonlib_mux2x14_inst0.in.data.0.7"],
+          ["self.I0.a2.2","coreir_commonlib_mux2x14_inst0.in.data.0.8"],
+          ["self.I0.a2.3","coreir_commonlib_mux2x14_inst0.in.data.0.9"],
+          ["self.I1.a0","coreir_commonlib_mux2x14_inst0.in.data.1.0"],
+          ["self.I1.a2.4","coreir_commonlib_mux2x14_inst0.in.data.1.10"],
+          ["self.I1.a2.5","coreir_commonlib_mux2x14_inst0.in.data.1.11"],
+          ["self.I1.a2.6","coreir_commonlib_mux2x14_inst0.in.data.1.12"],
+          ["self.I1.a2.7","coreir_commonlib_mux2x14_inst0.in.data.1.13"],
+          ["self.I1.a1.c0.0","coreir_commonlib_mux2x14_inst0.in.data.1.1"],
+          ["self.I1.a1.c0.1","coreir_commonlib_mux2x14_inst0.in.data.1.2"],
+          ["self.I1.a1.c0.2","coreir_commonlib_mux2x14_inst0.in.data.1.3"],
+          ["self.I1.a1.c0.3","coreir_commonlib_mux2x14_inst0.in.data.1.4"],
+          ["self.I1.a1.c1","coreir_commonlib_mux2x14_inst0.in.data.1.5"],
+          ["self.I1.a2.0","coreir_commonlib_mux2x14_inst0.in.data.1.6"],
+          ["self.I1.a2.1","coreir_commonlib_mux2x14_inst0.in.data.1.7"],
+          ["self.I1.a2.2","coreir_commonlib_mux2x14_inst0.in.data.1.8"],
+          ["self.I1.a2.3","coreir_commonlib_mux2x14_inst0.in.data.1.9"],
+          ["self.S","coreir_commonlib_mux2x14_inst0.in.sel.0"],
+          ["self.O.a0","coreir_commonlib_mux2x14_inst0.out.0"],
+          ["self.O.a2.4","coreir_commonlib_mux2x14_inst0.out.10"],
+          ["self.O.a2.5","coreir_commonlib_mux2x14_inst0.out.11"],
+          ["self.O.a2.6","coreir_commonlib_mux2x14_inst0.out.12"],
+          ["self.O.a2.7","coreir_commonlib_mux2x14_inst0.out.13"],
+          ["self.O.a1.c0.0","coreir_commonlib_mux2x14_inst0.out.1"],
+          ["self.O.a1.c0.1","coreir_commonlib_mux2x14_inst0.out.2"],
+          ["self.O.a1.c0.2","coreir_commonlib_mux2x14_inst0.out.3"],
+          ["self.O.a1.c0.3","coreir_commonlib_mux2x14_inst0.out.4"],
+          ["self.O.a1.c1","coreir_commonlib_mux2x14_inst0.out.5"],
+          ["self.O.a2.0","coreir_commonlib_mux2x14_inst0.out.6"],
+          ["self.O.a2.1","coreir_commonlib_mux2x14_inst0.out.7"],
+          ["self.O.a2.2","coreir_commonlib_mux2x14_inst0.out.8"],
+          ["self.O.a2.3","coreir_commonlib_mux2x14_inst0.out.9"]
         ]
       },
       "TestNestedProductReg":{

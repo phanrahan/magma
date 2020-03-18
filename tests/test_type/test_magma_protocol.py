@@ -9,7 +9,7 @@ TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), '../test_syntax')
 
 sys.path.append(TEST_SYNTAX_PATH)
 
-from test_sequential import DefineRegister, phi
+from test_sequential import DefineRegister
 
 
 def test_foo_type_magma_protocol():

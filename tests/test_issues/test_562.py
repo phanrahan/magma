@@ -7,7 +7,7 @@ TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), '../test_syntax')
 
 sys.path.append(TEST_SYNTAX_PATH)
 
-from test_sequential import DefineRegister, phi, compile_and_check
+from test_sequential import DefineRegister, compile_and_check
 
 
 def test_562():

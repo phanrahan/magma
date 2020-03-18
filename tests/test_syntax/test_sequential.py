@@ -1,6 +1,6 @@
 import pytest
 import magma as m
-from test_combinational import compile_and_check, phi
+from test_combinational import compile_and_check
 from collections.abc import Sequence
 import coreir
 import ast_tools

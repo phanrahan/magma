@@ -7,13 +7,14 @@ import os
 
 def copy_golds(dir_path):
     for f in os.listdir(os.path.join(dir_path, "gold")):
-        if f == "uniquification_key_error_mux.json":
-            # corresponding build has different name
-            continue
-        shutil.copy(
-            os.path.join(dir_path, "build", f),
-            os.path.join(dir_path, "gold", f),
-        )
+        try:
+            shutil.copy(
+                os.path.join(dir_path, "build", f),
+                os.path.join(dir_path, "gold", f)
+            )
+        except FileNotFoundError as e:
+            # corresponding build has different name or extra file
+            pass
 
 
 copy_golds("tests")
