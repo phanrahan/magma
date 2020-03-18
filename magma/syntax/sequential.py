@@ -433,7 +433,6 @@ def _sequential(
         comb_out_wiring=comb_out_wiring,
         magma_name=magma_name,
     )
-    print(circuit_definition_str)
     tree = ast.parse(circuit_definition_str)
     if "DefineRegister" not in defn_env:
         tree = ast.Module([
