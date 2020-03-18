@@ -4,11 +4,20 @@ module corebit_undriven (
 
 endmodule
 
+module corebit_term (
+    input in
+);
+
+endmodule
+
 module Foo (
     input I0,
     input I1,
     output O0,
     output O1
+);
+corebit_term corebit_term_inst0 (
+    .in(I1)
 );
 corebit_undriven corebit_undriven_inst0 (
     .out(O0)
@@ -29,6 +38,12 @@ Foo Foo_inst0 (
     .I1(corebit_undriven_inst1_out),
     .O0(O0),
     .O1(Foo_inst0_O1)
+);
+corebit_term corebit_term_inst0 (
+    .in(I1)
+);
+corebit_term corebit_term_inst1 (
+    .in(Foo_inst0_O1)
 );
 corebit_undriven corebit_undriven_inst0 (
     .out(O1)

@@ -20,11 +20,15 @@ def test_ignore_unused_undriven_basic():
 
 
 def test_ignore_unused_undriven_hierarchy():
+    # For backwards compatability test
+    Bar = m.DeclareCircuit("Bar", "I", m.In(m.Bit))
+
     class Foo(m.Circuit):
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit),
                   O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 
         io.O1 @= io.I0
+        Bar()(io.I1)
 
     class Main(m.Circuit):
         _ignore_undriven_ = True

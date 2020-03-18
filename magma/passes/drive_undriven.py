@@ -1,4 +1,5 @@
 from .passes import EditCircuitPass
+from ..is_definition import isdefinition
 
 
 def _drive_undriven(interface):
@@ -14,5 +15,7 @@ class DriveUndrivenPass(EditCircuitPass):
     def edit(self, circuit):
         if _drive_undriven(circuit.interface):
             circuit._is_definition = True
+        if not isdefinition(circuit):
+            return
         for inst in circuit.instances:
             _drive_undriven(inst.interface)
