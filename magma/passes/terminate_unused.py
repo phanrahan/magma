@@ -15,6 +15,7 @@ class TerminateUnusedPass(EditCircuitPass):
     def edit(self, circuit):
         if _terminate_unused(circuit.interface):
             circuit._is_definition = True
-        if isdefinition(circuit):
-            for inst in circuit.instances:
-                _terminate_unused(inst.interface)
+        if not isdefinition(circuit):
+            return
+        for inst in circuit.instances:
+            _terminate_unused(inst.interface)
