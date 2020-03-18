@@ -55,6 +55,8 @@ def test_bit():
     assert not issubclass(m.BitOut, In(m.Digital))
     assert not isinstance(m.BitOut(), In(m.Digital))
 
+    assert m.Bit().is_oriented(m.Direction.Undirected)
+
 
 def test_bit_flip():
 

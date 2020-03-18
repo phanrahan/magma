@@ -34,6 +34,7 @@ def test_bits_basic():
     assert bits_4 == ARRAY4
     assert bits_2 != bits_4
 
+    assert m.Bits[11]().is_oriented(m.Direction.Undirected)
 
 def test_qualify_bits():
     assert str(m.In(Bits)) == "In(Bits)"
