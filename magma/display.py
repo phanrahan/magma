@@ -2,6 +2,14 @@ from .circuit import _definition_context_stack
 from .t import Type
 
 
+class _Time:
+    pass
+
+
+def time():
+    return _Time()
+
+
 class _Event:
     def __init__(self, value):
         if not isinstance(value, Type):
@@ -28,6 +36,9 @@ def negedge(value):
 def _make_display_format_arg(value, format_args):
     # Unique name based on object id
     var = f"_display_var_{id(value)}"
+    if isinstance(value, _Time):
+        # Insert $time string
+        value = "$time"
     # Insert into a format kwargs map
     format_args[var] = value
     # Wrap in format braces so it is replaced later on

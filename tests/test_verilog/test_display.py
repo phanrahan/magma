@@ -17,8 +17,8 @@ endmodule
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO(has_enable=True)
         ff = FF()
         io.O @= ff(io.I)
-        m.display("ff.O=%d, ff.I=%d", ff.O, ff.I).when(m.posedge(io.CLK))\
-                                                 .if_(io.CE)
+        m.display("%0t: ff.O=%d, ff.I=%d", m.time(), ff.O,
+                  ff.I).when(m.posedge(io.CLK)).if_(io.CE)
 
     m.compile("build/TestDisplay", TestDisplay)
     assert not os.system('cd tests/test_verilog/build && '
@@ -54,11 +54,11 @@ endmodule
                            disp_type="realtime")
     out, err = capsys.readouterr()
     assert f"""
-ff.O=0, ff.I=1
-ff.O=1, ff.I=0
-ff.O=0, ff.I=1
-ff.O=1, ff.I=1
-""" in out
+0: ff.O=0, ff.I=1
+2: ff.O=1, ff.I=0
+8: ff.O=0, ff.I=1
+10: ff.O=1, ff.I=1
+""" in out, out
 
 
 def test_fdisplay():

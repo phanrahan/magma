@@ -42,7 +42,7 @@ coreir_wrap coreir_wrapInClock_inst0 (
 );
 assign O = FF_inst0_O;
 always @(posedge CLK) begin
-    if (CE) $display("ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+    if (CE) $display("%0t: ff.O=%d, ff.I=%d", $time, FF_inst0.O, FF_inst0.I);
 end
 
 endmodule
