@@ -26,12 +26,12 @@ class CoreIRCommonLibMuxN(Generator2):
 
 class Mux(Generator2):
     def __init__(self, height: int, T: Type):
+        if issubclass(T, MagmaProtocol):
+            T = T._to_magma_()
         T_str = str(T).replace("(", "").replace(")", "")\
                       .replace(",", "_").replace("=", "_")\
                       .replace("[", "").replace("]", "").replace(" ", "")
         self.name = f"Mux{height}x{T_str}"
-        if issubclass(T, MagmaProtocol):
-            T = T._to_magma_()
         # TODO: Type must be hashable so we can cache.
         N = T.flat_length()
 

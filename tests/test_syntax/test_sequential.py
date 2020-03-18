@@ -671,3 +671,5 @@ def test_protocol_composition(target):
                 return data0
             else:
                 return data1
+
+    compile_and_check("TestProtocolComposition", FooBar, target)
