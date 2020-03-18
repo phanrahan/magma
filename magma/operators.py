@@ -1,3 +1,5 @@
+from hwtypes import BitVector
+
 from .array import Array
 from .digital import Digital
 from .bit import Bit
@@ -22,6 +24,15 @@ class CoreIRCommonLibMuxN(Generator2):
         self.coreir_name = "muxn"
         self.coreir_lib = "commonlib"
         self.coreir_genargs = {"width": width, "N": N}
+        self.primitive = True
+        self.stateful = False
+
+        def simulate(self, value_store, state_store):
+            sel = BitVector[clog2(N)](value_store.get_value(self.I.sel))
+            out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+            value_store.set_value(self.O, out)
+
+        self.simulate = simulate
 
 
 class Mux(Generator2):
