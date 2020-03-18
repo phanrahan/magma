@@ -5,7 +5,7 @@ from ..is_definition import isdefinition
 def _terminate_unused(interface):
     terminated = False
     for port in interface.ports.values():
-        if port.is_output() and port.wired() is False:
+        if port.is_output() and not port.wired():
             terminated = True
             port.unused()
     return terminated
