@@ -56,7 +56,7 @@ class Mux(Generator2):
 
 
 def mux(I, S, **kwargs):
-    if S.const():
+    if isinstance(S, Type) and S.const():
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
