@@ -237,29 +237,46 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     return register_instances
 
 
+def _find_in_env(env, t):
+    for k, v in env.items():
+        if v is t:
+            return k
+    else:
+        return None
+
+
 def get_io_from_annotations(f, tree, defn_env):
     inputs = []
     outputs = []
     tuple_out = False
+    type_map = {}
     for k, v in f.__annotations__.items():
         if k == 'return':
             if isinstance(v, tuple):
                 tuple_out = True
                 for idx, t in enumerate(v):
-                    t_name = gen_free_name(tree, defn_env, 'T')
+                    t_name = type_map.get(t) or _find_in_env(defn_env, t)
+                    if t_name is None:
+                        t_name = gen_free_name(tree, defn_env, 'T')
+                        type_map[t] = t_name
+                        defn_env[t_name] = t
                     outputs.append((f'O{idx}', t_name))
-                    defn_env[t_name] = t
             else:
-                t_name = gen_free_name(tree, defn_env, 'T')
+                t_name = type_map.get(v) or _find_in_env(defn_env, v)
+                if t_name is None:
+                    t_name = gen_free_name(tree, defn_env, 'T')
+                    type_map[v] = t_name
+                    defn_env[t_name] = v
                 outputs.append(('O', t_name))
-                defn_env[t_name] = v
         else:
-            t_name = gen_free_name(tree, defn_env, 'T')
-            defn_env[t_name] = v
+            t_name = type_map.get(v) or _find_in_env(defn_env, v)
+            if t_name is None:
+                t_name = gen_free_name(tree, defn_env, 'T')
+                type_map[v] = t_name
+                defn_env[t_name] = v
             inputs.append((k, t_name))
 
     return inputs, outputs, tuple_out
-
 
 
 def gen_io_args(inputs, outputs, async_reset, magma_name):
