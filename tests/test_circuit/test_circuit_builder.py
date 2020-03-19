@@ -1,4 +1,5 @@
 import magma as m
+from magma.testing import check_files_equal
 
 
 class _GrandChildBuilder(m.CircuitBuilder):
@@ -46,5 +47,13 @@ def test_basic():
         builder.I @= io.x
         io.y @= builder.O
 
-    print (repr(_Top))
-    m.compile("build/builder_top", _Top, output="coreir")
+    assert repr(_Top) == """\
+_Top = DefineCircuit("_Top", "x", In(Bit), "y", Out(Bit))
+my_pt = my_pt("I", my_pt.I, "O", my_pt.O)
+wire(_Top.x, my_pt.I)
+wire(my_pt.O, _Top.y)
+EndCircuit()"""
+    m.compile("build/test_circuit_builder_basic", _Top, output="coreir")
+    assert check_files_equal(__file__,
+                             "build/test_circuit_builder_basic.json",
+                             "gold/test_circuit_builder_basic.json")

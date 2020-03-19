@@ -1,0 +1,51 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "_Top":{
+        "type":["Record",[
+          ["x","BitIn"],
+          ["y","Bit"]
+        ]],
+        "instances":{
+          "my_pt":{
+            "modref":"global.my_pt"
+          }
+        },
+        "connections":[
+          ["self.x","my_pt.I"],
+          ["self.y","my_pt.O"]
+        ]
+      },
+      "my_gc":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.O","self.I"]
+        ]
+      },
+      "my_pt":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "magma_Bit_not_inst0":{
+            "modref":"corebit.not"
+          },
+          "my_gc":{
+            "modref":"global.my_gc"
+          }
+        },
+        "connections":[
+          ["my_gc.O","magma_Bit_not_inst0.in"],
+          ["self.O","magma_Bit_not_inst0.out"],
+          ["self.I","my_gc.I"]
+        ]
+      }
+    }
+  }
+}
+}
