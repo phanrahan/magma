@@ -222,6 +222,7 @@ class CoreIRSimulator(CircuitSimulator):
             insts, ports = convert_to_coreir_path(bit, scope)
 
             bools = self.simulator_state.get_value(insts, ports)
+            print(insts, ports, bools)
             if len(bools) == 1:
                 return bools[0]
             return bools
