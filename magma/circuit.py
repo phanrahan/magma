@@ -12,7 +12,7 @@ from .config import get_compile_dir, set_compile_dir
 import magma as m
 from . import cache_definition
 from .clock import ClockTypes
-from .common import deprecated, Stack
+from .common import deprecated, setattrs, Stack
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -46,6 +46,7 @@ __all__ += ['DefineCircuitKind']
 __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
+__all__ += ['CircuitBuilder', 'builder_method']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
@@ -79,6 +80,10 @@ class DefinitionContext:
         self._displays = []
         self._insert_default_log_level = False
         self._files = []
+        self._builders = []
+
+    def add_builder(self, builder):
+        self._builders.append(builder)
 
     def add_file(self, file):
         self._files.append(file)
@@ -88,15 +93,13 @@ class DefinitionContext:
             self.add_inline_verilog(
                 _VERILOG_FILE_OPEN.format(filename=file.filename,
                                           mode=file.mode),
-                {}, {}
-            )
+                {}, {})
 
     def _finalize_file_close(self):
         for file in self._files:
             self.add_inline_verilog(
                 _VERILOG_FILE_CLOSE.format(filename=file.filename),
-                {}, {}
-            )
+                {}, {})
 
     def add_inline_verilog(self, format_str, format_args, symbol_table):
         self._inline_verilog.append((format_str, format_args, symbol_table))
@@ -112,22 +115,20 @@ class DefinitionContext:
             self.add_inline_verilog(*display.get_inline_verilog())
 
     def finalize(self, defn):
-        final_placer = self.placer.finalize(defn)
-        final_context = DefinitionContext(final_placer)
+        self.placer = self.placer.finalize(defn)
+        for builder in self._builders:
+            inst = builder.finalize()
+            self.placer.place(inst)
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
-        # So displays can refer to open files
-        self._finalize_file_opens()
+        self._finalize_file_opens()  # so displays can refer to open files
         self._finalize_displays()
-        # Close after displays
-        self._finalize_file_close()
-
-        # inline logic may introduce instances
-        with _DefinitionContextManager(final_context):
+        self._finalize_file_close()  # close after displays
+        # Inline logic may introduce instances.
+        with _DefinitionContextManager(self):
             for format_str, format_args, symbol_table in self._inline_verilog:
                 process_inline_verilog(defn, format_str, format_args,
                                        symbol_table)
-        return final_context
 
 
 _definition_context_stack = Stack()
@@ -142,12 +143,6 @@ class _DefinitionContextManager:
 
     def __exit__(self, typ, value, traceback):
         _definition_context_stack.pop()
-
-
-def _setattrs(obj, dct):
-    for k, v in dct.items():
-        if isinstance(k, str):
-            setattr(obj, k, v)
 
 
 def _has_definition(cls, port=None):
@@ -165,7 +160,7 @@ def _has_definition(cls, port=None):
     return False
 
 
-def _get_interface_decl(cls):
+def _get_interface_type(cls):
     if hasattr(cls, "IO") and hasattr(cls, "io"):
         _logger.warning("'IO' and 'io' should not both be specified, ignoring "
                         "'io'", debug_info=cls.debug_info)
@@ -178,10 +173,10 @@ def _get_interface_decl(cls):
                         debug_info=cls.debug_info)
         if isinstance(cls.IO, InterfaceKind):
             return None
-        return DeclareInterface(*cls.IO)
+        return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
-        return DeclareLazyInterface(cls.io)
+        return cls.io.make_interface()
     return None
 
 
@@ -271,16 +266,18 @@ class CircuitKind(type):
 
         # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
-        IO = _get_interface_decl(cls)
+        IO = _get_interface_type(cls)
         if IO is not None:
             cls.IO = IO
-            cls.interface = cls.IO(defn=cls,
-                                   renamed_ports=dct["renamed_ports"])
-            _setattrs(cls, cls.interface.ports)
+            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
         try:
             context = _definition_context_stack.pop()
             assert context.placer.name == cls_name
-            cls._context_ = context.finalize(cls)
+            # Override staged context with '_context_' from namespace if
+            # available.
+            cls._context_ = dct.get("_context_", context)
+            cls._context_.finalize(cls)
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
 
@@ -515,7 +512,7 @@ class AnonymousCircuitType(object):
         return o[0] if len(o) == 1 else tuple(o)
 
     def setinterface(self, interface):
-        _setattrs(self, interface.ports)
+        setattrs(self, interface.ports, lambda k, v: isinstance(k, str))
         self.interface = interface
         return self
 
@@ -628,9 +625,10 @@ class DefineCircuitKind(CircuitKind):
             for base in bases:
                 if base is Circuit:
                     continue
-                if not issubclass(base, Circuit):
-                    raise Exception(f"Must subclass from Circuit or a "
-                                    f"subclass of Circuit ({base})")
+                if not issubclass(base, AnonymousCircuitType):
+                    raise Exception(f"Must subclass from AnonymousCircuitType "
+                                    f"or a subclass of AnonymousCircuitType "
+                                    f"({base})")
                 dct['name'] = base.name
                 break
         name = dct['name']
@@ -830,3 +828,62 @@ coreir_port_mapping = {
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=coreir_port_mapping)
+
+
+class _CircuitBuilderMeta(type):
+    pass
+
+
+def builder_method(func):
+
+    @wraps(func)
+    def _wrapped(this, *args, **kwargs):
+        with _DefinitionContextManager(this._context):
+            result = func(this, *args, **kwargs)
+        return result
+
+    return _wrapped
+
+
+class CircuitBuilder(metaclass=_CircuitBuilderMeta):
+    _RESERVED_NAMESPACE_KEYS = {"io", "_context_", "name"}
+
+    def __init__(self, name):
+        try:
+            context = _definition_context_stack.peek()
+            context.add_builder(self)
+        except IndexError:
+            raise Exception("Can not instance a circuit builder outside a "
+                            "definition")
+        self._name = name
+        self._io = SingletonInstanceIO()
+        self._finalized = False
+        self._dct = {}
+        self._context = DefinitionContext(StagedPlacer(self._name))
+
+    def _port(self, name):
+        return self._io.ports[name]
+
+    def _add_port(self, name, typ):
+        self._io.add(name, typ)
+        setattr(self, name, self._io.inst_ports[name])
+
+    def _set_namespace_key(self, key, value):
+        if key in CircuitBuilder._RESERVED_NAMESPACE_KEYS:
+            raise Exception(f"Can not set reserved namespace key '{key}'")
+        self._dct[key] = value
+
+    def _finalize(self):
+        pass
+
+    def finalize(self):
+        if self._finalized:
+            raise Exception("Can only call finalize on a CircuitBuilder once")
+        self._finalize()
+        bases = (AnonymousCircuitType,)
+        dct = {"io": self._io, "_context_": self._context, "name": self._name}
+        dct.update(self._dct)
+        DefineCircuitKind.__prepare__(self._name, bases)
+        t = DefineCircuitKind(self._name, bases, dct)
+        self._finalized = True
+        return t(name=self._name)

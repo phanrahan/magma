@@ -129,6 +129,10 @@ class StagedPlacer(ABC):
         self._finalized = False
 
     @property
+    def instances(self):
+        return self._instances.copy()
+
+    @property
     def name(self):
         return self._name
 

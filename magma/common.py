@@ -43,3 +43,9 @@ def deprecated(func=None, *, msg=None):
         return func(*args, **kwargs)
 
     return _wrapper
+
+
+def setattrs(obj, dct, pred=None):
+    for k, v in dct.items():
+        if pred is None or pred(k, v):
+            setattr(obj, k, v)

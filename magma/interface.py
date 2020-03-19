@@ -1,27 +1,23 @@
 from abc import ABC, abstractmethod
-from itertools import chain
 from collections import OrderedDict
-from .conversions import array
-from .ref import InstRef, DefnRef, LazyDefnRef, NamedRef
-from .t import Type, Kind, MagmaProtocolMeta, Direction
-from .clock import Clock, ClockTypes
+from itertools import chain
 from .array import Array
-from .tuple import Tuple
+from .clock import Clock, ClockTypes
+from .common import deprecated, setattrs
 from .compatibility import IntegerTypes, StringTypes
+from .conversions import array
+from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
+from .t import Type, Kind, MagmaProtocolMeta, Direction
+from .tuple import Tuple
 
 
-__all__  = ['DeclareInterface']
-__all__ += ['Interface']
-__all__ += ['AnonymousInterface']
-__all__ += ['InterfaceKind']
-__all__ += ['DeclareLazyInterface']
-__all__ += ['IO']
+__all__  = ['make_interface']
+__all__ += ['InterfaceKind', 'Interface', 'AnonymousInterface']
+__all__ += ['IO', 'SingletonInstanceIO']
 
 
 def _flatten(l):
-    """
-    Flat an iterable of iterables to list.
-    """
+    """Flatten an iterable of iterables to list."""
     return list(chain(*l))
 
 
@@ -33,7 +29,7 @@ def _is_valid_port(port):
     return isinstance(port, (Kind, Type, MagmaProtocolMeta))
 
 
-def _parse(decl):
+def _parse_decl(decl):
     """
     Parse argument declaration of the form:
 
@@ -53,24 +49,28 @@ def _parse(decl):
     return names, ports
 
 
-def _make_interface_args(decl, renamed_ports, inst, defn):
-    names, ports = _parse(decl)  # parse the class Interface declaration
-    args = OrderedDict()
-    for name, port in zip(names, ports):
-        if   inst: ref = InstRef(inst, name)
-        elif defn: ref = DefnRef(defn, name)
-        else:      ref = NamedRef(name)
+def _make_ref(name, inst, defn):
+    assert not (inst is not None and defn is not None)
+    if inst:
+        return InstRef(inst, name)
+    if defn:
+        return DefnRef(defn, name)
+    return NamedRef(name)
 
-        if name in renamed_ports:
-            ref.name = renamed_ports[name]
-        if defn:
-           port = port.flip()
-        if isinstance(port, MagmaProtocolMeta):
-            args[name] = port._from_magma_value_(port._to_magma_()(name=ref))
-        else:
-            args[name] = port(name=ref)
 
-    return args
+def _make_port(typ, ref, flip):
+    if flip:
+        typ = typ.flip()
+    if isinstance(typ, MagmaProtocolMeta):
+        return typ._from_magma_value_(typ._to_magma_()(name=ref))
+    return typ(name=ref)
+
+
+def _rename_ports(ports, renamed_ports):
+    for name, port in ports.items():
+        if name not in renamed_ports:
+            continue
+        port.name.name = renamed_ports[name]
 
 
 def _make_wire_str(driver, value, wired):
@@ -87,8 +87,9 @@ def _make_wire_str(driver, value, wired):
     if (value, driver) in wired:
         return ""
     wired.add((value, driver))
-    if isinstance(driver, (Array, Tuple)) and \
-            not driver.iswhole(driver.ts):
+    descend = (isinstance(driver, (Array, Tuple)) and
+               not driver.iswhole(driver.ts))
+    if descend:
         return "".join(_make_wire_str(d, v, wired)
                        for d, v in zip(driver, value))
     iname = value.name.qualifiedname()
@@ -112,26 +113,18 @@ def _make_wires(value, wired):
     Traces from `value` to the source driver, emitting the wiring of the
     temporaries along the way.
     """
-    s = ""
     if value.is_output():
-        return s
-    if isinstance(value, (Array, Tuple)) and \
-            value.is_mixed():
-        # Mixed
-        for v in value:
-            s += _make_wires(v, wired)
-        return s
+        return ""
+    if isinstance(value, (Array, Tuple)) and value.is_mixed():
+        return "".join(_make_wires(v, wired) for v in value)
     driver = value.value()
     if driver is None:
-        return s
-    if isinstance(value, (Array, Tuple)) and \
-            not driver.iswhole(driver.ts):
-        for elem in value:
-            s += _make_wires(elem, wired)
-        return s
+        return ""
+    if isinstance(value, (Array, Tuple)) and not driver.iswhole(driver.ts):
+        return "".join(_make_wires(elem, wired) for elem in value)
     while driver is not None and driver.name.anon() and not driver.is_output():
-        # Skip anon values
-        driver = driver.value()
+        driver = driver.value()  # skip anon values
+    s = ""
     while driver is not None:
         if (driver, value) in wired:
             break
@@ -144,10 +137,35 @@ def _make_wires(value, wired):
     return s
 
 
-class _Interface(Type):
-    """
-    Abstract Base Class for an Interface.
-    """
+class InterfaceKind(Kind):
+    def __init__(cls, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        args = zip(cls._decl[::2], cls._decl[1::2])
+        cls.ports = OrderedDict(args)
+
+    def items(cls):
+        return cls.ports.items()
+
+    def __iter__(cls):
+        return iter(cls.ports)
+
+    def __str__(cls):
+        args = [f"\"{arg}\"" if i % 2 == 0 else str(arg)
+                for i, arg in enumerate(cls._decl)]
+        return ", ".join(args)
+
+    def __eq__(cls, rhs):
+        return cls._decl == rhs._decl
+
+    def __ne__(cls, rhs):
+        return super().__ne__(rhs)
+
+    def __hash__(cls):
+        return super().__hash__()
+
+
+class _InterfaceBase(Type):
+    """Abstract Base Class for Interface types"""
     def __str__(self):
         return str(type(self))
 
@@ -185,8 +203,8 @@ class _Interface(Type):
         return list(self.ports.values())
 
     def is_input(self, port, include_clocks=False):
-        return port.is_input() and \
-            (not isinstance(port, ClockTypes) or include_clocks)
+        return (port.is_input() and
+                (not isinstance(port, ClockTypes) or include_clocks))
 
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
@@ -217,17 +235,20 @@ class _Interface(Type):
 
     def inputargs(self):
         """Return all the input arguments as name, port."""
-        return _flatten([name, port] for name, port in self.ports.items()
+        return _flatten([name, port]
+                        for name, port in self.ports.items()
                         if port.is_input() and not isinstance(port, ClockTypes))
 
     def outputargs(self):
         """Return all the output arguments as name, port."""
-        return _flatten([name, port] for name, port in self.ports.items()
+        return _flatten([name, port]
+                        for name, port in self.ports.items()
                         if port.is_output())
 
     def clockargs(self):
         """Return all the clock arguments as name, port."""
-        return _flatten([name, port] for name, port in self.ports.items()
+        return _flatten([name, port]
+                        for name, port in self.ports.items()
                         if isinstance(port, ClockTypes))
 
     def clockargnames(self):
@@ -237,25 +258,29 @@ class _Interface(Type):
 
     def isclocked(self):
         """Return True if this interface has a Clock."""
-        return any(isinstance(port, ClockType) for
-                   port in self.ports.values())
+        return any(isinstance(port, ClockType)
+                   for port in self.ports.values())
 
-class Interface(_Interface):
-    """Interface class."""
+
+class Interface(_InterfaceBase):
+    """Interface class"""
     def __init__(self, decl, renamed_ports={}):
         """
-        This function assumes the port instances are provided:
+        Assumes the port instances are provided:
             e.g. Interface('I0', In(Bit)(), 'I1', In(Bit)(), 'O', Out(Bit)())
         """
-        names, ports = _parse(decl)
-        args = OrderedDict()
-        for name, port in zip(names, ports):
-            if isinstance(name, IntegerTypes):
-                name = str(name)  # convert integer to str, e.g. 0 to "0"
+
+        def _map_name(name):
             if name in renamed_ports:
                 raise NotImplementedError("Port renaming not implemented")
-            args[name] = port
-        self.ports = args
+            # Convert integer to str, e.g. 0 to "0".
+            if isinstance(name, IntegerTypes):
+                return str(name)
+            return name
+
+        names, types = _parse_decl(decl)
+        names = map(_map_name, names)
+        self.ports = OrderedDict(zip(names, types))
 
     def __str__(self):
         s = ", ".join(f"{k}: {v}" for k, v in self.ports.items())
@@ -270,18 +295,21 @@ class AnonymousInterface(Interface):
     TODO: Need tests for all these cases
     """
     def outputs(self):
-        return list(filter(
-            lambda port: port.is_output() or port.trace() is None and
-            not port.wired() and not port.is_input() and not port.is_inout(),
-            self.ports.values()))
+
+        def _is_output(port):
+            return (port.is_output() or port.trace() is None and
+                    not port.wired() and not port.is_input() and
+                    not port.is_inout())
+
+        return list(filter(_is_output, self.ports.values()))
 
     def is_input(self, port, include_clocks=False):
-        return port.is_input() or port.trace() is None and \
-            port.wired() and not port.is_output() and not port.is_inout() and \
-            (not isinstance(port, ClockTypes) or include_clocks)
+        return (port.is_input() or port.trace() is None and
+                port.wired() and not port.is_output() and not port.is_inout() and
+                (not isinstance(port, ClockTypes) or include_clocks))
 
 
-class _DeclareInterface(_Interface):
+class _DeclareInterface(_InterfaceBase):
     """
     _DeclareInterface class.
 
@@ -291,76 +319,74 @@ class _DeclareInterface(_Interface):
     Then, the interface is instanced:
         interface = Interface()
     """
-    def __init__(self, renamed_ports={}, inst=None, defn=None):
-        self.ports = _make_interface_args(self.Decl, renamed_ports, inst, defn)
+    def __init__(self, renamed_ports={}, *, inst=None, defn=None):
+        assert not (inst is not None and defn is not None)
+        cls = type(self)
+        names, types = _parse_decl(cls._decl)
+        refs = (_make_ref(name, inst, defn) for name in names)
+        args = zip(names, zip(types, refs))
+        flip = defn is not None
+        self.ports = {n: _make_port(t, r, flip) for n, (t, r) in args}
+        _rename_ports(self.ports, renamed_ports)
 
-class _DeclareLazyInterface(_Interface):
-    """_DeclareLazyInterface class"""
-    def __init__(self, renamed_ports={}, inst=None, defn=None):
-        # This interface declaration is only lazy for module definitions (not
-        # instances). If @defn is not supplied, then we use the standard
-        # (non-lazy) interface construction logic.
-        if not defn:
-            self.ports = _make_interface_args(self.Decl, renamed_ports, inst,
-                                              defn)
+
+class _DeclareSingletonInterface(_DeclareInterface):
+    """_DeclareSingletonInterface class"""
+    def __init__(self, renamed_ports={}, *, inst=None, defn=None):
+        assert not (inst is not None and defn is not None)
+        # This interface declaration has singleton semantics for its module
+        # definition (not instances or further definition instancing).
+        cls = type(self)
+        if cls._initialized:
+            super().__init__(renamed_ports, inst=inst, defn=defn)
             return
-        self.io.bind(defn)  # bind IO to @defn
-        args = OrderedDict()
-        for name, port in self.io.ports.items():
-            if name in renamed_ports:
-                port.name.name = renamed_ports[name]
-            args[name] = port
-
-        self.ports = args
+        assert defn is not None
+        cls._io.bind(defn)  # bind IO to @defn
+        self.ports = OrderedDict(cls._io.ports.items())
+        _rename_ports(self.ports, renamed_ports)  # rename ports
+        cls._initialized = True
 
 
-class InterfaceKind(Kind):
-    def __init__(cls, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        ports = []
-        key = None
-        for i, arg in enumerate(cls.Decl):
-            if i % 2 == 0:
-                key = arg
-            else:
-                ports.append((key, arg))
-        cls.ports = OrderedDict(ports)
+class _DeclareSingletonInstanceInterface(_DeclareInterface):
+    """_DeclareSingletonInterface class"""
+    def __init__(self, renamed_ports={}, *, inst=None, defn=None):
+        assert not (inst is not None and defn is not None)
+        # This interface declaration has singleton semantics for its module
+        # definition (not instances or further definition instancing).
+        cls = type(self)
 
-    def items(cls):
-        return cls.ports.items()
-
-    def __iter__(cls):
-        return iter(cls.ports)
-
-    def __str__(cls):
-        args = []
-        for i, arg in enumerate(cls.Decl):
-            if i % 2 == 0:
-                args.append(f"\"{arg}\"")
-            else:
-                args.append(str(arg))
-        return ", ".join(args)
-
-    def __eq__(cls, rhs):
-        return cls.Decl == rhs.Decl
-
-    __ne__=Kind.__ne__
-    __hash__=Kind.__hash__
+        if defn:
+            if cls._initialized:
+                super().__init__(renamed_ports, inst=inst, defn=defn)
+                return
+            cls._io.bind(defn)  # bind IO to @defn
+            self.ports = OrderedDict(cls._io.ports.items())
+            _rename_ports(self.ports, renamed_ports)  # rename ports
+            cls._initialized = True
+            return
+        if inst:
+            if cls._initialized_inst:
+                super().__init__(renamed_ports, inst=inst, defn=defn)
+                return
+            cls._io.bind_inst(inst)  # bind IO to @inst
+            self.ports = OrderedDict(cls._io.inst_ports.items())
+            _rename_ports(self.ports, renamed_ports)  # rename ports
+            cls._initialized_inst = True
+            return
+        super().__init__(renamed_ports, inst=inst, defn=defn)
 
 
-def DeclareInterface(*decl, **kwargs):
+def make_interface(*decl):
     """Interface factory function."""
     name = _make_interface_name(decl)
-    dct = dict(Decl=decl, **kwargs)
+    dct = dict(_decl=decl)
     return InterfaceKind(name, (_DeclareInterface,), dct)
 
 
-def DeclareLazyInterface(io, **kwargs):
-    """LazyInterface factory function"""
-    decl = io.decl()
-    name = _make_interface_name(decl)
-    dct = dict(io=io, Decl=io.decl(), **kwargs)
-    return InterfaceKind(name, (_DeclareLazyInterface,), dct)
+@deprecated(msg="DeclareInterface() is deprecated, use make_interface() "
+            "instead")
+def DeclareInterface(*decl):
+    return make_interface(*decl)
 
 
 class IOInterface(ABC):
@@ -379,13 +405,15 @@ class IOInterface(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def make_interface(self):
+        raise NotImplementedError()
+
+    @abstractmethod
     def __add__(self, other):
         raise NotImplementedError()
 
     def __iadd__(self, other):
-        """
-        __iadd__ is explicitly overriden to enforce that it is non-mutating.
-        """
+        # __iadd__ is explicitly overriden to enforce that it is non-mutating.
         return self + other
 
 
@@ -401,16 +429,13 @@ class IO(IOInterface):
     def __init__(self, **kwargs):
         self._ports = {}
         self._decl = []
-        for name, typ in kwargs.items():
-            ref = LazyDefnRef(name=name)
-            if isinstance(typ, MagmaProtocolMeta):
-                port = typ.flip()
-                port = port._from_magma_value_(port._to_magma_()(name=ref))
-            else:
-                port = typ.flip()(name=ref)
-            self._ports[name] = port
-            self._decl += [name, typ]
-            setattr(self, name, port)
+        names = kwargs.keys()
+        types = kwargs.values()
+        refs = (LazyDefnRef(name=name) for name in kwargs)
+        args = zip(kwargs.keys(), zip(kwargs.values(), refs))
+        self._ports = {n: _make_port(t, r, flip=True) for n, (t, r) in args}
+        setattrs(self, self._ports)
+        self._decl = _flatten(zip(names, types))
         self._bound = False
 
     @property
@@ -426,6 +451,12 @@ class IO(IOInterface):
 
     def decl(self):
         return self._decl
+
+    def make_interface(self):
+        decl = self.decl()
+        name = _make_interface_name(decl)
+        dct = dict(_io=self, _decl=decl, _initialized=False)
+        return InterfaceKind(name, (_DeclareSingletonInterface,), dct)
 
     def __add__(self, other):
         """
@@ -447,3 +478,48 @@ class IO(IOInterface):
             raise Exception("Adding IO with duplicate port names not allowed")
         decl = self._decl + other._decl
         return IO(**dict(zip(decl[::2], decl[1::2])))
+
+
+class SingletonInstanceIO(IO):
+    """
+    Class for creating an interface bundle for a singleton instance.
+
+    @kwargs: ordered dict of {name: type}, ala decl.
+    """
+    def __init__(self):
+        super().__init__()
+        self._inst_ports = {}
+        self._bound_inst = False
+
+    def bind_inst(self, inst):
+        if self._bound_inst:
+            raise Exception("Can not bind IO multiple times")
+        for port in self._inst_ports.values():
+            port.name.set_inst(inst)
+        self._bound = True
+
+    @property
+    def inst_ports(self):
+        return self._inst_ports.copy()
+
+    def make_interface(self):
+        decl = self.decl()
+        name = _make_interface_name(decl)
+        dct = dict(_io=self, _decl=decl, _initialized=False,
+                   _initialized_inst=False)
+        return InterfaceKind(name, (_DeclareSingletonInstanceInterface,), dct)
+
+    def add(self, name, typ):
+        # Definition port.
+        ref = LazyDefnRef(name=name)
+        port = _make_port(typ, ref, flip=True)
+        self._ports[name] = port
+        setattr(self, name, port)
+        # Instance port.
+        inst_ref = LazyInstRef(name=name)
+        inst_port = _make_port(typ, inst_ref, flip=False)
+        self._inst_ports[name] = inst_port
+
+    def __add__(self, other):
+        raise NotImplementedError(f"Addition operator disallowed on "
+                                  f"{cls.__name__}")
