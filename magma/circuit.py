@@ -876,4 +876,5 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         dct = {"io": self._io, "_context_": self._context, "name": self._name}
         DefineCircuitKind.__prepare__(self._name, bases)
         t = DefineCircuitKind(self._name, bases, dct)
+        self._finalized = True
         return t(name=self._name)
