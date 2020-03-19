@@ -21,6 +21,7 @@ class _PassThroughBuilder(m.CircuitBuilder):
     def __init__(self, name):
         super().__init__(name)
         self._added = False
+        self._set_namespace_key("_some_private_attr", None)
 
     @m.builder_method
     def add(self):
@@ -57,3 +58,9 @@ EndCircuit()"""
     assert check_files_equal(__file__,
                              "build/test_circuit_builder_basic.json",
                              "gold/test_circuit_builder_basic.json")
+    # Check that _set_namespace_key.
+    assert len(_Top.instances) == 1
+    inst = _Top.instances[0]
+    assert inst.name == "my_pt"
+    defn = type(inst)
+    assert defn._some_private_attr == None
