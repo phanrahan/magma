@@ -3,7 +3,7 @@ from collections import OrderedDict
 from itertools import chain
 from .array import Array
 from .clock import Clock, ClockTypes
-from .common import setattrs
+from .common import deprecated, setattrs
 from .compatibility import IntegerTypes, StringTypes
 from .conversions import array
 from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
@@ -381,6 +381,12 @@ def make_interface(*decl):
     name = _make_interface_name(decl)
     dct = dict(_decl=decl)
     return InterfaceKind(name, (_DeclareInterface,), dct)
+
+
+@deprecated(msg="DeclareInterface() is deprecated, use make_interface() "
+            "instead")
+def DeclareInterface(*decl):
+    return make_interface(*decl)
 
 
 class IOInterface(ABC):
