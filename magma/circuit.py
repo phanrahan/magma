@@ -274,12 +274,10 @@ class CircuitKind(type):
         try:
             context = _definition_context_stack.pop()
             assert context.placer.name == cls_name
-            try:
-                context = dct["_context_"]
-            except KeyError:
-                pass
-            cls._context_ = context
-            context.finalize(cls)
+            # Override staged context with '_context_' from namespace if
+            # available.
+            cls._context_ = dct.get("_context_", context)
+            cls._context_.finalize(cls)
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
 
@@ -852,7 +850,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         try:
             context = _definition_context_stack.peek()
             context.add_builder(self)
-        except IndexError:  # builders must be inside a definition context
+        except IndexError:
             raise Exception("Can not instance a circuit builder outside a "
                             "definition")
         self._name = name
