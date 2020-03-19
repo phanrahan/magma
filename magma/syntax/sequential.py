@@ -237,29 +237,67 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     return register_instances
 
 
+class TypeNamer:
+    def __init__(self, tree, env):
+        self.tree = tree
+        self.env = env
+        self.cache = {}
+
+    def __call__(self, t):
+        try:
+            return self.cache[t]
+        except KeyError:
+            pass
+
+        # Try to keep the name the same
+        for k, v in self.env.items():
+            if v is t:
+                return self.cache.setdefault(t, k)
+
+        # Maybe we can exec the repr?
+        try:
+            s = eval(repr(t), env)
+        except:
+            pass
+        else:
+            if s is t:
+                return self.cache.setdefault(t, repr(t))
+
+        # Or the str?
+        try:
+            s = eval(str(t), env)
+        except:
+            pass
+        else:
+            if s is t:
+                return self.cache.setdefault(t, str(t))
+
+        # give up generate a fesh one
+        n = self.cache.setdefault(t, gen_free_name(self.tree, self.env, 'T'))
+        self.env[n] = t
+        return n
+
+
 def get_io_from_annotations(f, tree, defn_env):
     inputs = []
     outputs = []
     tuple_out = False
+    namer = TypeNamer(tree, defn_env)
     for k, v in f.__annotations__.items():
         if k == 'return':
             if isinstance(v, tuple):
                 tuple_out = True
                 for idx, t in enumerate(v):
-                    t_name = gen_free_name(tree, defn_env, 'T')
+                    t_name = namer(t)
                     outputs.append((f'O{idx}', t_name))
-                    defn_env[t_name] = t
             else:
-                t_name = gen_free_name(tree, defn_env, 'T')
+                t_name = namer(v)
                 outputs.append(('O', t_name))
-                defn_env[t_name] = v
         else:
-            t_name = gen_free_name(tree, defn_env, 'T')
-            defn_env[t_name] = v
+            t_name = namer(v)
             inputs.append((k, t_name))
 
     return inputs, outputs, tuple_out
-
 
 
 def gen_io_args(inputs, outputs, async_reset, magma_name):
