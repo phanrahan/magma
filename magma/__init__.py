@@ -24,6 +24,8 @@ def singleton(cls):
 
     return wrapper
 
+from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+
 # wires
 from .wire import wire
 

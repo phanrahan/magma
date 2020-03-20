@@ -6,8 +6,9 @@ from .clock import Clock, ClockTypes
 from .common import deprecated, setattrs
 from .compatibility import IntegerTypes, StringTypes
 from .conversions import array
+from .protocol_type import MagmaProtocolMeta
 from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
-from .t import Type, Kind, MagmaProtocolMeta, Direction
+from .t import Type, Kind, Direction
 from .tuple import Tuple
 
 

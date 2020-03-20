@@ -9,7 +9,8 @@ from .circuit import coreir_port_mapping
 from .conversions import array
 from .generator import Generator2
 from .interface import IO
-from .t import Type, In, Out, MagmaProtocol
+from .protocol_type import MagmaProtocol
+from .t import Type, In, Out
 from .tuple import Product
 from .wire import wire
 
