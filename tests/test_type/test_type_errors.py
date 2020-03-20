@@ -114,7 +114,7 @@ def test_bit_to_array(caplog):
         buf = Buf()
         wire(buf.I, io.O)
     msg = """\
-\033[1mtests/test_type/test_type_errors.py:115\033[0m: Cannot wire .O (type=In(Bit)) to I (type=Array[8, In(Bit)]) because ..I is not a Digital
+\033[1mtests/test_type/test_type_errors.py:115\033[0m: Cannot wire .O (type=In(Bit)) to I (type=Array[8, In(Bit)]) because ..I is not a Bit
 >>         wire(buf.I, io.O)"""
     assert has_error(caplog, msg)
     m.config.set_debug_mode(False)

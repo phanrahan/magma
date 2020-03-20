@@ -146,10 +146,12 @@ class Digital(Type, metaclass=DigitalMeta):
         if isinstance(o, IntegerTypes):
             o = HIGH if o else LOW
 
-        if not isinstance(o, Digital):
+        i_cls = type(i)._info_[0]
+        o_cls = type(o)._info_[0]
+        if not isinstance(o, i_cls) and not isinstance(i, o_cls):
             _logger.error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} '
                           f'(type={type(o)}) because {o.debug_name} is not a '
-                          f'Digital', debug_info=debug_info)
+                          f'{i_cls}', debug_info=debug_info)
             return
 
         i._wire.connect(o._wire, debug_info)
@@ -194,12 +196,12 @@ class Digital(Type, metaclass=DigitalMeta):
     def unused(self):
         if self.is_input() or self.is_inout():
             raise TypeError("unused cannot be used with input/inout")
-        m.wire(self, DefineUnused()().I)
+        m.wire(m.bit(self), DefineUnused()().I)
 
     def undriven(self):
         if self.is_output() or self.is_inout():
             raise TypeError("undriven cannot be used with output/inout")
-        m.wire(DefineUndriven()().O, self)
+        m.wire(DefineUndriven()().O, m.bit(self))
 
     @classmethod
     def is_mixed(cls):

@@ -2,6 +2,7 @@ from coreir import Context
 from ..array import Array
 from ..tuple import Tuple
 from ..clock import AsyncReset, AsyncResetN, Clock
+from ..conversions import convertbit
 from ..config import config, EnvConfig
 from ..logging import root_logger
 from ..t import In, Out
@@ -97,11 +98,12 @@ class InsertWrapCasts(DefinitionPass):
             T = type(port).flip()
         else:
             T = type(value).flip()
+
         with definition.open():
             port.unwire(value)
             inst = self.define_wrap(T, type(port), type(value))()
-            wire(getattr(inst, "in"), value)
-            wire(inst.out, port)
+            wire(getattr(inst, "in"), convertbit(value, type(port)))
+            wire(inst.out, convertbit(port, type(value)))
 
     def __call__(self, definition):
         # copy, because wrapping might add instances
