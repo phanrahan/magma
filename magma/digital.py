@@ -2,7 +2,7 @@ from functools import lru_cache
 import weakref
 import magma as m
 from abc import ABCMeta
-from .t import Kind, Direction, Type
+from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
@@ -77,7 +77,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
             if isinstance(value, (bool, IntegerTypes)):
-                return m.VCC if value else m.GND
+                return VCC if value else GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
             assert isinstance(value, Digital), type(value)
@@ -144,7 +144,7 @@ class Digital(Type, metaclass=DigitalMeta):
         i = self
         # promote integer types to LOW/HIGH
         if isinstance(o, IntegerTypes):
-            o = m.HIGH if o else m.LOW
+            o = HIGH if o else LOW
 
         if not isinstance(o, Digital):
             _logger.error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} '
@@ -174,7 +174,7 @@ class Digital(Type, metaclass=DigitalMeta):
         return [self]
 
     def const(self):
-        return self is m.VCC or self is m.GND
+        return self is VCC or self is GND
 
     def unwire(i, o):
         i._wire.unwire(o._wire)
@@ -205,6 +205,13 @@ class Digital(Type, metaclass=DigitalMeta):
     def is_mixed(cls):
         return False
 
+    def __repr__(self):
+        if self is VCC:
+            return "VCC"
+        if self is GND:
+            return "GND"
+        return Type.__repr__(self)
+
 
 def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
@@ -226,5 +233,11 @@ def make_Define(_name, port, direction):
     return DefineCorebit
 
 
-DefineUndriven = make_Define("undriven", "O", m.Out)
-DefineUnused = make_Define("term", "I", m.In)
+VCC = Digital[Direction.Out](name="VCC")
+GND = Digital[Direction.Out](name="GND")
+
+HIGH = VCC
+LOW = GND
+
+DefineUndriven = make_Define("undriven", "O", Out)
+DefineUnused = make_Define("term", "I", In)

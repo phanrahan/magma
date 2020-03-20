@@ -12,7 +12,7 @@ import hwtypes as ht
 import magma as m
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
-from .digital import Digital, DigitalMeta
+from .digital import Digital, DigitalMeta, VCC, GND
 from .util import primitive_to_python_operator_name_map
 
 
@@ -179,19 +179,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         raise NotImplementedError("Converting magma bit to int not supported")
 
     def __repr__(self):
-        if self is VCC:
-            return "VCC"
-        if self is GND:
-            return "GND"
         return super().__repr__()
-
-
-VCC = Bit[Direction.Out](name="VCC")
-GND = Bit[Direction.Out](name="GND")
-
-HIGH = VCC
-LOW = GND
-
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]
