@@ -22,9 +22,7 @@ from .is_definition import isdefinition
 from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
 from .bit import VCC, GND
 from .bind import bind as bind
-from .array import Array
 from .placer import Placer, StagedPlacer
-from .tuple import Tuple
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
@@ -150,13 +148,10 @@ def _has_definition(cls, port=None):
     if port is None:
         interface = getattr(cls, "interface", None)
         if not interface:
-            return None
+            return False
         return any(_has_definition(cls, p) for p in interface.ports.values())
-    if isinstance(port, Tuple) or isinstance(port, Array):
-        return any(_has_definition(cls, elem) for elem in port)
-    if not port.is_output():
-        return port.value() is not None
-    return False
+    flat = port.flatten()
+    return any([not f.is_output() and f.value() is not None for f in flat])
 
 
 def _get_interface_type(cls):
@@ -217,17 +212,18 @@ def _get_intermediate_values(value, values):
     driver = value.value()
     if driver is None:
         return
-    if isinstance(value, (Array, Tuple)) and driver.name.anon():
-        for elem in value:
-            _get_intermediate_values(elem, values)
-    else:
-        while driver is not None:
-            _add_intermediate_value(driver, values)
-            if not driver.is_output():
-                value = driver
-                driver = driver.value()
-            else:
-                driver = None
+    flat = value.flatten()
+    if len(flat) > 1 and driver.name.anon():
+        for f in flat:
+            _get_intermediate_values(f, values)
+        return
+    while driver is not None:
+        _add_intermediate_value(driver, values)
+        if not driver.is_output():
+            value = driver
+            driver = driver.value()
+        else:
+            driver = None
 
 
 class CircuitKind(type):

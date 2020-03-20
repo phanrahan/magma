@@ -60,6 +60,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def driven(self):
         return self._get_magma_value_().driven()
 
+    def flatten(self):
+        return self._get_magma_value_().flatten()
+
     @property
     def name(self):
         return self._get_magma_value_().name
