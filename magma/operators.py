@@ -6,7 +6,7 @@ from .bit import Bit
 from .bits import Bits
 from .bitutils import clog2, seq2int
 from .circuit import coreir_port_mapping
-from .conversions import array
+from .conversions import array, as_bits, from_bits
 from .generator import Generator2
 from .interface import IO
 from .protocol_type import MagmaProtocol
@@ -58,13 +58,13 @@ class Mux(Generator2):
 
         self.io = IO(**io_dict)
         mux = CoreIRCommonLibMuxN(height, N)()
-        data = [getattr(self.io, f"I{i}").as_bits() for i in range(height)]
+        data = [as_bits(getattr(self.io, f"I{i}")) for i in range(height)]
         wire(mux.I.data, array(data))
         if height == 2:
             wire(mux.I.sel[0], self.io.S)
         else:
             wire(mux.I.sel, self.io.S)
-        wire(T.from_bits(mux.O), self.io.O)
+        wire(from_bits(T, mux.O), self.io.O)
 
 
 def mux(I, S, **kwargs):

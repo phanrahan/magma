@@ -1,6 +1,7 @@
 from ..array import Array
 from ..bits import Bits
 from ..circuit import coreir_port_mapping
+from ..conversions import as_bits, from_bits
 from ..digital import Digital
 from ..generator import Generator2
 from ..interface import IO
@@ -84,14 +85,14 @@ class InsertCoreIRWires(DefinitionPass):
                 if issubclass(T, Digital):
                     wire_inst.I @= driver
                 else:
-                    wire_inst.I @= driver.as_bits()
+                    wire_inst.I @= as_bits(driver)
         else:
             wire_inst = self.wire_map[driver]
 
         if issubclass(T, Digital):
             value @= wire_inst.O
         else:
-            value @= T.from_bits(wire_inst.O)
+            value @= from_bits(T, wire_inst.O)
 
         self.insert_wire(driver, definition)
 

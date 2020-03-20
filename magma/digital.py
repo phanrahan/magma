@@ -201,17 +201,6 @@ class Digital(Type, metaclass=DigitalMeta):
             raise TypeError("undriven cannot be used with output/inout")
         m.wire(DefineUndriven()().O, self)
 
-    def as_bits(self):
-        result = m.Bits[1]()
-        result[0] @= self
-        return result
-
-    @classmethod
-    def from_bits(cls, other):
-        if not isinstance(other, m.Bits) and not len(other) == 1:
-            raise TypeError("Can only convert from Bits[1] to Bit")
-        return other[0]
-
     @classmethod
     def is_mixed(cls):
         return False

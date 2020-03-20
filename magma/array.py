@@ -433,27 +433,6 @@ class Array(Type, metaclass=ArrayMeta):
         for elem in self:
             elem.unused()
 
-    def as_bits(self):
-        if isinstance(self.T, Digital):
-            return Bits[len(self)](self.ts)
-        return reduce(lambda x, y: x.concat(y),
-                      map(lambda x: x.as_bits(), self.ts))
-
-    @classmethod
-    def from_bits(cls, value):
-        if issubclass(cls.T, Digital):
-            if not len(cls) == len(value):
-                raise TypeError("Width mismatch")
-            return cls(value.ts)
-        child_length = cls.T.flat_length()
-        children = [
-            cls.T.from_bits(
-                value[i * child_length:(i + 1) * child_length]
-            )
-            for i in range(child_length)
-        ]
-        return cls(children)
-
     @classmethod
     def is_mixed(cls):
         return cls.T.is_mixed()
