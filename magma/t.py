@@ -1,11 +1,9 @@
-import functools
-import warnings
+import abc
 import enum
-from abc import abstractmethod
-import magma as m
-from .common import deprecated
-from .ref import AnonRef, NamedRef, DefnRef, InstRef
-from .compatibility import IntegerTypes, StringTypes
+import magma as m  # TODO(rsetaluri): Remove package import.
+from magma.common import deprecated
+from magma.compatibility import IntegerTypes, StringTypes
+from magma.ref import AnonRef, NamedRef, DefnRef, InstRef
 
 
 class Direction(enum.Enum):
@@ -28,19 +26,20 @@ class Type(object):
     def __repr__(self):
         if self.name.anon():
             return f"{type(self)}()"
-        if isinstance(self.name, NamedRef) and \
-                not isinstance(self.name, (InstRef, DefnRef)):
+        has_name = (isinstance(self.name, NamedRef) and
+                    not isinstance(self.name, (InstRef, DefnRef)))
+        if has_name:
             return f"{type(self)}(name=\"{repr(self.name)}\")"
         return repr(self.name)
 
     def __str__(self):
         return str(self.name)
 
-    # an instance has an anon name
+    # An instance has an anon name.
     def anon(self):
         return self.name.anon()
 
-    # abstract method - must be implemented by subclasses
+    # Abstract method to be implemented by subclasses.
     @classmethod
     def is_oriented(cls, direction):
         raise NotImplementedError()
@@ -89,37 +88,36 @@ class Type(object):
         return f"{defn_str}{inst_str}{str(self)}"
 
     def __le__(self, other):
-        if not self.is_output():
-            self.wire(other)
-        else:
-            raise TypeError(f"Cannot use <= to assign to output: {self.debug_name} (trying to assign {other.debug_name})")
+        if self.is_output():
+            raise TypeError(f"Cannot use <= to assign to output: "
+                            f"{self.debug_name} (trying to assign "
+                            f"{other.debug_name})")
+        self.wire(other)
 
     def __imatmul__(self, other):
-        if not self.is_output():
-            self.wire(other)
-        else:
-            raise TypeError(f"Cannot use @= to assign to output: {self} (trying to assign {other})")
+        if self.is_output():
+            raise TypeError(f"Cannot use @= to assign to output: {self} "
+                            f"(trying to assign {other})")
+        self.wire(other)
         return self
 
-    @abstractmethod
+    @abc.abstractmethod
     def unused(self):
         # Mark value is unused by calling unused on the underlying magma
-        # elements
-        # For example, m.Bit is wired up to a coreir term primitive
-        # A general m.Array and m.Tuple will recursively call `unused` on its
-        # members
+        # elements. For example, m.Bit is wired up to a coreir term primitive A
+        # general m.Array and m.Tuple will recursively call `unused` on its
+        # members.
         raise NotImplementedError()
 
-    @abstractmethod
+    @abc.abstractmethod
     def undriven(self):
         # Mark value is undriven by calling undriven on the underlying magma
-        # elements
-        # For example, m.Bit is wired up to a coreir undriven primitive
-        # A general m.Array and m.Tuple will recursively call `undriven` on its
-        # members
+        # elements. For example, m.Bit is wired up to a coreir undriven
+        # primitive A general m.Array and m.Tuple will recursively call
+        # `undriven` on its members.
         raise NotImplementedError()
 
-    @abstractmethod
+    @abc.abstractmethod
     def as_bits(self):
         """
         Convert value to "flat" representation as an instance of m.Bits
@@ -132,7 +130,7 @@ class Type(object):
         raise NotImplementedError()
 
     @classmethod
-    @abstractmethod
+    @abc.abstractmethod
     def from_bits(self):
         """
         Create value from a "flat" representation as an instance of m.Bits.
@@ -144,9 +142,8 @@ class Type(object):
         raise NotImplementedError()
 
 
-
 class Kind(type):
-    # subclasses only need to implement one of these methods
+    # Subclasses only need to implement one of these methods.
     def __eq__(cls, rhs):
         return cls is rhs
 
@@ -158,19 +155,17 @@ class Kind(type):
     def __str__(cls):
         return cls.__name__
 
-    @abstractmethod
+    @abc.abstractmethod
     def qualify(cls, direction):
         raise NotImplementedError()
 
     def flip(cls):
         if cls.direction == Direction.In:
             return cls[Direction.Out]
-        elif cls.direction == Direction.Out:
+        if cls.direction == Direction.Out:
             return cls[Direction.In]
-        else:
-            # Flip of inout is inout
-            # Flip of undirected is undirected
-            return cls
+        # Flip of inout is inout, and flip of undirected is undirected.
+        return cls
 
 
 def In(T):
@@ -190,18 +185,18 @@ def Flip(T):
 
 
 class MagmaProtocolMeta(type):
-    @abstractmethod
+    @abc.abstractmethod
     def _to_magma_(cls):
         # Need way to retrieve underlying magma type
         raise NotImplementedError()
 
-    @abstractmethod
+    @abc.abstractmethod
     def _qualify_magma_(cls, direction: Direction):
         # Need way to qualify underlying type (e.g. give me a Foo with the
         # underlying type qualified to be an input)
         raise NotImplementedError()
 
-    @abstractmethod
+    @abc.abstractmethod
     def _flip_magma_(cls):
         # Need way to flip underlying type (e.g. give me a Foo with the
         # underlying type flipped)
@@ -210,7 +205,7 @@ class MagmaProtocolMeta(type):
     def qualify(cls, direction: Direction):
         return cls._qualify_magma_(direction)
 
-    @abstractmethod
+    @abc.abstractmethod
     def _from_magma_value_(cls, val: Type):
         # Need a way to create an instance from a value
         raise NotImplementedError()
@@ -220,7 +215,7 @@ class MagmaProtocolMeta(type):
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
-    @abstractmethod
+    @abc.abstractmethod
     def _get_magma_value_(self):
         # Need way to access underlying magma value
         raise NotImplementedError()
