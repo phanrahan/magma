@@ -11,7 +11,6 @@ from .config import get_compile_dir, set_compile_dir
 # TODO: Remove circular dependency required for `circuit.bind` logic
 import magma as m
 from . import cache_definition
-from .clock import ClockTypes
 from .common import deprecated, setattrs, Stack
 from .interface import *
 from .wire import *
