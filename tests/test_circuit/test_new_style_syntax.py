@@ -118,7 +118,7 @@ def test_inst_wiring_error(caplog):
                               "(type=In(Bits[1])) because .I is not an Array"))
     assert has_error(caplog, ("Cannot wire .O (type=In(Bit)) to O "
                               "(type=Out(Bits[1])) because ..O is not a "
-                              "Bit"))
+                              "Digital"))
     assert has_error(caplog, "Output port _Foo.O not driven")
     assert has_error(caplog, "Input port _Bar_inst0.I not driven")
 

@@ -233,12 +233,10 @@ class Digital(Type, metaclass=DigitalMeta):
         if isinstance(o, IntegerTypes):
             o = HIGH if o else LOW
 
-        i_cls = type(i)._info_[0]
-        o_cls = type(o)._info_[0]
-        if not isinstance(o, i_cls) and not isinstance(i, o_cls):
+        if not isinstance(o, Digital):
             _logger.error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} '
                           f'(type={type(o)}) because {o.debug_name} is not a '
-                          f'{i_cls}', debug_info=debug_info)
+                          f'Digital', debug_info=debug_info)
             return
 
         i._wire.connect(o._wire, debug_info)
