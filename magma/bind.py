@@ -1,5 +1,10 @@
+import os
 import magma as m  # TODO(rsetaluri): Get rid of package import.
-from .verilog_utils import value_to_verilog_name
+from magma.array import Array
+from magma.config import get_compile_dir, set_compile_dir
+from magma.digital import Digital
+from magma.tuple import Tuple
+from magma.verilog_utils import value_to_verilog_name
 
 
 def _gen_bind_port(cls, mon_arg, bind_arg):
@@ -14,7 +19,7 @@ def _gen_bind_port(cls, mon_arg, bind_arg):
     return [(f".{port}({arg})")]
 
 
-def bind(cls, monitor, **args):
+def bind(cls, monitor, *args):
     bind_str = monitor.verilogFile
 
     ports = []

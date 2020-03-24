@@ -7,7 +7,6 @@ from collections import namedtuple
 import os
 
 import six
-from .config import get_compile_dir, set_compile_dir
 # TODO: Remove circular dependency required for `circuit.bind` logic
 import magma as m
 from . import cache_definition
@@ -20,7 +19,7 @@ from .logging import root_logger
 from .is_definition import isdefinition
 from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
 from .bit import VCC, GND
-from .bind import bind as bind
+from .bind import bind
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
