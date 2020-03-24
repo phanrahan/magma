@@ -178,8 +178,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def __int__(self) -> int:
         raise NotImplementedError("Converting magma bit to int not supported")
 
-    def __repr__(self):
-        return super().__repr__()
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]

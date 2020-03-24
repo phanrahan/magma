@@ -150,7 +150,7 @@ def _has_definition(cls, port=None):
             return False
         return any(_has_definition(cls, p) for p in interface.ports.values())
     flat = port.flatten()
-    return any([not f.is_output() and f.value() is not None for f in flat])
+    return any(not f.is_output() and f.value() is not None for f in flat)
 
 
 def _get_interface_type(cls):
@@ -218,11 +218,10 @@ def _get_intermediate_values(value, values):
         return
     while driver is not None:
         _add_intermediate_value(driver, values)
-        if not driver.is_output():
-            value = driver
-            driver = driver.value()
-        else:
-            driver = None
+        if driver.is_output():
+            break
+        value = driver
+        driver = driver.value()
 
 
 class CircuitKind(type):
