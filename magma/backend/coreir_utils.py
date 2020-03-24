@@ -6,7 +6,7 @@ from ..bit import VCC, GND, Digital
 from ..clock import Clock, AsyncReset, AsyncResetN
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
 from ..tuple import Tuple
-from ..t import MagmaProtocol
+from ..protocol_type import MagmaProtocol
 from .util import make_relative
 
 

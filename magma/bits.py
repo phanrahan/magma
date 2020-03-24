@@ -517,13 +517,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise TypeError("undriven cannot be used with output/inout")
         m.wire(DefineUndriven(len(self))().O, self)
 
-    def as_bits(self):
-        return self
-
-    @classmethod
-    def from_bits(cls, value):
-        return value
-
     def __getitem__(self, index):
         if isinstance(index, UInt):
             if not 2 ** len(index) == len(self):

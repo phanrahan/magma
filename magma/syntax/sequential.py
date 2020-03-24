@@ -2,7 +2,7 @@ import inspect
 import typing
 import ast
 from .util import get_ast
-from ..t import MagmaProtocol
+from ..protocol_type import MagmaProtocol
 import astor
 import magma.ast_utils as ast_utils
 from magma.debug import debug_info

@@ -1,4 +1,3 @@
-from functools import reduce
 import itertools
 from collections.abc import Sequence, Mapping
 from collections import OrderedDict
@@ -307,22 +306,6 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def unused(self):
         for elem in self:
             elem.unused()
-
-    def as_bits(self):
-        return reduce(lambda x, y: x.concat(y),
-                      map(lambda x: x.as_bits(), self.values()))
-
-    @classmethod
-    def from_bits(cls, value):
-        children = []
-        offset = 0
-        for child in cls.fields:
-            child_length = child.flat_length()
-            children.append(
-                child.from_bits(value[offset:offset + child_length])
-            )
-            offset += child_length
-        return cls(*children)
 
     @classmethod
     def is_mixed(cls):

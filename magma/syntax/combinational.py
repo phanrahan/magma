@@ -13,7 +13,8 @@ import types
 from magma.debug import debug_info
 from magma.ssa import convert_tree_to_ssa
 from magma.config import get_debug_mode
-from ..t import Type, MagmaProtocol
+from ..t import Type
+from ..protocol_type import MagmaProtocol
 import itertools
 import typing
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable

@@ -1,24 +1,20 @@
-from .compatibility import IntegerTypes
-from abc import abstractmethod
-
-
-__all__ = ['AnonRef', 'InstRef', 'DefnRef', 'ArrayRef', 'TupleRef']
-__all__ += ['LazyDefnRef', 'LazyCircuit']
+import abc
+from magma.compatibility import IntegerTypes
 
 
 class Ref:
-    @abstractmethod
+    @abc.abstractmethod
     def __str__(self):
         raise NotImplementedError()
 
     def __repr__(self):
         return self.qualifiedname()
 
-    @abstractmethod
+    @abc.abstractmethod
     def qualifiedname(self, sep="."):
         raise NotImplementedError()
 
-    @abstractmethod
+    @abc.abstractmethod
     def anon(self):
         raise NotImplementedError()
 
@@ -135,18 +131,18 @@ class LazyDefnRef(DefnRef):
 
 
 class ArrayRef(Ref):
-   def __init__(self, array, index):
-       self.array = array
-       self.index = index
+    def __init__(self, array, index):
+        self.array = array
+        self.index = index
 
-   def __str__(self):
-       return self.qualifiedname()
+    def __str__(self):
+        return self.qualifiedname()
 
-   def qualifiedname(self, sep="."):
-       return f"{self.array.name.qualifiedname(sep=sep)}[{self.index}]"
+    def qualifiedname(self, sep="."):
+        return f"{self.array.name.qualifiedname(sep=sep)}[{self.index}]"
 
-   def anon(self):
-       return self.array.name.anon()
+    def anon(self):
+        return self.array.name.anon()
 
 
 class TupleRef(Ref):
@@ -160,9 +156,11 @@ class TupleRef(Ref):
     def qualifiedname(self, sep="."):
         try:
             int(self.index)
-            return self.tuple.name.qualifiedname(sep=sep) + "[" + str(self.index) + "]"
+            return (self.tuple.name.qualifiedname(sep=sep) +
+                    "[" + str(self.index) + "]")
         except ValueError:
-            return self.tuple.name.qualifiedname(sep=sep) + sep + str(self.index)
+            return (self.tuple.name.qualifiedname(sep=sep) +
+                    sep + str(self.index))
 
     def verilog_name(self):
         return self.tuple.name.verilog_name() + "_" + str(self.index)

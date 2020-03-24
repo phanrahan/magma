@@ -7,11 +7,9 @@ from collections import namedtuple
 import os
 
 import six
-from .config import get_compile_dir, set_compile_dir
 # TODO: Remove circular dependency required for `circuit.bind` logic
 import magma as m
 from . import cache_definition
-from .clock import ClockTypes
 from .common import deprecated, setattrs, Stack
 from .interface import *
 from .wire import *
@@ -21,16 +19,13 @@ from .logging import root_logger
 from .is_definition import isdefinition
 from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
 from .bit import VCC, GND
-from .array import Array
+from .bind import bind
 from .placer import Placer, StagedPlacer
-from .tuple import Tuple
-from .digital import Digital
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from .verilog_utils import (value_to_verilog_name,
-                            convert_values_to_verilog_str,
+from .verilog_utils import (convert_values_to_verilog_str,
                             process_inline_verilog)
 from .view import PortView
 
@@ -151,13 +146,10 @@ def _has_definition(cls, port=None):
     if port is None:
         interface = getattr(cls, "interface", None)
         if not interface:
-            return None
+            return False
         return any(_has_definition(cls, p) for p in interface.ports.values())
-    if isinstance(port, Tuple) or isinstance(port, Array):
-        return any(_has_definition(cls, elem) for elem in port)
-    if not port.is_output():
-        return port.value() is not None
-    return False
+    flat = port.flatten()
+    return any(not f.is_output() and f.value() is not None for f in flat)
 
 
 def _get_interface_type(cls):
@@ -218,17 +210,17 @@ def _get_intermediate_values(value, values):
     driver = value.value()
     if driver is None:
         return
-    if isinstance(value, (Array, Tuple)) and driver.name.anon():
-        for elem in value:
-            _get_intermediate_values(elem, values)
-    else:
-        while driver is not None:
-            _add_intermediate_value(driver, values)
-            if not driver.is_output():
-                value = driver
-                driver = driver.value()
-            else:
-                driver = None
+    flat = value.flatten()
+    if len(flat) > 1 and driver.name.anon():
+        for f in flat:
+            _get_intermediate_values(f, values)
+        return
+    while driver is not None:
+        _add_intermediate_value(driver, values)
+        if driver.is_output():
+            break
+        value = driver
+        driver = driver.value()
 
 
 class CircuitKind(type):
@@ -698,49 +690,8 @@ class DefineCircuitKind(CircuitKind):
         """Place a circuit instance in this definition"""
         cls._context_.placer.place(inst)
 
-    def gen_bind_port(cls, mon_arg, bind_arg):
-        if isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and \
-                not issubclass(mon_arg.T, m.Digital):
-            result = []
-            for child1, child2 in zip(mon_arg, bind_arg):
-                result += cls.gen_bind_port(child1, child2)
-            return result
-        port = value_to_verilog_name(mon_arg)
-        arg = value_to_verilog_name(bind_arg)
-        return [(f".{port}({arg})")]
-
     def bind(cls, monitor, *args):
-        bind_str = monitor.verilogFile
-
-        ports = []
-        for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
-                                    cls.interface.ports.values()):
-            if str(mon_arg.name) != str(cls_arg.name):
-                error_str = f"""
-Bind monitor interface does not match circuit interface
-    Monitor Ports: {list(monitor.interface.ports)}
-    Circuit Ports: {list(cls.interface.ports)}
-"""
-                raise TypeError(error_str)
-            ports += cls.gen_bind_port(mon_arg, cls_arg)
-        extra_mon_args = list(
-            monitor.interface.ports.values()
-        )[len(cls.interface):]
-        for mon_arg, bind_arg in zip(extra_mon_args, args):
-            ports += cls.gen_bind_port(mon_arg, bind_arg)
-        ports_str = ",\n    ".join(ports)
-        bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
-        if not os.path.isdir(".magma"):
-            os.mkdir(".magma")
-        curr_compile_dir = get_compile_dir()
-        set_compile_dir("normal")
-        # Circular dependency, need coreir backend to compile, backend imports
-        # circuit (for wrap casts logic, we might be able to factor that out)
-        m.compile(f".magma/{monitor.name}", monitor, inline=True)
-        set_compile_dir(curr_compile_dir)
-        with open(f".magma/{monitor.name}.v", "r") as f:
-            content = "\n".join((f.read(), bind_str))
-        cls.bind_modules[monitor.name] = content
+        bind(cls, monitor, *args)
 
 
 @six.add_metaclass(DefineCircuitKind)
