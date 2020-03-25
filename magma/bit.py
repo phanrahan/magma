@@ -14,6 +14,8 @@ from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction
 from .digital import Digital, DigitalMeta, VCC, GND
 from .util import primitive_to_python_operator_name_map
+from magma.circuit import Circuit, coreir_port_mapping
+from magma.interface import IO
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -178,6 +180,37 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def __int__(self) -> int:
         raise NotImplementedError("Converting magma bit to int not supported")
 
+    def unused(self):
+        if self.is_input() or self.is_inout():
+            raise TypeError("unused cannot be used with input/inout")
+        DefineUnused()().I.wire(self)
+
+    def undriven(self):
+        if self.is_output() or self.is_inout():
+            raise TypeError("undriven cannot be used with output/inout")
+        self.wire(DefineUndriven()().O)
+
+
+def make_Define(_name, port, direction):
+    @lru_cache(maxsize=None)
+    def DefineCorebit():
+        class _Primitive(Circuit):
+            renamed_ports = coreir_port_mapping
+            name = f"corebit_{_name}"
+            coreir_name = _name
+            coreir_lib = "corebit"
+
+            def simulate(self, value_store, state_store):
+                pass
+
+            # Type must be a bit because coreir uses Bit for the primitive.
+            io = IO(**{port: direction(m.Bit)})
+        return _Primitive
+    return DefineCorebit
+
+
+DefineUndriven = make_Define("undriven", "O", m.Out)
+DefineUnused = make_Define("term", "I", m.In)
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]

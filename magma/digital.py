@@ -6,8 +6,6 @@ from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
-from magma.circuit import Circuit, coreir_port_mapping
-from magma.interface import IO
 from magma.wire_container import Wire
 
 
@@ -200,16 +198,6 @@ class Digital(Type, metaclass=DigitalMeta):
     def getgpio(self):
         return self.getinst()
 
-    def unused(self):
-        if self.is_input() or self.is_inout():
-            raise TypeError("unused cannot be used with input/inout")
-        m.wire(m.bit(self), DefineUnused()().I)
-
-    def undriven(self):
-        if self.is_output() or self.is_inout():
-            raise TypeError("undriven cannot be used with output/inout")
-        m.wire(DefineUndriven()().O, m.bit(self))
-
     @classmethod
     def is_mixed(cls):
         return False
@@ -222,31 +210,8 @@ class Digital(Type, metaclass=DigitalMeta):
         return Type.__repr__(self)
 
 
-def make_Define(_name, port, direction):
-    @lru_cache(maxsize=None)
-    def DefineCorebit():
-        class _Primitive(Circuit):
-            renamed_ports = coreir_port_mapping
-            name = f"corebit_{_name}"
-            coreir_name = _name
-            coreir_lib = "corebit"
-
-            def simulate(self, value_store, state_store):
-                pass
-
-            # Type must be a bit because coreir uses Bit for the primitive,
-            # insert_wrap_casts will handle the conversion of other digital
-            # types like Clock
-            io = IO(**{port: direction(m.Bit)})
-        return _Primitive
-    return DefineCorebit
-
-
 VCC = Digital[Direction.Out](name="VCC")
 GND = Digital[Direction.Out](name="GND")
 
 HIGH = VCC
 LOW = GND
-
-DefineUndriven = make_Define("undriven", "O", Out)
-DefineUnused = make_Define("term", "I", In)
