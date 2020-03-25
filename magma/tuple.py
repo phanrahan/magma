@@ -225,7 +225,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return True
 
     # test whether the values refer a whole tuple
-    def iswhole(self, ts):
+    @staticmethod
+    def _iswhole(ts, keys):
 
         for i in range(len(ts)):
             if ts[i].anon():
@@ -245,7 +246,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         for i in range(len(ts)):
             # elements should be numbered consecutively
-            if ts[i].name.index != list(self.keys())[i]:
+            if ts[i].name.index != list(keys)[i]:
                 return False
 
         if len(ts) != len(ts[0].name.tuple):
@@ -253,6 +254,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             return False
 
         return True
+
+    def iswhole(self, _):
+        return Tuple._iswhole(self.ts, self.keys())
 
 
     def trace(self):
@@ -262,7 +266,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and self.iswhole(ts):
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
@@ -274,7 +278,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and self.iswhole(ts):
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
@@ -435,7 +439,7 @@ class Product(Tuple, metaclass=ProductKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and self.iswhole(ts):
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
             return ts[0].name.tuple
 
         return namedtuple(**dict(zip(self.keys(),ts)))

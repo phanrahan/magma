@@ -359,7 +359,8 @@ class Array(Type, metaclass=ArrayMeta):
         return True
 
     # test whether the values refer a whole array
-    def iswhole(self, ts):
+    @staticmethod
+    def _iswhole(ts):
 
         n = len(ts)
 
@@ -388,6 +389,9 @@ class Array(Type, metaclass=ArrayMeta):
 
         return True
 
+    def iswhole(self, _):
+        return Array._iswhole(self.ts)
+
     def trace(self):
         ts = [t.trace() for t in self.ts]
 
@@ -395,7 +399,7 @@ class Array(Type, metaclass=ArrayMeta):
             if t is None:
                 return None
 
-        if self.iswhole(ts):
+        if Array._iswhole(ts):
             return ts[0].name.array
 
         return type(self).flip()(*ts)
@@ -407,7 +411,7 @@ class Array(Type, metaclass=ArrayMeta):
             if t is None:
                 return None
 
-        if self.iswhole(ts):
+        if Array._iswhole(ts):
             return ts[0].name.array
 
         return type(self).flip()(*ts)

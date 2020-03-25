@@ -243,6 +243,9 @@ class Digital(Type, metaclass=DigitalMeta):
         i.debug_info = debug_info
         o.debug_info = debug_info
 
+    def iswhole(self, _):
+        return True
+
     def wired(self):
         return self._wire.wired()
 
