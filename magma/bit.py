@@ -9,9 +9,9 @@ import typing as tp
 import functools
 from functools import lru_cache
 import hwtypes as ht
-import magma as m
+import magma as m  # TODO(rsetaluri): Get rid of package import
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
-from .t import Direction
+from .t import Direction, In, Out
 from .digital import Digital, DigitalMeta, VCC, GND
 from .util import primitive_to_python_operator_name_map
 from magma.circuit import Circuit, coreir_port_mapping
@@ -44,15 +44,15 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def declare_unary_op(cls, op):
         assert op == "not", f"simulate not implemented for {op}"
 
-        class _MagmaBitOp(m.Circuit):
+        class _MagmaBitOp(Circuit):
             name = f"magma_Bit_{op}"
             coreir_name = op
             coreir_lib = "corebit"
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+            io = IO(I=In(Bit), O=Out(Bit))
 
             def simulate(self, value_store, state_store):
                 I = ht.Bit(value_store.get_value(self.I))
@@ -67,15 +67,15 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
         python_op = getattr(operator, python_op_name)
 
-        class _MagmaBitOp(m.Circuit):
+        class _MagmaBitOp(Circuit):
             name = f"magma_Bit_{op}"
             coreir_name = op
             coreir_lib = "corebit"
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit))
+            io = IO(I0=In(Bit), I1=In(Bit), O=Out(Bit))
 
             def simulate(self, value_store, state_store):
                 I0 = ht.Bit(value_store.get_value(self.I0))
@@ -96,7 +96,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         t_str = t_str.replace("[", "_")
         t_str = t_str.replace("]", "")
 
-        class _MagmaBitOp(m.Circuit):
+        class _MagmaBitOp(Circuit):
             name = f"magma_Bit_ite_{t_str}"
             coreir_name = "mux"
             if issubclass(T, Bit):
@@ -104,12 +104,11 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             else:
                 coreir_lib = "coreir"
                 coreir_genargs = {"width": len(T)}
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I0=m.In(T), I1=m.In(T), S=m.In(m.Bit),
-                      O=m.Out(T))
+            io = IO(I0=In(T), I1=In(T), S=In(Bit), O=Out(T))
 
             def simulate(self, value_store, state_store):
                 I0 = ht.Bit(value_store.get_value(self.I0))
@@ -204,13 +203,13 @@ def make_Define(_name, port, direction):
                 pass
 
             # Type must be a bit because coreir uses Bit for the primitive.
-            io = IO(**{port: direction(m.Bit)})
+            io = IO(**{port: direction(Bit)})
         return _Primitive
     return DefineCorebit
 
 
-DefineUndriven = make_Define("undriven", "O", m.Out)
-DefineUnused = make_Define("term", "I", m.In)
+DefineUndriven = make_Define("undriven", "O", Out)
+DefineUnused = make_Define("term", "I", In)
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]
