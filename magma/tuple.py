@@ -4,7 +4,6 @@ from collections import OrderedDict
 from hwtypes.adt import TupleMeta, Tuple as Tuple_, Product, ProductMeta
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
-import magma as m
 from .common import deprecated
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind, Direction
@@ -12,6 +11,8 @@ from .compatibility import IntegerTypes
 from .bit import BitOut, VCC, GND
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
+from magma.bits import Bits
+from magma.digital import Digital
 
 
 _logger = root_logger()
@@ -490,10 +491,10 @@ def tuple_(value, n=None, t=Tuple):
     for a, d in zip(args, decl):
         # bool types to Bit
         if decl[d] is bool:
-            decl[d] = m.Digital
+            decl[d] = Digital
         # Promote integer types to Bits
         elif decl[d] in IntegerTypes:
-            decl[d] = m.Bits[max(a.bit_length(), 1)]
+            decl[d] = Bits[max(a.bit_length(), 1)]
 
     if t == Tuple:
         return t[tuple(decl.values())](*args)
