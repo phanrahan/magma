@@ -1,14 +1,14 @@
 import weakref
 from functools import reduce
 from abc import ABCMeta
-import magma as m
+import magma as m  # TODO(rsetaluri): Get rid of package import
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import VCC, GND, Bit
-from .bitutils import seq2int
+from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 
@@ -205,12 +205,12 @@ class Array(Type, metaclass=ArrayMeta):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
                                         "with int, not Array[N, {self.T}]")
                     self.ts = []
-                    for bit in m.bitutils.int2seq(args[0], self.N):
+                    for bit in int2seq(args[0], self.N):
                         self.ts.append(VCC if bit else GND)
                 elif self.N == 1:
                     t = args[0]
                     if isinstance(t, IntegerTypes):
-                        t = m.VCC if t else m.GND
+                        t = VCC if t else GND
                     assert type(t) == self.T or type(t) == self.T.flip() or \
                         issubclass(type(type(t)), type(self.T)) or \
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
