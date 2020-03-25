@@ -1,22 +1,25 @@
 from string import Formatter
-import magma as m
+from magma.array import Array
+from magma.circuit import Circuit
+from magma.digital import Digital
+from magma.ref import DefnRef, InstRef, NamedRef, ArrayRef, TupleRef
+from magma.t import Type
+from magma.tuple import Tuple
 from magma.view import InstView, PortView
-from .t import Type
-from .digital import Digital
 
 
 def value_to_verilog_name(value):
-    if isinstance(value, m.Array) and not issubclass(value.T, m.Digital):
+    if isinstance(value, Array) and not issubclass(value.T, Digital):
         elems = ", ".join(value_to_verilog_name(t) for t in reversed(value))
         return f"'{{{elems}}}"
-    elif isinstance(value, m.Tuple):
+    elif isinstance(value, Tuple):
         raise NotImplementedError("Inlining unflattened tuple")
     elif isinstance(value, PortView):
         parent_name = value_to_verilog_name(value.parent)
         return f"{parent_name}.{verilog_name(value.port.name)}"
     elif isinstance(value, InstView):
         prefix = ""
-        if isinstance(value.parent, m.Circuit):
+        if isinstance(value.parent, Circuit):
             prefix = value.parent.name + "."
         else:
             prefix = value_to_verilog_name(value.parent) + "."
@@ -25,20 +28,20 @@ def value_to_verilog_name(value):
 
 
 def verilog_name(name, inst_sep="."):
-    if isinstance(name, m.ref.DefnRef):
+    if isinstance(name, DefnRef):
         return str(name)
-    if isinstance(name, m.ref.InstRef):
+    if isinstance(name, InstRef):
         return f"{name.inst.name}{inst_sep}{str(name)}"
-    if isinstance(name, m.ref.NamedRef):
+    if isinstance(name, NamedRef):
         return str(name)
-    if isinstance(name, m.ref.ArrayRef):
+    if isinstance(name, ArrayRef):
         array_name = verilog_name(name.array.name)
         if issubclass(name.array.T, Digital):
             index = f"[{name.index}]"
         else:
             index = f"_{name.index}"
         return f"{array_name}{index}"
-    if isinstance(name, m.ref.TupleRef):
+    if isinstance(name, TupleRef):
         tuple_name = verilog_name(name.tuple.name)
         index = name.index
         try:
