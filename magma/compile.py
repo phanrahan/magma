@@ -47,7 +47,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     # Steps to process bind's and inline verilog generation.
     ProcessInlineVerilogPass(main).run()
-    BindPass(main).run()
+    BindPass(main, compile).run()
 
     # Default behavior is to perform uniquification, but can be overriden.
     uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
