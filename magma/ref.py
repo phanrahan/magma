@@ -18,6 +18,10 @@ class Ref:
     def anon(self):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def root(self):
+        raise NotImplementedError()
+
     def verilog_name(self):
         return self.qualifiedname("_")
 
@@ -32,15 +36,19 @@ class AnonRef(Ref):
     def qualifiedname(self, sep='.'):
         return f"AnonymousValue_{id(self)}"
 
+    def root(self):
+        return None
+
     def anon(self):
         return True
 
 
 class NamedRef(Ref):
-    def __init__(self, name):
+    def __init__(self, name, value=None):
         if not isinstance(name, (str, int)):
             raise TypeError("Expected string or int")
         self.name = name
+        self.value = value
 
     def __str__(self):
         return self.name
@@ -50,6 +58,9 @@ class NamedRef(Ref):
 
     def anon(self):
         return False
+
+    def root(self):
+        return self.value
 
 
 class InstRef(NamedRef):
@@ -71,6 +82,9 @@ class InstRef(NamedRef):
             if sep == ".":
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
+
+    def root(self):
+        return None
 
 
 class LazyInstRef(InstRef):
@@ -104,6 +118,9 @@ class DefnRef(NamedRef):
         if sep == ".":
             return self.defn.__name__ + sep + self.name
         return self.name
+
+    def root(self):
+        return None
 
 
 class LazyCircuit:
@@ -144,6 +161,9 @@ class ArrayRef(Ref):
     def anon(self):
         return self.array.name.anon()
 
+    def root(self):
+        return self.array.name.root()
+
 
 class TupleRef(Ref):
     def __init__(self, tuple, index):
@@ -167,3 +187,6 @@ class TupleRef(Ref):
 
     def anon(self):
         return self.tuple.name.anon()
+
+    def root(self):
+        return self.tuple.name.root()
