@@ -13,9 +13,9 @@ import magma as m  # TODO(rsetaluri): Get rid of package import
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction, In, Out
 from .digital import Digital, DigitalMeta, VCC, GND
-from .util import primitive_to_python_operator_name_map
 from magma.circuit import Circuit, coreir_port_mapping
 from magma.interface import IO
+from magma.language_utils import primitive_to_python
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -64,7 +64,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @classmethod
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
-        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+        python_op_name = primitive_to_python(op)
         python_op = getattr(operator, python_op_name)
 
         class _MagmaBitOp(Circuit):

@@ -18,9 +18,9 @@ from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type, Direction, In, Out
-from .util import primitive_to_python_operator_name_map
 from magma.circuit import Circuit, coreir_port_mapping, DeclareCoreirCircuit
 from magma.interface import IO
+from magma.language_utils import primitive_to_python
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
@@ -140,7 +140,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_unary_op(cls, op):
         N = len(cls)
-        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+        python_op_name = primitive_to_python(op)
 
         class _MagmBitsOp(Circuit):
             name = f"magma_Bits_{N}_{op}"
@@ -164,7 +164,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_binary_op(cls, op):
         N = len(cls)
-        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+        python_op_name = primitive_to_python(op)
         python_op = getattr(operator, python_op_name)
 
         class _MagmBitsOp(Circuit):
@@ -190,7 +190,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     @lru_cache(maxsize=None)
     def declare_compare_op(cls, op):
         N = len(cls)
-        python_op_name = primitive_to_python_operator_name_map.get(op, op)
+        python_op_name = primitive_to_python(op)
 
         class _MagmBitsOp(Circuit):
             name = f"magma_Bits_{N}_{op}"
