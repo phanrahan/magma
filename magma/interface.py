@@ -4,7 +4,6 @@ from itertools import chain
 from .clock import Clock, ClockTypes
 from .common import deprecated, setattrs
 from .compatibility import IntegerTypes, StringTypes
-from .conversions import array
 from .protocol_type import MagmaProtocolMeta
 from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
 from .t import Type, Kind, Direction
@@ -190,7 +189,7 @@ class _InterfaceBase(Type):
         if isinstance(key, int):
             return self.arguments()[key]
         if isinstance(key, slice):
-            return array([self[i] for i in range(*key.indices(len(self)))])
+            return [self[i] for i in range(*key.indices(len(self)))]
         raise ValueError(f"Expected key as str, int, or slice, got {key} "
                          f"({type(key)})")
 
