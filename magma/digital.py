@@ -1,6 +1,5 @@
 from functools import lru_cache
 import weakref
-import magma as m
 from abc import ABCMeta
 from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
