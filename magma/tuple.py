@@ -255,7 +255,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return True
 
-    def iswhole(self, _):
+    def iswhole(self):
         return Tuple._iswhole(self.ts, self.keys())
 
 

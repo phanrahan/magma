@@ -40,7 +40,7 @@ class TransformedCircuit:
                 arr.append(self.get_new_bit(o, scope))
 
             arr = array(arr)
-            if arr.iswhole(arr):
+            if arr.iswhole():
                 return arr[0].name.array
 
             return arr

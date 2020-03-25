@@ -140,7 +140,7 @@ def test_whole():
         io = IO(I0=In(Array2), I1=In(Array2))
     a = Reg2.I0
     a1 = Array[2, Bit]([a[0], a[1]])
-    print((a1.iswhole(a1.ts)))
+    print((a1.iswhole()))
 
     class _Top(Circuit):
         reg2 = Reg2()
@@ -150,16 +150,16 @@ def test_whole():
     b = reg2.I1
 
     a1 = Array[2, Bit]([a[0], a[1]])
-    print((a1.iswhole(a1.ts)))
+    print((a1.iswhole()))
 
     a2 = Array[2, Bit]([a[0], b[1]])
-    print((a2.iswhole(a2.ts)))
+    print((a2.iswhole()))
 
     a3 = Array[2, Bit]([0,1])
-    print((a3.iswhole(a3.ts)))
+    print((a3.iswhole()))
 
     a4 = a3[:1]
-    print((a4.iswhole(a4.ts)))
+    print((a4.iswhole()))
 
 def test_wire():
     a0 = Array2(name='a0')

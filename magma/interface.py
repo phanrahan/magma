@@ -86,7 +86,7 @@ def _make_wire_str(driver, value, wired):
     if (value, driver) in wired:
         return ""
     wired.add((value, driver))
-    if driver.iswhole(None):
+    if driver.iswhole():
         iname = value.name.qualifiedname()
         oname = driver.name.qualifiedname()
         return f"wire({oname}, {iname})\n"
@@ -117,7 +117,7 @@ def _make_wires(value, wired):
     driver = value.value()
     if driver is None:
         return ""
-    if not driver.iswhole(None):
+    if not driver.iswhole():
         return "".join(_make_wires(v, wired) for v in value)
     while driver is not None and driver.name.anon() and not driver.is_output():
         driver = driver.value()  # skip anon values

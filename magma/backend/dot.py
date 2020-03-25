@@ -25,7 +25,7 @@ def get_name(dot, port):
     if port is GND: return "0"
 
     if isinstance(port, Array):
-        if not port.iswhole(port.ts):
+        if not port.iswhole():
             # the sequence of values is concantenated
             port = [get_name(dot, i) for i in port.ts]
             port.reverse()

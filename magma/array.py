@@ -389,7 +389,7 @@ class Array(Type, metaclass=ArrayMeta):
 
         return True
 
-    def iswhole(self, _):
+    def iswhole(self):
         return Array._iswhole(self.ts)
 
     def trace(self):
