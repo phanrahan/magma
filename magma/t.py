@@ -18,6 +18,7 @@ class Type(object):
             name = AnonRef()
         elif isinstance(name, str):
             name = NamedRef(name=name)
+            name.value = self
         self.name = name
 
     __hash__ = object.__hash__

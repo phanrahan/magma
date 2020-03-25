@@ -3,6 +3,8 @@ import enum
 import textwrap
 import inspect
 from functools import wraps
+import functools
+import operator
 from collections import namedtuple
 import os
 
@@ -10,15 +12,13 @@ import six
 # TODO: Remove circular dependency required for `circuit.bind` logic
 import magma as m
 from . import cache_definition
-from .common import deprecated, setattrs, Stack
+from .common import deprecated, setattrs, Stack, IdentitySet
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import root_logger
 from .is_definition import isdefinition
-from .ref import AnonRef, ArrayRef, TupleRef, DefnRef, InstRef
-from .bit import VCC, GND
 from .bind import bind
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -172,27 +172,19 @@ def _get_interface_type(cls):
     return None
 
 
-def _add_intermediate_value(value, values):
+def _add_intermediate_value(value):
     """
     Add an intermediate value `value` to `values`, handling members of
     recursive types.  Used by `_get_intermediate_values` as part of
     `CircuitKind.__repr__`.
     """
-    # If we encounter a member of an array or tuple, add the entire parent
-    # value (only once)
-    if isinstance(value.name, ArrayRef):
-        _add_intermediate_value(value.name.array, values)
-    elif isinstance(value.name, TupleRef):
-        _add_intermediate_value(value.name.tuple, values)
-    elif not isinstance(value.name, (DefnRef, InstRef, AnonRef)):
-        if value is VCC or value is GND:
-            # Skip VCC and GND because they are special
-            return
-        if not any(value is x for x in values):
-            values.append(value)
+    root = value.name.root()
+    if root is None or root.const():
+        return IdentitySet()
+    return IdentitySet([root])
 
 
-def _get_intermediate_values(value, values):
+def _get_intermediate_values(value):
     """
     Retrieve the intermediate values connected to `value` and put them into
     `values`
@@ -201,26 +193,28 @@ def _get_intermediate_values(value, values):
     values in a circuit.
     """
     if value.is_output():
-        return
+        return IdentitySet()
     if value.is_mixed():
         # Mixed
-        for v in value:
-            _get_intermediate_values(v, values)
-        return
+        return functools.reduce(operator.or_,
+                                (_get_intermediate_values(v) for v in value),
+                                IdentitySet())
     driver = value.value()
     if driver is None:
-        return
+        return IdentitySet()
     flat = value.flatten()
     if len(flat) > 1 and driver.name.anon():
-        for f in flat:
-            _get_intermediate_values(f, values)
-        return
+        return functools.reduce(operator.or_,
+                                (_get_intermediate_values(f) for f in flat),
+                                IdentitySet())
+    values = IdentitySet()
     while driver is not None:
-        _add_intermediate_value(driver, values)
+        values |= _add_intermediate_value(driver)
         if driver.is_output():
             break
         value = driver
         driver = driver.value()
+    return values
 
 
 class CircuitKind(type):
@@ -309,14 +303,15 @@ class CircuitKind(type):
         for instance in sorted_instances:
             values.extend(list(instance.interface.ports.values()))
         values.extend(cls.interface.ports.values())
-        intermediate_values = []
-        for value in values:
-            _get_intermediate_values(value, intermediate_values)
+        intermediate_values = (_get_intermediate_values(value)
+                               for value in values)
+        intermediate_values = functools.reduce(operator.or_,
+                                               intermediate_values,
+                                               IdentitySet())
         if intermediate_values:
-            s += "\n".join(
-                f"{value.name} = {repr(value)}" for value in intermediate_values
-            ) + "\n"
-
+            intermediate_values = (f"{value.name} = {repr(value)}"
+                                   for value in intermediate_values)
+            s += "\n".join(intermediate_values) + "\n"
         # Emit instances.
         for instance in sorted_instances:
             s += repr(instance) + '\n'
