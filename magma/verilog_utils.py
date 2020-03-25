@@ -1,4 +1,3 @@
-from string import Formatter
 from magma.array import Array
 from magma.circuit import Circuit
 from magma.digital import Digital
@@ -73,22 +72,3 @@ def convert_values_to_verilog_str(value):
     if isinstance(value, PortView):
         return value_to_verilog_name(value)
     return str(value)
-
-
-def process_inline_verilog(cls, format_str, format_args, symbol_table):
-    fieldnames = [fname
-                  for _, fname, _, _ in Formatter().parse(format_str)
-                  if fname]
-    for field in fieldnames:
-        if field in format_args:
-            continue
-        try:
-            value = eval(field, {}, symbol_table)
-        except NameError:
-            continue
-        # These have special handling, don't convert to string.
-        value = convert_values_to_verilog_str(value)
-        value = value.replace("{", "{{").replace("}", "}}")
-        format_str = format_str.replace(f"{{{field}}}", value)
-
-    cls._inline_verilog(format_str, **format_args)

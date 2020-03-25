@@ -3,6 +3,7 @@ import magma as m  # TODO(rsetaluri): Get rid of package import.
 from magma.array import Array
 from magma.config import get_compile_dir, set_compile_dir
 from magma.digital import Digital
+from magma.passes.passes import CircuitPass
 from magma.tuple import Tuple
 from magma.verilog_utils import value_to_verilog_name
 
@@ -19,9 +20,8 @@ def _gen_bind_port(cls, mon_arg, bind_arg):
     return [(f".{port}({arg})")]
 
 
-def bind(cls, monitor, *args):
+def _bind(cls, monitor, *args):
     bind_str = monitor.verilogFile
-
     ports = []
     for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
                                 cls.interface.ports.values()):
@@ -51,3 +51,14 @@ Bind monitor interface does not match circuit interface
     with open(f".magma/{monitor.name}.v", "r") as f:
         content = "\n".join((f.read(), bind_str))
     cls.bind_modules[monitor.name] = content
+
+
+class BindPass(CircuitPass):
+    def __call__(self, cls):
+        if cls.bind_modules_bound:
+            return
+        bind_modules = cls.bind_modules.copy()
+        cls.bind_modules = {}
+        for monitor, args in bind_modules.items():
+            _bind(cls, monitor, *args)
+        cls.bind_modules_bound = True
