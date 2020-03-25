@@ -1,9 +1,5 @@
-from .circuit import _definition_context_stack
-from .verilog_utils import value_to_verilog_name
-from .t import Type
-from .view import PortView
-import inspect
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
+from magma.circuit import _definition_context_stack
 
 
 def inline_verilog(format_str, **kwargs):
