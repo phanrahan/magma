@@ -239,6 +239,10 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.T.is_oriented(direction)
 
     @classmethod
+    def is_clock(cls):
+        return False
+
+    @classmethod
     @deprecated
     def isoriented(cls, direction):
         return cls.is_oriented(direction)

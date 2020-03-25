@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from itertools import chain
-from .clock import Clock, ClockTypes
 from .common import deprecated, setattrs
 from .compatibility import IntegerTypes, StringTypes
 from .protocol_type import MagmaProtocolMeta
@@ -199,7 +198,7 @@ class _InterfaceBase(Type):
 
     def is_input(self, port, include_clocks=False):
         return (port.is_input() and
-                (not isinstance(port, ClockTypes) or include_clocks))
+                (not port.is_clock() or include_clocks))
 
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
@@ -232,7 +231,7 @@ class _InterfaceBase(Type):
         """Return all the input arguments as name, port."""
         return _flatten([name, port]
                         for name, port in self.ports.items()
-                        if port.is_input() and not isinstance(port, ClockTypes))
+                        if port.is_input() and not port.is_clock())
 
     def outputargs(self):
         """Return all the output arguments as name, port."""
@@ -244,16 +243,16 @@ class _InterfaceBase(Type):
         """Return all the clock arguments as name, port."""
         return _flatten([name, port]
                         for name, port in self.ports.items()
-                        if isinstance(port, ClockTypes))
+                        if port.is_clock())
 
     def clockargnames(self):
         """Return all the clock argument names."""
         return [name for name, port in self.ports.items()
-                if isinstance(port, ClockTypes)]
+                if port.is_clock()]
 
     def isclocked(self):
         """Return True if this interface has a Clock."""
-        return any(isinstance(port, ClockType)
+        return any(port.is_clock()
                    for port in self.ports.values())
 
 
@@ -301,7 +300,7 @@ class AnonymousInterface(Interface):
     def is_input(self, port, include_clocks=False):
         return (port.is_input() or port.trace() is None and
                 port.wired() and not port.is_output() and not port.is_inout() and
-                (not isinstance(port, ClockTypes) or include_clocks))
+                (not port.is_clock() or include_clocks))
 
 
 class _DeclareInterface(_InterfaceBase):

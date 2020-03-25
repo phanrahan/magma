@@ -140,6 +140,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return all(v.is_oriented(direction) for v in cls.fields)
 
     @classmethod
+    def is_clock(cls):
+        return False
+
+    @classmethod
     @deprecated
     def isoriented(cls, direction):
         return cls.is_oriented(direction)

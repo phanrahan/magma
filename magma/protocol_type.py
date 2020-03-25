@@ -40,6 +40,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         raise NotImplementedError()
 
     @classmethod
+    def is_clock(cls):
+        return cls._to_magma_().is_clock()
+
+    @classmethod
     def is_input(cls):
         return cls._to_magma_().is_input()
 

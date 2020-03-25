@@ -223,6 +223,10 @@ class Digital(Type, metaclass=DigitalMeta):
             return direction == Direction.Undirected
         return cls.direction == direction
 
+    @classmethod
+    def is_clock(cls):
+        return False
+
     def __call__(self, output):
         return self.wire(output, get_callee_frame_info())
 
