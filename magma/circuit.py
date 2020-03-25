@@ -9,8 +9,6 @@ from collections import namedtuple
 import os
 
 import six
-# TODO: Remove circular dependency required for `circuit.bind` logic
-import magma as m
 from . import cache_definition
 from .common import deprecated, setattrs, Stack, IdentitySet
 from .interface import *
@@ -25,6 +23,7 @@ from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
 from .view import PortView
+from magma.protocol_type import MagmaProtocol
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -427,12 +426,12 @@ class AnonymousCircuitType(object):
             # Wire the circuit's outputs to this circuit's inputs.
             self.wireoutputs(output.interface.outputs(), debug_info)
             return
-        if isinstance(output, m.MagmaProtocol):
+        if isinstance(output, MagmaProtocol):
             output = output._get_magma_value_()
         # Wire the output to this circuit's input (should only have 1 input).
         inputs = []
         for inp in self.interface.inputs():
-            if isinstance(inp, m.MagmaProtocol):
+            if isinstance(inp, MagmaProtocol):
                 inp = inp._get_magma_value_()
             inputs.append(inp)
         ni = len(inputs)
