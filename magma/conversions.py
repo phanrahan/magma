@@ -1,9 +1,10 @@
 import functools
 from collections.abc import Sequence
 from .compatibility import IntegerTypes
-from .t import In, Out, InOut, Direction
+from .t import Type, In, Out, InOut, Direction
 from .digital import Digital
 from .bit import Bit, VCC, GND
+from .bits import Bits
 from .digital import DigitalMeta
 from .clock import Clock, Reset, AsyncReset, AsyncResetN, Enable
 from .array import Array
@@ -12,7 +13,6 @@ from .bfloat import BFloat
 from .digital import Digital
 from .tuple import Tuple, Product, tuple_ as tuple_imported, namedtuple
 from .bitutils import int2seq
-import magma as m
 import hwtypes
 
 __all__ = ['bit']
@@ -205,7 +205,7 @@ def repeat(value, n):
 def check_value_is_not_input(fn):
     @functools.wraps(fn)
     def wrapped(value, n):
-        if isinstance(value, m.Type) and not value.is_output():
+        if isinstance(value, Type) and not value.is_output():
             raise Exception(f"{fn.__name__} only works with non input values")
         return fn(value, n)
     return wrapped
@@ -286,7 +286,7 @@ def _as_bits(value):
 
 @_as_bits.register
 def _(value: Digital):
-    result = m.Bits[1]()
+    result = Bits[1]()
     result[0] @= value
     return result
 
