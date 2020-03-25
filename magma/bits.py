@@ -17,8 +17,10 @@ from .ref import AnonRef
 from .bit import Bit, VCC, GND
 from .array import Array, ArrayMeta
 from .debug import debug_wire
-from .t import Type, Direction
+from .t import Type, Direction, In, Out
 from .util import primitive_to_python_operator_name_map
+from magma.circuit import Circuit, coreir_port_mapping, DeclareCoreirCircuit
+from magma.interface import IO
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
@@ -84,12 +86,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     hwtypes_T = ht.BitVector
 
     def __init__(self, *args, **kwargs):
-        if args and len(args) == 1 and isinstance(args[0], m.Array) and \
+        if args and len(args) == 1 and isinstance(args[0], Array) and \
                 len(self) > 1 and len(args[0]) <= len(self):
             self.ts = args[0].ts[:]
             # zext for promoting width
             for i in range(len(self) - len(args[0])):
-                self.ts.append(m.GND)
+                self.ts.append(GND)
             Type.__init__(self, **kwargs)
         else:
             Array.__init__(self, *args, **kwargs)
@@ -140,16 +142,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
 
-        class _MagmBitsOp(m.Circuit):
+        class _MagmBitsOp(Circuit):
             name = f"magma_Bits_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
             coreir_genargs = {"width": N}
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I=m.In(cls), O=m.Out(cls))
+            io = IO(I=In(cls), O=Out(cls))
 
             def simulate(self, value_store, state_store):
                 I = cls.hwtypes_T[N](value_store.get_value(self.I))
@@ -165,16 +167,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
         python_op = getattr(operator, python_op_name)
 
-        class _MagmBitsOp(m.Circuit):
+        class _MagmBitsOp(Circuit):
             name = f"magma_Bits_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
             coreir_genargs = {"width": N}
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I0=m.In(cls), I1=m.In(cls), O=m.Out(cls))
+            io = IO(I0=In(cls), I1=In(cls), O=Out(cls))
 
             def simulate(self, value_store, state_store):
                 I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
@@ -190,16 +192,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
         python_op_name = primitive_to_python_operator_name_map.get(op, op)
 
-        class _MagmBitsOp(m.Circuit):
+        class _MagmBitsOp(Circuit):
             name = f"magma_Bits_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
             coreir_genargs = {"width": N}
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I0=m.In(cls), I1=m.In(cls), O=m.Out(m.Bit))
+            io = IO(I0=In(cls), I1=In(cls), O=Out(Bit))
 
             def simulate(self, value_store, state_store):
                 I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
@@ -220,17 +222,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         t_str = t_str.replace("]", "")
         N = len(cls)
 
-        class _MagmBitsOp(m.Circuit):
+        class _MagmBitsOp(Circuit):
             name = f"magma_Bits_{N}_ite_{t_str}"
             coreir_name = "mux"
             coreir_lib = "coreir"
             coreir_genargs = {"width": len(T)}
-            renamed_ports = m.circuit.coreir_port_mapping
+            renamed_ports = coreir_port_mapping
             primitive = True
             stateful = False
 
-            io = m.IO(I0=m.In(T), I1=m.In(T), S=m.In(m.Bit),
-                      O=m.Out(T))
+            io = IO(I0=In(T), I1=In(T), S=In(Bit), O=Out(T))
 
             def simulate(self, value_store, state_store):
                 I0 = cls.hwtypes_T[N](value_store.get_value(self.I0))
@@ -510,18 +511,18 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def unused(self):
         if self.is_input() or self.is_inout():
             raise TypeError("unused cannot be used with input/inout")
-        m.wire(self, DefineUnused(len(self))().I)
+        DefineUnused(len(self))().I.wire(self)
 
     def undriven(self):
         if self.is_output() or self.is_inout():
             raise TypeError("undriven cannot be used with output/inout")
-        m.wire(DefineUndriven(len(self))().O, self)
+        self.wire(DefineUndriven(len(self))().O)
 
     def __getitem__(self, index):
-        if isinstance(index, UInt):
+        if isinstance(index, Bits):
             if not 2 ** len(index) == len(self):
                 raise TypeError(f"Unexpected index width: {len(index)}")
-            index = m.zext(index, len(self) - len(index))
+            index = index.zext(len(self) - len(index))
             return (self >> index)[0]
         return super().__getitem__(index)
 
@@ -532,7 +533,7 @@ def make_Define(name, port, direction):
 
     @lru_cache(maxsize=None)
     def Define(width):
-        return m.circuit.DeclareCoreirCircuit(
+        return DeclareCoreirCircuit(
             name,
             port, direction(Bits[width]),
             coreir_name=name,
@@ -543,8 +544,8 @@ def make_Define(name, port, direction):
     return Define
 
 
-DefineUndriven = make_Define("undriven", "O", m.Out)
-DefineUnused = make_Define("term", "I", m.In)
+DefineUndriven = make_Define("undriven", "O", Out)
+DefineUnused = make_Define("term", "I", In)
 
 
 BitsType = Bits
@@ -613,7 +614,7 @@ class SInt(Bits):
     hwtypes_T = ht.SIntVector
 
     def __init__(self, *args, **kwargs):
-        if args and len(args) == 1 and isinstance(args[0], m.Array) and \
+        if args and len(args) == 1 and isinstance(args[0], Array) and \
                 len(self) > 1 and len(args[0]) <= len(self):
             self.ts = args[0].ts[:]
             # zext for promoting width
