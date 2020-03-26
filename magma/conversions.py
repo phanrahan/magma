@@ -1,5 +1,6 @@
 import functools
-from collections.abc import Sequence
+from collections import OrderedDict
+from collections.abc import Sequence, Mapping
 from .compatibility import IntegerTypes
 from .t import Type, In, Out, InOut, Direction
 from .digital import Digital
@@ -11,7 +12,7 @@ from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
-from .tuple import Tuple, Product, tuple_ as tuple_imported, namedtuple
+from .tuple import Tuple, Product
 from .bitutils import int2seq
 import hwtypes
 
@@ -26,6 +27,7 @@ __all__ += ['tuple_', 'namedtuple']
 __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext']
 __all__ += ['replace']
+__all__ += ['as_bits', 'from_bits']
 
 def can_convert_to_bit(value):
     return isinstance(value, (Digital, Array, Tuple, IntegerTypes))
@@ -239,8 +241,69 @@ def sext(value, n):
     return sint(concat(array(value), array([value[-1]] * n)))
 
 
+from .bitutils import int2seq
+from .array import Array
+from .bit import Digital, Bit, VCC, GND
+
+
+#
+# convert value to a tuple
+#   *value = tuple from positional arguments
+#   **kwargs = tuple from keyword arguments
+#
+def _tuple(value, n=None, t=Tuple):
+    if isinstance(value, t):
+        return value
+
+    if not isinstance(value, (Digital, Array, IntegerTypes, Sequence, Mapping)):
+        raise ValueError(
+            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
+
+    decl = OrderedDict()
+    args = []
+
+    if isinstance(value, IntegerTypes):
+        if n is None:
+            n = max(value.bit_length(),1)
+        value = int2seq(value, n)
+    elif isinstance(value, Digital):
+        value = [value]
+    elif isinstance(value, Array):
+        value = [value[i] for i in range(len(value))]
+
+    if isinstance(value, Sequence):
+        ts = list(value)
+        for i in range(len(ts)):
+            args.append(ts[i])
+            decl[i] = type(ts[i])
+    elif isinstance(value, Mapping):
+        for k, v in value.items():
+            args.append(v)
+            decl[k] = type(v)
+    for a, d in zip(args, decl):
+        # bool types to Bit
+        if decl[d] is bool:
+            decl[d] = Digital
+        # Promote integer types to Bits
+        elif decl[d] in IntegerTypes:
+            decl[d] = Bits[max(a.bit_length(), 1)]
+
+    if t == Tuple:
+        return t[tuple(decl.values())](*args)
+    assert t == Product
+    return t.from_fields("anon", decl)(*args)
+
+
+def namedtuple(**kwargs):
+    return _tuple(kwargs, t=Product)
+
+
+def product(**kwargs):
+    return _tuple(kwargs, t=Product)
+
+
 def tuple_(value, n=None):
-    return tuple_imported(value, n)
+    return _tuple(value, n)
 
 
 def replace(value, others: dict):
@@ -271,101 +334,10 @@ def _dispatch(cls, dispatch, *args, **kwargs):
     raise NotImplementedError()
 
 
-@functools.singledispatch
-def _as_bits(value):
-    """
-    Convert value to "flat" representation as an instance of m.Bits
-
-    For example, flatten a multi-dimensional array `m.Array[4,
-    m.Bits[5]]` into `m.Bits[20]`.
-
-    This is the inverse of `from_bits`
-    """
-    raise NotImplementedError()
-
-
-@_as_bits.register
-def _(value: Digital):
-    result = Bits[1]()
-    result[0] @= value
-    return result
-
-
-@_as_bits.register
-def _(value: Array):
-    if isinstance(value.T, Digital):
-        return Bits[len(value)](value.ts)
-    return functools.reduce(lambda x, y: x.concat(y),
-                            map(lambda x: as_bits(x), value.ts))
-
-
-@_as_bits.register
-def _(value: Bits):
-    return value
-
-
-@_as_bits.register
-def _(value: Tuple):
-    return functools.reduce(lambda x, y: x.concat(y),
-                            map(lambda x: as_bits(x), value.values()))
-
-
 def as_bits(value):
-    return _dispatch(type(value), _as_bits, value)
-
-
-@functools.singledispatch
-def _from_bits(cls, value):
-    """
-    Create value from a "flat" representation as an instance of m.Bits.
-
-    For example, pack an `m.Bits[20]` into an `m.Array[4, m.Bits[5]]`.
-
-    This is the inverse of `as_bits`
-    """
-    raise NotImplementedError()
-
-
-@_from_bits.register(Digital)
-def _(cls, value):
-    if not isinstance(value, Bits) and not len(value) == 1:
-        raise TypeError("Can only convert from Bits[1] to Bit")
-    return value[0]
-
-
-@_from_bits.register(Bits)
-def _(cls, value):
-    return value
-
-
-@_from_bits.register(Array)
-def _(cls, value):
-    if issubclass(cls.T, Digital):
-        if not len(cls) == len(value):
-            raise TypeError("Width mismatch")
-        return cls(value.ts)
-    child_length = cls.T.flat_length()
-    children = [
-        from_bits(cls.T,
-            value[i * child_length:(i + 1) * child_length]
-        )
-        for i in range(child_length)
-    ]
-    return cls(children)
-
-
-@_from_bits.register(Tuple)
-def _(cls, value):
-    children = []
-    offset = 0
-    for child in cls.fields:
-        child_length = child.flat_length()
-        children.append(
-            from_bits(child, value[offset:offset + child_length])
-        )
-        offset += child_length
-    return cls(*children)
+    return bits(value.flatten())
 
 
 def from_bits(cls, value):
-    return _dispatch(cls, _from_bits, cls, value)
+    ts = value.ts
+    return cls.unflatten(ts)

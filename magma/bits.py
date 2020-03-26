@@ -507,6 +507,11 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def get_family(cls):
         return get_family()
 
+    @classmethod
+    def unflatten(cls, value):
+        # TODO(rsetaluri): Should we type check here?
+        return Bits[len(value)](value)
+
     def unused(self):
         if self.is_input() or self.is_inout():
             raise TypeError("unused cannot be used with input/inout")
