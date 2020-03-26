@@ -27,6 +27,7 @@ __all__ += ['tuple_', 'namedtuple']
 __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext']
 __all__ += ['replace']
+__all__ += ['as_bits', 'from_bits']
 
 def can_convert_to_bit(value):
     return isinstance(value, (Digital, Array, Tuple, IntegerTypes))
