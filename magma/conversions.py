@@ -1,5 +1,6 @@
 import functools
-from collections.abc import Sequence
+from collections import OrderedDict
+from collections.abc import Sequence, Mapping
 from .compatibility import IntegerTypes
 from .t import Type, In, Out, InOut, Direction
 from .digital import Digital
@@ -11,7 +12,7 @@ from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
-from .tuple import Tuple, Product, tuple_ as tuple_imported, namedtuple
+from .tuple import Tuple, Product
 from .bitutils import int2seq
 import hwtypes
 
@@ -239,8 +240,69 @@ def sext(value, n):
     return sint(concat(array(value), array([value[-1]] * n)))
 
 
+from .bitutils import int2seq
+from .array import Array
+from .bit import Digital, Bit, VCC, GND
+
+
+#
+# convert value to a tuple
+#   *value = tuple from positional arguments
+#   **kwargs = tuple from keyword arguments
+#
+def _tuple(value, n=None, t=Tuple):
+    if isinstance(value, t):
+        return value
+
+    if not isinstance(value, (Digital, Array, IntegerTypes, Sequence, Mapping)):
+        raise ValueError(
+            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
+
+    decl = OrderedDict()
+    args = []
+
+    if isinstance(value, IntegerTypes):
+        if n is None:
+            n = max(value.bit_length(),1)
+        value = int2seq(value, n)
+    elif isinstance(value, Digital):
+        value = [value]
+    elif isinstance(value, Array):
+        value = [value[i] for i in range(len(value))]
+
+    if isinstance(value, Sequence):
+        ts = list(value)
+        for i in range(len(ts)):
+            args.append(ts[i])
+            decl[i] = type(ts[i])
+    elif isinstance(value, Mapping):
+        for k, v in value.items():
+            args.append(v)
+            decl[k] = type(v)
+    for a, d in zip(args, decl):
+        # bool types to Bit
+        if decl[d] is bool:
+            decl[d] = Digital
+        # Promote integer types to Bits
+        elif decl[d] in IntegerTypes:
+            decl[d] = Bits[max(a.bit_length(), 1)]
+
+    if t == Tuple:
+        return t[tuple(decl.values())](*args)
+    assert t == Product
+    return t.from_fields("anon", decl)(*args)
+
+
+def namedtuple(**kwargs):
+    return _tuple(kwargs, t=Product)
+
+
+def product(**kwargs):
+    return _tuple(kwargs, t=Product)
+
+
 def tuple_(value, n=None):
-    return tuple_imported(value, n)
+    return _tuple(value, n)
 
 
 def replace(value, others: dict):
