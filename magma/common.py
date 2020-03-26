@@ -30,7 +30,7 @@ class _Ref(object):
 
 
 class IdentitySet(collections.MutableSet):
-    def __init__(self, items = []):
+    def __init__(self, items=[]):
         self.refs = set(map(_Ref, items))
 
     def __contains__(self, elem):
