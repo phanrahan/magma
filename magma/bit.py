@@ -13,6 +13,7 @@ from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction, In, Out
 from .digital import Digital, DigitalMeta, VCC, GND
 from magma.circuit import Circuit, coreir_port_mapping
+from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
 
