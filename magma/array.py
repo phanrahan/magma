@@ -1,16 +1,21 @@
 import weakref
 from functools import reduce
 from abc import ABCMeta
-import magma as m
+from hwtypes import BitVector
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind, Direction
+from .t import Type, Kind, Direction, In, Out
 from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import VCC, GND, Bit
-from .bitutils import seq2int
+from .bitutils import int2seq, seq2int, clog2
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
+from magma.generator import Generator2
+from magma.protocol_type import MagmaProtocol
+from magma.interface import IO
+from magma.tuple import Product
+from magma.circuit import coreir_port_mapping
 
 
 _logger = root_logger()
@@ -205,12 +210,12 @@ class Array(Type, metaclass=ArrayMeta):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
                                         "with int, not Array[N, {self.T}]")
                     self.ts = []
-                    for bit in m.bitutils.int2seq(args[0], self.N):
+                    for bit in int2seq(args[0], self.N):
                         self.ts.append(VCC if bit else GND)
                 elif self.N == 1:
                     t = args[0]
                     if isinstance(t, IntegerTypes):
-                        t = m.VCC if t else m.GND
+                        t = VCC if t else GND
                     assert type(t) == self.T or type(t) == self.T.flip() or \
                         issubclass(type(type(t)), type(self.T)) or \
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
@@ -276,7 +281,7 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.N * cls.T.flat_length()
 
     def dynamic_mux_select(self, key):
-        return m.operators.Mux(len(self), self.T)()(*self.ts, key)
+        return Mux(len(self), self.T)()(*self.ts, key)
 
     def __getitem__(self, key):
         if isinstance(key, Type):
@@ -427,6 +432,15 @@ class Array(Type, metaclass=ArrayMeta):
 
         return True
 
+    @classmethod
+    def unflatten(cls, value):
+        size_T = cls.T.flat_length()
+        if len(value) != size_T * cls.N:
+            raise TypeError("Width mismatch")
+        ts = [cls.T.unflatten(value[i:i + size_T])
+              for i in range(0, size_T * cls.N, size_T)]
+        return cls(ts)
+
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
@@ -446,5 +460,57 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.T.is_mixed()
 
 
-
 ArrayType = Array
+
+
+class CoreIRCommonLibMuxN(Generator2):
+    def __init__(self, N: int, width: int):
+        self.name = f"coreir_commonlib_mux{N}x{width}"
+        MuxInT = Product.from_fields("anon", dict(data=Array[N, Array[width, Bit]],
+                                                  sel=Array[clog2(N), Bit]))
+        self.io = IO(I=In(MuxInT), O=Out(Array[width, Bit]))
+        self.renamed_ports = coreir_port_mapping
+        self.coreir_name = "muxn"
+        self.coreir_lib = "commonlib"
+        self.coreir_genargs = {"width": width, "N": N}
+        self.primitive = True
+        self.stateful = False
+
+        def simulate(self, value_store, state_store):
+            sel = BitVector[clog2(N)](value_store.get_value(self.I.sel))
+            out = BitVector[width](value_store.get_value(self.I.data[int(sel)]))
+            value_store.set_value(self.O, out)
+
+        self.simulate = simulate
+
+
+class Mux(Generator2):
+    def __init__(self, height: int, T: Type):
+        if issubclass(T, MagmaProtocol):
+            T = T._to_magma_()
+        T_str = str(T).replace("(", "").replace(")", "")\
+                      .replace(",", "_").replace("=", "_")\
+                      .replace("[", "").replace("]", "").replace(" ", "")
+        self.name = f"Mux{height}x{T_str}"
+        # TODO: Type must be hashable so we can cache.
+        N = T.flat_length()
+
+        io_dict = {}
+        for i in range(height):
+            io_dict[f"I{i}"] = In(T)
+        if height == 2:
+            io_dict["S"] = In(Bit)
+        else:
+            io_dict["S"] = In(Array[clog2(height), Bit])
+        io_dict["O"] = Out(T)
+
+        self.io = IO(**io_dict)
+        mux = CoreIRCommonLibMuxN(height, N)()
+        data = [Array[N, Bit](getattr(self.io, f"I{i}").flatten())
+                for i in range(height)]
+        mux.I.data @= Array[height, Array[N, Bit]](data)
+        if height == 2:
+            mux.I.sel[0] @= self.io.S
+        else:
+            mux.I.sel @= self.io.S
+        self.io.O @= T.unflatten(mux.O)

@@ -1,12 +1,19 @@
 from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from .wire import wire
+from magma.bit import Bit
 
 
 class _ClockType(Digital):
     @classmethod
     def is_clock(cls):
         return True
+
+    def unused(self):
+        Bit.unused(self)
+
+    def undriven(self):
+        Bit.unused(self)
 
 
 class Clock(_ClockType, metaclass=DigitalMeta):
