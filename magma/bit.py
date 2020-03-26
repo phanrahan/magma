@@ -9,7 +9,6 @@ import typing as tp
 import functools
 from functools import lru_cache
 import hwtypes as ht
-import magma as m  # TODO(rsetaluri): Get rid of package import
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction, In, Out
 from .digital import Digital, DigitalMeta, VCC, GND
@@ -37,7 +36,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @staticmethod
     def get_family() -> TypeFamily:
-        return m._Family_
+        return get_family()
 
     @classmethod
     @lru_cache(maxsize=None)

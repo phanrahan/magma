@@ -84,10 +84,8 @@ from .uniquification import UniquificationPass
 
 from hwtypes.bit_vector_abc import TypeFamily
 
-_Family_ = TypeFamily(Bit, Bits, UInt, SInt)
-
-def get_family():
-    return _Family_
+from magma.family import get_family
+_Family_ = get_family()
 
 from .generator import Generator, Generator2
 from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
