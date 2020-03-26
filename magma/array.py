@@ -427,6 +427,15 @@ class Array(Type, metaclass=ArrayMeta):
 
         return True
 
+    @classmethod
+    def unflatten(cls, value):
+        size_T = cls.T.flat_length()
+        if len(value) != size_T * cls.N:
+            raise TypeError("Width mismatch")
+        ts = [cls.T.unflatten(value[i:i + size_T])
+              for i in range(0, size_T * cls.N, size_T)]
+        return cls(ts)
+
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 

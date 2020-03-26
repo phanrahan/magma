@@ -285,6 +285,17 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    @classmethod
+    def unflatten(cls, value):
+        values = []
+        offset = 0
+        for field in cls.fields:
+            size = field.flat_length()
+            ts = value[offset:offset + size]
+            values.append(field.unflatten(ts))
+            offset += size
+        return cls(*values)
+
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 

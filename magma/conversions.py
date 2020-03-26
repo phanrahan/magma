@@ -333,101 +333,10 @@ def _dispatch(cls, dispatch, *args, **kwargs):
     raise NotImplementedError()
 
 
-@functools.singledispatch
-def _as_bits(value):
-    """
-    Convert value to "flat" representation as an instance of m.Bits
-
-    For example, flatten a multi-dimensional array `m.Array[4,
-    m.Bits[5]]` into `m.Bits[20]`.
-
-    This is the inverse of `from_bits`
-    """
-    raise NotImplementedError()
-
-
-@_as_bits.register
-def _(value: Digital):
-    result = Bits[1]()
-    result[0] @= value
-    return result
-
-
-@_as_bits.register
-def _(value: Array):
-    if isinstance(value.T, Digital):
-        return Bits[len(value)](value.ts)
-    return functools.reduce(lambda x, y: x.concat(y),
-                            map(lambda x: as_bits(x), value.ts))
-
-
-@_as_bits.register
-def _(value: Bits):
-    return value
-
-
-@_as_bits.register
-def _(value: Tuple):
-    return functools.reduce(lambda x, y: x.concat(y),
-                            map(lambda x: as_bits(x), value.values()))
-
-
 def as_bits(value):
-    return _dispatch(type(value), _as_bits, value)
-
-
-@functools.singledispatch
-def _from_bits(cls, value):
-    """
-    Create value from a "flat" representation as an instance of m.Bits.
-
-    For example, pack an `m.Bits[20]` into an `m.Array[4, m.Bits[5]]`.
-
-    This is the inverse of `as_bits`
-    """
-    raise NotImplementedError()
-
-
-@_from_bits.register(Digital)
-def _(cls, value):
-    if not isinstance(value, Bits) and not len(value) == 1:
-        raise TypeError("Can only convert from Bits[1] to Bit")
-    return value[0]
-
-
-@_from_bits.register(Bits)
-def _(cls, value):
-    return value
-
-
-@_from_bits.register(Array)
-def _(cls, value):
-    if issubclass(cls.T, Digital):
-        if not len(cls) == len(value):
-            raise TypeError("Width mismatch")
-        return cls(value.ts)
-    child_length = cls.T.flat_length()
-    children = [
-        from_bits(cls.T,
-            value[i * child_length:(i + 1) * child_length]
-        )
-        for i in range(child_length)
-    ]
-    return cls(children)
-
-
-@_from_bits.register(Tuple)
-def _(cls, value):
-    children = []
-    offset = 0
-    for child in cls.fields:
-        child_length = child.flat_length()
-        children.append(
-            from_bits(child, value[offset:offset + child_length])
-        )
-        offset += child_length
-    return cls(*children)
+    return bits(value.flatten())
 
 
 def from_bits(cls, value):
-    return _dispatch(cls, _from_bits, cls, value)
+    ts = value.ts
+    return cls.unflatten(ts)
