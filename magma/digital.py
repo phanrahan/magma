@@ -1,102 +1,14 @@
 from functools import lru_cache
 import weakref
-import magma as m
 from abc import ABCMeta
 from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
+from magma.wire_container import Wire
 
 
 _logger = root_logger()
-
-
-class Wire:
-    """
-    Wire implements wiring.
-
-    Each wire is represented by a bit.
-    """
-    def __init__(self, bit):
-        self.bit = bit
-        self.driving = []
-        self.driver = None
-
-    def __repr__(self):
-        return repr(self.bit)
-
-    def __str__(self):
-        return str(self.bit)
-
-    def anon(self):
-        return self.bit.anon()
-
-    def unwire(self, other):
-        other.driving.remove(self)
-        self.driver = None
-
-    def connect(self, other, debug_info):
-        """
-        Connect two wires, self should be an input and other should be an
-        output, or both should be inouts
-        """
-        if self.driver is not None and self.bit.is_input():
-            _logger.warning(
-                "Wiring multiple outputs to same wire, using last connection."
-                f" Input: {self.bit.debug_name}, "
-                f" Old Output: {self.driver.bit.debug_name}, "
-                f" New Output: {other.bit.debug_name}",
-                debug_info=debug_info
-            )
-        if self.bit.is_output():
-            _logger.error(f"Using `{self.bit.debug_name}` (an output) as an "
-                          f"input", debug_info=debug_info)
-            return
-        if other.bit.is_input():
-            _logger.error(f"Using `{other.bit.debug_name}` (an input) as an "
-                          f"output", debug_info=debug_info)
-            return
-        if self.bit.is_inout() and not other.bit.is_inout():
-            _logger.error(f"Using `{other.bit.debug_name}` (not inout) as an "
-                          f"inout", debug_info=debug_info)
-            return
-        if not self.bit.is_inout() and other.bit.is_inout():
-            _logger.error(f"Using `{self.bit.debug_name}` (not inout) as an "
-                          f"inout", debug_info=debug_info)
-            return
-
-        self.driver = other
-        other.driving.append(self)
-
-    def trace(self, skip_self=True):
-        """
-        If a value is an input or an intermediate (undirected), trace it until
-        there is an input or inout (this is the source)
-
-        Upon the first invocation (from a user), we skip the current bit (so
-        we don't trace to ourselves)
-        """
-        if self.driver is not None:
-            return self.driver.trace(skip_self=False)
-        if not skip_self and (self.bit.is_output() or self.bit.is_inout()):
-            return self.bit
-        return None
-
-    def value(self):
-        """
-        Return the driver of this wire
-        """
-        if self.bit.is_output():
-            raise TypeError("Can only get value of non outputs")
-        if self.driver is None:
-            return None
-        return self.driver.bit
-
-    def driven(self):
-        return self.trace() is not None
-
-    def wired(self):
-        return self.driver or self.driving
 
 
 class DigitalMeta(ABCMeta, Kind):
@@ -264,6 +176,12 @@ class Digital(Type, metaclass=DigitalMeta):
     def driven(self):
         return self._wire.driven()
 
+    @classmethod
+    def unflatten(cls, value):
+        if len(value) != 1 or not isinstance(value[0], Digital):
+            raise TypeError("Can only convert from Bits[1] to Bit")
+        return value[0]
+
     def flatten(self):
         return [self]
 
@@ -285,16 +203,6 @@ class Digital(Type, metaclass=DigitalMeta):
     def getgpio(self):
         return self.getinst()
 
-    def unused(self):
-        if self.is_input() or self.is_inout():
-            raise TypeError("unused cannot be used with input/inout")
-        m.wire(m.bit(self), DefineUnused()().I)
-
-    def undriven(self):
-        if self.is_output() or self.is_inout():
-            raise TypeError("undriven cannot be used with output/inout")
-        m.wire(DefineUndriven()().O, m.bit(self))
-
     @classmethod
     def is_mixed(cls):
         return False
@@ -307,31 +215,8 @@ class Digital(Type, metaclass=DigitalMeta):
         return Type.__repr__(self)
 
 
-def make_Define(_name, port, direction):
-    @lru_cache(maxsize=None)
-    def DefineCorebit():
-        class _Primitive(m.Circuit):
-            renamed_ports = m.circuit.coreir_port_mapping
-            name = f"corebit_{_name}"
-            coreir_name = _name
-            coreir_lib = "corebit"
-
-            def simulate(self, value_store, state_store):
-                pass
-
-            # Type must be a bit because coreir uses Bit for the primitive,
-            # insert_wrap_casts will handle the conversion of other digital
-            # types like Clock
-            io = m.IO(**{port: direction(m.Bit)})
-        return _Primitive
-    return DefineCorebit
-
-
 VCC = Digital[Direction.Out](name="VCC")
 GND = Digital[Direction.Out](name="GND")
 
 HIGH = VCC
 LOW = GND
-
-DefineUndriven = make_Define("undriven", "O", Out)
-DefineUnused = make_Define("term", "I", In)

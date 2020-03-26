@@ -9,8 +9,6 @@ from collections import namedtuple
 import os
 
 import six
-# TODO: Remove circular dependency required for `circuit.bind` logic
-import magma as m
 from . import cache_definition
 from .common import deprecated, setattrs, Stack, IdentitySet
 from .interface import *
@@ -19,15 +17,13 @@ from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .logging import root_logger
 from .is_definition import isdefinition
-from .bind import bind
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
 from magma.syntax.verilog import combinational_to_verilog, \
     sequential_to_verilog
-from .verilog_utils import (convert_values_to_verilog_str,
-                            process_inline_verilog)
 from .view import PortView
+from magma.protocol_type import MagmaProtocol
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -119,11 +115,6 @@ class DefinitionContext:
         self._finalize_file_opens()  # so displays can refer to open files
         self._finalize_displays()
         self._finalize_file_close()  # close after displays
-        # Inline logic may introduce instances.
-        with _DefinitionContextManager(self):
-            for format_str, format_args, symbol_table in self._inline_verilog:
-                process_inline_verilog(defn, format_str, format_args,
-                                       symbol_table)
 
 
 _definition_context_stack = Stack()
@@ -233,7 +224,9 @@ class CircuitKind(type):
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
         dct["inline_verilog_strs"] = []
+        dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
+        dct["bind_modules_bound"] = False
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -358,16 +351,10 @@ class CircuitKind(type):
             defn[name] = cls
         return defn
 
-    def _inline_verilog(cls, inline_str, **kwargs):
-        format_args = {}
-        for key, arg in kwargs.items():
-            format_args[key] = convert_values_to_verilog_str(arg)
-        cls.inline_verilog_strs.append(inline_str.format(**format_args))
-
     @deprecated(msg="cls.inline_verilog is deprecated, use m.inline_verilog"
                 "instead")
     def inline_verilog(cls, inline_str, **kwargs):
-        cls._inline_verilog(inline_str, **kwargs)
+        cls._context_.add_inline_verilog(inline_str, kwargs, None)
 
 
 @six.add_metaclass(CircuitKind)
@@ -439,12 +426,12 @@ class AnonymousCircuitType(object):
             # Wire the circuit's outputs to this circuit's inputs.
             self.wireoutputs(output.interface.outputs(), debug_info)
             return
-        if isinstance(output, m.MagmaProtocol):
+        if isinstance(output, MagmaProtocol):
             output = output._get_magma_value_()
         # Wire the output to this circuit's input (should only have 1 input).
         inputs = []
         for inp in self.interface.inputs():
-            if isinstance(inp, m.MagmaProtocol):
+            if isinstance(inp, MagmaProtocol):
                 inp = inp._get_magma_value_()
             inputs.append(inp)
         ni = len(inputs)
@@ -686,7 +673,7 @@ class DefineCircuitKind(CircuitKind):
         cls._context_.placer.place(inst)
 
     def bind(cls, monitor, *args):
-        bind(cls, monitor, *args)
+        cls.bind_modules[monitor] = args
 
 
 @six.add_metaclass(DefineCircuitKind)
