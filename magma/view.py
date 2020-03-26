@@ -1,6 +1,3 @@
-import magma as m
-
-
 class PortView:
     def __init__(self, port, parent):
         self.port = port
@@ -8,17 +5,21 @@ class PortView:
         self.name = self
 
     def __getitem__(self, key):
-        if not isinstance(self.port, (m.ArrayType, m.Tuple)):
+        port = self.port
+        try:
+            item = port[key]
+        except KeyError:
             raise Exception(f"Can only use getitem with arrays and "
                             f"tuples not {type(self.port)}")
-
-        return PortView(self.port[key], self.parent)
+        return PortView(item, self.parent)
 
     def __getattr__(self, key):
-        if isinstance(self.port, m.Tuple):
-            if key in self.port.keys():
-                return PortView(getattr(self.port, key), self.parent)
-        return object.__getattribute__(self, key)
+        port = self.port
+        try:
+            attr = getattr(port, key)
+        except AttributeError:
+            return object.__getattribute__(self, key)
+        return PortView(attr, self.parent)
 
 
 class InstView:
@@ -38,5 +39,4 @@ class InstView:
             elif attr in self.instance_map:
                 return InstView(self.instance_map[attr], self)
         except AttributeError:
-            pass
-        return object.__getattribute__(self, attr)
+            return object.__getattribute__(self, attr)

@@ -1,5 +1,4 @@
 import abc
-import magma as m  # TODO(rsetaluri): Remove package import.
 from magma.t import Direction, Type
 
 
@@ -40,6 +39,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         raise NotImplementedError()
 
     @classmethod
+    def is_clock(cls):
+        return cls._to_magma_().is_clock()
+
+    @classmethod
     def is_input(cls):
         return cls._to_magma_().is_input()
 
@@ -67,5 +70,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def name(self):
         return self._get_magma_value_().name
 
+    def wire(self, other):
+        if isinstance(other, MagmaProtocol):
+            other = other._get_magma_value_()
+        self._get_magma_value_().wire(other)
+
     def __imatmul__(self, other):
-        m.wire(other, self._get_magma_value_())
+        self.wire(other)

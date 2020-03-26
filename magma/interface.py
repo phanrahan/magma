@@ -1,15 +1,11 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from itertools import chain
-from .array import Array
-from .clock import Clock, ClockTypes
 from .common import deprecated, setattrs
 from .compatibility import IntegerTypes, StringTypes
-from .conversions import array
 from .protocol_type import MagmaProtocolMeta
 from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
 from .t import Type, Kind, Direction
-from .tuple import Tuple
 
 
 __all__  = ['make_interface']
@@ -88,14 +84,12 @@ def _make_wire_str(driver, value, wired):
     if (value, driver) in wired:
         return ""
     wired.add((value, driver))
-    descend = (isinstance(driver, (Array, Tuple)) and
-               not driver.iswhole(driver.ts))
-    if descend:
-        return "".join(_make_wire_str(d, v, wired)
-                       for d, v in zip(driver, value))
-    iname = value.name.qualifiedname()
-    oname = driver.name.qualifiedname()
-    return f"wire({oname}, {iname})\n"
+    if driver.iswhole():
+        iname = value.name.qualifiedname()
+        oname = driver.name.qualifiedname()
+        return f"wire({oname}, {iname})\n"
+    return "".join(_make_wire_str(d, v, wired)
+                   for d, v in zip(driver, value))
 
 
 def _make_wires(value, wired):
@@ -116,13 +110,13 @@ def _make_wires(value, wired):
     """
     if value.is_output():
         return ""
-    if isinstance(value, (Array, Tuple)) and value.is_mixed():
+    if value.is_mixed():
         return "".join(_make_wires(v, wired) for v in value)
     driver = value.value()
     if driver is None:
         return ""
-    if isinstance(value, (Array, Tuple)) and not driver.iswhole(driver.ts):
-        return "".join(_make_wires(elem, wired) for elem in value)
+    if not driver.iswhole():
+        return "".join(_make_wires(v, wired) for v in value)
     while driver is not None and driver.name.anon() and not driver.is_output():
         driver = driver.value()  # skip anon values
     s = ""
@@ -130,11 +124,10 @@ def _make_wires(value, wired):
         if (driver, value) in wired:
             break
         s += _make_wire_str(driver, value, wired)
-        if not driver.is_output():
-            value = driver
-            driver = driver.value()
-        else:
-            driver = None
+        if driver.is_output():
+            break
+        value = driver
+        driver = driver.value()
     return s
 
 
@@ -195,7 +188,7 @@ class _InterfaceBase(Type):
         if isinstance(key, int):
             return self.arguments()[key]
         if isinstance(key, slice):
-            return array([self[i] for i in range(*key.indices(len(self)))])
+            return [self[i] for i in range(*key.indices(len(self)))]
         raise ValueError(f"Expected key as str, int, or slice, got {key} "
                          f"({type(key)})")
 
@@ -205,7 +198,7 @@ class _InterfaceBase(Type):
 
     def is_input(self, port, include_clocks=False):
         return (port.is_input() and
-                (not isinstance(port, ClockTypes) or include_clocks))
+                (not port.is_clock() or include_clocks))
 
     def inputs(self, include_clocks=False):
         """Return all the argument input ports."""
@@ -238,7 +231,7 @@ class _InterfaceBase(Type):
         """Return all the input arguments as name, port."""
         return _flatten([name, port]
                         for name, port in self.ports.items()
-                        if port.is_input() and not isinstance(port, ClockTypes))
+                        if port.is_input() and not port.is_clock())
 
     def outputargs(self):
         """Return all the output arguments as name, port."""
@@ -250,16 +243,16 @@ class _InterfaceBase(Type):
         """Return all the clock arguments as name, port."""
         return _flatten([name, port]
                         for name, port in self.ports.items()
-                        if isinstance(port, ClockTypes))
+                        if port.is_clock())
 
     def clockargnames(self):
         """Return all the clock argument names."""
         return [name for name, port in self.ports.items()
-                if isinstance(port, ClockTypes)]
+                if port.is_clock()]
 
     def isclocked(self):
         """Return True if this interface has a Clock."""
-        return any(isinstance(port, ClockType)
+        return any(port.is_clock()
                    for port in self.ports.values())
 
 
@@ -307,7 +300,7 @@ class AnonymousInterface(Interface):
     def is_input(self, port, include_clocks=False):
         return (port.is_input() or port.trace() is None and
                 port.wired() and not port.is_output() and not port.is_inout() and
-                (not isinstance(port, ClockTypes) or include_clocks))
+                (not port.is_clock() or include_clocks))
 
 
 class _DeclareInterface(_InterfaceBase):

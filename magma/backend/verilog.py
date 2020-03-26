@@ -66,7 +66,7 @@ def vname(t):
 
     if isinstance(t, Array):
         # print(t.ts)
-        if not t.iswhole(t.ts):
+        if not t.iswhole():
             # the sequence of values is concantenated
             t = [vname(i) for i in t.ts]
             t.reverse()

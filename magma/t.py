@@ -45,6 +45,10 @@ class Type(object):
         raise NotImplementedError()
 
     @classmethod
+    def is_clock(cls):
+        raise NotImplementedError()
+
+    @classmethod
     def is_input(cls):
         return cls.is_oriented(Direction.In)
 

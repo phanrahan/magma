@@ -75,7 +75,7 @@ def test_pos_slice():
         name = "main"
         io = IO(I=In(Array[2, Bit]), O=Out(Bit))
         buf = Buf()
-        wire(buf[0:2], io.I)
+        wire(array(buf[0:2]), io.I)
         wire(buf.O, io.O)
 
     compile("build/pos_slice", main, output="verilog")

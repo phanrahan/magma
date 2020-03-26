@@ -1,15 +1,13 @@
 import itertools
-from collections.abc import Sequence, Mapping
 from collections import OrderedDict
 from hwtypes.adt import TupleMeta, Tuple as Tuple_, Product, ProductMeta
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
-import magma as m
 from .common import deprecated
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
-from .bit import BitOut, VCC, GND
+from .bit import VCC, GND
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 
@@ -140,6 +138,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return all(v.is_oriented(direction) for v in cls.fields)
 
     @classmethod
+    def is_clock(cls):
+        return False
+
+    @classmethod
     @deprecated
     def isoriented(cls, direction):
         return cls.is_oriented(direction)
@@ -225,7 +227,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return True
 
     # test whether the values refer a whole tuple
-    def iswhole(self, ts):
+    @staticmethod
+    def _iswhole(ts, keys):
 
         for i in range(len(ts)):
             if ts[i].anon():
@@ -245,7 +248,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         for i in range(len(ts)):
             # elements should be numbered consecutively
-            if ts[i].name.index != list(self.keys())[i]:
+            if ts[i].name.index != list(keys)[i]:
                 return False
 
         if len(ts) != len(ts[0].name.tuple):
@@ -253,6 +256,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             return False
 
         return True
+
+    def iswhole(self):
+        return Tuple._iswhole(self.ts, self.keys())
 
 
     def trace(self):
@@ -262,7 +268,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and self.iswhole(ts):
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
@@ -274,10 +280,21 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and self.iswhole(ts):
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
+
+    @classmethod
+    def unflatten(cls, value):
+        values = []
+        offset = 0
+        for field in cls.fields:
+            size = field.flat_length()
+            ts = value[offset:offset + size]
+            values.append(field.unflatten(ts))
+            offset += size
+        return cls(*values)
 
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
@@ -435,67 +452,7 @@ class Product(Tuple, metaclass=ProductKind):
             if t is None:
                 return None
 
-        if len(ts) == len(self) and self.iswhole(ts):
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
             return ts[0].name.tuple
 
-        return namedtuple(**dict(zip(self.keys(),ts)))
-
-
-from .bitutils import int2seq
-from .array import Array
-from .bit import Digital, Bit, VCC, GND
-
-#
-# convert value to a tuple
-#   *value = tuple from positional arguments
-#   **kwargs = tuple from keyword arguments
-#
-def tuple_(value, n=None, t=Tuple):
-    if isinstance(value, t):
-        return value
-
-    if not isinstance(value, (Digital, Array, IntegerTypes, Sequence, Mapping)):
-        raise ValueError(
-            "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
-
-    decl = OrderedDict()
-    args = []
-
-    if isinstance(value, IntegerTypes):
-        if n is None:
-            n = max(value.bit_length(),1)
-        value = int2seq(value, n)
-    elif isinstance(value, Digital):
-        value = [value]
-    elif isinstance(value, Array):
-        value = [value[i] for i in range(len(value))]
-
-    if isinstance(value, Sequence):
-        ts = list(value)
-        for i in range(len(ts)):
-            args.append(ts[i])
-            decl[i] = type(ts[i])
-    elif isinstance(value, Mapping):
-        for k, v in value.items():
-            args.append(v)
-            decl[k] = type(v)
-    for a, d in zip(args, decl):
-        # bool types to Bit
-        if decl[d] is bool:
-            decl[d] = m.Digital
-        # Promote integer types to Bits
-        elif decl[d] in IntegerTypes:
-            decl[d] = m.Bits[max(a.bit_length(), 1)]
-
-    if t == Tuple:
-        return t[tuple(decl.values())](*args)
-    assert t == Product
-    return t.from_fields("anon", decl)(*args)
-
-
-def namedtuple(**kwargs):
-    return tuple_(kwargs, t=Product)
-
-
-def product(**kwargs):
-    return tuple_(kwargs, t=Product)
+        return type(self).flip()(*ts)

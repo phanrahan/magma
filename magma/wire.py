@@ -1,6 +1,5 @@
-import magma as m
 from .compatibility import IntegerTypes
-from .digital import Wire  # TODO(rsetaluri): only here for b.c.
+from .wire_container import Wire  # TODO(rsetaluri): only here for b.c.
 from .debug import debug_wire
 from .logging import root_logger
 from .protocol_type import MagmaProtocol
