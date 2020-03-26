@@ -25,7 +25,7 @@ def simulator_nested(simple):
 
     class testcircuit(Circuit):
         name = 'test_simulator_nested_simple{}'.format(str(simple))
-        io = m.IO(**dict(zip(args[::2], args[1::2])))
+        io = IO(**dict(zip(args[::2], args[1::2])))
         if simple:
             wire(io.I, io.O)
         else:

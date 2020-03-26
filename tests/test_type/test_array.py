@@ -22,41 +22,41 @@ def test_array():
     assert A4 == Array4
     assert A2 != A4
 
-    assert issubclass(m.In(m.Array[2, m.Bit]), m.In(m.Array[2, m.Bit]))
-    assert isinstance(m.In(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
+    assert issubclass(In(Array[2, Bit]), In(Array[2, Bit]))
+    assert isinstance(In(Array[2, Bit])(), In(Array[2, Bit]))
 
-    assert issubclass(m.In(m.Array[2, m.Bit]), m.Array[2, m.Bit])
-    assert isinstance(m.In(m.Array[2, m.Bit])(), m.Array[2, m.Bit])
+    assert issubclass(In(Array[2, Bit]), Array[2, Bit])
+    assert isinstance(In(Array[2, Bit])(), Array[2, Bit])
 
-    assert not issubclass(m.In(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
-    assert not isinstance(m.In(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
+    assert not issubclass(In(Array[2, Bit]), Out(Array[2, Bit]))
+    assert not isinstance(In(Array[2, Bit])(), Out(Array[2, Bit]))
 
-    assert issubclass(m.Out(m.Array[2, m.Bit]), m.Out(m.Array[2, m.Bit]))
-    assert isinstance(m.Out(m.Array[2, m.Bit])(), m.Out(m.Array[2, m.Bit]))
+    assert issubclass(Out(Array[2, Bit]), Out(Array[2, Bit]))
+    assert isinstance(Out(Array[2, Bit])(), Out(Array[2, Bit]))
 
-    assert issubclass(m.Out(m.Array[2, m.Bit]), m.Array[2, m.Bit])
-    assert isinstance(m.Out(m.Array[2, m.Bit])(), m.Array[2, m.Bit])
+    assert issubclass(Out(Array[2, Bit]), Array[2, Bit])
+    assert isinstance(Out(Array[2, Bit])(), Array[2, Bit])
 
-    assert not issubclass(m.Out(m.Array[2, m.Bit]), m.In(m.Array[2, m.Bit]))
-    assert not isinstance(m.Out(m.Array[2, m.Bit])(), m.In(m.Array[2, m.Bit]))
+    assert not issubclass(Out(Array[2, Bit]), In(Array[2, Bit]))
+    assert not isinstance(Out(Array[2, Bit])(), In(Array[2, Bit]))
 
 
 def test_qualify_array():
-    assert str(m.In(Array)) == "In(Array)"
-    assert str(m.Out(m.In(Array))) == "Out(Array)"
-    assert str(m.In(Array)[5, m.Bit]) == "Array[5, In(Bit)]"
-    assert str(m.Out(m.In(Array))[5, m.Bit]) == "Array[5, Out(Bit)]"
+    assert str(In(Array)) == "In(Array)"
+    assert str(Out(In(Array))) == "Out(Array)"
+    assert str(In(Array)[5, Bit]) == "Array[5, In(Bit)]"
+    assert str(Out(In(Array))[5, Bit]) == "Array[5, Out(Bit)]"
 
     # Array qualifer overrides child qualifer
-    assert str(m.In(Array)[5, m.Out(m.Bit)]) == "Array[5, In(Bit)]"
+    assert str(In(Array)[5, Out(Bit)]) == "Array[5, In(Bit)]"
 
-    assert m.In(Array) is m.In(Array)
-    assert m.Out(m.In(Array)) is m.Out(Array)
-    assert m.In(Array)[5, m.Bit] is m.Array[5, In(Bit)]
-    assert m.Out(m.In(Array))[5, m.Bit] is m.Array[5, Out(Bit)]
+    assert In(Array) is In(Array)
+    assert Out(In(Array)) is Out(Array)
+    assert In(Array)[5, Bit] is Array[5, In(Bit)]
+    assert Out(In(Array))[5, Bit] is Array[5, Out(Bit)]
 
     # Array qualifer overrides child qualifer
-    assert m.In(Array)[5, m.Out(m.Bit)] is Array[5, In(Bit)]
+    assert In(Array)[5, Out(Bit)] is Array[5, In(Bit)]
 
 
 def test_val():
@@ -129,7 +129,7 @@ def test_construct():
     assert isinstance(a1, ArrayType)
 
     a1 = Array[2, Bit](0x3)
-    assert a1 == m.array([VCC, VCC])
+    assert a1 == array([VCC, VCC])
 
     with pytest.raises(TypeError):
         a1 = Array[2, Array[3, Bit]](0x3)

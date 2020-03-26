@@ -6,7 +6,7 @@ def test_lut():
         io = IO(I0=In(Bit), I1=In(Bit), O=Out(Bit))
 
     class _Top(Circuit):
-        io = m.IO()
+        io = IO()
         lut1 = LUT2(name='lut1')
         lut2 = uncurry(lut1)
         lut3 = curry(lut2)
@@ -25,7 +25,7 @@ def test_rom():
         io = IO(I=In(Array[2,Bit]), O=Out(Bit))
 
     class _Top(Circuit):
-        io = m.IO()
+        io = IO()
         rom1 = ROM2(name='rom1')
         rom2 = curry(rom1)
         rom3 = uncurry(rom2)

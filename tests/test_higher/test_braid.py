@@ -6,7 +6,7 @@ def test_braid():
         io = IO(I0=In(Bit), I1=In(Bit), O=Out(Bit))
 
     class _Top(Circuit):
-        io = m.IO()
+        io = IO()
         lut0 = And2(name='lut0')
         lut1 = And2(name='lut1')
 
@@ -29,7 +29,7 @@ def test_compose():
         io = IO(I=In(Bit), O=Out(Bit))
 
     class _Top(Circuit):
-        io = m.IO()
+        io = IO()
         lut1 = Buf(name='lut1')
         lut2 = Buf(name='lut2')
         lut3 = compose(lut1, lut2)

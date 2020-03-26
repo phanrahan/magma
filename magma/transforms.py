@@ -11,6 +11,8 @@ from .wire import wire
 from .conversions import array, tuple_
 from .ref import DefnRef, InstRef, ArrayRef, TupleRef
 from .scope import *
+from magma.circuit import Circuit
+
 
 __all__ = ['TransformedCircuit', 'flatten', 'setup_clocks', 'get_uniq_circuits']
 
@@ -27,7 +29,7 @@ class TransformedCircuit:
 
         decl = orig_circuit.interface.decl()
         ports = dict(zip(decl[::2], decl[1::2]))
-        class _TransformedCircuit(m.Circuit):
+        class _TransformedCircuit(Circuit):
             name = orig_circuit.name + '_' + transform_name
             io = IO(**ports)
         self.circuit = _TransformedCircuit

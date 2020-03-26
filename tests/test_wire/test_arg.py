@@ -7,7 +7,7 @@ def DefineAndN(n):
 
     class _Circuit(Circuit):
         name = name_
-        io = m.IO(I=In(Bits[n]), O=Out(Bit))
+        io = IO(I=In(Bits[n]), O=Out(Bit))
 
     return _Circuit
 
