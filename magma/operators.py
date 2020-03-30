@@ -1,6 +1,5 @@
 from hwtypes import BitVector
 
-from .array import Array, Mux
 from .digital import Digital
 from .bit import Bit
 from .bits import Bits
@@ -13,6 +12,7 @@ from .protocol_type import MagmaProtocol
 from .t import Type, In, Out
 from .tuple import Product
 from .wire import wire
+from magma.mux import Mux
 
 
 def mux(I, S, **kwargs):
