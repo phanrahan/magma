@@ -17,8 +17,7 @@ class Type(object):
         if name is None:
             name = AnonRef()
         elif isinstance(name, str):
-            name = NamedRef(name=name)
-            name.value = self
+            name = NamedRef(name=name, value=self)
         self.name = name
 
     __hash__ = object.__hash__

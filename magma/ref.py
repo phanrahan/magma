@@ -1,4 +1,5 @@
 import abc
+import weakref
 from magma.compatibility import IntegerTypes
 
 
@@ -48,7 +49,7 @@ class NamedRef(Ref):
         if not isinstance(name, (str, int)):
             raise TypeError("Expected string or int")
         self.name = name
-        self.value = value
+        self.value = value if value is None else weakref.ref(value)
 
     def __str__(self):
         return self.name
@@ -60,7 +61,7 @@ class NamedRef(Ref):
         return False
 
     def root(self):
-        return self.value
+        return self.value()
 
 
 class InstRef(NamedRef):
