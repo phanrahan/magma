@@ -172,7 +172,7 @@ def _add_intermediate_value(value):
     root = value.name.root()
     if root is None or root.const():
         return OrderedIdentitySet()
-    return OrderedIdentitySet([root])
+    return OrderedIdentitySet((root,))
 
 
 def _get_intermediate_values(value):

@@ -62,13 +62,13 @@ class _IdentitySetBase(collections.MutableSet):
 
 
 class IdentitySet(_IdentitySetBase):
-    def __init__(self, items=[]):
+    def __init__(self, items=()):
         refs = set(map(_Ref, items))
         super().__init__(refs)
 
 
 class OrderedIdentitySet(_IdentitySetBase):
-    def __init__(self, items=[]):
+    def __init__(self, items=()):
         # NOTE(rsetaluri): We use collections.OrderedDict to mimic an ordered
         # set, to avoid implementing a custom ordered set or import one, since
         # it is not natively supported.
