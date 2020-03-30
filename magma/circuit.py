@@ -10,7 +10,7 @@ import os
 
 import six
 from . import cache_definition
-from .common import deprecated, setattrs, Stack, IdentitySet
+from .common import deprecated, setattrs, Stack, OrderedIdentitySet
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -171,8 +171,8 @@ def _add_intermediate_value(value):
     """
     root = value.name.root()
     if root is None or root.const():
-        return IdentitySet()
-    return IdentitySet([root])
+        return OrderedIdentitySet()
+    return OrderedIdentitySet([root])
 
 
 def _get_intermediate_values(value):
@@ -184,21 +184,21 @@ def _get_intermediate_values(value):
     values in a circuit.
     """
     if value.is_output():
-        return IdentitySet()
+        return OrderedIdentitySet()
     if value.is_mixed():
         # Mixed
         return functools.reduce(operator.or_,
                                 (_get_intermediate_values(v) for v in value),
-                                IdentitySet())
+                                OrderedIdentitySet())
     driver = value.value()
     if driver is None:
-        return IdentitySet()
+        return OrderedIdentitySet()
     flat = value.flatten()
     if len(flat) > 1 and driver.name.anon():
         return functools.reduce(operator.or_,
                                 (_get_intermediate_values(f) for f in flat),
-                                IdentitySet())
-    values = IdentitySet()
+                                OrderedIdentitySet())
+    values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
         if driver.is_output():
@@ -300,7 +300,7 @@ class CircuitKind(type):
                                for value in values)
         intermediate_values = functools.reduce(operator.or_,
                                                intermediate_values,
-                                               IdentitySet())
+                                               OrderedIdentitySet())
         if intermediate_values:
             intermediate_values = (f"{value.name} = {repr(value)}"
                                    for value in intermediate_values)
