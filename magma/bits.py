@@ -20,6 +20,10 @@ from magma.circuit import Circuit, coreir_port_mapping, DeclareCoreirCircuit
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
+from magma.logging import root_logger
+
+
+_logger = root_logger()
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
@@ -509,8 +513,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @classmethod
     def unflatten(cls, value):
-        # TODO(rsetaluri): Should we type check here?
-        return Bits[len(value)](value)
+        size = len(value)
+        if cls.N != size:
+            _logger.warning(f"Using {repr(cls)} to unflatten {size} elements")
+        return Bits[size](value)
 
     def unused(self):
         if self.is_input() or self.is_inout():
