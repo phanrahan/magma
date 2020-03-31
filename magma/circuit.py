@@ -134,6 +134,8 @@ class _DefinitionContextManager:
 def _has_definition(cls, port=None):
     if cls.instances:
         return True
+    if cls._context_._inline_verilog:
+        return True
     if port is None:
         interface = getattr(cls, "interface", None)
         if not interface:
