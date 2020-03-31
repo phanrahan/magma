@@ -16,7 +16,7 @@ from .verilog_importer import (ImportMode, MultipleModuleDeclarationError,
 from .verilog_utils import int_const_str_to_int
 
 
-class PyverilogParserError(VerilogImportError):
+class PyverilogImportError(VerilogImportError):
     pass
 
 
@@ -39,6 +39,10 @@ def _evaluate_node(node, params):
         l = _evaluate_node(node.left, params)
         r = _evaluate_node(node.right, params)
         return l // r  # floor division
+    if isinstance(node, pyverilog.vparser.ast.Times):
+        l = _evaluate_node(node.left, params)
+        r = _evaluate_node(node.right, params)
+        return l * r  # floor division
     if isinstance(node, pyverilog.vparser.ast.Identifier):
         return params[node.name]
     if isinstance(node, pyverilog.vparser.ast.SystemCall):
@@ -48,7 +52,7 @@ def _evaluate_node(node, params):
             return log2_ceil(operand)
         raise PyverilogImportError(
             f"Unsupported verilog system call: {syscall}")
-    raise PyverilogImportError("Unsupported expression: {type(v)}")
+    raise PyverilogImportError(f"Unsupported expression: {type(node)}")
 
 
 def _get_width(width, param_map):
