@@ -7,6 +7,8 @@ from .uniquification import uniquification_pass, UniquificationMode
 from .passes.clock import WireClockPass
 from .passes.drive_undriven import DriveUndrivenPass
 from .passes.terminate_unused import TerminateUnusedPass
+from magma.bind import BindPass
+from magma.inline_verilog import ProcessInlineVerilogPass
 
 __all__ = ["compile"]
 
@@ -43,13 +45,16 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     opts = kwargs.copy()
     compiler = _make_compiler(output, main, basename, opts)
 
+    # Steps to process bind's and inline verilog generation.
+    ProcessInlineVerilogPass(main).run()
+    BindPass(main, compile).run()
+
     # Default behavior is to perform uniquification, but can be overriden.
     uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
     if opts.get("terminate_unused", False):
         TerminateUnusedPass(main).run()
-
 
     compiler.compile()
 

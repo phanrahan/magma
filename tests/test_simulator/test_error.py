@@ -8,11 +8,11 @@ def test_instance():
 
     class Test(Circuit):
         name = "Test"
-        io = m.IO(I=In(T), O=Out(T), CLK=In(Bit))
+        io = IO(I=In(T), O=Out(T), CLK=In(Bit))
         wire(io.I, io.O)
 
     class _Top(Circuit):
-        io = m.IO()
+        io = IO()
         test = Test()
 
     try:

@@ -1,3 +1,4 @@
+import collections
 from functools import wraps, partial
 import warnings
 
@@ -15,6 +16,68 @@ class Stack:
 
     def peek(self):
         return self._stack[-1]
+
+
+class _Ref(object):
+    def __init__(self, value):
+        self.value = value
+
+    def __eq__(self, other):
+        return self.value is other.value
+
+    def __hash__(self):
+        return id(self.value)
+
+
+class _IdentitySetBase(collections.MutableSet):
+    def __init__(self, refs):
+        self.refs = refs
+
+    def __contains__(self, elem):
+        return _Ref(elem) in self.refs
+
+    def __iter__(self):
+        return (ref.value for ref in self.refs)
+
+    def __len__(self):
+        return len(self.refs)
+
+    def add(self, elem):
+        self.refs.add(_Ref(elem))
+
+    def discard(self, elem):
+        raise NotImplementedError()
+
+    def remove(self, elem):
+        raise NotImplementedError()
+
+    def pop(self):
+        raise NotImplementedError()
+
+    def clear(self):
+        self.refs.clear()
+
+    def __repr__(self):
+        return "%s(%s)" % (type(self).__name__, list(self))
+
+
+class IdentitySet(_IdentitySetBase):
+    def __init__(self, items=()):
+        refs = set(map(_Ref, items))
+        super().__init__(refs)
+
+
+class OrderedIdentitySet(_IdentitySetBase):
+    def __init__(self, items=()):
+        # NOTE(rsetaluri): We use collections.OrderedDict to mimic an ordered
+        # set, to avoid implementing a custom ordered set or import one, since
+        # it is not natively supported.
+        refs = map(lambda x: (x, None), map(_Ref, items))
+        refs = collections.OrderedDict(refs)
+        super().__init__(refs)
+
+    def add(self, elem):
+        self.refs[_Ref(elem)] = None
 
 
 def deprecated(func=None, *, msg=None):

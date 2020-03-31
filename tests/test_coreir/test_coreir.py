@@ -14,7 +14,7 @@ def test_check_interface_bit():
     """
     class TestCircuit0(Circuit):
         name = "TestCircuit0"
-        io = m.IO(I=In(Bit), O=Out(Bit))
+        io = IO(I=In(Bit), O=Out(Bit))
         wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit0.interface)
@@ -26,7 +26,7 @@ def test_check_interface_array():
     """
     class TestCircuit1(Circuit):
         name = "TestCircuit1"
-        io = m.IO(I=In(Array[8, Bit]), O=Out(Array[8, Bit]))
+        io = IO(I=In(Array[8, Bit]), O=Out(Array[8, Bit]))
         wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit1.interface)
@@ -37,13 +37,13 @@ def test_check_interface_tuple():
     This should work with valid types
     """
 
-    class T(m.Product):
+    class T(Product):
         a = Bit
         b = Array[7, Bit]
 
     class TestCircuit2(Circuit):
         name = "TestCircuit2"
-        io = m.IO(I=In(T), O=Out(T))
+        io = IO(I=In(T), O=Out(T))
         wire(io.I, io.O)
     backend = magma.backend.coreir_.CoreIRBackend()
     check_magma_interface(TestCircuit2.interface)

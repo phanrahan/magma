@@ -82,7 +82,7 @@ def test_construct():
     assert not isinstance(a1, SInt)
 
     assert isinstance(UInt[15](a1), UInt)
-    assert repr(m.UInt[16](
+    assert repr(UInt[16](
         a1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
 
     # Test explicit conversion
@@ -95,8 +95,8 @@ def test_construct():
 @pytest.mark.parametrize("n", [1, 3])
 @pytest.mark.parametrize("op", ["eq", "lt", "le", "gt", "ge"])
 def test_compare(n, op):
-    class TestBinary(m.Circuit):
-        io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), O=m.Out(m.Bit))
+    class TestBinary(Circuit):
+        io = IO(I0=In(UInt[n]), I1=In(UInt[n]), O=Out(Bit))
         io.O <= getattr(operator, op)(io.I0, io.I1)
 
     sim = PythonSimulator(TestBinary)
@@ -123,7 +123,7 @@ wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
 wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
-    m.compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
+    compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestUInt{n}{op}.v",
                              f"gold/TestUInt{n}{op}.v")
 
@@ -131,8 +131,8 @@ EndCircuit()\
 @pytest.mark.parametrize("n", [1, 3])
 @pytest.mark.parametrize("op", ["add", "sub", "mul", "floordiv", "mod"])
 def test_binary(n, op):
-    class TestBinary(m.Circuit):
-        io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), O=m.Out(m.UInt[n]))
+    class TestBinary(Circuit):
+        io = IO(I0=In(UInt[n]), I1=In(UInt[n]), O=Out(UInt[n]))
         io.O <= getattr(operator, op)(io.I0, io.I1)
 
     sim = PythonSimulator(TestBinary)
@@ -159,16 +159,16 @@ wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
 wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
-    m.compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
+    compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestUInt{n}{op}.v",
                              f"gold/TestUInt{n}{op}.v")
 
 
 @pytest.mark.parametrize("n", [1, 3])
 def test_adc(n):
-    class TestBinary(m.Circuit):
-        io = m.IO(I0=m.In(m.UInt[n]), I1=m.In(m.UInt[n]), CIN=m.In(
-            m.Bit), O=m.Out(m.UInt[n]), COUT=m.Out(m.Bit))
+    class TestBinary(Circuit):
+        io = IO(I0=In(UInt[n]), I1=In(UInt[n]), CIN=In(
+            Bit), O=Out(UInt[n]), COUT=Out(Bit))
 
         result, carry = io.I0.adc(io.I1, io.CIN)
         io.O <= result
@@ -201,7 +201,7 @@ wire(TestBinary.CIN, magma_Bits_{n + 1}_add_inst1.in1[0])
 {out_wires}
 EndCircuit()\
 """
-    m.compile(f"build/TestUInt{n}adc", TestBinary, output="coreir-verilog")
+    compile(f"build/TestUInt{n}adc", TestBinary, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestUInt{n}adc.v",
                              f"gold/TestUInt{n}adc.v")
 

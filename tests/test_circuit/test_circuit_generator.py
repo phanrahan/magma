@@ -40,7 +40,7 @@ def DefineAdd(N, has_cout=False, has_cin=False):
 
             class CoreirAdd(Circuit):
                 name = "coreir_" + add.name
-                io = m.IO(**dict(zip(coreir_io[::2], coreir_io[1::2])))
+                io = IO(**dict(zip(coreir_io[::2], coreir_io[1::2])))
                 coreir_name = "add"
                 coreir_lib = "coreir"
                 coreir_genargs = coreir_genargs_

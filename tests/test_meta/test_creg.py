@@ -22,7 +22,7 @@ def test():
 
             class RegisterCircuit(Circuit):
                 name = "Register" + str(n)
-                io = m.IO(I=In(T), O=Out(T)) + ClockIO(ce, r, s)
+                io = IO(I=In(T), O=Out(T)) + ClockIO(ce, r, s)
                 print("join")
                 ffs = join(FFs(n))
 

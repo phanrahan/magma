@@ -1,14 +1,13 @@
 import weakref
 from functools import reduce
 from abc import ABCMeta
-import magma as m
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
-from .t import Type, Kind, Direction
+from .t import Type, Kind, Direction, In, Out
 from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import VCC, GND, Bit
-from .bitutils import seq2int
+from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 
@@ -205,12 +204,12 @@ class Array(Type, metaclass=ArrayMeta):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
                                         "with int, not Array[N, {self.T}]")
                     self.ts = []
-                    for bit in m.bitutils.int2seq(args[0], self.N):
+                    for bit in int2seq(args[0], self.N):
                         self.ts.append(VCC if bit else GND)
                 elif self.N == 1:
                     t = args[0]
                     if isinstance(t, IntegerTypes):
-                        t = m.VCC if t else m.GND
+                        t = VCC if t else GND
                     assert type(t) == self.T or type(t) == self.T.flip() or \
                         issubclass(type(type(t)), type(self.T)) or \
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
@@ -237,6 +236,10 @@ class Array(Type, metaclass=ArrayMeta):
         if cls.T is None:
             return False
         return cls.T.is_oriented(direction)
+
+    @classmethod
+    def is_clock(cls):
+        return False
 
     @classmethod
     @deprecated
@@ -270,9 +273,6 @@ class Array(Type, metaclass=ArrayMeta):
     @classmethod
     def flat_length(cls):
         return cls.N * cls.T.flat_length()
-
-    def dynamic_mux_select(self, key):
-        return m.operators.Mux(len(self), self.T)()(*self.ts, key)
 
     def __getitem__(self, key):
         if isinstance(key, Type):
@@ -359,7 +359,8 @@ class Array(Type, metaclass=ArrayMeta):
         return True
 
     # test whether the values refer a whole array
-    def iswhole(self, ts):
+    @staticmethod
+    def _iswhole(ts):
 
         n = len(ts)
 
@@ -388,6 +389,9 @@ class Array(Type, metaclass=ArrayMeta):
 
         return True
 
+    def iswhole(self):
+        return Array._iswhole(self.ts)
+
     def trace(self):
         ts = [t.trace() for t in self.ts]
 
@@ -395,7 +399,7 @@ class Array(Type, metaclass=ArrayMeta):
             if t is None:
                 return None
 
-        if self.iswhole(ts):
+        if Array._iswhole(ts):
             return ts[0].name.array
 
         return type(self).flip()(*ts)
@@ -407,7 +411,7 @@ class Array(Type, metaclass=ArrayMeta):
             if t is None:
                 return None
 
-        if self.iswhole(ts):
+        if Array._iswhole(ts):
             return ts[0].name.array
 
         return type(self).flip()(*ts)
@@ -418,6 +422,15 @@ class Array(Type, metaclass=ArrayMeta):
                 return False
 
         return True
+
+    @classmethod
+    def unflatten(cls, value):
+        size_T = cls.T.flat_length()
+        if len(value) != size_T * cls.N:
+            raise TypeError("Width mismatch")
+        ts = [cls.T.unflatten(value[i:i + size_T])
+              for i in range(0, size_T * cls.N, size_T)]
+        return cls(ts)
 
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
@@ -436,7 +449,6 @@ class Array(Type, metaclass=ArrayMeta):
     @classmethod
     def is_mixed(cls):
         return cls.T.is_mixed()
-
 
 
 ArrayType = Array

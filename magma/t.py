@@ -17,7 +17,7 @@ class Type(object):
         if name is None:
             name = AnonRef()
         elif isinstance(name, str):
-            name = NamedRef(name=name)
+            name = NamedRef(name=name, value=self)
         self.name = name
 
     __hash__ = object.__hash__
@@ -41,6 +41,10 @@ class Type(object):
     # Abstract method to be implemented by subclasses.
     @classmethod
     def is_oriented(cls, direction):
+        raise NotImplementedError()
+
+    @classmethod
+    def is_clock(cls):
         raise NotImplementedError()
 
     @classmethod
