@@ -4,7 +4,7 @@ from collections.abc import Sequence, Mapping
 from .compatibility import IntegerTypes
 from .t import Type, In, Out, InOut, Direction
 from .digital import Digital
-from .bit import Bit, VCC, GND
+from .bit import Bit
 from .bits import Bits
 from .digital import DigitalMeta
 from .clock import Clock, Reset, AsyncReset, AsyncResetN, Enable
@@ -60,7 +60,7 @@ def convertbit(value, totype):
     assert isinstance(value, (IntegerTypes, Digital))
 
     if isinstance(value, IntegerTypes):
-        value = VCC if value else GND
+        value = totype(1) if value else totype(0)
 
     if value.is_input():
         b = In(totype)(name=value.name)
@@ -124,7 +124,7 @@ def convertbits(value, n, totype, checkbit):
             ts = n * [value]
         else:
             # zext
-            ts = [GND for _ in range(n - 1)] + [value]
+            ts = [Bit(0) for _ in range(n - 1)] + [value]
     else:
         ts = [value[i] for i in range(len(value))]
 
@@ -243,7 +243,7 @@ def sext(value, n):
 
 from .bitutils import int2seq
 from .array import Array
-from .bit import Digital, Bit, VCC, GND
+from .bit import Digital, Bit
 
 
 #
