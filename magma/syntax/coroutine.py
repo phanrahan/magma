@@ -205,9 +205,11 @@ def _coroutine(defn_env, fn):
                 # If we encounter a branch, subsequent statements go inside the
                 # branch
                 if isinstance(statement, ast.While):
-                    body[-1] = ast.If(body[-1].test, body[-1].body, [])
-                if isinstance(statement, (ast.If, ast.While)):
+                    body[-1] = ast.If(body[-1].test, [], [])
+                if isinstance(statement, ast.If):
                     body[-1].body = []
+                    body[-1].orelse = []
+                if isinstance(statement, (ast.If, ast.While)):
                     body = body[-1].body
             assert end_yield is not None, "Found path not ending in yield"
 
