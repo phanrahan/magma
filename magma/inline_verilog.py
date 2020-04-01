@@ -1,4 +1,3 @@
-import copy
 import string
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 from magma.circuit import _definition_context_stack
