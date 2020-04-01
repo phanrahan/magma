@@ -2,7 +2,7 @@ from collections import OrderedDict
 import json
 from hwtypes import BitVector
 from ..array import Array
-from ..bit import VCC, GND, Digital
+from ..bit import Digital
 from ..clock import Clock, AsyncReset, AsyncResetN
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
 from ..tuple import Tuple
@@ -186,14 +186,13 @@ def get_inst_args(inst):
 
 
 def is_const(array):
-    return all(x in {VCC, GND} for x in array)
+    return all(x.const() for x in array)
 
 
 def constant_to_value(constant):
-    if constant is GND:
-        return 0
-    if constant is VCC:
-        return 1
+    assert constant.const()
+    if isinstance(constant, Digital):
+        return 1 if constant is type(constant).VCC else 0
     if isinstance(constant, Array):
         values = [constant_to_value(c) for c in constant]
         return BitVector[len(constant)](values)
