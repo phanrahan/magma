@@ -11,7 +11,8 @@ from functools import lru_cache
 import hwtypes as ht
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction, In, Out
-from .digital import Digital, DigitalMeta, VCC, GND
+from .digital import Digital, DigitalMeta
+from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 from magma.circuit import Circuit, coreir_port_mapping
 from magma.family import get_family
 from magma.interface import IO
