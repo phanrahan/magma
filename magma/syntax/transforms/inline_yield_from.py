@@ -72,10 +72,7 @@ class YieldFromFunctionInliner(ast.NodeTransformer):
                     # TODO: Should use an ast_tools macro symbol replacer
                     # instead
                     tree = tree.body[0]
-            else:
-                assert len(tree.args) == 0, \
-                    "assumes no args for non-make variant"
-            # TODO: Assumes return is well formed
+            # TODO: Assumes function signature and return is well formed
             return tree.body[:-1]
         else:
             return node
