@@ -35,7 +35,7 @@ setup(
         "graphviz",
         "coreir>=2.0.*",
         "hwtypes>=1.0.*",
-        "ast_tools>=0.0.10",
+        "ast_tools>=0.0.15",
         "kratos",
         "staticfg"
     ],

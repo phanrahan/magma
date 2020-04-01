@@ -96,3 +96,18 @@ assert property (@(posedge CLK) {valid_in} |-> ##3 {ready_out});\
     assert m.testing.check_files_equal(__file__,
                                        f"build/test_inline_tuple.sv",
                                        f"gold/test_inline_tuple.sv")
+
+
+def test_inline_loop_var():
+    class Main(m.Circuit):
+        _ignore_undriven_ = True
+        io = m.IO(O=m.Out(m.Array[5, m.Bits[5]]))
+        for i in range(5):
+            m.inline_verilog("""
+assign O[{i}] = {i};
+            """)
+
+    m.compile(f"build/test_inline_loop_var", Main, drive_undriven=True)
+    assert m.testing.check_files_equal(__file__,
+                                       f"build/test_inline_loop_var.v",
+                                       f"gold/test_inline_loop_var.v")
