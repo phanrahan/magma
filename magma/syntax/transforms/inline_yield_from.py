@@ -61,9 +61,8 @@ class YieldFromFunctionInliner(ast.NodeTransformer):
                     and func.func.value.id == "self"):
                 raise NotImplementedError(ast.dump(func))
             tree = copy.deepcopy(self.method_name_map[func.func.attr])
-            if (isinstance(tree.body[0], ast.FunctionDef) and
-                isinstance(tree.body[0].func, ast.Name) and 
-                tree.body[0].func.id[0:5] == "make_"):
+            if (isinstance(tree, ast.FunctionDef) and
+                tree.name[0:5] == "make_"):
                     symbol_table = {}
                     # Skip self arg
                     for arg, param in zip(func.args, tree.args.args[1:]):
@@ -74,7 +73,7 @@ class YieldFromFunctionInliner(ast.NodeTransformer):
                     # instead
                     tree = tree.body[0]
             else:
-                assert len(func.args) == 0, \
+                assert len(tree.args) == 0, \
                     "assumes no args for non-make variant"
             # TODO: Assumes return is well formed
             return tree.body[:-1]
