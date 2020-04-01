@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from ..compiler import Compiler
 from ..ref import DefnRef
 from ..compatibility import IntegerTypes
-from ..bit import Digital, VCC, GND
+from ..bit import Digital
 from ..clock import Clock, Enable, Reset
 from ..array import Array
 from ..bits import SInt
@@ -61,8 +61,9 @@ def bstr(n, bits):
 
 # return the verilog name of a data value
 def vname(t):
-    if t is VCC: return "1'b1"
-    if t is GND: return "1'b0"
+    if isinstance(t, Digital):
+        if t is type(t).VCC: return "1'b1"
+        if t is type(t).GND: return "1'b0"
 
     if isinstance(t, Array):
         # print(t.ts)
