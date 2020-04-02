@@ -44,6 +44,32 @@ class InsertCoreIRWires(DefinitionPass):
         self.seen = set()
         self.wire_map = {}
 
+    def get_wire(self, driver, value, definition):
+        root = driver.name.root()
+        if root is None:
+            root = driver
+        T = type(root)
+        if root not in self.wire_map:
+
+            root_name = root.name.qualifiedname("_")
+            root_name = _sanitize_name(root_name)
+
+            # Rename root so it doesn't conflict with new wire instance name
+            assert isinstance(root.name, NamedRef)
+            root.name.name = "_" + root.name.name
+
+            name = f"{root_name}"
+            with definition.open():
+                wire_inst = _Wire(T)(name=name)
+                self.wire_map[root] = wire_inst
+        wire_inst = self.wire_map[root]
+        wire_input = wire_inst.I
+        wire_output = wire_inst.O
+        if not issubclass(T, Digital):
+            wire_input = from_bits(T, wire_input)
+            wire_output = from_bits(T, wire_output)
+        return wire_input, wire_output
+
     def insert_wire(self, value, definition):
         if value.is_mixed():  # mixed children
             for child in value:
@@ -69,30 +95,14 @@ class InsertCoreIRWires(DefinitionPass):
 
         value.unwire(driver)
         T = type(driver)
-        if driver not in self.wire_map:
-            driver_name = driver.name.qualifiedname("_")
-            value_name = value.name.qualifiedname("_")
-            driver_name = _sanitize_name(driver_name)
-            value_name = _sanitize_name(value_name)
+        wire_input, wire_output = self.get_wire(driver, value, definition)
 
-            # Rename driver so it doesn't conflict with new wire instance name
-            if isinstance(driver.name, NamedRef):
-                driver.name.name = "_" + driver.name.name
-            name = f"{driver_name}"
-            with definition.open():
-                wire_inst = _Wire(T)(name=name)
-                self.wire_map[driver] = wire_inst
-                if issubclass(T, Digital):
-                    wire_inst.I @= driver
-                else:
-                    wire_inst.I @= as_bits(driver)
-        else:
-            wire_inst = self.wire_map[driver]
+        if driver.name.root() is not None and driver.name.root() is not driver:
+            wire_input = driver.name.get_from_root(wire_input)
+            wire_output = driver.name.get_from_root(wire_output)
 
-        if issubclass(T, Digital):
-            value @= wire_inst.O
-        else:
-            value @= from_bits(T, wire_inst.O)
+        wire_input @= driver
+        value @= wire_output
 
         self.insert_wire(driver, definition)
 
