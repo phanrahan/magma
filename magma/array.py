@@ -6,7 +6,7 @@ from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, Direction, In, Out
 from .compatibility import IntegerTypes
 from .digital import Digital
-from .bit import VCC, GND, Bit
+from .bit import Bit
 from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
@@ -192,7 +192,7 @@ class Array(Type, metaclass=ArrayMeta):
                     self.ts = []
                     for elem in args[0]:
                         if isinstance(elem, int):
-                            self.ts.append(VCC if elem else GND)
+                            self.ts.append(self.T(elem))
                         else:
                             self.ts.append(elem)
                 elif len(self) > 1 and isinstance(args[0], Array):
@@ -205,11 +205,11 @@ class Array(Type, metaclass=ArrayMeta):
                                         "with int, not Array[N, {self.T}]")
                     self.ts = []
                     for bit in int2seq(args[0], self.N):
-                        self.ts.append(VCC if bit else GND)
+                        self.ts.append(self.T(bit))
                 elif self.N == 1:
                     t = args[0]
                     if isinstance(t, IntegerTypes):
-                        t = VCC if t else GND
+                        t = self.T(t)
                     assert type(t) == self.T or type(t) == self.T.flip() or \
                         issubclass(type(type(t)), type(self.T)) or \
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
@@ -218,7 +218,7 @@ class Array(Type, metaclass=ArrayMeta):
                 self.ts = []
                 for t in args:
                     if isinstance(t, IntegerTypes):
-                        t = VCC if t else GND
+                        t = self.T(t)
                     assert type(t) == self.T or type(t) == self.T.flip() or \
                         issubclass(type(type(t)), type(self.T)) or \
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
@@ -278,8 +278,6 @@ class Array(Type, metaclass=ArrayMeta):
         if isinstance(key, Type):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)
-        if isinstance(key, ArrayType) and all(t in {VCC, GND} for t in key.ts):
-            key = seq2int([0 if t is GND else 1 for t in key.ts])
         if isinstance(key, slice):
             _slice = [self[i] for i in range(*key.indices(len(self)))]
             return type(self)[len(_slice), self.T](_slice)

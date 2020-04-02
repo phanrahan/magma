@@ -2,7 +2,7 @@ import types
 from collections import OrderedDict
 from collections.abc import Sequence
 from ..bitutils import seq2int, fun2seq
-from ..bit import VCC, GND, Bit
+from ..bit import Bit, Digital
 from ..array import Array
 from ..compiler import make_compiler
 from ..clock import wiredefaultclock
@@ -17,12 +17,9 @@ def fullqualifiedname(prefix, v):
      return fullname(prefix, str(v))
 
 def fullinputname(prefix, v):
-    if   v == VCC:
-        return '$true'
-    elif v == GND:
-        return '$false'
-    else:
-        return fullqualifiedname(prefix, v)
+    if isinstance(v, Digital) and v.const():
+        return "$true" if v is type(v).VCC else "$false"
+    return fullqualifiedname(prefix, v)
 
 def compileinput(prefix, from_, to):
     assert isinstance(from_, Bit)

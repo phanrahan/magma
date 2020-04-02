@@ -12,7 +12,7 @@ from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
     InconsistentSizeError
 from .compatibility import IntegerTypes
 from .ref import AnonRef
-from .bit import Bit, VCC, GND
+from .bit import Bit
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type, Direction, In, Out
@@ -94,7 +94,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             self.ts = args[0].ts[:]
             # zext for promoting width
             for i in range(len(self) - len(args[0])):
-                self.ts.append(GND)
+                self.ts.append(Bit(0))
             Type.__init__(self, **kwargs)
         else:
             Array.__init__(self, *args, **kwargs)
@@ -109,12 +109,13 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         if not self.const():
             raise Exception("Not a constant")
 
-        def convert(x):
-            if x is VCC:
+        def _convert(x):
+            if x is type(x).VCC:
                 return True
-            assert x is GND
+            assert x is type(x).GND
             return False
-        return [convert(x) for x in self.ts]
+
+        return [_convert(x) for x in self.ts]
 
     def __int__(self):
         if not self.const():

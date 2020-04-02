@@ -1,5 +1,5 @@
 from ..array import Array
-from ..bit import Bit, VCC, GND
+from ..bit import Bit, Digital
 from ..compiler import make_compiler
 from ..passes.debug_name import DebugNamePass
 from ..passes.clock import WireClockPass
@@ -21,8 +21,8 @@ def get_type(port):
     return str(type(port))
 
 def get_name(dot, port):
-    if port is VCC: return "1"
-    if port is GND: return "0"
+    if isinstance(port, Digital) and port.const():
+        return "1" if port is type(port).VCC else "0"
 
     if isinstance(port, Array):
         if not port.iswhole():

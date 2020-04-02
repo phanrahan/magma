@@ -1,3 +1,4 @@
+import itertools
 import pytest
 import magma as m
 from magma import In, Out, Flip
@@ -56,6 +57,20 @@ def test_bit():
     assert not isinstance(m.BitOut(), In(m.Digital))
 
     assert m.Bit().is_oriented(m.Direction.Undirected)
+
+
+@pytest.mark.parametrize("T, direction",
+                         itertools.product([m.Digital, m.Bit, m.Clock],
+                                           [m.In, m.Out]))
+def test_const_bit(T, direction):
+    T = direction(T)
+    assert isinstance(T(), T)
+    assert not T().const()
+    for val in 0, 1:
+        expected_name = "VCC" if val else "GND"
+        bit = T(val)
+        assert isinstance(bit, T.undirected_t)
+        assert bit.name.name == expected_name
 
 
 def test_bit_flip():

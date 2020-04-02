@@ -4,7 +4,6 @@ import json
 import logging
 import os
 from ..array import Array
-from ..bit import VCC, GND
 from ..clock import wiredefaultclock, wireclock
 from coreir import Wireable
 from .coreir_utils import (add_non_input_ports, attach_debug_info,
@@ -218,7 +217,7 @@ class DefinitionTransformer(TransformerBase):
                 for p, v in zip(port, value):
                     self.connect(module_defn, p, v, non_input_ports)
                 return None
-            if value is VCC or value is GND:
+            if value.const():
                 return self.const_instance(value, None, module_defn)
             return module_defn.select(non_input_ports[value])
         source = get_source()

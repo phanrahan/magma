@@ -7,7 +7,6 @@ from .common import deprecated
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
-from .bit import VCC, GND
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 
@@ -120,7 +119,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             assert len(largs) == len(self)
             for k, t, T in zip(self.keys(), largs, self.types()):
                 if type(t) is bool:
-                    t = VCC if t else GND
+                    t = T(t)
                 self.ts.append(t)
                 if not isinstance(self, Product):
                     setattr(self, k, t)

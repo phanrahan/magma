@@ -39,6 +39,10 @@ class DigitalMeta(ABCMeta, Kind):
             # class inherited from directed types so there is no unundirected_t
             type_._info_ = None, direction
 
+        if not type_.is_directed:
+            type_.VCC = type_[Direction.Out](name="VCC")
+            type_.GND = type_[Direction.Out](name="GND")
+
         return type_
 
     def __getitem__(cls, direction: Direction) -> 'DigitalMeta':
@@ -76,7 +80,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
             if isinstance(value, (bool, IntegerTypes)):
-                return VCC if value else GND
+                return cls.VCC if value else cls.GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
             assert isinstance(value, Digital), type(value)
@@ -186,7 +190,8 @@ class Digital(Type, metaclass=DigitalMeta):
         return [self]
 
     def const(self):
-        return self is VCC or self is GND
+        cls = type(self)
+        return self is cls.VCC or self is cls.GND
 
     def unwire(i, o):
         i._wire.unwire(o._wire)
@@ -208,15 +213,16 @@ class Digital(Type, metaclass=DigitalMeta):
         return False
 
     def __repr__(self):
-        if self is VCC:
+        cls = type(self)
+        if self is cls.VCC:
             return "VCC"
-        if self is GND:
+        if self is cls.GND:
             return "GND"
         return Type.__repr__(self)
 
 
-VCC = Digital[Direction.Out](name="VCC")
-GND = Digital[Direction.Out](name="GND")
+VCC = Digital.VCC
+GND = Digital.GND
 
 HIGH = VCC
 LOW = GND

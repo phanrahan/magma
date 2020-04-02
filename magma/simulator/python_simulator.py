@@ -11,7 +11,7 @@ from .simulator import CircuitSimulator, ExecutionState
 from ..transforms import flatten
 from ..circuit import *
 from ..scope import *
-from ..bit import VCC, GND, Bit, Digital
+from ..bit import Bit, Digital
 from ..array import Array
 from ..tuple import Tuple
 from ..bits import SInt, Bits, UInt
@@ -125,7 +125,7 @@ class ValueStore:
             bit = bit.value()
 
         if bit.const():
-            return True if bit is VCC else False
+            return True if bit is type(bit).VCC else False
 
         return self.value_map[bit]
 

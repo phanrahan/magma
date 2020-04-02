@@ -129,7 +129,7 @@ def test_construct():
     assert isinstance(a1, ArrayType)
 
     a1 = Array[2, Bit](0x3)
-    assert a1 == array([VCC, VCC])
+    assert a1 == array([Bit.VCC, Bit.VCC])
 
     with pytest.raises(TypeError):
         a1 = Array[2, Array[3, Bit]](0x3)

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from ..bit import Bit, VCC, GND
+from ..bit import Bit, Digital
 from ..array import Array
 from ..clock import wiredefaultclock
 from ..compiler import make_compiler
@@ -14,8 +14,10 @@ def get_type(port):
     return "UInt<{}>".format(width)
 
 def get_name(port):
-    if port is VCC: return "UInt<1>(\"h1\")"
-    if port is GND: return "UInt<1>(\"h0\")"
+    if isinstance(port, Digital) and port.const():
+        return ("UInt<1>(\"h1\")"
+                if port is type(port).VCC
+                else "UInt<1>(\"h0\")")
 
     if isinstance(port, Array):
         if not port.iswhole():
