@@ -61,7 +61,7 @@ class Mux(Generator2):
             mux.I.sel[0] @= self.io.S
         else:
             mux.I.sel @= self.io.S
-        self.io.O @= T.unflatten(mux.O)
+        self.io.O @= T.unflatten(mux.O.ts)
 
 
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
