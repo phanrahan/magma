@@ -195,7 +195,7 @@ class Array(Type, metaclass=ArrayMeta):
                             self.ts.append(self.T(elem))
                         else:
                             self.ts.append(elem)
-                elif len(self) > 1 and isinstance(args[0], Array):
+                elif isinstance(args[0], Array):
                     if len(args[0]) != len(self):
                         raise TypeError(f"Will not do implicit conversion of arrays")
                     self.ts = args[0].ts[:]
