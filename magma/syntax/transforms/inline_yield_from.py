@@ -61,14 +61,19 @@ class YieldFromFunctionInliner(ast.NodeTransformer):
                     and func.func.value.id == "self"):
                 raise NotImplementedError(ast.dump(func))
             tree = copy.deepcopy(self.method_name_map[func.func.attr])
-            symbol_table = {}
-            # Skip self arg
-            for arg, param in zip(func.args, tree.args.args[1:]):
-                symbol_table[param.arg] = arg
-            tree = replace_symbols(tree, symbol_table)
-            # TODO: Assumes make function is well formed
-            # TODO: Assumes return is well formed
-            return tree.body[0].body[:-1]
+            if (isinstance(tree, ast.FunctionDef) and
+                    tree.name[0:5] == "make_"):
+                symbol_table = {}
+                # Skip self arg
+                for arg, param in zip(func.args, tree.args.args[1:]):
+                    symbol_table[param.arg] = arg
+                tree = replace_symbols(tree, symbol_table)
+                # TODO: Assumes make function is well formed
+                # TODO: Should use an ast_tools macro symbol replacer
+                # instead
+                tree = tree.body[0]
+            # TODO: Assumes function signature and return is well formed
+            return tree.body[:-1]
         else:
             return node
 
