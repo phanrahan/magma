@@ -98,7 +98,7 @@ class InsertCoreIRWires(DefinitionPass):
 
         while (driver is not None and driver.name.anon() and
                not driver.is_output()):
-            driver = driver.value()
+            value, driver = driver, driver.value()
 
         descend = (isinstance(driver, (Array, Tuple)) and
                    not driver.iswhole())

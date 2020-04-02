@@ -229,3 +229,27 @@ def test_insert_coreir_wires_temp_array_not_whole3():
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_temp_array_not_whole3.v",
                              f"gold/insert_coreir_wires_temp_array_not_whole3.v")
+
+
+def test_insert_coreir_wires_temp_array_not_whole_anon():
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), O0=m.Out(m.Bits[2]), O1=m.Out(m.Bits[2]))
+
+        x = m.Array[2, m.Bits[2]]()
+        y = m.Bit(name="y")
+        y @= io.I[1]
+        z = m.Bit(name="z")
+        z @= io.I[0]
+        x[0][0] @= y
+        x[0][1] @= z
+        x[1][0] @= z
+        x[1][1] @= y
+
+        io.O0[0] @= x[0][0]
+        io.O0[1] @= x[1][0]
+        io.O1[0] @= x[1][1]
+        io.O1[1] @= x[0][1]
+    m.compile(f"build/insert_coreir_wires_temp_array_not_whole_anon", Main, inline=True)
+    assert check_files_equal(__file__,
+                             f"build/insert_coreir_wires_temp_array_not_whole_anon.v",
+                             f"gold/insert_coreir_wires_temp_array_not_whole_anon.v")
