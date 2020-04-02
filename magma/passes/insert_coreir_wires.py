@@ -109,7 +109,6 @@ class InsertCoreIRWires(DefinitionPass):
             return
 
         value.unwire(driver)
-        T = type(driver)
         self._make_wire(driver, value, definition)
 
         self._insert_wire(driver, definition)
