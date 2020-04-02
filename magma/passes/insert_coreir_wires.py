@@ -98,13 +98,15 @@ class InsertCoreIRWires(DefinitionPass):
 
         while (driver is not None and driver.name.anon() and
                not driver.is_output()):
-            descend = (isinstance(driver, (Array, Tuple)) and
-                       not driver.iswhole())
-            if descend:
-                for child in value:
-                    self._insert_wire(child, definition)
-                return
             driver = driver.value()
+
+        descend = (isinstance(driver, (Array, Tuple)) and
+                   not driver.iswhole())
+        if descend:
+            for child in value:
+                self._insert_wire(child, definition)
+            return
+
         if driver is None or driver.is_output() or driver.is_inout():
             return
 
