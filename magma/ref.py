@@ -23,14 +23,6 @@ class Ref:
     def root(self):
         raise NotImplementedError()
 
-    @abc.abstractmethod
-    def get_from_root(self, value):
-        """
-        Helper method, given a hierarchical name (e.g. x.y.z) and a value of
-        type(x), return the reference described by self (e.g. return value.y.z)
-        """
-        raise NotImplementedError()
-
     def verilog_name(self):
         return self.qualifiedname("_")
 
@@ -70,9 +62,6 @@ class NamedRef(Ref):
 
     def root(self):
         return self.value()
-
-    def get_from_root(self, value):
-        return value
 
 
 class InstRef(NamedRef):
@@ -176,9 +165,6 @@ class ArrayRef(Ref):
     def root(self):
         return self.array.name.root()
 
-    def get_from_root(self, value):
-        return self.array.name.get_from_root(value)[self.index]
-
 
 class TupleRef(Ref):
     def __init__(self, tuple, index):
@@ -205,6 +191,3 @@ class TupleRef(Ref):
 
     def root(self):
         return self.tuple.name.root()
-
-    def get_from_root(self, value):
-        return getattr(self.tuple.name.get_from_root(value), self.index)

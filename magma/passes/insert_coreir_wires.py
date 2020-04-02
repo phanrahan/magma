@@ -6,7 +6,7 @@ from ..digital import Digital
 from ..generator import Generator2
 from ..interface import IO
 from .passes import DefinitionPass
-from ..ref import NamedRef
+from ..ref import NamedRef, ArrayRef
 from ..t import In, Out
 from ..tuple import Tuple
 
@@ -44,37 +44,47 @@ class InsertCoreIRWires(DefinitionPass):
         self.seen = set()
         self.wire_map = {}
 
-    def get_wire(self, driver, value, definition):
-        root = driver.name.root()
-        if root is None:
-            root = driver
-        T = type(root)
-        if root not in self.wire_map:
+    def _make_wire(self, driver, value, definition):
+        is_bits = (isinstance(driver.name, ArrayRef) and
+                   isinstance(driver, Digital))
+        if is_bits:
+            index = driver.name.index
+            driver = driver.name.array
 
-            root_name = root.name.qualifiedname("_")
-            root_name = _sanitize_name(root_name)
+        T = type(driver)
+        if driver not in self.wire_map:
 
-            # Rename root so it doesn't conflict with new wire instance name
-            assert isinstance(root.name, NamedRef)
-            root.name.name = "_" + root.name.name
+            driver_name = driver.name.qualifiedname("_")
+            driver_name = _sanitize_name(driver_name)
 
-            name = f"{root_name}"
+            # Rename driver so it doesn't conflict with new wire instance name
+            if isinstance(driver.name, NamedRef):
+                driver.name.name = "_" + driver.name.name
+
+            name = f"{driver_name}"
             with definition.open():
                 wire_inst = _Wire(T)(name=name)
-                self.wire_map[root] = wire_inst
-        wire_inst = self.wire_map[root]
+                self.wire_map[driver] = wire_inst
+        wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I
         wire_output = wire_inst.O
-        if not issubclass(T, Digital):
-            wire_input = from_bits(T, wire_input)
-            wire_output = from_bits(T, wire_output)
-        return wire_input, wire_output
+        if is_bits:
+            wire_input = wire_input[index]
+            wire_output = wire_output[index]
+            driver = driver[index]
 
-    def insert_wire(self, value, definition):
+        if not isinstance(driver, Digital):
+            driver = as_bits(driver)
+            wire_output = from_bits(T, wire_output)
+
+        wire_input @= driver
+        value @= wire_output
+
+    def _insert_wire(self, value, definition):
         if value.is_mixed():  # mixed children
             for child in value:
                 if not child.is_output():
-                    self.insert_wire(child, definition)
+                    self._insert_wire(child, definition)
             return
         if value in self.seen:
             return  # in the case of inouts, we may see more than once
@@ -87,7 +97,7 @@ class InsertCoreIRWires(DefinitionPass):
                        not driver.iswhole())
             if descend:
                 for child in value:
-                    self.insert_wire(child, definition)
+                    self._insert_wire(child, definition)
                 return
             driver = driver.value()
         if driver is None or driver.is_output() or driver.is_inout():
@@ -95,16 +105,9 @@ class InsertCoreIRWires(DefinitionPass):
 
         value.unwire(driver)
         T = type(driver)
-        wire_input, wire_output = self.get_wire(driver, value, definition)
+        self._make_wire(driver, value, definition)
 
-        if driver.name.root() is not None and driver.name.root() is not driver:
-            wire_input = driver.name.get_from_root(wire_input)
-            wire_output = driver.name.get_from_root(wire_output)
-
-        wire_input @= driver
-        value @= wire_output
-
-        self.insert_wire(driver, definition)
+        self._insert_wire(driver, definition)
 
     def __call__(self, definition):
         # Copy instances because inserting wire will append to instances.
@@ -112,7 +115,7 @@ class InsertCoreIRWires(DefinitionPass):
         for instance in instances_copy:
             for value in instance.interface.ports.values():
                 if not value.is_output():
-                    self.insert_wire(value, definition)
+                    self._insert_wire(value, definition)
         for value in definition.interface.ports.values():
             if not value.is_output():
-                self.insert_wire(value, definition)
+                self._insert_wire(value, definition)

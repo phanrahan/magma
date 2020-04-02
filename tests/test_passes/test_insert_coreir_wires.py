@@ -194,3 +194,18 @@ endmodule
     assert check_files_equal(__file__,
                              f"build/insert_coreir_wires_temp_array_not_whole.v",
                              f"gold/insert_coreir_wires_temp_array_not_whole.v")
+
+
+def test_insert_coreir_wires_temp_array_not_whole2():
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), O0=m.Out(m.Bits[2]), O1=m.Out(m.Bits[2]))
+
+        x = m.Array[2, m.Bits[2]](name="x")
+        for i in range(2):
+            x[i] @= io.I
+        io.O0 @= x[0]
+        io.O1 @= x[1]
+    m.compile(f"build/insert_coreir_wires_temp_array_not_whole2", Main, inline=True)
+    assert check_files_equal(__file__,
+                             f"build/insert_coreir_wires_temp_array_not_whole2.v",
+                             f"gold/insert_coreir_wires_temp_array_not_whole2.v")
