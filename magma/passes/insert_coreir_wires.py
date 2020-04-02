@@ -46,7 +46,7 @@ class InsertCoreIRWires(DefinitionPass):
 
     def _make_wire(self, driver, value, definition):
         is_bits = (isinstance(driver.name, ArrayRef) and
-                   isinstance(driver, Digital))
+                   isinstance(driver, Digital) and not driver.name.anon())
 
         # If this is a member of a bits, emit only one wire for the parent
         # Bits, since it shouldn't be flattened
