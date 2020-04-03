@@ -182,6 +182,9 @@ def test_wire():
     assert a0.value() is None, "No value"
     assert a1.value() is a0
 
+    assert a0.driving_all() == [a1[0], a1[1]]
+    assert a0.driving() is a1
+
     b0 = a0[0]
     b1 = a1[0]
 

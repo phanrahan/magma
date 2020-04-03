@@ -284,6 +284,17 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    def driving_all(self):
+        return {k: t.driving() for k, t in self.items()}
+
+    def driving(self):
+        ts = [t.driving() for t in self]
+        if any(t is None for t in ts):
+            return None
+        if Tuple._iswhole(ts, self.keys()):
+            return ts[0].name.tuple
+        return type(self).flip()(*ts)
+
     @classmethod
     def unflatten(cls, value):
         values = []
