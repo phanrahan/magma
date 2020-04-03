@@ -19,10 +19,10 @@ class RTLMonitor(m.MonitorGenerator):
                 arr_2d[i] @= getattr(io, f"in{i + 1}")
             m.inline_verilog("""
 logic temp1, temp2;
-logic [{width-1}:0] temp3;
+logic temp3;
 assign temp1 = |(in1);
 assign temp2 = &(in1) & {io.intermediate_tuple[0]};
-assign temp3 = in1 ^ in2 & {arr_2d[0][1]};
+assign temp3 = temp1 ^ temp2 & {arr_2d[0][1]};
 assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
 logic [{width-1}:0] temp4 [1:0];
 assign temp4 = {arr_2d};
