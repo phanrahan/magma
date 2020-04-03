@@ -79,11 +79,11 @@ class Wire:
         """
         Return the driver of this wire
         """
-        if self.bit.is_output():
-            raise TypeError("Can only get value of non outputs")
-        if self.driver is None:
-            return None
-        return self.driver.bit
+        if self.driver is not None:
+            return self.driver.bit
+        if len(self.driving) == 1:
+            return self.driving[0].bit
+        return None
 
     def driven(self):
         return self.trace() is not None

@@ -14,6 +14,7 @@ def test_anon_bit():
     assert b0 is b1._wire.driver.bit
     assert b1 is b0._wire.driving[0].bit
     assert b1.value() is b0
+    assert b0.value() is b1
 
 
 def test_anon_bits():

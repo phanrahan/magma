@@ -152,6 +152,8 @@ def test_wire1():
 
     assert b1.value() is b0, "Value is b0"
 
+    assert b0.value() is b1
+
     assert b0 is b1._wire.driver.bit
     assert b1 is b0._wire.driving[0].bit
 
@@ -175,6 +177,7 @@ def test_wire2():
     assert b1.trace() is b0, "Should trace to b0"
 
     assert b1.value() is b0, "Value is b0"
+    assert b0.value() is b1, "Value is b1"
 
     assert b0 is b1._wire.driver.bit
     assert b1 is b0._wire.driving[0].bit
@@ -189,7 +192,7 @@ def test_wire3():
     assert b0.wired()
     assert b1.wired()
 
-    assert b0.value() is None
+    assert b0.value() is b1
     assert b1.value() is b0
 
 
@@ -217,6 +220,9 @@ def test_wire5():
 
     assert not b0.wired()
     assert not b1.wired()
+
+    assert b1.value() is None
+    assert b0.value() is None
 
 
 def test_invert():

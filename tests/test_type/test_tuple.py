@@ -153,8 +153,8 @@ def test_wire():
     assert t0.wired()
     assert t1.wired()
 
-    assert t0.value() is None
     assert t1.value() is t0
+    assert t0.value() is t1
 
     b0 = t0.x
     b1 = t1.x
