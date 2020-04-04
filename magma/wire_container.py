@@ -75,6 +75,13 @@ class Wire:
             return self.bit
         return None
 
+    def flat_value(self):
+        if self.driver is not None:
+            return self.driver.bit
+        if self.driving:
+            return self.driving
+        return None
+
     def value(self):
         """
         Return the driver of this wire

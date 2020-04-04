@@ -272,6 +272,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    def flat_value(self):
+        return {k: t.flat_value() for k, t in self.items()}
+
     def value(self):
         ts = [t.value() for t in self.ts]
 

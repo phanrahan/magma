@@ -402,6 +402,9 @@ class Array(Type, metaclass=ArrayMeta):
 
         return type(self).flip()(*ts)
 
+    def flat_value(self):
+        return [t.flat_value() for t in self]
+
     def value(self):
         ts = [t.value() for t in self.ts]
 

@@ -173,6 +173,9 @@ class Digital(Type, metaclass=DigitalMeta):
     def trace(self):
         return self._wire.trace()
 
+    def flat_value(self):
+        return self._wire.flat_value()
+
     # return the output Bit connected to this input Bit
     def value(self):
         return self._wire.value()
