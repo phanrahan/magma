@@ -54,6 +54,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def is_output(cls):
         return cls._to_magma_().is_output()
 
+    def iswhole(self):
+        return self._get_magma_value_().iswhole()
+
     def value(self):
         return self._get_magma_value_().value()
 
@@ -65,6 +68,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
 
     def flatten(self):
         return self._get_magma_value_().flatten()
+
+    def __iter__(self):
+        return iter(self._get_magma_value_())
 
     @property
     def name(self):
