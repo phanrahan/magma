@@ -156,7 +156,7 @@ def test_wire1():
     assert b0.driving() is b1
 
     assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b1 is b0._wire.driving()[0]
 
 
 def test_wire2():
@@ -183,7 +183,7 @@ def test_wire2():
     assert b0.driving() is b1
 
     assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b1 is b0._wire.driving()[0]
 
 
 def test_wire3():

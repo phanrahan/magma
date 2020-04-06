@@ -181,7 +181,7 @@ class Digital(Type, metaclass=DigitalMeta):
         return self._wire.driven()
 
     def driving_all(self):
-        return [d.bit for d in self._wire.driving]
+        return self._wire.driving()
 
     def driving(self):
         driving = self.driving_all()

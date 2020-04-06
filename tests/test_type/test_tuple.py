@@ -163,7 +163,7 @@ def test_wire():
     b1 = t1.x
 
     assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b1 is b0._wire.driving()[0]
     assert b1.value() is b0
 
 
