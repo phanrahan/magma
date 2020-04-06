@@ -45,7 +45,10 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             func = astor.to_source(node.func).rstrip()
             outputs = self.initial_value_map[attr][3].interface.outputs()
             if len(outputs) == 1:
-                return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
+                name = outputs[0]
+                if isinstance(name, MagmaProtocol):
+                    name = name._get_magma_value_()
+                return ast.Name(f"self_{attr}_{name}", ast.Load())
             else:
                 assert outputs, "Expected module with at least one output"
                 return ast.Tuple([ast.Name(f"self_{attr}_{output}",
