@@ -26,8 +26,8 @@ class SequentialCircuitMeta(_Generator2Meta):
                 assert param == "self"
                 call_args.append(circuit)
             else:
-                # TODO: Assumes param is valid io attribute, can raise error here
-                # if not
+                # TODO: Assumes param is valid io attribute, can raise error
+                # here if not
                 call_args.append(getattr(circuit, param))
         with circuit.open():
             call_result = cls.__call__(*call_args)
@@ -37,6 +37,7 @@ class SequentialCircuitMeta(_Generator2Meta):
 
 class SequentialCircuit(Generator2, metaclass=SequentialCircuitMeta):
     _call_output_name_ = "O"
+
     def __init__(self):
         # Ignore undriven errors because some may be wired up by __call__
         self._ignore_undriven_ = True
