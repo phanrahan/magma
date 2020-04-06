@@ -179,8 +179,8 @@ def test_wire():
     assert a0.trace() is None, "Cannot trace to input"
     assert a1.trace() is None, "Cannot trace to input"
 
-    assert a0.value() is None, "No value"
     assert a1.value() is a0
+    assert a0.value() is a1
 
     assert a0.driving_all() == [a1[0], a1[1]]
     assert a0.driving() is a1

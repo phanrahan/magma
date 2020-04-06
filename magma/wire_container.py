@@ -77,13 +77,15 @@ class Wire:
 
     def value(self):
         """
-        Return the driver of this wire
+        Return the bit connected to this bit. Specifically, return the bit this
+        bit is driving if it exists. Else if, there is a unique "drivee" bit,
+        return that bit. Otherwise, return None.
         """
-        if self._bit.is_output():
-            raise TypeError("Can only get value of non outputs")
-        if self._driver is None:
-            return None
-        return self._driver._bit
+        if self._driver is not None:
+            return self._driver._bit
+        if len(self._driving) == 1:
+            return self._driving[0]._bit
+        return None
 
     def driven(self):
         return self.trace() is not None

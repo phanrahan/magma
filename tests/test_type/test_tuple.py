@@ -153,8 +153,8 @@ def test_wire():
     assert t0.wired()
     assert t1.wired()
 
-    assert t0.value() is None
     assert t1.value() is t0
+    assert t0.value() is t1
 
     assert t0.driving_all() == dict(x=t1.x, y=t1.y)
     assert t0.driving() is t1

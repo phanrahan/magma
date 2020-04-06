@@ -16,6 +16,7 @@ def test_anon_bit():
     assert b1.value() is b0
     assert b0.driving_all() == [b1]
     assert b0.driving() is b1
+    assert b0.value() is b1
 
 
 def test_anon_bits():
