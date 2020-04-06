@@ -350,16 +350,8 @@ class Array(Type, metaclass=ArrayMeta):
                 return False
         return True
 
-    def driving_all(self):
-        return [t.driving() for t in self]
-
     def driving(self):
-        ts = [t.driving() for t in self]
-        if any(t is None for t in ts):
-            return None
-        if Array._iswhole(ts):
-            return ts[0].name.array
-        return type(self).flip()(*ts)
+        return [t.driving() for t in self]
 
     def wired(self):
         for t in self.ts:
