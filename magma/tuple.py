@@ -284,6 +284,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    def driving(self):
+        return {k: t.driving() for k, t in self.items()}
+
     @classmethod
     def unflatten(cls, value):
         values = []

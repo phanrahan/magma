@@ -350,6 +350,9 @@ class Array(Type, metaclass=ArrayMeta):
                 return False
         return True
 
+    def driving(self):
+        return [t.driving() for t in self]
+
     def wired(self):
         for t in self.ts:
             if not t.wired():
