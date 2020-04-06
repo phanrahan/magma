@@ -37,6 +37,6 @@ class SequentialCircuitMeta(_Generator2Meta):
 
 class SequentialCircuit(Generator2, metaclass=SequentialCircuitMeta):
     _call_output_name_ = "O"
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         # Ignore undriven errors because some may be wired up by __call__
         self._ignore_undriven_ = True
