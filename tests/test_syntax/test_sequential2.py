@@ -13,7 +13,6 @@ def test_sequential2_basic():
             self.y = Register(4)
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
-            # TODO: Register assign syntax, e.g. self.y = self.x
             return self.y(self.x(I))
 
     m.compile("build/TestSequential2Basic", Basic)
