@@ -4,10 +4,9 @@ import astor
 import ast_tools
 from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
 
-from ..t import In, Out
 from ..circuit import Circuit, IO
 
-from .util import build_io_args
+from .util import build_io_args, build_call_args, wire_call_result
 
 
 class RemoveCombDecorator(ast_tools.passes.Pass):
@@ -40,21 +39,9 @@ def combinational2(fn):
         name = fn.__name__
         io = IO(**io_args)
 
-        call_args = []
-        for param in fn.__annotations__:
-            if param == "return":
-                continue
-            call_args.append(getattr(io, param))
+        call_args = build_call_args(io, fn.__annotations__)
 
         call_result = fn(*call_args)
-        if isinstance(call_result, Circuit):
-            if not len(call_result.interface.outputs()) == 1:
-                raise TypeError(
-                    "Expected register return instance with one output")
-            call_result = call_result.interface.outputs()[0]
-        if isinstance(fn.__annotations__["return"], tuple):
-            for i in range(len(fn.__annotations__["return"])):
-                getattr(io, f"O{i}").wire(call_result)
-        else:
-            io.O.wire(call_result)
+
+        wire_call_result(io, call_result, fn.__annotations__)
     return CombinationalCircuit

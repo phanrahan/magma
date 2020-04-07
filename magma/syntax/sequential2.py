@@ -6,10 +6,10 @@ from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
-from ..t import In, Out, Type
+from ..t import Type
 
 from .combinational2 import run_comb_passes
-from .util import build_io_args
+from .util import build_io_args, build_call_args, wire_call_result
 
 
 def sequential_setattr(self, key, value):
@@ -53,21 +53,9 @@ def sequential2(**clock_io_kwargs):
             # preserve the old interface we do this for now
             cls.__setattr__ = sequential_setattr
 
-            for param in cls.__call__.__annotations__:
-                if param == "return":
-                    continue
-                call_args.append(getattr(io, param))
+            call_args += build_call_args(io, cls.__call__.__annotations__)
 
             call_result = cls.__call__(*call_args)
-            if isinstance(call_result, Circuit):
-                if not len(call_result.interface.outputs()) == 1:
-                    raise TypeError(
-                        "Expected register return instance with one output")
-                call_result = call_result.interface.outputs()[0]
-            if isinstance(cls.__call__.__annotations__["return"], tuple):
-                for i in range(len(cls.__call__.__annotations__["return"])):
-                    getattr(io, f"O{i}").wire(call_result)
-            else:
-                io.O.wire(call_result)
+            wire_call_result(io, call_result, cls.__call__.__annotations__)
         return SequentialCircuit
     return seq_inner

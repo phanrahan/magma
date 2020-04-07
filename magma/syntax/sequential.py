@@ -1,7 +1,7 @@
 import inspect
 import typing
 import ast
-from .util import get_ast
+from ..ast_utils import get_ast
 from ..protocol_type import MagmaProtocol
 import astor
 import magma.ast_utils as ast_utils
