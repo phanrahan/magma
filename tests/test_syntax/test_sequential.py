@@ -673,3 +673,21 @@ def test_protocol_composition(target):
                 return data1
 
     compile_and_check("TestProtocolComposition", FooBar, target)
+
+
+def test_protocol_return(target):
+    WrappedBits8 = MWrapper[m.UInt[8]]
+
+    @m.circuit.sequential(async_reset=False)
+    class Foo:
+        def __call__(self, val: WrappedBits8) -> WrappedBits8:
+            return WrappedBits8(val.apply(lambda x: x + 1))
+
+
+    @m.circuit.sequential(async_reset=False)
+    class Bar:
+        def __init__(self):
+            self.f : Foo = Foo()
+
+        def __call__(self, val: WrappedBits8) -> m.UInt[8]:
+            return self.f(val)
