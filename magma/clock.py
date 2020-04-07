@@ -113,7 +113,7 @@ def wireclocktype(defn, inst, clocktype):
     if defnclk:
         defnclk = defnclk[0]  # wire first clock
         for port in inst.interface.inputs(include_clocks=True):
-            do_clock_wire(port, clocktype, defnclk)
+            _wire_clock_port(port, clocktype, defnclk)
 
 
 def wiredefaultclock(defn, inst):
