@@ -163,7 +163,7 @@ def convertbits(value, n, totype, checkbit):
             Direction.InOut: InOut
         }[T.direction](Bit)
 
-    return totype[len(Ts), T](*ts)
+    return totype[len(Ts), T](ts)
 
 
 def array(value, n=None):
