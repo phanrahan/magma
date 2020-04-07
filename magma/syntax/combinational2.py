@@ -19,12 +19,18 @@ class RemoveCombDecorator(ast_tools.passes.Pass):
         return tree, env, metadata
 
 
-def combinational2(fn):
-    for pass_ in [begin_rewrite(), RemoveCombDecorator(), ssa(strict=False),
-                  if_to_phi(lambda s, t, f: s.ite(t, f)), end_rewrite()]:
+def run_comb_passes(fn, remove_decorator=True):
+    passes = [begin_rewrite(), ssa(strict=False),
+                  if_to_phi(lambda s, t, f: s.ite(t, f)), end_rewrite()]
+    if remove_decorator:
+        passes.insert(1, RemoveCombDecorator())
+    for pass_ in passes:
         fn = pass_(fn)
-    from ..ast_utils import get_ast
-    print(astor.to_source(get_ast(fn)))
+    return fn
+
+
+def combinational2(fn):
+    fn = run_comb_passes(fn)
 
     io_args = {}
 
