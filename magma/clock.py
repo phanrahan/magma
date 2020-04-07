@@ -89,7 +89,7 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     return args
 
 
-def do_clock_wire(port, clocktype, defnclk):
+def _wire_clock_port(port, clocktype, defnclk):
     if isinstance(port, (Array, Tuple)):
         for elem in port:
             do_clock_wire(elem, clocktype, defnclk)
