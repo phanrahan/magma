@@ -22,7 +22,7 @@ class RemoveCombDecorator(ast_tools.passes.Pass):
 
 def run_comb_passes(fn, remove_decorator=True):
     passes = [begin_rewrite(), ssa(strict=False),
-                  if_to_phi(lambda s, t, f: s.ite(t, f)), end_rewrite()]
+              if_to_phi(lambda s, t, f: s.ite(t, f)), end_rewrite()]
     if remove_decorator:
         passes.insert(1, RemoveCombDecorator())
     for pass_ in passes:
