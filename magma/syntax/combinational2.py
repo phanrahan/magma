@@ -34,9 +34,6 @@ def combinational2(fn):
 
     io_args = {}
 
-    if "self" in fn.__annotations__:
-        raise Exception("Assumed self did not have annotation")
-
     for param, annotation in fn.__annotations__.items():
         if param == "return":
             annotation = Out(annotation)
