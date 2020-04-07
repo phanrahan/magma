@@ -8,6 +8,6 @@ def test_const_logic():
 
         io.O @= m.array([m.bits(0, 3)])
 
-    m.compile("build/test_const", Main)
-    assert check_files_equal(__file__, f"build/test_const.v",
-                             f"gold/test_const.v")
+    m.compile("build/test_const", Main, output="coreir")
+    assert check_files_equal(__file__, f"build/test_const.json",
+                             f"gold/test_const.json")
