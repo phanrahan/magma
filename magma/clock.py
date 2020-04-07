@@ -98,7 +98,7 @@ def do_clock_wire(port, clocktype, defnclk):
         wire(defnclk, port)
 
 
-def get_clock(port, clocktype):
+def _get_clocks(port, clocktype):
     if isinstance(port, (Array, Tuple)):
         return sum([get_clock(elem, clocktype) for elem in port], [])
     if isinstance(port, clocktype) and port.is_output():
