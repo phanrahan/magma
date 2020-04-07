@@ -2,8 +2,6 @@ import magma as m
 from test_sequential import Register
 from magma.testing import check_files_equal
 
-from ast_tools.passes import begin_rewrite, end_rewrite, ssa
-
 
 def test_sequential2_basic():
     @m.sequential2()

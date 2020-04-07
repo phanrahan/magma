@@ -2,12 +2,8 @@ import functools
 import ast
 import inspect
 
-from ast_tools.passes import Pass, ssa, begin_rewrite, end_rewrite
-from ast_tools import SymbolTable
-import astor
+from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
 
-from ..ast_utils import get_ast
-from ..generator import Generator2, _Generator2Meta
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
 from ..t import In, Out, Type
@@ -35,7 +31,8 @@ def sequential_setattr(self, key, value):
 def sequential2(**clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
     def seq_inner(cls):
-        for pass_ in [begin_rewrite(), ssa(strict=False), end_rewrite()]:
+        for pass_ in [begin_rewrite(), ssa(strict=False), 
+                      if_to_phi(lambda s, t, f: s.ite(t, f)), end_rewrite()]:
             cls.__call__ = pass_(cls.__call__)
 
         io_args = {}
