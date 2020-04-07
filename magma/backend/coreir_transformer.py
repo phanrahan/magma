@@ -4,12 +4,13 @@ import json
 import logging
 import os
 from ..array import Array
+from ..bits import Bits
 from ..clock import wiredefaultclock, wireclock
 from coreir import Wireable
 from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            check_magma_interface, constant_to_value,
                            get_inst_args, get_module_of_inst,
-                           is_clock_or_nested_clock, is_const_digital,
+                           is_clock_or_nested_clock,
                            magma_interface_to_coreir_module_type,
                            magma_port_to_coreir_port, make_cparams, map_genarg)
 from ..interface import InterfaceKind
@@ -207,7 +208,7 @@ class DefinitionTransformer(TransformerBase):
         def get_source():
             if isinstance(value, Wireable):
                 return value
-            if isinstance(value, Array) and is_const_digital(value):
+            if isinstance(value, Bits) and value.const():
                 return self.const_instance(value, len(value), module_defn)
             if value.anon() and isinstance(value, Array):
                 for p, v in zip(port, value):
