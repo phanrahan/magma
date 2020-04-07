@@ -2,8 +2,8 @@ from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from .wire import wire
 from magma.bit import Bit
-from .array import Array
-from .tuple import Tuple
+from magma.array import Array
+from magma.tuple import Tuple
 
 
 class _ClockType(Digital):
