@@ -2,6 +2,8 @@ from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from .wire import wire
 from magma.bit import Bit
+from .array import Array
+from .tuple import Tuple
 
 
 class _ClockType(Digital):
@@ -87,16 +89,31 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     return args
 
 
+def do_clock_wire(port, clocktype, defnclk):
+    if isinstance(port, (Array, Tuple)):
+        for elem in port:
+            do_clock_wire(elem, clocktype, defnclk)
+        return
+    if isinstance(port, clocktype) and not port.driven():
+        wire(defnclk, port)
+
+
+def get_clock(port, clocktype):
+    if isinstance(port, (Array, Tuple)):
+        return sum([get_clock(elem, clocktype) for elem in port], [])
+    if isinstance(port, clocktype) and port.is_output():
+        return [port]
+    return []
+
+
 def wireclocktype(defn, inst, clocktype):
     defnclk = []
     for port in defn.interface.ports.values():
-        if isinstance(port, clocktype) and port.is_output():
-            defnclk += [port]
+        defnclk += get_clock(port, clocktype)
     if defnclk:
         defnclk = defnclk[0]  # wire first clock
         for port in inst.interface.inputs(include_clocks=True):
-            if isinstance(port, clocktype) and not port.driven():
-                wire(defnclk, port)
+            do_clock_wire(port, clocktype, defnclk)
 
 
 def wiredefaultclock(defn, inst):
