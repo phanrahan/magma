@@ -170,3 +170,7 @@ def test_uint_of_bit():
 
 def test_sint_of_bit():
     assert repr(m.sint(m.Bit(1), 2)) == "bits([VCC, VCC])"
+
+
+def test_array_1_nested():
+    assert isinstance(m.array([m.bits(0, 3)]), m.Array[1, m.Bits[3]])
