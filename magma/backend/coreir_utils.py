@@ -185,10 +185,6 @@ def get_inst_args(inst):
     return args
 
 
-def is_const(array):
-    return all(x.const() for x in array)
-
-
 def constant_to_value(constant):
     assert constant.const()
     if isinstance(constant, Digital):
