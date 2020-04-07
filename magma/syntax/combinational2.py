@@ -7,6 +7,7 @@ from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
 from ..t import In, Out
 from ..circuit import Circuit, IO
 
+
 class RemoveCombDecorator(ast_tools.passes.Pass):
     def rewrite(self, tree: ast.AST, env: ast_tools.SymbolTable,
                 metadata: dict):
@@ -16,6 +17,7 @@ class RemoveCombDecorator(ast_tools.passes.Pass):
             if eval(astor.to_source(item)) == combinational2:
                 tree.decorator_list.remove(item)
         return tree, env, metadata
+
 
 def combinational2(fn):
     for pass_ in [begin_rewrite(), RemoveCombDecorator(), ssa(strict=False),
@@ -54,7 +56,8 @@ def combinational2(fn):
         call_result = fn(*call_args)
         if isinstance(call_result, Circuit):
             if not len(call_result.interface.outputs()) == 1:
-                raise TypeError("Expected register return instance with one output")
+                raise TypeError(
+                    "Expected register return instance with one output")
             call_result = call_result.interface.outputs()[0]
         if isinstance(fn.__annotations__["return"], tuple):
             for i in range(len(fn.__annotations__["return"])):

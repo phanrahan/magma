@@ -8,9 +8,10 @@ from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
 from ..t import In, Out, Type
 
+
 def sequential_setattr(self, key, value):
-    # TODO: for now we assume this is a register, ideally we'd type check this, but
-    # we need to have a notion of a register primitive (e.g. right now the
+    # TODO: for now we assume this is a register, ideally we'd type check this,
+    # but we need to have a notion of a register primitive (e.g. right now the
     # mantle reg wraps the coreir reg primitive, so technically the register is
     # an arbitrary user-defined circuit)
 
@@ -31,7 +32,7 @@ def sequential_setattr(self, key, value):
 def sequential2(**clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
     def seq_inner(cls):
-        for pass_ in [begin_rewrite(), ssa(strict=False), 
+        for pass_ in [begin_rewrite(), ssa(strict=False),
                       if_to_phi(lambda s, t, f: s.ite(t, f)), end_rewrite()]:
             cls.__call__ = pass_(cls.__call__)
 
@@ -57,10 +58,10 @@ def sequential2(**clock_io_kwargs):
             io = IO(**io_args) + ClockIO(**clock_io_kwargs)
             call_args = [cls()]
 
-            # Monkey patch setattribute for register assign syntax, we could also
-            # add this in a Sequential base class, but if we do that we might as
-            # well use a metaclass rather than a decorator, but to preserve the old
-            # interface we do this for now
+            # Monkey patch setattribute for register assign syntax, we could
+            # also add this in a Sequential base class, but if we do that we
+            # might as well use a metaclass rather than a decorator, but to
+            # preserve the old interface we do this for now
             cls.__setattr__ = sequential_setattr
 
             for param in cls.__call__.__annotations__:
@@ -71,7 +72,8 @@ def sequential2(**clock_io_kwargs):
             call_result = cls.__call__(*call_args)
             if isinstance(call_result, Circuit):
                 if not len(call_result.interface.outputs()) == 1:
-                    raise TypeError("Expected register return instance with one output")
+                    raise TypeError(
+                        "Expected register return instance with one output")
                 call_result = call_result.interface.outputs()[0]
             if isinstance(cls.__call__.__annotations__["return"], tuple):
                 for i in range(len(cls.__call__.__annotations__["return"])):
