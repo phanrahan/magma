@@ -40,3 +40,28 @@ def test_sequential2_assign():
     # should be the same as basic
     assert check_files_equal(__file__, f"build/TestSequential2Assign.v",
                              f"gold/TestSequential2Basic.v")
+
+
+def test_sequential2_hierarchy():
+    @m.sequential2()
+    class Foo:
+        def __init__(self):
+            self.x = Register(4)
+            self.y = Register(4)
+
+        def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
+            return self.y(self.x(I))
+
+
+    @m.sequential2()
+    class Bar:
+        def __init__(self):
+            self.x = Foo()
+            self.y = Foo()
+
+        def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
+            return self.y(self.x(I))
+
+    m.compile("build/TestSequential2Hierarchy", Bar)
+    assert check_files_equal(__file__, f"build/TestSequential2Hierarchy.v",
+                             f"gold/TestSequential2Hierarchy.v")
