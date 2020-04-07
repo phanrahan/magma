@@ -9,6 +9,7 @@ from ..clock_io import ClockIO
 from ..t import In, Out, Type
 
 from .combinational2 import run_comb_passes
+from .util import build_io_args
 
 
 def sequential_setattr(self, key, value):
@@ -36,22 +37,10 @@ def sequential2(**clock_io_kwargs):
     def seq_inner(cls):
         cls.__call__ = run_comb_passes(cls.__call__)
 
-        io_args = {}
-
         if "self" in cls.__call__.__annotations__:
             raise Exception("Assumed self did not have annotation")
 
-        for param, annotation in cls.__call__.__annotations__.items():
-            if param == "return":
-                annotation = Out(annotation)
-                if isinstance(annotation, tuple):
-                    for i, elem in enumerate(annotation):
-                        io_args[f"O{i}"] = elem
-                else:
-                    io_args["O"] = annotation
-                continue
-            annotation = In(annotation)
-            io_args[param] = annotation
+        io_args = build_io_args(cls.__call__.__annotations__)
 
         class SequentialCircuit(Circuit):
             name = cls.__name__

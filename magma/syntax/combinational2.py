@@ -7,6 +7,8 @@ from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
 from ..t import In, Out
 from ..circuit import Circuit, IO
 
+from .util import build_io_args
+
 
 class RemoveCombDecorator(ast_tools.passes.Pass):
     def rewrite(self, tree: ast.AST, env: ast_tools.SymbolTable,
@@ -32,19 +34,7 @@ def run_comb_passes(fn, remove_decorator=True):
 def combinational2(fn):
     fn = run_comb_passes(fn)
 
-    io_args = {}
-
-    for param, annotation in fn.__annotations__.items():
-        if param == "return":
-            annotation = Out(annotation)
-            if isinstance(annotation, tuple):
-                for i, elem in enumerate(annotation):
-                    io_args[f"O{i}"] = elem
-            else:
-                io_args["O"] = annotation
-            continue
-        annotation = In(annotation)
-        io_args[param] = annotation
+    io_args = build_io_args(fn.__annotations__)
 
     class CombinationalCircuit(Circuit):
         name = fn.__name__
