@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='magma-lang',
-    version='2.0.35',
+    version='2.0.36',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
