@@ -92,7 +92,7 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
 def _wire_clock_port(port, clocktype, defnclk):
     if isinstance(port, (Array, Tuple)):
         for elem in port:
-            do_clock_wire(elem, clocktype, defnclk)
+            _wire_clock_port(elem, clocktype, defnclk)
         return
     if isinstance(port, clocktype) and not port.driven():
         wire(defnclk, port)
@@ -100,7 +100,7 @@ def _wire_clock_port(port, clocktype, defnclk):
 
 def _get_clocks(port, clocktype):
     if isinstance(port, (Array, Tuple)):
-        return sum([get_clock(elem, clocktype) for elem in port], [])
+        return sum([_get_clocks(elem, clocktype) for elem in port], [])
     if isinstance(port, clocktype) and port.is_output():
         return [port]
     return []
@@ -109,7 +109,7 @@ def _get_clocks(port, clocktype):
 def wireclocktype(defn, inst, clocktype):
     defnclk = []
     for port in defn.interface.ports.values():
-        defnclk += get_clock(port, clocktype)
+        defnclk += _get_clocks(port, clocktype)
     if defnclk:
         defnclk = defnclk[0]  # wire first clock
         for port in inst.interface.inputs(include_clocks=True):
