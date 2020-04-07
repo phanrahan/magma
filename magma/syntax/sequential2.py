@@ -8,36 +8,47 @@ import astor
 
 from ..ast_utils import get_ast
 from ..generator import Generator2, _Generator2Meta
+from ..circuit import Circuit, IO
+from ..clock_io import ClockIO
+from ..t import In, Out
 
+def sequential2(**clock_io_kwargs):
+    """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
+    def seq_inner(cls):
+        for pass_ in [begin_rewrite(), ssa(strict=False), end_rewrite()]:
+            cls.__call__ = pass_(cls.__call__)
 
-class SequentialCircuitMeta(_Generator2Meta):
-    def __new__(metacls, name, bases, dct):
-        if "__call__" in dct:
-            for pass_ in [begin_rewrite(), ssa(strict=False), end_rewrite()]:
-                dct["__call__"] = pass_(dct["__call__"])
-        return super().__new__(metacls, name, bases, dct)
+        io_args = {}
 
-    def __call__(cls, *args, **kwargs):
-        circuit = super().__call__(*args, **kwargs)
-        call_params = inspect.signature(cls.__call__)
-        call_args = []
-        for i, param in enumerate(call_params.parameters):
-            if i == 0:
-                assert param == "self"
-                call_args.append(circuit)
-            else:
-                # TODO: Assumes param is valid io attribute, can raise error
-                # here if not
-                call_args.append(getattr(circuit, param))
-        with circuit.open():
+        if "self" in cls.__call__.__annotations__:
+            raise Exception("Assumed self did not have annotation")
+
+        for param, annotation in cls.__call__.__annotations__.items():
+            if param == "return":
+                annotation = Out(annotation)
+                if isinstance(annotation, tuple):
+                    for i, elem in enumerate(annotation):
+                        io_args[f"O{i}"] = elem
+                else:
+                    io_args["O"] = annotation
+                continue
+            annotation = In(annotation)
+            io_args[param] = annotation
+
+        class SequentialCircuit(Circuit):
+            name = cls.__name__
+            io = IO(**io_args) + ClockIO(**clock_io_kwargs)
+            call_args = [cls()]
+            for param in cls.__call__.__annotations__:
+                if param == "return":
+                    continue
+                call_args.append(getattr(io, param))
+
             call_result = cls.__call__(*call_args)
-            getattr(circuit, circuit._call_output_name_).wire(call_result)
-        return circuit
-
-
-class SequentialCircuit(Generator2, metaclass=SequentialCircuitMeta):
-    _call_output_name_ = "O"
-
-    def __init__(self):
-        # Ignore undriven errors because some may be wired up by __call__
-        self._ignore_undriven_ = True
+            if isinstance(cls.__call__.__annotations__["return"], tuple):
+                for i in range(len(cls.__call__.__annotations__["return"])):
+                    getattr(io, f"O{i}").wire(call_result)
+            else:
+                io.O @= call_result
+        return SequentialCircuit
+    return seq_inner

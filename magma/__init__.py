@@ -95,4 +95,4 @@ from .inline_verilog import inline_verilog
 from .display import display, posedge, negedge, File, time
 from .log import info, debug, warning, error
 
-from .syntax.sequential2 import SequentialCircuit
+from .syntax.sequential2 import sequential2
