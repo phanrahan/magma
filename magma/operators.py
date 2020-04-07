@@ -21,11 +21,7 @@ def mux(I, S, **kwargs):
     if isinstance(S, int):
         return I[S]
     T = type(I[0])
-    inst_kwargs = {}
-    if "name" in kwargs:
-        inst_kwargs["name"] = kwargs["name"]
-        del kwargs["name"]
-    return Mux(len(I), T, **kwargs)(**inst_kwargs)(*I, S)
+    return Mux(len(I), T, **kwargs)()(*I, S)
 
 
 def slice(value: Bits, start: Bits, width: int):
