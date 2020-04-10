@@ -21,14 +21,14 @@
           ["O",["Array",2,"Bit"]]
         ]],
         "instances":{
-          "const_3_2":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],"2'h3"]}
+          "bit_const_1_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
           }
         },
         "connections":[
-          ["self.O","const_3_2.out"]
+          ["self.O.0","bit_const_1_None.out"],
+          ["self.O.1","bit_const_1_None.out"]
         ]
       }
     }
