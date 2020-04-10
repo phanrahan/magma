@@ -31,9 +31,12 @@ FF FF_inst0 (
     .CE(CE)
 );
 corebit_term corebit_term_inst0 (
-    .in(coreir_wrapInClock_inst0_out)
+    .in(FF_inst0_O)
 );
 corebit_term corebit_term_inst1 (
+    .in(coreir_wrapInClock_inst0_out)
+);
+corebit_term corebit_term_inst2 (
     .in(CE)
 );
 coreir_wrap coreir_wrapInClock_inst0 (

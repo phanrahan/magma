@@ -64,9 +64,8 @@ def convert_values_to_verilog_str(value):
             # TODO: Could be driven after, but that will just override
             # this wiring so it's okay for now
             value.undriven()
-        elif value.is_output() and not value.wired():
-            value.unused()
-        elif not (value.is_input() or value.is_output() or value.is_inout()):
+        elif not value.is_input():
+            # Always set to unused so the output wire isn't inlined
             value.unused()
         return value_to_verilog_name(value)
     if isinstance(value, PortView):

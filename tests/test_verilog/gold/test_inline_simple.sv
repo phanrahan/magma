@@ -21,9 +21,12 @@ FF FF_inst0 (
     .CLK(CLK)
 );
 corebit_term corebit_term_inst0 (
-    .in(arr[0])
+    .in(I)
 );
 corebit_term corebit_term_inst1 (
+    .in(arr[0])
+);
+corebit_term corebit_term_inst2 (
     .in(arr[1])
 );
 
