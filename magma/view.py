@@ -34,8 +34,8 @@ class InstView:
 
     def __getattr__(self, attr):
         try:
-            if attr in self.circuit.interface.ports.keys():
-                return PortView(self.circuit.interface.ports[attr], self)
+            if attr in self.inst.interface.ports.keys():
+                return PortView(self.inst.interface.ports[attr], self)
             elif attr in self.instance_map:
                 return InstView(self.instance_map[attr], self)
         except AttributeError:
