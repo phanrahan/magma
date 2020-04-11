@@ -30,38 +30,38 @@ module RTLMonitor (
     input mon_temp2,
     input out
 );
+wire _magma_inline_wire0;
+wire [3:0] _magma_inline_wire1_0;
+wire [3:0] _magma_inline_wire1_1;
 wire [3:0] arr_2d_0;
 wire [3:0] arr_2d_1;
+assign _magma_inline_wire0 = arr_2d_0[1];
+assign _magma_inline_wire1_0 = arr_2d_0;
+assign _magma_inline_wire1_1 = arr_2d_1;
 assign arr_2d_0 = in1;
 assign arr_2d_1 = in2;
 corebit_term corebit_term_inst0 (
-    .in(intermediate_tuple__0)
-);
-corebit_term corebit_term_inst1 (
-    .in(arr_2d_0[1])
-);
-corebit_term corebit_term_inst2 (
-    .in(handshake_valid)
+    .in(_magma_inline_wire0)
 );
 coreir_term #(
     .width(4)
 ) term_inst0 (
-    .in(arr_2d_0)
+    .in(_magma_inline_wire1_0)
 );
 coreir_term #(
     .width(4)
 ) term_inst1 (
-    .in(arr_2d_1)
+    .in(_magma_inline_wire1_1)
 );
 
 logic temp1, temp2;
 logic temp3;
 assign temp1 = |(in1);
 assign temp2 = &(in1) & intermediate_tuple__0;
-assign temp3 = temp1 ^ temp2 & arr_2d_0[1];
+assign temp3 = temp1 ^ temp2 & _magma_inline_wire0;
 assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);
 logic [3:0] temp4 [1:0];
-assign temp4 = '{arr_2d_1, arr_2d_0};
+assign temp4 = '{_magma_inline_wire1_1, _magma_inline_wire1_0};
                                    
 endmodule
 
@@ -79,8 +79,8 @@ bind RTL RTLMonitor RTLMonitor_inst (
     .handshake_arr_1_valid(handshake_arr_1_valid),
     .handshake_arr_2_ready(handshake_arr_2_ready),
     .handshake_arr_2_valid(handshake_arr_2_valid),
-    .mon_temp1(orr_4_inst0.O),
-    .mon_temp2(andr_4_inst0.O),
-    .intermediate_tuple__0(orr_4_inst0.O),
-    .intermediate_tuple__1(andr_4_inst0.O)
+    .mon_temp1(orr_4_inst0_O),
+    .mon_temp2(andr_4_inst0_O),
+    .intermediate_tuple__0(orr_4_inst0_O),
+    .intermediate_tuple__1(andr_4_inst0_O)
 );

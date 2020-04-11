@@ -8,7 +8,7 @@ from magma.verilog_utils import convert_values_to_verilog_str
 def _inline_verilog(cls, inline_str, **kwargs):
     format_args = {}
     for key, arg in kwargs.items():
-        format_args[key] = convert_values_to_verilog_str(arg)
+        format_args[key] = convert_values_to_verilog_str(cls, arg)
     cls.inline_verilog_strs.append(inline_str.format(**format_args))
 
 
@@ -29,7 +29,7 @@ def _process_inline_verilog(cls, format_str, format_args, symbol_table):
         except NameError:
             continue
         # These have special handling, don't convert to string.
-        value = convert_values_to_verilog_str(value)
+        value = convert_values_to_verilog_str(cls, value)
         value = value.replace("{", "{{").replace("}", "}}")
         format_str = format_str.replace(f"{{{field}}}", value)
     _inline_verilog(cls, format_str, **format_args)
@@ -39,6 +39,7 @@ class ProcessInlineVerilogPass(CircuitPass):
     def __call__(self, cls):
         if cls.inline_verilog_generated:
             return
+        cls.inline_verilog_wire_counter = 0
         with cls.open():
             for fields in cls._context_._inline_verilog:
                 _process_inline_verilog(cls, *fields)

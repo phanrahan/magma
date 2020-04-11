@@ -2,7 +2,7 @@ from magma.array import Array
 from magma.circuit import Circuit
 from magma.digital import Digital
 from magma.ref import DefnRef, InstRef, NamedRef, ArrayRef, TupleRef
-from magma.t import Type
+from magma.t import Type, Direction
 from magma.tuple import Tuple
 from magma.view import InstView, PortView
 
@@ -26,7 +26,7 @@ def value_to_verilog_name(value):
     return verilog_name(value.name)
 
 
-def verilog_name(name, inst_sep="."):
+def verilog_name(name, inst_sep="_"):
     if isinstance(name, DefnRef):
         return str(name)
     if isinstance(name, InstRef):
@@ -53,21 +53,56 @@ def verilog_name(name, inst_sep="."):
     raise NotImplementedError(name, type(name))
 
 
-def convert_values_to_verilog_str(value):
+def _get_top_level_ref(ref):
+    if isinstance(ref, ArrayRef):
+        return _get_top_level_ref(ref.array.name)
+    if isinstance(ref, TupleRef):
+        return _get_top_level_ref(ref.tuple.name)
+    return ref
+
+
+def _sanitize(name):
+    return name.replace(".", "_").replace("[", "_").replace("]", "")
+
+
+def convert_values_to_verilog_str(cls, value):
     if isinstance(value, Type):
-        # TODO: For now we assumed values aren't used elswhere, this
-        # forces it to be connected to an instance, so temporaries will
-        # appear in the code
-        if value.is_inout() and not value.driven():
-            raise NotImplementedError()
-        if value.is_input() and not value.driven():
-            # TODO: Could be driven after, but that will just override
-            # this wiring so it's okay for now
-            value.undriven()
-        elif not value.is_input():
-            # Always set to unused so the output wire isn't inlined
-            value.unused()
+        if value.is_input():
+            value = value.value()
+        if not isinstance(_get_top_level_ref(value.name), DefnRef):
+            if not hasattr(value, "_magma_inline_wire_"):
+                # Insert a wire so it can't be inlined out
+                temp_name = f"_magma_inline_wire"
+                temp_name += f"{cls.inline_verilog_wire_counter}"
+                with cls.open():
+                    temp = type(value).qualify(Direction.Undirected)(
+                        name=temp_name
+                    )
+                    cls.inline_verilog_wire_counter += 1
+                    temp @= value
+                    temp.unused()
+                    value._magma_inline_wire_ = temp
+            value = value._magma_inline_wire_
         return value_to_verilog_name(value)
     if isinstance(value, PortView):
+        if value.port.is_input():
+            raise NotImplementedError()
+        if not hasattr(value, "_magma_inline_wire_"):
+            ref = _get_top_level_ref(value.port.name)
+            if isinstance(ref, InstRef):
+                defn = ref.inst.defn
+            else:
+                assert isinstance(ref, DefnRef)
+                defn = ref.defn
+            with defn.open():
+                temp = type(value.port).qualify(Direction.Undirected)(
+                    name=f"_magma_inline_wire{cls.inline_verilog_wire_counter}"
+                )
+                cls.inline_verilog_wire_counter += 1
+                temp @= value.port
+                temp.unused()
+                temp = PortView(temp, value.parent)
+                value._magma_inline_wire_ = temp
+            value = value._magma_inline_wire_
         return value_to_verilog_name(value)
     return str(value)
