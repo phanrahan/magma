@@ -98,6 +98,6 @@ def convert_values_to_verilog_str(value):
                 temp.unused()
                 temp = PortView(temp, value.parent)
                 value._magma_inline_wire_ = temp
-        value = value._magma_inline_wire_
+            value = value._magma_inline_wire_
         return value_to_verilog_name(value)
     return str(value)
