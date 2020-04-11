@@ -72,9 +72,11 @@ def convert_values_to_verilog_str(cls, value):
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             if not hasattr(value, "_magma_inline_wire_"):
                 # Insert a wire so it can't be inlined out
+                temp_name = f"_magma_inline_wire"
+                temp_name += f"{cls.inline_verilog_wire_counter}"
                 with cls.open():
                     temp = type(value).qualify(Direction.Undirected)(
-                        name=f"_magma_inline_wire{cls.inline_verilog_wire_counter}"
+                        name=temp_name
                     )
                     cls.inline_verilog_wire_counter += 1
                     temp @= value
