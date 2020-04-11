@@ -67,8 +67,8 @@ def _sanitize(name):
 
 def convert_values_to_verilog_str(value):
     if isinstance(value, Type):
-        if value.is_input() or value.is_inout():
-            raise NotImplementedError()
+        if value.is_input():
+            value = value.value()
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             if not hasattr(value, "_magma_inline_wire_"):
                 # Insert a wire so it can't be inlined out
@@ -81,7 +81,7 @@ def convert_values_to_verilog_str(value):
             value = value._magma_inline_wire_
         return value_to_verilog_name(value)
     if isinstance(value, PortView):
-        if value.port.is_input() or value.port.is_inout():
+        if value.port.is_input():
             raise NotImplementedError()
         if not hasattr(value, "_magma_inline_wire_"):
             ref = _get_top_level_ref(value.port.name)
