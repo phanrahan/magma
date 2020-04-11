@@ -9,11 +9,27 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
+          "_magma_inline_wire2":{
+            "modref":"corebit.wire"
+          },
+          "_magma_inline_wire3":{
+            "modref":"corebit.wire"
+          },
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          },
           "inner_delay":{
             "modref":"global.InnerDelayUnit"
           }
         },
         "connections":[
+          ["inner_delay.OUTPUT.0.valid","_magma_inline_wire2.in"],
+          ["corebit_term_inst0.in","_magma_inline_wire2.out"],
+          ["inner_delay.INPUT.1.ready","_magma_inline_wire3.in"],
+          ["corebit_term_inst1.in","_magma_inline_wire3.out"],
           ["self.CLK","inner_delay.CLK"],
           ["self.INPUT.1.data","inner_delay.INPUT.0.data"],
           ["self.INPUT.1.ready","inner_delay.INPUT.0.ready"],
@@ -36,11 +52,27 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
+          "_magma_inline_wire4":{
+            "modref":"corebit.wire"
+          },
+          "_magma_inline_wire5":{
+            "modref":"corebit.wire"
+          },
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          },
           "inner_inner_delay":{
             "modref":"global.InnerInnerDelayUnit"
           }
         },
         "connections":[
+          ["inner_inner_delay.OUTPUT.0.valid","_magma_inline_wire4.in"],
+          ["corebit_term_inst0.in","_magma_inline_wire4.out"],
+          ["inner_inner_delay.INPUT.1.ready","_magma_inline_wire5.in"],
+          ["corebit_term_inst1.in","_magma_inline_wire5.out"],
           ["self.INPUT.1.data","inner_inner_delay.INPUT.0.data"],
           ["self.INPUT.1.ready","inner_inner_delay.INPUT.0.ready"],
           ["self.INPUT.1.valid","inner_inner_delay.INPUT.0.valid"],
@@ -70,11 +102,24 @@
         "instances":{
           "DelayUnit_inst0":{
             "modref":"global.DelayUnit"
+          },
+          "_magma_inline_wire0":{
+            "modref":"corebit.wire"
+          },
+          "_magma_inline_wire1":{
+            "modref":"corebit.wire"
+          },
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
           }
         },
         "connections":[
           ["self.CLK","DelayUnit_inst0.CLK"],
           ["self.I.1.data","DelayUnit_inst0.INPUT.0.data"],
+          ["_magma_inline_wire1.in","DelayUnit_inst0.INPUT.0.ready"],
           ["self.I.1.ready","DelayUnit_inst0.INPUT.0.ready"],
           ["self.I.1.valid","DelayUnit_inst0.INPUT.0.valid"],
           ["self.I.0.data","DelayUnit_inst0.INPUT.1.data"],
@@ -85,9 +130,12 @@
           ["self.O.1.valid","DelayUnit_inst0.OUTPUT.0.valid"],
           ["self.O.0.data","DelayUnit_inst0.OUTPUT.1.data"],
           ["self.O.0.ready","DelayUnit_inst0.OUTPUT.1.ready"],
-          ["self.O.0.valid","DelayUnit_inst0.OUTPUT.1.valid"]
+          ["_magma_inline_wire0.in","DelayUnit_inst0.OUTPUT.1.valid"],
+          ["self.O.0.valid","DelayUnit_inst0.OUTPUT.1.valid"],
+          ["corebit_term_inst0.in","_magma_inline_wire0.out"],
+          ["corebit_term_inst1.in","_magma_inline_wire1.out"]
         ],
-        "metadata":{"inline_verilog":"assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.INPUT_1_valid |-> ##3 DelayUnit_inst0.OUTPUT_0_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT_1_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay.OUTPUT_1_ready);"}
+        "metadata":{"inline_verilog":"assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);\n\nassert property (@(posedge CLK) _magma_inline_wire0 |-> ##3 _magma_inline_wire1);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay._magma_inline_wire2 |-> ##3 DelayUnit_inst0.inner_delay._magma_inline_wire3);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay._magma_inline_wire4 |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay._magma_inline_wire5);"}
       }
     }
   }

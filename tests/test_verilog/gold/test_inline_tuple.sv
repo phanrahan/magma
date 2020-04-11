@@ -20,13 +20,15 @@ module InnerDelayUnit (
     input OUTPUT_1_ready,
     output OUTPUT_1_valid
 );
-wire inner_inner_delay_INPUT_1_ready_magma_inline_wire;
-wire inner_inner_delay_OUTPUT_0_valid_magma_inline_wire;
+wire _magma_inline_wire4;
+wire _magma_inline_wire5;
+assign _magma_inline_wire4 = OUTPUT_1_valid;
+assign _magma_inline_wire5 = INPUT_0_ready;
 corebit_term corebit_term_inst0 (
-    .in(inner_inner_delay_OUTPUT_0_valid_magma_inline_wire)
+    .in(_magma_inline_wire4)
 );
 corebit_term corebit_term_inst1 (
-    .in(inner_inner_delay_INPUT_1_ready_magma_inline_wire)
+    .in(_magma_inline_wire5)
 );
 InnerInnerDelayUnit inner_inner_delay (
     .INPUT_0_data(INPUT_1_data),
@@ -42,8 +44,6 @@ InnerInnerDelayUnit inner_inner_delay (
     .OUTPUT_1_ready(OUTPUT_0_ready),
     .OUTPUT_1_valid(OUTPUT_0_valid)
 );
-assign inner_inner_delay_INPUT_1_ready_magma_inline_wire = INPUT_0_ready;
-assign inner_inner_delay_OUTPUT_0_valid_magma_inline_wire = OUTPUT_1_valid;
 endmodule
 
 module DelayUnit (
@@ -61,13 +61,15 @@ module DelayUnit (
     input OUTPUT_1_ready,
     output OUTPUT_1_valid
 );
-wire inner_delay_INPUT_1_ready_magma_inline_wire;
-wire inner_delay_OUTPUT_0_valid_magma_inline_wire;
+wire _magma_inline_wire2;
+wire _magma_inline_wire3;
+assign _magma_inline_wire2 = OUTPUT_1_valid;
+assign _magma_inline_wire3 = INPUT_0_ready;
 corebit_term corebit_term_inst0 (
-    .in(inner_delay_OUTPUT_0_valid_magma_inline_wire)
+    .in(_magma_inline_wire2)
 );
 corebit_term corebit_term_inst1 (
-    .in(inner_delay_INPUT_1_ready_magma_inline_wire)
+    .in(_magma_inline_wire3)
 );
 InnerDelayUnit inner_delay (
     .CLK(CLK),
@@ -84,8 +86,6 @@ InnerDelayUnit inner_delay (
     .OUTPUT_1_ready(OUTPUT_0_ready),
     .OUTPUT_1_valid(OUTPUT_0_valid)
 );
-assign inner_delay_INPUT_1_ready_magma_inline_wire = INPUT_0_ready;
-assign inner_delay_OUTPUT_0_valid_magma_inline_wire = OUTPUT_1_valid;
 endmodule
 
 module Main (
@@ -103,8 +103,8 @@ module Main (
     input O_1_ready,
     output O_1_valid
 );
-wire DelayUnit_inst0_INPUT_0_ready_magma_inline_wire;
-wire DelayUnit_inst0_OUTPUT_1_valid_magma_inline_wire;
+wire _magma_inline_wire0;
+wire _magma_inline_wire1;
 DelayUnit DelayUnit_inst0 (
     .CLK(CLK),
     .INPUT_0_data(I_1_data),
@@ -120,20 +120,20 @@ DelayUnit DelayUnit_inst0 (
     .OUTPUT_1_ready(O_0_ready),
     .OUTPUT_1_valid(O_0_valid)
 );
-assign DelayUnit_inst0_INPUT_0_ready_magma_inline_wire = I_1_ready;
-assign DelayUnit_inst0_OUTPUT_1_valid_magma_inline_wire = O_0_valid;
+assign _magma_inline_wire0 = O_0_valid;
+assign _magma_inline_wire1 = I_1_ready;
 corebit_term corebit_term_inst0 (
-    .in(DelayUnit_inst0_OUTPUT_1_valid_magma_inline_wire)
+    .in(_magma_inline_wire0)
 );
 corebit_term corebit_term_inst1 (
-    .in(DelayUnit_inst0_INPUT_0_ready_magma_inline_wire)
+    .in(_magma_inline_wire1)
 );
 assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);
 
-assert property (@(posedge CLK) DelayUnit_inst0_OUTPUT_1_valid_magma_inline_wire |-> ##3 DelayUnit_inst0_INPUT_0_ready_magma_inline_wire);
+assert property (@(posedge CLK) _magma_inline_wire0 |-> ##3 _magma_inline_wire1);
 
-assert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_delay_OUTPUT_0_valid_magma_inline_wire |-> ##3 DelayUnit_inst0.inner_delay.inner_delay_INPUT_1_ready_magma_inline_wire);
+assert property (@(posedge CLK) DelayUnit_inst0.inner_delay._magma_inline_wire2 |-> ##3 DelayUnit_inst0.inner_delay._magma_inline_wire3);
 
-assert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay.inner_inner_delay_OUTPUT_0_valid_magma_inline_wire |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay.inner_inner_delay_INPUT_1_ready_magma_inline_wire);
+assert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay._magma_inline_wire4 |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay._magma_inline_wire5);
 endmodule
 

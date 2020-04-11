@@ -65,19 +65,21 @@ def _sanitize(name):
     return name.replace(".", "_").replace("[", "_").replace("]", "")
 
 
-def convert_values_to_verilog_str(value):
+def convert_values_to_verilog_str(cls, value):
     if isinstance(value, Type):
         if value.is_input():
             value = value.value()
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             if not hasattr(value, "_magma_inline_wire_"):
                 # Insert a wire so it can't be inlined out
-                temp = type(value).qualify(Direction.Undirected)(
-                    name=_sanitize(str(value)) + "_magma_inline_wire"
-                )
-                temp @= value
-                temp.unused()
-                value._magma_inline_wire_ = temp
+                with cls.open():
+                    temp = type(value).qualify(Direction.Undirected)(
+                        name=f"_magma_inline_wire{cls.inline_verilog_wire_counter}"
+                    )
+                    cls.inline_verilog_wire_counter += 1
+                    temp @= value
+                    temp.unused()
+                    value._magma_inline_wire_ = temp
             value = value._magma_inline_wire_
         return value_to_verilog_name(value)
     if isinstance(value, PortView):
@@ -92,8 +94,9 @@ def convert_values_to_verilog_str(value):
                 defn = ref.defn
             with defn.open():
                 temp = type(value.port).qualify(Direction.Undirected)(
-                    name=_sanitize(str(value.port)) + "_magma_inline_wire"
+                    name=f"_magma_inline_wire{cls.inline_verilog_wire_counter}"
                 )
+                cls.inline_verilog_wire_counter += 1
                 temp @= value.port
                 temp.unused()
                 temp = PortView(temp, value.parent)
