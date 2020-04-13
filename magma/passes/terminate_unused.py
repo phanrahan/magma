@@ -13,8 +13,6 @@ def _terminate_unused(interface):
 
 class TerminateUnusedPass(EditCircuitPass):
     def edit(self, circuit):
-        if circuit.primitive:
-            return
         if _terminate_unused(circuit.interface):
             circuit._is_definition = True
         if not isdefinition(circuit):
