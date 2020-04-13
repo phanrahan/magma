@@ -4,8 +4,9 @@ from ..is_definition import isdefinition
 
 def _terminate_if_unwired_output(port):
     if port.is_mixed():
-        # Sum so it doesn't short circuit
-        return sum(_terminate_if_unwired_output(p) for p in port)
+        # list comp so it doesn't short circuit
+        terminated = [_terminate_if_unwired_output(p) for p in port]
+        return any(terminated)
     if port.is_output() and not port.wired():
         port.unused()
         return True

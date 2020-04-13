@@ -4,8 +4,9 @@ from ..is_definition import isdefinition
 
 def _drive_if_undriven_input(port):
     if port.is_mixed():
-        # Sum so it doesn't short circuit
-        return sum(_drive_if_undriven_input(p) for p in port)
+        # list comp so it doesn't short circuit
+        undrivens = [_drive_if_undriven_input(p) for p in port]
+        return any(undrivens)
     if port.is_input() and port.trace() is None:
         port.undriven()
         return True
