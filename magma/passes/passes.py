@@ -108,7 +108,7 @@ class InstanceGraphPass(Pass):
                 self(vert, edges)
 
 
-class EditCircuitPass(CircuitPass):
+class EditDefinitionPass(DefinitionPass):
     @abstractmethod
     def edit(self, circuit):
         raise NotImplementedError()

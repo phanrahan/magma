@@ -15,7 +15,7 @@ module Main (
     output O
 );
 corebit_term corebit_term_inst0 (
-    .in(I)
+    .in(~ I)
 );
 corebit_undriven corebit_undriven_inst0 (
     .out(O)
