@@ -1,4 +1,5 @@
 from ..array import Array
+from magma.bit import Bit
 from ..bits import Bits
 from ..circuit import coreir_port_mapping
 from ..conversions import as_bits, from_bits
@@ -9,21 +10,20 @@ from .passes import DefinitionPass
 from ..ref import NamedRef, ArrayRef
 from ..t import In, Out
 from ..tuple import Tuple
+from magma.backend.coreir_utils import sanitize_name
 
 
 def _simulate_wire(self, value_store, state_store):
     value_store.set_value(self.O, value_store.get_value(self.I))
 
 
-def _sanitize_name(name):
-    return name.replace("[", "_").replace("]", "")
-
-
-class _Wire(Generator2):
+class Wire(Generator2):
     def __init__(self, T):
         if issubclass(T, Digital):
             coreir_lib = "corebit"
             coreir_genargs = None
+            # Convert to bit so we wrap named types like clock if necessary
+            T = Bit
         else:
             width = T.flat_length()
             T = Bits[width]
@@ -58,15 +58,11 @@ class InsertCoreIRWires(DefinitionPass):
         if driver not in self.wire_map:
 
             driver_name = driver.name.qualifiedname("_")
-            driver_name = _sanitize_name(driver_name)
-
-            # Rename driver so it doesn't conflict with new wire instance name
-            if isinstance(driver.name, NamedRef):
-                driver.name.name = "_" + driver.name.name
+            driver_name = sanitize_name(driver_name)
 
             name = f"{driver_name}"
             with definition.open():
-                wire_inst = _Wire(T)(name=name)
+                wire_inst = Wire(T)(name=name)
                 self.wire_map[driver] = wire_inst
         wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I

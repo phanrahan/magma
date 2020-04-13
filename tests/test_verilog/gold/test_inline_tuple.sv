@@ -1,4 +1,16 @@
 // Module `InnerInnerDelayUnit` defined externally
+module corebit_undriven (
+    output out
+);
+
+endmodule
+
+module corebit_term (
+    input in
+);
+
+endmodule
+
 module InnerDelayUnit (
     input CLK,
     input [4:0] INPUT_0_data,
@@ -28,6 +40,45 @@ InnerInnerDelayUnit inner_inner_delay (
     .OUTPUT_1_ready(OUTPUT_0_ready),
     .OUTPUT_1_valid(OUTPUT_0_valid)
 );
+endmodule
+
+module InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_1_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_delay_OUTPUT_1_ready (
+    input __magma_inline_value_0,
+    output __magma_inline_value_1
+);
+corebit_term corebit_term_inst0 (
+    .in(__magma_inline_value_0)
+);
+corebit_undriven corebit_undriven_inst0 (
+    .out(__magma_inline_value_1)
+);
+assert property (@(posedge CLK) __magma_inline_value_0 |-> ##3 __magma_inline_value_1);
+endmodule
+
+module InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_0_valid___magma_inline_value_1_Main_O_1_ready (
+    input __magma_inline_value_0,
+    input __magma_inline_value_1
+);
+corebit_term corebit_term_inst0 (
+    .in(__magma_inline_value_0)
+);
+corebit_term corebit_term_inst1 (
+    .in(__magma_inline_value_1)
+);
+assert property (@(posedge CLK) __magma_inline_value_0 |-> ##3 __magma_inline_value_1);
+endmodule
+
+module InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready (
+    output __magma_inline_value_0,
+    output __magma_inline_value_1
+);
+corebit_undriven corebit_undriven_inst0 (
+    .out(__magma_inline_value_0)
+);
+corebit_undriven corebit_undriven_inst1 (
+    .out(__magma_inline_value_1)
+);
+assert property (@(posedge CLK) __magma_inline_value_0 |-> ##3 __magma_inline_value_1);
 endmodule
 
 module DelayUnit (
@@ -77,6 +128,9 @@ module Main (
     input O_1_ready,
     output O_1_valid
 );
+wire InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready_inst0___magma_inline_value_0;
+wire InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready_inst0___magma_inline_value_1;
+wire InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_1_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_delay_OUTPUT_1_ready_inst0___magma_inline_value_1;
 DelayUnit DelayUnit_inst0 (
     .CLK(CLK),
     .INPUT_0_data(I_1_data),
@@ -92,12 +146,21 @@ DelayUnit DelayUnit_inst0 (
     .OUTPUT_1_ready(O_0_ready),
     .OUTPUT_1_valid(O_0_valid)
 );
-assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);
-
-assert property (@(posedge CLK) DelayUnit_inst0.INPUT_1_valid |-> ##3 DelayUnit_inst0.OUTPUT_0_ready);
-
-assert property (@(posedge CLK) DelayUnit_inst0.inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT_1_ready);
-
-assert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay.OUTPUT_1_ready);
+InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready_inst0 (
+    .__magma_inline_value_0(InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready_inst0___magma_inline_value_0),
+    .__magma_inline_value_1(InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_INPUT_0_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_inner_delay_inner_inner_delay_OUTPUT_1_ready_inst0___magma_inline_value_1)
+);
+InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_0_valid___magma_inline_value_1_Main_O_1_ready InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_0_valid___magma_inline_value_1_Main_O_1_ready_inst0 (
+    .__magma_inline_value_0(I_0_valid),
+    .__magma_inline_value_1(O_1_ready)
+);
+InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_0_valid___magma_inline_value_1_Main_O_1_ready InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_0_valid___magma_inline_value_1_Main_O_1_ready_inst1 (
+    .__magma_inline_value_0(I_0_valid),
+    .__magma_inline_value_1(O_1_ready)
+);
+InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_1_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_delay_OUTPUT_1_ready InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_1_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_delay_OUTPUT_1_ready_inst0 (
+    .__magma_inline_value_0(I_1_valid),
+    .__magma_inline_value_1(InlineVerilogc466ffeffb5b4540b56f0a9267c4197c___magma_inline_value_0_Main_I_1_valid___magma_inline_value_1_DelayUnit_inst0_inner_delay_inner_delay_OUTPUT_1_ready_inst0___magma_inline_value_1)
+);
 endmodule
 

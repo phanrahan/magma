@@ -5,6 +5,13 @@ module coreir_wrap (
   assign out = in;
 endmodule
 
+module corebit_wire (
+    input in,
+    output out
+);
+  assign out = in;
+endmodule
+
 module corebit_term (
     input in
 );
@@ -23,6 +30,10 @@ module TestFDisplay (
     input CE
 );
 wire FF_inst0_O;
+wire __magma_inline_value_10_out;
+wire __magma_inline_value_11_out;
+wire __magma_inline_value_12_out;
+wire __magma_inline_value_13_out;
 wire coreir_wrapInClock_inst0_out;
 FF FF_inst0 (
     .I(I),
@@ -30,11 +41,33 @@ FF FF_inst0 (
     .CLK(CLK),
     .CE(CE)
 );
+corebit_wire __magma_inline_value_10 (
+    .in(FF_inst0_O),
+    .out(__magma_inline_value_10_out)
+);
+corebit_wire __magma_inline_value_11 (
+    .in(I),
+    .out(__magma_inline_value_11_out)
+);
+corebit_wire __magma_inline_value_12 (
+    .in(coreir_wrapInClock_inst0_out),
+    .out(__magma_inline_value_12_out)
+);
+corebit_wire __magma_inline_value_13 (
+    .in(CE),
+    .out(__magma_inline_value_13_out)
+);
 corebit_term corebit_term_inst0 (
-    .in(coreir_wrapInClock_inst0_out)
+    .in(__magma_inline_value_10_out)
 );
 corebit_term corebit_term_inst1 (
-    .in(CE)
+    .in(__magma_inline_value_11_out)
+);
+corebit_term corebit_term_inst2 (
+    .in(__magma_inline_value_12_out)
+);
+corebit_term corebit_term_inst3 (
+    .in(__magma_inline_value_13_out)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
@@ -46,8 +79,8 @@ integer \_file_test_fdisplay.log ;
 initial \_file_test_fdisplay.log = $fopen("test_fdisplay.log", "a");
 
 
-always @(posedge CLK) begin
-    if (CE) $fdisplay(\_file_test_fdisplay.log , "ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+always @(posedge __magma_inline_value_12_out) begin
+    if (__magma_inline_value_13_out) $fdisplay(\_file_test_fdisplay.log , "ff.O=%d, ff.I=%d", __magma_inline_value_10_out, __magma_inline_value_11_out);
 end
 
 

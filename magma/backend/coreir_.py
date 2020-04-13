@@ -5,7 +5,7 @@ from ..clock import AsyncReset, AsyncResetN, Clock
 from ..conversions import convertbit
 from ..config import config, EnvConfig
 from ..logging import root_logger
-from ..t import In, Out
+from ..t import In, Out, Direction
 from .. import singleton
 from ..circuit import Circuit
 from ..interface import IO
@@ -88,21 +88,21 @@ class InsertWrapCasts(DefinitionPass):
             return
         if not port.is_input():
             return
+        value = port.value()
         if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
-                isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock))):
+                isinstance(value, (AsyncReset, AsyncResetN, Clock))):
             return
-        value = port.trace()
-        if value is None or issubclass(type(value), type(port).flip()):
+        if value is None or issubclass(type(value), type(port).qualify(Direction.Undirected)):
             return
         if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
-            T = type(port).flip()
+            T = Out(type(port))
         else:
-            T = type(value).flip()
+            T = In(type(value))
 
         with definition.open():
             port.unwire(value)
             inst = self.define_wrap(T, type(port), type(value))()
-            wire(getattr(inst, "in"), convertbit(value, type(port)))
+            wire(convertbit(value, type(port)), getattr(inst, "in"))
             wire(inst.out, convertbit(port, type(value)))
 
     def __call__(self, definition):

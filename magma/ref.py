@@ -191,3 +191,17 @@ class TupleRef(Ref):
 
     def root(self):
         return self.tuple.name.root()
+
+
+class PortViewRef(Ref):
+    def __init__(self, view):
+        self.view = view
+
+    def qualifiedname(self, sep="."):
+        self.view.port.name.qualifiedname(sep)
+
+    def anon(self):
+        return self.view.port.anon()
+
+    def root(self):
+        return None

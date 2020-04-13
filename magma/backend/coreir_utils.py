@@ -4,7 +4,7 @@ from hwtypes import BitVector
 from ..array import Array
 from ..bit import Digital
 from ..clock import Clock, AsyncReset, AsyncResetN
-from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
+from ..ref import ArrayRef, DefnRef, TupleRef, InstRef, NamedRef, PortViewRef
 from ..tuple import Tuple
 from ..protocol_type import MagmaProtocol
 from .util import make_relative
@@ -30,12 +30,25 @@ def magma_name_to_coreir_select(name):
         return f"self.{name.name}"
     if isinstance(name, ArrayRef):
         array_name = magma_name_to_coreir_select(name.array.name)
+        # Intermediate wires are flattened at magma level (since coreir
+        # primitive doesn't accept complex types)
+        if name.root() and not issubclass(name.array.T, Digital):
+            return f"{array_name}_{name.index}.out"
         return f"{array_name}.{name.index}"
     if isinstance(name, TupleRef):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)
         key_name = _tuple_key_to_string(name.index)
         return f"{tuple_name}.{key_name}"
-    raise NotImplementedError(name)
+    if isinstance(name, NamedRef):
+        # Temporaries become wires
+        return str(name) + ".out"
+    if isinstance(name, PortViewRef):
+        # get select in its container definition
+        inner_select = magma_name_to_coreir_select(name.view.port.name)
+        # remove self, since it will now be a reference off an instance
+        inner_select = inner_select.replace("self.", "")
+        return name.view.get_hierarchical_coreir_select() + inner_select
+    raise NotImplementedError((name, type(name)))
 
 
 def magma_port_to_coreir_port(port):
@@ -193,3 +206,9 @@ def constant_to_value(constant):
         values = [constant_to_value(c) for c in constant]
         return BitVector[len(constant)](values)
     raise NotImplementedError(constant)
+
+
+
+def sanitize_name(name):
+    return name.replace("[", "_").replace("]", "").replace(".", "_").replace(";", "_")
+
