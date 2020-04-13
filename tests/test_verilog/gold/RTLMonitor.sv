@@ -30,48 +30,38 @@ module RTLMonitor (
     input mon_temp2,
     input out
 );
-wire __magma_inline_value_1;
-wire __magma_inline_value_2;
-wire [3:0] __magma_inline_value_3;
-wire [3:0] __magma_inline_value_4;
-wire __magma_inline_value_5;
+wire _magma_inline_wire0;
+wire [3:0] _magma_inline_wire1_0;
+wire [3:0] _magma_inline_wire1_1;
 wire [3:0] arr_2d_0;
 wire [3:0] arr_2d_1;
-assign __magma_inline_value_1 = intermediate_tuple__0;
-assign __magma_inline_value_2 = arr_2d_0[1];
-assign __magma_inline_value_3 = arr_2d_1;
-assign __magma_inline_value_4 = arr_2d_0;
-assign __magma_inline_value_5 = handshake_valid;
+assign _magma_inline_wire0 = arr_2d_0[1];
+assign _magma_inline_wire1_0 = arr_2d_0;
+assign _magma_inline_wire1_1 = arr_2d_1;
 assign arr_2d_0 = in1;
 assign arr_2d_1 = in2;
 corebit_term corebit_term_inst0 (
-    .in(__magma_inline_value_1)
-);
-corebit_term corebit_term_inst1 (
-    .in(__magma_inline_value_2)
-);
-corebit_term corebit_term_inst2 (
-    .in(__magma_inline_value_5)
+    .in(_magma_inline_wire0)
 );
 coreir_term #(
     .width(4)
 ) term_inst0 (
-    .in(__magma_inline_value_3)
+    .in(_magma_inline_wire1_0)
 );
 coreir_term #(
     .width(4)
 ) term_inst1 (
-    .in(__magma_inline_value_4)
+    .in(_magma_inline_wire1_1)
 );
 
 logic temp1, temp2;
 logic temp3;
 assign temp1 = |(in1);
-assign temp2 = &(in1) & __magma_inline_value_1;
-assign temp3 = temp1 ^ temp2 & __magma_inline_value_2;
-assert property (@(posedge CLK) __magma_inline_value_5 -> out === temp1 && temp2);
+assign temp2 = &(in1) & intermediate_tuple__0;
+assign temp3 = temp1 ^ temp2 & _magma_inline_wire0;
+assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);
 logic [3:0] temp4 [1:0];
-assign temp4 = '{__magma_inline_value_3, __magma_inline_value_4};
+assign temp4 = '{_magma_inline_wire1_1, _magma_inline_wire1_0};
                                    
 endmodule
 
@@ -89,8 +79,8 @@ bind RTL RTLMonitor RTLMonitor_inst (
     .handshake_arr_1_valid(handshake_arr_1_valid),
     .handshake_arr_2_ready(handshake_arr_2_ready),
     .handshake_arr_2_valid(handshake_arr_2_valid),
-    .mon_temp1(orr_4_inst0.O),
-    .mon_temp2(andr_4_inst0.O),
-    .intermediate_tuple__0(orr_4_inst0.O),
-    .intermediate_tuple__1(andr_4_inst0.O)
+    .mon_temp1(orr_4_inst0_O),
+    .mon_temp2(andr_4_inst0_O),
+    .intermediate_tuple__0(orr_4_inst0_O),
+    .intermediate_tuple__1(andr_4_inst0_O)
 );

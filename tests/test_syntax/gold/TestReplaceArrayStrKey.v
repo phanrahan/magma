@@ -1,8 +1,7 @@
-module coreir_const #(
-    parameter width = 1,
+module corebit_const #(
     parameter value = 1
 ) (
-    output [width-1:0] out
+    output out
 );
   assign out = value;
 endmodule
@@ -10,14 +9,13 @@ endmodule
 module TestReplaceArrayStrKey_comb (
     output [1:0] O
 );
-wire [1:0] const_3_2_out;
-coreir_const #(
-    .value(2'h3),
-    .width(2)
-) const_3_2 (
-    .out(const_3_2_out)
+wire bit_const_1_None_out;
+corebit_const #(
+    .value(1'b1)
+) bit_const_1_None (
+    .out(bit_const_1_None_out)
 );
-assign O = const_3_2_out;
+assign O = {bit_const_1_None_out,bit_const_1_None_out};
 endmodule
 
 module TestReplaceArrayStrKey (

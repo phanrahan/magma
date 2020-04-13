@@ -522,7 +522,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def unused(self):
         if self.is_input() or self.is_inout():
             raise TypeError("unused cannot be used with input/inout")
-        DefineUnused(len(self))().I.wire(self)
+        if not getattr(self, "_magma_unused_", False):
+            DefineUnused(len(self))().I.wire(self)
+            # "Cache" unused calls so only one is produced
+            self._magma_unused_ = True
 
     def undriven(self):
         if self.is_output() or self.is_inout():
@@ -531,9 +534,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def __getitem__(self, index):
         if isinstance(index, Bits):
-            if not 2 ** len(index) == len(self):
+            if len(index) > len(self):
                 raise TypeError(f"Unexpected index width: {len(index)}")
-            index = index.zext(len(self) - len(index))
+            if len(index) < len(self):
+                index = index.zext(len(self) - len(index))
             return (self >> index)[0]
         return super().__getitem__(index)
 
