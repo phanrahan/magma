@@ -63,7 +63,8 @@ class UniquificationPass(DefinitionPass):
             elif name != seen[key][0].name:
                 new_name = seen[key][0].name
                 type(definition).rename(definition, new_name)
-                for x, y in zip(seen[key][0], definition.bind_modules):
+                for x, y in zip(seen[key][0].bind_modules,
+                                definition.bind_modules):
                     type(y).rename(y, x.name)
             seen[key].append(definition)
 
