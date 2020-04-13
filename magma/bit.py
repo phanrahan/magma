@@ -202,6 +202,8 @@ def make_Define(_name, port, direction):
             name = f"corebit_{_name}"
             coreir_name = _name
             coreir_lib = "corebit"
+            primitive = True
+            stateful = False
 
             def simulate(self, value_store, state_store):
                 pass

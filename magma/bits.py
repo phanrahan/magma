@@ -554,7 +554,9 @@ def make_Define(name, port, direction):
             coreir_name=name,
             coreir_lib="coreir",
             coreir_genargs={"width": width},
-            simulate=simulate
+            simulate=simulate,
+            primitive=True,
+            stateful=False
         )
     return Define
 
