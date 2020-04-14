@@ -113,7 +113,7 @@ def _get_clocks(port, clocktype):
         result = _get_clocks(port[0], clocktype)
         # Only traverse all children circuit if first child has a clock
         if result:
-            result += sum(_get_clocks(elem, clocktype) for elem in port[1:])
+            result += sum(_get_clocks(elem, clocktype) for elem in port[1:], [])
         return result
     if isinstance(port, clocktype) and port.is_output():
         return [port]
