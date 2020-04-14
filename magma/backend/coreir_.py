@@ -91,8 +91,12 @@ class InsertWrapCasts(DefinitionPass):
             wrapped = self.wrap_if_named_type(port[0], definition)
             if not wrapped:
                 return False
-            for t in port[1:]:
-                self.wrap_if_named_type(t, definition)
+            # TODO: Magma doesn't support length zero array, so slicing a
+            # length 1 array off the end doesn't work as expected in normal
+            # Python
+            if len(port) > 1:
+                for t in port[1:]:
+                    self.wrap_if_named_type(t, definition)
             return True
         if not port.is_input():
             return False
