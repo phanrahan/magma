@@ -2,12 +2,21 @@ from .passes import EditDefinitionPass
 from ..is_definition import isdefinition
 
 
+def _drive_if_undriven_input(port):
+    if port.is_mixed():
+        # list comp so it doesn't short circuit
+        undrivens = [_drive_if_undriven_input(p) for p in port]
+        return any(undrivens)
+    if port.is_input() and port.trace() is None:
+        port.undriven()
+        return True
+    return False
+
+
 def _drive_undriven(interface):
     undriven = False
     for port in interface.ports.values():
-        if port.is_input() and port.trace() is None:
-            undriven = True
-            port.undriven()
+        undriven |= _drive_if_undriven_input(port)
     return undriven
 
 

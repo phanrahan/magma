@@ -26,8 +26,9 @@ class GeneratorMeta(type):
             result = old_generate(*args, **kwargs)
             if hasattr(result, "circuit_definition"):
                 result = result.circuit_definition
-            for gen in cls.bind_generators:
-                gen.generate_bind(result, *args, **kwargs)
+            if not result.bind_modules_bound:
+                for gen in cls.bind_generators:
+                    gen.generate_bind(result, *args, **kwargs)
             return result
 
         cls.generate = generate_wrapper

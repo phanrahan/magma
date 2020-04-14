@@ -15,7 +15,7 @@ class _ClockType(Digital):
         Bit.unused(self)
 
     def undriven(self):
-        Bit.unused(self)
+        Bit.undriven(self)
 
 
 class Clock(_ClockType, metaclass=DigitalMeta):

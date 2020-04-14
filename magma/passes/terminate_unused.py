@@ -2,12 +2,21 @@ from .passes import EditDefinitionPass
 from ..is_definition import isdefinition
 
 
+def _terminate_if_unwired_output(port):
+    if port.is_mixed():
+        # list comp so it doesn't short circuit
+        terminated = [_terminate_if_unwired_output(p) for p in port]
+        return any(terminated)
+    if port.is_output() and not port.wired():
+        port.unused()
+        return True
+    return False
+
+
 def _terminate_unused(interface):
     terminated = False
     for port in interface.ports.values():
-        if port.is_output() and not port.wired():
-            terminated = True
-            port.unused()
+        terminated |= _terminate_if_unwired_output(port)
     return terminated
 
 
