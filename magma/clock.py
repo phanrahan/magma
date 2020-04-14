@@ -97,9 +97,10 @@ def _wire_clock_port(port, clocktype, defnclk):
     elif isinstance(port, Array):
         wired = _wire_clock_port(port[0], clocktype, defnclk)
         # Only traverse all children circuit if first child has a clock
-        if wired:
-            for elem in port[1:]:
-                _wire_clock_port(elem, clocktype, defnclk)
+        if not wired:
+            return False
+        for elem in port[1:]:
+          _wire_clock_port(elem, clocktype, defnclk)
     elif isinstance(port, clocktype) and not port.driven():
         wire(defnclk, port)
         wired = True
