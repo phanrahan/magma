@@ -93,10 +93,9 @@ class InsertWrapCasts(DefinitionPass):
                 return False
             # TODO: Magma doesn't support length zero array, so slicing a
             # length 1 array off the end doesn't work as expected in normal
-            # Python
-            if len(port) > 1:
-                for t in port[1:]:
-                    self.wrap_if_named_type(t, definition)
+            # Python, so we explicilty slice port.ts
+            for t in port.ts[1:]:
+                self.wrap_if_named_type(t, definition)
             return True
         if not port.is_input():
             return False
