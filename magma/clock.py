@@ -108,7 +108,7 @@ def _wire_clock_port(port, clocktype, defnclk):
 
 def _get_clocks(port, clocktype):
     if isinstance(port, Tuple):
-        return sum([_get_clocks(elem, clocktype) for elem in port], [])
+        return sum(_get_clocks(elem, clocktype) for elem in port, [])
     if isinstance(port, Array):
         result = _get_clocks(port[0], clocktype)
         # Only traverse all children circuit if first child has a clock
