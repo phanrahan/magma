@@ -45,12 +45,15 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     opts = kwargs.copy()
     compiler = _make_compiler(output, main, basename, opts)
 
-    # Steps to process bind's and inline verilog generation.
+    # Steps to process inline verilog generation.
     ProcessInlineVerilogPass(main).run()
-    BindPass(main, compile).run()
 
     # Default behavior is to perform uniquification, but can be overriden.
     uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
+
+    # Bind after uniquification so the bind logic works on unique modules
+    BindPass(main, compile).run()
+
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
     if opts.get("terminate_unused", False):

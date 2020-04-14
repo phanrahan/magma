@@ -82,18 +82,26 @@ class InsertWrapCasts(DefinitionPass):
         return Wrap
 
     def wrap_if_named_type(self, port, definition):
-        if isinstance(port, (Array, Tuple)):
+        if isinstance(port, Tuple):
+            wrapped = False
             for t in port:
+                wrapped |= self.wrap_if_named_type(t, definition)
+            return wrapped
+        if isinstance(port, Array):
+            wrapped = self.wrap_if_named_type(port[0], definition)
+            if not wrapped:
+                return False
+            for t in port[1:]:
                 self.wrap_if_named_type(t, definition)
-            return
+            return True
         if not port.is_input():
-            return
+            return False
         value = port.value()
         if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
                 isinstance(value, (AsyncReset, AsyncResetN, Clock))):
-            return
+            return False
         if value is None or issubclass(type(value), type(port).qualify(Direction.Undirected)):
-            return
+            return False
         if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
             T = Out(type(port))
         else:
@@ -104,6 +112,7 @@ class InsertWrapCasts(DefinitionPass):
             inst = self.define_wrap(T, type(port), type(value))()
             wire(convertbit(value, type(port)), getattr(inst, "in"))
             wire(inst.out, convertbit(port, type(value)))
+        return True
 
     def __call__(self, definition):
         # copy, because wrapping might add instances
