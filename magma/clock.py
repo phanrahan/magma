@@ -95,7 +95,7 @@ def _wire_clock_port(port, clocktype, defnclk):
         for elem in port:
             wired |= _wire_clock_port(elem, clocktype, defnclk)
     elif isinstance(port, Array):
-        wired = _wire_clock_port(elem[0], clocktype, defnclk)
+        wired = _wire_clock_port(port[0], clocktype, defnclk)
         # Only traverse all children circuit if first child has a clock
         if wired:
             for elem in port[1:]:
