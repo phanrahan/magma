@@ -90,12 +90,20 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
 
 
 def _wire_clock_port(port, clocktype, defnclk):
-    if isinstance(port, (Array, Tuple)):
+    wired = False
+    if isinstance(port, Tuple):
         for elem in port:
-            _wire_clock_port(elem, clocktype, defnclk)
-        return
-    if isinstance(port, clocktype) and not port.driven():
+            wired |= _wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, Array):
+        wired = _wire_clock_port(elem[0], clocktype, defnclk)
+        # Only traverse all children circuit if first child has a clock
+        if wired:
+            for elem in port[1:]:
+                _wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, clocktype) and not port.driven():
         wire(defnclk, port)
+        wired = True
+    return wired
 
 
 def _get_clocks(port, clocktype):
