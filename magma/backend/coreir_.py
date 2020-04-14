@@ -90,9 +90,9 @@ class InsertWrapCasts(DefinitionPass):
         if isinstance(port, Array):
             wrapped = self.wrap_if_named_type(port[0], definition)
             if not wrapped:
-              return False
-              for t in port[1:]:
-                  self.wrap_if_named_type(t, definition)
+                return False
+            for t in port[1:]:
+                self.wrap_if_named_type(t, definition)
             return True
         if not port.is_input():
             return False
