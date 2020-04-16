@@ -10,14 +10,13 @@ debug_info = collections.namedtuple("debug_info", ["filename", "lineno", "module
 def get_callee_frame_info():
     stack = inspect.stack()
     # FIXME: Right now we assume a max 10 frames deep
-    for i in range(3, 10):
+    for i in range(0, 10):
         callee_frame = stack[i][0]
         module = inspect.getmodule(callee_frame)
         # Go up until we're out of the magma module (assuming this is the user
         # code)
         if not module or module.__name__.split(".")[0] != "magma":
             break
-        break
     callee_frame = inspect.getframeinfo(callee_frame)
     return debug_info(callee_frame.filename, callee_frame.lineno, module)
 
