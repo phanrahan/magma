@@ -170,7 +170,8 @@ def _process_inline_verilog(cls, format_str, format_args, symbol_table):
         if isinstance(value, (Type, PortView)):
             # These have special handling, don't convert to string.
             value = _make_inline_value(cls, inline_value_map, value)
-            # Stage for subsequent format call for regular kwargs
+            # Stage for subsequent format call for regular kwargs inside
+            # _inline_verilog
             value = value.replace("{", "{{").replace("}", "}}")
         format_str = format_str.replace(f"{{{field}}}", str(value))
     _inline_verilog(cls, format_str, inline_value_map, **format_args)
