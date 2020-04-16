@@ -121,6 +121,8 @@ class InsertCoreIRWires(DefinitionPass):
             return
 
         if isinstance(driver.name, PortViewRef):
+            # Don't descend into hierarchical connections since we assume this
+            # logic will be run in that context in another stage of the pass
             return
 
         value.unwire(driver)
