@@ -49,9 +49,9 @@ def _make_temporary(defn, value, num, parent=None):
         temp_name += f"{num}"
         temp = Wire(type(value))(name=temp_name)
         temp.I @= value
-        if parent is not None:
-            temp = PortView(temp.O, parent)
-    return temp
+    if parent is not None:
+        return PortView(temp.O, parent)
+    return temp.O
 
 
 def _insert_temporary_wires(cls, value):
