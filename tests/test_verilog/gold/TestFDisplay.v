@@ -41,8 +41,5 @@ end
 final $fclose(\_file_test_fdisplay.log );
 
 assign _magma_inline_wire0 = O;
-corebit_term corebit_term_inst0 (
-    .in(_magma_inline_wire0)
-);
 endmodule
 

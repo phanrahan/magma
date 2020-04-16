@@ -50,8 +50,5 @@ always @(posedge CLK) begin
 end
 
 assign _magma_inline_wire0 = O;
-corebit_term corebit_term_inst0 (
-    .in(_magma_inline_wire0)
-);
 endmodule
 

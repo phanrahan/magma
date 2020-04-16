@@ -42,6 +42,18 @@ def _make_inline_value(cls, inline_value_map, value):
     return f"{{{value_key}}}"
 
 
+def _make_temporary(defn, value, inline_verilog_wire_map, parent=None):
+    with defn.open():
+        # Insert a wire so it can't be inlined out
+        temp_name = f"_magma_inline_wire"
+        temp_name += f"{len(inline_verilog_wire_map)}"
+        temp = Wire(type(value))(name=temp_name)
+        temp.I @= value
+        if parent is not None:
+            temp = PortView(temp.O, parent)
+        inline_verilog_wire_map[value] = temp
+
+
 def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     format_args = {}
     for key, arg in kwargs.items():
@@ -84,48 +96,36 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
 
     with cls.open():
         inst = _InlineVerilog()
+        # Dummy var so there's a defn for inline verilog without any
+        # interpoalted avlues
         if not inline_value_map:
             inst.I @= 0
 
-        for key, value in inline_value_map.items():
-            if isinstance(value, Type):
-                if value.is_input():
-                    value = value.value()
-                if not isinstance(_get_top_level_ref(value.name), DefnRef):
-                    if value not in cls.inline_verilog_wire_map:
-                        # Insert a wire so it can't be inlined out
-                        temp_name = f"_magma_inline_wire"
-                        temp_name += f"{len(cls.inline_verilog_wire_map)}"
-                        temp = type(value).qualify(Direction.Undirected)(
-                            name=temp_name
-                        )
-                        temp @= value
-                        temp.unused()
-                        cls.inline_verilog_wire_map[value] = temp
-                    value = cls.inline_verilog_wire_map[value]
-            else:
-                assert isinstance(value, PortView)
-                if value.port.is_input():
-                    raise NotImplementedError()
+    for key, value in inline_value_map.items():
+        if isinstance(value, Type):
+            if value.is_input():
+                value = value.value()
+            if not isinstance(_get_top_level_ref(value.name), DefnRef):
                 if value not in cls.inline_verilog_wire_map:
-                    # get first instance parent, then the parent of that will
-                    # be the container where we insert a wire
-                    parent = get_view_inst_parent(value).parent
-                    if isinstance(parent, InstView):
-                        defn = parent.circuit
-                    else:
-                        assert isinstance(parent, Circuit)
-                        defn = type(parent)
+                    _make_temporary(cls, value, cls.inline_verilog_wire_map)
+                value = cls.inline_verilog_wire_map[value]
+        else:
+            assert isinstance(value, PortView)
+            if value.port.is_input():
+                raise NotImplementedError()
+            if value not in cls.inline_verilog_wire_map:
+                # get first instance parent, then the parent of that will
+                # be the container where we insert a wire
+                parent = get_view_inst_parent(value).parent
+                if isinstance(parent, InstView):
+                    defn = parent.circuit
+                else:
+                    assert isinstance(parent, Circuit)
+                    defn = type(parent)
 
-                    with defn.open():
-                        temp_name = "_magma_inline_wire"
-                        temp_name += f"{len(cls.inline_verilog_wire_map)}"
-                        temp = Wire(type(value.port))(name=temp_name)
-                        temp.I @= value.port
-                        temp = PortView(temp.O, parent)
-                        cls.inline_verilog_wire_map[value] = temp
-                    value = cls.inline_verilog_wire_map[value]
-            wire(value, getattr(inst, key))
+                _make_temporary(defn, value.port, cls.inline_verilog_wire_map, parent)
+            value = cls.inline_verilog_wire_map[value]
+        wire(value, getattr(inst, key))
 
 
 def _process_inline_verilog(cls, format_str, format_args, symbol_table):
