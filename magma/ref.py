@@ -194,6 +194,10 @@ class TupleRef(Ref):
 
 
 class PortViewRef(Ref):
+    """
+    Used for values that are connection references to a hierarchical value
+    (using the view logic)
+    """
     def __init__(self, view):
         self.view = view
 
