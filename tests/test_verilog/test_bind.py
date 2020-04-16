@@ -4,7 +4,6 @@ import magma.testing
 from rtl import RTL
 import rtl_monitor
 from subprocess import run
-m.config.set_debug_mode(True)
 
 
 def test_bind():

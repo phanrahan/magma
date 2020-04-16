@@ -92,23 +92,22 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
                 if value.is_input():
                     value = value.value()
                 if not isinstance(_get_top_level_ref(value.name), DefnRef):
-                    if not hasattr(value, "_magma_inline_wire_"):
+                    if value not in cls.inline_verilog_wire_map:
                         # Insert a wire so it can't be inlined out
                         temp_name = f"_magma_inline_wire"
-                        temp_name += f"{cls.inline_verilog_wire_counter}"
+                        temp_name += f"{len(cls.inline_verilog_wire_map)}"
                         temp = type(value).qualify(Direction.Undirected)(
                             name=temp_name
                         )
-                        cls.inline_verilog_wire_counter += 1
                         temp @= value
                         temp.unused()
-                        value._magma_inline_wire_ = temp
-                    value = value._magma_inline_wire_
+                        cls.inline_verilog_wire_map[value] = temp
+                    value = cls.inline_verilog_wire_map[value]
             else:
                 assert isinstance(value, PortView)
                 if value.port.is_input():
                     raise NotImplementedError()
-                if not hasattr(value, "_magma_inline_wire_"):
+                if value not in cls.inline_verilog_wire_map:
                     # get first instance parent, then the parent of that will
                     # be the container where we insert a wire
                     parent = get_view_inst_parent(value).parent
@@ -120,13 +119,12 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
 
                     with defn.open():
                         temp_name = "_magma_inline_wire"
-                        temp_name += f"{cls.inline_verilog_wire_counter}"
+                        temp_name += f"{len(cls.inline_verilog_wire_map)}"
                         temp = Wire(type(value.port))(name=temp_name)
-                        cls.inline_verilog_wire_counter += 1
                         temp.I @= value.port
                         temp = PortView(temp.O, parent)
-                        value._magma_inline_wire_ = temp
-                    value = value._magma_inline_wire_
+                        cls.inline_verilog_wire_map[value] = temp
+                    value = cls.inline_verilog_wire_map[value]
             wire(value, getattr(inst, key))
 
 
@@ -161,7 +159,6 @@ class ProcessInlineVerilogPass(CircuitPass):
         if cls.inline_verilog_generated:
             return
         cls.inline_verilog_wire_map = {}
-        cls.inline_verilog_wire_counter = 0
         cls.inline_verilog_modules = []
         with cls.open():
             for fields in cls._context_._inline_verilog:
