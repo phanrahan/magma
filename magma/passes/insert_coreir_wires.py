@@ -59,7 +59,6 @@ class InsertCoreIRWires(DefinitionPass):
 
         T = type(driver)
         if driver not in self.wire_map:
-            assert driver.name.qualifiedname("_") is not None
             driver_name = driver.name.qualifiedname("_")
             driver_name = _sanitize_name(driver_name)
 
