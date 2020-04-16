@@ -35,14 +35,9 @@ def magma_name_to_coreir_select(name):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)
         key_name = _tuple_key_to_string(name.index)
         return f"{tuple_name}.{key_name}"
-    if isinstance(name, NamedRef):
-        # Temporaries become wires
-        return str(name) + ".out"
     if isinstance(name, PortViewRef):
         # get select in its container definition
         inner_select = magma_name_to_coreir_select(name.view.port.name)
-        # remove self, since it will now be a reference off an instance
-        inner_select = inner_select.replace("self.", ";")
         return name.view.get_hierarchical_coreir_select() + inner_select
     raise NotImplementedError((name, type(name)))
 
