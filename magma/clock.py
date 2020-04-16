@@ -99,8 +99,12 @@ def _wire_clock_port(port, clocktype, defnclk):
         # Only traverse all children circuit if first child has a clock
         if not wired:
             return False
-        for elem in port[1:]:
-          _wire_clock_port(elem, clocktype, defnclk)
+        # TODO: Magma doesn't support length zero array, so slicing a
+        # length 1 array off the end doesn't work as expected in normal
+        # Python, so we explicilty slice port.ts
+        for t in port.ts[1:]:
+            for elem in port[1:]:
+              _wire_clock_port(elem, clocktype, defnclk)
     elif isinstance(port, clocktype) and not port.driven():
         wire(defnclk, port)
         wired = True
