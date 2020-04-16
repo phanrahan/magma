@@ -30,10 +30,6 @@ def magma_name_to_coreir_select(name):
         return f"self.{name.name}"
     if isinstance(name, ArrayRef):
         array_name = magma_name_to_coreir_select(name.array.name)
-        # Intermediate wires are flattened at magma level (since coreir
-        # primitive doesn't accept complex types)
-        if name.root() and not issubclass(name.array.T, Digital):
-            return f"{array_name}_{name.index}.out"
         return f"{array_name}.{name.index}"
     if isinstance(name, TupleRef):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)

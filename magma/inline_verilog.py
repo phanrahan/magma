@@ -31,13 +31,14 @@ def get_view_inst_parent(view):
 
 def _make_inline_value(cls, inline_value_map, value):
     if isinstance(value, Array) and not issubclass(value.T, Digital):
-        return "'{{" + ", ".join(_make_inline_value(cls, inline_value_map, t) for t
-                                 in reversed(value)) + "}}"
+        return "'{" + ", ".join(_make_inline_value(cls, inline_value_map,
+                                                    t) for t in
+                                reversed(value)) + "}"
     if isinstance(value, Tuple):
         raise NotImplementedError("Inlining tuple to verilog")
     value_key = f"__magma_inline_value_{len(inline_value_map)}"
     inline_value_map[value_key] = value
-    return f"{{{{{value_key}}}}}" 
+    return f"{{{value_key}}}" 
 
 
 def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
@@ -45,9 +46,8 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     for key, arg in kwargs.items():
         if isinstance(arg, (Type, PortView)):
             # Strip extra curly braces for format
-            arg = _make_inline_value(cls, inline_value_map, arg)[1:-1]
+            arg = _make_inline_value(cls, inline_value_map, arg)
         format_args[key] = arg
-
     inline_str = inline_str.format(**format_args)
 
     class _InlineVerilog(Circuit):
@@ -146,6 +146,8 @@ def _process_inline_verilog(cls, format_str, format_args, symbol_table):
         if isinstance(value, (Type, PortView)):
             # These have special handling, don't convert to string.
             value = _make_inline_value(cls, inline_value_map, value)
+            # Stage for subsequent format call for regular kwargs
+            value = value.replace("{", "{{").replace("}", "}}")
         format_str = format_str.replace(f"{{{field}}}", str(value))
     _inline_verilog(cls, format_str, inline_value_map, **format_args)
 
