@@ -54,6 +54,8 @@ class UniquificationPass(DefinitionPass):
                 suffix = "_unq" + str(len(seen))
                 new_name = name + suffix
                 type(definition).rename(definition, new_name)
+                for module in definition.inline_verilog_modules:
+                    module.name = module.name.replace(name, new_name)
                 for module in definition.bind_modules:
                     type(module).rename(module, module.name + suffix)
             seen[key] = [definition]
@@ -63,6 +65,8 @@ class UniquificationPass(DefinitionPass):
             elif name != seen[key][0].name:
                 new_name = seen[key][0].name
                 type(definition).rename(definition, new_name)
+                for module in definition.inline_verilog_modules:
+                    module.name = module.name.replace(name, new_name)
                 for x, y in zip(seen[key][0].bind_modules,
                                 definition.bind_modules):
                     type(y).rename(y, x.name)

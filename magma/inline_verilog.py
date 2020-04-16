@@ -52,7 +52,8 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
 
     class _InlineVerilog(Circuit):
         # Unique name (hash) since uniquify doesn't check inline_verilog 
-        name = f"InlineVerilog{hashlib.md5(inline_str.encode()).hexdigest()}"
+        name = f"{cls.name}_{len(cls.inline_verilog_modules)}"
+
         for key, value in inline_value_map.items():
             name += f"_{sanitize_name(str(value))}"
         io = IO()
@@ -77,6 +78,8 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
             io.I.unused()
 
         inline_verilog_strs = [(inline_str, connect_references)]
+
+    cls.inline_verilog_modules.append(_InlineVerilog)
 
     with cls.open():
         inst = _InlineVerilog()
@@ -157,6 +160,7 @@ class ProcessInlineVerilogPass(CircuitPass):
         if cls.inline_verilog_generated:
             return
         cls.inline_verilog_wire_counter = 0
+        cls.inline_verilog_modules = []
         with cls.open():
             for fields in cls._context_._inline_verilog:
                 _process_inline_verilog(cls, *fields)
