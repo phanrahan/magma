@@ -57,19 +57,6 @@ assign _magma_inline_wire1 = arr_2d_1;
 assign _magma_inline_wire2 = arr_2d_0;
 assign arr_2d_0 = in1;
 assign arr_2d_1 = in2;
-corebit_term corebit_term_inst0 (
-    .in(_magma_inline_wire0)
-);
-coreir_term #(
-    .width(4)
-) term_inst0 (
-    .in(_magma_inline_wire1)
-);
-coreir_term #(
-    .width(4)
-) term_inst1 (
-    .in(_magma_inline_wire2)
-);
 endmodule
 
 

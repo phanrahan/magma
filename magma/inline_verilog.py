@@ -24,10 +24,10 @@ def _get_top_level_ref(ref):
     return ref
 
 
-def get_view_inst_parent(view):
+def _get_view_inst_parent(view):
     while not isinstance(view, InstView):
         assert isinstance(view, PortView), type(view)
-        return get_view_inst_parent(view.parent)
+        return _get_view_inst_parent(view.parent)
     return view
 
 
@@ -42,16 +42,61 @@ def _make_inline_value(cls, inline_value_map, value):
     return f"{{{value_key}}}"
 
 
-def _make_temporary(defn, value, inline_verilog_wire_map, parent=None):
+def _make_temporary(defn, value, num, parent=None):
     with defn.open():
         # Insert a wire so it can't be inlined out
         temp_name = f"_magma_inline_wire"
-        temp_name += f"{len(inline_verilog_wire_map)}"
+        temp_name += f"{num}"
         temp = Wire(type(value))(name=temp_name)
         temp.I @= value
         if parent is not None:
             temp = PortView(temp.O, parent)
-        inline_verilog_wire_map[value] = temp
+    return temp
+
+
+def _insert_temporary_wires(cls, value):
+    """
+    For non DefnRef, insert a temporary Wire instance so the signal isn't
+    inlined out
+    """
+    if isinstance(value, Type):
+        if value.is_input():
+            value = value.value()
+        if not isinstance(_get_top_level_ref(value.name), DefnRef):
+            if value not in cls.inline_verilog_wire_map:
+                temp = _make_temporary(cls, value, len(cls.inline_verilog_wire_map))
+                cls.inline_verilog_wire_map[value] = temp
+            value = cls.inline_verilog_wire_map[value]
+    else:
+        assert isinstance(value, PortView)
+        if value.port.is_input():
+            # For now we can't handle input port views, since this might return
+            # a connection to the interface (e.g. self.I), then we'd need to
+            # walk up to the parent instance and select the corresponding input
+            # port, then trace that, which may need to happen recursively until
+            # we find the driver in the current definition.
+            # We don't have any existing use case for this, and a work around
+            # exists which requires the user to effectively use the driver we
+            # would find, rather than selecting the hierarchical input port
+            # (this should work for simple cases, but might be annoying for
+            # deep hierarchies where the driver could come from a far away
+            # place, at which point we can add this feature)
+            raise NotImplementedError()
+        if value not in cls.inline_verilog_wire_map:
+            # get first instance parent, then the parent of that will
+            # be the container where we insert a wire
+            parent = _get_view_inst_parent(value).parent
+            if isinstance(parent, InstView):
+                defn = parent.circuit
+            else:
+                assert isinstance(parent, Circuit)
+                defn = type(parent)
+
+            temp = _make_temporary(defn, value.port,
+                                   len(cls.inline_verilog_wire_map), parent)
+            cls.inline_verilog_wire_map[value] = temp
+        value = cls.inline_verilog_wire_map[value]
+    return value
 
 
 def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
@@ -102,29 +147,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
             inst.I @= 0
 
     for key, value in inline_value_map.items():
-        if isinstance(value, Type):
-            if value.is_input():
-                value = value.value()
-            if not isinstance(_get_top_level_ref(value.name), DefnRef):
-                if value not in cls.inline_verilog_wire_map:
-                    _make_temporary(cls, value, cls.inline_verilog_wire_map)
-                value = cls.inline_verilog_wire_map[value]
-        else:
-            assert isinstance(value, PortView)
-            if value.port.is_input():
-                raise NotImplementedError()
-            if value not in cls.inline_verilog_wire_map:
-                # get first instance parent, then the parent of that will
-                # be the container where we insert a wire
-                parent = get_view_inst_parent(value).parent
-                if isinstance(parent, InstView):
-                    defn = parent.circuit
-                else:
-                    assert isinstance(parent, Circuit)
-                    defn = type(parent)
-
-                _make_temporary(defn, value.port, cls.inline_verilog_wire_map, parent)
-            value = cls.inline_verilog_wire_map[value]
+        value = _insert_temporary_wires(cls, value)
         wire(value, getattr(inst, key))
 
 

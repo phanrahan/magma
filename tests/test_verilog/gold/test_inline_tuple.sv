@@ -114,11 +114,5 @@ assert property (@(posedge CLK) DelayUnit_inst0._magma_inline_wire2.out |-> ##3 
 assert property (@(posedge CLK) DelayUnit_inst0.inner_delay._magma_inline_wire4.out |-> ##3 DelayUnit_inst0.inner_delay._magma_inline_wire5.out);
 assign _magma_inline_wire0 = O_0_valid;
 assign _magma_inline_wire1 = I_1_ready;
-corebit_term corebit_term_inst0 (
-    .in(_magma_inline_wire0)
-);
-corebit_term corebit_term_inst1 (
-    .in(_magma_inline_wire1)
-);
 endmodule
 
