@@ -103,7 +103,6 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     format_args = {}
     for key, arg in kwargs.items():
         if isinstance(arg, (Type, PortView)):
-            # Strip extra curly braces for format
             arg = _make_inline_value(cls, inline_value_map, arg)
         format_args[key] = arg
     inline_str = inline_str.format(**format_args)
