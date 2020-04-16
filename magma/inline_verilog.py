@@ -12,7 +12,6 @@ from magma.bit import Bit
 from magma.array import Array
 from magma.tuple import Tuple
 from magma.wire import wire
-from magma.backend.coreir_utils import sanitize_name
 from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
 
 
@@ -99,6 +98,23 @@ def _insert_temporary_wires(cls, value):
     return value
 
 
+def _build_io(inline_value_map):
+    if not inline_value_map:
+        # if there's not inlined values, make a dummy input/instance so there's
+        # a def
+        io = IO(I=In(Bit))
+        io.I.unused()
+        return io
+    io = IO()
+    for key, value in inline_value_map.items():
+        if isinstance(value, PortView):
+            T = value.T
+        else:
+            T = type(value)
+        io += IO(**{key: In(T)})
+    return io
+
+
 def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     format_args = {}
     for key, arg in kwargs.items():
@@ -111,28 +127,17 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
         # Unique name (hash) since uniquify doesn't check inline_verilog
         name = f"{cls.name}_{len(cls.inline_verilog_modules)}"
 
-        for key, value in inline_value_map.items():
-            name += f"_{sanitize_name(str(value))}"
-        io = IO()
-        connect_references = {}
-        for key, value in inline_value_map.items():
-            if isinstance(value, PortView):
-                T = value.T
-            else:
-                T = type(value)
-            io += IO(**{key: In(T)})
+        io = _build_io(inline_value_map)
 
-        # Need to mark unused so coreir knows there's a module definition
+        # each inline value (key) will map to a port, populate the
+        # connect_references dictionary with a map from key to port
+        connect_references = {}
+
         for key in inline_value_map:
             port = getattr(io, key)
+            # Need to mark unused so coreir knows there's a module definition
             port.unused()
             connect_references[key] = port
-
-        # if there's not inlined values, make a dummy input/instance so there's
-        # a def
-        if not inline_value_map:
-            io += IO(I=In(Bit))
-            io.I.unused()
 
         inline_verilog_strs = [(inline_str, connect_references)]
 
@@ -150,16 +155,11 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
         wire(value, getattr(inst, key))
 
 
-def _process_inline_verilog(cls, format_str, format_args, symbol_table):
-
-    if symbol_table is None:
-        _inline_verilog(cls, format_str, **format_args)
-        return
-
+def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
+                            symbol_table):
     fieldnames = [fname
                   for _, fname, _, _ in string.Formatter().parse(format_str)
                   if fname]
-    inline_value_map = {}
     for field in fieldnames:
         if field in format_args:
             continue
@@ -174,6 +174,14 @@ def _process_inline_verilog(cls, format_str, format_args, symbol_table):
             # _inline_verilog
             value = value.replace("{", "{{").replace("}", "}}")
         format_str = format_str.replace(f"{{{field}}}", str(value))
+    return format_str
+
+
+def _process_inline_verilog(cls, format_str, format_args, symbol_table):
+    inline_value_map = {}
+    if symbol_table is not None:
+        format_str = _process_fstring_syntax(format_str, format_args, cls,
+                                             inline_value_map, symbol_table)
     _inline_verilog(cls, format_str, inline_value_map, **format_args)
 
 
