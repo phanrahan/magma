@@ -60,6 +60,10 @@ class InsertCoreIRWires(DefinitionPass):
             driver_name = driver.name.qualifiedname("_")
             driver_name = sanitize_name(driver_name)
 
+            # Rename driver so it doesn't conflict with new wire instance name
+            if isinstance(driver.name, NamedRef):
+                driver.name.name = "_" + driver.name.name
+
             name = f"{driver_name}"
             with definition.open():
                 wire_inst = Wire(T)(name=name)
