@@ -10,7 +10,10 @@ from .passes import DefinitionPass
 from ..ref import NamedRef, ArrayRef, PortViewRef
 from ..t import In, Out
 from ..tuple import Tuple
-from magma.backend.coreir_utils import sanitize_name
+
+
+def _sanitize_name(name):
+    return name.replace("[", "_").replace("]", "")
 
 
 def _simulate_wire(self, value_store, state_store):
@@ -58,7 +61,7 @@ class InsertCoreIRWires(DefinitionPass):
         if driver not in self.wire_map:
             assert driver.name.qualifiedname("_") is not None
             driver_name = driver.name.qualifiedname("_")
-            driver_name = sanitize_name(driver_name)
+            driver_name = _sanitize_name(driver_name)
 
             # Rename driver so it doesn't conflict with new wire instance name
             if isinstance(driver.name, NamedRef):

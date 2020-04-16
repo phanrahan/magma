@@ -197,8 +197,3 @@ def constant_to_value(constant):
         values = [constant_to_value(c) for c in constant]
         return BitVector[len(constant)](values)
     raise NotImplementedError(constant)
-
-
-def sanitize_name(name):
-    return (name.replace("[", "_").replace("]", "")
-                .replace(".", "_").replace(";", "_"))
