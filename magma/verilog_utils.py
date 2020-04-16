@@ -70,7 +70,7 @@ def convert_values_to_verilog_str(cls, value):
         if value.is_input():
             value = value.value()
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
-            if not hasattr(value, "_magma_inline_wire_"):
+            if value not in cls.inline_veirlog_wire_map:
                 # Insert a wire so it can't be inlined out
                 temp_name = f"_magma_inline_wire"
                 temp_name += f"{cls.inline_verilog_wire_counter}"
@@ -81,13 +81,13 @@ def convert_values_to_verilog_str(cls, value):
                     cls.inline_verilog_wire_counter += 1
                     temp @= value
                     temp.unused()
-                    value._magma_inline_wire_ = temp
-            value = value._magma_inline_wire_
+                    cls.inline_veirlog_wire_map[value] = temp
+            value = cls.inline_veirlog_wire_map[value]
         return value_to_verilog_name(value)
     if isinstance(value, PortView):
         if value.port.is_input():
             raise NotImplementedError()
-        if not hasattr(value, "_magma_inline_wire_"):
+        if value not in cls.inline_veirlog_wire_map:
             ref = _get_top_level_ref(value.port.name)
             if isinstance(ref, InstRef):
                 defn = ref.inst.defn
@@ -102,7 +102,7 @@ def convert_values_to_verilog_str(cls, value):
                 temp @= value.port
                 temp.unused()
                 temp = PortView(temp, value.parent)
-                value._magma_inline_wire_ = temp
-            value = value._magma_inline_wire_
+                cls.inline_veirlog_wire_map[value] = temp
+            value = cls.inline_veirlog_wire_map[value]
         return value_to_verilog_name(value)
     return str(value)
