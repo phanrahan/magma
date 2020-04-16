@@ -199,7 +199,6 @@ def constant_to_value(constant):
     raise NotImplementedError(constant)
 
 
-
 def sanitize_name(name):
-    return name.replace("[", "_").replace("]", "").replace(".", "_").replace(";", "_")
-
+    return (name.replace("[", "_").replace("]", "")
+                .replace(".", "_").replace(";", "_"))

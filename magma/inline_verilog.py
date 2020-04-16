@@ -15,6 +15,7 @@ from magma.wire import wire
 from magma.backend.coreir_utils import sanitize_name
 from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
 
+
 def _get_top_level_ref(ref):
     if isinstance(ref, ArrayRef):
         return _get_top_level_ref(ref.array.name)
@@ -29,16 +30,16 @@ def get_view_inst_parent(view):
         return get_view_inst_parent(view.parent)
     return view
 
+
 def _make_inline_value(cls, inline_value_map, value):
     if isinstance(value, Array) and not issubclass(value.T, Digital):
-        return "'{" + ", ".join(_make_inline_value(cls, inline_value_map,
-                                                    t) for t in
-                                reversed(value)) + "}"
+        return "'{" + ", ".join(_make_inline_value(cls, inline_value_map, t)
+                                for t in reversed(value)) + "}"
     if isinstance(value, Tuple):
         raise NotImplementedError("Inlining tuple to verilog")
     value_key = f"__magma_inline_value_{len(inline_value_map)}"
     inline_value_map[value_key] = value
-    return f"{{{value_key}}}" 
+    return f"{{{value_key}}}"
 
 
 def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
@@ -51,7 +52,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     inline_str = inline_str.format(**format_args)
 
     class _InlineVerilog(Circuit):
-        # Unique name (hash) since uniquify doesn't check inline_verilog 
+        # Unique name (hash) since uniquify doesn't check inline_verilog
         name = f"{cls.name}_{len(cls.inline_verilog_modules)}"
 
         for key, value in inline_value_map.items():
@@ -106,7 +107,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
             else:
                 assert isinstance(value, PortView)
                 if value.port.is_input():
-                     raise NotImplementedError()
+                    raise NotImplementedError()
                 if not hasattr(value, "_magma_inline_wire_"):
                     # get first instance parent, then the parent of that will
                     # be the container where we insert a wire
@@ -118,9 +119,9 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
                         defn = type(parent)
 
                     with defn.open():
-                        temp = Wire(type(value.port))(
-                            name=f"_magma_inline_wire{cls.inline_verilog_wire_counter}"
-                        )
+                        temp_name = "_magma_inline_wire"
+                        temp_name += f"{cls.inline_verilog_wire_counter}"
+                        temp = Wire(type(value.port))(name=temp_name)
                         cls.inline_verilog_wire_counter += 1
                         temp.I @= value.port
                         temp = PortView(temp.O, parent)

@@ -100,7 +100,8 @@ class InsertWrapCasts(DefinitionPass):
         if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
                 isinstance(value, (AsyncReset, AsyncResetN, Clock))):
             return False
-        if value is None or issubclass(type(value), type(port).qualify(Direction.Undirected)):
+        undirected_t = type(port).qualify(Direction.Undirected)
+        if value is None or issubclass(type(value), undirected_t):
             return False
         if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
             T = Out(type(port))

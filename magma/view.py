@@ -19,7 +19,7 @@ class PortViewMeta(MagmaProtocolMeta):
 
 class PortView(MagmaProtocol, metaclass=PortViewMeta):
     def _get_magma_value_(self):
-        return self._magma_value 
+        return self._magma_value
 
     def __init__(self, port, parent):
         self.port = port
@@ -75,5 +75,3 @@ class InstView:
                 return InstView(self.instance_map[attr], self)
         except AttributeError:
             return object.__getattribute__(self, attr)
-
-
