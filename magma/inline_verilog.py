@@ -160,6 +160,7 @@ class ProcessInlineVerilogPass(CircuitPass):
     def __call__(self, cls):
         if cls.inline_verilog_generated:
             return
+        cls.inline_verilog_wire_map = {}
         cls.inline_verilog_wire_counter = 0
         cls.inline_verilog_modules = []
         with cls.open():

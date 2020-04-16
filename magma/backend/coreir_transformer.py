@@ -20,6 +20,7 @@ from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
+from magma.config import get_debug_mode
 
 from magma.ref import PortViewRef
 
@@ -287,7 +288,8 @@ class DeclarationTransformer(LeafTransformer):
         if self.decl.name in self.backend.modules:
             _logger.debug(f"{self.decl} already compiled, skipping")
             return self.backend.modules[self.decl.name]
-        check_magma_interface(self.decl.interface)
+        if get_debug_mode():
+            check_magma_interface(self.decl.interface)
         module_type = magma_interface_to_coreir_module_type(
             self.backend.context, self.decl.interface)
         if isinstance(self.decl.interface, InterfaceKind):
