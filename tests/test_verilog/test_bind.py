@@ -4,6 +4,7 @@ import magma.testing
 from rtl import RTL
 import rtl_monitor
 from subprocess import run
+m.config.set_debug_mode(True)
 
 
 def test_bind():
@@ -21,7 +22,8 @@ def test_bind():
     version = float(result.stdout.split()[1])
     if version >= 4.016:
         assert not os.system('cd tests/test_verilog/build && '
-                             'verilator --lint-only bind_test.v RTLMonitor.sv')
+                             'verilator --lint-only bind_test.v RTLMonitor.sv '
+                             '--top-module RTL')
 
 
 def test_bind_multi_unique_name():

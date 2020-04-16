@@ -229,8 +229,6 @@ class DefinitionTransformer(TransformerBase):
             if value.const():
                 return self.const_instance(value, None, module_defn)
             if isinstance(value.name, PortViewRef):
-                print(str(value.name.view))
-                print(magma_name_to_coreir_select(value.name))
                 return module_defn.select(magma_name_to_coreir_select(value.name))
             return module_defn.select(non_input_ports[value])
         source = get_source()

@@ -198,10 +198,13 @@ class PortViewRef(Ref):
         self.view = view
 
     def qualifiedname(self, sep="."):
-        self.view.port.name.qualifiedname(sep)
+        return self.view.port.name.qualifiedname(sep)
 
     def anon(self):
         return self.view.port.anon()
 
     def root(self):
         return None
+
+    def __str__(self):
+        return str(self.view.port.name)

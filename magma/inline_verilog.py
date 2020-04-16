@@ -3,10 +3,12 @@ import string
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 from magma.circuit import _definition_context_stack, Circuit, IO
 from magma.passes.passes import CircuitPass
+from magma.passes.insert_coreir_wires import Wire
 from magma.verilog_utils import convert_values_to_verilog_str
 from magma.t import Type, Direction, In
 from magma.view import PortView, InstView
 from magma.digital import Digital
+from magma.bit import Bit
 from magma.array import Array
 from magma.tuple import Tuple
 from magma.wire import wire
@@ -20,6 +22,12 @@ def _get_top_level_ref(ref):
         return _get_top_level_ref(ref.tuple.name)
     return ref
 
+
+def get_view_inst_parent(view):
+    while not isinstance(view, InstView):
+        assert isinstance(view, PortView), type(view)
+        return get_view_inst_parent(view.parent)
+    return view
 
 def _make_inline_value(cls, inline_value_map, value):
     if isinstance(value, Array) and not issubclass(value.T, Digital):
@@ -56,15 +64,24 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
                 T = type(value)
             io += IO(**{key: In(T)})
 
+        # Need to mark unused so coreir knows there's a module definition
         for key in inline_value_map:
             port = getattr(io, key)
             port.unused()
             connect_references[key] = port
 
+        # if there's not inlined values, make a dummy input/instance so there's
+        # a def
+        if not inline_value_map:
+            io += IO(I=In(Bit))
+            io.I.unused()
+
         inline_verilog_strs = [(inline_str, connect_references)]
 
     with cls.open():
         inst = _InlineVerilog()
+        if not inline_value_map:
+            inst.I @= 0
 
         for key, value in inline_value_map.items():
             if isinstance(value, Type):
@@ -88,20 +105,22 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
                 if value.port.is_input():
                      raise NotImplementedError()
                 if not hasattr(value, "_magma_inline_wire_"):
-                    ref = _get_top_level_ref(value.port.name)
-                    if isinstance(ref, InstRef):
-                        defn = ref.inst.defn
+                    # get first instance parent, then the parent of that will
+                    # be the container where we insert a wire
+                    parent = get_view_inst_parent(value).parent
+                    if isinstance(parent, InstView):
+                        defn = parent.circuit
                     else:
-                        assert isinstance(ref, DefnRef)
-                        defn = ref.defn
+                        assert isinstance(parent, Circuit)
+                        defn = type(parent)
+
                     with defn.open():
-                        temp = type(value.port).qualify(Direction.Undirected)(
+                        temp = Wire(type(value.port))(
                             name=f"_magma_inline_wire{cls.inline_verilog_wire_counter}"
                         )
                         cls.inline_verilog_wire_counter += 1
-                        temp @= value.port
-                        temp.unused()
-                        temp = PortView(temp, value.parent)
+                        temp.I @= value.port
+                        temp = PortView(temp.O, parent)
                         value._magma_inline_wire_ = temp
                     value = value._magma_inline_wire_
             wire(value, getattr(inst, key))

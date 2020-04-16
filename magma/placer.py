@@ -141,7 +141,7 @@ class StagedPlacer(ABC):
         inst.defn = LazyCircuit
         # Setup view now because inline strings might use it during defn
         for sub_inst in getattr(type(inst), "instances", []):
-            setattr(inst, sub_inst.name, InstView(sub_inst, inst))
+            setattr(inst, sub_inst.name, InstView(sub_inst, InstView(inst)))
 
     def finalize(self, defn):
         if self._finalized:

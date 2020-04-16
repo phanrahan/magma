@@ -7,7 +7,7 @@ from ..digital import Digital
 from ..generator import Generator2
 from ..interface import IO
 from .passes import DefinitionPass
-from ..ref import NamedRef, ArrayRef
+from ..ref import NamedRef, ArrayRef, PortViewRef
 from ..t import In, Out
 from ..tuple import Tuple
 from magma.backend.coreir_utils import sanitize_name
@@ -56,7 +56,7 @@ class InsertCoreIRWires(DefinitionPass):
 
         T = type(driver)
         if driver not in self.wire_map:
-
+            assert driver.name.qualifiedname("_") is not None
             driver_name = driver.name.qualifiedname("_")
             driver_name = sanitize_name(driver_name)
 
@@ -78,7 +78,15 @@ class InsertCoreIRWires(DefinitionPass):
             driver = as_bits(driver)
             wire_output = from_bits(T, wire_output)
 
-        wire_input @= driver
+        # Could be already wired for fanout cases
+        if not wire_input.driven():
+            if isinstance(wire_input, Array):
+                for d, w in zip(driver, wire_input):
+                    # Could have wired up child elements already
+                    if not w.driven():
+                        w @= d
+            else:
+                wire_input @= driver
         value @= wire_output
 
     def _insert_wire(self, value, definition):
@@ -106,9 +114,11 @@ class InsertCoreIRWires(DefinitionPass):
         if driver is None or driver.is_output() or driver.is_inout():
             return
 
+        if isinstance(driver.name, PortViewRef):
+            return
+
         value.unwire(driver)
         self._make_wire(driver, value, definition)
-
         self._insert_wire(driver, definition)
 
     def __call__(self, definition):

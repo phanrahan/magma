@@ -1,5 +1,6 @@
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef
+from magma.t import Out
 
 
 class PortViewMeta(MagmaProtocolMeta):
@@ -23,7 +24,7 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
     def __init__(self, port, parent):
         self.port = port
         self.parent = parent
-        self._magma_value = type(port)(name=PortViewRef(self))
+        self._magma_value = Out(type(port))(name=PortViewRef(self))
 
     def __getitem__(self, key):
         port = self.port
@@ -44,11 +45,10 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
 
     def get_hierarchical_coreir_select(self):
         curr = self.parent
-        hierarchical_path = curr.inst.name + "."
+        hierarchical_path = curr.inst.name + ";"
         while isinstance(curr.parent, InstView):
             hierarchical_path = curr.parent.inst.name + ";" + hierarchical_path
             curr = curr.parent
-        hierarchical_path = curr.parent.name + ";" + hierarchical_path
         return hierarchical_path
 
     def __str__(self):
@@ -75,3 +75,5 @@ class InstView:
                 return InstView(self.instance_map[attr], self)
         except AttributeError:
             return object.__getattribute__(self, attr)
+
+
