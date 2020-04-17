@@ -254,7 +254,6 @@ def test_sdram():
     m.compile("build/SDRAMController", SDRAMController, inline=True)
 
     tester = fault.Tester(SDRAMController, SDRAMController.CLK)
-    # TODO: Negedge/sync reset to match reference behavior
     tester.circuit.ASYNCRESETN = 1
     tester.eval()
     tester.circuit.ASYNCRESETN = 0
