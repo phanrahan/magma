@@ -97,6 +97,7 @@ def test_sdram():
     @m.syntax.coroutine
     class SDRAMController:
         _manual_encoding_ = True
+        _reset_type_ = m.AsyncResetN
 
         def __init__(self):
             self.yield_state: m.Bits[5] = INIT_NOP1
@@ -254,17 +255,11 @@ def test_sdram():
 
     tester = fault.Tester(SDRAMController, SDRAMController.CLK)
     # TODO: Negedge/sync reset to match reference behavior
-    # tester.circuit.RESET = 1
-    # tester.eval()
-    # tester.circuit.RESET = 0
-    # tester.eval()
-    # tester.circuit.RESET = 1
-    # tester.eval()
-    tester.circuit.ASYNCRESET = 0
+    tester.circuit.ASYNCRESETN = 1
     tester.eval()
-    tester.circuit.ASYNCRESET = 1
+    tester.circuit.ASYNCRESETN = 0
     tester.eval()
-    tester.circuit.ASYNCRESET = 0
+    tester.circuit.ASYNCRESETN = 1
     tester.eval()
     for i in range(16):
         tester.circuit.O0.expect(0b01000)
