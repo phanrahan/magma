@@ -63,7 +63,8 @@ def _insert_temporary_wires(cls, value):
             value = value.value()
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             if value not in cls.inline_verilog_wire_map:
-                temp = _make_temporary(cls, value, len(cls.inline_verilog_wire_map))
+                temp = _make_temporary(cls, value,
+                                       len(cls.inline_verilog_wire_map))
                 cls.inline_verilog_wire_map[value] = temp
             value = cls.inline_verilog_wire_map[value]
     else:
