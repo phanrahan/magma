@@ -122,8 +122,7 @@ def get_options(tree):
         if isinstance(stmt, ast.Assign):
             assert len(stmt.targets) == 1 and \
                 isinstance(stmt.targets[0], ast.Name)
-            assert isinstance(stmt.value, ast.NameConstant)
-            class_vars[stmt.targets[0].id] = stmt.value.value
+            class_vars[stmt.targets[0].id] = stmt.value
     return class_vars
 
 
@@ -132,7 +131,12 @@ def _coroutine(defn_env, fn):
     method_name_map = build_method_name_map(tree)
 
     options = get_options(tree)
-    manual_encoding = options.get("_manual_encoding_", False)
+    manual_encoding = options.get("_manual_encoding_", ast.NameConstant(False))
+    if not isinstance(manual_encoding, ast.NameConstant):
+        raise TypeError("_manual_encoding_ should be a boolean literal")
+    manual_encoding = manual_encoding.value
+
+    reset_type = options.get("_reset_type_", ast.parse("m.AsyncReset").body[0])
 
     call_method = method_name_map["__call__"]
     call_method = inline_yield_from_functions(call_method, method_name_map)
@@ -230,8 +234,9 @@ def _coroutine(defn_env, fn):
     call_method = MergeInverseIf().visit(call_method)
 
     # Sequential stage
+    reset_type_str = astor.to_source(reset_type).rstrip()
     tree.decorator_list = [ast.parse(
-        f"m.circuit.sequential(async_reset=True)"
+        f"m.circuit.sequential(reset_type={reset_type_str})"
     ).body[0].value]
 
     # print(astor.to_source(tree))
