@@ -4,7 +4,7 @@ from hwtypes import BitVector
 from ..array import Array
 from ..bit import Digital
 from ..clock import Clock, AsyncReset, AsyncResetN
-from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
+from ..ref import ArrayRef, DefnRef, TupleRef, InstRef, NamedRef, PortViewRef
 from ..tuple import Tuple
 from ..protocol_type import MagmaProtocol
 from .util import make_relative
@@ -35,7 +35,11 @@ def magma_name_to_coreir_select(name):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)
         key_name = _tuple_key_to_string(name.index)
         return f"{tuple_name}.{key_name}"
-    raise NotImplementedError(name)
+    if isinstance(name, PortViewRef):
+        # get select in its container definition
+        inner_select = magma_name_to_coreir_select(name.view.port.name)
+        return name.view.get_hierarchical_coreir_select() + inner_select
+    raise NotImplementedError((name, type(name)))
 
 
 def magma_port_to_coreir_port(port):

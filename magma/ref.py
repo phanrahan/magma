@@ -191,3 +191,24 @@ class TupleRef(Ref):
 
     def root(self):
         return self.tuple.name.root()
+
+
+class PortViewRef(Ref):
+    """
+    Used for values that are connection references to a hierarchical value
+    (using the view logic)
+    """
+    def __init__(self, view):
+        self.view = view
+
+    def qualifiedname(self, sep="."):
+        return self.view.port.name.qualifiedname(sep)
+
+    def anon(self):
+        return self.view.port.anon()
+
+    def root(self):
+        return None
+
+    def __str__(self):
+        return str(self.view.port.name)

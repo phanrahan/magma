@@ -225,7 +225,7 @@ class CircuitKind(type):
         dct.setdefault('renamed_ports', {})
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
-        dct["inline_verilog_strs"] = []
+        dct.setdefault("inline_verilog_strs", [])
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
         dct["bind_modules_bound"] = False

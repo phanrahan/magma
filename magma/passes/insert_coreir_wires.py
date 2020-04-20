@@ -1,4 +1,5 @@
 from ..array import Array
+from magma.bit import Bit
 from ..bits import Bits
 from ..circuit import coreir_port_mapping
 from ..conversions import as_bits, from_bits
@@ -6,24 +7,26 @@ from ..digital import Digital
 from ..generator import Generator2
 from ..interface import IO
 from .passes import DefinitionPass
-from ..ref import NamedRef, ArrayRef
+from ..ref import NamedRef, ArrayRef, PortViewRef
 from ..t import In, Out
 from ..tuple import Tuple
-
-
-def _simulate_wire(self, value_store, state_store):
-    value_store.set_value(self.O, value_store.get_value(self.I))
 
 
 def _sanitize_name(name):
     return name.replace("[", "_").replace("]", "")
 
 
-class _Wire(Generator2):
+def _simulate_wire(self, value_store, state_store):
+    value_store.set_value(self.O, value_store.get_value(self.I))
+
+
+class Wire(Generator2):
     def __init__(self, T):
         if issubclass(T, Digital):
             coreir_lib = "corebit"
             coreir_genargs = None
+            # Convert to bit so we wrap named types like clock if necessary
+            T = Bit
         else:
             width = T.flat_length()
             T = Bits[width]
@@ -56,7 +59,6 @@ class InsertCoreIRWires(DefinitionPass):
 
         T = type(driver)
         if driver not in self.wire_map:
-
             driver_name = driver.name.qualifiedname("_")
             driver_name = _sanitize_name(driver_name)
 
@@ -66,7 +68,7 @@ class InsertCoreIRWires(DefinitionPass):
 
             name = f"{driver_name}"
             with definition.open():
-                wire_inst = _Wire(T)(name=name)
+                wire_inst = Wire(T)(name=name)
                 self.wire_map[driver] = wire_inst
         wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I
@@ -82,7 +84,15 @@ class InsertCoreIRWires(DefinitionPass):
             driver = as_bits(driver)
             wire_output = from_bits(T, wire_output)
 
-        wire_input @= driver
+        # Could be already wired for fanout cases
+        if not wire_input.driven():
+            if isinstance(wire_input, Array):
+                for d, w in zip(driver, wire_input):
+                    # Could have wired up child elements already
+                    if not w.driven():
+                        w @= d
+            else:
+                wire_input @= driver
         value @= wire_output
 
     def _insert_wire(self, value, definition):
@@ -110,9 +120,13 @@ class InsertCoreIRWires(DefinitionPass):
         if driver is None or driver.is_output() or driver.is_inout():
             return
 
+        if isinstance(driver.name, PortViewRef):
+            # Don't descend into hierarchical connections since we assume this
+            # logic will be run in that context in another stage of the pass
+            return
+
         value.unwire(driver)
         self._make_wire(driver, value, definition)
-
         self._insert_wire(driver, definition)
 
     def __call__(self, definition):

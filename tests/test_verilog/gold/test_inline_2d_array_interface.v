@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module MonitorWrapper (
     input [7:0] arr_0,
     input [7:0] arr_1,

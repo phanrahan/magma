@@ -22,7 +22,8 @@ endmodule
 
     m.compile("build/TestDisplay", TestDisplay, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestDisplay.v')
+                         'verilator --lint-only TestDisplay.v '
+                         '--top-module TestDisplay')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestDisplay.v",
                                        f"gold/TestDisplay.v")
@@ -80,7 +81,8 @@ endmodule
 
     m.compile("build/TestFDisplay", TestFDisplay, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestFDisplay.v')
+                         'verilator --lint-only TestFDisplay.v '
+                         '--top-module TestFDisplay')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestFDisplay.v",
                                        f"gold/TestFDisplay.v")

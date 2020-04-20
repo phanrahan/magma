@@ -12,7 +12,8 @@ from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            get_inst_args, get_module_of_inst,
                            is_clock_or_nested_clock,
                            magma_interface_to_coreir_module_type,
-                           magma_port_to_coreir_port, make_cparams, map_genarg)
+                           magma_port_to_coreir_port, make_cparams,
+                           map_genarg, magma_name_to_coreir_select)
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..logging import root_logger
@@ -20,6 +21,8 @@ from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
 from magma.config import get_debug_mode
+
+from magma.ref import PortViewRef
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -149,9 +152,16 @@ class DefinitionTransformer(TransformerBase):
         _logger.debug(f"Compiling definition {self.defn}")
         self.coreir_module = self.decl_tx.coreir_module
         if self.defn.inline_verilog_strs:
-            inline_verilog = "\n\n".join(self.defn.inline_verilog_strs)
-            self.coreir_module.add_metadata("inline_verilog",
-                                            json.dumps(inline_verilog))
+            inline_verilog = "\n\n".join(x[0] for x in
+                                         self.defn.inline_verilog_strs)
+            connect_references = {}
+            for _, inline_value_map in self.defn.inline_verilog_strs:
+                for key, value in inline_value_map.items():
+                    connect_references[key] = magma_port_to_coreir_port(value)
+            self.coreir_module.add_metadata("inline_verilog", json.dumps(
+                {"str": inline_verilog,
+                 "connect_references": connect_references}
+            ))
         for name, module in self.defn.bind_modules.items():
             self.backend.sv_bind_files[name] = module
 
@@ -221,6 +231,9 @@ class DefinitionTransformer(TransformerBase):
                 return None
             if value.const():
                 return self.const_instance(value, None, module_defn)
+            if isinstance(value.name, PortViewRef):
+                return module_defn.select(
+                    magma_name_to_coreir_select(value.name))
             return module_defn.select(non_input_ports[value])
         source = get_source()
         if not source:

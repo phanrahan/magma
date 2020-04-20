@@ -24,4 +24,5 @@ monitor #(.WIDTH({width}), .DEPTH({depth})) monitor_inst(.arr({arr}));
     file_dir = os.path.abspath(os.path.dirname(__file__))
     assert not os.system("verilator --lint-only "
                          f"{file_dir}/build/test_inline_2d_array_interface.v "
-                         f"{file_dir}/vsrc/2d_array_interface.v")
+                         f"{file_dir}/vsrc/2d_array_interface.v "
+                         "--top-module MonitorWrapper")

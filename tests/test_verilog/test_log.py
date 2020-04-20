@@ -29,7 +29,8 @@ endmodule
 
     m.compile("build/TestLog", TestLog, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestLog.v')
+                         'verilator --lint-only TestLog.v '
+                         '--top-module TestLog')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestLog.v",
                                        f"gold/TestLog.v")
@@ -164,7 +165,8 @@ endmodule
 
     m.compile("build/TestFLog", TestFLog, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestFLog.v')
+                         'verilator --lint-only TestFLog.v '
+                         '--top-module TestFLog')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestFLog.v",
                                        f"gold/TestFLog.v")
