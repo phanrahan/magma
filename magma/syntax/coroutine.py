@@ -131,7 +131,7 @@ def _coroutine(defn_env, fn):
     method_name_map = build_method_name_map(tree)
 
     options = get_options(tree)
-    manual_encoding = options.get("_manual_encoding_", False)
+    manual_encoding = options.get("_manual_encoding_", ast.NameConstant(False))
     if not isinstance(manual_encoding, ast.NameConstant):
         raise TypeError("_manual_encoding_ should be a boolean literal")
     manual_encoding = manual_encoding.value
