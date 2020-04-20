@@ -234,8 +234,9 @@ def _coroutine(defn_env, fn):
     call_method = MergeInverseIf().visit(call_method)
 
     # Sequential stage
+    reset_type_str = astor.to_source(reset_type).rstrip()
     tree.decorator_list = [ast.parse(
-        f"m.circuit.sequential(reset_type={astor.to_source(reset_type).rstrip()})"
+        f"m.circuit.sequential(reset_type={reset_type_str})"
     ).body[0].value]
 
     # print(astor.to_source(tree))
