@@ -110,7 +110,7 @@ coreir_const #(
 );
 coreir_reg #(
     .clk_posedge(1'b1),
-    .init(12'hxxx),
+    .init(12'h000),
     .width(12)
 ) reg_P_inst0 (
     .clk(CLK),
