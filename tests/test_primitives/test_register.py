@@ -84,3 +84,44 @@ def test_reg_of_product():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_reg_of_nested_array():
+    T = m.Array[3, m.Bits[8]]
+        
+    class test_reg_of_nested_array(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO(has_reset=True)
+        io.O @= Register(T, T(m.Bits[8](0xDE), m.Bits[8](0xAD),
+                              m.Bits[8](0xBE)), reset_type=m.Reset)()(io.I)
+
+    m.compile("build/test_reg_of_nested_array", test_reg_of_nested_array)
+
+    assert check_files_equal(__file__, f"build/test_reg_of_nested_array.v",
+                             f"gold/test_reg_of_nested_array.v")
+
+    tester = fault.SynchronousTester(test_reg_of_nested_array,
+                                     test_reg_of_nested_array.CLK)
+    tester.circuit.I = [0, 1, 2]
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    # Reset val
+    tester.circuit.O.expect([0xDE, 0xAD, 0xBE])
+    tester.advance_cycle()
+    tester.circuit.O.expect([0, 1, 2])
+    tester.circuit.I = [2, 3, 4]
+    tester.advance_cycle()
+    tester.circuit.O.expect([2, 3, 4])
+    tester.circuit.I = [5, 6, 7]
+    tester.advance_cycle()
+    tester.circuit.O.expect([5, 6 ,7])
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    tester.circuit.I = [8, 9, 10]
+    tester.circuit.O.expect([0xDE, 0xAD, 0xBE])
+    tester.advance_cycle()
+    tester.circuit.O.expect([8, 9, 10])
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
