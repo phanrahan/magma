@@ -23,7 +23,7 @@ class _CoreIRRegister(Generator2):
     def __init__(self, width, init=0, has_async_reset=False,
                  has_async_resetn=False):
         self.name = "reg_P"
-        self.coreir_config_args = {"init": coreir.type.BitVector[width](init)}
+        self.coreir_configargs = {"init": coreir.type.BitVector[width](init)}
         T = Bits[width]
         self.io = IO(I=In(T), CLK=In(Clock), O=Out(T))
 
@@ -34,12 +34,12 @@ class _CoreIRRegister(Generator2):
         if has_async_reset:
             self.io += IO(arst=In(AsyncReset))
             self.name += "R"
-            self.coreir_config_args["arst_posedge"] = True
+            self.coreir_configargs["arst_posedge"] = True
 
         if has_async_resetn:
             self.io += IO(arst=In(AsyncResetN))
             self.name += "R"
-            self.coreir_config_args["arst_posedge"] = False
+            self.coreir_configargs["arst_posedge"] = False
 
         self.stateful = True
         self.default_kwargs = {"init": coreir.type.BitVector[width](init)}

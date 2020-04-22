@@ -125,3 +125,45 @@ def test_reg_of_nested_array():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_reg_async_resetn():
+    T = m.Bits[8]
+        
+    class test_reg_async_resetn(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO(has_async_resetn=True)
+        io.O @= Register(T, T(0xDE), reset_type=m.AsyncResetN)()(io.I)
+
+    m.compile("build/test_reg_async_resetn", test_reg_async_resetn)
+
+    assert check_files_equal(__file__, f"build/test_reg_async_resetn.v",
+                             f"gold/test_reg_async_resetn.v")
+
+    tester = fault.Tester(test_reg_async_resetn, test_reg_async_resetn.CLK)
+    tester.circuit.I = 0
+    tester.circuit.ASYNCRESETN = 1
+    tester.eval()
+    tester.circuit.ASYNCRESETN = 0
+    tester.eval()
+    tester.circuit.ASYNCRESETN = 1
+    # Reset val
+    tester.circuit.O.expect(0xDE)
+    tester.step(2)
+    tester.circuit.O.expect(0)
+    tester.circuit.I = 1
+    tester.step(2)
+    tester.circuit.O.expect(1)
+    tester.circuit.I = 2
+    tester.step(2)
+    tester.circuit.O.expect(2)
+    tester.circuit.ASYNCRESETN = 0
+    tester.eval()
+    tester.circuit.ASYNCRESETN = 1
+    tester.eval()
+    tester.circuit.I = 3
+    tester.circuit.O.expect(0xDE)
+    tester.step(2)
+    tester.circuit.O.expect(3)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
