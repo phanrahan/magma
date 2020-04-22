@@ -26,8 +26,12 @@ ClockIn = Clock[Direction.In]
 ClockOut = Clock[Direction.Out]
 
 
+class AbstractReset(_ClockType, metaclass=DigitalMeta):
+    pass
+
+
 # synchronous reset, active high (i.e. reset when signal is 1)
-class Reset(_ClockType, metaclass=DigitalMeta):
+class Reset(AbstractReset):
     pass
 
 
@@ -36,7 +40,7 @@ ResetOut = Reset[Direction.Out]
 
 
 # synchronous reset, active low (i.e. reset when signal is 0)
-class ResetN(_ClockType, metaclass=DigitalMeta):
+class ResetN(AbstractReset):
     pass
 
 
@@ -45,7 +49,7 @@ ResetNOut = ResetN[Direction.Out]
 
 
 # asynchronous reset, active high (i.e. reset when signal is 1)
-class AsyncReset(_ClockType, metaclass=DigitalMeta):
+class AsyncReset(AbstractReset):
     pass
 
 
@@ -54,7 +58,7 @@ AsyncResetOut = AsyncReset[Direction.Out]
 
 
 # asynchronous reset, active low (i.e. reset when signal is 0)
-class AsyncResetN(_ClockType, metaclass=DigitalMeta):
+class AsyncResetN(AbstractReset):
     pass
 
 
