@@ -6,7 +6,7 @@ import hwtypes
 from magma.bit import Bit
 from magma.bits import Bits
 from magma.circuit import coreir_port_mapping
-from magma.conversions import as_bits
+from magma.conversions import as_bits, from_bits
 from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out
@@ -135,9 +135,7 @@ class Register(Generator2):
                               has_async_reset=has_async_reset,
                               has_async_resetn=has_async_resetn)()
         O = reg.O
-        if issubclass(T, Bit):
-            O = O[0]
-        self.io.O @= O
+        self.io.O @= from_bits(T, O)
 
         I = self.io.I
         if (has_reset or has_resetn) and has_enable:
@@ -156,7 +154,4 @@ class Register(Generator2):
             I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
         elif has_reset:
             I = Mux(2, T)()(I, init, self.io.RESET)
-        if issubclass(T, Bit):
-            reg.I[0] @= I
-        else:
-            reg.I @= I
+        reg.I @= as_bits(I)
