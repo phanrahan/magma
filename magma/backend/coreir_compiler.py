@@ -46,6 +46,7 @@ class CoreIRCompiler(Compiler):
         top = self.backend.modules[self.main.coreir_name]
         filename = f"{self.basename}.v"
         opts = dict(
+            libs=self.deps,
             split=self.opts.get("split", ""),
             inline=self.opts.get("inline", False),
             verilator_debug=self.opts.get("verilator_debug", False),
