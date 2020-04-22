@@ -123,15 +123,16 @@ class Register(Generator2):
                            has_resetn=has_resetn)
         if init is None:
             init = 0
-        elif init is int:
-            init = T(init)
-        else:
-            init = as_bits(init)
-            if not init.const():
-                raise TypeError("init must be a const value")
-            init = int(init)
 
-        reg = _CoreIRRegister(T.flat_length(), init=init,
+        if isinstance(init, int):
+            init = T(init)
+
+        if has_async_reset or has_async_resetn:
+            coreir_init = int(as_bits(init))
+        else:
+            coreir_init = 0
+
+        reg = _CoreIRRegister(T.flat_length(), init=coreir_init,
                               has_async_reset=has_async_reset,
                               has_async_resetn=has_async_resetn)()
         O = reg.O
