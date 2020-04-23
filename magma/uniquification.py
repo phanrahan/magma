@@ -59,7 +59,7 @@ class UniquificationPass(DefinitionPass):
                 # substring
                 for module in getattr(definition, "inline_verilog_modules",
                                       []):
-                    type(module).rename(module, new_name)
+                    type(module).rename(module, module.name.replace(new_name))
                 for module in definition.bind_modules:
                     type(module).rename(module, module.name + suffix)
             seen[key] = [definition]
@@ -74,7 +74,7 @@ class UniquificationPass(DefinitionPass):
                 # substring
                 for module in getattr(definition, "inline_verilog_modules",
                                       []):
-                    type(module).rename(module, new_name)
+                    type(module).rename(module, module.name.replace(new_name))
                 for x, y in zip(seen[key][0].bind_modules,
                                 definition.bind_modules):
                     type(y).rename(y, x.name)
