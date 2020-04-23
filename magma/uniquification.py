@@ -57,7 +57,8 @@ class UniquificationPass(DefinitionPass):
                 # Inline modules use a naming scheme based on the container
                 # name, so we update their names by replacing the name
                 # substring
-                for module in definition.inline_verilog_modules:
+                for module in getattr(definition, "inline_verilog_modules",
+                                      []):
                     module.name = module.name.replace(name, new_name)
                 for module in definition.bind_modules:
                     type(module).rename(module, module.name + suffix)
@@ -71,7 +72,8 @@ class UniquificationPass(DefinitionPass):
                 # Inline modules use a naming scheme based on the container
                 # name, so we update their names by replacing the name
                 # substring
-                for module in definition.inline_verilog_modules:
+                for module in getattr(definition, "inline_verilog_modules",
+                                      []):
                     module.name = module.name.replace(name, new_name)
                 for x, y in zip(seen[key][0].bind_modules,
                                 definition.bind_modules):
