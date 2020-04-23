@@ -43,7 +43,8 @@ def _rename_inline_verilog(definition, new_name):
     # substring
     for module in getattr(definition, "inline_verilog_modules",
                           []):
-        type(module).rename(module, module.name.replace(new_name))
+        type(module).rename(module, module.name.replace(definition.name,
+                                                        new_name))
 
 
 class UniquificationPass(DefinitionPass):
