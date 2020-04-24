@@ -29,6 +29,7 @@ FF FF_inst0 (
     .CLK(CLK),
     .CE(CE)
 );
+assign _magma_inline_wire0 = O;
 
 integer \_file_test_fdisplay.log ;
 initial \_file_test_fdisplay.log = $fopen("test_fdisplay.log", "a");
@@ -40,6 +41,5 @@ end
 
 final $fclose(\_file_test_fdisplay.log );
 
-assign _magma_inline_wire0 = O;
 endmodule
 

@@ -21,12 +21,12 @@ FF FF_inst0 (
     .O(O),
     .CLK(CLK)
 );
+assign _magma_inline_wire0 = O;
 
 assert property (@(posedge CLK) I |-> ##1 _magma_inline_wire0);
 
 
 assert property (@(posedge CLK) arr[0] |-> ##1 arr[1]);
 
-assign _magma_inline_wire0 = O;
 endmodule
 

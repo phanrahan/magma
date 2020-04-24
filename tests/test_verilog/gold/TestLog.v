@@ -29,6 +29,7 @@ FF FF_inst0 (
     .CLK(CLK),
     .CE(CE)
 );
+assign _magma_inline_wire0 = O;
 
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1
@@ -49,6 +50,5 @@ always @(posedge CLK) begin
     if ((`MAGMA_LOG_LEVEL <= 3) && (CE)) $display("[ERROR] ff.O=%d, ff.I=%d", _magma_inline_wire0, I);
 end
 
-assign _magma_inline_wire0 = O;
 endmodule
 

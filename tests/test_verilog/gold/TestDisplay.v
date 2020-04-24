@@ -29,10 +29,10 @@ FF FF_inst0 (
     .CLK(CLK),
     .CE(CE)
 );
+assign _magma_inline_wire0 = O;
 always @(posedge CLK) begin
     if (CE) $display("%0t: ff.O=%d, ff.I=%d", $time, _magma_inline_wire0, I);
 end
 
-assign _magma_inline_wire0 = O;
 endmodule
 

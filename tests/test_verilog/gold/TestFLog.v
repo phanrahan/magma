@@ -29,6 +29,7 @@ FF FF_inst0 (
     .CLK(CLK),
     .CE(CE)
 );
+assign _magma_inline_wire0 = O;
 
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1
@@ -56,6 +57,5 @@ end
 
 final $fclose(\_file_test_flog.log );
 
-assign _magma_inline_wire0 = O;
 endmodule
 

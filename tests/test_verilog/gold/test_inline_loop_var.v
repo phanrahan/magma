@@ -33,21 +33,6 @@ wire [4:0] undriven_inst1_out;
 wire [4:0] undriven_inst2_out;
 wire [4:0] undriven_inst3_out;
 wire [4:0] undriven_inst4_out;
-
-assign O[0] = 0;
-            
-
-assign O[1] = 1;
-            
-
-assign O[2] = 2;
-            
-
-assign O[3] = 3;
-            
-
-assign O[4] = 4;
-            
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -83,5 +68,20 @@ assign O_1 = undriven_inst1_out;
 assign O_2 = undriven_inst2_out;
 assign O_3 = undriven_inst3_out;
 assign O_4 = undriven_inst4_out;
+
+assign O[0] = 0;
+            
+
+assign O[1] = 1;
+            
+
+assign O[2] = 2;
+            
+
+assign O[3] = 3;
+            
+
+assign O[4] = 4;
+            
 endmodule
 
