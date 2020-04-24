@@ -41,10 +41,10 @@ def _rename_inline_verilog(definition, new_name):
     # Inline modules use a naming scheme based on the container
     # name, so we update their names by replacing the name
     # substring
-    for module in getattr(definition, "inline_verilog_modules",
-                          []):
-        type(module).rename(module, module.name.replace(definition.name,
-                                                        new_name))
+    modules = getattr(definition, "inline_verilog_modules", [])
+    for module in modules:
+        new_name = module.name.replace(definition.name, new_name)
+        type(module).rename(module, new_name)
 
 
 class UniquificationPass(DefinitionPass):
