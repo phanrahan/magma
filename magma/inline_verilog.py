@@ -126,7 +126,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
 
     class _InlineVerilog(Circuit):
         # Unique name (hash) since uniquify doesn't check inline_verilog
-        name = f"{cls.name}_{len(cls.inline_verilog_modules)}"
+        name = f"{cls.name}_inline_verilog_{len(cls.inline_verilog_modules)}"
 
         io = _build_io(inline_value_map)
 
