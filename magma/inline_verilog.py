@@ -125,9 +125,9 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     inline_str = inline_str.format(**format_args)
 
     class _InlineVerilog(Circuit):
-        # modules/instances will be sorted lexigraphically in the generated verilog,
-        # so we need to generate a lexicographically increasing string based on
-        # the module count
+        # modules/instances will be sorted lexigraphically in the generated
+        # verilog, so we need to generate a lexicographically increasing string
+        # based on the module count
         i = len(cls.inline_verilog_modules)
 
         # For every 10 modules, we insert a prefix 9 (so it comes after the
