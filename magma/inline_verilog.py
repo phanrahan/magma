@@ -135,7 +135,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
         prefix_len = i // 10
         prefix = "9" * prefix_len
 
-        suffix = i / 10
+        suffix = i % 10
 
         # Unique name (hash) since uniquify doesn't check inline_verilog
         name = f"{cls.name}_inline_verilog_{prefix}{suffix}"
