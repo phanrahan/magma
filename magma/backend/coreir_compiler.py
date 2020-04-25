@@ -60,6 +60,7 @@ class CoreIRCompiler(Compiler):
                   if config.fast_coreir_verilog_compile
                   else self._compile_verilog)
             fn()
+            self._compile_verilog_epilogue()
             return
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or
@@ -86,6 +87,8 @@ class CoreIRCompiler(Compiler):
         ret = self.backend.context.compile_to_verilog(top, filename, **opts)
         if not ret:
             raise RuntimeError(f"CoreIR compilation to verilog failed")
+
+    def _compile_verilog_epilogue(self):
         self._process_header_footer()
 
         # TODO(leonardt): We need fresh bind_files for each compile call.
