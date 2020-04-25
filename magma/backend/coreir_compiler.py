@@ -6,9 +6,31 @@ from ..frontend import coreir_ as coreir_frontend
 from ..passes import InstanceGraphPass
 from ..passes.insert_coreir_wires import InsertCoreIRWires
 from ..logging import root_logger
+from magma.config import EnvConfig, config
 
 
 _logger = root_logger()
+config._register(
+    fast_coreir_verilog_compile=EnvConfig(
+        "MAGMA_FAST_COREIR_VERILOG_COMPILE", False),
+)
+
+
+def _make_verilog_cmd(deps, basename, opts):
+    cmd = "coreir"
+    if deps:
+        cmd += f" -l {','.join(deps)}"
+    cmd += f" -i {basename}.json"
+    if opts.get("split", ""):
+        split = opts["split"]
+        cmd += f" -o \"{split}/*.v\" -s"
+    else:
+        cmd += f" -o {basename}.v"
+    if opts.get("inline", False):
+        cmd += " --inline"
+    if opts.get("verilator_debug", False):
+        cmd += " --verilator_debug"
+    return cmd
 
 
 class CoreIRCompiler(Compiler):
@@ -28,12 +50,16 @@ class CoreIRCompiler(Compiler):
         backend.compile(self.main)
         backend.context.run_passes(self.passes, self.namespaces)
         output_json = (self.opts.get("output_intermediate", False) or
-                       not self.opts.get("output_verilog", False))
+                       not self.opts.get("output_verilog", False) or
+                       not config.fast_coreir_verilog_compile)
         if output_json:
             filename = f"{self.basename}.json"
             backend.modules[self.main.coreir_name].save_to_file(filename)
         if self.opts.get("output_verilog", False):
-            self._compile_verilog()
+            fn = (self._fast_compile_verilog
+                  if config.fast_coreir_verilog_compile
+                  else self._compile_verilog)
+            fn()
             return
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or
@@ -43,6 +69,12 @@ class CoreIRCompiler(Compiler):
                             "when output_verilog=True, ignoring")
 
     def _compile_verilog(self):
+        cmd = _make_verilog_cmd(self.deps, self.basename, self.opts)
+        ret = subprocess.run(cmd, shell=True).returncode
+        if ret:
+            raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
+
+    def _fast_compile_verilog(self):
         top = self.backend.modules[self.main.coreir_name]
         filename = f"{self.basename}.v"
         opts = dict(
