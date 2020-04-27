@@ -124,9 +124,22 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
         format_args[key] = arg
     inline_str = inline_str.format(**format_args)
 
+    # modules/instances will be sorted lexigraphically in the generated
+    # verilog, so we need to generate a lexicographically increasing string
+    # based on the module count
+    i = len(cls.inline_verilog_modules)
+
+    # For every 10 modules, we insert a prefix 9 (so it comes after the
+    # previous 1-9 digits)
+    prefix_len = i // 10
+    prefix = "9" * prefix_len
+
+    suffix = i % 10
+
     class _InlineVerilog(Circuit):
+
         # Unique name (hash) since uniquify doesn't check inline_verilog
-        name = f"{cls.name}_inline_verilog_{len(cls.inline_verilog_modules)}"
+        name = f"{cls.name}_inline_verilog_{prefix}{suffix}"
 
         io = _build_io(inline_value_map)
 
@@ -145,7 +158,9 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
     cls.inline_verilog_modules.append(_InlineVerilog)
 
     with cls.open():
-        inst = _InlineVerilog()
+        inst = _InlineVerilog(
+            name=f"{cls.name}_inline_verilog_inst_{prefix}{suffix}"
+        )
         # Dummy var so there's a defn for inline verilog without any
         # interpoalted avlues
         if not inline_value_map:
