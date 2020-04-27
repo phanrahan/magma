@@ -99,7 +99,7 @@ coreir_or #(
     .width(8)
 ) magma_Bits_8_or_inst1 (
     .in0(magma_Bits_8_or_inst0_out),
-    .in1({foo[0],bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out}),
+    .in1({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,foo[0]}),
     .out(magma_Bits_8_or_inst1_out)
 );
 coreir_shl #(
@@ -112,7 +112,7 @@ coreir_shl #(
 coreir_shl #(
     .width(8)
 ) magma_Bits_8_shl_inst1 (
-    .in0({foo[0],bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out}),
+    .in0({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,foo[0]}),
     .in1(const_1_8_out),
     .out(magma_Bits_8_shl_inst1_out)
 );
