@@ -37,16 +37,6 @@ def _hash(definition):
     return hash(hash_struct)
 
 
-def _rename_inline_verilog(definition, new_name):
-    # Inline modules use a naming scheme based on the container
-    # name, so we update their names by replacing the name
-    # substring
-    modules = getattr(definition, "inline_verilog_modules", [])
-    for module in modules:
-        new_name = module.name.replace(definition.name, new_name)
-        type(module).rename(module, new_name)
-
-
 class UniquificationPass(DefinitionPass):
     def __init__(self, main, mode):
         super().__init__(main)
@@ -64,7 +54,6 @@ class UniquificationPass(DefinitionPass):
                 suffix = "_unq" + str(len(seen))
                 new_name = name + suffix
                 type(definition).rename(definition, new_name)
-                _rename_inline_verilog(definition, new_name)
                 for module in definition.bind_modules:
                     type(module).rename(module, module.name + suffix)
             seen[key] = [definition]
@@ -74,7 +63,6 @@ class UniquificationPass(DefinitionPass):
             elif name != seen[key][0].name:
                 new_name = seen[key][0].name
                 type(definition).rename(definition, new_name)
-                _rename_inline_verilog(definition, new_name)
                 for x, y in zip(seen[key][0].bind_modules,
                                 definition.bind_modules):
                     type(y).rename(y, x.name)
