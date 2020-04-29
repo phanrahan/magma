@@ -1,10 +1,14 @@
 import os
+from magma.bit import Bit
+from magma.bits import Bits
 from magma.array import Array
 from magma.config import get_compile_dir, set_compile_dir
 from magma.digital import Digital
 from magma.passes.passes import CircuitPass
 from magma.tuple import Tuple
 from magma.verilog_utils import value_to_verilog_name
+from magma.t import Direction
+from magma.conversions import from_bits, as_bits
 
 
 def _gen_bind_port(cls, mon_arg, bind_arg):
@@ -35,8 +39,15 @@ Bind monitor interface does not match circuit interface
     extra_mon_args = list(
         monitor.interface.ports.values()
     )[len(cls.interface):]
-    for mon_arg, bind_arg in zip(extra_mon_args, args):
-        ports += _gen_bind_port(cls, mon_arg, bind_arg)
+    with cls.open():
+        for i, (mon_arg, bind_arg) in enumerate(zip(extra_mon_args, args)):
+            if bind_arg.is_input():
+                bind_arg = bind_arg.value()
+                if bind_arg is None:
+                    raise ValueError("Cannot bind undriven output value")
+            # wire to unused module so it's not inlined out
+            bind_arg.unused()
+            ports += _gen_bind_port(cls, mon_arg, bind_arg)
     ports_str = ",\n    ".join(ports)
     bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
     if not os.path.isdir(".magma"):

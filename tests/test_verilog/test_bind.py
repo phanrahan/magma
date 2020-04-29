@@ -22,7 +22,7 @@ def test_bind():
     if version >= 4.016:
         assert not os.system('cd tests/test_verilog/build && '
                              'verilator --lint-only bind_test.v RTLMonitor.sv '
-                             '--top-module RTL')
+                             '--top-module RTL -Wno-MODDUP')
 
 
 def test_bind_multi_unique_name():
