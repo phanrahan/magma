@@ -43,6 +43,11 @@ wire [3:0] _magma_inline_wire1;
 wire [3:0] _magma_inline_wire2;
 wire [3:0] arr_2d_0;
 wire [3:0] arr_2d_1;
+assign _magma_inline_wire0 = arr_2d_0[1];
+assign _magma_inline_wire1 = arr_2d_1;
+assign _magma_inline_wire2 = arr_2d_0;
+assign arr_2d_0 = in1;
+assign arr_2d_1 = in2;
 
 logic temp1, temp2;
 logic temp3;
@@ -54,11 +59,6 @@ logic [3:0] temp4 [1:0];
 assign temp4 = '{_magma_inline_wire1, _magma_inline_wire2};
 always @(*) $display("%x", inst_input);
                                    
-assign _magma_inline_wire0 = arr_2d_0[1];
-assign _magma_inline_wire1 = arr_2d_1;
-assign _magma_inline_wire2 = arr_2d_0;
-assign arr_2d_0 = in1;
-assign arr_2d_1 = in2;
 endmodule
 
 
