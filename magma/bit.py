@@ -215,6 +215,10 @@ def make_Define(_name, port, direction):
 DefineUndriven = make_Define("undriven", "O", Out)
 DefineUnused = make_Define("term", "I", In)
 
+# Hack to avoid circular dependency
+Digital.unused = Bit.unused
+Digital.undriven = Bit.undriven
+
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]
 BitInOut = Bit[Direction.InOut]
