@@ -46,7 +46,6 @@ Bind monitor interface does not match circuit interface
                 if bind_arg is None:
                     raise ValueError("Cannot bind undriven output value")
             # wire to unused module so it's not inlined out
-            print(bind_arg, type(bind_arg))
             bind_arg.unused()
             ports += _gen_bind_port(cls, mon_arg, bind_arg)
     ports_str = ",\n    ".join(ports)
