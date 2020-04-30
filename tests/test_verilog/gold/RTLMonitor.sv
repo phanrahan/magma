@@ -75,9 +75,9 @@ bind RTL RTLMonitor RTLMonitor_inst (
     .handshake_arr_1_valid(handshake_arr_1_valid),
     .handshake_arr_2_ready(handshake_arr_2_ready),
     .handshake_arr_2_valid(handshake_arr_2_valid),
-    .mon_temp1(orr_4_inst0_O),
-    .mon_temp2(andr_4_inst0_O),
+    .mon_temp1(_magma_bind_wire_0),
+    .mon_temp2(_magma_bind_wire_1),
     .intermediate_tuple__0(orr_4_inst0_O),
     .intermediate_tuple__1(andr_4_inst0_O),
-    .inst_input(magma_Bits_4_xor_inst0_out)
+    .inst_input(_magma_bind_wire_2)
 );

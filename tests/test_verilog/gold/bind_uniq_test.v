@@ -82,6 +82,9 @@ module RTL_unq1 (
     input [4:0] in2,
     output out
 );
+wire _magma_bind_wire_0;
+wire _magma_bind_wire_1;
+wire [4:0] _magma_bind_wire_2;
 wire andr_5_inst0_O;
 wire coreir_wrapInClock_inst0_out;
 wire [4:0] magma_Bits_5_xor_inst0_out;
@@ -89,15 +92,18 @@ wire orr_5_inst0_O;
 SomeCircuit_unq1 SomeCircuit_inst0 (
     .I(magma_Bits_5_xor_inst0_out)
 );
+assign _magma_bind_wire_0 = orr_5_inst0_O;
+assign _magma_bind_wire_1 = andr_5_inst0_O;
+assign _magma_bind_wire_2 = magma_Bits_5_xor_inst0_out;
 andr_5 andr_5_inst0 (
     .I(in1),
     .O(andr_5_inst0_O)
 );
 corebit_term corebit_term_inst0 (
-    .in(orr_5_inst0_O)
+    .in(_magma_bind_wire_0)
 );
 corebit_term corebit_term_inst1 (
-    .in(andr_5_inst0_O)
+    .in(_magma_bind_wire_1)
 );
 corebit_term corebit_term_inst2 (
     .in(coreir_wrapInClock_inst0_out)
@@ -119,7 +125,7 @@ orr_5 orr_5_inst0 (
 coreir_term #(
     .width(5)
 ) term_inst0 (
-    .in(magma_Bits_5_xor_inst0_out)
+    .in(_magma_bind_wire_2)
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;
 assign handshake_arr_1_valid = handshake_arr_1_ready;
@@ -141,6 +147,12 @@ module RTL (
     input [3:0] in2,
     output out
 );
+wire __magma_bind_wire_0;
+wire __magma_bind_wire_1;
+wire [3:0] __magma_bind_wire_2;
+wire _magma_bind_wire_0;
+wire _magma_bind_wire_1;
+wire [3:0] _magma_bind_wire_2;
 wire andr_4_inst0_O;
 wire coreir_wrapInClock_inst0_out;
 wire [3:0] magma_Bits_4_xor_inst0_out;
@@ -148,15 +160,21 @@ wire orr_4_inst0_O;
 SomeCircuit SomeCircuit_inst0 (
     .I(magma_Bits_4_xor_inst0_out)
 );
+assign __magma_bind_wire_0 = orr_4_inst0_O;
+assign __magma_bind_wire_1 = andr_4_inst0_O;
+assign __magma_bind_wire_2 = magma_Bits_4_xor_inst0_out;
+assign _magma_bind_wire_0 = __magma_bind_wire_0;
+assign _magma_bind_wire_1 = __magma_bind_wire_1;
+assign _magma_bind_wire_2 = __magma_bind_wire_2;
 andr_4 andr_4_inst0 (
     .I(in1),
     .O(andr_4_inst0_O)
 );
 corebit_term corebit_term_inst0 (
-    .in(orr_4_inst0_O)
+    .in(_magma_bind_wire_0)
 );
 corebit_term corebit_term_inst1 (
-    .in(andr_4_inst0_O)
+    .in(_magma_bind_wire_1)
 );
 corebit_term corebit_term_inst2 (
     .in(coreir_wrapInClock_inst0_out)
@@ -178,7 +196,7 @@ orr_4 orr_4_inst0 (
 coreir_term #(
     .width(4)
 ) term_inst0 (
-    .in(magma_Bits_4_xor_inst0_out)
+    .in(_magma_bind_wire_2)
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;
 assign handshake_arr_1_valid = handshake_arr_1_ready;
