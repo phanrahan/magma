@@ -56,7 +56,8 @@ Bind monitor interface does not match circuit interface
     )[len(cls.interface):]
     with cls.open():
         for mon_arg, bind_arg in zip(extra_mon_args, args):
-            ports += _gen_bind_port(cls, mon_arg, bind_arg, insert_temporary=True)
+            ports += _gen_bind_port(cls, mon_arg, bind_arg,
+                                    insert_temporary=True)
     ports_str = ",\n    ".join(ports)
     bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
     if not os.path.isdir(".magma"):
