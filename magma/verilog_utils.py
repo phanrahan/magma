@@ -1,7 +1,8 @@
 from magma.array import Array
 from magma.circuit import Circuit
 from magma.digital import Digital
-from magma.ref import DefnRef, InstRef, NamedRef, ArrayRef, TupleRef
+from magma.ref import (DefnRef, InstRef, NamedRef, ArrayRef, TupleRef,
+                       PortViewRef)
 from magma.t import Type, Direction
 from magma.tuple import Tuple
 from magma.view import InstView, PortView
@@ -13,14 +14,9 @@ def value_to_verilog_name(value):
         return f"'{{{elems}}}"
     elif isinstance(value, Tuple):
         raise NotImplementedError("Inlining unflattened tuple")
-    elif isinstance(value, PortView):
-        parent_name = value_to_verilog_name(value.parent)
-        return f"{parent_name}.{verilog_name(value.port.name)}"
     elif isinstance(value, InstView):
         prefix = ""
-        if isinstance(value.parent, Circuit):
-            prefix = value.parent.name + "."
-        else:
+        if value.parent is not None:
             prefix = value_to_verilog_name(value.parent) + "."
         return prefix + value.inst.name
     return verilog_name(value.name)
@@ -33,6 +29,13 @@ def verilog_name(name, inst_sep="_"):
         return f"{name.inst.name}{inst_sep}{str(name)}"
     if isinstance(name, NamedRef):
         return str(name)
+    if isinstance(name, PortViewRef):
+        curr = name.view.parent
+        hierarchical_path = curr.inst.name + "."
+        while isinstance(curr.parent, InstView):
+            hierarchical_path = curr.parent.inst.name + "." + hierarchical_path
+            curr = curr.parent
+        return hierarchical_path + verilog_name(name.view.port.name)
     if isinstance(name, ArrayRef):
         array_name = verilog_name(name.array.name)
         if issubclass(name.array.T, Digital):

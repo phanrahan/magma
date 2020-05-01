@@ -47,6 +47,12 @@ class PlacerBase(ABC):
         raise NotImplementedError()
 
 
+def _setup_view(inst):
+    # Setup view now because inline strings might use it during defn
+    for sub_inst in getattr(type(inst), "instances", []):
+        setattr(inst, sub_inst.name, InstView(sub_inst, InstView(inst)))
+
+
 class Placer:
     def __init__(self, defn):
         self._defn = defn
@@ -120,6 +126,7 @@ class Placer:
         inst.defn = self._defn
         if get_debug_mode():
             inst.stack = inspect.stack()
+        _setup_view(inst)
 
 
 class StagedPlacer(ABC):
@@ -139,9 +146,7 @@ class StagedPlacer(ABC):
     def place(self, inst):
         self._instances.append(inst)
         inst.defn = LazyCircuit
-        # Setup view now because inline strings might use it during defn
-        for sub_inst in getattr(type(inst), "instances", []):
-            setattr(inst, sub_inst.name, InstView(sub_inst, InstView(inst)))
+        _setup_view(inst)
 
     def finalize(self, defn):
         if self._finalized:
