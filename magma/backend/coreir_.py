@@ -46,6 +46,9 @@ _context_to_modules = {}
 
 class CoreIRBackend:
     def __init__(self, context=None):
+        self.__init(context)
+
+    def __init(self, context):
         singleton = CoreIRContextSingleton().get_instance()
         if context is None:
             context = singleton
@@ -60,7 +63,7 @@ class CoreIRBackend:
         self.sv_bind_files = {}
 
     def reset(self):
-        self.__init__()
+        self.__init(context=None)
 
     def compile(self, defn_or_decl):
         _logger.debug(f"Compiling: {defn_or_decl.name}")
