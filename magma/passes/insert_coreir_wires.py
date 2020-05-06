@@ -130,6 +130,9 @@ class InsertCoreIRWires(DefinitionPass):
         self._insert_wire(driver, definition)
 
     def __call__(self, definition):
+        if getattr(definition, "_coreir_wires_inserted_", False):
+            return
+        definition._coreir_wires_inserted_ = True
         # Copy instances because inserting wire will append to instances.
         instances_copy = definition.instances.copy()
         for instance in instances_copy:

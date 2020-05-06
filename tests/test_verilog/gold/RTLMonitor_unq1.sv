@@ -77,7 +77,7 @@ bind RTL_unq1 RTLMonitor_unq1 RTLMonitor_unq1_inst (
     .handshake_arr_2_valid(handshake_arr_2_valid),
     .mon_temp1(_magma_bind_wire_0),
     .mon_temp2(_magma_bind_wire_1),
-    .intermediate_tuple__0(orr_5_inst0_O),
-    .intermediate_tuple__1(andr_5_inst0_O),
-    .inst_input(_magma_bind_wire_2)
+    .intermediate_tuple__0(_magma_bind_wire_2_0),
+    .intermediate_tuple__1(_magma_bind_wire_2_1),
+    .inst_input(_magma_bind_wire_3)
 );

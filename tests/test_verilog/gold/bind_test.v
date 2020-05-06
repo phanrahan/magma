@@ -47,7 +47,9 @@ module RTL (
 );
 wire _magma_bind_wire_0;
 wire _magma_bind_wire_1;
-wire [3:0] _magma_bind_wire_2;
+wire _magma_bind_wire_2_0;
+wire _magma_bind_wire_2_1;
+wire [3:0] _magma_bind_wire_3;
 wire andr_4_inst0_O;
 wire [3:0] magma_Bits_4_xor_inst0_out;
 wire orr_4_inst0_O;
@@ -56,7 +58,9 @@ SomeCircuit SomeCircuit_inst0 (
 );
 assign _magma_bind_wire_0 = orr_4_inst0_O;
 assign _magma_bind_wire_1 = andr_4_inst0_O;
-assign _magma_bind_wire_2 = magma_Bits_4_xor_inst0_out;
+assign _magma_bind_wire_2_0 = orr_4_inst0_O;
+assign _magma_bind_wire_2_1 = andr_4_inst0_O;
+assign _magma_bind_wire_3 = magma_Bits_4_xor_inst0_out;
 andr_4 andr_4_inst0 (
     .I(in1),
     .O(andr_4_inst0_O)
@@ -66,6 +70,12 @@ corebit_term corebit_term_inst0 (
 );
 corebit_term corebit_term_inst1 (
     .in(_magma_bind_wire_1)
+);
+corebit_term corebit_term_inst2 (
+    .in(_magma_bind_wire_2_0)
+);
+corebit_term corebit_term_inst3 (
+    .in(_magma_bind_wire_2_1)
 );
 logical_and logical_and_inst0 (
     .I0(orr_4_inst0_O),
@@ -80,7 +90,7 @@ orr_4 orr_4_inst0 (
 coreir_term #(
     .width(4)
 ) term_inst0 (
-    .in(_magma_bind_wire_2)
+    .in(_magma_bind_wire_3)
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;
 assign handshake_arr_1_valid = handshake_arr_1_ready;

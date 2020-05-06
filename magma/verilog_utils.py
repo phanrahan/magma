@@ -23,12 +23,6 @@ def value_to_verilog_name(value):
 
 
 def verilog_name(name, inst_sep="_"):
-    if isinstance(name, DefnRef):
-        return str(name)
-    if isinstance(name, InstRef):
-        return f"{name.inst.name}{inst_sep}{str(name)}"
-    if isinstance(name, NamedRef):
-        return str(name)
     if isinstance(name, PortViewRef):
         curr = name.view.parent
         hierarchical_path = curr.inst.name + "."
@@ -36,6 +30,12 @@ def verilog_name(name, inst_sep="_"):
             hierarchical_path = curr.parent.inst.name + "." + hierarchical_path
             curr = curr.parent
         return hierarchical_path + verilog_name(name.view.port.name)
+    if isinstance(name, DefnRef):
+        return str(name)
+    if isinstance(name, InstRef):
+        return f"{name.inst.name}{inst_sep}{str(name)}"
+    if isinstance(name, NamedRef):
+        return str(name)
     if isinstance(name, ArrayRef):
         array_name = verilog_name(name.array.name)
         if issubclass(name.array.T, Digital):
@@ -46,12 +46,14 @@ def verilog_name(name, inst_sep="_"):
     if isinstance(name, TupleRef):
         tuple_name = verilog_name(name.tuple.name)
         index = name.index
-        try:
-            int(index)
-            # python/coreir don't allow pure integer names
-            index = f"_{index}"
-        except ValueError:
-            pass
+        if name.root() is None:
+            # Not a named temporary that will be flattened to a wire
+            try:
+                int(index)
+                # python/coreir don't allow pure integer names
+                index = f"_{index}"
+            except ValueError:
+                pass
         return f"{tuple_name}_{index}"
     raise NotImplementedError(name, type(name))
 
