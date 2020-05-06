@@ -33,6 +33,6 @@ corebit_const #(
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
 );
-assign pad = PRWDWUWSWCDGH_V_inst0_PAD;
+assign PRWDWUWSWCDGH_V_inst0_PAD = pad;
 endmodule
 
