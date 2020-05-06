@@ -59,6 +59,9 @@ class CoreIRBackend:
         self.constant_cache = {}
         self.sv_bind_files = {}
 
+    def reset(self):
+        self.__init__()
+
     def compile(self, defn_or_decl):
         _logger.debug(f"Compiling: {defn_or_decl.name}")
         transformer = DefnOrDeclTransformer(self, defn_or_decl)
