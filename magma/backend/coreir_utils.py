@@ -3,7 +3,7 @@ import json
 from hwtypes import BitVector
 from ..array import Array
 from ..bit import Digital
-from ..clock import Clock, AsyncReset, AsyncResetN
+from ..clock import Clock, AsyncReset, AsyncResetN, ClockTypes
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef, NamedRef, PortViewRef
 from ..tuple import Tuple
 from ..protocol_type import MagmaProtocol
@@ -137,7 +137,7 @@ def make_cparams(context, params):
 
 
 def is_clock_or_nested_clock(p):
-    if issubclass(p, Clock):
+    if issubclass(p, ClockTypes):
         return True
     if issubclass(p, Array):
         return is_clock_or_nested_clock(p.T)

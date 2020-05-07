@@ -75,7 +75,7 @@ class Enable(_ClockType, metaclass=DigitalMeta):
 EnableIn = Enable[Direction.In]
 EnableOut = Enable[Direction.Out]
 
-ClockTypes = (Clock, Reset, AsyncReset, Enable)
+ClockTypes = (Clock, Reset, AsyncReset, AsyncResetN, Enable)
 
 
 def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
@@ -93,13 +93,13 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     return args
 
 
-def _wire_clock_port(port, clocktype, defnclk):
+def wire_clock_port(port, clocktype, defnclk):
     wired = False
     if isinstance(port, Tuple):
         for elem in port:
-            wired |= _wire_clock_port(elem, clocktype, defnclk)
+            wired |= wire_clock_port(elem, clocktype, defnclk)
     elif isinstance(port, Array):
-        wired = _wire_clock_port(port[0], clocktype, defnclk)
+        wired = wire_clock_port(port[0], clocktype, defnclk)
         # Only traverse all children circuit if first child has a clock
         if not wired:
             return False
@@ -108,25 +108,25 @@ def _wire_clock_port(port, clocktype, defnclk):
         # Python, so we explicilty slice port.ts
         for t in port.ts[1:]:
             for elem in port[1:]:
-              _wire_clock_port(elem, clocktype, defnclk)
+              wire_clock_port(elem, clocktype, defnclk)
     elif isinstance(port, clocktype) and not port.driven():
         wire(defnclk, port)
         wired = True
     return wired
 
 
-def _first(iterable):
+def first(iterable):
     return next((item for item in iterable if item is not None), None)
 
 
-def _get_first_clock(port, clocktype):
+def get_first_clock(port, clocktype):
     if isinstance(port, clocktype):
         return port
     if isinstance(port, Tuple):
-        clks = (_get_first_clock(elem, clocktype) for elem in port)
-        return _first(clks)
+        clks = (get_first_clock(elem, clocktype) for elem in port)
+        return first(clks)
     if isinstance(port, Array):
-        return _get_first_clock(port[0], clocktype)
+        return get_first_clock(port[0], clocktype)
     return None
 
 
@@ -134,16 +134,16 @@ def wireclocktype(defn, inst, clocktype):
     # Check common case: top level clock port
     clks = (port if isinstance(port, clocktype) else None
             for port in defn.interface.ports.values())
-    defnclk = _first(clks)
+    defnclk = first(clks)
     if defnclk is None:
         # Check recursive types
-        clks = (_get_first_clock(port, clocktype)
+        clks = (get_first_clock(port, clocktype)
                 for port in defn.interface.ports.values())
-        defnclk = _first(clks)
+        defnclk = first(clks)
     if defnclk is None:
         return
     for port in inst.interface.inputs(include_clocks=True):
-        _wire_clock_port(port, clocktype, defnclk)
+        wire_clock_port(port, clocktype, defnclk)
 
 
 def wiredefaultclock(defn, inst):
