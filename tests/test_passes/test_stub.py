@@ -52,3 +52,12 @@ def test_unused(ckts):
     assert check_files_equal(__file__,
                              f"build/test_passes_stub_unused.json",
                              f"gold/test_passes_stub_noop.json")
+
+
+def test_compiler_args(ckts):
+    _Foo, _Bar, _Top = ckts
+    m.compile("build/test_passes_stub_compiler_args", _Top,
+              output="coreir", stubs=(_Foo,))
+    assert check_files_equal(__file__,
+                             f"build/test_passes_stub_compiler_args.json",
+                             f"gold/test_passes_stub_basic.json")

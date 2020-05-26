@@ -7,6 +7,7 @@ from magma.compiler import Compiler
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.passes.black_box import BlackBoxPass
+from magma.passes.stub import StubPass
 from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import DriveUndrivenPass
 from magma.passes.terminate_unused import TerminateUnusedPass
@@ -67,6 +68,9 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     # Black box circuits if requested.
     _run_if_in(opts, "black_boxes", lambda bb: BlackBoxPass(main, bb).run())
+
+    # Black box circuits if requested.
+    _run_if_in(opts, "stubs", lambda stub: StubPass(main, stub).run())
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
