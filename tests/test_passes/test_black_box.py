@@ -52,3 +52,12 @@ def test_unused(ckts):
     assert check_files_equal(__file__,
                              f"build/test_passes_black_box_unused.json",
                              f"gold/test_passes_black_box_noop.json")
+
+
+def test_compiler_args(ckts):
+    _Foo, _Bar, _Top = ckts
+    m.compile("build/test_passes_black_box_compiler_args", _Top,
+              output="coreir", black_boxes=(_Foo,))
+    assert check_files_equal(__file__,
+                             f"build/test_passes_black_box_compiler_args.json",
+                             f"gold/test_passes_black_box_basic.json")
