@@ -1,5 +1,5 @@
 import weakref
-from functools import reduce
+from functools import lru_cache
 from abc import ABCMeta
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
@@ -431,6 +431,7 @@ class Array(Type, metaclass=ArrayMeta):
               for i in range(0, size_T * cls.N, size_T)]
         return cls(ts)
 
+    @lru_cache(maxsize=None)
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 

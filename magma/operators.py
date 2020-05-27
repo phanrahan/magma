@@ -1,22 +1,12 @@
-from hwtypes import BitVector
-
-from .digital import Digital
-from .bit import Bit
-from .bits import Bits
-from .bitutils import clog2, seq2int
-from .circuit import coreir_port_mapping
-from .conversions import array, as_bits, from_bits
-from .generator import Generator2
-from .interface import IO
-from .protocol_type import MagmaProtocol
-from .t import Type, In, Out
-from .tuple import Product
-from .wire import wire
-from magma.mux import Mux
+from functools import lru_cache
 
 from magma.array import ArrayType
+from magma.bits import Bits
+from magma.bitutils import seq2int
+from magma.conversions import array, as_bits
+from magma.mux import Mux
+from magma.t import Type
 from magma.tuple import Tuple
-from functools import lru_cache
 
 
 def mux(I, S, **kwargs):

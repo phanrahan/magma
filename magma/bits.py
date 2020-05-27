@@ -11,12 +11,11 @@ from hwtypes import BitVector
 from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
     InconsistentSizeError
 from .compatibility import IntegerTypes
-from .ref import AnonRef
 from .bit import Bit
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type, Direction, In, Out
-from magma.circuit import Circuit, coreir_port_mapping, IO
+from magma.circuit import Circuit, coreir_port_mapping
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python

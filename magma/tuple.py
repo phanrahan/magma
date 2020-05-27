@@ -1,14 +1,15 @@
-import itertools
+from functools import lru_cache
 from collections import OrderedDict
+
 from hwtypes.adt import TupleMeta, Tuple as Tuple_, Product, ProductMeta
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
-from .common import deprecated
-from .ref import AnonRef, TupleRef
-from .t import Type, Kind, Direction
-from .compatibility import IntegerTypes
-from .debug import debug_wire, get_callee_frame_info
-from .logging import root_logger
+
+from magma.common import deprecated
+from magma.ref import TupleRef
+from magma.t import Type, Kind, Direction
+from magma.debug import debug_wire, get_callee_frame_info
+from magma.logging import root_logger
 
 
 _logger = root_logger()
@@ -295,6 +296,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             offset += size
         return cls(*values)
 
+    @lru_cache(maxsize=None)
     def flatten(self):
         return sum([t.flatten() for t in self.ts], [])
 
