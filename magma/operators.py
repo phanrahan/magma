@@ -14,6 +14,10 @@ from .tuple import Product
 from .wire import wire
 from magma.mux import Mux
 
+from magma.array import ArrayType
+from magma.tuple import Tuple
+from functools import lru_cache
+
 
 def mux(I, S, **kwargs):
     if isinstance(S, Type) and S.const():
@@ -49,3 +53,14 @@ def slice(value: Bits, start: Bits, width: int):
     # Construct an array where the index `i` is the slice of bits from `i` to
     # `i+width`, index into this array using `start`.
     return array([value[i:i + width] for i in range(len(value) - width)])[start]
+
+
+@lru_cache(maxsize=None)
+def __flatten__eq__(self, rhs):
+    if not isinstance(rhs, type(self)):
+        return NotImplemented
+    return as_bits(self) == as_bits(rhs)
+
+
+ArrayType.__eq__ = __flatten__eq__
+Tuple.__eq__ = __flatten__eq__

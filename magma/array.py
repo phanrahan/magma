@@ -11,8 +11,6 @@ from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 
-# Circular depency on as_bits for __eq__
-import magma as m
 
 _logger = root_logger()
 
@@ -249,9 +247,7 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.is_oriented(direction)
 
     def __eq__(self, rhs):
-        if not isinstance(rhs, type(self)):
-            return NotImplemented
-        return m.as_bits(self) == m.as_bits(rhs)
+        assert False, "Should be monkey patched in magma.primitives.operators"
 
     __hash__ = Type.__hash__
 

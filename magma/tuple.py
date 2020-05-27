@@ -10,8 +10,6 @@ from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 
-# Circular depency on as_bits for __eq__
-import magma as m
 
 _logger = root_logger()
 
@@ -152,9 +150,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return [str(i) for i in range(len(cls.fields))]
 
     def __eq__(self, rhs):
-        if not isinstance(rhs, type(self)):
-            return NotImplemented
-        return m.as_bits(self) == m.as_bits(rhs)
+        assert False, "Should be monkey patched in magma.primitives.operators"
 
     def __repr__(self):
         if not self.name.anon():
