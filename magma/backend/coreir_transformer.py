@@ -23,6 +23,7 @@ from .util import get_codegen_debug_info
 from magma.config import get_debug_mode
 
 from magma.ref import PortViewRef
+from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -88,11 +89,10 @@ class DefnOrDeclTransformer(TransformerBase):
 
 
 class InstanceTransformer(LeafTransformer):
-    def __init__(self, backend, inst, defn, wire_clocks=True):
+    def __init__(self, backend, inst, defn):
         super().__init__(backend)
         self.inst = inst
         self.defn = defn
-        self.wire_clocks = wire_clocks
         self.coreir_inst_gen = None
 
     def run_self(self):
@@ -100,9 +100,6 @@ class InstanceTransformer(LeafTransformer):
 
     def run_self_impl(self):
         _logger.debug(f"Compiling instance {(self.inst.name, type(self.inst))}")
-        if self.wire_clocks:
-            wiredefaultclock(self.defn, self.inst)
-            wireclock(self.defn, self.inst)
         defn = type(self.inst)
         lib = self.backend.libs[self.inst.coreir_lib]
         if self.inst.coreir_genargs is None:
@@ -138,6 +135,12 @@ class DefinitionTransformer(TransformerBase):
             inst: InstanceTransformer(self.backend, inst, self.defn)
             for inst in self.defn.instances
         }
+        self.clocks = {}
+        for clock_type in ClockTypes:
+            self.clocks[clock_type] = first(
+                get_first_clock(port, clock_type)
+                for port in defn.interface.ports.values()
+            )
 
     def children(self):
         pass_ = InstanceGraphPass(self.defn)
@@ -206,9 +209,15 @@ class DefinitionTransformer(TransformerBase):
             self.connect(module_defn, port, port.trace(), non_input_ports)
 
     def connect(self, module_defn, port, value, non_input_ports):
-        # Allow Clock or Array[Clock] to be unwired as CoreIR can wire them up.
         if value is None and is_clock_or_nested_clock(type(port)):
-            return
+            for type_, default_driver in self.clocks.items():
+                if isinstance(port, type_) and default_driver is not None:
+                    wire_clock_port(port, type_, default_driver)
+                    value = port.value()
+                    break
+            else:
+                # No default clock
+                return
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
