@@ -15,11 +15,19 @@ from ..bitutils import clog2
 class RemoveIfTrues(ast.NodeTransformer):
     """
     Remove `if True:` nodes by replacing them with their body
+    Remove `if not True:` nodes by replacing them with `pass`
     """
     def visit_If(self, node):
         node = self.generic_visit(node)
         if isinstance(node.test, ast.NameConstant) and node.test.value is True:
             return node.body
+        elif (
+            isinstance(node.test, ast.UnaryOp)
+            and isinstance(node.test.op, ast.Not)
+            and isinstance(node.test.operand, ast.NameConstant)
+            and node.test.operand.value is True
+        ):
+            return ast.Pass()
         return node
 
 
