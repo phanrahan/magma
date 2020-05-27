@@ -8,7 +8,7 @@ def test_flatten():
     b4 = Bit(name='b4')
     a1 = array([b0, b1])
     a2 = array([b0, b1])
-    print(a1==a2)
+    print(a1.ts == a2.ts)
     A = Array[2,Bit]
     B = Array[2,Bit]
     print(A==B)
