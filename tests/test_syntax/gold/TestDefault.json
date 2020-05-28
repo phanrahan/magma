@@ -52,9 +52,7 @@
           ["magma_Bits_8_lshr_inst0.in1.6","bit_const_0_None.out"],
           ["magma_Bits_8_lshr_inst0.in1.7","bit_const_0_None.out"],
           ["self.self_x_O","magma_Bits_8_lshr_inst0.in0"],
-          ["self.index.0","magma_Bits_8_lshr_inst0.in1.0"],
-          ["self.index.1","magma_Bits_8_lshr_inst0.in1.1"],
-          ["self.index.2","magma_Bits_8_lshr_inst0.in1.2"],
+          ["self.index.0:3","magma_Bits_8_lshr_inst0.in1.0:3"],
           ["self.O1","magma_Bits_8_lshr_inst0.out.0"],
           ["self.self_x_O","self.O0"]
         ]

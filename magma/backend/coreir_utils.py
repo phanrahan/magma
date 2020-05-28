@@ -197,3 +197,10 @@ def constant_to_value(constant):
         values = [constant_to_value(c) for c in constant]
         return BitVector[len(constant)](values)
     raise NotImplementedError(constant)
+
+
+class Slice:
+    def __init__(self, value, low, high):
+        self.value = value
+        self.low = low
+        self.high = high

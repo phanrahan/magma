@@ -37,34 +37,13 @@
           }
         },
         "connections":[
+          ["self.I0.a1.0:8","coreir_commonlib_mux2x9_inst0.in.data.0.1:9"],
           ["self.I0.a0","coreir_commonlib_mux2x9_inst0.in.data.0.0"],
-          ["self.I0.a1.0","coreir_commonlib_mux2x9_inst0.in.data.0.1"],
-          ["self.I0.a1.1","coreir_commonlib_mux2x9_inst0.in.data.0.2"],
-          ["self.I0.a1.2","coreir_commonlib_mux2x9_inst0.in.data.0.3"],
-          ["self.I0.a1.3","coreir_commonlib_mux2x9_inst0.in.data.0.4"],
-          ["self.I0.a1.4","coreir_commonlib_mux2x9_inst0.in.data.0.5"],
-          ["self.I0.a1.5","coreir_commonlib_mux2x9_inst0.in.data.0.6"],
-          ["self.I0.a1.6","coreir_commonlib_mux2x9_inst0.in.data.0.7"],
-          ["self.I0.a1.7","coreir_commonlib_mux2x9_inst0.in.data.0.8"],
+          ["self.I1.a1.0:8","coreir_commonlib_mux2x9_inst0.in.data.1.1:9"],
           ["self.I1.a0","coreir_commonlib_mux2x9_inst0.in.data.1.0"],
-          ["self.I1.a1.0","coreir_commonlib_mux2x9_inst0.in.data.1.1"],
-          ["self.I1.a1.1","coreir_commonlib_mux2x9_inst0.in.data.1.2"],
-          ["self.I1.a1.2","coreir_commonlib_mux2x9_inst0.in.data.1.3"],
-          ["self.I1.a1.3","coreir_commonlib_mux2x9_inst0.in.data.1.4"],
-          ["self.I1.a1.4","coreir_commonlib_mux2x9_inst0.in.data.1.5"],
-          ["self.I1.a1.5","coreir_commonlib_mux2x9_inst0.in.data.1.6"],
-          ["self.I1.a1.6","coreir_commonlib_mux2x9_inst0.in.data.1.7"],
-          ["self.I1.a1.7","coreir_commonlib_mux2x9_inst0.in.data.1.8"],
           ["self.S","coreir_commonlib_mux2x9_inst0.in.sel.0"],
-          ["self.O.a0","coreir_commonlib_mux2x9_inst0.out.0"],
-          ["self.O.a1.0","coreir_commonlib_mux2x9_inst0.out.1"],
-          ["self.O.a1.1","coreir_commonlib_mux2x9_inst0.out.2"],
-          ["self.O.a1.2","coreir_commonlib_mux2x9_inst0.out.3"],
-          ["self.O.a1.3","coreir_commonlib_mux2x9_inst0.out.4"],
-          ["self.O.a1.4","coreir_commonlib_mux2x9_inst0.out.5"],
-          ["self.O.a1.5","coreir_commonlib_mux2x9_inst0.out.6"],
-          ["self.O.a1.6","coreir_commonlib_mux2x9_inst0.out.7"],
-          ["self.O.a1.7","coreir_commonlib_mux2x9_inst0.out.8"]
+          ["self.O.a1.0:8","coreir_commonlib_mux2x9_inst0.out.1:9"],
+          ["self.O.a0","coreir_commonlib_mux2x9_inst0.out.0"]
         ]
       },
       "TestProductReg":{

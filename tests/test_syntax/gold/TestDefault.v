@@ -56,7 +56,7 @@ coreir_lshr #(
     .width(8)
 ) magma_Bits_8_lshr_inst0 (
     .in0(self_x_O),
-    .in1({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,index[2],index[1],index[0]}),
+    .in1({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,index[2:0]}),
     .out(magma_Bits_8_lshr_inst0_out)
 );
 assign O0 = self_x_O;
