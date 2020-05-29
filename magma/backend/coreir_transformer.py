@@ -100,7 +100,7 @@ class InstanceTransformer(LeafTransformer):
 
     def run_self_impl(self):
         _logger.debug(
-          f"Compiling instance {(self.inst.name, type(self.inst).name)}"
+            f"Compiling instance {(self.inst.name, type(self.inst).name)}"
         )
         defn = type(self.inst)
         lib = self.backend.libs[self.inst.coreir_lib]
