@@ -336,6 +336,27 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             mixed |= field.is_mixed()
         return mixed or (input + output + inout) > 1
 
+
+def _add_properties(ns, fields):
+    def _make_prop(field_type, idx):
+        @TypedProperty(field_type)
+        def prop(self):
+            return self[idx]
+
+        @prop.setter
+        def prop(self, value):
+            self[idx] = value
+
+        return prop
+
+    for idx, (field_name, field_type) in enumerate(fields.items()):
+        if field_name == "N":
+            # TODO: Make N unreserved
+            raise ValueError("N is a reserved name in Product")
+        assert field_name not in ns
+        ns[field_name] = _make_prop(field_type, idx)
+
+
 class ProductKind(ProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
 
@@ -350,29 +371,9 @@ class ProductKind(ProductMeta, TupleKind, Kind):
 
         cls = bases[0]
 
-        # field_name -> tuple index
-        idx_table = dict((k, i) for i,k in enumerate(fields.keys()))
-
-        def _make_prop(field_type, idx):
-            @TypedProperty(field_type)
-            def prop(self):
-                return self[idx]
-
-            @prop.setter
-            def prop(self, value):
-                self[idx] = value
-
-            return prop
-
         # add properties to namespace
         # build properties
-        for field_name, field_type in fields.items():
-            if field_name == "N":
-                # TODO: Make N unreserved
-                raise ValueError("N is a reserved name in Product")
-            assert field_name not in ns
-            idx = idx_table[field_name]
-            ns[field_name] = _make_prop(field_type, idx)
+        _add_properties(ns, fields)
 
         # this is all really gross but I don't know how to do this cleanly
         # need to build t so I can call super() in new and init
