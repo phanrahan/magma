@@ -32,9 +32,9 @@ assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});
 
 def test_inline_tuple():
 
-    RVDATAIN = m.Array[2, m.Product.from_fields("", dict(data=m.In(m.Bits[5]),
-                                                         valid=m.In(m.Bit),
-                                                         ready=m.Out(m.Bit)))]
+    RVDATAIN = m.Array[2, m.AnonProduct[dict(data=m.In(m.Bits[5]),
+                                             valid=m.In(m.Bit),
+                                             ready=m.Out(m.Bit))]]
 
     class InnerInnerDelayUnit(m.Circuit):
         name = "InnerInnerDelayUnit"

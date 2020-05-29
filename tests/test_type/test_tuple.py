@@ -267,3 +267,19 @@ def test_tuple_nested_tuple_value():
 def test_flat_length():
     a = m.Product.from_fields("anon", dict(x=m.Bits[5], y=m.Bits[3], z=m.Bit))
     assert a.flat_length() == 9
+
+
+def test_anon_product():
+    product = m.Product.from_fields("anon", dict(x=m.Bits[5], y=m.Bits[3], z=m.Bit))
+    assert isinstance(product, AnonymousProductMeta)
+    assert isinstance(product, ProductMeta)
+
+    anon_product = m.AnonProduct[dict(x=m.Bits[5], y=m.Bits[3], z=m.Bit)]
+    assert isinstance(anon_product, AnonymousProductMeta)
+    assert not isinstance(anon_product, ProductMeta)
+    assert anon_product.flat_length() == product.flat_length()
+    assert anon_product.x == product.x
+    assert anon_product.y == product.y
+    assert anon_product.z == product.z
+    assert anon_product == product
+    assert not anon_product is product
