@@ -129,6 +129,13 @@ def test_return_magma_named_tuple(target):
                       return_magma_named_tuple.circuit_definition, target)
 
 
+def test_return_anon_product(target):
+    @m.circuit.combinational
+    def return_anon_product(I: m.Bits[2]) -> m.AnonProduct[dict(x=m.Bit, y=m.Bit)]:
+        return m.namedtuple(x=I[0], y=I[1])
+    compile_and_check("return_anon_product", return_anon_product.circuit_definition, target)
+
+
 def test_simple_circuit_1(target):
     class EQ(m.Circuit):
         name = "eq"
