@@ -43,6 +43,8 @@ def magma_name_to_coreir_select(name):
 
 
 def magma_port_to_coreir_port(port):
+    if isinstance(port, Slice):
+        return port.get_coreir_select()
     return magma_name_to_coreir_select(port.name)
 
 
@@ -204,3 +206,7 @@ class Slice:
         self.value = value
         self.low = low
         self.high = high
+
+    def get_coreir_select(self,):
+        return (magma_name_to_coreir_select(self.value.name) +
+                f".{self.low}:{self.high}")
