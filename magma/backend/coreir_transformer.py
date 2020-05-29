@@ -238,9 +238,8 @@ class DefinitionTransformer(TransformerBase):
             return value
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
-        if value.const():
-            n = len(value) if isinstance(value, Bits) else None
-            return self.const_instance(value, n, module_defn)
+        if isinstance(value, Bits) and value.const():
+            return self.const_instance(value, len(value), module_defn)
         if value.anon() and isinstance(value, Array):
             drivers = _collect_drivers(value)
             offset = 0
@@ -264,6 +263,8 @@ class DefinitionTransformer(TransformerBase):
             for p, v in zip(port, value):
                 self.connect(module_defn, p, v, non_input_ports)
             return None
+        if value.const():
+            return self.const_instance(value, None, module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
