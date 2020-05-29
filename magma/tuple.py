@@ -1,6 +1,13 @@
 import itertools
 from collections import OrderedDict
-from hwtypes.adt import TupleMeta, Tuple as Tuple_, Product, ProductMeta
+from hwtypes.adt import (
+    TupleMeta,
+    Tuple as Tuple_,
+    AnonymousProduct,
+    AnonymousProductMeta,
+    Product,
+    ProductMeta,
+)
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
@@ -121,13 +128,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                 if type(t) is bool:
                     t = T(t)
                 self.ts.append(t)
-                if not isinstance(self, Product):
+                if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
         else:
             for k, T in zip(self.keys(), self.types()):
                 t = T(name=TupleRef(self, k))
                 self.ts.append(t)
-                if not isinstance(self, Product):
+                if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
 
     __hash__ = Type.__hash__
@@ -357,7 +364,123 @@ def _add_properties(ns, fields):
         ns[field_name] = _make_prop(field_type, idx)
 
 
-class ProductKind(ProductMeta, TupleKind, Kind):
+class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
+    __hash__ = type.__hash__
+
+    def _from_idx(cls, idx):
+        mcs = type(cls)
+
+        try:
+            return mcs._class_cache[cls, idx]
+        except KeyError:
+            pass
+
+        if cls.is_bound:
+            raise TypeError('Type is already bound')
+
+        undirected_idx = OrderedFrozenDict(
+            [(k, v.qualify(Direction.Undirected)) for k, v in idx.items()]
+        )
+        if undirected_idx != idx:
+            bases = [cls[undirected_idx]]
+        else:
+            bases = [cls]
+        bases = tuple(bases)
+        class_name = cls._name_from_idx(idx)
+
+        ns = {'__module__' : cls.__module__}
+        # add properties to namespace
+        # build properties
+        _add_properties(ns, idx)
+
+        t = mcs(class_name, bases, ns, fields=tuple(idx.values()))
+        t._field_table_ = idx
+        if t._unbound_base_ is None:
+            t._unbound_base_ = cls
+        mcs._class_cache[cls, idx] = t
+        t._cached_ = True
+        return t
+
+    def qualify(cls, direction):
+        new_fields = OrderedDict()
+        base = cls
+        for k, v in cls.field_dict.items():
+            new_fields[k] = v.qualify(direction)
+        for k, v in cls.field_dict.items():
+            if not issubclass(new_fields[k], v):
+                base = cls.unbound_t
+        if base.is_bound and all(v == base.field_dict[k] for k, v in
+                                 new_fields.items()):
+            return base
+
+        if cls.unbound_t is AnonProduct:
+            return cls.unbound_t._cache_handler(OrderedFrozenDict(new_fields))
+        else:
+            return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
+                                                cls.__name__, (base, ), {})
+
+    def flip(cls):
+        new_fields = OrderedDict()
+        base = cls
+        for k, v in cls.field_dict.items():
+            new_fields[k] = v.flip()
+        for k, v in cls.field_dict.items():
+            if not issubclass(new_fields[k], v):
+                base = cls.qualify(Direction.Undirected)
+        if cls.unbound_t is AnonProduct:
+            return cls.unbound_t._cache_handler(OrderedFrozenDict(new_fields))
+        else:
+            return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
+                                                cls.__name__, (base, ), {})
+
+    def __eq__(cls, rhs):
+        if not isinstance(rhs, AnonProductKind):
+            return False
+
+        if not cls.is_bound:
+            return not rhs.is_bound
+
+        for k, v in cls.field_dict.items():
+            if getattr(rhs, k) != v:
+                return False
+
+        return True
+
+    def __len__(cls):
+        return len(cls.fields)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        s = "Tuple("
+        s += ",".join(f'{k}={str(v)}' for k, v in cls.field_dict.items())
+        s += ")"
+        return s
+
+
+class AnonProduct(Tuple, metaclass=AnonProductKind):
+    @classmethod
+    def keys(cls):
+        return cls.field_dict.keys()
+
+    @classmethod
+    def types(cls):
+        return cls.fields
+
+    def value(self):
+        ts = [t.value() for t in self.ts]
+
+        for t in ts:
+            if t is None:
+                return None
+
+        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
+            return ts[0].name.tuple
+
+        return type(self).flip()(*ts)
+
+
+class ProductKind(ProductMeta, AnonProductKind, Kind):
     __hash__ = type.__hash__
 
     def __new__(mcs, name, bases, namespace, cache=True, **kwargs):
@@ -388,74 +511,6 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         t._field_table_ = OrderedFrozenDict(fields)
         return t
 
-    def qualify(cls, direction):
-        new_fields = OrderedDict()
-        base = cls
-        for k, v in cls.field_dict.items():
-            new_fields[k] = v.qualify(direction)
-        for k, v in cls.field_dict.items():
-            if not issubclass(new_fields[k], v):
-                base = cls.unbound_t
-        if base.is_bound and all(v == base.field_dict[k] for k, v in
-                                 new_fields.items()):
-            return base
 
-        return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
-                                            cls.__name__, (base, ), {})
-
-    def flip(cls):
-        new_fields = OrderedDict()
-        base = cls
-        for k, v in cls.field_dict.items():
-            new_fields[k] = v.flip()
-        for k, v in cls.field_dict.items():
-            if not issubclass(new_fields[k], v):
-                base = cls.qualify(Direction.Undirected)
-        return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
-                                            cls.__name__, (base, ), {})
-
-    def __eq__(cls, rhs):
-        if not isinstance(rhs, ProductKind):
-            return False
-
-        if not cls.is_bound:
-            return not rhs.is_bound
-
-        for k, v in cls.field_dict.items():
-            if getattr(rhs, k) != v:
-                return False
-
-        return True
-
-    def __len__(cls):
-        return len(cls.fields)
-
-    def __str__(cls):
-        if not cls.is_bound:
-            return cls.__name__
-        s = "Tuple("
-        s += ",".join(f'{k}={str(v)}' for k, v in cls.field_dict.items())
-        s += ")"
-        return s
-
-
-class Product(Tuple, metaclass=ProductKind):
-    @classmethod
-    def keys(cls):
-        return cls.field_dict.keys()
-
-    @classmethod
-    def types(cls):
-        return cls.fields
-
-    def value(self):
-        ts = [t.value() for t in self.ts]
-
-        for t in ts:
-            if t is None:
-                return None
-
-        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
-            return ts[0].name.tuple
-
-        return type(self).flip()(*ts)
+class Product(AnonProduct, metaclass=ProductKind):
+    pass
