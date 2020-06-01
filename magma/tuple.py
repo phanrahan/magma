@@ -441,7 +441,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
             return not rhs.is_bound
 
         for k, v in cls.field_dict.items():
-            if getattr(rhs, k) != v:
+            if getattr(rhs, k) is not v:
                 return False
 
         return True
