@@ -12,6 +12,15 @@ from ..ast_utils import get_ast, compile_function_to_file
 from ..bitutils import clog2
 
 
+def is_if_not_true(node):
+    return (
+        isinstance(node, ast.UnaryOp)
+        and isinstance(node.op, ast.Not)
+        and isinstance(node.operand, ast.NameConstant)
+        and node.operand.value is True
+    )
+
+
 class RemoveIfTrues(ast.NodeTransformer):
     """
     Remove `if True:` nodes by replacing them with their body
@@ -21,12 +30,7 @@ class RemoveIfTrues(ast.NodeTransformer):
         node = self.generic_visit(node)
         if isinstance(node.test, ast.NameConstant) and node.test.value is True:
             return node.body
-        elif (
-            isinstance(node.test, ast.UnaryOp)
-            and isinstance(node.test.op, ast.Not)
-            and isinstance(node.test.operand, ast.NameConstant)
-            and node.test.operand.value is True
-        ):
+        elif is_if_not_true(node.test):
             return ast.Pass()
         return node
 
@@ -105,7 +109,10 @@ def collect_paths_to_yield(start_idx, block):
     paths = []
     for exit in block.exits:
         _path = path
-        if exit.exitcase is not None:
+        if is_if_not_true(exit.exitcase):
+            # skip 'if not True:'
+            continue
+        elif exit.exitcase is not None:
             assert (len(_path) == 1
                     and isinstance(_path[0], (ast.If, ast.While))), \
                 "Expect branch"
