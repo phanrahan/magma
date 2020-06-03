@@ -87,7 +87,16 @@ def is_yield(statement):
             and isinstance(statement.value, ast.Yield))
 
 
-def collect_paths_to_yield(start_idx, block):
+def infeasible(conds, next_cond):
+    for c in conds:
+        if (ast.dump(c) == ast.dump(invert(next_cond)) or
+                ast.dump(next_cond) == ast.dump(invert(c))):
+            # simple case, found inverse conditions, skip this exit
+            return True
+    return False
+
+
+def collect_paths_to_yield(start_idx, block, conds):
     """
     Given a start idx in a block, collect the paths to the next yield.
 
@@ -96,6 +105,9 @@ def collect_paths_to_yield(start_idx, block):
 
     Copies branch nodes and stores their `exitcase` into the test for use later
     (so we know the required condition of this path)
+
+    conds tracks the current condition evaluations along the path (used to
+    prune collections of infeasible paths)
     """
     path = []
     for statement in block.statements[start_idx:]:
@@ -105,14 +117,19 @@ def collect_paths_to_yield(start_idx, block):
     paths = []
     for exit in block.exits:
         _path = path
+        _conds = conds
         if exit.exitcase is not None:
+            if infeasible(conds, exit.exitcase):
+                continue
             assert (len(_path) == 1
                     and isinstance(_path[0], (ast.If, ast.While))), \
                 "Expect branch"
             _path = _path.copy()
             _path[0] = copy.copy(_path[0])
             _path[0].test = exit.exitcase
-        paths.extend(_path + p for p in collect_paths_to_yield(0, exit.target))
+            _conds = conds + [exit.exitcase]
+        paths.extend(_path + p for p in collect_paths_to_yield(0, exit.target,
+                                                               _conds))
     return paths
 
 
@@ -163,7 +180,7 @@ def _coroutine(defn_env, fn):
     for block in cfg:
         for i, statement in enumerate(block.statements):
             if is_yield(statement):
-                paths = collect_paths_to_yield(i + 1, block)
+                paths = collect_paths_to_yield(i + 1, block, [])
                 yield_paths[statement] = paths
                 if not manual_encoding:
                     # Encode by index
@@ -244,7 +261,7 @@ def _coroutine(defn_env, fn):
     # Sequential stage
     reset_type_str = astor.to_source(reset_type).rstrip()
     tree.decorator_list = [ast.parse(
-        f"m.circuit.sequential(reset_type={reset_type_str})"
+        f"m.circuit.sequential2(reset_type={reset_type_str})"
     ).body[0].value]
 
     # print(astor.to_source(tree))

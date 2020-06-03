@@ -35,7 +35,7 @@ def test_uart():
                         if self.i == 7:
                             break
 
-    m.compile("build/UART", UART)
+    m.compile("build/UART", UART, inline=True)
 
     tester = fault.Tester(UART, UART.CLK)
     tester.poke(UART.CLK, 0)
