@@ -12,6 +12,15 @@ from ..ast_utils import get_ast, compile_function_to_file
 from ..bitutils import clog2
 
 
+def is_if_not_true(node):
+    return (
+        isinstance(node, ast.UnaryOp)
+        and isinstance(node.op, ast.Not)
+        and isinstance(node.operand, ast.NameConstant)
+        and node.operand.value is True
+    )
+
+
 class RemoveIfTrues(ast.NodeTransformer):
     """
     Remove `if True:` nodes by replacing them with their body
@@ -21,12 +30,7 @@ class RemoveIfTrues(ast.NodeTransformer):
         node = self.generic_visit(node)
         if isinstance(node.test, ast.NameConstant) and node.test.value is True:
             return node.body
-        elif (
-            isinstance(node.test, ast.UnaryOp)
-            and isinstance(node.test.op, ast.Not)
-            and isinstance(node.test.operand, ast.NameConstant)
-            and node.test.operand.value is True
-        ):
+        elif is_if_not_true(node.test):
             return ast.Pass()
         return node
 
@@ -116,6 +120,9 @@ def collect_paths_to_yield(start_idx, block, conds):
             return [path]
     paths = []
     for exit in block.exits:
+        if is_if_not_true(exit.exitcase):
+            # skip 'if not True:'
+            continue
         _path = path
         _conds = conds
         if exit.exitcase is not None:
@@ -261,7 +268,7 @@ def _coroutine(defn_env, fn):
     # Sequential stage
     reset_type_str = astor.to_source(reset_type).rstrip()
     tree.decorator_list = [ast.parse(
-        f"m.circuit.sequential2(reset_type={reset_type_str})"
+        f"m.circuit.sequential(reset_type={reset_type_str})"
     ).body[0].value]
 
     # print(astor.to_source(tree))
