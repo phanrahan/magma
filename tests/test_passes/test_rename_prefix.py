@@ -2,20 +2,7 @@ import os
 
 
 import magma as m
-from magma.passes import DefinitionPass
-
-
-class InsertPrefix(DefinitionPass):
-    """
-    Insert `prefix` before the names of all circuits
-    """
-
-    def __init__(self, main, prefix):
-        super().__init__(main)
-        self.prefix = prefix
-
-    def __call__(self, definition):
-        type(definition).rename(definition, self.prefix + definition.name)
+from magma.passes import InsertPrefix
 
 
 
@@ -30,7 +17,6 @@ def test_rename_prefix_pass():
     class Main(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
         io.O @= Bar()(io.I)
-
 
     InsertPrefix(Main, "baz_").run()
 
