@@ -7,3 +7,4 @@ See the sidebar for various pages.
 * [Operators](operators.md)
 * [Utility Functions](utility_functions.md)
 * [Mantle Primitives](mantle_primitives.md)
+* [Passes](passes.md)
