@@ -43,4 +43,4 @@ def reduce(operator, bits: Bits):
         raise TypeError("m.reduce only works with Bits")
     if operator not in _OP_MAP:
         raise ValueError(f"{operator} not supported")
-    return OP_MAP[operator](len(bits))()(bits)
+    return _OP_MAP[operator](len(bits))()(bits)
