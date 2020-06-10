@@ -10,7 +10,7 @@ from magma.generator import Generator2
 from magma.t import In, Out
 
 
-def reduce_factory(coreir_name, operator):
+def _reduce_factory(coreir_name, operator):
     class Reduce(Generator2):
         def __init__(self, width: int):
             self.io = IO(I=In(Bits[width]), O=Out(Bit))
@@ -31,16 +31,16 @@ def reduce_factory(coreir_name, operator):
     return Reduce
 
 
-OP_MAP = {
-    operator.and_: reduce_factory("andr", operator.and_),
-    operator.or_: reduce_factory("orr", operator.or_),
-    operator.xor: reduce_factory("xorr", operator.xor)
+_OP_MAP = {
+    operator.and_: _reduce_factory("andr", operator.and_),
+    operator.or_: _reduce_factory("orr", operator.or_),
+    operator.xor: _reduce_factory("xorr", operator.xor)
 }
 
 
 def reduce(operator, bits: Bits):
     if not isinstance(bits, Bits):
         raise TypeError("m.reduce only works with Bits")
-    if operator not in OP_MAP:
+    if operator not in _OP_MAP:
         raise ValueError(f"{operator} not supported")
     return OP_MAP[operator](len(bits))()(bits)
