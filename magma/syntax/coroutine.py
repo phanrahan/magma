@@ -12,14 +12,26 @@ from ..ast_utils import get_ast, compile_function_to_file
 from ..bitutils import clog2
 
 
+def is_if_not_true(node):
+    return (
+        isinstance(node, ast.UnaryOp)
+        and isinstance(node.op, ast.Not)
+        and isinstance(node.operand, ast.NameConstant)
+        and node.operand.value is True
+    )
+
+
 class RemoveIfTrues(ast.NodeTransformer):
     """
     Remove `if True:` nodes by replacing them with their body
+    Remove `if not True:` nodes by replacing them with `pass`
     """
     def visit_If(self, node):
         node = self.generic_visit(node)
         if isinstance(node.test, ast.NameConstant) and node.test.value is True:
             return node.body
+        elif is_if_not_true(node.test):
+            return ast.Pass()
         return node
 
 
@@ -97,7 +109,10 @@ def collect_paths_to_yield(start_idx, block):
     paths = []
     for exit in block.exits:
         _path = path
-        if exit.exitcase is not None:
+        if is_if_not_true(exit.exitcase):
+            # skip 'if not True:'
+            continue
+        elif exit.exitcase is not None:
             assert (len(_path) == 1
                     and isinstance(_path[0], (ast.If, ast.While))), \
                 "Expect branch"
@@ -122,8 +137,7 @@ def get_options(tree):
         if isinstance(stmt, ast.Assign):
             assert len(stmt.targets) == 1 and \
                 isinstance(stmt.targets[0], ast.Name)
-            assert isinstance(stmt.value, ast.NameConstant)
-            class_vars[stmt.targets[0].id] = stmt.value.value
+            class_vars[stmt.targets[0].id] = stmt.value
     return class_vars
 
 
@@ -132,7 +146,12 @@ def _coroutine(defn_env, fn):
     method_name_map = build_method_name_map(tree)
 
     options = get_options(tree)
-    manual_encoding = options.get("_manual_encoding_", False)
+    manual_encoding = options.get("_manual_encoding_", ast.NameConstant(False))
+    if not isinstance(manual_encoding, ast.NameConstant):
+        raise TypeError("_manual_encoding_ should be a boolean literal")
+    manual_encoding = manual_encoding.value
+
+    reset_type = options.get("_reset_type_", ast.parse("m.AsyncReset").body[0])
 
     call_method = method_name_map["__call__"]
     call_method = inline_yield_from_functions(call_method, method_name_map)
@@ -230,8 +249,9 @@ def _coroutine(defn_env, fn):
     call_method = MergeInverseIf().visit(call_method)
 
     # Sequential stage
+    reset_type_str = astor.to_source(reset_type).rstrip()
     tree.decorator_list = [ast.parse(
-        f"m.circuit.sequential(async_reset=True)"
+        f"m.circuit.sequential(reset_type={reset_type_str})"
     ).body[0].value]
 
     # print(astor.to_source(tree))

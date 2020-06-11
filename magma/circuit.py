@@ -203,7 +203,7 @@ def _get_intermediate_values(value):
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
-        if driver.is_output():
+        if not driver.is_input():
             break
         value = driver
         driver = driver.value()
@@ -225,7 +225,7 @@ class CircuitKind(type):
         dct.setdefault('renamed_ports', {})
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
-        dct["inline_verilog_strs"] = []
+        dct.setdefault("inline_verilog_strs", [])
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
         dct["bind_modules_bound"] = False

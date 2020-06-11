@@ -22,6 +22,10 @@ class RTL(m.Generator):
             ready = m.In(m.Bit)
             valid = m.Out(m.Bit)
 
+        class SomeCircuit(m.Circuit):
+            io = m.IO(I=m.In(m.Bits[width]))
+            io.I.unused()
+
         class RTL(m.Circuit):
             io = m.IO(CLK=m.In(m.Clock),
                       in1=m.In(m.Bits[width]),
@@ -39,4 +43,7 @@ class RTL(m.Generator):
             for i in range(3):
                 m.wire(io.handshake_arr[i].valid,
                        io.handshake_arr[2 - i].ready)
+
+            some_circ = SomeCircuit()
+            some_circ.I @= io.in1 ^ io.in2
         return RTL

@@ -2,6 +2,8 @@ from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from .wire import wire
 from magma.bit import Bit
+from magma.array import Array
+from magma.tuple import Tuple
 
 
 class _ClockType(Digital):
@@ -13,7 +15,7 @@ class _ClockType(Digital):
         Bit.unused(self)
 
     def undriven(self):
-        Bit.unused(self)
+        Bit.undriven(self)
 
 
 class Clock(_ClockType, metaclass=DigitalMeta):
@@ -24,8 +26,12 @@ ClockIn = Clock[Direction.In]
 ClockOut = Clock[Direction.Out]
 
 
+class AbstractReset(_ClockType, metaclass=DigitalMeta):
+    pass
+
+
 # synchronous reset, active high (i.e. reset when signal is 1)
-class Reset(_ClockType, metaclass=DigitalMeta):
+class Reset(AbstractReset):
     pass
 
 
@@ -34,7 +40,7 @@ ResetOut = Reset[Direction.Out]
 
 
 # synchronous reset, active low (i.e. reset when signal is 0)
-class ResetN(_ClockType, metaclass=DigitalMeta):
+class ResetN(AbstractReset):
     pass
 
 
@@ -43,7 +49,7 @@ ResetNOut = ResetN[Direction.Out]
 
 
 # asynchronous reset, active high (i.e. reset when signal is 1)
-class AsyncReset(_ClockType, metaclass=DigitalMeta):
+class AsyncReset(AbstractReset):
     pass
 
 
@@ -52,7 +58,7 @@ AsyncResetOut = AsyncReset[Direction.Out]
 
 
 # asynchronous reset, active low (i.e. reset when signal is 0)
-class AsyncResetN(_ClockType, metaclass=DigitalMeta):
+class AsyncResetN(AbstractReset):
     pass
 
 
@@ -69,7 +75,7 @@ class Enable(_ClockType, metaclass=DigitalMeta):
 EnableIn = Enable[Direction.In]
 EnableOut = Enable[Direction.Out]
 
-ClockTypes = (Clock, Reset, AsyncReset, Enable)
+ClockTypes = (Clock, Reset, AsyncReset, AsyncResetN, Enable)
 
 
 def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
@@ -87,16 +93,57 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     return args
 
 
+def wire_clock_port(port, clocktype, defnclk):
+    wired = False
+    if isinstance(port, Tuple):
+        for elem in port:
+            wired |= wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, Array):
+        wired = wire_clock_port(port[0], clocktype, defnclk)
+        # Only traverse all children circuit if first child has a clock
+        if not wired:
+            return False
+        # TODO: Magma doesn't support length zero array, so slicing a
+        # length 1 array off the end doesn't work as expected in normal
+        # Python, so we explicilty slice port.ts
+        for t in port.ts[1:]:
+            for elem in port[1:]:
+              wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, clocktype) and not port.driven():
+        wire(defnclk, port)
+        wired = True
+    return wired
+
+
+def first(iterable):
+    return next((item for item in iterable if item is not None), None)
+
+
+def get_first_clock(port, clocktype):
+    if isinstance(port, clocktype):
+        return port
+    if isinstance(port, Tuple):
+        clks = (get_first_clock(elem, clocktype) for elem in port)
+        return first(clks)
+    if isinstance(port, Array):
+        return get_first_clock(port[0], clocktype)
+    return None
+
+
 def wireclocktype(defn, inst, clocktype):
-    defnclk = []
-    for port in defn.interface.ports.values():
-        if isinstance(port, clocktype) and port.is_output():
-            defnclk += [port]
-    if defnclk:
-        defnclk = defnclk[0]  # wire first clock
-        for port in inst.interface.inputs(include_clocks=True):
-            if isinstance(port, clocktype) and not port.driven():
-                wire(defnclk, port)
+    # Check common case: top level clock port
+    clks = (port if isinstance(port, clocktype) else None
+            for port in defn.interface.ports.values())
+    defnclk = first(clks)
+    if defnclk is None:
+        # Check recursive types
+        clks = (get_first_clock(port, clocktype)
+                for port in defn.interface.ports.values())
+        defnclk = first(clks)
+    if defnclk is None:
+        return
+    for port in inst.interface.inputs(include_clocks=True):
+        wire_clock_port(port, clocktype, defnclk)
 
 
 def wiredefaultclock(defn, inst):

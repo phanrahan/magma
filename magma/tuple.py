@@ -1,6 +1,13 @@
 import itertools
 from collections import OrderedDict
-from hwtypes.adt import TupleMeta, Tuple as Tuple_, Product, ProductMeta
+from hwtypes.adt import (
+    TupleMeta,
+    Tuple as Tuple_,
+    AnonymousProduct,
+    AnonymousProductMeta,
+    Product,
+    ProductMeta,
+)
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
@@ -121,13 +128,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                 if type(t) is bool:
                     t = T(t)
                 self.ts.append(t)
-                if not isinstance(self, Product):
+                if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
         else:
             for k, T in zip(self.keys(), self.types()):
                 t = T(name=TupleRef(self, k))
                 self.ts.append(t)
-                if not isinstance(self, Product):
+                if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
 
     __hash__ = Type.__hash__
@@ -284,6 +291,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    def driving(self):
+        return {k: t.driving() for k, t in self.items()}
+
     @classmethod
     def unflatten(cls, value):
         values = []
@@ -333,55 +343,62 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             mixed |= field.is_mixed()
         return mixed or (input + output + inout) > 1
 
-class ProductKind(ProductMeta, TupleKind, Kind):
+
+def _add_properties(ns, fields):
+    def _make_prop(field_type, idx):
+        @TypedProperty(field_type)
+        def prop(self):
+            return self[idx]
+
+        @prop.setter
+        def prop(self, value):
+            self[idx] = value
+
+        return prop
+
+    for idx, (field_name, field_type) in enumerate(fields.items()):
+        if field_name == "N":
+            # TODO: Make N unreserved
+            raise ValueError("N is a reserved name in Product")
+        assert field_name not in ns
+        ns[field_name] = _make_prop(field_type, idx)
+
+
+class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
     __hash__ = type.__hash__
 
-    def __new__(mcs, name, bases, namespace, cache=True, **kwargs):
-        return super().__new__(mcs, name, bases, namespace, cache, **kwargs)
+    def _from_idx(cls, idx):
+        mcs = type(cls)
 
-    def from_fields(cls, name, fields , cache=True):
-        return super().from_fields(name, fields, cache)
+        try:
+            return mcs._class_cache[cls, idx]
+        except KeyError:
+            pass
 
-    @classmethod
-    def _from_fields(mcs, fields, name, bases, ns, **kwargs):
+        if cls.is_bound:
+            raise TypeError('Type is already bound')
 
-        cls = bases[0]
+        undirected_idx = OrderedFrozenDict(
+            [(k, v.qualify(Direction.Undirected)) for k, v in idx.items()]
+        )
+        if undirected_idx != idx:
+            bases = [cls[undirected_idx]]
+        else:
+            bases = [cls]
+        bases = tuple(bases)
+        class_name = cls._name_from_idx(idx)
 
-        # field_name -> tuple index
-        idx_table = dict((k, i) for i,k in enumerate(fields.keys()))
-
-        def _make_prop(field_type, idx):
-            @TypedProperty(field_type)
-            def prop(self):
-                return self[idx]
-
-            @prop.setter
-            def prop(self, value):
-                self[idx] = value
-
-            return prop
-
+        ns = {'__module__' : cls.__module__}
         # add properties to namespace
         # build properties
-        for field_name, field_type in fields.items():
-            if field_name == "N":
-                # TODO: Make N unreserved
-                raise ValueError("N is a reserved name in Product")
-            assert field_name not in ns
-            idx = idx_table[field_name]
-            ns[field_name] = _make_prop(field_type, idx)
+        _add_properties(ns, idx)
 
-        # this is all really gross but I don't know how to do this cleanly
-        # need to build t so I can call super() in new and init
-        # need to exec to get proper signatures
-        t = TupleKind.__new__(mcs, name, bases, ns, fields=tuple(fields.values()),
-                              **kwargs)
+        t = mcs(class_name, bases, ns, fields=tuple(idx.values()))
+        t._field_table_ = idx
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
-
-        # not strictly necessary could iterative over class dict finding
-        # TypedProperty to reconstruct _field_table_ but that seems bad
-        t._field_table_ = OrderedFrozenDict(fields)
+        mcs._class_cache[cls, idx] = t
+        t._cached_ = True
         return t
 
     def qualify(cls, direction):
@@ -396,8 +413,11 @@ class ProductKind(ProductMeta, TupleKind, Kind):
                                  new_fields.items()):
             return base
 
-        return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
-                                            cls.__name__, (base, ), {})
+        if cls.unbound_t is AnonProduct:
+            return cls.unbound_t._cache_handler(OrderedFrozenDict(new_fields))
+        else:
+            return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
+                                                cls.__name__, (base, ), {})
 
     def flip(cls):
         new_fields = OrderedDict()
@@ -407,18 +427,21 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         for k, v in cls.field_dict.items():
             if not issubclass(new_fields[k], v):
                 base = cls.qualify(Direction.Undirected)
-        return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
-                                            cls.__name__, (base, ), {})
+        if cls.unbound_t is AnonProduct:
+            return cls.unbound_t._cache_handler(OrderedFrozenDict(new_fields))
+        else:
+            return cls.unbound_t._cache_handler(cls.is_cached, new_fields,
+                                                cls.__name__, (base, ), {})
 
     def __eq__(cls, rhs):
-        if not isinstance(rhs, ProductKind):
+        if not isinstance(rhs, AnonProductKind):
             return False
 
         if not cls.is_bound:
             return not rhs.is_bound
 
         for k, v in cls.field_dict.items():
-            if getattr(rhs, k) != v:
+            if getattr(rhs, k) is not v:
                 return False
 
         return True
@@ -435,7 +458,7 @@ class ProductKind(ProductMeta, TupleKind, Kind):
         return s
 
 
-class Product(Tuple, metaclass=ProductKind):
+class AnonProduct(Tuple, metaclass=AnonProductKind):
     @classmethod
     def keys(cls):
         return cls.field_dict.keys()
@@ -455,3 +478,39 @@ class Product(Tuple, metaclass=ProductKind):
             return ts[0].name.tuple
 
         return type(self).flip()(*ts)
+
+
+class ProductKind(ProductMeta, AnonProductKind, Kind):
+    __hash__ = type.__hash__
+
+    def __new__(mcs, name, bases, namespace, cache=True, **kwargs):
+        return super().__new__(mcs, name, bases, namespace, cache, **kwargs)
+
+    def from_fields(cls, name, fields , cache=True):
+        return super().from_fields(name, fields, cache)
+
+    @classmethod
+    def _from_fields(mcs, fields, name, bases, ns, **kwargs):
+
+        cls = bases[0]
+
+        # add properties to namespace
+        # build properties
+        _add_properties(ns, fields)
+
+        # this is all really gross but I don't know how to do this cleanly
+        # need to build t so I can call super() in new and init
+        # need to exec to get proper signatures
+        t = TupleKind.__new__(mcs, name, bases, ns, fields=tuple(fields.values()),
+                              **kwargs)
+        if t._unbound_base_ is None:
+            t._unbound_base_ = cls
+
+        # not strictly necessary could iterative over class dict finding
+        # TypedProperty to reconstruct _field_table_ but that seems bad
+        t._field_table_ = OrderedFrozenDict(fields)
+        return t
+
+
+class Product(AnonProduct, metaclass=ProductKind):
+    pass

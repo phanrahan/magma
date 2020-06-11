@@ -14,19 +14,71 @@
         "type":["Record",[
           ["I","BitIn"],
           ["O","Bit"],
+          ["arr",["Array",2,"BitIn"]],
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
           "FF_inst0":{
             "modref":"global.FF"
+          },
+          "Main_inline_verilog_inst_0":{
+            "modref":"global.Main_inline_verilog_0"
+          },
+          "Main_inline_verilog_inst_1":{
+            "modref":"global.Main_inline_verilog_1"
+          },
+          "_magma_inline_wire0":{
+            "modref":"corebit.wire"
           }
         },
         "connections":[
           ["self.CLK","FF_inst0.CLK"],
           ["self.I","FF_inst0.I"],
-          ["self.O","FF_inst0.O"]
+          ["_magma_inline_wire0.in","FF_inst0.O"],
+          ["self.O","FF_inst0.O"],
+          ["_magma_inline_wire0.out","Main_inline_verilog_inst_0.__magma_inline_value_0"],
+          ["self.I","Main_inline_verilog_inst_0.__magma_inline_value_1"],
+          ["self.arr.0","Main_inline_verilog_inst_1.__magma_inline_value_0"],
+          ["self.arr.1","Main_inline_verilog_inst_1.__magma_inline_value_1"]
+        ]
+      },
+      "Main_inline_verilog_0":{
+        "type":["Record",[
+          ["__magma_inline_value_0","BitIn"],
+          ["__magma_inline_value_1","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.__magma_inline_value_0","corebit_term_inst0.in"],
+          ["self.__magma_inline_value_1","corebit_term_inst1.in"]
         ],
-        "metadata":{"inline_verilog":"\nassert property (@(posedge CLK) I |-> ##1 O);\n"}
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0","__magma_inline_value_1":"self.__magma_inline_value_1"},"str":"\nassert property (@(posedge CLK) {__magma_inline_value_1} |-> ##1 {__magma_inline_value_0});\n"}}
+      },
+      "Main_inline_verilog_1":{
+        "type":["Record",[
+          ["__magma_inline_value_0","BitIn"],
+          ["__magma_inline_value_1","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.__magma_inline_value_0","corebit_term_inst0.in"],
+          ["self.__magma_inline_value_1","corebit_term_inst1.in"]
+        ],
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0","__magma_inline_value_1":"self.__magma_inline_value_1"},"str":"\nassert property (@(posedge CLK) {__magma_inline_value_0} |-> ##1 {__magma_inline_value_1});\n"}}
       }
     }
   }

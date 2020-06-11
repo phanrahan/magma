@@ -10,6 +10,7 @@ def test_ignore_unused_undriven_basic():
     class Main(m.Circuit):
         _ignore_undriven_ = True
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        temp = io.I == 1
 
 
     m.compile("build/test_ignore_unused_undriven_basic", Main, inline=True,

@@ -22,47 +22,32 @@ module TestLog (
     input CLK,
     input CE
 );
-wire FF_inst0_O;
-wire coreir_wrapInClock_inst0_out;
+wire _magma_inline_wire0;
 FF FF_inst0 (
     .I(I),
-    .O(FF_inst0_O),
+    .O(O),
     .CLK(CLK),
     .CE(CE)
 );
-corebit_term corebit_term_inst0 (
-    .in(coreir_wrapInClock_inst0_out)
-);
-corebit_term corebit_term_inst1 (
-    .in(CE)
-);
-coreir_wrap coreir_wrapInClock_inst0 (
-    .in(CLK),
-    .out(coreir_wrapInClock_inst0_out)
-);
-assign O = FF_inst0_O;
+assign _magma_inline_wire0 = O;
 
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1
 `endif
-
 always @(posedge CLK) begin
-    if ((`MAGMA_LOG_LEVEL <= 0) && (CE)) $display("[DEBUG] ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+    if ((`MAGMA_LOG_LEVEL <= 0) && (CE)) $display("[DEBUG] ff.O=%d, ff.I=%d", _magma_inline_wire0, I);
 end
 
-
 always @(posedge CLK) begin
-    if ((`MAGMA_LOG_LEVEL <= 1) && (CE)) $display("[INFO] ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+    if ((`MAGMA_LOG_LEVEL <= 1) && (CE)) $display("[INFO] ff.O=%d, ff.I=%d", _magma_inline_wire0, I);
 end
 
-
 always @(posedge CLK) begin
-    if ((`MAGMA_LOG_LEVEL <= 2) && (CE)) $display("[WARNING] ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+    if ((`MAGMA_LOG_LEVEL <= 2) && (CE)) $display("[WARNING] ff.O=%d, ff.I=%d", _magma_inline_wire0, I);
 end
 
-
 always @(posedge CLK) begin
-    if ((`MAGMA_LOG_LEVEL <= 3) && (CE)) $display("[ERROR] ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+    if ((`MAGMA_LOG_LEVEL <= 3) && (CE)) $display("[ERROR] ff.O=%d, ff.I=%d", _magma_inline_wire0, I);
 end
 
 endmodule

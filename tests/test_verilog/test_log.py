@@ -18,18 +18,19 @@ endmodule
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO(has_enable=True)
         ff = FF()
         io.O @= ff(io.I)
-        m.log.debug("ff.O=%d, ff.I=%d", ff.O, ff.I).when(m.posedge(io.CLK))\
+        m.log.debug("ff.O=%d, ff.I=%d", ff.O, ff.I.value()).when(m.posedge(io.CLK))\
                                                    .if_(io.CE)
-        m.log.info("ff.O=%d, ff.I=%d", ff.O, ff.I).when(m.posedge(io.CLK))\
+        m.log.info("ff.O=%d, ff.I=%d", ff.O, ff.I.value()).when(m.posedge(io.CLK))\
                                                   .if_(io.CE)
-        m.log.warning("ff.O=%d, ff.I=%d", ff.O, ff.I).when(m.posedge(io.CLK))\
+        m.log.warning("ff.O=%d, ff.I=%d", ff.O, ff.I.value()).when(m.posedge(io.CLK))\
                                                      .if_(io.CE)
-        m.log.error("ff.O=%d, ff.I=%d", ff.O, ff.I).when(m.posedge(io.CLK))\
+        m.log.error("ff.O=%d, ff.I=%d", ff.O, ff.I.value()).when(m.posedge(io.CLK))\
                                                    .if_(io.CE)
 
-    m.compile("build/TestLog", TestLog)
+    m.compile("build/TestLog", TestLog, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestLog.v')
+                         'verilator --lint-only TestLog.v '
+                         '--top-module TestLog')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestLog.v",
                                        f"gold/TestLog.v")
@@ -149,22 +150,23 @@ endmodule
         ff = FF()
         io.O @= ff(io.I)
         with m.File("test_flog.log", "a") as log_file:
-            m.log.debug("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+            m.log.debug("ff.O=%d, ff.I=%d", ff.O, ff.I.value(), file=log_file)\
                 .when(m.posedge(io.CLK))\
                 .if_(io.CE)
-            m.log.info("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+            m.log.info("ff.O=%d, ff.I=%d", ff.O, ff.I.value(), file=log_file)\
                 .when(m.posedge(io.CLK))\
                 .if_(io.CE)
-            m.log.warning("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+            m.log.warning("ff.O=%d, ff.I=%d", ff.O, ff.I.value(), file=log_file)\
                 .when(m.posedge(io.CLK))\
                 .if_(io.CE)
-            m.log.error("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file)\
+            m.log.error("ff.O=%d, ff.I=%d", ff.O, ff.I.value(), file=log_file)\
                 .when(m.posedge(io.CLK))\
                 .if_(io.CE)
 
-    m.compile("build/TestFLog", TestFLog)
+    m.compile("build/TestFLog", TestFLog, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestFLog.v')
+                         'verilator --lint-only TestFLog.v '
+                         '--top-module TestFLog')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestFLog.v",
                                        f"gold/TestFLog.v")

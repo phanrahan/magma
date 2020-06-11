@@ -350,6 +350,9 @@ class Array(Type, metaclass=ArrayMeta):
                 return False
         return True
 
+    def driving(self):
+        return [t.driving() for t in self]
+
     def wired(self):
         for t in self.ts:
             if not t.wired():
@@ -400,7 +403,7 @@ class Array(Type, metaclass=ArrayMeta):
         if Array._iswhole(ts):
             return ts[0].name.array
 
-        return type(self).flip()(*ts)
+        return type(self).flip()(ts)
 
     def value(self):
         ts = [t.value() for t in self.ts]
@@ -412,7 +415,7 @@ class Array(Type, metaclass=ArrayMeta):
         if Array._iswhole(ts):
             return ts[0].name.array
 
-        return type(self).flip()(*ts)
+        return type(self).flip()(ts)
 
     def const(self):
         for t in self.ts:

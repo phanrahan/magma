@@ -22,34 +22,21 @@ module TestFDisplay (
     input CLK,
     input CE
 );
-wire FF_inst0_O;
-wire coreir_wrapInClock_inst0_out;
+wire _magma_inline_wire0;
 FF FF_inst0 (
     .I(I),
-    .O(FF_inst0_O),
+    .O(O),
     .CLK(CLK),
     .CE(CE)
 );
-corebit_term corebit_term_inst0 (
-    .in(coreir_wrapInClock_inst0_out)
-);
-corebit_term corebit_term_inst1 (
-    .in(CE)
-);
-coreir_wrap coreir_wrapInClock_inst0 (
-    .in(CLK),
-    .out(coreir_wrapInClock_inst0_out)
-);
-assign O = FF_inst0_O;
+assign _magma_inline_wire0 = O;
 
 integer \_file_test_fdisplay.log ;
 initial \_file_test_fdisplay.log = $fopen("test_fdisplay.log", "a");
 
-
 always @(posedge CLK) begin
-    if (CE) $fdisplay(\_file_test_fdisplay.log , "ff.O=%d, ff.I=%d", FF_inst0.O, FF_inst0.I);
+    if (CE) $fdisplay(\_file_test_fdisplay.log , "ff.O=%d, ff.I=%d", _magma_inline_wire0, I);
 end
-
 
 
 final $fclose(\_file_test_fdisplay.log );

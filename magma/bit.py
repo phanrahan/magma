@@ -183,7 +183,10 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def unused(self):
         if self.is_input() or self.is_inout():
             raise TypeError("unused cannot be used with input/inout")
-        DefineUnused()().I.wire(self)
+        if not getattr(self, "_magma_unused_", False):
+            DefineUnused()().I.wire(self)
+            # "Cache" unused calls so only one is produced
+            self._magma_unused_ = True
 
     def undriven(self):
         if self.is_output() or self.is_inout():
@@ -211,6 +214,10 @@ def make_Define(_name, port, direction):
 
 DefineUndriven = make_Define("undriven", "O", Out)
 DefineUnused = make_Define("term", "I", In)
+
+# Hack to avoid circular dependency
+Digital.unused = Bit.unused
+Digital.undriven = Bit.undriven
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]

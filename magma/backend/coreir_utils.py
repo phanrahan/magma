@@ -3,8 +3,8 @@ import json
 from hwtypes import BitVector
 from ..array import Array
 from ..bit import Digital
-from ..clock import Clock, AsyncReset, AsyncResetN
-from ..ref import ArrayRef, DefnRef, TupleRef, InstRef
+from ..clock import Clock, AsyncReset, AsyncResetN, ClockTypes
+from ..ref import ArrayRef, DefnRef, TupleRef, InstRef, NamedRef, PortViewRef
 from ..tuple import Tuple
 from ..protocol_type import MagmaProtocol
 from .util import make_relative
@@ -35,7 +35,11 @@ def magma_name_to_coreir_select(name):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)
         key_name = _tuple_key_to_string(name.index)
         return f"{tuple_name}.{key_name}"
-    raise NotImplementedError(name)
+    if isinstance(name, PortViewRef):
+        # get select in its container definition
+        inner_select = magma_name_to_coreir_select(name.view.port.name)
+        return name.view.get_hierarchical_coreir_select() + inner_select
+    raise NotImplementedError((name, type(name)))
 
 
 def magma_port_to_coreir_port(port):
@@ -133,7 +137,7 @@ def make_cparams(context, params):
 
 
 def is_clock_or_nested_clock(p):
-    if issubclass(p, Clock):
+    if issubclass(p, ClockTypes):
         return True
     if issubclass(p, Array):
         return is_clock_or_nested_clock(p.T)
@@ -183,10 +187,6 @@ def get_inst_args(inst):
         else:
             args[name] = value
     return args
-
-
-def is_const(array):
-    return all(x.const() for x in array)
 
 
 def constant_to_value(constant):

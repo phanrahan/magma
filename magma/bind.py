@@ -1,10 +1,18 @@
 import os
+from magma.bit import Bit
+from magma.bits import Bits
 from magma.array import Array
 from magma.config import get_compile_dir, set_compile_dir
 from magma.digital import Digital
 from magma.passes.passes import CircuitPass
+from magma.passes.insert_coreir_wires import Wire
 from magma.tuple import Tuple
 from magma.verilog_utils import value_to_verilog_name
+from magma.t import Direction
+from magma.conversions import from_bits, as_bits
+from magma.view import PortView, InstView
+from magma.wire import wire
+from magma.inline_verilog import _get_view_inst_parent
 
 
 def _gen_bind_port(cls, mon_arg, bind_arg):
@@ -17,6 +25,19 @@ def _gen_bind_port(cls, mon_arg, bind_arg):
     port = value_to_verilog_name(mon_arg)
     arg = value_to_verilog_name(bind_arg)
     return [(f".{port}({arg})")]
+
+
+def _wire_temp(bind_arg, temp):
+    if bind_arg.is_mixed():
+        for x, y in zip(bind_arg, temp):
+            _wire_temp(x, y)
+        return
+    if bind_arg.is_input():
+        bind_arg = bind_arg.value()
+        if bind_arg is None:
+            raise ValueError("Cannot bind undriven input")
+    assert bind_arg.is_output()
+    wire(bind_arg, temp)
 
 
 def _bind(cls, monitor, compile_fn, *args):
@@ -36,6 +57,30 @@ Bind monitor interface does not match circuit interface
         monitor.interface.ports.values()
     )[len(cls.interface):]
     for mon_arg, bind_arg in zip(extra_mon_args, args):
+        if isinstance(bind_arg, PortView):
+            T = type(bind_arg.port)
+            parent = _get_view_inst_parent(bind_arg).parent
+            if isinstance(parent, InstView):
+                defn = parent.circuit
+            else:
+                assert isinstance(parent, Circuit)
+                defn = type(parent)
+            driver = bind_arg.port
+        else:
+            T = type(bind_arg)
+            defn = cls
+            driver = bind_arg
+        with defn.open():
+            if not hasattr(defn, "num_bind_wires"):
+                defn.num_bind_wires = 0
+            name = f"_magma_bind_wire_{defn.num_bind_wires}"
+            defn.num_bind_wires += 1
+            temp = T.qualify(Direction.Undirected)(name=name)
+            _wire_temp(driver, temp)
+            temp.unused()
+        if isinstance(bind_arg, PortView):
+            temp = PortView[type(temp)](temp, bind_arg.parent.parent)
+        bind_arg = temp
         ports += _gen_bind_port(cls, mon_arg, bind_arg)
     ports_str = ",\n    ".join(ports)
     bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa

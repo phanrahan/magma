@@ -179,12 +179,14 @@ def test_wire():
     assert a0.trace() is None, "Cannot trace to input"
     assert a1.trace() is None, "Cannot trace to input"
 
-    assert a0.value() is None, "No value"
     assert a1.value() is a0
+    assert a0.value() is a1
+
+    assert a0.driving() == [[a1[0]], [a1[1]]]
 
     b0 = a0[0]
     b1 = a1[0]
 
     assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b1 is b0._wire.driving()[0]
     assert b1.value() is b0

@@ -153,14 +153,16 @@ def test_wire():
     assert t0.wired()
     assert t1.wired()
 
-    assert t0.value() is None
     assert t1.value() is t0
+    assert t0.value() is t1
+
+    assert t0.driving() == dict(x=[t1.x], y=[t1.y])
 
     b0 = t0.x
     b1 = t1.x
 
     assert b0 is b1._wire.driver.bit
-    assert b1 is b0._wire.driving[0].bit
+    assert b1 is b0._wire.driving()[0]
     assert b1.value() is b0
 
 
@@ -265,3 +267,19 @@ def test_tuple_nested_tuple_value():
 def test_flat_length():
     a = m.Product.from_fields("anon", dict(x=m.Bits[5], y=m.Bits[3], z=m.Bit))
     assert a.flat_length() == 9
+
+
+def test_anon_product():
+    product = m.Product.from_fields("anon", dict(x=m.Bits[5], y=m.Bits[3], z=m.Bit))
+    assert isinstance(product, AnonymousProductMeta)
+    assert isinstance(product, ProductMeta)
+
+    anon_product = m.AnonProduct[dict(x=m.Bits[5], y=m.Bits[3], z=m.Bit)]
+    assert isinstance(anon_product, AnonymousProductMeta)
+    assert not isinstance(anon_product, ProductMeta)
+    assert anon_product.flat_length() == product.flat_length()
+    assert anon_product.x == product.x
+    assert anon_product.y == product.y
+    assert anon_product.z == product.z
+    assert anon_product == product
+    assert not anon_product is product

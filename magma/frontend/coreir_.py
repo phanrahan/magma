@@ -12,6 +12,10 @@ def GetCoreIRBackend():
 def GetMagmaContext():
     return CoreIRContextSingleton().get_instance()
 
+def ResetCoreIR():
+    CoreIRContextSingleton().reset_instance()
+    backend = GetCoreIRBackend()
+    backend.reset()
 
 _coreirNamedTypeToPortDict = {
     "clk": Clock,

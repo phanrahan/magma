@@ -5,7 +5,7 @@ from ..clock import AsyncReset, AsyncResetN, Clock
 from ..conversions import convertbit
 from ..config import config, EnvConfig
 from ..logging import root_logger
-from ..t import In, Out
+from ..t import In, Out, Direction
 from .. import singleton
 from ..circuit import Circuit
 from ..interface import IO
@@ -46,6 +46,9 @@ _context_to_modules = {}
 
 class CoreIRBackend:
     def __init__(self, context=None):
+        self.__init(context)
+
+    def __init(self, context):
         singleton = CoreIRContextSingleton().get_instance()
         if context is None:
             context = singleton
@@ -58,6 +61,9 @@ class CoreIRBackend:
         self.libs_used = set()
         self.constant_cache = {}
         self.sv_bind_files = {}
+
+    def reset(self):
+        self.__init(context=None)
 
     def compile(self, defn_or_decl):
         _logger.debug(f"Compiling: {defn_or_decl.name}")
@@ -82,28 +88,41 @@ class InsertWrapCasts(DefinitionPass):
         return Wrap
 
     def wrap_if_named_type(self, port, definition):
-        if isinstance(port, (Array, Tuple)):
+        if isinstance(port, Tuple):
+            wrapped = False
             for t in port:
+                wrapped |= self.wrap_if_named_type(t, definition)
+            return wrapped
+        if isinstance(port, Array):
+            wrapped = self.wrap_if_named_type(port[0], definition)
+            if not wrapped:
+                return False
+            # TODO: Magma doesn't support length zero array, so slicing a
+            # length 1 array off the end doesn't work as expected in normal
+            # Python, so we explicilty slice port.ts
+            for t in port.ts[1:]:
                 self.wrap_if_named_type(t, definition)
-            return
+            return True
         if not port.is_input():
-            return
+            return False
+        value = port.value()
         if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
-                isinstance(port.trace(), (AsyncReset, AsyncResetN, Clock))):
-            return
-        value = port.trace()
-        if value is None or issubclass(type(value), type(port).flip()):
-            return
+                isinstance(value, (AsyncReset, AsyncResetN, Clock))):
+            return False
+        undirected_t = type(port).qualify(Direction.Undirected)
+        if value is None or issubclass(type(value), undirected_t):
+            return False
         if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
-            T = type(port).flip()
+            T = Out(type(port))
         else:
-            T = type(value).flip()
+            T = In(type(value))
 
         with definition.open():
             port.unwire(value)
             inst = self.define_wrap(T, type(port), type(value))()
-            wire(getattr(inst, "in"), convertbit(value, type(port)))
+            wire(convertbit(value, type(port)), getattr(inst, "in"))
             wire(inst.out, convertbit(port, type(value)))
+        return True
 
     def __call__(self, definition):
         # copy, because wrapping might add instances

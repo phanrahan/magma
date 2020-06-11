@@ -124,7 +124,7 @@ def convertbits(value, n, totype, checkbit):
             ts = n * [value]
         else:
             # zext
-            ts = [Bit(0) for _ in range(n - 1)] + [value]
+            ts = [value] + [Bit(0) for _ in range(n - 1)]
     else:
         ts = [value[i] for i in range(len(value))]
 
@@ -163,7 +163,7 @@ def convertbits(value, n, totype, checkbit):
             Direction.InOut: InOut
         }[T.direction](Bit)
 
-    return totype[len(Ts), T](*ts)
+    return totype[len(Ts), T](ts)
 
 
 def array(value, n=None):

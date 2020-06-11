@@ -11,7 +11,8 @@ class RTLMonitor(m.MonitorGenerator):
             io = m.IO(**m.make_monitor_ports(circuit),
                       mon_temp1=m.In(m.Bit),
                       mon_temp2=m.In(m.Bit),
-                      intermediate_tuple=m.In(m.Tuple[m.Bit, m.Bit]))
+                      intermediate_tuple=m.In(m.Tuple[m.Bit, m.Bit]),
+                      inst_input=m.In(m.Bits[width]))
 
             # NOTE: Needs to have a name
             arr_2d = m.Array[2, m.Bits[width]](name="arr_2d")
@@ -20,17 +21,18 @@ class RTLMonitor(m.MonitorGenerator):
             m.inline_verilog("""
 logic temp1, temp2;
 logic temp3;
-assign temp1 = |(in1);
-assign temp2 = &(in1) & {io.intermediate_tuple[0]};
+assign temp1 = |({io.in1});
+assign temp2 = &({io.in1}) & {io.intermediate_tuple[0]};
 assign temp3 = temp1 ^ temp2 & {arr_2d[0][1]};
-assert property (@(posedge CLK) {valid} -> out === temp1 && temp2);
+assert property (@(posedge {io.CLK}) {valid} -> {io.out} === temp1 && temp2);
 logic [{width-1}:0] temp4 [1:0];
 assign temp4 = {arr_2d};
+always @(*) $display("%x", {io.inst_input});
                                    """,
                                    valid=io.handshake.valid)
 
         circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2,
-                     circuit.intermediate_tuple)
+                     circuit.intermediate_tuple, circuit.some_circ.I)
 
 
 RTL.bind(RTLMonitor)

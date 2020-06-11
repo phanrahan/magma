@@ -8,24 +8,45 @@
           ["O0","Bit"],
           ["O1","Bit"]
         ]],
+        "instances":{
+          "corebit_undriven_inst0":{
+            "modref":"corebit.undriven"
+          }
+        },
         "connections":[
+          ["self.O0","corebit_undriven_inst0.out"],
           ["self.O1","self.I0"]
         ]
       },
       "Main":{
         "type":["Record",[
-          ["I0","BitIn"],
+          ["I0",["Array",2,"BitIn"]],
+          ["I1",["Array",2,"BitIn"]],
           ["O0","Bit"],
           ["O1","Bit"]
         ]],
         "instances":{
           "Foo_inst0":{
             "modref":"global.Foo"
+          },
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_undriven_inst0":{
+            "modref":"corebit.undriven"
+          },
+          "magma_Bits_2_eq_inst0":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
           }
         },
         "connections":[
-          ["self.I0","Foo_inst0.I0"],
-          ["self.O0","Foo_inst0.O0"]
+          ["magma_Bits_2_eq_inst0.out","Foo_inst0.I0"],
+          ["self.O0","Foo_inst0.O0"],
+          ["corebit_term_inst0.in","Foo_inst0.O1"],
+          ["self.O1","corebit_undriven_inst0.out"],
+          ["self.I0","magma_Bits_2_eq_inst0.in0"],
+          ["self.I1","magma_Bits_2_eq_inst0.in1"]
         ]
       }
     }

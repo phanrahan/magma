@@ -4,20 +4,26 @@ import json
 import logging
 import os
 from ..array import Array
+from ..bits import Bits
 from ..clock import wiredefaultclock, wireclock
 from coreir import Wireable
 from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            check_magma_interface, constant_to_value,
                            get_inst_args, get_module_of_inst,
-                           is_clock_or_nested_clock, is_const,
+                           is_clock_or_nested_clock,
                            magma_interface_to_coreir_module_type,
-                           magma_port_to_coreir_port, make_cparams, map_genarg)
+                           magma_port_to_coreir_port, make_cparams,
+                           map_genarg, magma_name_to_coreir_select)
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
+from magma.config import get_debug_mode
+
+from magma.ref import PortViewRef
+from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -83,21 +89,19 @@ class DefnOrDeclTransformer(TransformerBase):
 
 
 class InstanceTransformer(LeafTransformer):
-    def __init__(self, backend, inst, defn, wire_clocks=True):
+    def __init__(self, backend, inst, defn):
         super().__init__(backend)
         self.inst = inst
         self.defn = defn
-        self.wire_clocks = wire_clocks
         self.coreir_inst_gen = None
 
     def run_self(self):
         self.coreir_inst_gen = self.run_self_impl()
 
     def run_self_impl(self):
-        _logger.debug(f"Compiling instance {(self.inst.name, type(self.inst))}")
-        if self.wire_clocks:
-            wiredefaultclock(self.defn, self.inst)
-            wireclock(self.defn, self.inst)
+        _logger.debug(
+            f"Compiling instance {(self.inst.name, type(self.inst).name)}"
+        )
         defn = type(self.inst)
         lib = self.backend.libs[self.inst.coreir_lib]
         if self.inst.coreir_genargs is None:
@@ -133,6 +137,12 @@ class DefinitionTransformer(TransformerBase):
             inst: InstanceTransformer(self.backend, inst, self.defn)
             for inst in self.defn.instances
         }
+        self.clocks = {}
+        for clock_type in ClockTypes:
+            self.clocks[clock_type] = first(
+                get_first_clock(port, clock_type)
+                for port in defn.interface.ports.values()
+            )
 
     def children(self):
         pass_ = InstanceGraphPass(self.defn)
@@ -147,9 +157,16 @@ class DefinitionTransformer(TransformerBase):
         _logger.debug(f"Compiling definition {self.defn}")
         self.coreir_module = self.decl_tx.coreir_module
         if self.defn.inline_verilog_strs:
-            inline_verilog = "\n\n".join(self.defn.inline_verilog_strs)
-            self.coreir_module.add_metadata("inline_verilog",
-                                            json.dumps(inline_verilog))
+            inline_verilog = "\n\n".join(x[0] for x in
+                                         self.defn.inline_verilog_strs)
+            connect_references = {}
+            for _, inline_value_map in self.defn.inline_verilog_strs:
+                for key, value in inline_value_map.items():
+                    connect_references[key] = magma_port_to_coreir_port(value)
+            self.coreir_module.add_metadata("inline_verilog", json.dumps(
+                {"str": inline_verilog,
+                 "connect_references": connect_references}
+            ))
         for name, module in self.defn.bind_modules.items():
             self.backend.sv_bind_files[name] = module
 
@@ -194,9 +211,15 @@ class DefinitionTransformer(TransformerBase):
             self.connect(module_defn, port, port.trace(), non_input_ports)
 
     def connect(self, module_defn, port, value, non_input_ports):
-        # Allow Clock or Array[Clock] to be unwired as CoreIR can wire them up.
         if value is None and is_clock_or_nested_clock(type(port)):
-            return
+            for type_, default_driver in self.clocks.items():
+                if isinstance(port, type_) and default_driver is not None:
+                    wire_clock_port(port, type_, default_driver)
+                    value = port.value()
+                    break
+            else:
+                # No default clock
+                return
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
@@ -207,7 +230,7 @@ class DefinitionTransformer(TransformerBase):
         def get_source():
             if isinstance(value, Wireable):
                 return value
-            if isinstance(value, Array) and is_const(value):
+            if isinstance(value, Bits) and value.const():
                 return self.const_instance(value, len(value), module_defn)
             if value.anon() and isinstance(value, Array):
                 for p, v in zip(port, value):
@@ -219,6 +242,9 @@ class DefinitionTransformer(TransformerBase):
                 return None
             if value.const():
                 return self.const_instance(value, None, module_defn)
+            if isinstance(value.name, PortViewRef):
+                return module_defn.select(
+                    magma_name_to_coreir_select(value.name))
             return module_defn.select(non_input_ports[value])
         source = get_source()
         if not source:
@@ -273,7 +299,8 @@ class DeclarationTransformer(LeafTransformer):
         if self.decl.name in self.backend.modules:
             _logger.debug(f"{self.decl} already compiled, skipping")
             return self.backend.modules[self.decl.name]
-        check_magma_interface(self.decl.interface)
+        if get_debug_mode():
+            check_magma_interface(self.decl.interface)
         module_type = magma_interface_to_coreir_module_type(
             self.backend.context, self.decl.interface)
         if isinstance(self.decl.interface, InterfaceKind):

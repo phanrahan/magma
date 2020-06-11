@@ -16,7 +16,7 @@ from .bit import Bit
 from .array import Array, ArrayMeta
 from .debug import debug_wire
 from .t import Type, Direction, In, Out
-from magma.circuit import Circuit, coreir_port_mapping, DeclareCoreirCircuit
+from magma.circuit import Circuit, coreir_port_mapping, IO
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
@@ -522,7 +522,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def unused(self):
         if self.is_input() or self.is_inout():
             raise TypeError("unused cannot be used with input/inout")
-        DefineUnused(len(self))().I.wire(self)
+        if not getattr(self, "_magma_unused_", False):
+            DefineUnused(len(self))().I.wire(self)
+            # "Cache" unused calls so only one is produced
+            self._magma_unused_ = True
 
     def undriven(self):
         if self.is_output() or self.is_inout():
@@ -531,27 +534,28 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def __getitem__(self, index):
         if isinstance(index, Bits):
-            if not 2 ** len(index) == len(self):
+            if len(index) > len(self):
                 raise TypeError(f"Unexpected index width: {len(index)}")
-            index = index.zext(len(self) - len(index))
+            if len(index) < len(self):
+                index = index.zext(len(self) - len(index))
             return (self >> index)[0]
         return super().__getitem__(index)
 
 
-def make_Define(name, port, direction):
-    def simulate(self, value_store, state_store):
-        pass
-
+def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
     def Define(width):
-        return DeclareCoreirCircuit(
-            name,
-            port, direction(Bits[width]),
-            coreir_name=name,
-            coreir_lib="coreir",
-            coreir_genargs={"width": width},
-            simulate=simulate
-        )
+        class _Circuit(Circuit):
+            renamed_ports = coreir_port_mapping
+            name = _name
+            io = IO(**{port: direction(Bits[width])})
+            coreir_name = _name
+            coreir_lib = "coreir"
+            coreir_genargs = {"width": width}
+            def simulate(self, value_store, state_store):
+                pass
+
+        return _Circuit
     return Define
 
 

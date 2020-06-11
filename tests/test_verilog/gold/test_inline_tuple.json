@@ -9,11 +9,19 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
+          "_magma_inline_wire2":{
+            "modref":"corebit.wire"
+          },
+          "_magma_inline_wire3":{
+            "modref":"corebit.wire"
+          },
           "inner_delay":{
             "modref":"global.InnerDelayUnit"
           }
         },
         "connections":[
+          ["inner_delay.OUTPUT.0.valid","_magma_inline_wire2.in"],
+          ["inner_delay.INPUT.1.ready","_magma_inline_wire3.in"],
           ["self.CLK","inner_delay.CLK"],
           ["self.INPUT.1.data","inner_delay.INPUT.0.data"],
           ["self.INPUT.1.ready","inner_delay.INPUT.0.ready"],
@@ -36,11 +44,19 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
+          "_magma_inline_wire4":{
+            "modref":"corebit.wire"
+          },
+          "_magma_inline_wire5":{
+            "modref":"corebit.wire"
+          },
           "inner_inner_delay":{
             "modref":"global.InnerInnerDelayUnit"
           }
         },
         "connections":[
+          ["inner_inner_delay.OUTPUT.0.valid","_magma_inline_wire4.in"],
+          ["inner_inner_delay.INPUT.1.ready","_magma_inline_wire5.in"],
           ["self.INPUT.1.data","inner_inner_delay.INPUT.0.data"],
           ["self.INPUT.1.ready","inner_inner_delay.INPUT.0.ready"],
           ["self.INPUT.1.valid","inner_inner_delay.INPUT.0.valid"],
@@ -70,11 +86,34 @@
         "instances":{
           "DelayUnit_inst0":{
             "modref":"global.DelayUnit"
+          },
+          "Main_inline_verilog_inst_0":{
+            "modref":"global.Main_inline_verilog_0"
+          },
+          "Main_inline_verilog_inst_1":{
+            "modref":"global.Main_inline_verilog_1"
+          },
+          "Main_inline_verilog_inst_2":{
+            "modref":"global.Main_inline_verilog_2"
+          },
+          "Main_inline_verilog_inst_3":{
+            "modref":"global.Main_inline_verilog_3"
+          },
+          "_magma_inline_wire0":{
+            "modref":"corebit.wire"
+          },
+          "_magma_inline_wire1":{
+            "modref":"corebit.wire"
           }
         },
         "connections":[
+          ["Main_inline_verilog_inst_2.__magma_inline_value_0","DelayUnit_inst0;_magma_inline_wire2.out"],
+          ["Main_inline_verilog_inst_2.__magma_inline_value_1","DelayUnit_inst0;_magma_inline_wire3.out"],
+          ["Main_inline_verilog_inst_3.__magma_inline_value_0","DelayUnit_inst0;inner_delay;_magma_inline_wire4.out"],
+          ["Main_inline_verilog_inst_3.__magma_inline_value_1","DelayUnit_inst0;inner_delay;_magma_inline_wire5.out"],
           ["self.CLK","DelayUnit_inst0.CLK"],
           ["self.I.1.data","DelayUnit_inst0.INPUT.0.data"],
+          ["_magma_inline_wire1.in","DelayUnit_inst0.INPUT.0.ready"],
           ["self.I.1.ready","DelayUnit_inst0.INPUT.0.ready"],
           ["self.I.1.valid","DelayUnit_inst0.INPUT.0.valid"],
           ["self.I.0.data","DelayUnit_inst0.INPUT.1.data"],
@@ -85,9 +124,89 @@
           ["self.O.1.valid","DelayUnit_inst0.OUTPUT.0.valid"],
           ["self.O.0.data","DelayUnit_inst0.OUTPUT.1.data"],
           ["self.O.0.ready","DelayUnit_inst0.OUTPUT.1.ready"],
-          ["self.O.0.valid","DelayUnit_inst0.OUTPUT.1.valid"]
+          ["_magma_inline_wire0.in","DelayUnit_inst0.OUTPUT.1.valid"],
+          ["self.O.0.valid","DelayUnit_inst0.OUTPUT.1.valid"],
+          ["self.I.0.valid","Main_inline_verilog_inst_0.__magma_inline_value_0"],
+          ["self.O.1.ready","Main_inline_verilog_inst_0.__magma_inline_value_1"],
+          ["_magma_inline_wire0.out","Main_inline_verilog_inst_1.__magma_inline_value_0"],
+          ["_magma_inline_wire1.out","Main_inline_verilog_inst_1.__magma_inline_value_1"]
+        ]
+      },
+      "Main_inline_verilog_0":{
+        "type":["Record",[
+          ["__magma_inline_value_0","BitIn"],
+          ["__magma_inline_value_1","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.__magma_inline_value_0","corebit_term_inst0.in"],
+          ["self.__magma_inline_value_1","corebit_term_inst1.in"]
         ],
-        "metadata":{"inline_verilog":"assert property (@(posedge CLK) I_0_valid |-> ##3 O_1_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.INPUT_1_valid |-> ##3 DelayUnit_inst0.OUTPUT_0_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.OUTPUT_1_ready);\n\nassert property (@(posedge CLK) DelayUnit_inst0.inner_delay.inner_inner_delay.INPUT_0_valid |-> ##3 DelayUnit_inst0.inner_delay.inner_inner_delay.OUTPUT_1_ready);"}
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0","__magma_inline_value_1":"self.__magma_inline_value_1"},"str":"assert property (@(posedge CLK) {__magma_inline_value_0} |-> ##3 {__magma_inline_value_1});"}}
+      },
+      "Main_inline_verilog_1":{
+        "type":["Record",[
+          ["__magma_inline_value_0","BitIn"],
+          ["__magma_inline_value_1","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.__magma_inline_value_0","corebit_term_inst0.in"],
+          ["self.__magma_inline_value_1","corebit_term_inst1.in"]
+        ],
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0","__magma_inline_value_1":"self.__magma_inline_value_1"},"str":"assert property (@(posedge CLK) {__magma_inline_value_0} |-> ##3 {__magma_inline_value_1});"}}
+      },
+      "Main_inline_verilog_2":{
+        "type":["Record",[
+          ["__magma_inline_value_0","BitIn"],
+          ["__magma_inline_value_1","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.__magma_inline_value_0","corebit_term_inst0.in"],
+          ["self.__magma_inline_value_1","corebit_term_inst1.in"]
+        ],
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0","__magma_inline_value_1":"self.__magma_inline_value_1"},"str":"assert property (@(posedge CLK) {__magma_inline_value_0} |-> ##3 {__magma_inline_value_1});"}}
+      },
+      "Main_inline_verilog_3":{
+        "type":["Record",[
+          ["__magma_inline_value_0","BitIn"],
+          ["__magma_inline_value_1","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
+          "corebit_term_inst1":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.__magma_inline_value_0","corebit_term_inst0.in"],
+          ["self.__magma_inline_value_1","corebit_term_inst1.in"]
+        ],
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0","__magma_inline_value_1":"self.__magma_inline_value_1"},"str":"assert property (@(posedge CLK) {__magma_inline_value_0} |-> ##3 {__magma_inline_value_1});"}}
       }
     }
   }

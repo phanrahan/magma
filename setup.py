@@ -1,12 +1,11 @@
 from setuptools import setup
-import sys
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='magma-lang',
-    version='2.0.34',
+    version='2.0.56',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',

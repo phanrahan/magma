@@ -18,11 +18,12 @@ endmodule
         ff = FF()
         io.O @= ff(io.I)
         m.display("%0t: ff.O=%d, ff.I=%d", m.time(), ff.O,
-                  ff.I).when(m.posedge(io.CLK)).if_(io.CE)
+                  io.I).when(m.posedge(io.CLK)).if_(io.CE)
 
-    m.compile("build/TestDisplay", TestDisplay)
+    m.compile("build/TestDisplay", TestDisplay, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestDisplay.v')
+                         'verilator --lint-only TestDisplay.v '
+                         '--top-module TestDisplay')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestDisplay.v",
                                        f"gold/TestDisplay.v")
@@ -75,12 +76,13 @@ endmodule
         ff = FF()
         io.O @= ff(io.I)
         with m.File("test_fdisplay.log", "a") as log_file:
-            m.display("ff.O=%d, ff.I=%d", ff.O, ff.I, file=log_file).when(m.posedge(io.CLK))\
+            m.display("ff.O=%d, ff.I=%d", ff.O, io.I, file=log_file).when(m.posedge(io.CLK))\
                                                                     .if_(io.CE)
 
-    m.compile("build/TestFDisplay", TestFDisplay)
+    m.compile("build/TestFDisplay", TestFDisplay, inline=True)
     assert not os.system('cd tests/test_verilog/build && '
-                         'verilator --lint-only TestFDisplay.v')
+                         'verilator --lint-only TestFDisplay.v '
+                         '--top-module TestFDisplay')
     assert m.testing.check_files_equal(__file__,
                                        f"build/TestFDisplay.v",
                                        f"gold/TestFDisplay.v")

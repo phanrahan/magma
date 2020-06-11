@@ -10,6 +10,7 @@ import functools
 import magma as m
 from magma.ssa import convert_tree_to_ssa
 from magma.config import get_debug_mode
+from magma.t import Type
 from collections import Counter
 import itertools
 
@@ -45,7 +46,10 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             func = astor.to_source(node.func).rstrip()
             outputs = self.initial_value_map[attr][3].interface.outputs()
             if len(outputs) == 1:
-                return ast.Name(f"self_{attr}_{outputs[0]}", ast.Load())
+                name = outputs[0]
+                if isinstance(name, MagmaProtocol):
+                    name = name._get_magma_value_()
+                return ast.Name(f"self_{attr}_{name}", ast.Load())
             else:
                 assert outputs, "Expected module with at least one output"
                 return ast.Tuple([ast.Name(f"self_{attr}_{output}",
@@ -175,21 +179,21 @@ def make_{circuit_name}(combinational):
 """
 
 
-def gen_array_str(eval_type, eval_value, async_reset, magma_name):
-    arr = [gen_reg_inst_str(eval_type.T, eval_value[i], async_reset, magma_name) for i
+def gen_array_str(eval_type, eval_value, reset_type, magma_name):
+    arr = [gen_reg_inst_str(eval_type.T, eval_value[i], reset_type, magma_name) for i
            in range(len(eval_type))]
     return f"{magma_name}.join([{', '.join(arr)}])"
 
 
-def gen_product_str(eval_type, eval_value, async_reset, magma_name):
+def gen_product_str(eval_type, eval_value, reset_type, magma_name):
     t = [
-        f"'{key}':" + gen_reg_inst_str(eval_type[key], eval_value[key], async_reset, magma_name)
+        f"'{key}':" + gen_reg_inst_str(eval_type[key], eval_value[key], reset_type, magma_name)
         for key in eval_type.keys()
     ]
     return f"{{{', '.join(t)}}}"
 
 
-def gen_reg_inst_str(eval_type, eval_value, async_reset, magma_name):
+def gen_reg_inst_str(eval_type, eval_value, reset_type, magma_name):
     if issubclass(eval_type, m.Digital):
         n = None
         if isinstance(eval_value, (bool, int)):
@@ -202,15 +206,22 @@ def gen_reg_inst_str(eval_type, eval_value, async_reset, magma_name):
         n = len(eval_type)
         init = int(eval_value)
     elif issubclass(eval_type, m.Array):
-        return f"{gen_array_str(eval_type, eval_value, async_reset, magma_name)}"
+        return f"{gen_array_str(eval_type, eval_value, reset_type, magma_name)}"
     elif issubclass(eval_type, m.Product):
-        return f"{gen_product_str(eval_type, eval_value, async_reset, magma_name)}"
+        return f"{gen_product_str(eval_type, eval_value, reset_type, magma_name)}"
     else:
         raise NotImplementedError((eval_type))
-    return f"DefineRegister({n}, init={init}, has_async_reset={async_reset})()"
+    reset_arg = {
+        None: "",
+        m.AsyncReset: "has_async_reset=True",
+        m.AsyncResetN: "has_async_resetn=True",
+        m.Reset: "has_reset=True",
+        m.ResetN: "has_resetn=True"
+    }[reset_type]
+    return f"DefineRegister({n}, init={init}, {reset_arg})()"
 
 
-def gen_register_instances(initial_value_map, async_reset, magma_name):
+def gen_register_instances(initial_value_map, reset_type, magma_name):
     """
     Generates a sequence of statements to instance a set of registers from
     `initial_value_map`.
@@ -229,7 +240,7 @@ def gen_register_instances(initial_value_map, async_reset, magma_name):
     for name, (value, type_, eval_type, eval_value) in initial_value_map.items():
         if isinstance(eval_type, m.Kind):
             reg_inst_str = gen_reg_inst_str(eval_type, eval_value,
-                                            async_reset, magma_name)
+                                            reset_type, magma_name)
             register_instances.append(f"{name} = {reg_inst_str}")
         else:
             value = astor.to_source(value).rstrip()
@@ -300,13 +311,19 @@ def get_io_from_annotations(f, tree, defn_env):
     return inputs, outputs, tuple_out
 
 
-def gen_io_args(inputs, outputs, async_reset, magma_name):
+def gen_io_args(inputs, outputs, reset_type, magma_name):
     io_args = []
     for name, type_ in inputs:
         io_args.append(f"{name}={magma_name}.In({type_})")
     io_args.append(f"CLK={magma_name}.In({magma_name}.Clock)")
-    if async_reset:
-        io_args.append(f"ASYNCRESET={magma_name}.In({magma_name}.AsyncReset)")
+    if reset_type is not None:
+        port_name, port_type = {
+            m.AsyncReset: ("ASYNCRESET", "AsyncReset"),
+            m.AsyncResetN: ("ASYNCRESETN", "AsyncResetN"),
+            m.Reset: ("RESET", "Reset"), 
+            m.ResetN: ("RESETN", "ResetN")
+        }[reset_type]
+        io_args.append(f"{port_name}={magma_name}.In({magma_name}.{port_type})")
     for name, type_ in outputs:
         io_args.append(f"{name}={magma_name}.Out({type_})")
     return ', '.join(io_args)
@@ -367,7 +384,7 @@ def gen_product_call_args(name, comb_out_count, eval_type, keys, comb_out_wiring
 
 def _sequential(
         defn_env: dict,
-        async_reset: bool,
+        reset_type: Type,
         cls,
         combinational_decorator: typing.Callable):
     # if not inspect.isclass(cls):
@@ -381,7 +398,7 @@ def _sequential(
     defn_env[magma_name] = m
 
     inputs, outputs, tuple_out = get_io_from_annotations(cls.__call__, call_def, defn_env)
-    io_args = gen_io_args(inputs, outputs, async_reset, magma_name)
+    io_args = gen_io_args(inputs, outputs, reset_type, magma_name)
 
     circuit_combinational_output_type = []
     circuit_combinational_args = []
@@ -457,7 +474,7 @@ def _sequential(
                 circuit_combinational_body.append(line)
 
     circuit_combinational_body = ('\n' + 3*tab).join(circuit_combinational_body)
-    register_instances = gen_register_instances(initial_value_map, async_reset, magma_name)
+    register_instances = gen_register_instances(initial_value_map, reset_type, magma_name)
     register_instances = ('\n' + 2*tab).join(register_instances)
 
     circuit_definition_str = circuit_definition_template.format(
@@ -490,14 +507,22 @@ def _sequential(
 def sequential(
         cls=None,
         async_reset=None,
+        reset_type=None,
         *,
         decorators: typing.Optional[typing.Sequence[typing.Callable]] = None,
         env: SymbolTable = None):
 
     exec(_SKIP_FRAME_DEBUG_STMT)
-    if async_reset is not None or decorators is not None:
-        assert async_reset is None or isinstance(async_reset, bool)
-        assert cls is None
+    if (async_reset is not None or decorators is not None or 
+            reset_type is not None):
+        if async_reset is not None and not isinstance(async_reset, bool):
+            raise TypeError("async_reset param should be a bool")
+        if async_reset:
+            # will override reset_type if it is also passed
+            reset_type = m.AsyncReset
+        if cls is not None:
+            raise ValueError("Should not explicitly pass first argument (cls) "
+                             f"to sequential, use kwargs instead")
         if decorators is None:
             decorators = ()
 
@@ -511,7 +536,7 @@ def sequential(
                     st=env
             )
             combinational = m.circuit.combinational(decorators=decorators, env=env)
-            return wrapped_sequential(async_reset, cls, combinational)
+            return wrapped_sequential(reset_type, cls, combinational)
         return wrapped
     else:
         assert cls is not None
@@ -521,4 +546,4 @@ def sequential(
                 st=env
         )
         combinational = m.circuit.combinational(decorators=[sequential], env=env)
-        return wrapped_sequential(True, cls, combinational)
+        return wrapped_sequential(m.AsyncReset, cls, combinational)
