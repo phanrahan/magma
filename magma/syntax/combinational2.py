@@ -1,10 +1,13 @@
 import ast
 import astor
+import functools
 
 import ast_tools
 from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
 
 from ..circuit import Circuit, IO
+from ..protocol_type import MagmaProtocol
+from ..t import Type
 
 from .util import build_io_args, build_call_args, wire_call_result
 
@@ -44,4 +47,18 @@ def combinational2(fn):
         call_result = fn(*call_args)
 
         wire_call_result(io, call_result, fn.__annotations__)
-    return CombinationalCircuit
+
+    @functools.wraps(fn)
+    def func(*args, **kwargs):
+        if (len(args) + len(kwargs) and
+            not any(isinstance(x, (Type, MagmaProtocol)) for x in args +
+                    tuple(kwargs.values()))):
+            # If not called with at least one magma value, use the Python
+            # implementation
+            return fn(*args, **kwargs)
+        return CombinationalCircuit()(*args, **kwargs)
+    func.__name__ = fn.__name__
+    func.__qualname__ = fn.__name__
+    # Provide a mechanism for accessing the underlying circuit definition
+    setattr(func, "circuit_definition", CombinationalCircuit)
+    return func

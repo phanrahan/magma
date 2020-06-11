@@ -22,3 +22,17 @@ corebit_mux magma_Bit_ite_Out_Bit_inst0 (
 assign O = magma_Bit_ite_Out_Bit_inst0_out;
 endmodule
 
+module Main (
+    input [1:0] I,
+    input S,
+    output O
+);
+wire basic_if_inst0_O;
+basic_if basic_if_inst0 (
+    .I(I),
+    .S(S),
+    .O(basic_if_inst0_O)
+);
+assign O = basic_if_inst0_O;
+endmodule
+
