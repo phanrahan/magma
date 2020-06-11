@@ -15,7 +15,7 @@ class RemoveCombDecorator(ast_tools.passes.Pass):
         for item in tree.decorator_list:
             # TODO: Need robust way to check it's the decorator, but this
             # should work for now if the user imports as combinational2
-            if eval(astor.to_source(item)) == combinational2:
+            if eval(astor.to_source(item), {}, env) == combinational2:
                 tree.decorator_list.remove(item)
         return tree, env, metadata
 
