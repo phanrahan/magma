@@ -5,7 +5,7 @@ from magma.testing import check_files_equal
 
 
 def test_combinational2_basic_if():
-    @m.combinational2
+    @m.combinational2()
     def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
         if S:
             return I[0]

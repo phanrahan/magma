@@ -1,14 +1,10 @@
-import functools
-import ast
-import inspect
-
-from ast_tools.passes import ssa, begin_rewrite, end_rewrite, if_to_phi
+from ast_tools.passes import apply_ast_passes
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
 from ..t import Type
+from .combinational2 import COMB_PASSES
 
-from .combinational2 import run_comb_passes
 from .util import build_io_args, build_call_args, wire_call_result
 
 
@@ -35,7 +31,7 @@ def sequential_setattr(self, key, value):
 def sequential2(**clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
     def seq_inner(cls):
-        cls.__call__ = run_comb_passes(cls.__call__)
+        cls.__call__ = apply_ast_passes(COMB_PASSES)(cls.__call__)
 
         if "self" in cls.__call__.__annotations__:
             raise Exception("Assumed self did not have annotation")
