@@ -1,5 +1,6 @@
 from magma import *
 from magma.is_definition import isdefinition
+import pytest
 
 
 def test_is_definition():
@@ -12,9 +13,10 @@ def test_is_definition():
 
     assert isdefinition(IsDefinition), "Should be a definition"
 
-    circ = DefineCircuit('another_definition', 'I', In(Bit), 'O', Out(Bit))
-    wire(circ.I, circ.O)
-    EndDefine()
+    with pytest.warns(DeprecationWarning):
+        circ = DefineCircuit('another_definition', 'I', In(Bit), 'O', Out(Bit))
+        wire(circ.I, circ.O)
+        EndDefine()
     assert isdefinition(circ), "Should be a definition"
 
 
