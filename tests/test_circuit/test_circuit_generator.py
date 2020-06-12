@@ -5,67 +5,69 @@ from magma.testing import check_files_equal
 from collections import namedtuple
 
 
-@circuit_generator
-def DefineAdd(N, has_cout=False, has_cin=False):
-    T = Bits[N]
-    IO_ = ['I0', In(T), 'I1', In(T), 'O', Out(T)]
-    name_ = "Add{}".format(N)
-    if has_cout:
-        IO_ += ['COUT', Out(Bit)]
-        name_ += "_cout"
-    if has_cin:
-        IO_ += ['CIN', In(Bit)]
-        name_ += "_cin"
-    class Add(Circuit):
-        # Underscores because there's some weird scoping issue here with Python
-        # when trying to capture name and IO
-        name = name_
-        IO = IO_
-    return Add
+with pytest.warns(DeprecationWarning):
+    @circuit_generator
+    def DefineAdd(N, has_cout=False, has_cin=False):
+        T = Bits[N]
+        IO_ = ['I0', In(T), 'I1', In(T), 'O', Out(T)]
+        name_ = "Add{}".format(N)
+        if has_cout:
+            IO_ += ['COUT', Out(Bit)]
+            name_ += "_cout"
+        if has_cin:
+            IO_ += ['CIN', In(Bit)]
+            name_ += "_cin"
+        class Add(Circuit):
+            # Underscores because there's some weird scoping issue here with Python
+            # when trying to capture name and IO
+            name = name_
+            IO = IO_
+        return Add
 
 # Mock importing DefineAdd from external module using a namedtuple
 primitives = namedtuple('primitives', ['DefineAdd'])(DefineAdd)
 
 
-@circuit_generator
-def DefineAdd(N, has_cout=False, has_cin=False):
-    class Add(primitives.DefineAdd(N, has_cin=has_cin, has_cout=has_cout)):
-        @classmethod
-        def definition(add):
-            coreir_genargs_ = {"width": N} # , "has_cout": has_cout, "has_cin": has_cin}
-            if has_cout:
-                coreir_genargs_["width"] += 1
-            T = Bits[coreir_genargs_["width"]]
-            coreir_io = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
+with pytest.warns(DeprecationWarning):
+    @circuit_generator
+    def DefineAdd(N, has_cout=False, has_cin=False):
+        class Add(primitives.DefineAdd(N, has_cin=has_cin, has_cout=has_cout)):
+            @classmethod
+            def definition(add):
+                coreir_genargs_ = {"width": N} # , "has_cout": has_cout, "has_cin": has_cin}
+                if has_cout:
+                    coreir_genargs_["width"] += 1
+                T = Bits[coreir_genargs_["width"]]
+                coreir_io = ['in0', In(T), 'in1', In(T), 'out', Out(T)]
 
-            class CoreirAdd(Circuit):
-                name = "coreir_" + add.name
-                io = IO(**dict(zip(coreir_io[::2], coreir_io[1::2])))
-                coreir_name = "add"
-                coreir_lib = "coreir"
-                coreir_genargs = coreir_genargs_
+                class CoreirAdd(Circuit):
+                    name = "coreir_" + add.name
+                    io = IO(**dict(zip(coreir_io[::2], coreir_io[1::2])))
+                    coreir_name = "add"
+                    coreir_lib = "coreir"
+                    coreir_genargs = coreir_genargs_
 
-            coreir_add = CoreirAdd()
-            I0 = add.I0
-            I1 = add.I1
-            if has_cout:
-                I0 = concat(add.I0, bits(0, n=1))
-                I1 = concat(add.I1, bits(0, n=1))
-            if has_cin:
-                coreir_add_cin = CoreirAdd()
-                wire(coreir_add_cin.in0, concat(bits(0, n=coreir_genargs_["width"]-1), bits(add.CIN)))
-                wire(coreir_add_cin.in1, I0)
-                I0 = coreir_add_cin.out
-            wire(I0, coreir_add.in0)
-            wire(I1, coreir_add.in1)
-            O = coreir_add.out
-            if has_cout:
-                COUT = O[-1]
-                O = O[:-1]
-            wire(O, add.O)
-            if has_cout:
-                wire(COUT, add.COUT)
-    return Add
+                coreir_add = CoreirAdd()
+                I0 = add.I0
+                I1 = add.I1
+                if has_cout:
+                    I0 = concat(add.I0, bits(0, n=1))
+                    I1 = concat(add.I1, bits(0, n=1))
+                if has_cin:
+                    coreir_add_cin = CoreirAdd()
+                    wire(coreir_add_cin.in0, concat(bits(0, n=coreir_genargs_["width"]-1), bits(add.CIN)))
+                    wire(coreir_add_cin.in1, I0)
+                    I0 = coreir_add_cin.out
+                wire(I0, coreir_add.in0)
+                wire(I1, coreir_add.in1)
+                O = coreir_add.out
+                if has_cout:
+                    COUT = O[-1]
+                    O = O[:-1]
+                wire(O, add.O)
+                if has_cout:
+                    wire(COUT, add.COUT)
+        return Add
 
 
 def test_add_generator():
