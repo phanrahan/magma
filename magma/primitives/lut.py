@@ -69,4 +69,3 @@ class LUT(Generator2):
             luts.append(_CoreIRLUT(BitVector[n]([elem[i] for elem in
                                                  contents]))())
         self.io.O @= from_bits(T, fork(luts)(as_bits(self.io.I)))
-
