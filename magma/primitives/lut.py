@@ -34,6 +34,16 @@ class _CoreIRLUT(Generator2):
         self.coreir_configargs = {"init": contents}
 
 
+def _to_int(value):
+    if isinstance(value, Bit):
+        if not value.const():
+            raise ValueError(f"Unexpected Bit value: {value}")
+        return 1 if value is Bit.VCC else 0
+    elif not isinstance(value, Bits):
+        value = as_bits(value)
+    return int(value)
+
+
 class LUT(Generator2):
     """
     Generate a LUT containing entries of a generic Type
@@ -51,7 +61,7 @@ class LUT(Generator2):
         num_bits_per_entry = T.flat_length()
         self.io = IO(I=In(Bits[clog2(n)]), O=Out(T))
 
-        contents = tuple(BitVector[num_bits_per_entry](int(c)) for c in
+        contents = tuple(BitVector[num_bits_per_entry](_to_int(c)) for c in
                          contents)
         # create LUT for each bit in T
         luts = []
