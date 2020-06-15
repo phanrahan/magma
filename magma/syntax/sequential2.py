@@ -20,8 +20,8 @@ class _SequentialListWrapper(list):
             raise TypeError("Excepted setitem target to be a Circuit")
 
         if not isinstance(value, (Circuit, int, Type)):
-            raise TypeError("Excepted setitem value to be a Circuit, Type, or int",
-                            f"not {type(value)}")
+            raise TypeError("Excepted setitem value to be a Circuit, Type, or "
+                            f"int, not {type(value)}")
 
         item(value)
 
@@ -81,7 +81,8 @@ def sequential2(pre_passes=[], post_passes=[], **clock_io_kwargs):
 
     def seq_inner(cls):
         enable_debug = any(isinstance(x, debug) for x in passes)
-        cls.__call__ = apply_ast_passes(passes, debug=enable_debug)(cls.__call__)
+        cls.__call__ = apply_ast_passes(passes,
+                                        debug=enable_debug)(cls.__call__)
 
         if "self" in cls.__call__.__annotations__:
             raise Exception("Assumed self did not have annotation")
