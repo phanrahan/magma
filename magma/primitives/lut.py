@@ -61,11 +61,11 @@ class LUT(Generator2):
         num_bits_per_entry = T.flat_length()
         self.io = IO(I=In(Bits[clog2(n)]), O=Out(T))
 
-        contents = tuple(BitVector[num_bits_per_entry](_to_int(c)) for c in
-                         contents)
+        contents = tuple(BitVector[num_bits_per_entry](_to_int(c))
+                         for c in contents)
         # create LUT for each bit in T
         luts = []
         for i in range(num_bits_per_entry):
-            luts.append(_CoreIRLUT(BitVector[n]([elem[i] for elem in
-                                                 contents]))())
+            bv = BitVector[n]([elem[i] for elem in contents])
+            luts.append(_CoreIRLUT(bv)())
         self.io.O @= from_bits(T, fork(luts)(as_bits(self.io.I)))
