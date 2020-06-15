@@ -1,6 +1,6 @@
 import functools
 
-from ast_tools.passes import apply_ast_passes, ssa, if_to_phi
+from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, debug
 
 from ..circuit import Circuit, IO
 from ..protocol_type import MagmaProtocol
@@ -14,7 +14,8 @@ class combinational2(apply_ast_passes):
         passes = (pre_passes +
                   [ssa(strict=False), if_to_phi(lambda s, t, f: s.ite(t, f))] +
                   post_passes)
-        super().__init__(passes=passes)
+        enable_debug = any(isinstance(x, debug) for x in passes)
+        super().__init__(passes=passes, debug=enable_debug)
 
     def exec(self, *args, **kwargs):
         fn = super().exec(*args, **kwargs)

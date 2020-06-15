@@ -1,4 +1,5 @@
-import pytest
+import os
+import inspect
 
 from hwtypes import BitVector, Bit
 import ast_tools
@@ -28,16 +29,40 @@ def test_combinational2_basic_if():
     assert basic_if(BitVector[2](2), Bit(1)) == 0
 
 
-def test_pre_passes():
-    @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()])
+def test_pre_post_passes(capsys):
+    l0 = inspect.currentframe().f_lineno + 1
+
+    @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()],
+                      post_passes=[
+                          ast_tools.passes.debug(dump_source_filename=True,
+                                                 dump_source_lines=True)])
     def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
         for j in ast_tools.macros.unroll(range(3)):
             if I[j]:
                 return m.Bits[3](j)
         return m.Bits[3](4)
 
-    m.compile("build/test_combinational2_pre_pass",
+    assert capsys.readouterr().out == f"""\
+BEGIN SOURCE_FILENAME
+{os.path.abspath(__file__)}
+END SOURCE_FILENAME
+
+BEGIN SOURCE_LINES
+{l0+1}:    @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()],
+{l0+2}:                      post_passes=[
+{l0+3}:                          ast_tools.passes.debug(dump_source_filename=True,
+{l0+4}:                                                 dump_source_lines=True)])
+{l0+5}:    def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
+{l0+6}:        for j in ast_tools.macros.unroll(range(3)):
+{l0+7}:            if I[j]:
+{l0+8}:                return m.Bits[3](j)
+{l0+9}:        return m.Bits[3](4)
+END SOURCE_LINES
+
+"""
+
+    m.compile("build/test_combinational2_pre_post_passes",
               pre_unroll.circuit_definition, inline=True)
     assert check_files_equal(__file__,
-                             f"build/test_combinational2_pre_pass.v",
-                             f"gold/test_combinational2_pre_pass.v")
+                             f"build/test_combinational2_pre_post_passes.v",
+                             f"gold/test_combinational2_pre_post_passes.v")

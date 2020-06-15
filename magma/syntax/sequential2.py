@@ -1,4 +1,4 @@
-from ast_tools.passes import apply_ast_passes, ssa, if_to_phi
+from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, debug
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
@@ -80,7 +80,8 @@ def sequential2(pre_passes=[], post_passes=[], **clock_io_kwargs):
               post_passes)
 
     def seq_inner(cls):
-        cls.__call__ = apply_ast_passes(passes)(cls.__call__)
+        enable_debug = any(isinstance(x, debug) for x in passes)
+        cls.__call__ = apply_ast_passes(passes, debug=enable_debug)(cls.__call__)
 
         if "self" in cls.__call__.__annotations__:
             raise Exception("Assumed self did not have annotation")
