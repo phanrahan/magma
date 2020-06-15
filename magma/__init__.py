@@ -89,11 +89,11 @@ _Family_ = get_family()
 
 from .generator import Generator, Generator2
 from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
-import magma.operators
-from .operators import slice
 from .inline_verilog import inline_verilog
 from .display import display, posedge, negedge, File, time
 from .log import info, debug, warning, error
 
 from .syntax.sequential2 import sequential2
 from .syntax.combinational2 import combinational2
+
+from magma.primitives import LUT, Mux, mux, Register, slice

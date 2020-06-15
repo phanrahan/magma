@@ -1,7 +1,7 @@
 from hwtypes import BitVector
 from magma.array import Array
 from magma.bit import Bit
-from magma.bitutils import clog2
+from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.generator import Generator2
 from magma.interface import IO
@@ -72,3 +72,12 @@ def _dynamic_mux_select(this, key):
 
 
 Array.dynamic_mux_select = _dynamic_mux_select
+
+
+def mux(I, S, **kwargs):
+    if isinstance(S, Type) and S.const():
+        S = seq2int(S.bits())
+    if isinstance(S, int):
+        return I[S]
+    T = type(I[0])
+    return Mux(len(I), T, **kwargs)()(*I, S)
