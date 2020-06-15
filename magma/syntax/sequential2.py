@@ -1,9 +1,8 @@
-from ast_tools.passes import apply_ast_passes
+from ast_tools.passes import apply_ast_passes, ssa, if_to_phi
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
 from ..t import Type
-from .combinational2 import COMB_PASSES
 
 from .util import build_io_args, build_call_args, wire_call_result
 
@@ -57,9 +56,28 @@ def sequential_setattr(self, key, value):
     getattr(self, key)(value)
 
 
+def _process_phi_arg(arg):
+    if isinstance(arg, Circuit):
+        # Call with no args to retrieve output(s)
+        arg = arg()
+        if isinstance(arg, list):
+            # TODO: We could support tuples/products
+            raise TypeError("Cannot use circuit with multiple outputs as "
+                            "argument to phi")
+    return arg
+
+
+def _seq_phi(s, t, f):
+    # Unpack registers/circuits used in getattr syntax
+    t, f = map(_process_phi_arg, (t, f))
+    return s.ite(t, f)
+
+
 def sequential2(pre_passes=[], post_passes=[], **clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
-    passes = pre_passes + COMB_PASSES + post_passes
+    passes = (pre_passes +
+              [ssa(strict=False), if_to_phi(_seq_phi)] +
+              post_passes)
 
     def seq_inner(cls):
         cls.__call__ = apply_ast_passes(passes)(cls.__call__)

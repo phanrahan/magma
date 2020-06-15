@@ -8,12 +8,12 @@ from ..t import Type
 
 from .util import build_io_args, build_call_args, wire_call_result
 
-COMB_PASSES = [ssa(strict=False), if_to_phi(lambda s, t, f: s.ite(t, f))]
-
 
 class combinational2(apply_ast_passes):
     def __init__(self, pre_passes=[], post_passes=[]):
-        passes = pre_passes + COMB_PASSES + post_passes
+        passes = (pre_passes +
+                  [ssa(strict=False), if_to_phi(lambda s, t, f: s.ite(t, f))] +
+                  post_passes)
         super().__init__(passes=passes)
 
     def exec(self, *args, **kwargs):

@@ -71,15 +71,16 @@ def test_sequential2_pre_unroll():
     @m.sequential2(pre_passes=[ast_tools.passes.loop_unroll()])
     class LoopUnroll:
         def __init__(self):
-            self.regs = [Register(4) for _ in range(3)]
+            self.regs = [[Register(4) for _ in range(3)] for _ in range(2)]
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
-            O = self.regs[2]
-            for j in ast_tools.macros.unroll(range(2)):
-                self.regs[2 - j] = self.regs[1 - j]
-            self.regs[0] = I
+            O = self.regs[1][-1]
+            for i in ast_tools.macros.unroll(range(2)):
+                for j in ast_tools.macros.unroll(range(2)):
+                    self.regs[i][2 - j] = self.regs[i][1 - j]
+                self.regs[1 - i][0] = self.regs[i][-1] if m.Bit(i == 0) else I
             return O
 
-    m.compile("build/TestSequential2LoopUnroll", LoopUnroll)
-    assert check_files_equal(__file__, f"build/TestSequential2LoopUnroll.v",
-                             f"gold/TestSequential2LoopUnroll.v")
+    m.compile("build/TestSequential2NestedLoopUnroll", LoopUnroll)
+    assert check_files_equal(__file__, f"build/TestSequential2NestedLoopUnroll.v",
+                             f"gold/TestSequential2NestedLoopUnroll.v")

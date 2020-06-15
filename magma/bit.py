@@ -171,6 +171,11 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         type_ = type(t_branch)
         if type_ != type(f_branch):
             raise TypeError(f"ite expects same type for both branches: {type_} != {type(f_branch)}")
+        if self.const():
+            if self is type(self).VCC:
+                return t_branch
+            assert self is type(self).GND
+            return f_branch
         # Note: coreir flips t/f cases
         return self.declare_ite(type_)()(f_branch, t_branch, self)
 
