@@ -12,7 +12,7 @@ from .protocol_type import MagmaProtocol
 from .t import Type, In, Out
 from .tuple import Product
 from .wire import wire
-from magma.mux import Mux
+from magma.primitives import Mux
 
 
 def mux(I, S, **kwargs):

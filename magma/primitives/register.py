@@ -13,7 +13,7 @@ from magma.t import Type, Kind, In, Out
 from magma.clock import (AbstractReset, Reset, ResetN, AsyncReset, AsyncResetN,
                          Clock, Enable)
 from magma.clock_io import ClockIO
-from magma.mux import Mux
+from magma.primitives.mux import Mux
 
 
 class _CoreIRRegister(Generator2):
