@@ -1,3 +1,4 @@
+import pytest
 import magma as m
 
 def test_str_repr_core():
@@ -13,13 +14,14 @@ def test_str_repr_core():
 
 
 def test_str_repr():
-    And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
-                            "O", m.Out(m.Bit))
-    XOr2 = m.DeclareCircuit('XOr2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
-                            "O", m.Out(m.Bit))
-    Logic2 = m.DefineCircuit('Logic2', 'I0', m.In(m.Bit), 'I1', m.In(m.Bit), 'O', m.Out(m.Bit))
-    m.wire(XOr2()(And2()(Logic2.I0, Logic2.I1), 1), Logic2.O)
-    m.EndCircuit()
+    with pytest.warns(DeprecationWarning):
+        And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
+                                "O", m.Out(m.Bit))
+        XOr2 = m.DeclareCircuit('XOr2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
+                                "O", m.Out(m.Bit))
+        Logic2 = m.DefineCircuit('Logic2', 'I0', m.In(m.Bit), 'I1', m.In(m.Bit), 'O', m.Out(m.Bit))
+        m.wire(XOr2()(And2()(Logic2.I0, Logic2.I1), 1), Logic2.O)
+        m.EndCircuit()
 
     assert str(Logic2) == "Logic2(I0: In(Bit), I1: In(Bit), O: Out(Bit))"
     print(repr(Logic2))
@@ -44,14 +46,15 @@ EndCircuit()\
 
 
 def test_str_repr_anon():
-    And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
-                            "O", m.Out(m.Bit))
-    circ = m.DefineCircuit("Test", "I0", m.In(m.Bits[3]), "I1", m.In(m.Bits[3]), "O", m.Out(m.Bits[3]))
-    anon = m.join(m.map_(And2, 3))
-    m.wire(circ.I0, anon.I0)
-    m.wire(circ.I1, anon.I1)
-    m.wire(circ.O, anon.O)
-    m.EndCircuit()
+    with pytest.warns(DeprecationWarning):
+        And2 = m.DeclareCircuit('And2', "I0", m.In(m.Bit), "I1", m.In(m.Bit),
+                                "O", m.Out(m.Bit))
+        circ = m.DefineCircuit("Test", "I0", m.In(m.Bits[3]), "I1", m.In(m.Bits[3]), "O", m.Out(m.Bits[3]))
+        anon = m.join(m.map_(And2, 3))
+        m.wire(circ.I0, anon.I0)
+        m.wire(circ.I1, anon.I1)
+        m.wire(circ.O, anon.O)
+        m.EndCircuit()
 
     string = str(anon)
     assert string[:len("AnonymousCircuitInst")] == "AnonymousCircuitInst"

@@ -2,6 +2,9 @@
 Test the ability to ignore undriven inputs (useful for formal verification
 tools that use undriven inputs to mark wires that can take on any value)
 """
+import pytest
+
+
 import magma as m
 from magma.testing import check_files_equal
 
@@ -22,7 +25,8 @@ def test_ignore_unused_undriven_basic():
 
 def test_ignore_unused_undriven_hierarchy():
     # For backwards compatability test
-    Bar = m.DeclareCircuit("Bar", "I", m.In(m.Bit))
+    with pytest.warns(DeprecationWarning):
+        Bar = m.DeclareCircuit("Bar", "I", m.In(m.Bit))
 
     class Foo(m.Circuit):
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit),

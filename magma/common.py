@@ -29,7 +29,7 @@ class _Ref(object):
         return id(self.value)
 
 
-class _IdentitySetBase(collections.MutableSet):
+class _IdentitySetBase(collections.abc.MutableSet):
     def __init__(self, refs):
         self.refs = refs
 

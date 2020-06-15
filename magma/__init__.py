@@ -95,4 +95,8 @@ from .inline_verilog import inline_verilog
 from .display import display, posedge, negedge, File, time
 from .log import info, debug, warning, error
 
+
 from .primitives.reduce import reduce
+
+from .syntax.sequential2 import sequential2
+from .syntax.combinational2 import combinational2
