@@ -8,6 +8,35 @@ from .combinational2 import COMB_PASSES
 from .util import build_io_args, build_call_args, wire_call_result
 
 
+class _SequentialListWrapper(list):
+    def __getitem__(self, i):
+        result = super().__getitem__(i)
+        if isinstance(result, list):
+            return _SequentialListWrapper(result)
+        return result
+
+    def __setitem__(self, i, value):
+        item = self[i]
+        if not isinstance(item, Circuit):
+            raise TypeError("Excepted setitem target to be a Circuit")
+
+        if not isinstance(value, (Circuit, int, Type)):
+            raise TypeError("Excepted setitem value to be a Circuit, Type, or int",
+                            f"not {type(value)}")
+
+        item(value)
+
+
+def sequential_getattribute(self, key):
+    """
+    Wrap lists so we can use the setattr interface with lists of registers
+    """
+    result = object.__getattribute__(self, key)
+    if isinstance(result, list):
+        return _SequentialListWrapper(result)
+    return result
+
+
 def sequential_setattr(self, key, value):
     # TODO: for now we assume this is a register, ideally we'd type check this,
     # but we need to have a notion of a register primitive (e.g. right now the
@@ -50,6 +79,10 @@ def sequential2(pre_passes=[], post_passes=[], **clock_io_kwargs):
             # might as well use a metaclass rather than a decorator, but to
             # preserve the old interface we do this for now
             cls.__setattr__ = sequential_setattr
+
+            # also need to patch getattr to support list attributes (see
+            # test_sequential2:test_sequential2_pre_unroll)
+            cls.__getattribute__ = sequential_getattribute
 
             call_args += build_call_args(io, cls.__call__.__annotations__)
 
