@@ -39,7 +39,7 @@ def _to_int(value):
         if not value.const():
             raise ValueError(f"Unexpected Bit value: {value}")
         return 1 if value is Bit.VCC else 0
-    elif not isinstance(value, Bits):
+    if not isinstance(value, Bits):
         value = as_bits(value)
     return int(value)
 
