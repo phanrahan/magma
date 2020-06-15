@@ -28,10 +28,12 @@ def sequential_setattr(self, key, value):
     getattr(self, key)(value)
 
 
-def sequential2(**clock_io_kwargs):
+def sequential2(pre_passes=[], post_passes=[], **clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
+    passes = pre_passes + COMB_PASSES + post_passes
+
     def seq_inner(cls):
-        cls.__call__ = apply_ast_passes(COMB_PASSES)(cls.__call__)
+        cls.__call__ = apply_ast_passes(passes)(cls.__call__)
 
         if "self" in cls.__call__.__annotations__:
             raise Exception("Assumed self did not have annotation")
