@@ -1,4 +1,7 @@
-from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, debug
+from typing import Optional
+
+from ast_tools.stack import SymbolTable
+from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, bool_to_bit
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
@@ -73,16 +76,21 @@ def _seq_phi(s, t, f):
     return s.ite(t, f)
 
 
-def sequential2(pre_passes=[], post_passes=[], **clock_io_kwargs):
+def sequential2(pre_passes=[], post_passes=[],
+                debug: bool = False,
+                env: Optional[SymbolTable] = None,
+                path: Optional[str] = None,
+                file_name: Optional[str] = None,
+                **clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
     passes = (pre_passes +
-              [ssa(strict=False), if_to_phi(_seq_phi)] +
+              [ssa(strict=False), bool_to_bit(), if_to_phi(_seq_phi)] +
               post_passes)
 
     def seq_inner(cls):
-        enable_debug = any(isinstance(x, debug) for x in passes)
-        cls.__call__ = apply_ast_passes(passes,
-                                        debug=enable_debug)(cls.__call__)
+        cls.__call__ = apply_ast_passes(passes, debug=debug, env=env,
+                                        path=path,
+                                        file_name=file_name)(cls.__call__)
 
         if "self" in cls.__call__.__annotations__:
             raise Exception("Assumed self did not have annotation")

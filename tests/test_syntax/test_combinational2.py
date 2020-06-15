@@ -1,3 +1,4 @@
+import tempfile
 import os
 import inspect
 
@@ -30,17 +31,30 @@ def test_combinational2_basic_if():
 
 
 def test_pre_post_passes(capsys):
-    l0 = inspect.currentframe().f_lineno + 1
+    with tempfile.TemporaryDirectory() as tmpdir:
+        l0 = inspect.currentframe().f_lineno + 1
 
-    @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()],
-                      post_passes=[
-                          ast_tools.passes.debug(dump_source_filename=True,
-                                                 dump_source_lines=True)])
-    def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
-        for j in ast_tools.macros.unroll(range(3)):
-            if I[j]:
-                return m.Bits[3](j)
-        return m.Bits[3](4)
+        @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()],
+                          post_passes=[
+                              ast_tools.passes.debug(dump_source_filename=True,
+                                                     dump_source_lines=True)],
+                          env=locals().update(y=3),
+                          debug=True, path=tmpdir, file_name="foo.py")
+        def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
+            for j in ast_tools.macros.unroll(range(y)):
+                if I[j]:
+                    return m.Bits[3](j)
+            return m.Bits[3](4)
+        with open(os.path.join(tmpdir, "foo.py"), "r") as output:
+            assert output.read() == """\
+def pre_unroll(I: m.Bits[3]) ->m.Bits[3]:
+    __return_value0 = m.Bits[3](0)
+    __return_value1 = m.Bits[3](1)
+    __return_value2 = m.Bits[3](2)
+    __return_value3 = m.Bits[3](4)
+    return __phi(I[0], __return_value0, __phi(I[1], __return_value1, __phi(
+        I[2], __return_value2, __return_value3)))
+"""
 
     assert capsys.readouterr().out == f"""\
 BEGIN SOURCE_FILENAME
@@ -48,15 +62,17 @@ BEGIN SOURCE_FILENAME
 END SOURCE_FILENAME
 
 BEGIN SOURCE_LINES
-{l0+1}:    @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()],
-{l0+2}:                      post_passes=[
-{l0+3}:                          ast_tools.passes.debug(dump_source_filename=True,
-{l0+4}:                                                 dump_source_lines=True)])
-{l0+5}:    def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
-{l0+6}:        for j in ast_tools.macros.unroll(range(3)):
-{l0+7}:            if I[j]:
-{l0+8}:                return m.Bits[3](j)
-{l0+9}:        return m.Bits[3](4)
+{l0+1}:        @m.combinational2(pre_passes=[ast_tools.passes.loop_unroll()],
+{l0+2}:                          post_passes=[
+{l0+3}:                              ast_tools.passes.debug(dump_source_filename=True,
+{l0+4}:                                                     dump_source_lines=True)],
+{l0+5}:                          env=locals().update(y=3),
+{l0+6}:                          debug=True, path=tmpdir, file_name="foo.py")
+{l0+7}:        def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
+{l0+8}:            for j in ast_tools.macros.unroll(range(y)):
+{l0+9}:                if I[j]:
+{l0+10}:                    return m.Bits[3](j)
+{l0+11}:            return m.Bits[3](4)
 END SOURCE_LINES
 
 """

@@ -1,6 +1,8 @@
 import functools
+from typing import Optional
 
-from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, debug
+from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, bool_to_bit
+from ast_tools.stack import SymbolTable
 
 from ..circuit import Circuit, IO
 from ..protocol_type import MagmaProtocol
@@ -10,12 +12,18 @@ from .util import build_io_args, build_call_args, wire_call_result
 
 
 class combinational2(apply_ast_passes):
-    def __init__(self, pre_passes=[], post_passes=[]):
+    def __init__(self, pre_passes=[], post_passes=[],
+                 debug: bool = False,
+                 env: Optional[SymbolTable] = None,
+                 path: Optional[str] = None,
+                 file_name: Optional[str] = None
+                 ):
         passes = (pre_passes +
-                  [ssa(strict=False), if_to_phi(lambda s, t, f: s.ite(t, f))] +
+                  [ssa(strict=False), bool_to_bit(),
+                   if_to_phi(lambda s, t, f: s.ite(t, f))] +
                   post_passes)
-        enable_debug = any(isinstance(x, debug) for x in passes)
-        super().__init__(passes=passes, debug=enable_debug)
+        super().__init__(passes=passes, env=env, debug=debug, path=path,
+                         file_name=file_name)
 
     def exec(self, *args, **kwargs):
         fn = super().exec(*args, **kwargs)
