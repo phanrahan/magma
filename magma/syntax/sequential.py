@@ -17,6 +17,13 @@ import itertools
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, SymbolTable
 from ast_tools import gen_free_name
 
+
+def _get_magma_value(val):
+    if isinstance(val, MagmaProtocol):
+        return val._get_magma_value_()
+    else:
+        return val
+
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
         self.initial_value_map = initial_value_map
@@ -37,8 +44,7 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             ret = []
             ports = self.initial_value_map[attr][3].interface.inputs()
             for name, value in zip(ports, node.args):
-                if isinstance(name, MagmaProtocol):
-                    name = name._get_magma_value_()
+                name = _get_magma_value(name)
                 ret.append(ast.parse(
                     f"self_{attr}_{name} = {astor.to_source(value).rstrip()}"
                 ).body[0])
@@ -47,12 +53,11 @@ class RewriteSelfAttributes(ast.NodeTransformer):
             outputs = self.initial_value_map[attr][3].interface.outputs()
             if len(outputs) == 1:
                 name = outputs[0]
-                if isinstance(name, MagmaProtocol):
-                    name = name._get_magma_value_()
+                name = _get_magma_value(name)
                 return ast.Name(f"self_{attr}_{name}", ast.Load())
             else:
                 assert outputs, "Expected module with at least one output"
-                return ast.Tuple([ast.Name(f"self_{attr}_{output}",
+                return ast.Tuple([ast.Name(f"self_{attr}_{_get_magma_value(output)}",
                                            ast.Load()) for output in outputs],
                                  ast.Load())
         elif (isinstance(node.func, ast.Attribute) and
@@ -105,8 +110,7 @@ class RewriteReturn(ast.NodeTransformer):
                 for port in eval_value.interface.inputs():
                     if isinstance(port, (m.Clock, m.AsyncReset)):
                         continue
-                    if isinstance(port, MagmaProtocol):
-                        port = port._get_magma_value_()
+                    port = _get_magma_value(port)
                     elts.append(ast.Name(f"self_{name}_{port}", ast.Load()))
         if isinstance(node.value, ast.Tuple):
             elts.extend(node.value.elts)
