@@ -239,7 +239,7 @@ def _combinational(defn_env: dict, fn: types.FunctionType):
     @functools.wraps(fn)
     def func(*args, **kwargs):
         if (len(args) + len(kwargs) and
-            not any(isinstance(x, (Type, MagmaProtocol)) for x in args +
+            not any(isinstance(x, (Type, MagmaProtocol, m.AnonymousCircuitType)) for x in args +
                     tuple(kwargs.values()))):
                 # If not called with at least one magma value, use the Python
                 # implementation

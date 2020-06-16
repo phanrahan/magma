@@ -265,6 +265,26 @@ def test_seq_call(target):
     compile_and_check("TestCall", TestCall, target)
 
 
+def test_seq_no_args(target):
+    @m.circuit.sequential
+    class TestNoArgs:
+        def __init__(self):
+            self.x: m.UInt[2] = m.uint(0, 2)
+            self.y: m.UInt[3] = m.uint(0, 3)
+
+        def __call__(self) -> m.Bits[3]:
+            x = self.x + m.uint(1, 2)
+            if x == m.uint(3, 2):
+                y = self.y + m.uint(1, 3)
+            else:
+                y = self.y
+            self.x = x
+            self.y = y
+            return y
+
+    compile_and_check("TestNoArgs", TestNoArgs, target)
+
+
 def test_custom_env(target):
 
     _globals = globals()
