@@ -711,3 +711,23 @@ def test_protocol_return(target):
 
         def __call__(self, val: WrappedBits8) -> m.UInt[8]:
             return self.f(val)
+
+
+def test_protocol_return_mixed(target):
+    WrappedBits8 = MWrapper[m.UInt[8]]
+
+    @m.circuit.sequential(async_reset=False)
+    class Foo:
+        def __call__(self, val: WrappedBits8) -> (WrappedBits8, m.Bit):
+            return WrappedBits8(val.apply(lambda x: x + 1)), val.apply(lambda x: x[0])
+
+
+    @m.circuit.sequential(async_reset=False)
+    class Bar:
+        def __init__(self):
+            self.f : Foo = Foo()
+
+        def __call__(self, val: WrappedBits8) -> (WrappedBits8, m.Bit):
+            return self.f(val)
+
+
