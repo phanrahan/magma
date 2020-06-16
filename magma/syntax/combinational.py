@@ -223,7 +223,7 @@ def _combinational(defn_env: dict, fn: types.FunctionType):
     if "m" not in defn_env:
         defn_env["m"] = m
     if "phi" not in defn_env:
-        defn_env["phi"] = m.operators.mux
+        defn_env["phi"] = m.primitives.mux
     source = "\n"
     for i, line in enumerate(astor.to_source(tree).splitlines()):
         source += f"    {i}: {line}\n"
