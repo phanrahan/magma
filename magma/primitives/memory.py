@@ -1,3 +1,4 @@
+from typing import Optional
 from hwtypes import BitVector
 
 from magma.bit import Bit
@@ -31,9 +32,10 @@ class CoreIRMemory(Generator2):
                                "has_init": init is not None}
         self.coreir_configargs = {}
         if init is not None:
-            raise NotImplementedError("CoreIR's memory primitive does not "
-                                      "compile init arg to verilog yet")
-            # self.coreir_configargs["init"] = <convert to json arg>
+            init_bv = BitVector[width](init[0])
+            for i, elem in enumerate(init[1:]):
+                init_bv = init_bv.concat(BitVector[width](elem))
+            self.coreir_configargs["init"] = init_bv
 
         def _simulate(self, value_store, state_store):
             cur_clk = value_store.get_value(self.clk)
@@ -71,7 +73,8 @@ class CoreIRMemory(Generator2):
 
 class Memory(Generator2):
     def __init__(self, height, T: Kind,
-                 read_latency: int = 0, read_only: bool = False):
+                 read_latency: int = 0, read_only: bool = False, init:
+                 Optional[tuple] = None):
         if read_latency < 0:
             raise ValueError("read_latency cannot be negative")
         addr_width = clog2(height)
@@ -94,7 +97,7 @@ class Memory(Generator2):
             waddr = Bits[addr_width](0)
             wdata = Bits[data_width](0)
             wen = Bit(0)
-        coreir_mem = CoreIRMemory(height, data_width)()
+        coreir_mem = CoreIRMemory(height, data_width, init=init)()
         coreir_mem.waddr @= waddr
         coreir_mem.wdata @= wdata
         coreir_mem.wen @= wen
