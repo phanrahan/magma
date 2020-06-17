@@ -97,4 +97,4 @@ from .log import info, debug, warning, error
 from .syntax.sequential2 import sequential2
 from .syntax.combinational2 import combinational2
 
-from magma.primitives import LUT, Mux, mux, Register, slice, reduce
+from magma.primitives import LUT, Mux, mux, Register, slice, reduce, Memory
