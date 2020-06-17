@@ -21,8 +21,7 @@ from ast_tools import gen_free_name
 def _get_magma_value(val):
     if isinstance(val, MagmaProtocol):
         return val._get_magma_value_()
-    else:
-        return val
+    return val
 
 class RewriteSelfAttributes(ast.NodeTransformer):
     def __init__(self, initial_value_map):
