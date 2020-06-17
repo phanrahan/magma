@@ -1,4 +1,5 @@
 import collections
+import collections.abc
 from functools import wraps, partial
 import warnings
 
