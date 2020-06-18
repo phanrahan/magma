@@ -70,8 +70,8 @@ class CoreIRMemory(Generator2):
 
 class Memory(Generator2):
     def __init__(self, height, T: Kind,
-                 read_latency: int = 0, read_only: bool = False, init:
-                 Optional[tuple] = None):
+                 read_latency: int = 0, read_only: bool = False,
+                 init: Optional[tuple] = None):
         if read_latency < 0:
             raise ValueError("read_latency cannot be negative")
         addr_width = clog2(height)
