@@ -91,11 +91,17 @@ class CoreIRCompiler(Compiler):
     def _compile_verilog_epilogue(self):
         self._process_header_footer()
 
+        bind_files = []
         # TODO(leonardt): We need fresh bind_files for each compile call.
         for name, file in self.backend.sv_bind_files.items():
+            bind_files.append(f"{name}.sv")
             filename = os.path.join(os.path.dirname(self.basename), name)
             with open(f"{filename}.sv", "w") as f:
                 f.write(file)
+
+        bind_listings_file = self.basename + "_bind_files.list"
+        with open(bind_listings_file, "w") as f:
+            f.write("\n".join(bind_files))
 
         if self.opts.get("sv", False):
             if self.opts.get("split", False):
