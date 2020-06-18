@@ -32,10 +32,7 @@ class CoreIRMemory(Generator2):
                                "has_init": init is not None}
         self.coreir_configargs = {}
         if init is not None:
-            init_bv = BitVector[width](init[0])
-            for i, elem in enumerate(init[1:]):
-                init_bv = init_bv.concat(BitVector[width](elem))
-            self.coreir_configargs["init"] = init_bv
+            self.coreir_configargs["init"] = [int(x) for x in init]
 
         def _simulate(self, value_store, state_store):
             cur_clk = value_store.get_value(self.clk)

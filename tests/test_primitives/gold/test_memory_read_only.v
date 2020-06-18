@@ -73,7 +73,7 @@ coreir_const #(
     .out(const_0_5_out)
 );
 coreir_mem #(
-    .init(20'h04d47),
+    .init({5'd0,5'd19,5'd10,5'd7}),
     .depth(4),
     .has_init(1'b1),
     .width(5)
