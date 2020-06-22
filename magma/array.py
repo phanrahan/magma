@@ -29,7 +29,7 @@ class ArrayMeta(ABCMeta, Kind):
         N, T = info[1:3]
         for base in bases:
             if getattr(base, 'is_concrete', False):
-                if (N, T) is (None, None):
+                if (N, T) == (None, None):
                     (N, T) = (base.N, base.T)
                 elif N != base.N:
                     raise TypeError(
