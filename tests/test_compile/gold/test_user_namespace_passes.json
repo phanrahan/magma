@@ -1,0 +1,39 @@
+{"top":"my_namespace.Foo",
+"namespaces":{
+  "my_namespace":{
+    "modules":{
+      "Bar":{
+        "type":["Record",[
+          ["I_x","BitIn"],
+          ["I_y","BitIn"],
+          ["O_x","Bit"],
+          ["O_y","Bit"]
+        ]],
+        "connections":[
+          ["self.O_x","self.I_x"],
+          ["self.O_y","self.I_y"]
+        ]
+      },
+      "Foo":{
+        "type":["Record",[
+          ["I_x","BitIn"],
+          ["I_y","BitIn"],
+          ["O_x","Bit"],
+          ["O_y","Bit"]
+        ]],
+        "instances":{
+          "Bar_inst0":{
+            "modref":"my_namespace.Bar"
+          }
+        },
+        "connections":[
+          ["self.I_x","Bar_inst0.I_x"],
+          ["self.I_y","Bar_inst0.I_y"],
+          ["self.O_x","Bar_inst0.O_x"],
+          ["self.O_y","Bar_inst0.O_y"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -32,8 +32,9 @@ _logger = root_logger().getChild("coreir_backend")
 
 
 class TransformerBase(ABC):
-    def __init__(self, backend):
+    def __init__(self, backend, opts):
         self.backend = backend
+        self.opts = opts
         self.ran = False
         self._children = None
 
@@ -60,8 +61,8 @@ class LeafTransformer(TransformerBase):
 
 
 class DefnOrDeclTransformer(TransformerBase):
-    def __init__(self, backend, defn_or_decl):
-        super().__init__(backend)
+    def __init__(self, backend, opts, defn_or_decl):
+        super().__init__(backend, opts)
         self.defn_or_decl = defn_or_decl
         self.coreir_module = None
 
@@ -71,11 +72,17 @@ class DefnOrDeclTransformer(TransformerBase):
             self.coreir_module = self.backend.modules[self.defn_or_decl.name]
             return []
         if not isdefinition(self.defn_or_decl):
-            return [DeclarationTransformer(self.backend, self.defn_or_decl)]
+            return [DeclarationTransformer(self.backend,
+                                           self.opts,
+                                           self.defn_or_decl)]
         wrapped = getattr(self.defn_or_decl, "wrappedModule", None)
         if wrapped and wrapped.context is self.backend.context:
-            return [WrappedTransformer(self.backend, self.defn_or_decl)]
-        return [DefinitionTransformer(self.backend, self.defn_or_decl)]
+            return [WrappedTransformer(self.backend,
+                                       self.opts,
+                                       self.defn_or_decl)]
+        return [DefinitionTransformer(self.backend,
+                                      self.opts,
+                                      self.defn_or_decl)]
 
     def run_self(self):
         if self.coreir_module:
@@ -89,8 +96,8 @@ class DefnOrDeclTransformer(TransformerBase):
 
 
 class InstanceTransformer(LeafTransformer):
-    def __init__(self, backend, inst, defn):
-        super().__init__(backend)
+    def __init__(self, backend, opts, inst, defn):
+        super().__init__(backend, opts)
         self.inst = inst
         self.defn = defn
         self.coreir_inst_gen = None
@@ -120,21 +127,23 @@ class InstanceTransformer(LeafTransformer):
 
 
 class WrappedTransformer(LeafTransformer):
-    def __init__(self, backend, defn):
-        super().__init__(backend)
+    def __init__(self, backend, opts, defn):
+        super().__init__(backend, opts)
         self.defn = defn
         self.coreir_module = self.defn.wrappedModule
         self.backend.libs_used |= self.defn.coreir_wrapped_modules_libs_used
 
 
 class DefinitionTransformer(TransformerBase):
-    def __init__(self, backend, defn):
-        super().__init__(backend)
+    def __init__(self, backend, opts, defn):
+        super().__init__(backend, opts)
         self.defn = defn
         self.coreir_module = None
-        self.decl_tx = DeclarationTransformer(self.backend, self.defn)
+        self.decl_tx = DeclarationTransformer(self.backend,
+                                              self.opts,
+                                              self.defn)
         self.inst_txs = {
-            inst: InstanceTransformer(self.backend, inst, self.defn)
+            inst: InstanceTransformer(self.backend, self.opts, inst, self.defn)
             for inst in self.defn.instances
         }
         self.clocks = {}
@@ -148,7 +157,8 @@ class DefinitionTransformer(TransformerBase):
         pass_ = InstanceGraphPass(self.defn)
         pass_.run()
         deps = [k for k, _ in pass_.tsortedgraph if k is not self.defn]
-        children = [DefnOrDeclTransformer(self.backend, dep) for dep in deps]
+        children = [DefnOrDeclTransformer(self.backend, self.opts, dep)
+                    for dep in deps]
         children += [self.decl_tx]
         children += self.inst_txs.values()
         return children
@@ -276,8 +286,8 @@ class DefinitionTransformer(TransformerBase):
 
 
 class DeclarationTransformer(LeafTransformer):
-    def __init__(self, backend, decl):
-        super().__init__(backend)
+    def __init__(self, backend, opts, decl):
+        super().__init__(backend, opts)
         self.decl = decl
         self.coreir_module = None
 
@@ -309,7 +319,9 @@ class DeclarationTransformer(LeafTransformer):
         if hasattr(self.decl, "coreir_config_param_types"):
             param_types = self.decl.coreir_config_param_types
             kwargs["cparams"] = make_cparams(self.backend.context, param_types)
-        coreir_module = self.backend.context.global_namespace.new_module(
+        namespace = self.opts.get("user_namespace",
+                                  self.backend.context.global_namespace)
+        coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:
             attach_debug_info(coreir_module, self.decl.debug_info)

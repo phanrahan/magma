@@ -46,9 +46,9 @@ _context_to_modules = {}
 
 class CoreIRBackend:
     def __init__(self, context=None):
-        self.__init(context)
+        self._init(context)
 
-    def __init(self, context):
+    def _init(self, context):
         singleton = CoreIRContextSingleton().get_instance()
         if context is None:
             context = singleton
@@ -63,11 +63,12 @@ class CoreIRBackend:
         self.sv_bind_files = {}
 
     def reset(self):
-        self.__init(context=None)
+        self._init(context=None)
 
-    def compile(self, defn_or_decl):
+    def compile(self, defn_or_decl, opts=None):
         _logger.debug(f"Compiling: {defn_or_decl.name}")
-        transformer = DefnOrDeclTransformer(self, defn_or_decl)
+        opts = opts if opts is not None else {}
+        transformer = DefnOrDeclTransformer(self, opts, defn_or_decl)
         transformer.run()
         self.modules[defn_or_decl.name] = transformer.coreir_module
         return self.modules

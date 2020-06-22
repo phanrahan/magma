@@ -33,6 +33,14 @@ def _make_verilog_cmd(deps, basename, opts):
     return cmd
 
 
+def _make_opts(backend, opts):
+    out = {}
+    user_namespace = opts.get("user_namespace", None)
+    if user_namespace is not None:
+        out["user_namespace"] = backend.context.new_namespace(user_namespace)
+    return out
+
+
 class CoreIRCompiler(Compiler):
     def __init__(self, main, basename, opts):
         super().__init__(main, basename, opts)
@@ -47,7 +55,8 @@ class CoreIRCompiler(Compiler):
         InsertCoreIRWires(self.main).run()
         InsertWrapCasts(self.main).run()
         backend = self.backend
-        backend.compile(self.main)
+        opts = _make_opts(backend, self.opts)
+        backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
         output_json = (self.opts.get("output_intermediate", False) or
                        not self.opts.get("output_verilog", False) or
