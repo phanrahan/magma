@@ -46,6 +46,13 @@ def test_bind_multi_unique_name():
                                        f"build/RTLMonitor_unq1.sv",
                                        f"gold/RTLMonitor_unq1.sv")
 
+    listings_file = "tests/test_verilog/build/bind_uniq_test_bind_files.list"
+    with open(listings_file, "r") as f:
+        assert f.read() == """\
+RTLMonitor.sv
+RTLMonitor_unq1.sv\
+"""
+
     result = run('verilator --version', shell=True, capture_output=True)
     version = float(result.stdout.split()[1])
     if version >= 4.016:
