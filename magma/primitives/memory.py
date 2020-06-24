@@ -102,6 +102,7 @@ class Memory(Generator2):
         coreir_mem.wen @= wen
         coreir_mem.raddr @= self.io.RADDR
         rdata = from_bits(T, coreir_mem.rdata)
-        for _ in range(1, read_latency):
+        # -1 because sync_read param handles latency 1
+        for _ in range(read_latency - 1):
             rdata = Register(T)()(rdata)
         self.io.RDATA @= rdata
