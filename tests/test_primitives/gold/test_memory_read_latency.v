@@ -28,7 +28,17 @@ module coreir_mem #(
     output [width-1:0] rdata,
     input [$clog2(depth)-1:0] raddr
 );
-  reg [width-1:0] data[depth-1:0];
+  reg [width-1:0] data [depth-1:0];
+  parameter [width*depth-1:0] init = 0;
+  generate if (has_init) begin
+    genvar j;
+    for (j = 0; j < depth; j = j + 1) begin
+      initial begin
+        data[j] = init[(j+1)*width-1:j*width];
+      end
+    end
+  end
+  endgenerate
   always @(posedge clk) begin
     if (wen) begin
       data[waddr] <= wdata;

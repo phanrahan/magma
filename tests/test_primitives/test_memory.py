@@ -176,3 +176,31 @@ def test_memory_read_latency():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_memory_read_only():
+    init = (7, 10, 19, 0)
+
+    class test_memory_read_only(m.Circuit):
+        io = m.IO(
+            raddr=m.In(m.Bits[2]),
+            rdata=m.Out(m.Bits[5]),
+            clk=m.In(m.Clock),
+        )
+        Mem4x5 = m.Memory(4, m.Bits[5], read_only=True, init=init)()
+        Mem4x5.RADDR @= io.raddr
+        io.rdata @= Mem4x5.RDATA
+
+    m.compile("build/test_memory_read_only", test_memory_read_only)
+
+    assert check_files_equal(__file__, f"build/test_memory_read_only.v",
+                             f"gold/test_memory_read_only.v")
+    tester = fault.SynchronousTester(test_memory_read_only,
+                                     test_memory_read_only.clk)
+    for i in range(4):
+        tester.circuit.raddr = i
+        tester.advance_cycle()
+        tester.circuit.rdata.expect(init[i])
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))

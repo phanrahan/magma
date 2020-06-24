@@ -29,46 +29,75 @@ module coreir_mem #(
   assign rdata = data[raddr];
 endmodule
 
+module coreir_const #(
+    parameter width = 1,
+    parameter value = 1
+) (
+    output [width-1:0] out
+);
+  assign out = value;
+endmodule
+
+module corebit_const #(
+    parameter value = 1
+) (
+    output out
+);
+  assign out = value;
+endmodule
+
 module Memory (
     input [1:0] RADDR,
     output [4:0] RDATA,
-    input CLK,
-    input [1:0] WADDR,
-    input [4:0] WDATA,
-    input WE
+    input CLK
 );
+wire bit_const_0_None_out;
+wire [1:0] const_0_2_out;
+wire [4:0] const_0_5_out;
 wire [4:0] coreir_mem4x5_inst0_rdata;
+corebit_const #(
+    .value(1'b0)
+) bit_const_0_None (
+    .out(bit_const_0_None_out)
+);
+coreir_const #(
+    .value(2'h0),
+    .width(2)
+) const_0_2 (
+    .out(const_0_2_out)
+);
+coreir_const #(
+    .value(5'h00),
+    .width(5)
+) const_0_5 (
+    .out(const_0_5_out)
+);
 coreir_mem #(
+    .init({5'd0,5'd19,5'd10,5'd7}),
     .depth(4),
-    .has_init(1'b0),
+    .has_init(1'b1),
     .width(5)
 ) coreir_mem4x5_inst0 (
     .clk(CLK),
-    .wdata(WDATA),
-    .waddr(WADDR),
-    .wen(WE),
+    .wdata(const_0_5_out),
+    .waddr(const_0_2_out),
+    .wen(bit_const_0_None_out),
     .rdata(coreir_mem4x5_inst0_rdata),
     .raddr(RADDR)
 );
 assign RDATA = coreir_mem4x5_inst0_rdata;
 endmodule
 
-module test_memory_basic (
+module test_memory_read_only (
     input [1:0] raddr,
     output [4:0] rdata,
-    input [1:0] waddr,
-    input [4:0] wdata,
-    input clk,
-    input wen
+    input clk
 );
 wire [4:0] Memory_inst0_RDATA;
 Memory Memory_inst0 (
     .RADDR(raddr),
     .RDATA(Memory_inst0_RDATA),
-    .CLK(clk),
-    .WADDR(waddr),
-    .WDATA(wdata),
-    .WE(wen)
+    .CLK(clk)
 );
 assign rdata = Memory_inst0_RDATA;
 endmodule
