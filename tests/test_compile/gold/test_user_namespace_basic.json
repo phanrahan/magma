@@ -1,0 +1,32 @@
+{"top":"my_namespace.Foo",
+"namespaces":{
+  "my_namespace":{
+    "modules":{
+      "Bar":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.O","self.I"]
+        ]
+      },
+      "Foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Bar_inst0":{
+            "modref":"my_namespace.Bar"
+          }
+        },
+        "connections":[
+          ["self.I","Bar_inst0.I"],
+          ["self.O","Bar_inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}
