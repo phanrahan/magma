@@ -14,7 +14,7 @@ from magma.t import In, Out, Kind
 
 
 class CoreIRMemory(Generator2):
-    def __init__(self, depth, width, init=None, sync_read=False):
+    def __init__(self, depth, width, init=None):
         self.name = f"coreir_mem{depth}x{width}"
         addr_width = clog2(depth)
         self.io = IO(
@@ -29,8 +29,7 @@ class CoreIRMemory(Generator2):
         self.coreir_name = "mem"
         self.coreir_lib = "coreir"
         self.coreir_genargs = {"width": width, "depth": depth,
-                               "has_init": init is not None,
-                               "sync_read": sync_read}
+                               "has_init": init is not None}
         self.coreir_configargs = {}
         if init is not None:
             self.coreir_configargs["init"] = [int(x) for x in init]
@@ -95,13 +94,12 @@ class Memory(Generator2):
             waddr = Bits[addr_width](0)
             wdata = Bits[data_width](0)
             wen = Bit(0)
-        coreir_mem = CoreIRMemory(height, data_width, init=init,
-                                  sync_read=read_latency > 0)()
+        coreir_mem = CoreIRMemory(height, data_width, init=init)()
         coreir_mem.waddr @= waddr
         coreir_mem.wdata @= wdata
         coreir_mem.wen @= wen
         coreir_mem.raddr @= self.io.RADDR
         rdata = from_bits(T, coreir_mem.rdata)
-        for _ in range(1, read_latency):
+        for _ in range(read_latency):
             rdata = Register(T)()(rdata)
         self.io.RDATA @= rdata
