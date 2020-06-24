@@ -16,20 +16,7 @@
         "connections":[
           ["self.O.14","bit_const_0_None.out"],
           ["self.O.15","bit_const_0_None.out"],
-          ["self.O.8","self.I.10"],
-          ["self.O.9","self.I.11"],
-          ["self.O.10","self.I.12"],
-          ["self.O.11","self.I.13"],
-          ["self.O.12","self.I.14"],
-          ["self.O.13","self.I.15"],
-          ["self.O.0","self.I.2"],
-          ["self.O.1","self.I.3"],
-          ["self.O.2","self.I.4"],
-          ["self.O.3","self.I.5"],
-          ["self.O.4","self.I.6"],
-          ["self.O.5","self.I.7"],
-          ["self.O.6","self.I.8"],
-          ["self.O.7","self.I.9"]
+          ["self.O.0:14","self.I.2:16"]
         ]
       },
       "test_module":{

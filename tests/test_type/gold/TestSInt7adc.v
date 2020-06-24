@@ -34,8 +34,8 @@ corebit_const #(
 coreir_add #(
     .width(8)
 ) magma_Bits_8_add_inst0 (
-    .in0({I0[6],I0[6],I0[5],I0[4],I0[3],I0[2],I0[1],I0[0]}),
-    .in1({I1[6],I1[6],I1[5],I1[4],I1[3],I1[2],I1[1],I1[0]}),
+    .in0({I0[6],I0[6:0]}),
+    .in1({I1[6],I1[6:0]}),
     .out(magma_Bits_8_add_inst0_out)
 );
 coreir_add #(
@@ -45,7 +45,7 @@ coreir_add #(
     .in1({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,CIN}),
     .out(magma_Bits_8_add_inst1_out)
 );
-assign O = {magma_Bits_8_add_inst1_out[6],magma_Bits_8_add_inst1_out[5],magma_Bits_8_add_inst1_out[4],magma_Bits_8_add_inst1_out[3],magma_Bits_8_add_inst1_out[2],magma_Bits_8_add_inst1_out[1],magma_Bits_8_add_inst1_out[0]};
+assign O = magma_Bits_8_add_inst1_out[6:0];
 assign COUT = magma_Bits_8_add_inst1_out[7];
 endmodule
 

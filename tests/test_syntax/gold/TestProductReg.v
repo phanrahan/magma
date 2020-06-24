@@ -61,13 +61,13 @@ module Mux2xTuplea0_OutBit_a1_OutSInt8 (
 );
 wire [8:0] coreir_commonlib_mux2x9_inst0_out;
 commonlib_muxn__N2__width9 coreir_commonlib_mux2x9_inst0 (
-    .in_data_0({I0_a1[7],I0_a1[6],I0_a1[5],I0_a1[4],I0_a1[3],I0_a1[2],I0_a1[1],I0_a1[0],I0_a0}),
-    .in_data_1({I1_a1[7],I1_a1[6],I1_a1[5],I1_a1[4],I1_a1[3],I1_a1[2],I1_a1[1],I1_a1[0],I1_a0}),
+    .in_data_0({I0_a1[7:0],I0_a0}),
+    .in_data_1({I1_a1[7:0],I1_a0}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x9_inst0_out)
 );
 assign O_a0 = coreir_commonlib_mux2x9_inst0_out[0];
-assign O_a1 = {coreir_commonlib_mux2x9_inst0_out[8],coreir_commonlib_mux2x9_inst0_out[7],coreir_commonlib_mux2x9_inst0_out[6],coreir_commonlib_mux2x9_inst0_out[5],coreir_commonlib_mux2x9_inst0_out[4],coreir_commonlib_mux2x9_inst0_out[3],coreir_commonlib_mux2x9_inst0_out[2],coreir_commonlib_mux2x9_inst0_out[1]};
+assign O_a1 = coreir_commonlib_mux2x9_inst0_out[8:1];
 endmodule
 
 module TestProductReg_comb (

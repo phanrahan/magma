@@ -55,8 +55,7 @@
         "connections":[
           ["self.O1.2","bit_const_0_None.out"],
           ["self.O0","self.I"],
-          ["self.self_x_O.0","self.O1.0"],
-          ["self.self_x_O.1","self.O1.1"],
+          ["self.self_x_O.0:2","self.O1.0:2"],
           ["self.self_y_O","self.O2"]
         ]
       }

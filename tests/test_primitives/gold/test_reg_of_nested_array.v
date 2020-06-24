@@ -68,14 +68,14 @@ module Mux2xArray3_Bits8 (
 );
 wire [23:0] coreir_commonlib_mux2x24_inst0_out;
 commonlib_muxn__N2__width24 coreir_commonlib_mux2x24_inst0 (
-    .in_data_0({I0_2[7],I0_2[6],I0_2[5],I0_2[4],I0_2[3],I0_2[2],I0_2[1],I0_2[0],I0_1[7],I0_1[6],I0_1[5],I0_1[4],I0_1[3],I0_1[2],I0_1[1],I0_1[0],I0_0[7],I0_0[6],I0_0[5],I0_0[4],I0_0[3],I0_0[2],I0_0[1],I0_0[0]}),
-    .in_data_1({I1_2[7],I1_2[6],I1_2[5],I1_2[4],I1_2[3],I1_2[2],I1_2[1],I1_2[0],I1_1[7],I1_1[6],I1_1[5],I1_1[4],I1_1[3],I1_1[2],I1_1[1],I1_1[0],I1_0[7],I1_0[6],I1_0[5],I1_0[4],I1_0[3],I1_0[2],I1_0[1],I1_0[0]}),
+    .in_data_0({I0_2[7:0],I0_1[7:0],I0_0[7:0]}),
+    .in_data_1({I1_2[7:0],I1_1[7:0],I1_0[7:0]}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x24_inst0_out)
 );
-assign O_0 = {coreir_commonlib_mux2x24_inst0_out[7],coreir_commonlib_mux2x24_inst0_out[6],coreir_commonlib_mux2x24_inst0_out[5],coreir_commonlib_mux2x24_inst0_out[4],coreir_commonlib_mux2x24_inst0_out[3],coreir_commonlib_mux2x24_inst0_out[2],coreir_commonlib_mux2x24_inst0_out[1],coreir_commonlib_mux2x24_inst0_out[0]};
-assign O_1 = {coreir_commonlib_mux2x24_inst0_out[15],coreir_commonlib_mux2x24_inst0_out[14],coreir_commonlib_mux2x24_inst0_out[13],coreir_commonlib_mux2x24_inst0_out[12],coreir_commonlib_mux2x24_inst0_out[11],coreir_commonlib_mux2x24_inst0_out[10],coreir_commonlib_mux2x24_inst0_out[9],coreir_commonlib_mux2x24_inst0_out[8]};
-assign O_2 = {coreir_commonlib_mux2x24_inst0_out[23],coreir_commonlib_mux2x24_inst0_out[22],coreir_commonlib_mux2x24_inst0_out[21],coreir_commonlib_mux2x24_inst0_out[20],coreir_commonlib_mux2x24_inst0_out[19],coreir_commonlib_mux2x24_inst0_out[18],coreir_commonlib_mux2x24_inst0_out[17],coreir_commonlib_mux2x24_inst0_out[16]};
+assign O_0 = coreir_commonlib_mux2x24_inst0_out[7:0];
+assign O_1 = coreir_commonlib_mux2x24_inst0_out[15:8];
+assign O_2 = coreir_commonlib_mux2x24_inst0_out[23:16];
 endmodule
 
 module Register (
@@ -131,12 +131,12 @@ coreir_reg #(
     .width(24)
 ) reg_P_inst0 (
     .clk(CLK),
-    .in({Mux2xArray3_Bits8_inst0_O_2[7],Mux2xArray3_Bits8_inst0_O_2[6],Mux2xArray3_Bits8_inst0_O_2[5],Mux2xArray3_Bits8_inst0_O_2[4],Mux2xArray3_Bits8_inst0_O_2[3],Mux2xArray3_Bits8_inst0_O_2[2],Mux2xArray3_Bits8_inst0_O_2[1],Mux2xArray3_Bits8_inst0_O_2[0],Mux2xArray3_Bits8_inst0_O_1[7],Mux2xArray3_Bits8_inst0_O_1[6],Mux2xArray3_Bits8_inst0_O_1[5],Mux2xArray3_Bits8_inst0_O_1[4],Mux2xArray3_Bits8_inst0_O_1[3],Mux2xArray3_Bits8_inst0_O_1[2],Mux2xArray3_Bits8_inst0_O_1[1],Mux2xArray3_Bits8_inst0_O_1[0],Mux2xArray3_Bits8_inst0_O_0[7],Mux2xArray3_Bits8_inst0_O_0[6],Mux2xArray3_Bits8_inst0_O_0[5],Mux2xArray3_Bits8_inst0_O_0[4],Mux2xArray3_Bits8_inst0_O_0[3],Mux2xArray3_Bits8_inst0_O_0[2],Mux2xArray3_Bits8_inst0_O_0[1],Mux2xArray3_Bits8_inst0_O_0[0]}),
+    .in({Mux2xArray3_Bits8_inst0_O_2[7:0],Mux2xArray3_Bits8_inst0_O_1[7:0],Mux2xArray3_Bits8_inst0_O_0[7:0]}),
     .out(reg_P_inst0_out)
 );
-assign O_0 = {reg_P_inst0_out[7],reg_P_inst0_out[6],reg_P_inst0_out[5],reg_P_inst0_out[4],reg_P_inst0_out[3],reg_P_inst0_out[2],reg_P_inst0_out[1],reg_P_inst0_out[0]};
-assign O_1 = {reg_P_inst0_out[15],reg_P_inst0_out[14],reg_P_inst0_out[13],reg_P_inst0_out[12],reg_P_inst0_out[11],reg_P_inst0_out[10],reg_P_inst0_out[9],reg_P_inst0_out[8]};
-assign O_2 = {reg_P_inst0_out[23],reg_P_inst0_out[22],reg_P_inst0_out[21],reg_P_inst0_out[20],reg_P_inst0_out[19],reg_P_inst0_out[18],reg_P_inst0_out[17],reg_P_inst0_out[16]};
+assign O_0 = reg_P_inst0_out[7:0];
+assign O_1 = reg_P_inst0_out[15:8];
+assign O_2 = reg_P_inst0_out[23:16];
 endmodule
 
 module test_reg_of_nested_array (

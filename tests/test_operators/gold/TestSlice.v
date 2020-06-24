@@ -117,10 +117,10 @@ module TestSlice (
 );
 wire [5:0] Mux4xOutBits6_inst0_O;
 Mux4xOutBits6 Mux4xOutBits6_inst0 (
-    .I0({I[5],I[4],I[3],I[2],I[1],I[0]}),
-    .I1({I[6],I[5],I[4],I[3],I[2],I[1]}),
-    .I2({I[7],I[6],I[5],I[4],I[3],I[2]}),
-    .I3({I[8],I[7],I[6],I[5],I[4],I[3]}),
+    .I0(I[5:0]),
+    .I1(I[6:1]),
+    .I2(I[7:2]),
+    .I3(I[8:3]),
     .S(x),
     .O(Mux4xOutBits6_inst0_O)
 );
