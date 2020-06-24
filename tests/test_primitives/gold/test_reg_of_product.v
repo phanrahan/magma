@@ -1,3 +1,45 @@
+module mantle_wire__typeBitIn8 (
+    output [7:0] in,
+    input [7:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn4 (
+    output [3:0] in,
+    input [3:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn12 (
+    output [11:0] in,
+    input [11:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit8 (
+    input [7:0] in,
+    output [7:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit4 (
+    input [3:0] in,
+    output [3:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit12 (
+    input [11:0] in,
+    output [11:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -63,15 +105,60 @@ module Mux2xTuplex_Bits8_y_Bits4 (
     output [3:0] O_y,
     input S
 );
+wire [11:0] _$0_in;
+wire [11:0] _$1_in;
+wire [11:0] _$2_out;
+wire [7:0] _$3_out;
+wire [3:0] _$4_out;
+wire [7:0] _$5_out;
+wire [3:0] _$6_out;
+wire [7:0] _$7_in;
+wire [3:0] _$8_in;
 wire [11:0] coreir_commonlib_mux2x12_inst0_out;
+mantle_wire__typeBitIn12 _$0 (
+    .in(_$0_in),
+    .out({_$4_out[3:0],_$3_out[7:0]})
+);
+mantle_wire__typeBitIn12 _$1 (
+    .in(_$1_in),
+    .out({_$6_out[3:0],_$5_out[7:0]})
+);
+mantle_wire__typeBit12 _$2 (
+    .in(coreir_commonlib_mux2x12_inst0_out),
+    .out(_$2_out)
+);
+mantle_wire__typeBit8 _$3 (
+    .in(I0_x),
+    .out(_$3_out)
+);
+mantle_wire__typeBit4 _$4 (
+    .in(I0_y),
+    .out(_$4_out)
+);
+mantle_wire__typeBit8 _$5 (
+    .in(I1_x),
+    .out(_$5_out)
+);
+mantle_wire__typeBit4 _$6 (
+    .in(I1_y),
+    .out(_$6_out)
+);
+mantle_wire__typeBitIn8 _$7 (
+    .in(_$7_in),
+    .out(_$2_out[7:0])
+);
+mantle_wire__typeBitIn4 _$8 (
+    .in(_$8_in),
+    .out(_$2_out[11:8])
+);
 commonlib_muxn__N2__width12 coreir_commonlib_mux2x12_inst0 (
-    .in_data_0({I0_y[3],I0_y[2],I0_y[1],I0_y[0],I0_x[7],I0_x[6],I0_x[5],I0_x[4],I0_x[3],I0_x[2],I0_x[1],I0_x[0]}),
-    .in_data_1({I1_y[3],I1_y[2],I1_y[1],I1_y[0],I1_x[7],I1_x[6],I1_x[5],I1_x[4],I1_x[3],I1_x[2],I1_x[1],I1_x[0]}),
+    .in_data_0(_$0_in),
+    .in_data_1(_$1_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x12_inst0_out)
 );
-assign O_x = {coreir_commonlib_mux2x12_inst0_out[7],coreir_commonlib_mux2x12_inst0_out[6],coreir_commonlib_mux2x12_inst0_out[5],coreir_commonlib_mux2x12_inst0_out[4],coreir_commonlib_mux2x12_inst0_out[3],coreir_commonlib_mux2x12_inst0_out[2],coreir_commonlib_mux2x12_inst0_out[1],coreir_commonlib_mux2x12_inst0_out[0]};
-assign O_y = {coreir_commonlib_mux2x12_inst0_out[11],coreir_commonlib_mux2x12_inst0_out[10],coreir_commonlib_mux2x12_inst0_out[9],coreir_commonlib_mux2x12_inst0_out[8]};
+assign O_x = _$7_in;
+assign O_y = _$8_in;
 endmodule
 
 module Register (
@@ -84,6 +171,10 @@ module Register (
 );
 wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x;
 wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y;
+wire [7:0] _$0_out;
+wire [3:0] _$1_out;
+wire [7:0] _$2_in;
+wire [3:0] _$3_in;
 wire [3:0] const_10_4_out;
 wire [7:0] const_222_8_out;
 wire [11:0] reg_P_inst0_out;
@@ -95,6 +186,22 @@ Mux2xTuplex_Bits8_y_Bits4 Mux2xTuplex_Bits8_y_Bits4_inst0 (
     .O_x(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x),
     .O_y(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y),
     .S(RESET)
+);
+mantle_wire__typeBit8 _$0 (
+    .in(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x),
+    .out(_$0_out)
+);
+mantle_wire__typeBit4 _$1 (
+    .in(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y),
+    .out(_$1_out)
+);
+mantle_wire__typeBitIn8 _$2 (
+    .in(_$2_in),
+    .out(reg_P_inst0_out[7:0])
+);
+mantle_wire__typeBitIn4 _$3 (
+    .in(_$3_in),
+    .out(reg_P_inst0_out[11:8])
 );
 coreir_const #(
     .value(4'ha),
@@ -114,11 +221,11 @@ coreir_reg #(
     .width(12)
 ) reg_P_inst0 (
     .clk(CLK),
-    .in({Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[3],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[2],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[1],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[7],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[6],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[5],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[4],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[3],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[2],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[1],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[0]}),
+    .in({_$1_out[3:0],_$0_out[7:0]}),
     .out(reg_P_inst0_out)
 );
-assign O_x = {reg_P_inst0_out[7],reg_P_inst0_out[6],reg_P_inst0_out[5],reg_P_inst0_out[4],reg_P_inst0_out[3],reg_P_inst0_out[2],reg_P_inst0_out[1],reg_P_inst0_out[0]};
-assign O_y = {reg_P_inst0_out[11],reg_P_inst0_out[10],reg_P_inst0_out[9],reg_P_inst0_out[8]};
+assign O_x = _$2_in;
+assign O_y = _$3_in;
 endmodule
 
 module test_reg_of_product (

@@ -1,3 +1,17 @@
+module mantle_wire__typeBitIn5 (
+    output [4:0] in,
+    input [4:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit5 (
+    input [4:0] in,
+    output [4:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -50,7 +64,17 @@ module Memory (
     input [4:0] WDATA_Y,
     input WE
 );
+wire [4:0] _$0_in;
+wire [4:0] _$1_out;
 wire [5:0] coreir_mem4x6_inst0_rdata;
+mantle_wire__typeBitIn5 _$0 (
+    .in(_$0_in),
+    .out(coreir_mem4x6_inst0_rdata[5:1])
+);
+mantle_wire__typeBit5 _$1 (
+    .in(WDATA_Y),
+    .out(_$1_out)
+);
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
@@ -58,14 +82,14 @@ coreir_mem #(
     .width(6)
 ) coreir_mem4x6_inst0 (
     .clk(CLK),
-    .wdata({WDATA_Y[4],WDATA_Y[3],WDATA_Y[2],WDATA_Y[1],WDATA_Y[0],WDATA_X}),
+    .wdata({_$1_out[4:0],WDATA_X}),
     .waddr(WADDR),
     .wen(WE),
     .rdata(coreir_mem4x6_inst0_rdata),
     .raddr(RADDR)
 );
 assign RDATA_X = coreir_mem4x6_inst0_rdata[0];
-assign RDATA_Y = {coreir_mem4x6_inst0_rdata[5],coreir_mem4x6_inst0_rdata[4],coreir_mem4x6_inst0_rdata[3],coreir_mem4x6_inst0_rdata[2],coreir_mem4x6_inst0_rdata[1]};
+assign RDATA_Y = _$0_in;
 endmodule
 
 module test_memory_product (

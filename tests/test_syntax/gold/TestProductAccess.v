@@ -56,13 +56,13 @@ module Mux2xTuplea0_OutBits8_a1_OutBits8 (
 );
 wire [15:0] coreir_commonlib_mux2x16_inst0_out;
 commonlib_muxn__N2__width16 coreir_commonlib_mux2x16_inst0 (
-    .in_data_0({I0_a1[7],I0_a1[6],I0_a1[5],I0_a1[4],I0_a1[3],I0_a1[2],I0_a1[1],I0_a1[0],I0_a0[7],I0_a0[6],I0_a0[5],I0_a0[4],I0_a0[3],I0_a0[2],I0_a0[1],I0_a0[0]}),
-    .in_data_1({I1_a1[7],I1_a1[6],I1_a1[5],I1_a1[4],I1_a1[3],I1_a1[2],I1_a1[1],I1_a1[0],I1_a0[7],I1_a0[6],I1_a0[5],I1_a0[4],I1_a0[3],I1_a0[2],I1_a0[1],I1_a0[0]}),
+    .in_data_0({I0_a1[7:0],I0_a0[7:0]}),
+    .in_data_1({I1_a1[7:0],I1_a0[7:0]}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x16_inst0_out)
 );
-assign O_a0 = {coreir_commonlib_mux2x16_inst0_out[7],coreir_commonlib_mux2x16_inst0_out[6],coreir_commonlib_mux2x16_inst0_out[5],coreir_commonlib_mux2x16_inst0_out[4],coreir_commonlib_mux2x16_inst0_out[3],coreir_commonlib_mux2x16_inst0_out[2],coreir_commonlib_mux2x16_inst0_out[1],coreir_commonlib_mux2x16_inst0_out[0]};
-assign O_a1 = {coreir_commonlib_mux2x16_inst0_out[15],coreir_commonlib_mux2x16_inst0_out[14],coreir_commonlib_mux2x16_inst0_out[13],coreir_commonlib_mux2x16_inst0_out[12],coreir_commonlib_mux2x16_inst0_out[11],coreir_commonlib_mux2x16_inst0_out[10],coreir_commonlib_mux2x16_inst0_out[9],coreir_commonlib_mux2x16_inst0_out[8]};
+assign O_a0 = coreir_commonlib_mux2x16_inst0_out[7:0];
+assign O_a1 = coreir_commonlib_mux2x16_inst0_out[15:8];
 endmodule
 
 module TestProductAccess_comb (

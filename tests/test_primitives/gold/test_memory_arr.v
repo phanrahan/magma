@@ -1,3 +1,17 @@
+module mantle_wire__typeBitIn5 (
+    output [4:0] in,
+    input [4:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit5 (
+    input [4:0] in,
+    output [4:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -54,7 +68,27 @@ module Memory (
     input [4:0] WDATA_1_Y,
     input WE
 );
+wire [4:0] _$0_in;
+wire [4:0] _$1_in;
+wire [4:0] _$2_out;
+wire [4:0] _$3_out;
 wire [11:0] coreir_mem4x12_inst0_rdata;
+mantle_wire__typeBitIn5 _$0 (
+    .in(_$0_in),
+    .out(coreir_mem4x12_inst0_rdata[5:1])
+);
+mantle_wire__typeBitIn5 _$1 (
+    .in(_$1_in),
+    .out(coreir_mem4x12_inst0_rdata[11:7])
+);
+mantle_wire__typeBit5 _$2 (
+    .in(WDATA_0_Y),
+    .out(_$2_out)
+);
+mantle_wire__typeBit5 _$3 (
+    .in(WDATA_1_Y),
+    .out(_$3_out)
+);
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
@@ -62,16 +96,16 @@ coreir_mem #(
     .width(12)
 ) coreir_mem4x12_inst0 (
     .clk(CLK),
-    .wdata({WDATA_1_Y[4],WDATA_1_Y[3],WDATA_1_Y[2],WDATA_1_Y[1],WDATA_1_Y[0],WDATA_1_X,WDATA_0_Y[4],WDATA_0_Y[3],WDATA_0_Y[2],WDATA_0_Y[1],WDATA_0_Y[0],WDATA_0_X}),
+    .wdata({_$3_out[4:0],WDATA_1_X,_$2_out[4:0],WDATA_0_X}),
     .waddr(WADDR),
     .wen(WE),
     .rdata(coreir_mem4x12_inst0_rdata),
     .raddr(RADDR)
 );
 assign RDATA_0_X = coreir_mem4x12_inst0_rdata[0];
-assign RDATA_0_Y = {coreir_mem4x12_inst0_rdata[5],coreir_mem4x12_inst0_rdata[4],coreir_mem4x12_inst0_rdata[3],coreir_mem4x12_inst0_rdata[2],coreir_mem4x12_inst0_rdata[1]};
+assign RDATA_0_Y = _$0_in;
 assign RDATA_1_X = coreir_mem4x12_inst0_rdata[6];
-assign RDATA_1_Y = {coreir_mem4x12_inst0_rdata[11],coreir_mem4x12_inst0_rdata[10],coreir_mem4x12_inst0_rdata[9],coreir_mem4x12_inst0_rdata[8],coreir_mem4x12_inst0_rdata[7]};
+assign RDATA_1_Y = _$1_in;
 endmodule
 
 module test_memory_arr (

@@ -3,6 +3,7 @@ from copy import copy
 import json
 import logging
 import os
+from ..digital import Digital
 from ..array import Array
 from ..bits import Bits
 from ..clock import wiredefaultclock, wireclock
@@ -13,7 +14,7 @@ from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            is_clock_or_nested_clock,
                            magma_interface_to_coreir_module_type,
                            magma_port_to_coreir_port, make_cparams,
-                           map_genarg, magma_name_to_coreir_select)
+                           map_genarg, magma_name_to_coreir_select, Slice)
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..logging import root_logger
@@ -22,7 +23,7 @@ from ..tuple import Tuple
 from .util import get_codegen_debug_info
 from magma.config import get_debug_mode
 
-from magma.ref import PortViewRef
+from magma.ref import PortViewRef, ArrayRef
 from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
 
 
@@ -134,6 +135,30 @@ class WrappedTransformer(LeafTransformer):
         self.backend.libs_used |= self.defn.coreir_wrapped_modules_libs_used
 
 
+def _collect_drivers(value):
+    """
+    Iterate over value to collect the child drivers, packing slices together
+    """
+    drivers = []
+    start_idx = 0
+    for i in range(1, len(value)):
+        # If the next value item is not a reference to an array of bits where
+        # the array matches the previous item and the index is incremented by
+        # one, append the current slice to drivers (may introduce slices of
+        # length 1)
+        if not (
+            isinstance(value[i].name, ArrayRef) and
+            issubclass(value[i].name.array.T, Digital) and
+            isinstance(value[i - 1].name, ArrayRef) and
+            value[i].name.array is value[i - 1].name.array and
+            value[i].name.index == value[i - 1].name.index + 1
+        ):
+            drivers.append(value[start_idx:i])
+            start_idx = i
+    drivers.append(value[start_idx:])
+    return drivers
+
+
 class DefinitionTransformer(TransformerBase):
     def __init__(self, backend, opts, defn):
         super().__init__(backend, opts)
@@ -220,6 +245,43 @@ class DefinitionTransformer(TransformerBase):
         elif not port.is_output():
             self.connect(module_defn, port, port.trace(), non_input_ports)
 
+    def get_source(self, port, value, module_defn, non_input_ports):
+        if isinstance(value, Wireable):
+            return value
+        if isinstance(value, Slice):
+            return module_defn.select(value.get_coreir_select())
+        if isinstance(value, Bits) and value.const():
+            return self.const_instance(value, len(value), module_defn)
+        if value.anon() and isinstance(value, Array):
+            drivers = _collect_drivers(value)
+            offset = 0
+            for d in drivers:
+                if len(d) == 1:
+                    # _collect_drivers will introduce a slice of length 1 for
+                    # non-slices, so we index them here with 0 to unpack the
+                    # extra array dimension
+                    self.connect(module_defn, port[offset], d[0],
+                                 non_input_ports)
+                else:
+                    self.connect(module_defn,
+                                 Slice(port, offset, offset + len(d)),
+                                 Slice(d[0].name.array, d[0].name.index,
+                                       d[-1].name.index + 1),
+                                 non_input_ports)
+                offset += len(d)
+
+            return None
+        if isinstance(value, Tuple) and value.anon():
+            for p, v in zip(port, value):
+                self.connect(module_defn, p, v, non_input_ports)
+            return None
+        if value.const():
+            return self.const_instance(value, None, module_defn)
+        if isinstance(value.name, PortViewRef):
+            return module_defn.select(
+                magma_name_to_coreir_select(value.name))
+        return module_defn.select(non_input_ports[value])
+
     def connect(self, module_defn, port, value, non_input_ports):
         if value is None and is_clock_or_nested_clock(type(port)):
             for type_, default_driver in self.clocks.items():
@@ -236,27 +298,7 @@ class DefinitionTransformer(TransformerBase):
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise Exception(f"Found unconnected port: {port.debug_name}")
-
-        def get_source():
-            if isinstance(value, Wireable):
-                return value
-            if isinstance(value, Bits) and value.const():
-                return self.const_instance(value, len(value), module_defn)
-            if value.anon() and isinstance(value, Array):
-                for p, v in zip(port, value):
-                    self.connect(module_defn, p, v, non_input_ports)
-                return None
-            if isinstance(value, Tuple) and value.anon():
-                for p, v in zip(port, value):
-                    self.connect(module_defn, p, v, non_input_ports)
-                return None
-            if value.const():
-                return self.const_instance(value, None, module_defn)
-            if isinstance(value.name, PortViewRef):
-                return module_defn.select(
-                    magma_name_to_coreir_select(value.name))
-            return module_defn.select(non_input_ports[value])
-        source = get_source()
+        source = self.get_source(port, value, module_defn, non_input_ports)
         if not source:
             return
         sink = module_defn.select(magma_port_to_coreir_port(port))

@@ -67,15 +67,15 @@ module Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8 (
 );
 wire [13:0] coreir_commonlib_mux2x14_inst0_out;
 commonlib_muxn__N2__width14 coreir_commonlib_mux2x14_inst0 (
-    .in_data_0({I0_a2[7],I0_a2[6],I0_a2[5],I0_a2[4],I0_a2[3],I0_a2[2],I0_a2[1],I0_a2[0],I0_a1_c1,I0_a1_c0[3],I0_a1_c0[2],I0_a1_c0[1],I0_a1_c0[0],I0_a0}),
-    .in_data_1({I1_a2[7],I1_a2[6],I1_a2[5],I1_a2[4],I1_a2[3],I1_a2[2],I1_a2[1],I1_a2[0],I1_a1_c1,I1_a1_c0[3],I1_a1_c0[2],I1_a1_c0[1],I1_a1_c0[0],I1_a0}),
+    .in_data_0({I0_a2[7:0],I0_a1_c1,I0_a1_c0[3:0],I0_a0}),
+    .in_data_1({I1_a2[7:0],I1_a1_c1,I1_a1_c0[3:0],I1_a0}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x14_inst0_out)
 );
 assign O_a0 = coreir_commonlib_mux2x14_inst0_out[0];
-assign O_a1_c0 = {coreir_commonlib_mux2x14_inst0_out[4],coreir_commonlib_mux2x14_inst0_out[3],coreir_commonlib_mux2x14_inst0_out[2],coreir_commonlib_mux2x14_inst0_out[1]};
+assign O_a1_c0 = coreir_commonlib_mux2x14_inst0_out[4:1];
 assign O_a1_c1 = coreir_commonlib_mux2x14_inst0_out[5];
-assign O_a2 = {coreir_commonlib_mux2x14_inst0_out[13],coreir_commonlib_mux2x14_inst0_out[12],coreir_commonlib_mux2x14_inst0_out[11],coreir_commonlib_mux2x14_inst0_out[10],coreir_commonlib_mux2x14_inst0_out[9],coreir_commonlib_mux2x14_inst0_out[8],coreir_commonlib_mux2x14_inst0_out[7],coreir_commonlib_mux2x14_inst0_out[6]};
+assign O_a2 = coreir_commonlib_mux2x14_inst0_out[13:6];
 endmodule
 
 module TestNestedProductReg_comb (

@@ -44,7 +44,7 @@ corebit_const #(
     .out(bit_const_0_None_out)
 );
 assign O0 = I;
-assign O1 = {bit_const_0_None_out,self_x_O[1],self_x_O[0]};
+assign O1 = {bit_const_0_None_out,self_x_O[1:0]};
 assign O2 = self_y_O;
 endmodule
 
