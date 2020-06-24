@@ -1,7 +1,7 @@
 module coreir_mem #(
     parameter has_init = 1'b0,
+    parameter sync_read = 1'b0,
     parameter depth = 1,
-    parameter sync_read = 1,
     parameter width = 1
 ) (
     input clk,
