@@ -5,7 +5,9 @@ from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, bool_to_bit
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
-from ..t import Type
+from ..t import Type, Direction
+from ..protocol_type import MagmaProtocol, MagmaProtocolMeta
+from ..primitives.register import Register
 
 from .util import build_io_args, build_call_args, wire_call_result
 
@@ -29,6 +31,110 @@ class _SequentialListWrapper(list):
         item(value)
 
 
+class _SequentialRegisterWrapperMeta(MagmaProtocolMeta):
+    def _to_magma_(cls):
+        return cls.T
+
+    def _qualify_magma_(cls, direction: Direction):
+        return cls[cls.T.qualify(direction)]
+
+    def _flip_magma_(cls):
+        return cls[cls.T.flip()]
+
+    def _from_magma_value_(cls, val: Type):
+        return cls(val)
+
+    def __getitem__(cls, T):
+        return type(cls)(f"_SequentialRegisterWrapper{T}", (cls, ), {"T": T})
+
+
+class _SequentialRegisterWrapper(MagmaProtocol,
+                                 metaclass=_SequentialRegisterWrapperMeta):
+    """
+    Wraps sequential attributes to implement register getattr syntax and
+    general circuit call syntax, e.g.
+
+        def __init__(self):
+            self.x = Register(4)
+
+        def __call__(self, ...) -> ...:
+            if S:
+                return self.x(I)  # call syntax
+            return self.x + 1     # attribute syntax
+    """
+
+    def __init__(self, circuit: Circuit):
+        self.circuit = circuit
+
+    def _get_magma_value_(self):
+        # Return output
+        return self.circuit()
+
+    # TODO: Clever way to pass through operators to the underlying value?
+    def __add__(self, other):
+        return self._get_magma_value_() + other
+
+    def __sub__(self, other):
+        return self._get_magma_value_() - other
+
+    def __mul__(self, other):
+        return self._get_magma_value_() * other
+
+    def __truediv__(self, other):
+        return self._get_magma_value_() / other
+
+    def __floordiv__(self, other):
+        return self._get_magma_value_() // other
+
+    def __mod__(self, other):
+        return self._get_magma_value_() % other
+
+    def __or__(self, other):
+        return self._get_magma_value_() | other
+
+    def __xor__(self, other):
+        return self._get_magma_value_() ^ other
+
+    def __and__(self, other):
+        return self._get_magma_value_() & other
+
+    def __eq__(self, other):
+        return self._get_magma_value_() == other
+
+    def __ne__(self, other):
+        return self._get_magma_value_() != other
+
+    def __ge__(self, other):
+        return self._get_magma_value_() >= other
+
+    def __gt__(self, other):
+        return self._get_magma_value_() > other
+
+    def __le__(self, other):
+        return self._get_magma_value_() <= other
+
+    def __lt__(self, other):
+        return self._get_magma_value_() < other
+
+    def __lshift__(self, other):
+        return self._get_magma_value_() << other
+
+    def __rshift__(self, other):
+        return self._get_magma_value_() >> other
+
+    def __neg__(self, other):
+        return -self._get_magma_value_()
+
+    def __invert__(self, other):
+        return ~self._get_magma_value_()
+
+    def ite(self, s, t, f):
+        return self._get_magma_value_().ite(s, t, f)
+
+    def __call__(self, *args, **kwargs):
+        return self.circuit(*args, **kwargs)
+
+
 def sequential_getattribute(self, key):
     """
     Wrap lists so we can use the setattr interface with lists of registers
@@ -36,6 +142,8 @@ def sequential_getattribute(self, key):
     result = object.__getattribute__(self, key)
     if isinstance(result, list):
         return _SequentialListWrapper(result)
+    if isinstance(type(result), Register):
+        return _SequentialRegisterWrapper[type(result())](result)
     return result
 
 
@@ -45,18 +153,21 @@ def sequential_setattr(self, key, value):
     # mantle reg wraps the coreir reg primitive, so technically the register is
     # an arbitrary user-defined circuit)
 
+    target = object.__getattribute__(self, key)
     # We can at least match the value is a circuit with outputs that match the
     # input of the attribute circuit
-    if not isinstance(getattr(self, key), Circuit):
+    if not isinstance(target, Circuit):
         raise TypeError("Excepted setattr key to be a Circuit")
 
+    if isinstance(value, MagmaProtocol):
+        value = value._get_magma_value_()
     if not isinstance(value, (Circuit, int, Type)):
         raise TypeError("Excepted setattr value to be a Circuit, Type, or int",
                         f"not {type(value)}")
 
     # Simply use function call syntax for now (should automatically retrieve
     # the output of value)
-    getattr(self, key)(value)
+    target(value)
 
 
 def _process_phi_arg(arg):

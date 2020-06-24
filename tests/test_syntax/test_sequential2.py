@@ -126,7 +126,6 @@ END SOURCE_LINES
 
     m.compile("build/TestSequential2NestedLoopUnroll", LoopUnroll)
     assert check_files_equal(__file__, f"build/TestSequential2NestedLoopUnroll.v",
-                             f"gold/TestSequential2NestedLoopUnroll.v")
 
 
 def test_sequential2_return_tuple():
@@ -167,3 +166,18 @@ def test_sequential2_custom_annotations():
     m.compile("build/TestSequential2CustomAnnotations", Basic, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2CustomAnnotations.v",
                              f"gold/TestSequential2CustomAnnotations.v")
+
+
+def test_sequential2_counter():
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.count = m.Register(T=m.SInt[16], init=m.sint(0, 16))()
+
+        def __call__(self) -> m.SInt[16]:
+            self.count = self.count + 1
+            return self.count
+
+    m.compile("build/TestSequential2Counter", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Counter.v",
+                             f"gold/TestSequential2Counter.v")
