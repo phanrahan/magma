@@ -148,6 +148,22 @@ def test_sequential2_return_tuple():
     assert check_files_equal(__file__, f"build/TestSequential2ReturnTuple.v",
                              f"gold/TestSequential2ReturnTuple.v")
 
-    # should be the same as basic
-    assert check_files_equal(__file__, f"build/TestSequential2Assign.v",
-                             f"gold/TestSequential2Basic.v")
+
+def test_sequential2_custom_annotations():
+    annotations = {"I": m.Bits[4], "S": m.Bit, "return": m.Bits[4]}
+    @m.sequential2(annotations=annotations)
+    class Basic:
+        def __init__(self):
+            self.x = Register(4)
+            self.y = Register(4)
+
+        # Bad annotations to make sure they're overridden
+        def __call__(self, I: int, S: str) -> tuple:
+            O = self.y
+            self.y = self.x
+            self.x = I
+            return O
+
+    m.compile("build/TestSequential2CustomAnnotations", Basic, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2CustomAnnotations.v",
+                             f"gold/TestSequential2CustomAnnotations.v")
