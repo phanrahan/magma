@@ -16,6 +16,6 @@ corebit_const #(
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
 );
-assign O = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,I[2],I[1],I[0]};
+assign O = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,I[2:0]};
 endmodule
 

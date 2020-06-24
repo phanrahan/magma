@@ -169,13 +169,15 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     def ite(self, t_branch, f_branch):
         type_ = type(t_branch)
-        if type_ != type(f_branch):
+        if type_ is not type(f_branch):
             raise TypeError(f"ite expects same type for both branches: {type_} != {type(f_branch)}")
         if self.const():
             if self is type(self).VCC:
                 return t_branch
             assert self is type(self).GND
             return f_branch
+        if issubclass(type_, tuple):
+            return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # Note: coreir flips t/f cases
         return self.declare_ite(type_)()(f_branch, t_branch, self)
 

@@ -65,13 +65,13 @@ module Mux2xTuplex_Bits8_y_Bits4 (
 );
 wire [11:0] coreir_commonlib_mux2x12_inst0_out;
 commonlib_muxn__N2__width12 coreir_commonlib_mux2x12_inst0 (
-    .in_data_0({I0_y[3],I0_y[2],I0_y[1],I0_y[0],I0_x[7],I0_x[6],I0_x[5],I0_x[4],I0_x[3],I0_x[2],I0_x[1],I0_x[0]}),
-    .in_data_1({I1_y[3],I1_y[2],I1_y[1],I1_y[0],I1_x[7],I1_x[6],I1_x[5],I1_x[4],I1_x[3],I1_x[2],I1_x[1],I1_x[0]}),
+    .in_data_0({I0_y[3:0],I0_x[7:0]}),
+    .in_data_1({I1_y[3:0],I1_x[7:0]}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x12_inst0_out)
 );
-assign O_x = {coreir_commonlib_mux2x12_inst0_out[7],coreir_commonlib_mux2x12_inst0_out[6],coreir_commonlib_mux2x12_inst0_out[5],coreir_commonlib_mux2x12_inst0_out[4],coreir_commonlib_mux2x12_inst0_out[3],coreir_commonlib_mux2x12_inst0_out[2],coreir_commonlib_mux2x12_inst0_out[1],coreir_commonlib_mux2x12_inst0_out[0]};
-assign O_y = {coreir_commonlib_mux2x12_inst0_out[11],coreir_commonlib_mux2x12_inst0_out[10],coreir_commonlib_mux2x12_inst0_out[9],coreir_commonlib_mux2x12_inst0_out[8]};
+assign O_x = coreir_commonlib_mux2x12_inst0_out[7:0];
+assign O_y = coreir_commonlib_mux2x12_inst0_out[11:8];
 endmodule
 
 module Register (
@@ -114,11 +114,11 @@ coreir_reg #(
     .width(12)
 ) reg_P_inst0 (
     .clk(CLK),
-    .in({Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[3],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[2],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[1],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[7],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[6],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[5],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[4],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[3],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[2],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[1],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[0]}),
+    .in({Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[3:0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[7:0]}),
     .out(reg_P_inst0_out)
 );
-assign O_x = {reg_P_inst0_out[7],reg_P_inst0_out[6],reg_P_inst0_out[5],reg_P_inst0_out[4],reg_P_inst0_out[3],reg_P_inst0_out[2],reg_P_inst0_out[1],reg_P_inst0_out[0]};
-assign O_y = {reg_P_inst0_out[11],reg_P_inst0_out[10],reg_P_inst0_out[9],reg_P_inst0_out[8]};
+assign O_x = reg_P_inst0_out[7:0];
+assign O_y = reg_P_inst0_out[11:8];
 endmodule
 
 module test_reg_of_product (

@@ -14,8 +14,8 @@ Foo Foo_inst0 (
     .O__0(Foo_inst0_O__0),
     .O__1(Foo_inst0_O__1)
 );
-assign x = {Foo_inst0_O__1,Foo_inst0_O__0[4],Foo_inst0_O__0[3],Foo_inst0_O__0[2],Foo_inst0_O__0[1],Foo_inst0_O__0[0]};
-assign O__0 = {x[4],x[3],x[2],x[1],x[0]};
+assign x = {Foo_inst0_O__1,Foo_inst0_O__0[4:0]};
+assign O__0 = x[4:0];
 assign O__1 = x[5];
 endmodule
 

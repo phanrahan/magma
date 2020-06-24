@@ -33,6 +33,14 @@ def _make_verilog_cmd(deps, basename, opts):
     return cmd
 
 
+def _make_opts(backend, opts):
+    out = {}
+    user_namespace = opts.get("user_namespace", None)
+    if user_namespace is not None:
+        out["user_namespace"] = backend.context.new_namespace(user_namespace)
+    return out
+
+
 class CoreIRCompiler(Compiler):
     def __init__(self, main, basename, opts):
         super().__init__(main, basename, opts)
@@ -47,7 +55,8 @@ class CoreIRCompiler(Compiler):
         InsertCoreIRWires(self.main).run()
         InsertWrapCasts(self.main).run()
         backend = self.backend
-        backend.compile(self.main)
+        opts = _make_opts(backend, self.opts)
+        backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
         output_json = (self.opts.get("output_intermediate", False) or
                        not self.opts.get("output_verilog", False) or
@@ -91,11 +100,17 @@ class CoreIRCompiler(Compiler):
     def _compile_verilog_epilogue(self):
         self._process_header_footer()
 
+        bind_files = []
         # TODO(leonardt): We need fresh bind_files for each compile call.
         for name, file in self.backend.sv_bind_files.items():
+            bind_files.append(f"{name}.sv")
             filename = os.path.join(os.path.dirname(self.basename), name)
             with open(f"{filename}.sv", "w") as f:
                 f.write(file)
+
+        bind_listings_file = self.basename + "_bind_files.list"
+        with open(bind_listings_file, "w") as f:
+            f.write("\n".join(bind_files))
 
         if self.opts.get("sv", False):
             if self.opts.get("split", False):

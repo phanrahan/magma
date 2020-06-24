@@ -3,6 +3,7 @@ from copy import copy
 import json
 import logging
 import os
+from ..digital import Digital
 from ..array import Array
 from ..bits import Bits
 from ..clock import wiredefaultclock, wireclock
@@ -13,7 +14,7 @@ from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            is_clock_or_nested_clock,
                            magma_interface_to_coreir_module_type,
                            magma_port_to_coreir_port, make_cparams,
-                           map_genarg, magma_name_to_coreir_select)
+                           map_genarg, magma_name_to_coreir_select, Slice)
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..logging import root_logger
@@ -22,7 +23,7 @@ from ..tuple import Tuple
 from .util import get_codegen_debug_info
 from magma.config import get_debug_mode
 
-from magma.ref import PortViewRef
+from magma.ref import PortViewRef, ArrayRef
 from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
 
 
@@ -32,8 +33,9 @@ _logger = root_logger().getChild("coreir_backend")
 
 
 class TransformerBase(ABC):
-    def __init__(self, backend):
+    def __init__(self, backend, opts):
         self.backend = backend
+        self.opts = opts
         self.ran = False
         self._children = None
 
@@ -60,8 +62,8 @@ class LeafTransformer(TransformerBase):
 
 
 class DefnOrDeclTransformer(TransformerBase):
-    def __init__(self, backend, defn_or_decl):
-        super().__init__(backend)
+    def __init__(self, backend, opts, defn_or_decl):
+        super().__init__(backend, opts)
         self.defn_or_decl = defn_or_decl
         self.coreir_module = None
 
@@ -71,11 +73,17 @@ class DefnOrDeclTransformer(TransformerBase):
             self.coreir_module = self.backend.modules[self.defn_or_decl.name]
             return []
         if not isdefinition(self.defn_or_decl):
-            return [DeclarationTransformer(self.backend, self.defn_or_decl)]
+            return [DeclarationTransformer(self.backend,
+                                           self.opts,
+                                           self.defn_or_decl)]
         wrapped = getattr(self.defn_or_decl, "wrappedModule", None)
         if wrapped and wrapped.context is self.backend.context:
-            return [WrappedTransformer(self.backend, self.defn_or_decl)]
-        return [DefinitionTransformer(self.backend, self.defn_or_decl)]
+            return [WrappedTransformer(self.backend,
+                                       self.opts,
+                                       self.defn_or_decl)]
+        return [DefinitionTransformer(self.backend,
+                                      self.opts,
+                                      self.defn_or_decl)]
 
     def run_self(self):
         if self.coreir_module:
@@ -89,8 +97,8 @@ class DefnOrDeclTransformer(TransformerBase):
 
 
 class InstanceTransformer(LeafTransformer):
-    def __init__(self, backend, inst, defn):
-        super().__init__(backend)
+    def __init__(self, backend, opts, inst, defn):
+        super().__init__(backend, opts)
         self.inst = inst
         self.defn = defn
         self.coreir_inst_gen = None
@@ -120,21 +128,47 @@ class InstanceTransformer(LeafTransformer):
 
 
 class WrappedTransformer(LeafTransformer):
-    def __init__(self, backend, defn):
-        super().__init__(backend)
+    def __init__(self, backend, opts, defn):
+        super().__init__(backend, opts)
         self.defn = defn
         self.coreir_module = self.defn.wrappedModule
         self.backend.libs_used |= self.defn.coreir_wrapped_modules_libs_used
 
 
+def _collect_drivers(value):
+    """
+    Iterate over value to collect the child drivers, packing slices together
+    """
+    drivers = []
+    start_idx = 0
+    for i in range(1, len(value)):
+        # If the next value item is not a reference to an array of bits where
+        # the array matches the previous item and the index is incremented by
+        # one, append the current slice to drivers (may introduce slices of
+        # length 1)
+        if not (
+            isinstance(value[i].name, ArrayRef) and
+            issubclass(value[i].name.array.T, Digital) and
+            isinstance(value[i - 1].name, ArrayRef) and
+            value[i].name.array is value[i - 1].name.array and
+            value[i].name.index == value[i - 1].name.index + 1
+        ):
+            drivers.append(value[start_idx:i])
+            start_idx = i
+    drivers.append(value[start_idx:])
+    return drivers
+
+
 class DefinitionTransformer(TransformerBase):
-    def __init__(self, backend, defn):
-        super().__init__(backend)
+    def __init__(self, backend, opts, defn):
+        super().__init__(backend, opts)
         self.defn = defn
         self.coreir_module = None
-        self.decl_tx = DeclarationTransformer(self.backend, self.defn)
+        self.decl_tx = DeclarationTransformer(self.backend,
+                                              self.opts,
+                                              self.defn)
         self.inst_txs = {
-            inst: InstanceTransformer(self.backend, inst, self.defn)
+            inst: InstanceTransformer(self.backend, self.opts, inst, self.defn)
             for inst in self.defn.instances
         }
         self.clocks = {}
@@ -148,7 +182,8 @@ class DefinitionTransformer(TransformerBase):
         pass_ = InstanceGraphPass(self.defn)
         pass_.run()
         deps = [k for k, _ in pass_.tsortedgraph if k is not self.defn]
-        children = [DefnOrDeclTransformer(self.backend, dep) for dep in deps]
+        children = [DefnOrDeclTransformer(self.backend, self.opts, dep)
+                    for dep in deps]
         children += [self.decl_tx]
         children += self.inst_txs.values()
         return children
@@ -210,6 +245,43 @@ class DefinitionTransformer(TransformerBase):
         elif not port.is_output():
             self.connect(module_defn, port, port.trace(), non_input_ports)
 
+    def get_source(self, port, value, module_defn, non_input_ports):
+        if isinstance(value, Wireable):
+            return value
+        if isinstance(value, Slice):
+            return module_defn.select(value.get_coreir_select())
+        if isinstance(value, Bits) and value.const():
+            return self.const_instance(value, len(value), module_defn)
+        if value.anon() and isinstance(value, Array):
+            drivers = _collect_drivers(value)
+            offset = 0
+            for d in drivers:
+                if len(d) == 1:
+                    # _collect_drivers will introduce a slice of length 1 for
+                    # non-slices, so we index them here with 0 to unpack the
+                    # extra array dimension
+                    self.connect(module_defn, port[offset], d[0],
+                                 non_input_ports)
+                else:
+                    self.connect(module_defn,
+                                 Slice(port, offset, offset + len(d)),
+                                 Slice(d[0].name.array, d[0].name.index,
+                                       d[-1].name.index + 1),
+                                 non_input_ports)
+                offset += len(d)
+
+            return None
+        if isinstance(value, Tuple) and value.anon():
+            for p, v in zip(port, value):
+                self.connect(module_defn, p, v, non_input_ports)
+            return None
+        if value.const():
+            return self.const_instance(value, None, module_defn)
+        if isinstance(value.name, PortViewRef):
+            return module_defn.select(
+                magma_name_to_coreir_select(value.name))
+        return module_defn.select(non_input_ports[value])
+
     def connect(self, module_defn, port, value, non_input_ports):
         if value is None and is_clock_or_nested_clock(type(port)):
             for type_, default_driver in self.clocks.items():
@@ -226,27 +298,7 @@ class DefinitionTransformer(TransformerBase):
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise Exception(f"Found unconnected port: {port.debug_name}")
-
-        def get_source():
-            if isinstance(value, Wireable):
-                return value
-            if isinstance(value, Bits) and value.const():
-                return self.const_instance(value, len(value), module_defn)
-            if value.anon() and isinstance(value, Array):
-                for p, v in zip(port, value):
-                    self.connect(module_defn, p, v, non_input_ports)
-                return None
-            if isinstance(value, Tuple) and value.anon():
-                for p, v in zip(port, value):
-                    self.connect(module_defn, p, v, non_input_ports)
-                return None
-            if value.const():
-                return self.const_instance(value, None, module_defn)
-            if isinstance(value.name, PortViewRef):
-                return module_defn.select(
-                    magma_name_to_coreir_select(value.name))
-            return module_defn.select(non_input_ports[value])
-        source = get_source()
+        source = self.get_source(port, value, module_defn, non_input_ports)
         if not source:
             return
         sink = module_defn.select(magma_port_to_coreir_port(port))
@@ -276,8 +328,8 @@ class DefinitionTransformer(TransformerBase):
 
 
 class DeclarationTransformer(LeafTransformer):
-    def __init__(self, backend, decl):
-        super().__init__(backend)
+    def __init__(self, backend, opts, decl):
+        super().__init__(backend, opts)
         self.decl = decl
         self.coreir_module = None
 
@@ -309,7 +361,9 @@ class DeclarationTransformer(LeafTransformer):
         if hasattr(self.decl, "coreir_config_param_types"):
             param_types = self.decl.coreir_config_param_types
             kwargs["cparams"] = make_cparams(self.backend.context, param_types)
-        coreir_module = self.backend.context.global_namespace.new_module(
+        namespace = self.opts.get("user_namespace",
+                                  self.backend.context.global_namespace)
+        coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:
             attach_debug_info(coreir_module, self.decl.debug_info)
