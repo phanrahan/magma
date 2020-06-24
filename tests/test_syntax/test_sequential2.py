@@ -126,6 +126,7 @@ END SOURCE_LINES
 
     m.compile("build/TestSequential2NestedLoopUnroll", LoopUnroll)
     assert check_files_equal(__file__, f"build/TestSequential2NestedLoopUnroll.v",
+                                       f"gold/TestSequential2NestedLoopUnroll.v")
 
 
 def test_sequential2_return_tuple():
