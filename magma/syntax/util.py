@@ -1,10 +1,5 @@
-import inspect
-import textwrap
-import ast
-
 from ..t import In, Out
 from ..circuit import Circuit
-from ..protocol_type import MagmaProtocol
 
 
 def build_io_args(annotations):
