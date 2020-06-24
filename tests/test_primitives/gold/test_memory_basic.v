@@ -1,6 +1,7 @@
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter depth = 1,
+    parameter sync_read = 1,
     parameter width = 1
 ) (
     input clk,
@@ -26,7 +27,17 @@ module coreir_mem #(
       data[waddr] <= wdata;
     end
   end
+  generate if (sync_read) begin
+  reg [width-1:0] rdata_reg;
+  always @(posedge clk) begin
+    rdata_reg <= data[raddr];
+  end
+  assign rdata = rdata_reg;
+  end else begin
   assign rdata = data[raddr];
+  end
+  endgenerate
+
 endmodule
 
 module Memory (
@@ -41,6 +52,7 @@ wire [4:0] coreir_mem4x5_inst0_rdata;
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
+    .sync_read(1'b0),
     .width(5)
 ) coreir_mem4x5_inst0 (
     .clk(CLK),
