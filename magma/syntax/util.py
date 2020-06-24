@@ -4,6 +4,7 @@ import ast
 
 from ..t import In, Out
 from ..circuit import Circuit
+from ..protocol_type import MagmaProtocol
 
 
 def build_io_args(annotations):
@@ -11,11 +12,11 @@ def build_io_args(annotations):
 
     for param, annotation in annotations.items():
         if param == "return":
-            annotation = Out(annotation)
             if isinstance(annotation, tuple):
                 for i, elem in enumerate(annotation):
-                    io_args[f"O{i}"] = elem
+                    io_args[f"O{i}"] = Out(elem)
             else:
+                annotation = Out(annotation)
                 io_args["O"] = annotation
             continue
         annotation = In(annotation)
@@ -35,6 +36,6 @@ def wire_call_result(io, call_result, annotations):
         call_result = call_result.interface.outputs()[0]
     if isinstance(annotations["return"], tuple):
         for i in range(len(annotations["return"])):
-            getattr(io, f"O{i}").wire(call_result)
+            getattr(io, f"O{i}").wire(call_result[i])
     else:
         io.O.wire(call_result)
