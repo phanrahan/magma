@@ -192,7 +192,7 @@ def concat(*arrays):
         if isinstance(a, hwtypes.BitVector):
             ts.extend(a.bits())
         elif isinstance(a, Bit):
-            ts.extend(bits(a).ts)
+            ts.extend([a])
         else:
             ts.extend(a.ts)
     return array(ts)
