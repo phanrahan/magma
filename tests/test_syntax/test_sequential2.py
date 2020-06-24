@@ -127,3 +127,27 @@ END SOURCE_LINES
     m.compile("build/TestSequential2NestedLoopUnroll", LoopUnroll)
     assert check_files_equal(__file__, f"build/TestSequential2NestedLoopUnroll.v",
                              f"gold/TestSequential2NestedLoopUnroll.v")
+
+
+def test_sequential2_return_tuple():
+    @m.sequential2()
+    class Basic:
+        def __init__(self):
+            self.x = Register(4)
+            self.y = Register(4)
+
+        def __call__(self, I: m.Bits[4], S: m.Bit) -> (m.Bits[4], m.Bits[4]):
+            self.y = self.x
+            self.x = I
+            if S:
+                return self.x, self.y
+            else:
+                return self.y, self.x
+
+    m.compile("build/TestSequential2ReturnTuple", Basic, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2ReturnTuple.v",
+                             f"gold/TestSequential2ReturnTuple.v")
+
+    # should be the same as basic
+    assert check_files_equal(__file__, f"build/TestSequential2Assign.v",
+                             f"gold/TestSequential2Basic.v")

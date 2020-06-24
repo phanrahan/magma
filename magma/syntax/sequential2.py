@@ -71,6 +71,9 @@ def _process_phi_arg(arg):
 
 
 def _seq_phi(s, t, f):
+    if isinstance(t, tuple):
+        assert isinstance(f, tuple)
+        return tuple(_seq_phi(s, _t, _f) for _t, _f in zip(t, f))
     # Unpack registers/circuits used in getattr syntax
     t, f = map(_process_phi_arg, (t, f))
     return s.ite(t, f)
