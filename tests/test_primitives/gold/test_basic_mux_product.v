@@ -1,3 +1,45 @@
+module mantle_wire__typeBitIn6 (
+    output [5:0] in,
+    input [5:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn4 (
+    output [3:0] in,
+    input [3:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn2 (
+    output [1:0] in,
+    input [1:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit6 (
+    input [5:0] in,
+    output [5:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit4 (
+    input [3:0] in,
+    output [3:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit2 (
+    input [1:0] in,
+    output [1:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -36,15 +78,60 @@ module Mux2xTupleX_Bits2_Y_Bits4 (
     output [3:0] O_Y,
     input S
 );
+wire [5:0] _$0_in;
+wire [5:0] _$1_in;
+wire [5:0] _$2_out;
+wire [1:0] _$3_out;
+wire [3:0] _$4_out;
+wire [1:0] _$5_out;
+wire [3:0] _$6_out;
+wire [1:0] _$7_in;
+wire [3:0] _$8_in;
 wire [5:0] coreir_commonlib_mux2x6_inst0_out;
+mantle_wire__typeBitIn6 _$0 (
+    .in(_$0_in),
+    .out({_$4_out[3:0],_$3_out[1:0]})
+);
+mantle_wire__typeBitIn6 _$1 (
+    .in(_$1_in),
+    .out({_$6_out[3:0],_$5_out[1:0]})
+);
+mantle_wire__typeBit6 _$2 (
+    .in(coreir_commonlib_mux2x6_inst0_out),
+    .out(_$2_out)
+);
+mantle_wire__typeBit2 _$3 (
+    .in(I0_X),
+    .out(_$3_out)
+);
+mantle_wire__typeBit4 _$4 (
+    .in(I0_Y),
+    .out(_$4_out)
+);
+mantle_wire__typeBit2 _$5 (
+    .in(I1_X),
+    .out(_$5_out)
+);
+mantle_wire__typeBit4 _$6 (
+    .in(I1_Y),
+    .out(_$6_out)
+);
+mantle_wire__typeBitIn2 _$7 (
+    .in(_$7_in),
+    .out(_$2_out[1:0])
+);
+mantle_wire__typeBitIn4 _$8 (
+    .in(_$8_in),
+    .out(_$2_out[5:2])
+);
 commonlib_muxn__N2__width6 coreir_commonlib_mux2x6_inst0 (
-    .in_data_0({I0_Y[3],I0_Y[2],I0_Y[1],I0_Y[0],I0_X[1],I0_X[0]}),
-    .in_data_1({I1_Y[3],I1_Y[2],I1_Y[1],I1_Y[0],I1_X[1],I1_X[0]}),
+    .in_data_0(_$0_in),
+    .in_data_1(_$1_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x6_inst0_out)
 );
-assign O_X = {coreir_commonlib_mux2x6_inst0_out[1],coreir_commonlib_mux2x6_inst0_out[0]};
-assign O_Y = {coreir_commonlib_mux2x6_inst0_out[5],coreir_commonlib_mux2x6_inst0_out[4],coreir_commonlib_mux2x6_inst0_out[3],coreir_commonlib_mux2x6_inst0_out[2]};
+assign O_X = _$7_in;
+assign O_Y = _$8_in;
 endmodule
 
 module test_basic_mux_product (
