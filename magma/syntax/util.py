@@ -16,8 +16,7 @@ def build_io_args(annotations):
                 for i, elem in enumerate(annotation):
                     io_args[f"O{i}"] = Out(elem)
             else:
-                annotation = Out(annotation)
-                io_args["O"] = annotation
+                io_args["O"] = Out(annotation)
             continue
         annotation = In(annotation)
         io_args[param] = annotation
