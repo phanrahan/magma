@@ -31,6 +31,9 @@ class MagmaProtocolMeta(type):
     def flip(cls):
         return cls._flip_magma_()
 
+    def __len__(cls):
+        return len(cls._to_magma_())
+
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
     @abc.abstractmethod

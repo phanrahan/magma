@@ -71,6 +71,9 @@ def _process_phi_arg(arg):
 
 
 def _seq_phi(s, t, f):
+    if isinstance(t, tuple):
+        assert isinstance(f, tuple)
+        return tuple(_seq_phi(s, _t, _f) for _t, _f in zip(t, f))
     # Unpack registers/circuits used in getattr syntax
     t, f = map(_process_phi_arg, (t, f))
     return s.ite(t, f)
@@ -81,6 +84,7 @@ def sequential2(pre_passes=[], post_passes=[],
                 env: Optional[SymbolTable] = None,
                 path: Optional[str] = None,
                 file_name: Optional[str] = None,
+                annotations: Optional[dict] = None,
                 **clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
     passes = (pre_passes +
@@ -91,11 +95,15 @@ def sequential2(pre_passes=[], post_passes=[],
         cls.__call__ = apply_ast_passes(passes, debug=debug, env=env,
                                         path=path,
                                         file_name=file_name)(cls.__call__)
+        if annotations is None:
+            _annotations = cls.__call__.__annotations__
+        else:
+            _annotations = annotations
 
-        if "self" in cls.__call__.__annotations__:
+        if "self" in _annotations:
             raise Exception("Assumed self did not have annotation")
 
-        io_args = build_io_args(cls.__call__.__annotations__)
+        io_args = build_io_args(_annotations)
 
         class SequentialCircuit(Circuit):
             name = cls.__name__
@@ -112,7 +120,7 @@ def sequential2(pre_passes=[], post_passes=[],
             # test_sequential2:test_sequential2_pre_unroll)
             cls.__getattribute__ = sequential_getattribute
 
-            call_args += build_call_args(io, cls.__call__.__annotations__)
+            call_args += build_call_args(io, _annotations)
 
             call_result = cls.__call__(*call_args)
             wire_call_result(io, call_result, cls.__call__.__annotations__)

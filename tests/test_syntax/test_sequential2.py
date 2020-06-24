@@ -127,3 +127,43 @@ END SOURCE_LINES
     m.compile("build/TestSequential2NestedLoopUnroll", LoopUnroll)
     assert check_files_equal(__file__, f"build/TestSequential2NestedLoopUnroll.v",
                              f"gold/TestSequential2NestedLoopUnroll.v")
+
+
+def test_sequential2_return_tuple():
+    @m.sequential2()
+    class Basic:
+        def __init__(self):
+            self.x = Register(4)
+            self.y = Register(4)
+
+        def __call__(self, I: m.Bits[4], S: m.Bit) -> (m.Bits[4], m.Bits[4]):
+            self.y = self.x
+            self.x = I
+            if S:
+                return self.x, self.y
+            else:
+                return self.y, self.x
+
+    m.compile("build/TestSequential2ReturnTuple", Basic, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2ReturnTuple.v",
+                             f"gold/TestSequential2ReturnTuple.v")
+
+
+def test_sequential2_custom_annotations():
+    annotations = {"I": m.Bits[4], "S": m.Bit, "return": m.Bits[4]}
+    @m.sequential2(annotations=annotations)
+    class Basic:
+        def __init__(self):
+            self.x = Register(4)
+            self.y = Register(4)
+
+        # Bad annotations to make sure they're overridden
+        def __call__(self, I: int, S: str) -> tuple:
+            O = self.y
+            self.y = self.x
+            self.x = I
+            return O
+
+    m.compile("build/TestSequential2CustomAnnotations", Basic, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2CustomAnnotations.v",
+                             f"gold/TestSequential2CustomAnnotations.v")
