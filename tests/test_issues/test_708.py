@@ -12,7 +12,7 @@ sys.path.append(TEST_SYNTAX_PATH)
 from test_sequential import DefineRegister
 
 
-@pytest.mark.parametrize("inline", [False]) # TODO: [True, False])
+@pytest.mark.parametrize("inline", [False, True]) # TODO: [True, False])
 def test_708(inline):
     class A(m.Product):
         x = m.UInt[8]
@@ -32,7 +32,8 @@ def test_708(inline):
     name = f"test_708_inline_{inline}"
     with tempfile.TemporaryDirectory() as tempdir:
         path = f"{tempdir}/{name}"
-        m.compile(path, Test, output="coreir-verilog", inline=inline)
+        m.compile(path, Test, output="coreir-verilog", inline=inline,
+                  disable_width_cast=True)
         assert not os.system(
             f"verilator --lint-only --language 1364-2005 {path}.v"
         )
