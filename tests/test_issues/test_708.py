@@ -12,7 +12,7 @@ sys.path.append(TEST_SYNTAX_PATH)
 from test_sequential import DefineRegister
 
 
-@pytest.mark.parametrize("inline", [False, True]) # TODO: [True, False])
+@pytest.mark.parametrize("inline", [False, True])
 def test_708(inline):
     class A(m.Product):
         x = m.UInt[8]
