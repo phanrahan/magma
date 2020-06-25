@@ -241,3 +241,18 @@ def test_sequential2_counter():
     m.compile("build/TestSequential2Counter", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Counter.v",
                              f"gold/TestSequential2Counter.v")
+
+def test_sequential2_counter_if():
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.count = m.Register(T=m.SInt[16], init=m.sint(0, 16))()
+
+        def __call__(self, sel: m.Bit) -> m.SInt[16]:
+            if sel:
+                self.count = self.count + 1
+            return self.count
+
+    m.compile("build/TestSequential2CounterIf", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2CounterIf.v",
+                             f"gold/TestSequential2CounterIf.v")
