@@ -5,7 +5,7 @@ import inspect
 import ast_tools
 
 import magma as m
-from test_sequential import Register
+from test_sequential import Register, DualClockRAM
 from magma.testing import check_files_equal
 
 
@@ -127,6 +127,65 @@ END SOURCE_LINES
     m.compile("build/TestSequential2NestedLoopUnroll", LoopUnroll)
     assert check_files_equal(__file__, f"build/TestSequential2NestedLoopUnroll.v",
                              f"gold/TestSequential2NestedLoopUnroll.v")
+
+
+def test_dual_clock_ram():
+    @m.sequential2()
+    class DefaultClock:
+        def __call__(self) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Default CLK will be wired up implicitly
+                # RCLK=CLK
+                # WCLK=CLK
+            )
+            return rdata
+
+    m.compile("build/TestSequential2DefaultClock", DefaultClock)
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2DefaultClock.v",
+                             f"gold/TestSequential2DefaultClock.v")
+
+    @m.sequential2()
+    class ImplicitClock:
+        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Always the first Clock argument will be wired up implicitly
+                # RCLK=WCLK
+                # WCLK=WCLK
+            )
+            return rdata
+
+    m.compile("build/TestSequential2ImplicitClock", ImplicitClock)
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2ImplicitClock.v",
+                             f"gold/TestSequential2ImplicitClock.v")
+
+    @m.sequential2()
+    class ExplicitClock:
+        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Wiring clocks explicitly
+                RCLK=RCLK,
+                WCLK=WCLK
+            )
+            return rdata
+
+    m.compile("build/TestSequential2ExplicitClock", ExplicitClock)
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2ExplicitClock.v",
+                             f"gold/TestSequential2ExplicitClock.v")
 
 
 def test_sequential2_return_tuple():
