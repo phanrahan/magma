@@ -1,3 +1,45 @@
+module mantle_wire__typeBitIn8 (
+    output [7:0] in,
+    input [7:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn4 (
+    output [3:0] in,
+    input [3:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn14 (
+    output [13:0] in,
+    input [13:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit8 (
+    input [7:0] in,
+    output [7:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit4 (
+    input [3:0] in,
+    output [3:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit14 (
+    input [13:0] in,
+    output [13:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_reg_arst #(
     parameter width = 1,
     parameter arst_posedge = 1,
@@ -65,17 +107,62 @@ module Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8 (
     output [7:0] O_a2,
     input S
 );
+wire [13:0] _$0_in;
+wire [13:0] _$1_in;
+wire [13:0] _$2_out;
+wire [3:0] _$3_out;
+wire [7:0] _$4_out;
+wire [3:0] _$5_out;
+wire [7:0] _$6_out;
+wire [3:0] _$7_in;
+wire [7:0] _$8_in;
 wire [13:0] coreir_commonlib_mux2x14_inst0_out;
+mantle_wire__typeBitIn14 _$0 (
+    .in(_$0_in),
+    .out({_$4_out[7:0],I0_a1_c1,_$3_out[3:0],I0_a0})
+);
+mantle_wire__typeBitIn14 _$1 (
+    .in(_$1_in),
+    .out({_$6_out[7:0],I1_a1_c1,_$5_out[3:0],I1_a0})
+);
+mantle_wire__typeBit14 _$2 (
+    .in(coreir_commonlib_mux2x14_inst0_out),
+    .out(_$2_out)
+);
+mantle_wire__typeBit4 _$3 (
+    .in(I0_a1_c0),
+    .out(_$3_out)
+);
+mantle_wire__typeBit8 _$4 (
+    .in(I0_a2),
+    .out(_$4_out)
+);
+mantle_wire__typeBit4 _$5 (
+    .in(I1_a1_c0),
+    .out(_$5_out)
+);
+mantle_wire__typeBit8 _$6 (
+    .in(I1_a2),
+    .out(_$6_out)
+);
+mantle_wire__typeBitIn4 _$7 (
+    .in(_$7_in),
+    .out(_$2_out[4:1])
+);
+mantle_wire__typeBitIn8 _$8 (
+    .in(_$8_in),
+    .out(_$2_out[13:6])
+);
 commonlib_muxn__N2__width14 coreir_commonlib_mux2x14_inst0 (
-    .in_data_0({I0_a2[7:0],I0_a1_c1,I0_a1_c0[3:0],I0_a0}),
-    .in_data_1({I1_a2[7:0],I1_a1_c1,I1_a1_c0[3:0],I1_a0}),
+    .in_data_0(_$0_in),
+    .in_data_1(_$1_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x14_inst0_out)
 );
-assign O_a0 = coreir_commonlib_mux2x14_inst0_out[0];
-assign O_a1_c0 = coreir_commonlib_mux2x14_inst0_out[4:1];
-assign O_a1_c1 = coreir_commonlib_mux2x14_inst0_out[5];
-assign O_a2 = coreir_commonlib_mux2x14_inst0_out[13:6];
+assign O_a0 = _$2_out[0];
+assign O_a1_c0 = _$7_in;
+assign O_a1_c1 = _$2_out[5];
+assign O_a2 = _$8_in;
 endmodule
 
 module TestNestedProductReg_comb (

@@ -1,3 +1,31 @@
+module mantle_wire__typeBitIn9 (
+    output [8:0] in,
+    input [8:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn8 (
+    output [7:0] in,
+    input [7:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit9 (
+    input [8:0] in,
+    output [8:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit8 (
+    input [7:0] in,
+    output [7:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_reg_arst #(
     parameter width = 1,
     parameter arst_posedge = 1,
@@ -59,15 +87,45 @@ module Mux2xTuplea0_OutBit_a1_OutSInt8 (
     output [7:0] O_a1,
     input S
 );
+wire [8:0] _$0_in;
+wire [8:0] _$1_in;
+wire [8:0] _$2_out;
+wire [7:0] _$3_out;
+wire [7:0] _$4_out;
+wire [7:0] _$5_in;
 wire [8:0] coreir_commonlib_mux2x9_inst0_out;
+mantle_wire__typeBitIn9 _$0 (
+    .in(_$0_in),
+    .out({_$3_out[7:0],I0_a0})
+);
+mantle_wire__typeBitIn9 _$1 (
+    .in(_$1_in),
+    .out({_$4_out[7:0],I1_a0})
+);
+mantle_wire__typeBit9 _$2 (
+    .in(coreir_commonlib_mux2x9_inst0_out),
+    .out(_$2_out)
+);
+mantle_wire__typeBit8 _$3 (
+    .in(I0_a1),
+    .out(_$3_out)
+);
+mantle_wire__typeBit8 _$4 (
+    .in(I1_a1),
+    .out(_$4_out)
+);
+mantle_wire__typeBitIn8 _$5 (
+    .in(_$5_in),
+    .out(_$2_out[8:1])
+);
 commonlib_muxn__N2__width9 coreir_commonlib_mux2x9_inst0 (
-    .in_data_0({I0_a1[7:0],I0_a0}),
-    .in_data_1({I1_a1[7:0],I1_a0}),
+    .in_data_0(_$0_in),
+    .in_data_1(_$1_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x9_inst0_out)
 );
-assign O_a0 = coreir_commonlib_mux2x9_inst0_out[0];
-assign O_a1 = coreir_commonlib_mux2x9_inst0_out[8:1];
+assign O_a0 = _$2_out[0];
+assign O_a1 = _$5_in;
 endmodule
 
 module TestProductReg_comb (
