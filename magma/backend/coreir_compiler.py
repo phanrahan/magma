@@ -108,9 +108,10 @@ class CoreIRCompiler(Compiler):
             with open(f"{filename}.sv", "w") as f:
                 f.write(file)
 
-        bind_listings_file = self.basename + "_bind_files.list"
-        with open(bind_listings_file, "w") as f:
-            f.write("\n".join(bind_files))
+        if bind_files:
+            bind_listings_file = self.basename + "_bind_files.list"
+            with open(bind_listings_file, "w") as f:
+                f.write("\n".join(bind_files))
 
         if self.opts.get("sv", False):
             if self.opts.get("split", False):
