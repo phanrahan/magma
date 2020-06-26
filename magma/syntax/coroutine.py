@@ -187,7 +187,7 @@ def _coroutine(defn_env, fn):
         return_target = [f"__magma_coroutine_return_value_{i}"
                          for i in range(len(return_type))]
     else:
-        return_target = ["__magma_coroutine_return_value"]
+        return_target = "__magma_coroutine_return_value"
 
     # add yield state register declaration
     yield_state_width = clog2(len(yield_encoding_map))
@@ -264,7 +264,7 @@ def _coroutine(defn_env, fn):
     call_method = RemoveIfTrues().visit(call_method)
     # Merge `if cond:` with `if not cond` for readability
     call_method = MergeInverseIf().visit(call_method)
-    if len(return_target) > 1:
+    if isinstance(return_target, list):
         call_method.body.append(
             ast.Return(ast.Tuple([ast.Name(x, ast.Load())
                                   for x in return_target], ast.Load())))
