@@ -224,7 +224,8 @@ def test_sequential2_custom_annotations():
             return O
 
     m.compile("build/TestSequential2CustomAnnotations", Basic, inline=True)
-    assert check_files_equal(__file__, f"build/TestSequential2CustomAnnotations.v",
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2CustomAnnotations.v",
                              f"gold/TestSequential2CustomAnnotations.v")
 
 
@@ -242,6 +243,7 @@ def test_sequential2_counter():
     assert check_files_equal(__file__, f"build/TestSequential2Counter.v",
                              f"gold/TestSequential2Counter.v")
 
+
 def test_sequential2_counter_if():
     @m.sequential2()
     class Test2:
@@ -256,3 +258,20 @@ def test_sequential2_counter_if():
     m.compile("build/TestSequential2CounterIf", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2CounterIf.v",
                              f"gold/TestSequential2CounterIf.v")
+
+
+def test_sequential2_arr_of_bits():
+    T = m.Array[15, m.Bits[7]]
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.reg_arr = m.Register(T=T)()
+
+        def __call__(self, I: T) -> T:
+            O = self.reg_arr
+            self.reg_arr = I
+            return O
+
+    m.compile("build/TestSequential2ArrOfBits", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2ArrOfBits.v",
+                             f"gold/TestSequential2ArrOfBits.v")
