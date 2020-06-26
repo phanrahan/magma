@@ -242,6 +242,7 @@ def test_sequential2_counter():
     assert check_files_equal(__file__, f"build/TestSequential2Counter.v",
                              f"gold/TestSequential2Counter.v")
 
+
 def test_sequential2_counter_if():
     @m.sequential2()
     class Test2:
@@ -256,3 +257,17 @@ def test_sequential2_counter_if():
     m.compile("build/TestSequential2CounterIf", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2CounterIf.v",
                              f"gold/TestSequential2CounterIf.v")
+
+
+def test_sequential2_product():
+    @m.sequential2()
+    class Test:
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+            if sel:
+                return m.namedtuple(a=m.bit(0))
+            else:
+                return m.namedtuple(a=m.bit(1))
+
+    m.compile("build/TestSequential2Product", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Product.v",
+                             f"gold/TestSequential2Product.v")
