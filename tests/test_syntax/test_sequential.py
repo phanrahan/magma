@@ -414,22 +414,6 @@ def test_multiple_return(target, async_reset):
         "RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
 
 
-def test_array_of_bits(target):
-    @m.circuit.sequential(async_reset=True)
-    class ArrayOfBitsSeq:
-        def __init__(self):
-            self.register_array: m.Array[15, m.Bits[1024]] = \
-                m.array([m.bits(0, 1024) for _ in range(15)])
-
-        def __call__(self, I: m.Array[15, m.Bits[1024]]) -> \
-                m.Array[15, m.Bits[1024]]:
-            O = self.register_array
-            self.register_array = I
-            return O
-
-    compile_and_check("ArrayOfBitsSeq", ArrayOfBitsSeq, target)
-
-
 def test_rd_ptr(target):
     @m.circuit.sequential(async_reset=True)
     class RdPtr:

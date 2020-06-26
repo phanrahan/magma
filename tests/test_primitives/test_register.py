@@ -167,3 +167,27 @@ def test_reg_async_resetn():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_reg_of_product_zero_init():
+    class T(m.Product):
+        x = m.Bits[8]
+        y = m.Bits[4]
+
+    class test_reg_of_product_zero_init(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO(has_reset=True)
+        io.O @= Register(T, reset_type=m.Reset)()(io.I)
+
+    m.compile("build/test_reg_of_product_zero_init",
+              test_reg_of_product_zero_init)
+
+    assert check_files_equal(__file__, f"build/test_reg_of_product_zero_init.v",
+                             f"gold/test_reg_of_product_zero_init.v")
+
+    tester = fault.SynchronousTester(test_reg_of_product_zero_init,
+                                     test_reg_of_product_zero_init.CLK)
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    # Reset val
+    tester.circuit.O.expect((0xDE, 0xA))
