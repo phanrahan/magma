@@ -3,6 +3,7 @@ from typing import Union
 import coreir
 import hwtypes
 
+from magma.array import Array
 from magma.bit import Bit
 from magma.bits import Bits
 from magma.circuit import coreir_port_mapping
@@ -10,6 +11,7 @@ from magma.conversions import as_bits, from_bits
 from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out
+from magma.tuple import Tuple
 from magma.clock import (AbstractReset, Reset, ResetN, AsyncReset, AsyncResetN,
                          Clock, Enable)
 from magma.clock_io import ClockIO
@@ -81,6 +83,14 @@ class _CoreIRRegister(Generator2):
         self.simulate = _simulate
 
 
+def _zero_init(T, init):
+    if issubclass(T, Array):
+        return T([_zero_init(T.T, init) for _ in range(len(T))])
+    elif issubclass(T, Tuple):
+        return T(*(_zero_init(t, init) for t in T.types()))
+    return T(init)
+
+
 class Register(Generator2):
     def __init__(self, T: Kind, init: Union[Type, int] = None, reset_type:
                  AbstractReset = None, has_enable: bool = False,
@@ -125,7 +135,7 @@ class Register(Generator2):
             init = 0
 
         if isinstance(init, int):
-            init = T(init)
+            init = _zero_init(T, init)
 
         if has_async_reset or has_async_resetn:
             coreir_init = int(as_bits(init))
