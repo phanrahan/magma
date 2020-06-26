@@ -182,6 +182,13 @@ def _coroutine(defn_env, fn):
                     ).rstrip()
                 yield_encoding_map[statement] = encoding
 
+    return_type = fn.__call__.__annotations__["return"]
+    if isinstance(return_type, tuple):
+        return_target = [f"__magma_coroutine_return_value_{i}"
+                         for i in range(len(return_type))]
+    else:
+        return_target = ["__magma_coroutine_return_value"]
+
     # add yield state register declaration
     yield_state_width = clog2(len(yield_encoding_map))
     if not manual_encoding:
@@ -241,12 +248,29 @@ def _coroutine(defn_env, fn):
                 ).body[0])
 
             # Return the value of the original end yield
-            body.append(ast.Return(end_yield.value.value))
+            if isinstance(return_target, list):
+                body.append(
+                    ast.Assign([
+                        ast.Tuple([ast.Name(x, ast.Store()) for x in
+                                   return_target], ast.Load())
+                    ], end_yield.value.value))
+            else:
+                body.append(ast.Assign(
+                    [ast.Name(return_target, ast.Store())],
+                    end_yield.value.value
+                ))
 
     # Remove if trues for readability
     call_method = RemoveIfTrues().visit(call_method)
     # Merge `if cond:` with `if not cond` for readability
     call_method = MergeInverseIf().visit(call_method)
+    if len(return_target) > 1:
+        call_method.body.append(
+            ast.Return(ast.Tuple([ast.Name(x, ast.Load())
+                                  for x in return_target], ast.Load())))
+    else:
+        call_method.body.append(
+            ast.Return(ast.Name(return_target, ast.Load())))
 
     # Sequential stage
     reset_type_str = astor.to_source(reset_type).rstrip()
