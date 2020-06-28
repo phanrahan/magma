@@ -141,7 +141,7 @@ def get_options(tree):
     return class_vars
 
 
-def _coroutine(defn_env, fn):
+def compile_coroutine(defn_env, fn, gen_reg_decl, gen_decorator):
     tree = get_ast(fn).body[0]
     method_name_map = build_method_name_map(tree)
 
@@ -152,6 +152,7 @@ def _coroutine(defn_env, fn):
     manual_encoding = manual_encoding.value
 
     reset_type = options.get("_reset_type_", ast.parse("m.AsyncReset").body[0])
+    reset_type_str = astor.to_source(reset_type).rstrip()
 
     call_method = method_name_map["__call__"]
     call_method = inline_yield_from_functions(call_method, method_name_map)
@@ -193,7 +194,7 @@ def _coroutine(defn_env, fn):
     yield_state_width = clog2(len(yield_encoding_map))
     if not manual_encoding:
         method_name_map["__init__"].body.append(ast.parse(
-            f"self.yield_state: m.Bits[{yield_state_width}] = 0"
+            gen_reg_decl(yield_state_width, reset_type_str)
         ).body[0])
 
     # create new call body
@@ -273,9 +274,8 @@ def _coroutine(defn_env, fn):
             ast.Return(ast.Name(return_target, ast.Load())))
 
     # Sequential stage
-    reset_type_str = astor.to_source(reset_type).rstrip()
     tree.decorator_list = [ast.parse(
-        f"m.circuit.sequential(reset_type={reset_type_str})"
+        gen_decorator(reset_type_str)
     ).body[0].value]
 
     # print(astor.to_source(tree))
@@ -283,4 +283,40 @@ def _coroutine(defn_env, fn):
     return circuit
 
 
+def _coroutine(defn_env, fn):
+    def gen_reg_decl(yield_state_width, reset_type_str):
+        return f"self.yield_state: m.Bits[{yield_state_width}] = 0"
+
+    def gen_decorator(reset_type_str):
+        return f"m.circuit.sequential(reset_type={reset_type_str})"
+
+    return compile_coroutine(defn_env, fn, gen_reg_decl, gen_decorator)
+
+
 coroutine = inspect_enclosing_env(_coroutine)
+
+
+def _coroutine2(defn_env, fn):
+    def gen_reg_decl(yield_state_width, reset_type_str):
+        return f"""\
+self.yield_state = m.Register(
+    T=m.Bits[{yield_state_width}],
+    init=0,
+    reset_type={reset_type_str}
+)()
+"""
+
+    def gen_decorator(reset_type_str):
+        reset_args = {
+            "m.AsyncReset": "has_async_reset=True",
+            "m.AsyncResetN": "has_async_resetn=True",
+            "m.Reset": "has_reset=True",
+            "m.ResetN": "has_resetn=True",
+        }
+        assert reset_type_str in reset_args
+        return f"m.sequential2({reset_args[reset_type_str]})"
+
+    return compile_coroutine(defn_env, fn, gen_reg_decl, gen_decorator)
+
+
+coroutine2 = inspect_enclosing_env(_coroutine2)
