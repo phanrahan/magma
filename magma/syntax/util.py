@@ -1,5 +1,6 @@
 from ..t import In, Out
 from ..circuit import Circuit
+from ..wire import wire
 
 
 def build_io_args(annotations):
@@ -30,6 +31,6 @@ def wire_call_result(io, call_result, annotations):
         call_result = call_result.interface.outputs()[0]
     if isinstance(annotations["return"], tuple):
         for i in range(len(annotations["return"])):
-            getattr(io, f"O{i}").wire(call_result[i])
+            wire(getattr(io, f"O{i}"), call_result[i])
     else:
-        io.O.wire(call_result)
+        wire(io.O, call_result)

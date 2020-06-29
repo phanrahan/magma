@@ -5,7 +5,7 @@ import inspect
 import ast_tools
 
 import magma as m
-from test_sequential import Register
+from test_sequential import Register, DualClockRAM
 from magma.testing import check_files_equal
 
 
@@ -129,6 +129,65 @@ END SOURCE_LINES
                              f"gold/TestSequential2NestedLoopUnroll.v")
 
 
+def test_dual_clock_ram():
+    @m.sequential2()
+    class DefaultClock:
+        def __call__(self) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Default CLK will be wired up implicitly
+                # RCLK=CLK
+                # WCLK=CLK
+            )
+            return rdata
+
+    m.compile("build/TestSequential2DefaultClock", DefaultClock)
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2DefaultClock.v",
+                             f"gold/TestSequential2DefaultClock.v")
+
+    @m.sequential2()
+    class ImplicitClock:
+        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Always the first Clock argument will be wired up implicitly
+                # RCLK=WCLK
+                # WCLK=WCLK
+            )
+            return rdata
+
+    m.compile("build/TestSequential2ImplicitClock", ImplicitClock)
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2ImplicitClock.v",
+                             f"gold/TestSequential2ImplicitClock.v")
+
+    @m.sequential2()
+    class ExplicitClock:
+        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Wiring clocks explicitly
+                RCLK=RCLK,
+                WCLK=WCLK
+            )
+            return rdata
+
+    m.compile("build/TestSequential2ExplicitClock", ExplicitClock)
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2ExplicitClock.v",
+                             f"gold/TestSequential2ExplicitClock.v")
+
+
 def test_sequential2_return_tuple():
     @m.sequential2()
     class Basic:
@@ -165,5 +224,87 @@ def test_sequential2_custom_annotations():
             return O
 
     m.compile("build/TestSequential2CustomAnnotations", Basic, inline=True)
-    assert check_files_equal(__file__, f"build/TestSequential2CustomAnnotations.v",
+    assert check_files_equal(__file__,
+                             f"build/TestSequential2CustomAnnotations.v",
                              f"gold/TestSequential2CustomAnnotations.v")
+
+
+def test_sequential2_counter():
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.count = m.Register(T=m.SInt[16], init=m.sint(0, 16))()
+
+        def __call__(self) -> m.SInt[16]:
+            self.count = self.count + 1
+            return self.count
+
+    m.compile("build/TestSequential2Counter", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Counter.v",
+                             f"gold/TestSequential2Counter.v")
+
+
+def test_sequential2_counter_if():
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.count = m.Register(T=m.SInt[16], init=m.sint(0, 16))()
+
+        def __call__(self, sel: m.Bit) -> m.SInt[16]:
+            if sel:
+                self.count = self.count + 1
+            return self.count
+
+    m.compile("build/TestSequential2CounterIf", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2CounterIf.v",
+                             f"gold/TestSequential2CounterIf.v")
+
+
+def test_sequential2_product():
+    @m.sequential2()
+    class Test:
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+            if sel:
+                return m.namedtuple(a=m.bit(0))
+            else:
+                return m.namedtuple(a=m.bit(1))
+
+    m.compile("build/TestSequential2Product", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Product.v",
+                             f"gold/TestSequential2Product.v")
+
+
+def test_sequential2_arr_of_bits():
+    T = m.Array[15, m.Bits[7]]
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.reg_arr = m.Register(T=T)()
+
+        def __call__(self, I: T) -> T:
+            O = self.reg_arr
+            self.reg_arr = I
+            return O
+
+    m.compile("build/TestSequential2ArrOfBits", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2ArrOfBits.v",
+                             f"gold/TestSequential2ArrOfBits.v")
+
+
+def test_sequential2_getitem():
+    T = m.Array[8, m.Bits[7]]
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.reg_arr = m.Register(T=T)()
+            self.index = m.Register(T=m.Bits[3])()
+
+        def __call__(self, I: T, index: m.Bits[3]) -> m.Array[2, m.Bits[7]]:
+            out = m.array([self.reg_arr[index], self.reg_arr[self.index]])
+            self.reg_arr = I
+            self.index = index
+            return out
+
+    m.compile("build/TestSequential2GetItem", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2GetItem.v",
+                             f"gold/TestSequential2GetItem.v")

@@ -86,3 +86,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
 
     def __imatmul__(self, other):
         self.wire(other)
+
+
+def get_type(value):
+    T = type(value)
+    if issubclass(T, MagmaProtocol):
+        return T._to_magma_()
+    return T

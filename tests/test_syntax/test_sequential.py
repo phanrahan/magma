@@ -191,6 +191,21 @@ def Register(n, init=0, has_ce=False, has_reset=False, has_async_reset=False,
                           has_async_resetn=has_async_resetn, _type=_type)(**kwargs)
 
 
+class DualClockRAM(m.Circuit):
+    IO = [
+        "RADDR", m.In(m.Bits[8]),
+        "WADDR", m.In(m.Bits[8]),
+        "WDATA", m.In(m.Bits[8]),
+        "RDATA", m.Out(m.Bits[8]),
+        "WE", m.In(m.Bit),
+        "RCLK", m.In(m.Clock),
+        "WCLK", m.In(m.Clock),
+    ]
+    @classmethod
+    def definition(io):
+        m.wire(m.bits(0, 8), io.RDATA)
+
+
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
         metafunc.parametrize("target", ["coreir", "coreir-verilog"])
@@ -397,22 +412,6 @@ def test_multiple_return(target, async_reset):
     print(repr(type(RegisterMode.instances[1])))
     compile_and_check(
         "RegisterMode" + ("ARST" if async_reset else ""), RegisterMode, target)
-
-
-def test_array_of_bits(target):
-    @m.circuit.sequential(async_reset=True)
-    class ArrayOfBitsSeq:
-        def __init__(self):
-            self.register_array: m.Array[15, m.Bits[1024]] = \
-                m.array([m.bits(0, 1024) for _ in range(15)])
-
-        def __call__(self, I: m.Array[15, m.Bits[1024]]) -> \
-                m.Array[15, m.Bits[1024]]:
-            O = self.register_array
-            self.register_array = I
-            return O
-
-    compile_and_check("ArrayOfBitsSeq", ArrayOfBitsSeq, target)
 
 
 def test_rd_ptr(target):
@@ -731,3 +730,50 @@ def test_protocol_return_mixed(target):
             return self.f(val)
 
 
+def test_dual_clock_ram(target):
+    # Implicit CLK wiring does not work with sequential. Use sequantial2
+    #@m.circuit.sequential(async_reset=False)
+    #class DefaultClock:
+    #    def __call__(self) -> m.Bits[8]:
+    #        rdata = DualClockRAM()(
+    #            RADDR=m.bits(0, 8),
+    #            WADDR=m.bits(0, 8),
+    #            WDATA=m.bits(0, 8),
+    #            WE=m.bit(0),
+    #            # Default CLK will not be wired up implicitly
+    #            # RCLK is not connected
+    #            # WCLK is not connected
+    #        )
+    #        return rdata
+
+    @m.circuit.sequential(async_reset=False)
+    class ImplicitClock:
+        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Always the first Clock argument will be wired up implicitly
+                # RCLK=WCLK
+                # WCLK=WCLK
+            )
+            return rdata
+
+    compile_and_check("TestSequentialImplicitClock", ImplicitClock, target)
+
+    @m.circuit.sequential(async_reset=False)
+    class ExplicitClock:
+        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
+            rdata = DualClockRAM()(
+                RADDR=m.bits(0, 8),
+                WADDR=m.bits(0, 8),
+                WDATA=m.bits(0, 8),
+                WE=m.bit(0),
+                # Wiring clocks explicitly
+                RCLK=RCLK,
+                WCLK=WCLK
+            )
+            return rdata
+
+    compile_and_check("TestSequentialExplicitClock", ExplicitClock, target)

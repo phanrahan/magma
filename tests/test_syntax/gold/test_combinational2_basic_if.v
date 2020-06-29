@@ -1,10 +1,46 @@
-module corebit_mux (
-    input in0,
-    input in1,
+module coreir_mux #(
+    parameter width = 1
+) (
+    input [width-1:0] in0,
+    input [width-1:0] in1,
     input sel,
-    output out
+    output [width-1:0] out
 );
   assign out = sel ? in1 : in0;
+endmodule
+
+module commonlib_muxn__N2__width1 (
+    input [0:0] in_data_0,
+    input [0:0] in_data_1,
+    input [0:0] in_sel,
+    output [0:0] out
+);
+wire [0:0] _join_out;
+coreir_mux #(
+    .width(1)
+) _join (
+    .in0(in_data_0),
+    .in1(in_data_1),
+    .sel(in_sel[0]),
+    .out(_join_out)
+);
+assign out = _join_out;
+endmodule
+
+module Mux2xOutBit (
+    input I0,
+    input I1,
+    input S,
+    output O
+);
+wire [0:0] coreir_commonlib_mux2x1_inst0_out;
+commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
+    .in_data_0(I0),
+    .in_data_1(I1),
+    .in_sel(S),
+    .out(coreir_commonlib_mux2x1_inst0_out)
+);
+assign O = coreir_commonlib_mux2x1_inst0_out[0];
 endmodule
 
 module basic_if (
@@ -12,14 +48,14 @@ module basic_if (
     input S,
     output O
 );
-wire magma_Bit_ite_Out_Bit_inst0_out;
-corebit_mux magma_Bit_ite_Out_Bit_inst0 (
-    .in0(I[1]),
-    .in1(I[0]),
-    .sel(S),
-    .out(magma_Bit_ite_Out_Bit_inst0_out)
+wire Mux2xOutBit_inst0_O;
+Mux2xOutBit Mux2xOutBit_inst0 (
+    .I0(I[1]),
+    .I1(I[0]),
+    .S(S),
+    .O(Mux2xOutBit_inst0_O)
 );
-assign O = magma_Bit_ite_Out_Bit_inst0_out;
+assign O = Mux2xOutBit_inst0_O;
 endmodule
 
 module Main (

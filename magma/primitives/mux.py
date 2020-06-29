@@ -81,3 +81,7 @@ def mux(I, S, **kwargs):
         return I[S]
     T = type(I[0])
     return Mux(len(I), T, **kwargs)()(*I, S)
+
+
+# Monkey patch for ite impl without circular dependency
+Bit._Mux = Mux
