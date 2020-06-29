@@ -21,15 +21,47 @@ from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
-from magma.config import get_debug_mode
-
-from magma.ref import PortViewRef, ArrayRef
 from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
+from magma.config import get_debug_mode
+from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
+from magma.ref import PortViewRef, ArrayRef
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
 # already been done in backend/coreir_.py.
 _logger = root_logger().getChild("coreir_backend")
+
+
+def _collect_drivers(value):
+    """
+    Iterate over value to collect the child drivers, packing slices together
+    """
+    drivers = []
+    start_idx = 0
+    for i in range(1, len(value)):
+        # If the next value item is not a reference to an array of bits where
+        # the array matches the previous item and the index is incremented by
+        # one, append the current slice to drivers (may introduce slices of
+        # length 1)
+        if not (
+            isinstance(value[i].name, ArrayRef) and
+            issubclass(value[i].name.array.T, Digital) and
+            isinstance(value[i - 1].name, ArrayRef) and
+            value[i].name.array is value[i - 1].name.array and
+            value[i].name.index == value[i - 1].name.index + 1
+        ):
+            drivers.append(value[start_idx:i])
+            start_idx = i
+    drivers.append(value[start_idx:])
+    return drivers
+
+
+def _unwrap(x):
+    if isinstance(x, MagmaProtocol):
+        return x._get_magma_value_()
+    if isinstance(x, MagmaProtocolMeta):
+        return x._to_magma_()
+    return x
 
 
 class TransformerBase(ABC):
@@ -135,30 +167,6 @@ class WrappedTransformer(LeafTransformer):
         self.backend.libs_used |= self.defn.coreir_wrapped_modules_libs_used
 
 
-def _collect_drivers(value):
-    """
-    Iterate over value to collect the child drivers, packing slices together
-    """
-    drivers = []
-    start_idx = 0
-    for i in range(1, len(value)):
-        # If the next value item is not a reference to an array of bits where
-        # the array matches the previous item and the index is incremented by
-        # one, append the current slice to drivers (may introduce slices of
-        # length 1)
-        if not (
-            isinstance(value[i].name, ArrayRef) and
-            issubclass(value[i].name.array.T, Digital) and
-            isinstance(value[i - 1].name, ArrayRef) and
-            value[i].name.array is value[i - 1].name.array and
-            value[i].name.index == value[i - 1].name.index + 1
-        ):
-            drivers.append(value[start_idx:i])
-            start_idx = i
-    drivers.append(value[start_idx:])
-    return drivers
-
-
 class DefinitionTransformer(TransformerBase):
     def __init__(self, backend, opts, defn):
         super().__init__(backend, opts)
@@ -246,6 +254,8 @@ class DefinitionTransformer(TransformerBase):
             self.connect(module_defn, port, port.trace(), non_input_ports)
 
     def get_source(self, port, value, module_defn, non_input_ports):
+        port = _unwrap(port)
+        value = _unwrap(value)
         if isinstance(value, Wireable):
             return value
         if isinstance(value, Slice):
@@ -256,6 +266,7 @@ class DefinitionTransformer(TransformerBase):
             drivers = _collect_drivers(value)
             offset = 0
             for d in drivers:
+                d = _unwrap(d)
                 if len(d) == 1:
                     # _collect_drivers will introduce a slice of length 1 for
                     # non-slices, so we index them here with 0 to unpack the
