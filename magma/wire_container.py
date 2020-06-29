@@ -33,7 +33,7 @@ class Wire:
         Connect two wires, self should be an input and other should be an
         output, or both should be inouts
         """
-        if self._driver is not None and self._bit.is_input():
+        if self._driver is not None:
             _logger.warning(
                 "Wiring multiple outputs to same wire, using last connection."
                 f" Input: {self._bit.debug_name}, "
