@@ -30,6 +30,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --inline"
     if opts.get("verilator_debug", False):
         cmd += " --verilator_debug"
+    if opts.get("disable_width_cast", False):
+        cmd += " --disable-width-cast"
     return cmd
 
 
@@ -92,6 +94,7 @@ class CoreIRCompiler(Compiler):
             split=self.opts.get("split", ""),
             inline=self.opts.get("inline", False),
             verilator_debug=self.opts.get("verilator_debug", False),
+            disable_width_cast=self.opts.get("disable_width_cast", False),
         )
         ret = self.backend.context.compile_to_verilog(top, filename, **opts)
         if not ret:
