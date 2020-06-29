@@ -34,7 +34,7 @@ def test_undirected_value_error_2(caplog):
             x @= io.I
             io.O @= y
     msg = """\
-\033[1mtests/test_wire/test_undirected_error.py:35\033[0m: Wiring multiple outputs to same wire, using last connection. Input: x[0],  Old Output: y[0],  New Output: LazyCircuit.I[0]
+\033[1mtests/test_wire/test_undirected_error.py:34\033[0m: Wiring multiple outputs to same wire, using last connection. Input: x[0],  Old Output: y[0],  New Output: LazyCircuit.I[0]
 >>         x @= io.I\
 """
     assert has_warning(caplog, msg)
