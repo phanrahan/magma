@@ -107,14 +107,21 @@ $ brew install python3
 $ sudo apt-get install python3 python3-pip
 ```
 
+## Installing Dependencies
+Magma depends on some third-party libraries that should be installed using your
+operatin system's package manager.
+
+### MacOS/Homebrew
+```
+$ brew install verilator gmp mpfr libmpc
+```
+
+### Ubuntu
+```
+$ sudo apt-get install verilator libgmp-dev libmpfr-dev libmpc-dev
+```
+
 ## User Setup
-Magma requires [coreir](https://github.com/rdaly525/coreir), 
-please follow [these instructions](https://github.com/rdaly525/coreir/blob/master/INSTALL.md) to install it.
-
-Magma depends on the [hwtypes package](https://github.com/leonardt/hwtypes)
-which has three non-python dependencies (libgmp, libmpfr, and libmpc), see
-[these instructions](https://github.com/leonardt/hwtypes#install) to install.
-
 Magma is available as a pip package, install the lastest release with:
 ```
 pip install magma-lang
