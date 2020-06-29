@@ -16,6 +16,15 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
+module commonlib_muxn__N2__width16 (
+    input [15:0] in_data_0,
+    input [15:0] in_data_1,
+    input [0:0] in_sel,
+    output [15:0] out
+);
+assign out = in_sel[0] ? in_data_1 : in_data_0;
+endmodule
+
 module Register (
     input [15:0] I,
     output [15:0] O,
@@ -32,19 +41,36 @@ coreir_reg #(
 );
 endmodule
 
+module Mux2xOutSInt16 (
+    input [15:0] I0,
+    input [15:0] I1,
+    input S,
+    output [15:0] O
+);
+commonlib_muxn__N2__width16 coreir_commonlib_mux2x16_inst0 (
+    .in_data_0(I0),
+    .in_data_1(I1),
+    .in_sel(S),
+    .out(O)
+);
+endmodule
+
 module Test2 (
     input sel,
     output [15:0] O,
     input CLK
 );
 wire [15:0] Register_inst0_O;
-wire [15:0] magma_Bit_ite_Out_SInt_16_inst0_out;
+Mux2xOutSInt16 Mux2xOutSInt16_inst0 (
+    .I0(Register_inst0_O),
+    .I1(16'(Register_inst0_O + 16'h0001)),
+    .S(sel),
+    .O(O)
+);
 Register Register_inst0 (
-    .I(magma_Bit_ite_Out_SInt_16_inst0_out),
+    .I(O),
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign magma_Bit_ite_Out_SInt_16_inst0_out = sel ? 16'(Register_inst0_O + 16'h0001) : Register_inst0_O;
-assign O = magma_Bit_ite_Out_SInt_16_inst0_out;
 endmodule
 

@@ -352,13 +352,13 @@ def test_ite():
     assert repr(TestITE) == """\
 TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), \
 "O", Out(Bit))
-magma_Bit_ite_Out_Bit_inst0 = magma_Bit_ite_Out_Bit()
-wire(TestITE.I1, magma_Bit_ite_Out_Bit_inst0.in0)
-wire(TestITE.I0, magma_Bit_ite_Out_Bit_inst0.in1)
-wire(TestITE.S, magma_Bit_ite_Out_Bit_inst0.sel)
-wire(magma_Bit_ite_Out_Bit_inst0.out, TestITE.O)
+Mux2xOutBit_inst0 = Mux2xOutBit()
+wire(TestITE.I1, Mux2xOutBit_inst0.I0)
+wire(TestITE.I0, Mux2xOutBit_inst0.I1)
+wire(TestITE.S, Mux2xOutBit_inst0.S)
+wire(Mux2xOutBit_inst0.O, TestITE.O)
 EndCircuit()\
-"""
+""", repr(TestITE)
     m.compile(f"build/TestBitite", TestITE, output="coreir-verilog")
     assert check_files_equal(__file__, f"build/TestBitite.v",
                              f"gold/TestBitite.v")

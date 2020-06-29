@@ -87,40 +87,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
         return _MagmaBitOp
 
-    @classmethod
-    @lru_cache(maxsize=None)
-    def declare_ite(cls, T):
-
-        t_str = str(T)
-        # Sanitize
-        t_str = t_str.replace("(", "_")
-        t_str = t_str.replace(")", "")
-        t_str = t_str.replace("[", "_")
-        t_str = t_str.replace("]", "")
-
-        class _MagmaBitOp(Circuit):
-            name = f"magma_Bit_ite_{t_str}"
-            coreir_name = "mux"
-            if issubclass(T, Bit):
-                coreir_lib = "corebit"
-            else:
-                coreir_lib = "coreir"
-                coreir_genargs = {"width": len(T)}
-            renamed_ports = coreir_port_mapping
-            primitive = True
-            stateful = False
-
-            io = IO(I0=In(T), I1=In(T), S=In(Bit), O=Out(T))
-
-            def simulate(self, value_store, state_store):
-                I0 = ht.Bit(value_store.get_value(self.I0))
-                I1 = ht.Bit(value_store.get_value(self.I1))
-                S = ht.Bit(value_store.get_value(self.S))
-                O = I1 if S else I0
-                value_store.set_value(self.O, O)
-
-        return _MagmaBitOp
-
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
         if value is None:
@@ -180,7 +146,9 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         if issubclass(type_, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # Note: coreir flips t/f cases
-        return self.declare_ite(type_)()(f_branch, t_branch, self)
+        # self._Mux monkey patched in magma/primitives/mux.py to avoid circular
+        # dependency
+        return self._Mux(2, type_)()(f_branch, t_branch, self)
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma bit to bool not supported")
