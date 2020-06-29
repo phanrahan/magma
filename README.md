@@ -118,7 +118,7 @@ $ brew install verilator gmp mpfr libmpc
 
 ### Ubuntu
 ```
-$ sudo apt-get install verilator libgmp-dev libmpfr-dev libmpc-dev
+$ sudo apt-get install gcc verilator libgmp-dev libmpfr-dev libmpc-dev
 ```
 
 ## User Setup
