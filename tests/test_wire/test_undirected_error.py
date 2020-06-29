@@ -1,20 +1,19 @@
 import magma as m
-from magma.testing.utils import has_warning
+from magma.testing.utils import has_warning, magma_debug_section
 
 
 def test_undirected_value_warning_1(caplog):
-    m.config.set_debug_mode(True)
-    class Main(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]))
-        x = m.Bits[5](name="x")
-        y = m.Bits[5](name="y")
-        x @= io.I
-        # Backwards, should be wiring x to drive y
-        # This produces a warning that you're overwriting the previous driver
-        # of x
-        m.wire(y, x)
-        io.O @= y
-    m.config.set_debug_mode(False)
+    with magma_debug_section():
+        class Main(m.Circuit):
+            io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]))
+            x = m.Bits[5](name="x")
+            y = m.Bits[5](name="y")
+            x @= io.I
+            # Backwards, should be wiring x to drive y
+            # This produces a warning that you're overwriting the previous driver
+            # of x
+            m.wire(y, x)
+            io.O @= y
     msg = """\
 \033[1mtests/test_wire/test_undirected_error.py:15\033[0m: Wiring multiple outputs to same wire, using last connection. Input: x[0],  Old Output: LazyCircuit.I[0],  New Output: y[0]
 >>         m.wire(y, x)\
@@ -23,18 +22,17 @@ def test_undirected_value_warning_1(caplog):
 
 
 def test_undirected_value_error_2(caplog):
-    m.config.set_debug_mode(True)
-    class Main(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]))
-        x = m.Bits[5](name="x")
-        y = m.Bits[5](name="y")
-        # Backwards, should be wiring x to drive y
-        m.wire(y, x)
-        # This produces a warning that you're overwriting the previous driver
-        # of x
-        x @= io.I
-        io.O @= y
-    m.config.set_debug_mode(False)
+    with magma_debug_section():
+        class Main(m.Circuit):
+            io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]))
+            x = m.Bits[5](name="x")
+            y = m.Bits[5](name="y")
+            # Backwards, should be wiring x to drive y
+            m.wire(y, x)
+            # This produces a warning that you're overwriting the previous driver
+            # of x
+            x @= io.I
+            io.O @= y
     msg = """\
 \033[1mtests/test_wire/test_undirected_error.py:35\033[0m: Wiring multiple outputs to same wire, using last connection. Input: x[0],  Old Output: y[0],  New Output: LazyCircuit.I[0]
 >>         x @= io.I\
