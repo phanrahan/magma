@@ -260,6 +260,20 @@ def test_sequential2_counter_if():
                              f"gold/TestSequential2CounterIf.v")
 
 
+def test_sequential2_product():
+    @m.sequential2()
+    class Test:
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+            if sel:
+                return m.namedtuple(a=m.bit(0))
+            else:
+                return m.namedtuple(a=m.bit(1))
+
+    m.compile("build/TestSequential2Product", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Product.v",
+                             f"gold/TestSequential2Product.v")
+
+
 def test_sequential2_arr_of_bits():
     T = m.Array[15, m.Bits[7]]
     @m.sequential2()
@@ -275,3 +289,22 @@ def test_sequential2_arr_of_bits():
     m.compile("build/TestSequential2ArrOfBits", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2ArrOfBits.v",
                              f"gold/TestSequential2ArrOfBits.v")
+
+
+def test_sequential2_getitem():
+    T = m.Array[8, m.Bits[7]]
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.reg_arr = m.Register(T=T)()
+            self.index = m.Register(T=m.Bits[3])()
+
+        def __call__(self, I: T, index: m.Bits[3]) -> m.Array[2, m.Bits[7]]:
+            out = m.array([self.reg_arr[index], self.reg_arr[self.index]])
+            self.reg_arr = I
+            self.index = index
+            return out
+
+    m.compile("build/TestSequential2GetItem", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2GetItem.v",
+                             f"gold/TestSequential2GetItem.v")

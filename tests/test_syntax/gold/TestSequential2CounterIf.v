@@ -32,19 +32,40 @@ coreir_reg #(
 );
 endmodule
 
+module Mux2xOutSInt16 (
+    input [15:0] I0,
+    input [15:0] I1,
+    input S,
+    output [15:0] O
+);
+reg [15:0] coreir_commonlib_mux2x16_inst0_out;
+always @(*) begin
+if (S == 0) begin
+    coreir_commonlib_mux2x16_inst0_out = I0;
+end else begin
+    coreir_commonlib_mux2x16_inst0_out = I1;
+end
+end
+
+assign O = coreir_commonlib_mux2x16_inst0_out;
+endmodule
+
 module Test2 (
     input sel,
     output [15:0] O,
     input CLK
 );
 wire [15:0] Register_inst0_O;
-wire [15:0] magma_Bit_ite_Out_SInt_16_inst0_out;
+Mux2xOutSInt16 Mux2xOutSInt16_inst0 (
+    .I0(Register_inst0_O),
+    .I1(16'(Register_inst0_O + 16'h0001)),
+    .S(sel),
+    .O(O)
+);
 Register Register_inst0 (
-    .I(magma_Bit_ite_Out_SInt_16_inst0_out),
+    .I(O),
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign magma_Bit_ite_Out_SInt_16_inst0_out = sel ? 16'(Register_inst0_O + 16'h0001) : Register_inst0_O;
-assign O = magma_Bit_ite_Out_SInt_16_inst0_out;
 endmodule
 
