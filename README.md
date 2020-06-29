@@ -109,7 +109,7 @@ $ sudo apt-get install python3 python3-pip
 
 ## Installing Dependencies
 Magma depends on some third-party libraries that should be installed using your
-operatin system's package manager.
+operating system's package manager.
 
 ### MacOS/Homebrew
 ```
