@@ -16,15 +16,6 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
-module commonlib_muxn__N2__width16 (
-    input [15:0] in_data_0,
-    input [15:0] in_data_1,
-    input [0:0] in_sel,
-    output [15:0] out
-);
-assign out = in_sel[0] ? in_data_1 : in_data_0;
-endmodule
-
 module Register (
     input [15:0] I,
     output [15:0] O,
@@ -47,12 +38,16 @@ module Mux2xOutSInt16 (
     input S,
     output [15:0] O
 );
-commonlib_muxn__N2__width16 coreir_commonlib_mux2x16_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
-    .in_sel(S),
-    .out(O)
-);
+reg [15:0] coreir_commonlib_mux2x16_inst0_out;
+always @(*) begin
+if (S == 0) begin
+    coreir_commonlib_mux2x16_inst0_out = I0;
+end else begin
+    coreir_commonlib_mux2x16_inst0_out = I1;
+end
+end
+
+assign O = coreir_commonlib_mux2x16_inst0_out;
 endmodule
 
 module Test2 (

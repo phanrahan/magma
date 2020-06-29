@@ -1,24 +1,19 @@
-module commonlib_muxn__N2__width3 (
-    input [2:0] in_data_0,
-    input [2:0] in_data_1,
-    input [0:0] in_sel,
-    output [2:0] out
-);
-assign out = in_sel[0] ? in_data_1 : in_data_0;
-endmodule
-
 module Mux2xOutBits3 (
     input [2:0] I0,
     input [2:0] I1,
     input S,
     output [2:0] O
 );
-commonlib_muxn__N2__width3 coreir_commonlib_mux2x3_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
-    .in_sel(S),
-    .out(O)
-);
+reg [2:0] coreir_commonlib_mux2x3_inst0_out;
+always @(*) begin
+if (S == 0) begin
+    coreir_commonlib_mux2x3_inst0_out = I0;
+end else begin
+    coreir_commonlib_mux2x3_inst0_out = I1;
+end
+end
+
+assign O = coreir_commonlib_mux2x3_inst0_out;
 endmodule
 
 module pre_unroll (
