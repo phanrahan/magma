@@ -1,8 +1,7 @@
-from deprecated import deprecated
-
 from magma.bit import Bit
 from magma.bits import Bits, UInt
 from magma.bitutils import clog2
+from magma.common import deprecated
 from magma.t import Direction
 from magma.conversions import array, zext, uint
 from magma.protocol_type import MagmaProtocol
