@@ -138,6 +138,9 @@ class _SequentialRegisterWrapper(MagmaProtocol,
         key = i._get_magma_value_() if isinstance(i, MagmaProtocol) else i
         return self._get_magma_value_()[key]
 
+    def __len__(self):
+        return len(self._get_magma_value_())
+
 
 def sequential_getattribute(self, key):
     """
