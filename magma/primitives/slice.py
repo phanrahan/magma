@@ -1,8 +1,13 @@
-from magma.bits import Bits
-from magma.conversions import array
+from magma.bit import Bit
+from magma.bits import Bits, UInt
+from magma.bitutils import clog2
+from magma.common import deprecated
+from magma.t import Direction
+from magma.conversions import array, zext, uint
+from magma.protocol_type import MagmaProtocol
 
 
-def slice(value: Bits, start: Bits, width: int):
+def get_slice(value: Bits, start: Bits, width: int):
     """
     Dynamic slice based off the value of `start` with constant `width`.
 
@@ -16,7 +21,7 @@ def slice(value: Bits, start: Bits, width: int):
             O=m.Out(m.Bits[6])
         )
 
-        io.O @= m.slice(io.I, start=io.x, width=6)
+        io.O @= m.get_slice(io.I, start=io.x, width=6)
     ```
 
     Notes:
@@ -27,3 +32,35 @@ def slice(value: Bits, start: Bits, width: int):
     # Construct an array where the index `i` is the slice of bits from `i` to
     # `i+width`, index into this array using `start`.
     return array([value[i:i + width] for i in range(len(value) - width)])[start]
+
+
+@deprecated(msg="m.slice will not be supported in future versions, use "
+            "m.get_slice instead")
+def slice(*args, **kwargs):
+    return get_slice(*args, **kwargs)
+
+
+def set_slice(target: Bits, value: Bits, start: UInt, width: int):
+    """
+    target: the output with a dynamic slice range replaced by value
+    value: the output driving a slice of target
+    start: dynamic start index of the slice
+    width: constant slice width
+    """
+    T = type(target)
+    if issubclass(T, MagmaProtocol):
+        T = T._to_magma_()
+    output = T.qualify(Direction.Undirected)()
+    orig_start_len = len(start)
+    if len(start) < clog2(len(target)):
+        start = zext(start, clog2(len(target)) - len(start))
+    for i in range(len(target)):
+        in_slice_range = Bit(True)
+        # guards to avoid constant compare verilator error
+        if i < (1 << orig_start_len) - 1:
+            in_slice_range &= start <= i
+        if i > 0:
+            in_slice_range &= i <= (start + width - 1)
+        output[i] @= in_slice_range.ite(value[uint(i, clog2(len(target))) -
+                                              start], target[i])
+    return output
