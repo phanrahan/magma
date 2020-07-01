@@ -44,14 +44,15 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
     if issubclass(T, MagmaProtocol):
         T = T._to_magma_()
     output = T.qualify(Direction.Undirected)()
+    orig_start_len = len(start)
     if len(start) < clog2(len(target)):
         start = zext(start, clog2(len(target)) - len(start))
     for i in range(len(target)):
         in_slice_range = Bit(True)
         # guards to avoid constant compare verilator error
-        if i != len(target) - 1:
+        if i < (1 << orig_start_len) - 1:
             in_slice_range &= start <= i
-        if i != 0:
+        if i > 0:
             in_slice_range &= i <= (start + width - 1)
         output[i] @= in_slice_range.ite(value[uint(i, clog2(len(target))) -
                                               start], target[i])

@@ -72,7 +72,7 @@ Mux2xOutBit Mux2xOutBit_inst1 (
 Mux2xOutBit Mux2xOutBit_inst10 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst10_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'ha)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'ha)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'ha)),
     .O(Mux2xOutBit_inst10_O)
 );
 Mux2xOutBit Mux2xOutBit_inst11 (
@@ -90,43 +90,43 @@ Mux2xOutBit Mux2xOutBit_inst2 (
 Mux2xOutBit Mux2xOutBit_inst3 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst3_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h3)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h3)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h3)),
     .O(Mux2xOutBit_inst3_O)
 );
 Mux2xOutBit Mux2xOutBit_inst4 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst4_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h4)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h4)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h4)),
     .O(Mux2xOutBit_inst4_O)
 );
 Mux2xOutBit Mux2xOutBit_inst5 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst5_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h5)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h5)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h5)),
     .O(Mux2xOutBit_inst5_O)
 );
 Mux2xOutBit Mux2xOutBit_inst6 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst6_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h6)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h6)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h6)),
     .O(Mux2xOutBit_inst6_O)
 );
 Mux2xOutBit Mux2xOutBit_inst7 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst7_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h7)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h7)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h7)),
     .O(Mux2xOutBit_inst7_O)
 );
 Mux2xOutBit Mux2xOutBit_inst8 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst8_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h8)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h8)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h8)),
     .O(Mux2xOutBit_inst8_O)
 );
 Mux2xOutBit Mux2xOutBit_inst9 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst9_out[0]),
-    .S((1'b1 & (({1'b0,1'b0,x[1:0]}) <= 4'h9)) & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h9)),
+    .S(1'b1 & ((4'((4'(({1'b0,1'b0,x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h9)),
     .O(Mux2xOutBit_inst9_O)
 );
 assign magma_Bits_4_sub_inst0_out = 4'(4'h0 - ({1'b0,1'b0,x[1:0]}));
