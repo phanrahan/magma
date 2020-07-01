@@ -94,15 +94,12 @@ def test_sdram():
     CMD_READ = m.bits(0b10101001, 8)
     CMD_WRIT = m.bits(0b10100001, 8)
 
-    @m.syntax.coroutine
+    @m.coroutine(manual_encoding=True, reset_type=m.AsyncResetN)
     class SDRAMController:
-        _manual_encoding_ = True
-        _reset_type_ = m.AsyncResetN
-
         def __init__(self):
-            self.yield_state: m.Bits[5] = INIT_NOP1
-            self.command: m.Bits[8] = CMD_NOP
-            self.i: m.UInt[4] = m.uint(15, 4)
+            self.yield_state = m.Register(T=m.Bits[5], init=INIT_NOP1)()
+            self.command = m.Register(T=m.Bits[8], init=CMD_NOP)()
+            self.i = m.Register(T=m.UInt[4], init=m.uint(15, 4))()
 
         def __call__(self, refresh_cnt: m.UInt[10], rd_enable: m.Bit, wr_enable: m.Bit) -> (m.Bits[5], m.Bits[8]):
             yield from self.init()
