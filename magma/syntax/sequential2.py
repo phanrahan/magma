@@ -6,7 +6,8 @@ from ast_tools.passes import (PASS_ARGS_T, Pass, apply_ast_passes, ssa,
                               if_to_phi, bool_to_bit)
 
 from ..circuit import Circuit, IO
-from ..clock_io import ClockIO
+from ..clock import AbstractReset
+from ..clock_io import ClockIO, gen_clock_io
 from ..t import Type, Direction
 from ..protocol_type import MagmaProtocol, MagmaProtocolMeta
 from ..primitives.register import Register
@@ -199,6 +200,60 @@ def _seq_phi(s, t, f):
     return s.ite(t, f)
 
 
+class _RegisterUpdater(ast.NodeTransformer):
+    """Update m.Register params implicitly"""
+    def __init__(self, reset_type, has_enable, reset_priority):
+        self.reset_type = ast.keyword(
+            arg="reset_type",
+            value=ast.parse(f"m.{reset_type}").body[0].value,
+        )
+        self.has_enable = ast.keyword(
+            arg="has_enable",
+            value=ast.Constant(has_enable),
+        )
+        self.reset_priority = ast.keyword(
+            arg="reset_priority",
+            value=ast.Constant(reset_priority),
+        )
+
+    def visit_Call(self, node: ast.Call):
+        # find m.Register
+        if (
+            isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "m"
+            and node.func.attr == "Register"
+        ):
+            # set params when not exists
+            keywords = []
+            args = set()
+            for keyword in node.keywords:
+                keywords.append(keyword)
+                args.add(keyword.arg)
+
+            if "reset_type" not in args:
+                keywords.append(self.reset_type)
+            if "has_enable" not in args:
+                keywords.append(self.has_enable)
+            if "reset_priority" not in args:
+                keywords.append(self.reset_priority)
+
+            return ast.Call(func=node.func, args=node.args, keywords=keywords)
+
+        return self.generic_visit(node)
+
+
+class _UpdateRegister(Pass):
+    """Update m.Register params implicitly"""
+    def __init__(self, reset_type, has_enable, reset_priority):
+        self.updater = _RegisterUpdater(reset_type, has_enable, reset_priority)
+
+    def rewrite(
+        self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
+    ) -> PASS_ARGS_T:
+        return self.updater.visit(tree), env, metadata
+
+
 class _PrevReplacer(ast.NodeTransformer):
     """Replace self.attr.prev() with __magma_sequential2_attr"""
     def __init__(self):
@@ -254,13 +309,23 @@ def sequential2(pre_passes=[], post_passes=[],
                 path: Optional[str] = None,
                 file_name: Optional[str] = None,
                 annotations: Optional[dict] = None,
-                **clock_io_kwargs):
-    """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
+                reset_type: AbstractReset = None,
+                has_enable: bool = False,
+                reset_priority: bool = True):
     passes = (pre_passes + [
         _ReplacePrev(), ssa(strict=False), bool_to_bit(), if_to_phi(_seq_phi)
     ] + post_passes)
 
+    clock_io = gen_clock_io(reset_type, has_enable)
+
     def seq_inner(cls):
+        if reset_type:
+            update_register = _UpdateRegister(reset_type,
+                                              has_enable, reset_priority)
+            cls.__init__ = apply_ast_passes(passes=[update_register],
+                                            debug=debug, env=env, path=path,
+                                            file_name=file_name)(cls.__init__)
+
         cls.__call__ = apply_ast_passes(passes, debug=debug, env=env,
                                         path=path,
                                         file_name=file_name)(cls.__call__)
@@ -276,7 +341,7 @@ def sequential2(pre_passes=[], post_passes=[],
 
         class SequentialCircuit(Circuit):
             name = cls.__name__
-            io = IO(**io_args) + ClockIO(**clock_io_kwargs)
+            io = IO(**io_args) + clock_io
             call_args = [cls()]
 
             # Monkey patch setattribute for register assign syntax, we could
