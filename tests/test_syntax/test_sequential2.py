@@ -351,3 +351,18 @@ def test_sequential2_slice():
     )
     tester.compile_and_run("verilator", skip_compile=True, directory=build_dir,
                            flags=["-Wno-unused"])
+
+
+def test_sequential2_prev():
+    @m.sequential2()
+    class Test2:
+        def __init__(self):
+            self.cnt = m.Register(T=m.UInt[3])()
+
+        def __call__(self) -> m.UInt[3]:
+            self.cnt = self.cnt + 1
+            return self.cnt.prev()
+
+    m.compile("build/TestSequential2Prev", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Prev.v",
+                             f"gold/TestSequential2Prev.v")

@@ -1,7 +1,9 @@
-from typing import Optional
+import ast
+from typing import Optional, MutableMapping
 
 from ast_tools.stack import SymbolTable
-from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, bool_to_bit
+from ast_tools.passes import (PASS_ARGS_T, Pass, apply_ast_passes, ssa,
+                              if_to_phi, bool_to_bit)
 
 from ..circuit import Circuit, IO
 from ..clock_io import ClockIO
@@ -197,6 +199,55 @@ def _seq_phi(s, t, f):
     return s.ite(t, f)
 
 
+class _PrevReplacer(ast.NodeTransformer):
+    """Replace self.attr.prev() with __magma_sequential2_attr"""
+    def __init__(self):
+        self.attrs = {}
+
+    def visit_Call(self, node: ast.Call):
+        # find self.attr.prev()
+        if (isinstance(node.func, ast.Attribute) and
+                isinstance(node.func.value, ast.Attribute) and
+                isinstance(node.func.value.value, ast.Name) and
+                node.func.value.value.id == "self" and
+                node.func.attr == "prev"):
+            # replace self.attr.prev() with __magma_sequential2_attr
+            attr = node.func.value
+            var = f"__magma_sequential2_{attr.attr}"
+            self.attrs[var] = attr
+            return ast.Name(id=var, ctx=ast.Load())
+        return self.generic_visit(node)
+
+
+class _ReplacePrev(Pass):
+    """
+    Replace all self.attr.prev() usage
+
+    def __call__(self):
+        return self.attr.prev()
+
+    def __call__(self):
+        __magma_sequential2_attr = self.attr
+        return __magma_sequential2_attr
+    """
+
+    def rewrite(self,
+                tree: ast.AST,
+                env: SymbolTable,
+                metadata: MutableMapping) -> PASS_ARGS_T:
+        prev_replacer = _PrevReplacer()
+        tree = prev_replacer.visit(tree)
+
+        assigns = []
+        for var, attr in prev_replacer.attrs.items():
+            assigns.append(ast.Assign(targets=[
+                ast.Name(id=var, ctx=ast.Store())
+            ], value=attr))
+        tree.body = assigns + tree.body
+
+        return tree, env, metadata
+
+
 def sequential2(pre_passes=[], post_passes=[],
                 debug: bool = False,
                 env: Optional[SymbolTable] = None,
@@ -205,9 +256,9 @@ def sequential2(pre_passes=[], post_passes=[],
                 annotations: Optional[dict] = None,
                 **clock_io_kwargs):
     """ clock_io_kwargs used for ClockIO params, e.g. async_reset """
-    passes = (pre_passes +
-              [ssa(strict=False), bool_to_bit(), if_to_phi(_seq_phi)] +
-              post_passes)
+    passes = (pre_passes + [
+        _ReplacePrev(), ssa(strict=False), bool_to_bit(), if_to_phi(_seq_phi)
+    ] + post_passes)
 
     def seq_inner(cls):
         cls.__call__ = apply_ast_passes(passes, debug=debug, env=env,
