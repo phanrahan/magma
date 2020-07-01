@@ -1,7 +1,9 @@
+from magma.bit import Bit
 from magma.bits import Bits, UInt
 from magma.bitutils import clog2
 from magma.t import Direction
 from magma.conversions import array, zext, uint
+from magma.protocol_type import MagmaProtocol
 
 
 def get_slice(value: Bits, start: Bits, width: int):
@@ -38,12 +40,19 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
     start: dynamic start index of the slice
     width: constant slice width
     """
-    output = type(target).qualify(Direction.Undirected)()
-    start = zext(start, clog2(len(target)) - len(start))
+    T = type(target)
+    if issubclass(T, MagmaProtocol):
+        T = T._to_magma_()
+    output = T.qualify(Direction.Undirected)()
+    if len(start) < clog2(len(target)):
+        start = zext(start, clog2(len(target)) - len(start))
     for i in range(len(target)):
-        # Can't write start <= i < (start + width) because that implicitly
-        # calls __bool__?
-        in_slice_range = (start <= i) & (i < (start + width))
+        in_slice_range = Bit(True)
+        # guards to avoid constant compare verilator error
+        if i != len(target) - 1:
+            in_slice_range &= start <= i
+        if i != 0:
+            in_slice_range &= i <= (start + width - 1)
         output[i] @= in_slice_range.ite(value[uint(i, clog2(len(target))) -
                                               start], target[i])
     return output

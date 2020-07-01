@@ -3,6 +3,7 @@ import os
 import inspect
 
 import ast_tools
+import fault
 
 import magma as m
 from test_sequential import Register, DualClockRAM
@@ -312,16 +313,41 @@ def test_sequential2_getitem():
 
 def test_sequential2_slice():
     @m.sequential2()
-    class Test2:
+    class TestSequential2Slice:
         def __init__(self):
             self.mem = m.Register(T=m.Bits[8 * 8])()
 
         def __call__(self, write_addr: m.UInt[3], write_data: m.Bits[8],
                      read_addr: m.UInt[3]) -> m.Bits[8]:
-            read_data = self.mem[read_addr * 8:(read_addr + 1) * 8]
-            self.mem[write_addr * 8:(write_addr + 1) * 8] = write_data
+            read_data = m.get_slice(self.mem, m.zext(read_addr, 3) * 8, 8)
+            self.mem = m.set_slice(self.mem, write_data,
+                                   m.zext(write_addr, 3) * 8, 8)
             return read_data
 
-    m.compile("build/TestSequential2Slice", Test2, inline=True)
+    m.compile("build/TestSequential2Slice", TestSequential2Slice, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Slice.v",
                              f"gold/TestSequential2Slice.v")
+
+    tester = fault.SynchronousTester(TestSequential2Slice,
+                                     TestSequential2Slice.CLK)
+    tester.circuit.write_addr = 1
+    tester.circuit.write_data = 2
+    tester.circuit.read_addr = 1
+    tester.advance_cycle()
+    tester.circuit.O.expect(2)
+    tester.circuit.write_addr = 2
+    tester.circuit.write_data = 3
+    tester.circuit.read_addr = 2
+    tester.advance_cycle()
+    tester.circuit.O.expect(3)
+    # Check addr 1 wasn't overwriten
+    tester.circuit.read_addr = 1
+    tester.advance_cycle()
+    tester.circuit.O.expect(2)
+
+    build_dir = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        "build"
+    )
+    tester.compile_and_run("verilator", skip_compile=True, directory=build_dir,
+                           flags=["-Wno-unused"])
