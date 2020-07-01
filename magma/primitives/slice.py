@@ -37,8 +37,6 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
     value: the output driving a slice of target
     start: dynamic start index of the slice
     width: constant slice width
-    default_value: the value to use to wire to target if it is not in the slice
-                   range (driven by value)
     """
     output = type(target).qualify(Direction.Undirected)()
     start = zext(start, clog2(len(target)) - len(start))
