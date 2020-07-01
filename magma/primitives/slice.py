@@ -34,7 +34,7 @@ def get_slice(value: Bits, start: Bits, width: int):
     return array([value[i:i + width] for i in range(len(value) - width)])[start]
 
 
-@deprecated(reason="m.slice will not be supported in future versions, use "
+@deprecated(msg="m.slice will not be supported in future versions, use "
             "m.get_slice instead")
 def slice(*args, **kwargs):
     return get_slice(*args, **kwargs)
