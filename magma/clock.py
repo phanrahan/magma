@@ -155,3 +155,16 @@ def wireclock(define, circuit):
     wireclocktype(define, circuit, AsyncReset)
     wireclocktype(define, circuit, AsyncResetN)
     wireclocktype(define, circuit, Enable)
+
+
+def get_reset_args(reset_type: AbstractReset = None):
+    if reset_type is not None and not issubclass(reset_type, AbstractReset):
+        raise TypeError(
+            f"Expected subclass of AbstractReset for argument reset_type, "
+            f"not {type(reset_type)}")
+
+    has_async_reset = reset_type == AsyncReset
+    has_async_resetn = reset_type == AsyncResetN
+    has_reset = reset_type == Reset
+    has_resetn = reset_type == ResetN
+    return (has_async_reset, has_async_resetn, has_reset, has_resetn)
