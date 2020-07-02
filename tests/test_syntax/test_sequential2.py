@@ -366,3 +366,19 @@ def test_sequential2_prev():
     m.compile("build/TestSequential2Prev", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Prev.v",
                              f"gold/TestSequential2Prev.v")
+
+
+def test_sequential2_reset():
+    @m.sequential2(reset_type=m.AsyncReset, has_enable=True)
+    class Test2:
+        def __init__(self):
+            # reset_type and has_enable will be set implicitly
+            self.cnt = m.Register(T=m.UInt[3])()
+
+        def __call__(self) -> m.UInt[3]:
+            self.cnt = self.cnt + 1
+            return self.cnt
+
+    m.compile("build/TestSequential2Reset", Test2, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Reset.v",
+                             f"gold/TestSequential2Reset.v")

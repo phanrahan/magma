@@ -12,8 +12,8 @@ from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out
 from magma.tuple import Tuple
-from magma.clock import (AbstractReset, Reset, ResetN, AsyncReset, AsyncResetN,
-                         Clock, Enable)
+from magma.clock import (AbstractReset,
+                         AsyncReset, AsyncResetN, Clock, get_reset_args)
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
 
@@ -116,16 +116,11 @@ class Register(Generator2):
             raise TypeError(
                 f"Expected instance of Type or int for argument init, not "
                 f"{type(init)}")
-        if reset_type is not None and not issubclass(reset_type, AbstractReset):
-            raise TypeError(
-                f"Expected subclass of AbstractReset for argument reset_type, "
-                f"not {type(reset_type)}")
+        (
+            has_async_reset, has_async_resetn, has_reset, has_resetn
+        ) = get_reset_args(reset_type)
 
         self.io = IO(I=In(T), O=Out(T))
-        has_async_reset = reset_type == AsyncReset
-        has_async_resetn = reset_type == AsyncResetN
-        has_reset = reset_type == Reset
-        has_resetn = reset_type == ResetN
         self.io += ClockIO(has_enable=has_enable,
                            has_async_reset=has_async_reset,
                            has_async_resetn=has_async_resetn,
