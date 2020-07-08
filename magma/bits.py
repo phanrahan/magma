@@ -765,6 +765,9 @@ class SInt(Bits):
         res = a + b + c
         return res[0:-1], res[-1]
 
+    def ext(self, other):
+        return self.sext(other)
+
     def sext(self, other) -> 'AbstractBitVector':
         ext = int(other)
         if ext < 0:
