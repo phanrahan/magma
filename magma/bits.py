@@ -569,6 +569,9 @@ BitsType = Bits
 class UInt(Bits):
     hwtypes_T = ht.UIntVector
 
+    def bvneg(self) -> 'AbstractBitVector':
+        return self.declare_unary_op("neg")()(self)
+
     @bits_cast
     def bvult(self, other) -> AbstractBit:
         return self.declare_compare_op("ult")()(self, other)
