@@ -41,7 +41,7 @@ def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
     def wrapped(self: 'Bits', other: tp.Any) -> tp.Any:
         try:
             other = _coerce(type(self), other)
-        except:
+        except TypeError:
             return NotImplemented
         return fn(self, other)
     return wrapped

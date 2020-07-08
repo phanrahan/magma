@@ -224,7 +224,7 @@ class Array(Type, metaclass=ArrayMeta):
                         issubclass(type(self.T), type(type(t))), (type(t), self.T)
                     self.ts.append(t)
             else:
-                raise NotImplementedError(args)
+                raise TypeError(f"Constructing array with {args} not supported")
         else:
             for i in range(self.N):
                 T = self.T
