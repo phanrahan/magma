@@ -135,20 +135,30 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return self.declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
-        type_ = get_type(t_branch)
-        if type_ is not get_type(f_branch):
-            raise TypeError(f"ite expects same type for both branches: {type_} != {type(f_branch)}")
+        t_type = get_type(t_branch)
+        f_type = get_type(f_branch)
+
+        # Implicit int conversion
+        if t_type is int and f_type is not int:
+            t_branch = f_type(t_branch)
+            t_type = f_type
+        elif t_type is not int and f_type is int:
+            f_branch = t_type(t_branch)
+            f_type = t_type
+
+        if t_type is not f_type:
+            raise TypeError(f"ite expects same type for both branches: {t_type} != {f_type}")
         if self.const():
             if self is type(self).VCC:
                 return t_branch
             assert self is type(self).GND
             return f_branch
-        if issubclass(type_, tuple):
+        if issubclass(t_type, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # Note: coreir flips t/f cases
         # self._Mux monkey patched in magma/primitives/mux.py to avoid circular
         # dependency
-        return self._Mux(2, type_)()(f_branch, t_branch, self)
+        return self._Mux(2, t_type)()(f_branch, t_branch, self)
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma bit to bool not supported")
