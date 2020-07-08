@@ -30,12 +30,10 @@ def test_jtag():
     EXIT2_IR = m.bits(8, 4)
     UPDATE_IR = m.bits(13, 4)
 
-    @m.syntax.coroutine
+    @m.coroutine(manual_encoding=True, reset_type=m.AsyncReset)
     class JTAG:
-        _manual_encoding_ = True
-
         def __init__(self):
-            self.yield_state: m.Bits[4] = TEST_LOGIC_RESET
+            self.yield_state = m.Register(T=m.Bits[4], init=TEST_LOGIC_RESET)()
 
         def __call__(self, tms: m.Bit) -> m.Bits[4]:
             # TODO: Prune infeasible paths (or check if synthesis optimizes

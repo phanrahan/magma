@@ -13,12 +13,12 @@ from test_sequential import DefineRegister
 
 
 def test_uart():
-    @m.syntax.coroutine
+    @m.coroutine(reset_type=m.AsyncReset)
     class UART:
         def __init__(self):
-            self.message: m.Bits[8] = 0
-            self.i: m.UInt[3] = 7
-            self.tx: m.Bit = 1
+            self.message = m.Register(T=m.Bits[8], init=0)()
+            self.i = m.Register(T=m.UInt[3], init=7)()
+            self.tx = m.Register(T=m.Bit, init=1)()
 
         def __call__(self, run: m.Bit, message: m.Bits[8]) -> m.Bit:
             while True:
