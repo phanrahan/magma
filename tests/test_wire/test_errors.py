@@ -190,4 +190,3 @@ def test_hanging_anon_error(caplog):
 >>         class _Foo(m.Circuit):"""
         assert caplog.records[0].msg == msg
         assert has_error(caplog, msg)
-        magma.config.set_debug_mode(False)
