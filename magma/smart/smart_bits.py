@@ -3,7 +3,7 @@ import dataclasses
 import operator
 
 from magma.bits import Bits, BitsMeta
-from magma.conversions import uint
+from magma.conversions import uint, bits
 from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 
@@ -69,11 +69,11 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartOpExprMeta):
 
     def resolve(self, context: _SmartExprContext):
         args = [arg.resolve(context) for arg in self._args]
-        args = [arg._force_width(context.max_operand_width) for arg in args]
+        args = [arg.force_width(context.max_operand_width) for arg in args]
         args = [arg._get_magma_value_() for arg in args]
         args = [uint(arg) for arg in args]
-        result = self._op(*args)
-        return SmartBits._make(result)
+        result = bits(self._op(*args))
+        return SmartBits.make(result)
 
     def max_operand_width(self):
         return max(arg.max_operand_width() for arg in self._args)
@@ -127,7 +127,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     @debug_wire
     def wire(self, other, debug_info):
         if isinstance(other, SmartBits):
-            rhs = other._force_width(len(self))
+            rhs = other.force_width(len(self))
             MagmaProtocol.wire(self, rhs)
         elif isinstance(other, _SmartExpr):
             context = _SmartExprContext()
@@ -142,16 +142,16 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def __len__(self):
         return len(type(self)._T)
 
-    def _force_width(self, width):
+    def force_width(self, width):
         diff = len(self) - width
         if diff == 0:
             return self
         value = self._get_magma_value_()
         value = value.zext(-diff) if diff < 0 else value[:-diff]
-        return SmartBits._make(value)
+        return SmartBits.make(value)
 
     @staticmethod
-    def _make(value):
+    def make(value):
         assert isinstance(value, Bits)
         return SmartBits[len(value)](value)
 
