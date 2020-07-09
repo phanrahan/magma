@@ -78,60 +78,60 @@ module Mux2xTupleX_Bits2_Y_Bits4 (
     output [3:0] O_Y,
     input S
 );
-wire [5:0] _$0_in;
-wire [5:0] _$1_in;
-wire [5:0] _$2_out;
-wire [1:0] _$3_out;
-wire [3:0] _$4_out;
-wire [1:0] _$5_out;
-wire [3:0] _$6_out;
-wire [1:0] _$7_in;
-wire [3:0] _$8_in;
+wire [1:0] _$_U10_in;
+wire [3:0] _$_U11_in;
+wire [5:0] _$_U2_in;
+wire [5:0] _$_U3_in;
+wire [5:0] _$_U4_out;
+wire [1:0] _$_U6_out;
+wire [3:0] _$_U7_out;
+wire [1:0] _$_U8_out;
+wire [3:0] _$_U9_out;
 wire [5:0] coreir_commonlib_mux2x6_inst0_out;
-mantle_wire__typeBitIn6 _$0 (
-    .in(_$0_in),
-    .out({_$4_out[3:0],_$3_out[1:0]})
+mantle_wire__typeBitIn2 _$_U10 (
+    .in(_$_U10_in),
+    .out(_$_U4_out[1:0])
 );
-mantle_wire__typeBitIn6 _$1 (
-    .in(_$1_in),
-    .out({_$6_out[3:0],_$5_out[1:0]})
+mantle_wire__typeBitIn4 _$_U11 (
+    .in(_$_U11_in),
+    .out(_$_U4_out[5:2])
 );
-mantle_wire__typeBit6 _$2 (
+mantle_wire__typeBitIn6 _$_U2 (
+    .in(_$_U2_in),
+    .out({_$_U7_out[3:0],_$_U6_out[1:0]})
+);
+mantle_wire__typeBitIn6 _$_U3 (
+    .in(_$_U3_in),
+    .out({_$_U9_out[3:0],_$_U8_out[1:0]})
+);
+mantle_wire__typeBit6 _$_U4 (
     .in(coreir_commonlib_mux2x6_inst0_out),
-    .out(_$2_out)
+    .out(_$_U4_out)
 );
-mantle_wire__typeBit2 _$3 (
+mantle_wire__typeBit2 _$_U6 (
     .in(I0_X),
-    .out(_$3_out)
+    .out(_$_U6_out)
 );
-mantle_wire__typeBit4 _$4 (
+mantle_wire__typeBit4 _$_U7 (
     .in(I0_Y),
-    .out(_$4_out)
+    .out(_$_U7_out)
 );
-mantle_wire__typeBit2 _$5 (
+mantle_wire__typeBit2 _$_U8 (
     .in(I1_X),
-    .out(_$5_out)
+    .out(_$_U8_out)
 );
-mantle_wire__typeBit4 _$6 (
+mantle_wire__typeBit4 _$_U9 (
     .in(I1_Y),
-    .out(_$6_out)
-);
-mantle_wire__typeBitIn2 _$7 (
-    .in(_$7_in),
-    .out(_$2_out[1:0])
-);
-mantle_wire__typeBitIn4 _$8 (
-    .in(_$8_in),
-    .out(_$2_out[5:2])
+    .out(_$_U9_out)
 );
 commonlib_muxn__N2__width6 coreir_commonlib_mux2x6_inst0 (
-    .in_data_0(_$0_in),
-    .in_data_1(_$1_in),
+    .in_data_0(_$_U2_in),
+    .in_data_1(_$_U3_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x6_inst0_out)
 );
-assign O_X = _$7_in;
-assign O_Y = _$8_in;
+assign O_X = _$_U10_in;
+assign O_Y = _$_U11_in;
 endmodule
 
 module test_basic_mux_product (

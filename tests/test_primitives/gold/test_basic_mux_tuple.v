@@ -64,45 +64,45 @@ module Mux2xTupleBit_Bits2_Bit (
     output [1:0] O__1,
     input S
 );
-wire [2:0] _$0_in;
-wire [2:0] _$1_in;
-wire [2:0] _$2_out;
-wire [1:0] _$3_out;
-wire [1:0] _$4_out;
-wire [1:0] _$5_in;
+wire [2:0] _$_U2_in;
+wire [2:0] _$_U3_in;
+wire [2:0] _$_U4_out;
+wire [1:0] _$_U6_out;
+wire [1:0] _$_U7_out;
+wire [1:0] _$_U8_in;
 wire [2:0] coreir_commonlib_mux2x3_inst0_out;
-mantle_wire__typeBitIn3 _$0 (
-    .in(_$0_in),
-    .out({_$3_out[1:0],I0__0})
+mantle_wire__typeBitIn3 _$_U2 (
+    .in(_$_U2_in),
+    .out({_$_U6_out[1:0],I0__0})
 );
-mantle_wire__typeBitIn3 _$1 (
-    .in(_$1_in),
-    .out({_$4_out[1:0],I1__0})
+mantle_wire__typeBitIn3 _$_U3 (
+    .in(_$_U3_in),
+    .out({_$_U7_out[1:0],I1__0})
 );
-mantle_wire__typeBit3 _$2 (
+mantle_wire__typeBit3 _$_U4 (
     .in(coreir_commonlib_mux2x3_inst0_out),
-    .out(_$2_out)
+    .out(_$_U4_out)
 );
-mantle_wire__typeBit2 _$3 (
+mantle_wire__typeBit2 _$_U6 (
     .in(I0__1),
-    .out(_$3_out)
+    .out(_$_U6_out)
 );
-mantle_wire__typeBit2 _$4 (
+mantle_wire__typeBit2 _$_U7 (
     .in(I1__1),
-    .out(_$4_out)
+    .out(_$_U7_out)
 );
-mantle_wire__typeBitIn2 _$5 (
-    .in(_$5_in),
-    .out(_$2_out[2:1])
+mantle_wire__typeBitIn2 _$_U8 (
+    .in(_$_U8_in),
+    .out(_$_U4_out[2:1])
 );
 commonlib_muxn__N2__width3 coreir_commonlib_mux2x3_inst0 (
-    .in_data_0(_$0_in),
-    .in_data_1(_$1_in),
+    .in_data_0(_$_U2_in),
+    .in_data_1(_$_U3_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x3_inst0_out)
 );
-assign O__0 = _$2_out[0];
-assign O__1 = _$5_in;
+assign O__0 = _$_U4_out[0];
+assign O__1 = _$_U8_in;
 endmodule
 
 module test_basic_mux_tuple (

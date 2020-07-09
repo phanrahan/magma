@@ -63,141 +63,141 @@ module Register (
     output [6:0] O_8,
     output [6:0] O_9
 );
-wire [6:0] _$0_out;
-wire [6:0] _$1_out;
-wire [6:0] _$10_out;
-wire [6:0] _$11_out;
-wire [6:0] _$12_out;
-wire [6:0] _$13_out;
-wire [6:0] _$14_out;
-wire [6:0] _$2_out;
-wire [6:0] _$3_out;
-wire [6:0] _$4_out;
-wire [6:0] _$5_out;
-wire [6:0] _$6_out;
-wire [6:0] _$7_out;
-wire [6:0] _$8_out;
-wire [6:0] _$9_out;
+wire [6:0] _$_U1_out;
+wire [6:0] _$_U10_out;
+wire [6:0] _$_U11_out;
+wire [6:0] _$_U12_out;
+wire [6:0] _$_U13_out;
+wire [6:0] _$_U14_out;
+wire [6:0] _$_U15_out;
+wire [6:0] _$_U2_out;
+wire [6:0] _$_U3_out;
+wire [6:0] _$_U4_out;
+wire [6:0] _$_U5_out;
+wire [6:0] _$_U6_out;
+wire [6:0] _$_U7_out;
+wire [6:0] _$_U8_out;
+wire [6:0] _$_U9_out;
 wire [104:0] reg_P_inst0_out;
-mantle_wire__typeBit7 _$0 (
+mantle_wire__typeBit7 _$_U1 (
     .in(I_0),
-    .out(_$0_out)
+    .out(_$_U1_out)
 );
-mantle_wire__typeBit7 _$1 (
-    .in(I_1),
-    .out(_$1_out)
+mantle_wire__typeBit7 _$_U10 (
+    .in(I_4),
+    .out(_$_U10_out)
 );
-mantle_wire__typeBit7 _$10 (
+mantle_wire__typeBit7 _$_U11 (
     .in(I_5),
-    .out(_$10_out)
+    .out(_$_U11_out)
 );
-mantle_wire__typeBit7 _$11 (
+mantle_wire__typeBit7 _$_U12 (
     .in(I_6),
-    .out(_$11_out)
+    .out(_$_U12_out)
 );
-mantle_wire__typeBit7 _$12 (
+mantle_wire__typeBit7 _$_U13 (
     .in(I_7),
-    .out(_$12_out)
+    .out(_$_U13_out)
 );
-mantle_wire__typeBit7 _$13 (
+mantle_wire__typeBit7 _$_U14 (
     .in(I_8),
-    .out(_$13_out)
+    .out(_$_U14_out)
 );
-mantle_wire__typeBit7 _$14 (
+mantle_wire__typeBit7 _$_U15 (
     .in(I_9),
-    .out(_$14_out)
+    .out(_$_U15_out)
 );
-mantle_wire__typeBitIn7 _$15 (
+mantle_wire__typeBitIn7 _$_U16 (
     .in(O_0),
     .out(reg_P_inst0_out[6:0])
 );
-mantle_wire__typeBitIn7 _$16 (
+mantle_wire__typeBitIn7 _$_U17 (
     .in(O_1),
     .out(reg_P_inst0_out[13:7])
 );
-mantle_wire__typeBitIn7 _$17 (
+mantle_wire__typeBitIn7 _$_U18 (
     .in(O_10),
     .out(reg_P_inst0_out[76:70])
 );
-mantle_wire__typeBitIn7 _$18 (
+mantle_wire__typeBitIn7 _$_U19 (
     .in(O_11),
     .out(reg_P_inst0_out[83:77])
 );
-mantle_wire__typeBitIn7 _$19 (
+mantle_wire__typeBit7 _$_U2 (
+    .in(I_1),
+    .out(_$_U2_out)
+);
+mantle_wire__typeBitIn7 _$_U20 (
     .in(O_12),
     .out(reg_P_inst0_out[90:84])
 );
-mantle_wire__typeBit7 _$2 (
-    .in(I_10),
-    .out(_$2_out)
-);
-mantle_wire__typeBitIn7 _$20 (
+mantle_wire__typeBitIn7 _$_U21 (
     .in(O_13),
     .out(reg_P_inst0_out[97:91])
 );
-mantle_wire__typeBitIn7 _$21 (
+mantle_wire__typeBitIn7 _$_U22 (
     .in(O_14),
     .out(reg_P_inst0_out[104:98])
 );
-mantle_wire__typeBitIn7 _$22 (
+mantle_wire__typeBitIn7 _$_U23 (
     .in(O_2),
     .out(reg_P_inst0_out[20:14])
 );
-mantle_wire__typeBitIn7 _$23 (
+mantle_wire__typeBitIn7 _$_U24 (
     .in(O_3),
     .out(reg_P_inst0_out[27:21])
 );
-mantle_wire__typeBitIn7 _$24 (
+mantle_wire__typeBitIn7 _$_U25 (
     .in(O_4),
     .out(reg_P_inst0_out[34:28])
 );
-mantle_wire__typeBitIn7 _$25 (
+mantle_wire__typeBitIn7 _$_U26 (
     .in(O_5),
     .out(reg_P_inst0_out[41:35])
 );
-mantle_wire__typeBitIn7 _$26 (
+mantle_wire__typeBitIn7 _$_U27 (
     .in(O_6),
     .out(reg_P_inst0_out[48:42])
 );
-mantle_wire__typeBitIn7 _$27 (
+mantle_wire__typeBitIn7 _$_U28 (
     .in(O_7),
     .out(reg_P_inst0_out[55:49])
 );
-mantle_wire__typeBitIn7 _$28 (
+mantle_wire__typeBitIn7 _$_U29 (
     .in(O_8),
     .out(reg_P_inst0_out[62:56])
 );
-mantle_wire__typeBitIn7 _$29 (
+mantle_wire__typeBit7 _$_U3 (
+    .in(I_10),
+    .out(_$_U3_out)
+);
+mantle_wire__typeBitIn7 _$_U30 (
     .in(O_9),
     .out(reg_P_inst0_out[69:63])
 );
-mantle_wire__typeBit7 _$3 (
+mantle_wire__typeBit7 _$_U4 (
     .in(I_11),
-    .out(_$3_out)
+    .out(_$_U4_out)
 );
-mantle_wire__typeBit7 _$4 (
+mantle_wire__typeBit7 _$_U5 (
     .in(I_12),
-    .out(_$4_out)
+    .out(_$_U5_out)
 );
-mantle_wire__typeBit7 _$5 (
+mantle_wire__typeBit7 _$_U6 (
     .in(I_13),
-    .out(_$5_out)
+    .out(_$_U6_out)
 );
-mantle_wire__typeBit7 _$6 (
+mantle_wire__typeBit7 _$_U7 (
     .in(I_14),
-    .out(_$6_out)
+    .out(_$_U7_out)
 );
-mantle_wire__typeBit7 _$7 (
+mantle_wire__typeBit7 _$_U8 (
     .in(I_2),
-    .out(_$7_out)
+    .out(_$_U8_out)
 );
-mantle_wire__typeBit7 _$8 (
+mantle_wire__typeBit7 _$_U9 (
     .in(I_3),
-    .out(_$8_out)
-);
-mantle_wire__typeBit7 _$9 (
-    .in(I_4),
-    .out(_$9_out)
+    .out(_$_U9_out)
 );
 coreir_reg #(
     .clk_posedge(1'b1),
@@ -205,7 +205,7 @@ coreir_reg #(
     .width(105)
 ) reg_P_inst0 (
     .clk(CLK),
-    .in({_$6_out[6:0],_$5_out[6:0],_$4_out[6:0],_$3_out[6:0],_$2_out[6:0],_$14_out[6:0],_$13_out[6:0],_$12_out[6:0],_$11_out[6:0],_$10_out[6:0],_$9_out[6:0],_$8_out[6:0],_$7_out[6:0],_$1_out[6:0],_$0_out[6:0]}),
+    .in({_$_U7_out[6:0],_$_U6_out[6:0],_$_U5_out[6:0],_$_U4_out[6:0],_$_U3_out[6:0],_$_U15_out[6:0],_$_U14_out[6:0],_$_U13_out[6:0],_$_U12_out[6:0],_$_U11_out[6:0],_$_U10_out[6:0],_$_U9_out[6:0],_$_U8_out[6:0],_$_U2_out[6:0],_$_U1_out[6:0]}),
     .out(reg_P_inst0_out)
 );
 endmodule
