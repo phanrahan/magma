@@ -16,7 +16,81 @@ def _is_int(value):
     return True
 
 
-class _SmartBitsMeta(MagmaProtocolMeta):
+@dataclasses.dataclass
+class _SmartExprContext:
+    max_operand_width: int = -1
+
+    def consume(self, expr):
+        self.max_operand_width = max(self.max_operand_width,
+                                     expr.max_operand_width())
+
+
+class _SmartExprMeta(MagmaProtocolMeta):
+    pass
+
+
+class _SmartOpExprMeta(_SmartExprMeta):
+    pass
+
+
+class _SmartBitsExprMeta(_SmartExprMeta):
+    pass
+
+
+class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
+    def __add__(self, other):
+        assert isinstance(other, _SmartExpr)
+        return _SmartOpExpr(operator.add, self, other)
+
+    def __le__(self, other):
+        assert isinstance(other, _SmartExpr)
+        return _SmartOpExpr(operator.le, self, other)
+
+    def __lshift__(self, other):
+        assert isinstance(other, _SmartExpr)
+        return _SmartOpExpr(operator.lshift, self, other)
+
+    def __invert__(self):
+        return _SmartOpExpr(operator.invert, self)
+
+    @abc.abstractmethod
+    def resolve(self, context: _SmartExprContext):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def max_operand_width(self):
+        pass
+
+
+class _SmartOpExpr(_SmartExpr, metaclass=_SmartOpExprMeta):
+    def __init__(self, op, *args):
+        self._op = op
+        self._args = args
+
+    def resolve(self, context: _SmartExprContext):
+        args = [arg.resolve(context) for arg in self._args]
+        args = [arg._force_width(context.max_operand_width) for arg in args]
+        args = [arg._get_magma_value_() for arg in args]
+        args = [uint(arg) for arg in args]
+        result = self._op(*args)
+        return SmartBits._make(result)
+
+    def max_operand_width(self):
+        return max(arg.max_operand_width() for arg in self._args)
+
+
+class _SmartBitsExpr(_SmartExpr, metaclass=_SmartBitsExprMeta):
+    def __init__(self, bits):
+        self._bits = bits
+
+    def resolve(self, context: _SmartExprContext):
+        return self._bits
+
+    def max_operand_width(self):
+        return len(self._bits)
+
+
+class _SmartBitsMeta(_SmartBitsExprMeta):
     def __getitem__(cls, key):
         assert cls is SmartBits
         if _is_int(key):
@@ -40,78 +114,15 @@ class _SmartBitsMeta(MagmaProtocolMeta):
         return cls(value)
 
 
-@dataclasses.dataclass
-class _SmartExprContext:
-    max_operand_width: int = -1
-
-    def consume(self, expr):
-        self.max_operand_width = max(self.max_operand_width,
-                                     expr.max_operand_width())
-
-
-class _SmartExpr(abc.ABC):
-    @abc.abstractmethod
-    def resolve(self, context: _SmartExprContext):
-        raise NotImplementedError()
-
-
-class _SmartBitsExpr(_SmartExpr):
-    def __init__(self, bits):
-        self._bits = bits
-
-    def resolve(self, context: _SmartExprContext):
-        return self._bits
-
-    def max_operand_width(self, ):
-        return len(self._bits)
-
-
-class _SmartOpExpr(_SmartExpr):
-    def __init__(self, op, *args):
-        self._op = op
-        self._args = args
-
-    def resolve(self, context: _SmartExprContext):
-        args = [arg.resolve(context) for arg in self._args]
-        args = [arg._force_width(context.max_operand_width) for arg in args]
-        args = [arg._get_magma_value_() for arg in args]
-        args = [uint(arg) for arg in args]
-        result = self._op(*args)
-        return SmartBits._make(result)
-
-    def max_operand_width(self):
-        return max(arg.max_operand_width() for arg in self._args)
-
-
-def _make_expr(op, *args):
-    promote = lambda a: a if isinstance(a, _SmartExpr) else _SmartBitsExpr(a)
-    args = map(promote, args)
-    return _SmartOpExpr(op, *args)
-
-
-class SmartBits(MagmaProtocol, metaclass=_SmartBitsMeta):
+class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def __init__(self, value=None):
+        super().__init__(self)
         if value is None:
             value = type(self)._to_magma_()()
         self._value = value
 
     def _get_magma_value_(self):
         return self._value
-
-    def __add__(self, other):
-        assert isinstance(other, SmartBits)
-        return _make_expr(operator.add, self, other)
-
-    def __le__(self, other):
-        assert isinstance(other, SmartBits)
-        return _make_expr(operator.le, self, other)
-
-    def __lshift__(self, other):
-        assert isinstance(other, SmartBits)
-        return _make_expr(operator.lshift, self, other)
-
-    def __invert__(self):
-        return _make_expr(operator.invert, self)
 
     @debug_wire
     def wire(self, other, debug_info):

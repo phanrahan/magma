@@ -11,7 +11,7 @@ def test_circuit():
             O2=m.Out(m.SmartBits[16]),
             O3=m.Out(m.SmartBit),
         )
-        x = io.I0 + io.I1
+        x = io.I0 + io.I1 + io.I1
         io.O @= x
         io.O2 @= x
         io.O3 @= io.I0
