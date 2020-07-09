@@ -87,45 +87,45 @@ module Mux2xTuplea0_OutBit_a1_OutSInt8 (
     output [7:0] O_a1,
     input S
 );
-wire [8:0] _$0_in;
-wire [8:0] _$1_in;
-wire [8:0] _$2_out;
-wire [7:0] _$3_out;
-wire [7:0] _$4_out;
-wire [7:0] _$5_in;
+wire [8:0] _$_U2_in;
+wire [8:0] _$_U3_in;
+wire [8:0] _$_U4_out;
+wire [7:0] _$_U6_out;
+wire [7:0] _$_U7_out;
+wire [7:0] _$_U8_in;
 wire [8:0] coreir_commonlib_mux2x9_inst0_out;
-mantle_wire__typeBitIn9 _$0 (
-    .in(_$0_in),
-    .out({_$3_out[7:0],I0_a0})
+mantle_wire__typeBitIn9 _$_U2 (
+    .in(_$_U2_in),
+    .out({_$_U6_out[7:0],I0_a0})
 );
-mantle_wire__typeBitIn9 _$1 (
-    .in(_$1_in),
-    .out({_$4_out[7:0],I1_a0})
+mantle_wire__typeBitIn9 _$_U3 (
+    .in(_$_U3_in),
+    .out({_$_U7_out[7:0],I1_a0})
 );
-mantle_wire__typeBit9 _$2 (
+mantle_wire__typeBit9 _$_U4 (
     .in(coreir_commonlib_mux2x9_inst0_out),
-    .out(_$2_out)
+    .out(_$_U4_out)
 );
-mantle_wire__typeBit8 _$3 (
+mantle_wire__typeBit8 _$_U6 (
     .in(I0_a1),
-    .out(_$3_out)
+    .out(_$_U6_out)
 );
-mantle_wire__typeBit8 _$4 (
+mantle_wire__typeBit8 _$_U7 (
     .in(I1_a1),
-    .out(_$4_out)
+    .out(_$_U7_out)
 );
-mantle_wire__typeBitIn8 _$5 (
-    .in(_$5_in),
-    .out(_$2_out[8:1])
+mantle_wire__typeBitIn8 _$_U8 (
+    .in(_$_U8_in),
+    .out(_$_U4_out[8:1])
 );
 commonlib_muxn__N2__width9 coreir_commonlib_mux2x9_inst0 (
-    .in_data_0(_$0_in),
-    .in_data_1(_$1_in),
+    .in_data_0(_$_U2_in),
+    .in_data_1(_$_U3_in),
     .in_sel(S),
     .out(coreir_commonlib_mux2x9_inst0_out)
 );
-assign O_a0 = _$2_out[0];
-assign O_a1 = _$5_in;
+assign O_a0 = _$_U4_out[0];
+assign O_a1 = _$_U8_in;
 endmodule
 
 module TestProductReg_comb (
