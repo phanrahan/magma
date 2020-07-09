@@ -181,6 +181,7 @@ def test_hanging_anon_error(caplog):
 
         try:
             m.compile("Foo", _Foo, output="coreir")
+            assert False, "Did not raise excpected exception"
         except Exception as e:
             assert str(e) == "Found unconnected port: _Foo.O"
 
