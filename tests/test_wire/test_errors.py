@@ -1,5 +1,7 @@
+import magma as m
+
 from magma import *
-from magma.testing.utils import has_error, has_warning
+from magma.testing.utils import has_error, has_warning, magma_debug_section
 
 
 def test_input_as_output(caplog):
@@ -168,3 +170,23 @@ def test_const_array_error(caplog):
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
+
+
+def test_hanging_anon_error(caplog):
+    with magma_debug_section():
+        class _Foo(m.Circuit):
+            T = m.Bits[8]
+            io = m.IO(I=m.In(T), O=m.Out(T))
+            io.O @= m.Bits[8]()
+
+        try:
+            m.compile("Foo", _Foo, output="coreir")
+        except Exception as e:
+            assert str(e) == "Found unconnected port: _Foo.O"
+
+        msg = """\
+\033[1mtests/test_wire/test_errors.py:177\033[0m: Output port _Foo.O not driven
+>>         class _Foo(m.Circuit):"""
+        assert caplog.records[0].msg == msg
+        assert has_error(caplog, msg)
+        magma.config.set_debug_mode(False)
