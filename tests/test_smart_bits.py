@@ -7,16 +7,28 @@ def test_circuit():
         io = m.IO(
             I0=m.In(m.SmartBits[7]),
             I1=m.In(m.SmartBits[9]),
+            I2=m.In(m.SmartBits[12]),
             O=m.Out(m.SmartBits[10]),
-            O2=m.Out(m.SmartBits[16]),
+            O2=m.Out(m.SmartBits[7]),
             O3=m.Out(m.SmartBit),
         )
-        x = io.I0 + io.I1 + io.I1
+        x = io.I0 + io.I1 + io.I2
+        y = (io.I1 <= io.I2) + io.I0
+
+        print ()
+        print ("=======================")
+        print (x)
+        print (y)
+        print (io.I0)
+        print ("=======================")
+
         io.O @= x
-        io.O2 @= x
+        io.O2 @= y
         io.O3 @= io.I0
 
-    m.compile("Foo", _Foo, output="coreir")
+    print (repr(_Foo))
+
+    m.compile("Foo", _Foo, output="coreir-verilog", inline=True)
 
 
 def test_basic():
