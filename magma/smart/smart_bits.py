@@ -235,6 +235,9 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def _get_magma_value_(self):
         return self._value
 
+    def __deepcopy__(self, memo):
+        return type(self)(self._value)
+
     @debug_wire
     def wire(self, other, debug_info):
         if not isinstance(other, _SmartExpr):
