@@ -191,3 +191,45 @@ def test_reg_of_product_zero_init():
     tester.circuit.RESET = 0
     # Reset val
     tester.circuit.O.expect((0xDE, 0xA))
+
+
+def test_enable_reg():
+    class test_enable_reg(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        io += m.ClockIO(has_reset=True, has_enable=True)
+        io.O @= Register(m.Bits[8], m.Bits[8](0xDE), reset_type=m.Reset,
+                         has_enable=True)()(io.I, CE=io.CE)
+
+    m.compile("build/test_enable_reg", test_enable_reg)
+
+    assert check_files_equal(__file__, f"build/test_enable_reg.v",
+                             f"gold/test_enable_reg.v")
+
+    tester = fault.SynchronousTester(test_enable_reg, test_enable_reg.CLK)
+    tester.circuit.CE = 1
+    tester.circuit.I = 0
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    # Reset val
+    tester.circuit.O.expect(0xDE)
+    tester.advance_cycle()
+    tester.circuit.O.expect(0)
+    tester.circuit.I = 1
+    tester.advance_cycle()
+    tester.circuit.O.expect(1)
+    tester.circuit.CE = 0
+    tester.circuit.I = 2
+    tester.advance_cycle()
+    tester.circuit.O.expect(1)
+    # reset priority
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    tester.circuit.I = 3
+    tester.circuit.O.expect(0xDE)
+    tester.advance_cycle()
+    tester.circuit.O.expect(0xDE)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
