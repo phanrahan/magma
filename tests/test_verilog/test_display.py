@@ -56,9 +56,9 @@ endmodule
     out, err = capsys.readouterr()
     assert f"""
 0: ff.O=0, ff.I=1
-2: ff.O=1, ff.I=0
-8: ff.O=0, ff.I=1
-10: ff.O=1, ff.I=1
+10: ff.O=1, ff.I=0
+40: ff.O=0, ff.I=1
+50: ff.O=1, ff.I=1
 """ in out, out
 
 
