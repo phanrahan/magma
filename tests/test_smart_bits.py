@@ -12,7 +12,7 @@ def test_circuit():
             O2=m.Out(m.SmartBits[7]),
             O3=m.Out(m.SmartBit),
         )
-        x = ~(io.I0 + io.I1) + io.I2
+        x = (~(io.I0 + io.I1) + io.I2) << io.I0
         y = (io.I1 <= io.I2) + io.I0
 
         print ()

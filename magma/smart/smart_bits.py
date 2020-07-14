@@ -162,7 +162,14 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         super().__init__(op, loperand, roperand)
 
     def resolve(self, context):
-        raise NotImplementedError()
+        loperand, roperand = self._args
+        loperand.resolve(context)
+        self_context = Context(None, self)
+        roperand.resolve(self_context)
+        to_width = max(arg._width_ for arg in self._args)
+        args = (_extend_if_needed(arg, to_width) for arg in self._args)
+        self._update(*args)
+        self._width_ = to_width
 
 
 class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
