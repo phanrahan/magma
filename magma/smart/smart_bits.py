@@ -47,23 +47,101 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     def resolve(self):
         raise NotImplementedError()
 
+    # Binary arithmetic operators.
     def __add__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
         return _SmartBinaryOpExpr(operator.add, self, other)
+
+    def __sub__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.sub, self, other)
+
+    def __mul__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.mul, self, other)
+
+    def __floordiv__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.floordiv, self, other)
+
+    def __truediv__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.truediv, self, other)
+
+    def __mod__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.mod, self, other)
+
+    # Binary logic operators.
+    def __and__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.and_, self, other)
+
+    def __or__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.or_, self, other)
+
+    def __xor__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartBinaryOpExpr(operator.xor_, self, other)
+
+    # Comparison operators.
+    def __eq__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartComparisonOpExpr(operator.eq, self, other)
+
+    def __ne__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartComparisonOpExpr(operator.ne, self, other)
+
+    def __ge__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartComparisonOpExpr(operator.ge, self, other)
+
+    def __gt__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartComparisonOpExpr(operator.gt, self, other)
 
     def __le__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
         return _SmartComparisonOpExpr(operator.le, self, other)
 
+    def __lt__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartComparisonOpExpr(operator.lt, self, other)
+
+    # Shift operators.
     def __lshift__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
         return _SmartShiftOpExpr(operator.lshift, self, other)
 
+    def __rshift__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
+        return _SmartShiftOpExpr(operator.rshift, self, other)
+
+    # Unary operators.
     def __invert__(self):
         return _SmartUnaryOpExpr(operator.invert, self)
+
+    def __neg__(self):
+        return _SmartUnaryOpExpr(operator.neg, self)
 
 
 class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
