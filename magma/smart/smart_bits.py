@@ -403,13 +403,12 @@ class SmartBit(SmartBits[1]):
 
 
 def _eval(lhs, rhs):
+    # Internal debugging asserts.
     assert isinstance(lhs, SmartBits)
     assert isinstance(rhs, _SmartExpr)
 
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
-
-    print (rhs)
 
     def __eval(node):
         if isinstance(node, _SmartBitsExpr):
@@ -420,6 +419,5 @@ def _eval(lhs, rhs):
             raw = node.op(*args)
             return SmartBits.make(bits(raw))
         raise NotImplementedError(node)
-        #return SmartBits.make(Bits[len(lhs)](0))
 
     return __eval(rhs)
