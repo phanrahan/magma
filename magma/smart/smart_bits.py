@@ -101,7 +101,7 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
         else:
             op_str = str(self._op)
         args = ", ".join(str(arg) for arg in self._args)
-        return f"{str(op_str)}({args})"
+        return f"{op_str}({args})"
 
 
 class _SmartExtendOpExpr(_SmartOpExpr):
