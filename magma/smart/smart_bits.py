@@ -42,22 +42,10 @@ class _SmartExprMeta(MagmaProtocolMeta):
     pass
 
 
-class Determination(enum.Enum):
-    SELF_DETERMINED = enum.auto()
-    CONTEXT_DETERMINED = enum.auto()
-
-
 class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
-    def __init__(self, determination):
-        self._determination = determination
-
     @abc.abstractmethod
     def resolve(self):
         raise NotImplementedError()
-
-    @property
-    def determination(self):
-        return self._determination
 
     def __add__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
@@ -79,8 +67,7 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
 
 
 class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
-    def __init__(self, determination, op, *args):
-        super().__init__(determination)
+    def __init__(self, op, *args):
         self._op = op
         self._args = args
 
@@ -122,7 +109,7 @@ class _SmartExtendOpExpr(_SmartOpExpr):
 
     def __init__(self, width, operand):
         extend = _SmartExtendOpExpr._Extend(width)
-        super().__init__(Determination.SELF_DETERMINED, extend, operand)
+        super().__init__(extend, operand)
 
 
 def _extend_if_needed(expr, to_width):
@@ -137,7 +124,7 @@ def _extend_if_needed(expr, to_width):
 
 class _SmartNAryContextualOpExr(_SmartOpExpr):
     def __init__(self, op, *args):
-        super().__init__(Determination.CONTEXT_DETERMINED, op, *args)
+        super().__init__(op, *args)
 
     def resolve(self, context):
         self._resolve_args(context)
@@ -159,8 +146,7 @@ class _SmartUnaryOpExpr(_SmartNAryContextualOpExr):
 
 class _SmartComparisonOpExpr(_SmartOpExpr):
     def __init__(self, op, loperand, roperand):
-        super().__init__(Determination.SELF_DETERMINED,
-                         op, loperand, roperand)
+        super().__init__(op, loperand, roperand)
 
     def resolve(self, context):
         context = Context(None, self)
@@ -173,8 +159,7 @@ class _SmartComparisonOpExpr(_SmartOpExpr):
 
 class _SmartShiftOpExpr(_SmartOpExpr):
     def __init__(self, op, loperand, roperand):
-        super().__init__(Determination.CONTEXT_DETERMINED,
-                         op, loperand, roperand)
+        super().__init__(op, loperand, roperand)
 
     def resolve(self, context):
         raise NotImplementedError()
@@ -182,7 +167,6 @@ class _SmartShiftOpExpr(_SmartOpExpr):
 
 class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, bits):
-        super().__init__(Determination.SELF_DETERMINED)
         self._bits = bits
 
     @property
