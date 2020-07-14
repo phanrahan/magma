@@ -140,24 +140,23 @@ class Register(Generator2):
         reg = _CoreIRRegister(T.flat_length(), init=coreir_init,
                               has_async_reset=has_async_reset,
                               has_async_resetn=has_async_resetn)()
-        O = reg.O
-        self.io.O @= from_bits(T, O)
+        O = from_bits(T, reg.O)
+        self.io.O @= O
 
         I = self.io.I
+        if has_reset:
+            reset_port = self.io.RESET
+        elif has_resetn:
+            reset_port = self.io.RESETN
         if (has_reset or has_resetn) and has_enable:
-            if has_reset:
-                reset_port = self.io.RESET
-            else:
-                reset_port = self.io.RESETN
-
             if reset_priority:
                 I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
-                I = Mux(2, T)()([I, init], reset_port)
+                I = Mux(2, T)()(I, init, reset_port)
             else:
-                I = Mux(2, T)()([I, init], reset_port)
+                I = Mux(2, T)()(I, init, reset_port)
                 I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
         elif has_enable:
             I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
-        elif has_reset:
-            I = Mux(2, T)()(I, init, self.io.RESET)
+        elif (has_reset or has_resetn):
+            I = Mux(2, T)()(I, init, reset_port)
         reg.I @= as_bits(I)
