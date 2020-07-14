@@ -1,4 +1,5 @@
 import magma as m
+import operator
 
 
 def test_circuit():
@@ -12,7 +13,7 @@ def test_circuit():
             O2=m.Out(m.SmartBits[7]),
             O3=m.Out(m.SmartBit),
         )
-        x = (~(io.I0 + io.I1) + io.I2) << io.I0
+        x = (~(io.I0 + io.I1) + io.I2) << io.I0.reduce(operator.and_)
         y = (io.I1 <= io.I2) + io.I0
 
         print ()

@@ -7,6 +7,7 @@ import operator
 from magma.bits import Bits, BitsMeta
 from magma.conversions import uint, bits
 from magma.debug import debug_wire
+from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 
 
@@ -44,7 +45,7 @@ class _SmartExprMeta(MagmaProtocolMeta):
 
 class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     @abc.abstractmethod
-    def resolve(self):
+    def resolve(self, context):
         raise NotImplementedError()
 
     # Binary arithmetic operators.
@@ -143,6 +144,10 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     def __neg__(self):
         return _SmartUnaryOpExpr(operator.neg, self)
 
+    # Reduction operators.
+    def reduce(self, op):
+        return _SmartReductionOpExpr(op, self)
+
 
 class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, op, *args):
@@ -175,7 +180,7 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
 
 class _SmartExtendOpExpr(_SmartOpExpr):
 
-    class _Extend:
+    class _ExtendOp:
         def __init__(self, width):
             self._width = width
 
@@ -186,7 +191,7 @@ class _SmartExtendOpExpr(_SmartOpExpr):
             return f"Extend[{self._width}]"
 
     def __init__(self, width, operand):
-        extend = _SmartExtendOpExpr._Extend(width)
+        extend = _SmartExtendOpExpr._ExtendOp(width)
         super().__init__(extend, operand)
 
 
@@ -198,6 +203,29 @@ def _extend_if_needed(expr, to_width):
     expr = _SmartExtendOpExpr(-diff, expr)
     expr._width_ = to_width
     return expr
+
+
+class _SmartReductionOpExpr(_SmartOpExpr):
+
+    class _ReductionOp:
+        def __init__(self, op):
+            self._op = op
+
+        def __call__(self, operand):
+            return reduce(self._op, operand)
+
+        def __str__(self):
+            op_name = self._op.__name__.capitalize()[:-1]
+            return f"{op_name}Reduce"
+
+    def __init__(self, op, operand):
+        reduction = _SmartReductionOpExpr._ReductionOp(op)
+        super().__init__(reduction, operand)
+
+    def resolve(self, context):
+        context = Context(None, self)
+        self._resolve_args(context)
+        self._width_ = 1
 
 
 class _SmartNAryContextualOpExr(_SmartOpExpr):
