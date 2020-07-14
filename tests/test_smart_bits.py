@@ -7,12 +7,13 @@ def test_circuit():
     class _Foo(m.Circuit):
         io = m.IO(
             I0=m.In(m.SmartBits[7]),
-            I1=m.In(m.SmartBits[9]),
-            I2=m.In(m.SmartBits[12]),
+            I1=m.In(m.SmartBits[9, True]),
+            I2=m.In(m.SmartBits[12, True]),
             O=m.Out(m.SmartBits[10]),
             O2=m.Out(m.SmartBits[7]),
             O3=m.Out(m.SmartBit),
         )
+
         x = (~(io.I0 + io.I1) + io.I2) << io.I0.reduce(operator.and_)
         y = (io.I1 <= io.I2) + io.I0
 

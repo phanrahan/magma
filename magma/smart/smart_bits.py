@@ -4,8 +4,8 @@ import enum
 import inspect
 import operator
 
-from magma.bits import Bits, BitsMeta
-from magma.conversions import uint, bits, concat
+from magma.bits import Bits, BitsMeta, SInt
+from magma.conversions import uint, bits, concat, sint
 from magma.debug import debug_wire
 from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
@@ -330,28 +330,37 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
 class _SmartBitsMeta(_SmartExprMeta):
     def __getitem__(cls, key):
         assert cls is SmartBits
+        signed = False
+        if isinstance(key, tuple):
+            if len(key) == 1:
+                pass
+            elif len(key) == 2:
+                key, signed = key
+            else:
+                raise ValueError(f"{key} unsupported")
         if _is_int(key):
             T = Bits[key]
         else:
             assert isinstance(key, BitsMeta)
             T = key
-        width = len(T)
-        return type(cls)(f"SmartBits[{width}]", (cls,), {"_T": T})
+        name = f"SmartBits[{len(T)}, {signed}]"
+        dct = {"_T": T, "_signed": signed}
+        return type(cls)(name, (cls,), dct)
 
     def _to_magma_(cls):
         return cls._T
 
     def _qualify_magma_(cls, d):
-        return SmartBits[cls._T.qualify(d)]
+        return SmartBits[cls._T.qualify(d), cls._signed]
 
     def _flip_magma_(cls):
-        return SmartBits[cls._T.flip()]
+        return SmartBits[cls._T.flip(), cls._signed]
 
     def _from_magma_value_(cls, value):
         return cls(value)
 
     def __repr__(cls):
-        return f"SmartBits[{len(cls._T)}]"
+        return f"SmartBits[{len(cls._T)}, {cls._signed}]"
 
 
 class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
@@ -359,13 +368,21 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
         super().__init__(self)
         if value is None:
             value = type(self)._to_magma_()()
-        self._value = value
+        self._value = bits(value)
+
+    def typed_value(self):
+        if type(self)._signed:
+            return sint(self._value)
+        return uint(self._value)
+
+    def untyped_value(self):
+        return self._value
 
     def __hash__(self):
         return hash(self._value)
 
     def _get_magma_value_(self):
-        return self._value
+        return self.untyped_value()
 
     def __deepcopy__(self, memo):
         return type(self)(self._value)
@@ -384,18 +401,20 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def force_width(self, width):
         diff = len(self) - width
         if diff == 0:
-            return self
-        value = self._get_magma_value_()
-        value = value.zext(-diff) if diff < 0 else value[:-diff]
+            return copy.deepcopy(self)
+        value = self.typed_value()
+        value = value.ext(-diff) if diff < 0 else value[:-diff]
         return SmartBits.make(value)
 
     @staticmethod
     def make(value):
         assert isinstance(value, Bits)
-        return SmartBits[len(value)](value)
+        signed = isinstance(value, SInt)
+        return SmartBits[len(value), signed](value)
 
     def __str__(self):
-        return f"SmartBits[{len(self)}]({str(self._value)})"
+        signed = type(self)._signed
+        return f"SmartBits[{len(self)}, {signed}]({str(self._value)})"
 
 
 class SmartBit(SmartBits[1]):
@@ -415,7 +434,7 @@ def _eval(lhs, rhs):
             return node
         if isinstance(node, _SmartOpExpr):
             args = (__eval(arg) for arg in node.args)
-            args = (uint(arg.bits._get_magma_value_()) for arg in args)
+            args = (arg.bits.typed_value() for arg in args)
             raw = node.op(*args)
             return SmartBits.make(bits(raw))
         raise NotImplementedError(node)
