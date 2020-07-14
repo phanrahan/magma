@@ -87,7 +87,7 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartOpExprMeta):
     def __init__(self, determination, op, *args):
         super().__init__(determination)
         self._op = op
-        self._args = tuple(args)
+        self._args = args
 
     @property
     def args(self):
@@ -98,7 +98,7 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartOpExprMeta):
         return self._op
 
     def _update(self, *args):
-        self._args = tuple(args)
+        self._args = args
 
     def __str__(self):
         if inspect.isbuiltin(self._op):
