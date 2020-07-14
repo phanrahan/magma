@@ -95,6 +95,10 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def _update(self, *args):
         self._args = args
 
+    def _resolve_args(self, context):
+        for arg in self._args:
+            arg.resolve(context)
+
     def __str__(self):
         if inspect.isbuiltin(self._op):
             op_str = self._op.__name__
@@ -131,26 +135,26 @@ def _extend_if_needed(expr, to_width):
     return expr
 
 
-class _SmartBinaryOpExpr(_SmartOpExpr):
-    def __init__(self, op, loperand, roperand):
-        super().__init__(Determination.CONTEXT_DETERMINED,
-                         op, loperand, roperand)
+class _SmartNAryContextualOpExr(_SmartOpExpr):
+    def __init__(self, op, *args):
+        super().__init__(Determination.CONTEXT_DETERMINED, op, *args)
 
     def resolve(self, context):
-        for arg in self._args:
-            arg.resolve(context)
+        self._resolve_args(context)
         to_width = context.max_width()
         args = (_extend_if_needed(arg, to_width) for arg in self._args)
         self._update(*args)
         self._width_ = to_width
 
 
-class _SmartUnaryOpExpr(_SmartOpExpr):
-    def __init__(self, op, operand):
-        super().__init__(Determination.CONTEXT_DETERMINED, op, operand)
+class _SmartBinaryOpExpr(_SmartNAryContextualOpExr):
+    def __init__(self, op, loperand, roperand):
+        super().__init__(op, loperand, roperand)
 
-    def resolve(self, context):
-        raise NotImplementedError()
+
+class _SmartUnaryOpExpr(_SmartNAryContextualOpExr):
+    def __init__(self, op, operand):
+        super().__init__(op, operand)
 
 
 class _SmartComparisonOpExpr(_SmartOpExpr):
@@ -160,8 +164,7 @@ class _SmartComparisonOpExpr(_SmartOpExpr):
 
     def resolve(self, context):
         context = Context(None, self)
-        for arg in self._args:
-            arg.resolve(context)
+        self._resolve_args(context)
         to_width = max(arg._width_ for arg in self._args)
         args = (_extend_if_needed(arg, to_width) for arg in self._args)
         self._update(*args)
