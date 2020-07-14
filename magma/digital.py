@@ -83,7 +83,8 @@ class DigitalMeta(ABCMeta, Kind):
                 return cls.VCC if value else cls.GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
-            assert isinstance(value, Digital), type(value)
+            if not isinstance(value, Digital):
+                raise TypeError(type(value))
             result(value)
         return result
 
