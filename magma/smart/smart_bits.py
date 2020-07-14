@@ -59,16 +59,19 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     def determination(self):
         return self._determination
 
-    def __add__(self, other):
-        assert isinstance(other, _SmartExpr)
+    def __add__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
         return _SmartBinaryOpExpr(operator.add, self, other)
 
-    def __le__(self, other):
-        assert isinstance(other, _SmartExpr)
+    def __le__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
         return _SmartComparisonOpExpr(operator.le, self, other)
 
-    def __lshift__(self, other):
-        assert isinstance(other, _SmartExpr)
+    def __lshift__(self, other: '_SmartExpr'):
+        if not isinstance(other, _SmartExpr):
+            return NotImplemented
         return _SmartShiftOpExpr(operator.lshift, self, other)
 
     def __invert__(self):
