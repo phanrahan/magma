@@ -299,6 +299,9 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
             value = type(self)._to_magma_()()
         self._value = value
 
+    def __hash__(self):
+        return hash(self._value)
+
     def _get_magma_value_(self):
         return self._value
 
