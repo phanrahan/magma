@@ -208,14 +208,24 @@ def _extend_if_needed(expr, to_width):
 class _SmartReductionOpExpr(_SmartOpExpr):
 
     class _ReductionOp:
+        _OP_TO_NAME = {
+            operator.and_: "And",
+            operator.or_: "Or",
+            operator.xor: "Xor",
+        }
+
         def __init__(self, op):
+            cls = _SmartReductionOpExpr._ReductionOp
+            if op not in cls._OP_TO_NAME:
+                raise ValueError(f"Reduction operator {op} not supported")
             self._op = op
 
         def __call__(self, operand):
             return reduce(self._op, operand)
 
         def __str__(self):
-            op_name = self._op.__name__.capitalize()[:-1]
+            cls = _SmartReductionOpExpr._ReductionOp
+            op_name = cls._OP_TO_NAME[self._op]
             return f"{op_name}Reduce"
 
     def __init__(self, op, operand):
