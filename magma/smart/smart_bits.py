@@ -5,7 +5,7 @@ import inspect
 import operator
 
 from magma.bits import Bits, BitsMeta
-from magma.conversions import uint, bits
+from magma.conversions import uint, bits, concat
 from magma.debug import debug_wire
 from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
@@ -276,6 +276,30 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         args = (_extend_if_needed(arg, to_width) for arg in self._args)
         self._update(*args)
         self._width_ = to_width
+
+
+class _SmartConcatOpExpr(_SmartOpExpr):
+
+    class _ConcatOp:
+        def __call__(self, *args):
+            return concat(*args)
+
+        def __str__(self):
+            return "Concat"
+
+    def __init__(self, op, *args):
+        concat = _SmartConcatOpExpr._ConcatOp()
+        super().__init__(concat, *args)
+
+    def resolve(self, context):
+        context = Context(None, self)
+        self._resolve_args(context)
+        self._width_ = sum(arg._width_ for arg in self._args)
+
+
+def concat(*args):
+    if not isinstance(other, _SmartExpr):
+        return NotImplemented
 
 
 class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
