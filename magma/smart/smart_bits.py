@@ -42,14 +42,6 @@ class _SmartExprMeta(MagmaProtocolMeta):
     pass
 
 
-class _SmartOpExprMeta(_SmartExprMeta):
-    pass
-
-
-class _SmartBitsExprMeta(_SmartExprMeta):
-    pass
-
-
 class Determination(enum.Enum):
     SELF_DETERMINED = enum.auto()
     CONTEXT_DETERMINED = enum.auto()
@@ -83,7 +75,7 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
         return _SmartUnaryOpExpr(operator.invert, self)
 
 
-class _SmartOpExpr(_SmartExpr, metaclass=_SmartOpExprMeta):
+class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, determination, op, *args):
         super().__init__(determination)
         self._op = op
@@ -182,7 +174,7 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         raise NotImplementedError()
 
 
-class _SmartBitsExpr(_SmartExpr, metaclass=_SmartBitsExprMeta):
+class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, bits):
         super().__init__(Determination.SELF_DETERMINED)
         self._bits = bits
@@ -198,7 +190,7 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartBitsExprMeta):
         self._width_ = len(self._bits)
 
 
-class _SmartBitsMeta(_SmartBitsExprMeta):
+class _SmartBitsMeta(_SmartExprMeta):
     def __getitem__(cls, key):
         assert cls is SmartBits
         if _is_int(key):
