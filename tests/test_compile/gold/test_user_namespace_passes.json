@@ -9,9 +9,16 @@
           ["O_x","Bit"],
           ["O_y","Bit"]
         ]],
+        "instances":{
+          "_Decl_inst0":{
+            "modref":"my_namespace._Decl"
+          }
+        },
         "connections":[
-          ["self.O_x","self.I_x"],
-          ["self.O_y","self.I_y"]
+          ["self.I_x","_Decl_inst0.I_x"],
+          ["self.I_y","_Decl_inst0.I_y"],
+          ["self.O_x","_Decl_inst0.O_x"],
+          ["self.O_y","_Decl_inst0.O_y"]
         ]
       },
       "Foo":{
@@ -32,6 +39,14 @@
           ["self.O_x","Bar_inst0.O_x"],
           ["self.O_y","Bar_inst0.O_y"]
         ]
+      },
+      "_Decl":{
+        "type":["Record",[
+          ["I_x","BitIn"],
+          ["I_y","BitIn"],
+          ["O_x","Bit"],
+          ["O_y","Bit"]
+        ]]
       }
     }
   }

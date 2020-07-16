@@ -7,8 +7,14 @@
           ["I","BitIn"],
           ["O","Bit"]
         ]],
+        "instances":{
+          "_Decl_inst0":{
+            "modref":"my_namespace._Decl"
+          }
+        },
         "connections":[
-          ["self.O","self.I"]
+          ["self.I","_Decl_inst0.I"],
+          ["self.O","_Decl_inst0.O"]
         ]
       },
       "Foo":{
@@ -25,6 +31,12 @@
           ["self.I","Bar_inst0.I"],
           ["self.O","Bar_inst0.O"]
         ]
+      },
+      "_Decl":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]]
       }
     }
   }
