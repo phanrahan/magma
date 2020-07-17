@@ -57,10 +57,7 @@ class _RewriteToCombinational(Pass):
         # Return augassign targets for wiring
         elts = [ast.Name(value, ast.Load())
                 for value in self.target_map.values()]
-        if len(elts) > 1:
-            retval = ast.Tuple(elts, ast.Load())
-        else:
-            retval = elts[0]
+        retval = ast.Tuple(elts, ast.Load()) if len(elts) > 1 else elts[0]
         tree.body.append(ast.Return(retval))
 
         return tree, env, metadata
