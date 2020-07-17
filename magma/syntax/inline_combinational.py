@@ -79,12 +79,6 @@ class inline_combinational(apply_ast_passes):
 
     def exec(self, etree, stree, env, metadata):
         fn = super().exec(etree, stree, env, metadata)
-        annotations = {}
-        # TODO: Introspect type, for now we assume Bit
-        if len(self.target_map) > 1:
-            annotations["return"] = tuple(Bit for _ in self.target_map)
-        else:
-            annotations["return"] = Bit
         result = fn()
         if not isinstance(result, tuple):
             result = (result,)
