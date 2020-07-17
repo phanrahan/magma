@@ -82,8 +82,8 @@ class inline_combinational(apply_ast_passes):
         super().__init__(passes=passes, env=env, debug=debug, path=path,
                          file_name=file_name)
 
-    def exec(self, etree, stree, env, metadata):
-        fn = super().exec(etree, stree, env, metadata)
+    def exec(self, *args, **kwargs):
+        fn = super().exec(*args, **kwargs)
         result = fn()
         if not isinstance(result, tuple):
             result = (result,)
