@@ -53,7 +53,6 @@ assign O = coreir_commonlib_mux2x1_inst0_out[0];
 endmodule
 
 module Main (
-    input I,
     input invert,
     output O,
     input CLK
