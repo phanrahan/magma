@@ -38,9 +38,9 @@ class _ToCombinationalRewriter(ast.NodeTransformer):
 
 class _RewriteToCombinational(Pass):
     """
-    Replace assignment targets with a temporary value (so it is handled
-    properly by SSA), store the mapping from temporary values so they can be
-    wired up later, "inputs" will just read from the enclosing scope
+    Replace wiring targets with a temporary value (so it is handled properly by
+    SSA), store the mapping from temporary values so they can be wired up
+    later, "inputs" will just read from the enclosing scope
     """
     def __init__(self, target_map):
         super().__init__()
