@@ -55,8 +55,8 @@ class _RewriteToCombinational(Pass):
         tree = _ToCombinationalRewriter(prefix, self.target_map).visit(tree)
 
         # Return augassign targets for wiring
-        elts = [ast.Name(value, ast.Load()) for value in
-                self.target_map.values()]
+        elts = [ast.Name(value, ast.Load())
+                for value in self.target_map.values()]
         if len(elts) > 1:
             retval = ast.Tuple(elts, ast.Load())
         else:
