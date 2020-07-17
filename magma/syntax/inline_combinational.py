@@ -88,8 +88,8 @@ class inline_combinational(apply_ast_passes):
         if not isinstance(result, tuple):
             result = (result,)
         for key, value in zip(self.target_map.keys(), result):
-            # Eval origin target in env to do wiring, not sure if there's a way
-            # we can avoid having to do eval here (other option is to codegen
-            # the original augassign in a new tree, but that's effectively the
-            # same as evaling)
+            # Eval original target in env to do wiring, not sure if there's a
+            # way we can avoid having to do eval here (other option is to
+            # codegen the original augassign in a new tree, but that's
+            # effectively the same as evaling)
             wire(eval(astor.to_source(mutable(key)).rstrip(), {}, env), value)
