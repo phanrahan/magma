@@ -25,14 +25,15 @@ class _ToCombinationalRewriter(ast.NodeTransformer):
         self.name_count += 1
         return new_name
 
-    def visit_Attribute(self, node):
-        if isinstance(node.ctx, ast.Store):
-            key = immutable(node)
-            if key not in self.target_map:
-                retval_name = self._gen_new_name()
-                self.target_map[key] = retval_name
-            return ast.Name(self.target_map[key], ast.Store())
-        return node
+    def visit_AugAssign(self, node):
+        if not isinstance(node.op, ast.MatMult):
+            return
+        key = immutable(node.target)
+        if key not in self.target_map:
+            retval_name = self._gen_new_name()
+            self.target_map[key] = retval_name
+        target = ast.Name(self.target_map[key], ast.Store())
+        return ast.Assign([target], node.value)
 
 
 class _RewriteToCombinational(Pass):

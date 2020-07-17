@@ -11,9 +11,9 @@ def test_inline_comb_basic():
         @m.inline_combinational(debug=True, file_name="inline_comb.py")
         def logic():
             if io.invert:
-                reg.I = ~reg.O
+                reg.I @= ~reg.O
             else:
-                reg.I = reg.O
+                reg.I @= reg.O
 
         io.O @= reg.O
 
