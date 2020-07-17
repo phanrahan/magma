@@ -7,10 +7,13 @@ def _make_top(T):
     def _make_io():
         return m.IO(I=m.In(T), O=m.Out(T))
 
+    class _Decl(m.Circuit):
+        io = _make_io()
+
     class _Bar(m.Circuit):
         name = "Bar"
         io = _make_io()
-        io.O @= io.I
+        io.O @= _Decl()(io.I)
 
     class _Foo(m.Circuit):
         name = "Foo"

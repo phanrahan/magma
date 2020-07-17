@@ -144,6 +144,8 @@ class InstanceTransformer(LeafTransformer):
         )
         defn = type(self.inst)
         lib = self.backend.libs[self.inst.coreir_lib]
+        if self.inst.coreir_lib == "global":
+            lib = self.opts.get("user_namespace", lib)
         if self.inst.coreir_genargs is None:
             module = get_module_of_inst(self.backend.context, self.inst, lib)
             args = get_inst_args(self.inst)
