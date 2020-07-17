@@ -3,6 +3,7 @@ from typing import MutableMapping, Optional
 
 import astor
 
+import ast_tools
 from ast_tools.stack import SymbolTable
 from ast_tools.passes import (apply_ast_passes, Pass, PASS_ARGS_T, ssa,
                               if_to_phi, bool_to_bit)
@@ -27,7 +28,7 @@ class _ToCombinationalRewriter(ast.NodeTransformer):
 
     def visit_AugAssign(self, node):
         if not isinstance(node.op, ast.MatMult):
-            return
+            return node
         key = immutable(node.target)
         if key not in self.target_map:
             retval_name = self._gen_new_name()
@@ -72,8 +73,11 @@ class inline_combinational(apply_ast_passes):
                  ):
         self.target_map = {}
         passes = (pre_passes + [_RewriteToCombinational(self.target_map),
+                                ast_tools.passes.debug(dump_src=True),
                                 ssa(strict=False), bool_to_bit(),
-                                if_to_phi(lambda s, t, f: s.ite(t, f))] +
+                                if_to_phi(lambda s, t, f: s.ite(t, f)),
+                                ast_tools.passes.debug(dump_src=True),
+                                ] +
                   post_passes)
         super().__init__(passes=passes, env=env, debug=debug, path=path,
                          file_name=file_name)
