@@ -73,11 +73,8 @@ class inline_combinational(apply_ast_passes):
                  ):
         self.target_map = {}
         passes = (pre_passes + [_RewriteToCombinational(self.target_map),
-                                ast_tools.passes.debug(dump_src=True),
                                 ssa(strict=False), bool_to_bit(),
-                                if_to_phi(lambda s, t, f: s.ite(t, f)),
-                                ast_tools.passes.debug(dump_src=True),
-                                ] +
+                                if_to_phi(Bit.ite)] +
                   post_passes)
         super().__init__(passes=passes, env=env, debug=debug, path=path,
                          file_name=file_name)
