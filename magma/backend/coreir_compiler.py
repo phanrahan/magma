@@ -40,6 +40,8 @@ def _make_opts(backend, opts):
     user_namespace = opts.get("user_namespace", None)
     if user_namespace is not None:
         out["user_namespace"] = backend.context.new_namespace(user_namespace)
+    else:
+        out["user_namespace"] = backend.context.global_namespace
     return out
 
 
@@ -65,7 +67,8 @@ class CoreIRCompiler(Compiler):
                        not config.fast_coreir_verilog_compile)
         if output_json:
             filename = f"{self.basename}.json"
-            backend.modules[self.main.coreir_name].save_to_file(filename)
+            backend.context.set_top(backend.modules[self.main.coreir_name])
+            backend.context.save_to_file(filename, include_default_libs=False)
         if self.opts.get("output_verilog", False):
             fn = (self._fast_compile_verilog
                   if config.fast_coreir_verilog_compile

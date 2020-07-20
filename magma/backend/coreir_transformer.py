@@ -143,9 +143,12 @@ class InstanceTransformer(LeafTransformer):
             f"Compiling instance {(self.inst.name, type(self.inst).name)}"
         )
         defn = type(self.inst)
-        lib = self.backend.libs[self.inst.coreir_lib]
-        if self.inst.coreir_lib == "global":
-            lib = self.opts.get("user_namespace", lib)
+        if hasattr(self.inst, "namespace"):
+            lib = self.backend.libs[self.inst.namespace]
+        else:
+            lib = self.backend.libs[self.inst.coreir_lib]
+            if self.inst.coreir_lib == "global":
+                lib = self.opts.get("user_namespace", lib)
         if self.inst.coreir_genargs is None:
             module = get_module_of_inst(self.backend.context, self.inst, lib)
             args = get_inst_args(self.inst)
@@ -374,8 +377,14 @@ class DeclarationTransformer(LeafTransformer):
         if hasattr(self.decl, "coreir_config_param_types"):
             param_types = self.decl.coreir_config_param_types
             kwargs["cparams"] = make_cparams(self.backend.context, param_types)
-        namespace = self.opts.get("user_namespace",
-                                  self.backend.context.global_namespace)
+        if hasattr(self.decl, "namespace"):
+            # Allows users to choose namespace explicitly with
+            # class MyCircuit(m.Circuit):
+            #     namespace = "foo"
+            namespace = self.backend.libs[self.decl.namespace]
+        else:
+            # default is global_namespace, see coreir_compiler.py _make_opts
+            namespace = self.opts["user_namespace"]
         coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:
