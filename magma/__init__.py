@@ -96,6 +96,7 @@ from .log import info, debug, warning, error
 
 from .syntax.sequential2 import sequential2
 from .syntax.combinational2 import combinational2
+from .syntax.inline_combinational import inline_combinational
 from .syntax.coroutine import coroutine
 
 from magma.primitives import (LUT, Mux, mux, Register, get_slice, set_slice,
