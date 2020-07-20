@@ -4,7 +4,7 @@ from typing import MutableMapping, Optional
 import astor
 
 import ast_tools
-from ast_tools.stack import SymbolTable, _SKIP_FRAME_DEBUG_STMT, get_symbol_table
+from ast_tools.stack import SymbolTable, get_symbol_table
 from ast_tools.passes import (apply_ast_passes, Pass, PASS_ARGS_T, ssa,
                               if_to_phi, bool_to_bit)
 from ast_tools.common import gen_free_prefix, gen_free_name
