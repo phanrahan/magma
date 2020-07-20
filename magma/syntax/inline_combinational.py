@@ -68,7 +68,7 @@ class _RewriteToCombinational(Pass):
         tree = _ToCombinationalRewriter(prefix, self.wire_map,
                                         self.assign_map).visit(tree)
 
-        # Return targets for wiring
+        # Return targets for wiring and assignments
         return_values = (list(self.wire_map.values()) +
                          list(self.assign_map.values()))
         elts = [ast.Name(value, ast.Load()) for value in return_values]
