@@ -102,3 +102,7 @@ parsetab.py
 build/
 tests/test_verilog/build/
 .ast_tools
+
+.ignore
+.vim
+prof
