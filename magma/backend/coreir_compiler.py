@@ -40,8 +40,6 @@ def _make_opts(backend, opts):
     user_namespace = opts.get("user_namespace", None)
     if user_namespace is not None:
         out["user_namespace"] = backend.context.new_namespace(user_namespace)
-    else:
-        out["user_namespace"] = backend.context.global_namespace
     return out
 
 

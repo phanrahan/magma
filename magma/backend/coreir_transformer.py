@@ -381,10 +381,11 @@ class DeclarationTransformer(LeafTransformer):
             # Allows users to choose namespace explicitly with
             # class MyCircuit(m.Circuit):
             #     namespace = "foo"
+            # overrides user_namespace setting
             namespace = self.backend.libs[self.decl.namespace]
         else:
-            # default is global_namespace, see coreir_compiler.py _make_opts
-            namespace = self.opts["user_namespace"]
+            namespace = self.opts.get("user_namespace",
+                                      self.backend.context.global_namespace)
         coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:
