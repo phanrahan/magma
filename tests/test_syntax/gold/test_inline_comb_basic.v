@@ -54,19 +54,26 @@ endmodule
 
 module Main (
     input invert,
-    output O,
+    output O0,
+    output O1,
     input CLK
 );
 wire Mux2xOutBit_inst0_O;
 Mux2xOutBit Mux2xOutBit_inst0 (
-    .I0(O),
-    .I1(~ O),
+    .I0(O0),
+    .I1(~ O0),
     .S(invert),
     .O(Mux2xOutBit_inst0_O)
 );
+Mux2xOutBit Mux2xOutBit_inst1 (
+    .I0(O0),
+    .I1(~ O0),
+    .S(invert),
+    .O(O1)
+);
 Register Register_inst0 (
     .I(Mux2xOutBit_inst0_O),
-    .O(O),
+    .O(O0),
     .CLK(CLK)
 );
 endmodule
