@@ -20,7 +20,7 @@ class NDArrayMeta(ArrayMeta):
                 # user, is there a way we can avoid this problem without having
                 # to redefine the array core logic? One option might be to
                 # factor out the core code from the array type and inherit the
-                # generic logic into both 
+                # generic logic into both
                 return super().__getitem__(index)
 
         # Make inner type
