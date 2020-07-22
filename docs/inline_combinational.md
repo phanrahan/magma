@@ -19,7 +19,7 @@ class Main(m.Circuit):
     io += m.ClockIO()
     reg = m.Register(m.Bit)()
 
-    @m.inline_combinational(debug=True, file_name="inline_comb.py")
+    @m.inline_combinational()
     def logic():
         if io.invert:
             reg.I @= ~reg.O
