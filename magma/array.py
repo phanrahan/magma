@@ -289,11 +289,21 @@ class Array(Type, metaclass=ArrayMeta):
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
+            if len(key) == 1:
+                return self[key[0]]
             # ND Array key
-            result = self
-            for i in reversed(key):
-                result = result[i]
-            return result
+            if not (key[-1] == slice(None) or key[-1] == slice(0, None) or
+                    key[-1] == slice(None, len(self)) or
+                    key[-1] == slice(0, len(self))):
+                this_key = key[-1]
+                if not isinstance(this_key, slice):
+                    this_key = slice(this_key, this_key + 1)
+                result = self[this_key][key[:-1] + (slice(None), )]
+                if not isinstance(key[-1], slice):
+                    result = result[0]
+                return result
+            inner_ts = [t[key[:-1]] for t in self.ts]
+            return type(self)[len(self), type(inner_ts[0])](inner_ts)
         if isinstance(key, Type):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)
