@@ -22,8 +22,7 @@ setup(
         "magma.syntax",
         "magma.syntax.transforms",
         "magma.ssa",
-        "magma.testing",
-        "magma.types"
+        "magma.testing"
     ],
     install_requires=[
         "colorlog",
