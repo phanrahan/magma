@@ -90,15 +90,17 @@ class ArrayMeta(ABCMeta, Kind):
         # index[0] (N) can be None (used internally for In(Array))
         if index[0] is not None:
             if isinstance(index[0], tuple):
-                if len(index[0]) == 1:
-                    # Treat as normal Array
-                    index = index[0]
-                else:
+                if len(index[0]) == 0 :
+                    raise ValueError("Cannot create array with length 0 tuple "
+                                     "for N")
+                if len(index[0]) > 1:
                     T = index[1]
                     # ND Array
-                    for N in reversed(index[0]):
+                    for N in index[0]:
                         T = Array[N, T]
                     return T
+                # len(index[0]) == 1, Treat as normal Array
+                index = index[0]
 
             if (not isinstance(index[0], int) or index[0] <= 0):
                 raise TypeError(
@@ -289,7 +291,7 @@ class Array(Type, metaclass=ArrayMeta):
         if isinstance(key, tuple):
             # ND Array key
             result = self
-            for i in key:
+            for i in reversed(key):
                 result = result[i]
             return result
         if isinstance(key, Type):
