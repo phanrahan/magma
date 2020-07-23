@@ -289,9 +289,11 @@ class Array(Type, metaclass=ArrayMeta):
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
+            # ND Array key
             if len(key) == 1:
                 return self[key[0]]
-            # ND Array key
+
+            # check if it's any of `x[:], x[0:], x[:len(x)], x[0:len(x)]`
             if not (key[-1] == slice(None) or key[-1] == slice(0, None) or
                     key[-1] == slice(None, len(self)) or
                     key[-1] == slice(0, len(self))):
