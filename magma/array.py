@@ -89,6 +89,17 @@ class ArrayMeta(ABCMeta, Kind):
 
         # index[0] (N) can be None (used internally for In(Array))
         if index[0] is not None:
+            if isinstance(index[0], tuple):
+                if len(index[0]) == 1:
+                    # Treat as normal Array
+                    index = index[0]
+                else:
+                    T = index[1]
+                    # ND Array
+                    for N in reversed(index[0]):
+                        T = Array[N, T]
+                    return T
+
             if (not isinstance(index[0], int) or index[0] <= 0):
                 raise TypeError(
                     'Length of array must be an int greater than 0, got:'
@@ -275,6 +286,12 @@ class Array(Type, metaclass=ArrayMeta):
         return cls.N * cls.T.flat_length()
 
     def __getitem__(self, key):
+        if isinstance(key, tuple):
+            # ND Array key
+            result = self
+            for i in key:
+                result = result[i]
+            return result
         if isinstance(key, Type):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)

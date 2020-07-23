@@ -4,7 +4,8 @@ from magma.testing import check_files_equal
 
 def test_ndarray_basic():
     class Main(m.Circuit):
-        io = m.IO(I=m.In(m.NDArray[3, 5]), O=m.Out(m.NDArray[5, 3]))
+        io = m.IO(I=m.In(m.Array[(3, 5), m.Bit]),
+                  O=m.Out(m.Array[(5, 3), m.Bit]))
         for i in range(3):
             for j in range(5):
                 io.O[j, i] @= io.I[i, j]
