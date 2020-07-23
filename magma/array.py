@@ -295,14 +295,23 @@ class Array(Type, metaclass=ArrayMeta):
             if not (key[-1] == slice(None) or key[-1] == slice(0, None) or
                     key[-1] == slice(None, len(self)) or
                     key[-1] == slice(0, len(self))):
+                # If it's not a slice of the whole array, first slice the
+                # current array (self), then replace with a slice of the whole
+                # array (this is how we determine that we're ready to traverse
+                # into the children)
                 this_key = key[-1]
+                # If it's a single index, make it a slice for consistency
                 if not isinstance(this_key, slice):
                     this_key = slice(this_key, this_key + 1)
                 result = self[this_key][key[:-1] + (slice(None), )]
+                # If original index was not a slice, unpack the current result
                 if not isinstance(key[-1], slice):
                     result = result[0]
                 return result
+            # Last index is selecting the whole array, recurse into the
+            # children and slice off the inner indices
             inner_ts = [t[key[:-1]] for t in self.ts]
+            # Get the type from the children and return the final value
             return type(self)[len(self), type(inner_ts[0])](inner_ts)
         if isinstance(key, Type):
             # indexed using a dynamic magma value, generate mux circuit
