@@ -93,3 +93,9 @@ def get_type(value):
     if issubclass(T, MagmaProtocol):
         return T._to_magma_()
     return T
+
+
+def get_value(value):
+    if isinstance(value, MagmaProtocol):
+        return value._get_magma_value_()
+    return value

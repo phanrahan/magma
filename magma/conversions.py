@@ -14,6 +14,7 @@ from .bfloat import BFloat
 from .digital import Digital
 from .tuple import Tuple, Product
 from .bitutils import int2seq
+from .protocol_type import get_type, get_value
 import hwtypes
 
 __all__ = ['bit']
@@ -276,12 +277,12 @@ def _tuple(value, n=None, t=Tuple):
     if isinstance(value, Sequence):
         ts = list(value)
         for i in range(len(ts)):
-            args.append(ts[i])
-            decl[i] = type(ts[i])
+            args.append(get_value(ts[i]))
+            decl[i] = get_type(ts[i])
     elif isinstance(value, Mapping):
         for k, v in value.items():
-            args.append(v)
-            decl[k] = type(v)
+            args.append(get_value(v))
+            decl[k] = get_type(v)
     for a, d in zip(args, decl):
         # bool types to Bit
         if decl[d] is bool:

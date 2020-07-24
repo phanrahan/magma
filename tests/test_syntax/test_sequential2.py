@@ -382,3 +382,21 @@ def test_sequential2_reset():
     m.compile("build/TestSequential2Reset", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Reset.v",
                              f"gold/TestSequential2Reset.v")
+
+
+def test_sequential2_ite():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+            self.v = sel
+            if sel:
+                return m.namedtuple(a=self.v.prev())
+            else:
+                return m.namedtuple(a=self.v.prev())
+
+    m.compile("build/TestSequential2Ite", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2Ite.v",
+                             f"gold/TestSequential2Ite.v")
