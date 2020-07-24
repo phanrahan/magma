@@ -333,6 +333,14 @@ class Array(Type, metaclass=ArrayMeta):
         if isinstance(old, Array):
             if len(old) != len(val):
                 error = True
+            elif issubclass(old.T, Array):
+                # If array of array, check that we can do elementwise setitem
+                # (will return true if there's an error)
+                # We can't just do an `is` check on the children since those
+                # might be slices that return new anon values (so x[1:2] is not
+                # x[1:2], but their recursive leaf contents should be the same)
+                error = any(old.__setitem__(i, val[i])
+                            for i in range(len(old)))
             elif any(old[i] is not val[i] for i in range(len(old))):
                 error = True
         elif old is not val:
@@ -341,7 +349,7 @@ class Array(Type, metaclass=ArrayMeta):
         if error:
             _logger.error(f'May not mutate array, trying to replace '
                           f'{self}[{key}] ({old}) with {val}')
-
+        return error
 
     def __add__(self, other):
         other_len = other.N
