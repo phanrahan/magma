@@ -33,3 +33,16 @@ def test_ndarray_slicing():
     m.compile("build/test_ndarray_slicing", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_ndarray_slicing.v",
                              f"gold/test_ndarray_slicing.v")
+
+
+def test_ndarray_dyanmic_getitem():
+    class Main(m.Circuit):
+        io = m.IO(rdata=m.Out(m.Array[(2, 3), m.Bit]), raddr=m.In(m.Bits[2]))
+        io += m.ClockIO()
+        mem = m.Register(m.Array[(2, 3, 4), m.Bit])()
+        mem.I @= mem.O
+        io.rdata @= mem.O[io.raddr]
+
+    m.compile("build/test_ndarray_dynamic_getitem", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_ndarray_dynamic_getitem.v",
+                             f"gold/test_ndarray_dynamic_getitem.v")
