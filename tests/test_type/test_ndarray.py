@@ -46,3 +46,20 @@ def test_ndarray_dyanmic_getitem():
     m.compile("build/test_ndarray_dynamic_getitem", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_ndarray_dynamic_getitem.v",
                              f"gold/test_ndarray_dynamic_getitem.v")
+
+
+def test_ndarray_dyanmic_getitem2():
+    class Main(m.Circuit):
+        io = m.IO(
+            rdata0=m.Out(m.Array[(2, 3), m.Bit]), raddr0=m.In(m.Bits[2]),
+            rdata1=m.Out(m.Array[(2, 3), m.Bit]), raddr1=m.In(m.Bits[2])
+        )
+        io += m.ClockIO()
+        mem = m.Register(m.Array[(2, 3, 4, 2), m.Bit])()
+        mem.I @= mem.O
+        io.rdata0 @= mem.O[io.raddr0, 0]
+        io.rdata1 @= mem.O[io.raddr1, 1]
+
+    m.compile("build/test_ndarray_dynamic_getitem2", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_ndarray_dynamic_getitem2.v",
+                             f"gold/test_ndarray_dynamic_getitem2.v")
