@@ -109,7 +109,6 @@ def test_ndarray_get_slice():
             x=m.In(m.UInt[2]),
             O=m.Out(m.Array[(2, 3, 2), m.Bit])
         )
-        # default value
         io.O @= m.get_slice(io.I, start=io.x, width=2)
 
     m.compile("build/test_ndarray_get_slice", Main, inline=True)
