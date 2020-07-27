@@ -19,7 +19,7 @@ class Main(m.Circuit):
     io += m.ClockIO()
     reg = m.Register(m.Bit)()
 
-    @m.inline_combinational(debug=True, file_name="inline_comb.py")
+    @m.inline_combinational()
     def logic():
         if io.invert:
             reg.I @= ~reg.O
@@ -49,6 +49,7 @@ The second way assigns to a temporary value `O1`.  This value is handled using
 the standard `combinational` treatment and the final value produced by SSA is
 returned from the function and assigned in the enclosing environment.
 
+# Internal Details
 For more details on the rewrites, here are two dumps of the intermediate code
 during the `inline_combinational` rewrite process:
 1. Introduce temporary values.  At this point, the wiring targets (LHS of `@=`
