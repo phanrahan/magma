@@ -146,9 +146,9 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             f_branch = t_type(t_branch)
             f_type = t_type
 
-        t_type, f_type = map(lambda x: x.qualify(Direction.Undirected),
-                             (t_type, f_type))
-        if t_type is not f_type:
+        if (t_type is not f_type and
+                t_type.qualify(Direction.Undirected) is not f_type and
+                f_type.qualify(Direction.Undirected) is not t_type):
             raise TypeError(f"ite expects same type for both branches: {t_type} != {f_type}")
         if self.const():
             if self is type(self).VCC:
