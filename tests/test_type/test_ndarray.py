@@ -80,3 +80,38 @@ def test_ndarray_dyanmic_getitem3():
     m.compile("build/test_ndarray_dynamic_getitem3", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_ndarray_dynamic_getitem3.v",
                              f"gold/test_ndarray_dynamic_getitem3.v")
+
+
+def test_ndarray_set_slice():
+    class Main(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Array[(2, 3, 2), m.Bit]),
+            x=m.In(m.UInt[2]),
+            O=m.Out(m.Array[(2, 3, 6), m.Bit])
+        )
+        # default value
+        O = m.Array[(2, 3, 6), m.Bit]([
+            m.Array[(2, 3), m.Bit](
+                [0 for _ in range(3)]
+            ) for _ in range(6)
+        ])
+        io.O @= m.set_slice(O, io.I, start=io.x, width=2)
+
+    m.compile("build/test_ndarray_set_slice", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_ndarray_set_slice.v",
+                             f"gold/test_ndarray_set_slice.v")
+
+
+def test_ndarray_get_slice():
+    class Main(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Array[(2, 3, 6), m.Bit]),
+            x=m.In(m.UInt[2]),
+            O=m.Out(m.Array[(2, 3, 2), m.Bit])
+        )
+        # default value
+        io.O @= m.get_slice(io.I, start=io.x, width=2)
+
+    m.compile("build/test_ndarray_get_slice", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_ndarray_get_slice.v",
+                             f"gold/test_ndarray_get_slice.v")

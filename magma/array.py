@@ -215,7 +215,7 @@ class Array(Type, metaclass=ArrayMeta):
                 elif isinstance(args[0], int):
                     if not issubclass(self.T, Bit):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
-                                        "with int, not Array[N, {self.T}]")
+                                        f"with int, not Array[N, {self.T}]")
                     self.ts = []
                     for bit in int2seq(args[0], self.N):
                         self.ts.append(self.T(bit))
