@@ -1,4 +1,5 @@
 import ast
+import magma as magma_module
 from typing import Optional, MutableMapping
 
 from ast_tools.stack import SymbolTable
@@ -202,10 +203,19 @@ def _seq_phi(s, t, f):
 
 class _RegisterUpdater(ast.NodeTransformer):
     """Update m.Register params implicitly"""
-    def __init__(self, reset_type, has_enable, reset_priority):
+    def __init__(self, env, reset_type, has_enable, reset_priority):
+        self.env = env
+
+        for k, v in env.items():
+            if v is magma_module:
+                magma_id = k
+                break
+        if not magma_id:
+            raise Exception("Cannot find magma module")
+
         self.reset_type = ast.keyword(
             arg="reset_type",
-            value=ast.parse(f"m.{reset_type}").body[0].value,
+            value=ast.parse(f"{magma_id}.{reset_type}").body[0].value,
         )
         self.has_enable = ast.keyword(
             arg="has_enable",
@@ -221,8 +231,8 @@ class _RegisterUpdater(ast.NodeTransformer):
         if (
             isinstance(node.func, ast.Attribute)
             and isinstance(node.func.value, ast.Name)
-            and node.func.value.id == "m"
             and node.func.attr == "Register"
+            and eval(node.func.value.id, {}, self.env) is magma_module
         ):
             # set params when not exists
             keywords = []
@@ -246,12 +256,16 @@ class _RegisterUpdater(ast.NodeTransformer):
 class _UpdateRegister(Pass):
     """Update m.Register params implicitly"""
     def __init__(self, reset_type, has_enable, reset_priority):
-        self.updater = _RegisterUpdater(reset_type, has_enable, reset_priority)
+        self.reset_type = reset_type
+        self.has_enable = has_enable
+        self.reset_priority = reset_priority
 
     def rewrite(
         self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
     ) -> PASS_ARGS_T:
-        return self.updater.visit(tree), env, metadata
+        updater = _RegisterUpdater(env, self.reset_type,
+                                   self.has_enable, self.reset_priority)
+        return updater.visit(tree), env, metadata
 
 
 class _PrevReplacer(ast.NodeTransformer):
