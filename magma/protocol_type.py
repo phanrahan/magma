@@ -28,11 +28,24 @@ class MagmaProtocolMeta(type):
         # To create an instance from a value.
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def _is_oriented_magma_(cls, direction):
+        raise NotImplementedError()
+
+    def is_oriented(cls, direction):
+        return cls._is_oriented_magma_(direction)
+
     def flip(cls):
         return cls._flip_magma_()
 
     def __len__(cls):
         return len(cls._to_magma_())
+
+    def is_wireable(cls, rhs):
+        return cls._to_magma_().is_wireable(rhs)
+
+    def is_bindable(cls, rhs):
+        return cls._to_magma_().is_bindable(rhs)
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
@@ -44,6 +57,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     @classmethod
     def is_clock(cls):
         return cls._to_magma_().is_clock()
+
+    @classmethod
+    def is_inout(cls):
+        return cls._to_magma_().is_inout()
 
     @classmethod
     def is_input(cls):
@@ -88,8 +105,13 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         self.wire(other)
 
 
-def get_type(value):
-    T = type(value)
+def magma_type(T):
     if issubclass(T, MagmaProtocol):
         return T._to_magma_()
     return T
+
+
+def magma_value(value):
+    if isinstance(value, MagmaProtocol):
+        return value._get_magma_value_()
+    return value

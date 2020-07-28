@@ -5,6 +5,7 @@ from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
+from .protocol_type import magma_type, magma_value
 from magma.wire_container import Wire
 
 
@@ -126,6 +127,16 @@ class DigitalMeta(ABCMeta, Kind):
     def __eq__(cls, rhs):
         return cls is rhs
 
+    def is_wireable(cls, rhs):
+        rhs = magma_type(rhs)
+        # allows undirected types to match (e.g. for temporary values)
+        return (cls is rhs or
+                cls.qualify(Direction.Undirected) is rhs or
+                rhs.qualify(Direction.Undirected) is cls)
+
+    def is_bindable(cls, rhs):
+        return issubclass(cls, magma_type(rhs))
+
     __hash__ = type.__hash__
 
 
@@ -150,6 +161,7 @@ class Digital(Type, metaclass=DigitalMeta):
     @debug_wire
     def wire(self, o, debug_info):
         i = self
+        o = magma_value(o)
         # promote integer types to LOW/HIGH
         if isinstance(o, IntegerTypes):
             o = HIGH if o else LOW

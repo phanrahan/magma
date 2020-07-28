@@ -17,7 +17,6 @@ from magma.circuit import Circuit, coreir_port_mapping
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
-from magma.protocol_type import get_type
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -135,8 +134,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return self.declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
-        t_type = get_type(t_branch)
-        f_type = get_type(f_branch)
+        t_type = type(t_branch)
+        f_type = type(f_branch)
 
         # Implicit int conversion
         if t_type is int and f_type is not int:
@@ -150,7 +149,20 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         if (t_type is not f_type and
                 t_type.qualify(Direction.Undirected) is not f_type and
                 f_type.qualify(Direction.Undirected) is not t_type):
-            raise TypeError(f"ite expects same type for both branches: {t_type} != {f_type}")
+            while True:
+                try:
+                    if t_type.is_wireable(f_type):
+                        break
+                except AttributeError:
+                    pass
+                try:
+                    if f_type.is_wireable(t_type):
+                        break
+                except AttributeError:
+                    pass
+                raise TypeError("ite expects same type for both branches: "
+                                f"{t_type} != {f_type}")
+
         if self.const():
             if self is type(self).VCC:
                 return t_branch

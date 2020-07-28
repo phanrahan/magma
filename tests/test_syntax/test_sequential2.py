@@ -1,6 +1,7 @@
 import tempfile
 import os
 import inspect
+import pytest
 
 import ast_tools
 import fault
@@ -382,3 +383,340 @@ def test_sequential2_reset():
     m.compile("build/TestSequential2Reset", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Reset.v",
                              f"gold/TestSequential2Reset.v")
+
+
+def test_sequential2_ite_array():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.Array[1, m.Bit]:
+            self.v = sel
+            if sel:
+                return m.array([m.bit(0)])
+            else:
+                return m.array([self.v.prev()])
+
+    m.compile("build/TestSequential2IteArray", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteArray.v",
+                             f"gold/TestSequential2IteArray.v")
+
+
+def test_sequential2_ite_array2():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.Array[2, m.Bit]:
+            self.v = sel
+            if sel:
+                return m.array([m.bit(0), m.bit(0)])
+            else:
+                return m.array([self.v.prev(), m.bit(1)])
+
+    m.compile("build/TestSequential2IteArray2", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteArray2.v",
+                             f"gold/TestSequential2IteArray2.v")
+
+
+def test_sequential2_ite_array_error():
+    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+        @m.sequential2()
+        class Test:
+            def __init__(self):
+                self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+            def __call__(self, sel: m.Bit) -> m.Array[1, m.Bit]:
+                self.v = sel
+                if sel:
+                    return m.array([m.bit(0), m.bit(0)])
+                else:
+                    return m.array([self.v.prev()])
+
+
+def test_sequential2_ite_tuple():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.Tuple[m.Bit]:
+            self.v = sel
+            if sel:
+                return m.tuple_(self.v.prev())
+            else:
+                return m.tuple_(self.v.prev())
+
+    m.compile("build/TestSequential2IteTuple", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteTuple.v",
+                             f"gold/TestSequential2IteTuple.v")
+
+
+def test_sequential2_ite_tuple2():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.Tuple[m.Bit]:
+            self.v = sel
+            if sel:
+                return m.tuple_(m.bit(0))
+            else:
+                return m.tuple_(self.v.prev())
+
+    m.compile("build/TestSequential2IteTuple2", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteTuple2.v",
+                             f"gold/TestSequential2IteTuple2.v")
+
+
+def test_sequential2_ite_tuple_error_type():
+    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+        @m.sequential2()
+        class Test:
+            def __init__(self):
+                self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+            def __call__(self, sel: m.Bit) -> m.Tuple[m.Bit]:
+                self.v = sel
+                if sel:
+                    return m.tuple_(m.bits(0, 2))
+                else:
+                    return m.tuple_(self.v.prev())
+
+
+def test_sequential2_ite_product():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+            self.v = sel
+            if sel:
+                return m.namedtuple(a=self.v.prev())
+            else:
+                return m.namedtuple(a=self.v.prev())
+
+    m.compile("build/TestSequential2IteProduct", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteProduct.v",
+                             f"gold/TestSequential2IteProduct.v")
+
+
+def test_sequential2_ite_product2():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+            self.v = sel
+            if sel:
+                return m.namedtuple(a=m.bit(0))
+            else:
+                return m.namedtuple(a=self.v.prev())
+
+    m.compile("build/TestSequential2IteProduct2", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteProduct2.v",
+                             f"gold/TestSequential2IteProduct2.v")
+
+
+def test_sequential2_ite_product_error_type():
+    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+        @m.sequential2()
+        class Test:
+            def __init__(self):
+                self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+            def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+                self.v = sel
+                if sel:
+                    return m.namedtuple(a=m.bits(0, 2))
+                else:
+                    return m.namedtuple(a=self.v.prev())
+
+
+def test_sequential2_ite_product_error_keys():
+    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+        @m.sequential2()
+        class Test:
+            def __init__(self):
+                self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+            def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
+                self.v = sel
+                if sel:
+                    return m.namedtuple(a=m.bit(0))
+                else:
+                    return m.namedtuple(b=self.v.prev())
+
+
+def test_sequential2_ite_nested():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(
+            a=m.AnonProduct[dict(b=m.Bit)],
+            c=m.Tuple[m.Bit])
+        ]:
+            self.v = sel
+            if sel:
+                return m.namedtuple(a=m.namedtuple(b=m.bit(0)),
+                                    c=m.tuple_(m.bit(0)))
+            else:
+                return m.namedtuple(a=m.namedtuple(b=self.v.prev()),
+                                    c=m.tuple_(self.v.prev()))
+
+    m.compile("build/TestSequential2IteNested", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteNested.v",
+                             f"gold/TestSequential2IteNested.v")
+
+
+def test_sequential2_ite_bits():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bits[8], init=m.bits(0, 8))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bits[8])]:
+            self.v = self.v
+            if sel:
+                return m.namedtuple(a=self.v.prev())
+            else:
+                return m.namedtuple(a=self.v.prev())
+
+    m.compile("build/TestSequential2IteBits", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteBits.v",
+                             f"gold/TestSequential2IteBits.v")
+
+
+def test_sequential2_ite_bits2():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bits[8], init=m.bits(0, 8))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bits[8])]:
+            self.v = self.v
+            if sel:
+                return m.namedtuple(a=m.bits(0, 8))
+            else:
+                return m.namedtuple(a=self.v.prev())
+
+    m.compile("build/TestSequential2IteBits2", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteBits2.v",
+                             f"gold/TestSequential2IteBits2.v")
+
+
+def test_sequential2_ite_bits3():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.v = m.Register(T=m.Bit, init=m.bit(0))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bits[8])]:
+            self.v = self.v
+            if sel:
+                return m.namedtuple(a=m.concat(m.bits(0, 4),
+                                               m.repeat(self.v.prev(), 3),
+                                               self.v.prev()))
+            else:
+                return m.namedtuple(a=m.bits(self.v.prev(), 8))
+
+    m.compile("build/TestSequential2IteBits3", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteBits3.v",
+                             f"gold/TestSequential2IteBits3.v")
+
+
+def test_sequential2_ite_complex():
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.a = m.Register(T=m.Bit, init=m.bit(0))()
+            self.b = m.Register(T=m.Bits[2], init=m.bits(0, 2))()
+
+        def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(
+                                              a=m.Tuple[m.Bits[2]],
+                                              b=m.Array[2, m.Bit],
+                                          )]:
+            self.a = self.a
+            self.b = self.b
+            if sel:
+                return m.namedtuple(
+                           a=m.tuple_([self.b.prev()]),
+                           b=m.array([self.a.prev(), self.a.prev()]),
+                       )
+            else:
+                return m.namedtuple(
+                           a=m.tuple_([m.array([self.a.prev(), self.a.prev()])]),
+                           b=m.array(self.b.prev()),
+                       )
+
+    m.compile("build/TestSequential2IteComplex", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteComplex.v",
+                             f"gold/TestSequential2IteComplex.v")
+
+
+def test_sequential2_ite_complex_register():
+    class T(m.Product):
+        a = m.Array[1, m.Bits[2]]
+        b = m.Tuple[m.AnonProduct[dict(c=m.Array[2, m.Bit])]]
+
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.a = m.Register(
+                T=T,
+                init=m.namedtuple(
+                    a=m.array([m.bits(0, 2)]),
+                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0), m.bit(0)]))]),
+                ),
+            )()
+
+        def __call__(self, sel: m.Bit) -> T:
+            self.a = self.a
+            if sel:
+                return self.a
+            else:
+                return self.a
+
+    m.compile("build/TestSequential2IteComplexRegister", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteComplexRegister.v",
+                             f"gold/TestSequential2IteComplexRegister.v")
+
+
+def test_sequential2_ite_complex_register2():
+    class T(m.Product):
+        a = m.Array[1, m.Bits[2]]
+        b = m.Tuple[m.AnonProduct[dict(c=m.Array[2, m.Bit])]]
+
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.a = m.Register(
+                T=T,
+                init=m.namedtuple(
+                    a=m.array([m.bits(0, 2)]),
+                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0), m.bit(0)]))]),
+                ),
+            )()
+
+        def __call__(self, sel: m.Bit) -> T:
+            self.a = self.a
+            if sel:
+                return m.namedtuple(
+                    a=m.array([self.a.b[0].c]),
+                    b=m.tuple_([m.namedtuple(
+                        c=m.array([m.bit(0), m.bit(self.a.a[0][1:2])]))]
+                    ),
+                )
+            else:
+                return self.a
+
+    m.compile("build/TestSequential2IteComplexRegister2", Test, inline=True)
+    assert check_files_equal(__file__, f"build/TestSequential2IteComplexRegister2.v",
+                             f"gold/TestSequential2IteComplexRegister2.v")

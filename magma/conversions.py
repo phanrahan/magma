@@ -13,6 +13,7 @@ from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
 from .tuple import Tuple, Product
+from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
 import hwtypes
 
@@ -30,14 +31,15 @@ __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
 
 def can_convert_to_bit(value):
-    return isinstance(value, (Digital, Array, Tuple, IntegerTypes))
+    return isinstance(magma_value(value), (Digital, Array, Tuple, IntegerTypes))
 
 
 def can_convert_to_bit_type(value):
-    return issubclass(value, (Digital, Array, Tuple))
+    return issubclass(magma_type(value), (Digital, Array, Tuple))
 
 
 def convertbit(value, totype):
+    value = magma_value(value)
     if isinstance(value, totype):
         return value
 
@@ -102,6 +104,7 @@ def convertbits(value, n, totype, checkbit):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
         return value
 
+    value = magma_value(value)
     convertible_types = (Digital, Tuple, Array, IntegerTypes,
                          Sequence)
     if not isinstance(value, convertible_types):
@@ -140,7 +143,7 @@ def convertbits(value, n, totype, checkbit):
     # check that they are all the same
     for t in Ts:
         if checkbit:
-            if not isinstance(t, DigitalMeta):
+            if not isinstance(magma_type(t), DigitalMeta):
                 raise ValueError(
                     "bits can only be used on Arrays or Tuples containing bits"
                     f", not : {t}")
@@ -191,7 +194,7 @@ def concat(*arrays):
     for a in arrays:
         if isinstance(a, hwtypes.BitVector):
             ts.extend(a.bits())
-        elif isinstance(a, Bit):
+        elif isinstance(magma_value(a), Bit):
             ts.extend([a])
         else:
             ts.extend(a.ts)
@@ -199,7 +202,7 @@ def concat(*arrays):
 
 
 def repeat(value, n):
-    if isinstance(value, Bit):
+    if isinstance(magma_value(value), Bit):
         repeats = bits(n * [value])
     else:
         repeats = array(n * [value])
@@ -257,7 +260,8 @@ def _tuple(value, n=None, t=Tuple):
     if isinstance(value, t):
         return value
 
-    if not isinstance(value, (Digital, Array, IntegerTypes, Sequence, Mapping)):
+    if not isinstance(magma_value(value),
+                      (Digital, Array, IntegerTypes, Sequence, Mapping)):
         raise ValueError(
             "bit can only be used on a Bit, an Array, or an int; not {}".format(type(value)))
 
@@ -268,7 +272,7 @@ def _tuple(value, n=None, t=Tuple):
         if n is None:
             n = max(value.bit_length(),1)
         value = int2seq(value, n)
-    elif isinstance(value, Digital):
+    elif isinstance(magma_value(value), Digital):
         value = [value]
     elif isinstance(value, Array):
         value = [value[i] for i in range(len(value))]
@@ -309,6 +313,7 @@ def tuple_(value, n=None):
 
 
 def replace(value, others: dict):
+    value = magma_value(value)
     if isinstance(value, Product):
         d = dict(value.items())
         d.update(others)

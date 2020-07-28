@@ -48,8 +48,32 @@ class _SequentialRegisterWrapperMeta(MagmaProtocolMeta):
     def _from_magma_value_(cls, val: Type):
         return cls(val)
 
+    def _is_oriented_magma_(cls, direction):
+        return cls.T.is_oriented(direction)
+
     def __getitem__(cls, T):
         return type(cls)(f"_SequentialRegisterWrapper{T}", (cls, ), {"T": T})
+
+    def __eq__(cls, rhs):
+        if not isinstance(rhs, _SequentialRegisterWrapperMeta):
+            return NotImplemented
+        return cls.T is rhs.T
+
+    def __hash__(cls):
+        return hash(cls.T)
+
+    def __repr__(cls):
+        return f"_SequentialRegisterWrapper{cls.T}"
+
+    def flat_length(cls):
+        return cls.T.flat_length()
+
+    def unflatten(cls, value):
+        return cls.T.unflatten(value)
+
+    @property
+    def direction(cls) -> int:
+        return cls.T.direction
 
 
 class _SequentialRegisterWrapper(MagmaProtocol,
@@ -142,8 +166,15 @@ class _SequentialRegisterWrapper(MagmaProtocol,
         key = i._get_magma_value_() if isinstance(i, MagmaProtocol) else i
         return self._get_magma_value_()[key]
 
+    def __getattr__(self, key):
+        return self._get_magma_value_()[key]
+
     def __len__(self):
         return len(self._get_magma_value_())
+
+    @property
+    def debug_name(self):
+        return self._get_magma_value_().debug_name
 
 
 def sequential_getattribute(self, key):

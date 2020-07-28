@@ -5,7 +5,7 @@ from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.generator import Generator2
 from magma.interface import IO
-from magma.protocol_type import MagmaProtocol
+from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out
 from magma.tuple import Product
 
@@ -34,8 +34,7 @@ class CoreIRCommonLibMuxN(Generator2):
 
 class Mux(Generator2):
     def __init__(self, height: int, T: Type):
-        if issubclass(T, MagmaProtocol):
-            T = T._to_magma_()
+        T = magma_type(T)
         T_str = str(T).replace("(", "").replace(")", "")\
                       .replace(",", "_").replace("=", "_")\
                       .replace("[", "").replace("]", "").replace(" ", "")

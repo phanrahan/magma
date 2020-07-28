@@ -2,7 +2,7 @@ from .compatibility import IntegerTypes
 from .wire_container import Wire  # TODO(rsetaluri): only here for b.c.
 from .debug import debug_wire
 from .logging import root_logger
-from .protocol_type import MagmaProtocol
+from .protocol_type import magma_value
 
 
 _logger = root_logger()
@@ -10,10 +10,8 @@ _logger = root_logger()
 
 @debug_wire
 def wire(o, i, debug_info=None):
-    if isinstance(o, MagmaProtocol):
-        o = o._get_magma_value_()
-    if isinstance(i, MagmaProtocol):
-        i = i._get_magma_value_()
+    o = magma_value(o)
+    i = magma_value(i)
 
     # Wire(o, Circuit).
     if hasattr(i, 'interface'):
