@@ -1,3 +1,31 @@
+module mantle_wire__typeBitIn8 (
+    output [7:0] in,
+    input [7:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn24 (
+    output [23:0] in,
+    input [23:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit8 (
+    input [7:0] in,
+    output [7:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit24 (
+    input [23:0] in,
+    output [23:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,

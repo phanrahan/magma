@@ -1,3 +1,17 @@
+module mantle_wire__typeBitIn5 (
+    output [4:0] in,
+    input [4:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit5 (
+    input [4:0] in,
+    output [4:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,

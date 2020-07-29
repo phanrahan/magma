@@ -1,3 +1,45 @@
+module mantle_wire__typeBitIn6 (
+    output [5:0] in,
+    input [5:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn4 (
+    output [3:0] in,
+    input [3:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBitIn2 (
+    output [1:0] in,
+    input [1:0] out
+);
+assign in = out;
+endmodule
+
+module mantle_wire__typeBit6 (
+    input [5:0] in,
+    output [5:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit4 (
+    input [3:0] in,
+    output [3:0] out
+);
+assign out = in;
+endmodule
+
+module mantle_wire__typeBit2 (
+    input [1:0] in,
+    output [1:0] out
+);
+assign out = in;
+endmodule
+
 module coreir_mux #(
     parameter width = 1
 ) (
