@@ -1,31 +1,3 @@
-module mantle_wire__typeBitIn3 (
-    output [2:0] in,
-    input [2:0] out
-);
-assign in = out;
-endmodule
-
-module mantle_wire__typeBitIn2 (
-    output [1:0] in,
-    input [1:0] out
-);
-assign in = out;
-endmodule
-
-module mantle_wire__typeBit3 (
-    input [2:0] in,
-    output [2:0] out
-);
-assign out = in;
-endmodule
-
-module mantle_wire__typeBit2 (
-    input [1:0] in,
-    output [1:0] out
-);
-assign out = in;
-endmodule
-
 module coreir_mux #(
     parameter width = 1
 ) (
