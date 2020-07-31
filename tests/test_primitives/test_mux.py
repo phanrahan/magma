@@ -128,3 +128,49 @@ def test_basic_mux_product():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_mux_operator():
+    class test_mux_operator(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= m.mux([io.I[0], io.I[1]], io.S)
+
+    m.compile("build/test_mux_operator", test_mux_operator)
+
+    assert check_files_equal(__file__, f"build/test_mux_operator.v",
+                             f"gold/test_mux_operator.v")
+
+    tester = fault.Tester(test_mux_operator)
+    tester.circuit.I = 1
+    tester.circuit.S = 0
+    tester.eval()
+    tester.circuit.O.expect(1)
+    tester.circuit.S = 1
+    tester.eval()
+    tester.circuit.O.expect(0)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+
+
+def test_mux_operator_int():
+    class test_mux_operator_int(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), S=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= m.mux([0, io.I], io.S)
+
+    m.compile("build/test_mux_operator_int", test_mux_operator_int)
+
+    assert check_files_equal(__file__, f"build/test_mux_operator_int.v",
+                             f"gold/test_mux_operator_int.v")
+
+    tester = fault.Tester(test_mux_operator_int)
+    tester.circuit.I = 1
+    tester.circuit.S = 0
+    tester.eval()
+    tester.circuit.O.expect(0)
+    tester.circuit.S = 1
+    tester.eval()
+    tester.circuit.O.expect(1)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
