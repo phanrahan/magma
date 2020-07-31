@@ -3,7 +3,6 @@ import subprocess
 from .coreir_ import InsertWrapCasts
 from ..compiler import Compiler
 from ..frontend import coreir_ as coreir_frontend
-from ..is_definition import isdefinition
 from ..passes import InstanceGraphPass
 from ..passes.insert_coreir_wires import InsertCoreIRWires
 from ..logging import root_logger
@@ -33,8 +32,6 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --verilator_debug"
     if opts.get("disable_width_cast", False):
         cmd += " --disable-width-cast"
-    if opts.get("coreir_enable_ndarray", False):
-        cmd += " --ndarray"
     return cmd
 
 
@@ -68,8 +65,7 @@ class CoreIRCompiler(Compiler):
                        not config.fast_coreir_verilog_compile)
         if output_json:
             filename = f"{self.basename}.json"
-            if isdefinition(self.main):
-                backend.context.set_top(backend.modules[self.main.coreir_name])
+            backend.context.set_top(backend.modules[self.main.coreir_name])
             backend.context.save_to_file(filename, include_default_libs=False)
         if self.opts.get("output_verilog", False):
             fn = (self._fast_compile_verilog
