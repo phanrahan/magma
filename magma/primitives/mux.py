@@ -79,14 +79,7 @@ def mux(I, S, **kwargs):
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
-    # get first magma arg for type introspection
-    for arg in I:
-        if isinstance(arg, Type):
-            T = type(arg)
-            break
-    else:
-        raise TypeError("Cannot use m.mux with non-magma types (need at least "
-                        "one to infer width)")
+    T = type(I[0])
     return Mux(len(I), T, **kwargs)()(*I, S)
 
 
