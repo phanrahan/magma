@@ -86,7 +86,7 @@ def mux(I, S, **kwargs):
             break
     else:
         raise TypeError("Cannot use m.mux with non-magma types (need at least "
-                        "one to infer width)")
+                        "one to infer type)")
     return Mux(len(I), T, **kwargs)()(*I, S)
 
 
