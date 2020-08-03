@@ -28,49 +28,77 @@ module Circuit (
     input I3_4_B,
     input I3_4_C
 );
+wire corebit_term_inst0_in;
+wire corebit_term_inst1_in;
+wire corebit_term_inst10_in;
+wire corebit_term_inst11_in;
+wire corebit_term_inst12_in;
+wire corebit_term_inst2_in;
+wire corebit_term_inst3_in;
+wire corebit_term_inst4_in;
+wire corebit_term_inst5_in;
+wire corebit_term_inst6_in;
+wire corebit_term_inst7_in;
+wire corebit_term_inst8_in;
+wire corebit_term_inst9_in;
+wire [4:0] term_inst0_in;
+assign corebit_term_inst0_in = I0;
 corebit_term corebit_term_inst0 (
-    .in(I0)
+    .in(corebit_term_inst0_in)
 );
+assign corebit_term_inst1_in = I2_B;
 corebit_term corebit_term_inst1 (
-    .in(I2_B)
+    .in(corebit_term_inst1_in)
 );
+assign corebit_term_inst10_in = I3_3_C;
 corebit_term corebit_term_inst10 (
-    .in(I3_3_C)
+    .in(corebit_term_inst10_in)
 );
+assign corebit_term_inst11_in = I3_4_B;
 corebit_term corebit_term_inst11 (
-    .in(I3_4_B)
+    .in(corebit_term_inst11_in)
 );
+assign corebit_term_inst12_in = I3_4_C;
 corebit_term corebit_term_inst12 (
-    .in(I3_4_C)
+    .in(corebit_term_inst12_in)
 );
+assign corebit_term_inst2_in = I2_C;
 corebit_term corebit_term_inst2 (
-    .in(I2_C)
+    .in(corebit_term_inst2_in)
 );
+assign corebit_term_inst3_in = I3_0_B;
 corebit_term corebit_term_inst3 (
-    .in(I3_0_B)
+    .in(corebit_term_inst3_in)
 );
+assign corebit_term_inst4_in = I3_0_C;
 corebit_term corebit_term_inst4 (
-    .in(I3_0_C)
+    .in(corebit_term_inst4_in)
 );
+assign corebit_term_inst5_in = I3_1_B;
 corebit_term corebit_term_inst5 (
-    .in(I3_1_B)
+    .in(corebit_term_inst5_in)
 );
+assign corebit_term_inst6_in = I3_1_C;
 corebit_term corebit_term_inst6 (
-    .in(I3_1_C)
+    .in(corebit_term_inst6_in)
 );
+assign corebit_term_inst7_in = I3_2_B;
 corebit_term corebit_term_inst7 (
-    .in(I3_2_B)
+    .in(corebit_term_inst7_in)
 );
+assign corebit_term_inst8_in = I3_2_C;
 corebit_term corebit_term_inst8 (
-    .in(I3_2_C)
+    .in(corebit_term_inst8_in)
 );
+assign corebit_term_inst9_in = I3_3_B;
 corebit_term corebit_term_inst9 (
-    .in(I3_3_B)
+    .in(corebit_term_inst9_in)
 );
+assign term_inst0_in = I1;
 coreir_term #(
     .width(5)
 ) term_inst0 (
-    .in(I1)
+    .in(term_inst0_in)
 );
 endmodule
 

@@ -9,9 +9,11 @@ module Main (
     input I,
     output O
 );
+wire Foo_inst0_x;
 wire Foo_inst0_y;
+assign Foo_inst0_x = I;
 Foo Foo_inst0 (
-    .x(I),
+    .x(Foo_inst0_x),
     .y(Foo_inst0_y)
 );
 assign O = Foo_inst0_y;

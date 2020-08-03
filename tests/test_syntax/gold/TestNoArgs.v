@@ -62,18 +62,23 @@ module coreir_add #(
 endmodule
 
 module commonlib_muxn__N2__width3 (
-    input [2:0] in_data_0,
-    input [2:0] in_data_1,
+    input [2:0] in_data [1:0],
     input [0:0] in_sel,
     output [2:0] out
 );
+wire [2:0] _join_in0;
+wire [2:0] _join_in1;
+wire _join_sel;
 wire [2:0] _join_out;
+assign _join_in0 = in_data[0];
+assign _join_in1 = in_data[1];
+assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(3)
 ) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
-    .sel(in_sel[0]),
+    .in0(_join_in0),
+    .in1(_join_in1),
+    .sel(_join_sel),
     .out(_join_out)
 );
 assign out = _join_out;
@@ -85,11 +90,14 @@ module Mux2xOutUInt3 (
     input S,
     output [2:0] O
 );
+wire [2:0] coreir_commonlib_mux2x3_inst0_in_data [1:0];
+wire [0:0] coreir_commonlib_mux2x3_inst0_in_sel;
 wire [2:0] coreir_commonlib_mux2x3_inst0_out;
+assign coreir_commonlib_mux2x3_inst0_in_data = '{I1,I0};
+assign coreir_commonlib_mux2x3_inst0_in_sel = S;
 commonlib_muxn__N2__width3 coreir_commonlib_mux2x3_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
-    .in_sel(S),
+    .in_data(coreir_commonlib_mux2x3_inst0_in_data),
+    .in_sel(coreir_commonlib_mux2x3_inst0_in_sel),
     .out(coreir_commonlib_mux2x3_inst0_out)
 );
 assign O = coreir_commonlib_mux2x3_inst0_out;
@@ -102,17 +110,29 @@ module TestNoArgs_comb (
     output [2:0] O1,
     output [2:0] O2
 );
+wire [2:0] Mux2xOutUInt3_inst0_I0;
+wire [2:0] Mux2xOutUInt3_inst0_I1;
+wire Mux2xOutUInt3_inst0_S;
 wire [2:0] Mux2xOutUInt3_inst0_O;
 wire [1:0] const_1_2_out;
 wire [2:0] const_1_3_out;
 wire [1:0] const_3_2_out;
+wire [1:0] magma_Bits_2_add_inst0_in0;
+wire [1:0] magma_Bits_2_add_inst0_in1;
 wire [1:0] magma_Bits_2_add_inst0_out;
+wire [1:0] magma_Bits_2_eq_inst0_in0;
+wire [1:0] magma_Bits_2_eq_inst0_in1;
 wire magma_Bits_2_eq_inst0_out;
+wire [2:0] magma_Bits_3_add_inst0_in0;
+wire [2:0] magma_Bits_3_add_inst0_in1;
 wire [2:0] magma_Bits_3_add_inst0_out;
+assign Mux2xOutUInt3_inst0_I0 = self_y_O;
+assign Mux2xOutUInt3_inst0_I1 = magma_Bits_3_add_inst0_out;
+assign Mux2xOutUInt3_inst0_S = magma_Bits_2_eq_inst0_out;
 Mux2xOutUInt3 Mux2xOutUInt3_inst0 (
-    .I0(self_y_O),
-    .I1(magma_Bits_3_add_inst0_out),
-    .S(magma_Bits_2_eq_inst0_out),
+    .I0(Mux2xOutUInt3_inst0_I0),
+    .I1(Mux2xOutUInt3_inst0_I1),
+    .S(Mux2xOutUInt3_inst0_S),
     .O(Mux2xOutUInt3_inst0_O)
 );
 coreir_const #(
@@ -133,25 +153,31 @@ coreir_const #(
 ) const_3_2 (
     .out(const_3_2_out)
 );
+assign magma_Bits_2_add_inst0_in0 = self_x_O;
+assign magma_Bits_2_add_inst0_in1 = const_1_2_out;
 coreir_add #(
     .width(2)
 ) magma_Bits_2_add_inst0 (
-    .in0(self_x_O),
-    .in1(const_1_2_out),
+    .in0(magma_Bits_2_add_inst0_in0),
+    .in1(magma_Bits_2_add_inst0_in1),
     .out(magma_Bits_2_add_inst0_out)
 );
+assign magma_Bits_2_eq_inst0_in0 = magma_Bits_2_add_inst0_out;
+assign magma_Bits_2_eq_inst0_in1 = const_3_2_out;
 coreir_eq #(
     .width(2)
 ) magma_Bits_2_eq_inst0 (
-    .in0(magma_Bits_2_add_inst0_out),
-    .in1(const_3_2_out),
+    .in0(magma_Bits_2_eq_inst0_in0),
+    .in1(magma_Bits_2_eq_inst0_in1),
     .out(magma_Bits_2_eq_inst0_out)
 );
+assign magma_Bits_3_add_inst0_in0 = self_y_O;
+assign magma_Bits_3_add_inst0_in1 = const_1_3_out;
 coreir_add #(
     .width(3)
 ) magma_Bits_3_add_inst0 (
-    .in0(self_y_O),
-    .in1(const_1_3_out),
+    .in0(magma_Bits_3_add_inst0_in0),
+    .in1(magma_Bits_3_add_inst0_in1),
     .out(magma_Bits_3_add_inst0_out)
 );
 assign O0 = magma_Bits_2_add_inst0_out;
@@ -164,38 +190,54 @@ module TestNoArgs (
     input ASYNCRESET,
     output [2:0] O
 );
+wire [1:0] TestNoArgs_comb_inst0_self_x_O;
+wire [2:0] TestNoArgs_comb_inst0_self_y_O;
 wire [1:0] TestNoArgs_comb_inst0_O0;
 wire [2:0] TestNoArgs_comb_inst0_O1;
 wire [2:0] TestNoArgs_comb_inst0_O2;
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [1:0] reg_PR_inst0_in;
 wire [1:0] reg_PR_inst0_out;
+wire reg_PR_inst1_clk;
+wire reg_PR_inst1_arst;
+wire [2:0] reg_PR_inst1_in;
 wire [2:0] reg_PR_inst1_out;
+assign TestNoArgs_comb_inst0_self_x_O = reg_PR_inst0_out;
+assign TestNoArgs_comb_inst0_self_y_O = reg_PR_inst1_out;
 TestNoArgs_comb TestNoArgs_comb_inst0 (
-    .self_x_O(reg_PR_inst0_out),
-    .self_y_O(reg_PR_inst1_out),
+    .self_x_O(TestNoArgs_comb_inst0_self_x_O),
+    .self_y_O(TestNoArgs_comb_inst0_self_y_O),
     .O0(TestNoArgs_comb_inst0_O0),
     .O1(TestNoArgs_comb_inst0_O1),
     .O2(TestNoArgs_comb_inst0_O2)
 );
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = TestNoArgs_comb_inst0_O0;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(2'h0),
     .width(2)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(TestNoArgs_comb_inst0_O0),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(reg_PR_inst0_out)
 );
+assign reg_PR_inst1_clk = CLK;
+assign reg_PR_inst1_arst = ASYNCRESET;
+assign reg_PR_inst1_in = TestNoArgs_comb_inst0_O1;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
 ) reg_PR_inst1 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(TestNoArgs_comb_inst0_O1),
+    .clk(reg_PR_inst1_clk),
+    .arst(reg_PR_inst1_arst),
+    .in(reg_PR_inst1_in),
     .out(reg_PR_inst1_out)
 );
 assign O = TestNoArgs_comb_inst0_O2;

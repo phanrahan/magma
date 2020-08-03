@@ -24,25 +24,33 @@ module TestBinary (
     output COUT
 );
 wire bit_const_0_None_out;
+wire [1:0] magma_Bits_2_add_inst0_in0;
+wire [1:0] magma_Bits_2_add_inst0_in1;
 wire [1:0] magma_Bits_2_add_inst0_out;
+wire [1:0] magma_Bits_2_add_inst1_in0;
+wire [1:0] magma_Bits_2_add_inst1_in1;
 wire [1:0] magma_Bits_2_add_inst1_out;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
 );
+assign magma_Bits_2_add_inst0_in0 = {bit_const_0_None_out,I0[0]};
+assign magma_Bits_2_add_inst0_in1 = {bit_const_0_None_out,I1[0]};
 coreir_add #(
     .width(2)
 ) magma_Bits_2_add_inst0 (
-    .in0({bit_const_0_None_out,I0[0]}),
-    .in1({bit_const_0_None_out,I1[0]}),
+    .in0(magma_Bits_2_add_inst0_in0),
+    .in1(magma_Bits_2_add_inst0_in1),
     .out(magma_Bits_2_add_inst0_out)
 );
+assign magma_Bits_2_add_inst1_in0 = magma_Bits_2_add_inst0_out;
+assign magma_Bits_2_add_inst1_in1 = {bit_const_0_None_out,CIN};
 coreir_add #(
     .width(2)
 ) magma_Bits_2_add_inst1 (
-    .in0(magma_Bits_2_add_inst0_out),
-    .in1({bit_const_0_None_out,CIN}),
+    .in0(magma_Bits_2_add_inst1_in0),
+    .in1(magma_Bits_2_add_inst1_in1),
     .out(magma_Bits_2_add_inst1_out)
 );
 assign O = magma_Bits_2_add_inst1_out[0];

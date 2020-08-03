@@ -9,8 +9,7 @@ endmodule
 
 module enum_test (
     input [1:0] I,
-    output [1:0] O_0,
-    output [1:0] O_1
+    output [1:0] O [1:0]
 );
 wire [1:0] const_0_2_out;
 coreir_const #(
@@ -19,7 +18,6 @@ coreir_const #(
 ) const_0_2 (
     .out(const_0_2_out)
 );
-assign O_0 = I;
-assign O_1 = const_0_2_out;
+assign O = '{const_0_2_out,I};
 endmodule
 

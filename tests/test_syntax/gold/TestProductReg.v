@@ -61,18 +61,23 @@ module coreir_mux #(
 endmodule
 
 module commonlib_muxn__N2__width9 (
-    input [8:0] in_data_0,
-    input [8:0] in_data_1,
+    input [8:0] in_data [1:0],
     input [0:0] in_sel,
     output [8:0] out
 );
+wire [8:0] _join_in0;
+wire [8:0] _join_in1;
+wire _join_sel;
 wire [8:0] _join_out;
+assign _join_in0 = in_data[0];
+assign _join_in1 = in_data[1];
+assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(9)
 ) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
-    .sel(in_sel[0]),
+    .in0(_join_in0),
+    .in1(_join_in1),
+    .sel(_join_sel),
     .out(_join_out)
 );
 assign out = _join_out;
@@ -88,40 +93,55 @@ module Mux2xTuplea0_OutBit_a1_OutSInt8 (
     input S
 );
 wire [8:0] _$_U2_in;
+wire [8:0] _$_U2_out;
 wire [8:0] _$_U3_in;
+wire [8:0] _$_U3_out;
+wire [8:0] _$_U4_in;
 wire [8:0] _$_U4_out;
+wire [7:0] _$_U6_in;
 wire [7:0] _$_U6_out;
+wire [7:0] _$_U7_in;
 wire [7:0] _$_U7_out;
 wire [7:0] _$_U8_in;
+wire [7:0] _$_U8_out;
+wire [8:0] coreir_commonlib_mux2x9_inst0_in_data [1:0];
+wire [0:0] coreir_commonlib_mux2x9_inst0_in_sel;
 wire [8:0] coreir_commonlib_mux2x9_inst0_out;
+assign _$_U2_out = {_$_U6_out[7:0],I0_a0};
 mantle_wire__typeBitIn9 _$_U2 (
     .in(_$_U2_in),
-    .out({_$_U6_out[7:0],I0_a0})
+    .out(_$_U2_out)
 );
+assign _$_U3_out = {_$_U7_out[7:0],I1_a0};
 mantle_wire__typeBitIn9 _$_U3 (
     .in(_$_U3_in),
-    .out({_$_U7_out[7:0],I1_a0})
+    .out(_$_U3_out)
 );
+assign _$_U4_in = coreir_commonlib_mux2x9_inst0_out;
 mantle_wire__typeBit9 _$_U4 (
-    .in(coreir_commonlib_mux2x9_inst0_out),
+    .in(_$_U4_in),
     .out(_$_U4_out)
 );
+assign _$_U6_in = I0_a1;
 mantle_wire__typeBit8 _$_U6 (
-    .in(I0_a1),
+    .in(_$_U6_in),
     .out(_$_U6_out)
 );
+assign _$_U7_in = I1_a1;
 mantle_wire__typeBit8 _$_U7 (
-    .in(I1_a1),
+    .in(_$_U7_in),
     .out(_$_U7_out)
 );
+assign _$_U8_out = _$_U4_out[8:1];
 mantle_wire__typeBitIn8 _$_U8 (
     .in(_$_U8_in),
-    .out(_$_U4_out[8:1])
+    .out(_$_U8_out)
 );
+assign coreir_commonlib_mux2x9_inst0_in_data = '{_$_U3_in,_$_U2_in};
+assign coreir_commonlib_mux2x9_inst0_in_sel = S;
 commonlib_muxn__N2__width9 coreir_commonlib_mux2x9_inst0 (
-    .in_data_0(_$_U2_in),
-    .in_data_1(_$_U3_in),
-    .in_sel(S),
+    .in_data(coreir_commonlib_mux2x9_inst0_in_data),
+    .in_sel(coreir_commonlib_mux2x9_inst0_in_sel),
     .out(coreir_commonlib_mux2x9_inst0_out)
 );
 assign O_a0 = _$_U4_out[0];
@@ -139,16 +159,26 @@ module TestProductReg_comb (
     input self_a_O_a0,
     input [7:0] self_a_O_a1
 );
+wire Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I0_a0;
+wire [7:0] Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I0_a1;
+wire Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I1_a0;
+wire [7:0] Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I1_a1;
 wire Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0;
 wire [7:0] Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1;
+wire Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_S;
+assign Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I0_a0 = self_a_O_a0;
+assign Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I0_a1 = self_a_O_a1;
+assign Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I1_a0 = a_a0;
+assign Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I1_a1 = a_a1;
+assign Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_S = b;
 Mux2xTuplea0_OutBit_a1_OutSInt8 Mux2xTuplea0_OutBit_a1_OutSInt8_inst0 (
-    .I0_a0(self_a_O_a0),
-    .I0_a1(self_a_O_a1),
-    .I1_a0(a_a0),
-    .I1_a1(a_a1),
+    .I0_a0(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I0_a0),
+    .I0_a1(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I0_a1),
+    .I1_a0(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I1_a0),
+    .I1_a1(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_I1_a1),
     .O_a0(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0),
     .O_a1(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1),
-    .S(b)
+    .S(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_S)
 );
 assign O0_a0 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0;
 assign O0_a1 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1;
@@ -162,16 +192,22 @@ module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (
     input CLK,
     input ASYNCRESET
 );
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [0:0] reg_PR_inst0_in;
 wire [0:0] reg_PR_inst0_out;
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = I;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(1'h1),
     .width(1)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(I),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(reg_PR_inst0_out)
 );
 assign O = reg_PR_inst0_out[0];
@@ -186,38 +222,60 @@ module TestProductReg (
     input [7:0] a_a1,
     input b
 );
+wire DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_I;
 wire DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O;
+wire DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_CLK;
+wire DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_ASYNCRESET;
 wire TestProductReg_comb_inst0_O0_a0;
 wire [7:0] TestProductReg_comb_inst0_O0_a1;
 wire TestProductReg_comb_inst0_O1_a0;
 wire [7:0] TestProductReg_comb_inst0_O1_a1;
+wire TestProductReg_comb_inst0_a_a0;
+wire [7:0] TestProductReg_comb_inst0_a_a1;
+wire TestProductReg_comb_inst0_b;
+wire TestProductReg_comb_inst0_self_a_O_a0;
+wire [7:0] TestProductReg_comb_inst0_self_a_O_a1;
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [7:0] reg_PR_inst0_in;
 wire [7:0] reg_PR_inst0_out;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_I = TestProductReg_comb_inst0_O0_a0;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_CLK = CLK;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_ASYNCRESET = ASYNCRESET;
 DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0 (
-    .I(TestProductReg_comb_inst0_O0_a0),
+    .I(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_I),
     .O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O),
-    .CLK(CLK),
-    .ASYNCRESET(ASYNCRESET)
+    .CLK(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_CLK),
+    .ASYNCRESET(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_ASYNCRESET)
 );
+assign TestProductReg_comb_inst0_a_a0 = a_a0;
+assign TestProductReg_comb_inst0_a_a1 = a_a1;
+assign TestProductReg_comb_inst0_b = b;
+assign TestProductReg_comb_inst0_self_a_O_a0 = DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O;
+assign TestProductReg_comb_inst0_self_a_O_a1 = reg_PR_inst0_out;
 TestProductReg_comb TestProductReg_comb_inst0 (
     .O0_a0(TestProductReg_comb_inst0_O0_a0),
     .O0_a1(TestProductReg_comb_inst0_O0_a1),
     .O1_a0(TestProductReg_comb_inst0_O1_a0),
     .O1_a1(TestProductReg_comb_inst0_O1_a1),
-    .a_a0(a_a0),
-    .a_a1(a_a1),
-    .b(b),
-    .self_a_O_a0(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0_O),
-    .self_a_O_a1(reg_PR_inst0_out)
+    .a_a0(TestProductReg_comb_inst0_a_a0),
+    .a_a1(TestProductReg_comb_inst0_a_a1),
+    .b(TestProductReg_comb_inst0_b),
+    .self_a_O_a0(TestProductReg_comb_inst0_self_a_O_a0),
+    .self_a_O_a1(TestProductReg_comb_inst0_self_a_O_a1)
 );
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = TestProductReg_comb_inst0_O0_a1;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(8'h02),
     .width(8)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(TestProductReg_comb_inst0_O0_a1),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(reg_PR_inst0_out)
 );
 assign O_a0 = TestProductReg_comb_inst0_O1_a0;

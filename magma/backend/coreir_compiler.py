@@ -32,6 +32,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --verilator_debug"
     if opts.get("disable_width_cast", False):
         cmd += " --disable-width-cast"
+    if opts.get("disable_ndarray", False):
+        cmd += " --disable-ndarray"
     return cmd
 
 

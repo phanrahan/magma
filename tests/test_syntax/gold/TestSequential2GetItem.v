@@ -21,54 +21,41 @@ module Register_unq1 (
     output [2:0] O,
     input CLK
 );
+wire reg_P_inst0_clk;
+wire [2:0] reg_P_inst0_in;
+assign reg_P_inst0_clk = CLK;
+assign reg_P_inst0_in = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
 ) reg_P_inst0 (
-    .clk(CLK),
-    .in(I),
+    .clk(reg_P_inst0_clk),
+    .in(reg_P_inst0_in),
     .out(O)
 );
 endmodule
 
 module Register (
-    input CLK,
-    input [6:0] I_0,
-    input [6:0] I_1,
-    input [6:0] I_2,
-    input [6:0] I_3,
-    input [6:0] I_4,
-    input [6:0] I_5,
-    input [6:0] I_6,
-    input [6:0] I_7,
-    output [6:0] O_0,
-    output [6:0] O_1,
-    output [6:0] O_2,
-    output [6:0] O_3,
-    output [6:0] O_4,
-    output [6:0] O_5,
-    output [6:0] O_6,
-    output [6:0] O_7
+    input [6:0] I [7:0],
+    output [6:0] O [7:0],
+    input CLK
 );
+wire reg_P_inst0_clk;
+wire [55:0] reg_P_inst0_in;
 wire [55:0] reg_P_inst0_out;
+assign reg_P_inst0_clk = CLK;
+assign reg_P_inst0_in = {I[7][6:0],I[6][6:0],I[5][6:0],I[4][6:0],I[3][6:0],I[2][6:0],I[1][6:0],I[0][6:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(56'h00000000000000),
     .width(56)
 ) reg_P_inst0 (
-    .clk(CLK),
-    .in({I_7[6:0],I_6[6:0],I_5[6:0],I_4[6:0],I_3[6:0],I_2[6:0],I_1[6:0],I_0[6:0]}),
+    .clk(reg_P_inst0_clk),
+    .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
-assign O_0 = reg_P_inst0_out[6:0];
-assign O_1 = reg_P_inst0_out[13:7];
-assign O_2 = reg_P_inst0_out[20:14];
-assign O_3 = reg_P_inst0_out[27:21];
-assign O_4 = reg_P_inst0_out[34:28];
-assign O_5 = reg_P_inst0_out[41:35];
-assign O_6 = reg_P_inst0_out[48:42];
-assign O_7 = reg_P_inst0_out[55:49];
+assign O = '{reg_P_inst0_out[55:49],reg_P_inst0_out[48:42],reg_P_inst0_out[41:35],reg_P_inst0_out[34:28],reg_P_inst0_out[27:21],reg_P_inst0_out[20:14],reg_P_inst0_out[13:7],reg_P_inst0_out[6:0]};
 endmodule
 
 module Mux8xOutBits7 (
@@ -108,75 +95,93 @@ assign O = coreir_commonlib_mux8x7_inst0_out;
 endmodule
 
 module Test2 (
-    input CLK,
-    input [6:0] I_0,
-    input [6:0] I_1,
-    input [6:0] I_2,
-    input [6:0] I_3,
-    input [6:0] I_4,
-    input [6:0] I_5,
-    input [6:0] I_6,
-    input [6:0] I_7,
-    output [6:0] O_0,
-    output [6:0] O_1,
-    input [2:0] index
+    input [6:0] I [7:0],
+    input [2:0] index,
+    output [6:0] O [1:0],
+    input CLK
 );
-wire [6:0] Register_inst0_O_0;
-wire [6:0] Register_inst0_O_1;
-wire [6:0] Register_inst0_O_2;
-wire [6:0] Register_inst0_O_3;
-wire [6:0] Register_inst0_O_4;
-wire [6:0] Register_inst0_O_5;
-wire [6:0] Register_inst0_O_6;
-wire [6:0] Register_inst0_O_7;
+wire [6:0] Mux8xOutBits7_inst0_I0;
+wire [6:0] Mux8xOutBits7_inst0_I1;
+wire [6:0] Mux8xOutBits7_inst0_I2;
+wire [6:0] Mux8xOutBits7_inst0_I3;
+wire [6:0] Mux8xOutBits7_inst0_I4;
+wire [6:0] Mux8xOutBits7_inst0_I5;
+wire [6:0] Mux8xOutBits7_inst0_I6;
+wire [6:0] Mux8xOutBits7_inst0_I7;
+wire [2:0] Mux8xOutBits7_inst0_S;
+wire [6:0] Mux8xOutBits7_inst0_O;
+wire [6:0] Mux8xOutBits7_inst1_I0;
+wire [6:0] Mux8xOutBits7_inst1_I1;
+wire [6:0] Mux8xOutBits7_inst1_I2;
+wire [6:0] Mux8xOutBits7_inst1_I3;
+wire [6:0] Mux8xOutBits7_inst1_I4;
+wire [6:0] Mux8xOutBits7_inst1_I5;
+wire [6:0] Mux8xOutBits7_inst1_I6;
+wire [6:0] Mux8xOutBits7_inst1_I7;
+wire [2:0] Mux8xOutBits7_inst1_S;
+wire [6:0] Mux8xOutBits7_inst1_O;
+wire [6:0] Register_inst0_I [7:0];
+wire [6:0] Register_inst0_O [7:0];
+wire Register_inst0_CLK;
+wire [2:0] Register_inst1_I;
 wire [2:0] Register_inst1_O;
+wire Register_inst1_CLK;
+assign Mux8xOutBits7_inst0_I0 = Register_inst0_O[0];
+assign Mux8xOutBits7_inst0_I1 = Register_inst0_O[1];
+assign Mux8xOutBits7_inst0_I2 = Register_inst0_O[2];
+assign Mux8xOutBits7_inst0_I3 = Register_inst0_O[3];
+assign Mux8xOutBits7_inst0_I4 = Register_inst0_O[4];
+assign Mux8xOutBits7_inst0_I5 = Register_inst0_O[5];
+assign Mux8xOutBits7_inst0_I6 = Register_inst0_O[6];
+assign Mux8xOutBits7_inst0_I7 = Register_inst0_O[7];
+assign Mux8xOutBits7_inst0_S = index;
 Mux8xOutBits7 Mux8xOutBits7_inst0 (
-    .I0(Register_inst0_O_0),
-    .I1(Register_inst0_O_1),
-    .I2(Register_inst0_O_2),
-    .I3(Register_inst0_O_3),
-    .I4(Register_inst0_O_4),
-    .I5(Register_inst0_O_5),
-    .I6(Register_inst0_O_6),
-    .I7(Register_inst0_O_7),
-    .S(index),
-    .O(O_0)
+    .I0(Mux8xOutBits7_inst0_I0),
+    .I1(Mux8xOutBits7_inst0_I1),
+    .I2(Mux8xOutBits7_inst0_I2),
+    .I3(Mux8xOutBits7_inst0_I3),
+    .I4(Mux8xOutBits7_inst0_I4),
+    .I5(Mux8xOutBits7_inst0_I5),
+    .I6(Mux8xOutBits7_inst0_I6),
+    .I7(Mux8xOutBits7_inst0_I7),
+    .S(Mux8xOutBits7_inst0_S),
+    .O(Mux8xOutBits7_inst0_O)
 );
+assign Mux8xOutBits7_inst1_I0 = Register_inst0_O[0];
+assign Mux8xOutBits7_inst1_I1 = Register_inst0_O[1];
+assign Mux8xOutBits7_inst1_I2 = Register_inst0_O[2];
+assign Mux8xOutBits7_inst1_I3 = Register_inst0_O[3];
+assign Mux8xOutBits7_inst1_I4 = Register_inst0_O[4];
+assign Mux8xOutBits7_inst1_I5 = Register_inst0_O[5];
+assign Mux8xOutBits7_inst1_I6 = Register_inst0_O[6];
+assign Mux8xOutBits7_inst1_I7 = Register_inst0_O[7];
+assign Mux8xOutBits7_inst1_S = Register_inst1_O;
 Mux8xOutBits7 Mux8xOutBits7_inst1 (
-    .I0(Register_inst0_O_0),
-    .I1(Register_inst0_O_1),
-    .I2(Register_inst0_O_2),
-    .I3(Register_inst0_O_3),
-    .I4(Register_inst0_O_4),
-    .I5(Register_inst0_O_5),
-    .I6(Register_inst0_O_6),
-    .I7(Register_inst0_O_7),
-    .S(Register_inst1_O),
-    .O(O_1)
+    .I0(Mux8xOutBits7_inst1_I0),
+    .I1(Mux8xOutBits7_inst1_I1),
+    .I2(Mux8xOutBits7_inst1_I2),
+    .I3(Mux8xOutBits7_inst1_I3),
+    .I4(Mux8xOutBits7_inst1_I4),
+    .I5(Mux8xOutBits7_inst1_I5),
+    .I6(Mux8xOutBits7_inst1_I6),
+    .I7(Mux8xOutBits7_inst1_I7),
+    .S(Mux8xOutBits7_inst1_S),
+    .O(Mux8xOutBits7_inst1_O)
 );
+assign Register_inst0_I = '{I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
+assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
-    .CLK(CLK),
-    .I_0(I_0),
-    .I_1(I_1),
-    .I_2(I_2),
-    .I_3(I_3),
-    .I_4(I_4),
-    .I_5(I_5),
-    .I_6(I_6),
-    .I_7(I_7),
-    .O_0(Register_inst0_O_0),
-    .O_1(Register_inst0_O_1),
-    .O_2(Register_inst0_O_2),
-    .O_3(Register_inst0_O_3),
-    .O_4(Register_inst0_O_4),
-    .O_5(Register_inst0_O_5),
-    .O_6(Register_inst0_O_6),
-    .O_7(Register_inst0_O_7)
+    .I(Register_inst0_I),
+    .O(Register_inst0_O),
+    .CLK(Register_inst0_CLK)
 );
+assign Register_inst1_I = index;
+assign Register_inst1_CLK = CLK;
 Register_unq1 Register_inst1 (
-    .I(index),
+    .I(Register_inst1_I),
     .O(Register_inst1_O),
-    .CLK(CLK)
+    .CLK(Register_inst1_CLK)
 );
+assign O = '{Mux8xOutBits7_inst1_O,Mux8xOutBits7_inst0_O};
 endmodule
 

@@ -67,9 +67,17 @@ module Bar_comb (
 wire bit_const_0_None_out;
 wire [7:0] const_1_8_out;
 wire [7:0] const_2_8_out;
+wire [7:0] magma_Bits_8_or_inst0_in0;
+wire [7:0] magma_Bits_8_or_inst0_in1;
 wire [7:0] magma_Bits_8_or_inst0_out;
+wire [7:0] magma_Bits_8_or_inst1_in0;
+wire [7:0] magma_Bits_8_or_inst1_in1;
 wire [7:0] magma_Bits_8_or_inst1_out;
+wire [7:0] magma_Bits_8_shl_inst0_in0;
+wire [7:0] magma_Bits_8_shl_inst0_in1;
 wire [7:0] magma_Bits_8_shl_inst0_out;
+wire [7:0] magma_Bits_8_shl_inst1_in0;
+wire [7:0] magma_Bits_8_shl_inst1_in1;
 wire [7:0] magma_Bits_8_shl_inst1_out;
 corebit_const #(
     .value(1'b0)
@@ -88,32 +96,40 @@ coreir_const #(
 ) const_2_8 (
     .out(const_2_8_out)
 );
+assign magma_Bits_8_or_inst0_in0 = magma_Bits_8_shl_inst0_out;
+assign magma_Bits_8_or_inst0_in1 = magma_Bits_8_shl_inst1_out;
 coreir_or #(
     .width(8)
 ) magma_Bits_8_or_inst0 (
-    .in0(magma_Bits_8_shl_inst0_out),
-    .in1(magma_Bits_8_shl_inst1_out),
+    .in0(magma_Bits_8_or_inst0_in0),
+    .in1(magma_Bits_8_or_inst0_in1),
     .out(magma_Bits_8_or_inst0_out)
 );
+assign magma_Bits_8_or_inst1_in0 = magma_Bits_8_or_inst0_out;
+assign magma_Bits_8_or_inst1_in1 = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,foo[0]};
 coreir_or #(
     .width(8)
 ) magma_Bits_8_or_inst1 (
-    .in0(magma_Bits_8_or_inst0_out),
-    .in1({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,foo[0]}),
+    .in0(magma_Bits_8_or_inst1_in0),
+    .in1(magma_Bits_8_or_inst1_in1),
     .out(magma_Bits_8_or_inst1_out)
 );
+assign magma_Bits_8_shl_inst0_in0 = foo;
+assign magma_Bits_8_shl_inst0_in1 = const_2_8_out;
 coreir_shl #(
     .width(8)
 ) magma_Bits_8_shl_inst0 (
-    .in0(foo),
-    .in1(const_2_8_out),
+    .in0(magma_Bits_8_shl_inst0_in0),
+    .in1(magma_Bits_8_shl_inst0_in1),
     .out(magma_Bits_8_shl_inst0_out)
 );
+assign magma_Bits_8_shl_inst1_in0 = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,foo[0]};
+assign magma_Bits_8_shl_inst1_in1 = const_1_8_out;
 coreir_shl #(
     .width(8)
 ) magma_Bits_8_shl_inst1 (
-    .in0({bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,foo[0]}),
-    .in1(const_1_8_out),
+    .in0(magma_Bits_8_shl_inst1_in0),
+    .in1(magma_Bits_8_shl_inst1_in1),
     .out(magma_Bits_8_shl_inst1_out)
 );
 assign O0 = self_reg_O;
@@ -126,24 +142,34 @@ module Bar (
     input ASYNCRESET,
     output [7:0] O
 );
+wire [7:0] Bar_comb_inst0_foo;
+wire [0:0] Bar_comb_inst0_self_reg_O;
 wire [0:0] Bar_comb_inst0_O0;
 wire [7:0] Bar_comb_inst0_O1;
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [0:0] reg_PR_inst0_in;
 wire [0:0] reg_PR_inst0_out;
+assign Bar_comb_inst0_foo = foo;
+assign Bar_comb_inst0_self_reg_O = reg_PR_inst0_out;
 Bar_comb Bar_comb_inst0 (
-    .foo(foo),
-    .self_reg_O(reg_PR_inst0_out),
+    .foo(Bar_comb_inst0_foo),
+    .self_reg_O(Bar_comb_inst0_self_reg_O),
     .O0(Bar_comb_inst0_O0),
     .O1(Bar_comb_inst0_O1)
 );
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = Bar_comb_inst0_O0;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(Bar_comb_inst0_O0),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(reg_PR_inst0_out)
 );
 assign O = Bar_comb_inst0_O1;

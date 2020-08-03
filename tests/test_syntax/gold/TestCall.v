@@ -54,39 +54,57 @@ module TestCall (
     input ASYNCRESET,
     output [2:0] O
 );
+wire [1:0] TestCall_comb_inst0_I;
+wire [1:0] TestCall_comb_inst0_self_x_O;
+wire [2:0] TestCall_comb_inst0_self_y_O;
 wire [1:0] TestCall_comb_inst0_O0;
 wire [2:0] TestCall_comb_inst0_O1;
 wire [2:0] TestCall_comb_inst0_O2;
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [1:0] reg_PR_inst0_in;
 wire [1:0] reg_PR_inst0_out;
+wire reg_PR_inst1_clk;
+wire reg_PR_inst1_arst;
+wire [2:0] reg_PR_inst1_in;
 wire [2:0] reg_PR_inst1_out;
+assign TestCall_comb_inst0_I = I;
+assign TestCall_comb_inst0_self_x_O = reg_PR_inst0_out;
+assign TestCall_comb_inst0_self_y_O = reg_PR_inst1_out;
 TestCall_comb TestCall_comb_inst0 (
-    .I(I),
-    .self_x_O(reg_PR_inst0_out),
-    .self_y_O(reg_PR_inst1_out),
+    .I(TestCall_comb_inst0_I),
+    .self_x_O(TestCall_comb_inst0_self_x_O),
+    .self_y_O(TestCall_comb_inst0_self_y_O),
     .O0(TestCall_comb_inst0_O0),
     .O1(TestCall_comb_inst0_O1),
     .O2(TestCall_comb_inst0_O2)
 );
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = TestCall_comb_inst0_O0;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(2'h0),
     .width(2)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(TestCall_comb_inst0_O0),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(reg_PR_inst0_out)
 );
+assign reg_PR_inst1_clk = CLK;
+assign reg_PR_inst1_arst = ASYNCRESET;
+assign reg_PR_inst1_in = TestCall_comb_inst0_O1;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
 ) reg_PR_inst1 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(TestCall_comb_inst0_O1),
+    .clk(reg_PR_inst1_clk),
+    .arst(reg_PR_inst1_arst),
+    .in(reg_PR_inst1_in),
     .out(reg_PR_inst1_out)
 );
 assign O = TestCall_comb_inst0_O2;

@@ -30,11 +30,11 @@ def test_708(inline):
             return m.namedtuple(a=a)
 
     name = f"test_708_inline_{inline}"
-    with tempfile.TemporaryDirectory() as tempdir:
-        path = f"{tempdir}/{name}"
-        m.compile(path, Test, output="coreir-verilog", inline=inline,
-                  disable_width_cast=True)
-        assert not os.system(
-            f"verilator --lint-only --language 1364-2005 {path}.v"
-        )
-        assert check_files_equal(__file__, f"{path}.v", f"gold/{name}.v")
+    path = f"build/{name}"
+    m.compile(path, Test, output="coreir-verilog", inline=inline,
+              disable_width_cast=True, disable_ndarray=inline is False)
+    verilator_path = os.path.join(os.path.dirname(__file__), path)
+    assert not os.system(
+        f"verilator --lint-only --language 1364-2005 {verilator_path}.v"
+    )
+    assert check_files_equal(__file__, f"{path}.v", f"gold/{name}.v")

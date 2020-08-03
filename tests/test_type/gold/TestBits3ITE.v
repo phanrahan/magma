@@ -42,8 +42,14 @@ module TestITE (
     output [2:0] O
 );
 wire [2:0] const_0_3_out;
+wire magma_Bit_not_inst0_in;
 wire magma_Bit_not_inst0_out;
+wire [2:0] magma_Bits_3_eq_inst0_in0;
+wire [2:0] magma_Bits_3_eq_inst0_in1;
 wire magma_Bits_3_eq_inst0_out;
+wire [2:0] magma_Bits_3_ite_Out_Bits_3_inst0_in0;
+wire [2:0] magma_Bits_3_ite_Out_Bits_3_inst0_in1;
+wire magma_Bits_3_ite_Out_Bits_3_inst0_sel;
 wire [2:0] magma_Bits_3_ite_Out_Bits_3_inst0_out;
 coreir_const #(
     .value(3'h0),
@@ -51,23 +57,29 @@ coreir_const #(
 ) const_0_3 (
     .out(const_0_3_out)
 );
+assign magma_Bit_not_inst0_in = magma_Bits_3_eq_inst0_out;
 corebit_not magma_Bit_not_inst0 (
-    .in(magma_Bits_3_eq_inst0_out),
+    .in(magma_Bit_not_inst0_in),
     .out(magma_Bit_not_inst0_out)
 );
+assign magma_Bits_3_eq_inst0_in0 = S;
+assign magma_Bits_3_eq_inst0_in1 = const_0_3_out;
 coreir_eq #(
     .width(3)
 ) magma_Bits_3_eq_inst0 (
-    .in0(S),
-    .in1(const_0_3_out),
+    .in0(magma_Bits_3_eq_inst0_in0),
+    .in1(magma_Bits_3_eq_inst0_in1),
     .out(magma_Bits_3_eq_inst0_out)
 );
+assign magma_Bits_3_ite_Out_Bits_3_inst0_in0 = I0;
+assign magma_Bits_3_ite_Out_Bits_3_inst0_in1 = I1;
+assign magma_Bits_3_ite_Out_Bits_3_inst0_sel = magma_Bit_not_inst0_out;
 coreir_mux #(
     .width(3)
 ) magma_Bits_3_ite_Out_Bits_3_inst0 (
-    .in0(I0),
-    .in1(I1),
-    .sel(magma_Bit_not_inst0_out),
+    .in0(magma_Bits_3_ite_Out_Bits_3_inst0_in0),
+    .in1(magma_Bits_3_ite_Out_Bits_3_inst0_in1),
+    .sel(magma_Bits_3_ite_Out_Bits_3_inst0_sel),
     .out(magma_Bits_3_ite_Out_Bits_3_inst0_out)
 );
 assign O = magma_Bits_3_ite_Out_Bits_3_inst0_out;
