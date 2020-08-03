@@ -60,7 +60,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xTupleBit_Bits2_Bit (
+module Mux2xTupleBit_Bits2 (
     input I0__0,
     input [1:0] I0__1,
     input I1__0,
@@ -134,28 +134,28 @@ module test_basic_mux_tuple (
     output [1:0] O__1,
     input S
 );
-wire Mux2xTupleBit_Bits2_Bit_inst0_I0__0;
-wire [1:0] Mux2xTupleBit_Bits2_Bit_inst0_I0__1;
-wire Mux2xTupleBit_Bits2_Bit_inst0_I1__0;
-wire [1:0] Mux2xTupleBit_Bits2_Bit_inst0_I1__1;
-wire Mux2xTupleBit_Bits2_Bit_inst0_O__0;
-wire [1:0] Mux2xTupleBit_Bits2_Bit_inst0_O__1;
-wire Mux2xTupleBit_Bits2_Bit_inst0_S;
-assign Mux2xTupleBit_Bits2_Bit_inst0_I0__0 = I_0__0;
-assign Mux2xTupleBit_Bits2_Bit_inst0_I0__1 = I_0__1;
-assign Mux2xTupleBit_Bits2_Bit_inst0_I1__0 = I_1__0;
-assign Mux2xTupleBit_Bits2_Bit_inst0_I1__1 = I_1__1;
-assign Mux2xTupleBit_Bits2_Bit_inst0_S = S;
-Mux2xTupleBit_Bits2_Bit Mux2xTupleBit_Bits2_Bit_inst0 (
-    .I0__0(Mux2xTupleBit_Bits2_Bit_inst0_I0__0),
-    .I0__1(Mux2xTupleBit_Bits2_Bit_inst0_I0__1),
-    .I1__0(Mux2xTupleBit_Bits2_Bit_inst0_I1__0),
-    .I1__1(Mux2xTupleBit_Bits2_Bit_inst0_I1__1),
-    .O__0(Mux2xTupleBit_Bits2_Bit_inst0_O__0),
-    .O__1(Mux2xTupleBit_Bits2_Bit_inst0_O__1),
-    .S(Mux2xTupleBit_Bits2_Bit_inst0_S)
+wire Mux2xTupleBit_Bits2_inst0_I0__0;
+wire [1:0] Mux2xTupleBit_Bits2_inst0_I0__1;
+wire Mux2xTupleBit_Bits2_inst0_I1__0;
+wire [1:0] Mux2xTupleBit_Bits2_inst0_I1__1;
+wire Mux2xTupleBit_Bits2_inst0_O__0;
+wire [1:0] Mux2xTupleBit_Bits2_inst0_O__1;
+wire Mux2xTupleBit_Bits2_inst0_S;
+assign Mux2xTupleBit_Bits2_inst0_I0__0 = I_0__0;
+assign Mux2xTupleBit_Bits2_inst0_I0__1 = I_0__1;
+assign Mux2xTupleBit_Bits2_inst0_I1__0 = I_1__0;
+assign Mux2xTupleBit_Bits2_inst0_I1__1 = I_1__1;
+assign Mux2xTupleBit_Bits2_inst0_S = S;
+Mux2xTupleBit_Bits2 Mux2xTupleBit_Bits2_inst0 (
+    .I0__0(Mux2xTupleBit_Bits2_inst0_I0__0),
+    .I0__1(Mux2xTupleBit_Bits2_inst0_I0__1),
+    .I1__0(Mux2xTupleBit_Bits2_inst0_I1__0),
+    .I1__1(Mux2xTupleBit_Bits2_inst0_I1__1),
+    .O__0(Mux2xTupleBit_Bits2_inst0_O__0),
+    .O__1(Mux2xTupleBit_Bits2_inst0_O__1),
+    .S(Mux2xTupleBit_Bits2_inst0_S)
 );
-assign O__0 = Mux2xTupleBit_Bits2_Bit_inst0_O__0;
-assign O__1 = Mux2xTupleBit_Bits2_Bit_inst0_O__1;
+assign O__0 = Mux2xTupleBit_Bits2_inst0_O__0;
+assign O__1 = Mux2xTupleBit_Bits2_inst0_O__1;
 endmodule
 
