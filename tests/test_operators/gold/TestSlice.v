@@ -21,8 +21,7 @@ module coreir_mux #(
 endmodule
 
 module commonlib_muxn__N2__width6 (
-    input [5:0] in_data_0,
-    input [5:0] in_data_1,
+    input [1:0][5:0] in_data,
     input [0:0] in_sel,
     output [5:0] out
 );
@@ -30,8 +29,8 @@ wire [5:0] _join_out;
 coreir_mux #(
     .width(6)
 ) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
     .sel(in_sel[0]),
     .out(_join_out)
 );
@@ -39,10 +38,7 @@ assign out = _join_out;
 endmodule
 
 module commonlib_muxn__N4__width6 (
-    input [5:0] in_data_0,
-    input [5:0] in_data_1,
-    input [5:0] in_data_2,
-    input [5:0] in_data_3,
+    input [3:0][5:0] in_data,
     input [1:0] in_sel,
     output [5:0] out
 );
@@ -60,14 +56,12 @@ coreir_mux #(
     .out(_join_out)
 );
 commonlib_muxn__N2__width6 muxN_0 (
-    .in_data_0(in_data_0),
-    .in_data_1(in_data_1),
+    .in_data({in_data[1],in_data[0]}),
     .in_sel(sel_slice0_out),
     .out(muxN_0_out)
 );
 commonlib_muxn__N2__width6 muxN_1 (
-    .in_data_0(in_data_2),
-    .in_data_1(in_data_3),
+    .in_data({in_data[3],in_data[2]}),
     .in_sel(sel_slice1_out),
     .out(muxN_1_out)
 );
@@ -100,10 +94,7 @@ module Mux4xOutBits6 (
 );
 wire [5:0] coreir_commonlib_mux4x6_inst0_out;
 commonlib_muxn__N4__width6 coreir_commonlib_mux4x6_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
-    .in_data_2(I2),
-    .in_data_3(I3),
+    .in_data({I3,I2,I1,I0}),
     .in_sel(S),
     .out(coreir_commonlib_mux4x6_inst0_out)
 );

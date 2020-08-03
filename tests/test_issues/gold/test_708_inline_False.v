@@ -47,8 +47,7 @@ module coreir_add #(
 endmodule
 
 module commonlib_muxn__N2__width8 (
-    input [7:0] in_data_0,
-    input [7:0] in_data_1,
+    input [1:0][7:0] in_data,
     input [0:0] in_sel,
     output [7:0] out
 );
@@ -56,8 +55,8 @@ wire [7:0] _join_out;
 coreir_mux #(
     .width(8)
 ) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
     .sel(in_sel[0]),
     .out(_join_out)
 );
@@ -72,8 +71,7 @@ module Mux2xTuplex_OutUInt8 (
 );
 wire [7:0] coreir_commonlib_mux2x8_inst0_out;
 commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
-    .in_data_0(I0_x),
-    .in_data_1(I1_x),
+    .in_data({I1_x,I0_x}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x8_inst0_out)
 );

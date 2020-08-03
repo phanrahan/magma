@@ -10,8 +10,7 @@ module coreir_mux #(
 endmodule
 
 module commonlib_muxn__N2__width1 (
-    input [0:0] in_data_0,
-    input [0:0] in_data_1,
+    input [0:0] in_data [1:0],
     input [0:0] in_sel,
     output [0:0] out
 );
@@ -19,8 +18,8 @@ wire [0:0] _join_out;
 coreir_mux #(
     .width(1)
 ) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
     .sel(in_sel[0]),
     .out(_join_out)
 );
@@ -35,8 +34,7 @@ module Mux2xOutBits1 (
 );
 wire [0:0] coreir_commonlib_mux2x1_inst0_out;
 commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
-    .in_data_0(I0),
-    .in_data_1(I1),
+    .in_data({I1,I0}),
     .in_sel(S),
     .out(coreir_commonlib_mux2x1_inst0_out)
 );
