@@ -80,8 +80,9 @@ def mux(I: list, S, **kwargs):
         This operator will traverse the list of inputs I and use the first
         magma value to determine the type.  This allows I to contain coerceable
         objects like ints (e.g. `mux([1, x], s)` where `x: UInt[2]`).  Coercion
-        is peformed by doing `T(arg)` for all other arguments (where `T` is the
-        type of the first magma value).
+        is peformed when wiring the arguments to the input of an instance of
+        Mux(T) (where T is the type of the first magma value) and will raise an
+        error there if one of the values cannot be coerced to T.
         **NOTE** This will fail if the type of the first magma value cannot
         coerce subsequent arguments (even though the type of a later argument
         might be able to coerce the type of the earliest argument).  We plan to
@@ -101,9 +102,6 @@ def mux(I: list, S, **kwargs):
     else:
         raise TypeError("Cannot use m.mux with non-magma types (need at least "
                         "one to infer type)")
-
-    # do coercion based on T
-    I = [T(arg) if not isinstance(arg, T) else arg for arg in I]
     return Mux(len(I), T, **kwargs)()(*I, S)
 
 
