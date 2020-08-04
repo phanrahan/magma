@@ -74,12 +74,34 @@ def _dynamic_mux_select(this, key):
 Array.dynamic_mux_select = _dynamic_mux_select
 
 
-def mux(I, S, **kwargs):
+def mux(I: list, S, **kwargs):
+    """
+    How type inference works on I:
+        This operator will traverse the list of inputs I and use the first
+        magma value to determine the type.  This allows I to contain coerceable
+        objects like ints (e.g. `mux([1, x], s)` where `x: UInt[2]`).  Coercion
+        is peformed when wiring the arguments to the input of an instance of
+        Mux(T) (where T is the type of the first magma value) and will raise an
+        error there if one of the values cannot be coerced to T.
+        **NOTE** This will fail if the type of the first magma value cannot
+        coerce subsequent arguments (even though the type of a later argument
+        might be able to coerce the type of the earliest argument).  We plan to
+        improve the algorithm to support the more general cases, but until
+        then, if you run into this problem, use `Mux(T)` where `T` can coerce
+        all arguments.
+    """
     if isinstance(S, Type) and S.const():
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
-    T = type(I[0])
+    # get first magma arg for type introspection
+    for arg in I:
+        if isinstance(arg, (Type, MagmaProtocol)):
+            T = type(arg)
+            break
+    else:
+        raise TypeError("Cannot use m.mux with non-magma types (need at least "
+                        "one to infer type)")
     return Mux(len(I), T, **kwargs)()(*I, S)
 
 
