@@ -115,6 +115,14 @@ class TupleKind(TupleMeta, Kind):
     def N(cls):
         return len(cls)
 
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        s = "Tuple("
+        s += ",".join(str(T) for T in cls.fields)
+        s += ")"
+        return s
+
 
 class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):

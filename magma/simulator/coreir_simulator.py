@@ -160,7 +160,7 @@ class CoreIRSimulator(CircuitSimulator):
         self.ctx.get_lib("commonlib")
         self.ctx.enable_symbol_table()
         coreir_circuit = self.ctx.load_from_file(coreir_filename)
-        self.ctx.run_passes(["rungenerators", "wireclocks-coreir", "verifyconnectivity --noclkrst",
+        self.ctx.run_passes(["rungenerators", "wireclocks-clk", "verifyconnectivity --noclkrst",
                              "flattentypes", "flatten", "verifyconnectivity --noclkrst", "deletedeadinstances"],
                             namespaces=namespaces)
         self.simulator_state = coreir.SimulatorState.make(coreir_circuit)
