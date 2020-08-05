@@ -48,6 +48,10 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     def resolve(self, context):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def eval(self):
+        raise NotImplementedError()
+
     # Binary arithmetic operators.
     def __add__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
@@ -169,6 +173,9 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
         for arg in self._args:
             arg.resolve(context)
 
+    def _eval_args(self):
+        return [arg.eval() for arg in self._args]
+
     def __str__(self):
         if inspect.isbuiltin(self._op):
             op_str = self._op.__name__
@@ -185,7 +192,7 @@ class _SmartExtendOpExpr(_SmartOpExpr):
             self._width = width
 
         def __call__(self, operand):
-            return operand.zext(self._width)
+            return operand.ext(self._width)
 
         def __str__(self):
             return f"Extend[{self._width}]"
@@ -194,14 +201,20 @@ class _SmartExtendOpExpr(_SmartOpExpr):
         extend = _SmartExtendOpExpr._ExtendOp(width)
         super().__init__(extend, operand)
 
+    def eval(self):
+        args = self._eval_args()
+        return self.op(*args)
+
 
 def _extend_if_needed(expr, to_width):
     diff = expr._width_ - to_width
     assert diff <= 0
     if diff == 0:
         return expr
+    signed = expr._signed_
     expr = _SmartExtendOpExpr(-diff, expr)
     expr._width_ = to_width
+    expr._signed_ = signed
     return expr
 
 
@@ -236,6 +249,12 @@ class _SmartReductionOpExpr(_SmartOpExpr):
         context = Context(None, self)
         self._resolve_args(context)
         self._width_ = 1
+        self._signed_ = all(arg._signed_ for arg in self._args)
+
+    def eval(self):
+        args = self._eval_args()
+        fn = sint if self._signed_ else uint
+        return fn(self.op(*args))
 
 
 class _SmartNAryContextualOpExr(_SmartOpExpr):
@@ -248,6 +267,15 @@ class _SmartNAryContextualOpExr(_SmartOpExpr):
         args = (_extend_if_needed(arg, to_width) for arg in self._args)
         self._update(*args)
         self._width_ = to_width
+        self._signed_ = all(arg._signed_ for arg in self._args)
+
+    def eval(self):
+        args = self._eval_args()
+        if self._signed_:
+            args = (sint(arg) for arg in args)
+        else:
+            args = (uint(arg) for arg in args)
+        return self.op(*args)
 
 
 class _SmartBinaryOpExpr(_SmartNAryContextualOpExr):
@@ -271,6 +299,15 @@ class _SmartComparisonOpExpr(_SmartOpExpr):
         args = (_extend_if_needed(arg, to_width) for arg in self._args)
         self._update(*args)
         self._width_ = 1
+        self._signed_ = False
+
+    def eval(self):
+        args = self._eval_args()
+        if self._signed_:
+            args = (sint(arg) for arg in args)
+        else:
+            args = (uint(arg) for arg in args)
+        return uint(self.op(*args))
 
 
 class _SmartShiftOpExpr(_SmartOpExpr):
@@ -286,6 +323,15 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         args = (_extend_if_needed(arg, to_width) for arg in self._args)
         self._update(*args)
         self._width_ = to_width
+        self._signed_ = all(arg._signed_ for arg in self._args)
+
+    def eval(self):
+        args = self._eval_args()
+        if self._signed_:
+            args = (sint(arg) for arg in args)
+        else:
+            args = (uint(arg) for arg in args)
+        return self.op(*args)
 
 
 class _SmartConcatOpExpr(_SmartOpExpr):
@@ -305,6 +351,12 @@ class _SmartConcatOpExpr(_SmartOpExpr):
         context = Context(None, self)
         self._resolve_args(context)
         self._width_ = sum(arg._width_ for arg in self._args)
+        self._signed_ = False
+
+    def eval(self):
+        args = self._eval_args()
+        args = [uint(arg) for arg in args]
+        return uint(self.op(*args))
 
 
 def concat(*args):
@@ -325,6 +377,10 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
 
     def resolve(self, context):
         self._width_ = len(self._bits)
+        self._signed_ = type(self._bits)._signed
+
+    def eval(self):
+        return self._bits.typed_value()
 
 
 class _SmartBitsMeta(_SmartExprMeta):
@@ -429,14 +485,5 @@ def _eval(lhs, rhs):
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
 
-    def __eval(node):
-        if isinstance(node, _SmartBitsExpr):
-            return node
-        if isinstance(node, _SmartOpExpr):
-            args = (__eval(arg) for arg in node.args)
-            args = (arg.bits.typed_value() for arg in args)
-            raw = node.op(*args)
-            return SmartBits.make(bits(raw))
-        raise NotImplementedError(node)
-
-    return __eval(rhs)
+    res = rhs.eval()
+    return SmartBits.make(res)
