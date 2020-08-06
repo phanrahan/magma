@@ -303,10 +303,9 @@ class _SmartComparisonOpExpr(_SmartOpExpr):
 
     def eval(self):
         args = self._eval_args()
-        if self._signed_:
-            args = (sint(arg) for arg in args)
-        else:
-            args = (uint(arg) for arg in args)
+        signed_args = all(arg._signed_ for arg in self._args)
+        fn = sint if signed_args else uint
+        args = (fn(arg) for arg in args)
         return uint(self.op(*args))
 
 
@@ -362,6 +361,42 @@ class _SmartConcatOpExpr(_SmartOpExpr):
 def concat(*args):
     if not isinstance(other, _SmartExpr):
         return NotImplemented
+
+
+class _SmartSignedOpExpr(_SmartOpExpr):
+
+    class _SignedOp:
+        def __init__(self, signed):
+            self._signed = signed
+
+        @property
+        def signed(self):
+            return self._signed
+
+        def __str__(self):
+            return "Signed" if self._signed else "Unsigned"
+
+    def __init__(self, signed, operand):
+        signed = _SmartSignedOpExpr._SignedOp(signed)
+        super().__init__(signed, operand)
+
+    def resolve(self, context):
+        self._resolve_args(context)
+        self._width_ = self._args[0]._width_
+        self._signed_ = self._op.signed
+
+    def eval(self):
+        args = self._eval_args()
+        fn = sint if self._signed_ else uint
+        return fn(args[0])
+
+
+def signed(expr):
+    return _SmartSignedOpExpr(True, expr)
+
+
+def unsigned(expr):
+    return _SmartSignedOpExpr(False, expr)
 
 
 class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
