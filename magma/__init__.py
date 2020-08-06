@@ -44,8 +44,6 @@ from .conversions import *
 from .interface import *
 from .ref import LazyDefnRef, LazyInstRef
 
-from magma.smart.smart_bits import SmartBit, SmartBits
-
 # circuit
 from .circuit import *
 

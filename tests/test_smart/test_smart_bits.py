@@ -1,3 +1,4 @@
+from magma.smart import SmartBit, SmartBits, signed
 import magma as m
 import operator
 
@@ -6,16 +7,16 @@ def test_circuit():
 
     class _Foo(m.Circuit):
         io = m.IO(
-            I0=m.In(m.SmartBits[7]),
-            I1=m.In(m.SmartBits[9, True]),
-            I2=m.In(m.SmartBits[12, True]),
-            O=m.Out(m.SmartBits[10]),
-            O2=m.Out(m.SmartBits[7]),
-            O3=m.Out(m.SmartBit),
+            I0=m.In(SmartBits[7]),
+            I1=m.In(SmartBits[9, True]),
+            I2=m.In(SmartBits[12, True]),
+            O=m.Out(SmartBits[10]),
+            O2=m.Out(SmartBits[7]),
+            O3=m.Out(SmartBit),
         )
 
         x = (~(io.I0 + io.I1) + io.I2) << io.I0.reduce(operator.and_)
-        y = (io.I1 <= io.I2) + io.I0
+        y = signed(io.I1 <= io.I2) + signed(io.I0)
 
         print ()
         print ("=======================")
@@ -28,20 +29,20 @@ def test_circuit():
         io.O2 @= y
         io.O3 @= io.I0
 
-    print (repr(_Foo))
+    #print (repr(_Foo))
 
     m.compile("Foo", _Foo, output="coreir-verilog", inline=True)
 
 
 def test_basic():
     def x_():
-        return m.SmartBits[10]()
+        return SmartBits[10]()
 
     def y_():
-        return m.SmartBits[16]()
+        return SmartBits[16]()
 
     def z_():
-        return m.SmartBit()
+        return SmartBit()
 
     class Foo(m.Circuit):
 
