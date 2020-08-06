@@ -73,14 +73,16 @@ coreir_mux #(
     .sel(_join_sel),
     .out(_join_out)
 );
-assign muxN_0_in_data = '{in_data[1],in_data[0]};
+assign muxN_0_in_data[1] = in_data[1];
+assign muxN_0_in_data[0] = in_data[0];
 assign muxN_0_in_sel = sel_slice0_out;
 commonlib_muxn__N2__width6 muxN_0 (
     .in_data(muxN_0_in_data),
     .in_sel(muxN_0_in_sel),
     .out(muxN_0_out)
 );
-assign muxN_1_in_data = '{in_data[3],in_data[2]};
+assign muxN_1_in_data[1] = in_data[3];
+assign muxN_1_in_data[0] = in_data[2];
 assign muxN_1_in_sel = sel_slice1_out;
 commonlib_muxn__N2__width6 muxN_1 (
     .in_data(muxN_1_in_data),
@@ -119,7 +121,10 @@ module Mux4xOutBits6 (
 wire [5:0] coreir_commonlib_mux4x6_inst0_in_data [3:0];
 wire [1:0] coreir_commonlib_mux4x6_inst0_in_sel;
 wire [5:0] coreir_commonlib_mux4x6_inst0_out;
-assign coreir_commonlib_mux4x6_inst0_in_data = '{I3,I2,I1,I0};
+assign coreir_commonlib_mux4x6_inst0_in_data[3] = I3;
+assign coreir_commonlib_mux4x6_inst0_in_data[2] = I2;
+assign coreir_commonlib_mux4x6_inst0_in_data[1] = I1;
+assign coreir_commonlib_mux4x6_inst0_in_data[0] = I0;
 assign coreir_commonlib_mux4x6_inst0_in_sel = S;
 commonlib_muxn__N4__width6 coreir_commonlib_mux4x6_inst0 (
     .in_data(coreir_commonlib_mux4x6_inst0_in_data),

@@ -82,7 +82,7 @@ wire [0:0] coreir_commonlib_mux2x8_inst0_in_sel;
 wire [7:0] coreir_commonlib_mux2x8_inst0_out;
 assign coreir_commonlib_mux2x8_inst0_in_data_0 = I0_x;
 assign coreir_commonlib_mux2x8_inst0_in_data_1 = I1_x;
-assign coreir_commonlib_mux2x8_inst0_in_sel = S;
+assign coreir_commonlib_mux2x8_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
     .in_data_0(coreir_commonlib_mux2x8_inst0_in_data_0),
     .in_data_1(coreir_commonlib_mux2x8_inst0_in_data_1),
