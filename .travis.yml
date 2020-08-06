@@ -21,6 +21,7 @@ install:
 # End install conda
 - pip install twine
 - pip install python-coveralls
+- pip install -e git://github.com/leonardt/fault.git@ndarray#egg=fault
 - pip install pytest-cov pytest-codestyle fault
 - pip install -e .
 script:
