@@ -1,6 +1,147 @@
-from magma.smart import SmartBit, SmartBits, signed
 import magma as m
+from magma.smart import SmartBit, SmartBits, concat
+from magma.testing import check_files_equal
+from functools import wraps, partial
 import operator
+
+
+def _run_test(func=None, *, info=None):
+    if func is None:
+        return partial(_run_test, info=info)
+
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        name = func.__name__
+        ckt = func(*args, **kwargs)
+        m.compile(f"build/{name}", ckt, output="coreir-verilog", inline=True)
+        build = f"build/{name}.v"
+        gold = f"gold/{name}.v"
+        assert check_files_equal(__file__, build, gold)
+
+    return _wrapper
+
+
+@_run_test
+def test_binop():
+    # Ops can be add, sub, mul, div, mod, and, or, xor.
+    op = operator.add
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[12]),
+            O1=m.Out(SmartBits[8]),
+            O2=m.Out(SmartBits[12]),
+            O3=m.Out(SmartBits[16]))
+        val = op(io.I0, io.I1)
+        io.O1 @= val
+        io.O2 @= val
+        io.O3 @= val
+
+    return _Test
+
+
+@_run_test
+def test_comparison():
+    # Ops can be eq, ne, ge, gt, le, lt.
+    op = operator.eq
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[12]),
+            O1=m.Out(SmartBits[1]),
+            O2=m.Out(SmartBits[16]))
+        val = op(io.I0, io.I1)
+        io.O1 @= val
+        io.O2 @= val
+
+    return _Test
+
+
+@_run_test
+def test_lshift():
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[4]),
+            O1=m.Out(SmartBits[8]),
+            O2=m.Out(SmartBits[16]))
+        val = io.I0 << io.I1
+        io.O1 @= val
+        io.O2 @= val
+
+    return _Test
+
+
+@_run_test
+def test_rshift():
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[4]),
+            O1=m.Out(SmartBits[4]),
+            O2=m.Out(SmartBits[8]),
+            O3=m.Out(SmartBits[16]))
+        val = io.I0 >> io.I1
+        io.O1 @= val
+        io.O2 @= val
+        io.O3 @= val
+
+    return _Test
+
+
+@_run_test
+def test_concat():
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[4]),
+            I2=m.In(SmartBits[10]),
+            O1=m.Out(SmartBits[4]),
+            O2=m.Out(SmartBits[16]))
+        val = concat(io.I0 + io.I1, io.I2)
+        io.O1 @= val
+        io.O2 @= val
+
+    return _Test
+
+
+@_run_test
+def test_unary():
+    # Ops can be invert, neg.
+    op = operator.invert
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            O1=m.Out(SmartBits[4]),
+            O2=m.Out(SmartBits[16]))
+        val = op(io.I0)
+        io.O1 @= val
+        io.O2 @= val
+
+    return _Test
+
+
+@_run_test
+def test_reduction():
+    # Ops can be and, or, xor.
+    op = operator.and_
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            O1=m.Out(SmartBits[1]),
+            O2=m.Out(SmartBits[16]))
+        val = io.I0.reduce(op)
+        io.O1 @= val
+        io.O2 @= val
+
+    return _Test
 
 
 def test_circuit():
