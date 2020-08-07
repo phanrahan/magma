@@ -1,0 +1,261 @@
+module Mux2xArray3_Array2_OutBit (
+    input [1:0] I0 [2:0],
+    input [1:0] I1 [2:0],
+    input S,
+    output [1:0] O [2:0]
+);
+reg [5:0] coreir_commonlib_mux2x6_inst0_out;
+always @(*) begin
+if (S == 0) begin
+    coreir_commonlib_mux2x6_inst0_out = {I0[2][1:0],I0[1][1:0],I0[0][1:0]};
+end else begin
+    coreir_commonlib_mux2x6_inst0_out = {I1[2][1:0],I1[1][1:0],I1[0][1:0]};
+end
+end
+
+assign O[2] = coreir_commonlib_mux2x6_inst0_out[5:4];
+assign O[1] = coreir_commonlib_mux2x6_inst0_out[3:2];
+assign O[0] = coreir_commonlib_mux2x6_inst0_out[1:0];
+endmodule
+
+module Main (
+    input [1:0] I [1:0][2:0],
+    input [1:0] x,
+    output [1:0] O [5:0][2:0]
+);
+wire [1:0] Mux2xArray3_Array2_OutBit_inst0_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst0_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst0_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst0_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst1_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst1_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst1_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst1_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst10_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst10_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst10_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst10_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst11_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst11_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst11_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst11_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst2_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst2_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst2_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst2_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst3_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst3_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst3_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst3_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst4_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst4_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst4_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst4_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst5_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst5_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst5_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst5_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst6_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst6_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst6_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst6_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst7_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst7_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst7_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst7_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst8_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst8_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst8_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst8_O [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst9_I0 [2:0];
+wire [1:0] Mux2xArray3_Array2_OutBit_inst9_I1 [2:0];
+wire Mux2xArray3_Array2_OutBit_inst9_S;
+wire [1:0] Mux2xArray3_Array2_OutBit_inst9_O [2:0];
+wire [2:0] magma_Bits_3_sub_inst0_out;
+wire [2:0] magma_Bits_3_sub_inst10_out;
+wire [2:0] magma_Bits_3_sub_inst2_out;
+wire [2:0] magma_Bits_3_sub_inst4_out;
+wire [2:0] magma_Bits_3_sub_inst6_out;
+wire [2:0] magma_Bits_3_sub_inst8_out;
+assign Mux2xArray3_Array2_OutBit_inst0_I0[2] = I[0][2];
+assign Mux2xArray3_Array2_OutBit_inst0_I0[1] = I[0][1];
+assign Mux2xArray3_Array2_OutBit_inst0_I0[0] = I[0][0];
+assign Mux2xArray3_Array2_OutBit_inst0_I1[2] = I[1][2];
+assign Mux2xArray3_Array2_OutBit_inst0_I1[1] = I[1][1];
+assign Mux2xArray3_Array2_OutBit_inst0_I1[0] = I[1][0];
+assign Mux2xArray3_Array2_OutBit_inst0_S = magma_Bits_3_sub_inst0_out[0];
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst0 (
+    .I0(Mux2xArray3_Array2_OutBit_inst0_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst0_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst0_S),
+    .O(Mux2xArray3_Array2_OutBit_inst0_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst1_I0[2] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst1_I0[1] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst1_I0[0] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst1_I1[2] = Mux2xArray3_Array2_OutBit_inst0_O[2];
+assign Mux2xArray3_Array2_OutBit_inst1_I1[1] = Mux2xArray3_Array2_OutBit_inst0_O[1];
+assign Mux2xArray3_Array2_OutBit_inst1_I1[0] = Mux2xArray3_Array2_OutBit_inst0_O[0];
+assign Mux2xArray3_Array2_OutBit_inst1_S = 1'b1 & (({1'b0,x[1:0]}) <= 3'h0);
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst1 (
+    .I0(Mux2xArray3_Array2_OutBit_inst1_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst1_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst1_S),
+    .O(Mux2xArray3_Array2_OutBit_inst1_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst10_I0[2] = I[0][2];
+assign Mux2xArray3_Array2_OutBit_inst10_I0[1] = I[0][1];
+assign Mux2xArray3_Array2_OutBit_inst10_I0[0] = I[0][0];
+assign Mux2xArray3_Array2_OutBit_inst10_I1[2] = I[1][2];
+assign Mux2xArray3_Array2_OutBit_inst10_I1[1] = I[1][1];
+assign Mux2xArray3_Array2_OutBit_inst10_I1[0] = I[1][0];
+assign Mux2xArray3_Array2_OutBit_inst10_S = magma_Bits_3_sub_inst10_out[0];
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst10 (
+    .I0(Mux2xArray3_Array2_OutBit_inst10_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst10_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst10_S),
+    .O(Mux2xArray3_Array2_OutBit_inst10_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst11_I0[2] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst11_I0[1] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst11_I0[0] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst11_I1[2] = Mux2xArray3_Array2_OutBit_inst10_O[2];
+assign Mux2xArray3_Array2_OutBit_inst11_I1[1] = Mux2xArray3_Array2_OutBit_inst10_O[1];
+assign Mux2xArray3_Array2_OutBit_inst11_I1[0] = Mux2xArray3_Array2_OutBit_inst10_O[0];
+assign Mux2xArray3_Array2_OutBit_inst11_S = 1'b1 & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h5);
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst11 (
+    .I0(Mux2xArray3_Array2_OutBit_inst11_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst11_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst11_S),
+    .O(Mux2xArray3_Array2_OutBit_inst11_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst2_I0[2] = I[0][2];
+assign Mux2xArray3_Array2_OutBit_inst2_I0[1] = I[0][1];
+assign Mux2xArray3_Array2_OutBit_inst2_I0[0] = I[0][0];
+assign Mux2xArray3_Array2_OutBit_inst2_I1[2] = I[1][2];
+assign Mux2xArray3_Array2_OutBit_inst2_I1[1] = I[1][1];
+assign Mux2xArray3_Array2_OutBit_inst2_I1[0] = I[1][0];
+assign Mux2xArray3_Array2_OutBit_inst2_S = magma_Bits_3_sub_inst2_out[0];
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst2 (
+    .I0(Mux2xArray3_Array2_OutBit_inst2_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst2_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst2_S),
+    .O(Mux2xArray3_Array2_OutBit_inst2_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst3_I0[2] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst3_I0[1] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst3_I0[0] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst3_I1[2] = Mux2xArray3_Array2_OutBit_inst2_O[2];
+assign Mux2xArray3_Array2_OutBit_inst3_I1[1] = Mux2xArray3_Array2_OutBit_inst2_O[1];
+assign Mux2xArray3_Array2_OutBit_inst3_I1[0] = Mux2xArray3_Array2_OutBit_inst2_O[0];
+assign Mux2xArray3_Array2_OutBit_inst3_S = (1'b1 & (({1'b0,x[1:0]}) <= 3'h1)) & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h1);
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst3 (
+    .I0(Mux2xArray3_Array2_OutBit_inst3_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst3_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst3_S),
+    .O(Mux2xArray3_Array2_OutBit_inst3_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst4_I0[2] = I[0][2];
+assign Mux2xArray3_Array2_OutBit_inst4_I0[1] = I[0][1];
+assign Mux2xArray3_Array2_OutBit_inst4_I0[0] = I[0][0];
+assign Mux2xArray3_Array2_OutBit_inst4_I1[2] = I[1][2];
+assign Mux2xArray3_Array2_OutBit_inst4_I1[1] = I[1][1];
+assign Mux2xArray3_Array2_OutBit_inst4_I1[0] = I[1][0];
+assign Mux2xArray3_Array2_OutBit_inst4_S = magma_Bits_3_sub_inst4_out[0];
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst4 (
+    .I0(Mux2xArray3_Array2_OutBit_inst4_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst4_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst4_S),
+    .O(Mux2xArray3_Array2_OutBit_inst4_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst5_I0[2] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst5_I0[1] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst5_I0[0] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst5_I1[2] = Mux2xArray3_Array2_OutBit_inst4_O[2];
+assign Mux2xArray3_Array2_OutBit_inst5_I1[1] = Mux2xArray3_Array2_OutBit_inst4_O[1];
+assign Mux2xArray3_Array2_OutBit_inst5_I1[0] = Mux2xArray3_Array2_OutBit_inst4_O[0];
+assign Mux2xArray3_Array2_OutBit_inst5_S = (1'b1 & (({1'b0,x[1:0]}) <= 3'h2)) & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h2);
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst5 (
+    .I0(Mux2xArray3_Array2_OutBit_inst5_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst5_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst5_S),
+    .O(Mux2xArray3_Array2_OutBit_inst5_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst6_I0[2] = I[0][2];
+assign Mux2xArray3_Array2_OutBit_inst6_I0[1] = I[0][1];
+assign Mux2xArray3_Array2_OutBit_inst6_I0[0] = I[0][0];
+assign Mux2xArray3_Array2_OutBit_inst6_I1[2] = I[1][2];
+assign Mux2xArray3_Array2_OutBit_inst6_I1[1] = I[1][1];
+assign Mux2xArray3_Array2_OutBit_inst6_I1[0] = I[1][0];
+assign Mux2xArray3_Array2_OutBit_inst6_S = magma_Bits_3_sub_inst6_out[0];
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst6 (
+    .I0(Mux2xArray3_Array2_OutBit_inst6_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst6_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst6_S),
+    .O(Mux2xArray3_Array2_OutBit_inst6_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst7_I0[2] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst7_I0[1] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst7_I0[0] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst7_I1[2] = Mux2xArray3_Array2_OutBit_inst6_O[2];
+assign Mux2xArray3_Array2_OutBit_inst7_I1[1] = Mux2xArray3_Array2_OutBit_inst6_O[1];
+assign Mux2xArray3_Array2_OutBit_inst7_I1[0] = Mux2xArray3_Array2_OutBit_inst6_O[0];
+assign Mux2xArray3_Array2_OutBit_inst7_S = 1'b1 & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h3);
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst7 (
+    .I0(Mux2xArray3_Array2_OutBit_inst7_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst7_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst7_S),
+    .O(Mux2xArray3_Array2_OutBit_inst7_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst8_I0[2] = I[0][2];
+assign Mux2xArray3_Array2_OutBit_inst8_I0[1] = I[0][1];
+assign Mux2xArray3_Array2_OutBit_inst8_I0[0] = I[0][0];
+assign Mux2xArray3_Array2_OutBit_inst8_I1[2] = I[1][2];
+assign Mux2xArray3_Array2_OutBit_inst8_I1[1] = I[1][1];
+assign Mux2xArray3_Array2_OutBit_inst8_I1[0] = I[1][0];
+assign Mux2xArray3_Array2_OutBit_inst8_S = magma_Bits_3_sub_inst8_out[0];
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst8 (
+    .I0(Mux2xArray3_Array2_OutBit_inst8_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst8_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst8_S),
+    .O(Mux2xArray3_Array2_OutBit_inst8_O)
+);
+assign Mux2xArray3_Array2_OutBit_inst9_I0[2] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst9_I0[1] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst9_I0[0] = {1'b0,1'b0};
+assign Mux2xArray3_Array2_OutBit_inst9_I1[2] = Mux2xArray3_Array2_OutBit_inst8_O[2];
+assign Mux2xArray3_Array2_OutBit_inst9_I1[1] = Mux2xArray3_Array2_OutBit_inst8_O[1];
+assign Mux2xArray3_Array2_OutBit_inst9_I1[0] = Mux2xArray3_Array2_OutBit_inst8_O[0];
+assign Mux2xArray3_Array2_OutBit_inst9_S = 1'b1 & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h4);
+Mux2xArray3_Array2_OutBit Mux2xArray3_Array2_OutBit_inst9 (
+    .I0(Mux2xArray3_Array2_OutBit_inst9_I0),
+    .I1(Mux2xArray3_Array2_OutBit_inst9_I1),
+    .S(Mux2xArray3_Array2_OutBit_inst9_S),
+    .O(Mux2xArray3_Array2_OutBit_inst9_O)
+);
+assign magma_Bits_3_sub_inst0_out = 3'(3'h0 - ({1'b0,x[1:0]}));
+assign magma_Bits_3_sub_inst10_out = 3'(3'h5 - ({1'b0,x[1:0]}));
+assign magma_Bits_3_sub_inst2_out = 3'(3'h1 - ({1'b0,x[1:0]}));
+assign magma_Bits_3_sub_inst4_out = 3'(3'h2 - ({1'b0,x[1:0]}));
+assign magma_Bits_3_sub_inst6_out = 3'(3'h3 - ({1'b0,x[1:0]}));
+assign magma_Bits_3_sub_inst8_out = 3'(3'h4 - ({1'b0,x[1:0]}));
+assign O[5][2] = Mux2xArray3_Array2_OutBit_inst11_O[2];
+assign O[5][1] = Mux2xArray3_Array2_OutBit_inst11_O[1];
+assign O[5][0] = Mux2xArray3_Array2_OutBit_inst11_O[0];
+assign O[4][2] = Mux2xArray3_Array2_OutBit_inst9_O[2];
+assign O[4][1] = Mux2xArray3_Array2_OutBit_inst9_O[1];
+assign O[4][0] = Mux2xArray3_Array2_OutBit_inst9_O[0];
+assign O[3][2] = Mux2xArray3_Array2_OutBit_inst7_O[2];
+assign O[3][1] = Mux2xArray3_Array2_OutBit_inst7_O[1];
+assign O[3][0] = Mux2xArray3_Array2_OutBit_inst7_O[0];
+assign O[2][2] = Mux2xArray3_Array2_OutBit_inst5_O[2];
+assign O[2][1] = Mux2xArray3_Array2_OutBit_inst5_O[1];
+assign O[2][0] = Mux2xArray3_Array2_OutBit_inst5_O[0];
+assign O[1][2] = Mux2xArray3_Array2_OutBit_inst3_O[2];
+assign O[1][1] = Mux2xArray3_Array2_OutBit_inst3_O[1];
+assign O[1][0] = Mux2xArray3_Array2_OutBit_inst3_O[0];
+assign O[0][2] = Mux2xArray3_Array2_OutBit_inst1_O[2];
+assign O[0][1] = Mux2xArray3_Array2_OutBit_inst1_O[1];
+assign O[0][0] = Mux2xArray3_Array2_OutBit_inst1_O[0];
+endmodule
+

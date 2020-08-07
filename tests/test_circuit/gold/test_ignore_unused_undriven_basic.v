@@ -14,8 +14,10 @@ module Main (
     input I,
     output O
 );
+wire corebit_term_inst0_in;
+assign corebit_term_inst0_in = ~ I;
 corebit_term corebit_term_inst0 (
-    .in(~ I)
+    .in(corebit_term_inst0_in)
 );
 corebit_undriven corebit_undriven_inst0 (
     .out(O)

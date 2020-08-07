@@ -21,14 +21,18 @@ module Register (
     output O,
     input CLK
 );
+wire reg_P_inst0_clk;
+wire [0:0] reg_P_inst0_in;
 wire [0:0] reg_P_inst0_out;
+assign reg_P_inst0_clk = CLK;
+assign reg_P_inst0_in[0] = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
 ) reg_P_inst0 (
-    .clk(CLK),
-    .in(I),
+    .clk(reg_P_inst0_clk),
+    .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
 assign O = reg_P_inst0_out[0];
@@ -58,23 +62,39 @@ module Main (
     output O1,
     input CLK
 );
+wire Mux2xOutBit_inst0_I0;
+wire Mux2xOutBit_inst0_I1;
+wire Mux2xOutBit_inst0_S;
 wire Mux2xOutBit_inst0_O;
+wire Mux2xOutBit_inst1_I0;
+wire Mux2xOutBit_inst1_I1;
+wire Mux2xOutBit_inst1_S;
+wire Register_inst0_I;
+wire Register_inst0_CLK;
+assign Mux2xOutBit_inst0_I0 = O0;
+assign Mux2xOutBit_inst0_I1 = ~ O0;
+assign Mux2xOutBit_inst0_S = invert;
 Mux2xOutBit Mux2xOutBit_inst0 (
-    .I0(O0),
-    .I1(~ O0),
-    .S(invert),
+    .I0(Mux2xOutBit_inst0_I0),
+    .I1(Mux2xOutBit_inst0_I1),
+    .S(Mux2xOutBit_inst0_S),
     .O(Mux2xOutBit_inst0_O)
 );
+assign Mux2xOutBit_inst1_I0 = O0;
+assign Mux2xOutBit_inst1_I1 = ~ O0;
+assign Mux2xOutBit_inst1_S = invert;
 Mux2xOutBit Mux2xOutBit_inst1 (
-    .I0(O0),
-    .I1(~ O0),
-    .S(invert),
+    .I0(Mux2xOutBit_inst1_I0),
+    .I1(Mux2xOutBit_inst1_I1),
+    .S(Mux2xOutBit_inst1_S),
     .O(O1)
 );
+assign Register_inst0_I = Mux2xOutBit_inst0_O;
+assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
-    .I(Mux2xOutBit_inst0_O),
+    .I(Register_inst0_I),
     .O(O0),
-    .CLK(CLK)
+    .CLK(Register_inst0_CLK)
 );
 endmodule
 

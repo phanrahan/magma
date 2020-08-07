@@ -46,22 +46,34 @@ module Register (
     input CE,
     input ASYNCRESET
 );
+wire [2:0] enable_mux_I0;
+wire [2:0] enable_mux_I1;
+wire enable_mux_S;
 wire [2:0] enable_mux_O;
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [2:0] reg_PR_inst0_in;
+assign enable_mux_I0 = O;
+assign enable_mux_I1 = I;
+assign enable_mux_S = CE;
 Mux2xUInt3 enable_mux (
-    .I0(O),
-    .I1(I),
-    .S(CE),
+    .I0(enable_mux_I0),
+    .I1(enable_mux_I1),
+    .S(enable_mux_S),
     .O(enable_mux_O)
 );
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = enable_mux_O;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(enable_mux_O),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(O)
 );
 endmodule
@@ -72,14 +84,22 @@ module Test2 (
     input CE,
     input ASYNCRESET
 );
+wire [2:0] Register_inst0_I;
 wire [2:0] Register_inst0_O;
+wire Register_inst0_CLK;
+wire Register_inst0_CE;
+wire Register_inst0_ASYNCRESET;
 wire [2:0] magma_Bits_3_add_inst0_out;
+assign Register_inst0_I = magma_Bits_3_add_inst0_out;
+assign Register_inst0_CLK = CLK;
+assign Register_inst0_CE = CE;
+assign Register_inst0_ASYNCRESET = ASYNCRESET;
 Register Register_inst0 (
-    .I(magma_Bits_3_add_inst0_out),
+    .I(Register_inst0_I),
     .O(Register_inst0_O),
-    .CLK(CLK),
-    .CE(CE),
-    .ASYNCRESET(ASYNCRESET)
+    .CLK(Register_inst0_CLK),
+    .CE(Register_inst0_CE),
+    .ASYNCRESET(Register_inst0_ASYNCRESET)
 );
 assign magma_Bits_3_add_inst0_out = 3'(Register_inst0_O + 3'h1);
 assign O = magma_Bits_3_add_inst0_out;

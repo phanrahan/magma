@@ -33,7 +33,7 @@ setup(
         "pyverilog",
         "numpy",
         "graphviz",
-        "coreir>=2.0.88",
+        "coreir>=2.0.98",
         "hwtypes>=1.0.*",
         "ast_tools>=0.0.16",
         "kratos",

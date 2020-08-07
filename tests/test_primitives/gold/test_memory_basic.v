@@ -48,19 +48,29 @@ module Memory (
     input [4:0] WDATA,
     input WE
 );
+wire coreir_mem4x5_inst0_clk;
+wire [4:0] coreir_mem4x5_inst0_wdata;
+wire [1:0] coreir_mem4x5_inst0_waddr;
+wire coreir_mem4x5_inst0_wen;
 wire [4:0] coreir_mem4x5_inst0_rdata;
+wire [1:0] coreir_mem4x5_inst0_raddr;
+assign coreir_mem4x5_inst0_clk = CLK;
+assign coreir_mem4x5_inst0_wdata = WDATA;
+assign coreir_mem4x5_inst0_waddr = WADDR;
+assign coreir_mem4x5_inst0_wen = WE;
+assign coreir_mem4x5_inst0_raddr = RADDR;
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
     .sync_read(1'b0),
     .width(5)
 ) coreir_mem4x5_inst0 (
-    .clk(CLK),
-    .wdata(WDATA),
-    .waddr(WADDR),
-    .wen(WE),
+    .clk(coreir_mem4x5_inst0_clk),
+    .wdata(coreir_mem4x5_inst0_wdata),
+    .waddr(coreir_mem4x5_inst0_waddr),
+    .wen(coreir_mem4x5_inst0_wen),
     .rdata(coreir_mem4x5_inst0_rdata),
-    .raddr(RADDR)
+    .raddr(coreir_mem4x5_inst0_raddr)
 );
 assign RDATA = coreir_mem4x5_inst0_rdata;
 endmodule
@@ -73,14 +83,24 @@ module test_memory_basic (
     input clk,
     input wen
 );
+wire [1:0] Memory_inst0_RADDR;
 wire [4:0] Memory_inst0_RDATA;
+wire Memory_inst0_CLK;
+wire [1:0] Memory_inst0_WADDR;
+wire [4:0] Memory_inst0_WDATA;
+wire Memory_inst0_WE;
+assign Memory_inst0_RADDR = raddr;
+assign Memory_inst0_CLK = clk;
+assign Memory_inst0_WADDR = waddr;
+assign Memory_inst0_WDATA = wdata;
+assign Memory_inst0_WE = wen;
 Memory Memory_inst0 (
-    .RADDR(raddr),
+    .RADDR(Memory_inst0_RADDR),
     .RDATA(Memory_inst0_RDATA),
-    .CLK(clk),
-    .WADDR(waddr),
-    .WDATA(wdata),
-    .WE(wen)
+    .CLK(Memory_inst0_CLK),
+    .WADDR(Memory_inst0_WADDR),
+    .WDATA(Memory_inst0_WDATA),
+    .WE(Memory_inst0_WE)
 );
 assign rdata = Memory_inst0_RDATA;
 endmodule

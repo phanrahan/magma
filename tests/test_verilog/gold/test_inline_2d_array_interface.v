@@ -7,73 +7,138 @@ module coreir_term #(
 endmodule
 
 module MonitorWrapper (
-    input [7:0] arr_0,
-    input [7:0] arr_1,
-    input [7:0] arr_10,
-    input [7:0] arr_11,
-    input [7:0] arr_12,
-    input [7:0] arr_13,
-    input [7:0] arr_14,
-    input [7:0] arr_15,
-    input [7:0] arr_16,
-    input [7:0] arr_17,
-    input [7:0] arr_18,
-    input [7:0] arr_19,
-    input [7:0] arr_2,
-    input [7:0] arr_20,
-    input [7:0] arr_21,
-    input [7:0] arr_22,
-    input [7:0] arr_23,
-    input [7:0] arr_24,
-    input [7:0] arr_25,
-    input [7:0] arr_26,
-    input [7:0] arr_27,
-    input [7:0] arr_28,
-    input [7:0] arr_29,
-    input [7:0] arr_3,
-    input [7:0] arr_30,
-    input [7:0] arr_31,
-    input [7:0] arr_32,
-    input [7:0] arr_33,
-    input [7:0] arr_34,
-    input [7:0] arr_35,
-    input [7:0] arr_36,
-    input [7:0] arr_37,
-    input [7:0] arr_38,
-    input [7:0] arr_39,
-    input [7:0] arr_4,
-    input [7:0] arr_40,
-    input [7:0] arr_41,
-    input [7:0] arr_42,
-    input [7:0] arr_43,
-    input [7:0] arr_44,
-    input [7:0] arr_45,
-    input [7:0] arr_46,
-    input [7:0] arr_47,
-    input [7:0] arr_48,
-    input [7:0] arr_49,
-    input [7:0] arr_5,
-    input [7:0] arr_50,
-    input [7:0] arr_51,
-    input [7:0] arr_52,
-    input [7:0] arr_53,
-    input [7:0] arr_54,
-    input [7:0] arr_55,
-    input [7:0] arr_56,
-    input [7:0] arr_57,
-    input [7:0] arr_58,
-    input [7:0] arr_59,
-    input [7:0] arr_6,
-    input [7:0] arr_60,
-    input [7:0] arr_61,
-    input [7:0] arr_62,
-    input [7:0] arr_63,
-    input [7:0] arr_7,
-    input [7:0] arr_8,
-    input [7:0] arr_9
+    input [7:0] arr [63:0]
 );
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_0;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_1;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_2;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_3;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_4;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_5;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_6;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_7;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_8;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_9;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_10;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_11;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_12;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_13;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_14;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_15;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_16;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_17;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_18;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_19;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_20;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_21;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_22;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_23;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_24;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_25;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_26;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_27;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_28;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_29;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_30;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_31;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_32;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_33;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_34;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_35;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_36;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_37;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_38;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_39;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_40;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_41;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_42;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_43;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_44;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_45;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_46;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_47;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_48;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_49;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_50;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_51;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_52;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_53;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_54;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_55;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_56;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_57;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_58;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_59;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_60;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_61;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_62;
+wire [7:0] MonitorWrapper_inline_verilog_inst_0___magma_inline_value_63;
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_0 = arr[63];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_1 = arr[62];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_2 = arr[61];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_3 = arr[60];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_4 = arr[59];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_5 = arr[58];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_6 = arr[57];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_7 = arr[56];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_8 = arr[55];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_9 = arr[54];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_10 = arr[53];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_11 = arr[52];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_12 = arr[51];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_13 = arr[50];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_14 = arr[49];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_15 = arr[48];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_16 = arr[47];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_17 = arr[46];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_18 = arr[45];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_19 = arr[44];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_20 = arr[43];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_21 = arr[42];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_22 = arr[41];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_23 = arr[40];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_24 = arr[39];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_25 = arr[38];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_26 = arr[37];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_27 = arr[36];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_28 = arr[35];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_29 = arr[34];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_30 = arr[33];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_31 = arr[32];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_32 = arr[31];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_33 = arr[30];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_34 = arr[29];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_35 = arr[28];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_36 = arr[27];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_37 = arr[26];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_38 = arr[25];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_39 = arr[24];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_40 = arr[23];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_41 = arr[22];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_42 = arr[21];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_43 = arr[20];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_44 = arr[19];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_45 = arr[18];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_46 = arr[17];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_47 = arr[16];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_48 = arr[15];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_49 = arr[14];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_50 = arr[13];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_51 = arr[12];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_52 = arr[11];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_53 = arr[10];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_54 = arr[9];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_55 = arr[8];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_56 = arr[7];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_57 = arr[6];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_58 = arr[5];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_59 = arr[4];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_60 = arr[3];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_61 = arr[2];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_62 = arr[1];
+assign MonitorWrapper_inline_verilog_inst_0___magma_inline_value_63 = arr[0];
 
-monitor #(.WIDTH(8), .DEPTH(64)) monitor_inst(.arr('{arr_63, arr_62, arr_61, arr_60, arr_59, arr_58, arr_57, arr_56, arr_55, arr_54, arr_53, arr_52, arr_51, arr_50, arr_49, arr_48, arr_47, arr_46, arr_45, arr_44, arr_43, arr_42, arr_41, arr_40, arr_39, arr_38, arr_37, arr_36, arr_35, arr_34, arr_33, arr_32, arr_31, arr_30, arr_29, arr_28, arr_27, arr_26, arr_25, arr_24, arr_23, arr_22, arr_21, arr_20, arr_19, arr_18, arr_17, arr_16, arr_15, arr_14, arr_13, arr_12, arr_11, arr_10, arr_9, arr_8, arr_7, arr_6, arr_5, arr_4, arr_3, arr_2, arr_1, arr_0}));
+monitor #(.WIDTH(8), .DEPTH(64)) monitor_inst(.arr('{MonitorWrapper_inline_verilog_inst_0___magma_inline_value_0, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_1, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_2, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_3, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_4, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_5, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_6, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_7, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_8, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_9, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_10, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_11, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_12, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_13, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_14, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_15, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_16, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_17, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_18, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_19, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_20, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_21, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_22, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_23, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_24, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_25, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_26, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_27, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_28, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_29, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_30, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_31, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_32, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_33, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_34, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_35, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_36, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_37, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_38, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_39, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_40, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_41, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_42, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_43, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_44, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_45, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_46, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_47, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_48, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_49, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_50, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_51, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_52, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_53, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_54, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_55, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_56, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_57, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_58, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_59, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_60, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_61, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_62, MonitorWrapper_inline_verilog_inst_0___magma_inline_value_63}));
                     
 endmodule
 

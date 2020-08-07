@@ -10,58 +10,64 @@ endmodule
 
 module LUT (
     input [0:0] I,
-    output [1:0] O_0,
-    output [1:0] O_1
+    output [1:0] O [1:0]
 );
+wire [0:0] coreir_lut0_inst0_in;
 wire coreir_lut0_inst0_out;
+wire [0:0] coreir_lut2_inst0_in;
 wire coreir_lut2_inst0_out;
+wire [0:0] coreir_lut3_inst0_in;
 wire coreir_lut3_inst0_out;
+wire [0:0] coreir_lut3_inst1_in;
 wire coreir_lut3_inst1_out;
+assign coreir_lut0_inst0_in = I;
 lutN #(
     .init(2'h0),
     .N(1)
 ) coreir_lut0_inst0 (
-    .in(I),
+    .in(coreir_lut0_inst0_in),
     .out(coreir_lut0_inst0_out)
 );
+assign coreir_lut2_inst0_in = I;
 lutN #(
     .init(2'h2),
     .N(1)
 ) coreir_lut2_inst0 (
-    .in(I),
+    .in(coreir_lut2_inst0_in),
     .out(coreir_lut2_inst0_out)
 );
+assign coreir_lut3_inst0_in = I;
 lutN #(
     .init(2'h3),
     .N(1)
 ) coreir_lut3_inst0 (
-    .in(I),
+    .in(coreir_lut3_inst0_in),
     .out(coreir_lut3_inst0_out)
 );
+assign coreir_lut3_inst1_in = I;
 lutN #(
     .init(2'h3),
     .N(1)
 ) coreir_lut3_inst1 (
-    .in(I),
+    .in(coreir_lut3_inst1_in),
     .out(coreir_lut3_inst1_out)
 );
-assign O_0 = {coreir_lut3_inst0_out,coreir_lut0_inst0_out};
-assign O_1 = {coreir_lut2_inst0_out,coreir_lut3_inst1_out};
+assign O[1] = {coreir_lut2_inst0_out,coreir_lut3_inst1_out};
+assign O[0] = {coreir_lut3_inst0_out,coreir_lut0_inst0_out};
 endmodule
 
 module test_lut_nested_array (
     input [0:0] I,
-    output [1:0] O_0,
-    output [1:0] O_1
+    output [1:0] O [1:0]
 );
-wire [1:0] LUT_inst0_O_0;
-wire [1:0] LUT_inst0_O_1;
+wire [0:0] LUT_inst0_I;
+wire [1:0] LUT_inst0_O [1:0];
+assign LUT_inst0_I = I;
 LUT LUT_inst0 (
-    .I(I),
-    .O_0(LUT_inst0_O_0),
-    .O_1(LUT_inst0_O_1)
+    .I(LUT_inst0_I),
+    .O(LUT_inst0_O)
 );
-assign O_0 = LUT_inst0_O_0;
-assign O_1 = LUT_inst0_O_1;
+assign O[1] = LUT_inst0_O[1];
+assign O[0] = LUT_inst0_O[0];
 endmodule
 

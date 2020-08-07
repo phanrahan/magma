@@ -9,8 +9,7 @@ endmodule
 
 module enum_test_max_value (
     input [2:0] I,
-    output [2:0] O_0,
-    output [2:0] O_1
+    output [2:0] O [1:0]
 );
 wire [2:0] const_4_3_out;
 coreir_const #(
@@ -19,7 +18,7 @@ coreir_const #(
 ) const_4_3 (
     .out(const_4_3_out)
 );
-assign O_0 = I;
-assign O_1 = const_4_3_out;
+assign O[1] = const_4_3_out;
+assign O[0] = I;
 endmodule
 

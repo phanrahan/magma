@@ -1,22 +1,8 @@
-module mantle_wire__typeBitIn8 (
-    output [7:0] in,
-    input [7:0] out
-);
-assign in = out;
-endmodule
-
 module mantle_wire__typeBitIn24 (
     output [23:0] in,
     input [23:0] out
 );
 assign in = out;
-endmodule
-
-module mantle_wire__typeBit8 (
-    input [7:0] in,
-    output [7:0] out
-);
-assign out = in;
 endmodule
 
 module mantle_wire__typeBit24 (
@@ -65,165 +51,99 @@ module coreir_const #(
 endmodule
 
 module commonlib_muxn__N2__width24 (
-    input [23:0] in_data_0,
-    input [23:0] in_data_1,
+    input [23:0] in_data [1:0],
     input [0:0] in_sel,
     output [23:0] out
 );
+wire [23:0] _join_in0;
+wire [23:0] _join_in1;
+wire _join_sel;
 wire [23:0] _join_out;
+assign _join_in0 = in_data[0];
+assign _join_in1 = in_data[1];
+assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(24)
 ) _join (
-    .in0(in_data_0),
-    .in1(in_data_1),
-    .sel(in_sel[0]),
+    .in0(_join_in0),
+    .in1(_join_in1),
+    .sel(_join_sel),
     .out(_join_out)
 );
 assign out = _join_out;
 endmodule
 
 module Mux2xArray3_Bits8 (
-    input [7:0] I0_0,
-    input [7:0] I0_1,
-    input [7:0] I0_2,
-    input [7:0] I1_0,
-    input [7:0] I1_1,
-    input [7:0] I1_2,
-    output [7:0] O_0,
-    output [7:0] O_1,
-    output [7:0] O_2,
-    input S
+    input [7:0] I0 [2:0],
+    input [7:0] I1 [2:0],
+    input S,
+    output [7:0] O [2:0]
 );
-wire [7:0] _$_U10_out;
-wire [7:0] _$_U11_out;
-wire [7:0] _$_U12_in;
-wire [7:0] _$_U13_in;
-wire [7:0] _$_U14_in;
 wire [23:0] _$_U2_in;
+wire [23:0] _$_U2_out;
 wire [23:0] _$_U3_in;
+wire [23:0] _$_U3_out;
+wire [23:0] _$_U4_in;
 wire [23:0] _$_U4_out;
-wire [7:0] _$_U6_out;
-wire [7:0] _$_U7_out;
-wire [7:0] _$_U8_out;
-wire [7:0] _$_U9_out;
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data [1:0];
+wire [0:0] coreir_commonlib_mux2x24_inst0_in_sel;
 wire [23:0] coreir_commonlib_mux2x24_inst0_out;
-mantle_wire__typeBit8 _$_U10 (
-    .in(I1_1),
-    .out(_$_U10_out)
-);
-mantle_wire__typeBit8 _$_U11 (
-    .in(I1_2),
-    .out(_$_U11_out)
-);
-mantle_wire__typeBitIn8 _$_U12 (
-    .in(_$_U12_in),
-    .out(_$_U4_out[7:0])
-);
-mantle_wire__typeBitIn8 _$_U13 (
-    .in(_$_U13_in),
-    .out(_$_U4_out[15:8])
-);
-mantle_wire__typeBitIn8 _$_U14 (
-    .in(_$_U14_in),
-    .out(_$_U4_out[23:16])
-);
+assign _$_U2_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
 mantle_wire__typeBitIn24 _$_U2 (
     .in(_$_U2_in),
-    .out({_$_U8_out[7:0],_$_U7_out[7:0],_$_U6_out[7:0]})
+    .out(_$_U2_out)
 );
+assign _$_U3_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
 mantle_wire__typeBitIn24 _$_U3 (
     .in(_$_U3_in),
-    .out({_$_U11_out[7:0],_$_U10_out[7:0],_$_U9_out[7:0]})
+    .out(_$_U3_out)
 );
+assign _$_U4_in = coreir_commonlib_mux2x24_inst0_out;
 mantle_wire__typeBit24 _$_U4 (
-    .in(coreir_commonlib_mux2x24_inst0_out),
+    .in(_$_U4_in),
     .out(_$_U4_out)
 );
-mantle_wire__typeBit8 _$_U6 (
-    .in(I0_0),
-    .out(_$_U6_out)
-);
-mantle_wire__typeBit8 _$_U7 (
-    .in(I0_1),
-    .out(_$_U7_out)
-);
-mantle_wire__typeBit8 _$_U8 (
-    .in(I0_2),
-    .out(_$_U8_out)
-);
-mantle_wire__typeBit8 _$_U9 (
-    .in(I1_0),
-    .out(_$_U9_out)
-);
+assign coreir_commonlib_mux2x24_inst0_in_data[1] = _$_U3_in;
+assign coreir_commonlib_mux2x24_inst0_in_data[0] = _$_U2_in;
+assign coreir_commonlib_mux2x24_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width24 coreir_commonlib_mux2x24_inst0 (
-    .in_data_0(_$_U2_in),
-    .in_data_1(_$_U3_in),
-    .in_sel(S),
+    .in_data(coreir_commonlib_mux2x24_inst0_in_data),
+    .in_sel(coreir_commonlib_mux2x24_inst0_in_sel),
     .out(coreir_commonlib_mux2x24_inst0_out)
 );
-assign O_0 = _$_U12_in;
-assign O_1 = _$_U13_in;
-assign O_2 = _$_U14_in;
+assign O[2] = _$_U4_out[23:16];
+assign O[1] = _$_U4_out[15:8];
+assign O[0] = _$_U4_out[7:0];
 endmodule
 
 module Register (
+    input [7:0] I [2:0],
+    output [7:0] O [2:0],
     input CLK,
-    input [7:0] I_0,
-    input [7:0] I_1,
-    input [7:0] I_2,
-    output [7:0] O_0,
-    output [7:0] O_1,
-    output [7:0] O_2,
     input RESET
 );
-wire [7:0] Mux2xArray3_Bits8_inst0_O_0;
-wire [7:0] Mux2xArray3_Bits8_inst0_O_1;
-wire [7:0] Mux2xArray3_Bits8_inst0_O_2;
-wire [7:0] _$_U16_out;
-wire [7:0] _$_U17_out;
-wire [7:0] _$_U18_out;
-wire [7:0] _$_U20_in;
-wire [7:0] _$_U21_in;
-wire [7:0] _$_U22_in;
+wire [7:0] Mux2xArray3_Bits8_inst0_I0 [2:0];
+wire [7:0] Mux2xArray3_Bits8_inst0_I1 [2:0];
+wire Mux2xArray3_Bits8_inst0_S;
+wire [7:0] Mux2xArray3_Bits8_inst0_O [2:0];
 wire [7:0] const_173_8_out;
 wire [7:0] const_190_8_out;
 wire [7:0] const_222_8_out;
+wire reg_P_inst0_clk;
+wire [23:0] reg_P_inst0_in;
 wire [23:0] reg_P_inst0_out;
+assign Mux2xArray3_Bits8_inst0_I0[2] = I[2];
+assign Mux2xArray3_Bits8_inst0_I0[1] = I[1];
+assign Mux2xArray3_Bits8_inst0_I0[0] = I[0];
+assign Mux2xArray3_Bits8_inst0_I1[2] = const_190_8_out;
+assign Mux2xArray3_Bits8_inst0_I1[1] = const_173_8_out;
+assign Mux2xArray3_Bits8_inst0_I1[0] = const_222_8_out;
+assign Mux2xArray3_Bits8_inst0_S = RESET;
 Mux2xArray3_Bits8 Mux2xArray3_Bits8_inst0 (
-    .I0_0(I_0),
-    .I0_1(I_1),
-    .I0_2(I_2),
-    .I1_0(const_222_8_out),
-    .I1_1(const_173_8_out),
-    .I1_2(const_190_8_out),
-    .O_0(Mux2xArray3_Bits8_inst0_O_0),
-    .O_1(Mux2xArray3_Bits8_inst0_O_1),
-    .O_2(Mux2xArray3_Bits8_inst0_O_2),
-    .S(RESET)
-);
-mantle_wire__typeBit8 _$_U16 (
-    .in(Mux2xArray3_Bits8_inst0_O_0),
-    .out(_$_U16_out)
-);
-mantle_wire__typeBit8 _$_U17 (
-    .in(Mux2xArray3_Bits8_inst0_O_1),
-    .out(_$_U17_out)
-);
-mantle_wire__typeBit8 _$_U18 (
-    .in(Mux2xArray3_Bits8_inst0_O_2),
-    .out(_$_U18_out)
-);
-mantle_wire__typeBitIn8 _$_U20 (
-    .in(_$_U20_in),
-    .out(reg_P_inst0_out[7:0])
-);
-mantle_wire__typeBitIn8 _$_U21 (
-    .in(_$_U21_in),
-    .out(reg_P_inst0_out[15:8])
-);
-mantle_wire__typeBitIn8 _$_U22 (
-    .in(_$_U22_in),
-    .out(reg_P_inst0_out[23:16])
+    .I0(Mux2xArray3_Bits8_inst0_I0),
+    .I1(Mux2xArray3_Bits8_inst0_I1),
+    .S(Mux2xArray3_Bits8_inst0_S),
+    .O(Mux2xArray3_Bits8_inst0_O)
 );
 coreir_const #(
     .value(8'had),
@@ -243,45 +163,45 @@ coreir_const #(
 ) const_222_8 (
     .out(const_222_8_out)
 );
+assign reg_P_inst0_clk = CLK;
+assign reg_P_inst0_in = {Mux2xArray3_Bits8_inst0_O[2][7:0],Mux2xArray3_Bits8_inst0_O[1][7:0],Mux2xArray3_Bits8_inst0_O[0][7:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'h000000),
     .width(24)
 ) reg_P_inst0 (
-    .clk(CLK),
-    .in({_$_U18_out[7:0],_$_U17_out[7:0],_$_U16_out[7:0]}),
+    .clk(reg_P_inst0_clk),
+    .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
-assign O_0 = _$_U20_in;
-assign O_1 = _$_U21_in;
-assign O_2 = _$_U22_in;
+assign O[2] = reg_P_inst0_out[23:16];
+assign O[1] = reg_P_inst0_out[15:8];
+assign O[0] = reg_P_inst0_out[7:0];
 endmodule
 
 module test_reg_of_nested_array (
+    input [7:0] I [2:0],
+    output [7:0] O [2:0],
     input CLK,
-    input [7:0] I_0,
-    input [7:0] I_1,
-    input [7:0] I_2,
-    output [7:0] O_0,
-    output [7:0] O_1,
-    output [7:0] O_2,
     input RESET
 );
-wire [7:0] Register_inst0_O_0;
-wire [7:0] Register_inst0_O_1;
-wire [7:0] Register_inst0_O_2;
+wire [7:0] Register_inst0_I [2:0];
+wire [7:0] Register_inst0_O [2:0];
+wire Register_inst0_CLK;
+wire Register_inst0_RESET;
+assign Register_inst0_I[2] = I[2];
+assign Register_inst0_I[1] = I[1];
+assign Register_inst0_I[0] = I[0];
+assign Register_inst0_CLK = CLK;
+assign Register_inst0_RESET = RESET;
 Register Register_inst0 (
-    .CLK(CLK),
-    .I_0(I_0),
-    .I_1(I_1),
-    .I_2(I_2),
-    .O_0(Register_inst0_O_0),
-    .O_1(Register_inst0_O_1),
-    .O_2(Register_inst0_O_2),
-    .RESET(RESET)
+    .I(Register_inst0_I),
+    .O(Register_inst0_O),
+    .CLK(Register_inst0_CLK),
+    .RESET(Register_inst0_RESET)
 );
-assign O_0 = Register_inst0_O_0;
-assign O_1 = Register_inst0_O_1;
-assign O_2 = Register_inst0_O_2;
+assign O[2] = Register_inst0_O[2];
+assign O[1] = Register_inst0_O[1];
+assign O[0] = Register_inst0_O[0];
 endmodule
 

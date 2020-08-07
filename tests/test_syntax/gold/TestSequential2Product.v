@@ -21,11 +21,17 @@ module Test (
     output O_a,
     input sel
 );
+wire Mux2xTuplea_OutBit_inst0_I0_a;
+wire Mux2xTuplea_OutBit_inst0_I1_a;
+wire Mux2xTuplea_OutBit_inst0_S;
+assign Mux2xTuplea_OutBit_inst0_I0_a = 1'b1;
+assign Mux2xTuplea_OutBit_inst0_I1_a = 1'b0;
+assign Mux2xTuplea_OutBit_inst0_S = sel;
 Mux2xTuplea_OutBit Mux2xTuplea_OutBit_inst0 (
-    .I0_a(1'b1),
-    .I1_a(1'b0),
+    .I0_a(Mux2xTuplea_OutBit_inst0_I0_a),
+    .I1_a(Mux2xTuplea_OutBit_inst0_I1_a),
     .O_a(O_a),
-    .S(sel)
+    .S(Mux2xTuplea_OutBit_inst0_S)
 );
 endmodule
 

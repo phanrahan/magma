@@ -37,65 +37,89 @@ endmodule   // mod
 module Top (
     input I
 );
+wire mod0_inst0_I;
+wire mod0_inst1_I;
+wire mod1_inst0_I;
+wire mod1_inst1_I;
+wire mod2_inst0_I;
+wire mod2_inst1_I;
+wire mod3_inst0_I;
+wire mod3_inst1_I;
+wire mod4_inst0_I;
+wire mod4_inst1_I;
+wire mod5_inst0_I;
+wire mod5_inst1_I;
+assign mod0_inst0_I = I;
 mod0 #(
     .KRATOS_INSTANCE_ID(-559038737)
 ) mod0_inst0 (
-    .I(I)
+    .I(mod0_inst0_I)
 );
+assign mod0_inst1_I = I;
 mod0 #(
     .KRATOS_INSTANCE_ID(-559038737)
 ) mod0_inst1 (
-    .I(I)
+    .I(mod0_inst1_I)
 );
+assign mod1_inst0_I = I;
 mod1 #(
     .KRATOS_INSTANCE_ID(239)
 ) mod1_inst0 (
-    .I(I)
+    .I(mod1_inst0_I)
 );
+assign mod1_inst1_I = I;
 mod1 #(
     .KRATOS_INSTANCE_ID(239)
 ) mod1_inst1 (
-    .I(I)
+    .I(mod1_inst1_I)
 );
+assign mod2_inst0_I = I;
 mod2 #(
     .KRATOS_INSTANCE_ID(23)
 ) mod2_inst0 (
-    .I(I)
+    .I(mod2_inst0_I)
 );
+assign mod2_inst1_I = I;
 mod2 #(
     .KRATOS_INSTANCE_ID(23)
 ) mod2_inst1 (
-    .I(I)
+    .I(mod2_inst1_I)
 );
+assign mod3_inst0_I = I;
 mod3 #(
     .KRATOS_INSTANCE_ID(23)
 ) mod3_inst0 (
-    .I(I)
+    .I(mod3_inst0_I)
 );
+assign mod3_inst1_I = I;
 mod3 #(
     .KRATOS_INSTANCE_ID(23)
 ) mod3_inst1 (
-    .I(I)
+    .I(mod3_inst1_I)
 );
+assign mod4_inst0_I = I;
 mod4 #(
     .KRATOS_INSTANCE_ID(482)
 ) mod4_inst0 (
-    .I(I)
+    .I(mod4_inst0_I)
 );
+assign mod4_inst1_I = I;
 mod4 #(
     .KRATOS_INSTANCE_ID(482)
 ) mod4_inst1 (
-    .I(I)
+    .I(mod4_inst1_I)
 );
+assign mod5_inst0_I = I;
 mod5 #(
     .KRATOS_INSTANCE_ID(17)
 ) mod5_inst0 (
-    .I(I)
+    .I(mod5_inst0_I)
 );
+assign mod5_inst1_I = I;
 mod5 #(
     .KRATOS_INSTANCE_ID(17)
 ) mod5_inst1 (
-    .I(I)
+    .I(mod5_inst1_I)
 );
 endmodule
 

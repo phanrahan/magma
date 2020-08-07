@@ -47,6 +47,8 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
     start: dynamic start index of the slice
     width: constant slice width
     """
+    if not isinstance(start, UInt):
+        raise TypeError("start should be a UInt")
     T = type(target)
     if issubclass(T, MagmaProtocol):
         T = T._to_magma_()
@@ -61,6 +63,8 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
             in_slice_range &= start <= i
         if i > 0:
             in_slice_range &= i <= (start + width - 1)
-        output[i] @= in_slice_range.ite(value[uint(i, clog2(len(target))) -
-                                              start], target[i])
+        value_idx = (uint(i, clog2(len(target))) - start)[:clog2(len(value))]
+        if len(value_idx) == 1:
+            value_idx = value_idx[0]
+        output[i] @= in_slice_range.ite(value[value_idx], target[i])
     return output

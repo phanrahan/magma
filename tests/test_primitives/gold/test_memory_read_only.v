@@ -65,7 +65,12 @@ module Memory (
 wire bit_const_0_None_out;
 wire [1:0] const_0_2_out;
 wire [4:0] const_0_5_out;
+wire coreir_mem4x5_inst0_clk;
+wire [4:0] coreir_mem4x5_inst0_wdata;
+wire [1:0] coreir_mem4x5_inst0_waddr;
+wire coreir_mem4x5_inst0_wen;
 wire [4:0] coreir_mem4x5_inst0_rdata;
+wire [1:0] coreir_mem4x5_inst0_raddr;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -83,6 +88,11 @@ coreir_const #(
 ) const_0_5 (
     .out(const_0_5_out)
 );
+assign coreir_mem4x5_inst0_clk = CLK;
+assign coreir_mem4x5_inst0_wdata = const_0_5_out;
+assign coreir_mem4x5_inst0_waddr = const_0_2_out;
+assign coreir_mem4x5_inst0_wen = bit_const_0_None_out;
+assign coreir_mem4x5_inst0_raddr = RADDR;
 coreir_mem #(
     .init({5'd0,5'd19,5'd10,5'd7}),
     .depth(4),
@@ -90,12 +100,12 @@ coreir_mem #(
     .sync_read(1'b0),
     .width(5)
 ) coreir_mem4x5_inst0 (
-    .clk(CLK),
-    .wdata(const_0_5_out),
-    .waddr(const_0_2_out),
-    .wen(bit_const_0_None_out),
+    .clk(coreir_mem4x5_inst0_clk),
+    .wdata(coreir_mem4x5_inst0_wdata),
+    .waddr(coreir_mem4x5_inst0_waddr),
+    .wen(coreir_mem4x5_inst0_wen),
     .rdata(coreir_mem4x5_inst0_rdata),
-    .raddr(RADDR)
+    .raddr(coreir_mem4x5_inst0_raddr)
 );
 assign RDATA = coreir_mem4x5_inst0_rdata;
 endmodule
@@ -105,11 +115,15 @@ module test_memory_read_only (
     output [4:0] rdata,
     input clk
 );
+wire [1:0] Memory_inst0_RADDR;
 wire [4:0] Memory_inst0_RDATA;
+wire Memory_inst0_CLK;
+assign Memory_inst0_RADDR = raddr;
+assign Memory_inst0_CLK = clk;
 Memory Memory_inst0 (
-    .RADDR(raddr),
+    .RADDR(Memory_inst0_RADDR),
     .RDATA(Memory_inst0_RDATA),
-    .CLK(clk)
+    .CLK(Memory_inst0_CLK)
 );
 assign rdata = Memory_inst0_RDATA;
 endmodule

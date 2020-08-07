@@ -21,18 +21,24 @@ module corebit_const #(
 endmodule
 
 module Main (
-    output [4:0] O_0,
-    output [4:0] O_1,
-    output [4:0] O_2,
-    output [4:0] O_3,
-    output [4:0] O_4
+    output [4:0] O [4:0]
 );
+wire Main_inline_verilog_inst_0_I;
+wire Main_inline_verilog_inst_1_I;
+wire Main_inline_verilog_inst_2_I;
+wire Main_inline_verilog_inst_3_I;
+wire Main_inline_verilog_inst_4_I;
 wire bit_const_0_None_out;
 wire [4:0] undriven_inst0_out;
 wire [4:0] undriven_inst1_out;
 wire [4:0] undriven_inst2_out;
 wire [4:0] undriven_inst3_out;
 wire [4:0] undriven_inst4_out;
+assign Main_inline_verilog_inst_0_I = bit_const_0_None_out;
+assign Main_inline_verilog_inst_1_I = bit_const_0_None_out;
+assign Main_inline_verilog_inst_2_I = bit_const_0_None_out;
+assign Main_inline_verilog_inst_3_I = bit_const_0_None_out;
+assign Main_inline_verilog_inst_4_I = bit_const_0_None_out;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -63,11 +69,11 @@ coreir_undriven #(
 ) undriven_inst4 (
     .out(undriven_inst4_out)
 );
-assign O_0 = undriven_inst0_out;
-assign O_1 = undriven_inst1_out;
-assign O_2 = undriven_inst2_out;
-assign O_3 = undriven_inst3_out;
-assign O_4 = undriven_inst4_out;
+assign O[4] = undriven_inst4_out;
+assign O[3] = undriven_inst3_out;
+assign O[2] = undriven_inst2_out;
+assign O[1] = undriven_inst1_out;
+assign O[0] = undriven_inst0_out;
 
 assign O[0] = 0;
             

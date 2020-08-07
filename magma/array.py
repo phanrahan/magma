@@ -89,6 +89,19 @@ class ArrayMeta(ABCMeta, Kind):
 
         # index[0] (N) can be None (used internally for In(Array))
         if index[0] is not None:
+            if isinstance(index[0], tuple):
+                if len(index[0]) == 0 :
+                    raise ValueError("Cannot create array with length 0 tuple "
+                                     "for N")
+                if len(index[0]) > 1:
+                    T = index[1]
+                    # ND Array
+                    for N in index[0]:
+                        T = Array[N, T]
+                    return T
+                # len(index[0]) == 1, Treat as normal Array
+                index = index[0]
+
             if (not isinstance(index[0], int) or index[0] <= 0):
                 raise TypeError(
                     'Length of array must be an int greater than 0, got:'
@@ -202,7 +215,7 @@ class Array(Type, metaclass=ArrayMeta):
                 elif isinstance(args[0], int):
                     if not issubclass(self.T, Bit):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
-                                        "with int, not Array[N, {self.T}]")
+                                        f"with int, not Array[N, {self.T}]")
                     self.ts = []
                     for bit in int2seq(args[0], self.N):
                         self.ts.append(self.T(bit))
@@ -274,7 +287,35 @@ class Array(Type, metaclass=ArrayMeta):
     def flat_length(cls):
         return cls.N * cls.T.flat_length()
 
+    def _is_whole_slice(self, key):
+        # check if it's any of `x[:], x[0:], x[:len(x)], x[0:len(x)]`
+        return (isinstance(key[-1], slice) and
+                (key[-1] == slice(None) or
+                 key[-1] == slice(0, None) or
+                 key[-1] == slice(None, len(self)) or
+                 key[-1] == slice(0, len(self))))
+
     def __getitem__(self, key):
+        if isinstance(key, tuple):
+            # ND Array key
+            if len(key) == 1:
+                return self[key[0]]
+
+            if not isinstance(key[-1], slice):
+                return self[key[-1]][key[:-1]]
+            if not self._is_whole_slice(key):
+                # If it's not a slice of the whole array, first slice the
+                # current array (self), then replace with a slice of the whole
+                # array (this is how we determine that we're ready to traverse
+                # into the children)
+                this_key = key[-1]
+                result = self[this_key][key[:-1] + (slice(None), )]
+                return result
+            # Last index is selecting the whole array, recurse into the
+            # children and slice off the inner indices
+            inner_ts = [t[key[:-1]] for t in self.ts]
+            # Get the type from the children and return the final value
+            return type(self)[len(self), type(inner_ts[0])](inner_ts)
         if isinstance(key, Type):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)
@@ -293,6 +334,14 @@ class Array(Type, metaclass=ArrayMeta):
         if isinstance(old, Array):
             if len(old) != len(val):
                 error = True
+            elif issubclass(old.T, Array):
+                # If array of array, check that we can do elementwise setitem
+                # (will return true if there's an error)
+                # We can't just do an `is` check on the children since those
+                # might be slices that return new anon values (so x[1:2] is not
+                # x[1:2], but their recursive leaf contents should be the same)
+                error = any(old.__setitem__(i, val[i])
+                            for i in range(len(old)))
             elif any(old[i] is not val[i] for i in range(len(old))):
                 error = True
         elif old is not val:
@@ -301,7 +350,7 @@ class Array(Type, metaclass=ArrayMeta):
         if error:
             _logger.error(f'May not mutate array, trying to replace '
                           f'{self}[{key}] ({old}) with {val}')
-
+        return error
 
     def __add__(self, other):
         other_len = other.N
