@@ -5,7 +5,8 @@ import inspect
 import operator
 
 from magma.bits import Bits, BitsMeta, SInt
-from magma.conversions import uint, bits, concat, sint
+from magma.conversions import uint, bits, sint
+from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
@@ -37,6 +38,9 @@ class Context:
         if self.assignee is not None:
             max_width = max(max_width, len(self.assignee.bits))
         return max_width
+
+    def __str__(self):
+        return f"Context(lhs={repr(self.assignee)}, rhs={repr(self.root)})"
 
 
 class _SmartExprMeta(MagmaProtocolMeta):
@@ -337,18 +341,19 @@ class _SmartConcatOpExpr(_SmartOpExpr):
 
     class _ConcatOp:
         def __call__(self, *args):
-            return concat(*args)
+            return bits_concat(*args)
 
         def __str__(self):
             return "Concat"
 
-    def __init__(self, op, *args):
+    def __init__(self, *args):
         concat = _SmartConcatOpExpr._ConcatOp()
         super().__init__(concat, *args)
 
     def resolve(self, context):
-        context = Context(None, self)
-        self._resolve_args(context)
+        for arg in self._args:
+            context = Context(None, arg)
+            arg.resolve(context)
         self._width_ = sum(arg._width_ for arg in self._args)
         self._signed_ = False
 
@@ -359,8 +364,9 @@ class _SmartConcatOpExpr(_SmartOpExpr):
 
 
 def concat(*args):
-    if not isinstance(other, _SmartExpr):
+    if not all(isinstance(arg, _SmartExpr) for arg in args):
         return NotImplemented
+    return _SmartConcatOpExpr(*args)
 
 
 class _SmartSignedOpExpr(_SmartOpExpr):
