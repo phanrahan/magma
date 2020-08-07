@@ -1,7 +1,9 @@
 # magma Primitives
-magma defines a core set of primitives that are parametrized over a type `T`.
+magma defines a core set of primitive generators that are parametrized over a
+type `T` as well as some useful functions for working with magma types.
 
-# Register
+## Primitive Generators
+### Register
 The `Register(T)` primitive creates a register circuit that stores a value of
 type `T`.  Here's a simple example that delays an input byte by a cycle.
 
@@ -30,7 +32,7 @@ Register `__init__` arguments:
 * `reset_priority: bool` - (optional) boolean flag choosing whether synchronous
                            reset (RESET or RESETN) has priority over enable
 
-# Memory
+### Memory
 The `Memory(N, T)` primitive creates a one read port and one write port memory
 storing `N` values of type `T`.  Here's a simple example that generates a
 memory with 4 entries, each contain 5 bits:
@@ -62,7 +64,7 @@ Mem `__init__` arguments:
 * `init: Optional[tuple]` - (optional) initial contents of the memory as a
                             tuple containing an initial value for each entry 
 
-# Mux
+### Mux
 The `Mux(N, T)` primitive creates a mux circuit that selects between `N` input
 values of type `T`.  Here's a simple example that selects between two bits:
 ```python
@@ -80,7 +82,7 @@ for the 1st input, `I1` for the second...).  The select input will select
 the input value in ascending order (`S == 0` will select `I0`, `S == 1` will
 select `I1`, ...).
 
-# LUT
+### LUT
 The `LUT(T, contents)` primitive creates a lookup table circuit programmed with
 `contents` (a tuple of values of type T).
 Here's a simple example with 4 entries of 8-bit values:
@@ -101,3 +103,7 @@ LUT `__init__` arguments:
 * `T: m.Kind` - type of the lookup table contents
 * `contents` - the contents of the LUT (a tuple containing
               elements of type T that are constant)
+
+## Functions
+### reduce
+### slice
