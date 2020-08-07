@@ -105,5 +105,67 @@ LUT `__init__` arguments:
               elements of type T that are constant)
 
 ## Functions
-### reduce
-### slice
+### reduce (bitwise)
+The `m.reduce` function allows you to apply a reduction operator on a value of
+type `Bits`.  Here's a simple example:
+```python
+import operator
+import magma as m
+
+class ReduceAnd(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bit))
+    io.O @= m.reduce(operator.and_, io.I)
+```
+The `m.reduce` function will generate an instance of the coreir bitwise reduce
+primitive, which will in turn compile to a verilog bitwise reduction (e.g.
+`assign O = &I`).
+
+For other reduction patterns (non-bitwise), you can simply use the standard
+`functools.reduce`.
+
+Reduce interface: `reduce(operator, bits: Bits)`
+
+### get_slice and set_slice
+These operators provide a functional-style syntax for working with dynamic
+slices of magma arrays.  They allow you to use a dynamic slice start index with
+a constant width (e.g. get a slice of 8 bits starting at index `x` where `x` is
+an input to the circuit).  We choose this explicit functional style syntax to
+constrain the support of dynamic slicing to constant widths.  For non-dynamic
+slicing (i.e. the start and stop are known at compile time), you can simply use
+the built-in slice syntax `[start:stop]`.  magma does not support dynamic width
+slicing.
+
+Here's two simple slice examples:
+```python
+class GetSlice(m.Circuit):
+    io = m.IO(
+        I=m.In(m.Bits[10]),
+        x=m.In(m.Bits[2]),
+        O=m.Out(m.Bits[6])
+    )
+    # O will output the 6 bits starting at index io.x
+    io.O @= m.get_slice(io.I, start=io.x, width=6)
+
+class SetSlice(m.Circuit):
+    io = m.IO(
+        I=m.In(m.Bits[6]),
+        x=m.In(m.UInt[2]),
+        O=m.Out(m.Bits[12])
+    )
+
+    # default value
+    O = m.Bits[12](0xFFF)
+    # O will output 0xFF except with the 6 bits start at index x replaced with
+    # the value of io.I
+    io.O @= m.set_slice(O, io.I, start=io.x, width=6)
+```
+
+Slice function interfaces:
+* `get_slice(value: Bits, start: Bits, width: int)` - Dynamic slice of `value` based off
+  the dynamic value of `start` and the constant value of `width`.
+* `set_slice(target: Bits, value: Bits, start: UInt, width: int)`
+   * target: the output with a dynamic slice range replaced by value
+   * value: the output driving a slice of target
+   * start: dynamic start index of the slice
+   * width: constant slice width
+
