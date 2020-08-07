@@ -52,7 +52,8 @@ lutN #(
     .in(coreir_lut3_inst1_in),
     .out(coreir_lut3_inst1_out)
 );
-assign O = '{{coreir_lut2_inst0_out,coreir_lut3_inst1_out},{coreir_lut3_inst0_out,coreir_lut0_inst0_out}};
+assign O[1] = {coreir_lut2_inst0_out,coreir_lut3_inst1_out};
+assign O[0] = {coreir_lut3_inst0_out,coreir_lut0_inst0_out};
 endmodule
 
 module test_lut_nested_array (
@@ -66,6 +67,7 @@ LUT LUT_inst0 (
     .I(LUT_inst0_I),
     .O(LUT_inst0_O)
 );
-assign O = '{LUT_inst0_O[1],LUT_inst0_O[0]};
+assign O[1] = LUT_inst0_O[1];
+assign O[0] = LUT_inst0_O[0];
 endmodule
 

@@ -69,7 +69,11 @@ coreir_undriven #(
 ) undriven_inst4 (
     .out(undriven_inst4_out)
 );
-assign O = '{undriven_inst4_out,undriven_inst3_out,undriven_inst2_out,undriven_inst1_out,undriven_inst0_out};
+assign O[4] = undriven_inst4_out;
+assign O[3] = undriven_inst3_out;
+assign O[2] = undriven_inst2_out;
+assign O[1] = undriven_inst1_out;
+assign O[0] = undriven_inst0_out;
 
 assign O[0] = 0;
             

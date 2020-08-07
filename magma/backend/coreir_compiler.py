@@ -85,6 +85,7 @@ class CoreIRCompiler(Compiler):
 
     def _compile_verilog(self):
         cmd = _make_verilog_cmd(self.deps, self.basename, self.opts)
+        print(cmd)
         ret = subprocess.run(cmd, shell=True).returncode
         if ret:
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")

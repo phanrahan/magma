@@ -55,7 +55,14 @@ coreir_reg #(
     .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
-assign O = '{reg_P_inst0_out[55:49],reg_P_inst0_out[48:42],reg_P_inst0_out[41:35],reg_P_inst0_out[34:28],reg_P_inst0_out[27:21],reg_P_inst0_out[20:14],reg_P_inst0_out[13:7],reg_P_inst0_out[6:0]};
+assign O[7] = reg_P_inst0_out[55:49];
+assign O[6] = reg_P_inst0_out[48:42];
+assign O[5] = reg_P_inst0_out[41:35];
+assign O[4] = reg_P_inst0_out[34:28];
+assign O[3] = reg_P_inst0_out[27:21];
+assign O[2] = reg_P_inst0_out[20:14];
+assign O[1] = reg_P_inst0_out[13:7];
+assign O[0] = reg_P_inst0_out[6:0];
 endmodule
 
 module Mux8xOutBits7 (
@@ -168,7 +175,14 @@ Mux8xOutBits7 Mux8xOutBits7_inst1 (
     .S(Mux8xOutBits7_inst1_S),
     .O(Mux8xOutBits7_inst1_O)
 );
-assign Register_inst0_I = '{I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
+assign Register_inst0_I[7] = I[7];
+assign Register_inst0_I[6] = I[6];
+assign Register_inst0_I[5] = I[5];
+assign Register_inst0_I[4] = I[4];
+assign Register_inst0_I[3] = I[3];
+assign Register_inst0_I[2] = I[2];
+assign Register_inst0_I[1] = I[1];
+assign Register_inst0_I[0] = I[0];
 assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
     .I(Register_inst0_I),
@@ -182,6 +196,7 @@ Register_unq1 Register_inst1 (
     .O(Register_inst1_O),
     .CLK(Register_inst1_CLK)
 );
-assign O = '{Mux8xOutBits7_inst1_O,Mux8xOutBits7_inst0_O};
+assign O[1] = Mux8xOutBits7_inst1_O;
+assign O[0] = Mux8xOutBits7_inst0_O;
 endmodule
 

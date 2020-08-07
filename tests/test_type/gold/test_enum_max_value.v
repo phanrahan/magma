@@ -18,6 +18,7 @@ coreir_const #(
 ) const_4_3 (
     .out(const_4_3_out)
 );
-assign O = '{const_4_3_out,I};
+assign O[1] = const_4_3_out;
+assign O[0] = I;
 endmodule
 

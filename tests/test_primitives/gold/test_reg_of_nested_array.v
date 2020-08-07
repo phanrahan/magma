@@ -103,14 +103,17 @@ mantle_wire__typeBit24 _$_U4 (
     .in(_$_U4_in),
     .out(_$_U4_out)
 );
-assign coreir_commonlib_mux2x24_inst0_in_data = '{_$_U3_in,_$_U2_in};
-assign coreir_commonlib_mux2x24_inst0_in_sel = S;
+assign coreir_commonlib_mux2x24_inst0_in_data[1] = _$_U3_in;
+assign coreir_commonlib_mux2x24_inst0_in_data[0] = _$_U2_in;
+assign coreir_commonlib_mux2x24_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width24 coreir_commonlib_mux2x24_inst0 (
     .in_data(coreir_commonlib_mux2x24_inst0_in_data),
     .in_sel(coreir_commonlib_mux2x24_inst0_in_sel),
     .out(coreir_commonlib_mux2x24_inst0_out)
 );
-assign O = '{_$_U4_out[23:16],_$_U4_out[15:8],_$_U4_out[7:0]};
+assign O[2] = _$_U4_out[23:16];
+assign O[1] = _$_U4_out[15:8];
+assign O[0] = _$_U4_out[7:0];
 endmodule
 
 module Register (
@@ -129,8 +132,12 @@ wire [7:0] const_222_8_out;
 wire reg_P_inst0_clk;
 wire [23:0] reg_P_inst0_in;
 wire [23:0] reg_P_inst0_out;
-assign Mux2xArray3_Bits8_inst0_I0 = '{I[2],I[1],I[0]};
-assign Mux2xArray3_Bits8_inst0_I1 = '{const_190_8_out,const_173_8_out,const_222_8_out};
+assign Mux2xArray3_Bits8_inst0_I0[2] = I[2];
+assign Mux2xArray3_Bits8_inst0_I0[1] = I[1];
+assign Mux2xArray3_Bits8_inst0_I0[0] = I[0];
+assign Mux2xArray3_Bits8_inst0_I1[2] = const_190_8_out;
+assign Mux2xArray3_Bits8_inst0_I1[1] = const_173_8_out;
+assign Mux2xArray3_Bits8_inst0_I1[0] = const_222_8_out;
 assign Mux2xArray3_Bits8_inst0_S = RESET;
 Mux2xArray3_Bits8 Mux2xArray3_Bits8_inst0 (
     .I0(Mux2xArray3_Bits8_inst0_I0),
@@ -167,7 +174,9 @@ coreir_reg #(
     .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
-assign O = '{reg_P_inst0_out[23:16],reg_P_inst0_out[15:8],reg_P_inst0_out[7:0]};
+assign O[2] = reg_P_inst0_out[23:16];
+assign O[1] = reg_P_inst0_out[15:8];
+assign O[0] = reg_P_inst0_out[7:0];
 endmodule
 
 module test_reg_of_nested_array (
@@ -180,7 +189,9 @@ wire [7:0] Register_inst0_I [2:0];
 wire [7:0] Register_inst0_O [2:0];
 wire Register_inst0_CLK;
 wire Register_inst0_RESET;
-assign Register_inst0_I = '{I[2],I[1],I[0]};
+assign Register_inst0_I[2] = I[2];
+assign Register_inst0_I[1] = I[1];
+assign Register_inst0_I[0] = I[0];
 assign Register_inst0_CLK = CLK;
 assign Register_inst0_RESET = RESET;
 Register Register_inst0 (
@@ -189,6 +200,8 @@ Register Register_inst0 (
     .CLK(Register_inst0_CLK),
     .RESET(Register_inst0_RESET)
 );
-assign O = '{Register_inst0_O[2],Register_inst0_O[1],Register_inst0_O[0]};
+assign O[2] = Register_inst0_O[2];
+assign O[1] = Register_inst0_O[1];
+assign O[0] = Register_inst0_O[0];
 endmodule
 

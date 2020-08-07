@@ -25,7 +25,7 @@ wire reg_P_inst0_clk;
 wire [0:0] reg_P_inst0_in;
 wire [0:0] reg_P_inst0_out;
 assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in = I;
+assign reg_P_inst0_in[0] = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
