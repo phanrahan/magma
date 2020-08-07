@@ -1,8 +1,8 @@
 module execute_alu (
-  output logic [15:0] O,
   input logic [15:0] a,
   input logic [15:0] b,
-  input logic [1:0] config_
+  input logic [1:0] config_,
+  output logic [15:0] O
 );
 
 logic [15:0] c;
