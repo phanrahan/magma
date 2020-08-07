@@ -79,3 +79,25 @@ The generated mux circuit will have separate ports for each input (i.e. `I0`
 for the 1st input, `I1` for the second...).  The select input will select
 the input value in ascending order (`S == 0` will select `I0`, `S == 1` will
 select `I1`, ...).
+
+# LUT
+The `LUT(T, contents)` primitive creates a lookup table circuit programmed with
+`contents` (a tuple of values of type T).
+Here's a simple example with 4 entries of 8-bit values:
+```python
+contents = (
+    m.Bits[8](0xDE),
+    m.Bits[8](0xAD),
+    m.Bits[8](0xBE),
+    m.Bits[8](0xEF)
+)
+
+class SimpleLUT(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[8]))
+    io.O @= LUT(m.Bits[8], contents)()(io.I)
+```
+
+Mux `__init__` arguments:
+* `T: m.Kind` - type of the lookup table contents
+* `contents` - the contents of the LUT (a tuple containing
+               elements of type T that are constant)
