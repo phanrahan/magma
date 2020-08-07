@@ -46,4 +46,4 @@ Mux `__init__` arguments:
 The generated mux circuit will have separate ports for each input (i.e. `I0`
 for the 1st input, `I1` for the second...).  The select input will select
 the input value in ascending order (`S == 0` will select `I0`, `S == 1` will
-select `I1`).
+select `I1`, ...).
