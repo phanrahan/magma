@@ -29,3 +29,21 @@ Register `__init__` arguments:
                                   reset signal)
 * `reset_priority: bool` - (optional) boolean flag choosing whether synchronous
                            reset (RESET or RESETN) has priority over enable
+
+# Mux
+The `Mux(T)` primitive creates a mux circuit that selects between values of
+type `T`.  Here's a simple example that selects between two bits:
+```python
+class SelectABit(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= Mux(2, m.Bit)()(io.I[0], io.I[1], io.S)
+```
+
+Mux `__init__` arguments:
+* `height: int` - number of inputs to select from
+* `T: m.Kind` - type of the input values
+
+The generated mux circuit will have separate ports for each input (i.e. `I0`
+for the 1st input, `I1` for the second...).  The select input will select
+the input value in ascending order (`S == 0` will select `I0`, `S == 1` will
+select `I1`).
