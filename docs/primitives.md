@@ -97,7 +97,7 @@ class SimpleLUT(m.Circuit):
     io.O @= LUT(m.Bits[8], contents)()(io.I)
 ```
 
-Mux `__init__` arguments:
+LUT `__init__` arguments:
 * `T: m.Kind` - type of the lookup table contents
 * `contents` - the contents of the LUT (a tuple containing
-               elements of type T that are constant)
+              elements of type T that are constant)
