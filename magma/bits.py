@@ -315,10 +315,23 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def bvneg(self) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_unary_op("neg")()(self)
 
-    def adc(self, other, carry) -> tp.Tuple['AbstractBitVector', AbstractBit]:
-        raise NotImplementedError()
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.zext(1)
+        b = other.zext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
 
     def ite(self, t_branch, f_branch) -> 'AbstractBitVector':
         type_ = type(t_branch)
@@ -327,20 +340,25 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return self.declare_ite(type_)()(t_branch, f_branch,
                                          self != self.make_constant(0))
 
+    @bits_cast
     def bvadd(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("add")()(self, other)
 
+    @bits_cast
     def bvsub(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("sub")()(self, other)
 
+    @bits_cast
     def bvmul(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("mul")()(self, other)
 
+    @bits_cast
     def bvudiv(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("udiv")()(self, other)
 
+    @bits_cast
     def bvurem(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("urem")()(self, other)
 
     def bvsdiv(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -572,9 +590,6 @@ BitsType = Bits
 class UInt(Bits):
     hwtypes_T = ht.UIntVector
 
-    def bvneg(self) -> 'AbstractBitVector':
-        return self.declare_unary_op("neg")()(self)
-
     @bits_cast
     def bvult(self, other) -> AbstractBit:
         return self.declare_compare_op("ult")()(self, other)
@@ -593,42 +608,6 @@ class UInt(Bits):
     @bits_cast
     def bvuge(self, other) -> AbstractBit:
         return self.declare_compare_op("uge")()(self, other)
-
-    @bits_cast
-    def bvadd(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("add")()(self, other)
-
-    @bits_cast
-    def bvsub(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("sub")()(self, other)
-
-    @bits_cast
-    def bvmul(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("mul")()(self, other)
-
-    @bits_cast
-    def bvudiv(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("udiv")()(self, other)
-
-    @bits_cast
-    def bvurem(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("urem")()(self, other)
-
-    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
-        """
-        add with carry
-        returns a two element tuple of the form (result, carry)
-        """
-        T = type(self)
-        other = _coerce(T, other)
-        carry = _coerce(T.unsized_t[1], carry)
-
-        a = self.zext(1)
-        b = other.zext(1)
-        c = carry.zext(T.size)
-
-        res = a + b + c
-        return res[0:-1], res[-1]
 
 
 class SInt(Bits):
