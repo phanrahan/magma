@@ -20,8 +20,12 @@ from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
 from magma.syntax.sequential import sequential
-from magma.syntax.verilog import combinational_to_verilog, \
-    sequential_to_verilog
+try:
+    import kratos
+    from magma.syntax.verilog import combinational_to_verilog, \
+        sequential_to_verilog
+except ImportError:
+    pass
 from .view import PortView
 from magma.protocol_type import MagmaProtocol
 
