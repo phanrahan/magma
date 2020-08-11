@@ -1,25 +1,46 @@
-**NOTE The combinational and sequential syntaxes are being deprecated, please
-use combinational2 and sequential2, documneted [here](./syntaxes.md)**
-**NOTE** The combinational and sequential syntax exetensions have only been
-tested with the "coreir" and "coreir-verilog" compile targets.  Please set
-`output="coreir-verilog"` or `output="coreir"` when calling `m.compile` to use
-this feature.
+# Syntaxes
+Magma's core syntax is at the structural RTL of abstraction.  Magma provides
+layers on top of this core syntax to abstract some details such as wiring of
+inputs/outputs, referencing registers, and control logic state machines.
 
-# Combinational Circuit Definitions
-Circuit defintions can be marked with the `@m.circuit.combinational` decorator.
-This introduces a set of syntax level features for defining combinational magma
-circuits, including the use of `if` statements to generate `Mux`es.
+## Core
+Circuits are defined by subclassing `m.Circuit` and assigning an interface
+definition to the variable named `io`.  Inside, the user creates instances of
+other circuits and wires their ports to the `io` object.
 
-This feature is currently experimental, and therefor expect bugs to occur.
-Please file any issues on the magma GitHub repository.
+```python
+class Accum(m.Circuit):
+        # Interface contains an input port and output port, both of type
+        UInt[8]
+        io = m.IO(
+            I=m.In(m.UInt[8]),
+            O=m.Out(m.UInt[8]))
+        )
+        # Add magma's standard clock interface (equivalent to
+        # including CLK=m.In(m.Clock) in an m.IO call
+        # Note that io objects can be incrementally constructed using the `+`
+        # operator
+        io += m.ClockIO()
+        # Generate a register circuit that stores a value of type UInt[8] 
+        # Second set of parenthesis instances the generated circuit
+        sum = m.Register(m.UInt[8])()
+        # Calling an instance `sum(...)` corresponds to wiring up the inputs
+        # @= operator wires the output of sum (returned from calling the
+        # instance) to the `O` port of the output
+        io.O @= sum(sum.O + io.I)
+        # Register clock signal is automatically wired up
+```
+## Combinational
+Magma supports generating combinational logic from pure functions using the
+`@m.combinational2` decorator.  This introduces a set of syntax level features
+for defining combinational magma circuits, including the use of `if` statements
+to generate `Mux`es.
 
-
-## If and Ternary
 The condition must be an expression that evaluates to a `magma` value.
 
-Basic example:
+Here's a simple example:
 ```python
-@m.circuit.combinational
+@m.combinational2
 def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
     if S:
         return I[0]
@@ -31,18 +52,18 @@ def basic_if(I: m.Bits[2], S: m.Bit) -> m.Bit:
 For reference, here is the code produced for the corresponding magma circuit
 definition where the if statement has been lowered into a multiplexer:
 ```python
-basic_if = DefineCircuit("basic_if", "I", In(Bits[2]), "S", In(Bit), "O", Out(Bit))
-Mux2xOutBit_inst0 = Mux2xOutBit()
-wire(basic_if.I[1], Mux2xOutBit_inst0.I0)
-wire(basic_if.I[0], Mux2xOutBit_inst0.I1)
-wire(basic_if.S, Mux2xOutBit_inst0.S)
-wire(Mux2xOutBit_inst0.O, basic_if.O)
-EndCircuit()
+class basic_if(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(Bit))
+    Mux2xOutBit_inst0 = Mux2xOutBit()
+    wire(io.I[1], Mux2xOutBit_inst0.I0)
+    wire(io.I[0], Mux2xOutBit_inst0.I1)
+    wire(io.S, Mux2xOutBit_inst0.S)
+    wire(Mux2xOutBit_inst0.O, io.O)
 ```
 
-Basic nesting:
+`combinational2` allows nesting `if` statements:
 ```python
-@m.circuit.combinational
+@m.combinational2
 def if_statement_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
     if S[0]:
         if S[1]:
@@ -56,30 +77,24 @@ def if_statement_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
             return I[3]
 ```
 
-Terneray expressions
+Also terneray expressions:
 ```python
+@m.combinational2
 def ternary(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return I[0] if S else I[1]
 ```
 
-Nesting terneray expressions
+### Function composition
 ```python
-@m.circuit.combinational
-def ternary_nested(I: m.Bits[4], S: m.Bits[2]) -> m.Bit:
-    return I[0] if S[0] else I[1] if S[1] else I[2]
-```
-
-## Function composition:
-```python
-@m.circuit.combinational
+@m.combinational2
 def basic_if_function_call(I: m.Bits[2], S: m.Bit) -> m.Bit:
     return basic_if(I, S)
 ```
-Function calls must refer to another `m.circuit.combinational` element, or a
+Function calls must refer to another `m.combinational2` element, or a
 function that accepts magma values, define instances and wires values, and
 returns a magma.  Calling any other type of function has undefined behavior.
 
-## Returning multiple values (tuples)
+### Returning multiple values (tuples)
 
 There are two ways to return multiple values, first is to use a Python tuple.
 This is specified in the type signature as `(m.Type, m.Type, ...)`.  In the
@@ -88,7 +103,7 @@ tuple syntax.  The circuit defined with a Python tuple as an output type will
 default to the naming convetion `O0, O1, ...` for the output ports.
 
 ```python
-@m.circuit.combinational
+@m.combinational2
 def return_py_tuple(I: m.Bits[2]) -> (m.Bit, m.Bit):
     return I[0], I[1]
 ```
@@ -100,18 +115,18 @@ with `m.Tuple(O0=m.Bit, O1=m.Bit)`.
 
 
 ```python
-@m.circuit.combinational
+@m.combinational2
 def return_magma_tuple(I: m.Bits[2]) -> m.Tuple[m.Bit, m.Bit]:
     return m.tuple_([I[0], I[1]])
 ```
 
 ```python
-@m.circuit.combinational
+@m.combinational2
 def return_magma_named_tuple(I: m.Bits[2]) -> m.Product.from_fields("anon", {"x": m.Bit, "y": m.Bit}):
     return m.namedtuple(x=I[0], y=I[1])
 ```
 
-## Using non-combinational magma circuits
+### Using non-combinational magma circuits
 The combinational syntax allows the use of other combinational circuits using
 the function call syntax to wire inputs and retrieve outputs.
 
@@ -120,7 +135,7 @@ Here is an example:
 class EQ(m.Circuit):
     IO = ["I0", m.In(m.Bit), "I1", m.In(m.Bit), "O", m.Out(m.Bit)]
 
-@m.circuit.combinational
+@m.combinational2
 def logic(a: m.Bit) -> (m.Bit,):
     if EQ()(a, m.bit(0)):
         c = m.bit(1)
@@ -129,48 +144,45 @@ def logic(a: m.Bit) -> (m.Bit,):
     return (c,)
 ```
 
-## Using magma's higher order circuits
+### Using magma's higher order circuits
 ```python
 class Not(m.Circuit):
     IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
 
-@m.circuit.combinational
+@m.combinational2
 def logic(a: m.Bits[10]) -> m.Bits[10]:
     return m.join(m.map_(Not, 10))(a)
 ```
 
-## Using combinational circuits as a standard circuit definition
+### Using combinational circuits as a standard circuit definition
 Combinational circuits can also be used as standard circuit definitions by
 using the `.circuit_definition` attribute to retrieve the corresponding magma
 circuit.
 ```python
-@m.circuit.combinational
+@m.combinational2
 def invert(a: m.Bit) -> m.Bit:
     return Not()(a)
 
 class Foo(m.Circuit):
     IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)]
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
-    @classmethod
-    def definition(io):
-        # reference circuit_definition and instance
-        inv = invert.circuit_definition()  
-        inv.a <= io.I
-        io.O <= inv.O
+    # reference circuit_definition and instance
+    inv = invert.circuit_definition()  
+    inv.a <= io.I
+    io.O <= inv.O
 ```
 
-## Statically Elaborated For Loops
+### Statically Elaborated For Loops
 Statically elaborated for loops are supported using the [ast_tools loop
 unrolling macro](https://github.com/leonardt/ast_tools#loop-unrolling).
 Here's an example:
 ```python
-from ast_tools.passes import begin_rewrite, loop_unroll, end_rewrite
+from ast_tools.passes import loop_unroll, apply_ast_passes
 
 n = 4
-@m.circuit.combinational
-@end_rewrite()
-@loop_unroll()
-@begin_rewrite()
+@m.combinational2
+@apply_ast_passes([loop_unroll()])
 def logic(a: m.Bits[n]) -> m.Bits[n]:
     O = []
     for i in ast_tools.macros.unroll(range(n)):
@@ -180,45 +192,42 @@ def logic(a: m.Bits[n]) -> m.Bits[n]:
 which compiles to this magma circuit
 ```python
 class logic(m.Circuit):
-    IO = ['a', m.In(m.Bits[n]), 'O', m.Out(m.Bits[n])]
+    io = m.IO(a=m.In(m.Bits[n]), O=m.Out(m.Bits[n]))
 
-    @classmethod
-    def definition(io):
-        O_0 = []
-        O_0.append(io.a[n - 1 - 0])
-        O_0.append(io.a[n - 1 - 1])
-        O_0.append(io.a[n - 1 - 2])
-        O_0.append(io.a[n - 1 - 3])
-        __magma_ssa_return_value_0 = m.bits(O_0, n)
-        O = __magma_ssa_return_value_0
-        m.wire(O, io.O)
+    O_0 = []
+    O_0.append(io.a[n - 1 - 0])
+    O_0.append(io.a[n - 1 - 1])
+    O_0.append(io.a[n - 1 - 2])
+    O_0.append(io.a[n - 1 - 3])
+    __magma_ssa_return_value_0 = m.bits(O_0, n)
+    O = __magma_ssa_return_value_0
+    m.wire(O, io.O)
 ```
 
 
-# Sequential Circuit Definition
-The `@m.circuit.sequential` decorator extends the `@m.circuit.combinational`
+## Sequential
+The `@m.sequential2` decorator extends the `@m.combinational2`
 syntax with the ability to use Python's class system to describe stateful
 circuits.
 
-The basic pattern uses the `__init__` method to declare state, and a `__call__`
-function that uses `@m.circuit.combinational` syntax to describe the transition
-function from the current state to the next state, as well as a function from
-the inputs to the outputs.  State is referenced using the first argument `self`
-and is implicitly updated by writing to attributes of self (e.g. `self.x = 3`).
+The execution of `sequential` clases begins with the `__init__` method where
+arbitrary magma code can be run to construct the internal state of a circuit.
+Then, the `__call__` function constructs the state transition logic as well as
+the input/output logic using `@m.combinational2` syntax.
+State is referenced using the first argument `self` and is implicitly updated
+by writing to attributes of self (e.g. `self.x = 3`).
 
 Here's an example of a basic 2 element shift register:
 ```python
-@m.circuit.sequential(async_reset=True)
-class DelayBy2:
-    def __init__(self):
-        self.x: m.Bits[2] = m.bits(0, 2)
-        self.y: m.Bits[2] = m.bits(0, 2)
+@m.sequential2()
+class Counter:
+    def __init__(self, reset_type=m.AsyncReset, has_enable=True):
+        # reset_type and has_enable will be set implicitly
+        self.count = m.Register(T=m.UInt[16], init=m.uint(0, 16))()
 
-    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-        O = self.y
-        self.y = self.x
-        self.x = I
-        return O
+    def __call__(self) -> m.SInt[16]:
+        self.count = self.count + 1
+        return self.count
 ```
 
 In the `__init__` method, the circuit declares two state elements `self.x` and
@@ -307,93 +316,4 @@ ensure that some input value is provided every cycle (the sub sequential
 circuit must similarly be designed in such a way that the logic expects inputs
 every cycle, so enable logic must be explicitly defined).
 
-## Experimental: Direct to Verilog Compilation
-`@combinational_to_verilog` and `@sequential_to_verilog` decorators provide
-support for an alternative compiler that passes `if` statements down to verilog
-and uses an `always_ff` block to implement the sequential registers.
-
-For example,
-```python
-@m.circuit.combinational_to_verilog
-def execute_alu(a: m.UInt[16], b: m.UInt[16], config_: m.Bits[2]) -> \
-        m.UInt[16]:
-    if config_ == m.bits(0, 2):
-        c = a + b
-    elif config_ == m.bits(1, 2):
-        c = a - b
-    elif config_ == m.bits(2, 2):
-        c = a * b
-    else:
-        c = m.bits(0, 16)
-    return c
-```
-
-compiles to
-```verilog
-module execute_alu (
-  output logic [15:0] O,
-  input logic [15:0] a,
-  input logic [15:0] b,
-  input logic [1:0] config_
-);
-
-logic [15:0] c;
-always_comb begin
-  unique case (config_)
-    2'h0: c = a + b;
-    2'h1: c = a - b;
-    2'h2: c = a * b;
-    default: c = 16'h0;
-  endcase
-  O = c;
-end
-endmodule   // execute_alu
-```
-
-and
-```python
-@m.circuit.sequential_to_verilog(async_reset=True)
-class TestBasic:
-    def __init__(self):
-        self.x: m.Bits[2] = m.bits(0, 2)
-        self.y: m.Bits[2] = m.bits(0, 2)
-
-    def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-        _O = self.y
-        self.y = self.x
-        self.x = I
-        return _O
-```
-compiles to
-```verilog
-module TestBasic (
-  input logic ASYNCRESET,
-  input logic CLK,
-  input logic [1:0] I,
-  output logic [1:0] O
-);
-
-logic [1:0] _O;
-logic [1:0] self_x_I;
-logic [1:0] self_x_O;
-logic [1:0] self_y_I;
-logic [1:0] self_y_O;
-
-always_ff @(posedge CLK, posedge ASYNCRESET) begin
-  if (ASYNCRESET) begin
-    self_x_O <= 2'h0;
-    self_y_O <= 2'h0;
-  end
-  else begin
-    self_x_O <= self_x_I;
-    self_y_O <= self_y_I;
-  end
-end
-always_comb begin
-  _O = self_y_O;
-  self_y_I = self_x_O;
-  self_x_I = I;
-  O = _O;
-end
-endmodule   // TestBasic
-```
+## Coroutine
