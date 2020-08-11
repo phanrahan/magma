@@ -56,19 +56,13 @@ module commonlib_muxn__N2__width10 (
     input [0:0] in_sel,
     output [9:0] out
 );
-wire [9:0] _join_in0;
-wire [9:0] _join_in1;
-wire _join_sel;
 wire [9:0] _join_out;
-assign _join_in0 = in_data[0];
-assign _join_in1 = in_data[1];
-assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(10)
 ) _join (
-    .in0(_join_in0),
-    .in1(_join_in1),
-    .sel(_join_sel),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
+    .sel(in_sel[0]),
     .out(_join_out)
 );
 assign out = _join_out;
@@ -80,11 +74,11 @@ module Mux2xOutUInt10 (
     input S,
     output [9:0] O
 );
-wire [9:0] coreir_commonlib_mux2x10_inst0_in_data [1:0];
-wire [0:0] coreir_commonlib_mux2x10_inst0_in_sel;
 wire [9:0] coreir_commonlib_mux2x10_inst0_out;
+wire [9:0] coreir_commonlib_mux2x10_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x10_inst0_in_data[1] = I1;
 assign coreir_commonlib_mux2x10_inst0_in_data[0] = I0;
+wire [0:0] coreir_commonlib_mux2x10_inst0_in_sel;
 assign coreir_commonlib_mux2x10_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width10 coreir_commonlib_mux2x10_inst0 (
     .in_data(coreir_commonlib_mux2x10_inst0_in_data),
@@ -100,21 +94,13 @@ module RdPtr_comb (
     output [9:0] O0,
     output [9:0] O1
 );
-wire [9:0] Mux2xOutUInt10_inst0_I0;
-wire [9:0] Mux2xOutUInt10_inst0_I1;
-wire Mux2xOutUInt10_inst0_S;
 wire [9:0] Mux2xOutUInt10_inst0_O;
 wire [9:0] const_1_10_out;
-wire [9:0] magma_Bits_10_add_inst0_in0;
-wire [9:0] magma_Bits_10_add_inst0_in1;
 wire [9:0] magma_Bits_10_add_inst0_out;
-assign Mux2xOutUInt10_inst0_I0 = self_rd_ptr_O;
-assign Mux2xOutUInt10_inst0_I1 = magma_Bits_10_add_inst0_out;
-assign Mux2xOutUInt10_inst0_S = read;
 Mux2xOutUInt10 Mux2xOutUInt10_inst0 (
-    .I0(Mux2xOutUInt10_inst0_I0),
-    .I1(Mux2xOutUInt10_inst0_I1),
-    .S(Mux2xOutUInt10_inst0_S),
+    .I0(self_rd_ptr_O),
+    .I1(magma_Bits_10_add_inst0_out),
+    .S(read),
     .O(Mux2xOutUInt10_inst0_O)
 );
 coreir_const #(
@@ -123,13 +109,11 @@ coreir_const #(
 ) const_1_10 (
     .out(const_1_10_out)
 );
-assign magma_Bits_10_add_inst0_in0 = self_rd_ptr_O;
-assign magma_Bits_10_add_inst0_in1 = const_1_10_out;
 coreir_add #(
     .width(10)
 ) magma_Bits_10_add_inst0 (
-    .in0(magma_Bits_10_add_inst0_in0),
-    .in1(magma_Bits_10_add_inst0_in1),
+    .in0(self_rd_ptr_O),
+    .in1(const_1_10_out),
     .out(magma_Bits_10_add_inst0_out)
 );
 assign O0 = Mux2xOutUInt10_inst0_O;
@@ -142,34 +126,24 @@ module RdPtr (
     input ASYNCRESET,
     output [9:0] O
 );
-wire RdPtr_comb_inst0_read;
-wire [9:0] RdPtr_comb_inst0_self_rd_ptr_O;
 wire [9:0] RdPtr_comb_inst0_O0;
 wire [9:0] RdPtr_comb_inst0_O1;
-wire reg_PR_inst0_clk;
-wire reg_PR_inst0_arst;
-wire [9:0] reg_PR_inst0_in;
 wire [9:0] reg_PR_inst0_out;
-assign RdPtr_comb_inst0_read = read;
-assign RdPtr_comb_inst0_self_rd_ptr_O = reg_PR_inst0_out;
 RdPtr_comb RdPtr_comb_inst0 (
-    .read(RdPtr_comb_inst0_read),
-    .self_rd_ptr_O(RdPtr_comb_inst0_self_rd_ptr_O),
+    .read(read),
+    .self_rd_ptr_O(reg_PR_inst0_out),
     .O0(RdPtr_comb_inst0_O0),
     .O1(RdPtr_comb_inst0_O1)
 );
-assign reg_PR_inst0_clk = CLK;
-assign reg_PR_inst0_arst = ASYNCRESET;
-assign reg_PR_inst0_in = RdPtr_comb_inst0_O0;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(10'h000),
     .width(10)
 ) reg_PR_inst0 (
-    .clk(reg_PR_inst0_clk),
-    .arst(reg_PR_inst0_arst),
-    .in(reg_PR_inst0_in),
+    .clk(CLK),
+    .arst(ASYNCRESET),
+    .in(RdPtr_comb_inst0_O0),
     .out(reg_PR_inst0_out)
 );
 assign O = RdPtr_comb_inst0_O1;

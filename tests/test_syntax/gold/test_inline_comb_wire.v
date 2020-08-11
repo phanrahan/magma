@@ -21,17 +21,15 @@ module Register (
     output O,
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [0:0] reg_P_inst0_in;
 wire [0:0] reg_P_inst0_out;
-assign reg_P_inst0_clk = CLK;
+wire [0:0] reg_P_inst0_in;
 assign reg_P_inst0_in[0] = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
+    .clk(CLK),
     .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
@@ -61,27 +59,21 @@ module Main (
     output O,
     input CLK
 );
-wire Mux2xOutBit_inst0_I0;
-wire Mux2xOutBit_inst0_I1;
-wire Mux2xOutBit_inst0_S;
 wire Mux2xOutBit_inst0_O;
-wire Register_inst0_I;
-wire Register_inst0_CLK;
-assign Mux2xOutBit_inst0_I0 = O;
-assign Mux2xOutBit_inst0_I1 = ~ O;
-assign Mux2xOutBit_inst0_S = invert;
+wire Register_inst0_O;
+wire magma_Bit_not_inst0_out;
 Mux2xOutBit Mux2xOutBit_inst0 (
-    .I0(Mux2xOutBit_inst0_I0),
-    .I1(Mux2xOutBit_inst0_I1),
-    .S(Mux2xOutBit_inst0_S),
+    .I0(Register_inst0_O),
+    .I1(magma_Bit_not_inst0_out),
+    .S(invert),
     .O(Mux2xOutBit_inst0_O)
 );
-assign Register_inst0_I = Mux2xOutBit_inst0_O;
-assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
-    .I(Register_inst0_I),
-    .O(O),
-    .CLK(Register_inst0_CLK)
+    .I(Mux2xOutBit_inst0_O),
+    .O(Register_inst0_O),
+    .CLK(CLK)
 );
+assign magma_Bit_not_inst0_out = ~ Register_inst0_O;
+assign O = Register_inst0_O;
 endmodule
 

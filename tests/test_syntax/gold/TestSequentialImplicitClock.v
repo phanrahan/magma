@@ -39,29 +39,17 @@ module ImplicitClock_comb (
     input RCLK,
     output [7:0] O
 );
-wire [7:0] DualClockRAM_inst0_RADDR;
-wire [7:0] DualClockRAM_inst0_WADDR;
-wire [7:0] DualClockRAM_inst0_WDATA;
 wire [7:0] DualClockRAM_inst0_RDATA;
-wire DualClockRAM_inst0_WE;
-wire DualClockRAM_inst0_RCLK;
-wire DualClockRAM_inst0_WCLK;
 wire bit_const_0_None_out;
 wire [7:0] const_0_8_out;
-assign DualClockRAM_inst0_RADDR = const_0_8_out;
-assign DualClockRAM_inst0_WADDR = const_0_8_out;
-assign DualClockRAM_inst0_WDATA = const_0_8_out;
-assign DualClockRAM_inst0_WE = bit_const_0_None_out;
-assign DualClockRAM_inst0_RCLK = WCLK;
-assign DualClockRAM_inst0_WCLK = WCLK;
 DualClockRAM DualClockRAM_inst0 (
-    .RADDR(DualClockRAM_inst0_RADDR),
-    .WADDR(DualClockRAM_inst0_WADDR),
-    .WDATA(DualClockRAM_inst0_WDATA),
+    .RADDR(const_0_8_out),
+    .WADDR(const_0_8_out),
+    .WDATA(const_0_8_out),
     .RDATA(DualClockRAM_inst0_RDATA),
-    .WE(DualClockRAM_inst0_WE),
-    .RCLK(DualClockRAM_inst0_RCLK),
-    .WCLK(DualClockRAM_inst0_WCLK)
+    .WE(bit_const_0_None_out),
+    .RCLK(WCLK),
+    .WCLK(WCLK)
 );
 corebit_const #(
     .value(1'b0)
@@ -83,14 +71,10 @@ module ImplicitClock (
     input CLK,
     output [7:0] O
 );
-wire ImplicitClock_comb_inst0_WCLK;
-wire ImplicitClock_comb_inst0_RCLK;
 wire [7:0] ImplicitClock_comb_inst0_O;
-assign ImplicitClock_comb_inst0_WCLK = WCLK;
-assign ImplicitClock_comb_inst0_RCLK = RCLK;
 ImplicitClock_comb ImplicitClock_comb_inst0 (
-    .WCLK(ImplicitClock_comb_inst0_WCLK),
-    .RCLK(ImplicitClock_comb_inst0_RCLK),
+    .WCLK(WCLK),
+    .RCLK(RCLK),
     .O(ImplicitClock_comb_inst0_O)
 );
 assign O = ImplicitClock_comb_inst0_O;

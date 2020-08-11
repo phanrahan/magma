@@ -9,11 +9,9 @@ module Main (
     input I,
     output O
 );
-wire x_in;
 wire x_out;
-assign x_in = I;
 corebit_wire x (
-    .in(x_in),
+    .in(I),
     .out(x_out)
 );
 assign O = x_out;
