@@ -21,6 +21,6 @@ coreir_eq #(
     .in1(I1),
     .out(magma_Bits_3_eq_inst0_out)
 );
-assign O[0] = magma_Bits_3_eq_inst0_out;
+assign O = magma_Bits_3_eq_inst0_out;
 endmodule
 

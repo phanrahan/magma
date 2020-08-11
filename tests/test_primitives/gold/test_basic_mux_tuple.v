@@ -101,11 +101,9 @@ mantle_wire__typeBitIn2 _$_U8 (
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x3_inst0_in_data[1] = _$_U3_in;
 assign coreir_commonlib_mux2x3_inst0_in_data[0] = _$_U2_in;
-wire [0:0] coreir_commonlib_mux2x3_inst0_in_sel;
-assign coreir_commonlib_mux2x3_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width3 coreir_commonlib_mux2x3_inst0 (
     .in_data(coreir_commonlib_mux2x3_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x3_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x3_inst0_out)
 );
 assign O__0 = _$_U4_out[0];

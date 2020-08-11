@@ -36,11 +36,9 @@ wire [0:0] coreir_commonlib_mux2x1_inst0_out;
 wire [0:0] coreir_commonlib_mux2x1_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x1_inst0_in_data[1] = I1;
 assign coreir_commonlib_mux2x1_inst0_in_data[0] = I0;
-wire [0:0] coreir_commonlib_mux2x1_inst0_in_sel;
-assign coreir_commonlib_mux2x1_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
     .in_data(coreir_commonlib_mux2x1_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x1_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x1_inst0_out)
 );
 assign O = coreir_commonlib_mux2x1_inst0_out;
@@ -52,13 +50,9 @@ module A_comb (
     output [0:0] O
 );
 wire [0:0] Mux2xOutBits1_inst0_O;
-wire [0:0] Mux2xOutBits1_inst0_I0;
-assign Mux2xOutBits1_inst0_I0[0] = b[0];
-wire [0:0] Mux2xOutBits1_inst0_I1;
-assign Mux2xOutBits1_inst0_I1[0] = a;
 Mux2xOutBits1 Mux2xOutBits1_inst0 (
-    .I0(Mux2xOutBits1_inst0_I0),
-    .I1(Mux2xOutBits1_inst0_I1),
+    .I0(b[0]),
+    .I1(a),
     .S(a),
     .O(Mux2xOutBits1_inst0_O)
 );

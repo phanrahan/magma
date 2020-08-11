@@ -159,11 +159,9 @@ mantle_wire__typeBit8 _$_U9 (
 wire [13:0] coreir_commonlib_mux2x14_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x14_inst0_in_data[1] = _$_U3_in;
 assign coreir_commonlib_mux2x14_inst0_in_data[0] = _$_U2_in;
-wire [0:0] coreir_commonlib_mux2x14_inst0_in_sel;
-assign coreir_commonlib_mux2x14_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width14 coreir_commonlib_mux2x14_inst0 (
     .in_data(coreir_commonlib_mux2x14_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x14_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x14_inst0_out)
 );
 assign O_a0 = _$_U4_out[0];
@@ -227,8 +225,6 @@ module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (
     input ASYNCRESET
 );
 wire [0:0] reg_PR_inst0_out;
-wire [0:0] reg_PR_inst0_in;
-assign reg_PR_inst0_in[0] = I;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
@@ -237,7 +233,7 @@ coreir_reg_arst #(
 ) reg_PR_inst0 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(reg_PR_inst0_in),
+    .in(I),
     .out(reg_PR_inst0_out)
 );
 assign O = reg_PR_inst0_out[0];
@@ -250,8 +246,6 @@ module DFF_initFalse_has_ceFalse_has_resetFalse_has_async_resetTrue (
     input ASYNCRESET
 );
 wire [0:0] reg_PR_inst0_out;
-wire [0:0] reg_PR_inst0_in;
-assign reg_PR_inst0_in[0] = I;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
@@ -260,7 +254,7 @@ coreir_reg_arst #(
 ) reg_PR_inst0 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(reg_PR_inst0_in),
+    .in(I),
     .out(reg_PR_inst0_out)
 );
 assign O = reg_PR_inst0_out[0];

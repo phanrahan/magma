@@ -71,12 +71,10 @@ module Mux2xTuplex_OutUInt8 (
     input S
 );
 wire [7:0] coreir_commonlib_mux2x8_inst0_out;
-wire [0:0] coreir_commonlib_mux2x8_inst0_in_sel;
-assign coreir_commonlib_mux2x8_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width8 coreir_commonlib_mux2x8_inst0 (
     .in_data_0(I0_x),
     .in_data_1(I1_x),
-    .in_sel(coreir_commonlib_mux2x8_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x8_inst0_out)
 );
 assign O_x = coreir_commonlib_mux2x8_inst0_out;

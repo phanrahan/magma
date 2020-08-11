@@ -126,11 +126,9 @@ wire [3:0] coreir_commonlib_mux2x4_inst0_out;
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x4_inst0_in_data[1] = I1;
 assign coreir_commonlib_mux2x4_inst0_in_data[0] = I0;
-wire [0:0] coreir_commonlib_mux2x4_inst0_in_sel;
-assign coreir_commonlib_mux2x4_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width4 coreir_commonlib_mux2x4_inst0 (
     .in_data(coreir_commonlib_mux2x4_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x4_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x4_inst0_out)
 );
 assign O = coreir_commonlib_mux2x4_inst0_out;
@@ -195,11 +193,9 @@ wire [0:0] coreir_commonlib_mux2x1_inst0_out;
 wire [0:0] coreir_commonlib_mux2x1_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x1_inst0_in_data[1] = I1;
 assign coreir_commonlib_mux2x1_inst0_in_data[0] = I0;
-wire [0:0] coreir_commonlib_mux2x1_inst0_in_sel;
-assign coreir_commonlib_mux2x1_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
     .in_data(coreir_commonlib_mux2x1_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x1_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x1_inst0_out)
 );
 assign O = coreir_commonlib_mux2x1_inst0_out[0];

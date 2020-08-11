@@ -51,7 +51,7 @@ coreir_add #(
     .in1(magma_Bits_2_add_inst1_in1),
     .out(magma_Bits_2_add_inst1_out)
 );
-assign O[0] = magma_Bits_2_add_inst1_out[0];
+assign O = magma_Bits_2_add_inst1_out[0];
 assign COUT = magma_Bits_2_add_inst1_out[1];
 endmodule
 

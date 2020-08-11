@@ -36,11 +36,9 @@ wire [1:0] coreir_commonlib_mux2x2_inst0_out;
 wire [1:0] coreir_commonlib_mux2x2_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x2_inst0_in_data[1] = I1;
 assign coreir_commonlib_mux2x2_inst0_in_data[0] = I0;
-wire [0:0] coreir_commonlib_mux2x2_inst0_in_sel;
-assign coreir_commonlib_mux2x2_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width2 coreir_commonlib_mux2x2_inst0 (
     .in_data(coreir_commonlib_mux2x2_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x2_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x2_inst0_out)
 );
 assign O = coreir_commonlib_mux2x2_inst0_out;
