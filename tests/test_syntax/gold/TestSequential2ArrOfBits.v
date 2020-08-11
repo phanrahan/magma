@@ -21,17 +21,15 @@ module Register (
     output [6:0] O [14:0],
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [104:0] reg_P_inst0_in;
 wire [104:0] reg_P_inst0_out;
-assign reg_P_inst0_clk = CLK;
+wire [104:0] reg_P_inst0_in;
 assign reg_P_inst0_in = {I[14][6:0],I[13][6:0],I[12][6:0],I[11][6:0],I[10][6:0],I[9][6:0],I[8][6:0],I[7][6:0],I[6][6:0],I[5][6:0],I[4][6:0],I[3][6:0],I[2][6:0],I[1][6:0],I[0][6:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(105'h000000000000000000000000000),
     .width(105)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
+    .clk(CLK),
     .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
@@ -57,9 +55,8 @@ module Test2 (
     output [6:0] O [14:0],
     input CLK
 );
-wire [6:0] Register_inst0_I [14:0];
 wire [6:0] Register_inst0_O [14:0];
-wire Register_inst0_CLK;
+wire [6:0] Register_inst0_I [14:0];
 assign Register_inst0_I[14] = I[14];
 assign Register_inst0_I[13] = I[13];
 assign Register_inst0_I[12] = I[12];
@@ -75,11 +72,10 @@ assign Register_inst0_I[3] = I[3];
 assign Register_inst0_I[2] = I[2];
 assign Register_inst0_I[1] = I[1];
 assign Register_inst0_I[0] = I[0];
-assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
     .I(Register_inst0_I),
     .O(Register_inst0_O),
-    .CLK(Register_inst0_CLK)
+    .CLK(CLK)
 );
 assign O[14] = Register_inst0_O[14];
 assign O[13] = Register_inst0_O[13];

@@ -14,19 +14,13 @@ module commonlib_muxn__N2__width1 (
     input [0:0] in_sel,
     output [0:0] out
 );
-wire [0:0] _join_in0;
-wire [0:0] _join_in1;
-wire _join_sel;
 wire [0:0] _join_out;
-assign _join_in0 = in_data[0];
-assign _join_in1 = in_data[1];
-assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(1)
 ) _join (
-    .in0(_join_in0),
-    .in1(_join_in1),
-    .sel(_join_sel),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
+    .sel(in_sel[0]),
     .out(_join_out)
 );
 assign out = _join_out;
@@ -38,11 +32,11 @@ module Mux2xOutBits1 (
     input S,
     output [0:0] O
 );
-wire [0:0] coreir_commonlib_mux2x1_inst0_in_data [1:0];
-wire [0:0] coreir_commonlib_mux2x1_inst0_in_sel;
 wire [0:0] coreir_commonlib_mux2x1_inst0_out;
+wire [0:0] coreir_commonlib_mux2x1_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x1_inst0_in_data[1] = I1;
 assign coreir_commonlib_mux2x1_inst0_in_data[0] = I0;
+wire [0:0] coreir_commonlib_mux2x1_inst0_in_sel;
 assign coreir_commonlib_mux2x1_inst0_in_sel[0] = S;
 commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
     .in_data(coreir_commonlib_mux2x1_inst0_in_data),
@@ -57,17 +51,15 @@ module A_comb (
     input [1:0] b,
     output [0:0] O
 );
-wire [0:0] Mux2xOutBits1_inst0_I0;
-wire [0:0] Mux2xOutBits1_inst0_I1;
-wire Mux2xOutBits1_inst0_S;
 wire [0:0] Mux2xOutBits1_inst0_O;
+wire [0:0] Mux2xOutBits1_inst0_I0;
 assign Mux2xOutBits1_inst0_I0[0] = b[0];
+wire [0:0] Mux2xOutBits1_inst0_I1;
 assign Mux2xOutBits1_inst0_I1[0] = a;
-assign Mux2xOutBits1_inst0_S = a;
 Mux2xOutBits1 Mux2xOutBits1_inst0 (
     .I0(Mux2xOutBits1_inst0_I0),
     .I1(Mux2xOutBits1_inst0_I1),
-    .S(Mux2xOutBits1_inst0_S),
+    .S(a),
     .O(Mux2xOutBits1_inst0_O)
 );
 assign O = Mux2xOutBits1_inst0_O;
@@ -80,14 +72,10 @@ module A (
     input ASYNCRESET,
     output [0:0] O
 );
-wire A_comb_inst0_a;
-wire [1:0] A_comb_inst0_b;
 wire [0:0] A_comb_inst0_O;
-assign A_comb_inst0_a = a;
-assign A_comb_inst0_b = b;
 A_comb A_comb_inst0 (
-    .a(A_comb_inst0_a),
-    .b(A_comb_inst0_b),
+    .a(a),
+    .b(b),
     .O(A_comb_inst0_O)
 );
 assign O = A_comb_inst0_O;

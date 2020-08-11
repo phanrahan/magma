@@ -21,17 +21,13 @@ module Register (
     output [2:0] O,
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [2:0] reg_P_inst0_in;
-assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
-    .in(reg_P_inst0_in),
+    .clk(CLK),
+    .in(I),
     .out(O)
 );
 endmodule
@@ -40,14 +36,12 @@ module Test2 (
     output [2:0] O,
     input CLK
 );
-wire [2:0] Register_inst0_I;
-wire Register_inst0_CLK;
-assign Register_inst0_I = 3'(O + 3'h1);
-assign Register_inst0_CLK = CLK;
+wire [2:0] magma_Bits_3_add_inst0_out;
 Register Register_inst0 (
-    .I(Register_inst0_I),
+    .I(magma_Bits_3_add_inst0_out),
     .O(O),
-    .CLK(Register_inst0_CLK)
+    .CLK(CLK)
 );
+assign magma_Bits_3_add_inst0_out = 3'(O + 3'h1);
 endmodule
 

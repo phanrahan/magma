@@ -69,56 +69,40 @@ module Memory (
     input WE
 );
 wire [4:0] _$_U1_in;
-wire [4:0] _$_U1_out;
 wire [4:0] _$_U2_in;
-wire [4:0] _$_U2_out;
-wire [4:0] _$_U3_in;
 wire [4:0] _$_U3_out;
-wire [4:0] _$_U4_in;
 wire [4:0] _$_U4_out;
-wire coreir_mem4x12_inst0_clk;
-wire [11:0] coreir_mem4x12_inst0_wdata;
-wire [1:0] coreir_mem4x12_inst0_waddr;
-wire coreir_mem4x12_inst0_wen;
 wire [11:0] coreir_mem4x12_inst0_rdata;
-wire [1:0] coreir_mem4x12_inst0_raddr;
-assign _$_U1_out = coreir_mem4x12_inst0_rdata[5:1];
 mantle_wire__typeBitIn5 _$_U1 (
     .in(_$_U1_in),
-    .out(_$_U1_out)
+    .out(coreir_mem4x12_inst0_rdata[5:1])
 );
-assign _$_U2_out = coreir_mem4x12_inst0_rdata[11:7];
 mantle_wire__typeBitIn5 _$_U2 (
     .in(_$_U2_in),
-    .out(_$_U2_out)
+    .out(coreir_mem4x12_inst0_rdata[11:7])
 );
-assign _$_U3_in = WDATA_0_Y;
 mantle_wire__typeBit5 _$_U3 (
-    .in(_$_U3_in),
+    .in(WDATA_0_Y),
     .out(_$_U3_out)
 );
-assign _$_U4_in = WDATA_1_Y;
 mantle_wire__typeBit5 _$_U4 (
-    .in(_$_U4_in),
+    .in(WDATA_1_Y),
     .out(_$_U4_out)
 );
-assign coreir_mem4x12_inst0_clk = CLK;
+wire [11:0] coreir_mem4x12_inst0_wdata;
 assign coreir_mem4x12_inst0_wdata = {_$_U4_out[4:0],WDATA_1_X,_$_U3_out[4:0],WDATA_0_X};
-assign coreir_mem4x12_inst0_waddr = WADDR;
-assign coreir_mem4x12_inst0_wen = WE;
-assign coreir_mem4x12_inst0_raddr = RADDR;
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
     .sync_read(1'b0),
     .width(12)
 ) coreir_mem4x12_inst0 (
-    .clk(coreir_mem4x12_inst0_clk),
+    .clk(CLK),
     .wdata(coreir_mem4x12_inst0_wdata),
-    .waddr(coreir_mem4x12_inst0_waddr),
-    .wen(coreir_mem4x12_inst0_wen),
+    .waddr(WADDR),
+    .wen(WE),
     .rdata(coreir_mem4x12_inst0_rdata),
-    .raddr(coreir_mem4x12_inst0_raddr)
+    .raddr(RADDR)
 );
 assign RDATA_0_X = coreir_mem4x12_inst0_rdata[0];
 assign RDATA_0_Y = _$_U1_in;
@@ -140,39 +124,23 @@ module test_memory_arr (
     input [4:0] wdata_1_Y,
     input wen
 );
-wire Memory_inst0_CLK;
-wire [1:0] Memory_inst0_RADDR;
 wire Memory_inst0_RDATA_0_X;
 wire [4:0] Memory_inst0_RDATA_0_Y;
 wire Memory_inst0_RDATA_1_X;
 wire [4:0] Memory_inst0_RDATA_1_Y;
-wire [1:0] Memory_inst0_WADDR;
-wire Memory_inst0_WDATA_0_X;
-wire [4:0] Memory_inst0_WDATA_0_Y;
-wire Memory_inst0_WDATA_1_X;
-wire [4:0] Memory_inst0_WDATA_1_Y;
-wire Memory_inst0_WE;
-assign Memory_inst0_CLK = clk;
-assign Memory_inst0_RADDR = raddr;
-assign Memory_inst0_WADDR = waddr;
-assign Memory_inst0_WDATA_0_X = wdata_0_X;
-assign Memory_inst0_WDATA_0_Y = wdata_0_Y;
-assign Memory_inst0_WDATA_1_X = wdata_1_X;
-assign Memory_inst0_WDATA_1_Y = wdata_1_Y;
-assign Memory_inst0_WE = wen;
 Memory Memory_inst0 (
-    .CLK(Memory_inst0_CLK),
-    .RADDR(Memory_inst0_RADDR),
+    .CLK(clk),
+    .RADDR(raddr),
     .RDATA_0_X(Memory_inst0_RDATA_0_X),
     .RDATA_0_Y(Memory_inst0_RDATA_0_Y),
     .RDATA_1_X(Memory_inst0_RDATA_1_X),
     .RDATA_1_Y(Memory_inst0_RDATA_1_Y),
-    .WADDR(Memory_inst0_WADDR),
-    .WDATA_0_X(Memory_inst0_WDATA_0_X),
-    .WDATA_0_Y(Memory_inst0_WDATA_0_Y),
-    .WDATA_1_X(Memory_inst0_WDATA_1_X),
-    .WDATA_1_Y(Memory_inst0_WDATA_1_Y),
-    .WE(Memory_inst0_WE)
+    .WADDR(waddr),
+    .WDATA_0_X(wdata_0_X),
+    .WDATA_0_Y(wdata_0_Y),
+    .WDATA_1_X(wdata_1_X),
+    .WDATA_1_Y(wdata_1_Y),
+    .WE(wen)
 );
 assign rdata_0_X = Memory_inst0_RDATA_0_X;
 assign rdata_0_Y = Memory_inst0_RDATA_0_Y;

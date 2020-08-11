@@ -22,18 +22,12 @@ module TestLog (
     input CLK,
     input CE
 );
-wire FF_inst0_I;
-wire FF_inst0_CLK;
-wire FF_inst0_CE;
 wire _magma_inline_wire0;
-assign FF_inst0_I = I;
-assign FF_inst0_CLK = CLK;
-assign FF_inst0_CE = CE;
 FF FF_inst0 (
-    .I(FF_inst0_I),
+    .I(I),
     .O(O),
-    .CLK(FF_inst0_CLK),
-    .CE(FF_inst0_CE)
+    .CLK(CLK),
+    .CE(CE)
 );
 assign _magma_inline_wire0 = O;
 

@@ -40,18 +40,14 @@ module Test_comb (
     input c,
     input [7:0] self_a_O_x
 );
-wire [7:0] Mux2xTuplex_OutUInt8_inst0_I0_x;
-wire [7:0] Mux2xTuplex_OutUInt8_inst0_I1_x;
-wire Mux2xTuplex_OutUInt8_inst0_S;
-assign Mux2xTuplex_OutUInt8_inst0_I0_x = self_a_O_x;
-assign Mux2xTuplex_OutUInt8_inst0_I1_x = self_a_O_x + 8'h01;
-assign Mux2xTuplex_OutUInt8_inst0_S = c;
+wire [7:0] magma_Bits_8_add_inst0_out;
 Mux2xTuplex_OutUInt8 Mux2xTuplex_OutUInt8_inst0 (
-    .I0_x(Mux2xTuplex_OutUInt8_inst0_I0_x),
-    .I1_x(Mux2xTuplex_OutUInt8_inst0_I1_x),
+    .I0_x(self_a_O_x),
+    .I1_x(magma_Bits_8_add_inst0_out),
     .O_x(O1_a_x),
-    .S(Mux2xTuplex_OutUInt8_inst0_S)
+    .S(c)
 );
+assign magma_Bits_8_add_inst0_out = self_a_O_x + 8'h01;
 assign O0_x = self_a_O_x;
 endmodule
 
@@ -61,28 +57,20 @@ module Test (
     input c
 );
 wire [7:0] Test_comb_inst0_O0_x;
-wire Test_comb_inst0_c;
-wire [7:0] Test_comb_inst0_self_a_O_x;
-wire reg_P_inst0_clk;
-wire [7:0] reg_P_inst0_in;
 wire [7:0] reg_P_inst0_out;
-assign Test_comb_inst0_c = c;
-assign Test_comb_inst0_self_a_O_x = reg_P_inst0_out;
 Test_comb Test_comb_inst0 (
     .O0_x(Test_comb_inst0_O0_x),
     .O1_a_x(O_a_x),
-    .c(Test_comb_inst0_c),
-    .self_a_O_x(Test_comb_inst0_self_a_O_x)
+    .c(c),
+    .self_a_O_x(reg_P_inst0_out)
 );
-assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in = Test_comb_inst0_O0_x;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(8'h00),
     .width(8)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
-    .in(reg_P_inst0_in),
+    .clk(CLK),
+    .in(Test_comb_inst0_O0_x),
     .out(reg_P_inst0_out)
 );
 endmodule

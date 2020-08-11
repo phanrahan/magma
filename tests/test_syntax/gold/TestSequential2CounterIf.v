@@ -21,17 +21,13 @@ module Register (
     output [15:0] O,
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [15:0] reg_P_inst0_in;
-assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(16'h0000),
     .width(16)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
-    .in(reg_P_inst0_in),
+    .clk(CLK),
+    .in(I),
     .out(O)
 );
 endmodule
@@ -59,27 +55,21 @@ module Test2 (
     output [15:0] O,
     input CLK
 );
-wire [15:0] Mux2xOutSInt16_inst0_I0;
-wire [15:0] Mux2xOutSInt16_inst0_I1;
-wire Mux2xOutSInt16_inst0_S;
-wire [15:0] Register_inst0_I;
+wire [15:0] Mux2xOutSInt16_inst0_O;
 wire [15:0] Register_inst0_O;
-wire Register_inst0_CLK;
-assign Mux2xOutSInt16_inst0_I0 = Register_inst0_O;
-assign Mux2xOutSInt16_inst0_I1 = 16'(Register_inst0_O + 16'h0001);
-assign Mux2xOutSInt16_inst0_S = sel;
+wire [15:0] magma_Bits_16_add_inst0_out;
 Mux2xOutSInt16 Mux2xOutSInt16_inst0 (
-    .I0(Mux2xOutSInt16_inst0_I0),
-    .I1(Mux2xOutSInt16_inst0_I1),
-    .S(Mux2xOutSInt16_inst0_S),
-    .O(O)
+    .I0(Register_inst0_O),
+    .I1(magma_Bits_16_add_inst0_out),
+    .S(sel),
+    .O(Mux2xOutSInt16_inst0_O)
 );
-assign Register_inst0_I = O;
-assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
-    .I(Register_inst0_I),
+    .I(Mux2xOutSInt16_inst0_O),
     .O(Register_inst0_O),
-    .CLK(Register_inst0_CLK)
+    .CLK(CLK)
 );
+assign magma_Bits_16_add_inst0_out = 16'(Register_inst0_O + 16'h0001);
+assign O = Mux2xOutSInt16_inst0_O;
 endmodule
 

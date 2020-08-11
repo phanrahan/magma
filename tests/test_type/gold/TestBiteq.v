@@ -18,21 +18,15 @@ module TestBinary (
     input I1,
     output O
 );
-wire magma_Bit_not_inst0_in;
 wire magma_Bit_not_inst0_out;
-wire magma_Bit_xor_inst0_in0;
-wire magma_Bit_xor_inst0_in1;
 wire magma_Bit_xor_inst0_out;
-assign magma_Bit_not_inst0_in = magma_Bit_xor_inst0_out;
 corebit_not magma_Bit_not_inst0 (
-    .in(magma_Bit_not_inst0_in),
+    .in(magma_Bit_xor_inst0_out),
     .out(magma_Bit_not_inst0_out)
 );
-assign magma_Bit_xor_inst0_in0 = I0;
-assign magma_Bit_xor_inst0_in1 = I1;
 corebit_xor magma_Bit_xor_inst0 (
-    .in0(magma_Bit_xor_inst0_in0),
-    .in1(magma_Bit_xor_inst0_in1),
+    .in0(I0),
+    .in1(I1),
     .out(magma_Bit_xor_inst0_out)
 );
 assign O = magma_Bit_not_inst0_out;
