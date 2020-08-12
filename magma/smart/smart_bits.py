@@ -518,13 +518,8 @@ class SmartBit(SmartBits[1]):
     pass
 
 
-def _eval(lhs, rhs):
-    # Internal debugging asserts.
-    assert isinstance(lhs, SmartBits)
-    assert isinstance(rhs, _SmartExpr)
-
+def _eval(lhs: SmartBits, rhs: _SmartExpr):
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
-
     res = rhs.eval()
     return SmartBits.make(res)
