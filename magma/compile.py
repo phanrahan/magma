@@ -45,6 +45,8 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     opts = kwargs.copy()
     compiler = _make_compiler(output, main, basename, opts)
 
+    WireClockPass(main).run()
+
     # Default behavior is to perform uniquification, but can be overriden.
     uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 
