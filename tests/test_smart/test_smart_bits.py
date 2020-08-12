@@ -1,5 +1,5 @@
 import magma as m
-from magma.smart import SmartBit, SmartBits, concat
+from magma.smart import SmartBit, SmartBits, concat, signed
 from magma.testing import check_files_equal
 from functools import wraps, partial
 import operator
@@ -144,37 +144,6 @@ def test_reduction():
     return _Test
 
 
-def test_circuit():
-
-    class _Foo(m.Circuit):
-        io = m.IO(
-            I0=m.In(SmartBits[7]),
-            I1=m.In(SmartBits[9, True]),
-            I2=m.In(SmartBits[12, True]),
-            O=m.Out(SmartBits[10]),
-            O2=m.Out(SmartBits[7]),
-            O3=m.Out(SmartBit),
-        )
-
-        x = (~(io.I0 + io.I1) + io.I2) << io.I0.reduce(operator.and_)
-        y = signed(io.I1 <= io.I2) + signed(io.I0)
-
-        print ()
-        print ("=======================")
-        print (x)
-        print (y)
-        print (io.I0)
-        print ("=======================")
-
-        io.O @= x
-        io.O2 @= y
-        io.O3 @= io.I0
-
-    #print (repr(_Foo))
-
-    m.compile("Foo", _Foo, output="coreir-verilog", inline=True)
-
-
 @_run_test
 def test_smoke():
 
@@ -255,3 +224,26 @@ def test_smoke():
         inst = _Test(name="Test")
 
     return type(_TestTop.instances[0])
+
+
+@_run_test
+def test_complex():
+
+    class _Test(m.Circuit):
+        io = m.IO(
+            I0=m.In(SmartBits[7]),
+            I1=m.In(SmartBits[9, True]),
+            I2=m.In(SmartBits[12, True]),
+            O=m.Out(SmartBits[10]),
+            O2=m.Out(SmartBits[7]),
+            O3=m.Out(SmartBit),
+        )
+
+        x = (~(io.I0 + io.I1) + io.I2) << io.I0.reduce(operator.and_)
+        y = signed(io.I1 <= io.I2) + signed(io.I0)
+
+        io.O @= x
+        io.O2 @= y
+        io.O3 @= io.I0
+
+    return _Test
