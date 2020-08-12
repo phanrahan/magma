@@ -175,49 +175,83 @@ def test_circuit():
     m.compile("Foo", _Foo, output="coreir-verilog", inline=True)
 
 
-def test_basic():
-    def x_():
-        return SmartBits[10]()
+@_run_test
+def test_smoke():
 
-    def y_():
-        return SmartBits[16]()
+    # NOTE(rsetaluri): We use a CircuitBuilder here just so we can dynamically
+    # add ports to make the test specification easier. The test just creates a
+    # bunch of SmartBits values and does operations and wires them. This is
+    # easiest to do and check in the context of a circuit definition. It is also
+    # (mostly) possible to do them on anonymous values but is less convenient.
 
-    def z_():
-        return SmartBit()
+    class _Test(m.CircuitBuilder):
+        def __init__(self, name):
+            super().__init__(name)
+            self._counter = 0
 
-    class Foo(m.Circuit):
+        def fresh_name(self):
+            name = f"port{self._counter}"
+            self._counter += 1
+            return name
 
-        x = x_()
-        y = y_()
-        z = z_()
+        def make_ports(self, *widths):
+            assert len(widths) >= 2
+            names = []
+            for i, width in enumerate(widths):
+                name = self.fresh_name()
+                width = widths[i]
+                T = SmartBit if width is None else SmartBits[width]
+                dir_ = m.Out if i == 0 else m.In
+                self._add_port(name, dir_(T))
+                names.append(name)
+            return [self._port(name) for name in names]
 
-        # Any Smart<x> can be wired to any Smart<y>.
-        x @= y  # truncate y
-        y @= x  # extend x
-        #x @= z  # promote z to SmartBits[1], then extend z
-        #z @= x  # promote z to SmartBits[1], then truncate x
+        @m.builder_method
+        def _finalize(self):
+            # Any Smart<x> can be wired to any Smart<y>.
+            x, y = self.make_ports(10, 16)
+            x @= y  # truncate y
+            y, x = self.make_ports(16, 10)
+            y @= x  # extend x
+            x, z = self.make_ports(10, None)
+            x @= z  # extend z
+            z, x = self.make_ports(None, 10)
+            z @= x  # truncate x
 
-        # Any Smart<x> (op) Smart<y> is valid; each (op) has its own width rules.
-        # Arithmetic and logic.
-        x @= x + y  # out width = max(10, 16) = 16; op is +, -, *, /, %, &, |, ^
-        #x + z  # promote z to SmartBits[1]; out width = max(1, 10) = 10
-        ~x  # out width = 10; ~
-        #~z  # out = SmartBit
-        #z + z  # promote *both* z's to SmartBits[1], then extract LSB;
-               # out = SmartBit
+            # Any Smart<x> (op) Smart<y> is valid; each (op) has its own width rules.
 
-        # Comparison.
-        x <= y  # out = SmartBit; op is ==, !=, <, <=, >, >=, reduction
+            # Arithmetic and logic.
+            out, x, y = self.make_ports(12, 10, 16)
+            out @= x + y  # width = max(12, 10, 16); op: +, -, *, /, %, &, |, ^
+            out, x, z = self.make_ports(None, 10, None)
+            out @= x + z  # width = max(1, 10, 1)
+            out, x = self.make_ports(16, 10)
+            out @= ~x  # width = max(16, 10); ~
 
-        # Shifting
-        x << y  # extend x, truncate output; out width = 10; op is <<, >>
-        y << x  # extend x; out width = 16
-        #x << z  # promote z to SmartBits[1], extend z; out width = 10
-        #z << x  # promote z to SmartBits[1], extend z, truncate output;
-                # out = SmartBit
+            # Comparison.
+            out, x, y = self.make_ports(12, 10, 16)
+            out @= x <= y  # width = 1; op: ==, !=, <, <=, >, >=
 
-        # Any (op) Smart<x> is valid (unary op); (op)'s follow simple width rules.
-        ~x  # out width = 10
-        #~z  # out = SmartBit
+            # Reductiton.
+            out, x = self.make_ports(4, 10)
+            out @= x.reduce(operator.and_)  # width = 1; op: &, |, ^
 
-        # Context-determined operators.
+            # Shifting.
+            out, x, y = self.make_ports(10, 10, 16)
+            out @= x << y  # extend x, truncate output; width = 10; op: <<, >>
+            out, x, y = self.make_ports(16, 10, 16)
+            out @=  y << x  # extend x; width = 16
+            out, x, z = self.make_ports(10, 10, None)
+            out @= x << z  # extend z; width = 10
+            out, x, z = self.make_ports(None, 10, None)
+            out @= z << x  # extend z, truncate output; width = 1
+
+            # Concat.
+            out, x, y, z = self.make_ports(32, 10, 16, None)
+            out @= concat(x, y, z)  # extend concat; width = 10 + 16 + 1 = 27.
+
+
+    class _TestTop(m.Circuit):
+        inst = _Test(name="Test")
+
+    return type(_TestTop.instances[0])
