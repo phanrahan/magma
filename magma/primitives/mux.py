@@ -105,7 +105,7 @@ def mux(I: list, S, **kwargs):
     inst = Mux(len(I), T, **kwargs)()
     result = inst(*I, S)
     for i in range(len(I)):
-        if not getattr(inst, f"I{i}").value():
+        if getattr(inst, f"I{i}").value() is None:
             arg = I[i]
             raise TypeError(f"mux arg I[{i}] ({arg}: {type(arg)}) does not "
                             f"match inferred input port type {T}")
