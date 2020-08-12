@@ -225,88 +225,53 @@ class Counter:
         # reset_type and has_enable will be set implicitly
         self.count = m.Register(T=m.UInt[16], init=m.uint(0, 16))()
 
-    def __call__(self) -> m.SInt[16]:
-        self.count = self.count + 1
-        return self.count
+    def __call__(self, en: m.Bit) -> m.SInt[16]:
+        if en:
+            self.count = self.count + 1
+        return self.count.prev()
 ```
 
-In the `__init__` method, the circuit declares two state elements `self.x` and
-`self.y`.  Both are annotated with a type `m.Bits[2]` and initialized with a
-value `m.bits(0, 2)`.  The `__call__` method accepts an input `I` with the same
-type as the state elements. It stores the current value of `self.y` in
-a temporary variable `O`, sets `self.y` to be the value of `self.x`, sets
-`self.x` to be the input value `I` and returns `O`.  Notice that the inputs and
-output of the `__call__` method have type annotations just like
-`m.circuit.combinational` functions.  The `__call__` method should be treated
-as a standard `@m.circuit.combinational` function, with the special parameter
-`self` that provides access to the state.
+In the `__init__` method, the circuit declares a state element `self.count` as
+an instance of the `m.Register` primitive.  The type is determined by the `T`
+parameter to the Register circuit generator.  The `__call__` method accepts an
+input `en` of type `m.Bit` that controls whether the state should be changed by
+incrementing the value stored in the count register.  The output of the circuit
+is returned, in this case `self.count.prev()`.  The `prev` method is a magic
+method that will return the previous value of the count register (not the
+updated value which could be `self.count + 1` is `en` is high).
+Notice that the inputs and output of the `__call__` method have type
+annotations just like `m.combinational2` functions.  The `__call__`
+method should be treated as a standard `@m.combinational2` function,
+with the special parameter `self` that provides access to the state declared
+inside the `__init__` method.
 
-The sequential syntax is implemented by compiling the above class definition
-into a magma circuit definition instantiating the registers declared in the
-`__init__` method and defining and wiring up a combinational function
-corresponding to the `__call__` method.  The references to self attributes are
-rewritten to be explicit arguments to the `__call__` method.  Here is the
-output code for the above example:
-
-```python
-class DelayBy2(m.Circuit):
-    IO = ['I', m.In(m.Bits[2]), 'CLK', m.In(m.Clock), 'ASYNCRESET', m.
-        In(m.AsyncReset), 'O', m.Out(m.Bits[2])]
-
-    @classmethod
-    def definition(io):
-        x = DefineRegister(2, init=0, has_async_reset=True)()
-        y = DefineRegister(2, init=0, has_async_reset=True)()
-
-        @combinational
-        def DelayBy2_comb(I: m.Bits[2], self_x_O: m.Bits[2], self_y_O:
-            m.Bits[2]) ->(m.Bits[2], m.Bits[2], m.Bits[2]):
-            O = self_y_O
-            self_y_I = self_x_O
-            self_x_I = I
-            return self_x_I, self_y_I, O
-        comb_out = DelayBy2_comb(io.I, x, y)
-        x.I <= comb_out[0]
-        y.I <= comb_out[1]
-        io.O <= comb_out[2]
-```
-
-## Hierarchy
+### Hierarchy
 Besides declaring magma values as state, the `sequential` syntax also supports
 using instances of other sequential circuits.  For example, suppose we have a 
 register defined as follows:
 
 ```python
-@m.circuit.sequential(async_reset=True)
+@m.sequential2(reset_type=m.AsyncReset)
 class Register:
     def __init__(self):
-        self.value: m.Bits[2] = m.bits(init, 2)
+        self.value = m.Register(T=m.Bits[2], init=m.uint(0, 16))()
 
     def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-        O = self.value
-        self.value = I
-        return O
+        return self.value(I)
 ```
 
 We can use the `Register` class in the definition of a `ShiftRegister` class:
 
 ```python
-@m.circuit.sequential(async_reset=True)
+@m.sequential2(reset_type=m.AsyncReset)
 class TestShiftRegister:
     def __init__(self):
-        self.x: Register = Register()
-        self.y: Register = Register()
+        self.x = Register()
+        self.y = Register()
 
     def __call__(self, I: m.Bits[2]) -> m.Bits[2]:
-        x_prev = self.x(I)
-        y_prev = self.y(x_prev)
-        return y_prev
+        return self.y(self.x(I))
 ```
-
-Notice that we annotate the type of the attribute with the class (sequential
-circuit definition) and we initialize it with an instance of the class.  Then,
-the attribute can be called with inputs to return the outputs. This corresponds
-to calling the `__call__` method of the sub instance.
 
 **NOTE** Currently it is required that every sub
 sequential circuit element receive an explicit invocation in the `__call__`
@@ -317,3 +282,304 @@ circuit must similarly be designed in such a way that the logic expects inputs
 every cycle, so enable logic must be explicitly defined).
 
 ## Coroutine
+The `m.coroutine` syntax extends `m.sequential2` with the ability to use
+`yield` statements inside the `__call__` method to pause execution and wait
+until the next clock cycle.  This provides a convenient way to describe control
+logic, particularly finite state machines.
+
+Here's a simple example of defining a `UART` transmitter:
+```python
+@m.coroutine(reset_type=m.AsyncReset)
+class UART:
+    def __init__(self):
+        self.message = m.Register(T=m.Bits[8], init=0)()
+        self.i = m.Register(T=m.UInt[3], init=7)()
+        self.tx = m.Register(T=m.Bit, init=1)()
+
+    def __call__(self, run: m.Bit, message: m.Bits[8]) -> m.Bit:
+        while True:
+            self.tx = m.bit(1)  # end bit or idle
+            yield self.tx.prev()
+            if run:
+                self.message = message
+                self.tx = m.bit(0)  # start bit
+                yield self.tx.prev()
+                while True:
+                    self.i = self.i - 1
+                    self.tx = self.message[self.i.prev()]
+                    yield self.tx.prev()
+                    if self.i == 7:
+                        break
+```
+
+In some cases, the user may desire to explicitly choose the encoding of each
+state (by default, the compielr will generate a unique value for each `yield`
+statement).  The coroutine syntax also supports `yield from` as a way to sequentially transfer
+control to another coroutine.  This allows sequential composition of coroutines
+(state machines). Here's an example of both in a JTAG controller:
+
+```python
+TEST_LOGIC_RESET = m.bits(15, 4)
+RUN_TEST_IDLE = m.bits(12, 4)
+SELECT_DR_SCAN = m.bits(7, 4)
+CAPTURE_DR = m.bits(6, 4)
+SHIFT_DR = m.bits(2, 4)
+EXIT1_DR = m.bits(1, 4)
+PAUSE_DR = m.bits(3, 4)
+EXIT2_DR = m.bits(0, 4)
+UPDATE_DR = m.bits(5, 4)
+SELECT_IR_SCAN = m.bits(4, 4)
+CAPTURE_IR = m.bits(14, 4)
+SHIFT_IR = m.bits(10, 4)
+EXIT1_IR = m.bits(9, 4)
+PAUSE_IR = m.bits(11, 4)
+EXIT2_IR = m.bits(8, 4)
+UPDATE_IR = m.bits(13, 4)
+
+@m.coroutine(manual_encoding=True, reset_type=m.AsyncReset)
+class JTAG:
+    def __init__(self):
+        self.yield_state = m.Register(T=m.Bits[4], init=TEST_LOGIC_RESET)()
+
+    def __call__(self, tms: m.Bit) -> m.Bits[4]:
+        # TODO: Prune infeasible paths (or check if synthesis optimizes
+        # them out)
+        while True:
+            while True:
+                self.yield_state = TEST_LOGIC_RESET
+                yield self.yield_state.prev()
+                if tms == 0:
+                    break
+            while tms == 0:
+                self.yield_state = RUN_TEST_IDLE
+                yield self.yield_state.prev()
+            while tms == 1:
+                self.yield_state = SELECT_DR_SCAN
+                yield self.yield_state.prev()
+                if tms == 0:
+                    # dr
+                    yield from self.make_scan(CAPTURE_DR, SHIFT_DR,
+                                              EXIT1_DR, PAUSE_DR, EXIT2_DR,
+                                              UPDATE_DR)
+                else:
+                    self.yield_state = SELECT_IR_SCAN
+                    yield self.yield_state.prev()
+                    if tms == 0:
+                        # ir
+                        yield from self.make_scan(CAPTURE_IR, SHIFT_IR,
+                                                  EXIT1_IR, PAUSE_IR,
+                                                  EXIT2_IR, UPDATE_IR)
+                    else:
+                        break
+
+    def make_scan(self, capture, shift, exit_1, pause, exit_2, update):
+        def scan(self, tms: m.Bit) -> m.Bits[4]:
+            self.yield_state = capture
+            yield self.yield_state.prev()
+            while True:
+                if tms == 0:
+                    while True:
+                        self.yield_state = shift
+                        yield self.yield_state.prev()
+                        if tms != 0:
+                            break
+                self.yield_state = exit_1
+                yield self.yield_state.prev()
+                if tms == 0:
+                    while True:
+                        self.yield_state = pause
+                        yield self.yield_state.prev()
+                        if tms != 0:
+                            break
+                    self.yield_state = exit_2
+                    yield self.yield_state.prev()
+                    if tms != 0:
+                        break
+                else:
+                    break
+            self.yield_state = update
+            yield self.yield_state.prev()
+            return tms
+        return scan()
+```
+
+Here's another example of `manual_encoding` and `yield from` in an SDRAM
+controller:
+
+```python
+INIT_NOP1 = m.bits(0b01000, 5)
+INIT_PRE1 = m.bits(0b01001, 5)
+INIT_NOP1_1 = m.bits(0b00101, 5)
+INIT_REF1 = m.bits(0b01010, 5)
+INIT_NOP2 = m.bits(0b01011, 5)
+INIT_REF2 = m.bits(0b01100, 5)
+INIT_NOP3 = m.bits(0b01101, 5)
+INIT_LOAD = m.bits(0b01110, 5)
+INIT_NOP4 = m.bits(0b01111, 5)
+
+REF_PRE = m.bits(0b00001, 5)
+REF_NOP1 = m.bits(0b00010, 5)
+REF_REF = m.bits(0b00011, 5)
+REF_NOP2 = m.bits(0b00100, 5)
+
+READ_ACT = m.bits(0b10000, 5)
+READ_NOP1 = m.bits(0b10001, 5)
+READ_CAS = m.bits(0b10010, 5)
+READ_NOP2 = m.bits(0b10011, 5)
+READ_READ = m.bits(0b10100, 5)
+
+WRIT_ACT = m.bits(0b11000, 5)
+WRIT_NOP1 = m.bits(0b11001, 5)
+WRIT_CAS = m.bits(0b11010, 5)
+WRIT_NOP2 = m.bits(0b11011, 5)
+
+CMD_PALL = m.bits(0b10010001, 8)
+CMD_REF = m.bits(0b10001000, 8)
+CMD_NOP = m.bits(0b10111000, 8)
+CMD_MRS = m.bits(0b10000000, 8)
+CMD_BACT = m.bits(0b10011000, 8)
+CMD_READ = m.bits(0b10101001, 8)
+CMD_WRIT = m.bits(0b10100001, 8)
+
+@m.coroutine(manual_encoding=True, reset_type=m.AsyncResetN)
+class SDRAMController:
+    def __init__(self):
+        self.yield_state = m.Register(T=m.Bits[5], init=INIT_NOP1)()
+        self.command = m.Register(T=m.Bits[8], init=CMD_NOP)()
+        self.i = m.Register(T=m.UInt[4], init=m.uint(15, 4))()
+
+    def __call__(self, refresh_cnt: m.UInt[10], rd_enable: m.Bit, wr_enable: m.Bit) -> (m.Bits[5], m.Bits[8]):
+        yield from self.init()
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = IDLE
+            yield self.yield_state.prev(), self.command.prev()
+            if refresh_cnt >= CYCLES_BETWEEN_REFRESH:
+                yield from self.refresh()
+            elif wr_enable:
+                yield from self.write()
+            elif rd_enable:
+                yield from self.read()
+
+    def init(self, refresh_cnt: m.UInt[10], rd_enable: m.Bit, wr_enable: m.Bit) -> (m.Bits[5], m.Bits[8]):
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = INIT_NOP1
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        self.command = CMD_PALL
+        self.yield_state = INIT_PRE1
+        yield self.yield_state.prev(), self.command.prev()
+        self.command = CMD_NOP
+        self.yield_state = INIT_NOP1_1
+        yield self.yield_state.prev(), self.command.prev()
+        self.command = CMD_REF
+        self.yield_state = INIT_REF1
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 7
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = INIT_NOP2
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        self.command = CMD_REF
+        self.yield_state = INIT_REF2
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 7
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = INIT_NOP3
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        self.command = CMD_MRS
+        self.yield_state = INIT_LOAD
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 1
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = INIT_NOP4
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        return refresh_cnt, rd_enable, wr_enable
+
+    def refresh(self, refresh_cnt: m.UInt[10], rd_enable: m.Bit, wr_enable: m.Bit) -> (m.Bits[5], m.Bits[8]):
+        self.command = CMD_PALL
+        self.yield_state = REF_PRE
+        yield self.yield_state.prev(), self.command.prev()
+        self.command = CMD_NOP
+        self.yield_state = REF_NOP1
+        yield self.yield_state.prev(), self.command.prev()
+        self.command = CMD_REF
+        self.yield_state = REF_REF
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 7
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = REF_NOP2
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        return refresh_cnt, rd_enable, wr_enable
+
+    def write(self, refresh_cnt: m.UInt[10], rd_enable: m.Bit, wr_enable: m.Bit) -> (m.Bits[5], m.Bits[8]):
+        self.command = CMD_BACT
+        self.yield_state = WRIT_ACT
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 1
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = WRIT_NOP1
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        self.command = CMD_WRIT
+        self.yield_state = WRIT_CAS
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 1
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = WRIT_NOP2
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        return refresh_cnt, rd_enable, wr_enable
+
+    def read(self, refresh_cnt: m.UInt[10], rd_enable: m.Bit, wr_enable: m.Bit) -> (m.Bits[5], m.Bits[8]):
+        self.command = CMD_BACT
+        self.yield_state = READ_ACT
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 1
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = READ_NOP1
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        self.command = CMD_READ
+        self.yield_state = READ_CAS
+        yield self.yield_state.prev(), self.command.prev()
+        self.i = 1
+        while True:
+            self.command = CMD_NOP
+            self.yield_state = READ_NOP2
+            yield self.yield_state.prev(), self.command.prev()
+            if self.i == 0:
+                break
+            self.i = self.i - 1
+        self.command = CMD_NOP
+        self.yield_state = READ_READ
+        yield self.yield_state.prev(), self.command.prev()
+        return refresh_cnt, rd_enable, wr_enable
+```
