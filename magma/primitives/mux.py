@@ -102,6 +102,10 @@ def mux(I: list, S, **kwargs):
     else:
         raise TypeError("Cannot use m.mux with non-magma types (need at least "
                         "one to infer type)")
+    for i, arg in enumerate(I):
+        if not isinstance(arg, T):
+            raise TypeError(f"mux arg I[{i}] ({arg}: {type(arg)}) does not "
+                            f"match inferred mux type {T}")
     return Mux(len(I), T, **kwargs)()(*I, S)
 
 
