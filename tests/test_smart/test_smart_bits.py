@@ -187,7 +187,8 @@ def test_smoke():
             z, x = self.make_ports(None, 10)
             z @= x  # truncate x
 
-            # Any Smart<x> (op) Smart<y> is valid; each (op) has its own width rules.
+            # Any Smart<x> (op) Smart<y> is valid; each (op) has its own width
+            # rules.
 
             # Arithmetic and logic.
             out, x, y = self.make_ports(12, 10, 16)
