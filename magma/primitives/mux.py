@@ -102,11 +102,14 @@ def mux(I: list, S, **kwargs):
     else:
         raise TypeError("Cannot use m.mux with non-magma types (need at least "
                         "one to infer type)")
-    for i, arg in enumerate(I):
-        if not isinstance(arg, T):
+    inst = Mux(len(I), T, **kwargs)()
+    result = inst(*I, S)
+    for i in range(len(I)):
+        if not getattr(inst, f"I{i}").value():
+            arg = I[i]
             raise TypeError(f"mux arg I[{i}] ({arg}: {type(arg)}) does not "
-                            f"match inferred input type {T}")
-    return Mux(len(I), T, **kwargs)()(*I, S)
+                            f"match inferred input port type {T}")
+    return result
 
 
 # Monkey patch for ite impl without circular dependency
