@@ -24,6 +24,9 @@ _logger = root_logger().getChild("coreir_backend")
 _logger.setLevel(config.coreir_backend_log_level)
 
 
+_CONTEXT_TO_MODULES = {}
+
+
 # Singleton context meant to be used with coreir/magma code
 @singleton
 class CoreIRContextSingleton:
@@ -33,15 +36,18 @@ class CoreIRContextSingleton:
         return self.__instance
 
     def reset_instance(self):
+        old_instance = self.__instance
         self.__instance = Context()
+        if old_instance in _CONTEXT_TO_MODULES:
+            del _CONTEXT_TO_MODULES[old_instance]
+        # Force freeing of C++ memory
+        old_instance.delete()
 
     def __init__(self):
         self.__instance = Context()
 
 
 CoreIRContextSingleton()
-
-_context_to_modules = {}
 
 
 class CoreIRBackend:
@@ -55,7 +61,7 @@ class CoreIRBackend:
         if context is not singleton:
             _logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
                             "context.")
-        self.modules = _context_to_modules.setdefault(context, {})
+        self.modules = _CONTEXT_TO_MODULES.setdefault(context, {})
         self.context = context
         self.libs = keydefaultdict(self.context.get_lib)
         self.libs_used = set()
