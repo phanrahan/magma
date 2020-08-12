@@ -21,5 +21,5 @@ def test_mux_of_mismatch_widths():
         with pytest.raises(TypeError) as e:
             m.mux([io.I0, io.I1], io.S)
         assert str(e.value) == f"""\
-mux arg I[1] (I1: Out(Bits[3])) does not match inferred mux type Out(Bits[2])\
+mux arg I[1] (I1: Out(Bits[3])) does not match inferred input type Out(Bits[2])\
 """

@@ -105,7 +105,7 @@ def mux(I: list, S, **kwargs):
     for i, arg in enumerate(I):
         if not isinstance(arg, T):
             raise TypeError(f"mux arg I[{i}] ({arg}: {type(arg)}) does not "
-                            f"match inferred mux type {T}")
+                            f"match inferred input type {T}")
     return Mux(len(I), T, **kwargs)()(*I, S)
 
 
