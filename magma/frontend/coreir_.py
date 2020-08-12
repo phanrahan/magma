@@ -8,7 +8,6 @@ from coreir.generator import Generator
 def GetCoreIRBackend():
     return CoreIRBackend()
 
-@cache_definition
 def GetMagmaContext():
     return CoreIRContextSingleton().get_instance()
 
@@ -76,6 +75,8 @@ def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gener
     deps = [namespace] + dependentNamespaces
     if runGenerators:
         cirb.context.run_passes(["rungenerators"], deps)
+    print(cirb, cirb.context, cirb.context.context)
+    print(moduleToWrap, moduleToWrap.context, moduleToWrap.context.context)
     return DefineModuleWrapper(cirb, moduleToWrap, uniqueName, deps)
 
 def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
@@ -111,7 +112,7 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
 
 def DeclareCoreIRGenerator(lib : str, name : str, typegen = None, backend = None):
     if backend is None:
-        backend = CoreIRBackend()
+        backend = GetCoreIRBackend()
     if typegen is not None:
         # This is for generators which we don't have access to
         raise NotImplementedError()

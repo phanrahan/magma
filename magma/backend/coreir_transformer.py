@@ -6,7 +6,7 @@ import os
 from ..digital import Digital
 from ..array import Array
 from ..bits import Bits
-from ..clock import wiredefaultclock, wireclock
+from ..clock import ClockTypes
 from coreir import Wireable
 from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            check_magma_interface, constant_to_value,
@@ -300,14 +300,14 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value, non_input_ports):
         if value is None and is_clock_or_nested_clock(type(port)):
+            clock_wired = False
             for type_, default_driver in self.clocks.items():
-                if isinstance(port, type_) and default_driver is not None:
-                    wire_clock_port(port, type_, default_driver)
-                    value = port.value()
-                    break
-            else:
+                if default_driver is not None:
+                    clock_wired |= wire_clock_port(port, type_, default_driver)
+            if not clock_wired:
                 # No default clock
                 return
+            value = port.value();
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
