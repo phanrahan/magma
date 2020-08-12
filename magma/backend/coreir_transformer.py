@@ -32,6 +32,26 @@ from magma.ref import PortViewRef, ArrayRef
 _logger = root_logger().getChild("coreir_backend")
 
 
+def _make_unconnected_error_str(port):
+    error_str = port.debug_name
+    if port.value():
+        error_str += ": Connected"
+    elif isinstance(port, (Tuple, Array)):
+        child_str = ""
+        for child in port:
+            child = _make_unconnected_error_str(child)
+            child = "\n    ".join(child.splitlines())
+            child_str += f"\n    {child}"
+        if "Connected" not in child_str:
+            # Handle case when no children are connected (simplify)
+            error_str += ": Unconnected"
+        else:
+            error_str += child_str
+    elif not port.value():
+        error_str += ": Unconnected"
+    return error_str
+
+
 def _collect_drivers(value):
     """
     Iterate over value to collect the child drivers, packing slices together
@@ -313,7 +333,9 @@ class DefinitionTransformer(TransformerBase):
                 return  # skip inouts because they might be conn. as an input.
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
-            raise Exception(f"Found unconnected port: {port.debug_name}")
+            error_str = f"Found unconnected port: {port.debug_name}\n"
+            error_str += _make_unconnected_error_str(port)
+            raise Exception(error_str)
         source = self.get_source(port, value, module_defn, non_input_ports)
         if not source:
             return
