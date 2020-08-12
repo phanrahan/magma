@@ -488,9 +488,10 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def wire(self, other, debug_info):
         if not isinstance(other, _SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
-        evaluated = _eval(self, other)
+        evaluated, resolved = _eval(self, other)
         evaluated = evaluated.force_width(len(self))
         MagmaProtocol.wire(self, evaluated)
+        self._smart_expr_ = resolved  # attach debug info
 
     def __len__(self):
         return len(type(self)._T)
@@ -518,8 +519,8 @@ class SmartBit(SmartBits[1]):
     pass
 
 
-def _eval(lhs: SmartBits, rhs: _SmartExpr):
+def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
     res = rhs.eval()
-    return SmartBits.make(res)
+    return SmartBits.make(res), rhs

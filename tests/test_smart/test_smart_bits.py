@@ -247,4 +247,10 @@ def test_complex():
         io.O2 @= y
         io.O3 @= io.I0
 
+    EXPECTED = ("lshift(add(invert(add(Extend[5](SmartBits[7, False](I0)), "
+                "Extend[3](SmartBits[9, True](I1)))), "
+                "SmartBits[12, True](I2)), "
+                "Extend[11](AndReduce(SmartBits[7, False](I0))))")
+    assert str(_Test.io.O._smart_expr_) == EXPECTED
+
     return _Test
