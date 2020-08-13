@@ -365,7 +365,8 @@ class _SmartConcatOpExpr(_SmartOpExpr):
 
 def concat(*args):
     if not all(isinstance(arg, _SmartExpr) for arg in args):
-        return NotImplemented
+        types = ", ".join(str(type(arg)) for arg in args)
+        raise NotImplementedError(f"Concat not supported for {types}")
     return _SmartConcatOpExpr(*args)
 
 
