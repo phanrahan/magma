@@ -23,7 +23,7 @@ different RTL could be generated based on the bit-widths of `a` and `b`. As a co
 
 ## Types
 There are two smart type constructors:
-* `SmartBits[bit_width, signed=False]`: returns a SmartBits type with bit-width `bit_width` and signedness `sign`. `sign` defaults to `False`.
+* `SmartBits[<int>, <bool>]`: returns a SmartBits type with bit-width equal to the first argument and signedness equal to the second argument. The second argument (signedness) defaults to false; therefore `SmartBits[n, False]` is equivalent to `SmartBits[n]`.
 * `SmartBit` which is a literal alias of `SmartBits[1]`.
 
 Expressions built on top of these base smart types are of an intermediate type `SmartExpr`, which can only (a) be used in another expression, such as `dbl = expr + expr`, or (b) be on the right hand side of a wiring assignment. Besides these two operations (and calling `str()` for debugging), these intermediate objects are not meant to be introspected or operated on by the user.
