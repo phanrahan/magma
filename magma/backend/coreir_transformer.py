@@ -47,6 +47,8 @@ def _make_unconnected_error_str(port):
             error_str += ": Unconnected"
         else:
             error_str += child_str
+    elif port.trace() is None:
+        error_str += ": Unconnected"
     return error_str
 
 
