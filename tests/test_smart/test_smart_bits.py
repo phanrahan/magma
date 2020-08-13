@@ -6,9 +6,9 @@ from magma.smart import SmartBit, SmartBits, concat, signed
 from magma.testing import check_files_equal
 
 
-def _run_test(func=None, *, info=None):
+def _run_test(func=None, *, skip_check=False):
     if func is None:
-        return partial(_run_test, info=info)
+        return partial(_run_test, skip_check=skip_check)
 
     @wraps(func)
     def _wrapper(*args, **kwargs):
@@ -17,7 +17,8 @@ def _run_test(func=None, *, info=None):
         m.compile(f"build/{name}", ckt, output="coreir-verilog", inline=True)
         build = f"build/{name}.v"
         gold = f"gold/{name}.v"
-        assert check_files_equal(__file__, build, gold)
+        if not skip_check:
+            assert check_files_equal(__file__, build, gold)
 
     return _wrapper
 
@@ -248,10 +249,11 @@ def test_complex():
         io.O2 @= y
         io.O3 @= io.I0
 
-    EXPECTED = ("lshift(add(invert(add(Extend[5](SmartBits[7, False](I0)), "
-                "Extend[3](SmartBits[9, True](I1)))), "
-                "SmartBits[12, True](I2)), "
-                "Extend[11](AndReduce(SmartBits[7, False](I0))))")
+    EXPECTED = ("lshift(add(invert(add(Extend[width=5, "
+                "signed=False](SmartBits[7, False](I0)), Extend[width=3, "
+                "signed=False](SmartBits[9, True](I1)))), SmartBits[12, "
+                "True](I2)), Extend[width=11, "
+                "signed=False](AndReduce(SmartBits[7, False](I0))))")
     assert str(_Test.io.O._smart_expr_) == EXPECTED
 
     return _Test
@@ -272,3 +274,16 @@ def test_type_constructors():
     args = pytest_e.value.args
     assert args == ("Can not doubly qualify SmartBits, i.e. "
                     "SmartBits[n][m] not allowed",)
+
+
+@_run_test(skip_check=True)
+def test_unsigned_add():
+    class _Test(m.Circuit):
+        io = m.IO(
+            x=m.In(SmartBits[8, True]),
+            y=m.In(SmartBits[16, False]),
+            O=m.Out(SmartBits[20, True])
+        )
+        io.O @= io.x + io.y
+
+    return _Test

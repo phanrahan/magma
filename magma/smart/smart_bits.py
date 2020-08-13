@@ -192,17 +192,20 @@ class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
 class _SmartExtendOpExpr(_SmartOpExpr):
 
     class _ExtendOp:
-        def __init__(self, width):
+        def __init__(self, width, signed):
             self._width = width
+            self._signed = signed
 
         def __call__(self, operand):
-            return operand.ext(self._width)
+            if self._signed:
+                return sint(operand).sext(self._width)
+            return uint(operand).zext(self._width)
 
         def __str__(self):
-            return f"Extend[{self._width}]"
+            return f"Extend[width={self._width}, signed={self._signed}]"
 
-    def __init__(self, width, operand):
-        extend = _SmartExtendOpExpr._ExtendOp(width)
+    def __init__(self, width, signed, operand):
+        extend = _SmartExtendOpExpr._ExtendOp(width, signed)
         super().__init__(extend, operand)
 
     def eval(self):
@@ -210,13 +213,12 @@ class _SmartExtendOpExpr(_SmartOpExpr):
         return self.op(*args)
 
 
-def _extend_if_needed(expr, to_width):
+def _extend_if_needed(expr, to_width, signed):
     diff = expr._width_ - to_width
     assert diff <= 0
     if diff == 0:
         return expr
-    signed = expr._signed_
-    expr = _SmartExtendOpExpr(-diff, expr)
+    expr = _SmartExtendOpExpr(-diff, signed, expr)
     expr._width_ = to_width
     expr._signed_ = signed
     return expr
@@ -267,11 +269,12 @@ class _SmartNAryContextualOpExr(_SmartOpExpr):
 
     def resolve(self, context):
         self._resolve_args(context)
+        self._signed_ = all(arg._signed_ for arg in self._args)
         to_width = context.max_width()
-        args = (_extend_if_needed(arg, to_width) for arg in self._args)
+        args = (_extend_if_needed(arg, to_width, self._signed_)
+                for arg in self._args)
         self._update(*args)
         self._width_ = to_width
-        self._signed_ = all(arg._signed_ for arg in self._args)
 
     def eval(self):
         args = self._eval_args()
@@ -299,8 +302,10 @@ class _SmartComparisonOpExpr(_SmartOpExpr):
     def resolve(self, context):
         context = Context(None, self)
         self._resolve_args(context)
+        signed_args = all(arg._signed_ for arg in self._args)
         to_width = max(arg._width_ for arg in self._args)
-        args = (_extend_if_needed(arg, to_width) for arg in self._args)
+        args = (_extend_if_needed(arg, to_width, signed_args)
+                for arg in self._args)
         self._update(*args)
         self._width_ = 1
         self._signed_ = False
@@ -323,10 +328,11 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         self_context = Context(None, self)
         roperand.resolve(self_context)
         to_width = max(arg._width_ for arg in self._args)
-        args = (_extend_if_needed(arg, to_width) for arg in self._args)
+        self._signed_ = all(arg._signed_ for arg in self._args)
+        args = (_extend_if_needed(arg, to_width, self._signed_)
+                for arg in self._args)
         self._update(*args)
         self._width_ = to_width
-        self._signed_ = all(arg._signed_ for arg in self._args)
 
     def eval(self):
         args = self._eval_args()
