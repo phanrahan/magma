@@ -458,6 +458,11 @@ class _SmartBitsMeta(_SmartExprMeta):
         return cls(value)
 
     def __repr__(cls):
+        has_T = hasattr(cls, "_T")
+        has_signed = hasattr(cls, "_signed")
+        if not (has_T or has_signed):
+            return "SmartBits"
+        assert has_T and has_signed
         return f"SmartBits[{len(cls._T)}, {cls._signed}]"
 
 
