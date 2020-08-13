@@ -307,7 +307,7 @@ class DefinitionTransformer(TransformerBase):
             if not clock_wired:
                 # No default clock
                 return
-            value = port.value();
+            value = port.value()
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
