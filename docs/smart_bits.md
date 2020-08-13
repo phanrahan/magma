@@ -15,7 +15,11 @@ a @= expr
 
 Note that using raw magma types (i.e. `Bits`, `UInt`, `SInt`), we would have to do several explicit extensions and explicit promotion to `UInt` (for example, because addition is not defined on plain `Bits`). The smart types allow for writing this simple syntax while still compiling to raw magma types (and therefore the generated code still adheres to the typing rules of the raw magma types).
 
-It should also be noted that due to the implementation details, expressions on smart types are not actually operable magma types. In fact, the only thing you can do with them is wire them to other smart types, as in `a @= expr`. At the time of wiring, bit-widths and signedness of operands are resolved as a function of the expression itself and the left hand side of the assignment (see below for details). So, a statement like `b @= expr`, means that the generated RTL could different based on the bit-width of `b`.
+It should also be noted that due to the implementation details, expressions on smart types are not actually operable magma types. In fact, the only thing you can do with them is wire them to other smart types, as in `a @= expr`. At the time of wiring, bit-widths and signedness of operands are resolved as a function of the expression itself and the left hand side of the assignment (see below for details). So, in the following code segment
+    expr = ...
+    a @= expr
+    b @= expr
+different RTL could be generated based on the bit-widths of `a` and `b`. As a corollary, it is evident that the same expression can be wired multiple times, making these expressions macro-like.
 
 ## Types
 There are two smart type constructors:
