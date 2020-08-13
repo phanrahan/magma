@@ -427,7 +427,10 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
 
 class _SmartBitsMeta(_SmartExprMeta):
     def __getitem__(cls, key):
-        assert cls is SmartBits
+        if issubclass(cls, SmartBits) and (hasattr(cls, "_T") or
+                                           hasattr(cls, "_signed")):
+            raise TypeError("Can not doubly qualify SmartBits, i.e. "
+                            "SmartBits[n][m] not allowed")
         signed = False
         if isinstance(key, tuple):
             if len(key) == 1:

@@ -1,8 +1,9 @@
+from functools import wraps, partial
+import operator
+import pytest
 import magma as m
 from magma.smart import SmartBit, SmartBits, concat, signed
 from magma.testing import check_files_equal
-from functools import wraps, partial
-import operator
 
 
 def _run_test(func=None, *, info=None):
@@ -254,3 +255,20 @@ def test_complex():
     assert str(_Test.io.O._smart_expr_) == EXPECTED
 
     return _Test
+
+
+def test_type_constructors():
+    T1 = SmartBits[8]
+    assert T1._T is m.Bits[8]
+    assert T1._signed == False
+
+    T2 = SmartBits[12, True]
+    assert T2._T is m.Bits[12]
+    assert T2._signed == True
+
+    with pytest.raises(TypeError) as pytest_e:
+        T3 = SmartBits[8][12]
+        assert False
+    args = pytest_e.value.args
+    assert args == ("Can not doubly qualify SmartBits, i.e. "
+                    "SmartBits[n][m] not allowed",)
