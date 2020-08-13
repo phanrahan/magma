@@ -69,6 +69,8 @@ Additionally, there are two conversion functions (`signed()`, `unsigned()`) whic
 * Explicit extend operator
 * SmartBits select operator
 * Signedness for SmartBit
+* Interoperability with existing non-smart code
+* "Smart" blocks of code (e.g. avoiding writing smart every place)
 
 ## Further reading
 * [Bit-width and signedness gotchas](http://www.deepchip.com/items/0466-05.html)
