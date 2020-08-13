@@ -23,6 +23,11 @@ def test_bind():
         assert not os.system('cd tests/test_verilog/build && '
                              'verilator --lint-only bind_test.v RTLMonitor.sv '
                              '--top-module RTL -Wno-MODDUP')
+    listings_file = "tests/test_verilog/build/bind_test_bind_files.list"
+    with open(listings_file, "r") as f:
+        assert f.read() == """\
+RTLMonitor.sv\
+"""
 
 
 def test_bind_multi_unique_name():
