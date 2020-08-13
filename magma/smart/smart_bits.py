@@ -530,8 +530,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
         return f"SmartBits[{len(self)}, {signed}]({str(self._value)})"
 
 
-class SmartBit(SmartBits[1]):
-    pass
+SmartBit = SmartBits[1]
 
 
 def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
