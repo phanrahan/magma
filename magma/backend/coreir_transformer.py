@@ -34,7 +34,7 @@ _logger = root_logger().getChild("coreir_backend")
 
 def _make_unconnected_error_str(port):
     error_str = port.debug_name
-    if port.value():
+    if port.trace() is not None:
         error_str += ": Connected"
     elif isinstance(port, (Tuple, Array)):
         child_str = ""
@@ -47,8 +47,6 @@ def _make_unconnected_error_str(port):
             error_str += ": Unconnected"
         else:
             error_str += child_str
-    elif not port.value():
-        error_str += ": Unconnected"
     return error_str
 
 
