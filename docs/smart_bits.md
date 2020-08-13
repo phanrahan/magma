@@ -41,14 +41,14 @@ We first define a *partial expression* to be any (potentially compound) expressi
 In general, every partial expression appearing in a complete expression is either *self-determined* or *context-determined*. This distinguishes expressions which require the entirety of the complete expression in-order to do inference, or only the partial expression. Each operator may have further specialized inference rules.
 
 ### Bit-width
-The rule of thumb for context-determined expressions is that all it's operands get extended to the **longest** operand appearing in the complete expression (including the LHS of the assignment). On the other hand, the scope for self-determined expressions is only the partial expression itself. Note that since a context-determined expression can appear within a self-determined expression, each self-determined expression must still be procssed by the inference step, except that the context is limited to just the expression itself, and in particular, the LHS of the assignment is excluded.
+The rule of thumb for context-determined expressions is that all its operands get extended to the **longest** operand appearing in the complete expression (including the LHS of the assignment). On the other hand, the scope for self-determined expressions is only the partial expression itself. Note that since a context-determined expression can appear within a self-determined expression, each self-determined expression must still be processed by the inference step, except that the context is limited to just the expression itself, and in particular, the LHS of the assignment is excluded.
 
-The bit-width of any partial expression's result is determined by the specific operator (see table below). For example the result of addition has bit-width equal to the maximum of all of it's operand bit-widths, where as the result of comparison always has bit-width equal to 1.
+The bit-width of any partial expression's result is determined by the specific operator (see table below). For example the result of addition has bit-width equal to the maximum of all of its operand bit-widths, where as the result of comparison always has bit-width equal to 1.
 
 ### Signedness
 The signedness of operands can both determine the semantics of operators, as well as how operands are extended. For example, signed-comparison has different semantics than unsigned-comparison, and operands can either be sign-extended or zero-extended (during bit-width inference).
 
-The rule of thumb for both self-determined and context-determined expressions is that all it's operands must be signed for the operator to be interpreted as signed (and therefore produce a signed output). There are the following exceptions:
+The rule of thumb for both self-determined and context-determined expressions is that all its operands must be signed for the operator to be interpreted as signed (and therefore produce a signed output). There are the following exceptions:
 * The result of concat is always unsigned
 * The result of comparisons is always unsigned
 
