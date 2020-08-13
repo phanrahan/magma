@@ -83,7 +83,7 @@ def test_construct():
 
     assert isinstance(UInt[15](a1), UInt)
     assert repr(UInt[16](
-        a1)) == "bits([VCC, VCC, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND, GND])"
+        a1)) == "uint(3, 16)"
 
     # Test explicit conversion
     assert isinstance(sint(a1), SInt)
