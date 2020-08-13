@@ -93,3 +93,51 @@ Foo.A
         Foo.A[1].x: Unconnected
         Foo.A[1].y: Connected\
 """
+
+
+def test_product_width_mismatch(caplog):
+    class T(m.Product):
+        x = m.Bits[2]
+        y = m.Bits[4]
+
+    class Foo(m.Circuit):
+        io = m.IO(A=m.Out(T), B=m.Out(T))
+        io.A.x @= m.bits(1, 1)
+        io.A.y @= m.bits(2, 3)
+
+        io.B.x @= m.bits(1, 2)
+        io.B.y @= m.bits(1, 4)
+
+    with pytest.raises(Exception) as e:
+        m.compile("build/Foo", Foo)
+    assert str(e.value) == """\
+Found unconnected port: Foo.A
+Foo.A: Unconnected\
+"""
+    assert caplog.messages[0] == """\
+Cannot wire bits(1, 1) (type=Out(Bits[1])) to LazyCircuit.A.x (type=In(Bits[2])) because the arrays do not have the same length\
+"""
+    assert caplog.messages[1] == """\
+Cannot wire bits(2, 3) (type=Out(Bits[3])) to LazyCircuit.A.y (type=In(Bits[4])) because the arrays do not have the same length\
+"""
+
+
+def test_product_width_mismatch2(caplog):
+    class T(m.Product):
+        x = m.In(m.Bits[4])
+        y = m.Out(m.Bits[2])
+
+    class Foo(m.Circuit):
+        io = m.IO(A=T, B=T)
+        io.A.y @= io.A.x
+        io.B.y @= io.A.x[2:]
+
+    with pytest.raises(Exception) as e:
+        m.compile("build/Foo", Foo)
+    assert str(e.value) == """\
+Found unconnected port: Foo.A.y
+Foo.A.y: Unconnected\
+"""
+    assert caplog.messages[0] == """\
+Cannot wire LazyCircuit.A.x (type=Out(Bits[4])) to LazyCircuit.A.y (type=In(Bits[2])) because the arrays do not have the same length\
+"""
