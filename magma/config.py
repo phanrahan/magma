@@ -89,7 +89,7 @@ class ConfigManager:
 
 config = ConfigManager(
     compile_dir=RuntimeConfig("normal"),
-    debug_mode=RuntimeConfig(False),
+    debug_mode=RuntimeConfig(True),
 )
 
 
