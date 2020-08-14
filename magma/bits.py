@@ -452,6 +452,33 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __neg__(self):
+        return self.bvneg()
+
+    def __add__(self, other):
+        try:
+            return self.bvadd(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __sub__(self, other):
+        try:
+            return self.bvsub(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __mul__(self, other):
+        try:
+            return self.bvmul(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
     @classmethod
     def get_family(cls):
         return get_family()
@@ -510,37 +537,16 @@ DefineUnused = make_Define("term", "I", In)
 BitsType = Bits
 
 
-class Number(Bits):
-    """
-    Defines common numberic operators
-    """
+class UInt(Bits):
+    hwtypes_T = ht.UIntVector
 
-    def __neg__(self):
-        return self.bvneg()
-
-    def __add__(self, other):
-        try:
-            return self.bvadd(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __sub__(self, other):
-        try:
-            return self.bvsub(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __mul__(self, other):
-        try:
-            return self.bvmul(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+    def __repr__(self):
+        if not self.name.anon():
+            return super().__repr__()
+        if self.const():
+            return f'uint({int(self)}, {len(self)})'
+        ts = [repr(t) for t in self.ts]
+        return 'uint([{}])'.format(', '.join(ts))
 
     def __floordiv__(self, other):
         try:
@@ -599,19 +605,7 @@ class Number(Bits):
             return NotImplemented
 
 
-class UInt(Number):
-    hwtypes_T = ht.UIntVector
-
-    def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
-        if self.const():
-            return f'uint({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'uint([{}])'.format(', '.join(ts))
-
-
-class SInt(Number):
+class SInt(Bits):
     hwtypes_T = ht.SIntVector
 
     def __init__(self, *args, **kwargs):
