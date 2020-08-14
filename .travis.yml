@@ -21,7 +21,8 @@ install:
 # End install conda
 - pip install twine
 - pip install python-coveralls
-- pip install pytest-cov pytest-codestyle fault
+- pip install pytest-cov pytest-pycodestyle fault
+- pip install kratos  # test optional dependency
 - pip install -e .
 script:
 - py.test --cov magma -v --cov-report term-missing tests

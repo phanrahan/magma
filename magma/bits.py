@@ -105,6 +105,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def __repr__(self):
         if not self.name.anon():
             return super().__repr__()
+        if self.const():
+            return f'bits({int(self)}, {len(self)})'
         ts = [repr(t) for t in self.ts]
         return 'bits([{}])'.format(', '.join(ts))
 
@@ -123,7 +125,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def __int__(self):
         if not self.const():
             raise Exception("Can't call __int__ on a non-constant")
-        return BitVector[len(self)](self.bits()).as_int()
+        return BitVector[len(self)](self.bits()).as_uint()
 
     @debug_wire
     def wire(self, other, debug_info):
@@ -609,6 +611,50 @@ class UInt(Bits):
     def bvuge(self, other) -> AbstractBit:
         return self.declare_compare_op("uge")()(self, other)
 
+    @bits_cast
+    def bvadd(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("add")()(self, other)
+
+    @bits_cast
+    def bvsub(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("sub")()(self, other)
+
+    @bits_cast
+    def bvmul(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("mul")()(self, other)
+
+    @bits_cast
+    def bvudiv(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("udiv")()(self, other)
+
+    @bits_cast
+    def bvurem(self, other) -> 'AbstractBitVector':
+        return self.declare_binary_op("urem")()(self, other)
+
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.zext(1)
+        b = other.zext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
+
+    def __repr__(self):
+        if not self.name.anon():
+            return super().__repr__()
+        if self.const():
+            return f'uint({int(self)}, {len(self)})'
+        ts = [repr(t) for t in self.ts]
+        return 'uint([{}])'.format(', '.join(ts))
+
 
 class SInt(Bits):
     hwtypes_T = ht.SIntVector
@@ -760,3 +806,16 @@ class SInt(Bits):
 
         T = type(self).unsized_t
         return self.concat(T[ext]([self[-1] for _ in range(ext)]))
+
+    def __repr__(self):
+        if not self.name.anon():
+            return super().__repr__()
+        if self.const():
+            return f'sint({int(self)}, {len(self)})'
+        ts = [repr(t) for t in self.ts]
+        return 'sint([{}])'.format(', '.join(ts))
+
+    def __int__(self):
+        if not self.const():
+            raise Exception("Can't call __int__ on a non-constant")
+        return BitVector[len(self)](self.bits()).as_int()

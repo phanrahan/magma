@@ -24,17 +24,11 @@ module SimpleALU (
     output [15:0] c,
     input [1:0] config_
 );
-wire [15:0] execute_alu_inst0_a;
-wire [15:0] execute_alu_inst0_b;
-wire [1:0] execute_alu_inst0_config_;
 wire [15:0] execute_alu_inst0_O;
-assign execute_alu_inst0_a = a;
-assign execute_alu_inst0_b = b;
-assign execute_alu_inst0_config_ = config_;
 execute_alu execute_alu_inst0 (
-    .a(execute_alu_inst0_a),
-    .b(execute_alu_inst0_b),
-    .config_(execute_alu_inst0_config_),
+    .a(a),
+    .b(b),
+    .config_(config_),
     .O(execute_alu_inst0_O)
 );
 assign c = execute_alu_inst0_O;

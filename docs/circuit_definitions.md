@@ -1,3 +1,5 @@
+**NOTE The combinational and sequential syntaxes are being deprecated, please
+use combinational2 and sequential2, documneted [here](./syntaxes.md)**
 **NOTE** The combinational and sequential syntax exetensions have only been
 tested with the "coreir" and "coreir-verilog" compile targets.  Please set
 `output="coreir-verilog"` or `output="coreir"` when calling `m.compile` to use

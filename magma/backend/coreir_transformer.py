@@ -6,7 +6,7 @@ import os
 from ..digital import Digital
 from ..array import Array
 from ..bits import Bits
-from ..clock import wiredefaultclock, wireclock
+from ..clock import ClockTypes
 from coreir import Wireable
 from .coreir_utils import (add_non_input_ports, attach_debug_info,
                            check_magma_interface, constant_to_value,
@@ -30,6 +30,26 @@ from magma.ref import PortViewRef, ArrayRef
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
 # already been done in backend/coreir_.py.
 _logger = root_logger().getChild("coreir_backend")
+
+
+def _make_unconnected_error_str(port):
+    error_str = port.debug_name
+    if port.trace() is not None:
+        error_str += ": Connected"
+    elif isinstance(port, (Tuple, Array)):
+        child_str = ""
+        for child in port:
+            child = _make_unconnected_error_str(child)
+            child = "\n    ".join(child.splitlines())
+            child_str += f"\n    {child}"
+        if "Connected" not in child_str:
+            # Handle case when no children are connected (simplify)
+            error_str += ": Unconnected"
+        else:
+            error_str += child_str
+    elif port.trace() is None:
+        error_str += ": Unconnected"
+    return error_str
 
 
 def _collect_drivers(value):
@@ -300,20 +320,22 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value, non_input_ports):
         if value is None and is_clock_or_nested_clock(type(port)):
+            clock_wired = False
             for type_, default_driver in self.clocks.items():
-                if isinstance(port, type_) and default_driver is not None:
-                    wire_clock_port(port, type_, default_driver)
-                    value = port.value()
-                    break
-            else:
+                if default_driver is not None:
+                    clock_wired |= wire_clock_port(port, type_, default_driver)
+            if not clock_wired:
                 # No default clock
                 return
+            value = port.value()
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
-            raise Exception(f"Found unconnected port: {port.debug_name}")
+            error_str = f"Found unconnected port: {port.debug_name}\n"
+            error_str += _make_unconnected_error_str(port)
+            raise Exception(error_str)
         source = self.get_source(port, value, module_defn, non_input_ports)
         if not source:
             return

@@ -183,7 +183,7 @@ def test_hanging_anon_error(caplog):
             m.compile("Foo", _Foo, output="coreir")
             assert False, "Did not raise excpected exception"
         except Exception as e:
-            assert str(e) == "Found unconnected port: _Foo.O"
+            assert str(e) == "Found unconnected port: _Foo.O\n_Foo.O: Unconnected"
 
         msg = """\
 \033[1mtests/test_wire/test_errors.py:177\033[0m: Output port _Foo.O not driven

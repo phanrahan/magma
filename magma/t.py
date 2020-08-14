@@ -32,6 +32,10 @@ class Type(object):
         return repr(self.name)
 
     def __str__(self):
+        if self.name.anon():
+            # Anon names aren't very useful, so just return a repr instead so
+            # it's easier to find the value
+            return repr(self)
         return str(self.name)
 
     # An instance has an anon name.

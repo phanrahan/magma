@@ -161,15 +161,15 @@ def test_extension_no_error(op):
 
 
 def test_bits_of_bit():
-    assert repr(m.bits(m.Bit(1), 2)) == "bits([VCC, GND])"
+    assert repr(m.bits(m.Bit(1), 2)) == "bits(1, 2)"
 
 
 def test_uint_of_bit():
-    assert repr(m.uint(m.Bit(1), 2)) == "bits([VCC, GND])"
+    assert repr(m.uint(m.Bit(1), 2)) == "uint(1, 2)"
 
 
 def test_sint_of_bit():
-    assert repr(m.sint(m.Bit(1), 2)) == "bits([VCC, VCC])"
+    assert repr(m.sint(m.Bit(1), 2)) == "sint(-1, 2)"
 
 
 def test_array_1_nested():

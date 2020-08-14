@@ -49,15 +49,14 @@ class LUT(Generator2):
     Generate a LUT containing entries of a generic Type
     """
 
-    def __init__(self, T: Kind, n: int, contents: Tuple):
+    def __init__(self, T: Kind, contents: Tuple):
         """
         T: The type of each LUT entry (e.g. Bit or Bits[5])
 
-        n: nubmer of entries in the LUT
-
-        contents: the contents of the LUT (a tuple of length `n` containing
+        contents: the contents of the LUT (a tuple containing
                   elements of type T that are constant)
         """
+        n = len(contents)
         num_bits_per_entry = T.flat_length()
         self.io = IO(I=In(Bits[clog2(n)]), O=Out(T))
 

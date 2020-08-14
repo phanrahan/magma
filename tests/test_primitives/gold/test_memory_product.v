@@ -65,42 +65,30 @@ module Memory (
     input WE
 );
 wire [4:0] _$_U1_in;
-wire [4:0] _$_U1_out;
-wire [4:0] _$_U2_in;
 wire [4:0] _$_U2_out;
-wire coreir_mem4x6_inst0_clk;
-wire [5:0] coreir_mem4x6_inst0_wdata;
-wire [1:0] coreir_mem4x6_inst0_waddr;
-wire coreir_mem4x6_inst0_wen;
 wire [5:0] coreir_mem4x6_inst0_rdata;
-wire [1:0] coreir_mem4x6_inst0_raddr;
-assign _$_U1_out = coreir_mem4x6_inst0_rdata[5:1];
 mantle_wire__typeBitIn5 _$_U1 (
     .in(_$_U1_in),
-    .out(_$_U1_out)
+    .out(coreir_mem4x6_inst0_rdata[5:1])
 );
-assign _$_U2_in = WDATA_Y;
 mantle_wire__typeBit5 _$_U2 (
-    .in(_$_U2_in),
+    .in(WDATA_Y),
     .out(_$_U2_out)
 );
-assign coreir_mem4x6_inst0_clk = CLK;
+wire [5:0] coreir_mem4x6_inst0_wdata;
 assign coreir_mem4x6_inst0_wdata = {_$_U2_out[4:0],WDATA_X};
-assign coreir_mem4x6_inst0_waddr = WADDR;
-assign coreir_mem4x6_inst0_wen = WE;
-assign coreir_mem4x6_inst0_raddr = RADDR;
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
     .sync_read(1'b0),
     .width(6)
 ) coreir_mem4x6_inst0 (
-    .clk(coreir_mem4x6_inst0_clk),
+    .clk(CLK),
     .wdata(coreir_mem4x6_inst0_wdata),
-    .waddr(coreir_mem4x6_inst0_waddr),
-    .wen(coreir_mem4x6_inst0_wen),
+    .waddr(WADDR),
+    .wen(WE),
     .rdata(coreir_mem4x6_inst0_rdata),
-    .raddr(coreir_mem4x6_inst0_raddr)
+    .raddr(RADDR)
 );
 assign RDATA_X = coreir_mem4x6_inst0_rdata[0];
 assign RDATA_Y = _$_U1_in;
@@ -116,29 +104,17 @@ module test_memory_product (
     input [4:0] wdata_Y,
     input wen
 );
-wire Memory_inst0_CLK;
-wire [1:0] Memory_inst0_RADDR;
 wire Memory_inst0_RDATA_X;
 wire [4:0] Memory_inst0_RDATA_Y;
-wire [1:0] Memory_inst0_WADDR;
-wire Memory_inst0_WDATA_X;
-wire [4:0] Memory_inst0_WDATA_Y;
-wire Memory_inst0_WE;
-assign Memory_inst0_CLK = clk;
-assign Memory_inst0_RADDR = raddr;
-assign Memory_inst0_WADDR = waddr;
-assign Memory_inst0_WDATA_X = wdata_X;
-assign Memory_inst0_WDATA_Y = wdata_Y;
-assign Memory_inst0_WE = wen;
 Memory Memory_inst0 (
-    .CLK(Memory_inst0_CLK),
-    .RADDR(Memory_inst0_RADDR),
+    .CLK(clk),
+    .RADDR(raddr),
     .RDATA_X(Memory_inst0_RDATA_X),
     .RDATA_Y(Memory_inst0_RDATA_Y),
-    .WADDR(Memory_inst0_WADDR),
-    .WDATA_X(Memory_inst0_WDATA_X),
-    .WDATA_Y(Memory_inst0_WDATA_Y),
-    .WE(Memory_inst0_WE)
+    .WADDR(waddr),
+    .WDATA_X(wdata_X),
+    .WDATA_Y(wdata_Y),
+    .WE(wen)
 );
 assign rdata_X = Memory_inst0_RDATA_X;
 assign rdata_Y = Memory_inst0_RDATA_Y;
