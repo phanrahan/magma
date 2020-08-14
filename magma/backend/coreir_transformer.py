@@ -8,13 +8,12 @@ from ..array import Array
 from ..bits import Bits
 from ..clock import ClockTypes
 from coreir import Wireable
-from .coreir_utils import (add_non_input_ports, attach_debug_info,
-                           check_magma_interface, constant_to_value,
-                           get_inst_args, get_module_of_inst,
-                           is_clock_or_nested_clock,
+from .coreir_utils import (attach_debug_info, check_magma_interface,
+                           constant_to_value, get_inst_args,
+                           get_module_of_inst, is_clock_or_nested_clock,
                            magma_interface_to_coreir_module_type,
-                           magma_port_to_coreir_port, make_cparams,
-                           map_genarg, magma_name_to_coreir_select, Slice)
+                           magma_port_to_coreir_port, make_cparams, map_genarg,
+                           magma_name_to_coreir_select, Slice)
 from ..interface import InterfaceKind
 from ..is_definition import isdefinition
 from ..logging import root_logger
@@ -253,32 +252,28 @@ class DefinitionTransformer(TransformerBase):
             return coreir_defn
         if self.defn.coreir_lib is not None:
             self.backend.libs_used.add(self.defn.coreir_lib)
-        non_input_ports = {}
         for name, port in self.defn.interface.ports.items():
             _logger.debug(f"{name}, {port}, {port.is_output()}")
-            add_non_input_ports(non_input_ports, port)
         for inst, coreir_inst in coreir_insts.items():
             if get_codegen_debug_info() and getattr(inst, "debug_info", False):
                 attach_debug_info(coreir_inst, inst.debug_info)
-            for name, port in inst.interface.ports.items():
-                add_non_input_ports(non_input_ports, port)
         for inst in coreir_insts:
             for name, port in inst.interface.ports.items():
-                self.connect_non_outputs(coreir_defn, port, non_input_ports)
+                self.connect_non_outputs(coreir_defn, port)
         for port in self.defn.interface.ports.values():
-            self.connect_non_outputs(coreir_defn, port, non_input_ports)
+            self.connect_non_outputs(coreir_defn, port)
         return coreir_defn
 
-    def connect_non_outputs(self, module_defn, port, non_input_ports):
+    def connect_non_outputs(self, module_defn, port):
         # Recurse into non input types that may contain inout children.
         if isinstance(port, Tuple) and not port.is_input() or \
            isinstance(port, Array) and not port.T.is_input():
             for elem in port:
-                self.connect_non_outputs(module_defn, elem, non_input_ports)
+                self.connect_non_outputs(module_defn, elem)
         elif not port.is_output():
-            self.connect(module_defn, port, port.trace(), non_input_ports)
+            self.connect(module_defn, port, port.trace())
 
-    def get_source(self, port, value, module_defn, non_input_ports):
+    def get_source(self, port, value, module_defn):
         port = _unwrap(port)
         value = _unwrap(value)
         if isinstance(value, Wireable):
@@ -296,29 +291,27 @@ class DefinitionTransformer(TransformerBase):
                     # _collect_drivers will introduce a slice of length 1 for
                     # non-slices, so we index them here with 0 to unpack the
                     # extra array dimension
-                    self.connect(module_defn, port[offset], d[0],
-                                 non_input_ports)
+                    self.connect(module_defn, port[offset], d[0])
                 else:
                     self.connect(module_defn,
                                  Slice(port, offset, offset + len(d)),
                                  Slice(d[0].name.array, d[0].name.index,
-                                       d[-1].name.index + 1),
-                                 non_input_ports)
+                                       d[-1].name.index + 1))
                 offset += len(d)
 
             return None
         if isinstance(value, Tuple) and value.anon():
             for p, v in zip(port, value):
-                self.connect(module_defn, p, v, non_input_ports)
+                self.connect(module_defn, p, v)
             return None
         if value.const():
             return self.const_instance(value, None, module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
-        return module_defn.select(non_input_ports[value])
+        return module_defn.select(magma_port_to_coreir_port(value))
 
-    def connect(self, module_defn, port, value, non_input_ports):
+    def connect(self, module_defn, port, value):
         if value is None and is_clock_or_nested_clock(type(port)):
             clock_wired = False
             for type_, default_driver in self.clocks.items():
@@ -336,7 +329,7 @@ class DefinitionTransformer(TransformerBase):
             error_str = f"Found unconnected port: {port.debug_name}\n"
             error_str += _make_unconnected_error_str(port)
             raise Exception(error_str)
-        source = self.get_source(port, value, module_defn, non_input_ports)
+        source = self.get_source(port, value, module_defn)
         if not source:
             return
         sink = module_defn.select(magma_port_to_coreir_port(port))
