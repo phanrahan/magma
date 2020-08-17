@@ -108,16 +108,6 @@ def magma_interface_to_coreir_module_type(context, interface):
     return context.Record(args)
 
 
-def add_non_input_ports(non_input_ports, port):
-    if isinstance(port, MagmaProtocol):
-        port = port._get_magma_value_()
-    if not port.is_input():
-        non_input_ports[port] = magma_port_to_coreir_port(port)
-    if isinstance(port, (Tuple, Array)):
-        for element in port:
-            add_non_input_ports(non_input_ports, element)
-
-
 def python_to_coreir_param_type(context, typ):
     if typ is int:
         return context.Int()
