@@ -16,6 +16,10 @@ config._register(
 )
 
 
+_staged_logging = False
+_staged_logs = []
+
+
 def _make_bold(string):
     return f"\033[1m{string}\033[0m"
 
@@ -86,16 +90,37 @@ class _MagmaLogger(logging.Logger):
                 msg, _frame_selector, config.traceback_limit)
         fn(msg, *args, **kwargs)
 
+    def log(self, level, msg, *args, **kwargs):
+        key = logging.getLevelName(level).lower()
+        fn = getattr(_MagmaLogger, key)
+        fn(self, msg, *args, **kwargs)
+
     def debug(self, msg, *args, **kwargs):
+        global _staged_logging
+        if _staged_logging:
+            _staged_logs.append((self, logging.DEBUG, msg, args, kwargs))
+            return
         _MagmaLogger.__with_preamble(super().debug, msg, *args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
+        global _staged_logging
+        if _staged_logging:
+            _staged_logs.append((self, logging.INFO, msg, args, kwargs))
+            return
         _MagmaLogger.__with_preamble(super().info, msg, *args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
+        global _staged_logging
+        if _staged_logging:
+            _staged_logs.append((self, logging.WARNING, msg, args, kwargs))
+            return
         _MagmaLogger.__with_preamble(super().warning, msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
+        global _staged_logging
+        if _staged_logging:
+            _staged_logs.append((self, logging.ERROR, msg, args, kwargs))
+            return
         _MagmaLogger.__with_preamble(super().error, msg, *args, **kwargs)
 
 
@@ -111,5 +136,23 @@ _root_logger.addHandler(_handler)
 _root_logger.setLevel(config.log_level)
 
 
+def flush():
+    global _staged_logs
+    for logger, level, obj, args, kwargs in _staged_logs:
+        logger.log(level, obj, *args, **kwargs)
+    _staged_logs = []
+
+
 def root_logger():
     return logging.getLogger("magma")
+
+
+def stage_logger():
+    global _staged_logging
+    _staged_logging = True
+
+
+def unstage_logger():
+    global _staged_logging
+    _staged_logging = False
+    flush()
