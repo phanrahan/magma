@@ -5,7 +5,7 @@ from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
-from magma.wire_container import Wire
+from magma.wire_container import Wire, WiringLog
 
 
 _logger = root_logger()
@@ -155,9 +155,12 @@ class Digital(Type, metaclass=DigitalMeta):
             o = HIGH if o else LOW
 
         if not isinstance(o, Digital):
-            _logger.error(f'Cannot wire {i.debug_name} (type={type(i)}) to {o} '
-                          f'(type={type(o)}) because {o.debug_name} is not a '
-                          f'Digital', debug_info=debug_info)
+            _logger.error(
+                WiringLog(f"Cannot wire {{}} (type={type(i)}) to {o} "
+                          f"(type={type(o)}) because {{}} is not a Digital",
+                          i, o),
+                debug_info=debug_info
+            )
             return
 
         i._wire.connect(o._wire, debug_info)

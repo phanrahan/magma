@@ -3,6 +3,7 @@ from .wire_container import Wire  # TODO(rsetaluri): only here for b.c.
 from .debug import debug_wire
 from .logging import root_logger
 from .protocol_type import MagmaProtocol
+from magma.wire_container import WiringLog
 
 
 _logger = root_logger()
@@ -22,15 +23,16 @@ def wire(o, i, debug_info=None):
 
     # Replace output Circuit with its output (should only be 1 output).
     if hasattr(o, 'interface'):
-        # If wiring a Circuit to a Port then circuit should have 1 output.
-        o_orig = o
-        o = o.interface.outputs()
-        if len(o) != 1:
-            _logger.error(f"Can only wire circuits with one output. Argument "
-                          f"0 to wire `{o_orig.debug_name}` has outputs {o}",
-                          debug_info=debug_info)
+        outputs = o.interface.outputs()
+        if len(outputs) != 1:
+            _logger.error(
+                WiringLog(f"Can only wire circuits with one output; circuit "
+                          f"`{{}}` has outputs "
+                          f"{[output.name.name for output in outputs]}", o),
+                debug_info=debug_info
+            )
             return
-        o = o[0]
+        o = outputs[0]
 
     # If o is an input.
     if not isinstance(o, IntegerTypes) and o.is_input():
