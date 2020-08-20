@@ -20,7 +20,8 @@ module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
     parameter depth = 1,
-    parameter width = 1
+    parameter width = 1,
+    parameter [(width * depth) - 1:0] init = 0
 ) (
     input clk,
     input [width-1:0] wdata,
@@ -30,7 +31,6 @@ module coreir_mem #(
     input [$clog2(depth)-1:0] raddr
 );
   reg [width-1:0] data [depth-1:0];
-  parameter [width*depth-1:0] init = 0;
   generate if (has_init) begin
     genvar j;
     for (j = 0; j < depth; j = j + 1) begin
