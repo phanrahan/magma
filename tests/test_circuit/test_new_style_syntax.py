@@ -98,9 +98,10 @@ def test_defn_wiring_error(caplog):
         m.wire(io.I, io.O1)
 
     assert not m.isdefinition(_Foo)
-    assert has_error(caplog, "Using `.O` (an output) as an input")
-    assert has_error(caplog, ("Cannot wire .I (type=Out(Bit)) to .O1 "
-                              "(type=In(Bits[1])) because .I is not an Array"))
+    assert has_error(caplog, "Using `_Foo.O` (an output) as an input")
+    assert has_error(caplog, ("Cannot wire _Foo.I (type=Out(Bit)) to _Foo.O1 "
+                              "(type=In(Bits[1])) because _Foo.I is not an "
+                              "Array"))
 
 
 def test_inst_wiring_error(caplog):
@@ -114,11 +115,12 @@ def test_inst_wiring_error(caplog):
         m.wire(io.I, bar.I)
         m.wire(bar.O, io.O)
 
-    assert has_error(caplog, ("Cannot wire .I (type=Out(Bit)) to ..I "
-                              "(type=In(Bits[1])) because .I is not an Array"))
-    assert has_error(caplog, ("Cannot wire .O (type=In(Bit)) to O "
-                              "(type=Out(Bits[1])) because ..O is not a "
-                              "Digital"))
+    assert has_error(caplog, ("Cannot wire _Foo.I (type=Out(Bit)) to "
+                              "_Foo._Bar_inst0.I (type=In(Bits[1])) because "
+                              "_Foo.I is not an Array"))
+    assert has_error(caplog, ("Cannot wire _Foo.O (type=In(Bit)) to O "
+                              "(type=Out(Bits[1])) because _Foo._Bar_inst0.O "
+                              "is not a Digital"))
     assert has_error(caplog, "Output port _Foo.O not driven")
     assert has_error(caplog, "Input port _Bar_inst0.I not driven")
 

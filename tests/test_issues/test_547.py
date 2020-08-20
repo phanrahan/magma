@@ -1,6 +1,7 @@
 import pytest
 
 import magma as m
+from magma.testing.utils import has_error
 
 
 def test_basic():
@@ -36,14 +37,26 @@ def test_recursive():
 
 
 def test_errors(caplog):
+
     class Test(m.Circuit):
         io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[1]))
-
         io.O[0] = io.I[0]
 
-    logs = caplog.records
-    assert any("May not mutate array" in log.msg and log.levelname == "ERROR"
-               for log in logs)
+    assert has_error(caplog, ("May not mutate array, trying to replace "
+                              "Test.O[0] (Test.O[0]) with Test.I[0]"))
+
+
+def test_errors_tuple(caplog):
+
+    class T(m.Product):
+        x = m.Bit
+
+    class Test(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(T))
+        io.O["x"] = io.I
+
+    assert has_error(caplog, ("May not mutate tuple, trying to replace "
+                              "Test.O[x] (Test.O.x) with Test.I"))
 
 
 def test_product():

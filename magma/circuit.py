@@ -15,7 +15,7 @@ from .interface import *
 from .wire import *
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
-from .logging import root_logger
+from .logging import root_logger, stage_logger, unstage_logger
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -28,6 +28,7 @@ except ImportError:
     pass
 from .view import PortView
 from magma.protocol_type import MagmaProtocol
+from magma.wire_container import WiringLog
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -70,6 +71,7 @@ class _SyntaxStyle(enum.Enum):
 
 class DefinitionContext:
     def __init__(self, placer):
+        stage_logger()
         self.placer = placer
         self._inline_verilog = []
         self._displays = []
@@ -119,6 +121,7 @@ class DefinitionContext:
         self._finalize_file_opens()  # so displays can refer to open files
         self._finalize_displays()
         self._finalize_file_close()  # close after displays
+        unstage_logger()
 
 
 _definition_context_stack = Stack()
@@ -447,9 +450,12 @@ class AnonymousCircuitType(object):
             _logger.warning(msg, debug_info=debug_info)
             return
         if ni != 1:
-            msg = (f"Wiring an output to a circuit with more than one input "
-                   f"argument, using the first input {inputs[0].debug_name}")
-            _logger.warning(msg, debug_info=debug_info)
+            _logger.warning(
+                WiringLog("Wiring an output to a circuit with more than one "
+                          "input argument, using the first input {}",
+                          inputs[0]),
+                debug_info=debug_info
+            )
         inputs[0].wire(output, debug_info)
 
     @property
@@ -485,8 +491,11 @@ class AnonymousCircuitType(object):
                 i = getattr(input, key)
                 wire(value, getattr(input, key), debug_info)
             else:
-                msg = f"Instance {input.debug_name} does not have input {key}"
-                _logger.warning(msg, debug_info=debug_info)
+                _logger.warning(
+                    WiringLog(f"Instance {{}} does not have input {key}",
+                              input),
+                    debug_info=debug_info
+                )
 
         o = input.interface.outputs()
         return o[0] if len(o) == 1 else tuple(o)
