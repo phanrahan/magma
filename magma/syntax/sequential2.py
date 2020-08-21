@@ -180,7 +180,6 @@ class _SequentialRegisterWrapper(MagmaProtocol,
 
     def __len__(self):
         return len(self._get_magma_value_())
-    
 
 
 def sequential_getattribute(self, key):
