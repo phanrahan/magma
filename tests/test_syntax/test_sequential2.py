@@ -406,6 +406,7 @@ def test_gcd():
                     self.y = self.y - self.x
             return self.x.prev(), self.y.prev() == 0
 
+    m.compile("build/GCD", GCD, inline=True)
     tester = fault.SynchronousTester(GCD, clock=GCD.CLK)
     tester.circuit.a = 32
     tester.circuit.b = 16
@@ -415,7 +416,8 @@ def test_gcd():
     tester.advance_cycle()
     tester.wait_on(tester.circuit.O1 == 1)
     tester.circuit.O0.expect(16)
-    tester.compile_and_run("verilator", flags=['--trace'])
+    dir_ = os.path.join(os.path.dirname(__file__), "build")
+    tester.compile_and_run("verilator", skip_compile=True, directory=dir_)
 
 
 @pytest.mark.parametrize('op', [operator.add, operator.sub, operator.mul,
@@ -440,6 +442,8 @@ def test_r_ops(op):
                 self.y = op(self.y, self.x)
             return self.x.prev(), self.y.prev()
 
+    type(Test).rename(Test, f"TestRop{op.__name__}")
+    m.compile(f"build/TestRop{op.__name__}", Test, inline=True)
     if op in {operator.mod, operator.truediv}:
         # coreir doesn't support urem primitive
         # hwtypes BV doesn't support truediv
@@ -456,6 +460,6 @@ def test_r_ops(op):
     O0 = op(a, b)
     tester.circuit.O0.expect(O0)
     tester.circuit.O1.expect(op(b, O0))
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tester.compile_and_run("verilator", flags=['-Wno-unused'],
-                               directory=tmpdir)
+    dir_ = os.path.join(os.path.dirname(__file__), "build")
+    tester.compile_and_run("verilator", flags=['-Wno-unused'],
+                           skip_compile=True, directory=dir_)
