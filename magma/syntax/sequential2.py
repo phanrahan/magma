@@ -19,6 +19,9 @@ from .util import build_io_args, build_call_args, wire_call_result
 class _SequentialListWrapper(list):
     def __getitem__(self, i):
         result = super().__getitem__(i)
+        if isinstance(type(result), Register):
+            # Patch in prev method as syntax sugar for previous value
+            result.prev = lambda: result.O
         if isinstance(result, list):
             return _SequentialListWrapper(result)
         return result
@@ -78,29 +81,56 @@ class _SequentialRegisterWrapper(MagmaProtocol,
     def __add__(self, other):
         return self._get_magma_value_() + other
 
+    def __radd__(self, other):
+        return other + self._get_magma_value_()
+
     def __sub__(self, other):
         return self._get_magma_value_() - other
+
+    def __rsub__(self, other):
+        return other - self._get_magma_value_()
 
     def __mul__(self, other):
         return self._get_magma_value_() * other
 
+    def __rmul__(self, other):
+        return other * self._get_magma_value_()
+
     def __truediv__(self, other):
         return self._get_magma_value_() / other
+
+    def __rtruediv__(self, other):
+        return other / self._get_magma_value_()
 
     def __floordiv__(self, other):
         return self._get_magma_value_() // other
 
+    def __rfloordiv__(self, other):
+        return other // self._get_magma_value_()
+
     def __mod__(self, other):
         return self._get_magma_value_() % other
+
+    def __rmod__(self, other):
+        return other % self._get_magma_value_()
 
     def __or__(self, other):
         return self._get_magma_value_() | other
 
+    def __ror__(self, other):
+        return other | self._get_magma_value_()
+
     def __xor__(self, other):
         return self._get_magma_value_() ^ other
 
+    def __rxor__(self, other):
+        return other ^ self._get_magma_value_()
+
     def __and__(self, other):
         return self._get_magma_value_() & other
+
+    def __rand__(self, other):
+        return other & self._get_magma_value_()
 
     def __eq__(self, other):
         return self._get_magma_value_() == other
@@ -123,8 +153,14 @@ class _SequentialRegisterWrapper(MagmaProtocol,
     def __lshift__(self, other):
         return self._get_magma_value_() << other
 
+    def __rlshift__(self, other):
+        return other << self._get_magma_value_()
+
     def __rshift__(self, other):
         return self._get_magma_value_() >> other
+
+    def __rrshift__(self, other):
+        return other >> self._get_magma_value_()
 
     def __neg__(self, other):
         return -self._get_magma_value_()

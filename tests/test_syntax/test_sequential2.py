@@ -1,9 +1,12 @@
+import operator
 import tempfile
 import os
 import inspect
 
+import pytest
 import ast_tools
 import fault
+from hwtypes import UIntVector
 
 import magma as m
 from test_sequential import Register, DualClockRAM
@@ -382,3 +385,81 @@ def test_sequential2_reset():
     m.compile("build/TestSequential2Reset", Test2, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Reset.v",
                              f"gold/TestSequential2Reset.v")
+
+
+def test_gcd():
+    @m.sequential2()
+    class GCD:
+        def __init__(self):
+            self.x = m.Register(m.UInt[16])()
+            self.y = m.Register(m.UInt[16])()
+
+        def __call__(self, a: m.In(m.UInt[16]), b: m.In(m.UInt[16]),
+                     load: m.In(m.Bit)) -> (m.Out(m.UInt[16]), m.Out(m.Bit)):
+            if load:
+                self.x = a
+                self.y = b
+            elif self.y != 0:
+                if self.x > self.y:
+                    self.x = self.x - self.y
+                else:
+                    self.y = self.y - self.x
+            return self.x.prev(), self.y.prev() == 0
+
+    m.compile("build/GCD", GCD, inline=True)
+    tester = fault.SynchronousTester(GCD, clock=GCD.CLK)
+    tester.circuit.a = 32
+    tester.circuit.b = 16
+    tester.circuit.load = 1
+    tester.advance_cycle()
+    tester.circuit.load = 0
+    tester.advance_cycle()
+    tester.wait_on(tester.circuit.O1 == 1)
+    tester.circuit.O0.expect(16)
+    dir_ = os.path.join(os.path.dirname(__file__), "build")
+    tester.compile_and_run("verilator", skip_compile=True, directory=dir_)
+
+
+@pytest.mark.parametrize('op', [operator.add, operator.sub, operator.mul,
+                                operator.floordiv, operator.truediv,
+                                operator.mod, operator.lshift, operator.rshift,
+                                operator.and_, operator.xor, operator.or_])
+def test_r_ops(op):
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.x = m.Register(m.UInt[16])()
+            self.y = m.Register(m.UInt[16])()
+
+        def __call__(self, a: m.In(m.UInt[16]), b: m.In(m.UInt[16]),
+                     load: m.In(m.Bit)) -> (m.Out(m.UInt[16]),
+                                            m.Out(m.UInt[16])):
+            if load:
+                self.x = a
+                self.y = b
+            else:
+                self.x = op(self.x, self.y)
+                self.y = op(self.y, self.x)
+            return self.x.prev(), self.y.prev()
+
+    type(Test).rename(Test, f"TestRop{op.__name__}")
+    m.compile(f"build/TestRop{op.__name__}", Test, inline=True)
+    if op in {operator.mod, operator.truediv}:
+        # coreir doesn't support urem primitive
+        # hwtypes BV doesn't support truediv
+        # but we still test these right hand op implementation for coverage and
+        # to make sure they compile without error
+        return
+    tester = fault.SynchronousTester(Test, clock=Test.CLK)
+    tester.circuit.a = a = 32
+    tester.circuit.b = b = 3
+    tester.circuit.load = 1
+    tester.advance_cycle()
+    tester.circuit.load = 0
+    tester.advance_cycle()
+    O0 = op(a, b)
+    tester.circuit.O0.expect(O0)
+    tester.circuit.O1.expect(op(b, O0))
+    dir_ = os.path.join(os.path.dirname(__file__), "build")
+    tester.compile_and_run("verilator", flags=['-Wno-unused'],
+                           skip_compile=True, directory=dir_)
