@@ -106,68 +106,68 @@ module Mux2xTuplea0_OutBit_a1_Tuplec0_OutUInt4_c1_OutBit_a2_OutSInt8 (
     output [7:0] O_a2,
     input S
 );
-wire [3:0] _$_U10_in;
-wire [7:0] _$_U11_in;
-wire [13:0] _$_U2_in;
-wire [13:0] _$_U3_in;
-wire [13:0] _$_U4_out;
-wire [3:0] _$_U6_out;
-wire [7:0] _$_U7_out;
-wire [3:0] _$_U8_out;
-wire [7:0] _$_U9_out;
 wire [13:0] coreir_commonlib_mux2x14_inst0_out;
-mantle_wire__typeBitIn4 _$_U10 (
-    .in(_$_U10_in),
-    .out(_$_U4_out[4:1])
-);
-mantle_wire__typeBitIn8 _$_U11 (
-    .in(_$_U11_in),
-    .out(_$_U4_out[13:6])
-);
-wire [13:0] _$_U2_out;
-assign _$_U2_out = {_$_U7_out[7:0],I0_a1_c1,_$_U6_out[3:0],I0_a0};
-mantle_wire__typeBitIn14 _$_U2 (
-    .in(_$_U2_in),
-    .out(_$_U2_out)
-);
-wire [13:0] _$_U3_out;
-assign _$_U3_out = {_$_U9_out[7:0],I1_a1_c1,_$_U8_out[3:0],I1_a0};
-mantle_wire__typeBitIn14 _$_U3 (
-    .in(_$_U3_in),
-    .out(_$_U3_out)
-);
-mantle_wire__typeBit14 _$_U4 (
-    .in(coreir_commonlib_mux2x14_inst0_out),
-    .out(_$_U4_out)
-);
-mantle_wire__typeBit4 _$_U6 (
-    .in(I0_a1_c0),
-    .out(_$_U6_out)
-);
-mantle_wire__typeBit8 _$_U7 (
-    .in(I0_a2),
-    .out(_$_U7_out)
-);
-mantle_wire__typeBit4 _$_U8 (
-    .in(I1_a1_c0),
-    .out(_$_U8_out)
-);
-mantle_wire__typeBit8 _$_U9 (
-    .in(I1_a2),
-    .out(_$_U9_out)
-);
+wire [13:0] coreir_commonlib_mux2x14_inst0_in_data_0_in;
+wire [13:0] coreir_commonlib_mux2x14_inst0_in_data_1_in;
+wire [13:0] coreir_commonlib_mux2x14_inst0_out_out;
+wire [3:0] self_I0_a1_c0_out;
+wire [7:0] self_I0_a2_out;
+wire [3:0] self_I1_a1_c0_out;
+wire [7:0] self_I1_a2_out;
+wire [3:0] self_O_a1_c0_in;
+wire [7:0] self_O_a2_in;
 wire [13:0] coreir_commonlib_mux2x14_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x14_inst0_in_data[1] = _$_U3_in;
-assign coreir_commonlib_mux2x14_inst0_in_data[0] = _$_U2_in;
+assign coreir_commonlib_mux2x14_inst0_in_data[1] = coreir_commonlib_mux2x14_inst0_in_data_1_in;
+assign coreir_commonlib_mux2x14_inst0_in_data[0] = coreir_commonlib_mux2x14_inst0_in_data_0_in;
 commonlib_muxn__N2__width14 coreir_commonlib_mux2x14_inst0 (
     .in_data(coreir_commonlib_mux2x14_inst0_in_data),
     .in_sel(S),
     .out(coreir_commonlib_mux2x14_inst0_out)
 );
-assign O_a0 = _$_U4_out[0];
-assign O_a1_c0 = _$_U10_in;
-assign O_a1_c1 = _$_U4_out[5];
-assign O_a2 = _$_U11_in;
+wire [13:0] coreir_commonlib_mux2x14_inst0_in_data_0_out;
+assign coreir_commonlib_mux2x14_inst0_in_data_0_out = {self_I0_a2_out[7:0],I0_a1_c1,self_I0_a1_c0_out[3:0],I0_a0};
+mantle_wire__typeBitIn14 coreir_commonlib_mux2x14_inst0_in_data_0 (
+    .in(coreir_commonlib_mux2x14_inst0_in_data_0_in),
+    .out(coreir_commonlib_mux2x14_inst0_in_data_0_out)
+);
+wire [13:0] coreir_commonlib_mux2x14_inst0_in_data_1_out;
+assign coreir_commonlib_mux2x14_inst0_in_data_1_out = {self_I1_a2_out[7:0],I1_a1_c1,self_I1_a1_c0_out[3:0],I1_a0};
+mantle_wire__typeBitIn14 coreir_commonlib_mux2x14_inst0_in_data_1 (
+    .in(coreir_commonlib_mux2x14_inst0_in_data_1_in),
+    .out(coreir_commonlib_mux2x14_inst0_in_data_1_out)
+);
+mantle_wire__typeBit14 coreir_commonlib_mux2x14_inst0_out (
+    .in(coreir_commonlib_mux2x14_inst0_out),
+    .out(coreir_commonlib_mux2x14_inst0_out_out)
+);
+mantle_wire__typeBit4 self_I0_a1_c0 (
+    .in(I0_a1_c0),
+    .out(self_I0_a1_c0_out)
+);
+mantle_wire__typeBit8 self_I0_a2 (
+    .in(I0_a2),
+    .out(self_I0_a2_out)
+);
+mantle_wire__typeBit4 self_I1_a1_c0 (
+    .in(I1_a1_c0),
+    .out(self_I1_a1_c0_out)
+);
+mantle_wire__typeBit8 self_I1_a2 (
+    .in(I1_a2),
+    .out(self_I1_a2_out)
+);
+mantle_wire__typeBitIn4 self_O_a1_c0 (
+    .in(self_O_a1_c0_in),
+    .out(coreir_commonlib_mux2x14_inst0_out_out[4:1])
+);
+mantle_wire__typeBitIn8 self_O_a2 (
+    .in(self_O_a2_in),
+    .out(coreir_commonlib_mux2x14_inst0_out_out[13:6])
+);
+assign O_a0 = coreir_commonlib_mux2x14_inst0_out_out[0];
+assign O_a1_c0 = self_O_a1_c0_in;
+assign O_a1_c1 = coreir_commonlib_mux2x14_inst0_out_out[5];
+assign O_a2 = self_O_a2_in;
 endmodule
 
 module TestNestedProductReg_comb (

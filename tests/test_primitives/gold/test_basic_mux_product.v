@@ -77,66 +77,66 @@ module Mux2xTupleX_Bits2_Y_Bits4 (
     output [3:0] O_Y,
     input S
 );
-wire [1:0] _$_U10_in;
-wire [3:0] _$_U11_in;
-wire [5:0] _$_U2_in;
-wire [5:0] _$_U3_in;
-wire [5:0] _$_U4_out;
-wire [1:0] _$_U6_out;
-wire [3:0] _$_U7_out;
-wire [1:0] _$_U8_out;
-wire [3:0] _$_U9_out;
 wire [5:0] coreir_commonlib_mux2x6_inst0_out;
-mantle_wire__typeBitIn2 _$_U10 (
-    .in(_$_U10_in),
-    .out(_$_U4_out[1:0])
-);
-mantle_wire__typeBitIn4 _$_U11 (
-    .in(_$_U11_in),
-    .out(_$_U4_out[5:2])
-);
-wire [5:0] _$_U2_out;
-assign _$_U2_out = {_$_U7_out[3:0],_$_U6_out[1:0]};
-mantle_wire__typeBitIn6 _$_U2 (
-    .in(_$_U2_in),
-    .out(_$_U2_out)
-);
-wire [5:0] _$_U3_out;
-assign _$_U3_out = {_$_U9_out[3:0],_$_U8_out[1:0]};
-mantle_wire__typeBitIn6 _$_U3 (
-    .in(_$_U3_in),
-    .out(_$_U3_out)
-);
-mantle_wire__typeBit6 _$_U4 (
-    .in(coreir_commonlib_mux2x6_inst0_out),
-    .out(_$_U4_out)
-);
-mantle_wire__typeBit2 _$_U6 (
-    .in(I0_X),
-    .out(_$_U6_out)
-);
-mantle_wire__typeBit4 _$_U7 (
-    .in(I0_Y),
-    .out(_$_U7_out)
-);
-mantle_wire__typeBit2 _$_U8 (
-    .in(I1_X),
-    .out(_$_U8_out)
-);
-mantle_wire__typeBit4 _$_U9 (
-    .in(I1_Y),
-    .out(_$_U9_out)
-);
+wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_0_in;
+wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_1_in;
+wire [5:0] coreir_commonlib_mux2x6_inst0_out_out;
+wire [1:0] self_I0_X_out;
+wire [3:0] self_I0_Y_out;
+wire [1:0] self_I1_X_out;
+wire [3:0] self_I1_Y_out;
+wire [1:0] self_O_X_in;
+wire [3:0] self_O_Y_in;
 wire [5:0] coreir_commonlib_mux2x6_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x6_inst0_in_data[1] = _$_U3_in;
-assign coreir_commonlib_mux2x6_inst0_in_data[0] = _$_U2_in;
+assign coreir_commonlib_mux2x6_inst0_in_data[1] = coreir_commonlib_mux2x6_inst0_in_data_1_in;
+assign coreir_commonlib_mux2x6_inst0_in_data[0] = coreir_commonlib_mux2x6_inst0_in_data_0_in;
 commonlib_muxn__N2__width6 coreir_commonlib_mux2x6_inst0 (
     .in_data(coreir_commonlib_mux2x6_inst0_in_data),
     .in_sel(S),
     .out(coreir_commonlib_mux2x6_inst0_out)
 );
-assign O_X = _$_U10_in;
-assign O_Y = _$_U11_in;
+wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_0_out;
+assign coreir_commonlib_mux2x6_inst0_in_data_0_out = {self_I0_Y_out[3:0],self_I0_X_out[1:0]};
+mantle_wire__typeBitIn6 coreir_commonlib_mux2x6_inst0_in_data_0 (
+    .in(coreir_commonlib_mux2x6_inst0_in_data_0_in),
+    .out(coreir_commonlib_mux2x6_inst0_in_data_0_out)
+);
+wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_1_out;
+assign coreir_commonlib_mux2x6_inst0_in_data_1_out = {self_I1_Y_out[3:0],self_I1_X_out[1:0]};
+mantle_wire__typeBitIn6 coreir_commonlib_mux2x6_inst0_in_data_1 (
+    .in(coreir_commonlib_mux2x6_inst0_in_data_1_in),
+    .out(coreir_commonlib_mux2x6_inst0_in_data_1_out)
+);
+mantle_wire__typeBit6 coreir_commonlib_mux2x6_inst0_out (
+    .in(coreir_commonlib_mux2x6_inst0_out),
+    .out(coreir_commonlib_mux2x6_inst0_out_out)
+);
+mantle_wire__typeBit2 self_I0_X (
+    .in(I0_X),
+    .out(self_I0_X_out)
+);
+mantle_wire__typeBit4 self_I0_Y (
+    .in(I0_Y),
+    .out(self_I0_Y_out)
+);
+mantle_wire__typeBit2 self_I1_X (
+    .in(I1_X),
+    .out(self_I1_X_out)
+);
+mantle_wire__typeBit4 self_I1_Y (
+    .in(I1_Y),
+    .out(self_I1_Y_out)
+);
+mantle_wire__typeBitIn2 self_O_X (
+    .in(self_O_X_in),
+    .out(coreir_commonlib_mux2x6_inst0_out_out[1:0])
+);
+mantle_wire__typeBitIn4 self_O_Y (
+    .in(self_O_Y_in),
+    .out(coreir_commonlib_mux2x6_inst0_out_out[5:2])
+);
+assign O_X = self_O_X_in;
+assign O_Y = self_O_Y_in;
 endmodule
 
 module test_basic_mux_product (

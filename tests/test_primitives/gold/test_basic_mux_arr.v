@@ -46,36 +46,36 @@ module Mux2xArray2_Bits2 (
     input S,
     output [1:0] O [1:0]
 );
-wire [3:0] _$_U2_in;
-wire [3:0] _$_U3_in;
-wire [3:0] _$_U4_out;
 wire [3:0] coreir_commonlib_mux2x4_inst0_out;
-wire [3:0] _$_U2_out;
-assign _$_U2_out = {I0[1][1:0],I0[0][1:0]};
-mantle_wire__typeBitIn4 _$_U2 (
-    .in(_$_U2_in),
-    .out(_$_U2_out)
-);
-wire [3:0] _$_U3_out;
-assign _$_U3_out = {I1[1][1:0],I1[0][1:0]};
-mantle_wire__typeBitIn4 _$_U3 (
-    .in(_$_U3_in),
-    .out(_$_U3_out)
-);
-mantle_wire__typeBit4 _$_U4 (
-    .in(coreir_commonlib_mux2x4_inst0_out),
-    .out(_$_U4_out)
-);
+wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0_in;
+wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1_in;
+wire [3:0] coreir_commonlib_mux2x4_inst0_out_out;
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x4_inst0_in_data[1] = _$_U3_in;
-assign coreir_commonlib_mux2x4_inst0_in_data[0] = _$_U2_in;
+assign coreir_commonlib_mux2x4_inst0_in_data[1] = coreir_commonlib_mux2x4_inst0_in_data_1_in;
+assign coreir_commonlib_mux2x4_inst0_in_data[0] = coreir_commonlib_mux2x4_inst0_in_data_0_in;
 commonlib_muxn__N2__width4 coreir_commonlib_mux2x4_inst0 (
     .in_data(coreir_commonlib_mux2x4_inst0_in_data),
     .in_sel(S),
     .out(coreir_commonlib_mux2x4_inst0_out)
 );
-assign O[1] = _$_U4_out[3:2];
-assign O[0] = _$_U4_out[1:0];
+wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0_out;
+assign coreir_commonlib_mux2x4_inst0_in_data_0_out = {I0[1][1:0],I0[0][1:0]};
+mantle_wire__typeBitIn4 coreir_commonlib_mux2x4_inst0_in_data_0 (
+    .in(coreir_commonlib_mux2x4_inst0_in_data_0_in),
+    .out(coreir_commonlib_mux2x4_inst0_in_data_0_out)
+);
+wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1_out;
+assign coreir_commonlib_mux2x4_inst0_in_data_1_out = {I1[1][1:0],I1[0][1:0]};
+mantle_wire__typeBitIn4 coreir_commonlib_mux2x4_inst0_in_data_1 (
+    .in(coreir_commonlib_mux2x4_inst0_in_data_1_in),
+    .out(coreir_commonlib_mux2x4_inst0_in_data_1_out)
+);
+mantle_wire__typeBit4 coreir_commonlib_mux2x4_inst0_out (
+    .in(coreir_commonlib_mux2x4_inst0_out),
+    .out(coreir_commonlib_mux2x4_inst0_out_out)
+);
+assign O[1] = coreir_commonlib_mux2x4_inst0_out_out[3:2];
+assign O[0] = coreir_commonlib_mux2x4_inst0_out_out[1:0];
 endmodule
 
 module test_basic_mux_arr (

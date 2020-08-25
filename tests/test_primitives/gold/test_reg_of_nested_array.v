@@ -73,37 +73,37 @@ module Mux2xArray3_Bits8 (
     input S,
     output [7:0] O [2:0]
 );
-wire [23:0] _$_U2_in;
-wire [23:0] _$_U3_in;
-wire [23:0] _$_U4_out;
 wire [23:0] coreir_commonlib_mux2x24_inst0_out;
-wire [23:0] _$_U2_out;
-assign _$_U2_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
-mantle_wire__typeBitIn24 _$_U2 (
-    .in(_$_U2_in),
-    .out(_$_U2_out)
-);
-wire [23:0] _$_U3_out;
-assign _$_U3_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
-mantle_wire__typeBitIn24 _$_U3 (
-    .in(_$_U3_in),
-    .out(_$_U3_out)
-);
-mantle_wire__typeBit24 _$_U4 (
-    .in(coreir_commonlib_mux2x24_inst0_out),
-    .out(_$_U4_out)
-);
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_0_in;
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_1_in;
+wire [23:0] coreir_commonlib_mux2x24_inst0_out_out;
 wire [23:0] coreir_commonlib_mux2x24_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x24_inst0_in_data[1] = _$_U3_in;
-assign coreir_commonlib_mux2x24_inst0_in_data[0] = _$_U2_in;
+assign coreir_commonlib_mux2x24_inst0_in_data[1] = coreir_commonlib_mux2x24_inst0_in_data_1_in;
+assign coreir_commonlib_mux2x24_inst0_in_data[0] = coreir_commonlib_mux2x24_inst0_in_data_0_in;
 commonlib_muxn__N2__width24 coreir_commonlib_mux2x24_inst0 (
     .in_data(coreir_commonlib_mux2x24_inst0_in_data),
     .in_sel(S),
     .out(coreir_commonlib_mux2x24_inst0_out)
 );
-assign O[2] = _$_U4_out[23:16];
-assign O[1] = _$_U4_out[15:8];
-assign O[0] = _$_U4_out[7:0];
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_0_out;
+assign coreir_commonlib_mux2x24_inst0_in_data_0_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
+mantle_wire__typeBitIn24 coreir_commonlib_mux2x24_inst0_in_data_0 (
+    .in(coreir_commonlib_mux2x24_inst0_in_data_0_in),
+    .out(coreir_commonlib_mux2x24_inst0_in_data_0_out)
+);
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_1_out;
+assign coreir_commonlib_mux2x24_inst0_in_data_1_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
+mantle_wire__typeBitIn24 coreir_commonlib_mux2x24_inst0_in_data_1 (
+    .in(coreir_commonlib_mux2x24_inst0_in_data_1_in),
+    .out(coreir_commonlib_mux2x24_inst0_in_data_1_out)
+);
+mantle_wire__typeBit24 coreir_commonlib_mux2x24_inst0_out (
+    .in(coreir_commonlib_mux2x24_inst0_out),
+    .out(coreir_commonlib_mux2x24_inst0_out_out)
+);
+assign O[2] = coreir_commonlib_mux2x24_inst0_out_out[23:16];
+assign O[1] = coreir_commonlib_mux2x24_inst0_out_out[15:8];
+assign O[0] = coreir_commonlib_mux2x24_inst0_out_out[7:0];
 endmodule
 
 module Register (

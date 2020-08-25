@@ -64,19 +64,11 @@ module Memory (
     input [4:0] WDATA_Y,
     input WE
 );
-wire [4:0] _$_U1_in;
-wire [4:0] _$_U2_out;
 wire [5:0] coreir_mem4x6_inst0_rdata;
-mantle_wire__typeBitIn5 _$_U1 (
-    .in(_$_U1_in),
-    .out(coreir_mem4x6_inst0_rdata[5:1])
-);
-mantle_wire__typeBit5 _$_U2 (
-    .in(WDATA_Y),
-    .out(_$_U2_out)
-);
+wire [4:0] self_RDATA_Y_in;
+wire [4:0] self_WDATA_Y_out;
 wire [5:0] coreir_mem4x6_inst0_wdata;
-assign coreir_mem4x6_inst0_wdata = {_$_U2_out[4:0],WDATA_X};
+assign coreir_mem4x6_inst0_wdata = {self_WDATA_Y_out[4:0],WDATA_X};
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
@@ -90,8 +82,16 @@ coreir_mem #(
     .rdata(coreir_mem4x6_inst0_rdata),
     .raddr(RADDR)
 );
+mantle_wire__typeBitIn5 self_RDATA_Y (
+    .in(self_RDATA_Y_in),
+    .out(coreir_mem4x6_inst0_rdata[5:1])
+);
+mantle_wire__typeBit5 self_WDATA_Y (
+    .in(WDATA_Y),
+    .out(self_WDATA_Y_out)
+);
 assign RDATA_X = coreir_mem4x6_inst0_rdata[0];
-assign RDATA_Y = _$_U1_in;
+assign RDATA_Y = self_RDATA_Y_in;
 endmodule
 
 module test_memory_product (
