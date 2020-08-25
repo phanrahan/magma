@@ -538,3 +538,7 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     rhs.resolve(Context(lhs, rhs))
     res = rhs.eval()
     return SmartBits.make(res), rhs
+
+
+def make_smart(bits):
+    return SmartBits.make(bits)
