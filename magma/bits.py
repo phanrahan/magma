@@ -289,20 +289,24 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def bveq(self, other) -> AbstractBit:
         return self.declare_compare_op("eq")()(self, other)
 
+    @bits_cast
     def bvult(self, other) -> AbstractBit:
-        raise NotImplementedError()
+        return self.declare_compare_op("ult")()(self, other)
 
+    @bits_cast
     def bvule(self, other) -> AbstractBit:
         # For wiring
-        if not self.is_output():
+        if self.is_input():
             return Type.__le__(self, other)
-        raise NotImplementedError()
+        return self.declare_compare_op("ule")()(self, other)
 
+    @bits_cast
     def bvugt(self, other) -> AbstractBit:
-        raise NotImplementedError()
+        return self.declare_compare_op("ugt")()(self, other)
 
+    @bits_cast
     def bvuge(self, other) -> AbstractBit:
-        raise NotImplementedError()
+        return self.declare_compare_op("uge")()(self, other)
 
     def bvslt(self, other) -> AbstractBit:
         raise NotImplementedError()
@@ -317,10 +321,23 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def bvneg(self) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_unary_op("neg")()(self)
 
-    def adc(self, other, carry) -> tp.Tuple['AbstractBitVector', AbstractBit]:
-        raise NotImplementedError()
+    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
+        """
+        add with carry
+        returns a two element tuple of the form (result, carry)
+        """
+        T = type(self)
+        other = _coerce(T, other)
+        carry = _coerce(T.unsized_t[1], carry)
+
+        a = self.zext(1)
+        b = other.zext(1)
+        c = carry.zext(T.size)
+
+        res = a + b + c
+        return res[0:-1], res[-1]
 
     def ite(self, t_branch, f_branch) -> 'AbstractBitVector':
         type_ = type(t_branch)
@@ -329,20 +346,25 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return self.declare_ite(type_)()(t_branch, f_branch,
                                          self != self.make_constant(0))
 
+    @bits_cast
     def bvadd(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("add")()(self, other)
 
+    @bits_cast
     def bvsub(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("sub")()(self, other)
 
+    @bits_cast
     def bvmul(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("mul")()(self, other)
 
+    @bits_cast
     def bvudiv(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("udiv")()(self, other)
 
+    @bits_cast
     def bvurem(self, other) -> 'AbstractBitVector':
-        raise NotImplementedError()
+        return self.declare_binary_op("urem")()(self, other)
 
     def bvsdiv(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -414,6 +436,22 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __eq__(self, other):
+        try:
+            return self.bveq(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ne__(self, other):
+        try:
+            return self.bvne(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
     def __neg__(self):
         return self.bvneg()
 
@@ -436,78 +474,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def __mul__(self, other):
         try:
             return self.bvmul(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __floordiv__(self, other):
-        try:
-            return self.bvudiv(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __truediv__(self, other):
-        try:
-            return self.bvudiv(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __mod__(self, other):
-        try:
-            return self.bvurem(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __eq__(self, other):
-        try:
-            return self.bveq(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __ne__(self, other):
-        try:
-            return self.bvne(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __ge__(self, other):
-        try:
-            return self.bvuge(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __gt__(self, other):
-        try:
-            return self.bvugt(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __le__(self, other):
-        try:
-            return self.bvule(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
-
-    def __lt__(self, other):
-        try:
-            return self.bvult(other)
         except InconsistentSizeError as e:
             raise e from None
         except TypeError:
@@ -574,64 +540,6 @@ BitsType = Bits
 class UInt(Bits):
     hwtypes_T = ht.UIntVector
 
-    def bvneg(self) -> 'AbstractBitVector':
-        return self.declare_unary_op("neg")()(self)
-
-    @bits_cast
-    def bvult(self, other) -> AbstractBit:
-        return self.declare_compare_op("ult")()(self, other)
-
-    @bits_cast
-    def bvule(self, other) -> AbstractBit:
-        # For wiring
-        if self.is_input():
-            return Type.__le__(self, other)
-        return self.declare_compare_op("ule")()(self, other)
-
-    @bits_cast
-    def bvugt(self, other) -> AbstractBit:
-        return self.declare_compare_op("ugt")()(self, other)
-
-    @bits_cast
-    def bvuge(self, other) -> AbstractBit:
-        return self.declare_compare_op("uge")()(self, other)
-
-    @bits_cast
-    def bvadd(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("add")()(self, other)
-
-    @bits_cast
-    def bvsub(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("sub")()(self, other)
-
-    @bits_cast
-    def bvmul(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("mul")()(self, other)
-
-    @bits_cast
-    def bvudiv(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("udiv")()(self, other)
-
-    @bits_cast
-    def bvurem(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("urem")()(self, other)
-
-    def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
-        """
-        add with carry
-        returns a two element tuple of the form (result, carry)
-        """
-        T = type(self)
-        other = _coerce(T, other)
-        carry = _coerce(T.unsized_t[1], carry)
-
-        a = self.zext(1)
-        b = other.zext(1)
-        c = carry.zext(T.size)
-
-        res = a + b + c
-        return res[0:-1], res[-1]
-
     def __repr__(self):
         if not self.name.anon():
             return super().__repr__()
@@ -639,6 +547,62 @@ class UInt(Bits):
             return f'uint({int(self)}, {len(self)})'
         ts = [repr(t) for t in self.ts]
         return 'uint([{}])'.format(', '.join(ts))
+
+    def __floordiv__(self, other):
+        try:
+            return self.bvudiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __truediv__(self, other):
+        try:
+            return self.bvudiv(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __mod__(self, other):
+        try:
+            return self.bvurem(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __ge__(self, other):
+        try:
+            return self.bvuge(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __gt__(self, other):
+        try:
+            return self.bvugt(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __le__(self, other):
+        try:
+            return self.bvule(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+
+    def __lt__(self, other):
+        try:
+            return self.bvult(other)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
 
 
 class SInt(Bits):
@@ -675,27 +639,12 @@ class SInt(Bits):
         return self.declare_compare_op("sge")()(self, other)
 
     @bits_cast
-    def bvadd(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("add")()(self, other)
-
-    @bits_cast
-    def bvsub(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("sub")()(self, other)
-
-    @bits_cast
-    def bvmul(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("mul")()(self, other)
-
-    @bits_cast
     def bvsdiv(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("sdiv")()(self, other)
 
     @bits_cast
     def bvsrem(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("srem")()(self, other)
-
-    def bvneg(self) -> 'AbstractBitVector':
-        return self.declare_unary_op("neg")()(self)
 
     @bits_cast
     def bvashr(self, other) -> 'AbstractBitVector':
