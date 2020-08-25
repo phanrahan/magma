@@ -72,7 +72,6 @@ wire [5:0] coreir_commonlib_mux4x6_inst0_in_data_0;
 wire [5:0] coreir_commonlib_mux4x6_inst0_in_data_1;
 wire [5:0] coreir_commonlib_mux4x6_inst0_in_data_2;
 wire [5:0] coreir_commonlib_mux4x6_inst0_in_data_3;
-wire [5:0] coreir_commonlib_mux4x6_inst0_out;
 always @(*) begin
 if (S == 0) begin
     coreir_commonlib_mux4x6_inst0_out = coreir_commonlib_mux4x6_inst0_in_data_0;
@@ -89,7 +88,6 @@ assign coreir_commonlib_mux4x6_inst0_in_data_0 = {I0[2][1:0],I0[1][1:0],I0[0][1:
 assign coreir_commonlib_mux4x6_inst0_in_data_1 = {I1[2][1:0],I1[1][1:0],I1[0][1:0]};
 assign coreir_commonlib_mux4x6_inst0_in_data_2 = {I2[2][1:0],I2[1][1:0],I2[0][1:0]};
 assign coreir_commonlib_mux4x6_inst0_in_data_3 = {I3[2][1:0],I3[1][1:0],I3[0][1:0]};
-assign coreir_commonlib_mux4x6_inst0_out = coreir_commonlib_mux4x6_inst0_out;
 assign O[2] = coreir_commonlib_mux4x6_inst0_out[5:4];
 assign O[1] = coreir_commonlib_mux4x6_inst0_out[3:2];
 assign O[0] = coreir_commonlib_mux4x6_inst0_out[1:0];

@@ -89,10 +89,10 @@ module Mux2xTuplea0_OutBit_a1_OutSInt8 (
 wire [8:0] coreir_commonlib_mux2x9_inst0_out;
 wire [8:0] coreir_commonlib_mux2x9_inst0_in_data_0_in;
 wire [8:0] coreir_commonlib_mux2x9_inst0_in_data_1_in;
-wire [8:0] coreir_commonlib_mux2x9_inst0_out_out;
-wire [7:0] self_I0_a1_out;
-wire [7:0] self_I1_a1_out;
-wire [7:0] self_O_a1_in;
+wire [8:0] coreir_commonlib_mux2x9_inst0_out_wire_out;
+wire [7:0] self_I0_a1_wire_out;
+wire [7:0] self_I1_a1_wire_out;
+wire [7:0] self_O_a1_wire_in;
 wire [8:0] coreir_commonlib_mux2x9_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x9_inst0_in_data[1] = coreir_commonlib_mux2x9_inst0_in_data_1_in;
 assign coreir_commonlib_mux2x9_inst0_in_data[0] = coreir_commonlib_mux2x9_inst0_in_data_0_in;
@@ -102,35 +102,35 @@ commonlib_muxn__N2__width9 coreir_commonlib_mux2x9_inst0 (
     .out(coreir_commonlib_mux2x9_inst0_out)
 );
 wire [8:0] coreir_commonlib_mux2x9_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x9_inst0_in_data_0_out = {self_I0_a1_out[7:0],I0_a0};
+assign coreir_commonlib_mux2x9_inst0_in_data_0_out = {self_I0_a1_wire_out[7:0],I0_a0};
 mantle_wire__typeBitIn9 coreir_commonlib_mux2x9_inst0_in_data_0 (
     .in(coreir_commonlib_mux2x9_inst0_in_data_0_in),
     .out(coreir_commonlib_mux2x9_inst0_in_data_0_out)
 );
 wire [8:0] coreir_commonlib_mux2x9_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x9_inst0_in_data_1_out = {self_I1_a1_out[7:0],I1_a0};
+assign coreir_commonlib_mux2x9_inst0_in_data_1_out = {self_I1_a1_wire_out[7:0],I1_a0};
 mantle_wire__typeBitIn9 coreir_commonlib_mux2x9_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x9_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x9_inst0_in_data_1_out)
 );
-mantle_wire__typeBit9 coreir_commonlib_mux2x9_inst0_out (
+mantle_wire__typeBit9 coreir_commonlib_mux2x9_inst0_out_wire (
     .in(coreir_commonlib_mux2x9_inst0_out),
-    .out(coreir_commonlib_mux2x9_inst0_out_out)
+    .out(coreir_commonlib_mux2x9_inst0_out_wire_out)
 );
-mantle_wire__typeBit8 self_I0_a1 (
+mantle_wire__typeBit8 self_I0_a1_wire (
     .in(I0_a1),
-    .out(self_I0_a1_out)
+    .out(self_I0_a1_wire_out)
 );
-mantle_wire__typeBit8 self_I1_a1 (
+mantle_wire__typeBit8 self_I1_a1_wire (
     .in(I1_a1),
-    .out(self_I1_a1_out)
+    .out(self_I1_a1_wire_out)
 );
-mantle_wire__typeBitIn8 self_O_a1 (
-    .in(self_O_a1_in),
-    .out(coreir_commonlib_mux2x9_inst0_out_out[8:1])
+mantle_wire__typeBitIn8 self_O_a1_wire (
+    .in(self_O_a1_wire_in),
+    .out(coreir_commonlib_mux2x9_inst0_out_wire_out[8:1])
 );
-assign O_a0 = coreir_commonlib_mux2x9_inst0_out_out[0];
-assign O_a1 = self_O_a1_in;
+assign O_a0 = coreir_commonlib_mux2x9_inst0_out_wire_out[0];
+assign O_a1 = self_O_a1_wire_in;
 endmodule
 
 module TestProductReg_comb (

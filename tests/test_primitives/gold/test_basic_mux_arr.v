@@ -49,7 +49,7 @@ module Mux2xArray2_Bits2 (
 wire [3:0] coreir_commonlib_mux2x4_inst0_out;
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0_in;
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1_in;
-wire [3:0] coreir_commonlib_mux2x4_inst0_out_out;
+wire [3:0] coreir_commonlib_mux2x4_inst0_out_wire_out;
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x4_inst0_in_data[1] = coreir_commonlib_mux2x4_inst0_in_data_1_in;
 assign coreir_commonlib_mux2x4_inst0_in_data[0] = coreir_commonlib_mux2x4_inst0_in_data_0_in;
@@ -70,12 +70,12 @@ mantle_wire__typeBitIn4 coreir_commonlib_mux2x4_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x4_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x4_inst0_in_data_1_out)
 );
-mantle_wire__typeBit4 coreir_commonlib_mux2x4_inst0_out (
+mantle_wire__typeBit4 coreir_commonlib_mux2x4_inst0_out_wire (
     .in(coreir_commonlib_mux2x4_inst0_out),
-    .out(coreir_commonlib_mux2x4_inst0_out_out)
+    .out(coreir_commonlib_mux2x4_inst0_out_wire_out)
 );
-assign O[1] = coreir_commonlib_mux2x4_inst0_out_out[3:2];
-assign O[0] = coreir_commonlib_mux2x4_inst0_out_out[1:0];
+assign O[1] = coreir_commonlib_mux2x4_inst0_out_wire_out[3:2];
+assign O[0] = coreir_commonlib_mux2x4_inst0_out_wire_out[1:0];
 endmodule
 
 module test_basic_mux_arr (
