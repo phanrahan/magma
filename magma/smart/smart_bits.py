@@ -10,6 +10,7 @@ from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+from magma.type_utils import TypeTransformer, isuint, issint
 
 
 def _is_int(value):
@@ -542,3 +543,14 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
 
 def make_smart(bits):
     return SmartBits.make(bits)
+
+
+class _SmartTransformer(TypeTransformer):
+    def visit_Bits(self, T):
+        signed = issint(T)
+        return SmartBits[len(T), signed]
+
+
+def make_smart_io(io):
+    transformer = _SmartTransformer()
+    return {name: transformer.visit(type) for name, type in io.items()}
