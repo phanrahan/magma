@@ -5,24 +5,24 @@ As in python, all Magma types are python classes.
 Instances of Magma types are Magma values.
 
 The first major set of types are single bit types. 
-They are subclasses of `Bit`, which itself is a subclass of `Digital`:
+They are subclasses of `Digital`:
 ```python
 class Digital(Type):
   class Bit(Digital):
-    class Clock(Bit):
-    class Reset(Bit):
-    class Enable(Bit):
+  class Clock(Digital):
+  class Reset(Digital):
+  class Enable(Digital):
 ```
 The `Bit` type can be used in logical operations.
 
 The second major type in Magma is the `Array` type.
-An `Array` consists of `n` values of the same type `T`.
+An `Array` consists of `N` values of the same type `T`.
 ```python
-Array[n, T]
+Array[N, T]
 ```
 
 The third major type in Magma is the `Tuple` (and `Product`) type.
-A `Tuple` consists of `n` unnamed values of different types `Tn`.
+A `Tuple` consists of `N` unnamed values of different types `Tn`.
 ```python
 Tuple[T0, T1, ..., Tn]
 ```
@@ -39,10 +39,10 @@ to represent unsigned and signed integer types.
 `Bits`, `UInt`, and `SInt` are separate types 
 because they support different operations.
 ```python
-Bits(n) # ~= Array(n, Bit)
+Bits[n] # ~= Array(n, Bit)
         # &, |, ^, ~, ==, <<, >>
-SInt(n) # +, -, *, /, <, <=, >=, >, -, >>>
-UInt(n) # +, -, *, /, <, <=, >=, >
+SInt[n] # +, -, *, /, <, <=, >=, >, -, >>>
+UInt[n] # +, -, *, /, <, <=, >=, >
 ```
 
 `Array`, `Tuple`, `Bits`, `UInt`, and `SInt` (Type Constructors) 
