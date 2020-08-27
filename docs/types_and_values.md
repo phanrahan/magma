@@ -49,3 +49,40 @@ Types can be tested for equality and inequality.
 
 Values are instances of Magma type classes.
 All values are subclasses of the Magma type `Type`.
+
+## NDArray
+Magma provides support numpy style NDArrays.  These types are constructed by
+using a tuple of integers (e.g. `(3, 4, 2)`) for the `N` parameter of an Array.
+Here's a simple example:
+
+```python
+class Main(m.Circuit):
+    io = m.IO(I=m.In(m.Array[(3, 5), m.Bit]),
+              O=m.Out(m.Array[(5, 3), m.Bit]))
+    for i in range(3):
+        for j in range(5):
+            io.O[j, i] @= io.I[i, j]
+```
+
+Notice that the NDArray values can be indexed using tuples.  The NDArray type
+also supports complex slicing patterns, for example:
+```python
+class Main(m.Circuit):
+    io = m.IO(a0=m.Out(m.Array[(4, 5, 3), m.Bit]),
+              a1=m.Out(m.Array[(4, 5, 3), m.Bit]),
+              b=m.In(m.Array[(4, 5, 2), m.Bit]),
+              c=m.In(m.Array[(3, 2), m.Bit]))
+    io.a0[0:2] @= io.b
+    io.a0[2] @= m.Array[(4, 5), m.Bit]([0 for _ in range(5)])
+
+    io.a1[2, 2:5, 0:2] @= io.c
+    io.a1[2, 0:2, 0:2] @= m.Array[(2, 2), m.Bit]([0 for _ in range(2)])
+    io.a1[3, :, 0:2] @= m.Array[(5, 2), m.Bit]([0 for _ in range(2)])
+    io.a1[0:2, :, 0:2] @= m.Array[(2, 5, 2), m.Bit](
+        [m.Array[(2, 5), m.Bit]([0 for _ in range(5)]) for _ in range(2)])
+    io.a1[2] @= m.Array[(4, 5), m.Bit]([0 for _ in range(5)])
+```
+
+NDArray syntax (tuple type parameter and indexing) is implemented as a simple
+layer on top of the base Array type, so NDArrays support all the standard array
+syntax and operators (e.g. get_slice and set_slice).
