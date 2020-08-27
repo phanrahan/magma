@@ -45,8 +45,6 @@ SInt[n] # +, -, *, /, <, <=, >=, >, -, >>>
 UInt[n] # +, -, *, /, <, <=, >=, >
 ```
 
-`Array`, `Tuple`, `Bits`, `UInt`, and `SInt` (Type Constructors) 
-are python functions that return new python classes.
 Types can be tested for equality and inequality.
 
 Values are instances of Magma type classes.
