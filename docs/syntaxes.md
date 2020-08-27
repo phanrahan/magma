@@ -204,6 +204,49 @@ class logic(m.Circuit):
     m.wire(O, io.O)
 ```
 
+## Inline Combinational
+`inline_combinational` avoids having to define function parameters, pass
+arguments, and assign return values when defining a combinational block.  Instead,
+the user can define a `combinational` function inside their `m.Circuit` class
+defintiion and refer directly to magma values in the scope.  
+
+Here's a simple example:
+
+```python
+class Main(m.Circuit):
+    io = m.IO(invert=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
+    io += m.ClockIO()
+    reg = m.Register(m.Bit)()
+
+    @m.inline_combinational()
+    def logic():
+        if io.invert:
+            reg.I @= ~reg.O
+            O1 = ~reg.O
+        else:
+            reg.I @= reg.O
+            O1 = reg.O
+
+    io.O0 @= reg.O
+    io.O1 @= O1
+```
+
+Notice that the first 3 lines of `Main`'s definition are standard magma.
+
+Inside the function `logic` that has been decorated with
+`@m.inline_combinational`, the user can refer to `reg` (a normal magma
+instance) and it's ports to perform logic and wiring.  The definition of
+`logic` shows two ways to use the `combinational` rewrite to generate a muxes.
+
+The first way wires to `reg.I` using the `@=` operator inside the if statement.
+The `combinational` rewrite logic will change these statements to assign to a
+temporary value, which will then get process by the SSA pass to produce the
+final value (output of a mux or chain of muxes) which is then wired to the
+original target (`reg.I` in this case).
+
+The second way assigns to a temporary value `O1`.  This value is handled using
+the standard `combinational` treatment and the final value produced by SSA is
+returned from the function and assigned in the enclosing environment.
 
 ## Sequential
 The `@m.sequential2` decorator extends the `@m.combinational2`
