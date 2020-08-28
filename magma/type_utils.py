@@ -8,10 +8,8 @@ from magma.protocol_type import MagmaProtocol
 from magma.tuple import Tuple
 
 
-def _unwrap_protocol_type(T):
-    if issubclass(T, MagmaProtocol):
-        return T._to_magma_()
-    return T
+def isprotocol(T):
+    return issubclass(T, MagmaProtocol)
 
 
 def isdigital(T):
@@ -38,6 +36,12 @@ def issint(T):
     return issubclass(T, SInt)
 
 
+def _unwrap_protocol_type(T):
+    if isprotocol(T):
+        return T._to_magma_()
+    return T
+
+
 @dataclasses.dataclass(frozen=True)
 class _TypeWrapper:
     raw: typing.Any
@@ -51,6 +55,7 @@ def _wrap_type(T):
     if isinstance(T, _TypeWrapper):
         return T
     T = _unwrap_protocol_type(T)
+
     if isdigital(T):
         constructor = lambda T: T
         return _TypeWrapper(T, [], {}, constructor, "Digital")
@@ -71,6 +76,7 @@ def _wrap_type(T):
         attrs = {"fields": T.field_dict}
         children = [value for value in T.field_dict.values()]
         return _TypeWrapper(T, children, attrs, _constructor, "Tuple")
+
     raise NotImplementedError(T)
 
 
@@ -87,13 +93,7 @@ class TypeVisitor:
             self.visit(child)
 
 
-class TypeTransformer:
-    def visit(self, T):
-        wrapped = _wrap_type(T)
-        method = 'visit_' + wrapped.name
-        visitor = getattr(self, method, self.generic_visit)
-        return visitor(wrapped.raw)
-
+class TypeTransformer(TypeVisitor):
     def generic_visit(self, T):
         wrapped = _wrap_type(T)
         args = [self.visit(child) for child in wrapped.children]
