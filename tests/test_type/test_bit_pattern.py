@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 import fault
 import magma as m
 
@@ -25,3 +27,14 @@ def test_bit_pattern_simple():
     tester.compile_and_run("verilator",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_as_bv():
+    x = m.BitPattern("b1001")
+    assert x.as_bv() == 0b1001
+
+    y = m.BitPattern("b1??1")
+    with pytest.raises(TypeError) as e:
+        y.as_bv()
+    assert (str(e.value) ==
+            "Can only convert BitPattern with no don't cares to int")

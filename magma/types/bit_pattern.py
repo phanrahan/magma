@@ -38,6 +38,7 @@ class BitPattern:
                 count += 1
         self.bits = BitVector[count](bits)
         self.mask = BitVector[count](mask)
+        self.width = count
 
     def __eq__(self, other):
         if not isinstance(other, Bits):
@@ -45,3 +46,10 @@ class BitPattern:
                 "BitPattern equality can only be compared with Bits value"
             )
         return self.bits == (other & self.mask)
+
+    def as_bv(self):
+        if self.mask != ((1 << self.width) - 1):
+            raise TypeError(
+                "Can only convert BitPattern with no don't cares to int"
+            )
+        return self.bits
