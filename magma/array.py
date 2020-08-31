@@ -221,7 +221,8 @@ class Array(Type, metaclass=ArrayMeta):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
                                         f"with int/bv, not Array[N, {self.T}]")
                     n = args[0]
-                    bits = (int2seq(n, self.N) if isinstance(n, int)
+                    bits = (int2seq(n, self.N)
+                            if isinstance(n, int)
                             else n.bits())
                     self.ts = []
                     for bit in bits:
