@@ -11,6 +11,7 @@ from magma.debug import debug_wire
 from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 from magma.type_utils import TypeTransformer, isuint, issint
+from magma.value_utils import ValueVisitor, make_selector
 
 
 def _is_int(value):
@@ -541,16 +542,37 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     return SmartBits.make(res), rhs
 
 
-def make_smart(bits):
-    return SmartBits.make(bits)
-
-
-class _SmartTransformer(TypeTransformer):
+class _SmartifyTypeTransformer(TypeTransformer):
     def visit_Bits(self, T):
         signed = issint(T)
         return SmartBits[len(T), signed]
 
 
-def make_smart_io(io):
-    transformer = _SmartTransformer()
-    return {name: transformer.visit(type) for name, type in io.items()}
+class _LeafCollector(ValueVisitor):
+    def __init__(self):
+        self.bits_leaves = []
+        self.other_leaves = []
+
+    def visit_Digital(self, value):
+        self.other_leaves.append(value)
+
+    def visit_Bits(self, value):
+        self.bits_leaves.append(value)
+
+
+def make_smart(value):
+    T = type(value)
+    Tsmart = _SmartifyTypeTransformer().visit(T)
+    smart_value = Tsmart()
+    leaf_collector = _LeafCollector()
+    leaf_collector.visit(value)
+    for bits in leaf_collector.bits_leaves:
+        selector = make_selector(bits)
+        smart_bits = selector.select(smart_value)
+        smart_bits_unwrapped = smart_bits._get_magma_value_()
+        smart_bits_unwrapped @= bits
+    for leaf in leaf_collector.other_leaves:
+        selector = make_selector(leaf)
+        new_leaf = selector.select(smart_value)
+        new_leaf @= leaf
+    return smart_value
