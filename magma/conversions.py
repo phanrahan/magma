@@ -103,7 +103,7 @@ def convertbits(value, n, totype, checkbit):
         return value
 
     convertible_types = (Digital, Tuple, Array, IntegerTypes,
-                         Sequence)
+                         Sequence, hwtypes.BitVector)
     if not isinstance(value, convertible_types):
         raise ValueError(
             "bits can only be used on a Bit, an Array, a Tuple, an int, or a"
@@ -114,6 +114,8 @@ def convertbits(value, n, totype, checkbit):
         if n is None:
             n = max(value.bit_length(), 1)
         ts = int2seq(value, n)
+    elif isinstance(value, hwtypes.BitVector):
+        ts = value.bits()
     elif isinstance(value, Sequence):
         ts = list(value)
     elif isinstance(value, Digital):

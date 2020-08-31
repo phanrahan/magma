@@ -1,3 +1,4 @@
+from hwtypes import BitVector, Bit
 import magma as m
 from magma.testing import check_files_equal
 
@@ -45,3 +46,46 @@ def test_inline_comb_wire():
     magma_test.compile("build/test_inline_comb_wire", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_inline_comb_wire.v",
                              f"gold/test_inline_comb_wire.v")
+
+
+def test_inline_comb_list():
+    class Main(m.Circuit):
+        io = m.IO(s=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
+        io += m.ClockIO()
+        reg = m.Register(m.Bit)()
+
+        @m.inline_combinational(debug=True, file_name="inline_comb.py")
+        def logic():
+            if io.s:
+                O = [~reg.O, reg.O]
+            else:
+                O = [reg.O, ~reg.O]
+        reg.I @= O[0]
+
+        io.O0 @= O[0]
+        io.O1 @= O[1]
+
+    m.compile("build/test_inline_comb_list", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_inline_comb_list.v",
+                             f"gold/test_inline_comb_list.v")
+
+
+def test_inline_comb_bv_bit_bool():
+    class Main(m.Circuit):
+        io = m.IO(s=m.In(m.Bit), O0=m.Out(m.Bits[2]), O1=m.Out(m.Bit),
+                  O2=m.Out(m.Bit))
+
+        @m.inline_combinational(debug=True, file_name="inline_comb.py")
+        def logic():
+            if io.s:
+                x = [BitVector[2](2), Bit(1), True]
+            else:
+                x = [BitVector[2](1), Bit(0), False]
+
+        io.O0 @= x[0]
+        io.O1 @= x[1]
+        io.O2 @= x[2]
+
+    m.compile("build/test_inline_comb_bv_bit_bool", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_inline_comb_bv_bit_bool.v",
+                             f"gold/test_inline_comb_bv_bit_bool.v")

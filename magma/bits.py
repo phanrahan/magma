@@ -130,8 +130,11 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @debug_wire
     def wire(self, other, debug_info):
-        if isinstance(other, IntegerTypes):
-            if other.bit_length() > len(self):
+        if isinstance(other, (IntegerTypes, BitVector)):
+            N = (other.bit_length()
+                 if isinstance(other, IntegerTypes)
+                 else len(other))
+            if N > len(self):
                 raise ValueError(
                     f"Cannot convert integer {other} "
                     f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
