@@ -1,6 +1,7 @@
 from functools import lru_cache
 import weakref
 from abc import ABCMeta
+import hwtypes as ht
 from .t import Kind, Direction, Type, In, Out
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
@@ -79,7 +80,7 @@ class DigitalMeta(ABCMeta, Kind):
 
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
-            if isinstance(value, (bool, IntegerTypes)):
+            if isinstance(value, (bool, IntegerTypes, )):
                 return cls.VCC if value else cls.GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
@@ -151,7 +152,7 @@ class Digital(Type, metaclass=DigitalMeta):
     def wire(self, o, debug_info):
         i = self
         # promote integer types to LOW/HIGH
-        if isinstance(o, IntegerTypes):
+        if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = HIGH if o else LOW
 
         if not isinstance(o, Digital):

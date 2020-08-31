@@ -126,5 +126,6 @@ class inline_combinational(apply_ast_passes):
                               result[len(self.wire_map):]):
             value_name = gen_free_name(ast.NameConstant(False), env)
             env.locals.update({value_name: value})
+            print(f"{astor.to_source(mutable(key)).rstrip()} = {value_name}")
             exec(f"{astor.to_source(mutable(key)).rstrip()} = {value_name}",
                  env.globals, env.locals)

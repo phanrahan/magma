@@ -1,6 +1,7 @@
 import weakref
 from functools import reduce
 from abc import ABCMeta
+from hwtypes import BitVector
 from .common import deprecated
 from .ref import AnonRef, ArrayRef
 from .t import Type, Kind, Direction, In, Out
@@ -199,7 +200,8 @@ class Array(Type, metaclass=ArrayMeta):
         Type.__init__(self, **kwargs)
         self.ts = []
         if args:
-            if len(args) == 1 and isinstance(args[0], (list, Array, int)):
+            if len(args) == 1 and isinstance(args[0], (list, Array, int,
+                                                       BitVector)):
                 if isinstance(args[0], list):
                     if len(args[0]) != self.N:
                         raise ValueError("Array list constructor can only be used "
@@ -214,12 +216,15 @@ class Array(Type, metaclass=ArrayMeta):
                     if len(args[0]) != len(self):
                         raise TypeError(f"Will not do implicit conversion of arrays")
                     self.ts = args[0].ts[:]
-                elif isinstance(args[0], int):
+                elif isinstance(args[0], (BitVector, int)):
                     if not issubclass(self.T, Bit):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
-                                        f"with int, not Array[N, {self.T}]")
+                                        f"with int/bv, not Array[N, {self.T}]")
+                    n = args[0]
+                    bits = (int2seq(n, self.N) if isinstance(n, int)
+                            else n.bits())
                     self.ts = []
-                    for bit in int2seq(args[0], self.N):
+                    for bit in bits:
                         self.ts.append(self.T(bit))
                 elif self.N == 1:
                     t = args[0]

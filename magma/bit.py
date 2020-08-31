@@ -142,11 +142,14 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         t_type = get_type(t_branch)
         f_type = get_type(f_branch)
 
-        # Implicit int conversion
-        if t_type is int and f_type is not int:
+        # Implicit int/bv conversion
+        if (issubclass(t_type, (int, ht.BitVector)) and
+                not issubclass(f_type, (int, ht.BitVector))):
             t_branch = f_type(t_branch)
             t_type = f_type
-        elif t_type is not int and f_type is int:
+        if (not issubclass(t_type, (int, ht.BitVector)) and
+                issubclass(f_type, (int, ht.BitVector))):
+            t_branch = f_type(t_branch)
             f_branch = t_type(t_branch)
             f_type = t_type
 

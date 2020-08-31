@@ -1,6 +1,8 @@
+import hwtypes as ht
 from hwtypes import BitVector
 from magma.array import Array
 from magma.bit import Bit
+from magma.bits import Bits
 from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.generator import Generator2
@@ -34,6 +36,10 @@ class CoreIRCommonLibMuxN(Generator2):
 
 class Mux(Generator2):
     def __init__(self, height: int, T: Type):
+        if issubclass(T, BitVector):
+            T = Bits[len(T)]
+        if issubclass(T, (bool, ht.Bit)):
+            T = Bit
         if issubclass(T, MagmaProtocol):
             T = T._to_magma_()
         T_str = str(T).replace("(", "").replace(")", "")\
