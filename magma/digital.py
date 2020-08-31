@@ -80,7 +80,7 @@ class DigitalMeta(ABCMeta, Kind):
 
     def __call__(cls, value=None, *args, **kwargs):
         if value is not None:
-            if isinstance(value, (bool, IntegerTypes, )):
+            if isinstance(value, (bool, IntegerTypes, ht.Bit)):
                 return cls.VCC if value else cls.GND
         result = super().__call__(*args, **kwargs)
         if value is not None:
