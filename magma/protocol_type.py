@@ -101,8 +101,14 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
             other = other._get_magma_value_()
         self._get_magma_value_().wire(other)
 
+    def unwire(self, other):
+        if isinstance(other, MagmaProtocol):
+            other = other._get_magma_value_()
+        self._get_magma_value_().unwire(other)
+
     def __imatmul__(self, other):
         self.wire(other)
+        return self
 
 
 def magma_type(T):

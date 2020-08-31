@@ -14,13 +14,13 @@ module Main (
     input I,
     output O
 );
-wire corebit_term_inst0_in;
-assign corebit_term_inst0_in = ~ I;
+wire magma_Bit_not_inst0_out;
 corebit_term corebit_term_inst0 (
-    .in(corebit_term_inst0_in)
+    .in(magma_Bit_not_inst0_out)
 );
 corebit_undriven corebit_undriven_inst0 (
     .out(O)
 );
+assign magma_Bit_not_inst0_out = ~ I;
 endmodule
 

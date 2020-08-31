@@ -12,6 +12,8 @@ from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
+from magma.wire_container import WiringLog
+
 
 _logger = root_logger()
 
@@ -214,7 +216,8 @@ class Array(Type, metaclass=ArrayMeta):
             if len(args) == 1 and isinstance(args[0], (list, Array, int)):
                 if isinstance(args[0], list):
                     if len(args[0]) != self.N:
-                        raise ValueError("Array list constructor can only be used with list equal to array length")
+                        raise ValueError("Array list constructor can only be used "
+                                         "with list equal to array length")
                     self.ts = []
                     for elem in args[0]:
                         if isinstance(elem, int):
@@ -361,8 +364,10 @@ class Array(Type, metaclass=ArrayMeta):
             error = True
 
         if error:
-            _logger.error(f'May not mutate array, trying to replace '
-                          f'{self}[{key}] ({old}) with {val}')
+            _logger.error(
+                WiringLog(f"May not mutate array, trying to replace "
+                          f"{{}}[{key}] ({{}}) with {{}}", self, old, val)
+            )
         return error
 
     def __add__(self, other):
@@ -385,18 +390,32 @@ class Array(Type, metaclass=ArrayMeta):
 
     @debug_wire
     def wire(i, o, debug_info):
-        # print('Array.wire(', o, ', ', i, ')')
-
         if not isinstance(o, ArrayType):
             if isinstance(o, IntegerTypes):
-                _logger.error(f'Cannot wire {o} (type={type(o)}) to {i.debug_name} (type={type(i)}) because conversions from IntegerTypes are only defined for Bits, not general Arrays', debug_info=debug_info)  # noqa
+                _logger.error(
+                    WiringLog(f"Cannot wire {o} (type={type(o)}) to {{}} "
+                              f"(type={type(i)}) because conversions from "
+                              f"IntegerTypes are only defined for Bits, not "
+                              f"general Arrays", i),
+                    debug_info=debug_info
+                )
             else:
                 o_str = getattr(o, "debug_name", str(o))
-                _logger.error(f'Cannot wire {o_str} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o_str} is not an Array', debug_info=debug_info)  # noqa
+                _logger.error(
+                    WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
+                              f"(type={type(i)}) because {{}} is not an Array",
+                              o, i, o),
+                    debug_info=debug_info
+                )
             return
 
         if i.N != o.N:
-            _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because the arrays do not have the same length', debug_info=debug_info)  # noqa
+            _logger.error(
+                WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
+                          f"(type={type(i)}) because the arrays do not have "
+                          f"the same length", o, i),
+                debug_info=debug_info
+            )
             return
 
         for k in range(len(i)):

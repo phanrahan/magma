@@ -27,22 +27,16 @@ module Register (
     input CLK,
     input ASYNCRESETN
 );
-wire reg_PR_inst0_clk;
-wire reg_PR_inst0_arst;
-wire [7:0] reg_PR_inst0_in;
 wire [7:0] reg_PR_inst0_out;
-assign reg_PR_inst0_clk = CLK;
-assign reg_PR_inst0_arst = ASYNCRESETN;
-assign reg_PR_inst0_in = I;
 coreir_reg_arst #(
     .arst_posedge(1'b0),
     .clk_posedge(1'b1),
     .init(8'hde),
     .width(8)
 ) reg_PR_inst0 (
-    .clk(reg_PR_inst0_clk),
-    .arst(reg_PR_inst0_arst),
-    .in(reg_PR_inst0_in),
+    .clk(CLK),
+    .arst(ASYNCRESETN),
+    .in(I),
     .out(reg_PR_inst0_out)
 );
 assign O = reg_PR_inst0_out;
@@ -54,18 +48,12 @@ module test_reg_async_resetn (
     input CLK,
     input ASYNCRESETN
 );
-wire [7:0] Register_inst0_I;
 wire [7:0] Register_inst0_O;
-wire Register_inst0_CLK;
-wire Register_inst0_ASYNCRESETN;
-assign Register_inst0_I = I;
-assign Register_inst0_CLK = CLK;
-assign Register_inst0_ASYNCRESETN = ASYNCRESETN;
 Register Register_inst0 (
-    .I(Register_inst0_I),
+    .I(I),
     .O(Register_inst0_O),
-    .CLK(Register_inst0_CLK),
-    .ASYNCRESETN(Register_inst0_ASYNCRESETN)
+    .CLK(CLK),
+    .ASYNCRESETN(ASYNCRESETN)
 );
 assign O = Register_inst0_O;
 endmodule

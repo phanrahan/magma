@@ -2,7 +2,8 @@ module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
     parameter depth = 1,
-    parameter width = 1
+    parameter width = 1,
+    parameter [(width * depth) - 1:0] init = 0
 ) (
     input clk,
     input [width-1:0] wdata,
@@ -12,7 +13,6 @@ module coreir_mem #(
     input [$clog2(depth)-1:0] raddr
 );
   reg [width-1:0] data [depth-1:0];
-  parameter [width*depth-1:0] init = 0;
   generate if (has_init) begin
     genvar j;
     for (j = 0; j < depth; j = j + 1) begin
@@ -65,12 +65,7 @@ module Memory (
 wire bit_const_0_None_out;
 wire [1:0] const_0_2_out;
 wire [4:0] const_0_5_out;
-wire coreir_mem4x5_inst0_clk;
-wire [4:0] coreir_mem4x5_inst0_wdata;
-wire [1:0] coreir_mem4x5_inst0_waddr;
-wire coreir_mem4x5_inst0_wen;
 wire [4:0] coreir_mem4x5_inst0_rdata;
-wire [1:0] coreir_mem4x5_inst0_raddr;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -88,11 +83,6 @@ coreir_const #(
 ) const_0_5 (
     .out(const_0_5_out)
 );
-assign coreir_mem4x5_inst0_clk = CLK;
-assign coreir_mem4x5_inst0_wdata = const_0_5_out;
-assign coreir_mem4x5_inst0_waddr = const_0_2_out;
-assign coreir_mem4x5_inst0_wen = bit_const_0_None_out;
-assign coreir_mem4x5_inst0_raddr = RADDR;
 coreir_mem #(
     .init({5'd0,5'd19,5'd10,5'd7}),
     .depth(4),
@@ -100,12 +90,12 @@ coreir_mem #(
     .sync_read(1'b0),
     .width(5)
 ) coreir_mem4x5_inst0 (
-    .clk(coreir_mem4x5_inst0_clk),
-    .wdata(coreir_mem4x5_inst0_wdata),
-    .waddr(coreir_mem4x5_inst0_waddr),
-    .wen(coreir_mem4x5_inst0_wen),
+    .clk(CLK),
+    .wdata(const_0_5_out),
+    .waddr(const_0_2_out),
+    .wen(bit_const_0_None_out),
     .rdata(coreir_mem4x5_inst0_rdata),
-    .raddr(coreir_mem4x5_inst0_raddr)
+    .raddr(RADDR)
 );
 assign RDATA = coreir_mem4x5_inst0_rdata;
 endmodule
@@ -115,15 +105,11 @@ module test_memory_read_only (
     output [4:0] rdata,
     input clk
 );
-wire [1:0] Memory_inst0_RADDR;
 wire [4:0] Memory_inst0_RDATA;
-wire Memory_inst0_CLK;
-assign Memory_inst0_RADDR = raddr;
-assign Memory_inst0_CLK = clk;
 Memory Memory_inst0 (
-    .RADDR(Memory_inst0_RADDR),
+    .RADDR(raddr),
     .RDATA(Memory_inst0_RDATA),
-    .CLK(Memory_inst0_CLK)
+    .CLK(clk)
 );
 assign rdata = Memory_inst0_RDATA;
 endmodule

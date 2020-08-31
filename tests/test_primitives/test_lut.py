@@ -9,15 +9,15 @@ import fault
 
 def test_basic_lut():
     contents = (
-        m.Bits[2](0xDE),
-        m.Bits[2](0xAD),
-        m.Bits[2](0xBE),
-        m.Bits[2](0xEF)
+        m.Bits[8](0xDE),
+        m.Bits[8](0xAD),
+        m.Bits[8](0xBE),
+        m.Bits[8](0xEF)
     )
 
     class test_basic_lut(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[8]))
-        io.O @= LUT(m.Bits[8], 4, contents)()(io.I)
+        io.O @= LUT(m.Bits[8], contents)()(io.I)
 
     m.compile("build/test_basic_lut", test_basic_lut)
 
@@ -44,7 +44,7 @@ def test_lut_bit():
 
     class test_lut_bit(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bit))
-        io.O @= LUT(m.Bit, 4, contents)()(io.I)
+        io.O @= LUT(m.Bit, contents)()(io.I)
 
     m.compile("build/test_lut_bit", test_lut_bit)
 
@@ -69,7 +69,7 @@ def test_lut_nested_array():
 
     class test_lut_nested_array(m.Circuit):
         io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Array[2, m.Bits[2]]))
-        io.O @= LUT(m.Array[2, m.Bits[2]], 2, contents)()(io.I)
+        io.O @= LUT(m.Array[2, m.Bits[2]], contents)()(io.I)
 
     m.compile("build/test_lut_nested_array", test_lut_nested_array)
 
@@ -95,7 +95,7 @@ def test_lut_tuple():
 
     class test_lut_tuple(m.Circuit):
         io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Tuple[m.Bit, m.Bits[2]]))
-        io.O @= LUT(m.Tuple[m.Bit, m.Bits[2]], 2, contents)()(io.I)
+        io.O @= LUT(m.Tuple[m.Bit, m.Bits[2]], contents)()(io.I)
 
     m.compile("build/test_lut_tuple", test_lut_tuple)
 
@@ -132,7 +132,7 @@ def test_lut_arr_of_product():
 
     class test_lut_arr_of_product(m.Circuit):
         io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Array[2, A]))
-        io.O @= LUT(m.Array[2, A], 2, contents)()(io.I)
+        io.O @= LUT(m.Array[2, A], contents)()(io.I)
 
     m.compile("build/test_lut_arr_of_product", test_lut_arr_of_product)
 

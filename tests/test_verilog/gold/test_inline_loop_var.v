@@ -23,22 +23,12 @@ endmodule
 module Main (
     output [4:0] O [4:0]
 );
-wire Main_inline_verilog_inst_0_I;
-wire Main_inline_verilog_inst_1_I;
-wire Main_inline_verilog_inst_2_I;
-wire Main_inline_verilog_inst_3_I;
-wire Main_inline_verilog_inst_4_I;
 wire bit_const_0_None_out;
 wire [4:0] undriven_inst0_out;
 wire [4:0] undriven_inst1_out;
 wire [4:0] undriven_inst2_out;
 wire [4:0] undriven_inst3_out;
 wire [4:0] undriven_inst4_out;
-assign Main_inline_verilog_inst_0_I = bit_const_0_None_out;
-assign Main_inline_verilog_inst_1_I = bit_const_0_None_out;
-assign Main_inline_verilog_inst_2_I = bit_const_0_None_out;
-assign Main_inline_verilog_inst_3_I = bit_const_0_None_out;
-assign Main_inline_verilog_inst_4_I = bit_const_0_None_out;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (

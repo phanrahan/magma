@@ -3,9 +3,9 @@ module Main (
     input [4:0] I [4:0],
     output [4:0] O [4:0]
 );
-wire [4:0] Foo_inst0_I [4:0];
 wire [4:0] Foo_inst0_O [4:0];
 wire [24:0] x;
+wire [4:0] Foo_inst0_I [4:0];
 assign Foo_inst0_I[4] = I[4];
 assign Foo_inst0_I[3] = I[3];
 assign Foo_inst0_I[2] = I[2];

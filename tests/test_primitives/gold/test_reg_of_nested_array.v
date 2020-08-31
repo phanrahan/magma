@@ -55,19 +55,13 @@ module commonlib_muxn__N2__width24 (
     input [0:0] in_sel,
     output [23:0] out
 );
-wire [23:0] _join_in0;
-wire [23:0] _join_in1;
-wire _join_sel;
 wire [23:0] _join_out;
-assign _join_in0 = in_data[0];
-assign _join_in1 = in_data[1];
-assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(24)
 ) _join (
-    .in0(_join_in0),
-    .in1(_join_in1),
-    .sel(_join_sel),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
+    .sel(in_sel[0]),
     .out(_join_out)
 );
 assign out = _join_out;
@@ -79,41 +73,37 @@ module Mux2xArray3_Bits8 (
     input S,
     output [7:0] O [2:0]
 );
-wire [23:0] _$_U2_in;
-wire [23:0] _$_U2_out;
-wire [23:0] _$_U3_in;
-wire [23:0] _$_U3_out;
-wire [23:0] _$_U4_in;
-wire [23:0] _$_U4_out;
-wire [23:0] coreir_commonlib_mux2x24_inst0_in_data [1:0];
-wire [0:0] coreir_commonlib_mux2x24_inst0_in_sel;
 wire [23:0] coreir_commonlib_mux2x24_inst0_out;
-assign _$_U2_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
-mantle_wire__typeBitIn24 _$_U2 (
-    .in(_$_U2_in),
-    .out(_$_U2_out)
-);
-assign _$_U3_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
-mantle_wire__typeBitIn24 _$_U3 (
-    .in(_$_U3_in),
-    .out(_$_U3_out)
-);
-assign _$_U4_in = coreir_commonlib_mux2x24_inst0_out;
-mantle_wire__typeBit24 _$_U4 (
-    .in(_$_U4_in),
-    .out(_$_U4_out)
-);
-assign coreir_commonlib_mux2x24_inst0_in_data[1] = _$_U3_in;
-assign coreir_commonlib_mux2x24_inst0_in_data[0] = _$_U2_in;
-assign coreir_commonlib_mux2x24_inst0_in_sel[0] = S;
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_0_in;
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_1_in;
+wire [23:0] coreir_commonlib_mux2x24_inst0_out_wire_out;
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data [1:0];
+assign coreir_commonlib_mux2x24_inst0_in_data[1] = coreir_commonlib_mux2x24_inst0_in_data_1_in;
+assign coreir_commonlib_mux2x24_inst0_in_data[0] = coreir_commonlib_mux2x24_inst0_in_data_0_in;
 commonlib_muxn__N2__width24 coreir_commonlib_mux2x24_inst0 (
     .in_data(coreir_commonlib_mux2x24_inst0_in_data),
-    .in_sel(coreir_commonlib_mux2x24_inst0_in_sel),
+    .in_sel(S),
     .out(coreir_commonlib_mux2x24_inst0_out)
 );
-assign O[2] = _$_U4_out[23:16];
-assign O[1] = _$_U4_out[15:8];
-assign O[0] = _$_U4_out[7:0];
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_0_out;
+assign coreir_commonlib_mux2x24_inst0_in_data_0_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
+mantle_wire__typeBitIn24 coreir_commonlib_mux2x24_inst0_in_data_0 (
+    .in(coreir_commonlib_mux2x24_inst0_in_data_0_in),
+    .out(coreir_commonlib_mux2x24_inst0_in_data_0_out)
+);
+wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_1_out;
+assign coreir_commonlib_mux2x24_inst0_in_data_1_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
+mantle_wire__typeBitIn24 coreir_commonlib_mux2x24_inst0_in_data_1 (
+    .in(coreir_commonlib_mux2x24_inst0_in_data_1_in),
+    .out(coreir_commonlib_mux2x24_inst0_in_data_1_out)
+);
+mantle_wire__typeBit24 coreir_commonlib_mux2x24_inst0_out_wire (
+    .in(coreir_commonlib_mux2x24_inst0_out),
+    .out(coreir_commonlib_mux2x24_inst0_out_wire_out)
+);
+assign O[2] = coreir_commonlib_mux2x24_inst0_out_wire_out[23:16];
+assign O[1] = coreir_commonlib_mux2x24_inst0_out_wire_out[15:8];
+assign O[0] = coreir_commonlib_mux2x24_inst0_out_wire_out[7:0];
 endmodule
 
 module Register (
@@ -122,27 +112,23 @@ module Register (
     input CLK,
     input RESET
 );
-wire [7:0] Mux2xArray3_Bits8_inst0_I0 [2:0];
-wire [7:0] Mux2xArray3_Bits8_inst0_I1 [2:0];
-wire Mux2xArray3_Bits8_inst0_S;
 wire [7:0] Mux2xArray3_Bits8_inst0_O [2:0];
 wire [7:0] const_173_8_out;
 wire [7:0] const_190_8_out;
 wire [7:0] const_222_8_out;
-wire reg_P_inst0_clk;
-wire [23:0] reg_P_inst0_in;
 wire [23:0] reg_P_inst0_out;
+wire [7:0] Mux2xArray3_Bits8_inst0_I0 [2:0];
 assign Mux2xArray3_Bits8_inst0_I0[2] = I[2];
 assign Mux2xArray3_Bits8_inst0_I0[1] = I[1];
 assign Mux2xArray3_Bits8_inst0_I0[0] = I[0];
+wire [7:0] Mux2xArray3_Bits8_inst0_I1 [2:0];
 assign Mux2xArray3_Bits8_inst0_I1[2] = const_190_8_out;
 assign Mux2xArray3_Bits8_inst0_I1[1] = const_173_8_out;
 assign Mux2xArray3_Bits8_inst0_I1[0] = const_222_8_out;
-assign Mux2xArray3_Bits8_inst0_S = RESET;
 Mux2xArray3_Bits8 Mux2xArray3_Bits8_inst0 (
     .I0(Mux2xArray3_Bits8_inst0_I0),
     .I1(Mux2xArray3_Bits8_inst0_I1),
-    .S(Mux2xArray3_Bits8_inst0_S),
+    .S(RESET),
     .O(Mux2xArray3_Bits8_inst0_O)
 );
 coreir_const #(
@@ -163,14 +149,14 @@ coreir_const #(
 ) const_222_8 (
     .out(const_222_8_out)
 );
-assign reg_P_inst0_clk = CLK;
+wire [23:0] reg_P_inst0_in;
 assign reg_P_inst0_in = {Mux2xArray3_Bits8_inst0_O[2][7:0],Mux2xArray3_Bits8_inst0_O[1][7:0],Mux2xArray3_Bits8_inst0_O[0][7:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'h000000),
     .width(24)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
+    .clk(CLK),
     .in(reg_P_inst0_in),
     .out(reg_P_inst0_out)
 );
@@ -185,20 +171,16 @@ module test_reg_of_nested_array (
     input CLK,
     input RESET
 );
-wire [7:0] Register_inst0_I [2:0];
 wire [7:0] Register_inst0_O [2:0];
-wire Register_inst0_CLK;
-wire Register_inst0_RESET;
+wire [7:0] Register_inst0_I [2:0];
 assign Register_inst0_I[2] = I[2];
 assign Register_inst0_I[1] = I[1];
 assign Register_inst0_I[0] = I[0];
-assign Register_inst0_CLK = CLK;
-assign Register_inst0_RESET = RESET;
 Register Register_inst0 (
     .I(Register_inst0_I),
     .O(Register_inst0_O),
-    .CLK(Register_inst0_CLK),
-    .RESET(Register_inst0_RESET)
+    .CLK(CLK),
+    .RESET(RESET)
 );
 assign O[2] = Register_inst0_O[2];
 assign O[1] = Register_inst0_O[1];

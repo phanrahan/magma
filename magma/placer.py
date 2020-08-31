@@ -16,10 +16,11 @@ def _parse_name(inst):
 
     otherwise, returns None.
     """
-    with open(inst.debug_info.filename, "r") as f:
-        line = f.read().splitlines()[inst.debug_info.lineno - 1]
     try:
-        tree = ast.parse(textwrap.dedent(line)).body[0]
+        # File may not exist (e.g. in sequential we exec a string)
+        with open(inst.debug_info.filename, "r") as f:
+            line = f.read().splitlines()[inst.debug_info.lineno - 1]
+            tree = ast.parse(textwrap.dedent(line)).body[0]
     except Exception:
         # Sometimes we cannot parse the line, e.g.
         # x = [Circuit()

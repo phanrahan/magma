@@ -46,20 +46,18 @@ module TestDefault_comb (
     output O1
 );
 wire bit_const_0_None_out;
-wire [7:0] magma_Bits_8_lshr_inst0_in0;
-wire [7:0] magma_Bits_8_lshr_inst0_in1;
 wire [7:0] magma_Bits_8_lshr_inst0_out;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
 );
-assign magma_Bits_8_lshr_inst0_in0 = self_x_O;
+wire [7:0] magma_Bits_8_lshr_inst0_in1;
 assign magma_Bits_8_lshr_inst0_in1 = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,index[2:0]};
 coreir_lshr #(
     .width(8)
 ) magma_Bits_8_lshr_inst0 (
-    .in0(magma_Bits_8_lshr_inst0_in0),
+    .in0(self_x_O),
     .in1(magma_Bits_8_lshr_inst0_in1),
     .out(magma_Bits_8_lshr_inst0_out)
 );
@@ -73,34 +71,24 @@ module TestDefault (
     input ASYNCRESET,
     output O
 );
-wire [2:0] TestDefault_comb_inst0_index;
-wire [7:0] TestDefault_comb_inst0_self_x_O;
 wire [7:0] TestDefault_comb_inst0_O0;
 wire TestDefault_comb_inst0_O1;
-wire reg_PR_inst0_clk;
-wire reg_PR_inst0_arst;
-wire [7:0] reg_PR_inst0_in;
 wire [7:0] reg_PR_inst0_out;
-assign TestDefault_comb_inst0_index = index;
-assign TestDefault_comb_inst0_self_x_O = reg_PR_inst0_out;
 TestDefault_comb TestDefault_comb_inst0 (
-    .index(TestDefault_comb_inst0_index),
-    .self_x_O(TestDefault_comb_inst0_self_x_O),
+    .index(index),
+    .self_x_O(reg_PR_inst0_out),
     .O0(TestDefault_comb_inst0_O0),
     .O1(TestDefault_comb_inst0_O1)
 );
-assign reg_PR_inst0_clk = CLK;
-assign reg_PR_inst0_arst = ASYNCRESET;
-assign reg_PR_inst0_in = TestDefault_comb_inst0_O0;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(8'hfe),
     .width(8)
 ) reg_PR_inst0 (
-    .clk(reg_PR_inst0_clk),
-    .arst(reg_PR_inst0_arst),
-    .in(reg_PR_inst0_in),
+    .clk(CLK),
+    .arst(ASYNCRESET),
+    .in(TestDefault_comb_inst0_O0),
     .out(reg_PR_inst0_out)
 );
 assign O = TestDefault_comb_inst0_O1;

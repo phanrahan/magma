@@ -7,18 +7,26 @@ module Mux4xArray2_Array3_Array2_OutBit (
     output [1:0] O [1:0][2:0]
 );
 reg [11:0] coreir_commonlib_mux4x12_inst0_out;
+wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_0;
+wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_1;
+wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_2;
+wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_3;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux4x12_inst0_out = {I0[1][2][1:0],I0[1][1][1:0],I0[1][0][1:0],I0[0][2][1:0],I0[0][1][1:0],I0[0][0][1:0]};
+    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_0;
 end else if (S == 1) begin
-    coreir_commonlib_mux4x12_inst0_out = {I1[1][2][1:0],I1[1][1][1:0],I1[1][0][1:0],I1[0][2][1:0],I1[0][1][1:0],I1[0][0][1:0]};
+    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_1;
 end else if (S == 2) begin
-    coreir_commonlib_mux4x12_inst0_out = {I2[1][2][1:0],I2[1][1][1:0],I2[1][0][1:0],I2[0][2][1:0],I2[0][1][1:0],I2[0][0][1:0]};
+    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_2;
 end else begin
-    coreir_commonlib_mux4x12_inst0_out = {I3[1][2][1:0],I3[1][1][1:0],I3[1][0][1:0],I3[0][2][1:0],I3[0][1][1:0],I3[0][0][1:0]};
+    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_3;
 end
 end
 
+assign coreir_commonlib_mux4x12_inst0_in_data_0 = {I0[1][2][1:0],I0[1][1][1:0],I0[1][0][1:0],I0[0][2][1:0],I0[0][1][1:0],I0[0][0][1:0]};
+assign coreir_commonlib_mux4x12_inst0_in_data_1 = {I1[1][2][1:0],I1[1][1][1:0],I1[1][0][1:0],I1[0][2][1:0],I1[0][1][1:0],I1[0][0][1:0]};
+assign coreir_commonlib_mux4x12_inst0_in_data_2 = {I2[1][2][1:0],I2[1][1][1:0],I2[1][0][1:0],I2[0][2][1:0],I2[0][1][1:0],I2[0][0][1:0]};
+assign coreir_commonlib_mux4x12_inst0_in_data_3 = {I3[1][2][1:0],I3[1][1][1:0],I3[1][0][1:0],I3[0][2][1:0],I3[0][1][1:0],I3[0][0][1:0]};
 assign O[1][2] = coreir_commonlib_mux4x12_inst0_out[11:10];
 assign O[1][1] = coreir_commonlib_mux4x12_inst0_out[9:8];
 assign O[1][0] = coreir_commonlib_mux4x12_inst0_out[7:6];
@@ -32,43 +40,41 @@ module Main (
     input [1:0] x,
     output [1:0] O [1:0][2:0]
 );
-wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I0 [1:0][2:0];
-wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I1 [1:0][2:0];
-wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I2 [1:0][2:0];
-wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I3 [1:0][2:0];
-wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_S;
 wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_O [1:0][2:0];
+wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I0 [1:0][2:0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I0[1][2] = I[1][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I0[1][1] = I[1][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I0[1][0] = I[1][0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I0[0][2] = I[0][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I0[0][1] = I[0][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I0[0][0] = I[0][0];
+wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I1 [1:0][2:0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I1[1][2] = I[2][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I1[1][1] = I[2][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I1[1][0] = I[2][0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I1[0][2] = I[1][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I1[0][1] = I[1][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I1[0][0] = I[1][0];
+wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I2 [1:0][2:0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I2[1][2] = I[3][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I2[1][1] = I[3][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I2[1][0] = I[3][0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I2[0][2] = I[2][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I2[0][1] = I[2][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I2[0][0] = I[2][0];
+wire [1:0] Mux4xArray2_Array3_Array2_OutBit_inst0_I3 [1:0][2:0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I3[1][2] = I[4][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I3[1][1] = I[4][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I3[1][0] = I[4][0];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I3[0][2] = I[3][2];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I3[0][1] = I[3][1];
 assign Mux4xArray2_Array3_Array2_OutBit_inst0_I3[0][0] = I[3][0];
-assign Mux4xArray2_Array3_Array2_OutBit_inst0_S = x;
 Mux4xArray2_Array3_Array2_OutBit Mux4xArray2_Array3_Array2_OutBit_inst0 (
     .I0(Mux4xArray2_Array3_Array2_OutBit_inst0_I0),
     .I1(Mux4xArray2_Array3_Array2_OutBit_inst0_I1),
     .I2(Mux4xArray2_Array3_Array2_OutBit_inst0_I2),
     .I3(Mux4xArray2_Array3_Array2_OutBit_inst0_I3),
-    .S(Mux4xArray2_Array3_Array2_OutBit_inst0_S),
+    .S(x),
     .O(Mux4xArray2_Array3_Array2_OutBit_inst0_O)
 );
 assign O[1][2] = Mux4xArray2_Array3_Array2_OutBit_inst0_O[1][2];

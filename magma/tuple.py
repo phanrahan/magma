@@ -18,6 +18,8 @@ from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
+from magma.wire_container import WiringLog
+
 
 _logger = root_logger()
 
@@ -217,8 +219,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __setitem__(self, key, val):
         old = self[key]
         if old is not val:
-            _logger.error(f'May not mutate Tuple, trying to replace '
-                          f'{self}[{key}] ({old}) with {val}')
+            _logger.error(
+                WiringLog(f"May not mutate tuple, trying to replace "
+                          f"{{}}[{key}] ({{}}) with {{}}", self, old, val)
+            )
 
     def __len__(self):
         return len(type(self).fields)
@@ -233,19 +237,24 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
     @debug_wire
     def wire(i, o, debug_info):
-        # print('Tuple.wire(', o, ', ', i, ')')
-
         if not isinstance(o, Tuple):
-            _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}) to {i.debug_name} (type={type(i)}) because {o.debug_name} is not a Tuple', debug_info=debug_info)  # noqa
+            _logger.error(
+                WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
+                          f"(type={type(i)}) because {{}} is not a Tuple",
+                          o, i, o),
+                debug_info=debug_info
+            )
             return
 
         if i.keys() != o.keys():
-            _logger.error(f'Cannot wire {o.debug_name} (type={type(o)}, keys={list(i.keys())}) to {i.debug_name} (type={type(i)}, keys={list(o.keys())}) because the tuples do not have the same keys', debug_info=debug_info)  # noqa
+            _logger.error(
+                WiringLog(f"Cannot wire {{}} (type={type(o)}, "
+                          f"keys={list(i.keys())}) to {{}} (type={type(i)}, "
+                          f"keys={list(o.keys())}) because the tuples do not "
+                          f"have the same keys", o, i),
+                debug_info=debug_info
+            )
             return
-
-        #if i.Ts != o.Ts:
-        #    print('Wiring error: Tuple elements must have the same type')
-        #    return
 
         for i_elem, o_elem in zip(i, o):
             i_elem = magma_value(i_elem)

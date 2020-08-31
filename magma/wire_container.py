@@ -4,6 +4,16 @@ from magma.logging import root_logger
 _logger = root_logger()
 
 
+class WiringLog:
+    def __init__(self, tpl, *bits):
+        self.tpl = tpl
+        self.bits = bits
+
+    def __str__(self):
+        bits = [bit.debug_name for bit in self.bits]
+        return self.tpl.format(*bits)
+
+
 class Wire:
     """
     Wire implements wiring.
@@ -35,27 +45,35 @@ class Wire:
         """
         if self._driver is not None:
             _logger.warning(
-                "Wiring multiple outputs to same wire, using last connection."
-                f" Input: {self._bit.debug_name}, "
-                f" Old Output: {self._driver._bit.debug_name}, "
-                f" New Output: {other._bit.debug_name}",
+                WiringLog(
+                    ("Wiring multiple outputs to same wire, using last "
+                     "connection. Input: {}, Old Output: {}, New Output: {}"),
+                    self._bit, self._driver._bit, other._bit),
                 debug_info=debug_info
             )
         if self._bit.is_output():
-            _logger.error(f"Using `{self._bit.debug_name}` (an output) as an "
-                          f"input", debug_info=debug_info)
+            _logger.error(
+                WiringLog("Using `{}` (an output) as an input", self._bit),
+                debug_info=debug_info
+            )
             return
         if other._bit.is_input():
-            _logger.error(f"Using `{other._bit.debug_name}` (an input) as an "
-                          f"output", debug_info=debug_info)
+            _logger.error(
+                WiringLog("Using `{}` (an input) as an output", other._bit),
+                debug_info=debug_info
+            )
             return
         if self._bit.is_inout() and not other._bit.is_inout():
-            _logger.error(f"Using `{other._bit.debug_name}` (not inout) as an "
-                          f"inout", debug_info=debug_info)
+            _logger.error(
+                WiringLog("Using `{}` (not inout) as an inout", other._bit),
+                debug_info=debug_info
+            )
             return
         if not self._bit.is_inout() and other._bit.is_inout():
-            _logger.error(f"Using `{self._bit.debug_name}` (not inout) as an "
-                          f"inout", debug_info=debug_info)
+            _logger.error(
+                WiringLog("Using `{}` (not inout) as an inout", self._bit),
+                debug_info=debug_info
+            )
             return
 
         self._driver = other

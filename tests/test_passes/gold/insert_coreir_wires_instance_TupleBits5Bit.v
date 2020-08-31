@@ -5,16 +5,12 @@ module Main (
     output [4:0] O__0,
     output O__1
 );
-wire [4:0] Foo_inst0_I__0;
-wire Foo_inst0_I__1;
 wire [4:0] Foo_inst0_O__0;
 wire Foo_inst0_O__1;
 wire [5:0] x;
-assign Foo_inst0_I__0 = I__0;
-assign Foo_inst0_I__1 = I__1;
 Foo Foo_inst0 (
-    .I__0(Foo_inst0_I__0),
-    .I__1(Foo_inst0_I__1),
+    .I__0(I__0),
+    .I__1(I__1),
     .O__0(Foo_inst0_O__0),
     .O__1(Foo_inst0_O__1)
 );

@@ -94,7 +94,7 @@ def _zero_init(T, init):
 class Register(Generator2):
     def __init__(self, T: Kind, init: Union[Type, int] = None, reset_type:
                  AbstractReset = None, has_enable: bool = False,
-                 reset_priority=True):
+                 reset_priority: bool = True):
         """
         T: The type of the value that is stored inside the register (e.g.
            Bits[5])
@@ -102,6 +102,8 @@ class Register(Generator2):
         init: (optional) A const value (i.e. init.const() == True) of type T or
               an int to be used as the initial value of the register.
               If no value is provided, the register will be initialized with 0
+
+        has_enable: (optional) whether the register has an enable signal
 
         reset_type: (optional) The type of the reset port (also specifies the
                     semantic behavior of the reset signal)
