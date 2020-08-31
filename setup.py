@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='magma-lang',
-    version='2.1.4',
+    version='2.1.6',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
@@ -22,7 +22,8 @@ setup(
         "magma.syntax",
         "magma.syntax.transforms",
         "magma.ssa",
-        "magma.testing"
+        "magma.testing",
+        "magma.types"
     ],
     install_requires=[
         "colorlog",

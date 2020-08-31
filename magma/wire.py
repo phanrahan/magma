@@ -1,3 +1,5 @@
+from hwtypes import BitVector, Bit
+
 from .compatibility import IntegerTypes
 from .wire_container import Wire  # TODO(rsetaluri): only here for b.c.
 from .debug import debug_wire
@@ -8,6 +10,9 @@ from magma.wire_container import WiringLog
 
 
 _logger = root_logger()
+
+
+_CONSTANTS = (IntegerTypes, BitVector, Bit)
 
 
 @debug_wire
@@ -34,9 +39,9 @@ def wire(o, i, debug_info=None):
         o = outputs[0]
 
     # If o is an input.
-    if not isinstance(o, IntegerTypes) and o.is_input():
+    if not isinstance(o, _CONSTANTS) and o.is_input():
         # If i is not an input.
-        if isinstance(i, IntegerTypes) or not i.is_input():
+        if isinstance(i, _CONSTANTS) or not i.is_input():
             # Flip i and o.
             i, o = o, i
 

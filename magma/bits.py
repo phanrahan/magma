@@ -27,12 +27,13 @@ _logger = root_logger()
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
+    if isinstance(val, ht.BitVector):
+        val = val.bits()
     if not isinstance(val, Bits):
         return T(val)
-    elif len(val) != len(T):
+    if len(val) != len(T):
         raise InconsistentSizeError('Inconsistent size')
-    else:
-        return val
+    return val
 
 
 def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
@@ -124,13 +125,16 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def __int__(self):
         if not self.const():
-            raise Exception("Can't call __int__ on a non-constant")
+            raise TypeError("Can't call __int__ on a non-constant")
         return BitVector[len(self)](self.bits()).as_uint()
 
     @debug_wire
     def wire(self, other, debug_info):
-        if isinstance(other, IntegerTypes):
-            if other.bit_length() > len(self):
+        if isinstance(other, (IntegerTypes, BitVector)):
+            N = (other.bit_length()
+                 if isinstance(other, IntegerTypes)
+                 else len(other))
+            if N > len(self):
                 raise ValueError(
                     f"Cannot convert integer {other} "
                     f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
@@ -286,6 +290,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def bvcomp(self, other) -> 'AbstractBitVector[1]':
         return Bits[1](self == other)
 
+    @bits_cast
     def bveq(self, other) -> AbstractBit:
         return self.declare_compare_op("eq")()(self, other)
 
