@@ -21,18 +21,14 @@ module Register (
     output O,
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [0:0] reg_P_inst0_in;
 wire [0:0] reg_P_inst0_out;
-assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in[0] = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
-    .in(reg_P_inst0_in),
+    .clk(CLK),
+    .in(I),
     .out(reg_P_inst0_out)
 );
 assign O = reg_P_inst0_out[0];
@@ -79,40 +75,26 @@ module Test (
     output O__0,
     input sel
 );
-wire Mux2xOutBit_inst0_I0;
-wire Mux2xOutBit_inst0_I1;
-wire Mux2xOutBit_inst0_S;
 wire Mux2xOutBit_inst0_O;
-wire Mux2xTupleOutBit_inst0_I0__0;
-wire Mux2xTupleOutBit_inst0_I1__0;
-wire Mux2xTupleOutBit_inst0_S;
-wire Register_inst0_I;
 wire Register_inst0_O;
-wire Register_inst0_CLK;
-assign Mux2xOutBit_inst0_I0 = sel;
-assign Mux2xOutBit_inst0_I1 = sel;
-assign Mux2xOutBit_inst0_S = sel;
+wire bit_const_0_None_out;
 Mux2xOutBit Mux2xOutBit_inst0 (
-    .I0(Mux2xOutBit_inst0_I0),
-    .I1(Mux2xOutBit_inst0_I1),
-    .S(Mux2xOutBit_inst0_S),
+    .I0(sel),
+    .I1(sel),
+    .S(sel),
     .O(Mux2xOutBit_inst0_O)
 );
-assign Mux2xTupleOutBit_inst0_I0__0 = Register_inst0_O;
-assign Mux2xTupleOutBit_inst0_I1__0 = 1'b0;
-assign Mux2xTupleOutBit_inst0_S = sel;
 Mux2xTupleOutBit Mux2xTupleOutBit_inst0 (
-    .I0__0(Mux2xTupleOutBit_inst0_I0__0),
-    .I1__0(Mux2xTupleOutBit_inst0_I1__0),
+    .I0__0(Register_inst0_O),
+    .I1__0(bit_const_0_None_out),
     .O__0(O__0),
-    .S(Mux2xTupleOutBit_inst0_S)
+    .S(sel)
 );
-assign Register_inst0_I = Mux2xOutBit_inst0_O;
-assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
-    .I(Register_inst0_I),
+    .I(Mux2xOutBit_inst0_O),
     .O(Register_inst0_O),
-    .CLK(Register_inst0_CLK)
+    .CLK(CLK)
 );
+assign bit_const_0_None_out = 1'b0;
 endmodule
 

@@ -21,17 +21,13 @@ module Register_unq1 (
     output [1:0] O,
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [1:0] reg_P_inst0_in;
-assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(2'h0),
     .width(2)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
-    .in(reg_P_inst0_in),
+    .clk(CLK),
+    .in(I),
     .out(O)
 );
 endmodule
@@ -41,18 +37,14 @@ module Register (
     output O,
     input CLK
 );
-wire reg_P_inst0_clk;
-wire [0:0] reg_P_inst0_in;
 wire [0:0] reg_P_inst0_out;
-assign reg_P_inst0_clk = CLK;
-assign reg_P_inst0_in[0] = I;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
 ) reg_P_inst0 (
-    .clk(reg_P_inst0_clk),
-    .in(reg_P_inst0_in),
+    .clk(CLK),
+    .in(I),
     .out(reg_P_inst0_out)
 );
 assign O = reg_P_inst0_out[0];
@@ -68,14 +60,18 @@ module Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialR
     input S
 );
 reg [3:0] coreir_commonlib_mux2x4_inst0_out;
+wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0;
+wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = {I0_b[1],I0_b[0],I0_a__0[1:0]};
+    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_0;
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = {I1_b[1],I1_b[0],I1_a__0[1:0]};
+    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_1;
 end
 end
 
+assign coreir_commonlib_mux2x4_inst0_in_data_0 = {I0_b[1],I0_b[0],I0_a__0[1:0]};
+assign coreir_commonlib_mux2x4_inst0_in_data_1 = {I1_b[1],I1_b[0],I1_a__0[1:0]};
 assign O_a__0 = coreir_commonlib_mux2x4_inst0_out[1:0];
 assign O_b = coreir_commonlib_mux2x4_inst0_out[3:2];
 endmodule
@@ -122,70 +118,44 @@ module Test (
     output [1:0] O_b,
     input sel
 );
-wire Mux2xOutBit_inst0_I0;
-wire Mux2xOutBit_inst0_I1;
-wire Mux2xOutBit_inst0_S;
 wire Mux2xOutBit_inst0_O;
-wire [1:0] Mux2xOutBits2_inst0_I0;
-wire [1:0] Mux2xOutBits2_inst0_I1;
-wire Mux2xOutBits2_inst0_S;
 wire [1:0] Mux2xOutBits2_inst0_O;
-wire [1:0] Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_a__0;
-wire [1:0] Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_b;
-wire [1:0] Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_a__0;
-wire [1:0] Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_b;
-wire Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_S;
-wire Register_inst0_I;
 wire Register_inst0_O;
-wire Register_inst0_CLK;
-wire [1:0] Register_inst1_I;
 wire [1:0] Register_inst1_O;
-wire Register_inst1_CLK;
-assign Mux2xOutBit_inst0_I0 = Register_inst0_O;
-assign Mux2xOutBit_inst0_I1 = Register_inst0_O;
-assign Mux2xOutBit_inst0_S = sel;
 Mux2xOutBit Mux2xOutBit_inst0 (
-    .I0(Mux2xOutBit_inst0_I0),
-    .I1(Mux2xOutBit_inst0_I1),
-    .S(Mux2xOutBit_inst0_S),
+    .I0(Register_inst0_O),
+    .I1(Register_inst0_O),
+    .S(sel),
     .O(Mux2xOutBit_inst0_O)
 );
-assign Mux2xOutBits2_inst0_I0 = Register_inst1_O;
-assign Mux2xOutBits2_inst0_I1 = Register_inst1_O;
-assign Mux2xOutBits2_inst0_S = sel;
 Mux2xOutBits2 Mux2xOutBits2_inst0 (
-    .I0(Mux2xOutBits2_inst0_I0),
-    .I1(Mux2xOutBits2_inst0_I1),
-    .S(Mux2xOutBits2_inst0_S),
+    .I0(Register_inst1_O),
+    .I1(Register_inst1_O),
+    .S(sel),
     .O(Mux2xOutBits2_inst0_O)
 );
+wire [1:0] Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_a__0;
 assign Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_a__0 = {Register_inst0_O,Register_inst0_O};
-assign Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_b = Register_inst1_O;
-assign Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_a__0 = Register_inst1_O;
+wire [1:0] Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_b;
 assign Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_b = {Register_inst0_O,Register_inst0_O};
-assign Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_S = sel;
 Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0 (
     .I0_a__0(Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_a__0),
-    .I0_b(Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I0_b),
-    .I1_a__0(Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_a__0),
+    .I0_b(Register_inst1_O),
+    .I1_a__0(Register_inst1_O),
     .I1_b(Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_I1_b),
     .O_a__0(O_a__0),
     .O_b(O_b),
-    .S(Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialRegisterWrapperOutBit_inst0_S)
+    .S(sel)
 );
-assign Register_inst0_I = Mux2xOutBit_inst0_O;
-assign Register_inst0_CLK = CLK;
 Register Register_inst0 (
-    .I(Register_inst0_I),
+    .I(Mux2xOutBit_inst0_O),
     .O(Register_inst0_O),
-    .CLK(Register_inst0_CLK)
+    .CLK(CLK)
 );
-assign Register_inst1_I = Mux2xOutBits2_inst0_O;
-assign Register_inst1_CLK = CLK;
 Register_unq1 Register_inst1 (
-    .I(Register_inst1_I),
+    .I(Mux2xOutBits2_inst0_O),
     .O(Register_inst1_O),
-    .CLK(Register_inst1_CLK)
+    .CLK(CLK)
 );
 endmodule
 
