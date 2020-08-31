@@ -40,6 +40,7 @@ class BitPattern:
         self.bits = BitVector[count](bits)
         self.mask = BitVector[count](mask)
         self.width = count
+        self.const = self.mask != ((1 << self.width) - 1)
 
     def __eq__(self, other):
         if not isinstance(other, Bits):
@@ -49,7 +50,7 @@ class BitPattern:
         return self.bits == (other & self.mask)
 
     def as_bv(self):
-        if self.mask != ((1 << self.width) - 1):
+        if not self.const:
             raise TypeError(
                 "Can only convert BitPattern with no don't cares to int"
             )
