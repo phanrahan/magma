@@ -135,6 +135,10 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return self.declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
+        if isinstance(t_branch, list) and isinstance(f_branch, list):
+            if not len(t_branch) == len(f_branch):
+                raise TypeError("Bit.ite of two lists expects the same length")
+            return [self.ite(x, y) for x, y in zip(t_branch, f_branch)]
         t_type = get_type(t_branch)
         f_type = get_type(f_branch)
 
