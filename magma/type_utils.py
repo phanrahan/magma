@@ -42,6 +42,15 @@ def _unwrap_protocol_type(T):
     return T
 
 
+def _get_unbound_root(T):
+    types = [T]
+    while types:
+        T = types.pop(0)
+        if T._unbound_base_ is not None:
+            return T._unbound_base_
+        types += T.__bases__
+
+
 @dataclasses.dataclass(frozen=True)
 class _TypeWrapper:
     raw: typing.Any
@@ -71,7 +80,8 @@ def _wrap_type(T):
             field_dict = {list(T.field_dict.keys())[i]: args[i]
                           for i in range(len(T.field_dict))}
             field_dict = {k: v for k, v in field_dict.items() if v is not None}
-            return T._unbound_base_.from_fields(T.__name__, field_dict)
+            unbound = _get_unbound_root(T)
+            return unbound.from_fields(T.__name__, field_dict)
 
         attrs = {"fields": T.field_dict}
         children = [value for value in T.field_dict.values()]
