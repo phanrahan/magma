@@ -28,14 +28,15 @@ class BitPattern:
         mask = 0
         count = 0
         for digit in pattern[1:]:
-            if not (digit == '_' or digit in string.whitespace):
-                if digit not in "01?":
-                    raise ValueError(
-                        f"Literal: {pattern} contains illegal character: {d}"
-                    )
-                mask = (mask << 1) + (0 if digit == "?" else 1)
-                bits = (bits << 1) + (1 if digit == "1" else 0)
-                count += 1
+            if digit == '_' or digit in string.whitespace:
+                continue
+            if digit not in "01?":
+                raise ValueError(
+                    f"BitPattern {pattern} contains illegal character: {d}"
+                )
+            mask = (mask << 1) + (0 if digit == "?" else 1)
+            bits = (bits << 1) + (1 if digit == "1" else 0)
+            count += 1
         self.bits = BitVector[count](bits)
         self.mask = BitVector[count](mask)
         self.width = count
@@ -43,7 +44,7 @@ class BitPattern:
     def __eq__(self, other):
         if not isinstance(other, Bits):
             raise TypeError(
-                "BitPattern equality can only be compared with Bits value"
+                "BitPattern can only be compared to Bits"
             )
         return self.bits == (other & self.mask)
 
