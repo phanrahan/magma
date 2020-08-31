@@ -40,7 +40,7 @@ class BitPattern:
         self.bits = BitVector[count](bits)
         self.mask = BitVector[count](mask)
         self.width = count
-        self.const = self.mask != ((1 << self.width) - 1)
+        self.const = self.mask == ((1 << self.width) - 1)
 
     def __eq__(self, other):
         if not isinstance(other, Bits):
