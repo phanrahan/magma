@@ -102,12 +102,24 @@ def mux(I: list, S, **kwargs):
         return I[S]
     # get first magma arg for type introspection
     for arg in I:
-        if isinstance(arg, (Type, MagmaProtocol)):
+        if isinstance(arg, (Type, MagmaProtocol,)):
             T = type(arg)
             break
+        if isinstance(arg, BitVector):
+            T = Bits[len(arg)]
+            break
+        if isinstance(arg, bool):
+            T = Bit
+            break
+        if isinstance(arg, list):
+            T = list
+            break
     else:
-        raise TypeError("Cannot use m.mux with non-magma types (need at least "
-                        "one to infer type)")
+        raise TypeError(
+            f"Could not infer mux type from {I}\n"
+            "Need at least one magma value or a BitVector or bool")
+    if T is list:
+        return [mux([arg[i] for arg in I], S) for i in range(len(I[0]))]
     inst = Mux(len(I), T, **kwargs)()
     result = inst(*I, S)
     for i in range(len(I)):

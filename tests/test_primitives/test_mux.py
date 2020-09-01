@@ -1,4 +1,5 @@
 import os
+from hwtypes import BitVector
 
 import magma as m
 from magma.testing import check_files_equal
@@ -171,6 +172,32 @@ def test_mux_operator_int():
     tester.circuit.S = 1
     tester.eval()
     tester.circuit.O.expect(1)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+
+
+def test_mux_operator_list():
+    class test_mux_operator_list(m.Circuit):
+        io = m.IO(S=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bits[2]))
+        O0, O1 = m.mux([
+            [True, BitVector[2](3)],
+            [False, BitVector[2](0)]
+        ], io.S)
+        io.O0 @= O0
+        io.O1 @= O1
+
+    m.compile("build/test_mux_operator_list", test_mux_operator_list)
+
+    tester = fault.Tester(test_mux_operator_list)
+    tester.circuit.S = 0
+    tester.eval()
+    tester.circuit.O0.expect(1)
+    tester.circuit.O1.expect(3)
+    tester.circuit.S = 1
+    tester.eval()
+    tester.circuit.O0.expect(0)
+    tester.circuit.O1.expect(0)
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
