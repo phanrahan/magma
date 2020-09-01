@@ -41,6 +41,7 @@ class BitPattern:
         self.mask = BitVector[count](mask)
         self.width = count
         self.const = self.mask == ((1 << self.width) - 1)
+        self.__hash = hash(pattern)
 
     def __eq__(self, other):
         if not isinstance(other, Bits):
@@ -55,3 +56,6 @@ class BitPattern:
                 "Can only convert BitPattern with no don't cares to int"
             )
         return self.bits
+
+    def __hash__(self):
+        return self.__hash
