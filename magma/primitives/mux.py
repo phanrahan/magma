@@ -102,7 +102,7 @@ def mux(I: list, S, **kwargs):
         return I[S]
     # get first magma arg for type introspection
     for arg in I:
-        if isinstance(arg, (Type, MagmaProtocol,)):
+        if isinstance(arg, (Type, MagmaProtocol)):
             T = type(arg)
             break
         if isinstance(arg, BitVector):
