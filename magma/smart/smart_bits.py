@@ -10,6 +10,7 @@ from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+from magma.t import Direction
 from magma.type_utils import TypeTransformer, isuint, issint
 from magma.value_utils import ValueVisitor, make_selector
 
@@ -563,6 +564,7 @@ class _LeafCollector(ValueVisitor):
 def make_smart(value):
     T = type(value)
     Tsmart = _SmartifyTypeTransformer().visit(T)
+    Tsmart = Tsmart.qualify(Direction.Undirected)
     smart_value = Tsmart()
     leaf_collector = _LeafCollector()
     leaf_collector.visit(value)
