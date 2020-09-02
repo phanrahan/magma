@@ -46,7 +46,7 @@ def _get_unbound_root(T):
     types = [T]
     while types:
         T = types.pop(0)
-        if T._unbound_base_ is not None:
+        if T._unbound_base_ is not None and not T._unbound_base_.is_bound:
             return T._unbound_base_
         types += T.__bases__
 
