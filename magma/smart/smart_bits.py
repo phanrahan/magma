@@ -159,6 +159,13 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     def reduce(self, op):
         return _SmartReductionOpExpr(op, self)
 
+    # Extension operators.
+    def zext(self, width):
+        return _SmartExtendOpExpr(width, False, self, resolved=False)
+
+    def sext(self, width):
+        return _SmartExtendOpExpr(width, True, self, resolved=False)
+
 
 class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, op, *args):
@@ -207,9 +214,18 @@ class _SmartExtendOpExpr(_SmartOpExpr):
         def __str__(self):
             return f"Extend[width={self._width}, signed={self._signed}]"
 
-    def __init__(self, width, signed, operand):
+    def __init__(self, width, signed, operand, resolved=True):
         extend = _SmartExtendOpExpr._ExtendOp(width, signed)
         super().__init__(extend, operand)
+        self._resolved = resolved
+
+    def resolve(self, context):
+        if self._resolved:
+            return
+        context = Context(None, self)
+        self._resolve_args(context)
+        self._width_ = self._args[0]._width_ + self.op._width
+        self._signed_ = self.op._signed
 
     def eval(self):
         args = self._eval_args()
