@@ -520,10 +520,10 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
             return copy.deepcopy(self)
         value = self.typed_value()
         value = value.ext(-diff) if diff < 0 else value[:-diff]
-        return SmartBits.make(value)
+        return SmartBits.from_bits(value)
 
     @staticmethod
-    def make(value):
+    def from_bits(value):
         assert isinstance(value, Bits)
         signed = isinstance(value, SInt)
         return SmartBits[len(value), signed](value)
@@ -540,7 +540,7 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
     res = rhs.eval()
-    return SmartBits.make(res), rhs
+    return SmartBits.from_bits(res), rhs
 
 
 class _SmartifyTypeTransformer(TypeTransformer):
