@@ -543,6 +543,12 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     return SmartBits.from_bits(res), rhs
 
 
+def eval(expr: _SmartExpr, width: int, signed: bool = False):
+    lhs = SmartBits[width, signed]()
+    lhs @= expr
+    return lhs
+
+
 class _SmartifyTypeTransformer(TypeTransformer):
     def visit_Bits(self, T):
         signed = issint(T)
