@@ -331,8 +331,11 @@ class Array(Type, metaclass=ArrayMeta):
             _slice = [self[i] for i in range(*key.indices(len(self)))]
             return type(self)[len(_slice), self.T](_slice)
         else:
+            if isinstance(key, BitVector):
+                key = key.as_uint()
+
             if not (-self.N <= key and key < self.N):
-                raise IndexError
+                raise IndexError(f"{key}, {self.N}")
 
             return self.ts[key]
 
