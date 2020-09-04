@@ -110,6 +110,9 @@ def wire_clock_port(port, clocktype, defnclk):
             for elem in port[1:]:
               wire_clock_port(elem, clocktype, defnclk)
     elif isinstance(port, clocktype) and not port.driven():
+        # Trace to last undriven driver 
+        while port.value() is not None:
+            port = port.value()
         wire(defnclk, port)
         wired = True
     return wired
