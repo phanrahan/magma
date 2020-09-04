@@ -108,7 +108,7 @@ def mux(I: list, S, **kwargs):
         if isinstance(arg, BitVector):
             T = Bits[len(arg)]
             break
-        if isinstance(arg, bool):
+        if isinstance(arg, (ht.Bit, bool)):
             T = Bit
             break
         if isinstance(arg, list):
