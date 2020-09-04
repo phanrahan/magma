@@ -75,7 +75,7 @@ class Enable(_ClockType, metaclass=DigitalMeta):
 EnableIn = Enable[Direction.In]
 EnableOut = Enable[Direction.Out]
 
-ClockTypes = (Clock, Reset, AsyncReset, AsyncResetN, Enable)
+ClockTypes = (Clock, Reset, ResetN, AsyncReset, AsyncResetN, Enable)
 
 
 def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
