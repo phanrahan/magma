@@ -1,3 +1,5 @@
+import os
+import fault
 from hwtypes import BitVector, Bit
 import magma as m
 from magma.testing import check_files_equal
@@ -89,3 +91,38 @@ def test_inline_comb_bv_bit_bool():
     m.compile("build/test_inline_comb_bv_bit_bool", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_inline_comb_bv_bit_bool.v",
                              f"gold/test_inline_comb_bv_bit_bool.v")
+
+
+def test_Bit_bool():
+    class test_Bit_bool(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), S=m.In(m.Bit), O0=m.Out(m.Bit),
+                  O1=m.Out(m.Bit))
+        @m.inline_combinational()
+        def logic():
+            if io.S:
+                io.O0 @= io.I
+                io.O1 @= io.I
+            else:
+                io.O0 @= False
+                io.O1 @= Bit(False)
+
+
+    m.compile("build/test_Bit_bool", test_Bit_bool)
+
+    tester = fault.Tester(test_Bit_bool)
+    tester.circuit.S = 1
+    tester.circuit.I = 0
+    tester.eval()
+    tester.circuit.O0.expect(0)
+    tester.circuit.O1.expect(0)
+    tester.circuit.I = 1
+    tester.eval()
+    tester.circuit.O0.expect(1)
+    tester.circuit.O1.expect(1)
+    tester.circuit.S = 0
+    tester.eval()
+    tester.circuit.O0.expect(0)
+    tester.circuit.O1.expect(0)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
