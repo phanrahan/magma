@@ -96,15 +96,19 @@ def test_inline_comb_bv_bit_bool():
 def test_Bit_bool():
     class test_Bit_bool(m.Circuit):
         io = m.IO(I=m.In(m.Bit), S=m.In(m.Bit), O0=m.Out(m.Bit),
-                  O1=m.Out(m.Bit))
+                  O1=m.Out(m.Bit), O2=m.Out(m.Bit), O3=m.Out(m.Bit))
         @m.inline_combinational()
         def logic():
             if io.S:
                 io.O0 @= io.I
                 io.O1 @= io.I
+                io.O2 @= False
+                io.O3 @= Bit(False)
             else:
                 io.O0 @= False
                 io.O1 @= Bit(False)
+                io.O2 @= io.I
+                io.O3 @= io.I
 
 
     m.compile("build/test_Bit_bool", test_Bit_bool)
@@ -115,14 +119,20 @@ def test_Bit_bool():
     tester.eval()
     tester.circuit.O0.expect(0)
     tester.circuit.O1.expect(0)
+    tester.circuit.O2.expect(0)
+    tester.circuit.O3.expect(0)
     tester.circuit.I = 1
     tester.eval()
     tester.circuit.O0.expect(1)
     tester.circuit.O1.expect(1)
+    tester.circuit.O2.expect(0)
+    tester.circuit.O3.expect(0)
     tester.circuit.S = 0
     tester.eval()
     tester.circuit.O0.expect(0)
     tester.circuit.O1.expect(0)
+    tester.circuit.O2.expect(1)
+    tester.circuit.O3.expect(1)
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
