@@ -566,7 +566,7 @@ DefineUnused = make_Define("term", "I", In)
 BitsType = Bits
 
 
-class Number(Bits):
+class Int(Bits):
     """
     Defines shared right-hand operators for UInt/SInt
     """
@@ -580,7 +580,7 @@ class Number(Bits):
         return type(self)(other) % self
 
 
-class UInt(Number):
+class UInt(Int):
     hwtypes_T = ht.UIntVector
 
     def __repr__(self):
@@ -648,7 +648,7 @@ class UInt(Number):
             return NotImplemented
 
 
-class SInt(Number):
+class SInt(Int):
     hwtypes_T = ht.SIntVector
 
     def __init__(self, *args, **kwargs):
