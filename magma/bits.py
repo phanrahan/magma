@@ -409,6 +409,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rand__(self, other):
+        return self & other
+
     def __or__(self, other):
         try:
             return self.bvor(other)
@@ -416,6 +419,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def __ror__(self, other):
+        return self | other
 
     def __xor__(self, other):
         try:
@@ -425,6 +431,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rxor__(self, other):
+        return self ^ other
+
     def __lshift__(self, other):
         try:
             return self.bvshl(other)
@@ -433,6 +442,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rlshift__(self, other):
+        return type(self)(other) << self
+
     def __rshift__(self, other):
         try:
             return self.bvlshr(other)
@@ -440,6 +452,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def __rrshift__(self, other):
+        return type(self)(other) >> self
 
     def __eq__(self, other):
         try:
@@ -468,6 +483,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __radd__(self, other):
+        return self + other
+
     def __sub__(self, other):
         try:
             return self.bvsub(other)
@@ -476,6 +494,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rsub__(self, other):
+        return type(self)(other) - self
+
     def __mul__(self, other):
         try:
             return self.bvmul(other)
@@ -483,6 +504,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def __rmul__(self, other):
+        return self * other
 
     @classmethod
     def get_family(cls):
@@ -542,7 +566,21 @@ DefineUnused = make_Define("term", "I", In)
 BitsType = Bits
 
 
-class UInt(Bits):
+class Number(Bits):
+    """
+    Defines shared right-hand operators for UInt/SInt
+    """
+    def __rfloordiv__(self, other):
+        return type(self)(other) // self
+
+    def __rtruediv__(self, other):
+        return type(self)(other) / self
+
+    def __rmod__(self, other):
+        return type(self)(other) % self
+
+
+class UInt(Number):
     hwtypes_T = ht.UIntVector
 
     def __repr__(self):
@@ -610,7 +648,7 @@ class UInt(Bits):
             return NotImplemented
 
 
-class SInt(Bits):
+class SInt(Number):
     hwtypes_T = ht.SIntVector
 
     def __init__(self, *args, **kwargs):
@@ -756,5 +794,5 @@ class SInt(Bits):
 
     def __int__(self):
         if not self.const():
-            raise Exception("Can't call __int__ on a non-constant")
+            raise TypeError("Can't call __int__ on a non-constant")
         return BitVector[len(self)](self.bits()).as_int()

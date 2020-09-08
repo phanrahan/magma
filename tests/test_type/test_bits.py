@@ -381,3 +381,20 @@ EndCircuit()\
         sim.set_value(TestRepeat.I, I)
         sim.evaluate()
         assert sim.get_value(TestRepeat.O) == I.repeat(x)
+
+
+@pytest.mark.parametrize("op", [operator.and_, operator.or_, operator.xor,
+                                operator.lshift, operator.rshift, operator.add,
+                                operator.sub, operator.mul])
+def test_rops(op):
+    x = BitVector.random(5)
+
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bits[5]))
+        io.O @= op(x, io.I)
+
+    sim = PythonSimulator(Main)
+    I = BitVector.random(5)
+    sim.set_value(Main.I, I)
+    sim.evaluate()
+    assert sim.get_value(Main.O) == op(x, I)
