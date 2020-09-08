@@ -25,7 +25,7 @@ __all__ += ['bits', 'uint', 'sint']
 __all__ += ['tuple_', 'namedtuple']
 
 __all__ += ['concat', 'repeat']
-__all__ += ['sext', 'zext']
+__all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
 __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
 
@@ -219,6 +219,7 @@ def check_value_is_not_input(fn):
 
 # @check_value_is_not_input
 def zext(value, n):
+    """Extend `value` by `n` zeros"""
     assert isinstance(value, (UInt, SInt, Bits)) or \
         isinstance(value, Array) and issubclass(value.T, Digital)
     if isinstance(value, UInt):
@@ -239,10 +240,31 @@ def zext(value, n):
     return result
 
 
+def zext_by(value, n):
+    """Extend `value` by `n` zeros"""
+    return zext(value, n)
+
+
+def zext_to(value, n):
+    """Extend `value` to length `n` with zeros"""
+    return zext(value, n - len(value))
+
+
 # @check_value_is_not_input
 def sext(value, n):
+    """Extend `value` by `n` replications of the msb (`value[-1]`)"""
     assert isinstance(value, SInt)
     return sint(concat(array(value), array([value[-1]] * n)))
+
+
+def sext_by(value, n):
+    """Extend `value` by `n` replications of the msb (`value[-1]`)"""
+    return sext(value, n)
+
+
+def sext_to(value, n):
+    """Extend `value` to length `n` by replicating the msb (`value[-1]`)"""
+    return sext(value, n - len(value))
 
 
 from .bitutils import int2seq
