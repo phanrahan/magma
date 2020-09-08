@@ -195,6 +195,12 @@ class ArrayMeta(ABCMeta, Kind):
     __hash__ = type.__hash__
 
 
+def _is_valid_slice(N, key):
+    start, stop = key.start, key.stop
+    return (((start is None or (start < N and start >= -N))) and
+            (stop is None or (stop <= N and stop > -N)))
+
+
 class Array(Type, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
         Type.__init__(self, **kwargs)
@@ -328,6 +334,9 @@ class Array(Type, metaclass=ArrayMeta):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)
         if isinstance(key, slice):
+            if not _is_valid_slice(self.N, key):
+                raise IndexError(f"array index out of range "
+                                 f"(type={type(self)}, key={key})")
             _slice = [self[i] for i in range(*key.indices(len(self)))]
             return type(self)[len(_slice), self.T](_slice)
         else:
