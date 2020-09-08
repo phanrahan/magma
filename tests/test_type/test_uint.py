@@ -1,3 +1,4 @@
+import magma as m
 from magma.testing import check_files_equal
 import operator
 import pytest
@@ -214,3 +215,18 @@ EndCircuit()\
         sim.evaluate()
         assert sim.get_value(TestBinary.O) == I0 + I1
         assert sim.get_value(TestBinary.COUT) == (I0.zext(1) + I1.zext(1))[-1]
+
+
+@pytest.mark.parametrize("op", [operator.floordiv, operator.mod])
+def test_rops(op):
+    x = UIntVector.random(5)
+
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.UInt[5]), O=m.Out(m.UInt[5]))
+        io.O @= op(x, io.I)
+
+    sim = PythonSimulator(Main)
+    I = UIntVector.random(5)
+    sim.set_value(Main.I, I)
+    sim.evaluate()
+    assert sim.get_value(Main.O) == op(x, I)
