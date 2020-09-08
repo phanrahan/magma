@@ -82,7 +82,15 @@ Array.dynamic_mux_select = _dynamic_mux_select
 
 
 def _infer_mux_type(args):
-    # get first magma arg for type introspection
+    """
+    Try to infer type:
+    * If we encounter a magma Type/Protocol, use that
+    * BitVector/Bit/bool are converted to their magma equivalent Bits/Bit
+    * Python tuple is converted to m.Tuple (note this will invoke m.tuple_ on
+      all the arguments, which may raise an error if the tuple arguments are
+      not well formed)
+
+    """
     for arg in args:
         if isinstance(arg, (Type, MagmaProtocol)):
             return type(arg), args
