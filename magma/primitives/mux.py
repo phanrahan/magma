@@ -83,13 +83,15 @@ Array.dynamic_mux_select = _dynamic_mux_select
 
 def _infer_mux_type(args):
     """
-    Try to infer type:
+    Try to infer type by traversing arguments in order:
     * If we encounter a magma Type/Protocol, use that
     * BitVector/Bit/bool are converted to their magma equivalent Bits/Bit
     * Python tuple is converted to m.Tuple (note this will invoke m.tuple_ on
       all the arguments, which may raise an error if the tuple arguments are
       not well formed)
 
+    Note that we do not infer from standard python int arguments because we
+    cannot, in general, determine the correct bit width (use BitVector instead)
     """
     for arg in args:
         if isinstance(arg, (Type, MagmaProtocol)):
@@ -102,7 +104,7 @@ def _infer_mux_type(args):
             return type(tuple_(arg)), [tuple_(a) for a in args]
     raise TypeError(
         f"Could not infer mux type from {I}\n"
-        "Need at least one magma value or a BitVector or bool")
+        "Need at least one magma value, BitVector, bool or tuple")
 
 
 def mux(I: list, S, **kwargs):
