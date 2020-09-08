@@ -103,7 +103,7 @@ def _infer_mux_type(args):
         if isinstance(arg, tuple):
             return type(tuple_(arg)), [tuple_(a) for a in args]
     raise TypeError(
-        f"Could not infer mux type from {I}\n"
+        f"Could not infer mux type from {args}\n"
         "Need at least one magma value, BitVector, bool or tuple")
 
 
