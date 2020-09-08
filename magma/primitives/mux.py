@@ -10,6 +10,7 @@ from magma.interface import IO
 from magma.protocol_type import MagmaProtocol
 from magma.t import Type, In, Out
 from magma.tuple import Product
+from magma.conversions import tuple_
 
 
 class CoreIRCommonLibMuxN(Generator2):
@@ -111,15 +112,16 @@ def mux(I: list, S, **kwargs):
         if isinstance(arg, (ht.Bit, bool)):
             T = Bit
             break
-        if isinstance(arg, list):
-            T = list
+        if isinstance(arg, tuple):
+            T = tuple
             break
     else:
         raise TypeError(
             f"Could not infer mux type from {I}\n"
             "Need at least one magma value or a BitVector or bool")
-    if T is list:
-        return [mux([arg[i] for arg in I], S) for i in range(len(I[0]))]
+    if T is tuple:
+        I = [tuple_(i) for i in I]
+        T = type(I[0])
     inst = Mux(len(I), T, **kwargs)()
     result = inst(*I, S)
     for i in range(len(I)):
