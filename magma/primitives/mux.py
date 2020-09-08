@@ -85,16 +85,13 @@ def _infer_mux_type(args):
     # get first magma arg for type introspection
     for arg in args:
         if isinstance(arg, (Type, MagmaProtocol)):
-            return type(arg)
+            return type(arg), args
         if isinstance(arg, BitVector):
-            return Bits[len(arg)]
+            return Bits[len(arg)], args
         if isinstance(arg, (ht.Bit, bool)):
-            return Bit
+            return Bit, args
         if isinstance(arg, tuple):
-            T = type(tuple_(arg))
-            for i in range(len(args)):
-                args[i] = tuple_(args[i])
-            return T
+            return type(tuple_(arg)), [tuple_(a) for a in args]
     raise TypeError(
         f"Could not infer mux type from {I}\n"
         "Need at least one magma value or a BitVector or bool")
@@ -120,8 +117,7 @@ def mux(I: list, S, **kwargs):
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
-    I = I[:]  # copy I since we may mutate it
-    T = _infer_mux_type(I)
+    T, I = _infer_mux_type(I)
     inst = Mux(len(I), T, **kwargs)()
     result = inst(*I, S)
     for i in range(len(I)):
