@@ -335,8 +335,8 @@ class Array(Type, metaclass=ArrayMeta):
             return self.dynamic_mux_select(key)
         if isinstance(key, slice):
             if not _is_valid_slice(self.N, key):
-                raise IndexError(f"Trying to index array (type={type(self)}) "
-                                 f"with invalid slice: {key}")
+                raise IndexError(f"array index out of range "
+                                 f"(type={type(self)}, key={key})")
             _slice = [self[i] for i in range(*key.indices(len(self)))]
             return type(self)[len(_slice), self.T](_slice)
         else:
