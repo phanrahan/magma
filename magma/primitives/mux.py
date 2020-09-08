@@ -81,6 +81,25 @@ def _dynamic_mux_select(this, key):
 Array.dynamic_mux_select = _dynamic_mux_select
 
 
+def _infer_mux_type(args):
+    # get first magma arg for type introspection
+    for arg in args:
+        if isinstance(arg, (Type, MagmaProtocol)):
+            return type(arg)
+        if isinstance(arg, BitVector):
+            return Bits[len(arg)]
+        if isinstance(arg, (ht.Bit, bool)):
+            return Bit
+        if isinstance(arg, tuple):
+            T = type(tuple_(arg))
+            for i in range(len(args)):
+                args[i] = tuple_(args[i])
+            return T
+    raise TypeError(
+        f"Could not infer mux type from {I}\n"
+        "Need at least one magma value or a BitVector or bool")
+
+
 def mux(I: list, S, **kwargs):
     """
     How type inference works on I:
@@ -101,27 +120,8 @@ def mux(I: list, S, **kwargs):
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
-    # get first magma arg for type introspection
-    for arg in I:
-        if isinstance(arg, (Type, MagmaProtocol)):
-            T = type(arg)
-            break
-        if isinstance(arg, BitVector):
-            T = Bits[len(arg)]
-            break
-        if isinstance(arg, (ht.Bit, bool)):
-            T = Bit
-            break
-        if isinstance(arg, tuple):
-            T = tuple
-            break
-    else:
-        raise TypeError(
-            f"Could not infer mux type from {I}\n"
-            "Need at least one magma value or a BitVector or bool")
-    if T is tuple:
-        I = [tuple_(i) for i in I]
-        T = type(I[0])
+    I = I[:]  # copy I since we may mutate it
+    T = _infer_mux_type(I)
     inst = Mux(len(I), T, **kwargs)()
     result = inst(*I, S)
     for i in range(len(I)):
