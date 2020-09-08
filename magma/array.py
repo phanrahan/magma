@@ -303,6 +303,13 @@ class Array(Type, metaclass=ArrayMeta):
                  key[-1] == slice(None, len(self)) or
                  key[-1] == slice(0, len(self))))
 
+    def _is_valid_slice(self, key):
+        start, stop = key.start, key.stop
+        if (((start is not None and (start >= self.N or start <= -self.N))) or
+                (stop is not None and (stop > self.N or stop < -self.N))):
+            return False
+        return True
+
     def __getitem__(self, key):
         if isinstance(key, tuple):
             # ND Array key
@@ -328,6 +335,9 @@ class Array(Type, metaclass=ArrayMeta):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)
         if isinstance(key, slice):
+            if not self._is_valid_slice(key):
+                raise IndexError(f"Trying to index array (type={type(self)}) "
+                                 f"with invalid slice: {key}")
             _slice = [self[i] for i in range(*key.indices(len(self)))]
             return type(self)[len(_slice), self.T](_slice)
         else:
