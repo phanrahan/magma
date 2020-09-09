@@ -6,6 +6,7 @@ from .debug import debug_wire
 from .logging import root_logger
 from .protocol_type import MagmaProtocol
 from magma.wire_container import WiringLog
+from magma.conversions import tuple_
 
 
 _logger = root_logger()
@@ -21,8 +22,6 @@ def wire(o, i, debug_info=None):
     if isinstance(i, MagmaProtocol):
         i = i._get_magma_value_()
 
-    # Circular import
-    from .conversions import tuple_
     if isinstance(o, tuple):
         o = tuple_(o)
     if isinstance(i, tuple):

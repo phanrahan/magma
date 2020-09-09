@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from ..bit import Bit, Digital
 from ..array import Array
-from ..clock import wiredefaultclock
+from ..clock_utils import wiredefaultclock
 from ..compiler import make_compiler
 from .verilog import find
 

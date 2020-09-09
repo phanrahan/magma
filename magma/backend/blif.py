@@ -5,7 +5,7 @@ from ..bitutils import seq2int, fun2seq
 from ..bit import Bit, Digital
 from ..array import Array
 from ..compiler import make_compiler
-from ..clock import wiredefaultclock
+from ..clock_utils import wiredefaultclock
 from ..is_definition import isdefinition
 
 __all__ = ['compile']

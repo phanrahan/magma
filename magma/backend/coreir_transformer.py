@@ -20,7 +20,8 @@ from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
-from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
+from magma.clock import ClockTypes
+from magma.clock_utils import first, get_first_clock, wire_clock_port
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
