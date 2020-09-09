@@ -110,6 +110,5 @@ class BindPass(CircuitPass):
         self.user_namespace = user_namespace
 
     def __call__(self, cls):
-        cls.compiled_bind_modules = {}
         for monitor, args in cls.bind_modules.items():
             _bind(cls, monitor, self._compile_fn, self.user_namespace, *args)
