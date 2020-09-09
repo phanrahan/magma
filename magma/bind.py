@@ -40,7 +40,7 @@ def _wire_temp(bind_arg, temp):
     wire(bind_arg, temp)
 
 
-def _bind(cls, monitor, compile_fn, *args):
+def _bind(cls, monitor, compile_fn, user_namespace, *args):
     bind_str = monitor.verilogFile
     ports = []
     for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
@@ -83,30 +83,34 @@ Bind monitor interface does not match circuit interface
         bind_arg = temp
         ports += _gen_bind_port(cls, mon_arg, bind_arg)
     ports_str = ",\n    ".join(ports)
-    bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
+    cls_name = cls.name
+    monitor_name = monitor.name
+    if user_namespace is not None:
+        cls_name = user_namespace + "_" + cls_name
+        monitor_name = user_namespace + "_" + monitor_name
+    bind_str = f"bind {cls_name} {monitor_name} {monitor_name}_inst (\n    {ports_str}\n);"  # noqa
     if not os.path.isdir(".magma"):
         os.mkdir(".magma")
     curr_compile_dir = get_compile_dir()
     set_compile_dir("normal")
     # Circular dependency, need coreir backend to compile, backend imports
     # circuit (for wrap casts logic, we might be able to factor that out).
-    compile_fn(f".magma/{monitor.name}", monitor, inline=True)
+    print(monitor, id(monitor))
+    compile_fn(f".magma/{monitor.name}", monitor, inline=True,
+               user_namespace=user_namespace)
     set_compile_dir(curr_compile_dir)
     with open(f".magma/{monitor.name}.v", "r") as f:
         content = "\n".join((f.read(), bind_str))
-    cls.bind_modules[monitor.name] = content
+    cls.compiled_bind_modules[monitor.name] = content
 
 
 class BindPass(CircuitPass):
-    def __init__(self, main, compile_fn):
+    def __init__(self, main, compile_fn, user_namespace):
         super().__init__(main)
         self._compile_fn = compile_fn
+        self.user_namespace = user_namespace
 
     def __call__(self, cls):
-        if cls.bind_modules_bound:
-            return
-        bind_modules = cls.bind_modules.copy()
-        cls.bind_modules = {}
-        for monitor, args in bind_modules.items():
-            _bind(cls, monitor, self._compile_fn, *args)
-        cls.bind_modules_bound = True
+        cls.compiled_bind_modules = {}
+        for monitor, args in cls.bind_modules.items():
+            _bind(cls, monitor, self._compile_fn, self.user_namespace, *args)

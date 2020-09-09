@@ -1,9 +1,12 @@
-            module orr_4 (input [3:0] I, output O);
-            assign O = |(I);
-            endmodule
-            module logical_and (input I0, input I1, output O);
-            assign O = I0 && I1;
-            endmodule
+module orr_4 (input [3:0] I, output O);
+assign O = |(I);
+endmodule
+module logical_and (input I0, input I1, output O);
+assign O = I0 && I1;
+endmodule
+module andr_4 (input [3:0] I, output O);
+assign O = &(I);
+endmodule
 module coreir_term #(
     parameter width = 1
 ) (
@@ -12,16 +15,7 @@ module coreir_term #(
 
 endmodule
 
-module corebit_term (
-    input in
-);
-
-endmodule
-
-            module andr_4 (input [3:0] I, output O);
-            assign O = &(I);
-            endmodule
-module SomeCircuit (
+module foo_SomeCircuit (
     input [3:0] I
 );
 coreir_term #(
@@ -31,7 +25,13 @@ coreir_term #(
 );
 endmodule
 
-module RTL (
+module corebit_term (
+    input in
+);
+
+endmodule
+
+module foo_RTL (
     input CLK,
     input handshake_arr_0_ready,
     output handshake_arr_0_valid,
@@ -53,7 +53,7 @@ wire [3:0] _magma_bind_wire_3;
 wire andr_4_inst0_O;
 wire [3:0] magma_Bits_4_xor_inst0_out;
 wire orr_4_inst0_O;
-SomeCircuit SomeCircuit_inst0 (
+foo_SomeCircuit SomeCircuit_inst0 (
     .I(magma_Bits_4_xor_inst0_out)
 );
 assign _magma_bind_wire_0 = orr_4_inst0_O;
