@@ -308,11 +308,13 @@ def _tuple(value, n=None, t=Tuple):
             decl[k] = type(v)
     for a, d in zip(args, decl):
         # bool types to Bit
-        if decl[d] is bool:
+        if issubclass(decl[d], (bool, hwtypes.Bit)):
             decl[d] = Digital
         # Promote integer types to Bits
         elif decl[d] in IntegerTypes:
             decl[d] = Bits[max(a.bit_length(), 1)]
+        elif issubclass(decl[d], hwtypes.BitVector):
+            decl[d] = Bits[len(decl[d])]
 
     if t == Tuple:
         return t[tuple(decl.values())](*args)

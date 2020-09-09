@@ -10,6 +10,7 @@ from magma.interface import IO
 from magma.protocol_type import MagmaProtocol
 from magma.t import Type, In, Out
 from magma.tuple import Product
+from magma.conversions import tuple_
 
 
 class CoreIRCommonLibMuxN(Generator2):
@@ -80,6 +81,32 @@ def _dynamic_mux_select(this, key):
 Array.dynamic_mux_select = _dynamic_mux_select
 
 
+def _infer_mux_type(args):
+    """
+    Try to infer type by traversing arguments in order:
+    * If we encounter a magma Type/Protocol, use that
+    * BitVector/Bit/bool are converted to their magma equivalent Bits/Bit
+    * Python tuple is converted to m.Tuple (note this will invoke m.tuple_ on
+      all the arguments, which may raise an error if the tuple arguments are
+      not well formed)
+
+    Note that we do not infer from standard python int arguments because we
+    cannot, in general, determine the correct bit width (use BitVector instead)
+    """
+    for arg in args:
+        if isinstance(arg, (Type, MagmaProtocol)):
+            return type(arg), args
+        if isinstance(arg, BitVector):
+            return Bits[len(arg)], args
+        if isinstance(arg, (ht.Bit, bool)):
+            return Bit, args
+        if isinstance(arg, tuple):
+            return type(tuple_(arg)), [tuple_(a) for a in args]
+    raise TypeError(
+        f"Could not infer mux type from {args}\n"
+        "Need at least one magma value, BitVector, bool or tuple")
+
+
 def mux(I: list, S, **kwargs):
     """
     How type inference works on I:
@@ -100,14 +127,7 @@ def mux(I: list, S, **kwargs):
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
-    # get first magma arg for type introspection
-    for arg in I:
-        if isinstance(arg, (Type, MagmaProtocol)):
-            T = type(arg)
-            break
-    else:
-        raise TypeError("Cannot use m.mux with non-magma types (need at least "
-                        "one to infer type)")
+    T, I = _infer_mux_type(I)
     inst = Mux(len(I), T, **kwargs)()
     result = inst(*I, S)
     for i in range(len(I)):
