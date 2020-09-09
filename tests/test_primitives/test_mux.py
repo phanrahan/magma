@@ -206,3 +206,17 @@ def test_mux_operator_tuple():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_mux_tuple_wire():
+    default = (BitVector.random(3), BitVector.random(5))
+    inst_map = {
+        0: (BitVector.random(3), BitVector.random(5)),
+        1: (BitVector.random(3), BitVector.random(5)),
+    }
+
+    class Main(m.Circuit):
+        io = m.IO(inst=m.In(m.Bit))
+        ctrl_signals = default
+        for inst, signals in reversed(tuple(inst_map.items())):
+            ctrl_signals = m.mux([ctrl_signals, signals], io.inst == inst)

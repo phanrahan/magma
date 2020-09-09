@@ -21,6 +21,13 @@ def wire(o, i, debug_info=None):
     if isinstance(i, MagmaProtocol):
         i = i._get_magma_value_()
 
+    # Circular import
+    from .conversions import tuple_
+    if isinstance(o, tuple):
+        o = tuple_(o)
+    if isinstance(i, tuple):
+        i = tuple_(i)
+
     # Wire(o, Circuit).
     if hasattr(i, 'interface'):
         i.wire(o, debug_info)
