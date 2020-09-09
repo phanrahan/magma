@@ -95,7 +95,6 @@ Bind monitor interface does not match circuit interface
     set_compile_dir("normal")
     # Circular dependency, need coreir backend to compile, backend imports
     # circuit (for wrap casts logic, we might be able to factor that out).
-    print(monitor, id(monitor))
     compile_fn(f".magma/{monitor.name}", monitor, inline=True,
                user_namespace=user_namespace)
     set_compile_dir(curr_compile_dir)
