@@ -188,6 +188,10 @@ class Digital(Type, metaclass=DigitalMeta):
     def driving(self):
         return self._wire.driving()
 
+    @property
+    def driver(self):
+        return self._wire.driver
+
     @classmethod
     def unflatten(cls, value):
         if len(value) != 1 or not isinstance(value[0], Digital):
