@@ -41,10 +41,10 @@ def _make_inline_value(cls, inline_value_map, value):
     return f"{{{value_key}}}"
 
 
-def _make_temporary(defn, value, num, parent=None):
+def _make_temporary(defn, value, num, inline_wire_prefix, parent=None):
     with defn.open():
         # Insert a wire so it can't be inlined out
-        temp_name = f"_magma_inline_wire"
+        temp_name = inline_wire_prefix
         temp_name += f"{num}"
         temp = Wire(type(value))(name=temp_name)
         temp.I @= value
@@ -53,7 +53,7 @@ def _make_temporary(defn, value, num, parent=None):
     return temp.O
 
 
-def _insert_temporary_wires(cls, value):
+def _insert_temporary_wires(cls, value, inline_wire_prefix):
     """
     For non DefnRef, insert a temporary Wire instance so the signal isn't
     inlined out
@@ -64,7 +64,8 @@ def _insert_temporary_wires(cls, value):
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             if value not in cls.inline_verilog_wire_map:
                 temp = _make_temporary(cls, value,
-                                       len(cls.inline_verilog_wire_map))
+                                       len(cls.inline_verilog_wire_map),
+                                       inline_wire_prefix)
                 cls.inline_verilog_wire_map[value] = temp
             value = cls.inline_verilog_wire_map[value]
     else:
@@ -93,7 +94,8 @@ def _insert_temporary_wires(cls, value):
                 defn = type(parent)
 
             temp = _make_temporary(defn, value.port,
-                                   len(cls.inline_verilog_wire_map), parent)
+                                   len(cls.inline_verilog_wire_map),
+                                   inline_wire_prefix, parent)
             cls.inline_verilog_wire_map[value] = temp
         value = cls.inline_verilog_wire_map[value]
     return value
@@ -116,7 +118,8 @@ def _build_io(inline_value_map):
     return io
 
 
-def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
+def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
+                    **kwargs):
     format_args = {}
     for key, arg in kwargs.items():
         if isinstance(arg, (Type, PortView)):
@@ -167,7 +170,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, **kwargs):
             inst.I @= 0
 
     for key, value in inline_value_map.items():
-        value = _insert_temporary_wires(cls, value)
+        value = _insert_temporary_wires(cls, value, inline_wire_prefix)
         wire(value, getattr(inst, key))
 
 
@@ -193,12 +196,14 @@ def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
     return format_str
 
 
-def _process_inline_verilog(cls, format_str, format_args, symbol_table):
+def _process_inline_verilog(cls, format_str, format_args, symbol_table,
+                            inline_wire_prefix):
     inline_value_map = {}
     if symbol_table is not None:
         format_str = _process_fstring_syntax(format_str, format_args, cls,
                                              inline_value_map, symbol_table)
-    _inline_verilog(cls, format_str, inline_value_map, **format_args)
+    _inline_verilog(cls, format_str, inline_value_map, inline_wire_prefix,
+                    **format_args)
 
 
 class ProcessInlineVerilogPass(CircuitPass):
@@ -215,9 +220,11 @@ class ProcessInlineVerilogPass(CircuitPass):
         cls.inline_verilog_generated = True
 
 
-def inline_verilog(format_str, **kwargs):
+def inline_verilog(format_str, inline_wire_prefix="_magma_inline_wire",
+                   **kwargs):
     exec(_SKIP_FRAME_DEBUG_STMT)
     symbol_table = get_symbol_table([inline_verilog], copy_locals=True)
 
     context = _definition_context_stack.peek()
-    context.add_inline_verilog(format_str, kwargs, symbol_table)
+    context.add_inline_verilog(format_str, kwargs, symbol_table,
+                               inline_wire_prefix)
