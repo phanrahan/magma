@@ -227,6 +227,10 @@ def test_rops(op):
 
     sim = PythonSimulator(Main)
     I = UIntVector.random(5)
+    while I == 0:
+        # Avoid divide by 0
+        I = SIntVector.random(5)
+
     sim.set_value(Main.I, I)
     sim.evaluate()
     assert sim.get_value(Main.O) == op(x, I)
