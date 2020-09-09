@@ -38,3 +38,14 @@ def test_as_bv():
         y.as_bv()
     assert (str(e.value) ==
             "Can only convert BitPattern with no don't cares to int")
+
+
+def test_hashable():
+    x = m.BitPattern("b10?1")
+    y = m.BitPattern("b1?10")
+    dict_ = {
+        x: 1,
+        y: 0
+    }
+    assert dict_[x] == 1
+    assert dict_[y] == 0
