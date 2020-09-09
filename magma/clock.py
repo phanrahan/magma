@@ -1,6 +1,9 @@
 from .t import Direction, In
 from .digital import DigitalMeta, Digital
+from .wire import wire
 from magma.bit import Bit
+from magma.array import Array
+from magma.tuple import Tuple
 
 
 class _ClockType(Digital):
@@ -88,3 +91,83 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     if has_async_resetn:
         args += ['ASYNCRESETN', In(AsyncResetN)]
     return args
+
+
+def wire_clock_port(port, clocktype, defnclk):
+    wired = False
+    if isinstance(port, Tuple):
+        for elem in port:
+            wired |= wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, Array):
+        wired = wire_clock_port(port[0], clocktype, defnclk)
+        # Only traverse all children circuit if first child has a clock
+        if not wired:
+            return False
+        # TODO: Magma doesn't support length zero array, so slicing a
+        # length 1 array off the end doesn't work as expected in normal
+        # Python, so we explicilty slice port.ts
+        for t in port.ts[1:]:
+            for elem in port[1:]:
+                wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, clocktype) and not port.driven():
+        # Trace to last undriven driver
+        while port.driver is not None:
+            port = port.driver.bit
+        wire(defnclk, port)
+        wired = True
+    return wired
+
+
+def first(iterable):
+    return next((item for item in iterable if item is not None), None)
+
+
+def get_first_clock(port, clocktype):
+    if isinstance(port, clocktype):
+        return port
+    if isinstance(port, Tuple):
+        clks = (get_first_clock(elem, clocktype) for elem in port)
+        return first(clks)
+    if isinstance(port, Array):
+        return get_first_clock(port[0], clocktype)
+    return None
+
+
+def wireclocktype(defn, inst, clocktype):
+    # Check common case: top level clock port
+    clks = (port if isinstance(port, clocktype) else None
+            for port in defn.interface.ports.values())
+    defnclk = first(clks)
+    if defnclk is None:
+        # Check recursive types
+        clks = (get_first_clock(port, clocktype)
+                for port in defn.interface.ports.values())
+        defnclk = first(clks)
+    if defnclk is None:
+        return
+    for port in inst.interface.inputs(include_clocks=True):
+        wire_clock_port(port, clocktype, defnclk)
+
+
+def wiredefaultclock(defn, inst):
+    wireclocktype(defn, inst, Clock)
+
+
+def wireclock(define, circuit):
+    wireclocktype(define, circuit, Reset)
+    wireclocktype(define, circuit, AsyncReset)
+    wireclocktype(define, circuit, AsyncResetN)
+    wireclocktype(define, circuit, Enable)
+
+
+def get_reset_args(reset_type: AbstractReset = None):
+    if reset_type is not None and not issubclass(reset_type, AbstractReset):
+        raise TypeError(
+            f"Expected subclass of AbstractReset for argument reset_type, "
+            f"not {type(reset_type)}")
+
+    has_async_reset = reset_type == AsyncReset
+    has_async_resetn = reset_type == AsyncResetN
+    has_reset = reset_type == Reset
+    has_resetn = reset_type == ResetN
+    return (has_async_reset, has_async_resetn, has_reset, has_resetn)

@@ -12,8 +12,8 @@ from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out
 from magma.tuple import Tuple
-from magma.clock import AbstractReset, AsyncReset, AsyncResetN, Clock
-from magma.clock_utils import get_reset_args
+from magma.clock import (AbstractReset,
+                         AsyncReset, AsyncResetN, Clock, get_reset_args)
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
 

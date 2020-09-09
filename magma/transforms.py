@@ -4,8 +4,7 @@ from .is_definition import isdefinition
 from .is_primitive import isprimitive
 from .digital import Digital
 from .bit import *
-from .clock import Clock, Enable, Reset, AsyncReset
-from .clock_utils import wiredefaultclock
+from .clock import Clock, Enable, Reset, AsyncReset, wiredefaultclock
 from .array import *
 from .tuple import Tuple
 from .wire import wire

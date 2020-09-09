@@ -1,5 +1,5 @@
 from ..is_definition import isdefinition
-from ..clock_utils import wiredefaultclock, wireclock
+from ..clock import wiredefaultclock, wireclock
 from .passes import DefinitionPass
 
 __all__ = ['WireClockPass']

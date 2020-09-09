@@ -1,6 +1,5 @@
 from .clock import (AbstractReset, AsyncReset, AsyncResetN, Clock, Enable,
-                    Reset, ResetN)
-from .clock_utils import get_reset_args
+                    Reset, ResetN, get_reset_args)
 from .interface import IO
 from .t import In
 
