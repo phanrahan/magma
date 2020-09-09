@@ -27,33 +27,32 @@ module sram_512w_16b (Q, CLK, CEN, WEN, A, D, EMA, EMAW, EMAS, TEN, BEN, RET1N, 
       end
    end
 endmodule
-module coreir_const #(parameter width = 1, parameter value = 1) (output [width-1:0] out);
-  assign out = value;
-endmodule
-
-module corebit_not (input in, output out);
-  assign out = ~in;
-endmodule
-
-module corebit_const #(parameter value = 1) (output out);
-  assign out = value;
-endmodule
-
-module Mem (input [8:0] addr, input cen, input clk, input [15:0] data_in, output [15:0] data_out, input wen);
-wire bit_const_0_None_out;
-wire bit_const_1_None_out;
-wire [1:0] const_0_2_out;
-wire [2:0] const_0_3_out;
-wire [15:0] mem_inst_Q;
-wire not_inst0_out;
-wire not_inst1_out;
-corebit_const #(.value(0)) bit_const_0_None(.out(bit_const_0_None_out));
-corebit_const #(.value(1)) bit_const_1_None(.out(bit_const_1_None_out));
-coreir_const #(.value(2'h0), .width(2)) const_0_2(.out(const_0_2_out));
-coreir_const #(.value(3'h0), .width(3)) const_0_3(.out(const_0_3_out));
-sram_512w_16b mem_inst(.A(addr), .BEN(bit_const_1_None_out), .CEN(not_inst0_out), .CLK(clk), .D(data_in), .EMA(const_0_3_out), .EMAS(bit_const_0_None_out), .EMAW(const_0_2_out), .Q(mem_inst_Q), .RET1N(bit_const_1_None_out), .STOV(bit_const_0_None_out), .TEN(bit_const_1_None_out), .WEN(not_inst1_out));
-corebit_not not_inst0(.in(cen), .out(not_inst0_out));
-corebit_not not_inst1(.in(wen), .out(not_inst1_out));
-assign data_out = mem_inst_Q;
+module Mem (
+    output [15:0] data_out,
+    input [15:0] data_in,
+    input clk,
+    input cen,
+    input wen,
+    input [8:0] addr
+);
+wire magma_Bit_not_inst0_out;
+wire magma_Bit_not_inst1_out;
+assign magma_Bit_not_inst0_out = ~ cen;
+assign magma_Bit_not_inst1_out = ~ wen;
+sram_512w_16b mem_inst (
+    .Q(data_out),
+    .CLK(clk),
+    .CEN(magma_Bit_not_inst0_out),
+    .WEN(magma_Bit_not_inst1_out),
+    .A(addr),
+    .D(data_in),
+    .EMA(3'h0),
+    .EMAW(2'h0),
+    .EMAS(1'b0),
+    .TEN(1'b1),
+    .BEN(1'b1),
+    .RET1N(1'b1),
+    .STOV(1'b0)
+);
 endmodule
 
