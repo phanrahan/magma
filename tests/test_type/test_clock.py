@@ -397,7 +397,7 @@ def test_insert_wrap_casts_temporary():
         io = m.ClockIO()
 
     class Bar(m.Circuit):
-        io = m.ClockIO()
+        io = m.ClockIO(has_resetn=True)
         foo0 = Foo()
         temp0 = m.Clock()
         temp1 = m.Bit(name="temp1")
@@ -405,8 +405,9 @@ def test_insert_wrap_casts_temporary():
         foo0.CLK @= m.clock(temp1)
 
         temp2 = m.Clock()
+        temp3 = m.ResetN()
         # Test using inline_verilog flow
-        m.inline_verilog('always @(posedge {temp2}) $display("Hello");')
+        m.inline_verilog('always @(posedge {temp2}) disable iff (! {temp3}) $display("Hello");')
 
     m.compile(f"build/test_insert_wrap_casts_temporary", Bar)
     assert check_files_equal(__file__,

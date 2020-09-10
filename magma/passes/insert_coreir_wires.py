@@ -1,6 +1,7 @@
 from ..array import Array
 from magma.bit import Bit
 from ..bits import Bits
+from ..clock import AsyncReset, AsyncResetN, Clock
 from ..circuit import coreir_port_mapping
 from ..conversions import as_bits, from_bits
 from ..digital import Digital
@@ -25,8 +26,9 @@ class Wire(Generator2):
         if issubclass(T, Digital):
             coreir_lib = "corebit"
             coreir_genargs = None
-            # Convert to bit so we wrap named types like clock if necessary
-            T = Bit
+            if issubclass(T, (AsyncReset, AsyncResetN, Clock)):
+                # Convert to bit so we wrap named types like clock if necessary
+                T = Bit
         else:
             width = T.flat_length()
             T = Bits[width]

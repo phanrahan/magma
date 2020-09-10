@@ -20,9 +20,11 @@ module corebit_term (
 endmodule
 
 module Bar (
-    input CLK
+    input CLK,
+    input RESETN
 );
 wire _magma_inline_wire0_out;
+wire _magma_inline_wire1_out;
 wire coreir_wrapInClock_inst0_out;
 wire coreir_wrapInClock_inst1_out;
 wire coreir_wrapOutClock_inst0_out;
@@ -34,6 +36,10 @@ Foo Foo_inst0 (
 corebit_wire _magma_inline_wire0 (
     .in(coreir_wrapInClock_inst0_out),
     .out(_magma_inline_wire0_out)
+);
+corebit_wire _magma_inline_wire1 (
+    .in(RESETN),
+    .out(_magma_inline_wire1_out)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
@@ -55,6 +61,6 @@ corebit_wire temp1 (
     .in(coreir_wrapInClock_inst1_out),
     .out(temp1_out)
 );
-always @(posedge coreir_wrapOutClock_inst1_out) $display("Hello");
+always @(posedge coreir_wrapOutClock_inst1_out) disable iff (! _magma_inline_wire1_out) $display("Hello");
 endmodule
 
