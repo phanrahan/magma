@@ -104,11 +104,13 @@ class InsertCoreIRWires(DefinitionPass):
         if value in self.seen:
             return  # in the case of inouts, we may see more than once
         self.seen.add(value)
+        print(type(value))
         if not value.driven():
             return  # undriven value, skip wire insertion
         driver = value.value()
 
-        while (driver is not None and driver.name.anon() and
+        while (driver is not None and
+               (driver.name.anon() and driver.driven()) and
                not driver.is_output()):
             value, driver = driver, driver.value()
 
@@ -119,7 +121,8 @@ class InsertCoreIRWires(DefinitionPass):
                 self._insert_wire(child, definition)
             return
 
-        if driver is None or driver.is_output() or driver.is_inout():
+        if (driver is None or driver.is_output() or driver.is_inout() or
+                driver.name.anon()):
             return
 
         if isinstance(driver.name, PortViewRef):

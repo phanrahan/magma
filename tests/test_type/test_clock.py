@@ -390,3 +390,25 @@ def test_asyncreset_cast(T, convert):
     m.compile(f"build/test_{T.__name__}_cast", AsyncResetTest)
     assert check_files_equal(__file__, f"build/test_{T.__name__}_cast.v",
                              f"gold/test_{T.__name__}_cast.v")
+
+
+def test_insert_wrap_casts_temporary():
+    class Foo(m.Circuit):
+        io = m.ClockIO()
+
+    class Bar(m.Circuit):
+        io = m.ClockIO()
+        foo0 = Foo()
+        temp0 = m.Clock()
+        temp1 = m.Bit(name="temp1")
+        temp1 @= m.bit(temp0)
+        foo0.CLK @= m.clock(temp1)
+
+        temp2 = m.Clock()
+        # Test using inline_verilog flow
+        m.inline_verilog('always @(posedge {temp2}) $display("Hello");')
+
+    m.compile(f"build/test_insert_wrap_casts_temporary", Bar)
+    assert check_files_equal(__file__,
+                             f"build/test_insert_wrap_casts_temporary.v",
+                             f"gold/test_insert_wrap_casts_temporary.v")

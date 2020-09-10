@@ -177,7 +177,8 @@ def test_wire():
     assert a0.wired()
     assert a1.wired()
 
-    assert a1.driven() is False, "Not driven by an input"
+    assert a0.driven() is False, "Not driven by an input"
+    assert a1.driven() is True, "Driven by a1"
 
     assert a0.trace() is None, "Cannot trace to input"
     assert a1.trace() is None, "Cannot trace to input"

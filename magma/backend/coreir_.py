@@ -110,31 +110,36 @@ class InsertWrapCasts(DefinitionPass):
             for t in port.ts[1:]:
                 self.wrap_if_named_type(t, definition)
             return True
-        if not port.is_input():
+        if not port.driven():
             return False
         value = port.value()
         if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
                 isinstance(value, (AsyncReset, AsyncResetN, Clock))):
-            return False
+            return self.wrap_if_named_type(value, definition)
         undirected_t = type(port).qualify(Direction.Undirected)
-        if value is None or issubclass(type(value), undirected_t):
-            return False
-        if isinstance(port, (AsyncReset, AsyncResetN, Clock)):
+        if issubclass(type(value), undirected_t):
+            return self.wrap_if_named_type(value, definition)
+        port_is_clock_type = isinstance(port, (AsyncReset, AsyncResetN, Clock))
+        if port_is_clock_type:
             T = Out(type(port))
         else:
             T = In(type(value))
 
         with definition.open():
             port.unwire(value)
-            inst = self.define_wrap(T, type(port), type(value))()
-            wire(convertbit(value, type(port)), getattr(inst, "in"))
-            wire(inst.out, convertbit(port, type(value)))
+            in_type, out_type = type(port), type(value)
+            if not port_is_clock_type:
+                # value is the clock type, flip wrap types
+                out_type, in_type = in_type, out_type
+            inst = self.define_wrap(T, in_type, out_type)()
+            wire(convertbit(value, in_type), getattr(inst, "in"))
+            wire(inst.out, convertbit(port, out_type))
         return True
 
     def __call__(self, definition):
         # copy, because wrapping might add instances
         instances = definition.instances[:]
-        for instance in definition.instances:
+        for instance in instances:
             if type(instance).coreir_name == "wrap" or \
                     type(instance).coreir_name == "unwrap":
                 continue
