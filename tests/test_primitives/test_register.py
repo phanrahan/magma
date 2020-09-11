@@ -1,4 +1,6 @@
 import os
+import pytest
+import hwtypes as ht
 
 import magma as m
 from magma.testing import check_files_equal
@@ -7,10 +9,12 @@ from magma.primitives import Register
 import fault
 
 
-def test_basic_reg():
+@pytest.mark.parametrize("init_T", [m.Bits[8], ht.BitVector[8]])
+def test_basic_reg(init_T):
     class test_basic_reg(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8])) + m.ClockIO(has_reset=True)
-        io.O @= Register(m.Bits[8], m.Bits[8](0xDE), reset_type=m.Reset)()(io.I)
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        io += m.ClockIO(has_reset=True)
+        io.O @= Register(m.Bits[8], init_T(0xDE), reset_type=m.Reset)()(io.I)
 
     m.compile("build/test_basic_reg", test_basic_reg)
 

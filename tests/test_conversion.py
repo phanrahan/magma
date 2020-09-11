@@ -1,4 +1,5 @@
 import magma as m
+import hwtypes as ht
 
 
 def test_concat():
@@ -8,6 +9,10 @@ def test_concat():
     bits1 = m.concat(m.bits(b0), b1)
     assert bits0 == bits1
     assert type(bits0) == m.Out(m.Bits[2])
+
+
+def test_concat_bit():
+    assert int(m.bits(m.concat(ht.Bit(True), True, m.bits(1)))) == 7
 
 
 def test_ext():

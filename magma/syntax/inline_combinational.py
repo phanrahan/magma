@@ -25,7 +25,7 @@ class _ToCombinationalRewriter(ast.NodeTransformer):
         self.name_count = 0
 
     def _gen_new_name(self):
-        new_name = f"{self.prefix}{self.name_count}"
+        new_name = f"{self.prefix}_{self.name_count}_"
         self.name_count += 1
         return new_name
 

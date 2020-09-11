@@ -2,6 +2,7 @@ from typing import Union
 
 import coreir
 import hwtypes
+import hwtypes as ht
 
 from magma.array import Array
 from magma.bit import Bit
@@ -92,8 +93,8 @@ def _zero_init(T, init):
 
 
 class Register(Generator2):
-    def __init__(self, T: Kind, init: Union[Type, int] = None, reset_type:
-                 AbstractReset = None, has_enable: bool = False,
+    def __init__(self, T: Kind, init: Union[Type, int, ht.BitVector] = None,
+                 reset_type: AbstractReset = None, has_enable: bool = False,
                  reset_priority: bool = True):
         """
         T: The type of the value that is stored inside the register (e.g.
@@ -114,7 +115,8 @@ class Register(Generator2):
         if not isinstance(T, Kind):
             raise TypeError(
                 f"Expected instance of Kind for argument T, not {type(T)}")
-        if init is not None and not isinstance(init, (Type, int)):
+        if init is not None and not isinstance(init,
+                                               (Type, int, ht.BitVector)):
             raise TypeError(
                 f"Expected instance of Type or int for argument init, not "
                 f"{type(init)}")

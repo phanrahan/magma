@@ -15,6 +15,7 @@ from .digital import Digital
 from .tuple import Tuple, Product
 from .bitutils import int2seq
 import hwtypes
+import hwtypes as ht
 
 __all__ = ['bit']
 __all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
@@ -195,6 +196,8 @@ def concat(*arrays):
             ts.extend(a.bits())
         elif isinstance(a, Bit):
             ts.extend([a])
+        elif isinstance(a, (bool, ht.Bit)):
+            ts.extend([Bit(a)])
         else:
             ts.extend(a.ts)
     return array(ts)
