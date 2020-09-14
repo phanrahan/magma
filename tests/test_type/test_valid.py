@@ -12,7 +12,7 @@ def test_valid_simple():
         io.O @= io.I
 
     m.compile("build/TestValidSimple", TestValidSimple)
-    assert check_files_equal(__file__, f"build/TestvalidSimple.v",
+    assert check_files_equal(__file__, f"build/TestValidSimple.v",
                              f"gold/TestValidSimple.v")
 
 
@@ -25,5 +25,5 @@ def test_valid_tuple():
         io.O @= io.I
 
     m.compile("build/TestValidTuple", TestValidTuple)
-    assert check_files_equal(__file__, f"build/TestvalidTuple.v",
+    assert check_files_equal(__file__, f"build/TestValidTuple.v",
                              f"gold/TestValidTuple.v")
