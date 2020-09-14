@@ -4,11 +4,10 @@ import enum
 import inspect
 import operator
 
-from magma.bits import Bits, BitsMeta, SInt
+from magma.bits import Bits, BitsMeta, SInt, reduce
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
-from magma.primitives.reduce import reduce
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 
 
