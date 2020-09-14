@@ -6,8 +6,8 @@ class Scope:
         self.parent = None
         if 'parent' in kwargs:
             self.parent = kwargs['parent']
-            self.val = self.parent.val 
-            if self.val is not "/":
+            self.val = self.parent.val
+            if self.val != "/":
                 self.val += '/'
         else:
             self.val = '/'
