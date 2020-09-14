@@ -204,14 +204,6 @@ def test_csr_comb():
         PC_START = 0x200
         PC_EVEC = 0x100
 
-    def concat(*args):
-        x = args[0]
-        if isinstance(x, Bit):
-            x = BitVector[1](x)
-        if len(args) == 1:
-            return x
-        return x.concat(concat(*args[1:]))
-
     def Valid(T):
         return m.Product.from_fields(f"Valid[{T}]", {
             "bits": T,
@@ -265,10 +257,10 @@ def test_csr_comb():
             instret = m.Register(m.UInt[x_len])()
             instreth = m.Register(m.UInt[x_len])()
 
-            mcpuid = concat(BV[2](0),  # RV32I
-                            BV[x_len - 28](0),
-                            BV[26](1 << (ord('I') - ord('A')) |  # Base ISA
-                                   1 << (ord('U') - ord('A'))))  # User Mode
+            mcpuid = m.concat(BV[2](0),  # RV32I
+                              BV[x_len - 28](0),
+                              BV[26](1 << (ord('I') - ord('A')) |  # Base ISA
+                                     1 << (ord('U') - ord('A'))))  # User Mode
             mimpid = BV[x_len](0)
             mhartid = BV[x_len](0)
 
