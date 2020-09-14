@@ -5,6 +5,7 @@ m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
 import operator
 from functools import lru_cache, wraps
+import functools
 import typing as tp
 import hwtypes as ht
 from hwtypes import BitVector
@@ -21,6 +22,7 @@ from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
+from magma.generator import Generator2
 
 
 _logger = root_logger()
@@ -541,6 +543,15 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return (self >> index)[0]
         return super().__getitem__(index)
 
+    def orR(self):
+        return reduce(operator.or_, self)
+
+    def xorR(self):
+        return reduce(operator.xor, self)
+
+    def andR(self):
+        return reduce(operator.and_, self)
+
 
 def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
@@ -796,3 +807,39 @@ class SInt(Int):
         if not self.const():
             raise TypeError("Can't call __int__ on a non-constant")
         return BitVector[len(self)](self.bits()).as_int()
+
+
+def _reduce_factory(coreir_name, operator):
+    class Reduce(Generator2):
+        def __init__(self, width: int):
+            self.io = IO(I=In(Bits[width]), O=Out(Bit))
+            self.coreir_lib = "coreir"
+            self.coreir_name = coreir_name
+            self.name = f"coreir_{coreir_name}_{width}"
+            self.coreir_genargs = {"width": width}
+            self.renamed_ports = coreir_port_mapping
+            self.primitive = True
+            self.stateful = False
+
+            def simulate(self, value_store, state_store):
+                I = BitVector[width](value_store.get_value(self.I))
+                O = functools.reduce(operator, I.bits())
+                value_store.set_value(self.O, O)
+
+            self.simulate = simulate
+    return Reduce
+
+
+_OP_MAP = {
+    operator.and_: _reduce_factory("andr", operator.and_),
+    operator.or_: _reduce_factory("orr", operator.or_),
+    operator.xor: _reduce_factory("xorr", operator.xor)
+}
+
+
+def reduce(operator, bits: Bits):
+    if not isinstance(bits, Bits):
+        raise TypeError("m.reduce only works with Bits")
+    if operator not in _OP_MAP:
+        raise ValueError(f"{operator} not supported")
+    return _OP_MAP[operator](len(bits))()(bits)

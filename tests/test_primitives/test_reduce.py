@@ -10,13 +10,18 @@ from magma.simulator import PythonSimulator
 import fault
 
 
-@pytest.mark.parametrize('op', [operator.and_, operator.or_, operator.xor])
-def test_reduce(op):
+@pytest.mark.parametrize('op, method', [
+    (operator.and_, "andR"),
+    (operator.or_, "orR"),
+    (operator.xor, "xorR")
+])
+def test_reduce(op, method):
     class test_reduce(m.Circuit):
         name = f"test_reduce_{op.__name__}"
-        io = m.IO(I=m.In(m.Bits[5]), O=m.Out(m.Bit))
+        io = m.IO(I=m.In(m.Bits[5]), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 
-        io.O @= m.reduce(op, io.I)
+        io.O0 @= m.reduce(op, io.I)
+        io.O1 @= getattr(io.I, method)()
 
     m.compile(f'build/test_reduce_{op.__name__}', test_reduce, inline=True)
 
@@ -33,11 +38,15 @@ def test_reduce(op):
     sim.evaluate()
 
     if op == operator.and_:
-        tester.circuit.O.expect(0)
-        assert sim.get_value(test_reduce.O) == 0
+        tester.circuit.O0.expect(0)
+        tester.circuit.O1.expect(0)
+        assert sim.get_value(test_reduce.O0) == 0
+        assert sim.get_value(test_reduce.O1) == 0
     else:
-        tester.circuit.O.expect(1)
-        assert sim.get_value(test_reduce.O) == 1
+        tester.circuit.O0.expect(1)
+        tester.circuit.O1.expect(1)
+        assert sim.get_value(test_reduce.O0) == 1
+        assert sim.get_value(test_reduce.O1) == 1
 
     tester.circuit.I = (1 << 5) - 1
     sim.set_value(test_reduce.I, (1 << 5) - 1)
@@ -45,8 +54,10 @@ def test_reduce(op):
     tester.eval()
     sim.evaluate()
 
-    tester.circuit.O.expect(1)
-    assert sim.get_value(test_reduce.O) == 1
+    tester.circuit.O0.expect(1)
+    tester.circuit.O1.expect(1)
+    assert sim.get_value(test_reduce.O0) == 1
+    assert sim.get_value(test_reduce.O1) == 1
 
     tester.circuit.I = 0
     sim.set_value(test_reduce.I, 0)
@@ -54,8 +65,10 @@ def test_reduce(op):
     tester.eval()
     sim.evaluate()
 
-    tester.circuit.O.expect(0)
-    assert sim.get_value(test_reduce.O) == 0
+    tester.circuit.O0.expect(0)
+    tester.circuit.O1.expect(0)
+    assert sim.get_value(test_reduce.O0) == 0
+    assert sim.get_value(test_reduce.O1) == 0
 
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
