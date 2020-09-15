@@ -522,6 +522,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def wire(self, other, debug_info):
         if isinstance(other, Bits):
             super().wire(other, debug_info)
+            return
         if not isinstance(other, _SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
         evaluated, resolved = _eval(self, other)
