@@ -24,7 +24,7 @@ def _gen_bind_port(cls, mon_arg, bind_arg):
         return result
     port = value_to_verilog_name(mon_arg, False)
     disable_ndarray = False
-    if (isinstance(mon_arg, Array) and bind_arg.name.root() is not None):
+    if isinstance(mon_arg, Array) and bind_arg.name.root() is not None:
         # Disable NDArray logic for temporary since CoreIR Wire primitive (used
         # for temporaries) does not support ndarrays yet (root() is not None
         # for Named temporary values)
