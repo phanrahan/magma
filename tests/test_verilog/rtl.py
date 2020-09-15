@@ -38,6 +38,12 @@ endmodule
             temp1 = orr()(io.in1)
             temp2 = andr()(io.in1)
             intermediate_tuple = m.tuple_([temp1, temp2])
+            intermediate_ndarr = m.Array[(3, 2), m.Bit](
+                name="intermediate_ndarr"
+            )
+            for i in range(3):
+                for j in range(2):
+                    intermediate_ndarr[i, j] @= io.ndarr[j, i]
             temp3 = m.Bit(name="temp3")
             temp3 @= temp2
             temp3.unused()
