@@ -246,7 +246,7 @@ def test_enable_reg():
      # (ht.UIntVector[3](3), m.UInt[3]),
      # (ht.SIntVector[3](-3), m.SInt[3]),
      (ht.UIntVector[3](5), m.UInt[3]),
-     (ht.SIntVector[3](-7), m.SInt[3]),
+     (ht.SIntVector[3](-2), m.SInt[3]),
      (ht.BitVector[3](2), m.Bits[3])])
 def test_reg_infer_init(init, expected_T):
     Circuit = Register(init=init)
