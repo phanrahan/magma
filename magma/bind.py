@@ -36,7 +36,6 @@ def _wire_temp(bind_arg, temp):
         bind_arg = bind_arg.value()
         if bind_arg is None:
             raise ValueError("Cannot bind undriven input")
-    assert bind_arg.is_output()
     wire(bind_arg, temp)
 
 
