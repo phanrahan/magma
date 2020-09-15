@@ -117,8 +117,8 @@ def _make_wires(value, wired):
         return ""
     if not driver.iswhole():
         return "".join(_make_wires(v, wired) for v in value)
-    while driver is not None and driver.name.anon() and not driver.is_output():
-        driver = driver.value()  # skip anon values
+    while driver is not None and driver.is_driven_anon_temporary():
+        driver = driver.value()
     s = ""
     while driver is not None:
         if (driver, value) in wired:

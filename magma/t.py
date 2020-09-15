@@ -124,6 +124,13 @@ class Type(object):
         # `undriven` on its members.
         raise NotImplementedError()
 
+    def is_driven_anon_temporary(self):
+        """
+        Returns true if this is an anonymous temporary value (not an output)
+        that is driven
+        """
+        return self.name.anon() and not self.is_output() and self.driven()
+
 
 class Kind(type):
     # Subclasses only need to implement one of these methods.
