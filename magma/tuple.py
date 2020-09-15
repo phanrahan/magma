@@ -19,6 +19,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.wire_container import WiringLog
+from magma.wire import wire
 
 
 _logger = root_logger()
@@ -259,10 +260,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         for i_elem, o_elem in zip(i, o):
             i_elem = magma_value(i_elem)
             o_elem = magma_value(o_elem)
-            if o_elem.is_input():
-                o_elem.wire(i_elem, debug_info)
-            else:
-                i_elem.wire(o_elem, debug_info)
+            wire(o_elem, i_elem, debug_info)
 
     def unwire(i, o):
         for i_elem, o_elem in zip(i, o):

@@ -106,7 +106,7 @@ class Wire:
         return None
 
     def driven(self):
-        return self.trace() is not None
+        return self._driver is not None
 
     def wired(self):
         return self._driver or self._driving

@@ -55,21 +55,19 @@ module Test2 (
     output [15:0] O,
     input CLK
 );
-wire [15:0] Mux2xOutSInt16_inst0_O;
 wire [15:0] Register_inst0_O;
 wire [15:0] magma_Bits_16_add_inst0_out;
 Mux2xOutSInt16 Mux2xOutSInt16_inst0 (
     .I0(Register_inst0_O),
     .I1(magma_Bits_16_add_inst0_out),
     .S(sel),
-    .O(Mux2xOutSInt16_inst0_O)
+    .O(O)
 );
 Register Register_inst0 (
-    .I(Mux2xOutSInt16_inst0_O),
+    .I(O),
     .O(Register_inst0_O),
     .CLK(CLK)
 );
 assign magma_Bits_16_add_inst0_out = 16'(Register_inst0_O + 16'h0001);
-assign O = Mux2xOutSInt16_inst0_O;
 endmodule
 

@@ -19,7 +19,7 @@ module corebit_term (
 
 endmodule
 
-module RTLMonitor (
+module foo_RTLMonitor (
     input CLK,
     input handshake_arr_0_ready,
     input handshake_arr_0_valid,
@@ -32,10 +32,13 @@ module RTLMonitor (
     input [3:0] in1,
     input [3:0] in2,
     input [3:0] inst_input,
+    input [2:0] intermediate_ndarr [1:0],
     input intermediate_tuple__0,
     input intermediate_tuple__1,
     input mon_temp1,
     input mon_temp2,
+    input mon_temp3,
+    input [1:0] ndarr [2:0],
     input out
 );
 wire _magma_inline_wire0;
@@ -57,12 +60,14 @@ assign temp3 = temp1 ^ temp2 & _magma_inline_wire0;
 assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);
 logic [3:0] temp4 [1:0];
 assign temp4 = '{_magma_inline_wire1, _magma_inline_wire2};
-always @(*) $display("%x", inst_input);
+always @(*) $display("%x", inst_input & {4{mon_temp3}});
+logic temp5;
+assign temp5 = intermediate_ndarr[1][1];
                                    
 endmodule
 
 
-bind RTL RTLMonitor RTLMonitor_inst (
+bind foo_RTL foo_RTLMonitor foo_RTLMonitor_inst (
     .CLK(CLK),
     .in1(in1),
     .in2(in2),
@@ -75,9 +80,12 @@ bind RTL RTLMonitor RTLMonitor_inst (
     .handshake_arr_1_valid(handshake_arr_1_valid),
     .handshake_arr_2_ready(handshake_arr_2_ready),
     .handshake_arr_2_valid(handshake_arr_2_valid),
+    .ndarr(ndarr),
     .mon_temp1(_magma_bind_wire_0),
     .mon_temp2(_magma_bind_wire_1),
     .intermediate_tuple__0(_magma_bind_wire_2_0),
     .intermediate_tuple__1(_magma_bind_wire_2_1),
-    .inst_input(_magma_bind_wire_3)
+    .inst_input(_magma_bind_wire_3),
+    .mon_temp3(_magma_bind_wire_4),
+    .intermediate_ndarr('{_magma_bind_wire_5_1, _magma_bind_wire_5_0})
 );

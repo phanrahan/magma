@@ -47,9 +47,8 @@ module Register (
     input ASYNCRESET
 );
 wire [2:0] enable_mux_O;
-wire [2:0] reg_PR_inst0_out;
 Mux2xUInt3 enable_mux (
-    .I0(reg_PR_inst0_out),
+    .I0(O),
     .I1(I),
     .S(CE),
     .O(enable_mux_O)
@@ -63,9 +62,8 @@ coreir_reg_arst #(
     .clk(CLK),
     .arst(ASYNCRESET),
     .in(enable_mux_O),
-    .out(reg_PR_inst0_out)
+    .out(O)
 );
-assign O = reg_PR_inst0_out;
 endmodule
 
 module Test2 (

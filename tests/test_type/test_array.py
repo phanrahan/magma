@@ -1,3 +1,6 @@
+from hwtypes import BitVector
+import magma as m
+
 from magma import *
 import pytest
 
@@ -174,7 +177,8 @@ def test_wire():
     assert a0.wired()
     assert a1.wired()
 
-    assert a1.driven() is False, "Not driven by an input"
+    assert a0.driven() is False, "Not driven by an input"
+    assert a1.driven() is True, "Driven by a1"
 
     assert a0.trace() is None, "Cannot trace to input"
     assert a1.trace() is None, "Cannot trace to input"
@@ -190,3 +194,10 @@ def test_wire():
     assert b0 is b1._wire.driver.bit
     assert b1 is b0._wire.driving()[0]
     assert b1.value() is b0
+
+
+def test_array_bv_index():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[4]), O=m.Out(m.Bit))
+        io.O @= io.I[BitVector[2](3)]
+        assert io.O.value() is io.I[3]

@@ -49,9 +49,10 @@ The
 a set of [Jupyter
 Notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/tutorial)
 that introduce the system. There's also
-[magma_tutorial](https://github.com/leonardt/magma_tutorial) which contains a
-set of basic circuits and tests, providing an example template for a magma
-project.  Please also refer to the
+[magma_examples](https://github.com/leonardt/magma_examples) and
+[magma_tutorial](https://github.com/leonardt/magma_tutorial) which contain a
+set of basic circuits and tests, providing an example templates for a magma
+projects.  Please also refer to the
 [documentation](http://magma.readthedocs.io/).
 
 The design of Magma was heavily influenced by 

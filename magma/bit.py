@@ -33,6 +33,9 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
     return wrapped
 
 
+_IMPLICITLY_COERCED_ITE_TYPES = (int, ht.BitVector, ht.Bit)
+
+
 class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     __hash__ = Digital.__hash__
 
@@ -142,14 +145,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         f_type = type(f_branch)
 
         # Implicit int/bv conversion
-        if (issubclass(t_type, (int, ht.BitVector)) and
-                not issubclass(f_type, (int, ht.BitVector))):
+        if (issubclass(t_type, _IMPLICITLY_COERCED_ITE_TYPES) and
+                not issubclass(f_type, _IMPLICITLY_COERCED_ITE_TYPES)):
             t_branch = f_type(t_branch)
             t_type = f_type
-        if (not issubclass(t_type, (int, ht.BitVector)) and
-                issubclass(f_type, (int, ht.BitVector))):
-            t_branch = f_type(t_branch)
-            f_branch = t_type(t_branch)
+        if (not issubclass(t_type, _IMPLICITLY_COERCED_ITE_TYPES) and
+                issubclass(f_type, _IMPLICITLY_COERCED_ITE_TYPES)):
+            f_branch = t_type(f_branch)
             f_type = t_type
 
         # allows undirected types to match (e.g. for temporary values)

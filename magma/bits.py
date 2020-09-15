@@ -5,6 +5,7 @@ m.Bits[N] is roughly equivalent ot m.Array[N, T]
 """
 import operator
 from functools import lru_cache, wraps
+import functools
 import typing as tp
 import hwtypes as ht
 from hwtypes import BitVector
@@ -21,6 +22,7 @@ from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
+from magma.generator import Generator2
 
 
 _logger = root_logger()
@@ -409,6 +411,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rand__(self, other):
+        return self & other
+
     def __or__(self, other):
         try:
             return self.bvor(other)
@@ -416,6 +421,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def __ror__(self, other):
+        return self | other
 
     def __xor__(self, other):
         try:
@@ -425,6 +433,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rxor__(self, other):
+        return self ^ other
+
     def __lshift__(self, other):
         try:
             return self.bvshl(other)
@@ -433,6 +444,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rlshift__(self, other):
+        return type(self)(other) << self
+
     def __rshift__(self, other):
         try:
             return self.bvlshr(other)
@@ -440,6 +454,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def __rrshift__(self, other):
+        return type(self)(other) >> self
 
     def __eq__(self, other):
         try:
@@ -468,6 +485,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __radd__(self, other):
+        return self + other
+
     def __sub__(self, other):
         try:
             return self.bvsub(other)
@@ -476,6 +496,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         except TypeError:
             return NotImplemented
 
+    def __rsub__(self, other):
+        return type(self)(other) - self
+
     def __mul__(self, other):
         try:
             return self.bvmul(other)
@@ -483,6 +506,9 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             raise e from None
         except TypeError:
             return NotImplemented
+
+    def __rmul__(self, other):
+        return self * other
 
     @classmethod
     def get_family(cls):
@@ -517,6 +543,15 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return (self >> index)[0]
         return super().__getitem__(index)
 
+    def reduce_or(self):
+        return reduce(operator.or_, self)
+
+    def reduce_xor(self):
+        return reduce(operator.xor, self)
+
+    def reduce_and(self):
+        return reduce(operator.and_, self)
+
 
 def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
@@ -542,7 +577,21 @@ DefineUnused = make_Define("term", "I", In)
 BitsType = Bits
 
 
-class UInt(Bits):
+class Int(Bits):
+    """
+    Defines shared right-hand operators for UInt/SInt
+    """
+    def __rfloordiv__(self, other):
+        return type(self)(other) // self
+
+    def __rtruediv__(self, other):
+        return type(self)(other) / self
+
+    def __rmod__(self, other):
+        return type(self)(other) % self
+
+
+class UInt(Int):
     hwtypes_T = ht.UIntVector
 
     def __repr__(self):
@@ -610,7 +659,7 @@ class UInt(Bits):
             return NotImplemented
 
 
-class SInt(Bits):
+class SInt(Int):
     hwtypes_T = ht.SIntVector
 
     def __init__(self, *args, **kwargs):
@@ -756,5 +805,41 @@ class SInt(Bits):
 
     def __int__(self):
         if not self.const():
-            raise Exception("Can't call __int__ on a non-constant")
+            raise TypeError("Can't call __int__ on a non-constant")
         return BitVector[len(self)](self.bits()).as_int()
+
+
+def _reduce_factory(coreir_name, operator):
+    class Reduce(Generator2):
+        def __init__(self, width: int):
+            self.io = IO(I=In(Bits[width]), O=Out(Bit))
+            self.coreir_lib = "coreir"
+            self.coreir_name = coreir_name
+            self.name = f"coreir_{coreir_name}_{width}"
+            self.coreir_genargs = {"width": width}
+            self.renamed_ports = coreir_port_mapping
+            self.primitive = True
+            self.stateful = False
+
+            def simulate(self, value_store, state_store):
+                I = BitVector[width](value_store.get_value(self.I))
+                O = functools.reduce(operator, I.bits())
+                value_store.set_value(self.O, O)
+
+            self.simulate = simulate
+    return Reduce
+
+
+_OP_MAP = {
+    operator.and_: _reduce_factory("andr", operator.and_),
+    operator.or_: _reduce_factory("orr", operator.or_),
+    operator.xor: _reduce_factory("xorr", operator.xor)
+}
+
+
+def reduce(operator, bits: Bits):
+    if not isinstance(bits, Bits):
+        raise TypeError("m.reduce only works with Bits")
+    if operator not in _OP_MAP:
+        raise ValueError(f"{operator} not supported")
+    return _OP_MAP[operator](len(bits))()(bits)

@@ -75,7 +75,7 @@ class Enable(_ClockType, metaclass=DigitalMeta):
 EnableIn = Enable[Direction.In]
 EnableOut = Enable[Direction.Out]
 
-ClockTypes = (Clock, Reset, AsyncReset, AsyncResetN, Enable)
+ClockTypes = (Clock, Reset, ResetN, AsyncReset, AsyncResetN, Enable)
 
 
 def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
@@ -108,8 +108,11 @@ def wire_clock_port(port, clocktype, defnclk):
         # Python, so we explicilty slice port.ts
         for t in port.ts[1:]:
             for elem in port[1:]:
-              wire_clock_port(elem, clocktype, defnclk)
-    elif isinstance(port, clocktype) and not port.driven():
+                wire_clock_port(elem, clocktype, defnclk)
+    elif isinstance(port, clocktype) and port.trace() is None:
+        # Trace to last undriven driver
+        while port.driven():
+            port = port.value()
         wire(defnclk, port)
         wired = True
     return wired

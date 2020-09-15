@@ -40,31 +40,23 @@ module Main (
     output O1,
     output O2
 );
-wire bit_const_0_None_out;
-wire bit_const_1_None_out;
-wire [1:0] const_1_2_out;
-wire [1:0] const_2_2_out;
 Mux2xBit Mux2xBit_inst0 (
-    .I0(bit_const_0_None_out),
-    .I1(bit_const_1_None_out),
+    .I0(1'b0),
+    .I1(1'b1),
     .S(s),
     .O(O1)
 );
 Mux2xBit Mux2xBit_inst1 (
-    .I0(bit_const_0_None_out),
-    .I1(bit_const_1_None_out),
+    .I0(1'b0),
+    .I1(1'b1),
     .S(s),
     .O(O2)
 );
 Mux2xBits2 Mux2xBits2_inst0 (
-    .I0(const_1_2_out),
-    .I1(const_2_2_out),
+    .I0(2'h1),
+    .I1(2'h2),
     .S(s),
     .O(O0)
 );
-assign bit_const_0_None_out = 1'b0;
-assign bit_const_1_None_out = 1'b1;
-assign const_1_2_out = 2'h1;
-assign const_2_2_out = 2'h2;
 endmodule
 

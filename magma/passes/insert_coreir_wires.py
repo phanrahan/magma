@@ -1,6 +1,7 @@
 from ..array import Array
 from magma.bit import Bit
 from ..bits import Bits
+from ..clock import AsyncReset, AsyncResetN, Clock
 from ..circuit import coreir_port_mapping
 from ..conversions import as_bits, from_bits
 from ..digital import Digital
@@ -25,8 +26,9 @@ class Wire(Generator2):
         if issubclass(T, Digital):
             coreir_lib = "corebit"
             coreir_genargs = None
-            # Convert to bit so we wrap named types like clock if necessary
-            T = Bit
+            if issubclass(T, (AsyncReset, AsyncResetN, Clock)):
+                # Convert to bit so we wrap named types like clock if necessary
+                T = Bit
         else:
             width = T.flat_length()
             T = Bits[width]
@@ -108,8 +110,7 @@ class InsertCoreIRWires(DefinitionPass):
             return  # undriven value, skip wire insertion
         driver = value.value()
 
-        while (driver is not None and driver.name.anon() and
-               not driver.is_output()):
+        while driver is not None and driver.is_driven_anon_temporary():
             value, driver = driver, driver.value()
 
         descend = (isinstance(driver, (Array, Tuple)) and
@@ -119,7 +120,8 @@ class InsertCoreIRWires(DefinitionPass):
                 self._insert_wire(child, definition)
             return
 
-        if driver is None or driver.is_output() or driver.is_inout():
+        if (driver is None or driver.is_output() or driver.is_inout() or
+                driver.name.anon()):
             return
 
         if isinstance(driver.name, PortViewRef):

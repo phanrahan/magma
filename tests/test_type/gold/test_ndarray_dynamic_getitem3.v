@@ -67,33 +67,25 @@ module Mux4xArray2_Array3_Array2_OutBit (
     input [1:0] S,
     output [1:0] O [1:0][2:0]
 );
-reg [11:0] coreir_commonlib_mux4x12_inst0_out;
-wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_0;
-wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_1;
-wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_2;
-wire [11:0] coreir_commonlib_mux4x12_inst0_in_data_3;
+reg [11:0] coreir_commonlib_mux4x12_inst0_out_unq1;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_0;
+    coreir_commonlib_mux4x12_inst0_out_unq1 = {I0[1][2][1:0],I0[1][1][1:0],I0[1][0][1:0],I0[0][2][1:0],I0[0][1][1:0],I0[0][0][1:0]};
 end else if (S == 1) begin
-    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_1;
+    coreir_commonlib_mux4x12_inst0_out_unq1 = {I1[1][2][1:0],I1[1][1][1:0],I1[1][0][1:0],I1[0][2][1:0],I1[0][1][1:0],I1[0][0][1:0]};
 end else if (S == 2) begin
-    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_2;
+    coreir_commonlib_mux4x12_inst0_out_unq1 = {I2[1][2][1:0],I2[1][1][1:0],I2[1][0][1:0],I2[0][2][1:0],I2[0][1][1:0],I2[0][0][1:0]};
 end else begin
-    coreir_commonlib_mux4x12_inst0_out = coreir_commonlib_mux4x12_inst0_in_data_3;
+    coreir_commonlib_mux4x12_inst0_out_unq1 = {I3[1][2][1:0],I3[1][1][1:0],I3[1][0][1:0],I3[0][2][1:0],I3[0][1][1:0],I3[0][0][1:0]};
 end
 end
 
-assign coreir_commonlib_mux4x12_inst0_in_data_0 = {I0[1][2][1:0],I0[1][1][1:0],I0[1][0][1:0],I0[0][2][1:0],I0[0][1][1:0],I0[0][0][1:0]};
-assign coreir_commonlib_mux4x12_inst0_in_data_1 = {I1[1][2][1:0],I1[1][1][1:0],I1[1][0][1:0],I1[0][2][1:0],I1[0][1][1:0],I1[0][0][1:0]};
-assign coreir_commonlib_mux4x12_inst0_in_data_2 = {I2[1][2][1:0],I2[1][1][1:0],I2[1][0][1:0],I2[0][2][1:0],I2[0][1][1:0],I2[0][0][1:0]};
-assign coreir_commonlib_mux4x12_inst0_in_data_3 = {I3[1][2][1:0],I3[1][1][1:0],I3[1][0][1:0],I3[0][2][1:0],I3[0][1][1:0],I3[0][0][1:0]};
-assign O[1][2] = coreir_commonlib_mux4x12_inst0_out[11:10];
-assign O[1][1] = coreir_commonlib_mux4x12_inst0_out[9:8];
-assign O[1][0] = coreir_commonlib_mux4x12_inst0_out[7:6];
-assign O[0][2] = coreir_commonlib_mux4x12_inst0_out[5:4];
-assign O[0][1] = coreir_commonlib_mux4x12_inst0_out[3:2];
-assign O[0][0] = coreir_commonlib_mux4x12_inst0_out[1:0];
+assign O[1][2] = coreir_commonlib_mux4x12_inst0_out_unq1[11:10];
+assign O[1][1] = coreir_commonlib_mux4x12_inst0_out_unq1[9:8];
+assign O[1][0] = coreir_commonlib_mux4x12_inst0_out_unq1[7:6];
+assign O[0][2] = coreir_commonlib_mux4x12_inst0_out_unq1[5:4];
+assign O[0][1] = coreir_commonlib_mux4x12_inst0_out_unq1[3:2];
+assign O[0][0] = coreir_commonlib_mux4x12_inst0_out_unq1[1:0];
 endmodule
 
 module Main (

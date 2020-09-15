@@ -10,7 +10,8 @@ def test_mux_of_ints():
         with pytest.raises(TypeError) as e:
             m.mux([1, 2], io.S)
         assert str(e.value) == f"""\
-Cannot use m.mux with non-magma types (need at least one to infer type)\
+Could not infer mux type from [1, 2]
+Need at least one magma value, BitVector, bool or tuple\
 """
 
 

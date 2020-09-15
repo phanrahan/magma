@@ -15,7 +15,7 @@ from .digital import Digital
 from .tuple import Tuple, Product
 from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
-import hwtypes
+import hwtypes as ht
 
 __all__ = ['bit']
 __all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
@@ -26,7 +26,7 @@ __all__ += ['bits', 'uint', 'sint']
 __all__ += ['tuple_', 'namedtuple']
 
 __all__ += ['concat', 'repeat']
-__all__ += ['sext', 'zext']
+__all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
 __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
 
@@ -106,7 +106,7 @@ def convertbits(value, n, totype, checkbit):
 
     value = magma_value(value)
     convertible_types = (Digital, Tuple, Array, IntegerTypes,
-                         Sequence, hwtypes.BitVector)
+                         Sequence, ht.BitVector)
     if not isinstance(value, convertible_types):
         raise ValueError(
             "bits can only be used on a Bit, an Array, a Tuple, an int, or a"
@@ -117,7 +117,7 @@ def convertbits(value, n, totype, checkbit):
         if n is None:
             n = max(value.bit_length(), 1)
         ts = int2seq(value, n)
-    elif isinstance(value, hwtypes.BitVector):
+    elif isinstance(value, ht.BitVector):
         ts = value.bits()
     elif isinstance(value, Sequence):
         ts = list(value)
@@ -194,11 +194,18 @@ def bfloat(value, n=None):
 def concat(*arrays):
     ts = []
     for a in arrays:
-        if isinstance(a, hwtypes.BitVector):
+        if isinstance(a, ht.BitVector):
             ts.extend(a.bits())
         elif isinstance(magma_value(a), Bit):
             ts.extend([a])
+        elif isinstance(a, (bool, ht.Bit)):
+            ts.extend([Bit(a)])
         else:
+            if not isinstance(a, Array):
+                raise TypeError(
+                    "concat expects values of type Array, BitVector, Bit, or "
+                    f"bool, not {a} with type {type(a)}"
+                )
             ts.extend(a.ts)
     return array(ts)
 
@@ -222,6 +229,7 @@ def check_value_is_not_input(fn):
 
 # @check_value_is_not_input
 def zext(value, n):
+    """Extend `value` by `n` zeros"""
     assert isinstance(value, (UInt, SInt, Bits)) or \
         isinstance(value, Array) and issubclass(value.T, Digital)
     if isinstance(value, UInt):
@@ -242,10 +250,31 @@ def zext(value, n):
     return result
 
 
+def zext_by(value, n):
+    """Extend `value` by `n` zeros"""
+    return zext(value, n)
+
+
+def zext_to(value, n):
+    """Extend `value` to length `n` with zeros"""
+    return zext(value, n - len(value))
+
+
 # @check_value_is_not_input
 def sext(value, n):
+    """Extend `value` by `n` replications of the msb (`value[-1]`)"""
     assert isinstance(value, SInt)
     return sint(concat(array(value), array([value[-1]] * n)))
+
+
+def sext_by(value, n):
+    """Extend `value` by `n` replications of the msb (`value[-1]`)"""
+    return sext(value, n)
+
+
+def sext_to(value, n):
+    """Extend `value` to length `n` by replicating the msb (`value[-1]`)"""
+    return sext(value, n - len(value))
 
 
 from .bitutils import int2seq
@@ -290,11 +319,13 @@ def _tuple(value, n=None, t=Tuple):
             decl[k] = type(v)
     for a, d in zip(args, decl):
         # bool types to Bit
-        if decl[d] is bool:
+        if issubclass(decl[d], (bool, ht.Bit)):
             decl[d] = Digital
         # Promote integer types to Bits
         elif decl[d] in IntegerTypes:
             decl[d] = Bits[max(a.bit_length(), 1)]
+        elif issubclass(decl[d], ht.BitVector):
+            decl[d] = Bits[len(decl[d])]
 
     if t == Tuple:
         return t[tuple(decl.values())](*args)

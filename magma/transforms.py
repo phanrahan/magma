@@ -166,7 +166,7 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
     # Trace back from origbit to its source, tracking bits that will be "collapsed"
     new_circuit = flattened_circuit.circuit
 
-    sourcebit = origbit.value()
+    sourcebit = origbit.trace()
     if sourcebit is None:
         if isinstance(origbit, Array):
             # TODO: Raise an exception for now, can we handle this case silently (ignore unwired ports)?

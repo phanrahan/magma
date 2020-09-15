@@ -234,7 +234,7 @@ class DefinitionTransformer(TransformerBase):
                 {"str": inline_verilog,
                  "connect_references": connect_references}
             ))
-        for name, module in self.defn.bind_modules.items():
+        for name, module in self.defn.compiled_bind_modules.items():
             self.backend.sv_bind_files[name] = module
 
         self.coreir_module.definition = self.get_coreir_defn()
@@ -320,7 +320,7 @@ class DefinitionTransformer(TransformerBase):
             if not clock_wired:
                 # No default clock
                 return
-            value = port.value()
+            value = port.trace()
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.

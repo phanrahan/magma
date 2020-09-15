@@ -1,4 +1,6 @@
 import os
+from hwtypes import BitVector
+import hwtypes as ht
 
 import magma as m
 from magma.testing import check_files_equal
@@ -174,3 +176,47 @@ def test_mux_operator_int():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_mux_operator_tuple():
+    class test_mux_operator_tuple(m.Circuit):
+        io = m.IO(S=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bits[2]),
+                  O2=m.Out(m.Bit))
+        O0, O1, O2 = m.mux([
+            (True, BitVector[2](3), ht.Bit(0)),
+            (False, BitVector[2](0), ht.Bit(1))
+        ], io.S)
+        io.O0 @= O0
+        io.O1 @= O1
+        io.O2 @= O2
+
+    m.compile("build/test_mux_operator_tuple", test_mux_operator_tuple)
+
+    tester = fault.Tester(test_mux_operator_tuple)
+    tester.circuit.S = 0
+    tester.eval()
+    tester.circuit.O0.expect(1)
+    tester.circuit.O1.expect(3)
+    tester.circuit.O2.expect(0)
+    tester.circuit.S = 1
+    tester.eval()
+    tester.circuit.O0.expect(0)
+    tester.circuit.O1.expect(0)
+    tester.circuit.O2.expect(1)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+
+
+def test_mux_tuple_wire():
+    default = (BitVector.random(3), BitVector.random(5))
+    inst_map = {
+        0: (BitVector.random(3), BitVector.random(5)),
+        1: (BitVector.random(3), BitVector.random(5)),
+    }
+
+    class Main(m.Circuit):
+        io = m.IO(inst=m.In(m.Bit))
+        ctrl_signals = default
+        for inst, signals in reversed(tuple(inst_map.items())):
+            ctrl_signals = m.mux([ctrl_signals, signals], io.inst == inst)

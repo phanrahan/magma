@@ -35,6 +35,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --disable-width-cast"
     if opts.get("disable_ndarray", False):
         cmd += " --disable-ndarray"
+    if opts.get("verilator_compat", False):
+        cmd += " --verilator_compat"
     return cmd
 
 
@@ -42,7 +44,11 @@ def _make_opts(backend, opts):
     out = {}
     user_namespace = opts.get("user_namespace", None)
     if user_namespace is not None:
-        out["user_namespace"] = backend.context.new_namespace(user_namespace)
+        if backend.context.has_namespace(user_namespace):
+            user_namespace = backend.context.get_namespace(user_namespace)
+        else:
+            user_namespace = backend.context.new_namespace(user_namespace)
+        out["user_namespace"] = user_namespace
     return out
 
 

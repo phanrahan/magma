@@ -7,7 +7,7 @@ from magma.digital import Digital
 from magma.passes.passes import CircuitPass
 from magma.passes.insert_coreir_wires import Wire
 from magma.tuple import Tuple
-from magma.verilog_utils import value_to_verilog_name
+from magma.verilog_utils import value_to_verilog_name, is_nd_array
 from magma.t import Direction
 from magma.conversions import from_bits, as_bits
 from magma.view import PortView, InstView
@@ -16,14 +16,20 @@ from magma.inline_verilog import _get_view_inst_parent
 
 
 def _gen_bind_port(cls, mon_arg, bind_arg):
-    if isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and \
-            not issubclass(mon_arg.T, Digital):
+    if (isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and not
+            is_nd_array(type(mon_arg))):
         result = []
         for child1, child2 in zip(mon_arg, bind_arg):
             result += _gen_bind_port(cls, child1, child2)
         return result
-    port = value_to_verilog_name(mon_arg)
-    arg = value_to_verilog_name(bind_arg)
+    port = value_to_verilog_name(mon_arg, False)
+    disable_ndarray = False
+    if isinstance(mon_arg, Array) and bind_arg.name.root() is not None:
+        # Disable NDArray logic for temporary since CoreIR Wire primitive (used
+        # for temporaries) does not support ndarrays yet (root() is not None
+        # for Named temporary values)
+        disable_ndarray = True
+    arg = value_to_verilog_name(bind_arg, disable_ndarray)
     return [(f".{port}({arg})")]
 
 
@@ -36,11 +42,10 @@ def _wire_temp(bind_arg, temp):
         bind_arg = bind_arg.value()
         if bind_arg is None:
             raise ValueError("Cannot bind undriven input")
-    assert bind_arg.is_output()
     wire(bind_arg, temp)
 
 
-def _bind(cls, monitor, compile_fn, *args):
+def _bind(cls, monitor, compile_fn, user_namespace, *args):
     bind_str = monitor.verilogFile
     ports = []
     for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
@@ -83,30 +88,32 @@ Bind monitor interface does not match circuit interface
         bind_arg = temp
         ports += _gen_bind_port(cls, mon_arg, bind_arg)
     ports_str = ",\n    ".join(ports)
-    bind_str = f"bind {cls.name} {monitor.name} {monitor.name}_inst (\n    {ports_str}\n);"  # noqa
+    cls_name = cls.name
+    monitor_name = monitor.name
+    if user_namespace is not None:
+        cls_name = user_namespace + "_" + cls_name
+        monitor_name = user_namespace + "_" + monitor_name
+    bind_str = f"bind {cls_name} {monitor_name} {monitor_name}_inst (\n    {ports_str}\n);"  # noqa
     if not os.path.isdir(".magma"):
         os.mkdir(".magma")
     curr_compile_dir = get_compile_dir()
     set_compile_dir("normal")
     # Circular dependency, need coreir backend to compile, backend imports
     # circuit (for wrap casts logic, we might be able to factor that out).
-    compile_fn(f".magma/{monitor.name}", monitor, inline=True)
+    compile_fn(f".magma/{monitor.name}", monitor, inline=True,
+               user_namespace=user_namespace)
     set_compile_dir(curr_compile_dir)
     with open(f".magma/{monitor.name}.v", "r") as f:
         content = "\n".join((f.read(), bind_str))
-    cls.bind_modules[monitor.name] = content
+    cls.compiled_bind_modules[monitor.name] = content
 
 
 class BindPass(CircuitPass):
-    def __init__(self, main, compile_fn):
+    def __init__(self, main, compile_fn, user_namespace):
         super().__init__(main)
         self._compile_fn = compile_fn
+        self.user_namespace = user_namespace
 
     def __call__(self, cls):
-        if cls.bind_modules_bound:
-            return
-        bind_modules = cls.bind_modules.copy()
-        cls.bind_modules = {}
-        for monitor, args in bind_modules.items():
-            _bind(cls, monitor, self._compile_fn, *args)
-        cls.bind_modules_bound = True
+        for monitor, args in cls.bind_modules.items():
+            _bind(cls, monitor, self._compile_fn, self.user_namespace, *args)
