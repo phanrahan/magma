@@ -102,4 +102,4 @@ from .syntax.coroutine import coroutine
 from magma.primitives import (LUT, Mux, mux, Register, get_slice, set_slice,
                               slice, reduce, Memory)
 
-from magma.types import BitPattern
+from magma.types import BitPattern, Valid
