@@ -84,7 +84,9 @@ class _CoreIRRegister(Generator2):
 
 
 def _zero_init(T, init):
-    if issubclass(T, Array):
+    if issubclass(T, Bits):
+        return T(init)
+    elif issubclass(T, Array):
         return T([_zero_init(T.T, init) for _ in range(len(T))])
     elif issubclass(T, Tuple):
         return T(*(_zero_init(t, init) for t in T.types()))
@@ -189,17 +191,19 @@ class Register(Generator2):
         I = self.io.I
         if has_reset:
             reset_port = self.io.RESET
+            reset_args = [I, init]
         elif has_resetn:
             reset_port = self.io.RESETN
+            reset_args = [init, I]
         if (has_reset or has_resetn) and has_enable:
             if reset_priority:
                 I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
-                I = Mux(2, T)()(I, init, reset_port)
+                I = Mux(2, T)()(*reset_args, reset_port)
             else:
-                I = Mux(2, T)()(I, init, reset_port)
+                I = Mux(2, T)()(*reset_args, reset_port)
                 I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
         elif has_enable:
             I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
         elif (has_reset or has_resetn):
-            I = Mux(2, T)()(I, init, reset_port)
+            I = Mux(2, T)()(*reset_args, reset_port)
         reg.I @= as_bits(I)

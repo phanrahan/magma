@@ -251,3 +251,25 @@ def test_enable_reg():
 def test_reg_infer_init(init, expected_T):
     Circuit = Register(init=init)
     assert isinstance(Circuit.I, expected_T)
+
+
+def test_resetn():
+    class test_resetn(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        io += m.ClockIO(has_resetn=True)
+        io.O @= Register(init=0xDE, reset_type=m.ResetN)()(io.I)
+
+    m.compile("build/test_resetn", test_resetn)
+
+    tester = fault.SynchronousTester(test_resetn, test_resetn.CLK)
+    tester.circuit.I = 0
+    tester.circuit.RESETN = 1
+    tester.advance_cycle()
+    tester.circuit.O.expect(0)
+    tester.circuit.RESETN = 0
+    # Reset val
+    tester.advance_cycle()
+    tester.circuit.O.expect(0xDE)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
