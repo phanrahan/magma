@@ -134,15 +134,16 @@ class Register(Generator2):
                 raise ValueError("User must provide type T or init value (from"
                                  " which T will be inferred)")
             T = _get_T_from_init(init)
-        if not isinstance(T, Kind):
-            raise TypeError(
-                f"Expected instance of Kind for argument T, not {type(T)}")
-        if init is not None and not isinstance(init,
-                                               (Type, bool, int, ht.BitVector,
-                                                ht.Bit)):
-            raise TypeError(
-                "Expected instance of Type, bool, int, ht.BitVector, or Bit "
-                f"for argument init, not {type(init)}")
+        else:
+            if not isinstance(T, Kind):
+                raise TypeError(
+                    f"Expected instance of Kind for argument T, not {type(T)}")
+            if init is not None and not issubclass(_get_T_from_init(init), T):
+                raise ValueError(
+                    f"Type {_get_T_from_init(init)} of init ({init}) does not "
+                    f"match T ({T})"
+                )
+
         (
             has_async_reset, has_async_resetn, has_reset, has_resetn
         ) = get_reset_args(reset_type)
