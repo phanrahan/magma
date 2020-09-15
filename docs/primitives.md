@@ -82,6 +82,49 @@ for the 1st input, `I1` for the second...).  The select input will select
 the input value in ascending order (`S == 0` will select `I0`, `S == 1` will
 select `I1`, ...).
 
+## Dict and List Lookup
+`magma` provides the helper functions `dict_lookup` and `list_lookup` to
+facilitate mux generation for looking up values stored in a dictionary or list.
+
+Here are the interfaces to the functions:
+```python
+def dict_lookup(dict_, default, select):
+    """
+    Use `select` as an index into `dict` (similar to a case statement)
+
+    `default` is used when `select` does not match any of the keys.
+    """
+
+def list_lookup(list_, default, select):
+    """
+    Use `select` as an index into `list` (similar to a case statement)
+
+    `default` is used when `select` does not match any of the indices (e.g.
+    when the select width is longer than the list).
+    """
+```
+
+Here's examples of using them:
+```python
+class DictLookup(m.Circuit):
+    io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
+
+    dict_ = {
+        0: BitVector[5](0),
+        2: BitVector[5](2),
+        3: BitVector[5](3)
+    }
+    io.O @= m.dict_lookup(dict_, BitVector[5](1), io.S)
+
+
+class ListLookup(m.Circuit):
+    io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
+
+    list_ = [BitVector[5](0), BitVector[5](1), BitVector[5](2)]
+    io.O @= m.list_lookup(list_, BitVector[5](3), io.S)
+```
+
+
 ### LUT
 The `LUT(T, contents)` primitive creates a lookup table circuit programmed with
 `contents` (a tuple of values of type T).

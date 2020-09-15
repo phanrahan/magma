@@ -220,3 +220,47 @@ def test_mux_tuple_wire():
         ctrl_signals = default
         for inst, signals in reversed(tuple(inst_map.items())):
             ctrl_signals = m.mux([ctrl_signals, signals], io.inst == inst)
+
+
+def test_mux_dict_lookup():
+    class test_mux_dict_lookup(m.Circuit):
+        io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
+
+        dict_ = {
+            0: BitVector[5](0),
+            2: BitVector[5](2),
+            3: BitVector[5](3)
+        }
+        io.O @= m.dict_lookup(dict_, BitVector[5](1), io.S)
+
+    m.compile("build/test_mux_dict_lookup", test_mux_dict_lookup)
+
+    tester = fault.Tester(test_mux_dict_lookup)
+    for i in range(4):
+        tester.circuit.S = i
+        tester.eval()
+        tester.circuit.O.expect(i)
+    
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+
+
+def test_mux_list_lookup():
+    class test_mux_list_lookup(m.Circuit):
+        io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
+
+        list_ = [BitVector[5](0), BitVector[5](1), BitVector[5](2)]
+        io.O @= m.list_lookup(list_, BitVector[5](3), io.S)
+
+    m.compile("build/test_mux_list_lookup", test_mux_list_lookup)
+
+    tester = fault.Tester(test_mux_list_lookup)
+    for i in range(4):
+        tester.circuit.S = i
+        tester.eval()
+        tester.circuit.O.expect(i)
+    
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
