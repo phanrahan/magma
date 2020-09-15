@@ -5,7 +5,7 @@ import hwtypes as ht
 
 from magma.array import Array
 from magma.bit import Bit
-from magma.bits import Bits
+from magma.bits import Bits, UInt, SInt
 from magma.circuit import coreir_port_mapping
 from magma.conversions import as_bits, from_bits
 from magma.interface import IO
@@ -91,8 +91,41 @@ def _zero_init(T, init):
     return T(init)
 
 
+def _get_T_from_init(init):
+    if isinstance(init, (bool, ht.Bit)):
+        return Bit
+    if isinstance(init, int):
+        return Bits[max(init.bit_length(), 1)]
+    if isinstance(init, ht.UIntVector):
+        return UInt[len(init)]
+    if isinstance(init, ht.SIntVector):
+        return SInt[len(init)]
+    if isinstance(init, ht.BitVector):
+        return Bits[len(init)]
+    if isinstance(init, Type):
+        return type(init)
+    raise ValueError("Could not infer register type from {init}")
+
+
+def _check_init_T(init, T):
+    init_T = _get_T_from_init(init)
+    if isinstance(init, int) and issubclass(T, Bits):
+        # Allow int to be extended to width of T
+        if len(init_T) > len(T):
+            # Don't implicitly truncate
+            return False
+        return True
+    if isinstance(init, int) and issubclass(T, Bit):
+        # Allow int for bit
+        if len(init_T) > 1:
+            return False
+        return True
+    return issubclass(init_T, T) or issubclass(T, init_T)
+
+
 class Register(Generator2):
-    def __init__(self, T: Kind, init: Union[Type, int, ht.BitVector] = None,
+    def __init__(self, T: Kind = None,
+                 init: Union[Type, int, ht.BitVector] = None,
                  reset_type: AbstractReset = None, has_enable: bool = False,
                  reset_priority: bool = True):
         """
@@ -111,14 +144,21 @@ class Register(Generator2):
         reset_priority: (optional) boolean flag choosing whether synchronous
                         reset (RESET or RESETN) has priority over enable
         """
-        if not isinstance(T, Kind):
-            raise TypeError(
-                f"Expected instance of Kind for argument T, not {type(T)}")
-        if init is not None and not isinstance(init,
-                                               (Type, int, ht.BitVector)):
-            raise TypeError(
-                f"Expected instance of Type or int for argument init, not "
-                f"{type(init)}")
+        if T is None:
+            if init is None:
+                raise ValueError("User must provide type T or init value (from"
+                                 " which T will be inferred)")
+            T = _get_T_from_init(init)
+        else:
+            if not isinstance(T, Kind):
+                raise TypeError(
+                    f"Expected instance of Kind for argument T, not {type(T)}")
+            if init is not None and not _check_init_T(init, T):
+                raise ValueError(
+                    f"Type {_get_T_from_init(init)} of init ({init}) does not "
+                    f"match T ({T})"
+                )
+
         (
             has_async_reset, has_async_resetn, has_reset, has_resetn
         ) = get_reset_args(reset_type)

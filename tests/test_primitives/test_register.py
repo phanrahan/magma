@@ -237,3 +237,17 @@ def test_enable_reg():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+@pytest.mark.parametrize(
+    "init, expected_T",
+    [(3, m.Bits[2]), (True, m.Bit), (ht.Bit(True), m.Bit),
+     # These are blocked by https://github.com/leonardt/hwtypes/pull/140
+     # (ht.UIntVector[3](3), m.UInt[3]),
+     # (ht.SIntVector[3](-3), m.SInt[3]),
+     (ht.UIntVector[3](5), m.UInt[3]),
+     (ht.SIntVector[3](-2), m.SInt[3]),
+     (ht.BitVector[3](2), m.Bits[3])])
+def test_reg_infer_init(init, expected_T):
+    Circuit = Register(init=init)
+    assert isinstance(Circuit.I, expected_T)
