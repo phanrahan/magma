@@ -15,18 +15,23 @@ Here's a simple example:
 
 ```python
 class Main(m.Circuit):
-    io = m.IO(invert=m.In(m.Bit), O=m.Out(m.Bit))
+    io = m.IO(invert=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
     io += m.ClockIO()
     reg = m.Register(m.Bit)()
 
-    @m.inline_combinational()
+    O1 = m.Bit()
+
+    @m.inline_combinational(debug=True, file_name="inline_comb.py")
     def logic():
         if io.invert:
             reg.I @= ~reg.O
+            O1 @= ~reg.O
         else:
             reg.I @= reg.O
+            O1 @= reg.O
 
-    io.O @= reg.O
+    io.O0 @= reg.O
+    io.O1 @= O1
 ```
 
 Notice that the first 3 lines of `Main`'s definition are standard magma.
@@ -53,8 +58,10 @@ during the `inline_combinational` rewrite process:
    def logic():
        if io.invert:
            _auto_prefix_00 = ~reg.O
+           _auto_prefix_01 = ~reg.O
        else:
            _auto_prefix_00 = reg.O
+           _auto_prefix_01 = reg.O
        return _auto_prefix_00, _auto_prefix_01
    ```
 2. Run the standard combinational passes.  This removes the if statements by
@@ -64,9 +71,12 @@ during the `inline_combinational` rewrite process:
    @m.inline_combinational(debug=True, file_name='inline_comb.py')
    def logic():
        _auto_prefix_000 = ~reg.O
+       _auto_prefix_010 = ~reg.O
        _auto_prefix_001 = reg.O
+       _auto_prefix_011 = reg.O
        _auto_prefix_002 = __phi(io.invert, _auto_prefix_000, _auto_prefix_001)
-       __return_value0 = _auto_prefix_002
+       _auto_prefix_012 = __phi(io.invert, _auto_prefix_010, _auto_prefix_011)
+       __return_value0 = _auto_prefix_002, _auto_prefix_012
        return __return_value0
    ```
 
