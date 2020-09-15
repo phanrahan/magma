@@ -32,7 +32,7 @@ logic [{width-1}:0] temp4 [1:0];
 assign temp4 = {arr_2d};
 always @(*) $display("%x", {io.inst_input} & {{{width}{{{io.mon_temp3}}}}});
 logic temp5;
-assign temp5 = {io.intermediate_ndarr[1, 1]}
+assign temp5 = {io.intermediate_ndarr[1, 1]};
                                    """,
                                    valid=io.handshake.valid)
 

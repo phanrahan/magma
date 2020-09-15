@@ -15,15 +15,15 @@ module Main (
     input [1:0] arr,
     input CLK
 );
-wire _foo_prefix_0;
+wire _magma_inline_wire0;
 FF FF_inst0 (
     .I(I),
     .O(O),
     .CLK(CLK)
 );
-assign _foo_prefix_0 = O;
+assign _magma_inline_wire0 = O;
 
-assert property (@(posedge CLK) I |-> ##1 _foo_prefix_0);
+assert property (@(posedge CLK) I |-> ##1 _magma_inline_wire0);
 
 
 assert property (@(posedge CLK) arr[0] |-> ##1 arr[1]);
