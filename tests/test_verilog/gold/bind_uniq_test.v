@@ -111,40 +111,22 @@ corebit_term corebit_term_inst0 (
     .in(temp3)
 );
 corebit_term corebit_term_inst1 (
-    .in(ndarr[0][0])
-);
-corebit_term corebit_term_inst10 (
-    .in(_magma_bind_wire_2_1)
-);
-corebit_term corebit_term_inst11 (
-    .in(_magma_bind_wire_4)
-);
-corebit_term corebit_term_inst12 (
-    .in(coreir_wrapInClock_inst0_out)
-);
-corebit_term corebit_term_inst2 (
-    .in(ndarr[0][1])
-);
-corebit_term corebit_term_inst3 (
-    .in(ndarr[1][0])
-);
-corebit_term corebit_term_inst4 (
-    .in(ndarr[1][1])
-);
-corebit_term corebit_term_inst5 (
-    .in(ndarr[2][0])
-);
-corebit_term corebit_term_inst6 (
-    .in(ndarr[2][1])
-);
-corebit_term corebit_term_inst7 (
     .in(_magma_bind_wire_0)
 );
-corebit_term corebit_term_inst8 (
+corebit_term corebit_term_inst2 (
     .in(_magma_bind_wire_1)
 );
-corebit_term corebit_term_inst9 (
+corebit_term corebit_term_inst3 (
     .in(_magma_bind_wire_2_0)
+);
+corebit_term corebit_term_inst4 (
+    .in(_magma_bind_wire_2_1)
+);
+corebit_term corebit_term_inst5 (
+    .in(_magma_bind_wire_4)
+);
+corebit_term corebit_term_inst6 (
+    .in(coreir_wrapInClock_inst0_out)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
@@ -161,9 +143,16 @@ orr_5 orr_5_inst0 (
     .O(orr_5_inst0_O)
 );
 assign temp3 = andr_5_inst0_O;
+wire [5:0] term_inst0_in;
+assign term_inst0_in = {ndarr[2][1:0],ndarr[1][1:0],ndarr[0][1:0]};
+coreir_term #(
+    .width(6)
+) term_inst0 (
+    .in(term_inst0_in)
+);
 coreir_term #(
     .width(5)
-) term_inst0 (
+) term_inst1 (
     .in(_magma_bind_wire_3)
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;
@@ -215,40 +204,22 @@ corebit_term corebit_term_inst0 (
     .in(temp3)
 );
 corebit_term corebit_term_inst1 (
-    .in(ndarr[0][0])
-);
-corebit_term corebit_term_inst10 (
-    .in(_magma_bind_wire_2_1)
-);
-corebit_term corebit_term_inst11 (
-    .in(_magma_bind_wire_4)
-);
-corebit_term corebit_term_inst12 (
-    .in(coreir_wrapInClock_inst0_out)
-);
-corebit_term corebit_term_inst2 (
-    .in(ndarr[0][1])
-);
-corebit_term corebit_term_inst3 (
-    .in(ndarr[1][0])
-);
-corebit_term corebit_term_inst4 (
-    .in(ndarr[1][1])
-);
-corebit_term corebit_term_inst5 (
-    .in(ndarr[2][0])
-);
-corebit_term corebit_term_inst6 (
-    .in(ndarr[2][1])
-);
-corebit_term corebit_term_inst7 (
     .in(_magma_bind_wire_0)
 );
-corebit_term corebit_term_inst8 (
+corebit_term corebit_term_inst2 (
     .in(_magma_bind_wire_1)
 );
-corebit_term corebit_term_inst9 (
+corebit_term corebit_term_inst3 (
     .in(_magma_bind_wire_2_0)
+);
+corebit_term corebit_term_inst4 (
+    .in(_magma_bind_wire_2_1)
+);
+corebit_term corebit_term_inst5 (
+    .in(_magma_bind_wire_4)
+);
+corebit_term corebit_term_inst6 (
+    .in(coreir_wrapInClock_inst0_out)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
@@ -265,9 +236,16 @@ orr_4 orr_4_inst0 (
     .O(orr_4_inst0_O)
 );
 assign temp3 = andr_4_inst0_O;
+wire [5:0] term_inst0_in;
+assign term_inst0_in = {ndarr[2][1:0],ndarr[1][1:0],ndarr[0][1:0]};
+coreir_term #(
+    .width(6)
+) term_inst0 (
+    .in(term_inst0_in)
+);
 coreir_term #(
     .width(4)
-) term_inst0 (
+) term_inst1 (
     .in(_magma_bind_wire_3)
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;

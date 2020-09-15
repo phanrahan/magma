@@ -50,5 +50,5 @@ endmodule
 
             some_circ = SomeCircuit()
             some_circ.I @= io.in1 ^ io.in2
-            io.ndarr.unused()
+            m.as_bits(io.ndarr).unused()
         return RTL
