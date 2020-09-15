@@ -88,19 +88,21 @@ facilitate mux generation for looking up values stored in a dictionary or list.
 
 Here are the interfaces to the functions:
 ```python
-def dict_lookup(dict_, default, select):
+def dict_lookup(dict_, select, default=0):
     """
     Use `select` as an index into `dict` (similar to a case statement)
 
-    `default` is used when `select` does not match any of the keys.
+    `default` is used when `select` does not match any of the keys and has a
+    default value of 0
     """
 
-def list_lookup(list_, default, select):
+def list_lookup(list_, select, default=0):
     """
     Use `select` as an index into `list` (similar to a case statement)
 
     `default` is used when `select` does not match any of the indices (e.g.
-    when the select width is longer than the list).
+    when the select width is longer than the list) and has a default value of
+    0.
     """
 ```
 
@@ -114,14 +116,14 @@ class DictLookup(m.Circuit):
         2: BitVector[5](2),
         3: BitVector[5](3)
     }
-    io.O @= m.dict_lookup(dict_, BitVector[5](1), io.S)
+    io.O @= m.dict_lookup(dict_, io.S, default=BitVector[5](1))
 
 
 class ListLookup(m.Circuit):
     io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
 
     list_ = [BitVector[5](0), BitVector[5](1), BitVector[5](2)]
-    io.O @= m.list_lookup(list_, BitVector[5](3), io.S)
+    io.O @= m.list_lookup(list_, io.S, default=BitVector[5](3))
 ```
 
 

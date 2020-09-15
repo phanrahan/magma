@@ -231,7 +231,7 @@ def test_mux_dict_lookup():
             2: BitVector[5](2),
             3: BitVector[5](3)
         }
-        io.O @= m.dict_lookup(dict_, BitVector[5](1), io.S)
+        io.O @= m.dict_lookup(dict_, io.S, BitVector[5](1))
 
     m.compile("build/test_mux_dict_lookup", test_mux_dict_lookup)
 
@@ -251,7 +251,7 @@ def test_mux_list_lookup():
         io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
 
         list_ = [BitVector[5](0), BitVector[5](1), BitVector[5](2)]
-        io.O @= m.list_lookup(list_, BitVector[5](3), io.S)
+        io.O @= m.list_lookup(list_, io.S, BitVector[5](3))
 
     m.compile("build/test_mux_list_lookup", test_mux_list_lookup)
 
