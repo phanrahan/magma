@@ -543,13 +543,13 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return (self >> index)[0]
         return super().__getitem__(index)
 
-    def orR(self):
+    def reduce_or(self):
         return reduce(operator.or_, self)
 
-    def xorR(self):
+    def reduce_xor(self):
         return reduce(operator.xor, self)
 
-    def andR(self):
+    def reduce_and(self):
         return reduce(operator.and_, self)
 
 

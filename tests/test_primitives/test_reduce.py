@@ -11,9 +11,9 @@ import fault
 
 
 @pytest.mark.parametrize('op, method', [
-    (operator.and_, "andR"),
-    (operator.or_, "orR"),
-    (operator.xor, "xorR")
+    (operator.and_, "reduce_and"),
+    (operator.or_, "reduce_or"),
+    (operator.xor, "reduce_xor")
 ])
 def test_reduce(op, method):
     class test_reduce(m.Circuit):
