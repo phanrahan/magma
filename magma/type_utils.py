@@ -88,18 +88,20 @@ def _wrap_type(T):
     T = _unwrap_protocol_type(T)
 
     if isdigital(T):
-        constructor = lambda T: T
-        return _TypeWrapper(T, [], "Digital", {}, constructor)
+        return _TypeWrapper(T, [], "Digital", {}, lambda T: T)
     if isbits(T):
-        constructor = lambda T: T
-        return _TypeWrapper(T, [], "Bits", {}, constructor)
+        return _TypeWrapper(T, [], "Bits", {}, lambda T: T)
     if isarray(T):
-        constructor = lambda T, subT: T[T.N, subT]
-        return _TypeWrapper(T, [T.T], "Array", {"N": T.N}, constructor)
+
+        def _constructor(T, subT):
+            return T[T.N, subT]
+
+        return _TypeWrapper(T, [T.T], "Array", {"N": T.N}, _constructor)
     if istuple(T):
 
         def _constructor(T, *args):
-            field_dict = {key: arg for key, arg in zip(T.field_dict.keys(), args)}
+            field_dict = {key: arg
+                          for key, arg in zip(T.field_dict.keys(), args)}
             field_dict = {k: v for k, v in field_dict.items() if v is not None}
             unbound = _get_unbound_root(T)
             return unbound.from_fields(T.__name__, field_dict)
