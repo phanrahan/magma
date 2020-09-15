@@ -237,7 +237,7 @@ class CircuitKind(type):
         dct.setdefault("inline_verilog_strs", [])
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
-        dct["bind_modules_bound"] = False
+        dct["compiled_bind_modules"] = {}
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.

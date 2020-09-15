@@ -21,34 +21,7 @@ module coreir_term #(
 
 endmodule
 
-module corebit_undriven (
-    output out
-);
-
-endmodule
-
-            module orr_5 (input [4:0] I, output O);
-            assign O = |(I);
-            endmodule
-            module orr_4 (input [3:0] I, output O);
-            assign O = |(I);
-            endmodule
-module corebit_term (
-    input in
-);
-
-endmodule
-
-            module logical_and (input I0, input I1, output O);
-            assign O = I0 && I1;
-            endmodule
-            module andr_5 (input [4:0] I, output O);
-            assign O = &(I);
-            endmodule
-            module andr_4 (input [3:0] I, output O);
-            assign O = &(I);
-            endmodule
-module SomeCircuit_unq1 (
+module foo_SomeCircuit_unq1 (
     input [4:0] I
 );
 coreir_term #(
@@ -58,7 +31,7 @@ coreir_term #(
 );
 endmodule
 
-module SomeCircuit (
+module foo_SomeCircuit (
     input [3:0] I
 );
 coreir_term #(
@@ -68,7 +41,34 @@ coreir_term #(
 );
 endmodule
 
-module RTL_unq1 (
+module corebit_undriven (
+    output out
+);
+
+endmodule
+
+module orr_5 (input [4:0] I, output O);
+assign O = |(I);
+endmodule
+module orr_4 (input [3:0] I, output O);
+assign O = |(I);
+endmodule
+module andr_5 (input [4:0] I, output O);
+assign O = &(I);
+endmodule
+module andr_4 (input [3:0] I, output O);
+assign O = &(I);
+endmodule
+module corebit_term (
+    input in
+);
+
+endmodule
+
+module logical_and (input I0, input I1, output O);
+assign O = I0 && I1;
+endmodule
+module foo_RTL_unq1 (
     input CLK,
     input handshake_arr_0_ready,
     output handshake_arr_0_valid,
@@ -91,7 +91,7 @@ wire andr_5_inst0_O;
 wire coreir_wrapInClock_inst0_out;
 wire [4:0] magma_Bits_5_xor_inst0_out;
 wire orr_5_inst0_O;
-SomeCircuit_unq1 SomeCircuit_inst0 (
+foo_SomeCircuit_unq1 SomeCircuit_inst0 (
     .I(magma_Bits_5_xor_inst0_out)
 );
 assign _magma_bind_wire_0 = orr_5_inst0_O;
@@ -143,7 +143,7 @@ assign handshake_arr_2_valid = handshake_arr_0_ready;
 assign handshake_valid = handshake_ready;
 endmodule
 
-module RTL (
+module foo_RTL (
     input CLK,
     input handshake_arr_0_ready,
     output handshake_arr_0_valid,
@@ -166,7 +166,7 @@ wire andr_4_inst0_O;
 wire coreir_wrapInClock_inst0_out;
 wire [3:0] magma_Bits_4_xor_inst0_out;
 wire orr_4_inst0_O;
-SomeCircuit SomeCircuit_inst0 (
+foo_SomeCircuit SomeCircuit_inst0 (
     .I(magma_Bits_4_xor_inst0_out)
 );
 assign _magma_bind_wire_0 = orr_4_inst0_O;
@@ -218,7 +218,7 @@ assign handshake_arr_2_valid = handshake_arr_0_ready;
 assign handshake_valid = handshake_ready;
 endmodule
 
-module Main (
+module foo_Main (
     input CLK
 );
 wire RTL_inst0_handshake_arr_0_valid;
@@ -248,7 +248,7 @@ wire [3:0] undriven_inst0_out;
 wire [3:0] undriven_inst1_out;
 wire [4:0] undriven_inst2_out;
 wire [4:0] undriven_inst3_out;
-RTL RTL_inst0 (
+foo_RTL RTL_inst0 (
     .CLK(coreir_wrapOutClock_inst0_out),
     .handshake_arr_0_ready(corebit_undriven_inst2_out),
     .handshake_arr_0_valid(RTL_inst0_handshake_arr_0_valid),
@@ -262,7 +262,7 @@ RTL RTL_inst0 (
     .in2(undriven_inst1_out),
     .out(RTL_inst0_out)
 );
-RTL_unq1 RTL_inst1 (
+foo_RTL_unq1 RTL_inst1 (
     .CLK(coreir_wrapOutClock_inst1_out),
     .handshake_arr_0_ready(corebit_undriven_inst7_out),
     .handshake_arr_0_valid(RTL_inst1_handshake_arr_0_valid),
