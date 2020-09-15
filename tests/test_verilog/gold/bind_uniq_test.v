@@ -80,6 +80,7 @@ module foo_RTL_unq1 (
     output handshake_valid,
     input [4:0] in1,
     input [4:0] in2,
+    input [1:0] ndarr [2:0],
     output out
 );
 wire _magma_bind_wire_0;
@@ -104,19 +105,37 @@ andr_5 andr_5_inst0 (
     .O(andr_5_inst0_O)
 );
 corebit_term corebit_term_inst0 (
-    .in(_magma_bind_wire_0)
+    .in(ndarr[0][0])
 );
 corebit_term corebit_term_inst1 (
-    .in(_magma_bind_wire_1)
+    .in(ndarr[0][1])
+);
+corebit_term corebit_term_inst10 (
+    .in(coreir_wrapInClock_inst0_out)
 );
 corebit_term corebit_term_inst2 (
-    .in(_magma_bind_wire_2_0)
+    .in(ndarr[1][0])
 );
 corebit_term corebit_term_inst3 (
-    .in(_magma_bind_wire_2_1)
+    .in(ndarr[1][1])
 );
 corebit_term corebit_term_inst4 (
-    .in(coreir_wrapInClock_inst0_out)
+    .in(ndarr[2][0])
+);
+corebit_term corebit_term_inst5 (
+    .in(ndarr[2][1])
+);
+corebit_term corebit_term_inst6 (
+    .in(_magma_bind_wire_0)
+);
+corebit_term corebit_term_inst7 (
+    .in(_magma_bind_wire_1)
+);
+corebit_term corebit_term_inst8 (
+    .in(_magma_bind_wire_2_0)
+);
+corebit_term corebit_term_inst9 (
+    .in(_magma_bind_wire_2_1)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
@@ -155,6 +174,7 @@ module foo_RTL (
     output handshake_valid,
     input [3:0] in1,
     input [3:0] in2,
+    input [1:0] ndarr [2:0],
     output out
 );
 wire _magma_bind_wire_0;
@@ -179,19 +199,37 @@ andr_4 andr_4_inst0 (
     .O(andr_4_inst0_O)
 );
 corebit_term corebit_term_inst0 (
-    .in(_magma_bind_wire_0)
+    .in(ndarr[0][0])
 );
 corebit_term corebit_term_inst1 (
-    .in(_magma_bind_wire_1)
+    .in(ndarr[0][1])
+);
+corebit_term corebit_term_inst10 (
+    .in(coreir_wrapInClock_inst0_out)
 );
 corebit_term corebit_term_inst2 (
-    .in(_magma_bind_wire_2_0)
+    .in(ndarr[1][0])
 );
 corebit_term corebit_term_inst3 (
-    .in(_magma_bind_wire_2_1)
+    .in(ndarr[1][1])
 );
 corebit_term corebit_term_inst4 (
-    .in(coreir_wrapInClock_inst0_out)
+    .in(ndarr[2][0])
+);
+corebit_term corebit_term_inst5 (
+    .in(ndarr[2][1])
+);
+corebit_term corebit_term_inst6 (
+    .in(_magma_bind_wire_0)
+);
+corebit_term corebit_term_inst7 (
+    .in(_magma_bind_wire_1)
+);
+corebit_term corebit_term_inst8 (
+    .in(_magma_bind_wire_2_0)
+);
+corebit_term corebit_term_inst9 (
+    .in(_magma_bind_wire_2_1)
 );
 coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
@@ -233,7 +271,19 @@ wire RTL_inst1_handshake_valid;
 wire RTL_inst1_out;
 wire corebit_undriven_inst0_out;
 wire corebit_undriven_inst1_out;
+wire corebit_undriven_inst10_out;
+wire corebit_undriven_inst11_out;
+wire corebit_undriven_inst12_out;
+wire corebit_undriven_inst13_out;
+wire corebit_undriven_inst14_out;
+wire corebit_undriven_inst15_out;
+wire corebit_undriven_inst16_out;
+wire corebit_undriven_inst17_out;
+wire corebit_undriven_inst18_out;
+wire corebit_undriven_inst19_out;
 wire corebit_undriven_inst2_out;
+wire corebit_undriven_inst20_out;
+wire corebit_undriven_inst21_out;
 wire corebit_undriven_inst3_out;
 wire corebit_undriven_inst4_out;
 wire corebit_undriven_inst5_out;
@@ -248,6 +298,10 @@ wire [3:0] undriven_inst0_out;
 wire [3:0] undriven_inst1_out;
 wire [4:0] undriven_inst2_out;
 wire [4:0] undriven_inst3_out;
+wire [1:0] RTL_inst0_ndarr [2:0];
+assign RTL_inst0_ndarr[2] = {corebit_undriven_inst10_out,corebit_undriven_inst9_out};
+assign RTL_inst0_ndarr[1] = {corebit_undriven_inst8_out,corebit_undriven_inst7_out};
+assign RTL_inst0_ndarr[0] = {corebit_undriven_inst6_out,corebit_undriven_inst5_out};
 foo_RTL RTL_inst0 (
     .CLK(coreir_wrapOutClock_inst0_out),
     .handshake_arr_0_ready(corebit_undriven_inst2_out),
@@ -260,20 +314,26 @@ foo_RTL RTL_inst0 (
     .handshake_valid(RTL_inst0_handshake_valid),
     .in1(undriven_inst0_out),
     .in2(undriven_inst1_out),
+    .ndarr(RTL_inst0_ndarr),
     .out(RTL_inst0_out)
 );
+wire [1:0] RTL_inst1_ndarr [2:0];
+assign RTL_inst1_ndarr[2] = {corebit_undriven_inst21_out,corebit_undriven_inst20_out};
+assign RTL_inst1_ndarr[1] = {corebit_undriven_inst19_out,corebit_undriven_inst18_out};
+assign RTL_inst1_ndarr[0] = {corebit_undriven_inst17_out,corebit_undriven_inst16_out};
 foo_RTL_unq1 RTL_inst1 (
     .CLK(coreir_wrapOutClock_inst1_out),
-    .handshake_arr_0_ready(corebit_undriven_inst7_out),
+    .handshake_arr_0_ready(corebit_undriven_inst13_out),
     .handshake_arr_0_valid(RTL_inst1_handshake_arr_0_valid),
-    .handshake_arr_1_ready(corebit_undriven_inst8_out),
+    .handshake_arr_1_ready(corebit_undriven_inst14_out),
     .handshake_arr_1_valid(RTL_inst1_handshake_arr_1_valid),
-    .handshake_arr_2_ready(corebit_undriven_inst9_out),
+    .handshake_arr_2_ready(corebit_undriven_inst15_out),
     .handshake_arr_2_valid(RTL_inst1_handshake_arr_2_valid),
-    .handshake_ready(corebit_undriven_inst6_out),
+    .handshake_ready(corebit_undriven_inst12_out),
     .handshake_valid(RTL_inst1_handshake_valid),
     .in1(undriven_inst2_out),
     .in2(undriven_inst3_out),
+    .ndarr(RTL_inst1_ndarr),
     .out(RTL_inst1_out)
 );
 corebit_term corebit_term_inst0 (
@@ -315,8 +375,44 @@ corebit_undriven corebit_undriven_inst0 (
 corebit_undriven corebit_undriven_inst1 (
     .out(corebit_undriven_inst1_out)
 );
+corebit_undriven corebit_undriven_inst10 (
+    .out(corebit_undriven_inst10_out)
+);
+corebit_undriven corebit_undriven_inst11 (
+    .out(corebit_undriven_inst11_out)
+);
+corebit_undriven corebit_undriven_inst12 (
+    .out(corebit_undriven_inst12_out)
+);
+corebit_undriven corebit_undriven_inst13 (
+    .out(corebit_undriven_inst13_out)
+);
+corebit_undriven corebit_undriven_inst14 (
+    .out(corebit_undriven_inst14_out)
+);
+corebit_undriven corebit_undriven_inst15 (
+    .out(corebit_undriven_inst15_out)
+);
+corebit_undriven corebit_undriven_inst16 (
+    .out(corebit_undriven_inst16_out)
+);
+corebit_undriven corebit_undriven_inst17 (
+    .out(corebit_undriven_inst17_out)
+);
+corebit_undriven corebit_undriven_inst18 (
+    .out(corebit_undriven_inst18_out)
+);
+corebit_undriven corebit_undriven_inst19 (
+    .out(corebit_undriven_inst19_out)
+);
 corebit_undriven corebit_undriven_inst2 (
     .out(corebit_undriven_inst2_out)
+);
+corebit_undriven corebit_undriven_inst20 (
+    .out(corebit_undriven_inst20_out)
+);
+corebit_undriven corebit_undriven_inst21 (
+    .out(corebit_undriven_inst21_out)
 );
 corebit_undriven corebit_undriven_inst3 (
     .out(corebit_undriven_inst3_out)
@@ -348,7 +444,7 @@ coreir_wrap coreir_wrapOutClock_inst0 (
     .out(coreir_wrapOutClock_inst0_out)
 );
 coreir_wrap coreir_wrapOutClock_inst1 (
-    .in(corebit_undriven_inst5_out),
+    .in(corebit_undriven_inst11_out),
     .out(coreir_wrapOutClock_inst1_out)
 );
 coreir_undriven #(

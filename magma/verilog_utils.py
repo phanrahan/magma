@@ -8,11 +8,16 @@ from magma.tuple import Tuple
 from magma.view import InstView, PortView
 
 
+def is_nd_array(T, skip=True):
+    if issubclass(T, Digital) and not skip:
+        return True
+    if issubclass(T, Array):
+        return is_nd_array(T.T, False)
+    return False
+
+
 def value_to_verilog_name(value):
-    if isinstance(value, Array) and not issubclass(value.T, Digital):
-        elems = ", ".join(value_to_verilog_name(t) for t in reversed(value))
-        return f"'{{{elems}}}"
-    elif isinstance(value, Tuple):
+    if isinstance(value, Tuple):
         raise NotImplementedError("Inlining unflattened tuple")
     elif isinstance(value, InstView):
         prefix = ""
@@ -38,7 +43,7 @@ def verilog_name(name, inst_sep="_"):
         return str(name)
     if isinstance(name, ArrayRef):
         array_name = verilog_name(name.array.name)
-        if issubclass(name.array.T, Digital):
+        if issubclass(name.array.T, Digital) or is_nd_array(type(name.array)):
             index = f"[{name.index}]"
         else:
             index = f"_{name.index}"

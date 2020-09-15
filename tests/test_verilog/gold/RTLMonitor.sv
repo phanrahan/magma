@@ -36,6 +36,7 @@ module foo_RTLMonitor (
     input intermediate_tuple__1,
     input mon_temp1,
     input mon_temp2,
+    input [1:0] ndarr [2:0],
     input out
 );
 wire _magma_inline_wire0;
@@ -75,6 +76,7 @@ bind foo_RTL foo_RTLMonitor foo_RTLMonitor_inst (
     .handshake_arr_1_valid(handshake_arr_1_valid),
     .handshake_arr_2_ready(handshake_arr_2_ready),
     .handshake_arr_2_valid(handshake_arr_2_valid),
+    .ndarr(ndarr),
     .mon_temp1(_magma_bind_wire_0),
     .mon_temp2(_magma_bind_wire_1),
     .intermediate_tuple__0(_magma_bind_wire_2_0),

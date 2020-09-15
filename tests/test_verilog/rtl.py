@@ -32,7 +32,8 @@ endmodule
                       in2=m.In(m.Bits[width]),
                       out=m.Out(m.Bit),
                       handshake=HandShake,
-                      handshake_arr=m.Array[3, HandShake])
+                      handshake_arr=m.Array[3, HandShake],
+                      ndarr=m.In(m.Array[(2, 3), m.Bit]))
 
             temp1 = orr()(io.in1)
             temp2 = andr()(io.in1)
@@ -46,4 +47,5 @@ endmodule
 
             some_circ = SomeCircuit()
             some_circ.I @= io.in1 ^ io.in2
+            io.ndarr.unused()
         return RTL

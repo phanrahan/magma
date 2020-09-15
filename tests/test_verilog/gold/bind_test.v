@@ -43,6 +43,7 @@ module foo_RTL (
     output handshake_valid,
     input [3:0] in1,
     input [3:0] in2,
+    input [1:0] ndarr [2:0],
     output out
 );
 wire _magma_bind_wire_0;
@@ -66,15 +67,33 @@ andr_4 andr_4_inst0 (
     .O(andr_4_inst0_O)
 );
 corebit_term corebit_term_inst0 (
-    .in(_magma_bind_wire_0)
+    .in(ndarr[0][0])
 );
 corebit_term corebit_term_inst1 (
-    .in(_magma_bind_wire_1)
+    .in(ndarr[0][1])
 );
 corebit_term corebit_term_inst2 (
-    .in(_magma_bind_wire_2_0)
+    .in(ndarr[1][0])
 );
 corebit_term corebit_term_inst3 (
+    .in(ndarr[1][1])
+);
+corebit_term corebit_term_inst4 (
+    .in(ndarr[2][0])
+);
+corebit_term corebit_term_inst5 (
+    .in(ndarr[2][1])
+);
+corebit_term corebit_term_inst6 (
+    .in(_magma_bind_wire_0)
+);
+corebit_term corebit_term_inst7 (
+    .in(_magma_bind_wire_1)
+);
+corebit_term corebit_term_inst8 (
+    .in(_magma_bind_wire_2_0)
+);
+corebit_term corebit_term_inst9 (
     .in(_magma_bind_wire_2_1)
 );
 logical_and logical_and_inst0 (
