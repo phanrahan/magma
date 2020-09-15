@@ -110,9 +110,7 @@ class InsertCoreIRWires(DefinitionPass):
             return  # undriven value, skip wire insertion
         driver = value.value()
 
-        while (driver is not None and
-               (driver.name.anon() and driver.driven()) and
-               not driver.is_output()):
+        while driver is not None and driver.is_driven_anon_temporary():
             value, driver = driver, driver.value()
 
         descend = (isinstance(driver, (Array, Tuple)) and
