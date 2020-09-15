@@ -198,6 +198,11 @@ def concat(*arrays):
         elif isinstance(a, (bool, ht.Bit)):
             ts.extend([Bit(a)])
         else:
+            if not isinstance(a, Array):
+                raise TypeError(
+                    "concat expects values of type Array, BitVector, Bit, or "
+                    f"bool, not {a} with type {type(a)}"
+                )
             ts.extend(a.ts)
     return array(ts)
 

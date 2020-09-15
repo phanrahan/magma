@@ -1,3 +1,4 @@
+import pytest
 import magma as m
 import hwtypes as ht
 
@@ -26,3 +27,8 @@ def test_ext():
     x4 = m.sext_to(x0, 3)
     assert repr(x3) == "sint(-1, 3)"
     assert repr(x3) == repr(x4)
+
+
+def test_concat_type_error():
+    with pytest.raises(TypeError):
+        m.concat(object(), object())
