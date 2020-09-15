@@ -7,7 +7,7 @@ from magma.array import Array
 from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
 from magma.circuit import coreir_port_mapping
-from magma.conversions import as_bits, from_bits
+from magma.conversions import as_bits, from_bits, bit
 from magma.interface import IO
 from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out
@@ -190,20 +190,18 @@ class Register(Generator2):
 
         I = self.io.I
         if has_reset:
-            reset_port = self.io.RESET
-            reset_args = [I, init]
+            reset_select = self.io.RESET
         elif has_resetn:
-            reset_port = self.io.RESETN
-            reset_args = [init, I]
+            reset_select = ~bit(self.io.RESETN)
         if (has_reset or has_resetn) and has_enable:
             if reset_priority:
                 I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
-                I = Mux(2, T)()(*reset_args, reset_port)
+                I = Mux(2, T)()(I, init, reset_select)
             else:
-                I = Mux(2, T)()(*reset_args, reset_port)
+                I = Mux(2, T)()(I, init, reset_select)
                 I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
         elif has_enable:
             I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
         elif (has_reset or has_resetn):
-            I = Mux(2, T)()(*reset_args, reset_port)
+            I = Mux(2, T)()(I, init, reset_select)
         reg.I @= as_bits(I)
