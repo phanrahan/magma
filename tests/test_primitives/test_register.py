@@ -1,4 +1,6 @@
 import os
+import pytest
+import hwtypes as ht
 
 import magma as m
 from magma.testing import check_files_equal
@@ -7,10 +9,12 @@ from magma.primitives import Register
 import fault
 
 
-def test_basic_reg():
+@pytest.mark.parametrize("init_T", [m.Bits[8], ht.BitVector[8]])
+def test_basic_reg(init_T):
     class test_basic_reg(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8])) + m.ClockIO(has_reset=True)
-        io.O @= Register(m.Bits[8], m.Bits[8](0xDE), reset_type=m.Reset)()(io.I)
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        io += m.ClockIO(has_reset=True)
+        io.O @= Register(m.Bits[8], init_T(0xDE), reset_type=m.Reset)()(io.I)
 
     m.compile("build/test_basic_reg", test_basic_reg)
 
@@ -233,3 +237,17 @@ def test_enable_reg():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+@pytest.mark.parametrize(
+    "init, expected_T",
+    [(3, m.Bits[2]), (True, m.Bit), (ht.Bit(True), m.Bit),
+     # These are blocked by https://github.com/leonardt/hwtypes/pull/140
+     # (ht.UIntVector[3](3), m.UInt[3]),
+     # (ht.SIntVector[3](-3), m.SInt[3]),
+     (ht.UIntVector[3](5), m.UInt[3]),
+     (ht.SIntVector[3](-2), m.SInt[3]),
+     (ht.BitVector[3](2), m.Bits[3])])
+def test_reg_infer_init(init, expected_T):
+    Circuit = Register(init=init)
+    assert isinstance(Circuit.I, expected_T)

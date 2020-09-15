@@ -1,6 +1,7 @@
+import operator
 import os
 import fault
-from hwtypes import BitVector, Bit
+from hwtypes import BitVector, Bit, BitVector as BV
 import magma as m
 from magma.testing import check_files_equal
 
@@ -136,3 +137,206 @@ def test_Bit_bool():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_many_name_gen():
+    """
+    Ensures that there are no collisions when auto generating names in the
+    translation when there are 11 if/else cases and 11 variables.  Before we
+    could encounter a collision with prefix111 where it was either case 11, var
+    1 or case 1, var 11.  Separating the case/var prefix with an underscore
+    avoids this problem
+
+    See https://github.com/phanrahan/magma/pull/835 for some more context
+    """
+
+    # Should not raise TypeError from the combinational block
+    # E.g. 
+    # E           TypeError: ite expects same type for both branches: Out(Bits[12]) != Out(Bits[2])
+    class Foo(m.Circuit):
+        io = m.IO(
+            S=m.In(m.Bits[4]),
+            O0=m.Out(m.Bits[1]),
+            O1=m.Out(m.Bits[2]),
+            O2=m.Out(m.Bits[3]),
+            O3=m.Out(m.Bits[4]),
+            O4=m.Out(m.Bits[5]),
+            O5=m.Out(m.Bits[6]),
+            O6=m.Out(m.Bits[7]),
+            O7=m.Out(m.Bits[8]),
+            O8=m.Out(m.Bits[9]),
+            O9=m.Out(m.Bits[10]),
+            O10=m.Out(m.Bits[11]),
+            O11=m.Out(m.Bits[12])
+        )
+
+        @m.inline_combinational()
+        def logic():
+            io.O0 @= m.bits(0, 1)
+            io.O1 @= m.bits(0, 2)
+            io.O2 @= m.bits(0, 3)
+            io.O3 @= m.bits(0, 4)
+            io.O4 @= m.bits(0, 5)
+            io.O5 @= m.bits(0, 6)
+            io.O6 @= m.bits(0, 7)
+            io.O7 @= m.bits(0, 8)
+            io.O8 @= m.bits(0, 9)
+            io.O9 @= m.bits(0, 10)
+            io.O10 @= m.bits(0, 11)
+            io.O11 @= m.bits(0, 12)
+            if io.S == 0:
+                io.O0 @= m.bits(1, 1)
+                io.O1 @= m.bits(1, 2)
+                io.O2 @= m.bits(1, 3)
+                io.O3 @= m.bits(1, 4)
+                io.O4 @= m.bits(1, 5)
+                io.O5 @= m.bits(1, 6)
+                io.O6 @= m.bits(1, 7)
+                io.O7 @= m.bits(1, 8)
+                io.O8 @= m.bits(1, 9)
+                io.O9 @= m.bits(1, 10)
+                io.O10 @= m.bits(1, 11)
+                io.O11 @= m.bits(1, 12)
+            elif io.S == 1:
+                io.O0 @= m.bits(0, 1)
+                io.O1 @= m.bits(0, 2)
+                io.O2 @= m.bits(0, 3)
+                io.O3 @= m.bits(0, 4)
+                io.O4 @= m.bits(0, 5)
+                io.O5 @= m.bits(0, 6)
+                io.O6 @= m.bits(0, 7)
+                io.O7 @= m.bits(0, 8)
+                io.O8 @= m.bits(0, 9)
+                io.O9 @= m.bits(0, 10)
+                io.O10 @= m.bits(0, 11)
+                io.O11 @= m.bits(0, 12)
+            elif io.S == 2:
+                io.O0 @= m.bits(1, 1)
+                io.O1 @= m.bits(1, 2)
+                io.O2 @= m.bits(1, 3)
+                io.O3 @= m.bits(1, 4)
+                io.O4 @= m.bits(1, 5)
+                io.O5 @= m.bits(1, 6)
+                io.O6 @= m.bits(1, 7)
+                io.O7 @= m.bits(1, 8)
+                io.O8 @= m.bits(1, 9)
+                io.O9 @= m.bits(1, 10)
+                io.O10 @= m.bits(1, 11)
+                io.O11 @= m.bits(1, 12)
+            elif io.S == 3:
+                io.O0 @= m.bits(0, 1)
+                io.O1 @= m.bits(0, 2)
+                io.O2 @= m.bits(0, 3)
+                io.O3 @= m.bits(0, 4)
+                io.O4 @= m.bits(0, 5)
+                io.O5 @= m.bits(0, 6)
+                io.O6 @= m.bits(0, 7)
+                io.O7 @= m.bits(0, 8)
+                io.O8 @= m.bits(0, 9)
+                io.O9 @= m.bits(0, 10)
+                io.O10 @= m.bits(0, 11)
+                io.O11 @= m.bits(0, 12)
+            elif io.S == 4:
+                io.O0 @= m.bits(1, 1)
+                io.O1 @= m.bits(1, 2)
+                io.O2 @= m.bits(1, 3)
+                io.O3 @= m.bits(1, 4)
+                io.O4 @= m.bits(1, 5)
+                io.O5 @= m.bits(1, 6)
+                io.O6 @= m.bits(1, 7)
+                io.O7 @= m.bits(1, 8)
+                io.O8 @= m.bits(1, 9)
+                io.O9 @= m.bits(1, 10)
+                io.O10 @= m.bits(1, 11)
+                io.O11 @= m.bits(1, 12)
+            elif io.S == 5:
+                io.O0 @= m.bits(0, 1)
+                io.O1 @= m.bits(0, 2)
+                io.O2 @= m.bits(0, 3)
+                io.O3 @= m.bits(0, 4)
+                io.O4 @= m.bits(0, 5)
+                io.O5 @= m.bits(0, 6)
+                io.O6 @= m.bits(0, 7)
+                io.O7 @= m.bits(0, 8)
+                io.O8 @= m.bits(0, 9)
+                io.O9 @= m.bits(0, 10)
+                io.O10 @= m.bits(0, 11)
+                io.O11 @= m.bits(0, 12)
+            elif io.S == 6:
+                io.O0 @= m.bits(1, 1)
+                io.O1 @= m.bits(1, 2)
+                io.O2 @= m.bits(1, 3)
+                io.O3 @= m.bits(1, 4)
+                io.O4 @= m.bits(1, 5)
+                io.O5 @= m.bits(1, 6)
+                io.O6 @= m.bits(1, 7)
+                io.O7 @= m.bits(1, 8)
+                io.O8 @= m.bits(1, 9)
+                io.O9 @= m.bits(1, 10)
+                io.O10 @= m.bits(1, 11)
+                io.O11 @= m.bits(1, 12)
+            elif io.S == 7:
+                io.O0 @= m.bits(0, 1)
+                io.O1 @= m.bits(0, 2)
+                io.O2 @= m.bits(0, 3)
+                io.O3 @= m.bits(0, 4)
+                io.O4 @= m.bits(0, 5)
+                io.O5 @= m.bits(0, 6)
+                io.O6 @= m.bits(0, 7)
+                io.O7 @= m.bits(0, 8)
+                io.O8 @= m.bits(0, 9)
+                io.O9 @= m.bits(0, 10)
+                io.O10 @= m.bits(0, 11)
+                io.O11 @= m.bits(0, 12)
+            elif io.S == 8:
+                io.O0 @= m.bits(1, 1)
+                io.O1 @= m.bits(1, 2)
+                io.O2 @= m.bits(1, 3)
+                io.O3 @= m.bits(1, 4)
+                io.O4 @= m.bits(1, 5)
+                io.O5 @= m.bits(1, 6)
+                io.O6 @= m.bits(1, 7)
+                io.O7 @= m.bits(1, 8)
+                io.O8 @= m.bits(1, 9)
+                io.O9 @= m.bits(1, 10)
+                io.O10 @= m.bits(1, 11)
+                io.O11 @= m.bits(1, 12)
+            elif io.S == 9:
+                io.O0 @= m.bits(0, 1)
+                io.O1 @= m.bits(0, 2)
+                io.O2 @= m.bits(0, 3)
+                io.O3 @= m.bits(0, 4)
+                io.O4 @= m.bits(0, 5)
+                io.O5 @= m.bits(0, 6)
+                io.O6 @= m.bits(0, 7)
+                io.O7 @= m.bits(0, 8)
+                io.O8 @= m.bits(0, 9)
+                io.O9 @= m.bits(0, 10)
+                io.O10 @= m.bits(0, 11)
+                io.O11 @= m.bits(0, 12)
+            elif io.S == 10:
+                io.O0 @= m.bits(1, 1)
+                io.O1 @= m.bits(1, 2)
+                io.O2 @= m.bits(1, 3)
+                io.O3 @= m.bits(1, 4)
+                io.O4 @= m.bits(1, 5)
+                io.O5 @= m.bits(1, 6)
+                io.O6 @= m.bits(1, 7)
+                io.O7 @= m.bits(1, 8)
+                io.O8 @= m.bits(1, 9)
+                io.O9 @= m.bits(1, 10)
+                io.O10 @= m.bits(1, 11)
+                io.O11 @= m.bits(1, 12)
+            elif io.S == 11:
+                io.O0 @= m.bits(0, 1)
+                io.O1 @= m.bits(0, 2)
+                io.O2 @= m.bits(0, 3)
+                io.O3 @= m.bits(0, 4)
+                io.O4 @= m.bits(0, 5)
+                io.O5 @= m.bits(0, 6)
+                io.O6 @= m.bits(0, 7)
+                io.O7 @= m.bits(0, 8)
+                io.O8 @= m.bits(0, 9)
+                io.O9 @= m.bits(0, 10)
+                io.O10 @= m.bits(0, 11)
+                io.O11 @= m.bits(0, 12)

@@ -36,6 +36,7 @@ module foo_RTLMonitor (
     input intermediate_tuple__1,
     input mon_temp1,
     input mon_temp2,
+    input mon_temp3,
     input [1:0] ndarr [2:0],
     input out
 );
@@ -58,7 +59,7 @@ assign temp3 = temp1 ^ temp2 & _magma_inline_wire0;
 assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);
 logic [3:0] temp4 [1:0];
 assign temp4 = '{_magma_inline_wire1, _magma_inline_wire2};
-always @(*) $display("%x", inst_input);
+always @(*) $display("%x", inst_input & {4{mon_temp3}});
                                    
 endmodule
 
@@ -81,5 +82,6 @@ bind foo_RTL foo_RTLMonitor foo_RTLMonitor_inst (
     .mon_temp2(_magma_bind_wire_1),
     .intermediate_tuple__0(_magma_bind_wire_2_0),
     .intermediate_tuple__1(_magma_bind_wire_2_1),
-    .inst_input(_magma_bind_wire_3)
+    .inst_input(_magma_bind_wire_3),
+    .mon_temp3(_magma_bind_wire_4)
 );

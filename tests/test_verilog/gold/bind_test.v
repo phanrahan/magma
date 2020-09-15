@@ -51,9 +51,11 @@ wire _magma_bind_wire_1;
 wire _magma_bind_wire_2_0;
 wire _magma_bind_wire_2_1;
 wire [3:0] _magma_bind_wire_3;
+wire _magma_bind_wire_4;
 wire andr_4_inst0_O;
 wire [3:0] magma_Bits_4_xor_inst0_out;
 wire orr_4_inst0_O;
+wire temp3;
 foo_SomeCircuit SomeCircuit_inst0 (
     .I(magma_Bits_4_xor_inst0_out)
 );
@@ -62,39 +64,46 @@ assign _magma_bind_wire_1 = andr_4_inst0_O;
 assign _magma_bind_wire_2_0 = orr_4_inst0_O;
 assign _magma_bind_wire_2_1 = andr_4_inst0_O;
 assign _magma_bind_wire_3 = magma_Bits_4_xor_inst0_out;
+assign _magma_bind_wire_4 = temp3;
 andr_4 andr_4_inst0 (
     .I(in1),
     .O(andr_4_inst0_O)
 );
 corebit_term corebit_term_inst0 (
-    .in(ndarr[0][0])
+    .in(temp3)
 );
 corebit_term corebit_term_inst1 (
-    .in(ndarr[0][1])
+    .in(ndarr[0][0])
+);
+corebit_term corebit_term_inst10 (
+    .in(_magma_bind_wire_2_1)
+);
+corebit_term corebit_term_inst11 (
+    .in(_magma_bind_wire_4)
 );
 corebit_term corebit_term_inst2 (
-    .in(ndarr[1][0])
+    .in(ndarr[0][1])
 );
 corebit_term corebit_term_inst3 (
-    .in(ndarr[1][1])
+    .in(ndarr[1][0])
 );
 corebit_term corebit_term_inst4 (
-    .in(ndarr[2][0])
+    .in(ndarr[1][1])
 );
 corebit_term corebit_term_inst5 (
-    .in(ndarr[2][1])
+    .in(ndarr[2][0])
 );
 corebit_term corebit_term_inst6 (
-    .in(_magma_bind_wire_0)
+    .in(ndarr[2][1])
 );
 corebit_term corebit_term_inst7 (
-    .in(_magma_bind_wire_1)
+    .in(_magma_bind_wire_0)
 );
 corebit_term corebit_term_inst8 (
-    .in(_magma_bind_wire_2_0)
+    .in(_magma_bind_wire_1)
 );
 corebit_term corebit_term_inst9 (
-    .in(_magma_bind_wire_2_1)
+    .in(_magma_bind_wire_2_0)
 );
 logical_and logical_and_inst0 (
     .I0(orr_4_inst0_O),
@@ -106,6 +115,7 @@ orr_4 orr_4_inst0 (
     .I(in1),
     .O(orr_4_inst0_O)
 );
+assign temp3 = andr_4_inst0_O;
 coreir_term #(
     .width(4)
 ) term_inst0 (

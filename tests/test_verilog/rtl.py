@@ -38,6 +38,9 @@ endmodule
             temp1 = orr()(io.in1)
             temp2 = andr()(io.in1)
             intermediate_tuple = m.tuple_([temp1, temp2])
+            temp3 = m.Bit(name="temp3")
+            temp3 @= temp2
+            temp3.unused()
             io.out @= logical_and()(intermediate_tuple[0],
                                     intermediate_tuple[1])
             m.wire(io.handshake.valid, io.handshake.ready)
