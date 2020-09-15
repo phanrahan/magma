@@ -8,28 +8,39 @@ from magma.tuple import Tuple
 from magma.view import InstView, PortView
 
 
-def value_to_verilog_name(value):
-    if isinstance(value, Array) and not issubclass(value.T, Digital):
-        elems = ", ".join(value_to_verilog_name(t) for t in reversed(value))
+def is_nd_array(T, skip=True):
+    if issubclass(T, Digital) and not skip:
+        return True
+    if issubclass(T, Array):
+        return is_nd_array(T.T, False)
+    return False
+
+
+def value_to_verilog_name(value, disable_ndarray=False):
+    if (isinstance(value, Array) and not issubclass(value.T, Digital) and
+            is_nd_array(type(value)) and disable_ndarray):
+        elems = ", ".join(value_to_verilog_name(t, disable_ndarray)
+                          for t in reversed(value))
         return f"'{{{elems}}}"
     elif isinstance(value, Tuple):
         raise NotImplementedError("Inlining unflattened tuple")
     elif isinstance(value, InstView):
         prefix = ""
         if value.parent is not None:
-            prefix = value_to_verilog_name(value.parent) + "."
+            prefix = value_to_verilog_name(value.parent, disable_ndarray) + "."
         return prefix + value.inst.name
-    return verilog_name(value.name)
+    return verilog_name(value.name, disable_ndarray=disable_ndarray)
 
 
-def verilog_name(name, inst_sep="_"):
+def verilog_name(name, inst_sep="_", disable_ndarray=False):
     if isinstance(name, PortViewRef):
         curr = name.view.parent
         hierarchical_path = curr.inst.name + "."
         while isinstance(curr.parent, InstView):
             hierarchical_path = curr.parent.inst.name + "." + hierarchical_path
             curr = curr.parent
-        return hierarchical_path + verilog_name(name.view.port.name)
+        return hierarchical_path + verilog_name(
+            name.view.port.name, disable_ndarray=disable_ndarray)
     if isinstance(name, DefnRef):
         return str(name)
     if isinstance(name, InstRef):
@@ -37,14 +48,17 @@ def verilog_name(name, inst_sep="_"):
     if isinstance(name, NamedRef):
         return str(name)
     if isinstance(name, ArrayRef):
-        array_name = verilog_name(name.array.name)
-        if issubclass(name.array.T, Digital):
+        array_name = verilog_name(name.array.name,
+                                  disable_ndarray=disable_ndarray)
+        if (issubclass(name.array.T, Digital) or
+                is_nd_array(type(name.array)) and not disable_ndarray):
             index = f"[{name.index}]"
         else:
             index = f"_{name.index}"
         return f"{array_name}{index}"
     if isinstance(name, TupleRef):
-        tuple_name = verilog_name(name.tuple.name)
+        tuple_name = verilog_name(name.tuple.name,
+                                  disable_ndarray=disable_ndarray)
         index = name.index
         if name.root() is None:
             # Not a named temporary that will be flattened to a wire
