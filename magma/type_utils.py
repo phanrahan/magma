@@ -77,14 +77,13 @@ def _wrap_type(T):
     if istuple(T):
 
         def _constructor(T, *args):
-            field_dict = {list(T.field_dict.keys())[i]: args[i]
-                          for i in range(len(T.field_dict))}
+            field_dict = {key: arg for key, arg in zip(T.field_dict.keys(), args)}
             field_dict = {k: v for k, v in field_dict.items() if v is not None}
             unbound = _get_unbound_root(T)
             return unbound.from_fields(T.__name__, field_dict)
 
         attrs = {"fields": T.field_dict}
-        children = [value for value in T.field_dict.values()]
+        children = list(T.field_dict.values())
         return _TypeWrapper(T, children, attrs, _constructor, "Tuple")
 
     raise NotImplementedError(T)
@@ -106,5 +105,5 @@ class TypeVisitor:
 class TypeTransformer(TypeVisitor):
     def generic_visit(self, T):
         wrapped = _wrap_type(T)
-        args = [self.visit(child) for child in wrapped.children]
+        args = (self.visit(child) for child in wrapped.children)
         return wrapped.constructor(T, *args)
