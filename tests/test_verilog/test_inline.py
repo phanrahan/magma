@@ -18,7 +18,7 @@ endmodule
         io.O <= FF()(io.I)
         m.inline_verilog("""
 assert property (@(posedge CLK) {I} |-> ##1 {O});
-""", O=io.O, I=io.I)
+""", O=io.O, I=io.I, inline_wire_prefix="_foo_prefix_")
         m.inline_verilog("""
 assert property (@(posedge CLK) {io.arr[0]} |-> ##1 {io.arr[1]});
 """)

@@ -98,8 +98,10 @@ class DefinitionContext:
                 _VERILOG_FILE_CLOSE.format(filename=file.filename),
                 {}, {})
 
-    def add_inline_verilog(self, format_str, format_args, symbol_table):
-        self._inline_verilog.append((format_str, format_args, symbol_table))
+    def add_inline_verilog(self, format_str, format_args, symbol_table,
+                           inline_wire_prefix="_magma_inline_wire"):
+        self._inline_verilog.append((format_str, format_args, symbol_table,
+                                     inline_wire_prefix))
 
     def insert_default_log_level(self):
         self._insert_default_log_level = True
