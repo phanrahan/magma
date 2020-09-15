@@ -14,7 +14,6 @@ from .bfloat import BFloat
 from .digital import Digital
 from .tuple import Tuple, Product
 from .bitutils import int2seq
-import hwtypes
 import hwtypes as ht
 
 __all__ = ['bit']
@@ -104,7 +103,7 @@ def convertbits(value, n, totype, checkbit):
         return value
 
     convertible_types = (Digital, Tuple, Array, IntegerTypes,
-                         Sequence, hwtypes.BitVector)
+                         Sequence, ht.BitVector)
     if not isinstance(value, convertible_types):
         raise ValueError(
             "bits can only be used on a Bit, an Array, a Tuple, an int, or a"
@@ -115,7 +114,7 @@ def convertbits(value, n, totype, checkbit):
         if n is None:
             n = max(value.bit_length(), 1)
         ts = int2seq(value, n)
-    elif isinstance(value, hwtypes.BitVector):
+    elif isinstance(value, ht.BitVector):
         ts = value.bits()
     elif isinstance(value, Sequence):
         ts = list(value)
@@ -192,7 +191,7 @@ def bfloat(value, n=None):
 def concat(*arrays):
     ts = []
     for a in arrays:
-        if isinstance(a, hwtypes.BitVector):
+        if isinstance(a, ht.BitVector):
             ts.extend(a.bits())
         elif isinstance(a, Bit):
             ts.extend([a])
@@ -311,12 +310,12 @@ def _tuple(value, n=None, t=Tuple):
             decl[k] = type(v)
     for a, d in zip(args, decl):
         # bool types to Bit
-        if issubclass(decl[d], (bool, hwtypes.Bit)):
+        if issubclass(decl[d], (bool, ht.Bit)):
             decl[d] = Digital
         # Promote integer types to Bits
         elif decl[d] in IntegerTypes:
             decl[d] = Bits[max(a.bit_length(), 1)]
-        elif issubclass(decl[d], hwtypes.BitVector):
+        elif issubclass(decl[d], ht.BitVector):
             decl[d] = Bits[len(decl[d])]
 
     if t == Tuple:

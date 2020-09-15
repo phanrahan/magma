@@ -1,7 +1,6 @@
 from typing import Union
 
 import coreir
-import hwtypes
 import hwtypes as ht
 
 from magma.array import Array
@@ -61,7 +60,7 @@ class _CoreIRRegister(Generator2):
 
             if not state_store:
                 state_store['prev_clock'] = cur_clock
-                state_store['cur_val'] = hwtypes.BitVector[width](init)
+                state_store['cur_val'] = ht.BitVector[width](init)
 
             if has_async_reset or has_async_resetn:
                 cur_reset = value_store.get_value(self.arst)
@@ -76,10 +75,10 @@ class _CoreIRRegister(Generator2):
 
             if has_async_reset and cur_reset or \
                     has_async_resetn and not cur_reset:
-                new_val = hwtypes.BitVector[width](init)
+                new_val = ht.BitVector[width](init)
 
             state_store['prev_clock'] = cur_clock
-            state_store['cur_val'] = hwtypes.BitVector[width](new_val)
+            state_store['cur_val'] = ht.BitVector[width](new_val)
             value_store.set_value(self.O, new_val)
         self.simulate = _simulate
 
