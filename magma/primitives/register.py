@@ -108,6 +108,22 @@ def _get_T_from_init(init):
     raise ValueError("Could not infer register type from {init}")
 
 
+def _check_init_T(init, T):
+    init_T = _get_T_from_init(init)
+    if isinstance(init, int) and issubclass(T, Bits):
+        # Allow int to be extended to width of T
+        if len(init_T) > len(T):
+            # Don't implicitly truncate
+            return False
+        return True
+    if isinstance(init, int) and issubclass(T, Bit):
+        # Allow int for bit
+        if len(init_T) > 1:
+            return False
+        return True
+    return issubclass(init_T, T) or issubclass(T, init_T)
+
+
 class Register(Generator2):
     def __init__(self, T: Kind = None,
                  init: Union[Type, int, ht.BitVector] = None,
@@ -138,7 +154,7 @@ class Register(Generator2):
             if not isinstance(T, Kind):
                 raise TypeError(
                     f"Expected instance of Kind for argument T, not {type(T)}")
-            if init is not None and not issubclass(_get_T_from_init(init), T):
+            if init is not None and not _check_init_T(init, T):
                 raise ValueError(
                     f"Type {_get_T_from_init(init)} of init ({init}) does not "
                     f"match T ({T})"
