@@ -98,8 +98,10 @@ class DefinitionContext:
                 _VERILOG_FILE_CLOSE.format(filename=file.filename),
                 {}, {})
 
-    def add_inline_verilog(self, format_str, format_args, symbol_table):
-        self._inline_verilog.append((format_str, format_args, symbol_table))
+    def add_inline_verilog(self, format_str, format_args, symbol_table,
+                           inline_wire_prefix="_magma_inline_wire"):
+        self._inline_verilog.append((format_str, format_args, symbol_table,
+                                     inline_wire_prefix))
 
     def insert_default_log_level(self):
         self._insert_default_log_level = True
@@ -235,7 +237,7 @@ class CircuitKind(type):
         dct.setdefault("inline_verilog_strs", [])
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
-        dct["bind_modules_bound"] = False
+        dct["compiled_bind_modules"] = {}
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.

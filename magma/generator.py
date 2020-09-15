@@ -3,6 +3,7 @@ import collections
 import functools
 import weakref
 from .circuit import DefineCircuitKind, Circuit
+from . import cache_definition
 
 
 class ParamDict(dict):
@@ -17,21 +18,20 @@ class GeneratorMeta(type):
     def __new__(mcs, name, bases, attrs):
         attrs["bind_generators"] = []
         cls = super().__new__(mcs, name, bases, attrs)
-        if cls.cache:
-            cls.generate = functools.lru_cache(maxsize=None)(cls.generate)
-
         old_generate = cls.generate
 
         def generate_wrapper(*args, **kwargs):
             result = old_generate(*args, **kwargs)
             if hasattr(result, "circuit_definition"):
                 result = result.circuit_definition
-            if not result.bind_modules_bound:
-                for gen in cls.bind_generators:
-                    gen.generate_bind(result, *args, **kwargs)
+            for gen in cls.bind_generators:
+                gen.generate_bind(result, *args, **kwargs)
             return result
 
         cls.generate = generate_wrapper
+        # Cache after bind logic so we don't run it twice on a cached entry
+        if cls.cache:
+            cls.generate = cache_definition(cls.generate)
         return cls
 
     def __call__(cls, *args, name=None, **kwargs):

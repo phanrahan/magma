@@ -19,7 +19,7 @@ module corebit_term (
 
 endmodule
 
-module RTLMonitor_unq1 (
+module foo_RTLMonitor_unq1 (
     input CLK,
     input handshake_arr_0_ready,
     input handshake_arr_0_valid,
@@ -63,7 +63,7 @@ always @(*) $display("%x", inst_input & {5{mon_temp3}});
 endmodule
 
 
-bind RTL_unq1 RTLMonitor_unq1 RTLMonitor_unq1_inst (
+bind foo_RTL_unq1 foo_RTLMonitor_unq1 foo_RTLMonitor_unq1_inst (
     .CLK(CLK),
     .in1(in1),
     .in2(in2),

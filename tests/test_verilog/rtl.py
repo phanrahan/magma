@@ -5,17 +5,17 @@ class RTL(m.Generator):
     @staticmethod
     def generate(width):
         orr, andr, logical_and = m.define_from_verilog(f"""
-            module orr_{width} (input [{width - 1}:0] I, output O);
-            assign O = |(I);
-            endmodule
+module orr_{width} (input [{width - 1}:0] I, output O);
+assign O = |(I);
+endmodule
 
-            module andr_{width} (input [{width - 1}:0] I, output O);
-            assign O = &(I);
-            endmodule
+module andr_{width} (input [{width - 1}:0] I, output O);
+assign O = &(I);
+endmodule
 
-            module logical_and (input I0, input I1, output O);
-            assign O = I0 && I1;
-            endmodule
+module logical_and (input I0, input I1, output O);
+assign O = I0 && I1;
+endmodule
         """)
 
         class HandShake(m.Product):
