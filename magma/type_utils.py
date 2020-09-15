@@ -1,3 +1,4 @@
+import abc
 import dataclasses
 import typing
 
@@ -52,12 +53,33 @@ def _get_unbound_root(T):
 
 
 @dataclasses.dataclass(frozen=True)
-class _TypeWrapper:
+class GenericWrapper:
     raw: typing.Any
     children: typing.List[typing.Any]
+    name: str
+
+
+class WrappedVisitor:
+    def visit(self, node):
+        wrapped = self.wrap(node)
+        method = 'visit_' + wrapped.name
+        visitor = getattr(self, method, self.generic_visit)
+        return visitor(wrapped.raw)
+
+    def generic_visit(self, node):
+        wrapped = self.wrap(node)
+        for child in wrapped.children:
+            self.visit(child)
+
+    @abc.abstractmethod
+    def wrap(self, node):
+        raise NotImplementedError()
+
+
+@dataclasses.dataclass(frozen=True)
+class _TypeWrapper(GenericWrapper):
     attrs: typing.Dict[str, typing.Any]
     constructor: typing.Callable
-    name: str
 
 
 def _wrap_type(T):
@@ -67,13 +89,13 @@ def _wrap_type(T):
 
     if isdigital(T):
         constructor = lambda T: T
-        return _TypeWrapper(T, [], {}, constructor, "Digital")
+        return _TypeWrapper(T, [], "Digital", {}, constructor)
     if isbits(T):
         constructor = lambda T: T
-        return _TypeWrapper(T, [], {}, constructor, "Bits")
+        return _TypeWrapper(T, [], "Bits", {}, constructor)
     if isarray(T):
         constructor = lambda T, subT: T[T.N, subT]
-        return _TypeWrapper(T, [T.T], {"N": T.N}, constructor, "Array")
+        return _TypeWrapper(T, [T.T], "Array", {"N": T.N}, constructor)
     if istuple(T):
 
         def _constructor(T, *args):
@@ -84,22 +106,14 @@ def _wrap_type(T):
 
         attrs = {"fields": T.field_dict}
         children = list(T.field_dict.values())
-        return _TypeWrapper(T, children, attrs, _constructor, "Tuple")
+        return _TypeWrapper(T, children, "Tuple", attrs, _constructor)
 
     raise NotImplementedError(T)
 
 
-class TypeVisitor:
-    def visit(self, T):
-        wrapped = _wrap_type(T)
-        method = 'visit_' + wrapped.name
-        visitor = getattr(self, method, self.generic_visit)
-        return visitor(wrapped.raw)
-
-    def generic_visit(self, T):
-        wrapped = _wrap_type(T)
-        for child in wrapped.children:
-            self.visit(child)
+class TypeVisitor(WrappedVisitor):
+    def wrap(self, T):
+        return _wrap_type(T)
 
 
 class TypeTransformer(TypeVisitor):

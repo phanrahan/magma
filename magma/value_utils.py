@@ -2,7 +2,8 @@ import dataclasses
 import typing
 
 from magma.ref import Ref, TupleRef, ArrayRef
-from magma.type_utils import isprotocol, isdigital, isbits, isarray, istuple
+from magma.type_utils import (isprotocol, isdigital, isbits, isarray, istuple,
+                              GenericWrapper, WrappedVisitor)
 
 
 def _unwrap_protocol_value(value):
@@ -13,10 +14,8 @@ def _unwrap_protocol_value(value):
 
 
 @dataclasses.dataclass(frozen=True)
-class _ValueWrapper:
-    raw: typing.Any
-    children: typing.List[typing.Any]
-    name: str
+class _ValueWrapper(GenericWrapper):
+    pass
 
 
 def _wrap_value(value):
@@ -37,17 +36,9 @@ def _wrap_value(value):
     raise NotImplementedError(T)
 
 
-class ValueVisitor:
-    def visit(self, value):
-        wrapped = _wrap_value(value)
-        method = 'visit_' + wrapped.name
-        visitor = getattr(self, method, self.generic_visit)
-        return visitor(value)
-
-    def generic_visit(self, value):
-        wrapped = _wrap_value(value)
-        for child in wrapped.children:
-            self.visit(child)
+class ValueVisitor(WrappedVisitor):
+    def wrap(self, value):
+        return _wrap_value(value)
 
 
 @dataclasses.dataclass(frozen=True)
