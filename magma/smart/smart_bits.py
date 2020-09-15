@@ -520,6 +520,8 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
 
     @debug_wire
     def wire(self, other, debug_info):
+        if isinstance(other, Bits):
+            super().wire(other, debug_info)
         if not isinstance(other, _SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
         evaluated, resolved = _eval(self, other)
@@ -573,14 +575,13 @@ class _SmartifyTypeTransformer(TypeTransformer):
 
 class _LeafCollector(ValueVisitor):
     def __init__(self):
-        self.bits_leaves = []
-        self.other_leaves = []
+        self.leaves = []
 
     def visit_Digital(self, value):
-        self.other_leaves.append(value)
+        self.leaves.append(value)
 
     def visit_Bits(self, value):
-        self.bits_leaves.append(value)
+        self.leaves.append(value)
 
 
 def make_smart(value):
@@ -590,13 +591,8 @@ def make_smart(value):
     smart_value = Tsmart()
     leaf_collector = _LeafCollector()
     leaf_collector.visit(value)
-    for bits in leaf_collector.bits_leaves:
-        selector = make_selector(bits)
-        smart_bits = selector.select(smart_value)
-        smart_bits_unwrapped = smart_bits._get_magma_value_()
-        smart_bits_unwrapped @= bits
-    for leaf in leaf_collector.other_leaves:
+    for leaf in leaf_collector.leaves:
         selector = make_selector(leaf)
-        new_leaf = selector.select(smart_value)
-        new_leaf @= leaf
+        smart_leaf = selector.select(smart_value)
+        smart_leaf @= leaf
     return smart_value
