@@ -75,7 +75,6 @@ module Test (
 );
 wire [7:0] Mux2xOutBits8_inst0_O;
 wire [7:0] Register_inst0_O;
-wire [7:0] const_0_8_out;
 Mux2xOutBits8 Mux2xOutBits8_inst0 (
     .I0(Register_inst0_O),
     .I1(Register_inst0_O),
@@ -84,7 +83,7 @@ Mux2xOutBits8 Mux2xOutBits8_inst0 (
 );
 Mux2xTuplea_OutBits8 Mux2xTuplea_OutBits8_inst0 (
     .I0_a(Register_inst0_O),
-    .I1_a(const_0_8_out),
+    .I1_a(8'h00),
     .O_a(O_a),
     .S(sel)
 );
@@ -93,6 +92,5 @@ Register Register_inst0 (
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign const_0_8_out = 8'h00;
 endmodule
 

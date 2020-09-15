@@ -59,21 +59,17 @@ module Mux2xTuplea_Tuple_SequentialRegisterWrapperOutBits2_b_Array2__SequentialR
     output [1:0] O_b,
     input S
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out;
-wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0;
-wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1;
+reg [3:0] coreir_commonlib_mux2x4_inst0_out_unq1;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_0;
+    coreir_commonlib_mux2x4_inst0_out_unq1 = {I0_b[1],I0_b[0],I0_a__0[1:0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_1;
+    coreir_commonlib_mux2x4_inst0_out_unq1 = {I1_b[1],I1_b[0],I1_a__0[1:0]};
 end
 end
 
-assign coreir_commonlib_mux2x4_inst0_in_data_0 = {I0_b[1],I0_b[0],I0_a__0[1:0]};
-assign coreir_commonlib_mux2x4_inst0_in_data_1 = {I1_b[1],I1_b[0],I1_a__0[1:0]};
-assign O_a__0 = coreir_commonlib_mux2x4_inst0_out[1:0];
-assign O_b = coreir_commonlib_mux2x4_inst0_out[3:2];
+assign O_a__0 = coreir_commonlib_mux2x4_inst0_out_unq1[1:0];
+assign O_b = coreir_commonlib_mux2x4_inst0_out_unq1[3:2];
 endmodule
 
 module Mux2xOutBits2 (

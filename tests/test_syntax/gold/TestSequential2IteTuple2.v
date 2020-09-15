@@ -77,7 +77,6 @@ module Test (
 );
 wire Mux2xOutBit_inst0_O;
 wire Register_inst0_O;
-wire bit_const_0_None_out;
 Mux2xOutBit Mux2xOutBit_inst0 (
     .I0(sel),
     .I1(sel),
@@ -86,7 +85,7 @@ Mux2xOutBit Mux2xOutBit_inst0 (
 );
 Mux2xTupleOutBit Mux2xTupleOutBit_inst0 (
     .I0__0(Register_inst0_O),
-    .I1__0(bit_const_0_None_out),
+    .I1__0(1'b0),
     .O__0(O__0),
     .S(sel)
 );
@@ -95,6 +94,5 @@ Register Register_inst0 (
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign bit_const_0_None_out = 1'b0;
 endmodule
 
