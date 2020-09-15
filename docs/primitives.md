@@ -120,6 +120,11 @@ The `m.reduce` function will generate an instance of the coreir bitwise reduce
 primitive, which will in turn compile to a verilog bitwise reduction (e.g.
 `assign O = &I`).
 
+For convenience, we also provide the following methods on the Bits type:
+* `reduce_and()` - shorthand for `m.reduce(operator.and_, bits_value)`
+* `reduce_or()` - shorthand for `m.reduce(operator.or_, bits_value)`
+* `reduce_xor()` - shorthand for `m.reduce(operator.xor, bits_value)`
+
 For other reduction patterns (non-bitwise), you can simply use the standard
 `functools.reduce`.
 
