@@ -128,18 +128,6 @@ def make_cparams(context, params):
     return context.newParams(cparams)
 
 
-def is_clock_or_nested_clock(p):
-    if issubclass(p, ClockTypes):
-        return True
-    if issubclass(p, Array):
-        return is_clock_or_nested_clock(p.T)
-    if issubclass(p, Tuple):
-        for item in p.types():
-            if is_clock_or_nested_clock(item):
-                return True
-    return False
-
-
 def attach_debug_info(coreir_obj, debug_info, a=None, b=None):
     def fn(k, v):
         if a and b:

@@ -6,11 +6,10 @@ import os
 from ..digital import Digital
 from ..array import Array
 from ..bits import Bits
-from ..clock import ClockTypes
 from coreir import Wireable
 from .coreir_utils import (attach_debug_info, check_magma_interface,
                            constant_to_value, get_inst_args,
-                           get_module_of_inst, is_clock_or_nested_clock,
+                           get_module_of_inst,
                            magma_interface_to_coreir_module_type,
                            magma_port_to_coreir_port, make_cparams, map_genarg,
                            magma_name_to_coreir_select, Slice)
@@ -20,7 +19,8 @@ from ..logging import root_logger
 from ..passes import InstanceGraphPass
 from ..tuple import Tuple
 from .util import get_codegen_debug_info
-from magma.clock import ClockTypes, first, get_first_clock, wire_clock_port
+from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
+                         get_default_clocks)
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
@@ -203,12 +203,7 @@ class DefinitionTransformer(TransformerBase):
             inst: InstanceTransformer(self.backend, self.opts, inst, self.defn)
             for inst in self.defn.instances
         }
-        self.clocks = {}
-        for clock_type in ClockTypes:
-            self.clocks[clock_type] = first(
-                get_first_clock(port, clock_type)
-                for port in defn.interface.ports.values()
-            )
+        self.clocks = get_default_clocks(defn)
 
     def children(self):
         pass_ = InstanceGraphPass(self.defn)
@@ -313,11 +308,7 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value):
         if value is None and is_clock_or_nested_clock(type(port)):
-            clock_wired = False
-            for type_, default_driver in self.clocks.items():
-                if default_driver is not None:
-                    clock_wired |= wire_clock_port(port, type_, default_driver)
-            if not clock_wired:
+            if not wire_default_clock(port, self.clocks):
                 # No default clock
                 return
             value = port.trace()

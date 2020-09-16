@@ -171,3 +171,33 @@ def get_reset_args(reset_type: AbstractReset = None):
     has_reset = reset_type == Reset
     has_resetn = reset_type == ResetN
     return (has_async_reset, has_async_resetn, has_reset, has_resetn)
+
+
+def get_default_clocks(defn):
+    clocks = {}
+    for clock_type in ClockTypes:
+        clocks[clock_type] = first(
+            get_first_clock(port, clock_type)
+            for port in defn.interface.ports.values()
+        )
+    return clocks
+
+
+def is_clock_or_nested_clock(p):
+    if issubclass(p, ClockTypes):
+        return True
+    if issubclass(p, Array):
+        return is_clock_or_nested_clock(p.T)
+    if issubclass(p, Tuple):
+        for item in p.types():
+            if is_clock_or_nested_clock(item):
+                return True
+    return False
+
+
+def wire_default_clock(port, clocks):
+    clock_wired = False
+    for type_, default_driver in clocks.items():
+        if default_driver is not None:
+            clock_wired |= wire_clock_port(port, type_, default_driver)
+    return clock_wired

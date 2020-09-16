@@ -56,13 +56,14 @@ def test_ignore_undriven_coreir():
     class Foo(m.Circuit):
         _ignore_undriven_ = True
         io = m.IO(I0=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bit))
+        io += m.ClockIO()
 
         io.O1 @= io.I0
 
     class Main(m.Circuit):
         _ignore_undriven_ = True
         io = m.IO(I0=m.In(m.Bits[2]), I1=m.In(m.Bits[2]), O0=m.Out(m.Bit),
-                  O1=m.Out(m.Bit))
+                  O1=m.Out(m.Bit)) + m.ClockIO()
 
         foo = Foo()
         foo.I0 @= io.I0 == io.I1
