@@ -674,10 +674,9 @@ def test_sequential2_ite_complex_register():
         def __init__(self):
             self.a = m.Register(
                 T=T,
-                init=m.make_product(T,
+                init=m.namedtuple(
                     a=m.array([m.bits(0, 2)]),
-                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0),
-                                                        m.bit(0)]))]),
+                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0), m.bit(0)]))]),
                 ),
             )()
 
@@ -703,17 +702,16 @@ def test_sequential2_ite_complex_register2():
         def __init__(self):
             self.a = m.Register(
                 T=T,
-                init=m.make_product(T,
+                init=m.namedtuple(
                     a=m.array([m.bits(0, 2)]),
-                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0),
-                                                        m.bit(0)]))]),
+                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0), m.bit(0)]))]),
                 ),
             )()
 
         def __call__(self, sel: m.Bit) -> T:
             self.a = self.a
             if sel:
-                return m.make_product(T,
+                return m.namedtuple(
                     a=m.array([self.a.b[0].c]),
                     b=m.tuple_([m.namedtuple(
                         c=m.array([m.bit(0), m.bit(self.a.a[0][1:2])]))]
