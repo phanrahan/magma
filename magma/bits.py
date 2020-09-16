@@ -28,13 +28,18 @@ from magma.generator import Generator2
 _logger = root_logger()
 
 
+def _check_size(val, T):
+    if len(val) != len(T):
+        raise InconsistentSizeError('Inconsistent size')
+
+
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
     if isinstance(val, ht.BitVector):
+        _check_size(val, T)
         val = val.bits()
     if not isinstance(val, Bits):
         return T(val)
-    if len(val) != len(T):
-        raise InconsistentSizeError('Inconsistent size')
+    _check_size(val, T)
     return val
 
 
@@ -412,7 +417,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __rand__(self, other):
-        return self & other
+        try:
+            return self & other
+        except TypeError:
+            return NotImplemented
 
     def __or__(self, other):
         try:
@@ -423,7 +431,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __ror__(self, other):
-        return self | other
+        try:
+            return self | other
+        except TypeError:
+            return NotImplemented
 
     def __xor__(self, other):
         try:
@@ -434,7 +445,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __rxor__(self, other):
-        return self ^ other
+        try:
+            return self ^ other
+        except TypeError:
+            return NotImplemented
 
     def __lshift__(self, other):
         try:
@@ -445,7 +459,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __rlshift__(self, other):
-        return type(self)(other) << self
+        try:
+            return type(self)(other) << self
+        except TypeError:
+            return NotImplemented
 
     def __rshift__(self, other):
         try:
@@ -456,7 +473,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __rrshift__(self, other):
-        return type(self)(other) >> self
+        try:
+            return type(self)(other) >> self
+        except TypeError:
+            return NotImplemented
 
     def __eq__(self, other):
         try:
@@ -486,7 +506,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __radd__(self, other):
-        return self + other
+        try:
+            return self + other
+        except TypeError:
+            return NotImplemented
 
     def __sub__(self, other):
         try:
@@ -497,7 +520,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __rsub__(self, other):
-        return type(self)(other) - self
+        try:
+            return type(self)(other) - self
+        except TypeError:
+            return NotImplemented
 
     def __mul__(self, other):
         try:
@@ -508,7 +534,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return NotImplemented
 
     def __rmul__(self, other):
-        return self * other
+        try:
+            return self * other
+        except TypeError:
+            return NotImplemented
 
     @classmethod
     def get_family(cls):
@@ -582,13 +611,22 @@ class Int(Bits):
     Defines shared right-hand operators for UInt/SInt
     """
     def __rfloordiv__(self, other):
-        return type(self)(other) // self
+        try:
+            return type(self)(other) // self
+        except TypeError:
+            return NotImplemented
 
     def __rtruediv__(self, other):
-        return type(self)(other) / self
+        try:
+            return type(self)(other) / self
+        except TypeError:
+            return NotImplemented
 
     def __rmod__(self, other):
-        return type(self)(other) % self
+        try:
+            return type(self)(other) % self
+        except TypeError:
+            return NotImplemented
 
 
 class UInt(Int):

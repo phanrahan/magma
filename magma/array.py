@@ -228,6 +228,14 @@ class Array(Type, metaclass=ArrayMeta):
                     if not issubclass(self.T, Bit):
                         raise TypeError(f"Can only instantiate Array[N, Bit] "
                                         f"with int/bv, not Array[N, {self.T}]")
+                    if (isinstance(args[0], BitVector) and
+                            len(args[0]) != self.N):
+                        raise TypeError(
+                            f"Cannot create a value of type {type(self)} with"
+                            f" a BitVector of length {len(args[0])} (the sizes"
+                            " must match)"
+                        )
+
                     n = args[0]
                     bits = (int2seq(n, self.N)
                             if isinstance(n, int)

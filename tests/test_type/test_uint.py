@@ -234,3 +234,18 @@ def test_rops(op):
     sim.set_value(Main.I, I)
     sim.evaluate()
     assert sim.get_value(Main.O) == op(x, I)
+
+
+@pytest.mark.parametrize("op, op_str", [
+    (operator.floordiv, "//"),
+    (operator.mod, "%")
+])
+def test_rop_type_error(op, op_str):
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.UInt[2]))
+        with pytest.raises(TypeError) as e:
+            print(op(UIntVector[32](0xDEADBEEF), io.I))
+        assert str(e.value) == (
+            f"unsupported operand type(s) for {op_str}: 'UIntVector[32]' and "
+            "'UInt[(2, Out(Bit))]'"
+        )
