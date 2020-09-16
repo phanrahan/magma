@@ -104,3 +104,5 @@ from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
                               Memory)
 
 from magma.types import BitPattern, Valid
+from magma.types import BitPattern
+import magma.smart

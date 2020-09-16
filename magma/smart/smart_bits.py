@@ -9,6 +9,9 @@ from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+from magma.t import Direction
+from magma.type_utils import TypeTransformer, isuint, issint
+from magma.value_utils import ValueVisitor, make_selector
 
 
 def _is_int(value):
@@ -155,6 +158,13 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
     def reduce(self, op):
         return _SmartReductionOpExpr(op, self)
 
+    # Extension operators.
+    def zext(self, width):
+        return _SmartExtendOpExpr(width, False, self, resolved=False)
+
+    def sext(self, width):
+        return _SmartExtendOpExpr(width, True, self, resolved=False)
+
 
 class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, op, *args):
@@ -203,9 +213,18 @@ class _SmartExtendOpExpr(_SmartOpExpr):
         def __str__(self):
             return f"Extend[width={self._width}, signed={self._signed}]"
 
-    def __init__(self, width, signed, operand):
+    def __init__(self, width, signed, operand, resolved=True):
         extend = _SmartExtendOpExpr._ExtendOp(width, signed)
         super().__init__(extend, operand)
+        self._resolved = resolved
+
+    def resolve(self, context):
+        if self._resolved:
+            return
+        context = Context(None, self)
+        self._resolve_args(context)
+        self._width_ = self._args[0]._width_ + self.op._width
+        self._signed_ = self.op._signed
 
     def eval(self):
         args = self._eval_args()
@@ -500,6 +519,9 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
 
     @debug_wire
     def wire(self, other, debug_info):
+        if isinstance(other, Bits):
+            super().wire(other, debug_info)
+            return
         if not isinstance(other, _SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
         evaluated, resolved = _eval(self, other)
@@ -516,10 +538,10 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
             return copy.deepcopy(self)
         value = self.typed_value()
         value = value.ext(-diff) if diff < 0 else value[:-diff]
-        return SmartBits.make(value)
+        return SmartBits.from_bits(value)
 
     @staticmethod
-    def make(value):
+    def from_bits(value):
         assert isinstance(value, Bits)
         signed = isinstance(value, SInt)
         return SmartBits[len(value), signed](value)
@@ -536,4 +558,41 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
     res = rhs.eval()
-    return SmartBits.make(res), rhs
+    return SmartBits.from_bits(res), rhs
+
+
+def eval(expr: _SmartExpr, width: int, signed: bool = False):
+    lhs = SmartBits[width, signed]()
+    lhs @= expr
+    return lhs
+
+
+class _SmartifyTypeTransformer(TypeTransformer):
+    def visit_Bits(self, T):
+        signed = issint(T)
+        return SmartBits[len(T), signed]
+
+
+class _LeafCollector(ValueVisitor):
+    def __init__(self):
+        self.leaves = []
+
+    def visit_Digital(self, value):
+        self.leaves.append(value)
+
+    def visit_Bits(self, value):
+        self.leaves.append(value)
+
+
+def make_smart(value):
+    T = type(value)
+    Tsmart = _SmartifyTypeTransformer().visit(T)
+    Tsmart = Tsmart.qualify(Direction.Undirected)
+    smart_value = Tsmart()
+    leaf_collector = _LeafCollector()
+    leaf_collector.visit(value)
+    for leaf in leaf_collector.leaves:
+        selector = make_selector(leaf)
+        smart_leaf = selector.select(smart_value)
+        smart_leaf @= leaf
+    return smart_value

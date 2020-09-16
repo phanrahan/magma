@@ -2,7 +2,7 @@ from functools import wraps, partial
 import operator
 import pytest
 import magma as m
-from magma.smart import SmartBit, SmartBits, concat, signed
+from magma.smart import SmartBit, SmartBits, concat, signed, make_smart
 from magma.testing import check_files_equal
 
 
@@ -287,3 +287,29 @@ def test_unsigned_add():
         io.O @= io.x + io.y
 
     return _Test
+
+
+def test_make_smart():
+
+    class _T(m.Product):
+        x = m.Bits[8]
+        y = m.Array[10, m.Bits[16]]
+
+    # Value should be non-anonymous so that the value checks below work.
+    value = _T(name="value")
+    smart = make_smart(value)
+
+    # Type checks.
+    assert isinstance(smart, m.Tuple)
+    assert set(type(smart).field_dict.keys()) == {"x", "y"}
+    assert isinstance(smart.x, SmartBits)
+    assert len(smart.x) == 8 and type(smart.x)._signed == False
+    assert isinstance(smart.y, m.Array)
+    assert isinstance(smart.y[0], SmartBits)
+    assert len(smart.y[0]) == 16
+    assert type(smart.y[0])._signed == False
+
+    # Value checks.
+    assert smart.x._get_magma_value_().value() is value.x
+    for i in range(10):
+        assert smart.y[i]._get_magma_value_().value() is value.y[i]

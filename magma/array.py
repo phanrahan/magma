@@ -12,6 +12,7 @@ from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 from magma.wire_container import WiringLog
+from magma.protocol_type import MagmaProtocol
 
 
 _logger = root_logger()
@@ -74,7 +75,8 @@ class ArrayMeta(ABCMeta, Kind):
             # Else, it index[1] should be  Type (e.g. In(Bit)) or a Direction
             # (used internally for In(Array))
             valid_second_index = (isinstance(index[1], Direction) or
-                                  issubclass(index[1], Type))
+                                  issubclass(index[1], Type) or
+                                  issubclass(index[1], MagmaProtocol))
             if not valid_second_index:
                 raise TypeError(
                     "Expected Type or Direction as second index to Array"
@@ -255,7 +257,11 @@ class Array(Type, metaclass=ArrayMeta):
         else:
             for i in range(self.N):
                 T = self.T
-                t = T(name=ArrayRef(self, i))
+                ref = ArrayRef(self, i)
+                if issubclass(T, MagmaProtocol):
+                    t = T._from_magma_value_(T._to_magma_()(name=ref))
+                else:
+                    t = T(name=ref)
                 self.ts.append(t)
 
     @classmethod
