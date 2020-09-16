@@ -48,24 +48,20 @@ module Mux2xTuplea_Array1_OutBits2_b_TupleTuplec_Array2_OutBit (
     output [1:0] O_b__0_c,
     input S
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out;
-wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0;
-wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1;
+reg [3:0] coreir_commonlib_mux2x4_inst0_out_unq1;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_0;
+    coreir_commonlib_mux2x4_inst0_out_unq1 = {I0_b__0_c[1:0],I0_a[0][1:0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_1;
+    coreir_commonlib_mux2x4_inst0_out_unq1 = {I1_b__0_c[1:0],I1_a[0][1:0]};
 end
 end
 
-assign coreir_commonlib_mux2x4_inst0_in_data_0 = {I0_b__0_c[1:0],I0_a[0][1:0]};
-assign coreir_commonlib_mux2x4_inst0_in_data_1 = {I1_b__0_c[1:0],I1_a[0][1:0]};
-assign O_a[0] = coreir_commonlib_mux2x4_inst0_out[1:0];
-assign O_b__0_c = coreir_commonlib_mux2x4_inst0_out[3:2];
+assign O_a[0] = coreir_commonlib_mux2x4_inst0_out_unq1[1:0];
+assign O_b__0_c = coreir_commonlib_mux2x4_inst0_out_unq1[3:2];
 endmodule
 
-module Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit (
+module Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit (
     input [1:0] I0_a [0:0],
     input [1:0] I0_b__0_c,
     input [1:0] I1_a [0:0],
@@ -74,21 +70,17 @@ module Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit (
     output [1:0] O_b__0_c,
     input S
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out;
-wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0;
-wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1;
+reg [3:0] coreir_commonlib_mux2x4_inst0_out_unq1;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_0;
+    coreir_commonlib_mux2x4_inst0_out_unq1 = {I0_b__0_c[1:0],I0_a[0][1:0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = coreir_commonlib_mux2x4_inst0_in_data_1;
+    coreir_commonlib_mux2x4_inst0_out_unq1 = {I1_b__0_c[1:0],I1_a[0][1:0]};
 end
 end
 
-assign coreir_commonlib_mux2x4_inst0_in_data_0 = {I0_b__0_c[1:0],I0_a[0][1:0]};
-assign coreir_commonlib_mux2x4_inst0_in_data_1 = {I1_b__0_c[1:0],I1_a[0][1:0]};
-assign O_a[0] = coreir_commonlib_mux2x4_inst0_out[1:0];
-assign O_b__0_c = coreir_commonlib_mux2x4_inst0_out[3:2];
+assign O_a[0] = coreir_commonlib_mux2x4_inst0_out_unq1[1:0];
+assign O_b__0_c = coreir_commonlib_mux2x4_inst0_out_unq1[3:2];
 endmodule
 
 module Test (
@@ -97,23 +89,23 @@ module Test (
     output [1:0] O_b__0_c,
     input sel
 );
-wire [1:0] Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_O_a [0:0];
+wire [1:0] Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_O_a [0:0];
 wire [1:0] Mux2xTuplea_Array1_OutBits2_b_TupleTuplec_Array2_OutBit_inst0_O_a [0:0];
 wire [1:0] Mux2xTuplea_Array1_OutBits2_b_TupleTuplec_Array2_OutBit_inst0_O_b__0_c;
 wire [1:0] Register_inst0_O_a [0:0];
 wire [1:0] Register_inst0_O_b__0_c;
-wire [1:0] Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I0_a [0:0];
-assign Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I0_a[0] = Register_inst0_O_a[0];
-wire [1:0] Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I1_a [0:0];
-assign Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I1_a[0] = Register_inst0_O_b__0_c;
-wire [1:0] Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I1_b__0_c;
-assign Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I1_b__0_c = {Register_inst0_O_a[0][1],1'b0};
-Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0 (
-    .I0_a(Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I0_a),
+wire [1:0] Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I0_a [0:0];
+assign Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I0_a[0] = Register_inst0_O_a[0];
+wire [1:0] Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I1_a [0:0];
+assign Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I1_a[0] = Register_inst0_O_b__0_c;
+wire [1:0] Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I1_b__0_c;
+assign Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I1_b__0_c = {Register_inst0_O_a[0][1],1'b0};
+Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0 (
+    .I0_a(Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I0_a),
     .I0_b__0_c(Register_inst0_O_b__0_c),
-    .I1_a(Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I1_a),
-    .I1_b__0_c(Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_I1_b__0_c),
-    .O_a(Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_O_a),
+    .I1_a(Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I1_a),
+    .I1_b__0_c(Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_I1_b__0_c),
+    .O_a(Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_O_a),
     .O_b__0_c(O_b__0_c),
     .S(sel)
 );
@@ -139,6 +131,6 @@ Register Register_inst0 (
     .O_a(Register_inst0_O_a),
     .O_b__0_c(Register_inst0_O_b__0_c)
 );
-assign O_a[0] = Mux2xTuplea_Array1_Array2_OutBit_b_TupleTuplec_Array2_OutBit_inst0_O_a[0];
+assign O_a[0] = Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_O_a[0];
 endmodule
 

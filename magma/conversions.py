@@ -12,9 +12,10 @@ from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
-from .tuple import Tuple, Product
+from .tuple import Tuple, Product, AnonProduct
 from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
+from .wire import wire
 import hwtypes as ht
 
 __all__ = ['bit']
@@ -23,7 +24,7 @@ __all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
 __all__ += ['array']
 __all__ += ['bits', 'uint', 'sint']
 
-__all__ += ['tuple_', 'namedtuple']
+__all__ += ['tuple_', 'namedtuple', 'make_product']
 
 __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
@@ -327,22 +328,27 @@ def _tuple(value, n=None, t=Tuple):
         elif issubclass(decl[d], ht.BitVector):
             decl[d] = Bits[len(decl[d])]
 
-    if t == Tuple:
+    if t is Tuple:
         return t[tuple(decl.values())](*args)
-    assert t == Product
-    return t.from_fields("anon", decl)(*args)
+    assert t is AnonProduct
+    return AnonProduct[decl](*args)
 
 
 def namedtuple(**kwargs):
-    return _tuple(kwargs, t=Product)
-
-
-def product(**kwargs):
-    return _tuple(kwargs, t=Product)
+    return _tuple(kwargs, t=AnonProduct)
 
 
 def tuple_(value, n=None):
     return _tuple(value, n)
+
+
+def make_product(T, **kwargs):
+    if not issubclass(T, Product):
+        raise TypeError("Except T to be subclass of Product")
+    retval = T()
+    for key, value in kwargs.items():
+        wire(value, getattr(retval, key))
+    return retval
 
 
 def replace(value, others: dict):
