@@ -71,16 +71,6 @@ class Mux(Generator2):
         self.io.O @= T.unflatten(mux.O.ts)
 
 
-# NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
-# dependency between Mux and Array. See the discussion on
-# https://github.com/phanrahan/magma/pull/658.
-def _dynamic_mux_select(this, key):
-    return Mux(len(this), this.T)()(*this.ts, key)
-
-
-Array.dynamic_mux_select = _dynamic_mux_select
-
-
 def _infer_mux_type(args):
     """
     Try to infer type by traversing arguments in order:
@@ -129,6 +119,8 @@ def mux(I: list, S, **kwargs):
         return I[S]
     T, I = _infer_mux_type(I)
     inst = Mux(len(I), T, **kwargs)()
+    if len(I) == 2 and isinstance(S, Bits[1]):
+        S = S[0]
     result = inst(*I, S)
     for i in range(len(I)):
         if getattr(inst, f"I{i}").value() is None:
@@ -140,6 +132,16 @@ def mux(I: list, S, **kwargs):
 
 # Monkey patch for ite impl without circular dependency
 Bit._Mux = Mux
+
+
+# NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
+# dependency between Mux and Array. See the discussion on
+# https://github.com/phanrahan/magma/pull/658.
+def _dynamic_mux_select(this, key):
+    return mux(this.ts, key)
+
+
+Array.dynamic_mux_select = _dynamic_mux_select
 
 
 def dict_lookup(dict_, select, default=0):
