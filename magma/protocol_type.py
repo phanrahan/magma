@@ -1,4 +1,6 @@
 import abc
+
+from magma.debug import debug_wire
 from magma.t import Direction, Type
 
 
@@ -96,10 +98,11 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def name(self):
         return self._get_magma_value_().name
 
-    def wire(self, other):
+    @debug_wire
+    def wire(self, other, debug_info):
         if isinstance(other, MagmaProtocol):
             other = other._get_magma_value_()
-        self._get_magma_value_().wire(other)
+        self._get_magma_value_().wire(other, debug_info)
 
     def unwire(self, other):
         if isinstance(other, MagmaProtocol):

@@ -14,6 +14,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.wire_container import WiringLog
+from magma.protocol_type import MagmaProtocol
 
 
 _logger = root_logger()
@@ -269,7 +270,11 @@ class Array(Type, metaclass=ArrayMeta):
         else:
             for i in range(self.N):
                 T = self.T
-                t = magma_type(T)(name=ArrayRef(self, i))
+                ref = ArrayRef(self, i)
+                if issubclass(T, MagmaProtocol):
+                    t = T._from_magma_value_(T._to_magma_()(name=ref))
+                else:
+                    t = T(name=ref)
                 self.ts.append(t)
 
     @classmethod

@@ -12,14 +12,16 @@ def test_inline_comb_basic():
         io += m.ClockIO()
         reg = m.Register(m.Bit)()
 
+        O1 = m.Bit()
+
         @m.inline_combinational(debug=True, file_name="inline_comb.py")
         def logic():
             if io.invert:
                 reg.I @= ~reg.O
-                O1 = ~reg.O
+                O1 @= ~reg.O
             else:
                 reg.I @= reg.O
-                O1 = reg.O
+                O1 @= reg.O
 
         io.O0 @= reg.O
         io.O1 @= O1
@@ -63,10 +65,10 @@ def test_inline_comb_list():
                 O = [~reg.O, reg.O]
             else:
                 O = [reg.O, ~reg.O]
-        reg.I @= O[0]
+            reg.I @= O[0]
 
-        io.O0 @= O[0]
-        io.O1 @= O[1]
+            io.O0 @= O[0]
+            io.O1 @= O[1]
 
     m.compile("build/test_inline_comb_list", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_inline_comb_list.v",
@@ -85,9 +87,9 @@ def test_inline_comb_bv_bit_bool():
             else:
                 x = [BitVector[2](1), Bit(0), False]
 
-        io.O0 @= x[0]
-        io.O1 @= x[1]
-        io.O2 @= x[2]
+            io.O0 @= x[0]
+            io.O1 @= x[1]
+            io.O2 @= x[2]
 
     m.compile("build/test_inline_comb_bv_bit_bool", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_inline_comb_bv_bit_bool.v",
