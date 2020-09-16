@@ -25,6 +25,18 @@ from magma.logging import root_logger
 from magma.generator import Generator2
 
 
+def _error_handler(fn):
+    @functools.wraps(fn)
+    def _wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except InconsistentSizeError as e:
+            raise e from None
+        except TypeError:
+            return NotImplemented
+    return _wrapper
+
+
 _logger = root_logger()
 
 
@@ -408,136 +420,80 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def __invert__(self):
         return self.bvnot()
 
+    @_error_handler
     def __and__(self, other):
-        try:
-            return self.bvand(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvand(other)
 
+    @_error_handler
     def __rand__(self, other):
-        try:
-            return self & other
-        except TypeError:
-            return NotImplemented
+        return self & other
 
+    @_error_handler
     def __or__(self, other):
-        try:
-            return self.bvor(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvor(other)
 
+    @_error_handler
     def __ror__(self, other):
-        try:
-            return self | other
-        except TypeError:
-            return NotImplemented
+        return self | other
 
+    @_error_handler
     def __xor__(self, other):
-        try:
-            return self.bvxor(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvxor(other)
 
+    @_error_handler
     def __rxor__(self, other):
-        try:
-            return self ^ other
-        except TypeError:
-            return NotImplemented
+        return self ^ other
 
+    @_error_handler
     def __lshift__(self, other):
-        try:
-            return self.bvshl(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvshl(other)
 
+    @_error_handler
     def __rlshift__(self, other):
-        try:
-            return type(self)(other) << self
-        except TypeError:
-            return NotImplemented
+        return type(self)(other) << self
 
+    @_error_handler
     def __rshift__(self, other):
-        try:
-            return self.bvlshr(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvlshr(other)
 
+    @_error_handler
     def __rrshift__(self, other):
-        try:
-            return type(self)(other) >> self
-        except TypeError:
-            return NotImplemented
+        return type(self)(other) >> self
 
+    @_error_handler
     def __eq__(self, other):
-        try:
-            return self.bveq(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bveq(other)
 
+    @_error_handler
     def __ne__(self, other):
-        try:
-            return self.bvne(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvne(other)
 
     def __neg__(self):
         return self.bvneg()
 
+    @_error_handler
     def __add__(self, other):
-        try:
-            return self.bvadd(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvadd(other)
 
+    @_error_handler
     def __radd__(self, other):
-        try:
-            return self + other
-        except TypeError:
-            return NotImplemented
+        return self + other
 
+    @_error_handler
     def __sub__(self, other):
-        try:
-            return self.bvsub(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsub(other)
 
+    @_error_handler
     def __rsub__(self, other):
-        try:
-            return type(self)(other) - self
-        except TypeError:
-            return NotImplemented
+        return type(self)(other) - self
 
+    @_error_handler
     def __mul__(self, other):
-        try:
-            return self.bvmul(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvmul(other)
 
+    @_error_handler
     def __rmul__(self, other):
-        try:
-            return self * other
-        except TypeError:
-            return NotImplemented
+        return self * other
 
     @classmethod
     def get_family(cls):
@@ -610,23 +566,17 @@ class Int(Bits):
     """
     Defines shared right-hand operators for UInt/SInt
     """
+    @_error_handler
     def __rfloordiv__(self, other):
-        try:
-            return type(self)(other) // self
-        except TypeError:
-            return NotImplemented
+        return type(self)(other) // self
 
+    @_error_handler
     def __rtruediv__(self, other):
-        try:
-            return type(self)(other) / self
-        except TypeError:
-            return NotImplemented
+        return type(self)(other) / self
 
+    @_error_handler
     def __rmod__(self, other):
-        try:
-            return type(self)(other) % self
-        except TypeError:
-            return NotImplemented
+        return type(self)(other) % self
 
 
 class UInt(Int):
@@ -640,61 +590,33 @@ class UInt(Int):
         ts = [repr(t) for t in self.ts]
         return 'uint([{}])'.format(', '.join(ts))
 
+    @_error_handler
     def __floordiv__(self, other):
-        try:
-            return self.bvudiv(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvudiv(other)
 
+    @_error_handler
     def __truediv__(self, other):
-        try:
-            return self.bvudiv(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvudiv(other)
 
+    @_error_handler
     def __mod__(self, other):
-        try:
-            return self.bvurem(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvurem(other)
 
+    @_error_handler
     def __ge__(self, other):
-        try:
-            return self.bvuge(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvuge(other)
 
+    @_error_handler
     def __gt__(self, other):
-        try:
-            return self.bvugt(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvugt(other)
 
+    @_error_handler
     def __le__(self, other):
-        try:
-            return self.bvule(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvule(other)
 
+    @_error_handler
     def __lt__(self, other):
-        try:
-            return self.bvult(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvult(other)
 
 
 class SInt(Int):
@@ -742,69 +664,37 @@ class SInt(Int):
     def bvashr(self, other) -> 'AbstractBitVector':
         return self.declare_binary_op("ashr")()(self, other)
 
+    @_error_handler
     def __mod__(self, other):
-        try:
-            return self.bvsrem(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsrem(other)
 
+    @_error_handler
     def __floordiv__(self, other):
-        try:
-            return self.bvsdiv(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsdiv(other)
 
+    @_error_handler
     def __truediv__(self, other):
-        try:
-            return self.bvsdiv(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsdiv(other)
 
+    @_error_handler
     def __ge__(self, other):
-        try:
-            return self.bvsge(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsge(other)
 
+    @_error_handler
     def __gt__(self, other):
-        try:
-            return self.bvsgt(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsgt(other)
 
+    @_error_handler
     def __le__(self, other):
-        try:
-            return self.bvsle(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvsle(other)
 
+    @_error_handler
     def __lt__(self, other):
-        try:
-            return self.bvslt(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvslt(other)
 
+    @_error_handler
     def __rshift__(self, other):
-        try:
-            return self.bvashr(other)
-        except InconsistentSizeError as e:
-            raise e from None
-        except TypeError:
-            return NotImplemented
+        return self.bvashr(other)
 
     def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
         """
