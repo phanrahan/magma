@@ -6,15 +6,25 @@
         "type":["Record",[
           ["I0","BitIn"],
           ["O0","Bit"],
-          ["O1","Bit"]
+          ["O1","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          },
           "corebit_undriven_inst0":{
             "modref":"corebit.undriven"
+          },
+          "coreir_wrapInClock_inst0":{
+            "genref":"coreir.wrap",
+            "genargs":{"type":["CoreIRType",["Named","coreir.clkIn"]]}
           }
         },
         "connections":[
+          ["coreir_wrapInClock_inst0.out","corebit_term_inst0.in"],
           ["self.O0","corebit_undriven_inst0.out"],
+          ["self.CLK","coreir_wrapInClock_inst0.in"],
           ["self.O1","self.I0"]
         ]
       },
@@ -23,7 +33,8 @@
           ["I0",["Array",2,"BitIn"]],
           ["I1",["Array",2,"BitIn"]],
           ["O0","Bit"],
-          ["O1","Bit"]
+          ["O1","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
           "Foo_inst0":{
@@ -41,6 +52,7 @@
           }
         },
         "connections":[
+          ["self.CLK","Foo_inst0.CLK"],
           ["magma_Bits_2_eq_inst0.out","Foo_inst0.I0"],
           ["self.O0","Foo_inst0.O0"],
           ["corebit_term_inst0.in","Foo_inst0.O1"],
