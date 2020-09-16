@@ -264,3 +264,32 @@ def test_mux_list_lookup():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_mux_array_select_bits_1():
+    depth = 2
+    N = 8
+    class test_mux_array_select_bits_1(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Array[depth, m.Bits[N]]),
+            O=m.Out(m.Bits[N])
+        ) + m.ClockIO()
+        ptr_width = m.bitutils.clog2(depth)
+        ptr = m.Register(m.Bits[ptr_width])()
+        io.O @= io.I[ptr.O]
+        ptr.I @= ptr.O + 1
+
+    m.compile("build/test_mux_array_select_bits_1",
+              test_mux_array_select_bits_1)
+
+    tester = fault.SynchronousTester(test_mux_array_select_bits_1,
+                                     test_mux_array_select_bits_1.CLK)
+    tester.circuit.I = I = [0xDE, 0xAD]
+    tester.advance_cycle()
+    tester.circuit.O.expect(I[1])
+    tester.advance_cycle()
+    tester.circuit.O.expect(I[0])
+
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
