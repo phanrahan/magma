@@ -20,6 +20,7 @@ from .protocol_type import magma_type, magma_value
 
 from magma.wire_container import WiringLog
 from magma.wire import wire
+from magma.protocol_type import MagmaProtocol
 
 
 _logger = root_logger()
@@ -175,7 +176,11 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                     setattr(self, k, t)
         else:
             for k, T in zip(self.keys(), self.types()):
-                t = magma_type(T)(name=TupleRef(self, k))
+                ref = TupleRef(self, k)
+                if issubclass(T, MagmaProtocol):
+                    t = T._from_magma_value_(T._to_magma_()(name=ref))
+                else:
+                    t = T(name=ref)
                 self.ts.append(t)
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)

@@ -99,7 +99,10 @@ from .syntax.combinational2 import combinational2
 from .syntax.inline_combinational import inline_combinational
 from .syntax.coroutine import coroutine
 
-from magma.primitives import (LUT, Mux, mux, Register, get_slice, set_slice,
-                              slice, Memory)
+from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
+                              Register, get_slice, set_slice, slice,
+                              Memory)
 
 from magma.types import BitPattern, Valid
+from magma.types import BitPattern
+import magma.smart

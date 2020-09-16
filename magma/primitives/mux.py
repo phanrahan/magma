@@ -141,3 +141,30 @@ def mux(I: list, S, **kwargs):
 
 # Monkey patch for ite impl without circular dependency
 Bit._Mux = Mux
+
+
+def dict_lookup(dict_, select, default=0):
+    """
+    Use `select` as an index into `dict` (similar to a case statement)
+
+    `default` is used when `select` does not match any of the keys and has a
+    default value of 0
+    """
+    output = default
+    for key, value in dict_.items():
+        output = mux([output, value], key == select)
+    return output
+
+
+def list_lookup(list_, select, default=0):
+    """
+    Use `select` as an index into `list` (similar to a case statement)
+
+    `default` is used when `select` does not match any of the indices (e.g.
+    when the select width is longer than the list) and has a default value of
+    0.
+    """
+    output = default
+    for i, elem in enumerate(list_):
+        output = mux([output, elem], i == select)
+    return output

@@ -17,10 +17,9 @@ from magma.wire import wire
 
 
 class _ToCombinationalRewriter(ast.NodeTransformer):
-    def __init__(self, free_prefix, wire_map, assign_map, env):
+    def __init__(self, free_prefix, wire_map, env):
         self.prefix = free_prefix
         self.wire_map = wire_map
-        self.assign_map = assign_map
         self.env = env
         self.name_count = 0
 
@@ -41,14 +40,6 @@ class _ToCombinationalRewriter(ast.NodeTransformer):
             return node
         return self._gen_assign(node.target, node.value)
 
-    def visit_Assign(self, node):
-        for i, target in enumerate(node.targets):
-            key = immutable(node.targets[i])
-            if key not in self.assign_map:
-                self.assign_map[key] = self._gen_new_name()
-            node.targets[i] = ast.Name(self.assign_map[key], ast.Store())
-        return node
-
     def visit_Call(self, node):
         if (
             isinstance(node.func, ast.Attribute) and node.func.attr == "wire"
@@ -64,14 +55,10 @@ class _RewriteToCombinational(Pass):
     Replace wiring targets with a temporary value (so it is handled properly by
     SSA), store the mapping from temporary values so they can be wired up
     later, "inputs" will just read from the enclosing scope
-
-    Replace assign targets with a temporary value, assign the final value
-    returned by SSA
     """
-    def __init__(self, wire_map, assign_map):
+    def __init__(self, wire_map):
         super().__init__()
         self.wire_map = wire_map
-        self.assign_map = assign_map
 
     def rewrite(
         self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
@@ -79,12 +66,10 @@ class _RewriteToCombinational(Pass):
         # prefix used for temporaries
         prefix = gen_free_prefix(tree, env)
 
-        tree = _ToCombinationalRewriter(prefix, self.wire_map,
-                                        self.assign_map, env).visit(tree)
+        tree = _ToCombinationalRewriter(prefix, self.wire_map, env).visit(tree)
 
         # Return targets for wiring and assignments
-        return_values = (list(self.wire_map.values()) +
-                         list(self.assign_map.values()))
+        return_values = list(self.wire_map.values())
         elts = [ast.Name(value, ast.Load()) for value in return_values]
         retval = ast.Tuple(elts, ast.Load()) if len(elts) > 1 else elts[0]
         tree.body.append(ast.Return(retval))
@@ -102,9 +87,7 @@ class inline_combinational(apply_ast_passes):
         if env is None:
             env = get_symbol_table([self.__init__])
         self.wire_map = {}
-        self.assign_map = {}
-        passes = (pre_passes + [_RewriteToCombinational(self.wire_map,
-                                                        self.assign_map),
+        passes = (pre_passes + [_RewriteToCombinational(self.wire_map),
                                 ssa(strict=False), bool_to_bit(),
                                 if_to_phi(Bit.ite)] +
                   post_passes)
@@ -121,10 +104,4 @@ class inline_combinational(apply_ast_passes):
             # way we can avoid having to do eval here (other option is to
             # codegen the original augassign in a new tree, but that's
             # effectively the same as evaling)
-            wire(eval(astor.to_source(mutable(key)).rstrip(), {}, env), value)
-        for key, value in zip(self.assign_map.keys(),
-                              result[len(self.wire_map):]):
-            value_name = gen_free_name(ast.NameConstant(False), env)
-            env.locals.update({value_name: value})
-            exec(f"{astor.to_source(mutable(key)).rstrip()} = {value_name}",
-                 env.globals, env.locals)
+            wire(value, eval(astor.to_source(mutable(key)).rstrip(), {}, env))
