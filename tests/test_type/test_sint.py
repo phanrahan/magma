@@ -276,3 +276,12 @@ def test_rop_type_error(op, op_str):
             f"unsupported operand type(s) for {op_str}: 'SIntVector[32]' and "
             "'SInt[(2, Out(Bit))]'"
         )
+
+        x = m.SInt[5]()
+        y = m.SInt[4]()
+        with pytest.raises(TypeError) as e:
+            op(x, y)
+        assert str(e.value) == (
+            f"unsupported operand type(s) for {op_str}: 'SInt[(5, Bit)]' and "
+            "'SInt[(4, Bit)]'"
+        )

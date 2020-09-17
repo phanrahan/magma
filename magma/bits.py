@@ -426,7 +426,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @_error_handler
     def __rand__(self, other):
-        return self & other
+        return self.bvand(other)
 
     @_error_handler
     def __or__(self, other):
@@ -434,7 +434,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @_error_handler
     def __ror__(self, other):
-        return self | other
+        return self.bvor(other)
 
     @_error_handler
     def __xor__(self, other):
@@ -442,7 +442,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @_error_handler
     def __rxor__(self, other):
-        return self ^ other
+        return self.bvxor(other)
 
     @_error_handler
     def __lshift__(self, other):
@@ -477,7 +477,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @_error_handler
     def __radd__(self, other):
-        return self + other
+        return self.bvadd(other)
 
     @_error_handler
     def __sub__(self, other):
@@ -493,7 +493,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @_error_handler
     def __rmul__(self, other):
-        return self * other
+        return self.bvmul(other)
 
     @classmethod
     def get_family(cls):

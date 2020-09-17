@@ -419,3 +419,12 @@ def test_rop_type_error(op, op_str):
             f"unsupported operand type(s) for {op_str}: 'BitVector[32]' and "
             "'Bits[(2, Out(Bit))]'"
         )
+
+        x = m.Bits[5]()
+        y = m.Bits[4]()
+        with pytest.raises(TypeError) as e:
+            op(x, y)
+        assert str(e.value) == (
+            f"unsupported operand type(s) for {op_str}: 'Bits[(5, Bit)]' and "
+            "'Bits[(4, Bit)]'"
+        )
