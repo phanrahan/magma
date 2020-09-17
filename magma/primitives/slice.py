@@ -4,7 +4,7 @@ from magma.bitutils import clog2
 from magma.common import deprecated
 from magma.t import Direction
 from magma.conversions import array, zext, uint
-from magma.protocol_type import MagmaProtocol
+from magma.protocol_type import magma_type
 
 
 def get_slice(value: Bits, start: Bits, width: int):
@@ -49,9 +49,7 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
     """
     if not isinstance(start, UInt):
         raise TypeError("start should be a UInt")
-    T = type(target)
-    if issubclass(T, MagmaProtocol):
-        T = T._to_magma_()
+    T = magma_type(type(target))
     output = T.qualify(Direction.Undirected)()
     orig_start_len = len(start)
     if len(start) < clog2(len(target)):

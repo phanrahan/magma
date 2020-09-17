@@ -16,6 +16,8 @@ from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
+from .protocol_type import magma_type, magma_value
+
 from magma.wire_container import WiringLog
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
@@ -48,9 +50,22 @@ class TupleKind(TupleMeta, Kind):
                     has_bound_base = True
                     if bound_types is None:
                         bound_types = base.fields
-                    elif any(not (issubclass(x, y) or issubclass(y, x)) for x,
-                             y in zip(bound_types, base.fields)):
-                        raise TypeError("Can't inherit from multiple different bound_types")
+                    else:
+                        for x, y in zip(bound_types, base.fields):
+                            if not (issubclass(x, y) or issubclass(y, x)):
+                                try:
+                                    if x.is_bindable(y):
+                                        continue
+                                except AttributeError:
+                                    pass
+                                try:
+                                    if y.is_bindable(x):
+                                        continue
+                                except AttributeError:
+                                    pass
+                                raise TypeError(
+                                    "Can't inherit from multiple different bound_types"
+                                )
                 else:
                     unbound_bases.append(base)
 
@@ -125,6 +140,24 @@ class TupleKind(TupleMeta, Kind):
         s += ",".join(str(T) for T in cls.fields)
         s += ")"
         return s
+
+    def is_wireable(cls, rhs):
+        rhs = magma_type(rhs)
+        if not isinstance(rhs, TupleKind) or len(cls.fields) != len(rhs.fields):
+            return False
+        for idx, T in enumerate(cls.fields):
+            if not T.is_wireable(rhs[idx]):
+                return False
+        return True
+
+    def is_bindable(cls, rhs):
+        rhs = magma_type(rhs)
+        if not isinstance(rhs, TupleKind) or len(cls.fields) != len(rhs.fields):
+            return False
+        for idx, T in enumerate(cls.fields):
+            if not T.is_bindable(rhs[idx]):
+                return False
+        return True
 
 
 class Tuple(Type, Tuple_, metaclass=TupleKind):
@@ -202,7 +235,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
     @classmethod
     def flat_length(cls):
-        return sum(T.flat_length() for T in cls.types())
+        return sum(magma_type(T).flat_length() for T in cls.types())
 
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
@@ -230,6 +263,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             return
 
         for i_elem, o_elem in zip(i, o):
+            i_elem = magma_value(i_elem)
+            o_elem = magma_value(o_elem)
             wire(o_elem, i_elem, debug_info)
 
     def unwire(i, o):
@@ -463,6 +498,24 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
             if getattr(rhs, k) is not v:
                 return False
 
+        return True
+
+    def is_wireable(cls, rhs):
+        rhs = magma_type(rhs)
+        if not isinstance(rhs, AnonProductKind) or len(cls.fields) != len(rhs.fields):
+            return False
+        for k, v in cls.field_dict.items():
+            if not k in rhs.field_dict or not v.is_wireable(rhs.field_dict[k]):
+                return False
+        return True
+
+    def is_bindable(cls, rhs):
+        rhs = magma_type(rhs)
+        if not isinstance(rhs, AnonProductKind) or len(cls.fields) != len(rhs.fields):
+            return False
+        for k, v in cls.field_dict.items():
+            if not k in rhs.field_dict or not v.is_bindable(rhs.field_dict[k]):
+                return False
         return True
 
     def __len__(cls):

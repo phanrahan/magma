@@ -27,7 +27,7 @@ try:
 except ImportError:
     pass
 from .view import PortView
-from magma.protocol_type import MagmaProtocol
+
 from magma.wire_container import WiringLog
 
 __all__ = ['AnonymousCircuitType']
@@ -437,13 +437,9 @@ class AnonymousCircuitType(object):
             # Wire the circuit's outputs to this circuit's inputs.
             self.wireoutputs(output.interface.outputs(), debug_info)
             return
-        if isinstance(output, MagmaProtocol):
-            output = output._get_magma_value_()
         # Wire the output to this circuit's input (should only have 1 input).
         inputs = []
         for inp in self.interface.inputs():
-            if isinstance(inp, MagmaProtocol):
-                inp = inp._get_magma_value_()
             inputs.append(inp)
         ni = len(inputs)
         if ni == 0:

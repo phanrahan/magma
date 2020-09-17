@@ -11,6 +11,8 @@ from .bit import Bit
 from .bitutils import int2seq, seq2int
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
+from .protocol_type import magma_type, magma_value
+
 from magma.wire_container import WiringLog
 from magma.protocol_type import MagmaProtocol
 
@@ -75,8 +77,7 @@ class ArrayMeta(ABCMeta, Kind):
             # Else, it index[1] should be  Type (e.g. In(Bit)) or a Direction
             # (used internally for In(Array))
             valid_second_index = (isinstance(index[1], Direction) or
-                                  issubclass(index[1], Type) or
-                                  issubclass(index[1], MagmaProtocol))
+                                  issubclass(magma_type(index[1]), Type))
             if not valid_second_index:
                 raise TypeError(
                     "Expected Type or Direction as second index to Array"
@@ -125,7 +126,7 @@ class ArrayMeta(ABCMeta, Kind):
         # (skipped in the case of In(Array))
         if not isinstance(index[1], Direction):
             bases.extend(cls[index[0], b] for b in index[1].__bases__ if
-                         isinstance(b, type(index[1])))
+                         isinstance(b, type(magma_type(index[1]))))
         if not any(issubclass(b, cls) for b in bases):
             bases.insert(0, cls)
         bases = tuple(bases)
@@ -193,6 +194,18 @@ class ArrayMeta(ABCMeta, Kind):
         if not isinstance(rhs, ArrayMeta):
             return NotImplemented
         return (cls.N == rhs.N) and (cls.T == rhs.T)
+
+    def is_wireable(cls, rhs):
+        rhs = magma_type(rhs)
+        if not isinstance(rhs, ArrayMeta) or cls.N != rhs.N:
+            return False
+        return cls.T.is_wireable(rhs.T)
+
+    def is_bindable(cls, rhs):
+        rhs = magma_type(rhs)
+        if not isinstance(rhs, ArrayMeta) or cls.N != rhs.N:
+            return False
+        return cls.T.is_bindable(rhs.T)
 
     __hash__ = type.__hash__
 

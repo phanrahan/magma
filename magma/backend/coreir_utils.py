@@ -6,7 +6,7 @@ from ..bit import Digital
 from ..clock import Clock, AsyncReset, AsyncResetN, ClockTypes
 from ..ref import ArrayRef, DefnRef, TupleRef, InstRef, NamedRef, PortViewRef
 from ..tuple import Tuple
-from ..protocol_type import MagmaProtocol
+from ..protocol_type import magma_type, magma_value
 from .util import make_relative
 
 
@@ -49,8 +49,7 @@ def magma_port_to_coreir_port(port):
 
 
 def check_magma_type(type_, error_msg=""):
-    if issubclass(type_, MagmaProtocol):
-        type_ = type_._to_magma_()
+    type_ = magma_type(type_)
     if issubclass(type_, Array):
         msg = error_msg.format("Array({}, {})").format(str(type_.N), "{}")
         check_magma_type(type_.T, msg)
@@ -74,8 +73,7 @@ def check_magma_interface(interface):
 
 
 def magma_type_to_coreir_type(context, type_):
-    if issubclass(type_, MagmaProtocol):
-        type_ = type_._to_magma_()
+    type_ = magma_type(type_)
 
     if issubclass(type_, Array):
         return context.Array(type_.N,
