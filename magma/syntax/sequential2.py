@@ -49,7 +49,7 @@ class _SequentialRegisterWrapperMeta(MagmaProtocolMeta):
         return cls[cls.T.flip()]
 
     def _from_magma_value_(cls, val: Type):
-        return cls(val)
+        return val
 
     def _is_oriented_magma_(cls, direction):
         return cls.T.is_oriented(direction)
@@ -95,6 +95,7 @@ class _SequentialRegisterWrapper(MagmaProtocol,
     """
 
     def __init__(self, circuit: Circuit):
+        assert isinstance(circuit, Circuit)
         self.circuit = circuit
 
     def _get_magma_value_(self):
