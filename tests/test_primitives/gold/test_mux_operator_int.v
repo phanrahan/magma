@@ -34,7 +34,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -57,19 +57,19 @@ module test_mux_operator_int (
     input S,
     output O
 );
-wire Mux2xOutBit_inst0_O;
+wire Mux2xBit_inst0_O;
 wire bit_const_0_None_out;
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(bit_const_0_None_out),
     .I1(I),
     .S(S),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
 );
-assign O = Mux2xOutBit_inst0_O;
+assign O = Mux2xBit_inst0_O;
 endmodule
 

@@ -16,7 +16,7 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
-module Mux2xTuplex_OutUInt8 (
+module Mux2xTuplex_UInt8 (
     input [7:0] I0_x,
     input [7:0] I1_x,
     output [7:0] O_x,
@@ -41,7 +41,7 @@ module Test_comb (
     input [7:0] self_a_O_x
 );
 wire [7:0] magma_Bits_8_add_inst0_out;
-Mux2xTuplex_OutUInt8 Mux2xTuplex_OutUInt8_inst0 (
+Mux2xTuplex_UInt8 Mux2xTuplex_UInt8_inst0 (
     .I0_x(self_a_O_x),
     .I1_x(magma_Bits_8_add_inst0_out),
     .O_x(O1_a_x),

@@ -19,7 +19,7 @@
           ["self.a","logic_inst0.a"]
         ]
       },
-      "Mux2xOutBit":{
+      "Mux2xBit":{
         "type":["Record",[
           ["I0","BitIn"],
           ["I1","BitIn"],
@@ -62,11 +62,11 @@
           ["O1","Bit"]
         ]],
         "instances":{
-          "Mux2xOutBit_inst0":{
-            "modref":"global.Mux2xOutBit"
+          "Mux2xBit_inst0":{
+            "modref":"global.Mux2xBit"
           },
-          "Mux2xOutBit_inst1":{
-            "modref":"global.Mux2xOutBit"
+          "Mux2xBit_inst1":{
+            "modref":"global.Mux2xBit"
           },
           "bit_const_0_None":{
             "modref":"corebit.const",
@@ -84,14 +84,14 @@
           }
         },
         "connections":[
-          ["bit_const_1_None.out","Mux2xOutBit_inst0.I0"],
-          ["bit_const_1_None.out","Mux2xOutBit_inst0.I1"],
-          ["self.O1","Mux2xOutBit_inst0.O"],
-          ["eq_inst0.O","Mux2xOutBit_inst0.S"],
-          ["bit_const_0_None.out","Mux2xOutBit_inst1.I0"],
-          ["bit_const_1_None.out","Mux2xOutBit_inst1.I1"],
-          ["self.O0","Mux2xOutBit_inst1.O"],
-          ["eq_inst1.O","Mux2xOutBit_inst1.S"],
+          ["bit_const_1_None.out","Mux2xBit_inst0.I0"],
+          ["bit_const_1_None.out","Mux2xBit_inst0.I1"],
+          ["self.O1","Mux2xBit_inst0.O"],
+          ["eq_inst0.O","Mux2xBit_inst0.S"],
+          ["bit_const_0_None.out","Mux2xBit_inst1.I0"],
+          ["bit_const_1_None.out","Mux2xBit_inst1.I1"],
+          ["self.O0","Mux2xBit_inst1.O"],
+          ["eq_inst1.O","Mux2xBit_inst1.S"],
           ["eq_inst0.I1","bit_const_0_None.out"],
           ["eq_inst1.I1","bit_const_0_None.out"],
           ["self.a","eq_inst0.I0"],

@@ -27,16 +27,16 @@
           "Main_inline_verilog_inst_1":{
             "modref":"global.Main_inline_verilog_1"
           },
-          "_magma_inline_wire0":{
+          "_foo_prefix_0":{
             "modref":"corebit.wire"
           }
         },
         "connections":[
           ["self.CLK","FF_inst0.CLK"],
           ["self.I","FF_inst0.I"],
-          ["_magma_inline_wire0.in","FF_inst0.O"],
+          ["_foo_prefix_0.in","FF_inst0.O"],
           ["self.O","FF_inst0.O"],
-          ["_magma_inline_wire0.out","Main_inline_verilog_inst_0.__magma_inline_value_0"],
+          ["_foo_prefix_0.out","Main_inline_verilog_inst_0.__magma_inline_value_0"],
           ["self.I","Main_inline_verilog_inst_0.__magma_inline_value_1"],
           ["self.arr.0","Main_inline_verilog_inst_1.__magma_inline_value_0"],
           ["self.arr.1","Main_inline_verilog_inst_1.__magma_inline_value_1"]

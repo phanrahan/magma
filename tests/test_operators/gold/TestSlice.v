@@ -90,7 +90,7 @@ coreir_slice #(
 assign out = _join_out;
 endmodule
 
-module Mux4xOutBits6 (
+module Mux4xBits6 (
     input [5:0] I0,
     input [5:0] I1,
     input [5:0] I2,
@@ -117,15 +117,15 @@ module TestSlice (
     input [1:0] x,
     output [5:0] O
 );
-wire [5:0] Mux4xOutBits6_inst0_O;
-Mux4xOutBits6 Mux4xOutBits6_inst0 (
+wire [5:0] Mux4xBits6_inst0_O;
+Mux4xBits6 Mux4xBits6_inst0 (
     .I0(I[5:0]),
     .I1(I[6:1]),
     .I2(I[7:2]),
     .I3(I[8:3]),
     .S(x),
-    .O(Mux4xOutBits6_inst0_O)
+    .O(Mux4xBits6_inst0_O)
 );
-assign O = Mux4xOutBits6_inst0_O;
+assign O = Mux4xBits6_inst0_O;
 endmodule
 

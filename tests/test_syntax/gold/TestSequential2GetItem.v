@@ -59,7 +59,7 @@ assign O[1] = reg_P_inst0_out[13:7];
 assign O[0] = reg_P_inst0_out[6:0];
 endmodule
 
-module Mux8xOutBits7 (
+module Mux8xBits7 (
     input [6:0] I0,
     input [6:0] I1,
     input [6:0] I2,
@@ -101,11 +101,11 @@ module Test2 (
     output [6:0] O [1:0],
     input CLK
 );
-wire [6:0] Mux8xOutBits7_inst0_O;
-wire [6:0] Mux8xOutBits7_inst1_O;
+wire [6:0] Mux8xBits7_inst0_O;
+wire [6:0] Mux8xBits7_inst1_O;
 wire [6:0] Register_inst0_O [7:0];
 wire [2:0] Register_inst1_O;
-Mux8xOutBits7 Mux8xOutBits7_inst0 (
+Mux8xBits7 Mux8xBits7_inst0 (
     .I0(Register_inst0_O[0]),
     .I1(Register_inst0_O[1]),
     .I2(Register_inst0_O[2]),
@@ -115,9 +115,9 @@ Mux8xOutBits7 Mux8xOutBits7_inst0 (
     .I6(Register_inst0_O[6]),
     .I7(Register_inst0_O[7]),
     .S(index),
-    .O(Mux8xOutBits7_inst0_O)
+    .O(Mux8xBits7_inst0_O)
 );
-Mux8xOutBits7 Mux8xOutBits7_inst1 (
+Mux8xBits7 Mux8xBits7_inst1 (
     .I0(Register_inst0_O[0]),
     .I1(Register_inst0_O[1]),
     .I2(Register_inst0_O[2]),
@@ -127,7 +127,7 @@ Mux8xOutBits7 Mux8xOutBits7_inst1 (
     .I6(Register_inst0_O[6]),
     .I7(Register_inst0_O[7]),
     .S(Register_inst1_O),
-    .O(Mux8xOutBits7_inst1_O)
+    .O(Mux8xBits7_inst1_O)
 );
 wire [6:0] Register_inst0_I [7:0];
 assign Register_inst0_I[7] = I[7];
@@ -148,7 +148,7 @@ Register_unq1 Register_inst1 (
     .O(Register_inst1_O),
     .CLK(CLK)
 );
-assign O[1] = Mux8xOutBits7_inst1_O;
-assign O[0] = Mux8xOutBits7_inst0_O;
+assign O[1] = Mux8xBits7_inst1_O;
+assign O[0] = Mux8xBits7_inst0_O;
 endmodule
 

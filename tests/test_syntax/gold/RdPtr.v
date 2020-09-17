@@ -68,7 +68,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xOutUInt10 (
+module Mux2xUInt10 (
     input [9:0] I0,
     input [9:0] I1,
     input S,
@@ -92,14 +92,14 @@ module RdPtr_comb (
     output [9:0] O0,
     output [9:0] O1
 );
-wire [9:0] Mux2xOutUInt10_inst0_O;
+wire [9:0] Mux2xUInt10_inst0_O;
 wire [9:0] const_1_10_out;
 wire [9:0] magma_Bits_10_add_inst0_out;
-Mux2xOutUInt10 Mux2xOutUInt10_inst0 (
+Mux2xUInt10 Mux2xUInt10_inst0 (
     .I0(self_rd_ptr_O),
     .I1(magma_Bits_10_add_inst0_out),
     .S(read),
-    .O(Mux2xOutUInt10_inst0_O)
+    .O(Mux2xUInt10_inst0_O)
 );
 coreir_const #(
     .value(10'h001),
@@ -114,7 +114,7 @@ coreir_add #(
     .in1(const_1_10_out),
     .out(magma_Bits_10_add_inst0_out)
 );
-assign O0 = Mux2xOutUInt10_inst0_O;
+assign O0 = Mux2xUInt10_inst0_O;
 assign O1 = self_rd_ptr_O;
 endmodule
 

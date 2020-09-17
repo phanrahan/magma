@@ -16,6 +16,7 @@ from magma.clock import (AbstractReset,
                          AsyncReset, AsyncResetN, Clock, get_reset_args)
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
+from magma.wireable import wireable
 
 
 class _CoreIRRegister(Generator2):
@@ -109,18 +110,6 @@ def _get_T_from_init(init):
     raise ValueError("Could not infer register type from {init}")
 
 
-def _can_wire_types(T1, T2):
-    if issubclass(T1, Tuple):
-        if not issubclass(T2, Tuple):
-            return False
-        return all(_can_wire_types(t1, t2) for t1, t2 in zip(T1, T2))
-    if issubclass(T1, Array):
-        if not issubclass(T2, Array):
-            return False
-        return _can_wire_types(T1.T, T2.T)
-    return issubclass(T1, T2) or issubclass(T1, T2)
-
-
 def _check_init_T(init, T):
     init_T = _get_T_from_init(init)
     if isinstance(init, int) and issubclass(T, Bits):
@@ -134,7 +123,7 @@ def _check_init_T(init, T):
         if len(init_T) > 1:
             return False
         return True
-    return _can_wire_types(init_T, T)
+    return wireable(init_T, T)
 
 
 class Register(Generator2):

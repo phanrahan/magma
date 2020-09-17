@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2xOutUInt3":{
+      "Mux2xUInt3":{
         "type":["Record",[
           ["I0",["Array",3,"BitIn"]],
           ["I1",["Array",3,"BitIn"]],
@@ -64,8 +64,8 @@
           ["O2",["Array",3,"Bit"]]
         ]],
         "instances":{
-          "Mux2xOutUInt3_inst0":{
-            "modref":"global.Mux2xOutUInt3"
+          "Mux2xUInt3_inst0":{
+            "modref":"global.Mux2xUInt3"
           },
           "const_1_2":{
             "genref":"coreir.const",
@@ -96,11 +96,11 @@
           }
         },
         "connections":[
-          ["self.self_y_O","Mux2xOutUInt3_inst0.I0"],
-          ["magma_Bits_3_add_inst0.out","Mux2xOutUInt3_inst0.I1"],
-          ["self.O1","Mux2xOutUInt3_inst0.O"],
-          ["self.O2","Mux2xOutUInt3_inst0.O"],
-          ["magma_Bits_2_eq_inst0.out","Mux2xOutUInt3_inst0.S"],
+          ["self.self_y_O","Mux2xUInt3_inst0.I0"],
+          ["magma_Bits_3_add_inst0.out","Mux2xUInt3_inst0.I1"],
+          ["self.O1","Mux2xUInt3_inst0.O"],
+          ["self.O2","Mux2xUInt3_inst0.O"],
+          ["magma_Bits_2_eq_inst0.out","Mux2xUInt3_inst0.S"],
           ["magma_Bits_2_add_inst0.in1","const_1_2.out"],
           ["magma_Bits_3_add_inst0.in1","const_1_3.out"],
           ["magma_Bits_2_eq_inst0.in1","const_3_2.out"],

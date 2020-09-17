@@ -1,4 +1,5 @@
 import os
+import pytest
 from hwtypes import BitVector
 import hwtypes as ht
 
@@ -293,3 +294,18 @@ def test_mux_array_select_bits_1():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+@pytest.mark.parametrize("ht_T, m_T", [(ht.UIntVector, m.UInt),
+                                       (ht.SIntVector, m.SInt)])
+def test_mux_intv(ht_T, m_T):
+    class Main(m.Circuit):
+        O = m.mux([ht_T[4](1), m_T[4](2)], m.Bit())
+        assert isinstance(O, m_T)
+
+
+@pytest.mark.parametrize("ht_T", [ht.UIntVector, ht.SIntVector])
+def test_mux_intv_bits(ht_T):
+    class Main(m.Circuit):
+        O = m.mux([ht_T[4](1), m.Bits[4](2)], m.Bit())
+        assert type(O) is m.Out(m.Bits[4])

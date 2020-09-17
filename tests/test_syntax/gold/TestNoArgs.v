@@ -78,7 +78,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xOutUInt3 (
+module Mux2xUInt3 (
     input [2:0] I0,
     input [2:0] I1,
     input S,
@@ -103,18 +103,18 @@ module TestNoArgs_comb (
     output [2:0] O1,
     output [2:0] O2
 );
-wire [2:0] Mux2xOutUInt3_inst0_O;
+wire [2:0] Mux2xUInt3_inst0_O;
 wire [1:0] const_1_2_out;
 wire [2:0] const_1_3_out;
 wire [1:0] const_3_2_out;
 wire [1:0] magma_Bits_2_add_inst0_out;
 wire magma_Bits_2_eq_inst0_out;
 wire [2:0] magma_Bits_3_add_inst0_out;
-Mux2xOutUInt3 Mux2xOutUInt3_inst0 (
+Mux2xUInt3 Mux2xUInt3_inst0 (
     .I0(self_y_O),
     .I1(magma_Bits_3_add_inst0_out),
     .S(magma_Bits_2_eq_inst0_out),
-    .O(Mux2xOutUInt3_inst0_O)
+    .O(Mux2xUInt3_inst0_O)
 );
 coreir_const #(
     .value(2'h1),
@@ -156,8 +156,8 @@ coreir_add #(
     .out(magma_Bits_3_add_inst0_out)
 );
 assign O0 = magma_Bits_2_add_inst0_out;
-assign O1 = Mux2xOutUInt3_inst0_O;
-assign O2 = Mux2xOutUInt3_inst0_O;
+assign O1 = Mux2xUInt3_inst0_O;
+assign O2 = Mux2xUInt3_inst0_O;
 endmodule
 
 module TestNoArgs (

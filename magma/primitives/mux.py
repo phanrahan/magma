@@ -1,16 +1,17 @@
 import hwtypes as ht
-from hwtypes import BitVector
+from hwtypes import BitVector, UIntVector, SIntVector
 from magma.array import Array
 from magma.bit import Bit
-from magma.bits import Bits
+from magma.bits import Bits, UInt, SInt
 from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
-from magma.t import Type, In, Out
-from magma.tuple import Product
+from magma.t import Type, In, Out, Direction
+from magma.tuple import Product, Tuple
 from magma.conversions import tuple_
+from magma.wireable import wireable
 
 
 class CoreIRCommonLibMuxN(Generator2):
@@ -84,18 +85,43 @@ def _infer_mux_type(args):
     Note that we do not infer from standard python int arguments because we
     cannot, in general, determine the correct bit width (use BitVector instead)
     """
+    T = None
     for arg in args:
         if isinstance(arg, (Type, MagmaProtocol)):
-            return type(arg), args
-        if isinstance(arg, BitVector):
-            return Bits[len(arg)], args
-        if isinstance(arg, (ht.Bit, bool)):
-            return Bit, args
-        if isinstance(arg, tuple):
-            return type(tuple_(arg)), [tuple_(a) for a in args]
-    raise TypeError(
-        f"Could not infer mux type from {args}\n"
-        "Need at least one magma value, BitVector, bool or tuple")
+            next_T = type(arg).qualify(Direction.Undirected)
+        elif isinstance(arg, UIntVector):
+            next_T = UInt[len(arg)]
+        elif isinstance(arg, SIntVector):
+            next_T = SInt[len(arg)]
+        elif isinstance(arg, BitVector):
+            next_T = Bits[len(arg)]
+        elif isinstance(arg, (ht.Bit, bool)):
+            next_T = Bit
+        elif isinstance(arg, tuple):
+            next_T = type(tuple_(arg))
+        elif isinstance(arg, int):
+            # Cannot infer type without width, use wiring implicit coercion to
+            # handle (or raise type error there)
+            continue
+
+        if T is not None:
+            if issubclass(T, next_T):
+                # upcast
+                T = next_T
+            elif not wireable(next_T, T):
+                raise TypeError(
+                    f"Found incompatible types {next_T} and {T} in mux"
+                    " inference"
+                )
+        else:
+            T = next_T
+    if T is None:
+        raise TypeError(
+            f"Could not infer mux type from {args}\n"
+            "Need at least one magma value, BitVector, bool or tuple")
+    if issubclass(T, Tuple):
+        args = [tuple_(a) for a in args]
+    return T, args
 
 
 def mux(I: list, S, **kwargs):

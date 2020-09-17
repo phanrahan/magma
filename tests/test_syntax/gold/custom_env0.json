@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2xOutBit":{
+      "Mux2xBit":{
         "type":["Record",[
           ["I0","BitIn"],
           ["I1","BitIn"],
@@ -29,8 +29,8 @@
           ["O","Bit"]
         ]],
         "instances":{
-          "Mux2xOutBit_inst0":{
-            "modref":"global.Mux2xOutBit"
+          "Mux2xBit_inst0":{
+            "modref":"global.Mux2xBit"
           },
           "bit_const_0_None":{
             "modref":"corebit.const",
@@ -38,10 +38,10 @@
           }
         },
         "connections":[
-          ["bit_const_0_None.out","Mux2xOutBit_inst0.I0"],
-          ["self.I","Mux2xOutBit_inst0.I1"],
-          ["self.O","Mux2xOutBit_inst0.O"],
-          ["self.S","Mux2xOutBit_inst0.S"]
+          ["bit_const_0_None.out","Mux2xBit_inst0.I0"],
+          ["self.I","Mux2xBit_inst0.I1"],
+          ["self.O","Mux2xBit_inst0.O"],
+          ["self.S","Mux2xBit_inst0.S"]
         ]
       }
     }
