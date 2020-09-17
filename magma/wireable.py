@@ -1,6 +1,6 @@
-from .array import Array
-from .tuple import Tuple
-from .protocol_type import magma_type
+from magma.array import Array
+from magma.tuple import Tuple
+from magma.protocol_type import magma_type
 
 
 def wireable(T1, T2):
