@@ -55,7 +55,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         assert self.is_producer()
         if not self.valid.driven():
             raise ReadyValidException(
-                "Cannot invoke fired on consumer when valid isn't driven"
+                "Cannot invoke fired on producer when valid isn't driven"
             )
         return self.valid.value() & self.ready
 
