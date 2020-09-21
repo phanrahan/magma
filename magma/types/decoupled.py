@@ -147,7 +147,7 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
 
     def no_deq(self, when=True):
         """
-        Indicates no dequeue occurs, ready is set of False
+        Indicates no dequeue occurs, ready is set to False
         """
         if when is not True:
             if not self.ready.driven():
