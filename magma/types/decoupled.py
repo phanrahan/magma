@@ -32,8 +32,8 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
 
     For readability, we provide these helpers to avoid the confusion related to
     In versus Out:
-    * m.Consume(m.ReadyValid[T])
-    * m.Product(m.ReadyValid[T])
+    * m.Consumer(m.ReadyValid[T])
+    * m.Producer(m.ReadyValid[T])
 
     T is the type of data to be wrapped in Ready/Valid
 
@@ -155,13 +155,13 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         return self.valid.is_output()
 
 
-def Consume(T: ReadyValidKind):
+def Consumer(T: ReadyValidKind):
     if not isinstance(T, ReadyValidKind):
-        raise TypeError("Consume can only be used with ReadyValid Types")
+        raise TypeError("Consumer can only be used with ReadyValid Types")
     return Flip(T)
 
 
-def Produce(T: ReadyValidKind):
+def Producer(T: ReadyValidKind):
     if not isinstance(T, ReadyValidKind):
-        raise TypeError("Produce can only be used with ReadyValid Types")
+        raise TypeError("Producer can only be used with ReadyValid Types")
     return T

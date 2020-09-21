@@ -8,8 +8,8 @@ from magma.types.decoupled import ReadyValidException
 def test_ready_valid_simple():
     class TestReadyValidSimple(m.Circuit):
         io = m.IO(
-            I=m.Consume(m.ReadyValid[m.Bits[5]]),
-            O=m.Produce(m.ReadyValid[m.Bits[5]]),
+            I=m.Consumer(m.ReadyValid[m.Bits[5]]),
+            O=m.Producer(m.ReadyValid[m.Bits[5]]),
             fired=m.Out(m.Bit)
         )
         assert isinstance(io.I, m.ReadyValid)
@@ -24,8 +24,8 @@ def test_ready_valid_simple():
 def test_ready_valid_tuple():
     class TestReadyValidTuple(m.Circuit):
         io = m.IO(
-            I=m.Consume(m.ReadyValid[m.Tuple[m.Bit, m.Bits[5]]]),
-            O=m.Produce(m.ReadyValid[m.Tuple[m.Bit, m.Bits[5]]])
+            I=m.Consumer(m.ReadyValid[m.Tuple[m.Bit, m.Bits[5]]]),
+            O=m.Producer(m.ReadyValid[m.Tuple[m.Bit, m.Bits[5]]])
         )
         io.O @= io.I
 
@@ -37,8 +37,8 @@ def test_ready_valid_tuple():
 def test_ready_valid_when():
     class TestReadyValidWhen(m.Circuit):
         io = m.IO(
-            I=m.Consume(m.ReadyValid[m.Bits[5]]),
-            O=m.Produce(m.ReadyValid[m.Bits[5]])
+            I=m.Consumer(m.ReadyValid[m.Bits[5]]),
+            O=m.Producer(m.ReadyValid[m.Bits[5]])
         )
         # Default no enq/deq
         io.O.no_enq()
@@ -56,7 +56,7 @@ def test_ready_valid_no_enq_when():
     class TestReadyValidNoEnqWhen(m.Circuit):
         io = m.IO(
             I=m.In(m.Bit),
-            O=m.Produce(m.ReadyValid[m.Bits[5]])
+            O=m.Producer(m.ReadyValid[m.Bits[5]])
         )
         io.O.enq(m.Bits[5](0xDE))
         io.O.no_enq(when=io.I)
@@ -71,7 +71,7 @@ def test_ready_valid_no_deq_when():
     class TestReadyValidNoDeqWhen(m.Circuit):
         io = m.IO(
             I0=m.In(m.Bit),
-            I1=m.Consume(m.ReadyValid[m.Bits[5]]),
+            I1=m.Consumer(m.ReadyValid[m.Bits[5]]),
             O=m.Out(m.Bits[5])
         )
         io.O @= io.I1.deq()
@@ -89,17 +89,17 @@ def test_ready_valid_errors():
         m.ReadyValid[1]
 
     # Cannot use produce/consume on non-ready/valid
-    # TODO: We could use Produce/Consume as a convenience wrapper for creating
-    # ReadyValid[T] with the desired polarity
+    # TODO: We could use Producer/Consumer as a convenience wrapper for
+    # creating ReadyValid[T] with the desired polarity
     with pytest.raises(TypeError):
-        m.Consume(m.Bit)
+        m.Consumer(m.Bit)
     with pytest.raises(TypeError):
-        m.Produce(m.Bit)
+        m.Producer(m.Bit)
 
     class TestReadyValidErrors(m.Circuit):
         io = m.IO(
-            I=m.Consume(m.ReadyValid[m.Bits[5]]),
-            O=m.Produce(m.ReadyValid[m.Bits[5]]),
+            I=m.Consumer(m.ReadyValid[m.Bits[5]]),
+            O=m.Producer(m.ReadyValid[m.Bits[5]]),
             fired=m.Out(m.Bit)
         )
         # Cannot call fired when valid or ready is not wired yet
