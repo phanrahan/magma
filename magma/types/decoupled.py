@@ -69,7 +69,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         if not self.is_producer():
             raise TypeError("Cannot invoke enq on consumer")
-        if not when:
+        if when is not True:
             if not (self.valid.driven() and self.data.driven()):
                 raise ReadyValidException(
                     "Cannot use enq when without default driver"
@@ -92,7 +92,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         if not self.is_producer():
             raise TypeError("Cannot invoke no_enq on consumer")
-        if not when:
+        if when is not True:
             if not (self.valid.driven() and self.data.driven()):
                 raise ReadyValidException(
                     "Cannot use no_deq with condition without an existing valid"
@@ -118,7 +118,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         if not self.is_consumer():
             raise TypeError("Cannot invoke deq on producer")
-        if not when:
+        if when is not True:
             if not self.ready.driven():
                 raise ReadyValidException(
                     "Cannot use deq with when without a default ready driver"
@@ -136,7 +136,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         if not self.is_consumer():
             raise TypeError("Cannot invoke no_deq on producer")
-        if not when:
+        if when is not True:
             if not self.ready.driven():
                 raise ReadyValidException(
                     "Cannot use no_deq with condition without an existing"
