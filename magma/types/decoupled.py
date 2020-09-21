@@ -11,14 +11,17 @@ class ReadyValidException(Exception):
 
 
 class ReadyValidKind(ProductKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+    def _check_T(cls, T):
         if not issubclass(T, (Type, MagmaProtocol)):
             raise TypeError(
-                f"ReadyValid[T] expected T to be a subclass of m.Type or"
+                f"{cls}[T] expected T to be a subclass of m.Type or"
                 f" m.MagmaProtocol not {T}"
             )
-        fields = {"valid": Out(Bit), "data": Out(T), "ready": In(Bit)}
-        return type(f"ReadyValid[{T}]", (ReadyValid, ), fields)
+
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        cls._check_T(T)
+        fields = {"valid": Bit, "data": T, "ready": Bit}
+        return type(f"{cls}[{T}]", (cls, ), fields)
 
 
 class ReadyValid(Product, metaclass=ReadyValidKind):
@@ -26,14 +29,9 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
     An I/O Bundle containing 'valid' and 'ready' signals that handshake
     the transfer of data stored in the 'data' subfield.
 
-    The base protocol implied by the directionality is that
-    the producer uses the interface as-is (outputs bits)
-    while the consumer uses the flipped interface (inputs bits).
-
-    For readability, we provide these helpers to avoid the confusion related to
-    In versus Out:
-    * m.Consumer(m.ReadyValid[T])
-    * m.Producer(m.ReadyValid[T])
+    The base protocol is undirected and is meant to be used with the modifiers:
+    * m.Consumer(m.ReadyValid[T])  # data/valid are inputs, ready is output
+    * m.Producer(m.ReadyValid[T])  # data/valid are outputs, ready is input
 
     T is the type of data to be wrapped in Ready/Valid
 
@@ -44,15 +42,21 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         Returns a bit that is high when ready and valid are both high
         """
-        if self.is_consumer():
-            if not self.ready.driven():
-                raise ReadyValidException(
-                    "Cannot invoke fired on consumer when ready isn't driven"
-                )
+        raise NotImplementedError
 
-            return self.valid & self.ready.value()
 
-        assert self.is_producer()
+class ReadyValidProducerKind(ReadyValidKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        cls._check_T(T)
+        fields = {"valid": Out(Bit), "data": Out(T), "ready": In(Bit)}
+        return type(f"{cls}[{T}]", (cls, ), fields)
+
+
+class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
+    def fired(self):
+        """
+        Returns a bit that is high when ready and valid are both high
+        """
         if not self.valid.driven():
             raise ReadyValidException(
                 "Cannot invoke fired on producer when valid isn't driven"
@@ -67,8 +71,6 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         be invoked with different conditions with precedence given to the later
         invocations.
         """
-        if not self.is_producer():
-            raise TypeError("Cannot invoke enq on consumer")
         if when is not True:
             if not (self.valid.driven() and self.data.driven()):
                 raise ReadyValidException(
@@ -90,13 +92,11 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         Indicates no enqueue occurs.  Valid is set to false, and bits are
         connected to 0 (TODO: Should be an unitialized wire (Don't Care))
         """
-        if not self.is_producer():
-            raise TypeError("Cannot invoke no_enq on consumer")
         if when is not True:
             if not (self.valid.driven() and self.data.driven()):
                 raise ReadyValidException(
-                    "Cannot use no_deq with condition without an existing valid"
-                    " and data driver"
+                    "Cannot use no_deq with condition without an existing"
+                    "valid and data driver"
                 )
             valid = self.valid.value()
             data = self.data.value()
@@ -108,6 +108,23 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
             self.valid @= False
             self.data @= 0
 
+
+class ReadyValidConsumerKind(ReadyValidKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        cls._check_T(T)
+        fields = {"valid": In(Bit), "data": In(T), "ready": Out(Bit)}
+        return type(f"{cls}[{T}]", (cls, ), fields)
+
+
+class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
+    def fired(self):
+        if not self.ready.driven():
+            raise ReadyValidException(
+                "Cannot invoke fired on consumer when ready isn't driven"
+            )
+
+        return self.valid & self.ready.value()
+
     def deq(self, when=True):
         """
         Assert ready on this port and return associated data when `when` is
@@ -116,8 +133,6 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         This is typically used when valid has been asserted on the producer
         side.
         """
-        if not self.is_consumer():
-            raise TypeError("Cannot invoke deq on producer")
         if when is not True:
             if not self.ready.driven():
                 raise ReadyValidException(
@@ -134,8 +149,6 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         Indicates no dequeue occurs, ready is set of False
         """
-        if not self.is_consumer():
-            raise TypeError("Cannot invoke no_deq on producer")
         if when is not True:
             if not self.ready.driven():
                 raise ReadyValidException(
@@ -148,20 +161,14 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         else:
             self.ready @= False
 
-    def is_producer(self):
-        return self.valid.is_input()
-
-    def is_consumer(self):
-        return self.valid.is_output()
-
 
 def Consumer(T: ReadyValidKind):
-    if not isinstance(T, ReadyValidKind):
-        raise TypeError("Consumer can only be used with ReadyValid Types")
-    return Flip(T)
+    if issubclass(T, ReadyValid):
+        return ReadyValidConsumer[T.data]
+    raise TypeError(f"Consumer({T}) is unsupported")
 
 
 def Producer(T: ReadyValidKind):
-    if not isinstance(T, ReadyValidKind):
-        raise TypeError("Producer can only be used with ReadyValid Types")
-    return T
+    if issubclass(T, ReadyValid):
+        return ReadyValidProducer[T.data]
+    raise TypeError(f"Consumer({T}) is unsupported")

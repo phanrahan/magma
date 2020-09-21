@@ -109,13 +109,13 @@ def test_ready_valid_errors():
             io.O.fired()
 
         # Cannot call enq/deq on invalid direction
-        with pytest.raises(TypeError):
+        with pytest.raises(AttributeError):
             io.I.enq(None)
-        with pytest.raises(TypeError):
+        with pytest.raises(AttributeError):
             io.I.no_enq()
-        with pytest.raises(TypeError):
+        with pytest.raises(AttributeError):
             io.O.deq()
-        with pytest.raises(TypeError):
+        with pytest.raises(AttributeError):
             io.O.no_deq()
 
         # cannot use deq/enq when without default
