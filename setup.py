@@ -18,6 +18,7 @@ setup(
         "magma.backend",
         "magma.passes",
         "magma.primitives",
+        "magma.smart",
         "magma.simulator",
         "magma.syntax",
         "magma.syntax.transforms",
