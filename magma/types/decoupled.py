@@ -1,9 +1,6 @@
-import magma as m
-from magma.tuple import Product, ProductKind
-
-
 from magma.bit import Bit
-from magma.t import Type, In, Out
+from magma.primitives.mux import mux
+from magma.t import Type, In, Out, Flip
 from magma.tuple import Product, ProductKind
 
 
@@ -79,7 +76,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
             self.valid.unwire(curr_valid)
 
             curr_data = self.data.value()
-            value = m.mux([curr_data, value], when)
+            value = mux([curr_data, value], when)
             self.data.unwire(curr_data)
         self.valid @= when
         self.data @= value
@@ -102,8 +99,8 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
             data = self.data.value()
             self.valid.unwire(valid)
             self.data.unwire(data)
-            self.valid @= m.mux([valid, False], when)
-            self.data @= m.mux([data, 0], when)
+            self.valid @= mux([valid, False], when)
+            self.data @= mux([data, 0], when)
         else:
             self.valid @= False
             self.data @= 0
@@ -144,7 +141,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
                 )
             ready = self.ready.value()
             self.ready.unwire(ready)
-            self.ready @= m.mux([ready, False], when)
+            self.ready @= mux([ready, False], when)
         else:
             self.ready @= False
 
@@ -158,7 +155,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
 def Consume(T: ReadyValidKind):
     if not isinstance(T, ReadyValidKind):
         raise TypeError("Consume can only be used with ReadyValid Types")
-    return m.Flip(T)
+    return Flip(T)
 
 
 def Produce(T: ReadyValidKind):
