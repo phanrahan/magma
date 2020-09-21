@@ -1,6 +1,8 @@
+from typing import Union
 from magma.bit import Bit
 from magma.primitives.mux import mux
 from magma.t import Type, In, Out, Flip
+from magma.protocol_type import MagmaProtocol
 from magma.tuple import Product, ProductKind
 
 
@@ -9,10 +11,11 @@ class ReadyValidException(Exception):
 
 
 class ReadyValidKind(ProductKind):
-    def __getitem__(cls, T: Type):
-        if not issubclass(T, Type):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        if not issubclass(T, (Type, MagmaProtocol)):
             raise TypeError(
-                f"ReadyValid[T] expected T to be a subclass of m.Type not {T}"
+                f"ReadyValid[T] expected T to be a subclass of m.Type or"
+                f" m.MagmaProtocol not {T}"
             )
         fields = {"valid": Out(Bit), "data": Out(T), "ready": In(Bit)}
         return type(f"ReadyValid[{T}]", (ReadyValid, ), fields)
