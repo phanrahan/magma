@@ -2,7 +2,7 @@ import pytest
 
 import magma as m
 from magma.testing import check_files_equal
-from magma.types.decoupled import ReadyValidException
+from magma.types.ready_valid import ReadyValidException
 
 
 def test_ready_valid_simple():
