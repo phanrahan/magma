@@ -115,7 +115,7 @@ class ArrayMeta(ABCMeta, Kind):
 
 
         if cls.is_concrete:
-            if index[0] is cls.N and index[1] is cls.T:
+            if index[0] == cls.N and index[1] is cls.T:
                 return cls
             else:
                 return cls.abstract_t[index]
