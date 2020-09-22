@@ -127,9 +127,6 @@ class DigitalMeta(ABCMeta, Kind):
         return cls[direction]
 
     def __eq__(cls, rhs):
-        # if cls is not rhs:
-        #     assert not isinstance(rhs, DigitalMeta)
-
         return isinstance(rhs, DigitalMeta)
 
     def is_wireable(cls, rhs):
