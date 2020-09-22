@@ -163,13 +163,13 @@ def wireclock(define, circuit):
 
 
 def get_reset_args(reset_type: Optional[AbstractReset]):
-    if reset_type is not None and not issubclass(reset_type, AbstractReset):
+    if reset_type is None:
+        return tuple(False for _ in range(4))
+    if not issubclass(reset_type, AbstractReset):
         raise TypeError(
             f"Expected subclass of AbstractReset for argument reset_type, "
             f"not {type(reset_type)}")
 
-    if reset_type is None:
-        return tuple(False for _ in range(4))
     has_async_reset = issubclass(reset_type, AsyncReset)
     has_async_resetn = issubclass(reset_type, AsyncResetN)
     has_reset = issubclass(reset_type, Reset)
