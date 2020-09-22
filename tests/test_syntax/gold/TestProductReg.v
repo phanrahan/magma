@@ -77,7 +77,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xTuplea0_OutBit_a1_OutSInt8 (
+module Mux2xTuplea0_Bit_a1_SInt8 (
     input I0_a0,
     input [7:0] I0_a1,
     input I1_a0,
@@ -144,21 +144,21 @@ module TestProductReg_comb (
     input self_a_O_a0,
     input [7:0] self_a_O_a1
 );
-wire Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0;
-wire [7:0] Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1;
-Mux2xTuplea0_OutBit_a1_OutSInt8 Mux2xTuplea0_OutBit_a1_OutSInt8_inst0 (
+wire Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a0;
+wire [7:0] Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a1;
+Mux2xTuplea0_Bit_a1_SInt8 Mux2xTuplea0_Bit_a1_SInt8_inst0 (
     .I0_a0(self_a_O_a0),
     .I0_a1(self_a_O_a1),
     .I1_a0(a_a0),
     .I1_a1(a_a1),
-    .O_a0(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0),
-    .O_a1(Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1),
+    .O_a0(Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a0),
+    .O_a1(Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a1),
     .S(b)
 );
-assign O0_a0 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0;
-assign O0_a1 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1;
-assign O1_a0 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a0;
-assign O1_a1 = Mux2xTuplea0_OutBit_a1_OutSInt8_inst0_O_a1;
+assign O0_a0 = Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a0;
+assign O0_a1 = Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a1;
+assign O1_a0 = Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a0;
+assign O1_a1 = Mux2xTuplea0_Bit_a1_SInt8_inst0_O_a1;
 endmodule
 
 module DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue (

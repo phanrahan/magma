@@ -47,7 +47,7 @@ assign O[0][1] = reg_P_inst0_out[3:2];
 assign O[0][0] = reg_P_inst0_out[1:0];
 endmodule
 
-module Mux4xArray3_Array2_OutBit (
+module Mux4xArray3_Array2_Bit (
     input [1:0] I0 [2:0],
     input [1:0] I1 [2:0],
     input [1:0] I2 [2:0],
@@ -78,31 +78,31 @@ module Main (
     input [1:0] raddr,
     input CLK
 );
-wire [1:0] Mux4xArray3_Array2_OutBit_inst0_O [2:0];
+wire [1:0] Mux4xArray3_Array2_Bit_inst0_O [2:0];
 wire [1:0] Register_inst0_O [3:0][2:0];
-wire [1:0] Mux4xArray3_Array2_OutBit_inst0_I0 [2:0];
-assign Mux4xArray3_Array2_OutBit_inst0_I0[2] = Register_inst0_O[0][2];
-assign Mux4xArray3_Array2_OutBit_inst0_I0[1] = Register_inst0_O[0][1];
-assign Mux4xArray3_Array2_OutBit_inst0_I0[0] = Register_inst0_O[0][0];
-wire [1:0] Mux4xArray3_Array2_OutBit_inst0_I1 [2:0];
-assign Mux4xArray3_Array2_OutBit_inst0_I1[2] = Register_inst0_O[1][2];
-assign Mux4xArray3_Array2_OutBit_inst0_I1[1] = Register_inst0_O[1][1];
-assign Mux4xArray3_Array2_OutBit_inst0_I1[0] = Register_inst0_O[1][0];
-wire [1:0] Mux4xArray3_Array2_OutBit_inst0_I2 [2:0];
-assign Mux4xArray3_Array2_OutBit_inst0_I2[2] = Register_inst0_O[2][2];
-assign Mux4xArray3_Array2_OutBit_inst0_I2[1] = Register_inst0_O[2][1];
-assign Mux4xArray3_Array2_OutBit_inst0_I2[0] = Register_inst0_O[2][0];
-wire [1:0] Mux4xArray3_Array2_OutBit_inst0_I3 [2:0];
-assign Mux4xArray3_Array2_OutBit_inst0_I3[2] = Register_inst0_O[3][2];
-assign Mux4xArray3_Array2_OutBit_inst0_I3[1] = Register_inst0_O[3][1];
-assign Mux4xArray3_Array2_OutBit_inst0_I3[0] = Register_inst0_O[3][0];
-Mux4xArray3_Array2_OutBit Mux4xArray3_Array2_OutBit_inst0 (
-    .I0(Mux4xArray3_Array2_OutBit_inst0_I0),
-    .I1(Mux4xArray3_Array2_OutBit_inst0_I1),
-    .I2(Mux4xArray3_Array2_OutBit_inst0_I2),
-    .I3(Mux4xArray3_Array2_OutBit_inst0_I3),
+wire [1:0] Mux4xArray3_Array2_Bit_inst0_I0 [2:0];
+assign Mux4xArray3_Array2_Bit_inst0_I0[2] = Register_inst0_O[0][2];
+assign Mux4xArray3_Array2_Bit_inst0_I0[1] = Register_inst0_O[0][1];
+assign Mux4xArray3_Array2_Bit_inst0_I0[0] = Register_inst0_O[0][0];
+wire [1:0] Mux4xArray3_Array2_Bit_inst0_I1 [2:0];
+assign Mux4xArray3_Array2_Bit_inst0_I1[2] = Register_inst0_O[1][2];
+assign Mux4xArray3_Array2_Bit_inst0_I1[1] = Register_inst0_O[1][1];
+assign Mux4xArray3_Array2_Bit_inst0_I1[0] = Register_inst0_O[1][0];
+wire [1:0] Mux4xArray3_Array2_Bit_inst0_I2 [2:0];
+assign Mux4xArray3_Array2_Bit_inst0_I2[2] = Register_inst0_O[2][2];
+assign Mux4xArray3_Array2_Bit_inst0_I2[1] = Register_inst0_O[2][1];
+assign Mux4xArray3_Array2_Bit_inst0_I2[0] = Register_inst0_O[2][0];
+wire [1:0] Mux4xArray3_Array2_Bit_inst0_I3 [2:0];
+assign Mux4xArray3_Array2_Bit_inst0_I3[2] = Register_inst0_O[3][2];
+assign Mux4xArray3_Array2_Bit_inst0_I3[1] = Register_inst0_O[3][1];
+assign Mux4xArray3_Array2_Bit_inst0_I3[0] = Register_inst0_O[3][0];
+Mux4xArray3_Array2_Bit Mux4xArray3_Array2_Bit_inst0 (
+    .I0(Mux4xArray3_Array2_Bit_inst0_I0),
+    .I1(Mux4xArray3_Array2_Bit_inst0_I1),
+    .I2(Mux4xArray3_Array2_Bit_inst0_I2),
+    .I3(Mux4xArray3_Array2_Bit_inst0_I3),
     .S(raddr),
-    .O(Mux4xArray3_Array2_OutBit_inst0_O)
+    .O(Mux4xArray3_Array2_Bit_inst0_O)
 );
 wire [1:0] Register_inst0_I [3:0][2:0];
 assign Register_inst0_I[3][2] = Register_inst0_O[3][2];
@@ -122,8 +122,8 @@ Register Register_inst0 (
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign rdata[2] = Mux4xArray3_Array2_OutBit_inst0_O[2];
-assign rdata[1] = Mux4xArray3_Array2_OutBit_inst0_O[1];
-assign rdata[0] = Mux4xArray3_Array2_OutBit_inst0_O[0];
+assign rdata[2] = Mux4xArray3_Array2_Bit_inst0_O[2];
+assign rdata[1] = Mux4xArray3_Array2_Bit_inst0_O[1];
+assign rdata[0] = Mux4xArray3_Array2_Bit_inst0_O[0];
 endmodule
 
