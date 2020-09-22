@@ -474,8 +474,8 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         for k, v in cls.field_dict.items():
             if not issubclass(new_fields[k], v):
                 base = cls.unbound_t
-        if base.is_bound and all(v is base.field_dict[k] for k, v in
-                                 new_fields.items()):
+        if base.is_bound and all(v is base.field_dict[k]
+                                 for k, v in new_fields.items()):
             return base
 
         if cls.unbound_t is AnonProduct:
