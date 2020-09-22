@@ -1,9 +1,13 @@
 from typing import Union
 from magma.bit import Bit
+from magma.logging import root_logger
 from magma.primitives.mux import mux
 from magma.t import Type, In, Out, Flip
 from magma.protocol_type import MagmaProtocol
 from magma.tuple import Product, ProductKind
+
+
+_logger = root_logger()
 
 
 class ReadyValidException(Exception):
@@ -17,9 +21,16 @@ class ReadyValidKind(ProductKind):
                 f"{cls}[T] expected T to be a subclass of m.Type or"
                 f" m.MagmaProtocol not {T}"
             )
+        undirected_T = T.as_undirected()
+        if undirected_T is not T:
+            _logger.warning(
+                f"Type {T} used with ReadyValid is not undirected, converting"
+                " to undirected type"
+            )
+        return undirected_T
 
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        cls._check_T(T)
+        T = cls._check_T(T)
         fields = {"valid": Bit, "data": T, "ready": Bit}
         return type(f"{cls}[{T}]", (cls, ), fields)
 
@@ -47,7 +58,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
 
 class ReadyValidProducerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        cls._check_T(T)
+        T = cls._check_T(T)
         fields = {"valid": Out(Bit), "data": Out(T), "ready": In(Bit)}
         return type(f"{cls}[{T}]", (cls, ), fields)
 
@@ -111,7 +122,7 @@ class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
 
 class ReadyValidConsumerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        cls._check_T(T)
+        T = cls._check_T(T)
         fields = {"valid": In(Bit), "data": In(T), "ready": Out(Bit)}
         return type(f"{cls}[{T}]", (cls, ), fields)
 
@@ -164,11 +175,11 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
 
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        return ReadyValidConsumer[T.data]
+        return ReadyValidConsumer[T.data.as_undirected()]
     raise TypeError(f"Consumer({T}) is unsupported")
 
 
 def Producer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        return ReadyValidProducer[T.data]
+        return ReadyValidProducer[T.data.as_undirected()]
     raise TypeError(f"Consumer({T}) is unsupported")

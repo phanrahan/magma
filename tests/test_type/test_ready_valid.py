@@ -83,6 +83,14 @@ def test_ready_valid_no_deq_when():
                              f"gold/TestReadyValidNoDeqWhen.v")
 
 
+def test_ready_valid_warnings(caplog):
+    m.ReadyValid[m.In(m.Bit)]
+    assert caplog.messages[0] == """\
+Type In(Bit) used with ReadyValid is not undirected, converting to undirected\
+ type\
+"""
+
+
 def test_ready_valid_errors():
     # TypeError on invalid type param
     with pytest.raises(TypeError):

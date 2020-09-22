@@ -157,6 +157,9 @@ class Kind(type):
         # Flip of inout is inout, and flip of undirected is undirected.
         return cls
 
+    def as_undirected(cls):
+        return cls.qualify(Direction.Undirected)
+
 
 def In(T):
     return T.qualify(Direction.In)
