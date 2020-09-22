@@ -98,7 +98,6 @@ class TupleKind(TupleMeta, Kind):
             raise TypeError('Type is already bound')
 
         undirected_idx = tuple(v.qualify(Direction.Undirected) for v in idx)
-        print(idx, undirected_idx)
         if any(x is not y for x, y in zip(undirected_idx, idx)):
             bases = [cls[undirected_idx]]
         else:
