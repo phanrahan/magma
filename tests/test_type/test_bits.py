@@ -26,9 +26,13 @@ def test_bits_basic():
     assert bits_in_2 == m.In(bits_2)
     assert bits_out_2 == m.Out(bits_2)
 
-    assert bits_2 != bits_in_2
-    assert bits_2 != bits_out_2
-    assert bits_in_2 != bits_out_2
+    assert bits_2 == bits_in_2
+    assert bits_2 == bits_out_2
+    assert bits_in_2 == bits_out_2
+
+    assert bits_2 is not bits_in_2
+    assert bits_2 is not bits_out_2
+    assert bits_in_2 is not bits_out_2
 
     bits_4 = m.Bits[4]
     assert bits_4 == ARRAY4
@@ -90,9 +94,13 @@ def test_flip():
     print(a_in)
     print(a_out)
 
-    assert a_in != ARRAY2
-    assert a_out != ARRAY2
-    assert a_in != a_out
+    assert a_in == ARRAY2
+    assert a_out == ARRAY2
+    assert a_in == a_out
+
+    assert a_in is not ARRAY2
+    assert a_out is not ARRAY2
+    assert a_in is not a_out
 
     in_a_out = m.In(a_out)
     assert in_a_out == a_in

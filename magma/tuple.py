@@ -98,7 +98,8 @@ class TupleKind(TupleMeta, Kind):
             raise TypeError('Type is already bound')
 
         undirected_idx = tuple(v.qualify(Direction.Undirected) for v in idx)
-        if undirected_idx != idx:
+        print(idx, undirected_idx)
+        if any(x is not y for x, y in zip(undirected_idx, idx)):
             bases = [cls[undirected_idx]]
         else:
             bases = [cls]
@@ -158,6 +159,17 @@ class TupleKind(TupleMeta, Kind):
             if not T.is_bindable(rhs[idx]):
                 return False
         return True
+
+    def __eq__(cls, rhs):
+        if not isinstance(rhs, TupleKind):
+            return False
+
+        if not cls.is_bound:
+            return not rhs.is_bound
+
+        return cls.fields == rhs.fields
+
+    __hash__ = TupleMeta.__hash__
 
 
 class Tuple(Type, Tuple_, metaclass=TupleKind):
@@ -463,7 +475,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         for k, v in cls.field_dict.items():
             if not issubclass(new_fields[k], v):
                 base = cls.unbound_t
-        if base.is_bound and all(v == base.field_dict[k] for k, v in
+        if base.is_bound and all(v is base.field_dict[k] for k, v in
                                  new_fields.items()):
             return base
 
@@ -494,11 +506,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         if not cls.is_bound:
             return not rhs.is_bound
 
-        for k, v in cls.field_dict.items():
-            if getattr(rhs, k) is not v:
-                return False
-
-        return True
+        return cls.field_dict == rhs.field_dict
 
     def is_wireable(cls, rhs):
         rhs = magma_type(rhs)

@@ -19,13 +19,17 @@ def test():
     assert B2 == B2
     assert C2 == C2
 
-    assert A2 != B2
-    assert A2 != C2
-    assert B2 != C2
+    assert A2 == B2
+    assert A2 == C2
+    assert B2 == C2
 
-    # A4 = UInt[4]
-    # assert A4 == Array4
-    # assert A2 != A4
+    assert A2 is not B2
+    assert A2 is not C2
+    assert B2 is not C2
+
+    A4 = UInt[4]
+    assert A4 == Array4
+    assert A2 != A4
 
 
 def test_val():
@@ -56,9 +60,13 @@ def test_flip():
     print(AIn)
     print(AOut)
 
-    assert AIn != Array2
-    assert AOut != Array2
-    assert AIn != AOut
+    assert AIn == Array2
+    assert AOut == Array2
+    assert AIn == AOut
+
+    assert AIn is not Array2
+    assert AOut is not Array2
+    assert AIn is not AOut
 
     A = In(AOut)
     assert A == AIn

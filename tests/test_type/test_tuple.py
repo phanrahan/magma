@@ -102,9 +102,13 @@ def test_dict():
     #assert str(C2) == 'Tuple(x=Out(Bit),y=Out(Bit))'
     assert C2 == C2
 
-    assert A2 != B2
-    assert A2 != C2
-    assert B2 != C2
+    assert A2 == B2
+    assert A2 == C2
+    assert B2 == C2
+
+    assert A2 is not B2
+    assert A2 is not C2
+    assert B2 is not C2
 
 
 def test_flip():
@@ -120,9 +124,13 @@ def test_flip():
     print(Tin)
     print(Tout)
 
-    assert Tin != Product2
-    assert Tout != Product2
-    assert Tin != Tout
+    assert Tin == Product2
+    assert Tout == Product2
+    assert Tin == Tout
+
+    assert Tin is not Product2
+    assert Tout is not Product2
+    assert Tin is not Tout
 
     T = In(Tout)
     assert T == Tin

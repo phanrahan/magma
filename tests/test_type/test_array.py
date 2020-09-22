@@ -17,9 +17,15 @@ def test_array():
     assert B2 == B2
     assert C2 == C2
 
-    assert A2 != B2
-    assert A2 != C2
-    assert B2 != C2
+    # Structural equality
+    assert A2 == B2
+    assert A2 == C2
+    assert B2 == C2
+
+    # Nominal equality
+    assert A2 is not B2
+    assert A2 is not C2
+    assert B2 is not C2
 
     A4 = Array[4,Bit]
     assert A4 == Array4
@@ -81,6 +87,7 @@ def test_val():
 
     a3 = a1[0:2]
 
+
 def test_flip():
     AIn = In(Array2)
     AOut = Out(Array2)
@@ -88,9 +95,13 @@ def test_flip():
     print(AIn)
     print(AOut)
 
-    assert AIn  != Array2
-    assert AOut != Array2
-    assert AIn != AOut
+    assert AIn == Array2
+    assert AOut == Array2
+    assert AIn == AOut
+
+    assert AIn is not Array2
+    assert AOut is not Array2
+    assert AIn is not AOut
 
     A = In(AOut)
     assert A == AIn

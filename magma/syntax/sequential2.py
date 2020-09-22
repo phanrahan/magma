@@ -39,6 +39,7 @@ class _SequentialListWrapper(list):
 
 
 class _SequentialRegisterWrapperMeta(MagmaProtocolMeta):
+    _cache = {}
     def _to_magma_(cls):
         return cls.T
 
@@ -55,7 +56,10 @@ class _SequentialRegisterWrapperMeta(MagmaProtocolMeta):
         return cls.T.is_oriented(direction)
 
     def __getitem__(cls, T):
-        return type(cls)(f"_SequentialRegisterWrapper{T}", (cls, ), {"T": T})
+        if T not in cls._cache:
+            cls._cache[T] = type(cls)(f"_SequentialRegisterWrapper{T}", (cls, ),
+                                  {"T": T})
+        return cls._cache[T]
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, _SequentialRegisterWrapperMeta):
