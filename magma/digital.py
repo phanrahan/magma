@@ -127,7 +127,7 @@ class DigitalMeta(ABCMeta, Kind):
         return cls[direction]
 
     def __eq__(cls, rhs):
-        return cls is rhs
+        return isinstance(rhs, DigitalMeta)
 
     def is_wireable(cls, rhs):
         rhs = magma_type(rhs)

@@ -15,9 +15,13 @@ def test_bit():
     assert m.BitIn == m.BitIn
     assert m.BitOut == m.BitOut
 
-    assert m.Bit != m.BitIn
-    assert m.Bit != m.BitOut
-    assert m.BitIn != m.BitOut
+    assert m.Bit == m.BitIn
+    assert m.Bit == m.BitOut
+    assert m.BitIn == m.BitOut
+
+    assert m.Bit is not m.BitIn
+    assert m.Bit is not m.BitOut
+    assert m.BitIn is not m.BitOut
 
     assert str(m.Bit) == 'Bit'
     assert str(m.BitIn) == 'In(Bit)'
