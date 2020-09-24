@@ -4,8 +4,8 @@ from .compatibility import IntegerTypes
 from .wire_container import Wire  # TODO(rsetaluri): only here for b.c.
 from .debug import debug_wire
 from .logging import root_logger
-from .protocol_type import magma_value
 
+from magma.coerce import python_to_magma_coerce_wrapper
 from magma.wire_container import WiringLog
 
 
@@ -15,18 +15,9 @@ _logger = root_logger()
 _CONSTANTS = (IntegerTypes, BitVector, Bit)
 
 
+@python_to_magma_coerce_wrapper
 @debug_wire
 def wire(o, i, debug_info=None):
-    o = magma_value(o)
-    i = magma_value(i)
-
-    # Circular import
-    from .conversions import tuple_
-    if isinstance(o, tuple):
-        o = tuple_(o)
-    if isinstance(i, tuple):
-        i = tuple_(i)
-
     # Wire(o, Circuit).
     if hasattr(i, 'interface'):
         i.wire(o, debug_info)

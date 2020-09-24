@@ -301,7 +301,7 @@ def test_mux_array_select_bits_1():
 def test_mux_intv(ht_T, m_T):
     class Main(m.Circuit):
         O = m.mux([ht_T[4](1), m_T[4](2)], m.Bit())
-        assert isinstance(O, m_T)
+        assert isinstance(O, m_T), type(O)
 
 
 @pytest.mark.parametrize("ht_T", [ht.UIntVector, ht.SIntVector])

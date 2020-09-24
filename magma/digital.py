@@ -165,7 +165,7 @@ class Digital(Type, metaclass=DigitalMeta):
         i = self
         o = magma_value(o)
         # promote integer types to LOW/HIGH
-        if isinstance(o, (IntegerTypes, bool, ht.Bit)):
+        if isinstance(o, IntegerTypes):
             o = HIGH if o else LOW
 
         if not isinstance(o, Digital):

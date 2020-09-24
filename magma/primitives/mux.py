@@ -5,6 +5,7 @@ from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
 from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
+from magma.coerce import python_to_magma_coerce
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
@@ -87,22 +88,14 @@ def _infer_mux_type(args):
     """
     T = None
     for arg in args:
-        if isinstance(arg, (Type, MagmaProtocol)):
-            next_T = type(arg).qualify(Direction.Undirected)
-        elif isinstance(arg, UIntVector):
-            next_T = UInt[len(arg)]
-        elif isinstance(arg, SIntVector):
-            next_T = SInt[len(arg)]
-        elif isinstance(arg, BitVector):
-            next_T = Bits[len(arg)]
-        elif isinstance(arg, (ht.Bit, bool)):
-            next_T = Bit
-        elif isinstance(arg, tuple):
-            next_T = type(tuple_(arg))
-        elif isinstance(arg, int):
+        if isinstance(arg, int):
             # Cannot infer type without width, use wiring implicit coercion to
             # handle (or raise type error there)
             continue
+        if not isinstance(arg, (Type, MagmaProtocol)):
+            raise TypeError(f"Found unsupport argument {arg} of type"
+                            f" {type(arg)}")
+        next_T = type(arg).qualify(Direction.Undirected)
 
         if T is not None:
             if issubclass(T, next_T):
@@ -144,6 +137,7 @@ def mux(I: list, S, **kwargs):
         S = seq2int(S.bits())
     if isinstance(S, int):
         return I[S]
+    I = tuple(python_to_magma_coerce(i) for i in I)
     T, I = _infer_mux_type(I)
     inst = Mux(len(I), T, **kwargs)()
     if len(I) == 2 and isinstance(S, Bits[1]):
