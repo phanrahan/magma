@@ -106,7 +106,7 @@ class InsertCoreIRWires(DefinitionPass):
                         w @= d
             else:
                 wire_input @= driver
-        if (isinstance(value, _ClockType) and 
+        if (isinstance(value, _ClockType) and
                 not isinstance(wire_output, type(value))):
             # This mean it was cast by the user (e.g. m.clock(value)), so we
             # need to "recast" the wire output
