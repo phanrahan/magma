@@ -9,8 +9,12 @@ from magma.clock_io import ClockIO
 from magma.conversions import from_bits, as_bits
 from magma.generator import Generator2
 from magma.interface import IO
+from magma.logging import root_logger
 from magma.primitives.register import Register
 from magma.t import In, Out, Kind
+
+
+_logger = root_logger()
 
 
 class CoreIRMemory(Generator2):
@@ -106,3 +110,25 @@ class Memory(Generator2):
         for _ in range(read_latency - 1):
             rdata = Register(T)()(rdata)
         self.io.RDATA @= rdata
+
+        def __setitem__(self, addr, data):
+            if self.WADDR.driven() or self.WDATA.driven():
+                _logger.warning(
+                    "Calling __setitem__ on a Memory instance with WADDR or"
+                    " WDATA already driven, will overwrite previous values"
+                )
+            self.WADDR @= addr
+            self.WDATA @= data
+
+        self.__setitem__ = __setitem__
+
+        def __getitem__(self, addr):
+            if self.RADDR.driven():
+                _logger.warning(
+                    "Calling __getitem__ on a Memory instance with RADDR"
+                    " already driven, will overwrite previous values"
+                )
+            self.RADDR @= addr
+            return self.RDATA
+
+        self.__getitem__ = __getitem__
