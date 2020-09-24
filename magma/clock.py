@@ -23,6 +23,8 @@ class _ClockType(Digital):
     @debug_wire
     def wire(self, other, debug_info=None):
         # Wiring requires strict subclasses
+        # Note: we use the standard wiring logic to enforce directionality,
+        # so we just check with the undirected type here
         if not isinstance(other, type(self).qualify(Direction.Undirected)):
             raise TypeError(f"Cannot wire {other} (T={type(other)}) to {self}"
                             f" (T={type(self)})")
