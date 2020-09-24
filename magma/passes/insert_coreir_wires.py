@@ -1,9 +1,9 @@
 from ..array import Array
 from magma.bit import Bit
 from ..bits import Bits
-from ..clock import AsyncReset, AsyncResetN, Clock
+from ..clock import AsyncReset, AsyncResetN, Clock, _ClockType
 from ..circuit import coreir_port_mapping
-from ..conversions import as_bits, from_bits
+from ..conversions import as_bits, from_bits, bit, convertbit
 from ..digital import Digital
 from ..generator import Generator2
 from ..interface import IO
@@ -23,12 +23,13 @@ def _simulate_wire(self, value_store, state_store):
 
 class Wire(Generator2):
     def __init__(self, T):
+        if issubclass(T, (AsyncReset, AsyncResetN, Clock)):
+            self._gen_named_type_wrapper(T)
+            # Standalone return to avoid return-in-init lint warning
+            return
         if issubclass(T, Digital):
             coreir_lib = "corebit"
             coreir_genargs = None
-            if issubclass(T, (AsyncReset, AsyncResetN, Clock)):
-                # Convert to bit so we wrap named types like clock if necessary
-                T = Bit
         else:
             width = T.flat_length()
             T = Bits[width]
@@ -41,6 +42,16 @@ class Wire(Generator2):
         self.coreir_lib = coreir_lib
         self.coreir_genargs = coreir_genargs
         self.renamed_ports = coreir_port_mapping
+
+    def _gen_named_type_wrapper(self, T):
+        """
+        Generates a container around Wire(Bit) so named types are wrapped
+        properly
+        """
+        assert issubclass(T, Digital)
+        self.io = IO(I=In(T), O=Out(T))
+        self.name = f"Wire{T}"
+        self.io.O @= convertbit(Wire(Bit)()(bit(self.io.I)), T)
 
 
 class InsertCoreIRWires(DefinitionPass):
@@ -95,6 +106,11 @@ class InsertCoreIRWires(DefinitionPass):
                         w @= d
             else:
                 wire_input @= driver
+        if (isinstance(value, _ClockType) and 
+                not isinstance(wire_output, type(value))):
+            # This mean it was cast by the user (e.g. m.clock(value)), so we
+            # need to "recast" the wire output
+            wire_output = convertbit(wire_output, type(value))
         value @= wire_output
 
     def _insert_wire(self, value, definition):

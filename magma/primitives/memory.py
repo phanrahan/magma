@@ -94,7 +94,7 @@ class Memory(Generator2):
         else:
             waddr = Bits[addr_width](0)
             wdata = Bits[data_width](0)
-            wen = Bit(0)
+            wen = Enable(0)
         coreir_mem = CoreIRMemory(height, data_width, init=init,
                                   sync_read=read_latency > 0)()
         coreir_mem.waddr @= waddr

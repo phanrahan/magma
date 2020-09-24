@@ -5,6 +5,7 @@ from .digital import DigitalMeta, Digital
 from .wire import wire
 from magma.bit import Bit
 from magma.array import Array
+from magma.debug import debug_wire
 from magma.tuple import Tuple
 
 
@@ -18,6 +19,14 @@ class _ClockType(Digital):
 
     def undriven(self):
         Bit.undriven(self)
+
+    @debug_wire
+    def wire(self, other, debug_info=None):
+        # Wiring requires strict subclasses
+        if not isinstance(other, type(self).qualify(Direction.Undirected)):
+            raise TypeError(f"Cannot wire {other} (T={type(other)}) to {self}"
+                            f" (T={type(self)})")
+        return super().wire(other, debug_info)
 
 
 class Clock(_ClockType, metaclass=DigitalMeta):
