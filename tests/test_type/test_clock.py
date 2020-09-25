@@ -413,3 +413,11 @@ def test_insert_wrap_casts_temporary():
     assert check_files_equal(__file__,
                              f"build/test_insert_wrap_casts_temporary.v",
                              f"gold/test_insert_wrap_casts_temporary.v")
+
+
+def test_wire_error():
+    with pytest.raises(TypeError) as e:
+        class Foo(m.Circuit):
+            io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
+            m.wire(io.I, io.O)
+    assert str(e.value) == "Cannot wire I (T=Out(Clock)) to O (T=In(Reset))"
