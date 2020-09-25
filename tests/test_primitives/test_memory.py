@@ -20,7 +20,7 @@ def test_memory_basic():
         )
         Mem4x5 = m.Memory(4, m.Bits[5])()
         io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] = io.wdata
+        Mem4x5[io.waddr] @= io.wdata
 
     m.compile("build/test_memory_basic", test_memory_basic)
 
@@ -217,10 +217,10 @@ def test_memory_warning(caplog):
         )
         Mem4x5 = m.Memory(4, m.Bits[5])()
         io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] = io.wdata
+        Mem4x5[io.waddr] @= io.wdata
 
         io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] = io.wdata
+        Mem4x5[io.waddr] @= io.wdata
 
-    assert "Calling __getitem__ on a Memory instance with RADDR already driven, will overwrite previous values" in caplog.messages  # noqa
-    assert "Calling __setitem__ on a Memory instance with WADDR or WDATA already driven, will overwrite previous values" in caplog.messages  # noqa
+    assert "Reading __getitem__ result from a Memory instance with RADDR already driven, will overwrite previous value" in caplog.messages  # noqa
+    assert "Wiring __getitem__ result from a Memory instance with WADDR or WDATA already driven, will overwrite previous values" in caplog.messages  # noqa

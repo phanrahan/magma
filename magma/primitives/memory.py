@@ -11,6 +11,7 @@ from magma.generator import Generator2
 from magma.interface import IO
 from magma.logging import root_logger
 from magma.primitives.register import Register
+from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.t import In, Out, Kind
 
 
@@ -73,6 +74,48 @@ class CoreIRMemory(Generator2):
         self.simulate = _simulate
 
 
+class StagedMemoryPortMeta(MagmaProtocolMeta):
+    def _to_magma_(cls):
+        return cls.T
+
+    def _qualify_magma_(cls, direction):
+        return cls[cls.T.qualify(direction)]
+
+    def _flip_magma_(cls):
+        return cls[cls.T.flip()]
+
+    def _from_magma_value_(cls, val):
+        return value
+
+    def __getitem__(cls, T):
+        return type(cls)(f"StagedMemoryPort{T}", (cls, ), {"T": T})
+
+
+class StagedMemoryPort(MagmaProtocol, metaclass=StagedMemoryPortMeta):
+    def __init__(self, memory, addr):
+        self.memory = memory
+        self.addr = addr
+
+    def __imatmul__(self, data):
+        if self.memory.WADDR.driven() or self.memory.WDATA.driven():
+            _logger.warning(
+                "Wiring __getitem__ result from a Memory instance with WADDR"
+                " or WDATA already driven, will overwrite previous values"
+            )
+        self.memory.WADDR @= self.addr
+        self.memory.WDATA @= data
+        return self
+
+    def _get_magma_value_(self):
+        if self.memory.RADDR.driven():
+            _logger.warning(
+                "Reading __getitem__ result from a Memory instance with RADDR"
+                " already driven, will overwrite previous value"
+            )
+        self.memory.RADDR @= self.addr
+        return self.memory.RDATA
+
+
 class Memory(Generator2):
     def __init__(self, height, T: Kind,
                  read_latency: int = 0, read_only: bool = False,
@@ -111,24 +154,16 @@ class Memory(Generator2):
             rdata = Register(T)()(rdata)
         self.io.RDATA @= rdata
 
-        def __setitem__(self, addr, data):
-            if self.WADDR.driven() or self.WDATA.driven():
-                _logger.warning(
-                    "Calling __setitem__ on a Memory instance with WADDR or"
-                    " WDATA already driven, will overwrite previous values"
-                )
-            self.WADDR @= addr
-            self.WDATA @= data
+        def __setitem__(self, key, value):
+            if not isinstance(value, StagedMemoryPort):
+                raise TypeError("Cannot call __setitem__ directly on memory"
+                                "instance")
+            assert key is value.addr
+            assert value.memory is self
 
         self.__setitem__ = __setitem__
 
         def __getitem__(self, addr):
-            if self.RADDR.driven():
-                _logger.warning(
-                    "Calling __getitem__ on a Memory instance with RADDR"
-                    " already driven, will overwrite previous values"
-                )
-            self.RADDR @= addr
-            return self.RDATA
+            return StagedMemoryPort[T](self, addr)
 
         self.__getitem__ = __getitem__
