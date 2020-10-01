@@ -216,7 +216,7 @@ wire [11:0] reg_P_inst0_in;
 assign reg_P_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out[3:0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out[7:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
-    .init(12'h000),
+    .init(12'hade),
     .width(12)
 ) reg_P_inst0 (
     .clk(CLK),

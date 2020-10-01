@@ -102,7 +102,7 @@ Mux2xBits8 enable_mux (
 );
 coreir_reg #(
     .clk_posedge(1'b1),
-    .init(8'h00),
+    .init(8'hde),
     .width(8)
 ) reg_P_inst0 (
     .clk(CLK),
