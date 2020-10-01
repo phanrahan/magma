@@ -178,10 +178,7 @@ class Register(Generator2):
         if isinstance(init, int):
             init = _zero_init(T, init)
 
-        if has_async_reset or has_async_resetn:
-            coreir_init = int(as_bits(init))
-        else:
-            coreir_init = 0
+        coreir_init = int(as_bits(init))
 
         reg = _CoreIRRegister(T.flat_length(), init=coreir_init,
                               has_async_reset=has_async_reset,
