@@ -273,3 +273,25 @@ def test_resetn():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_reg_init_uniq():
+    class test_reg_init_uniq(m.Circuit):
+        io = m.IO(O0=m.Out(m.Bit), O1=m.Out(m.Bit)) + m.ClockIO()
+        reg0 = m.Register(m.Bit, init=0)()
+        reg0.I @= reg0.O
+        io.O0 @= reg0.O
+        reg1 = m.Register(m.Bit, init=1)()
+        reg1.I @= reg1.O
+        io.O1 @= reg1.O
+
+    m.compile("build/test_reg_init_uniq", test_reg_init_uniq)
+
+    tester = fault.Tester(test_reg_init_uniq, test_reg_init_uniq.CLK)
+    # Eval to propogate register value
+    tester.eval()
+    tester.circuit.O0.expect(0)
+    tester.circuit.O1.expect(1)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))

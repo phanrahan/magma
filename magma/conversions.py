@@ -62,7 +62,9 @@ def convertbit(value, totype):
     assert isinstance(value, (IntegerTypes, Digital))
 
     if isinstance(value, IntegerTypes):
-        value = totype(1) if value else totype(0)
+        # Just return VCC or GND here, otherwise we lose VCC/GND singleton
+        # invariant
+        return totype(1) if value else totype(0)
 
     if value.is_input():
         b = In(totype)(name=value.name)
