@@ -27,7 +27,7 @@ mux_logic_16_2 u_mux_logic (
 endmodule""")[0]
 
     class MuxWrapperAOIImpl_2_16(m.Circuit):
-        coreir_metadata = {"inline_single_instances": False}
+        coreir_metadata = {"inline_single_instance": False}
         io = m.IO(I=m.In(m.Array[2, m.Bits[16]]), O=m.Out(m.Array[16, m.Bit]),
                   S=m.In(m.Array[1, m.Bit]))
         io.O @= mux_aoi_2_16()(io.I[0], io.I[1], io.S[0])
