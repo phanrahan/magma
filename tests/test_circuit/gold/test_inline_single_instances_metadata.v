@@ -1,22 +1,22 @@
-module mux_aoi_2_16 ( 
-	input logic  [15 : 0] I0, 
-	input logic  [15 : 0] I1, 
-input logic S, 
-	output logic [15 : 0] O); 
+module mux_aoi_2_16 (
+    input logic  [15 : 0] I0,
+    input logic  [15 : 0] I1,
+    input logic S,
+    output logic [15 : 0] O);
 
-	logic  [1 : 0] out_sel;
-	logic  [15 : 0] O_int0;
+    logic  [1 : 0] out_sel;
+    logic  [15 : 0] O_int0;
 
-precoder_16_2 u_precoder ( 
-	.S(S), 
-	.out_sel(out_sel)); 
+precoder_16_2 u_precoder (
+    .S(S),
+    .out_sel(out_sel));
 
-mux_logic_16_2 u_mux_logic ( 
-	.I0 (I0),
-	.I1 (I1),
-	.out_sel(out_sel), 
-	.O0(O_int0)); 
-	assign O = (  	O_int0 	); 
+mux_logic_16_2 u_mux_logic (
+    .I0 (I0),
+    .I1 (I1),
+    .out_sel(out_sel),
+    .O0(O_int0));
+    assign O = (  	O_int0 	);
 
 endmodule
 module Top (
