@@ -153,7 +153,7 @@ wire [23:0] reg_P_inst0_in;
 assign reg_P_inst0_in = {Mux2xArray3_Bits8_inst0_O[2][7:0],Mux2xArray3_Bits8_inst0_O[1][7:0],Mux2xArray3_Bits8_inst0_O[0][7:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
-    .init(24'h000000),
+    .init(24'hbeadde),
     .width(24)
 ) reg_P_inst0 (
     .clk(CLK),

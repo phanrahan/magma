@@ -19,23 +19,43 @@ module corebit_term (
 
 endmodule
 
+module WireClock (
+    input I,
+    output O
+);
+wire Wire_inst0_out;
+wire coreir_wrapInClock_inst0_out;
+wire coreir_wrapOutClock_inst0_out;
+corebit_wire Wire_inst0 (
+    .in(coreir_wrapInClock_inst0_out),
+    .out(Wire_inst0_out)
+);
+coreir_wrap coreir_wrapInClock_inst0 (
+    .in(I),
+    .out(coreir_wrapInClock_inst0_out)
+);
+coreir_wrap coreir_wrapOutClock_inst0 (
+    .in(Wire_inst0_out),
+    .out(coreir_wrapOutClock_inst0_out)
+);
+assign O = coreir_wrapOutClock_inst0_out;
+endmodule
+
 module Bar (
     input CLK,
     input RESETN
 );
-wire _magma_inline_wire0_out;
+wire _magma_inline_wire0_O;
 wire _magma_inline_wire1_out;
 wire coreir_wrapInClock_inst0_out;
-wire coreir_wrapInClock_inst1_out;
 wire coreir_wrapOutClock_inst0_out;
-wire coreir_wrapOutClock_inst1_out;
 wire temp1_out;
 Foo Foo_inst0 (
     .CLK(coreir_wrapOutClock_inst0_out)
 );
-corebit_wire _magma_inline_wire0 (
-    .in(coreir_wrapInClock_inst0_out),
-    .out(_magma_inline_wire0_out)
+WireClock _magma_inline_wire0 (
+    .I(CLK),
+    .O(_magma_inline_wire0_O)
 );
 corebit_wire _magma_inline_wire1 (
     .in(RESETN),
@@ -45,22 +65,14 @@ coreir_wrap coreir_wrapInClock_inst0 (
     .in(CLK),
     .out(coreir_wrapInClock_inst0_out)
 );
-coreir_wrap coreir_wrapInClock_inst1 (
-    .in(CLK),
-    .out(coreir_wrapInClock_inst1_out)
-);
 coreir_wrap coreir_wrapOutClock_inst0 (
     .in(temp1_out),
     .out(coreir_wrapOutClock_inst0_out)
 );
-coreir_wrap coreir_wrapOutClock_inst1 (
-    .in(_magma_inline_wire0_out),
-    .out(coreir_wrapOutClock_inst1_out)
-);
 corebit_wire temp1 (
-    .in(coreir_wrapInClock_inst1_out),
+    .in(coreir_wrapInClock_inst0_out),
     .out(temp1_out)
 );
-always @(posedge coreir_wrapOutClock_inst1_out) disable iff (! _magma_inline_wire1_out) $display("Hello");
+always @(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1_out) $display("Hello");
 endmodule
 

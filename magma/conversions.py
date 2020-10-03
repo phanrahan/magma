@@ -63,7 +63,9 @@ def convertbit(value, totype):
     assert isinstance(value, (IntegerTypes, Digital, ht.Bit))
 
     if isinstance(value, (IntegerTypes, ht.Bit)):
-        value = totype(1) if value else totype(0)
+        # Just return VCC or GND here, otherwise we lose VCC/GND singleton
+        # invariant
+        return totype(1) if value else totype(0)
 
     if value.is_input():
         b = In(totype)(name=value.name)
@@ -169,7 +171,10 @@ def convertbits(value, n, totype, checkbit):
             Direction.InOut: InOut
         }[T.direction](Bit)
 
-    return totype[len(Ts), T](ts)
+    value = totype[len(Ts), T](ts)
+    if n is not None and len(value) < n:
+        value = value.ext_to(n)
+    return value
 
 
 def array(value, n=None):

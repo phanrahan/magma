@@ -32,3 +32,15 @@ def test_ext():
 def test_concat_type_error():
     with pytest.raises(TypeError):
         m.concat(object(), object())
+
+
+@pytest.mark.parametrize('op', [m.uint, m.sint])
+def test_convert_extend(op):
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[5]))
+        value = op(io.I, 32)
+        assert len(value) == 32
+        if op is m.sint:
+            # Check sext logic
+            for x in value[5:]:
+                assert x is io.I[4]

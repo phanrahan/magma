@@ -64,6 +64,35 @@ Mem `__init__` arguments:
 * `init: Optional[tuple]` - (optional) initial contents of the memory as a
                             tuple containing an initial value for each entry 
 
+The memory provides a convenience interface following the Python
+`__getitem__`/`__setitem__` pattern, here is an example:
+
+```python
+class MemoryGetItemSetItem(m.Circuit):
+    io = m.IO(
+        raddr=m.In(m.Bits[2]),
+        rdata=m.Out(m.Bits[5]),
+        waddr=m.In(m.Bits[2]),
+        wdata=m.In(m.Bits[5]),
+        clk=m.In(m.Clock),
+        wen=m.In(m.Enable)
+
+    )
+    Mem4x5 = m.Memory(4, m.Bits[5])()
+    io.rdata @= Mem4x5[io.raddr]
+    Mem4x5[io.waddr] @= io.wdata
+```
+
+Reading from a memory using the `__getitem__` syntax (e.g. `Mem4x5[io.raddr]`)
+is equivalent to wiring the `RADDR` port to the `__getitem__` key/index and
+returning the `RDATA` port.  Note that writing to a memory uses `@=` with
+`__getitem__` on the left hand side (as opposed to the standard `=` and
+`__setitem__` pattern used in Python).  This is so that writing to a memory is
+consistent with standard wiring using the `@=` syntax.  Writing to a memory
+(e.g. `Mem4x5[io.waddr] @= io.wdata`) is equivalent to wiring the key/index
+(`io.waddr`) to the `WADDR` port and the value (`io.wdata`) to the `WDATA`
+port.
+
 ### Mux
 The `Mux(N, T)` primitive creates a mux circuit that selects between `N` input
 values of type `T`.  Here's a simple example that selects between two bits:
