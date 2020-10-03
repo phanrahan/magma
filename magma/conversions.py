@@ -170,7 +170,13 @@ def convertbits(value, n, totype, checkbit):
             Direction.InOut: InOut
         }[T.direction](Bit)
 
-    return totype[len(Ts), T](ts)
+    value = totype[len(Ts), T](ts)
+    if n is not None and len(value) < n:
+        if isinstance(value, SInt):
+            value = sext_to(value, n)
+        else:
+            value = zext_to(value, n)
+    return value
 
 
 def array(value, n=None):
