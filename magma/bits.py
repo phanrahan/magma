@@ -412,7 +412,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def ext_to(self, n):
         if n < len(self):
             raise TypeError(f"Cannot ext {self} of len={len(self)} to {n}")
-        return self.ext(other, n - len(n))
+        return self.ext(n - len(self))
 
     def zext(self, other) -> 'AbstractBitVector':
         ext = int(other)
