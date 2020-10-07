@@ -64,7 +64,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xTuplex_OutUInt8 (
+module Mux2xTuplex_UInt8 (
     input [7:0] I0_x,
     input [7:0] I1_x,
     output [7:0] O_x,
@@ -86,13 +86,13 @@ module Test_comb (
     input c,
     input [7:0] self_a_O_x
 );
-wire [7:0] Mux2xTuplex_OutUInt8_inst0_O_x;
+wire [7:0] Mux2xTuplex_UInt8_inst0_O_x;
 wire [7:0] const_1_8_out;
 wire [7:0] magma_Bits_8_add_inst0_out;
-Mux2xTuplex_OutUInt8 Mux2xTuplex_OutUInt8_inst0 (
+Mux2xTuplex_UInt8 Mux2xTuplex_UInt8_inst0 (
     .I0_x(self_a_O_x),
     .I1_x(magma_Bits_8_add_inst0_out),
-    .O_x(Mux2xTuplex_OutUInt8_inst0_O_x),
+    .O_x(Mux2xTuplex_UInt8_inst0_O_x),
     .S(c)
 );
 coreir_const #(
@@ -109,7 +109,7 @@ coreir_add #(
     .out(magma_Bits_8_add_inst0_out)
 );
 assign O0_x = self_a_O_x;
-assign O1_a_x = Mux2xTuplex_OutUInt8_inst0_O_x;
+assign O1_a_x = Mux2xTuplex_UInt8_inst0_O_x;
 endmodule
 
 module Test (

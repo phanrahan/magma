@@ -97,29 +97,29 @@
           ["O2",["Array",8,"Bit"]]
         ]],
         "instances":{
-          "Mux2xOutUInt8_inst0":{
-            "modref":"global.Mux2xOutUInt8"
+          "Mux2xUInt8_inst0":{
+            "modref":"global.Mux2xUInt8"
           },
-          "Mux2xOutUInt8_inst1":{
-            "modref":"global.Mux2xOutUInt8"
+          "Mux2xUInt8_inst1":{
+            "modref":"global.Mux2xUInt8"
           },
-          "Mux2xOutUInt8_inst2":{
-            "modref":"global.Mux2xOutUInt8"
+          "Mux2xUInt8_inst2":{
+            "modref":"global.Mux2xUInt8"
           }
         },
         "connections":[
-          ["self.val","Mux2xOutUInt8_inst0.I0"],
-          ["self.val","Mux2xOutUInt8_inst0.I1"],
-          ["self.O0","Mux2xOutUInt8_inst0.O"],
-          ["self.select","Mux2xOutUInt8_inst0.S"],
-          ["self.val","Mux2xOutUInt8_inst1.I0"],
-          ["self.val","Mux2xOutUInt8_inst1.I1"],
-          ["self.O1","Mux2xOutUInt8_inst1.O"],
-          ["self.select","Mux2xOutUInt8_inst1.S"],
-          ["self.self_bar_O","Mux2xOutUInt8_inst2.I0"],
-          ["self.self_foo_O","Mux2xOutUInt8_inst2.I1"],
-          ["self.O2","Mux2xOutUInt8_inst2.O"],
-          ["self.select","Mux2xOutUInt8_inst2.S"]
+          ["self.val","Mux2xUInt8_inst0.I0"],
+          ["self.val","Mux2xUInt8_inst0.I1"],
+          ["self.O0","Mux2xUInt8_inst0.O"],
+          ["self.select","Mux2xUInt8_inst0.S"],
+          ["self.val","Mux2xUInt8_inst1.I0"],
+          ["self.val","Mux2xUInt8_inst1.I1"],
+          ["self.O1","Mux2xUInt8_inst1.O"],
+          ["self.select","Mux2xUInt8_inst1.S"],
+          ["self.self_bar_O","Mux2xUInt8_inst2.I0"],
+          ["self.self_foo_O","Mux2xUInt8_inst2.I1"],
+          ["self.O2","Mux2xUInt8_inst2.O"],
+          ["self.select","Mux2xUInt8_inst2.S"]
         ]
       },
       "Foo_comb":{
@@ -144,7 +144,7 @@
           ["self.O","magma_Bits_8_add_inst0.out"]
         ]
       },
-      "Mux2xOutUInt8":{
+      "Mux2xUInt8":{
         "type":["Record",[
           ["I0",["Array",8,"BitIn"]],
           ["I1",["Array",8,"BitIn"]],

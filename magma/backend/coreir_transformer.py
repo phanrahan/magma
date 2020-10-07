@@ -396,4 +396,6 @@ class DeclarationTransformer(LeafTransformer):
             self.decl.coreir_name, module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:
             attach_debug_info(coreir_module, self.decl.debug_info)
+        for key, value in self.decl.coreir_metadata.items():
+            coreir_module.add_metadata(key, json.dumps(value))
         return coreir_module

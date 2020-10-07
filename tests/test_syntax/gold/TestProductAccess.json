@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "Mux2xTuplea0_OutBits8_a1_OutBits8":{
+      "Mux2xTuplea0_Bits8_a1_Bits8":{
         "type":["Record",[
           ["I0",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
           ["I1",["Record",[["a0",["Array",8,"BitIn"]],["a1",["Array",8,"BitIn"]]]]],
@@ -68,18 +68,18 @@
           ["O1",["Record",[["a0",["Array",8,"Bit"]],["a1",["Array",8,"Bit"]]]]]
         ]],
         "instances":{
-          "Mux2xTuplea0_OutBits8_a1_OutBits8_inst0":{
-            "modref":"global.Mux2xTuplea0_OutBits8_a1_OutBits8"
+          "Mux2xTuplea0_Bits8_a1_Bits8_inst0":{
+            "modref":"global.Mux2xTuplea0_Bits8_a1_Bits8"
           }
         },
         "connections":[
-          ["self.self_a_O.a0","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I0.a0"],
-          ["self.value","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I0.a1"],
-          ["self.value","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I1.a0"],
-          ["self.self_a_O.a1","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.I1.a1"],
-          ["self.O0","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.O"],
-          ["self.O1","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.O"],
-          ["self.sel","Mux2xTuplea0_OutBits8_a1_OutBits8_inst0.S"]
+          ["self.self_a_O.a0","Mux2xTuplea0_Bits8_a1_Bits8_inst0.I0.a0"],
+          ["self.value","Mux2xTuplea0_Bits8_a1_Bits8_inst0.I0.a1"],
+          ["self.value","Mux2xTuplea0_Bits8_a1_Bits8_inst0.I1.a0"],
+          ["self.self_a_O.a1","Mux2xTuplea0_Bits8_a1_Bits8_inst0.I1.a1"],
+          ["self.O0","Mux2xTuplea0_Bits8_a1_Bits8_inst0.O"],
+          ["self.O1","Mux2xTuplea0_Bits8_a1_Bits8_inst0.O"],
+          ["self.sel","Mux2xTuplea0_Bits8_a1_Bits8_inst0.S"]
         ]
       }
     }

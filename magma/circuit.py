@@ -235,6 +235,7 @@ class CircuitKind(type):
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
         dct.setdefault("inline_verilog_strs", [])
+        dct.setdefault("coreir_metadata", {})
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
         dct["compiled_bind_modules"] = {}

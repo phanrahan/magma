@@ -55,7 +55,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xOutUInt8 (
+module Mux2xUInt8 (
     input [7:0] I0,
     input [7:0] I1,
     input S,
@@ -104,30 +104,30 @@ module FooBar_comb (
     output [7:0] O1,
     output [7:0] O2
 );
-wire [7:0] Mux2xOutUInt8_inst0_O;
-wire [7:0] Mux2xOutUInt8_inst1_O;
-wire [7:0] Mux2xOutUInt8_inst2_O;
-Mux2xOutUInt8 Mux2xOutUInt8_inst0 (
+wire [7:0] Mux2xUInt8_inst0_O;
+wire [7:0] Mux2xUInt8_inst1_O;
+wire [7:0] Mux2xUInt8_inst2_O;
+Mux2xUInt8 Mux2xUInt8_inst0 (
     .I0(val),
     .I1(val),
     .S(select),
-    .O(Mux2xOutUInt8_inst0_O)
+    .O(Mux2xUInt8_inst0_O)
 );
-Mux2xOutUInt8 Mux2xOutUInt8_inst1 (
+Mux2xUInt8 Mux2xUInt8_inst1 (
     .I0(val),
     .I1(val),
     .S(select),
-    .O(Mux2xOutUInt8_inst1_O)
+    .O(Mux2xUInt8_inst1_O)
 );
-Mux2xOutUInt8 Mux2xOutUInt8_inst2 (
+Mux2xUInt8 Mux2xUInt8_inst2 (
     .I0(self_bar_O),
     .I1(self_foo_O),
     .S(select),
-    .O(Mux2xOutUInt8_inst2_O)
+    .O(Mux2xUInt8_inst2_O)
 );
-assign O0 = Mux2xOutUInt8_inst0_O;
-assign O1 = Mux2xOutUInt8_inst1_O;
-assign O2 = Mux2xOutUInt8_inst2_O;
+assign O0 = Mux2xUInt8_inst0_O;
+assign O1 = Mux2xUInt8_inst1_O;
+assign O2 = Mux2xUInt8_inst2_O;
 endmodule
 
 module Foo (

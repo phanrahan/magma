@@ -1,8 +1,11 @@
+from typing import Optional
+
 from .t import Direction, In
 from .digital import DigitalMeta, Digital
 from .wire import wire
 from magma.bit import Bit
 from magma.array import Array
+from magma.debug import debug_wire
 from magma.tuple import Tuple
 
 
@@ -16,6 +19,16 @@ class _ClockType(Digital):
 
     def undriven(self):
         Bit.undriven(self)
+
+    @debug_wire
+    def wire(self, other, debug_info=None):
+        # Wiring requires strict subclasses
+        # Note: we use the standard wiring logic to enforce directionality,
+        # so we just check with the undirected type here
+        if not isinstance(other, type(self).qualify(Direction.Undirected)):
+            raise TypeError(f"Cannot wire {other} (T={type(other)}) to {self}"
+                            f" (T={type(self)})")
+        return super().wire(other, debug_info)
 
 
 class Clock(_ClockType, metaclass=DigitalMeta):
@@ -160,16 +173,18 @@ def wireclock(define, circuit):
     wireclocktype(define, circuit, Enable)
 
 
-def get_reset_args(reset_type: AbstractReset = None):
-    if reset_type is not None and not issubclass(reset_type, AbstractReset):
+def get_reset_args(reset_type: Optional[AbstractReset]):
+    if reset_type is None:
+        return tuple(False for _ in range(4))
+    if not issubclass(reset_type, AbstractReset):
         raise TypeError(
             f"Expected subclass of AbstractReset for argument reset_type, "
             f"not {type(reset_type)}")
 
-    has_async_reset = reset_type == AsyncReset
-    has_async_resetn = reset_type == AsyncResetN
-    has_reset = reset_type == Reset
-    has_resetn = reset_type == ResetN
+    has_async_reset = issubclass(reset_type, AsyncReset)
+    has_async_resetn = issubclass(reset_type, AsyncResetN)
+    has_reset = issubclass(reset_type, Reset)
+    has_resetn = issubclass(reset_type, ResetN)
     return (has_async_reset, has_async_resetn, has_reset, has_resetn)
 
 

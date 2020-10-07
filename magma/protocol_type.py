@@ -1,7 +1,6 @@
 import abc
 
 from magma.debug import debug_wire
-from magma.t import Direction, Type
 
 
 class MagmaProtocolMeta(type):
@@ -11,7 +10,7 @@ class MagmaProtocolMeta(type):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _qualify_magma_(cls, direction: Direction):
+    def _qualify_magma_(cls, direction: 'Direction'):
         # To qualify underlying type (e.g. give me a Foo with the underlying
         # type qualified to be an input).
         raise NotImplementedError()
@@ -22,11 +21,11 @@ class MagmaProtocolMeta(type):
         # flipped).
         raise NotImplementedError()
 
-    def qualify(cls, direction: Direction):
+    def qualify(cls, direction: 'Direction'):
         return cls._qualify_magma_(direction)
 
     @abc.abstractmethod
-    def _from_magma_value_(cls, val: Type):
+    def _from_magma_value_(cls, val: 'Type'):
         # To create an instance from a value.
         raise NotImplementedError()
 

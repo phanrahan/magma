@@ -72,7 +72,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xTuplea0_OutBits8_a1_OutBits8 (
+module Mux2xTuplea0_Bits8_a1_Bits8 (
     input [7:0] I0_a0,
     input [7:0] I0_a1,
     input [7:0] I1_a0,
@@ -153,21 +153,21 @@ module TestProductAccess_comb (
     input [7:0] self_a_O_a1,
     input [7:0] value
 );
-wire [7:0] Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a0;
-wire [7:0] Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a1;
-Mux2xTuplea0_OutBits8_a1_OutBits8 Mux2xTuplea0_OutBits8_a1_OutBits8_inst0 (
+wire [7:0] Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a0;
+wire [7:0] Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a1;
+Mux2xTuplea0_Bits8_a1_Bits8 Mux2xTuplea0_Bits8_a1_Bits8_inst0 (
     .I0_a0(self_a_O_a0),
     .I0_a1(value),
     .I1_a0(value),
     .I1_a1(self_a_O_a1),
-    .O_a0(Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a0),
-    .O_a1(Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a1),
+    .O_a0(Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a0),
+    .O_a1(Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a1),
     .S(sel)
 );
-assign O0_a0 = Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a0;
-assign O0_a1 = Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a1;
-assign O1_a0 = Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a0;
-assign O1_a1 = Mux2xTuplea0_OutBits8_a1_OutBits8_inst0_O_a1;
+assign O0_a0 = Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a0;
+assign O0_a1 = Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a1;
+assign O1_a0 = Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a0;
+assign O1_a1 = Mux2xTuplea0_Bits8_a1_Bits8_inst0_O_a1;
 endmodule
 
 module TestProductAccess (

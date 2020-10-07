@@ -32,7 +32,7 @@ coreir_reg #(
 );
 endmodule
 
-module Mux56xOutBits8 (
+module Mux56xBits8 (
     input [7:0] I0,
     input [7:0] I1,
     input [7:0] I2,
@@ -880,7 +880,7 @@ Mux2xOutBit Mux2xOutBit_inst9 (
     .S(magma_Bit_and_inst18_out),
     .O(Mux2xOutBit_inst9_O)
 );
-Mux56xOutBits8 Mux56xOutBits8_inst0 (
+Mux56xBits8 Mux56xBits8_inst0 (
     .I0(Register_inst0_O[7:0]),
     .I1(Register_inst0_O[8:1]),
     .I2(Register_inst0_O[9:2]),
