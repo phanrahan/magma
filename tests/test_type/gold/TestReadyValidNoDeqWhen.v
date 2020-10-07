@@ -1,4 +1,4 @@
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -23,7 +23,7 @@ module TestReadyValidNoDeqWhen (
     input I1_valid,
     output [4:0] O
 );
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(1'b1),
     .I1(1'b0),
     .S(I0),

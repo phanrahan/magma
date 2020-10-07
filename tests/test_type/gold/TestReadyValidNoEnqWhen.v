@@ -1,4 +1,4 @@
-module Mux2xOutBits5 (
+module Mux2xBits5 (
     input [4:0] I0,
     input [4:0] I1,
     input S,
@@ -16,7 +16,7 @@ end
 assign O = coreir_commonlib_mux2x5_inst0_out;
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -40,13 +40,13 @@ module TestReadyValidNoEnqWhen (
     input O_ready,
     output O_valid
 );
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(1'b1),
     .I1(1'b0),
     .S(I),
     .O(O_valid)
 );
-Mux2xOutBits5 Mux2xOutBits5_inst0 (
+Mux2xBits5 Mux2xBits5_inst0 (
     .I0(5'h1e),
     .I1(5'h00),
     .S(I),

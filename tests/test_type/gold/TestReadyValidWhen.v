@@ -1,4 +1,4 @@
-module Mux2xOutBits5 (
+module Mux2xBits5 (
     input [4:0] I0,
     input [4:0] I1,
     input S,
@@ -25,7 +25,7 @@ module TestReadyValidWhen (
     output O_valid
 );
 wire magma_Bit_or_inst1_out;
-Mux2xOutBits5 Mux2xOutBits5_inst0 (
+Mux2xBits5 Mux2xBits5_inst0 (
     .I0(5'h00),
     .I1(I_data),
     .S(magma_Bit_or_inst1_out),
