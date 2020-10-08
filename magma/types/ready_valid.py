@@ -173,13 +173,84 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
             self.ready @= False
 
 
+class Decoupled(ReadyValid):
+    """
+    `valid` indicates the prdoucer has put valid data in `data`, and `ready`
+    indicates that the consumer is ready to accept the data this cycle.  No
+    requirements are made on the signaling of ready or valid.
+    """
+    # TODO: Add down convert logic from Irrevocable consumer to Decoupled,
+    # dropping guarantees of irrevocability.  Cannot be used on producer
+    pass
+
+
+class DecoupledConsumer(ReadyValidConsumer, Decoupled):
+    pass
+
+
+class DecoupledProducer(ReadyValidProducer, Decoupled):
+    pass
+
+
+class EnqIO(DecoupledProducer):
+    """
+    Alias for Producer(Decoupled[T])
+
+    drives (outputs) `valid` and `data`, inputs `ready`
+    """
+    pass
+
+
+class DeqIO(DecoupledConsumer):
+    """
+    Alias for Consumer(Decoupled[T])
+
+    drives (outputs) `ready`, inputs `valid` and `data`
+    """
+    pass
+
+
+class Irrevocable(ReadyValid):
+    """
+    Promises not to change the value of `data` after a cycle where `valid` is
+    high and `ready` is low.  Additionally, once `valid` is raised, it will
+    never be lowered until after `ready` has also been raised
+    """
+    # TODO: Add upconvert logic from Decoupled producer to Irrevocable (can use
+    # Irrevocable where a Decoupled is expected). Cannot be used on consumer.
+    pass
+
+
+class IrrevocableConsumer(ReadyValidConsumer, Irrevocable):
+    pass
+
+
+class IrrevocableProducer(ReadyValidProducer, Irrevocable):
+    pass
+
+
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        return ReadyValidConsumer[T.data.as_undirected()]
+        undirected_T = T.data.as_undirected()
+    if issubclass(T, Irrevocable):
+        return IrrevocableConsumer[undirected_T]
+    if issubclass(T, Decoupled):
+        return DecoupledConsumer[undirected_T]
+    if issubclass(T, ReadyValid):
+        return ReadyValidConsumer[undirected_T]
     raise TypeError(f"Consumer({T}) is unsupported")
 
 
 def Producer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        return ReadyValidProducer[T.data.as_undirected()]
+        undirected_T = T.data.as_undirected()
+    if issubclass(T, Irrevocable):
+        return IrrevocableProducer[undirected_T]
+    if issubclass(T, Decoupled):
+        return DecoupledProducer[undirected_T]
+    if issubclass(T, ReadyValid):
+        return ReadyValidProducer[undirected_T]
     raise TypeError(f"Consumer({T}) is unsupported")
+
+
+# TODO: QueueIO and Queue

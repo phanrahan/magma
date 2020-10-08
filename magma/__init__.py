@@ -103,5 +103,6 @@ from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
                               Register, get_slice, set_slice, slice,
                               Memory)
 
-from magma.types import BitPattern, Valid, ReadyValid, Consumer, Producer
+from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
+                         Decoupled, EnqIO, DeqIO, Irrevocable)
 import magma.smart

@@ -5,14 +5,15 @@ from magma.testing import check_files_equal
 from magma.types.ready_valid import ReadyValidException
 
 
-def test_ready_valid_simple():
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_simple(T):
     class TestReadyValidSimple(m.Circuit):
         io = m.IO(
-            I=m.Consumer(m.ReadyValid[m.Bits[5]]),
-            O=m.Producer(m.ReadyValid[m.Bits[5]]),
+            I=m.Consumer(T[m.Bits[5]]),
+            O=m.Producer(T[m.Bits[5]]),
             fired=m.Out(m.Bit)
         )
-        assert isinstance(io.I, m.ReadyValid)
+        assert isinstance(io.I, T)
         io.O @= io.I
         io.fired @= io.I.fired() & io.O.fired()
 
@@ -21,11 +22,12 @@ def test_ready_valid_simple():
                              f"gold/TestReadyValidSimple.v")
 
 
-def test_ready_valid_tuple():
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_tuple(T):
     class TestReadyValidTuple(m.Circuit):
         io = m.IO(
-            I=m.Consumer(m.ReadyValid[m.Tuple[m.Bit, m.Bits[5]]]),
-            O=m.Producer(m.ReadyValid[m.Tuple[m.Bit, m.Bits[5]]])
+            I=m.Consumer(T[m.Tuple[m.Bit, m.Bits[5]]]),
+            O=m.Producer(T[m.Tuple[m.Bit, m.Bits[5]]])
         )
         io.O @= io.I
 
@@ -34,11 +36,12 @@ def test_ready_valid_tuple():
                              f"gold/TestReadyValidTuple.v")
 
 
-def test_ready_valid_when():
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_when(T):
     class TestReadyValidWhen(m.Circuit):
         io = m.IO(
-            I=m.Consumer(m.ReadyValid[m.Bits[5]]),
-            O=m.Producer(m.ReadyValid[m.Bits[5]])
+            I=m.Consumer(T[m.Bits[5]]),
+            O=m.Producer(T[m.Bits[5]])
         )
         # Default no enq/deq
         io.O.no_enq()
@@ -52,11 +55,12 @@ def test_ready_valid_when():
                              f"gold/TestReadyValidWhen.v")
 
 
-def test_ready_valid_no_enq_when():
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_no_enq_when(T):
     class TestReadyValidNoEnqWhen(m.Circuit):
         io = m.IO(
             I=m.In(m.Bit),
-            O=m.Producer(m.ReadyValid[m.Bits[5]])
+            O=m.Producer(T[m.Bits[5]])
         )
         io.O.enq(m.Bits[5](0xDE))
         io.O.no_enq(when=io.I)
@@ -67,11 +71,12 @@ def test_ready_valid_no_enq_when():
                              f"gold/TestReadyValidNoEnqWhen.v")
 
 
-def test_ready_valid_no_deq_when():
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_no_deq_when(T):
     class TestReadyValidNoDeqWhen(m.Circuit):
         io = m.IO(
             I0=m.In(m.Bit),
-            I1=m.Consumer(m.ReadyValid[m.Bits[5]]),
+            I1=m.Consumer(T[m.Bits[5]]),
             O=m.Out(m.Bits[5])
         )
         io.O @= io.I1.deq()
@@ -83,18 +88,20 @@ def test_ready_valid_no_deq_when():
                              f"gold/TestReadyValidNoDeqWhen.v")
 
 
-def test_ready_valid_warnings(caplog):
-    m.ReadyValid[m.In(m.Bit)]
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_warnings(T, caplog):
+    T[m.In(m.Bit)]
     assert caplog.messages[0] == """\
 Type In(Bit) used with ReadyValid is not undirected, converting to undirected\
  type\
 """
 
 
-def test_ready_valid_errors():
+@pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
+def test_ready_valid_errors(T):
     # TypeError on invalid type param
     with pytest.raises(TypeError):
-        m.ReadyValid[1]
+        T[1]
 
     # Cannot use produce/consume on non-ready/valid
     # TODO: We could use Producer/Consumer as a convenience wrapper for
@@ -106,8 +113,8 @@ def test_ready_valid_errors():
 
     class TestReadyValidErrors(m.Circuit):
         io = m.IO(
-            I=m.Consumer(m.ReadyValid[m.Bits[5]]),
-            O=m.Producer(m.ReadyValid[m.Bits[5]]),
+            I=m.Consumer(T[m.Bits[5]]),
+            O=m.Producer(T[m.Bits[5]]),
             fired=m.Out(m.Bit)
         )
         # Cannot call fired when valid or ready is not wired yet
@@ -131,3 +138,22 @@ def test_ready_valid_errors():
             io.I.deq(when=io.O.ready)
         with pytest.raises(ReadyValidException):
             io.O.enq(io.I.data, when=io.I.valid)
+
+
+def test_enq_deq_io(caplog):
+    class Main(m.Circuit):
+        T1 = m.EnqIO[m.Bits[5]]
+        T2 = m.Producer(m.Decoupled[m.Bits[5]])
+        assert T1 == T2
+        v1, v2 = T1(), T2()
+        # Should not error when wiring
+        v1 @= v2
+        assert len(caplog.messages) == 0
+
+        T3 = m.DeqIO[m.Bits[5]]
+        T4 = m.Consumer(m.Decoupled[m.Bits[5]])
+        assert T3 == T4
+        v3, v4 = T3(), T4()
+        # Should not error when wiring
+        v3 @= v4
+        assert len(caplog.messages) == 0
