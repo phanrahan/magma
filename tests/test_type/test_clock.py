@@ -421,3 +421,12 @@ def test_wire_error():
             io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
             m.wire(io.I, io.O)
     assert str(e.value) == "Cannot wire I (T=Out(Clock)) to O (T=In(Reset))"
+
+
+def test_clock_undriven():
+    class Foo(m.Circuit):
+        io = m.ClockIO()
+
+    class Bar(m.Circuit):
+        foo = Foo()
+        foo.CLK.undriven()
