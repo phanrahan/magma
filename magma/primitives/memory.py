@@ -6,7 +6,7 @@ from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.clock import Clock, Enable
 from magma.clock_io import ClockIO
-from magma.conversions import from_bits, as_bits
+from magma.conversions import from_bits, as_bits, enable
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.logging import root_logger
@@ -158,7 +158,7 @@ class Memory(Generator2):
         coreir_mem.raddr @= self.io.RADDR
         rdata = from_bits(T, coreir_mem.rdata)
         if read_latency > 0:
-            RE = 1 if not has_read_enable else self.io.RE
+            RE = enable(1) if not has_read_enable else self.io.RE
             coreir_mem.ren @= RE
             # -1 because sync_read param handles latency 1
             for _ in range(read_latency - 1):

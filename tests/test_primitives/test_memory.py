@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 import fault
 from hwtypes import BitVector, Bit
 
@@ -135,8 +137,10 @@ def test_memory_arr():
                                                   "build"))
 
 
-def test_memory_read_latency():
+@pytest.mark.parametrize('en', [True, False])
+def test_memory_read_latency(en):
     class test_memory_read_latency(m.Circuit):
+        name = f"test_memory_read_latency_{en}"
         io = m.IO(
             raddr=m.In(m.Bits[2]),
             rdata=m.Out(m.Bits[5]),
@@ -144,19 +148,23 @@ def test_memory_read_latency():
             wdata=m.In(m.Bits[5]),
             clk=m.In(m.Clock),
             wen=m.In(m.Enable),
-            ren=m.In(m.Enable)
         )
-        Mem4x5 = m.Memory(4, m.Bits[5], read_latency=2, has_read_enable=True)()
+        Mem4x5 = m.Memory(4, m.Bits[5], read_latency=2,
+                          has_read_enable=en)()
         Mem4x5.RADDR @= io.raddr
-        Mem4x5.RE @= io.ren
+        if en:
+            io += m.IO(ren=m.In(m.Enable))
+            Mem4x5.RE @= io.ren
         io.rdata @= Mem4x5.RDATA
         Mem4x5.WADDR @= io.waddr
         Mem4x5.WDATA @= io.wdata
 
-    m.compile("build/test_memory_read_latency", test_memory_read_latency)
+    m.compile(f"build/test_memory_read_latency_{en}",
+              test_memory_read_latency)
 
-    assert check_files_equal(__file__, f"build/test_memory_read_latency.v",
-                             f"gold/test_memory_read_latency.v")
+    assert check_files_equal(__file__,
+                             f"build/test_memory_read_latency_{en}.v",
+                             f"gold/test_memory_read_latency_{en}.v")
     tester = fault.SynchronousTester(test_memory_read_latency,
                                      test_memory_read_latency.clk)
     expected = []
@@ -167,31 +175,35 @@ def test_memory_read_latency():
         tester.circuit.wen = 1
         tester.advance_cycle()
     tester.circuit.wen = 0
-    expected = [0] + expected
-    tester.circuit.ren = 1
+    expected = [expected[0]] + expected
+    if en:
+        # Reads haven't started yet
+        expected[0] = 0
+        tester.circuit.ren = 1
     for i in range(5):
         tester.circuit.raddr = i
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
-    # Check read addr 0 again
-    tester.circuit.raddr = 0
-    tester.advance_cycle()
-    tester.advance_cycle()
-    tester.circuit.rdata.expect(expected[1])
-    # Read enable low, should hold expect[1] (skip first 0)
-    tester.circuit.ren = 0
-    tester.circuit.raddr = 1
-    tester.advance_cycle()
-    tester.advance_cycle()
-    tester.circuit.rdata.expect(expected[1])
-    tester.advance_cycle()
-    tester.circuit.rdata.expect(expected[1])
-    # Read enable high, should see expect[2] in two cycles
-    tester.circuit.ren = 1
-    tester.advance_cycle()
-    tester.circuit.rdata.expect(expected[1])
-    tester.advance_cycle()
-    tester.circuit.rdata.expect(expected[2])
+    if en:
+        # Check read addr 0 again
+        tester.circuit.raddr = 0
+        tester.advance_cycle()
+        tester.advance_cycle()
+        tester.circuit.rdata.expect(expected[1])
+        # Read enable low, should hold expect[1] (skip first 0)
+        tester.circuit.ren = 0
+        tester.circuit.raddr = 1
+        tester.advance_cycle()
+        tester.advance_cycle()
+        tester.circuit.rdata.expect(expected[1])
+        tester.advance_cycle()
+        tester.circuit.rdata.expect(expected[1])
+        # Read enable high, should see expect[2] in two cycles
+        tester.circuit.ren = 1
+        tester.advance_cycle()
+        tester.circuit.rdata.expect(expected[1])
+        tester.advance_cycle()
+        tester.circuit.rdata.expect(expected[2])
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
