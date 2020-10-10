@@ -15,10 +15,27 @@ class _ClockType(Digital):
         return True
 
     def unused(self):
+        # TODO: We don't have to convert here since we can wire a clock to a
+        # bit (but we can't wire a bit to a clock).  Is this desired? One view
+        # is it's an "upcast" (remove clock restriction, so a bit can't behave
+        # as a clock implicitly, but a clock can behave as a bit).  However,
+        # this doesn't fit into our type hierarchy (so we'd need rearrange
+        # that).  Unfortunately, implementing the type check in the other
+        # direction is a bit harder (Bit needs to be aware of what it can't be
+        # wired to, so defining a new Digital with wiring restrictions needs to
+        # change Bit, not a great pattern)
+        # Perhaps the way to go is some sort of "wireable" API for a type that
+        # is checked in the wire logic, allowing types to define their
+        # "wireability", rather than defining wireability inside the `wire`
+        # method (the problem here is the Bit wire method is called since it's
+        # the input, and inside the Bit wire method there's no type check)
         Bit.unused(self)
 
     def undriven(self):
-        Bit.undriven(self)
+        # Circular import because conversions imports clock, not sure if
+        # there's a good way around this
+        from magma.conversions import bit
+        Bit.undriven(bit(self))
 
     @debug_wire
     def wire(self, other, debug_info=None):
