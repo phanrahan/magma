@@ -143,11 +143,12 @@ def test_memory_read_latency():
             waddr=m.In(m.Bits[2]),
             wdata=m.In(m.Bits[5]),
             clk=m.In(m.Clock),
-            wen=m.In(m.Enable)
-
+            wen=m.In(m.Enable),
+            ren=m.In(m.Enable)
         )
-        Mem4x5 = m.Memory(4, m.Bits[5], read_latency=2)()
+        Mem4x5 = m.Memory(4, m.Bits[5], read_latency=2, has_read_enable=True)()
         Mem4x5.RADDR @= io.raddr
+        Mem4x5.RE @= io.ren
         io.rdata @= Mem4x5.RDATA
         Mem4x5.WADDR @= io.waddr
         Mem4x5.WDATA @= io.wdata
@@ -166,11 +167,31 @@ def test_memory_read_latency():
         tester.circuit.wen = 1
         tester.advance_cycle()
     tester.circuit.wen = 0
-    expected = [expected[0]] + expected
+    expected = [0] + expected
+    tester.circuit.ren = 1
     for i in range(5):
         tester.circuit.raddr = i
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
+    # Check read addr 0 again
+    tester.circuit.raddr = 0
+    tester.advance_cycle()
+    tester.advance_cycle()
+    tester.circuit.rdata.expect(expected[1])
+    # Read enable low, should hold expect[1] (skip first 0)
+    tester.circuit.ren = 0
+    tester.circuit.raddr = 1
+    tester.advance_cycle()
+    tester.advance_cycle()
+    tester.circuit.rdata.expect(expected[1])
+    tester.advance_cycle()
+    tester.circuit.rdata.expect(expected[1])
+    # Read enable high, should see expect[2] in two cycles
+    tester.circuit.ren = 1
+    tester.advance_cycle()
+    tester.circuit.rdata.expect(expected[1])
+    tester.advance_cycle()
+    tester.circuit.rdata.expect(expected[2])
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
