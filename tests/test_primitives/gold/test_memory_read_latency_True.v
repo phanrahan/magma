@@ -158,7 +158,7 @@ coreir_sync_read_mem #(
 assign RDATA = Register_inst0_O;
 endmodule
 
-module test_memory_read_latency (
+module test_memory_read_latency_True (
     input [1:0] raddr,
     output [4:0] rdata,
     input [1:0] waddr,
