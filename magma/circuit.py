@@ -772,6 +772,7 @@ coreir_port_mapping = {
 }
 
 
+@deprecated
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=coreir_port_mapping)
