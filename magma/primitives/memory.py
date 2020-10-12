@@ -125,7 +125,7 @@ class Memory(Generator2):
                  init: Optional[tuple] = None, has_read_enable: bool = False):
         if read_latency < 0:
             raise ValueError("read_latency cannot be negative")
-        if has_read_enable and has_read_enable == 0:
+        if has_read_enable and read_latency == 0:
             raise ValueError(
                 "Can only use has_read_enable with read_latency >= 1")
         addr_width = clog2(height)
