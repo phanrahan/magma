@@ -16,11 +16,8 @@ class BFloat(UInt):
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
         return declare_coreir_circuit(f"magma_BFloat_{N}_{op}",
-                                      {"I": In(cls),
-                                       "O": Out(cls)},
-                                      coreir_name=op,
-                                      coreir_genargs=BFLOAT_GENARGS,
-                                      coreir_lib="float")
+                                      {"I": In(cls), "O": Out(cls)},
+                                      op, BFLOAT_GENARGS, "float")
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -29,12 +26,9 @@ class BFloat(UInt):
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
         return declare_coreir_circuit(f"magma_BFloat_{N}_{op}",
-                                      {"I0": In(cls),
-                                       "I1": In(cls),
+                                      {"I0": In(cls), "I1": In(cls),
                                        "O": Out(cls)},
-                                      coreir_name=op,
-                                      coreir_genargs=BFLOAT_GENARGS,
-                                      coreir_lib="float")
+                                      op, BFLOAT_GENARGS, "float")
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -43,12 +37,9 @@ class BFloat(UInt):
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
         return declare_coreir_circuit(f"magma_BFloat_{N}_{op}",
-                                      {"I0", In(cls),
-                                       "I1", In(cls),
+                                      {"I0", In(cls), "I1", In(cls),
                                        "O", Out(Bit)},
-                                      coreir_name=op,
-                                      coreir_genargs=BFLOAT_GENARGS,
-                                      coreir_lib="float")
+                                      op, BFLOAT_GENARGS, "float")
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -63,10 +54,6 @@ class BFloat(UInt):
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
         return declare_coreir_circuit(f"magma_BFloat_{N}_ite_{t_str}",
-                                      {"I0": In(T),
-                                       "I1": In(T),
-                                       "S": In(Bit),
-                                       "O": Out(T)},
-                                      coreir_name="mux",
-                                      coreir_genargs=BFLOAT_GENARGS,
-                                      coreir_lib="float")
+                                      {"I0": In(T), "I1": In(T),
+                                       "S": In(Bit), "O": Out(T)},
+                                      "mux", BFLOAT_GENARGS, "float")
