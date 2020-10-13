@@ -177,3 +177,19 @@ class Memory(Generator2):
             return StagedMemoryPort[T](self, addr)
 
         self.__getitem__ = __getitem__
+
+        if has_read_enable:
+            def read(self, addr, ren):
+                self.RADDR @= addr
+                self.RE @= ren
+        else:
+            def read(self, addr):
+                self.RADDR @= addr
+
+        self.read = read
+
+        if not read_only:
+            def write(self, data, addr):
+                self.WDATA @= data
+                self.WADDR @= addr
+            self.write = write
