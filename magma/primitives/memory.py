@@ -182,9 +182,11 @@ class Memory(Generator2):
             def read(self, addr, ren):
                 self.RADDR @= addr
                 self.RE @= ren
+                return self.RDATA
         else:
             def read(self, addr):
                 self.RADDR @= addr
+                return self.RDATA
 
         self.read = read
 
