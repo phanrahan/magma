@@ -5,7 +5,9 @@ from magma.circuit import declare_coreir_circuit
 from magma.t import In, Out
 
 
-BFLOAT_GENARGS = {"exp_bits": 8, "frac_bits": 7}
+def declare_bfloat_circuit(name: str, ports: dict, coreir_name: str):
+    return declare_coreir_circuit(name, ports, coreir_name,
+                                  {"exp_bits": 8, "frac_bits": 7}, "float")
 
 
 class BFloat(UInt):
@@ -15,9 +17,8 @@ class BFloat(UInt):
         N = len(cls)
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
-        return declare_coreir_circuit(f"magma_BFloat_{N}_{op}",
-                                      {"I": In(cls), "O": Out(cls)},
-                                      op, BFLOAT_GENARGS, "float")
+        return declare_bfloat_circuit(f"magma_BFloat_{N}_{op}",
+                                      {"I": In(cls), "O": Out(cls)}, op)
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -25,10 +26,9 @@ class BFloat(UInt):
         N = len(cls)
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
-        return declare_coreir_circuit(f"magma_BFloat_{N}_{op}",
+        return declare_bfloat_circuit(f"magma_BFloat_{N}_{op}",
                                       {"I0": In(cls), "I1": In(cls),
-                                       "O": Out(cls)},
-                                      op, BFLOAT_GENARGS, "float")
+                                       "O": Out(cls)}, op)
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -36,10 +36,9 @@ class BFloat(UInt):
         N = len(cls)
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
-        return declare_coreir_circuit(f"magma_BFloat_{N}_{op}",
+        return declare_bfloat_circuit(f"magma_BFloat_{N}_{op}",
                                       {"I0", In(cls), "I1", In(cls),
-                                       "O", Out(Bit)},
-                                      op, BFLOAT_GENARGS, "float")
+                                       "O", Out(Bit)}, op)
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -53,7 +52,6 @@ class BFloat(UInt):
         N = len(cls)
         if N != 16:
             raise NotImplementedError("Only BFloat16 supported")
-        return declare_coreir_circuit(f"magma_BFloat_{N}_ite_{t_str}",
+        return declare_bfloat_circuit(f"magma_BFloat_{N}_ite_{t_str}",
                                       {"I0": In(T), "I1": In(T),
-                                       "S": In(Bit), "O": Out(T)},
-                                      "mux", BFLOAT_GENARGS, "float")
+                                       "S": In(Bit), "O": Out(T)}, "mux")
