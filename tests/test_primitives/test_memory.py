@@ -151,13 +151,13 @@ def test_memory_read_latency(en):
         )
         Mem4x5 = m.Memory(4, m.Bits[5], read_latency=2,
                           has_read_enable=en)()
-        Mem4x5.RADDR @= io.raddr
         if en:
             io += m.IO(ren=m.In(m.Enable))
-            Mem4x5.RE @= io.ren
+            rdata = Mem4x5.read(io.raddr, io.ren)
+        else:
+            rdata = Mem4x5.read(io.raddr)
         io.rdata @= Mem4x5.RDATA
-        Mem4x5.WADDR @= io.waddr
-        Mem4x5.WDATA @= io.wdata
+        Mem4x5.write(io.wdata, io.waddr)
 
     m.compile(f"build/test_memory_read_latency_{en}",
               test_memory_read_latency)

@@ -1,7 +1,6 @@
 from typing import Optional
 from hwtypes import BitVector
 
-from magma.bit import Bit
 from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.clock import Clock, Enable
@@ -36,7 +35,7 @@ class CoreIRMemory(Generator2):
             self.coreir_name = "sync_read_mem"
         else:
             self.coreir_name = "mem"
-        self.coreir_lib = "coreir"
+        self.coreir_lib = "coreir" if not sync_read else "memory"
         self.coreir_genargs = {"width": width, "depth": depth,
                                "has_init": init is not None}
         self.coreir_configargs = {}
@@ -125,7 +124,7 @@ class Memory(Generator2):
                  init: Optional[tuple] = None, has_read_enable: bool = False):
         if read_latency < 0:
             raise ValueError("read_latency cannot be negative")
-        if has_read_enable and has_read_enable == 0:
+        if has_read_enable and read_latency == 0:
             raise ValueError(
                 "Can only use has_read_enable with read_latency >= 1")
         addr_width = clog2(height)
@@ -178,3 +177,19 @@ class Memory(Generator2):
             return StagedMemoryPort[T](self, addr)
 
         self.__getitem__ = __getitem__
+
+        if has_read_enable:
+            def read(self, addr, ren):
+                self.RADDR @= addr
+                self.RE @= ren
+        else:
+            def read(self, addr):
+                self.RADDR @= addr
+
+        self.read = read
+
+        if not read_only:
+            def write(self, data, addr):
+                self.WDATA @= data
+                self.WADDR @= addr
+            self.write = write
