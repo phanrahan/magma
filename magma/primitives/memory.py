@@ -1,7 +1,6 @@
 from typing import Optional
 from hwtypes import BitVector
 
-from magma.bit import Bit
 from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.clock import Clock, Enable
@@ -36,7 +35,7 @@ class CoreIRMemory(Generator2):
             self.coreir_name = "sync_read_mem"
         else:
             self.coreir_name = "mem"
-        self.coreir_lib = "coreir"
+        self.coreir_lib = "coreir" if not sync_read else "memory"
         self.coreir_genargs = {"width": width, "depth": depth,
                                "has_init": init is not None}
         self.coreir_configargs = {}
