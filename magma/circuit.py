@@ -778,6 +778,19 @@ def DeclareCoreirCircuit(*args, **kwargs):
                           renamed_ports=coreir_port_mapping)
 
 
+def declare_coreir_circuit(name_: str, ports: dict, coreir_name: str,
+                           coreir_genargs: dict, coreir_lib: str):
+    class CoreIRCircuit(Circuit):
+        name = name_
+        renamed_ports = coreir_port_mapping
+        io = IO(**ports)
+        coreir_name = coreir_name
+        coreir_genargs = coreir_genargs
+        coreir_lib = coreir_lib
+
+    return CoreIRCircuit
+
+
 class _CircuitBuilderMeta(type):
     pass
 
