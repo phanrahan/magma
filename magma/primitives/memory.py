@@ -33,9 +33,10 @@ class CoreIRMemory(Generator2):
         if sync_read:
             self.io += IO(ren=In(Enable))
             self.coreir_name = "sync_read_mem"
+            self.coreir_lib = "memory"
         else:
             self.coreir_name = "mem"
-        self.coreir_lib = "coreir" if not sync_read else "memory"
+            self.coreir_lib = "coreir"
         self.coreir_genargs = {"width": width, "depth": depth,
                                "has_init": init is not None}
         self.coreir_configargs = {}
