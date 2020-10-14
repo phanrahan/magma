@@ -1,11 +1,13 @@
 from .passes import EditDefinitionPass
 from ..is_definition import isdefinition
+from magma.array import Array
 from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
                          get_default_clocks)
+from magma.tuple import Tuple
 
 
 def _drive_if_undriven_input(port, clocks):
-    if port.is_mixed():
+    if isinstance(port, (Tuple, Array)):
         # list comp so it doesn't short circuit
         undrivens = [_drive_if_undriven_input(p, clocks) for p in port]
         return any(undrivens)
