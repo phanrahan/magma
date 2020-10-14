@@ -772,9 +772,27 @@ coreir_port_mapping = {
 }
 
 
+@deprecated
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=coreir_port_mapping)
+
+
+def declare_coreir_circuit(name_: str, ports: dict, coreir_name_: str,
+                           coreir_genargs_: dict, coreir_lib_: str):
+    """
+    parameter names are suffixed with `_` otherwise we get a NameError inside
+    the class definition
+    """
+    class CoreIRCircuit(Circuit):
+        name = name_
+        renamed_ports = coreir_port_mapping
+        io = IO(**ports)
+        coreir_name = coreir_name_
+        coreir_genargs = coreir_genargs_
+        coreir_lib = coreir_lib_
+
+    return CoreIRCircuit
 
 
 class _CircuitBuilderMeta(type):
