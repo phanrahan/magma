@@ -6,12 +6,21 @@ from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
 from magma.tuple import Tuple
 
 
+def _drive_undriven_children(port, clocks):
+    # list comp so it doesn't short circuit
+    undrivens = [_drive_if_undriven_input(p, clocks) for p in port]
+    return any(undrivens)
+
+
 def _drive_if_undriven_input(port, clocks):
-    if isinstance(port, (Tuple, Array)):
-        # list comp so it doesn't short circuit
-        undrivens = [_drive_if_undriven_input(p, clocks) for p in port]
-        return any(undrivens)
+    if port.is_mixed():
+        return _drive_undriven_children(port, clocks)
     if port.is_input() and port.trace() is None:
+        if (isinstance(port, (Array, Tuple)) and
+                any(t.trace() is not None for t in port)):
+            # Partially undriven, recurse through to drive only the undriven
+            # children
+            return _drive_undriven_children(port, clocks)
         if (not is_clock_or_nested_clock(type(port)) or
                 not wire_default_clock(port, clocks)):
             port.undriven()
