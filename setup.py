@@ -35,7 +35,7 @@ setup(
         "pyverilog",
         "numpy",
         "graphviz",
-        "coreir>=2.0.107",
+        "coreir>=2.0.125",
         "hwtypes>=1.0.*",
         "ast_tools>=0.0.16",
         "staticfg"
