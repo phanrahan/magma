@@ -1,12 +1,11 @@
 from typing import Optional
 from hwtypes import BitVector
 
-from magma.bit import Bit
 from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.clock import Clock, Enable
 from magma.clock_io import ClockIO
-from magma.conversions import from_bits, as_bits
+from magma.conversions import from_bits, as_bits, enable
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.logging import root_logger
@@ -31,11 +30,15 @@ class CoreIRMemory(Generator2):
             wen=In(Enable)
         )
         self.verilog_name = "coreir_mem"
-        self.coreir_name = "mem"
-        self.coreir_lib = "coreir"
+        if sync_read:
+            self.io += IO(ren=In(Enable))
+            self.coreir_name = "sync_read_mem"
+            self.coreir_lib = "memory"
+        else:
+            self.coreir_name = "mem"
+            self.coreir_lib = "coreir"
         self.coreir_genargs = {"width": width, "depth": depth,
-                               "has_init": init is not None,
-                               "sync_read": sync_read}
+                               "has_init": init is not None}
         self.coreir_configargs = {}
         if init is not None:
             self.coreir_configargs["init"] = [int(x) for x in init]
@@ -119,9 +122,12 @@ class StagedMemoryPort(MagmaProtocol, metaclass=StagedMemoryPortMeta):
 class Memory(Generator2):
     def __init__(self, height, T: Kind,
                  read_latency: int = 0, read_only: bool = False,
-                 init: Optional[tuple] = None):
+                 init: Optional[tuple] = None, has_read_enable: bool = False):
         if read_latency < 0:
             raise ValueError("read_latency cannot be negative")
+        if has_read_enable and read_latency == 0:
+            raise ValueError(
+                "Can only use has_read_enable with read_latency >= 1")
         addr_width = clog2(height)
         data_width = T.flat_length()
         # For ROM, we use coreir's generic mem and tie off the write signals
@@ -129,6 +135,8 @@ class Memory(Generator2):
             RADDR=In(Bits[addr_width]),
             RDATA=Out(T),
         ) + ClockIO()
+        if has_read_enable:
+            self.io += IO(RE=In(Enable))
         if not read_only:
             self.io += IO(
                 WADDR=In(Bits[addr_width]),
@@ -149,9 +157,12 @@ class Memory(Generator2):
         coreir_mem.wen @= wen
         coreir_mem.raddr @= self.io.RADDR
         rdata = from_bits(T, coreir_mem.rdata)
-        # -1 because sync_read param handles latency 1
-        for _ in range(read_latency - 1):
-            rdata = Register(T)()(rdata)
+        if read_latency > 0:
+            RE = enable(1) if not has_read_enable else self.io.RE
+            coreir_mem.ren @= RE
+            # -1 because sync_read param handles latency 1
+            for _ in range(read_latency - 1):
+                rdata = Register(T, has_enable=True)()(rdata, CE=RE)
         self.io.RDATA @= rdata
 
         def __setitem__(self, key, value):
@@ -167,3 +178,21 @@ class Memory(Generator2):
             return StagedMemoryPort[T](self, addr)
 
         self.__getitem__ = __getitem__
+
+        if has_read_enable:
+            def read(self, addr, ren):
+                self.RADDR @= addr
+                self.RE @= ren
+                return self.RDATA
+        else:
+            def read(self, addr):
+                self.RADDR @= addr
+                return self.RDATA
+
+        self.read = read
+
+        if not read_only:
+            def write(self, data, addr):
+                self.WDATA @= data
+                self.WADDR @= addr
+            self.write = write
