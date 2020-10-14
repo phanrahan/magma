@@ -365,7 +365,8 @@ class DeclarationTransformer(LeafTransformer):
             self.backend.libs_used.add(self.decl.coreir_lib)
         # These libraries are already available by default in coreir, so we
         # don't need declarations.
-        if self.decl.coreir_lib in ["coreir", "corebit", "commonlib"]:
+        if self.decl.coreir_lib in ["coreir", "corebit", "commonlib",
+                                    "memory"]:
             lib = self.backend.libs[self.decl.coreir_lib]
             if self.decl.coreir_genargs is None:
                 return lib.modules[self.decl.coreir_name]
