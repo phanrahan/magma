@@ -15,7 +15,6 @@ def test_ignore_unused_undriven_basic():
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
         temp = ~io.I
 
-
     m.compile("build/test_ignore_unused_undriven_basic", Main, inline=True,
               drive_undriven=True, terminate_unused=True)
     assert check_files_equal(__file__,
@@ -44,7 +43,6 @@ def test_ignore_unused_undriven_hierarchy():
         foo.I0 @= io.I0
         io.O0 @= foo.O0
 
-
     m.compile("build/test_ignore_unused_undriven_hierarchy", Main, inline=True,
               drive_undriven=True, terminate_unused=True)
     assert check_files_equal(__file__,
@@ -68,7 +66,6 @@ def test_ignore_undriven_coreir():
         foo = Foo()
         foo.I0 @= io.I0 == io.I1
         io.O0 @= foo.O0
-
 
     m.compile("build/test_ignore_undriven_coreir", Main, output="coreir",
               drive_undriven=True, terminate_unused=True)
