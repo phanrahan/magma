@@ -37,11 +37,16 @@ def test_ignore_unused_undriven_hierarchy():
     class Main(m.Circuit):
         _ignore_undriven_ = True
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit),
-                  O0=m.Out(m.Bit), O1=m.Out(m.Bit))
+                  O0=m.Out(m.Bit), O1=m.Out(m.Bit),
+                  O2=m.Out(m.Tuple[m.Bit, m.Bit]),
+                  O3=m.Out(m.Array[2, m.Bit]))
 
         foo = Foo()
         foo.I0 @= io.I0
         io.O0 @= foo.O0
+        # partially undriven
+        io.O2[0] @= 1
+        io.O3[0] @= 1
 
     m.compile("build/test_ignore_unused_undriven_hierarchy", Main, inline=True,
               drive_undriven=True, terminate_unused=True)
