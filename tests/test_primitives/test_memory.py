@@ -157,7 +157,7 @@ def test_memory_read_latency(en):
         else:
             rdata = Mem4x5.read(io.raddr)
         io.rdata @= Mem4x5.RDATA
-        Mem4x5.write(io.wdata, io.waddr)
+        Mem4x5.write(io.wdata, io.waddr, io.wen)
 
     m.compile(f"build/test_memory_read_latency_{en}",
               test_memory_read_latency)
