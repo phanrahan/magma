@@ -192,7 +192,8 @@ class Memory(Generator2):
         self.read = read
 
         if not read_only:
-            def write(self, data, addr):
+            def write(self, data, addr, when):
                 self.WDATA @= data
                 self.WADDR @= addr
+                self.WE @= when
             self.write = write
