@@ -90,6 +90,8 @@ class CoreIRCompiler(Compiler):
         if has_header_or_footer:
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
+        if isdefinition(self.main):
+            return backend.modules[self.main.coreir_name]
 
     def _compile_verilog(self):
         cmd = _make_verilog_cmd(self.deps, self.basename, self.opts)
