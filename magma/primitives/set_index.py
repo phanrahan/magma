@@ -20,7 +20,8 @@ def set_index(target: Array, value, idx: UInt):
     if not isinstance(idx, UInt):
         raise TypeError("Expected `idx` to be a UInt")
     if len(idx) != clog2(len(target_T)):
-        raise TypeError("Expected number of `idx` bits to map to the length of `target`")
+        raise TypeError(
+            "Expected number of `idx` bits to map to the length of `target`")
 
     return target_T([
         mux([elem, value], idx == i) for i, elem in enumerate(target)
