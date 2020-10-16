@@ -60,6 +60,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
         TerminateUnusedPass(main).run()
 
     result = compiler.compile()
+    result = {} if result is None else result
 
     if hasattr(main, "fpga"):
         main.fpga.constraints(basename)

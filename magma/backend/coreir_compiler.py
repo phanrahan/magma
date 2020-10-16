@@ -63,6 +63,7 @@ class CoreIRCompiler(Compiler):
         self.backend = coreir_frontend.GetCoreIRBackend()
 
     def compile(self):
+        result = {}
         InsertCoreIRWires(self.main).run()
         InsertWrapCasts(self.main).run()
         backend = self.backend
@@ -91,7 +92,8 @@ class CoreIRCompiler(Compiler):
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
         if isdefinition(self.main):
-            return backend.modules[self.main.coreir_name]
+            result["coreir_module"] = backend.modules[self.main.coreir_name]
+        return result
 
     def _compile_verilog(self):
         cmd = _make_verilog_cmd(self.deps, self.basename, self.opts)
