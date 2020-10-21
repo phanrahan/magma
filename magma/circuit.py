@@ -49,15 +49,15 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 _logger = root_logger()
 
 _VERILOG_FILE_OPEN = """
-integer \_file_{filename} ;
-initial \_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
+integer \\_file_{filename} ;
+initial \\_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
 """  # noqa
 
 _VERILOG_FILE_CLOSE = """
-final $fclose(\_file_{filename} );
+final $fclose(\\_file_{filename} );
 """  # noqa
 
-_DEFAULT_VERILOG_LOG_STR = f"""
+_DEFAULT_VERILOG_LOG_STR = """
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1
 `endif"""
