@@ -122,7 +122,7 @@ class Display:
 
         display_str = f"$display("
         if self.file is not None:
-            display_str = f"$fdisplay(\_file_{self.file.filename} , "  # noqa
+            display_str = f"$fdisplay(\\_file_{self.file.filename} , "  # noqa
         format_str = f"""\
 always @({event_str}) begin
     {cond_str}{display_str}\"{self.display_str}\"{display_args_str});
