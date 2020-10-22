@@ -27,7 +27,7 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += f" -o \"{split}/*.v\" -s"
     else:
         cmd += f" -o {basename}.v"
-    if opts.get("inline", False):
+    if opts.get("inline", True):
         cmd += " --inline"
     if opts.get("verilator_debug", False):
         cmd += " --verilator_debug"
