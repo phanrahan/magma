@@ -176,7 +176,7 @@ def compiledefinition(cls):
         if cls.verilogLib:
             import re
             for libName in cls.verilogLib:
-                if re.search("\.v$",libName):
+                if re.search("\\.v$",libName):
                     with open(libName,'r') as libFile:
                         s = libFile.read() + s
                 else:
