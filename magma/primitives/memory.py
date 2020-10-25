@@ -5,13 +5,13 @@ from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.clock import Clock, Enable
 from magma.clock_io import ClockIO
-from magma.conversions import from_bits, as_bits, enable
+from magma.conversions import from_bits, as_bits, enable, uint
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.logging import root_logger
 from magma.primitives.register import Register
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
-from magma.t import In, Out, Kind
+from magma.t import In, Out, Kind, Type
 
 
 _logger = root_logger()
@@ -41,7 +41,9 @@ class CoreIRMemory(Generator2):
                                "has_init": init is not None}
         self.coreir_configargs = {}
         if init is not None:
-            self.coreir_configargs["init"] = [int(x) for x in init]
+            self.coreir_configargs["init"] = [
+                int(uint(as_bits(x))) if isinstance(x, Type) else int(x) for x in init
+            ]
 
         def _simulate(self, value_store, state_store):
             cur_clk = value_store.get_value(self.clk)
