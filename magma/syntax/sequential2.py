@@ -192,10 +192,10 @@ class _SequentialRegisterWrapper(MagmaProtocol,
     def __rrshift__(self, other):
         return other >> self._get_magma_value_()
 
-    def __neg__(self, other):
+    def __neg__(self):
         return -self._get_magma_value_()
 
-    def __invert__(self, other):
+    def __invert__(self):
         return ~self._get_magma_value_()
 
     def ite(self, s, t, f):

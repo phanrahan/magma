@@ -801,3 +801,33 @@ def test_r_ops(op):
     dir_ = os.path.join(os.path.dirname(__file__), "build")
     tester.compile_and_run("verilator", flags=['-Wno-unused'],
                            skip_compile=True, directory=dir_)
+
+
+@pytest.mark.parametrize('op', [operator.invert, operator.neg])
+def test_u_ops(op):
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.x = m.Register(m.SInt[16])()
+
+        def __call__(self, a: m.In(m.SInt[16]),
+                     load: m.In(m.Bit)) -> m.Out(m.SInt[16]):
+            if load:
+                self.x = a
+            else:
+                self.x = op(self.x)
+            return self.x.prev()
+
+    type(Test).rename(Test, f"TestUop{op.__name__}")
+    m.compile(f"build/TestUop{op.__name__}", Test, inline=True)
+    tester = fault.SynchronousTester(Test, clock=Test.CLK)
+    tester.circuit.a = a = 32
+    tester.circuit.load = 1
+    tester.advance_cycle()
+    tester.circuit.load = 0
+    tester.advance_cycle()
+    O = op(a)
+    tester.circuit.O.expect(O)
+    dir_ = os.path.join(os.path.dirname(__file__), "build")
+    tester.compile_and_run("verilator", flags=['-Wno-unused'],
+                           skip_compile=True, directory=dir_)
