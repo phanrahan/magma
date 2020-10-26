@@ -91,6 +91,48 @@ def test_memory_product():
                                                   "build"))
 
 
+def test_memory_product_init():
+    class T(m.Product):
+        X = m.SInt[8]
+        Y = m.SInt[8]
+
+    test_data = [
+        {"X": 0, "Y": -128},
+        {"X": -128, "Y": 127},
+        {"X": -1, "Y": -1},
+        {"X": 127, "Y": 0},
+    ]
+
+    init_value = [
+        m.namedtuple(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8)) for d in test_data
+    ]
+
+    class test_memory_product_init(m.Circuit):
+        io = m.IO(
+            raddr=m.In(m.Bits[2]),
+            rdata=m.Out(T),
+            clk=m.In(m.Clock),
+        )
+        Mem4xT = m.Memory(len(test_data), T, read_only=True, init=tuple(init_value))()
+        Mem4xT.RADDR @= io.raddr
+        io.rdata @= Mem4xT.RDATA
+
+    m.compile("build/test_memory_product_init", test_memory_product_init)
+
+    assert check_files_equal(__file__, f"build/test_memory_product_init.v",
+                             f"gold/test_memory_product_init.v")
+    tester = fault.SynchronousTester(test_memory_product_init,
+                                     test_memory_product_init.clk)
+    for i in range(4):
+        tester.circuit.raddr = i
+        tester.advance_cycle()
+        tester.circuit.rdata.X.expect(test_data[i]["X"])
+        tester.circuit.rdata.Y.expect(test_data[i]["Y"])
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+
+
 def test_memory_arr():
     class T(m.Product):
         X = m.Bit
