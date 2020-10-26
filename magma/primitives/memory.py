@@ -42,7 +42,8 @@ class CoreIRMemory(Generator2):
         self.coreir_configargs = {}
         if init is not None:
             self.coreir_configargs["init"] = [
-                int(uint(as_bits(x))) if isinstance(x, Type) else int(x) for x in init
+                int(uint(as_bits(x))) if isinstance(x, Type)
+                else int(x) for x in init
             ]
 
         def _simulate(self, value_store, state_store):
