@@ -4,7 +4,6 @@ from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 from magma.circuit import _definition_context_stack, Circuit, IO
 from magma.passes.passes import CircuitPass
 from magma.passes.insert_coreir_wires import Wire
-from magma.verilog_utils import convert_values_to_verilog_str
 from magma.t import Type, Direction, In
 from magma.view import PortView, InstView
 from magma.digital import Digital
