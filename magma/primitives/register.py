@@ -206,3 +206,9 @@ class Register(Generator2):
         elif (has_reset or has_resetn):
             I = Mux(2, T)()(I, init, reset_select)
         reg.I @= as_bits(I)
+
+
+def register(value, **kwargs):
+    T = type(value)
+    ckt = Register(T, **kwargs)
+    return ckt()(value)
