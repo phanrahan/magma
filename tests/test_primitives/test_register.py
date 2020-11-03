@@ -345,4 +345,3 @@ def test_reg_function_name():
 
     reg_inst = _Test.instances[0]
     assert reg_inst.name == "my_reg"
-    print (repr(type(reg_inst)))

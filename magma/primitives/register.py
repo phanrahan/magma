@@ -211,8 +211,10 @@ class Register(Generator2):
 def register(value, **kwargs):
     T = type(value).qualify(Direction.Undirected)
     inst_kwargs = {}
-    if "name" in kwargs:
-        inst_kwargs["name"] = kwargs["name"]
-        del kwargs["name"]
+    try:
+        name = kwargs.pop("name")
+        inst_kwargs["name"] = name
+    except KeyError:
+        pass
     ckt = Register(T, **kwargs)
     return ckt(**inst_kwargs)(value)
