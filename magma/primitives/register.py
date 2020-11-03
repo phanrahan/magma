@@ -210,5 +210,9 @@ class Register(Generator2):
 
 def register(value, **kwargs):
     T = type(value)
+    inst_kwargs = {}
+    if "name" in kwargs:
+        inst_kwargs["name"] = kwargs["name"]
+        del kwargs["name"]
     ckt = Register(T, **kwargs)
-    return ckt()(value)
+    return ckt(**inst_kwargs)(value)

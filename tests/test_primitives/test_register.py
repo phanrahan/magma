@@ -335,3 +335,13 @@ def test_basic_reg_function():
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+
+
+def test_reg_function_name():
+
+    class _Test(m.Circuit):
+        value = register(m.Bit(), name="my_reg")
+
+    reg_inst = _Test.instances[0]
+    assert reg_inst.name == "my_reg"
+    print (repr(type(reg_inst)))
