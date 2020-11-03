@@ -4,7 +4,7 @@ import hwtypes as ht
 
 import magma as m
 from magma.testing import check_files_equal
-from magma.primitives import Register
+from magma.primitives import Register, register
 
 import fault
 
@@ -292,6 +292,46 @@ def test_reg_init_uniq():
     tester.eval()
     tester.circuit.O0.expect(0)
     tester.circuit.O1.expect(1)
+    tester.compile_and_run("verilator", skip_compile=True,
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+
+
+def test_basic_reg_function():
+
+    class test_basic_reg(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+        io += m.ClockIO(has_reset=True)
+        io.O @= register(io.I, init=ht.BitVector[8](0xDE), reset_type=m.Reset)
+
+    m.compile("build/test_basic_reg_function", test_basic_reg)
+
+    assert check_files_equal(__file__,
+                             f"build/test_basic_reg_function.v",
+                             f"gold/test_basic_reg.v")
+
+    tester = fault.SynchronousTester(test_basic_reg, test_basic_reg.CLK)
+    tester.circuit.I = 0
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    # Reset val
+    tester.circuit.O.expect(0xDE)
+    tester.advance_cycle()
+    tester.circuit.O.expect(0)
+    tester.circuit.I = 1
+    tester.advance_cycle()
+    tester.circuit.O.expect(1)
+    tester.circuit.I = 2
+    tester.advance_cycle()
+    tester.circuit.O.expect(2)
+    tester.circuit.RESET = 1
+    tester.advance_cycle()
+    tester.circuit.RESET = 0
+    tester.circuit.I = 3
+    tester.circuit.O.expect(0xDE)
+    tester.advance_cycle()
+    tester.circuit.O.expect(3)
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
