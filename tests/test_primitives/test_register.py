@@ -300,6 +300,7 @@ def test_reg_init_uniq():
 def test_basic_reg_function():
 
     class test_basic_reg(m.Circuit):
+        name = "test_basic_reg"
         io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
         io += m.ClockIO(has_reset=True)
         io.O @= register(io.I, init=ht.BitVector[8](0xDE), reset_type=m.Reset)
@@ -332,7 +333,7 @@ def test_basic_reg_function():
     tester.circuit.O.expect(0xDE)
     tester.advance_cycle()
     tester.circuit.O.expect(3)
-    tester.compile_and_run("verilator", skip_compile=True,
+    tester.compile_and_run("verilator",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
