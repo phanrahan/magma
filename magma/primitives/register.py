@@ -10,7 +10,7 @@ from magma.circuit import coreir_port_mapping
 from magma.conversions import as_bits, from_bits, bit
 from magma.interface import IO
 from magma.generator import Generator2
-from magma.t import Type, Kind, In, Out
+from magma.t import Type, Kind, In, Out, Direction
 from magma.tuple import Tuple
 from magma.clock import (AbstractReset,
                          AsyncReset, AsyncResetN, Clock, get_reset_args)
@@ -206,3 +206,15 @@ class Register(Generator2):
         elif (has_reset or has_resetn):
             I = Mux(2, T)()(I, init, reset_select)
         reg.I @= as_bits(I)
+
+
+def register(value, **kwargs):
+    T = type(value).qualify(Direction.Undirected)
+    inst_kwargs = {}
+    try:
+        name = kwargs.pop("name")
+        inst_kwargs["name"] = name
+    except KeyError:
+        pass
+    ckt = Register(T, **kwargs)
+    return ckt(**inst_kwargs)(value)
