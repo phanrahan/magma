@@ -20,7 +20,6 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 # End install conda
 - pip install twine
-- pip install python-coveralls
 - pip install pytest-cov pytest-pycodestyle fault
 - pip install kratos  # test optional dependency
 - pip install -e .
@@ -29,7 +28,6 @@ script:
 - pycodestyle magma/
 after_success:
 - bash <(curl -s https://codecov.io/bash)
-- coveralls
 # Build docs
 - |
   if [[ ($TRAVIS_BRANCH == master) && ($TRAVIS_PULL_REQUEST == false) ]] ; then

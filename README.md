@@ -1,7 +1,7 @@
 # Magma
 [![Documentation Status](https://readthedocs.org/projects/magma/badge/?version=latest)](https://magma.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/phanrahan/magma.svg?branch=master)](https://travis-ci.org/phanrahan/magma)
-[![Coverage Status](https://coveralls.io/repos/github/phanrahan/magma/badge.svg?branch=master)](https://coveralls.io/github/phanrahan/magma?branch=master)
+[![codecov](https://codecov.io/gh/phanrahan/magma/branch/master/graph/badge.svg)](https://codecov.io/gh/phanrahan/magma)
 [![Join the chat at https://gitter.im/Magma-HDL/community](https://badges.gitter.im/Magma-HDL/community.svg)](https://gitter.im/Magma-HDL/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [CHANGELOG](https://github.com/phanrahan/magma/blob/master/CHANGELOG.md)
@@ -59,8 +59,7 @@ The design of Magma was heavily influenced by
 [Chisel](https://chisel.eecs.berkeley.edu/),
 so Magma should be easy to learn if you know Chisel.
 Some examples from the Chisel tutorial have been ported to
-Magma and can be found in [these
-notebooks](https://github.com/phanrahan/magmathon/tree/master/notebooks/coreir-tutorial).
+Magma and can be found in [here](https://github.com/leonardt/magma_examples).
 Magma also has a 
 [FIRRTL](https://github.com/freechipsproject/firrtl) backend,
 and we hope to demonstrate interoperability with Chisel via FIRRTL soon.
