@@ -110,3 +110,7 @@ class Generator2(metaclass=_Generator2Meta):
 
     def __call__(cls, *args, **kwargs):
         return DefineCircuitKind.__call__(cls, *args, **kwargs)
+
+
+def reset_generator_cache():
+    _Generator2Meta._cache = weakref.WeakValueDictionary()
