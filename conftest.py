@@ -9,3 +9,4 @@ def magma_test():
     magma.config.set_compile_dir('callee_file_dir')
     clear_cachedFunctions()
     magma.frontend.coreir_.ResetCoreIR()
+    magma.generator.reset_generator_cache()
