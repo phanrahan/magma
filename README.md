@@ -72,7 +72,7 @@ which is used to represent parts and boards,
 and to build applications for standalone FPGA boards.
 
 ## Setting up Python
-We recommend using Python 3.  This section walks through a few common methods
+magma requires using Python 3.7+.  This section walks through a few common methods
 for getting set up with Python. The first (recommended) method is to use
 miniconda which supports MacOS and Linux (and Windows, but magma's support for
 windows has not been tested).  We also provide methods using the standard
