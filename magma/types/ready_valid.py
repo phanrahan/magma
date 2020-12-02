@@ -2,7 +2,7 @@ from typing import Union
 from magma.bit import Bit
 from magma.logging import root_logger
 from magma.primitives.mux import mux
-from magma.t import Type, In, Out, Flip
+from magma.t import Type, In, Out
 from magma.protocol_type import MagmaProtocol
 from magma.tuple import Product, ProductKind
 
@@ -34,6 +34,9 @@ class ReadyValidKind(ProductKind):
         fields = {"valid": Bit, "data": T, "ready": Bit}
         return type(f"{cls}[{T}]", (cls, ), fields)
 
+    def flip(cls):
+        raise TypeError("Cannot flip an undirected ReadyValid type")
+
 
 class ReadyValid(Product, metaclass=ReadyValidKind):
     """
@@ -62,17 +65,86 @@ class ReadyValidProducerKind(ReadyValidKind):
         fields = {"valid": Out(Bit), "data": Out(T), "ready": In(Bit)}
         return type(f"{cls}[{T}]", (cls, ), fields)
 
+    def flip(cls):
+        return Consumer(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Producer(ReadyValid[{cls.data.as_undirected()}])"
+
 
 class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
     def fired(self):
         """
         Returns a bit that is high when ready and valid are both high
         """
+        if not self.ready.driven():
+            raise ReadyValidException(
+                "Cannot invoke fired on producer when ready isn't driven"
+            )
+        return self.ready.value() & self.valid
+
+    def deq(self, when=True):
+        """
+        Assert ready on this port and return associated data when `when` is
+        high
+
+        This is typically used when valid has been asserted on the producer
+        side.
+        """
+        if when is not True:
+            if not self.ready.driven():
+                raise ReadyValidException(
+                    "Cannot use deq with when without a default ready driver"
+                )
+            ready = self.ready.value()
+            self.ready.unwire(ready)
+            self.ready @= ready | when
+        else:
+            self.ready @= when
+        return self.data
+
+    def no_deq(self, when=True):
+        """
+        Indicates no dequeue occurs, ready is set to False
+        """
+        if when is not True:
+            if not self.ready.driven():
+                raise ReadyValidException(
+                    "Cannot use no_deq with condition without an existing"
+                    " ready driver"
+                )
+            ready = self.ready.value()
+            self.ready.unwire(ready)
+            self.ready @= mux([ready, False], when)
+        else:
+            self.ready @= False
+
+
+class ReadyValidConsumerKind(ReadyValidKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        T = cls._check_T(T)
+        fields = {"valid": In(Bit), "data": In(T), "ready": Out(Bit)}
+        return type(f"{cls}[{T}]", (cls, ), fields)
+
+    def flip(cls):
+        return Producer(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Consumer(ReadyValid[{cls.data.as_undirected()}])"
+
+
+class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
+    def fired(self):
         if not self.valid.driven():
             raise ReadyValidException(
-                "Cannot invoke fired on producer when valid isn't driven"
+                "Cannot invoke fired on consumer when valid isn't driven"
             )
-        return self.valid.value() & self.ready
+
+        return self.ready & self.valid.value()
 
     def enq(self, value, when=True):
         """
@@ -118,59 +190,6 @@ class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
         else:
             self.valid @= False
             self.data @= 0
-
-
-class ReadyValidConsumerKind(ReadyValidKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        T = cls._check_T(T)
-        fields = {"valid": In(Bit), "data": In(T), "ready": Out(Bit)}
-        return type(f"{cls}[{T}]", (cls, ), fields)
-
-
-class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
-    def fired(self):
-        if not self.ready.driven():
-            raise ReadyValidException(
-                "Cannot invoke fired on consumer when ready isn't driven"
-            )
-
-        return self.valid & self.ready.value()
-
-    def deq(self, when=True):
-        """
-        Assert ready on this port and return associated data when `when` is
-        high
-
-        This is typically used when valid has been asserted on the producer
-        side.
-        """
-        if when is not True:
-            if not self.ready.driven():
-                raise ReadyValidException(
-                    "Cannot use deq with when without a default ready driver"
-                )
-            ready = self.ready.value()
-            self.ready.unwire(ready)
-            self.ready @= ready | when
-        else:
-            self.ready @= when
-        return self.data
-
-    def no_deq(self, when=True):
-        """
-        Indicates no dequeue occurs, ready is set to False
-        """
-        if when is not True:
-            if not self.ready.driven():
-                raise ReadyValidException(
-                    "Cannot use no_deq with condition without an existing"
-                    " ready driver"
-                )
-            ready = self.ready.value()
-            self.ready.unwire(ready)
-            self.ready @= mux([ready, False], when)
-        else:
-            self.ready @= False
 
 
 class Decoupled(ReadyValid):

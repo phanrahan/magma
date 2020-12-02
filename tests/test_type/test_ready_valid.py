@@ -157,3 +157,25 @@ def test_enq_deq_io(caplog):
         # Should not error when wiring
         v3 @= v4
         assert len(caplog.messages) == 0
+
+
+def test_flip_ready_valid():
+    T = m.Bits[5]
+
+    class StubQueue(m.Circuit):
+        # Queues have a flipped interface since it's from the perspective of
+        # the user
+        io = m.IO(
+            enq=m.Flip(m.EnqIO[T]),
+            deq=m.Flip(m.DeqIO[T]),
+        )
+        print(f"type(io.deq)={type(io.deq)}")
+        print(f"type(io.enq)={type(io.enq)}")
+
+        io.deq.valid @= 0
+        io.enq.ready @= 0
+
+        do_enq = io.enq.fired()
+        do_deq = io.deq.fired()
+
+        io.deq.data @= io.enq.data

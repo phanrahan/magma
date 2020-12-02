@@ -10,6 +10,6 @@ module TestReadyValidSimple (
 assign I_ready = O_ready;
 assign O_data = I_data;
 assign O_valid = I_valid;
-assign fired = (I_valid & O_ready) & (I_valid & O_ready);
+assign fired = (O_ready & I_valid) & (O_ready & I_valid);
 endmodule
 
