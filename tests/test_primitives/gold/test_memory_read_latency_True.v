@@ -102,8 +102,8 @@ endmodule
 module Register (
     input [4:0] I,
     output [4:0] O,
-    input CLK,
-    input CE
+    input CE,
+    input CLK
 );
 wire [4:0] enable_mux_O;
 wire [4:0] reg_P_inst0_out;
@@ -139,8 +139,8 @@ wire [4:0] coreir_mem4x5_inst0_rdata;
 Register Register_inst0 (
     .I(coreir_mem4x5_inst0_rdata),
     .O(Register_inst0_O),
-    .CLK(CLK),
-    .CE(RE)
+    .CE(RE),
+    .CLK(CLK)
 );
 coreir_sync_read_mem #(
     .depth(4),

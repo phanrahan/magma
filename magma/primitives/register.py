@@ -5,6 +5,7 @@ import hwtypes as ht
 
 from magma.array import Array
 from magma.bit import Bit
+from magma.clock import Enable
 from magma.bits import Bits, UInt, SInt
 from magma.circuit import coreir_port_mapping
 from magma.conversions import as_bits, from_bits, bit
@@ -130,7 +131,7 @@ class Register(Generator2):
     def __init__(self, T: Kind = None,
                  init: Union[Type, int, ht.BitVector] = None,
                  reset_type: AbstractReset = None, has_enable: bool = False,
-                 reset_priority: bool = True):
+                 reset_priority: bool = True, enable_name: str = "CE"):
         """
         T: The type of the value that is stored inside the register (e.g.
            Bits[5])
@@ -146,6 +147,8 @@ class Register(Generator2):
 
         reset_priority: (optional) boolean flag choosing whether synchronous
                         reset (RESET or RESETN) has priority over enable
+
+        enable_name: (optional) name of the enable port
         """
         if T is None:
             if init is None:
@@ -167,8 +170,9 @@ class Register(Generator2):
         ) = get_reset_args(reset_type)
 
         self.io = IO(I=In(T), O=Out(T))
-        self.io += ClockIO(has_enable=has_enable,
-                           has_async_reset=has_async_reset,
+        if has_enable:
+            self.io += IO(**{enable_name: In(Enable)})
+        self.io += ClockIO(has_async_reset=has_async_reset,
                            has_async_resetn=has_async_resetn,
                            has_reset=has_reset,
                            has_resetn=has_resetn)
@@ -194,15 +198,17 @@ class Register(Generator2):
             reset_select = self.io.RESET
         elif has_resetn:
             reset_select = ~bit(self.io.RESETN)
+        if has_enable:
+            enable = getattr(self.io, enable_name)
         if (has_reset or has_resetn) and has_enable:
             if reset_priority:
-                I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
+                I = Mux(2, T)(name="enable_mux")(O, I, enable)
                 I = Mux(2, T)()(I, init, reset_select)
             else:
                 I = Mux(2, T)()(I, init, reset_select)
-                I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
+                I = Mux(2, T)(name="enable_mux")(O, I, enable)
         elif has_enable:
-            I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
+            I = Mux(2, T)(name="enable_mux")(O, I, enable)
         elif (has_reset or has_resetn):
             I = Mux(2, T)()(I, init, reset_select)
         reg.I @= as_bits(I)

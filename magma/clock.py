@@ -81,7 +81,7 @@ AsyncResetNOut = AsyncResetN[Direction.Out]
 
 # Preset
 # Clear
-class Enable(_ClockType, metaclass=DigitalMeta):
+class Enable(Bit):
     pass
 
 

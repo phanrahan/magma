@@ -74,8 +74,8 @@ endmodule
 module Register (
     input [7:0] I,
     output [7:0] O,
-    input CLK,
     input CE,
+    input CLK,
     input RESET
 );
 wire [7:0] Mux2xBits8_inst0_O;
@@ -123,8 +123,8 @@ wire [7:0] Register_inst0_O;
 Register Register_inst0 (
     .I(I),
     .O(Register_inst0_O),
-    .CLK(CLK),
     .CE(CE),
+    .CLK(CLK),
     .RESET(RESET)
 );
 assign O = Register_inst0_O;

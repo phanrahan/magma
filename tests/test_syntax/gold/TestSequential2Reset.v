@@ -42,8 +42,8 @@ endmodule
 module Register (
     input [2:0] I,
     output [2:0] O,
-    input CLK,
     input CE,
+    input CLK,
     input ASYNCRESET
 );
 wire [2:0] enable_mux_O;
@@ -77,8 +77,8 @@ wire [2:0] magma_Bits_3_add_inst0_out;
 Register Register_inst0 (
     .I(magma_Bits_3_add_inst0_out),
     .O(Register_inst0_O),
-    .CLK(CLK),
     .CE(CE),
+    .CLK(CLK),
     .ASYNCRESET(ASYNCRESET)
 );
 assign magma_Bits_3_add_inst0_out = 3'(Register_inst0_O + 3'h1);
