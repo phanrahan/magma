@@ -180,7 +180,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         if issubclass(t_type, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # Note: coreir flips t/f cases
-        # self._Mux monkey patched in magma/primitives/mux.py to avoid circular
+        # self._mux monkey patched in magma/primitives/mux.py to avoid circular
         # dependency
         return self._mux([f_branch, t_branch], self)
 
