@@ -6,11 +6,12 @@ import hwtypes as ht
 from magma.array import Array
 from magma.bit import Bit
 from magma.clock import Enable
+from magma.common import ParamDict
 from magma.bits import Bits, UInt, SInt
 from magma.circuit import coreir_port_mapping
 from magma.conversions import as_bits, from_bits, bit
 from magma.interface import IO
-from magma.generator import Generator2, ParamDict
+from magma.generator import Generator2
 from magma.t import Type, Kind, In, Out, Direction
 from magma.tuple import Tuple
 from magma.clock import (AbstractReset,
