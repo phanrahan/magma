@@ -81,7 +81,7 @@ def test_memory_product():
         expected.append(wdata)
         tester.circuit.wen = 1
         tester.advance_cycle()
-    tester.circuit.WEN = 0
+    tester.circuit.wen = 0
     for i in range(4):
         tester.circuit.raddr = i
         tester.advance_cycle()
@@ -169,7 +169,7 @@ def test_memory_arr():
         expected.append(wdata)
         tester.circuit.wen = 1
         tester.advance_cycle()
-    tester.circuit.WEN = 0
+    tester.circuit.wen = 0
     for i in range(4):
         tester.circuit.raddr = i
         tester.advance_cycle()
