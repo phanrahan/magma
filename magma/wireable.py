@@ -1,4 +1,5 @@
 from magma.array import Array
+from magma.bits import UInt, SInt
 from magma.tuple import Tuple
 from magma.protocol_type import magma_type
 
@@ -8,6 +9,9 @@ def wireable(T1, T2):
     Returns true if T1 can be wired to T2
     """
     T1, T2 = magma_type(T1), magma_type(T2)
+    if ((issubclass(T1, UInt) and issubclass(T2, SInt)) or
+            (issubclass(T2, UInt) and issubclass(T1, SInt))):
+        return False
     if issubclass(T1, Tuple):
         if not issubclass(T2, Tuple):
             return False

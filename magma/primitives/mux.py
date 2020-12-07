@@ -158,7 +158,7 @@ def mux(I: list, S, **kwargs):
 
 
 # Monkey patch for ite impl without circular dependency
-Bit._Mux = Mux
+Bit._mux = staticmethod(mux)
 
 
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular
