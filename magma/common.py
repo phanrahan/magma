@@ -113,3 +113,11 @@ def setattrs(obj, dct, pred=None):
     for k, v in dct.items():
         if pred is None or pred(k, v):
             setattr(obj, k, v)
+
+
+class ParamDict(dict):
+    """
+    Hashable dictionary for simple key: value parameters
+    """
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
