@@ -13,7 +13,10 @@ from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction, In, Out
 from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
+
+from magma.compatibility import IntegerTypes
 from magma.circuit import Circuit, coreir_port_mapping
+from magma.debug import debug_wire
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
@@ -202,6 +205,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         if self.is_output() or self.is_inout():
             raise TypeError("undriven cannot be used with output/inout")
         self.wire(DefineUndriven()().O)
+
+    @debug_wire
+    def wire(self, o, debug_info):
+        # Cast to Bit here so we don't get a Digital instead
+        if isinstance(o, (IntegerTypes, bool, ht.Bit)):
+            o = Bit(o)
+        return super().wire(o, debug_info)
 
 
 def make_Define(_name, port, direction):
