@@ -34,7 +34,7 @@ coreir_reg #(
 assign O = reg_P_inst0_out[0];
 endmodule
 
-module Mux2xTuple_SequentialRegisterWrapperOutBit (
+module Mux2xTuple_SequentialRegisterWrapperBit (
     input I0__0,
     input I1__0,
     output O__0,
@@ -52,7 +52,7 @@ end
 assign O__0 = coreir_commonlib_mux2x1_inst0_out[0];
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -75,22 +75,22 @@ module Test (
     output O__0,
     input sel
 );
-wire Mux2xOutBit_inst0_O;
+wire Mux2xBit_inst0_O;
 wire Register_inst0_O;
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(sel),
     .I1(sel),
     .S(sel),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
-Mux2xTuple_SequentialRegisterWrapperOutBit Mux2xTuple_SequentialRegisterWrapperOutBit_inst0 (
+Mux2xTuple_SequentialRegisterWrapperBit Mux2xTuple_SequentialRegisterWrapperBit_inst0 (
     .I0__0(Register_inst0_O),
     .I1__0(Register_inst0_O),
     .O__0(O__0),
     .S(sel)
 );
 Register Register_inst0 (
-    .I(Mux2xOutBit_inst0_O),
+    .I(Mux2xBit_inst0_O),
     .O(Register_inst0_O),
     .CLK(CLK)
 );

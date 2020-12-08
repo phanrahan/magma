@@ -212,7 +212,7 @@ end
 assign O = coreir_commonlib_mux56x8_inst0_out;
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -237,70 +237,70 @@ module TestSequential2Slice (
     output [7:0] O,
     input CLK
 );
-wire Mux2xOutBit_inst0_O;
-wire Mux2xOutBit_inst1_O;
-wire Mux2xOutBit_inst10_O;
-wire Mux2xOutBit_inst11_O;
-wire Mux2xOutBit_inst12_O;
-wire Mux2xOutBit_inst13_O;
-wire Mux2xOutBit_inst14_O;
-wire Mux2xOutBit_inst15_O;
-wire Mux2xOutBit_inst16_O;
-wire Mux2xOutBit_inst17_O;
-wire Mux2xOutBit_inst18_O;
-wire Mux2xOutBit_inst19_O;
-wire Mux2xOutBit_inst2_O;
-wire Mux2xOutBit_inst20_O;
-wire Mux2xOutBit_inst21_O;
-wire Mux2xOutBit_inst22_O;
-wire Mux2xOutBit_inst23_O;
-wire Mux2xOutBit_inst24_O;
-wire Mux2xOutBit_inst25_O;
-wire Mux2xOutBit_inst26_O;
-wire Mux2xOutBit_inst27_O;
-wire Mux2xOutBit_inst28_O;
-wire Mux2xOutBit_inst29_O;
-wire Mux2xOutBit_inst3_O;
-wire Mux2xOutBit_inst30_O;
-wire Mux2xOutBit_inst31_O;
-wire Mux2xOutBit_inst32_O;
-wire Mux2xOutBit_inst33_O;
-wire Mux2xOutBit_inst34_O;
-wire Mux2xOutBit_inst35_O;
-wire Mux2xOutBit_inst36_O;
-wire Mux2xOutBit_inst37_O;
-wire Mux2xOutBit_inst38_O;
-wire Mux2xOutBit_inst39_O;
-wire Mux2xOutBit_inst4_O;
-wire Mux2xOutBit_inst40_O;
-wire Mux2xOutBit_inst41_O;
-wire Mux2xOutBit_inst42_O;
-wire Mux2xOutBit_inst43_O;
-wire Mux2xOutBit_inst44_O;
-wire Mux2xOutBit_inst45_O;
-wire Mux2xOutBit_inst46_O;
-wire Mux2xOutBit_inst47_O;
-wire Mux2xOutBit_inst48_O;
-wire Mux2xOutBit_inst49_O;
-wire Mux2xOutBit_inst5_O;
-wire Mux2xOutBit_inst50_O;
-wire Mux2xOutBit_inst51_O;
-wire Mux2xOutBit_inst52_O;
-wire Mux2xOutBit_inst53_O;
-wire Mux2xOutBit_inst54_O;
-wire Mux2xOutBit_inst55_O;
-wire Mux2xOutBit_inst56_O;
-wire Mux2xOutBit_inst57_O;
-wire Mux2xOutBit_inst58_O;
-wire Mux2xOutBit_inst59_O;
-wire Mux2xOutBit_inst6_O;
-wire Mux2xOutBit_inst60_O;
-wire Mux2xOutBit_inst61_O;
-wire Mux2xOutBit_inst62_O;
-wire Mux2xOutBit_inst63_O;
-wire Mux2xOutBit_inst7_O;
-wire Mux2xOutBit_inst8_O;
-wire Mux2xOutBit_inst9_O;
+wire Mux2xBit_inst0_O;
+wire Mux2xBit_inst1_O;
+wire Mux2xBit_inst10_O;
+wire Mux2xBit_inst11_O;
+wire Mux2xBit_inst12_O;
+wire Mux2xBit_inst13_O;
+wire Mux2xBit_inst14_O;
+wire Mux2xBit_inst15_O;
+wire Mux2xBit_inst16_O;
+wire Mux2xBit_inst17_O;
+wire Mux2xBit_inst18_O;
+wire Mux2xBit_inst19_O;
+wire Mux2xBit_inst2_O;
+wire Mux2xBit_inst20_O;
+wire Mux2xBit_inst21_O;
+wire Mux2xBit_inst22_O;
+wire Mux2xBit_inst23_O;
+wire Mux2xBit_inst24_O;
+wire Mux2xBit_inst25_O;
+wire Mux2xBit_inst26_O;
+wire Mux2xBit_inst27_O;
+wire Mux2xBit_inst28_O;
+wire Mux2xBit_inst29_O;
+wire Mux2xBit_inst3_O;
+wire Mux2xBit_inst30_O;
+wire Mux2xBit_inst31_O;
+wire Mux2xBit_inst32_O;
+wire Mux2xBit_inst33_O;
+wire Mux2xBit_inst34_O;
+wire Mux2xBit_inst35_O;
+wire Mux2xBit_inst36_O;
+wire Mux2xBit_inst37_O;
+wire Mux2xBit_inst38_O;
+wire Mux2xBit_inst39_O;
+wire Mux2xBit_inst4_O;
+wire Mux2xBit_inst40_O;
+wire Mux2xBit_inst41_O;
+wire Mux2xBit_inst42_O;
+wire Mux2xBit_inst43_O;
+wire Mux2xBit_inst44_O;
+wire Mux2xBit_inst45_O;
+wire Mux2xBit_inst46_O;
+wire Mux2xBit_inst47_O;
+wire Mux2xBit_inst48_O;
+wire Mux2xBit_inst49_O;
+wire Mux2xBit_inst5_O;
+wire Mux2xBit_inst50_O;
+wire Mux2xBit_inst51_O;
+wire Mux2xBit_inst52_O;
+wire Mux2xBit_inst53_O;
+wire Mux2xBit_inst54_O;
+wire Mux2xBit_inst55_O;
+wire Mux2xBit_inst56_O;
+wire Mux2xBit_inst57_O;
+wire Mux2xBit_inst58_O;
+wire Mux2xBit_inst59_O;
+wire Mux2xBit_inst6_O;
+wire Mux2xBit_inst60_O;
+wire Mux2xBit_inst61_O;
+wire Mux2xBit_inst62_O;
+wire Mux2xBit_inst63_O;
+wire Mux2xBit_inst7_O;
+wire Mux2xBit_inst8_O;
+wire Mux2xBit_inst9_O;
 wire [63:0] Register_inst0_O;
 wire magma_Bit_and_inst0_out;
 wire magma_Bit_and_inst10_out;
@@ -496,389 +496,389 @@ wire [7:0] magma_Bits_8_lshr_inst63_out;
 wire [7:0] magma_Bits_8_lshr_inst7_out;
 wire [7:0] magma_Bits_8_lshr_inst8_out;
 wire [7:0] magma_Bits_8_lshr_inst9_out;
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(Register_inst0_O[0]),
     .I1(magma_Bits_8_lshr_inst0_out[0]),
     .S(magma_Bit_and_inst0_out),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
-Mux2xOutBit Mux2xOutBit_inst1 (
+Mux2xBit Mux2xBit_inst1 (
     .I0(Register_inst0_O[1]),
     .I1(magma_Bits_8_lshr_inst1_out[0]),
     .S(magma_Bit_and_inst2_out),
-    .O(Mux2xOutBit_inst1_O)
+    .O(Mux2xBit_inst1_O)
 );
-Mux2xOutBit Mux2xOutBit_inst10 (
+Mux2xBit Mux2xBit_inst10 (
     .I0(Register_inst0_O[10]),
     .I1(magma_Bits_8_lshr_inst10_out[0]),
     .S(magma_Bit_and_inst20_out),
-    .O(Mux2xOutBit_inst10_O)
+    .O(Mux2xBit_inst10_O)
 );
-Mux2xOutBit Mux2xOutBit_inst11 (
+Mux2xBit Mux2xBit_inst11 (
     .I0(Register_inst0_O[11]),
     .I1(magma_Bits_8_lshr_inst11_out[0]),
     .S(magma_Bit_and_inst22_out),
-    .O(Mux2xOutBit_inst11_O)
+    .O(Mux2xBit_inst11_O)
 );
-Mux2xOutBit Mux2xOutBit_inst12 (
+Mux2xBit Mux2xBit_inst12 (
     .I0(Register_inst0_O[12]),
     .I1(magma_Bits_8_lshr_inst12_out[0]),
     .S(magma_Bit_and_inst24_out),
-    .O(Mux2xOutBit_inst12_O)
+    .O(Mux2xBit_inst12_O)
 );
-Mux2xOutBit Mux2xOutBit_inst13 (
+Mux2xBit Mux2xBit_inst13 (
     .I0(Register_inst0_O[13]),
     .I1(magma_Bits_8_lshr_inst13_out[0]),
     .S(magma_Bit_and_inst26_out),
-    .O(Mux2xOutBit_inst13_O)
+    .O(Mux2xBit_inst13_O)
 );
-Mux2xOutBit Mux2xOutBit_inst14 (
+Mux2xBit Mux2xBit_inst14 (
     .I0(Register_inst0_O[14]),
     .I1(magma_Bits_8_lshr_inst14_out[0]),
     .S(magma_Bit_and_inst28_out),
-    .O(Mux2xOutBit_inst14_O)
+    .O(Mux2xBit_inst14_O)
 );
-Mux2xOutBit Mux2xOutBit_inst15 (
+Mux2xBit Mux2xBit_inst15 (
     .I0(Register_inst0_O[15]),
     .I1(magma_Bits_8_lshr_inst15_out[0]),
     .S(magma_Bit_and_inst30_out),
-    .O(Mux2xOutBit_inst15_O)
+    .O(Mux2xBit_inst15_O)
 );
-Mux2xOutBit Mux2xOutBit_inst16 (
+Mux2xBit Mux2xBit_inst16 (
     .I0(Register_inst0_O[16]),
     .I1(magma_Bits_8_lshr_inst16_out[0]),
     .S(magma_Bit_and_inst32_out),
-    .O(Mux2xOutBit_inst16_O)
+    .O(Mux2xBit_inst16_O)
 );
-Mux2xOutBit Mux2xOutBit_inst17 (
+Mux2xBit Mux2xBit_inst17 (
     .I0(Register_inst0_O[17]),
     .I1(magma_Bits_8_lshr_inst17_out[0]),
     .S(magma_Bit_and_inst34_out),
-    .O(Mux2xOutBit_inst17_O)
+    .O(Mux2xBit_inst17_O)
 );
-Mux2xOutBit Mux2xOutBit_inst18 (
+Mux2xBit Mux2xBit_inst18 (
     .I0(Register_inst0_O[18]),
     .I1(magma_Bits_8_lshr_inst18_out[0]),
     .S(magma_Bit_and_inst36_out),
-    .O(Mux2xOutBit_inst18_O)
+    .O(Mux2xBit_inst18_O)
 );
-Mux2xOutBit Mux2xOutBit_inst19 (
+Mux2xBit Mux2xBit_inst19 (
     .I0(Register_inst0_O[19]),
     .I1(magma_Bits_8_lshr_inst19_out[0]),
     .S(magma_Bit_and_inst38_out),
-    .O(Mux2xOutBit_inst19_O)
+    .O(Mux2xBit_inst19_O)
 );
-Mux2xOutBit Mux2xOutBit_inst2 (
+Mux2xBit Mux2xBit_inst2 (
     .I0(Register_inst0_O[2]),
     .I1(magma_Bits_8_lshr_inst2_out[0]),
     .S(magma_Bit_and_inst4_out),
-    .O(Mux2xOutBit_inst2_O)
+    .O(Mux2xBit_inst2_O)
 );
-Mux2xOutBit Mux2xOutBit_inst20 (
+Mux2xBit Mux2xBit_inst20 (
     .I0(Register_inst0_O[20]),
     .I1(magma_Bits_8_lshr_inst20_out[0]),
     .S(magma_Bit_and_inst40_out),
-    .O(Mux2xOutBit_inst20_O)
+    .O(Mux2xBit_inst20_O)
 );
-Mux2xOutBit Mux2xOutBit_inst21 (
+Mux2xBit Mux2xBit_inst21 (
     .I0(Register_inst0_O[21]),
     .I1(magma_Bits_8_lshr_inst21_out[0]),
     .S(magma_Bit_and_inst42_out),
-    .O(Mux2xOutBit_inst21_O)
+    .O(Mux2xBit_inst21_O)
 );
-Mux2xOutBit Mux2xOutBit_inst22 (
+Mux2xBit Mux2xBit_inst22 (
     .I0(Register_inst0_O[22]),
     .I1(magma_Bits_8_lshr_inst22_out[0]),
     .S(magma_Bit_and_inst44_out),
-    .O(Mux2xOutBit_inst22_O)
+    .O(Mux2xBit_inst22_O)
 );
-Mux2xOutBit Mux2xOutBit_inst23 (
+Mux2xBit Mux2xBit_inst23 (
     .I0(Register_inst0_O[23]),
     .I1(magma_Bits_8_lshr_inst23_out[0]),
     .S(magma_Bit_and_inst46_out),
-    .O(Mux2xOutBit_inst23_O)
+    .O(Mux2xBit_inst23_O)
 );
-Mux2xOutBit Mux2xOutBit_inst24 (
+Mux2xBit Mux2xBit_inst24 (
     .I0(Register_inst0_O[24]),
     .I1(magma_Bits_8_lshr_inst24_out[0]),
     .S(magma_Bit_and_inst48_out),
-    .O(Mux2xOutBit_inst24_O)
+    .O(Mux2xBit_inst24_O)
 );
-Mux2xOutBit Mux2xOutBit_inst25 (
+Mux2xBit Mux2xBit_inst25 (
     .I0(Register_inst0_O[25]),
     .I1(magma_Bits_8_lshr_inst25_out[0]),
     .S(magma_Bit_and_inst50_out),
-    .O(Mux2xOutBit_inst25_O)
+    .O(Mux2xBit_inst25_O)
 );
-Mux2xOutBit Mux2xOutBit_inst26 (
+Mux2xBit Mux2xBit_inst26 (
     .I0(Register_inst0_O[26]),
     .I1(magma_Bits_8_lshr_inst26_out[0]),
     .S(magma_Bit_and_inst52_out),
-    .O(Mux2xOutBit_inst26_O)
+    .O(Mux2xBit_inst26_O)
 );
-Mux2xOutBit Mux2xOutBit_inst27 (
+Mux2xBit Mux2xBit_inst27 (
     .I0(Register_inst0_O[27]),
     .I1(magma_Bits_8_lshr_inst27_out[0]),
     .S(magma_Bit_and_inst54_out),
-    .O(Mux2xOutBit_inst27_O)
+    .O(Mux2xBit_inst27_O)
 );
-Mux2xOutBit Mux2xOutBit_inst28 (
+Mux2xBit Mux2xBit_inst28 (
     .I0(Register_inst0_O[28]),
     .I1(magma_Bits_8_lshr_inst28_out[0]),
     .S(magma_Bit_and_inst56_out),
-    .O(Mux2xOutBit_inst28_O)
+    .O(Mux2xBit_inst28_O)
 );
-Mux2xOutBit Mux2xOutBit_inst29 (
+Mux2xBit Mux2xBit_inst29 (
     .I0(Register_inst0_O[29]),
     .I1(magma_Bits_8_lshr_inst29_out[0]),
     .S(magma_Bit_and_inst58_out),
-    .O(Mux2xOutBit_inst29_O)
+    .O(Mux2xBit_inst29_O)
 );
-Mux2xOutBit Mux2xOutBit_inst3 (
+Mux2xBit Mux2xBit_inst3 (
     .I0(Register_inst0_O[3]),
     .I1(magma_Bits_8_lshr_inst3_out[0]),
     .S(magma_Bit_and_inst6_out),
-    .O(Mux2xOutBit_inst3_O)
+    .O(Mux2xBit_inst3_O)
 );
-Mux2xOutBit Mux2xOutBit_inst30 (
+Mux2xBit Mux2xBit_inst30 (
     .I0(Register_inst0_O[30]),
     .I1(magma_Bits_8_lshr_inst30_out[0]),
     .S(magma_Bit_and_inst60_out),
-    .O(Mux2xOutBit_inst30_O)
+    .O(Mux2xBit_inst30_O)
 );
-Mux2xOutBit Mux2xOutBit_inst31 (
+Mux2xBit Mux2xBit_inst31 (
     .I0(Register_inst0_O[31]),
     .I1(magma_Bits_8_lshr_inst31_out[0]),
     .S(magma_Bit_and_inst62_out),
-    .O(Mux2xOutBit_inst31_O)
+    .O(Mux2xBit_inst31_O)
 );
-Mux2xOutBit Mux2xOutBit_inst32 (
+Mux2xBit Mux2xBit_inst32 (
     .I0(Register_inst0_O[32]),
     .I1(magma_Bits_8_lshr_inst32_out[0]),
     .S(magma_Bit_and_inst64_out),
-    .O(Mux2xOutBit_inst32_O)
+    .O(Mux2xBit_inst32_O)
 );
-Mux2xOutBit Mux2xOutBit_inst33 (
+Mux2xBit Mux2xBit_inst33 (
     .I0(Register_inst0_O[33]),
     .I1(magma_Bits_8_lshr_inst33_out[0]),
     .S(magma_Bit_and_inst66_out),
-    .O(Mux2xOutBit_inst33_O)
+    .O(Mux2xBit_inst33_O)
 );
-Mux2xOutBit Mux2xOutBit_inst34 (
+Mux2xBit Mux2xBit_inst34 (
     .I0(Register_inst0_O[34]),
     .I1(magma_Bits_8_lshr_inst34_out[0]),
     .S(magma_Bit_and_inst68_out),
-    .O(Mux2xOutBit_inst34_O)
+    .O(Mux2xBit_inst34_O)
 );
-Mux2xOutBit Mux2xOutBit_inst35 (
+Mux2xBit Mux2xBit_inst35 (
     .I0(Register_inst0_O[35]),
     .I1(magma_Bits_8_lshr_inst35_out[0]),
     .S(magma_Bit_and_inst70_out),
-    .O(Mux2xOutBit_inst35_O)
+    .O(Mux2xBit_inst35_O)
 );
-Mux2xOutBit Mux2xOutBit_inst36 (
+Mux2xBit Mux2xBit_inst36 (
     .I0(Register_inst0_O[36]),
     .I1(magma_Bits_8_lshr_inst36_out[0]),
     .S(magma_Bit_and_inst72_out),
-    .O(Mux2xOutBit_inst36_O)
+    .O(Mux2xBit_inst36_O)
 );
-Mux2xOutBit Mux2xOutBit_inst37 (
+Mux2xBit Mux2xBit_inst37 (
     .I0(Register_inst0_O[37]),
     .I1(magma_Bits_8_lshr_inst37_out[0]),
     .S(magma_Bit_and_inst74_out),
-    .O(Mux2xOutBit_inst37_O)
+    .O(Mux2xBit_inst37_O)
 );
-Mux2xOutBit Mux2xOutBit_inst38 (
+Mux2xBit Mux2xBit_inst38 (
     .I0(Register_inst0_O[38]),
     .I1(magma_Bits_8_lshr_inst38_out[0]),
     .S(magma_Bit_and_inst76_out),
-    .O(Mux2xOutBit_inst38_O)
+    .O(Mux2xBit_inst38_O)
 );
-Mux2xOutBit Mux2xOutBit_inst39 (
+Mux2xBit Mux2xBit_inst39 (
     .I0(Register_inst0_O[39]),
     .I1(magma_Bits_8_lshr_inst39_out[0]),
     .S(magma_Bit_and_inst78_out),
-    .O(Mux2xOutBit_inst39_O)
+    .O(Mux2xBit_inst39_O)
 );
-Mux2xOutBit Mux2xOutBit_inst4 (
+Mux2xBit Mux2xBit_inst4 (
     .I0(Register_inst0_O[4]),
     .I1(magma_Bits_8_lshr_inst4_out[0]),
     .S(magma_Bit_and_inst8_out),
-    .O(Mux2xOutBit_inst4_O)
+    .O(Mux2xBit_inst4_O)
 );
-Mux2xOutBit Mux2xOutBit_inst40 (
+Mux2xBit Mux2xBit_inst40 (
     .I0(Register_inst0_O[40]),
     .I1(magma_Bits_8_lshr_inst40_out[0]),
     .S(magma_Bit_and_inst80_out),
-    .O(Mux2xOutBit_inst40_O)
+    .O(Mux2xBit_inst40_O)
 );
-Mux2xOutBit Mux2xOutBit_inst41 (
+Mux2xBit Mux2xBit_inst41 (
     .I0(Register_inst0_O[41]),
     .I1(magma_Bits_8_lshr_inst41_out[0]),
     .S(magma_Bit_and_inst82_out),
-    .O(Mux2xOutBit_inst41_O)
+    .O(Mux2xBit_inst41_O)
 );
-Mux2xOutBit Mux2xOutBit_inst42 (
+Mux2xBit Mux2xBit_inst42 (
     .I0(Register_inst0_O[42]),
     .I1(magma_Bits_8_lshr_inst42_out[0]),
     .S(magma_Bit_and_inst84_out),
-    .O(Mux2xOutBit_inst42_O)
+    .O(Mux2xBit_inst42_O)
 );
-Mux2xOutBit Mux2xOutBit_inst43 (
+Mux2xBit Mux2xBit_inst43 (
     .I0(Register_inst0_O[43]),
     .I1(magma_Bits_8_lshr_inst43_out[0]),
     .S(magma_Bit_and_inst86_out),
-    .O(Mux2xOutBit_inst43_O)
+    .O(Mux2xBit_inst43_O)
 );
-Mux2xOutBit Mux2xOutBit_inst44 (
+Mux2xBit Mux2xBit_inst44 (
     .I0(Register_inst0_O[44]),
     .I1(magma_Bits_8_lshr_inst44_out[0]),
     .S(magma_Bit_and_inst88_out),
-    .O(Mux2xOutBit_inst44_O)
+    .O(Mux2xBit_inst44_O)
 );
-Mux2xOutBit Mux2xOutBit_inst45 (
+Mux2xBit Mux2xBit_inst45 (
     .I0(Register_inst0_O[45]),
     .I1(magma_Bits_8_lshr_inst45_out[0]),
     .S(magma_Bit_and_inst90_out),
-    .O(Mux2xOutBit_inst45_O)
+    .O(Mux2xBit_inst45_O)
 );
-Mux2xOutBit Mux2xOutBit_inst46 (
+Mux2xBit Mux2xBit_inst46 (
     .I0(Register_inst0_O[46]),
     .I1(magma_Bits_8_lshr_inst46_out[0]),
     .S(magma_Bit_and_inst92_out),
-    .O(Mux2xOutBit_inst46_O)
+    .O(Mux2xBit_inst46_O)
 );
-Mux2xOutBit Mux2xOutBit_inst47 (
+Mux2xBit Mux2xBit_inst47 (
     .I0(Register_inst0_O[47]),
     .I1(magma_Bits_8_lshr_inst47_out[0]),
     .S(magma_Bit_and_inst94_out),
-    .O(Mux2xOutBit_inst47_O)
+    .O(Mux2xBit_inst47_O)
 );
-Mux2xOutBit Mux2xOutBit_inst48 (
+Mux2xBit Mux2xBit_inst48 (
     .I0(Register_inst0_O[48]),
     .I1(magma_Bits_8_lshr_inst48_out[0]),
     .S(magma_Bit_and_inst96_out),
-    .O(Mux2xOutBit_inst48_O)
+    .O(Mux2xBit_inst48_O)
 );
-Mux2xOutBit Mux2xOutBit_inst49 (
+Mux2xBit Mux2xBit_inst49 (
     .I0(Register_inst0_O[49]),
     .I1(magma_Bits_8_lshr_inst49_out[0]),
     .S(magma_Bit_and_inst98_out),
-    .O(Mux2xOutBit_inst49_O)
+    .O(Mux2xBit_inst49_O)
 );
-Mux2xOutBit Mux2xOutBit_inst5 (
+Mux2xBit Mux2xBit_inst5 (
     .I0(Register_inst0_O[5]),
     .I1(magma_Bits_8_lshr_inst5_out[0]),
     .S(magma_Bit_and_inst10_out),
-    .O(Mux2xOutBit_inst5_O)
+    .O(Mux2xBit_inst5_O)
 );
-Mux2xOutBit Mux2xOutBit_inst50 (
+Mux2xBit Mux2xBit_inst50 (
     .I0(Register_inst0_O[50]),
     .I1(magma_Bits_8_lshr_inst50_out[0]),
     .S(magma_Bit_and_inst100_out),
-    .O(Mux2xOutBit_inst50_O)
+    .O(Mux2xBit_inst50_O)
 );
-Mux2xOutBit Mux2xOutBit_inst51 (
+Mux2xBit Mux2xBit_inst51 (
     .I0(Register_inst0_O[51]),
     .I1(magma_Bits_8_lshr_inst51_out[0]),
     .S(magma_Bit_and_inst102_out),
-    .O(Mux2xOutBit_inst51_O)
+    .O(Mux2xBit_inst51_O)
 );
-Mux2xOutBit Mux2xOutBit_inst52 (
+Mux2xBit Mux2xBit_inst52 (
     .I0(Register_inst0_O[52]),
     .I1(magma_Bits_8_lshr_inst52_out[0]),
     .S(magma_Bit_and_inst104_out),
-    .O(Mux2xOutBit_inst52_O)
+    .O(Mux2xBit_inst52_O)
 );
-Mux2xOutBit Mux2xOutBit_inst53 (
+Mux2xBit Mux2xBit_inst53 (
     .I0(Register_inst0_O[53]),
     .I1(magma_Bits_8_lshr_inst53_out[0]),
     .S(magma_Bit_and_inst106_out),
-    .O(Mux2xOutBit_inst53_O)
+    .O(Mux2xBit_inst53_O)
 );
-Mux2xOutBit Mux2xOutBit_inst54 (
+Mux2xBit Mux2xBit_inst54 (
     .I0(Register_inst0_O[54]),
     .I1(magma_Bits_8_lshr_inst54_out[0]),
     .S(magma_Bit_and_inst108_out),
-    .O(Mux2xOutBit_inst54_O)
+    .O(Mux2xBit_inst54_O)
 );
-Mux2xOutBit Mux2xOutBit_inst55 (
+Mux2xBit Mux2xBit_inst55 (
     .I0(Register_inst0_O[55]),
     .I1(magma_Bits_8_lshr_inst55_out[0]),
     .S(magma_Bit_and_inst110_out),
-    .O(Mux2xOutBit_inst55_O)
+    .O(Mux2xBit_inst55_O)
 );
-Mux2xOutBit Mux2xOutBit_inst56 (
+Mux2xBit Mux2xBit_inst56 (
     .I0(Register_inst0_O[56]),
     .I1(magma_Bits_8_lshr_inst56_out[0]),
     .S(magma_Bit_and_inst112_out),
-    .O(Mux2xOutBit_inst56_O)
+    .O(Mux2xBit_inst56_O)
 );
-Mux2xOutBit Mux2xOutBit_inst57 (
+Mux2xBit Mux2xBit_inst57 (
     .I0(Register_inst0_O[57]),
     .I1(magma_Bits_8_lshr_inst57_out[0]),
     .S(magma_Bit_and_inst114_out),
-    .O(Mux2xOutBit_inst57_O)
+    .O(Mux2xBit_inst57_O)
 );
-Mux2xOutBit Mux2xOutBit_inst58 (
+Mux2xBit Mux2xBit_inst58 (
     .I0(Register_inst0_O[58]),
     .I1(magma_Bits_8_lshr_inst58_out[0]),
     .S(magma_Bit_and_inst116_out),
-    .O(Mux2xOutBit_inst58_O)
+    .O(Mux2xBit_inst58_O)
 );
-Mux2xOutBit Mux2xOutBit_inst59 (
+Mux2xBit Mux2xBit_inst59 (
     .I0(Register_inst0_O[59]),
     .I1(magma_Bits_8_lshr_inst59_out[0]),
     .S(magma_Bit_and_inst118_out),
-    .O(Mux2xOutBit_inst59_O)
+    .O(Mux2xBit_inst59_O)
 );
-Mux2xOutBit Mux2xOutBit_inst6 (
+Mux2xBit Mux2xBit_inst6 (
     .I0(Register_inst0_O[6]),
     .I1(magma_Bits_8_lshr_inst6_out[0]),
     .S(magma_Bit_and_inst12_out),
-    .O(Mux2xOutBit_inst6_O)
+    .O(Mux2xBit_inst6_O)
 );
-Mux2xOutBit Mux2xOutBit_inst60 (
+Mux2xBit Mux2xBit_inst60 (
     .I0(Register_inst0_O[60]),
     .I1(magma_Bits_8_lshr_inst60_out[0]),
     .S(magma_Bit_and_inst120_out),
-    .O(Mux2xOutBit_inst60_O)
+    .O(Mux2xBit_inst60_O)
 );
-Mux2xOutBit Mux2xOutBit_inst61 (
+Mux2xBit Mux2xBit_inst61 (
     .I0(Register_inst0_O[61]),
     .I1(magma_Bits_8_lshr_inst61_out[0]),
     .S(magma_Bit_and_inst122_out),
-    .O(Mux2xOutBit_inst61_O)
+    .O(Mux2xBit_inst61_O)
 );
-Mux2xOutBit Mux2xOutBit_inst62 (
+Mux2xBit Mux2xBit_inst62 (
     .I0(Register_inst0_O[62]),
     .I1(magma_Bits_8_lshr_inst62_out[0]),
     .S(magma_Bit_and_inst124_out),
-    .O(Mux2xOutBit_inst62_O)
+    .O(Mux2xBit_inst62_O)
 );
-Mux2xOutBit Mux2xOutBit_inst63 (
+Mux2xBit Mux2xBit_inst63 (
     .I0(Register_inst0_O[63]),
     .I1(magma_Bits_8_lshr_inst63_out[0]),
     .S(magma_Bit_and_inst125_out),
-    .O(Mux2xOutBit_inst63_O)
+    .O(Mux2xBit_inst63_O)
 );
-Mux2xOutBit Mux2xOutBit_inst7 (
+Mux2xBit Mux2xBit_inst7 (
     .I0(Register_inst0_O[7]),
     .I1(magma_Bits_8_lshr_inst7_out[0]),
     .S(magma_Bit_and_inst14_out),
-    .O(Mux2xOutBit_inst7_O)
+    .O(Mux2xBit_inst7_O)
 );
-Mux2xOutBit Mux2xOutBit_inst8 (
+Mux2xBit Mux2xBit_inst8 (
     .I0(Register_inst0_O[8]),
     .I1(magma_Bits_8_lshr_inst8_out[0]),
     .S(magma_Bit_and_inst16_out),
-    .O(Mux2xOutBit_inst8_O)
+    .O(Mux2xBit_inst8_O)
 );
-Mux2xOutBit Mux2xOutBit_inst9 (
+Mux2xBit Mux2xBit_inst9 (
     .I0(Register_inst0_O[9]),
     .I1(magma_Bits_8_lshr_inst9_out[0]),
     .S(magma_Bit_and_inst18_out),
-    .O(Mux2xOutBit_inst9_O)
+    .O(Mux2xBit_inst9_O)
 );
 Mux56xBits8 Mux56xBits8_inst0 (
     .I0(Register_inst0_O[7:0]),
@@ -941,7 +941,7 @@ Mux56xBits8 Mux56xBits8_inst0 (
     .O(O)
 );
 wire [63:0] Register_inst0_I;
-assign Register_inst0_I = {Mux2xOutBit_inst63_O,Mux2xOutBit_inst62_O,Mux2xOutBit_inst61_O,Mux2xOutBit_inst60_O,Mux2xOutBit_inst59_O,Mux2xOutBit_inst58_O,Mux2xOutBit_inst57_O,Mux2xOutBit_inst56_O,Mux2xOutBit_inst55_O,Mux2xOutBit_inst54_O,Mux2xOutBit_inst53_O,Mux2xOutBit_inst52_O,Mux2xOutBit_inst51_O,Mux2xOutBit_inst50_O,Mux2xOutBit_inst49_O,Mux2xOutBit_inst48_O,Mux2xOutBit_inst47_O,Mux2xOutBit_inst46_O,Mux2xOutBit_inst45_O,Mux2xOutBit_inst44_O,Mux2xOutBit_inst43_O,Mux2xOutBit_inst42_O,Mux2xOutBit_inst41_O,Mux2xOutBit_inst40_O,Mux2xOutBit_inst39_O,Mux2xOutBit_inst38_O,Mux2xOutBit_inst37_O,Mux2xOutBit_inst36_O,Mux2xOutBit_inst35_O,Mux2xOutBit_inst34_O,Mux2xOutBit_inst33_O,Mux2xOutBit_inst32_O,Mux2xOutBit_inst31_O,Mux2xOutBit_inst30_O,Mux2xOutBit_inst29_O,Mux2xOutBit_inst28_O,Mux2xOutBit_inst27_O,Mux2xOutBit_inst26_O,Mux2xOutBit_inst25_O,Mux2xOutBit_inst24_O,Mux2xOutBit_inst23_O,Mux2xOutBit_inst22_O,Mux2xOutBit_inst21_O,Mux2xOutBit_inst20_O,Mux2xOutBit_inst19_O,Mux2xOutBit_inst18_O,Mux2xOutBit_inst17_O,Mux2xOutBit_inst16_O,Mux2xOutBit_inst15_O,Mux2xOutBit_inst14_O,Mux2xOutBit_inst13_O,Mux2xOutBit_inst12_O,Mux2xOutBit_inst11_O,Mux2xOutBit_inst10_O,Mux2xOutBit_inst9_O,Mux2xOutBit_inst8_O,Mux2xOutBit_inst7_O,Mux2xOutBit_inst6_O,Mux2xOutBit_inst5_O,Mux2xOutBit_inst4_O,Mux2xOutBit_inst3_O,Mux2xOutBit_inst2_O,Mux2xOutBit_inst1_O,Mux2xOutBit_inst0_O};
+assign Register_inst0_I = {Mux2xBit_inst63_O,Mux2xBit_inst62_O,Mux2xBit_inst61_O,Mux2xBit_inst60_O,Mux2xBit_inst59_O,Mux2xBit_inst58_O,Mux2xBit_inst57_O,Mux2xBit_inst56_O,Mux2xBit_inst55_O,Mux2xBit_inst54_O,Mux2xBit_inst53_O,Mux2xBit_inst52_O,Mux2xBit_inst51_O,Mux2xBit_inst50_O,Mux2xBit_inst49_O,Mux2xBit_inst48_O,Mux2xBit_inst47_O,Mux2xBit_inst46_O,Mux2xBit_inst45_O,Mux2xBit_inst44_O,Mux2xBit_inst43_O,Mux2xBit_inst42_O,Mux2xBit_inst41_O,Mux2xBit_inst40_O,Mux2xBit_inst39_O,Mux2xBit_inst38_O,Mux2xBit_inst37_O,Mux2xBit_inst36_O,Mux2xBit_inst35_O,Mux2xBit_inst34_O,Mux2xBit_inst33_O,Mux2xBit_inst32_O,Mux2xBit_inst31_O,Mux2xBit_inst30_O,Mux2xBit_inst29_O,Mux2xBit_inst28_O,Mux2xBit_inst27_O,Mux2xBit_inst26_O,Mux2xBit_inst25_O,Mux2xBit_inst24_O,Mux2xBit_inst23_O,Mux2xBit_inst22_O,Mux2xBit_inst21_O,Mux2xBit_inst20_O,Mux2xBit_inst19_O,Mux2xBit_inst18_O,Mux2xBit_inst17_O,Mux2xBit_inst16_O,Mux2xBit_inst15_O,Mux2xBit_inst14_O,Mux2xBit_inst13_O,Mux2xBit_inst12_O,Mux2xBit_inst11_O,Mux2xBit_inst10_O,Mux2xBit_inst9_O,Mux2xBit_inst8_O,Mux2xBit_inst7_O,Mux2xBit_inst6_O,Mux2xBit_inst5_O,Mux2xBit_inst4_O,Mux2xBit_inst3_O,Mux2xBit_inst2_O,Mux2xBit_inst1_O,Mux2xBit_inst0_O};
 Register Register_inst0 (
     .I(Register_inst0_I),
     .O(Register_inst0_O),

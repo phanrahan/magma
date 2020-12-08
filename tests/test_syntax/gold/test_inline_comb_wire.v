@@ -34,7 +34,7 @@ coreir_reg #(
 assign O = reg_P_inst0_out[0];
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -57,16 +57,16 @@ module Main (
     output O,
     input CLK
 );
-wire Mux2xOutBit_inst0_O;
+wire Mux2xBit_inst0_O;
 wire magma_Bit_not_inst0_out;
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(O),
     .I1(magma_Bit_not_inst0_out),
     .S(invert),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
 Register Register_inst0 (
-    .I(Mux2xOutBit_inst0_O),
+    .I(Mux2xBit_inst0_O),
     .O(O),
     .CLK(CLK)
 );
