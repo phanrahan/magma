@@ -17,7 +17,6 @@ from magma.clock import (AbstractReset,
                          AsyncReset, AsyncResetN, Clock, get_reset_args)
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
-from magma.wireable import wireable
 
 
 class _CoreIRRegister(Generator2):
@@ -124,7 +123,7 @@ def _check_init_T(init, T):
         if len(init_T) > 1:
             return False
         return True
-    return wireable(init_T, T)
+    return init_T.is_wireable(T)
 
 
 class Register(Generator2):

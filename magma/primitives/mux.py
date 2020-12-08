@@ -11,7 +11,6 @@ from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out, Direction
 from magma.tuple import Product, Tuple
 from magma.conversions import tuple_
-from magma.wireable import wireable
 
 
 class CoreIRCommonLibMuxN(Generator2):
