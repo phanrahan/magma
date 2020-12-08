@@ -23,6 +23,8 @@ from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
 from magma.generator import Generator2
+from magma.wire_container import WiringLog
+from magma.debug import debug_wire
 
 
 def _error_handler(fn):
@@ -587,6 +589,16 @@ class Int(Bits):
 class UInt(Int):
     hwtypes_T = ht.UIntVector
 
+    @debug_wire
+    def wire(self, other, debug_info=None):
+        if isinstance(other, SInt):
+            _logger.error(
+                WiringLog("Cannot wire {} (UInt) to {} (SInt)", self, other),
+                debug_info=debug_info
+            )
+            return
+        return super().wire(other, debug_info)
+
     def __repr__(self):
         if not self.name.anon():
             return super().__repr__()
@@ -626,6 +638,16 @@ class UInt(Int):
 
 class SInt(Int):
     hwtypes_T = ht.SIntVector
+
+    @debug_wire
+    def wire(self, other, debug_info=None):
+        if isinstance(other, UInt):
+            _logger.error(
+                WiringLog("Cannot wire {} (SInt) to {} (UInt)", self, other),
+                debug_info=debug_info
+            )
+            return
+        return super().wire(other, debug_info)
 
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], Array) and \
