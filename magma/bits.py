@@ -108,6 +108,13 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             name = f"InOut({name})"
         return name
 
+    def is_wireable(cls, rhs):
+        if issubclass(cls, UInt) and issubclass(rhs, SInt):
+            return False
+        elif issubclass(cls, SInt) and issubclass(rhs, UInt):
+            return False
+        return super().is_wireable(rhs)
+
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__

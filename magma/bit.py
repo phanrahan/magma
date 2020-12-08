@@ -169,8 +169,9 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
                         break
                 except AttributeError:
                     pass
-                raise TypeError("ite expects same type for both branches: "
-                                f"{t_type} != {f_type}")
+                raise TypeError(
+                    "ite expects wireable types for both branches: "
+                    f"{t_type} is not wireable to {f_type}")
 
         if self.const():
             if self is type(self).VCC:

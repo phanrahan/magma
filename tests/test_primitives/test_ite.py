@@ -9,5 +9,6 @@ def test_ite_signed_unsigned():
         with pytest.raises(TypeError) as e:
             io.s.ite(io.a, io.b)
 
-        assert str(e.value) == ("Found incompatible types SInt[16] and UInt[16]"
-                                " in mux inference")
+        assert str(e.value) == (
+            "ite expects wireable types for both branches: Out(SInt[16]) is not"
+            " wireable to Out(UInt[16])")

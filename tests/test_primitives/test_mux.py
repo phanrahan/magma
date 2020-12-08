@@ -309,3 +309,15 @@ def test_mux_intv_bits(ht_T):
     class Main(m.Circuit):
         O = m.mux([ht_T[4](1), m.Bits[4](2)], m.Bit())
         assert type(O) is m.Out(m.Bits[4])
+
+
+def test_mux_signed_unsigned():
+    class Main(m.Circuit):
+        io = m.IO(a=m.In(m.SInt[16]), b=m.In(m.UInt[16]), s=m.In(m.Bit))
+
+        with pytest.raises(TypeError) as e:
+            m.mux([io.a, io.b], io.s)
+
+        assert str(e.value) == (
+            "Found incompatible types UInt[16] and SInt[16] in mux inference"
+        )

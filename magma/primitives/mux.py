@@ -108,7 +108,7 @@ def _infer_mux_type(args):
             if issubclass(T, next_T):
                 # upcast
                 T = next_T
-            elif not wireable(next_T, T):
+            elif not next_T.is_wireable(T):
                 raise TypeError(
                     f"Found incompatible types {next_T} and {T} in mux"
                     " inference"
