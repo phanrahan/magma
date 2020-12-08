@@ -4,14 +4,7 @@ import functools
 import weakref
 from .circuit import DefineCircuitKind, Circuit
 from . import cache_definition
-
-
-class ParamDict(dict):
-    """
-    Hashable dictionary for simple key: value parameters
-    """
-    def __hash__(self):
-        return hash(tuple(sorted(self.items())))
+from magma.common import ParamDict
 
 
 class GeneratorMeta(type):
