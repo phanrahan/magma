@@ -21,7 +21,7 @@ class ReadyValidKind(ProductKind):
                 f"{cls}[T] expected T to be a subclass of m.Type or"
                 f" m.MagmaProtocol not {T}"
             )
-        undirected_T = T.undirected_t()
+        undirected_T = T.undirected_t
         if undirected_T is not T:
             _logger.warning(
                 f"Type {T} used with ReadyValid is not undirected, converting"
@@ -250,7 +250,7 @@ class IrrevocableProducer(ReadyValidProducer, Irrevocable):
 
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        undirected_T = T.data.undirected_t()
+        undirected_T = T.data.undirected_t
     if issubclass(T, Irrevocable):
         return IrrevocableConsumer[undirected_T]
     if issubclass(T, Decoupled):
@@ -262,7 +262,7 @@ def Consumer(T: ReadyValidKind):
 
 def Producer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        undirected_T = T.data.undirected_t()
+        undirected_T = T.data.undirected_t
     if issubclass(T, Irrevocable):
         return IrrevocableProducer[undirected_T]
     if issubclass(T, Decoupled):
