@@ -201,7 +201,7 @@ class Register(Generator2):
 
         I = getattr(self.io, I_name)
         if has_reset:
-            reset_select = self.io.RESET
+            reset_select = bit(self.io.RESET)
         elif has_resetn:
             reset_select = ~bit(self.io.RESETN)
         if has_enable:

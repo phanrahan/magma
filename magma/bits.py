@@ -109,6 +109,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         return name
 
     def is_wireable(cls, rhs):
+        if issubclass(rhs, (int, BitVector)):
+            return True
         if issubclass(cls, UInt) and issubclass(rhs, SInt):
             return False
         elif issubclass(cls, SInt) and issubclass(rhs, UInt):
@@ -596,16 +598,6 @@ class Int(Bits):
 class UInt(Int):
     hwtypes_T = ht.UIntVector
 
-    @debug_wire
-    def wire(self, other, debug_info=None):
-        if isinstance(other, SInt):
-            _logger.error(
-                WiringLog("Cannot wire {} (UInt) to {} (SInt)", self, other),
-                debug_info=debug_info
-            )
-            return
-        return super().wire(other, debug_info)
-
     def __repr__(self):
         if not self.name.anon():
             return super().__repr__()
@@ -645,16 +637,6 @@ class UInt(Int):
 
 class SInt(Int):
     hwtypes_T = ht.SIntVector
-
-    @debug_wire
-    def wire(self, other, debug_info=None):
-        if isinstance(other, UInt):
-            _logger.error(
-                WiringLog("Cannot wire {} (SInt) to {} (UInt)", self, other),
-                debug_info=debug_info
-            )
-            return
-        return super().wire(other, debug_info)
 
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], Array) and \

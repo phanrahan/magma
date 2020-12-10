@@ -52,5 +52,15 @@ def wire(o, i, debug_info=None):
             # Flip i and o.
             i, o = o, i
 
+    i_T, o_T = type(i), type(o)
+    if not i_T.is_wireable(o_T):
+        _logger.error(
+            WiringLog(f"Cannot wire {{}} ({o_T}) to {{}} ({i_T})",
+                      o, i),
+            debug_info=debug_info
+        )
+        return
+
+
     # Wire(o, Type).
     i.wire(o, debug_info)

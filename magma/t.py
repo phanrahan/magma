@@ -4,6 +4,7 @@ from magma.common import deprecated
 from magma.compatibility import IntegerTypes, StringTypes
 from magma.ref import AnonRef, NamedRef, DefnRef, InstRef
 from magma.protocol_type import magma_value
+from magma.wire import wire
 
 
 class Direction(enum.Enum):
@@ -100,15 +101,14 @@ class Type(object):
             raise TypeError(f"Cannot use <= to assign to output: "
                             f"{self.debug_name} (trying to assign "
                             f"{other.debug_name})")
-        other = magma_value(other)
-        self.wire(other)
+        wire(other, self)
 
     def __imatmul__(self, other):
         other = magma_value(other)
         if self.is_output():
             raise TypeError(f"Cannot use @= to assign to output: {self} "
                             f"(trying to assign {other})")
-        self.wire(other)
+        wire(other, self)
         return self
 
     @abc.abstractmethod

@@ -130,9 +130,11 @@ class DigitalMeta(ABCMeta, Kind):
         return isinstance(rhs, DigitalMeta)
 
     def is_wireable(cls, rhs):
+        if issubclass(rhs, (bool, int, ht.Bit)):
+            return True
         rhs = magma_type(rhs)
         # allows undirected types to match (e.g. for temporary values)
-        return (cls is rhs or
+        return (issubclass(rhs.flip(), cls) or issubclass(cls, rhs.flip()) or
                 cls.qualify(Direction.Undirected) is rhs or
                 rhs.qualify(Direction.Undirected) is cls)
 

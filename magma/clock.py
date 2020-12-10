@@ -20,15 +20,14 @@ class _ClockType(Digital):
     def undriven(self):
         Bit.undriven(self)
 
-    @debug_wire
-    def wire(self, other, debug_info=None):
+    @classmethod
+    def is_wireable(cls, other):
         # Wiring requires strict subclasses
         # Note: we use the standard wiring logic to enforce directionality,
         # so we just check with the undirected type here
-        if not isinstance(other, type(self).qualify(Direction.Undirected)):
-            raise TypeError(f"Cannot wire {other} (T={type(other)}) to {self}"
-                            f" (T={type(self)})")
-        return super().wire(other, debug_info)
+        if not issubclass(other, cls.qualify(Direction.Undirected)):
+            return False
+        return True
 
 
 class Clock(_ClockType, metaclass=DigitalMeta):

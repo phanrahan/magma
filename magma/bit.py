@@ -20,6 +20,7 @@ from magma.debug import debug_wire
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
+from magma.protocol_type import magma_type
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -144,44 +145,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             if not len(t_branch) == len(f_branch):
                 raise TypeError("Bit.ite of two lists expects the same length")
             return [self.ite(x, y) for x, y in zip(t_branch, f_branch)]
-        t_type = type(t_branch)
-        f_type = type(f_branch)
-
-        # Implicit int/bv conversion
-        if (issubclass(t_type, _IMPLICITLY_COERCED_ITE_TYPES) and
-                not issubclass(f_type, _IMPLICITLY_COERCED_ITE_TYPES)):
-            t_branch = f_type(t_branch)
-            t_type = f_type
-        if (not issubclass(t_type, _IMPLICITLY_COERCED_ITE_TYPES) and
-                issubclass(f_type, _IMPLICITLY_COERCED_ITE_TYPES)):
-            f_branch = t_type(f_branch)
-            f_type = t_type
-
-        # allows undirected types to match (e.g. for temporary values)
-        if (t_type is not f_type and
-                t_type.qualify(Direction.Undirected) is not f_type and
-                f_type.qualify(Direction.Undirected) is not t_type):
-            while True:
-                try:
-                    if t_type.is_wireable(f_type):
-                        break
-                except AttributeError:
-                    pass
-                try:
-                    if f_type.is_wireable(t_type):
-                        break
-                except AttributeError:
-                    pass
-                raise TypeError(
-                    "ite expects wireable types for both branches: "
-                    f"{t_type} is not wireable to {f_type}")
 
         if self.const():
             if self is type(self).VCC:
                 return t_branch
             assert self is type(self).GND
             return f_branch
-        if issubclass(t_type, tuple):
+        if isinstance(t_branch, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # Note: coreir flips t/f cases
         # self._mux monkey patched in magma/primitives/mux.py to avoid circular
