@@ -9,8 +9,13 @@ class WiringLog:
         self.tpl = tpl
         self.bits = bits
 
+    def get_debug_name(self, bit):
+        if isinstance(bit, int):
+            return bit
+        return bit.debug_name
+
     def __str__(self):
-        bits = [bit.debug_name for bit in self.bits]
+        bits = [self.get_debug_name(bit) for bit in self.bits]
         return self.tpl.format(*bits)
 
 
