@@ -164,6 +164,10 @@ class Kind(type):
     def undirected_t(cls):
         return cls.qualify(Direction.Undirected)
 
+    @property
+    def is_directed(cls):
+        return cls is not cls.qualify(Direction.Undirected)
+
 
 def In(T):
     return T.qualify(Direction.In)

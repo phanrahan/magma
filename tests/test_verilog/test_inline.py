@@ -1,6 +1,7 @@
 import magma as m
 import magma.testing
 import pytest
+import os
 
 
 def test_inline_verilog():
@@ -111,3 +112,40 @@ assign O[{i}] = {i};
     assert m.testing.check_files_equal(__file__,
                                        f"build/test_inline_loop_var.v",
                                        f"gold/test_inline_loop_var.v")
+
+
+def test_clock_inline_verilog():
+    class ClockT(m.Product):
+        clk = m.Out(m.Clock)
+        resetn = m.Out(m.AsyncResetN)
+
+    class Bar(m.Circuit):
+        io = m.IO(clks=ClockT)
+
+    class Foo(m.Circuit):
+        io = m.IO(clks=m.Flip(ClockT))
+
+        bar = Bar()
+        # Since clk is coming from another instance, it is an output Without
+        # changing the type to undirected for the temporary signal, we'll get a
+        # coreir error:
+        #   ERROR: WireOut(Clock) 7 is not a valid coreIR name!. Needs to be =
+        #   ^[a-zA-Z_\-\$][a-zA-Z0-9_\-\$]*
+        clk = bar.clks.clk
+
+        resetn = m.AsyncResetN()
+        resetn @= bar.clks.resetn
+
+        outputVector = m.Bits[8]()
+        outputVector @= 0xDE
+
+        outputValid = m.Bit()
+        outputValid @= 1
+
+        m.inline_verilog("""
+`ASSERT(ERR_output_vector_onehot_when_valid,
+        {outputValid} |-> $onehot({outputVector}, {clk}, {resetn})
+""")
+
+    # Should not throw a coreir error
+    m.compile("build/Foo", Foo, inline=True)
