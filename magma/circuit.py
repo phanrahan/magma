@@ -181,9 +181,12 @@ def _add_intermediate_value(value):
     `CircuitKind.__repr__`.
     """
     root = value.name.root()
-    if root is None or root.const():
+    # root is either None, or a NamedRef. If it is a NamedRef which refers to a
+    # constant, then we can proceed with the empty set. Otherwise, we seed the
+    # set with the root value.
+    if root is None or root.value().const():
         return OrderedIdentitySet()
-    return OrderedIdentitySet((root,))
+    return OrderedIdentitySet((root.value(),))
 
 
 def _get_intermediate_values(value):
