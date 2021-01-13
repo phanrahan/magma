@@ -48,10 +48,11 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # Default behavior is to perform uniquification, but can be overriden.
     uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 
-    # Steps to process inline verilog generation. Required to be run after uniquification.
+    # Steps to process inline verilog generation. Required to be run after
+    # uniquification.
     ProcessInlineVerilogPass(main).run()
 
-    # Bind after uniquification so the bind logic works on unique modules
+    # Bind after uniquification so the bind logic works on unique modules.
     BindPass(main, compile, opts.get("user_namespace")).run()
 
     if opts.get("drive_undriven", False):
