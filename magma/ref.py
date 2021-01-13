@@ -24,9 +24,6 @@ class Ref:
     def parent(self):
         raise NotImplementedError()
 
-    def verilog_name(self):
-        return self.qualifiedname("_")
-
     def root(self):
         return _get_root(self)
 
@@ -189,9 +186,6 @@ class TupleRef(Ref):
         except ValueError:
             return (self.tuple.name.qualifiedname(sep=sep) +
                     sep + str(self.index))
-
-    def verilog_name(self):
-        return self.tuple.name.verilog_name() + "_" + str(self.index)
 
     def anon(self):
         return self.tuple.name.anon()
