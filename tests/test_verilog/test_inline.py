@@ -1,7 +1,6 @@
 import magma as m
 import magma.testing
 import pytest
-import os
 
 
 def test_inline_verilog():
