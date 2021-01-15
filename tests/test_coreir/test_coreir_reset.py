@@ -5,8 +5,7 @@ import coreir
 def _coreir_context(reset=False) -> coreir.Context:
     if reset:
         m.frontend.coreir_.ResetCoreIR()
-    coreir_singleton = m.backend.coreir_.CoreIRContextSingleton()
-    return coreir_singleton.get_instance()
+    return m.backend.coreir_runtime.coreir_context()
 
 
 def _compile_to_coreir(mcircuit: m.Circuit) -> coreir.Module:
