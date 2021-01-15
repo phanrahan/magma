@@ -421,3 +421,12 @@ def test_wire_error(caplog):
         m.wire(io.I, io.O)
     assert (caplog.messages[0] ==
             "Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))")
+
+
+def test_clock_undriven():
+    class Foo(m.Circuit):
+        io = m.ClockIO()
+
+    class Bar(m.Circuit):
+        foo = Foo()
+        foo.CLK.undriven()
