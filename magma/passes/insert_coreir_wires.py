@@ -23,6 +23,8 @@ def _simulate_wire(self, value_store, state_store):
 
 class Wire(Generator2):
     def __init__(self, T):
+        if T.is_directed:
+            raise TypeError("Wire can only be generated with undirected type")
         if issubclass(T, (AsyncReset, AsyncResetN, Clock)):
             self._gen_named_type_wrapper(T)
             # Standalone return to avoid return-in-init lint warning

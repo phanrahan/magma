@@ -44,7 +44,7 @@ def _make_temporary(defn, value, num, inline_wire_prefix, parent=None):
     with defn.open():
         # Insert a wire so it can't be inlined out
         temp_name = f"{inline_wire_prefix}{num}"
-        temp = Wire(type(value))(name=temp_name)
+        temp = Wire(type(value).undirected_t)(name=temp_name)
         temp.I @= value
     if parent is not None:
         return PortView(temp.O, parent)
