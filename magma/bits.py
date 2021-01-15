@@ -23,6 +23,7 @@ from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
 from magma.generator import Generator2
+from magma.operator_utils import output_only
 
 
 def _error_handler(fn):
@@ -465,10 +466,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def __rrshift__(self, other):
         return type(self)(other) >> self
 
+    @output_only("Cannot use == on an input")
     @_error_handler
     def __eq__(self, other):
         return self.bveq(other)
 
+    @output_only("Cannot use != on an input")
     @_error_handler
     def __ne__(self, other):
         return self.bvne(other)

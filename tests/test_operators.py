@@ -72,3 +72,14 @@ def test_assign_error_1(width):
                 TypeError,
                 match=rf"Cannot use @= to assign to output: a \(trying to assign O\)"):  # noqa
             io.a @= and2.O
+
+
+@pytest.mark.parametrize('T', [m.Bit, m.Array[5, m.Bit], m.Bits[5],
+                               m.Tuple[m.Bit, m.Bits[5]]])
+def test_eq_neq_input(T):
+    class Foo(m.Circuit):
+        io = m.IO(O=m.Out(T))
+        with pytest.raises(TypeError, match="Cannot use == on an input"):
+            io.O == 1
+        with pytest.raises(TypeError, match="Cannot use != on an input"):
+            io.O != 1
