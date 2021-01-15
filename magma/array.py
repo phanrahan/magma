@@ -13,6 +13,7 @@ from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
+from magma.operator_utils import output_only
 from magma.wire_container import WiringLog
 from magma.protocol_type import MagmaProtocol
 
@@ -300,10 +301,15 @@ class Array(Type, metaclass=ArrayMeta):
     def isoriented(cls, direction):
         return cls.is_oriented(direction)
 
+    @output_only("Cannot use == on an input")
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
             return False
         return self.ts == rhs.ts
+
+    @output_only("Cannot use != on an input")
+    def __ne__(self, rhs):
+        return ~(self == rhs)
 
     __hash__ = Type.__hash__
 

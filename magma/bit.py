@@ -21,6 +21,7 @@ from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.protocol_type import magma_type
+from magma.operator_utils import output_only
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -119,11 +120,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return self.declare_unary_op("not")()(self)
 
     @bit_cast
+    @output_only("Cannot use == on an input")
     def __eq__(self, other):
         # CoreIR doesn't define an eq primitive for bits
         return ~(self ^ other)
 
     @bit_cast
+    @output_only("Cannot use != on an input")
     def __ne__(self, other):
         # CoreIR doesn't define an ne primitive for bits
         return self ^ other
