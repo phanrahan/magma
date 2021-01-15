@@ -61,6 +61,5 @@ def wire(o, i, debug_info=None):
         )
         return
 
-
     # Wire(o, Type).
     i.wire(o, debug_info)
