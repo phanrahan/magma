@@ -15,7 +15,7 @@ def test_compile_coreir():
         output = m.concat(io.I[shift_amount:width], m.bits(0, shift_amount))
         m.wire(output, io.O)
 
-    coreir_double = m.backend.coreir_.compile(double)
+    coreir_double = m.backend.coreir.coreir_backend.compile(double)
     c = coreir_double.context
 
     def get_lib(lib):

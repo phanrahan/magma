@@ -3,7 +3,7 @@ import string
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 from magma.circuit import _definition_context_stack, Circuit, IO
 from magma.passes.passes import CircuitPass
-from magma.passes.insert_coreir_wires import Wire
+from magma.primitives.wire import Wire
 from magma.t import Type, Direction, In
 from magma.view import PortView, InstView
 from magma.digital import Digital

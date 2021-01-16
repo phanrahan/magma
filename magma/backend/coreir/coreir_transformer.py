@@ -3,22 +3,21 @@ from copy import copy
 import json
 import logging
 import os
-from ..digital import Digital
-from ..array import Array
-from ..bits import Bits
+from magma.digital import Digital
+from magma.array import Array
+from magma.bits import Bits
 from coreir import Wireable
-from .coreir_utils import (attach_debug_info, check_magma_interface,
-                           constant_to_value, get_inst_args,
-                           get_module_of_inst,
-                           magma_interface_to_coreir_module_type,
-                           magma_port_to_coreir_port, make_cparams, map_genarg,
-                           magma_name_to_coreir_select, Slice)
-from ..interface import InterfaceKind
-from ..is_definition import isdefinition
-from ..logging import root_logger
-from ..passes import InstanceGraphPass
-from ..tuple import Tuple
-from .util import get_codegen_debug_info
+from magma.backend.coreir.coreir_utils import (
+    attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
+    get_module_of_inst, magma_interface_to_coreir_module_type,
+    magma_port_to_coreir_port, make_cparams, map_genarg,
+    magma_name_to_coreir_select, Slice)
+from magma.interface import InterfaceKind
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes import InstanceGraphPass
+from magma.tuple import Tuple
+from magma.backend.util import get_codegen_debug_info
 from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
                          get_default_clocks)
 from magma.config import get_debug_mode
@@ -27,7 +26,7 @@ from magma.ref import PortViewRef, ArrayRef
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
-# already been done in backend/coreir_.py.
+# already been done in backend/coreir/coreir_backend.py.
 _logger = root_logger().getChild("coreir_backend")
 
 

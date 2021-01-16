@@ -1,13 +1,13 @@
 import os
 import subprocess
-from .coreir_ import InsertWrapCasts
-from ..compiler import Compiler
-from ..frontend import coreir_ as coreir_frontend
-from ..is_definition import isdefinition
-from ..passes import InstanceGraphPass
-from ..passes.insert_coreir_wires import InsertCoreIRWires
-from ..logging import root_logger
+from magma.compiler import Compiler
 from magma.config import EnvConfig, config
+from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
+from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
+from magma.frontend import coreir_ as coreir_frontend
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes import InstanceGraphPass
 
 
 _logger = root_logger()
@@ -64,8 +64,8 @@ class CoreIRCompiler(Compiler):
 
     def compile(self):
         result = {}
-        InsertCoreIRWires(self.main).run()
-        InsertWrapCasts(self.main).run()
+        insert_coreir_wires(self.main)
+        insert_wrap_casts(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
         backend.compile(self.main, opts)

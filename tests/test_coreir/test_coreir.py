@@ -1,6 +1,6 @@
 from magma.frontend.coreir_ import GetCoreIRModule
-from magma.backend.coreir_utils import check_magma_interface
-from magma.backend.coreir_ import CoreIRBackend
+from magma.backend.coreir.coreir_utils import check_magma_interface
+from magma.backend.coreir.coreir_backend import CoreIRBackend
 from magma.t import Type, Kind
 from magma import *
 import magma
@@ -16,7 +16,7 @@ def test_check_interface_bit():
         name = "TestCircuit0"
         io = IO(I=In(Bit), O=Out(Bit))
         wire(io.I, io.O)
-    backend = magma.backend.coreir_.CoreIRBackend()
+    backend = magma.backend.coreir.coreir_backend.CoreIRBackend()
     check_magma_interface(TestCircuit0.interface)
 
 
@@ -28,7 +28,7 @@ def test_check_interface_array():
         name = "TestCircuit1"
         io = IO(I=In(Array[8, Bit]), O=Out(Array[8, Bit]))
         wire(io.I, io.O)
-    backend = magma.backend.coreir_.CoreIRBackend()
+    backend = magma.backend.coreir.coreir_backend.CoreIRBackend()
     check_magma_interface(TestCircuit1.interface)
 
 
@@ -45,7 +45,7 @@ def test_check_interface_tuple():
         name = "TestCircuit2"
         io = IO(I=In(T), O=Out(T))
         wire(io.I, io.O)
-    backend = magma.backend.coreir_.CoreIRBackend()
+    backend = magma.backend.coreir.coreir_backend.CoreIRBackend()
     check_magma_interface(TestCircuit2.interface)
 
 
