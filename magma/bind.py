@@ -5,7 +5,7 @@ from magma.array import Array
 from magma.config import get_compile_dir, set_compile_dir
 from magma.digital import Digital
 from magma.passes.passes import CircuitPass
-from magma.passes.insert_coreir_wires import Wire
+from magma.primitives.wire import Wire
 from magma.tuple import Tuple
 from magma.verilog_utils import value_to_verilog_name, is_nd_array
 from magma.t import Direction

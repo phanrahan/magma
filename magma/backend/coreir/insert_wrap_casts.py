@@ -1,56 +1,12 @@
-from magma.backend.coreir_runtime import coreir_context, module_map
-from ..array import Array
-from ..tuple import Tuple
-from ..clock import AsyncReset, AsyncResetN, Clock
-from ..conversions import convertbit
-from ..config import config, EnvConfig
-from ..logging import root_logger
-from ..t import In, Out, Direction
-from ..circuit import Circuit
-from ..interface import IO
-from .coreir_transformer import DefnOrDeclTransformer
-from ..passes import DefinitionPass
-from .util import keydefaultdict
-from ..wire import wire
-
-
-config._register(
-    coreir_backend_log_level=EnvConfig(
-        "MAGMA_COREIR_BACKEND_LOG_LEVEL", "WARN"),
-)
-
-_logger = root_logger().getChild("coreir_backend")
-_logger.setLevel(config.coreir_backend_log_level)
-
-
-class CoreIRBackend:
-    def __init__(self, context=None):
-        self._init(context)
-
-    def _init(self, context):
-        singleton = coreir_context()
-        if context is None:
-            context = singleton
-        elif context is not singleton:
-            _logger.warning("Creating CoreIR backend with non-singleton CoreIR "
-                            "context.")
-        self.modules = module_map().setdefault(context, {})
-        self.context = context
-        self.libs = keydefaultdict(self.context.get_lib)
-        self.libs_used = set()
-        self.constant_cache = {}
-        self.sv_bind_files = {}
-
-    def reset(self):
-        self._init(context=None)
-
-    def compile(self, defn_or_decl, opts=None):
-        _logger.debug(f"Compiling: {defn_or_decl.name}")
-        opts = opts if opts is not None else {}
-        transformer = DefnOrDeclTransformer(self, opts, defn_or_decl)
-        transformer.run()
-        self.modules[defn_or_decl.name] = transformer.coreir_module
-        return self.modules
+from magma.array import Array
+from magma.circuit import Circuit
+from magma.clock import AsyncReset, AsyncResetN, Clock
+from magma.conversions import convertbit
+from magma.interface import IO
+from magma.passes import DefinitionPass, pass_lambda
+from magma.t import In, Out, Direction
+from magma.tuple import Tuple
+from magma.wire import wire
 
 
 class InsertWrapCasts(DefinitionPass):
@@ -122,11 +78,4 @@ class InsertWrapCasts(DefinitionPass):
             self.wrap_if_named_type(port, definition)
 
 
-def compile(main, file_name=None, context=None):
-    InsertWrapCasts(main).run()
-    backend = CoreIRBackend(context)
-    backend.compile(main)
-    if file_name is not None:
-        return backend.modules[main.coreir_name].save_to_file(file_name)
-    else:
-        return backend.modules[main.coreir_name]
+insert_wrap_casts = pass_lambda(InsertWrapCasts)

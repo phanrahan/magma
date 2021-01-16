@@ -5,7 +5,7 @@ import coreir
 def _coreir_context(reset=False) -> coreir.Context:
     if reset:
         m.frontend.coreir_.ResetCoreIR()
-    return m.backend.coreir_runtime.coreir_context()
+    return m.backend.coreir.coreir_runtime.coreir_context()
 
 
 def _compile_to_coreir(mcircuit: m.Circuit) -> coreir.Module:

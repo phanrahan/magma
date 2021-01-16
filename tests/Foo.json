@@ -1,0 +1,24 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["bus_in",["Record",[["data",["Array",32,"BitIn"]],["addr",["Array",32,"BitIn"]]]]],
+          ["data_out",["Array",32,"Bit"]]
+        ]],
+        "instances":{
+          "const_0_32":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",32]},
+            "modargs":{"value":[["BitVector",32],"32'h00000000"]}
+          }
+        },
+        "connections":[
+          ["self.data_out","const_0_32.out"]
+        ]
+      }
+    }
+  }
+}
+}

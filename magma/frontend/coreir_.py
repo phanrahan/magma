@@ -1,6 +1,7 @@
 from magma import cache_definition
-from magma.backend.coreir_ import CoreIRBackend
-from magma.backend.coreir_runtime import coreir_context, reset_coreir_context
+from magma.backend.coreir.coreir_backend import CoreIRBackend
+from magma.backend.coreir.coreir_runtime import (coreir_context,
+                                                 reset_coreir_context)
 from magma.circuit import DefineCircuitKind, Circuit
 from magma import cache_definition, Clock, Array, BitIn, BitOut, Product
 from coreir.generator import Generator
