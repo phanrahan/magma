@@ -831,3 +831,12 @@ def test_u_ops(op):
     dir_ = os.path.join(os.path.dirname(__file__), "build")
     tester.compile_and_run("verilator", flags=['-Wno-unused'],
                            skip_compile=True, directory=dir_)
+
+
+def test_reset_no_init():
+    Data = m.UInt[8]
+
+    @m.sequential2(reset_type=m.AsyncReset)
+    class Inc:
+        def __call__(self, i: Data) -> Data:
+            return i + 1
