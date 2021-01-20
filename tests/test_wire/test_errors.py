@@ -190,3 +190,15 @@ def test_hanging_anon_error(caplog):
 >>         class _Foo(m.Circuit):"""
         assert caplog.records[0].msg == msg
         assert has_error(caplog, msg)
+
+
+def test_wire_tuple_to_clock():
+    class T(m.Product):
+        a = m.In(m.Clock)
+        b = m.In(m.Clock)
+
+    class Foo(m.Circuit):
+        io = m.IO(I=In(T), O=m.Out(m.Clock))
+        m.wire(io.I, io.O)
+
+    m.compile("build/Foo", Foo)
