@@ -115,10 +115,10 @@ Found unconnected port: Foo.A
 Foo.A: Unconnected\
 """
     assert caplog.messages[0] == """\
-Cannot wire bits(1, 1) (type=Out(Bits[1])) to Foo.A.x (type=In(Bits[2])) because the arrays do not have the same length\
+Cannot wire bits(1, 1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))\
 """
     assert caplog.messages[1] == """\
-Cannot wire bits(2, 3) (type=Out(Bits[3])) to Foo.A.y (type=In(Bits[4])) because the arrays do not have the same length\
+Cannot wire bits(2, 3) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))\
 """
 
 
@@ -139,5 +139,5 @@ Found unconnected port: Foo.A.y
 Foo.A.y: Unconnected\
 """
     assert caplog.messages[0] == """\
-Cannot wire Foo.A.x (type=Out(Bits[4])) to Foo.A.y (type=In(Bits[2])) because the arrays do not have the same length\
+Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))\
 """

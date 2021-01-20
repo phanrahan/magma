@@ -16,7 +16,7 @@ def test_input_as_output(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:17\033[0m: Using `main.O` (an input) as an output
+\033[1mtests/test_wire/test_errors.py:17\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (In(Bit))
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -34,7 +34,7 @@ def test_output_as_input(caplog):
         a = A()
         wire(io.I, a.O)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:35\033[0m: Using `main.a.O` (an output) as an input
+\033[1mtests/test_wire/test_errors.py:35\033[0m: Cannot wire main.I (Out(Bit)) to main.a.O (Out(Bit))
 >>         wire(io.I, a.O)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -165,7 +165,7 @@ def test_const_array_error(caplog):
         wire(buf.O, io.O)
 
     msg = """\
-\033[1mtests/test_wire/test_errors.py:164\033[0m: Cannot wire 1 (type=<class 'int'>) to main.buf.I (type=Array[1, In(Bit)]) because conversions from IntegerTypes are only defined for Bits, not general Arrays
+\033[1mtests/test_wire/test_errors.py:164\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[1, In(Bit)])
 >>         wire(1, buf.I)"""
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)

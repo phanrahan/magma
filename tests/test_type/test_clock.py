@@ -415,9 +415,18 @@ def test_insert_wrap_casts_temporary():
                              f"gold/test_insert_wrap_casts_temporary.v")
 
 
-def test_wire_error():
-    with pytest.raises(TypeError) as e:
-        class Foo(m.Circuit):
-            io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
-            m.wire(io.I, io.O)
-    assert str(e.value) == "Cannot wire I (T=Out(Clock)) to O (T=In(Reset))"
+def test_wire_error(caplog):
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
+        m.wire(io.I, io.O)
+    assert (caplog.messages[0] ==
+            "Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))")
+
+
+def test_clock_undriven():
+    class Foo(m.Circuit):
+        io = m.ClockIO()
+
+    class Bar(m.Circuit):
+        foo = Foo()
+        foo.CLK.undriven()

@@ -15,7 +15,6 @@ from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit
 from .array import Array, ArrayMeta
-from .debug import debug_wire
 from .t import Type, Direction, In, Out
 from magma.circuit import Circuit, coreir_port_mapping, IO
 from magma.family import get_family
@@ -23,6 +22,7 @@ from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.logging import root_logger
 from magma.generator import Generator2
+from magma.debug import debug_wire
 from magma.operator_utils import output_only
 
 
@@ -106,6 +106,15 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         elif cls.is_output():
             name = f"InOut({name})"
         return name
+
+    def is_wireable(cls, rhs):
+        if issubclass(rhs, (int, BitVector)):
+            return True
+        if issubclass(cls, UInt) and issubclass(rhs, SInt):
+            return False
+        elif issubclass(cls, SInt) and issubclass(rhs, UInt):
+            return False
+        return super().is_wireable(rhs)
 
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):

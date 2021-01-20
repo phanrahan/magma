@@ -425,7 +425,8 @@ def test_sequential2_ite_array2():
 
 
 def test_sequential2_ite_array_error():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -476,7 +477,8 @@ def test_sequential2_ite_tuple2():
 
 
 def test_sequential2_ite_tuple_error_type():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -527,7 +529,8 @@ def test_sequential2_ite_product2():
 
 
 def test_sequential2_ite_product_error_type():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -542,7 +545,8 @@ def test_sequential2_ite_product_error_type():
 
 
 def test_sequential2_ite_product_error_keys():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
