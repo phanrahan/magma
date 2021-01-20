@@ -327,14 +327,14 @@ class _UpdateRegister(Pass):
         self.has_enable = has_enable
         self.reset_priority = reset_priority
 
-    def _get_or_add_magma_module(self, env: SymbolTable):
+    def _get_or_add_magma_module(self, tree: ast.AST, env: SymbolTable):
         magma_id = None
         for k, v in env.items():
             if v is magma_module:
                 magma_id = k
                 break
         if magma_id is None:
-            magma_id = gen_free_name(env)
+            magma_id = gen_free_name(tree, env)
             env[magma_id] = magma_module
         return env, magma_id
 
@@ -342,7 +342,7 @@ class _UpdateRegister(Pass):
         self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
     ) -> PASS_ARGS_T:
 
-        env, magma_id = self._get_or_add_magma_module(env)
+        env, magma_id = self._get_or_add_magma_module(tree, env)
         updater = _RegisterUpdater(env, self.reset_type,
                                    self.has_enable, self.reset_priority,
                                    magma_id)
