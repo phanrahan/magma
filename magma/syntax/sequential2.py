@@ -333,7 +333,7 @@ class _UpdateRegister(Pass):
             if v is magma_module:
                 magma_id = k
                 break
-        if not magma_id is None:
+        if magma_id is None:
             magma_id = gen_free_name(env)
             env[magma_id] = magma_module
         return env, magma_id
