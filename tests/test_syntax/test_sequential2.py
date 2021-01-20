@@ -13,6 +13,8 @@ import magma as m
 from test_sequential import Register, DualClockRAM
 from magma.testing import check_files_equal
 
+from ast_tools import SymbolTable
+
 
 def test_sequential2_basic():
     @m.sequential2()
@@ -842,5 +844,19 @@ def test_reset_no_init():
 
     @m.sequential2(reset_type=m.AsyncReset)
     class Inc:
+        def __call__(self, i: Data) -> Data:
+            return i + 1
+
+
+def test_magma_not_in_env():
+
+    Data = m.UInt[8]
+    env = SymbolTable({}, {'Data': Data})
+
+    @m.sequential2(env=env, reset_type=m.AsyncReset)
+    class Inc:
+        def __init__(self):
+            pass
+
         def __call__(self, i: Data) -> Data:
             return i + 1
