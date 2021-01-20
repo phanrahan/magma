@@ -409,9 +409,11 @@ def sequential2(pre_passes=[], post_passes=[],
         if reset_type:
             update_register = _UpdateRegister(reset_type,
                                               has_enable, reset_priority)
-            cls.__init__ = apply_ast_passes(passes=[update_register],
-                                            debug=debug, env=env, path=path,
-                                            file_name=file_name)(cls.__init__)
+            if cls.__init__ is not object.__init__:
+                cls.__init__ = apply_ast_passes(
+                    passes=[update_register], debug=debug, env=env, path=path,
+                    file_name=file_name
+                )(cls.__init__)
 
         cls.__call__ = apply_ast_passes(passes, debug=debug, env=env,
                                         path=path,
