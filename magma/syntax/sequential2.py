@@ -5,6 +5,7 @@ from typing import Optional, MutableMapping
 from ast_tools.stack import SymbolTable
 from ast_tools.passes import (PASS_ARGS_T, Pass, apply_ast_passes, ssa,
                               if_to_phi, bool_to_bit)
+from ast_tools.common import gen_free_name
 
 from ..circuit import Circuit, IO
 from ..clock import AbstractReset
@@ -276,15 +277,8 @@ def _seq_phi(s, t, f):
 
 class _RegisterUpdater(ast.NodeTransformer):
     """Update m.Register params implicitly"""
-    def __init__(self, env, reset_type, has_enable, reset_priority):
+    def __init__(self, env, reset_type, has_enable, reset_priority, magma_id):
         self.env = env
-
-        for k, v in env.items():
-            if v is magma_module:
-                magma_id = k
-                break
-        if not magma_id:
-            raise Exception("Cannot find magma module")
 
         self.reset_type = ast.keyword(
             arg="reset_type",
@@ -333,11 +327,25 @@ class _UpdateRegister(Pass):
         self.has_enable = has_enable
         self.reset_priority = reset_priority
 
+    def _get_or_add_magma_module(self, env: SymbolTable):
+        magma_id = None
+        for k, v in env.items():
+            if v is magma_module:
+                magma_id = k
+                break
+        if not magma_id is None:
+            magma_id = gen_free_name(env)
+            env[magma_id] = magma_module
+        return env, magma_id
+
     def rewrite(
         self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
     ) -> PASS_ARGS_T:
+
+        env, magma_id = self._get_or_add_magma_module(env)
         updater = _RegisterUpdater(env, self.reset_type,
-                                   self.has_enable, self.reset_priority)
+                                   self.has_enable, self.reset_priority,
+                                   magma_id)
         return updater.visit(tree), env, metadata
 
 
