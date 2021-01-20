@@ -335,7 +335,7 @@ class _UpdateRegister(Pass):
                 break
         if magma_id is None:
             magma_id = gen_free_name(tree, env)
-            env[magma_id] = magma_module
+            env.locals[magma_id] = magma_module
         return env, magma_id
 
     def rewrite(
