@@ -28,10 +28,14 @@ def is_generator(name):
 
     setattr(module_obj, "is_" + to_snake_case(name), f)
 
-
-for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if
-          m[1].__module__ == '_ast'):
-    is_generator(x)
+if sys.version_info < (3, 9):
+    for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if
+              m[1].__module__ == '_ast'):
+        is_generator(x)
+else:
+    for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if
+              m[1].__module__ == 'ast'):
+        is_generator(x)
 
 
 def get_width(node, width_table, defn_env={}):
