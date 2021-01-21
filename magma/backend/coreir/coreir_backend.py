@@ -1,5 +1,5 @@
 from magma.config import config, EnvConfig
-from magma.backend.coreir.coreir_runtime import coreir_context, module_map
+from magma.backend.coreir.coreir_runtime import coreir_context, compiler_cache
 from magma.backend.coreir.coreir_transformer import DefnOrDeclTransformer
 from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
 from magma.logging import root_logger
@@ -25,18 +25,14 @@ class CoreIRBackend:
         if context is not singleton:
             _logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
                             "context.")
-        self._modules = module_map().setdefault(context, {})
         self._context = context
         self._lib_cache = {}
         self._included_libs = set()
         self._bound_modules = {}
 
-    def add_module(self, magma_module, coreir_module):
-        self._modules[magma_module.coreir_name] = coreir_module
-
-    def get_module(self, magma_module):
-        # NOTE(rsetaluri): Throws KeyError if @magma_module has not been added.
-        return self._modules[magma_module.coreir_name]
+    @property
+    def context(self):
+        return self._context
 
     def include_lib_or_libs(self, lib_or_libs):
         try:
@@ -60,10 +56,6 @@ class CoreIRBackend:
     def bound_modules(self):
         return self._bound_modules.copy()
 
-    @property
-    def context(self):
-        return self._context
-
     def reset(self):
         self._init(context=None)
 
@@ -72,13 +64,13 @@ class CoreIRBackend:
         opts = opts if opts is not None else {}
         transformer = DefnOrDeclTransformer(self, opts, defn_or_decl)
         transformer.run()
-        return self._modules
+        return transformer.coreir_module
 
 
 def compile(main, file_name=None, context=None):
     insert_wrap_casts(main)
     backend = CoreIRBackend(context)
-    backend.compile(main)
+    coreir_module = backend.compile(main)
     if file_name is None:
-        return backend.get_module(main)
-    return backend.get_module(main).save_to_file(file_name)
+        return coreir_module
+    return coreir_module.save_to_file(file_name)

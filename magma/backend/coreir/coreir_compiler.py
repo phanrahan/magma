@@ -1,5 +1,7 @@
+import functools
 import os
 import subprocess
+
 from magma.compiler import Compiler
 from magma.config import EnvConfig, config
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
@@ -68,7 +70,7 @@ class CoreIRCompiler(Compiler):
         insert_wrap_casts(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
-        backend.compile(self.main, opts)
+        coreir_module = backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
         output_json = (self.opts.get("output_intermediate", False) or
                        not self.opts.get("output_verilog", False) or
@@ -76,10 +78,10 @@ class CoreIRCompiler(Compiler):
         if output_json:
             filename = f"{self.basename}.json"
             if isdefinition(self.main):
-                backend.context.set_top(backend.get_module(self.main))
+                backend.context.set_top(coreir_module)
             backend.context.save_to_file(filename, include_default_libs=False)
         if self.opts.get("output_verilog", False):
-            fn = (self._fast_compile_verilog
+            fn = (functools.partial(self._fast_compile_verilog, coreir_module)
                   if config.fast_coreir_verilog_compile
                   else self._compile_verilog)
             fn()
@@ -92,7 +94,7 @@ class CoreIRCompiler(Compiler):
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
         if isdefinition(self.main):
-            result["coreir_module"] = backend.get_module(self.main)
+            result["coreir_module"] = coreir_module
         return result
 
     def _compile_verilog(self):
@@ -101,8 +103,7 @@ class CoreIRCompiler(Compiler):
         if ret:
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
 
-    def _fast_compile_verilog(self):
-        top = self.backend.get_module(self.main)
+    def _fast_compile_verilog(self, coreir_module):
         filename = f"{self.basename}.v"
         opts = dict(
             libs=self.deps,
@@ -111,7 +112,8 @@ class CoreIRCompiler(Compiler):
             verilator_debug=self.opts.get("verilator_debug", False),
             disable_width_cast=self.opts.get("disable_width_cast", False),
         )
-        ret = self.backend.context.compile_to_verilog(top, filename, **opts)
+        ret = self.backend.context.compile_to_verilog(
+            coreir_module, filename, **opts)
         if not ret:
             raise RuntimeError(f"CoreIR compilation to verilog failed")
 

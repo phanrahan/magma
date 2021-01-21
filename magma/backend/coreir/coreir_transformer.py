@@ -1,28 +1,30 @@
 from abc import ABC, abstractmethod
 from copy import copy
 import json
-import logging
 import os
-from magma.digital import Digital
-from magma.array import Array
-from magma.bits import Bits
+
 from coreir import Wireable
+
+from magma.array import Array
+from magma.backend.coreir.coreir_runtime import compiler_cache
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
     get_module_of_inst, magma_interface_to_coreir_module_type,
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
+from magma.backend.util import get_codegen_debug_info
+from magma.bits import Bits
+from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
+                         get_default_clocks)
+from magma.config import get_debug_mode
+from magma.digital import Digital
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
-from magma.tuple import Tuple
-from magma.backend.util import get_codegen_debug_info
-from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
-                         get_default_clocks)
-from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
+from magma.tuple import Tuple
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -82,6 +84,14 @@ def _unwrap(x):
     return x
 
 
+def _get_namespace_of_module(module, backend, opts):
+    if module.coreir_lib is not None:
+        return backend.get_lib(module.coreir_lib)
+    if hasattr(module, "namespace"):
+        return backend.get_lib(module.namespace)
+    return opts.get("user_namespace", backend.context.global_namespace)
+
+
 class TransformerBase(ABC):
     def __init__(self, backend, opts):
         self.backend = backend
@@ -116,11 +126,15 @@ class DefnOrDeclTransformer(TransformerBase):
         super().__init__(backend, opts)
         self.defn_or_decl = defn_or_decl
         self.coreir_module = None
+        self._namespace = _get_namespace_of_module(
+            self.defn_or_decl, self.backend, self.opts)
 
     def children(self):
         try:
-            coreir_module = self.backend.get_module(self.defn_or_decl)
-            _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
+            coreir_module = compiler_cache().get(
+                self.backend.context, self._namespace, self.defn_or_decl)
+            _logger.debug(
+                f"{self.defn_or_decl} already compiled, using cached result")
             self.coreir_module = coreir_module
             return []
         except KeyError:
@@ -139,10 +153,13 @@ class DefnOrDeclTransformer(TransformerBase):
                                       self.defn_or_decl)]
 
     def run_self(self):
-        if self.coreir_module:
+        if self.coreir_module is not None:
             return
         self.coreir_module = self._children[0].coreir_module
-        self.backend.add_module(self.defn_or_decl, self.coreir_module)
+        compiler_cache().set(self.backend.context,
+                             self._namespace,
+                             self.defn_or_decl,
+                             self.coreir_module)
         if isdefinition(self.defn_or_decl):
             self.defn_or_decl.wrappedModule = self.coreir_module
             libs = self.backend.included_libs()
@@ -364,21 +381,20 @@ class DeclarationTransformer(LeafTransformer):
         self.coreir_module = self.run_self_impl()
 
     def run_self_impl(self):
-        self.decl = self.decl
         _logger.debug(f"Compiling declaration {self.decl}")
         if self.decl.coreir_lib is not None:
             self.backend.include_lib_or_libs(self.decl.coreir_lib)
+        namespace = _get_namespace_of_module(self.decl, self.backend, self.opts)
         # These libraries are already available by default in coreir, so we
         # don't need declarations.
-        if self.decl.coreir_lib in ["coreir", "corebit", "commonlib",
-                                    "memory"]:
-            lib = self.backend.get_lib(self.decl.coreir_lib)
+        if namespace.name in ["coreir", "corebit", "commonlib", "memory"]:
             if self.decl.coreir_genargs is None:
-                return lib.modules[self.decl.coreir_name]
-            return lib.generators[self.decl.coreir_name]
+                return namespace.modules[self.decl.coreir_name]
+            return namespace.generators[self.decl.coreir_name]
         try:
-            coreir_module = self.backend.get_module(self.decl)
-            _logger.debug(f"{self.decl} already compiled, skipping")
+            coreir_module = compiler_cache().get(
+                self.backend.context, namespace, self.decl)
+            _logger.debug(f"{self.decl} already compiled, using cached result")
             return coreir_module
         except KeyError:
             pass
@@ -392,17 +408,10 @@ class DeclarationTransformer(LeafTransformer):
         if hasattr(self.decl, "coreir_config_param_types"):
             param_types = self.decl.coreir_config_param_types
             kwargs["cparams"] = make_cparams(self.backend.context, param_types)
-        if hasattr(self.decl, "namespace"):
-            # Allows users to choose namespace explicitly with
-            # class MyCircuit(m.Circuit):
-            #     namespace = "foo"
-            # overrides user_namespace setting
-            namespace = self.backend.get_lib(self.decl.namespace)
-        else:
-            namespace = self.opts.get("user_namespace",
-                                      self.backend.context.global_namespace)
         coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
+        compiler_cache().set(
+            self.backend.context, namespace, self.decl, coreir_module)
         if get_codegen_debug_info() and self.decl.debug_info:
             attach_debug_info(coreir_module, self.decl.debug_info)
         for key, value in self.decl.coreir_metadata.items():
