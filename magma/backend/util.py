@@ -20,13 +20,3 @@ def make_relative(path):
     cwd = os.getcwd()
     common_prefix = os.path.commonprefix([cwd, path])
     return os.path.relpath(path, common_prefix)
-
-
-class keydefaultdict(defaultdict):
-    """See: https://stackoverflow.com/questions/2912231/is-there-a-clever-way-to-pass-the-key-to-defaultdicts-default-factory"""  # noqa
-    def __missing__(self, key):
-        if self.default_factory is None:
-            raise KeyError( key )  # pragma: no cover
-        else:
-            ret = self[key] = self.default_factory(key)
-            return ret

@@ -145,7 +145,7 @@ class DefnOrDeclTransformer(TransformerBase):
         self.backend.add_module(self.defn_or_decl, self.coreir_module)
         if isdefinition(self.defn_or_decl):
             self.defn_or_decl.wrappedModule = self.coreir_module
-            libs = copy(self.backend.libs_used)
+            libs = self.backend.included_libs()
             self.defn_or_decl.coreir_wrapped_modules_libs_used = libs
 
 
@@ -165,9 +165,9 @@ class InstanceTransformer(LeafTransformer):
         )
         defn = type(self.inst)
         if hasattr(self.inst, "namespace"):
-            lib = self.backend.libs[self.inst.namespace]
+            lib = self.backend.get_lib(self.inst.namespace)
         else:
-            lib = self.backend.libs[self.inst.coreir_lib]
+            lib = self.backend.get_lib(self.inst.coreir_lib)
             if self.inst.coreir_lib == "global":
                 lib = self.opts.get("user_namespace", lib)
         if self.inst.coreir_genargs is None:
@@ -190,7 +190,8 @@ class WrappedTransformer(LeafTransformer):
         super().__init__(backend, opts)
         self.defn = defn
         self.coreir_module = self.defn.wrappedModule
-        self.backend.libs_used |= self.defn.coreir_wrapped_modules_libs_used
+        self.backend.include_lib_or_libs(
+            self.defn.coreir_wrapped_modules_libs_used)
 
 
 class DefinitionTransformer(TransformerBase):
@@ -248,7 +249,7 @@ class DefinitionTransformer(TransformerBase):
             self.coreir_module.add_metadata("verilog", metadata)
             return coreir_defn
         if self.defn.coreir_lib is not None:
-            self.backend.libs_used.add(self.defn.coreir_lib)
+            self.backend.include_lib_or_libs(self.defn.coreir_lib)
         for name, port in self.defn.interface.ports.items():
             _logger.debug(f"{name}, {port}, {port.is_output()}")
         for inst, coreir_inst in coreir_insts.items():
@@ -339,12 +340,12 @@ class DefinitionTransformer(TransformerBase):
         if num_bits is None:
             config = self.backend.context.new_values({"value": bool(value)})
             name = f"bit_const_{value}_{num_bits}"
-            mod = self.backend.libs["corebit"].modules["const"]
+            mod = self.backend.get_lib("corebit").modules["const"]
             module_defn.add_module_instance(name, mod, config)
         else:
             config = self.backend.context.new_values({"value": value})
             name = f"const_{value}_{num_bits}"
-            gen = self.backend.libs["coreir"].generators["const"]
+            gen = self.backend.get_lib("coreir").generators["const"]
             gen_args = self.backend.context.new_values({"width": num_bits})
             module_defn.add_generator_instance(name, gen, gen_args, config)
         cache_entry[key] = module_defn.select(f"{name}.out")
@@ -364,12 +365,12 @@ class DeclarationTransformer(LeafTransformer):
         self.decl = self.decl
         _logger.debug(f"Compiling declaration {self.decl}")
         if self.decl.coreir_lib is not None:
-            self.backend.libs_used.add(self.decl.coreir_lib)
+            self.backend.include_lib_or_libs(self.decl.coreir_lib)
         # These libraries are already available by default in coreir, so we
         # don't need declarations.
         if self.decl.coreir_lib in ["coreir", "corebit", "commonlib",
                                     "memory"]:
-            lib = self.backend.libs[self.decl.coreir_lib]
+            lib = self.backend.get_lib(self.decl.coreir_lib)
             if self.decl.coreir_genargs is None:
                 return lib.modules[self.decl.coreir_name]
             return lib.generators[self.decl.coreir_name]
@@ -394,7 +395,7 @@ class DeclarationTransformer(LeafTransformer):
             # class MyCircuit(m.Circuit):
             #     namespace = "foo"
             # overrides user_namespace setting
-            namespace = self.backend.libs[self.decl.namespace]
+            namespace = self.backend.get_lib(self.decl.namespace)
         else:
             namespace = self.opts.get("user_namespace",
                                       self.backend.context.global_namespace)
