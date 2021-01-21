@@ -29,7 +29,6 @@ class CoreIRBackend:
         self._context = context
         self._lib_cache = {}
         self._included_libs = set()
-        self.constant_cache = {}
         self._bound_modules = {}
 
     def add_module(self, magma_module, coreir_module):

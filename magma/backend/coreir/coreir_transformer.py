@@ -207,6 +207,7 @@ class DefinitionTransformer(TransformerBase):
             for inst in self.defn.instances
         }
         self.clocks = get_default_clocks(defn)
+        self._constant_cache = {}
 
     def children(self):
         pass_ = InstanceGraphPass(self.defn)
@@ -279,7 +280,7 @@ class DefinitionTransformer(TransformerBase):
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
         if isinstance(value, Bits) and value.const():
-            return self.const_instance(value, len(value), module_defn)
+            return self._const_instance(value, len(value), module_defn)
         if value.anon() and isinstance(value, Array):
             drivers = _collect_drivers(value)
             offset = 0
@@ -303,7 +304,7 @@ class DefinitionTransformer(TransformerBase):
                 self.connect(module_defn, p, v)
             return None
         if value.const():
-            return self.const_instance(value, None, module_defn)
+            return self._const_instance(value, None, module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
@@ -331,12 +332,13 @@ class DefinitionTransformer(TransformerBase):
         if get_codegen_debug_info() and getattr(port, "debug_info", False):
             attach_debug_info(module_defn, port.debug_info, source, sink)
 
-    def const_instance(self, constant, num_bits, module_defn):
-        cache_entry = self.backend.constant_cache.setdefault(module_defn, {})
+    def _const_instance(self, constant, num_bits, module_defn):
         value = constant_to_value(constant)
         key = (value, num_bits)
-        if key in cache_entry:
-            return cache_entry[key]
+        try:
+            return self._constant_cache[key]
+        except KeyError:
+            pass
         if num_bits is None:
             config = self.backend.context.new_values({"value": bool(value)})
             name = f"bit_const_{value}_{num_bits}"
@@ -348,8 +350,8 @@ class DefinitionTransformer(TransformerBase):
             gen = self.backend.get_lib("coreir").generators["const"]
             gen_args = self.backend.context.new_values({"width": num_bits})
             module_defn.add_generator_instance(name, gen, gen_args, config)
-        cache_entry[key] = module_defn.select(f"{name}.out")
-        return cache_entry[key]
+        out = module_defn.select(f"{name}.out")
+        return self._constant_cache.setdefault(key, out)
 
 
 class DeclarationTransformer(LeafTransformer):
