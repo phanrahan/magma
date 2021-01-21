@@ -233,7 +233,7 @@ class DefinitionTransformer(TransformerBase):
                  "connect_references": connect_references}
             ))
         for name, module in self.defn.compiled_bind_modules.items():
-            self.backend.sv_bind_files[name] = module
+            self.backend.bind_module(name, module)
 
         self.coreir_module.definition = self.get_coreir_defn()
 

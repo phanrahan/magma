@@ -30,7 +30,7 @@ class CoreIRBackend:
         self._lib_cache = {}
         self._included_libs = set()
         self.constant_cache = {}
-        self.sv_bind_files = {}
+        self._bound_modules = {}
 
     def add_module(self, magma_module, coreir_module):
         self._modules[magma_module.coreir_name] = coreir_module
@@ -54,6 +54,12 @@ class CoreIRBackend:
         except KeyError:
             ret = self._lib_cache[lib] = self.context.get_lib(lib)
             return ret
+
+    def bind_module(self, name, module):
+        self._bound_modules[name] = module
+
+    def bound_modules(self):
+        return self._bound_modules.copy()
 
     @property
     def context(self):
