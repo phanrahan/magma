@@ -118,10 +118,13 @@ class DefnOrDeclTransformer(TransformerBase):
         self.coreir_module = None
 
     def children(self):
-        if self.defn_or_decl.name in self.backend.modules:
+        try:
+            coreir_module = self.backend.get_module(self.defn_or_decl)
             _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
-            self.coreir_module = self.backend.modules[self.defn_or_decl.name]
+            self.coreir_module = coreir_module
             return []
+        except KeyError:
+            pass
         if not isdefinition(self.defn_or_decl):
             return [DeclarationTransformer(self.backend,
                                            self.opts,
@@ -139,7 +142,7 @@ class DefnOrDeclTransformer(TransformerBase):
         if self.coreir_module:
             return
         self.coreir_module = self._children[0].coreir_module
-        self.backend.modules[self.defn_or_decl.name] = self.coreir_module
+        self.backend.add_module(self.defn_or_decl, self.coreir_module)
         if isdefinition(self.defn_or_decl):
             self.defn_or_decl.wrappedModule = self.coreir_module
             libs = copy(self.backend.libs_used)
@@ -370,9 +373,12 @@ class DeclarationTransformer(LeafTransformer):
             if self.decl.coreir_genargs is None:
                 return lib.modules[self.decl.coreir_name]
             return lib.generators[self.decl.coreir_name]
-        if self.decl.name in self.backend.modules:
+        try:
+            coreir_module = self.backend.get_module(self.decl)
             _logger.debug(f"{self.decl} already compiled, skipping")
-            return self.backend.modules[self.decl.name]
+            return coreir_module
+        except KeyError:
+            pass
         if get_debug_mode():
             check_magma_interface(self.decl.interface)
         module_type = magma_interface_to_coreir_module_type(
