@@ -120,7 +120,7 @@ class CoreIRCompiler(Compiler):
 
         bind_files = []
         # TODO(leonardt): We need fresh bind_files for each compile call.
-        for name, file in self.backend.sv_bind_files.items():
+        for name, file in self.backend.bound_modules().items():
             bind_files.append(f"{name}.sv")
             filename = os.path.join(os.path.dirname(self.basename), name)
             with open(f"{filename}.sv", "w") as f:
