@@ -12,8 +12,7 @@ def _compile_to_coreir(mcircuit: m.Circuit) -> coreir.Module:
     assert issubclass(mcircuit, m.Circuit)
     backend = m.frontend.coreir_.GetCoreIRBackend()
     backend.compile(mcircuit)
-    cname = mcircuit.coreir_name
-    return backend.modules[cname]
+    return backend.get_module(mcircuit)
 
 
 def _gen_circuit():

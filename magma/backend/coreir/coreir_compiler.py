@@ -76,7 +76,7 @@ class CoreIRCompiler(Compiler):
         if output_json:
             filename = f"{self.basename}.json"
             if isdefinition(self.main):
-                backend.context.set_top(backend.modules[self.main.coreir_name])
+                backend.context.set_top(backend.get_module(self.main))
             backend.context.save_to_file(filename, include_default_libs=False)
         if self.opts.get("output_verilog", False):
             fn = (self._fast_compile_verilog
@@ -92,7 +92,7 @@ class CoreIRCompiler(Compiler):
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
         if isdefinition(self.main):
-            result["coreir_module"] = backend.modules[self.main.coreir_name]
+            result["coreir_module"] = backend.get_module(self.main)
         return result
 
     def _compile_verilog(self):
@@ -102,7 +102,7 @@ class CoreIRCompiler(Compiler):
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
 
     def _fast_compile_verilog(self):
-        top = self.backend.modules[self.main.coreir_name]
+        top = self.backend.get_module(self.main)
         filename = f"{self.basename}.v"
         opts = dict(
             libs=self.deps,
