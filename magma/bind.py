@@ -15,6 +15,17 @@ from magma.wire import wire
 from magma.inline_verilog import _get_view_inst_parent
 
 
+def _should_disable_ndarray(mon_arg, bind_arg):
+    if isinstance(bind_arg, PortView):
+        bind_arg = bind_arg.port
+    if isinstance(mon_arg, Array) and bind_arg.name.root() is not None:
+        # Disable NDArray logic for temporary since CoreIR Wire primitive (used
+        # for temporaries) does not support ndarrays yet (root() is not None
+        # for Named temporary values)
+        return True
+    return False
+
+
 def _gen_bind_port(cls, mon_arg, bind_arg):
     if (isinstance(mon_arg, Tuple) or isinstance(mon_arg, Array) and not
             is_nd_array(type(mon_arg))):
@@ -23,13 +34,8 @@ def _gen_bind_port(cls, mon_arg, bind_arg):
             result += _gen_bind_port(cls, child1, child2)
         return result
     port = value_to_verilog_name(mon_arg, False)
-    disable_ndarray = False
-    if isinstance(mon_arg, Array) and bind_arg.name.root() is not None:
-        # Disable NDArray logic for temporary since CoreIR Wire primitive (used
-        # for temporaries) does not support ndarrays yet (root() is not None
-        # for Named temporary values)
-        disable_ndarray = True
-    arg = value_to_verilog_name(bind_arg, disable_ndarray)
+    arg = value_to_verilog_name(
+        bind_arg, _should_disable_ndarray(mon_arg, bind_arg))
     return [(f".{port}({arg})")]
 
 

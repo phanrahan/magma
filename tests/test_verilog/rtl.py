@@ -26,6 +26,18 @@ endmodule
             io = m.IO(I=m.In(m.Bits[width]))
             io.I.unused()
 
+        class T(m.Product):
+            y = m.Array[1, m.UInt[20]]
+
+        class OtherCircuit(m.Circuit):
+            io = m.IO(x=m.Out(T))
+            io.x.undriven()
+
+        class NestedOtherCircuit(m.Circuit):
+            io = m.IO(x=m.Out(T))
+            other_circ = OtherCircuit(name="other_circ")
+            io.x @= other_circ.x
+
         class RTL(m.Circuit):
             io = m.IO(CLK=m.In(m.Clock),
                       in1=m.In(m.Bits[width]),
@@ -41,6 +53,7 @@ endmodule
             intermediate_ndarr = m.Array[(3, 2), m.Bit](
                 name="intermediate_ndarr"
             )
+            nested_other_circ = NestedOtherCircuit(name="nested_other_circ")
             for i in range(3):
                 for j in range(2):
                     intermediate_ndarr[i, j] @= io.ndarr[j, i]
