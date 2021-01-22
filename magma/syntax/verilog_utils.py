@@ -28,6 +28,7 @@ def is_generator(name):
 
     setattr(module_obj, "is_" + to_snake_case(name), f)
 
+
 if sys.version_info < (3, 9):
     for x in (m[0] for m in inspect.getmembers(ast, inspect.isclass) if
               m[1].__module__ == '_ast'):
