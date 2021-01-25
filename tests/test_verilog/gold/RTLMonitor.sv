@@ -39,7 +39,8 @@ module foo_RTLMonitor (
     input mon_temp2,
     input mon_temp3,
     input [1:0] ndarr [2:0],
-    input out
+    input out,
+    input [19:0] tuple_arr [0:0]
 );
 wire _magma_inline_wire0;
 wire [3:0] _magma_inline_wire1;
@@ -87,5 +88,6 @@ bind foo_RTL foo_RTLMonitor foo_RTLMonitor_inst (
     .intermediate_tuple__1(_magma_bind_wire_2_1),
     .inst_input(_magma_bind_wire_3),
     .mon_temp3(_magma_bind_wire_4),
-    .intermediate_ndarr('{_magma_bind_wire_5_1, _magma_bind_wire_5_0})
+    .intermediate_ndarr('{_magma_bind_wire_5_1, _magma_bind_wire_5_0}),
+    .tuple_arr('{nested_other_circ._magma_bind_wire_0_0})
 );

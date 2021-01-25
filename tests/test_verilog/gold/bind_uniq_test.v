@@ -13,6 +13,18 @@ module coreir_undriven #(
 
 endmodule
 
+module foo_OtherCircuit (
+    output [19:0] x_y [0:0]
+);
+wire [19:0] undriven_inst0_out;
+coreir_undriven #(
+    .width(20)
+) undriven_inst0 (
+    .out(undriven_inst0_out)
+);
+assign x_y[0] = undriven_inst0_out;
+endmodule
+
 module coreir_term #(
     parameter width = 1
 ) (
@@ -38,6 +50,21 @@ coreir_term #(
     .width(4)
 ) term_inst0 (
     .in(I)
+);
+endmodule
+
+module foo_NestedOtherCircuit (
+    output [19:0] x_y [0:0]
+);
+wire [19:0] _magma_bind_wire_0_0;
+assign _magma_bind_wire_0_0 = x_y[0];
+foo_OtherCircuit other_circ (
+    .x_y(x_y)
+);
+coreir_term #(
+    .width(20)
+) term_inst0 (
+    .in(_magma_bind_wire_0_0)
 );
 endmodule
 
@@ -96,6 +123,7 @@ wire coreir_wrapInClock_inst0_out;
 wire [2:0] intermediate_ndarr_0;
 wire [2:0] intermediate_ndarr_1;
 wire [4:0] magma_Bits_5_xor_inst0_out;
+wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_5_inst0_O;
 wire [1:0] self_ndarr_0;
 wire [1:0] self_ndarr_1;
@@ -167,6 +195,9 @@ logical_and logical_and_inst0 (
     .O(out)
 );
 assign magma_Bits_5_xor_inst0_out = in1 ^ in2;
+foo_NestedOtherCircuit nested_other_circ (
+    .x_y(nested_other_circ_x_y)
+);
 orr_5 orr_5_inst0 (
     .I(in1),
     .O(orr_5_inst0_O)
@@ -186,6 +217,11 @@ coreir_term #(
     .width(5)
 ) term_inst1 (
     .in(_magma_bind_wire_3)
+);
+coreir_term #(
+    .width(20)
+) term_inst2 (
+    .in(nested_other_circ_x_y[0])
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;
 assign handshake_arr_1_valid = handshake_arr_1_ready;
@@ -221,6 +257,7 @@ wire coreir_wrapInClock_inst0_out;
 wire [2:0] intermediate_ndarr_0;
 wire [2:0] intermediate_ndarr_1;
 wire [3:0] magma_Bits_4_xor_inst0_out;
+wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_4_inst0_O;
 wire [1:0] self_ndarr_0;
 wire [1:0] self_ndarr_1;
@@ -292,6 +329,9 @@ logical_and logical_and_inst0 (
     .O(out)
 );
 assign magma_Bits_4_xor_inst0_out = in1 ^ in2;
+foo_NestedOtherCircuit nested_other_circ (
+    .x_y(nested_other_circ_x_y)
+);
 orr_4 orr_4_inst0 (
     .I(in1),
     .O(orr_4_inst0_O)
@@ -311,6 +351,11 @@ coreir_term #(
     .width(4)
 ) term_inst1 (
     .in(_magma_bind_wire_3)
+);
+coreir_term #(
+    .width(20)
+) term_inst2 (
+    .in(nested_other_circ_x_y[0])
 );
 assign handshake_arr_0_valid = handshake_arr_2_ready;
 assign handshake_arr_1_valid = handshake_arr_1_ready;

@@ -16,9 +16,15 @@ def is_nd_array(T, skip=True):
     return False
 
 
+def _should_recurse(value, disable_ndarray):
+    if isinstance(value, PortView):
+        value = value.port
+    return (isinstance(value, Array) and not issubclass(value.T, Digital) and
+            is_nd_array(type(value)) and disable_ndarray)
+
+
 def value_to_verilog_name(value, disable_ndarray=False):
-    if (isinstance(value, Array) and not issubclass(value.T, Digital) and
-            is_nd_array(type(value)) and disable_ndarray):
+    if _should_recurse(value, disable_ndarray):
         elems = ", ".join(value_to_verilog_name(t, disable_ndarray)
                           for t in reversed(value))
         return f"'{{{elems}}}"

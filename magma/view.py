@@ -59,6 +59,9 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
         self.__iter = iter(self.port)
         return self
 
+    def __len__(self):
+        return len(self.port)
+
     def __next__(self):
         n = next(self.__iter)
         return PortView[type(n)](n, self.parent)
