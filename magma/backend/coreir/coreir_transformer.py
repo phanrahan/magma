@@ -391,13 +391,6 @@ class DeclarationTransformer(LeafTransformer):
             if self.decl.coreir_genargs is None:
                 return namespace.modules[self.decl.coreir_name]
             return namespace.generators[self.decl.coreir_name]
-        try:
-            coreir_module = compiler_cache().get(
-                self.backend.context, namespace, self.decl)
-            _logger.debug(f"{self.decl} already compiled, using cached result")
-            return coreir_module
-        except KeyError:
-            pass
         if get_debug_mode():
             check_magma_interface(self.decl.interface)
         module_type = magma_interface_to_coreir_module_type(
@@ -410,8 +403,6 @@ class DeclarationTransformer(LeafTransformer):
             kwargs["cparams"] = make_cparams(self.backend.context, param_types)
         coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
-        compiler_cache().set(
-            self.backend.context, namespace, self.decl, coreir_module)
         if get_codegen_debug_info() and self.decl.debug_info:
             attach_debug_info(coreir_module, self.decl.debug_info)
         for key, value in self.decl.coreir_metadata.items():
