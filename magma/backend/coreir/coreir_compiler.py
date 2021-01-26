@@ -65,9 +65,11 @@ class CoreIRCompiler(Compiler):
         self.backend = coreir_frontend.GetCoreIRBackend()
 
     def compile(self):
+        self.backend.set_uniquifier(self.uniquifier)
         result = {}
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
+        self.backend.uniquifier.update(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
         coreir_module = backend.compile(self.main, opts)

@@ -7,7 +7,7 @@ class _CompilerCache:
 
     @staticmethod
     def _make_key(context, namespace, magma_module):
-        return (id(context), namespace, id(magma_module))
+        return (context, namespace, magma_module)
 
     def get(self, context, namespace, magma_module):
         key = _CompilerCache._make_key(context, namespace, magma_module)
@@ -16,6 +16,9 @@ class _CompilerCache:
     def set(self, context, namespace, magma_module, coreir_module):
         key = _CompilerCache._make_key(context, namespace, magma_module)
         self._cache[key] = coreir_module
+
+    def clear(self):
+        self._cache = {}
 
 
 _coreir_context = Context()

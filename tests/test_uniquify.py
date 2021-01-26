@@ -193,7 +193,7 @@ endmodule""")
 
     # Run the uniquification pass as a mechanism to check that foo0 and foo1
     # hash to two different things even though they have the same repr.
-    pass_ = m.UniquificationPass(top, None)
+    pass_ = m.uniquification.UniquificationPreprocessPass(top)
     pass_.run()
     foo_seen = pass_.seen["foo"]
     assert len(foo_seen) == 2
@@ -241,7 +241,7 @@ endmodule""")[0]
         io.O[1] <= cell1.O
 
     # Check that uniq. pass runs successfully.
-    pass_ = m.UniquificationPass(_Top, None)
+    pass_ = m.uniquification.UniquificationPreprocessPass(_Top)
     pass_.run()
 
 

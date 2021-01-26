@@ -149,13 +149,6 @@ def map_genarg(context, value):
     return value
 
 
-def get_module_of_inst(context, inst, lib):
-    wrapped = getattr(inst, "wrappedModule", None)
-    if wrapped and wrapped.context is context:
-        return wrapped
-    return lib.modules[type(inst).coreir_name]
-
-
 def get_inst_args(inst):
     args = {}
     for name, value in inst.kwargs.items():

@@ -29,10 +29,17 @@ class CoreIRBackend:
         self._lib_cache = {}
         self._included_libs = set()
         self._bound_modules = {}
+        self._uniquifier = None
 
     @property
     def context(self):
         return self._context
+
+    @property
+    def uniquifier(self):
+        if self._uniquifier is None:
+            raise ValueError("Uniquifier has not been set")
+        return self._uniquifier
 
     def include_lib_or_libs(self, lib_or_libs):
         try:
@@ -58,6 +65,9 @@ class CoreIRBackend:
 
     def reset(self):
         self._init(context=None)
+
+    def set_uniquifier(self, uniquifier):
+        self._uniquifier = uniquifier
 
     def compile(self, defn_or_decl, opts=None):
         _logger.debug(f"Compiling: {defn_or_decl.name}")

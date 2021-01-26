@@ -9,9 +9,8 @@ from magma.array import Array
 from magma.backend.coreir.coreir_runtime import compiler_cache
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
-    get_module_of_inst, magma_interface_to_coreir_module_type,
-    magma_port_to_coreir_port, make_cparams, map_genarg,
-    magma_name_to_coreir_select, Slice)
+    magma_interface_to_coreir_module_type, magma_port_to_coreir_port,
+    make_cparams, map_genarg, magma_name_to_coreir_select, Slice)
 from magma.backend.util import get_codegen_debug_info
 from magma.bits import Bits
 from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
@@ -30,6 +29,9 @@ from magma.tuple import Tuple
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
 # already been done in backend/coreir/coreir_backend.py.
 _logger = root_logger().getChild("coreir_backend")
+
+
+_COREIR_BUILTIN_LIBS = ["coreir", "corebit", "commonlib", "memory"]
 
 
 def _make_unconnected_error_str(port):
@@ -84,12 +86,66 @@ def _unwrap(x):
     return x
 
 
+def _try_find_compiled(module, backend, namespace):
+    """Tries to find an already compiled version of @module
+
+    If @module (along w/ this @namespace, context) is found in the compiler
+    cache, then it is returned. Otherwise, searches the equivalent modules as
+    given by the uniquifier and tries to find those modules in the compiler
+    cache. If one is found, the module is cached with @module as key. If no such
+    compiled module is found, a KeyError is raised.
+    """
+    try:
+        return compiler_cache().get(backend.context, namespace, module)
+    except KeyError:
+        pass
+    try:
+        uniquifier = backend.uniquifier
+    except ValueError:
+        raise KeyError from None
+    equivalent = uniquifier.equivalent(module)
+    for ckt in equivalent:
+        if ckt is module:
+            continue  # skip @module
+        try:
+            ret = compiler_cache().get(backend.context, namespace, ckt)
+            compiler_cache().set(backend.context, namespace, module, ret)
+            return ret
+        except KeyError:
+            pass
+    raise KeyError
+
+
+def _get_module_of_inst(backend, inst, lib):
+    wrapped = getattr(inst, "wrappedModule", None)
+    if wrapped and wrapped.context is backend.context:
+        return wrapped
+    return lib.modules[_get_name(type(inst), backend)]
+
+
+def _get_name(module, backend):
+    try:
+        uniquifier = backend.uniquifier
+    except ValueError:
+        return module.coreir_name
+    idx = uniquifier.index(module)
+    if idx == 0:
+        return module.coreir_name
+    if module.verilogFile:
+        raise Exception("Can not rename a verilog wrapped file")
+    return module.coreir_name + f"_unq{idx}"
+
+
 def _get_namespace_of_module(module, backend, opts):
-    if module.coreir_lib is not None:
-        return backend.get_lib(module.coreir_lib)
     if hasattr(module, "namespace"):
         return backend.get_lib(module.namespace)
-    return opts.get("user_namespace", backend.context.global_namespace)
+    if module.coreir_lib in _COREIR_BUILTIN_LIBS:
+        return backend.get_lib(module.coreir_lib)
+    try:
+        return opts["user_namespace"]
+    except KeyError:
+        pass
+    return backend.context.global_namespace
 
 
 class TransformerBase(ABC):
@@ -131,11 +187,10 @@ class DefnOrDeclTransformer(TransformerBase):
 
     def children(self):
         try:
-            coreir_module = compiler_cache().get(
-                self.backend.context, self._namespace, self.defn_or_decl)
+            self.coreir_module = _try_find_compiled(
+                self.defn_or_decl, self.backend, self._namespace)
             _logger.debug(
                 f"{self.defn_or_decl} already compiled, using cached result")
-            self.coreir_module = coreir_module
             return []
         except KeyError:
             pass
@@ -188,7 +243,7 @@ class InstanceTransformer(LeafTransformer):
             if self.inst.coreir_lib == "global":
                 lib = self.opts.get("user_namespace", lib)
         if self.inst.coreir_genargs is None:
-            module = get_module_of_inst(self.backend.context, self.inst, lib)
+            module = _get_module_of_inst(self.backend, self.inst, lib)
             args = get_inst_args(self.inst)
             args = self.backend.context.new_values(args)
             return lambda m: m.add_module_instance(self.inst.name, module, args)
@@ -387,9 +442,9 @@ class DeclarationTransformer(LeafTransformer):
         namespace = _get_namespace_of_module(self.decl, self.backend, self.opts)
         # These libraries are already available by default in coreir, so we
         # don't need declarations.
-        if namespace.name in ["coreir", "corebit", "commonlib", "memory"]:
+        if namespace.name in _COREIR_BUILTIN_LIBS:
             if self.decl.coreir_genargs is None:
-                return namespace.modules[self.decl.coreir_name]
+                return namespace.modules[_get_name(self.decl, self.backend)]
             return namespace.generators[self.decl.coreir_name]
         if get_debug_mode():
             check_magma_interface(self.decl.interface)
@@ -402,7 +457,7 @@ class DeclarationTransformer(LeafTransformer):
             param_types = self.decl.coreir_config_param_types
             kwargs["cparams"] = make_cparams(self.backend.context, param_types)
         coreir_module = namespace.new_module(
-            self.decl.coreir_name, module_type, **kwargs)
+            _get_name(self.decl, self.backend), module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:
             attach_debug_info(coreir_module, self.decl.debug_info)
         for key, value in self.decl.coreir_metadata.items():

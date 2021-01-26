@@ -9,12 +9,22 @@ class Compiler:
         self.main = main
         self.basename = basename
         self.opts = opts
+        self._uniquifier = None
 
     def compile(self):
         suffix = self.suffix()
         code = self.generate_code()
         with open(f"{self.basename}.{suffix}", "w") as f:
             f.write(code)
+
+    def set_uniquifier(self, uniquifier):
+        self._uniquifier = uniquifier
+
+    @property
+    def uniquifier(self):
+        if self._uniquifier is None:
+            raise ValueError("Uniquifier has not been set")
+        return self._uniquifier
 
     @abstractmethod
     def suffix(self):

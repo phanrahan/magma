@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from .is_definition import isdefinition
-from .logging import root_logger
-from .passes import DefinitionPass
+
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes.passes import CircuitPass
 
 
 _logger = root_logger()
@@ -25,85 +26,96 @@ class _HashStruct:
     verilog_str: bool
 
 
-def _make_hash_struct(definition):
-    repr_ = repr(definition)
-    if hasattr(definition, "verilogFile") and definition.verilogFile:
-        return _HashStruct(repr_, True, definition.verilogFile)
+def _make_hash_struct(ckt):
+    repr_ = repr(ckt)
+    if hasattr(ckt, "verilogFile") and ckt.verilogFile:
+        return _HashStruct(repr_, True, ckt.verilogFile)
     return _HashStruct(repr_, False, "")
 
 
-def _hash(definition):
-    hash_struct = _make_hash_struct(definition)
+def _hash(ckt):
+    hash_struct = _make_hash_struct(ckt)
     return hash(hash_struct)
 
 
-class UniquificationPass(DefinitionPass):
-    def __init__(self, main, mode):
+class Uniquifier:
+    def __init__(self, mode, seen, keys):
+        self._mode = mode
+        self._seen = seen
+        self._keys = keys
+        self._cache = {}
+
+    def equivalent(self, ckt):
+        key = self._keys[ckt]
+        return self._seen[ckt.name][key].copy()
+
+    def _index_impl(self, ckt):
+        seen = self._seen[ckt.name]
+        key = self._keys[ckt]
+        return list(seen.keys()).index(key)
+
+    def index(self, ckt):
+        try:
+            return self._cache[ckt]
+        except KeyError:
+            pass
+        index = self._index_impl(ckt)
+        self._cache[ckt] = index
+        return index
+
+    def update(self, main):
+        # NOTE: very unperformant and hacky!
+        pass_ = UniquificationPreprocessPass(main)
+        pass_.run()
+        self._reset(pass_.seen, pass_.key_cache)
+
+    def _reset(self, seen, keys):
+        self._seen = seen
+        self._keys = keys
+        self._cache = {}
+
+
+class UniquificationPreprocessPass(CircuitPass):
+    def __init__(self, main):
         super().__init__(main)
-        self.mode = mode
-        self.seen = {}
-        self.original_names = {}
+        self._seen = {}
+        self._key_cache = {}
 
-    def __call__(self, definition):
-        name = definition.name
-        key = _hash(definition)
+    @property
+    def seen(self):
+        return self._seen.copy()
 
-        seen = self.seen.setdefault(name, {})
-        if key not in seen:
-            if self.mode is UniquificationMode.UNIQUIFY and len(seen) > 0:
-                suffix = "_unq" + str(len(seen))
-                new_name = name + suffix
-                type(definition).rename(definition, new_name)
-                for module in definition.bind_modules:
-                    type(module).rename(module, module.name + suffix)
-            seen[key] = [definition]
-        else:
-            if self.mode is not UniquificationMode.UNIQUIFY:
-                assert seen[key][0].name == name
-            elif name != seen[key][0].name:
-                new_name = seen[key][0].name
-                type(definition).rename(definition, new_name)
-                for x, y in zip(seen[key][0].bind_modules,
-                                definition.bind_modules):
-                    type(y).rename(y, x.name)
-            seen[key].append(definition)
+    @property
+    def key_cache(self):
+        return self._key_cache.copy()
 
-    def run(self):
-        super().run()
-        duplicated = []
-        for name, definitions in self.seen.items():
-            if len(definitions) > 1:
-                duplicated.append((name, definitions))
-        UniquificationPass.handle(duplicated, self.mode)
-
-    @staticmethod
-    def handle(duplicated, mode):
-        if len(duplicated):
-            msg = f"Multiple definitions: {[name for name, _ in duplicated]}"
-            if mode is UniquificationMode.ERROR:
-                error(msg)
-                raise MultipleDefinitionException([name for name, _ in duplicated])
-            elif mode is UniquificationMode.WARN:
-                warning(msg)
+    def __call__(self, ckt):
+        try:
+            key = self._key_cache[ckt]
+        except KeyError:
+            pass
+        key = _hash(ckt)
+        self._key_cache[ckt] = key
+        seen = self._seen.setdefault(ckt.name, {})
+        equivalent = seen.setdefault(key, [])
+        equivalent.append(ckt)
 
 
 def _get_mode(mode_or_str):
-    if isinstance(mode_or_str, str):
-        try:
-            return UniquificationMode[mode_or_str]
-        except KeyError as e:
-            modes = [k for k in UniquificationMode.__members__]
-            raise ValueError(f"Valid uniq. modes are {modes}")
     if isinstance(mode_or_str, UniquificationMode):
         return mode_or_str
-    raise NotImplementedError(f"Unsupported type: {type(mode_or_str)}")
+    try:
+        return UniquificationMode[mode_or_str]
+    except KeyError as e:
+        modes = [k for k in UniquificationMode.__members__]
+        raise ValueError(f"Valid uniq. modes are {modes}, got {mode_or_str}")
 
 
 # This pass runs uniquification according to @mode and returns a dictionary
 # mapping any renamed circuits to their original names. If @mode is ERROR or
 # WARN the returned dictionary should be empty.
-def uniquification_pass(circuit, mode_or_str):
+def uniquification_pass(main, mode_or_str):
     mode = _get_mode(mode_or_str)
-    pass_ = UniquificationPass(circuit, mode)
+    pass_ = UniquificationPreprocessPass(main)
     pass_.run()
-    return pass_.original_names
+    return Uniquifier(mode, pass_.seen, pass_.key_cache)

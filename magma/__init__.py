@@ -70,7 +70,7 @@ import magma.syntax
 from .is_primitive import isprimitive
 from .is_definition import isdefinition
 
-from .uniquification import UniquificationPass
+from .uniquification import uniquification_pass
 
 
 from hwtypes.bit_vector_abc import TypeFamily

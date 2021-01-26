@@ -47,7 +47,8 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     compiler = _make_compiler(output, main, basename, opts)
 
     # Default behavior is to perform uniquification, but can be overriden.
-    uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
+    uniquifier = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
+    compiler.set_uniquifier(uniquifier)
 
     # Steps to process inline verilog generation. Required to be run after
     # uniquification.
@@ -55,6 +56,8 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     # Bind after uniquification so the bind logic works on unique modules.
     BindPass(main, compile, opts.get("user_namespace")).run()
+
+    uniquifier.update(main)
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
