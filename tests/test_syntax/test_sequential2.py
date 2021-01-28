@@ -10,18 +10,33 @@ import fault
 from hwtypes import UIntVector
 
 import magma as m
-from test_sequential import Register, DualClockRAM
 from magma.testing import check_files_equal
 
+Register = m.Register
+
 from ast_tools import SymbolTable
+
+
+class DualClockRAM(m.Circuit):
+    io = m.IO(
+        RADDR=m.In(m.Bits[8]),
+        WADDR=m.In(m.Bits[8]),
+        WDATA=m.In(m.Bits[8]),
+        RDATA=m.Out(m.Bits[8]),
+        WE=m.In(m.Bit),
+        RCLK=m.In(m.Clock),
+        WCLK=m.In(m.Clock)
+    )
+
+    m.wire(m.bits(0, 8), io.RDATA)
 
 
 def test_sequential2_basic():
     @m.sequential2()
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
             return self.y(self.x(I))
@@ -35,8 +50,8 @@ def test_sequential2_assign():
     @m.sequential2()
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
             O = self.y
@@ -57,8 +72,8 @@ def test_sequential2_hierarchy():
     @m.sequential2()
     class Foo:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
             return self.y(self.x(I))
@@ -90,7 +105,7 @@ def test_sequential2_pre_unroll(capsys):
                        debug=True, path=tmpdir, file_name="foo.py")
         class LoopUnroll:
             def __init__(self):
-                self.regs = [[Register(4) for _ in range(3)] for _ in range(2)]
+                self.regs = [[Register(m.Bits[4])() for _ in range(3)] for _ in range(2)]
 
             def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
                 O = self.regs[1][-1]
@@ -102,16 +117,16 @@ def test_sequential2_pre_unroll(capsys):
 
         with open(os.path.join(tmpdir, "foo.py"), "r") as output:
             assert output.read() == """\
-def __call__(self, I: m.Bits[4]) ->m.Bits[4]:
-    O0 = self.regs[1][-1]
+def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
+    O_0 = self.regs[1][-1]
     self.regs[1 - 0][2 - 0] = self.regs[1 - 0][1 - 0]
     self.regs[1 - 0][2 - 1] = self.regs[1 - 0][1 - 1]
     self.regs[1 - 0][0] = __phi(m.Bit(0 == 0), self.regs[0][-1], I)
     self.regs[1 - 1][2 - 0] = self.regs[1 - 1][1 - 0]
     self.regs[1 - 1][2 - 1] = self.regs[1 - 1][1 - 1]
     self.regs[1 - 1][0] = __phi(m.Bit(1 == 0), self.regs[1][-1], I)
-    __return_value0 = O0
-    return __return_value0
+    __0_return_0 = O_0
+    return __0_return_0
 """
 
     assert capsys.readouterr().out == f"""\
@@ -199,8 +214,8 @@ def test_sequential2_return_tuple():
     @m.sequential2()
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4], S: m.Bit) -> (m.Bits[4], m.Bits[4]):
             self.y = self.x
@@ -220,8 +235,8 @@ def test_sequential2_custom_annotations():
     @m.sequential2(annotations=annotations)
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         # Bad annotations to make sure they're overridden
         def __call__(self, I: int, S: str) -> tuple:

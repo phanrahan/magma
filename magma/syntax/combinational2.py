@@ -1,7 +1,7 @@
 import functools
 from typing import Optional
 
-from ast_tools.passes import apply_ast_passes, ssa, if_to_phi, bool_to_bit
+from ast_tools.passes import apply_passes, ssa, if_to_phi, bool_to_bit
 from ast_tools.stack import SymbolTable
 
 from ..circuit import Circuit, IO
@@ -11,7 +11,7 @@ from ..t import Type
 from .util import build_io_args, build_call_args, wire_call_result
 
 
-class combinational2(apply_ast_passes):
+class combinational2(apply_passes):
     def __init__(self, pre_passes=[], post_passes=[],
                  debug: bool = False,
                  env: Optional[SymbolTable] = None,

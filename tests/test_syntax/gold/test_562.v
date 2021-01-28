@@ -44,10 +44,11 @@ commonlib_muxn__N2__width1 coreir_commonlib_mux2x1_inst0 (
 assign O = coreir_commonlib_mux2x1_inst0_out;
 endmodule
 
-module A_comb (
+module A (
     input a,
     input [1:0] b,
-    output [0:0] O
+    output [0:0] O,
+    input CLK
 );
 wire [0:0] Mux2xBits1_inst0_O;
 Mux2xBits1 Mux2xBits1_inst0 (
@@ -57,21 +58,5 @@ Mux2xBits1 Mux2xBits1_inst0 (
     .O(Mux2xBits1_inst0_O)
 );
 assign O = Mux2xBits1_inst0_O;
-endmodule
-
-module A (
-    input a,
-    input [1:0] b,
-    input CLK,
-    input ASYNCRESET,
-    output [0:0] O
-);
-wire [0:0] A_comb_inst0_O;
-A_comb A_comb_inst0 (
-    .a(a),
-    .b(b),
-    .O(A_comb_inst0_O)
-);
-assign O = A_comb_inst0_O;
 endmodule
 
