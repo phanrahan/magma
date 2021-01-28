@@ -3,7 +3,7 @@ from magma.testing import check_files_equal
 import pytest
 import logging
 import ast_tools
-from ast_tools.passes import begin_rewrite, loop_unroll, end_rewrite
+from ast_tools.passes import apply_passes, loop_unroll
 from hwtypes import BitVector
 
 ast_tools.stack._SKIP_FRAME_DEBUG_FAIL = True
@@ -277,9 +277,7 @@ def test_loop_unroll(target):
 
     n = 4
     @m.circuit.combinational
-    @end_rewrite()
-    @loop_unroll()
-    @begin_rewrite()
+    @apply_passes([loop_unroll()])
     def logic(a: m.Bits[n]) -> m.Bits[n]:
         O = []
         for i in ast_tools.macros.unroll(range(n)):
@@ -293,9 +291,7 @@ def test_loop_unroll(target):
 def test_loop_unroll_with_if(target):
     n = 4
     @m.circuit.combinational
-    @end_rewrite()
-    @loop_unroll()
-    @begin_rewrite()
+    @apply_passes([loop_unroll()])
     def logic(a: m.Bits[n]) -> m.Bits[n]:
         O = []
         for i in ast_tools.macros.unroll(range(n)):

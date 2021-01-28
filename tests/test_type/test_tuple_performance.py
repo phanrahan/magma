@@ -1,8 +1,6 @@
 import magma as m
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "../test_syntax"))
-from test_sequential import DefineRegister
 
 
 class BigTuple(m.Product):
@@ -15,16 +13,16 @@ class BigTuple(m.Product):
     V7 = m.UInt[32]
 
 
-@m.circuit.sequential(async_reset=False)
+@m.sequential2(debug=True)
 class Top:
     def __init__(self):
-        self.V1: m.UInt[32] = 0
-        self.V2: m.UInt[32] = 0
-        self.V3: m.UInt[32] = 0
-        self.V4: m.UInt[32] = 0
-        self.V5: m.UInt[32] = 0
-        self.V6: m.UInt[32] = 0
-        self.V7: m.UInt[32] = 0
+        self.V1 = m.Register(m.UInt[32])()
+        self.V2 = m.Register(m.UInt[32])()
+        self.V3 = m.Register(m.UInt[32])()
+        self.V4 = m.Register(m.UInt[32])()
+        self.V5 = m.Register(m.UInt[32])()
+        self.V6 = m.Register(m.UInt[32])()
+        self.V7 = m.Register(m.UInt[32])()
 
     def __call__(self, I: BigTuple, SEL: m.Bit) -> BigTuple:
         t = m.namedtuple(

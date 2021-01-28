@@ -47,6 +47,7 @@ class _CoreIRRegister(Generator2):
             self.coreir_configargs["arst_posedge"] = False
 
         self.stateful = True
+        self.primitive = True
         self.default_kwargs = {"init": coreir.type.BitVector[width](init)}
         self.coreir_genargs = {"width": width}
         self.renamed_ports = coreir_port_mapping
