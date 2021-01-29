@@ -300,7 +300,8 @@ class _RegisterUpdater(cst.CSTTransformer):
             isinstance(updated_node.func, cst.Attribute)
             and isinstance(updated_node.func.value, cst.Name)
             and updated_node.func.attr.value == "Register"
-            and eval(updated_node.func.value.value, {}, self.env) is magma_module
+            and eval(updated_node.func.value.value, {}, self.env) is
+            magma_module
         ):
             args = []
             keywords = set()
