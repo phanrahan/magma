@@ -1,5 +1,6 @@
 import ast
 import libcst as cst
+import libcst.matchers as match
 import magma as magma_module
 from typing import Optional, MutableMapping
 
@@ -294,15 +295,18 @@ class _RegisterUpdater(cst.CSTTransformer):
             cst.Name("reset_priority"),
         )
 
+    def _is_m_register(self, node):
+        return (
+            match.matches(
+                node.func,
+                match.Attribute(match.DoNotCare(), match.Name("Register"))
+            ) and
+            eval(node.func.value.value, {}, self.env) is magma_module
+        )
+
     def leave_Call(self, original_node, updated_node):
         # find m.Register
-        if (
-            isinstance(updated_node.func, cst.Attribute)
-            and isinstance(updated_node.func.value, cst.Name)
-            and updated_node.func.attr.value == "Register"
-            and eval(updated_node.func.value.value, {}, self.env) is
-            magma_module
-        ):
+        if self._is_m_register(updated_node):
             args = []
             keywords = set()
             for arg in updated_node.args:
@@ -358,11 +362,13 @@ class _PrevReplacer(cst.CSTTransformer):
 
     def leave_Call(self, original_node, updated_node):
         # find self.attr.prev()
-        if (isinstance(updated_node.func, cst.Attribute) and
-                isinstance(updated_node.func.value, cst.Attribute) and
-                isinstance(updated_node.func.value.value, cst.Name) and
-                updated_node.func.value.value.value == "self" and
-                updated_node.func.attr.value == "prev"):
+        if match.matches(
+            updated_node.func,
+            match.Attribute(
+                match.Attribute(match.Name("self")),
+                match.Name("prev")
+            )
+        ):
             # replace self.attr.prev() with __magma_sequential2_attr
             attr = updated_node.func.value
             var = f"__magma_sequential2_{attr.attr.value}"
