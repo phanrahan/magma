@@ -4,10 +4,121 @@ import ast
 import astor
 from .verilog_utils import CollectInitialWidthsAndTypes, PromoteWidths, \
     RemoveBits
-from .sequential import get_initial_value_map, RewriteSelfAttributes
 import magma as m
 import kratos
 from magma.config import get_debug_mode
+
+
+class SpecializeConstantInts(ast.NodeTransformer):
+    def __init__(self, defn_env):
+        self.defn_env = defn_env
+
+    def visit_Name(self, node):
+        if node.id in self.defn_env:
+            value = self.defn_env[node.id]
+            if isinstance(value, int):
+                return ast.Num(value)
+        return node
+
+
+class RewriteSelfAttributes(ast.NodeTransformer):
+    def __init__(self, initial_value_map):
+        self.initial_value_map = initial_value_map
+        self.calls_seen = []
+
+    def visit_Attribute(self, node):
+        if isinstance(node.value, ast.Name) and node.value.id == "self":
+            return ast.Name(f"self_{node.attr}_I", node.ctx)
+        return self.generic_visit(node)
+
+    def visit_Call(self, node):
+        if isinstance(node.func, ast.Attribute) and \
+                isinstance(node.func.value, ast.Name) and \
+                node.func.value.id == "self":
+            attr = node.func.attr
+            assert attr in self.initial_value_map, \
+                "Reference to self that was not initialized"
+            ret = []
+            ports = self.initial_value_map[attr][3].interface.inputs()
+            for name, value in zip(ports, node.args):
+                name = magma_value(name)
+                ret.append(ast.parse(
+                    f"self_{attr}_{name} = {astor.to_source(value).rstrip()}"
+                ).body[0])
+            self.calls_seen.extend(ret)
+            func = astor.to_source(node.func).rstrip()
+            outputs = self.initial_value_map[attr][3].interface.outputs()
+            if len(outputs) == 1:
+                name = outputs[0]
+                name = magma_value(name)
+                return ast.Name(f"self_{attr}_{name}", ast.Load())
+            else:
+                assert outputs, "Expected module with at least one output"
+                return ast.Tuple([ast.Name(f"self_{attr}_{magma_value(output)}",
+                                           ast.Load()) for output in outputs],
+                                 ast.Load())
+        elif (isinstance(node.func, ast.Attribute) and
+                isinstance(node.func.value, ast.Attribute) and
+                isinstance(node.func.value.value, ast.Name) and
+                node.func.value.value.id == "self" and
+                node.func.attr == "prev"):
+            return ast.Name(f"self_{node.func.value.attr}_O", ast.Load())
+        else:
+            self.generic_visit(node)
+        return node
+
+    def visit_If(self, node):
+        node.test = self.visit(node.test)
+        for attr in ["body", "orelse"]:
+            new_body = []
+            for item in getattr(node, attr):
+                new_body.append(self.visit(item))
+            if self.calls_seen:
+                new_body = self.calls_seen + new_body
+                self.calls_seen = []
+            setattr(node, attr, new_body)
+        return node
+
+
+def get_initial_value_map(init_func, defn_env):
+    """
+    Parses __init__ funciton of the form
+        def __init__(self):
+            self.x = m.bits(0, 2)
+            self.y = m.bits(0, 4)
+    Returns a map from instance attributes to their initial values
+    For the above example,
+        {'x': <_ast.Call object at 0x109c17fd0>,
+         'y': <_ast.Call object at 0x109c17470>}
+    TODO: Should we allow arbitrary code in the definition? For now, the user
+    can write any meta code outside the class definition, which makes the
+    design of this simpler
+    """
+    initial_value_map = {}
+    if init_func is object.__init__:
+        # Handle case when no __init__
+        return initial_value_map
+    init_def = ast_utils.get_ast(init_func).body[0]
+    # init_def = ExecuteEscapedPythonExpressions(defn_env).visit(init_def)
+    init_def = SpecializeConstantInts(defn_env).visit(init_def)
+    for stmt in init_def.body:
+        # We only support basic assignments of the form
+        #     self.x: m.Bits(2) = m.bits(0, 2)
+        assert isinstance(stmt, ast.AnnAssign)
+        assert isinstance(stmt.target, ast.Attribute)
+        assert isinstance(stmt.target.value, ast.Name)
+        assert stmt.target.value.id == "self"
+
+        # TODO: Should we deal with multiple assignments? For now we take the
+        # last one
+        class Tmp(m.Circuit):
+            eval_type = eval(astor.to_source(stmt.annotation).rstrip(),
+                             defn_env)
+            eval_value = eval(astor.to_source(stmt.value).rstrip(), defn_env)
+        initial_value_map[stmt.target.attr] = (stmt.value, stmt.annotation,
+                                               Tmp.eval_type,
+                                               Tmp.eval_value)
+    return initial_value_map
 
 
 class ProcessNames(ast.NodeTransformer):

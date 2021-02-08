@@ -2,16 +2,13 @@ import magma as m
 from magma.simulator import PythonSimulator
 from magma.simulator.coreir_simulator import CoreIRSimulator
 from hwtypes import BitVector as BV
-import sys
-sys.path.append(".")
-from test_sequential import DefineRegister
 
 
 def test_counter():
-    @m.circuit.sequential
+    @m.sequential2()
     class Counter:
         def __init__(self):
-            self.count : m.UInt[16] = 0
+            self.count = m.Register(m.UInt[16])()
 
         def __call__(self, inc : m.Bit) -> m.UInt[16]:
             if inc:
@@ -19,6 +16,7 @@ def test_counter():
 
             O = self.count
             return O
+    print(repr(Counter))
 
     sim = PythonSimulator(Counter, Counter.CLK)
     sim.set_value(Counter.inc, True)

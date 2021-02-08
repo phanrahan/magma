@@ -19,7 +19,6 @@ from .logging import root_logger, stage_logger, unstage_logger
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
-from magma.syntax.sequential import sequential
 try:
     import kratos
     from magma.syntax.verilog import combinational_to_verilog, \

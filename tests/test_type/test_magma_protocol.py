@@ -5,12 +5,6 @@ from magma.testing import check_files_equal
 import sys
 import os
 
-TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), '../test_syntax')
-
-sys.path.append(TEST_SYNTAX_PATH)
-
-from test_sequential import DefineRegister
-
 
 def test_foo_type_magma_protocol():
     class FooMeta(m.MagmaProtocolMeta):
@@ -52,10 +46,10 @@ def test_foo_type_magma_protocol():
             v1 = m.bits(self._val[0], len(self.T)) << 1
             return Foo(v0 | v1 | m.bits(self._val[0], len(self.T)))
 
-    @m.circuit.sequential
+    @m.sequential2()
     class Bar:
         def __init__(self):
-            self.reg: m.Bits[1] = m.Bits[1](0)
+            self.reg = m.Register(m.Bits[1])()
 
         def __call__(self, foo: Foo[m.Bits[8]]) -> m.Bits[8]:
             self.reg = self.reg
