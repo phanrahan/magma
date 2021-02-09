@@ -218,73 +218,83 @@ def _is_valid_slice(N, key):
 
 
 class Array(Type, metaclass=ArrayMeta):
+    def _init_from_list(self, arg):
+        if len(arg) != self.N:
+            raise ValueError("Array list constructor can only be used "
+                             "with list equal to array length")
+        self.ts = [elem if not isinstance(elem, int) else self.T(elem)
+                   for elem in arg]
+
+    def _init_from_array(self, arg):
+        if len(arg) != len(self):
+            raise TypeError(f"Will not do implicit conversion of arrays")
+        self.ts = arg.ts[:]
+
+    def _init_from_bv(self, arg):
+        if not issubclass(self.T, Bit):
+            raise TypeError(f"Can only instantiate Array[N, Bit] "
+                            f"with int/bv, not Array[N, {self.T}]")
+        if isinstance(arg, BitVector) and len(arg) != self.N:
+            raise TypeError(
+                f"Cannot create a value of type {type(self)} with"
+                f" a BitVector of length {len(arg)} (the sizes"
+                " must match)"
+            )
+
+        bits = int2seq(arg, self.N) if isinstance(arg, int) else arg.bits()
+        self.ts = [self.T(bit) for bit in bits]
+
+    def _check_arg(self, arg):
+        assert type(arg) == self.T or type(arg) == self.T.flip() or \
+            issubclass(type(type(arg)), type(self.T)) or \
+            issubclass(type(self.T), type(type(arg))), (type(arg), self.T)
+
+    def _init_length_one(self, arg):
+        if isinstance(arg, IntegerTypes):
+            arg = self.T(arg)
+        self.ts = [arg]
+
+    def _init_length_n(self, args):
+        self.ts = []
+        for t in args:
+            if isinstance(t, IntegerTypes):
+                t = self.T(t)
+            self._check_arg(t)
+            self.ts.append(t)
+
+    def _init_no_args(self):
+        for i in range(self.N):
+            T = self.T
+            ref = ArrayRef(self, i)
+            if issubclass(T, MagmaProtocol):
+                t = T._from_magma_value_(T._to_magma_()(name=ref))
+            else:
+                t = T(name=ref)
+            self.ts.append(t)
+
+    def _init_from_args(self, args):
+        if len(args) == 1 and isinstance(args[0], (list, Array, int,
+                                                   BitVector)):
+            if isinstance(args[0], list):
+                self._init_from_list(args[0])
+            elif isinstance(args[0], Array):
+                self._init_from_array(args[0])
+            elif isinstance(args[0], (BitVector, int)):
+                self._init_from_bv(args[0])
+            elif self.N == 1:
+                self._init_length_one(args[0])
+        elif len(args) == self.N:
+            self._init_length_n(args)
+        else:
+            raise TypeError(f"Constructing array with {args} not supported")
+
     def __init__(self, *args, **kwargs):
-        Type.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.ts = []
         if args:
-            if len(args) == 1 and isinstance(args[0], (list, Array, int,
-                                                       BitVector)):
-                if isinstance(args[0], list):
-                    if len(args[0]) != self.N:
-                        raise ValueError("Array list constructor can only be used "
-                                         "with list equal to array length")
-                    self.ts = []
-                    for elem in args[0]:
-                        if isinstance(elem, int):
-                            self.ts.append(self.T(elem))
-                        else:
-                            self.ts.append(elem)
-                elif isinstance(args[0], Array):
-                    if len(args[0]) != len(self):
-                        raise TypeError(f"Will not do implicit conversion of arrays")
-                    self.ts = args[0].ts[:]
-                elif isinstance(args[0], (BitVector, int)):
-                    if not issubclass(self.T, Bit):
-                        raise TypeError(f"Can only instantiate Array[N, Bit] "
-                                        f"with int/bv, not Array[N, {self.T}]")
-                    if (isinstance(args[0], BitVector) and
-                            len(args[0]) != self.N):
-                        raise TypeError(
-                            f"Cannot create a value of type {type(self)} with"
-                            f" a BitVector of length {len(args[0])} (the sizes"
-                            " must match)"
-                        )
-
-                    n = args[0]
-                    bits = (int2seq(n, self.N)
-                            if isinstance(n, int)
-                            else n.bits())
-                    self.ts = []
-                    for bit in bits:
-                        self.ts.append(self.T(bit))
-                elif self.N == 1:
-                    t = args[0]
-                    if isinstance(t, IntegerTypes):
-                        t = self.T(t)
-                    assert type(t) == self.T or type(t) == self.T.flip() or \
-                        issubclass(type(type(t)), type(self.T)) or \
-                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
-                    self.ts = [t]
-            elif len(args) == self.N:
-                self.ts = []
-                for t in args:
-                    if isinstance(t, IntegerTypes):
-                        t = self.T(t)
-                    assert type(t) == self.T or type(t) == self.T.flip() or \
-                        issubclass(type(type(t)), type(self.T)) or \
-                        issubclass(type(self.T), type(type(t))), (type(t), self.T)
-                    self.ts.append(t)
-            else:
-                raise TypeError(f"Constructing array with {args} not supported")
+            self._init_from_args(args)
         else:
-            for i in range(self.N):
-                T = self.T
-                ref = ArrayRef(self, i)
-                if issubclass(T, MagmaProtocol):
-                    t = T._from_magma_value_(T._to_magma_()(name=ref))
-                else:
-                    t = T(name=ref)
-                self.ts.append(t)
+            self._init_no_args()
 
     @classmethod
     def is_oriented(cls, direction):
