@@ -23,21 +23,21 @@ class Wire:
     """
     Wire implements wiring.
 
-    Each wire is represented by a bit.
+    Each wire is represented by a value.
     """
-    def __init__(self, bit):
-        self._bit = bit
+    def __init__(self, value):
+        self._val = value
         self._driving = []
         self._driver = None
 
     def __repr__(self):
-        return repr(self._bit)
+        return repr(self._val)
 
     def __str__(self):
-        return str(self._bit)
+        return str(self._val)
 
     def anon(self):
-        return self._bit.anon()
+        return self._val.anon()
 
     def unwire(self, other):
         other._driving.remove(self)
@@ -53,30 +53,30 @@ class Wire:
                 WiringLog(
                     ("Wiring multiple outputs to same wire, using last "
                      "connection. Input: {}, Old Output: {}, New Output: {}"),
-                    self._bit, self._driver._bit, other._bit),
+                    self._val, self._driver._val, other._val),
                 debug_info=debug_info
             )
-        if self._bit.is_output():
+        if self._val.is_output():
             _logger.error(
-                WiringLog("Using `{}` (an output) as an input", self._bit),
-                debug_info=debug_info
-            )
-            return
-        if other._bit.is_input():
-            _logger.error(
-                WiringLog("Using `{}` (an input) as an output", other._bit),
+                WiringLog("Using `{}` (an output) as an input", self._val),
                 debug_info=debug_info
             )
             return
-        if self._bit.is_inout() and not other._bit.is_inout():
+        if other._val.is_input():
             _logger.error(
-                WiringLog("Using `{}` (not inout) as an inout", other._bit),
+                WiringLog("Using `{}` (an input) as an output", other._val),
                 debug_info=debug_info
             )
             return
-        if not self._bit.is_inout() and other._bit.is_inout():
+        if self._val.is_inout() and not other._val.is_inout():
             _logger.error(
-                WiringLog("Using `{}` (not inout) as an inout", self._bit),
+                WiringLog("Using `{}` (not inout) as an inout", other._val),
+                debug_info=debug_info
+            )
+            return
+        if not self._val.is_inout() and other._val.is_inout():
+            _logger.error(
+                WiringLog("Using `{}` (not inout) as an inout", self._val),
                 debug_info=debug_info
             )
             return
@@ -89,25 +89,26 @@ class Wire:
         If a value is an input or an intermediate (undirected), trace it until
         there is an input or inout (this is the source)
 
-        Upon the first invocation (from a user), we skip the current bit (so
+        Upon the first invocation (from a user), we skip the current value (so
         we don't trace to ourselves)
         """
         if self._driver is not None:
             return self._driver.trace(skip_self=False)
-        if not skip_self and (self._bit.is_output() or self._bit.is_inout()):
-            return self._bit
+        if not skip_self and (self._val.is_output() or
+                              self._val.is_inout()):
+            return self._val
         return None
 
     def value(self):
         """
-        Return the bit connected to this bit. Specifically, return the bit this
-        bit is driving if it exists. Else if, there is a unique "drivee" bit,
-        return that bit. Otherwise, return None.
+        Return the value connected to this value. Specifically, return the
+        value this value is driving if it exists. Else if, there is a unique
+        "drivee" value, return that value. Otherwise, return None.
         """
         if self._driver is not None:
-            return self._driver._bit
+            return self._driver._val
         if len(self._driving) == 1:
-            return self._driving[0]._bit
+            return self._driving[0]._val
         return None
 
     def driven(self):
@@ -118,14 +119,14 @@ class Wire:
 
     def driving(self):
         """
-        Return a (possibly empty) list of all bits this bit is driving.
+        Return a (possibly empty) list of all value this value is driving.
         """
-        return [driving._bit for driving in self._driving]
+        return [driving._val for driving in self._driving]
 
     @property
     def driver(self):
         return self._driver
 
     @property
-    def bit(self):
-        return self._bit
+    def val(self):
+        return self._val
