@@ -1,0 +1,37 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "_Foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "corebit_undriven_inst0":{
+            "modref":"corebit.undriven"
+          }
+        },
+        "connections":[
+          ["self.O","corebit_undriven_inst0.out"]
+        ]
+      },
+      "_Top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "_Foo_inst0":{
+            "modref":"global._Foo"
+          }
+        },
+        "connections":[
+          ["self.I","_Foo_inst0.I"],
+          ["self.O","_Foo_inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}

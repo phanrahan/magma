@@ -1,14 +1,18 @@
 from inspect import getouterframes, currentframe
 from pathlib import PurePath
-from .backend import verilog, blif, firrtl, dot, coreir_compiler
-from .compiler import Compiler
-from .config import get_compile_dir
-from .uniquification import uniquification_pass, UniquificationMode
-from .passes.clock import WireClockPass
-from .passes.drive_undriven import DriveUndrivenPass
-from .passes.terminate_unused import TerminateUnusedPass
+
+from magma.backend import verilog, blif, firrtl, dot, coreir_compiler
 from magma.bind import BindPass
+from magma.compiler import Compiler
+from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.passes.black_box import BlackBoxPass
+from magma.passes.stub import StubPass
+from magma.passes.clock import WireClockPass
+from magma.passes.drive_undriven import DriveUndrivenPass
+from magma.passes.terminate_unused import TerminateUnusedPass
+from magma.uniquification import uniquification_pass, UniquificationMode
+
 
 __all__ = ["compile"]
 
@@ -38,6 +42,14 @@ def _get_basename(basename):
     return basename
 
 
+def _run_if_in(dct, key, fn):
+    try:
+        value = dct[key]
+    except KeyError:
+        return
+    fn(value)
+
+
 def compile(basename, main, output="coreir-verilog", **kwargs):
     if hasattr(main, "circuit_definition"):
         main = main.circuit_definition
@@ -53,6 +65,12 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     # Bind after uniquification so the bind logic works on unique modules
     BindPass(main, compile, opts.get("user_namespace")).run()
+
+    # Black box circuits if requested.
+    _run_if_in(opts, "black_boxes", lambda bb: BlackBoxPass(main, bb).run())
+
+    # Black box circuits if requested.
+    _run_if_in(opts, "stubs", lambda stub: StubPass(main, stub).run())
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
