@@ -24,8 +24,13 @@ class Ref:
     def parent(self):
         raise NotImplementedError()
 
-    def root(self):
-        return _get_root(self)
+    def root(self) -> typing.Optional['Ref']:
+        parent = self.parent()
+        if parent is None:
+            return None
+        if parent is self:
+            return self
+        return parent.root()
 
 
 class AnonRef(Ref):
@@ -213,12 +218,3 @@ class PortViewRef(Ref):
 
     def __str__(self):
         return str(self.view.port.name)
-
-
-def _get_root(ref: Ref) -> typing.Optional[Ref]:
-    parent = ref.parent()
-    if parent is None:
-        return None
-    if parent is ref:
-        return ref
-    return _get_root(parent)
