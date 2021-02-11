@@ -217,84 +217,84 @@ def _is_valid_slice(N, key):
             (stop is None or (stop <= N and stop > -N)))
 
 
+def _make_array_from_list(N, T, arg):
+    if len(arg) != N:
+        raise ValueError("Array list constructor can only be used "
+                         "with list equal to array length")
+    return [elem if not isinstance(elem, int) else T(elem)
+            for elem in arg]
+
+
+def _make_array_from_array(N, arg):
+    if len(arg) != N:
+        raise TypeError(f"Will not do implicit conversion of arrays")
+    return arg.ts[:]
+
+
+def _make_array_from_bv(N, T, arg):
+    if not issubclass(T, Bit):
+        raise TypeError(f"Can only instantiate Array[N, Bit] "
+                        f"with int/bv, not Array[N, {T}]")
+    if isinstance(arg, BitVector) and len(arg) != N:
+        raise TypeError(
+            f"Cannot construct Array[{N}, {T}] with BitVector of length "
+            f"{len(arg)} (sizes must match)")
+    bits = int2seq(arg, N) if isinstance(arg, int) else arg.bits()
+    return [T(bit) for bit in bits]
+
+
+def _check_arg(N, T, arg):
+    assert (type(arg) == T or type(arg) == T.flip() or
+            issubclass(type(type(arg)), type(T)) or
+            issubclass(type(T), type(type(arg))), (type(arg), T))
+
+
+def _make_array_length_one(T, arg):
+    if isinstance(arg, IntegerTypes):
+        arg = T(arg)
+    return [arg]
+
+
+def _make_array_length_n(N, T, args):
+    ts = [T(t) if isinstance(t, IntegerTypes) else t for t in args]
+    for t in ts:
+        _check_arg(N, T, t)
+    return ts
+
+
+def _make_array_no_args(array):
+    T = array.T
+    refs = [ArrayRef(array, i) for i in range(array.N)]
+    if not issubclass(T, MagmaProtocol):
+        return [T(name=ref) for ref in refs]
+    return [T._from_magma_value_(T._to_magma_()(name=ref)) for ref in refs]
+
+
+def _make_array_from_args(N, T, args):
+    if len(args) == 1 and isinstance(args[0], (list, Array, int, BitVector)):
+        if isinstance(args[0], list):
+            return _make_array_from_list(N, T, args[0])
+        if isinstance(args[0], Array):
+            return _make_array_from_array(N, args[0])
+        if isinstance(args[0], (BitVector, int)):
+            return _make_array_from_bv(N, T, args[0])
+        if N == 1:
+            return _make_array_length_one(T, args[0])
+    if len(args) == N:
+        return _make_array_length_n(N, T, args)
+    raise TypeError(f"Constructing array with {args} not supported")
+
+
+def _make_array(array, args):
+    if args:
+        return _make_array_from_args(array.N, array.T, args)
+    return _make_array_no_args(array)
+
+
 class Array(Type, metaclass=ArrayMeta):
-    def _init_from_list(self, arg):
-        if len(arg) != self.N:
-            raise ValueError("Array list constructor can only be used "
-                             "with list equal to array length")
-        self.ts = [elem if not isinstance(elem, int) else self.T(elem)
-                   for elem in arg]
-
-    def _init_from_array(self, arg):
-        if len(arg) != len(self):
-            raise TypeError(f"Will not do implicit conversion of arrays")
-        self.ts = arg.ts[:]
-
-    def _init_from_bv(self, arg):
-        if not issubclass(self.T, Bit):
-            raise TypeError(f"Can only instantiate Array[N, Bit] "
-                            f"with int/bv, not Array[N, {self.T}]")
-        if isinstance(arg, BitVector) and len(arg) != self.N:
-            raise TypeError(
-                f"Cannot create a value of type {type(self)} with"
-                f" a BitVector of length {len(arg)} (the sizes"
-                " must match)"
-            )
-
-        bits = int2seq(arg, self.N) if isinstance(arg, int) else arg.bits()
-        self.ts = [self.T(bit) for bit in bits]
-
-    def _check_arg(self, arg):
-        assert type(arg) == self.T or type(arg) == self.T.flip() or \
-            issubclass(type(type(arg)), type(self.T)) or \
-            issubclass(type(self.T), type(type(arg))), (type(arg), self.T)
-
-    def _init_length_one(self, arg):
-        if isinstance(arg, IntegerTypes):
-            arg = self.T(arg)
-        self.ts = [arg]
-
-    def _init_length_n(self, args):
-        self.ts = []
-        for t in args:
-            if isinstance(t, IntegerTypes):
-                t = self.T(t)
-            self._check_arg(t)
-            self.ts.append(t)
-
-    def _init_no_args(self):
-        for i in range(self.N):
-            T = self.T
-            ref = ArrayRef(self, i)
-            if issubclass(T, MagmaProtocol):
-                t = T._from_magma_value_(T._to_magma_()(name=ref))
-            else:
-                t = T(name=ref)
-            self.ts.append(t)
-
-    def _init_from_args(self, args):
-        if len(args) == 1 and isinstance(args[0], (list, Array, int,
-                                                   BitVector)):
-            if isinstance(args[0], list):
-                self._init_from_list(args[0])
-            elif isinstance(args[0], Array):
-                self._init_from_array(args[0])
-            elif isinstance(args[0], (BitVector, int)):
-                self._init_from_bv(args[0])
-            elif self.N == 1:
-                self._init_length_one(args[0])
-        elif len(args) == self.N:
-            self._init_length_n(args)
-        else:
-            raise TypeError(f"Constructing array with {args} not supported")
-
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
-        self.ts = []
-        if args:
-            self._init_from_args(args)
-        else:
-            self._init_no_args()
+        self.ts = _make_array(self, args)
 
     @classmethod
     def is_oriented(cls, direction):
