@@ -19,7 +19,8 @@ def GetMagmaContext():
 def ResetCoreIR():
     reset_coreir_context()
     backend = GetCoreIRBackend()
-    # NOTE(rsetaluri): Is this next line necessary? Don't think it is.
+    # NOTE(rsetaluri): backend.reset() is necessary as it clears the data
+    # structures that are CoreIR Context-specific.
     backend.reset()
 
 
