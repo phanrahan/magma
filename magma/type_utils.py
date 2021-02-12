@@ -4,8 +4,8 @@ import typing
 
 import hwtypes as ht
 
-from magma.bit import Bit
 from magma.array import Array
+from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
 from magma.digital import Digital
 from magma.protocol_type import MagmaProtocol
