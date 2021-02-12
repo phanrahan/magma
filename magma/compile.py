@@ -1,12 +1,13 @@
 from inspect import getouterframes, currentframe
 from pathlib import PurePath
-from .backend import verilog, blif, firrtl, dot, coreir_compiler
+from .backend import verilog, blif, firrtl, dot
 from .compiler import Compiler
 from .config import get_compile_dir
 from .uniquification import uniquification_pass, UniquificationMode
 from .passes.clock import WireClockPass
 from .passes.drive_undriven import DriveUndrivenPass
 from .passes.terminate_unused import TerminateUnusedPass
+from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.bind import BindPass
 from magma.inline_verilog import ProcessInlineVerilogPass
 
@@ -23,10 +24,10 @@ def _make_compiler(output, main, basename, opts):
     if output == "dot":
         return dot.DotCompiler(main, basename)
     if output == "coreir":
-        return coreir_compiler.CoreIRCompiler(main, basename, opts)
+        return CoreIRCompiler(main, basename, opts)
     if output == "coreir-verilog":
         opts["output_verilog"] = True
-        return coreir_compiler.CoreIRCompiler(main, basename, opts)
+        return CoreIRCompiler(main, basename, opts)
     raise NotImplementedError(f"Backend '{output}' not supported")
 
 
@@ -48,10 +49,11 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # Default behavior is to perform uniquification, but can be overriden.
     uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 
-    # Steps to process inline verilog generation. Required to be run after uniquification.
+    # Steps to process inline verilog generation. Required to be run after
+    # uniquification.
     ProcessInlineVerilogPass(main).run()
 
-    # Bind after uniquification so the bind logic works on unique modules
+    # Bind after uniquification so the bind logic works on unique modules.
     BindPass(main, compile, opts.get("user_namespace")).run()
 
     if opts.get("drive_undriven", False):

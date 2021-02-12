@@ -3,22 +3,21 @@ from copy import copy
 import json
 import logging
 import os
-from ..digital import Digital
-from ..array import Array
-from ..bits import Bits
+from magma.digital import Digital
+from magma.array import Array
+from magma.bits import Bits
 from coreir import Wireable
-from .coreir_utils import (attach_debug_info, check_magma_interface,
-                           constant_to_value, get_inst_args,
-                           get_module_of_inst,
-                           magma_interface_to_coreir_module_type,
-                           magma_port_to_coreir_port, make_cparams, map_genarg,
-                           magma_name_to_coreir_select, Slice)
-from ..interface import InterfaceKind
-from ..is_definition import isdefinition
-from ..logging import root_logger
-from ..passes import InstanceGraphPass
-from ..tuple import Tuple
-from .util import get_codegen_debug_info
+from magma.backend.coreir.coreir_utils import (
+    attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
+    get_module_of_inst, magma_interface_to_coreir_module_type,
+    magma_port_to_coreir_port, make_cparams, map_genarg,
+    magma_name_to_coreir_select, Slice)
+from magma.interface import InterfaceKind
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes import InstanceGraphPass
+from magma.tuple import Tuple
+from magma.backend.util import get_codegen_debug_info
 from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
                          get_default_clocks)
 from magma.config import get_debug_mode
@@ -27,7 +26,7 @@ from magma.ref import PortViewRef, ArrayRef
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
-# already been done in backend/coreir_.py.
+# already been done in backend/coreir/coreir_backend.py.
 _logger = root_logger().getChild("coreir_backend")
 
 
@@ -119,10 +118,13 @@ class DefnOrDeclTransformer(TransformerBase):
         self.coreir_module = None
 
     def children(self):
-        if self.defn_or_decl.name in self.backend.modules:
+        try:
+            coreir_module = self.backend.get_module(self.defn_or_decl)
             _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
-            self.coreir_module = self.backend.modules[self.defn_or_decl.name]
+            self.coreir_module = coreir_module
             return []
+        except KeyError:
+            pass
         if not isdefinition(self.defn_or_decl):
             return [DeclarationTransformer(self.backend,
                                            self.opts,
@@ -140,10 +142,10 @@ class DefnOrDeclTransformer(TransformerBase):
         if self.coreir_module:
             return
         self.coreir_module = self._children[0].coreir_module
-        self.backend.modules[self.defn_or_decl.name] = self.coreir_module
+        self.backend.add_module(self.defn_or_decl, self.coreir_module)
         if isdefinition(self.defn_or_decl):
             self.defn_or_decl.wrappedModule = self.coreir_module
-            libs = copy(self.backend.libs_used)
+            libs = self.backend.included_libs()
             self.defn_or_decl.coreir_wrapped_modules_libs_used = libs
 
 
@@ -163,9 +165,9 @@ class InstanceTransformer(LeafTransformer):
         )
         defn = type(self.inst)
         if hasattr(self.inst, "namespace"):
-            lib = self.backend.libs[self.inst.namespace]
+            lib = self.backend.get_lib(self.inst.namespace)
         else:
-            lib = self.backend.libs[self.inst.coreir_lib]
+            lib = self.backend.get_lib(self.inst.coreir_lib)
             if self.inst.coreir_lib == "global":
                 lib = self.opts.get("user_namespace", lib)
         if self.inst.coreir_genargs is None:
@@ -188,7 +190,8 @@ class WrappedTransformer(LeafTransformer):
         super().__init__(backend, opts)
         self.defn = defn
         self.coreir_module = self.defn.wrappedModule
-        self.backend.libs_used |= self.defn.coreir_wrapped_modules_libs_used
+        self.backend.include_lib_or_libs(
+            self.defn.coreir_wrapped_modules_libs_used)
 
 
 class DefinitionTransformer(TransformerBase):
@@ -204,6 +207,7 @@ class DefinitionTransformer(TransformerBase):
             for inst in self.defn.instances
         }
         self.clocks = get_default_clocks(defn)
+        self._constant_cache = {}
 
     def children(self):
         pass_ = InstanceGraphPass(self.defn)
@@ -230,7 +234,7 @@ class DefinitionTransformer(TransformerBase):
                  "connect_references": connect_references}
             ))
         for name, module in self.defn.compiled_bind_modules.items():
-            self.backend.sv_bind_files[name] = module
+            self.backend.bind_module(name, module)
 
         self.coreir_module.definition = self.get_coreir_defn()
 
@@ -246,7 +250,7 @@ class DefinitionTransformer(TransformerBase):
             self.coreir_module.add_metadata("verilog", metadata)
             return coreir_defn
         if self.defn.coreir_lib is not None:
-            self.backend.libs_used.add(self.defn.coreir_lib)
+            self.backend.include_lib_or_libs(self.defn.coreir_lib)
         for name, port in self.defn.interface.ports.items():
             _logger.debug(f"{name}, {port}, {port.is_output()}")
         for inst, coreir_inst in coreir_insts.items():
@@ -276,7 +280,7 @@ class DefinitionTransformer(TransformerBase):
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
         if isinstance(value, Bits) and value.const():
-            return self.const_instance(value, len(value), module_defn)
+            return self._const_instance(value, len(value), module_defn)
         if value.anon() and isinstance(value, Array):
             drivers = _collect_drivers(value)
             offset = 0
@@ -300,7 +304,7 @@ class DefinitionTransformer(TransformerBase):
                 self.connect(module_defn, p, v)
             return None
         if value.const():
-            return self.const_instance(value, None, module_defn)
+            return self._const_instance(value, None, module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
@@ -328,25 +332,26 @@ class DefinitionTransformer(TransformerBase):
         if get_codegen_debug_info() and getattr(port, "debug_info", False):
             attach_debug_info(module_defn, port.debug_info, source, sink)
 
-    def const_instance(self, constant, num_bits, module_defn):
-        cache_entry = self.backend.constant_cache.setdefault(module_defn, {})
+    def _const_instance(self, constant, num_bits, module_defn):
         value = constant_to_value(constant)
         key = (value, num_bits)
-        if key in cache_entry:
-            return cache_entry[key]
+        try:
+            return self._constant_cache[key]
+        except KeyError:
+            pass
         if num_bits is None:
             config = self.backend.context.new_values({"value": bool(value)})
             name = f"bit_const_{value}_{num_bits}"
-            mod = self.backend.libs["corebit"].modules["const"]
+            mod = self.backend.get_lib("corebit").modules["const"]
             module_defn.add_module_instance(name, mod, config)
         else:
             config = self.backend.context.new_values({"value": value})
             name = f"const_{value}_{num_bits}"
-            gen = self.backend.libs["coreir"].generators["const"]
+            gen = self.backend.get_lib("coreir").generators["const"]
             gen_args = self.backend.context.new_values({"width": num_bits})
             module_defn.add_generator_instance(name, gen, gen_args, config)
-        cache_entry[key] = module_defn.select(f"{name}.out")
-        return cache_entry[key]
+        out = module_defn.select(f"{name}.out")
+        return self._constant_cache.setdefault(key, out)
 
 
 class DeclarationTransformer(LeafTransformer):
@@ -362,18 +367,21 @@ class DeclarationTransformer(LeafTransformer):
         self.decl = self.decl
         _logger.debug(f"Compiling declaration {self.decl}")
         if self.decl.coreir_lib is not None:
-            self.backend.libs_used.add(self.decl.coreir_lib)
+            self.backend.include_lib_or_libs(self.decl.coreir_lib)
         # These libraries are already available by default in coreir, so we
         # don't need declarations.
         if self.decl.coreir_lib in ["coreir", "corebit", "commonlib",
                                     "memory"]:
-            lib = self.backend.libs[self.decl.coreir_lib]
+            lib = self.backend.get_lib(self.decl.coreir_lib)
             if self.decl.coreir_genargs is None:
                 return lib.modules[self.decl.coreir_name]
             return lib.generators[self.decl.coreir_name]
-        if self.decl.name in self.backend.modules:
+        try:
+            coreir_module = self.backend.get_module(self.decl)
             _logger.debug(f"{self.decl} already compiled, skipping")
-            return self.backend.modules[self.decl.name]
+            return coreir_module
+        except KeyError:
+            pass
         if get_debug_mode():
             check_magma_interface(self.decl.interface)
         module_type = magma_interface_to_coreir_module_type(
@@ -389,7 +397,7 @@ class DeclarationTransformer(LeafTransformer):
             # class MyCircuit(m.Circuit):
             #     namespace = "foo"
             # overrides user_namespace setting
-            namespace = self.backend.libs[self.decl.namespace]
+            namespace = self.backend.get_lib(self.decl.namespace)
         else:
             namespace = self.opts.get("user_namespace",
                                       self.backend.context.global_namespace)

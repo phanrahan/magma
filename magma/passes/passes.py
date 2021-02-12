@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from ..is_definition import isdefinition
 from .tsort import tsort
 
-__all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass']
+__all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass',
+           'pass_lambda']
 
 
 class Pass(ABC):
@@ -116,3 +117,15 @@ class EditDefinitionPass(DefinitionPass):
     def __call__(self, circuit):
         with circuit.open():
             self.edit(circuit)
+
+
+# Auxiliary method to convert a simple pass, into a functional form, such as:
+#
+#   SomePass(ckt).run() <-> some_pass(ckt)
+#
+def pass_lambda(cls):
+
+    def _fn(ckt):
+        cls(ckt).run()
+
+    return _fn

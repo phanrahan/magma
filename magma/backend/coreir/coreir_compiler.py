@@ -1,13 +1,13 @@
 import os
 import subprocess
-from .coreir_ import InsertWrapCasts
-from ..compiler import Compiler
-from ..frontend import coreir_ as coreir_frontend
-from ..is_definition import isdefinition
-from ..passes import InstanceGraphPass
-from ..passes.insert_coreir_wires import InsertCoreIRWires
-from ..logging import root_logger
+from magma.compiler import Compiler
 from magma.config import EnvConfig, config
+from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
+from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
+from magma.frontend import coreir_ as coreir_frontend
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes import InstanceGraphPass
 
 
 _logger = root_logger()
@@ -64,8 +64,8 @@ class CoreIRCompiler(Compiler):
 
     def compile(self):
         result = {}
-        InsertCoreIRWires(self.main).run()
-        InsertWrapCasts(self.main).run()
+        insert_coreir_wires(self.main)
+        insert_wrap_casts(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
         backend.compile(self.main, opts)
@@ -76,7 +76,7 @@ class CoreIRCompiler(Compiler):
         if output_json:
             filename = f"{self.basename}.json"
             if isdefinition(self.main):
-                backend.context.set_top(backend.modules[self.main.coreir_name])
+                backend.context.set_top(backend.get_module(self.main))
             backend.context.save_to_file(filename, include_default_libs=False)
         if self.opts.get("output_verilog", False):
             fn = (self._fast_compile_verilog
@@ -92,7 +92,7 @@ class CoreIRCompiler(Compiler):
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
         if isdefinition(self.main):
-            result["coreir_module"] = backend.modules[self.main.coreir_name]
+            result["coreir_module"] = backend.get_module(self.main)
         return result
 
     def _compile_verilog(self):
@@ -102,7 +102,7 @@ class CoreIRCompiler(Compiler):
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
 
     def _fast_compile_verilog(self):
-        top = self.backend.modules[self.main.coreir_name]
+        top = self.backend.get_module(self.main)
         filename = f"{self.basename}.v"
         opts = dict(
             libs=self.deps,
@@ -120,7 +120,7 @@ class CoreIRCompiler(Compiler):
 
         bind_files = []
         # TODO(leonardt): We need fresh bind_files for each compile call.
-        for name, file in self.backend.sv_bind_files.items():
+        for name, file in self.backend.bound_modules().items():
             bind_files.append(f"{name}.sv")
             filename = os.path.join(os.path.dirname(self.basename), name)
             with open(f"{filename}.sv", "w") as f:

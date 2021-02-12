@@ -1,13 +1,14 @@
 from collections import OrderedDict
 import json
 from hwtypes import BitVector
-from ..array import Array
-from ..bit import Digital
-from ..clock import Clock, AsyncReset, AsyncResetN, ClockTypes
-from ..ref import ArrayRef, DefnRef, TupleRef, InstRef, NamedRef, PortViewRef
-from ..tuple import Tuple
-from ..protocol_type import magma_type, magma_value
-from .util import make_relative
+from magma.array import Array
+from magma.bit import Digital
+from magma.clock import Clock, AsyncReset, AsyncResetN, ClockTypes
+from magma.ref import (ArrayRef, DefnRef, TupleRef, InstRef, NamedRef,
+                       PortViewRef)
+from magma.tuple import Tuple
+from magma.protocol_type import magma_type, magma_value
+from magma.backend.util import make_relative
 
 
 class CoreIRBackendError(RuntimeError):

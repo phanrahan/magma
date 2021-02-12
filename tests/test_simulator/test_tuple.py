@@ -1,6 +1,6 @@
 from magma import *
 from magma.clock import *
-from magma.backend.coreir_ import CoreIRBackend
+from magma.backend.coreir.coreir_backend import CoreIRBackend
 from magma.bitutils import *
 from coreir.context import *
 from magma.simulator.coreir_simulator import CoreIRSimulator
