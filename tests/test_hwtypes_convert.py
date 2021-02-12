@@ -1,6 +1,6 @@
 import magma as m
 import hwtypes as ht
-from magma.hwtypes_convert import to_hwtypes
+from magma.type_utils import to_hwtypes
 
 
 def test_bit_to_ht():

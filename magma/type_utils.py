@@ -2,11 +2,15 @@ import abc
 import dataclasses
 import typing
 
+import hwtypes as ht
+
+from magma.bit import Bit
 from magma.array import Array
 from magma.bits import Bits, UInt, SInt
 from magma.digital import Digital
 from magma.protocol_type import MagmaProtocol
-from magma.tuple import Tuple
+from magma.t import Kind
+from magma.tuple import Tuple, Product
 
 
 def isprotocol(T):
@@ -123,3 +127,23 @@ class TypeTransformer(TypeVisitor):
         wrapped = _wrap_type(T)
         args = (self.visit(child) for child in wrapped.children)
         return wrapped.constructor(T, *args)
+
+
+def to_hwtypes(T: Kind):
+    if not isinstance(T, Kind):
+        raise TypeError("Expected a magma type")
+    if issubclass(T, Bit):
+        return ht.Bit
+    if issubclass(T, SInt):
+        return ht.SIntVector[T.N]
+    if issubclass(T, UInt):
+        return ht.UIntVector[T.N]
+    if issubclass(T, Bits):
+        return ht.BitVector[T.N]
+    if issubclass(T, Product):
+        _fields = {k: to_hwtypes(v) for k, v in T.field_dict.items()}
+        return ht.Product.from_fields(T.__name__, _fields)
+    if issubclass(T, Tuple):
+        _fields = tuple(to_hwtypes(v) for v in T.fields)
+        return ht.Tuple[_fields]
+    raise NotImplementedError(T)
