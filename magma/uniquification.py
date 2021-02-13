@@ -23,15 +23,22 @@ class _HashStruct:
     defn_repr: str
     is_verilog: bool
     verilog_str: bool
+    inline_verilog: tuple
 
 
 def _make_hash_struct(definition):
     repr_ = repr(definition)
+    inline_verilog = ((), (), (), ())
     for s, args, st, prefix in definition._context_._inline_verilog:
-        repr_ += s + ", ".join(str(arg) for arg in args) + str(st) + prefix
+        inline_verilog += (
+            (s, ),
+            (", ".join(str(arg) for arg in args), ),
+            (str(st), ),
+            (prefix, )
+        )
     if hasattr(definition, "verilogFile") and definition.verilogFile:
-        return _HashStruct(repr_, True, definition.verilogFile)
-    return _HashStruct(repr_, False, "")
+        return _HashStruct(repr_, True, definition.verilogFile, inline_verilog)
+    return _HashStruct(repr_, False, "", inline_verilog)
 
 
 def _hash(definition):
