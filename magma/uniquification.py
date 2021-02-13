@@ -27,6 +27,8 @@ class _HashStruct:
 
 def _make_hash_struct(definition):
     repr_ = repr(definition)
+    for s, args, st, prefix in definition._context_._inline_verilog:
+        repr_ += s + ", ".join(str(arg) for arg in args) + str(st) + prefix
     if hasattr(definition, "verilogFile") and definition.verilogFile:
         return _HashStruct(repr_, True, definition.verilogFile)
     return _HashStruct(repr_, False, "")
