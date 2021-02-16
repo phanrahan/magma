@@ -148,3 +148,25 @@ def test_clock_inline_verilog():
 
     # Should not throw a coreir error
     m.compile("build/Foo", Foo, inline=True)
+
+
+def test_inline_verilog_unique():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        m.inline_verilog('always @(*) $display("%d\\n", {io.I});')
+
+    Bar = Foo
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        m.inline_verilog('always @(*) $display("%x\\n", {io.I});')
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        Bar()(io.I)
+        Foo()(io.I)
+
+    m.compile("build/test_inline_verilog_unique", Top)
+    assert m.testing.check_files_equal(__file__,
+                                       f"build/test_inline_verilog_unique.v",
+                                       f"gold/test_inline_verilog_unique.v")
