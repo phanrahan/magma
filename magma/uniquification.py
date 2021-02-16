@@ -31,10 +31,10 @@ def _make_hash_struct(definition):
     inline_verilog = ((), (), (), ())
     for s, args, st, prefix in definition._context_._inline_verilog:
         inline_verilog += (
-            (s, ),
-            (", ".join(str(arg) for arg in args), ),
-            (str(st), ),
-            (prefix, )
+            (s,),
+            (", ".join(str(arg) for arg in args),),
+            (str(st),),
+            (prefix,)
         )
     if hasattr(definition, "verilogFile") and definition.verilogFile:
         return _HashStruct(repr_, True, definition.verilogFile, inline_verilog)
