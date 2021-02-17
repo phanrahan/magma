@@ -36,7 +36,8 @@ class CoreIRBackend:
         modules[magma_module.coreir_name] = coreir_module
 
     def get_module(self, magma_module):
-        # NOTE(rsetaluri): Throws KeyError if @magma_module has not been added.
+        # Throws KeyError if @magma_module or its namespace (coreir_lib) has
+        # not been added.
         modules = self._namespaces[magma_module.coreir_lib]
         return modules[magma_module.coreir_name]
 
