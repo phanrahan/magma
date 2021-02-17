@@ -170,3 +170,35 @@ def test_inline_verilog_unique():
     assert m.testing.check_files_equal(__file__,
                                        f"build/test_inline_verilog_unique.v",
                                        f"gold/test_inline_verilog_unique.v")
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_inline_verilog_unique_old_style():
+    class Foo(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            io.inline_verilog('always @(*) $display("%d\\n", {I});', I=io.I)
+
+    Bar = Foo
+
+    class Foo(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            io.inline_verilog('always @(*) $display("%x\\n", {I});', I=io.I)
+
+    class Top(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            Bar()(io.I)
+            Foo()(io.I)
+
+    m.compile("build/test_inline_verilog_unique_old_style", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_unique_old_style.v",
+        f"gold/test_inline_verilog_unique.v")
