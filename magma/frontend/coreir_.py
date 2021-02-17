@@ -110,7 +110,8 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
             circuitNotInstance = circuit.__class__
         else:
             circuitNotInstance = circuit
-        moduleOrGenerator = cirb.compile(circuitNotInstance)[circuitNotInstance.name]
+        namespaces = cirb.compile(circuitNotInstance)
+        moduleOrGenerator = namespaces[circuitNotInstance.coreir_lib][circuitNotInstance.name]
         # compile can giv eme back the coreIR module or the coreIR generator. if this is
         # the CoreIR generator, call it with the Magma arguments converted to CoreIR ones.
         if isinstance(moduleOrGenerator, Generator):
