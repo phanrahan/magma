@@ -25,18 +25,20 @@ class CoreIRBackend:
         if context is not singleton:
             _logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
                             "context.")
-        self._modules = module_map().setdefault(context, {})
+        self._namespaces = module_map().setdefault(context, {})
         self._context = context
         self._lib_cache = {}
         self._included_libs = set()
         self._bound_modules = {}
 
     def add_module(self, magma_module, coreir_module):
-        self._modules[magma_module.coreir_name] = coreir_module
+        modules = self._namespaces.setdefault(magma_module.coreir_lib, {})
+        modules[magma_module.coreir_name] = coreir_module
 
     def get_module(self, magma_module):
         # NOTE(rsetaluri): Throws KeyError if @magma_module has not been added.
-        return self._modules[magma_module.coreir_name]
+        modules = self._namespaces[magma_module.coreir_lib]
+        return modules[magma_module.coreir_name]
 
     def include_lib_or_libs(self, lib_or_libs):
         try:
@@ -72,7 +74,7 @@ class CoreIRBackend:
         opts = opts if opts is not None else {}
         transformer = DefnOrDeclTransformer(self, opts, defn_or_decl)
         transformer.run()
-        return self._modules
+        return self._namespaces
 
 
 def compile(main, file_name=None, context=None):
