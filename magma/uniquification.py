@@ -28,7 +28,7 @@ class _HashStruct:
 
 def _make_hash_struct(definition):
     repr_ = repr(definition)
-    inline_verilog = ((), (), (), ())
+    inline_verilog = tuple()
     for s, args, st, prefix in definition._context_._inline_verilog:
         inline_verilog += (
             (s,),
