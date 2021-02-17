@@ -2,7 +2,7 @@ from coreir import Context
 
 
 _coreir_context = Context()
-_module_map = {}  # map from context to modules
+_namespace_module_map = {}  # map from context to namespaces to modules
 
 
 def coreir_context():
@@ -12,15 +12,15 @@ def coreir_context():
 
 def reset_coreir_context():
     global _coreir_context
-    global _module_map
+    global _namespace_module_map
     try:
-        del _module_map[_coreir_context]
+        del _namespace_module_map[_coreir_context]
     except KeyError:  # _coreir_context (singleton) not mapped
         pass
     _coreir_context.delete()
     _coreir_context = Context()
 
 
-def module_map():
-    global _module_map
-    return _module_map
+def namespace_module_map():
+    global _namespace_module_map
+    return _namespace_module_map

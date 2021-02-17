@@ -1,5 +1,5 @@
 from magma.config import config, EnvConfig
-from magma.backend.coreir.coreir_runtime import coreir_context, module_map
+from magma.backend.coreir.coreir_runtime import coreir_context, namespace_module_map
 from magma.backend.coreir.coreir_transformer import DefnOrDeclTransformer
 from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
 from magma.logging import root_logger
@@ -25,7 +25,7 @@ class CoreIRBackend:
         if context is not singleton:
             _logger.warning("Creating CoreIRBackend with non-singleton CoreIR "
                             "context.")
-        self._namespaces = module_map().setdefault(context, {})
+        self._namespaces = namespace_module_map().setdefault(context, {})
         self._context = context
         self._lib_cache = {}
         self._included_libs = set()
