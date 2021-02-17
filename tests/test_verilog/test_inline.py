@@ -202,3 +202,47 @@ def test_inline_verilog_unique_old_style():
     assert m.testing.check_files_equal(
         __file__, f"build/test_inline_verilog_unique_old_style.v",
         f"gold/test_inline_verilog_unique.v")
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_inline_verilog_unique_old_style2():
+
+    class Passthru(m.Generator):
+        @staticmethod
+        def generate(Dtype, Id):
+
+            class Passthru(m.Circuit):
+
+                IO = ["I", m.In(Dtype)]
+                IO += ["O", m.Out(Dtype)]
+
+                @classmethod
+                def definition(io):
+
+                    io.O @= io.I
+
+                    m.inline_verilog("""
+initial begin
+    $display("Id = %d", {Id});
+end
+                    """, Id=Id)
+
+            return Passthru
+
+    class Top(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+        IO += ["O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            passthru0 = Passthru(m.Bit, 0)
+            passthru1 = Passthru(m.Bit, 1)
+
+            passthru0.I @= io.I
+            passthru1.I @= passthru0.O
+            io.O @= passthru1.O
+
+    m.compile("build/test_inline_verilog_unique_old_style2", Top, inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_unique_old_style2.v",
+        f"gold/test_inline_verilog_unique_old_style2.v")
