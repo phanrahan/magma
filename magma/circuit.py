@@ -827,6 +827,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._finalized = False
         self._dct = {}
         self._context = DefinitionContext(StagedPlacer(self._name))
+        self._instance_name = None
 
     def _port(self, name):
         return self._io.ports[name]
@@ -834,6 +835,10 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def _add_port(self, name, typ):
         self._io.add(name, typ)
         setattr(self, name, self._io.inst_ports[name])
+        return self._port(name)
+
+    def _add_ports(self, **kwargs):
+        return list(self._add_port(name, typ) for name, typ in kwargs.items())
 
     def _set_namespace_key(self, key, value):
         if key in CircuitBuilder._RESERVED_NAMESPACE_KEYS:
@@ -842,6 +847,15 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
 
     def _finalize(self):
         pass
+
+    def set_instance_name(self, name):
+        self._instance_name = name
+
+    @property
+    def instance_name(self):
+        if self._instance_name is None:
+            return self._name
+        return self._instance_name
 
     def finalize(self):
         if self._finalized:
@@ -853,4 +867,4 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         DefineCircuitKind.__prepare__(self._name, bases)
         t = DefineCircuitKind(self._name, bases, dct)
         self._finalized = True
-        return t(name=self._name)
+        return t(name=self.instance_name)
