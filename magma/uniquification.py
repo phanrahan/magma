@@ -33,6 +33,7 @@ def _make_hash_struct(definition):
         inline_verilog += (
             (s,),
             (", ".join(str(arg) for arg in args),),
+            (tuple(sorted(args.items())),),
             (str(st),),
             (prefix,)
         )

@@ -221,7 +221,7 @@ def test_inline_verilog_unique_old_style2():
 
                     io.O @= io.I
 
-                    m.inline_verilog("""
+                    io.inline_verilog("""
 initial begin
     $display("Id = %d", {Id});
 end
