@@ -41,18 +41,20 @@ def _make_inline_value(cls, inline_value_map, value):
     return f"{{{value_key}}}"
 
 
-def _make_temporary(defn, value, num, inline_wire_prefix, parent=None):
+def _make_temporary(defn, value, num, inline_wire_prefix, compile_guard,
+                    parent=None):
     with defn.open():
-        # Insert a wire so it can't be inlined out
-        temp_name = f"{inline_wire_prefix}{num}"
-        temp = Wire(type(value).undirected_t)(name=temp_name)
-        temp.I @= value
+        with compile_guard:
+            # Insert a wire so it can't be inlined out
+            temp_name = f"{inline_wire_prefix}{num}"
+            temp = Wire(type(value).undirected_t)(name=temp_name)
+            temp.I @= value
     if parent is not None:
         return PortView(temp.O, parent)
     return temp.O
 
 
-def _insert_temporary_wires(cls, value, inline_wire_prefix):
+def _insert_temporary_wires(cls, value, inline_wire_prefix, compile_guard):
     """
     For non DefnRef, insert a temporary Wire instance so the signal isn't
     inlined out
@@ -64,7 +66,7 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
             if value not in cls.inline_verilog_wire_map:
                 temp = _make_temporary(cls, value,
                                        len(cls.inline_verilog_wire_map),
-                                       inline_wire_prefix)
+                                       inline_wire_prefix, compile_guard)
                 cls.inline_verilog_wire_map[value] = temp
             value = cls.inline_verilog_wire_map[value]
     else:
@@ -94,7 +96,8 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
 
             temp = _make_temporary(defn, value.port,
                                    len(cls.inline_verilog_wire_map),
-                                   inline_wire_prefix, parent)
+                                   inline_wire_prefix, compile_guard,
+                                   parent)
             cls.inline_verilog_wire_map[value] = temp
         value = cls.inline_verilog_wire_map[value]
     return value
@@ -171,10 +174,10 @@ def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
             if not inline_value_map:
                 inst.I @= 0
 
-    with compile_guard:
-        for key, value in inline_value_map.items():
-            value = _insert_temporary_wires(cls, value, inline_wire_prefix)
-            wire(value, getattr(inst, key))
+    for key, value in inline_value_map.items():
+        value = _insert_temporary_wires(cls, value, inline_wire_prefix,
+                                        compile_guard)
+        wire(value, getattr(inst, key))
 
 
 def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
