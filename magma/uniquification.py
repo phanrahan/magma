@@ -28,12 +28,12 @@ class _HashStruct:
 
 def _make_hash_struct(definition):
     repr_ = repr(definition)
-    inline_verilog = ((), (), (), ())
+    inline_verilog = tuple()
     for items in definition._context_._inline_verilog:
         s, args, st, prefix, compile_guard = items
         inline_verilog += (
             (s,),
-            (", ".join(str(arg) for arg in args),),
+            (tuple(sorted(args.items())),),
             (str(st),),
             (prefix,),
             (compile_guard,)
