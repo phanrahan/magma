@@ -36,6 +36,62 @@ def _collect_external_and_default_drivers(instances, internal_drivers):
     return external_drivers, default_drivers
 
 
+def _make_io_for_external_and_default_drivers(external_drivers,
+                                              default_drivers):
+    ports = {}
+    for driver in external_drivers:
+        ports[driver.name.qualifiedname("_")] = type(driver).flip()
+    for T, _name in default_drivers.items():
+        ports[_name] = T
+
+    return IO(**dict(sorted(ports.items())))
+
+
+def _copy_instances(instances):
+    # Returns a copy of the instances by calling type and instantiating the 
+    # type with the same name (TODO: We should copy all **kwargs if we track
+    # them)
+    # Also returns a dictionary mapping old drivers (values on old instances)
+    # to new drivers (values on copied instances)
+    new_internal_driver_map = {}
+    new_instances = []
+    for old_inst in instances:
+        new_inst = type(old_inst)(name=old_inst.name)
+        new_instances.append(new_inst)
+        for _name, port in old_inst.interface.ports.items():
+            if not port.is_output():
+                continue
+            new_internal_driver_map[port] = getattr(new_inst, _name)
+    return new_instances, new_internal_driver_map
+
+
+def _wire_new_instances(new_instances, old_instances, new_internal_driver_map,
+                        external_drivers, io):
+    for new_inst, old_inst in zip(new_instances, old_instances):
+        for _name, port in old_inst.interface.ports.items():
+            if not port.is_input():
+                continue
+            driver = port.trace()
+            if driver is None:
+                # Unwired, e.g. clock
+                continue
+            if driver in external_drivers:
+                new_driver = getattr(io, driver.name.qualifiedname("_"))
+            elif driver.const():
+                new_driver = driver
+            else:
+                new_driver = new_internal_driver_map[driver]
+            wire(new_driver, getattr(new_inst, _name))
+
+
+def _add_wrapper_inst(circuit, wrapper, external_drivers, compile_guard):
+    with circuit.open():
+        inst = wrapper()
+        for driver in external_drivers:
+            wire(driver, getattr(inst, driver.name.qualifiedname("_")))
+        inst.coreir_metadata = {"compile_guard": compile_guard.guard_str}
+
+
 class ProcessCompileGuardPass(DefinitionPass):
     def _process_compile_guard(self, circuit, compile_guard, instances):
         internal_drivers = _collect_internal_drivers(instances)
@@ -43,43 +99,16 @@ class ProcessCompileGuardPass(DefinitionPass):
             _collect_external_and_default_drivers(instances, internal_drivers)
 
         class _CompileGuardWrapper(Circuit):
-            ports = {}
-            for driver in external_drivers:
-                ports[driver.name.qualifiedname("_")] = type(driver).flip()
-            for T, _name in default_drivers.items():
-                ports[_name] = T
+            io = _make_io_for_external_and_default_drivers(external_drivers,
+                                                           default_drivers)
+            new_instances, new_internal_driver_map = \
+                _copy_instances(instances)
 
-            io = IO(**dict(sorted(ports.items())))
-            new_internal_driver_map = {}
-            new_instances = []
-            for old_inst in instances:
-                new_inst = type(old_inst)(name=old_inst.name)
-                new_instances.append(new_inst)
-                for _name, port in old_inst.interface.ports.items():
-                    if not port.is_output():
-                        continue
-                    new_internal_driver_map[port] = getattr(new_inst, _name)
+            _wire_new_instances(new_instances, instances,
+                                new_internal_driver_map, external_drivers, io)
 
-            for new_inst, old_inst in zip(new_instances, instances):
-                for _name, port in old_inst.interface.ports.items():
-                    if not port.is_input():
-                        continue
-                    driver = port.trace()
-                    if driver is None:
-                        # Unwired, e.g. clock
-                        continue
-                    if driver in external_drivers:
-                        new_driver = getattr(io, driver.name.qualifiedname("_"))
-                    elif driver.const():
-                        new_driver = driver
-                    else:
-                        new_driver = new_internal_driver_map[driver]
-                    wire(new_driver, getattr(new_inst, _name))
-        with circuit.open():
-            inst = _CompileGuardWrapper()
-            for driver in external_drivers:
-                wire(driver, getattr(inst, driver.name.qualifiedname("_")))
-            inst.coreir_metadata = {"compile_guard": compile_guard.guard_str}
+        _add_wrapper_inst(circuit, _CompileGuardWrapper, external_drivers,
+                          compile_guard)
 
     def __call__(self, circuit):
         compile_guard_instances = defaultdict(list)
