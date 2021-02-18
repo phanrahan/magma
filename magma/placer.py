@@ -135,6 +135,7 @@ class StagedPlacer(ABC):
         self._name = name
         self._instances = []
         self._finalized = False
+        self.active_compile_guard = None
 
     @property
     def instances(self):
@@ -148,6 +149,7 @@ class StagedPlacer(ABC):
         self._instances.append(inst)
         inst.defn = LazyCircuit
         _setup_view(inst)
+        inst.compile_guard = self.active_compile_guard
 
     def finalize(self, defn):
         if self._finalized:
