@@ -128,6 +128,10 @@ class DefinitionContext:
 _definition_context_stack = Stack()
 
 
+def get_current_definition_context():
+    return _definition_context_stack.peek()
+
+
 class _DefinitionContextManager:
     def __init__(self, context):
         self._context = context
