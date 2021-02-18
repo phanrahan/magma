@@ -47,13 +47,13 @@ class ProcessCompileGuardPass(DefinitionPass):
                 new_inst = type(old_inst)(name=old_inst.name)
                 new_instances.append(new_inst)
                 for _name, port in old_inst.interface.ports.items():
-                    if not port.isoutput():
+                    if not port.is_output():
                         continue
                     new_internal_driver_map[port] = getattr(new_inst, _name)
 
             for new_inst, old_inst in zip(new_instances, instances):
                 for _name, port in old_inst.interface.ports.items():
-                    if not port.isinput():
+                    if not port.is_input():
                         continue
                     driver = port.trace()
                     if driver is None:
