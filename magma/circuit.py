@@ -100,7 +100,8 @@ class DefinitionContext:
     def add_inline_verilog(self, format_str, format_args, symbol_table,
                            inline_wire_prefix="_magma_inline_wire"):
         self._inline_verilog.append((format_str, format_args, symbol_table,
-                                     inline_wire_prefix))
+                                     inline_wire_prefix,
+                                     self.placer.active_compile_guard))
 
     def insert_default_log_level(self):
         self._insert_default_log_level = True

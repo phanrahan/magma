@@ -61,6 +61,7 @@ class Placer:
         self._instance_counter = Counter()
         self._instance_name_map = {}
         self._instances = []
+        self.active_compile_guard = None
 
     def instances(self):
         return self._instances
@@ -128,6 +129,8 @@ class Placer:
         if get_debug_mode():
             inst.stack = inspect.stack()
         _setup_view(inst)
+        if not getattr(inst, "compile_guard", False):
+            inst.compile_guard = self.active_compile_guard
 
 
 class StagedPlacer(ABC):

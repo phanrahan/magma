@@ -117,7 +117,7 @@ def _build_io(inline_value_map):
 
 
 def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
-                    **kwargs):
+                    compile_guard, **kwargs):
     format_args = {}
     for key, arg in kwargs.items():
         if isinstance(arg, (Type, PortView)):
@@ -159,17 +159,19 @@ def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
     cls.inline_verilog_modules.append(_InlineVerilog)
 
     with cls.open():
-        inst = _InlineVerilog(
-            name=f"{cls.name}_inline_verilog_inst_{prefix}{suffix}"
-        )
-        # Dummy var so there's a defn for inline verilog without any
-        # interpoalted avlues
-        if not inline_value_map:
-            inst.I @= 0
+        with compile_guard:
+            inst = _InlineVerilog(
+                name=f"{cls.name}_inline_verilog_inst_{prefix}{suffix}"
+            )
+            # Dummy var so there's a defn for inline verilog without any
+            # interpoalted avlues
+            if not inline_value_map:
+                inst.I @= 0
 
-    for key, value in inline_value_map.items():
-        value = _insert_temporary_wires(cls, value, inline_wire_prefix)
-        wire(value, getattr(inst, key))
+    with compile_guard:
+        for key, value in inline_value_map.items():
+            value = _insert_temporary_wires(cls, value, inline_wire_prefix)
+            wire(value, getattr(inst, key))
 
 
 def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
@@ -195,13 +197,13 @@ def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
 
 
 def _process_inline_verilog(cls, format_str, format_args, symbol_table,
-                            inline_wire_prefix):
+                            inline_wire_prefix, compile_guard):
     inline_value_map = {}
     if symbol_table is not None:
         format_str = _process_fstring_syntax(format_str, format_args, cls,
                                              inline_value_map, symbol_table)
     _inline_verilog(cls, format_str, inline_value_map, inline_wire_prefix,
-                    **format_args)
+                    compile_guard, **format_args)
 
 
 class ProcessInlineVerilogPass(CircuitPass):

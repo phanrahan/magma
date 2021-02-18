@@ -10,6 +10,7 @@ from .passes.terminate_unused import TerminateUnusedPass
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.bind import BindPass
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.passes.process_compile_guard import ProcessCompileGuardPass
 
 __all__ = ["compile"]
 
@@ -55,6 +56,8 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     # Bind after uniquification so the bind logic works on unique modules.
     BindPass(main, compile, opts.get("user_namespace")).run()
+
+    ProcessCompileGuardPass(main).run()
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
