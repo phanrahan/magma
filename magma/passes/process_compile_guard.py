@@ -6,32 +6,41 @@ from magma.passes.passes import DefinitionPass
 from magma.wire import wire
 
 
+def _collect_internal_drivers(instances):
+    # Collect drivers produced inside the compile guard
+    internal_drivers = set()
+    for instance in instances:
+        for port in instance.interface.outputs():
+            internal_drivers.add(port)
+    return internal_drivers
+
+
+def _collect_external_and_default_drivers(instances, internal_drivers):
+    # Collect drivers produced outside the compile guard
+    external_drivers = set()
+    # Also collect undriven ports with defaults (e.g. clock)
+    default_drivers = {}
+    for instance in instances:
+        for port in instance.interface.inputs(True):
+            # TODO: what about non whole intermediates that might be driven
+            # from a combination of external and internal?
+            driver = port.trace()
+            if driver is None:
+                # TODO Need to support array/tuple of clocks
+                # Assert here and expect a previous pass has detect
+                # undriven ports
+                assert isinstance(port, (Clock, AbstractReset))
+                default_drivers[type(port)] = str(port.name)
+            elif driver not in internal_drivers and not driver.const():
+                external_drivers.add(driver)
+    return external_drivers, default_drivers
+
+
 class ProcessCompileGuardPass(DefinitionPass):
     def _process_compile_guard(self, circuit, compile_guard, instances):
-        # Collect drivers produced inside the compile guard
-        internal_drivers = set()
-        for instance in instances:
-            for port in instance.interface.outputs():
-                internal_drivers.add(port)
-        # Collect drivers produced outside the compile guard
-        external_drivers = set()
-        # Also collect undriven ports with defaults (e.g. clock)
-        default_drivers = {}
-        for instance in instances:
-            for port in instance.interface.inputs(True):
-                # TODO: what about non whole intermediates that might be driven
-                # from a combination of external and internal?
-                driver = port.trace()
-                if driver is None:
-                    # TODO Need to support array/tuple of clocks
-                    # Assert here and expect a previous pass has detect
-                    # undriven ports
-                    assert isinstance(port, (Clock, AbstractReset))
-                    default_drivers[type(port)] = str(port.name)
-                    continue
-
-                if driver not in internal_drivers and not driver.const():
-                    external_drivers.add(driver)
+        internal_drivers = _collect_internal_drivers(instances)
+        external_drivers, default_drivers = \
+            _collect_external_and_default_drivers(instances, internal_drivers)
 
         class _CompileGuardWrapper(Circuit):
             ports = {}
