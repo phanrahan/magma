@@ -16,5 +16,5 @@ def test_compile_guard_counter():
 
     m.compile("build/test_compile_guard_counter", Foo, inline=True)
     assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_counter.v",
-        f"gold/test_compile_guard_counter.v")
+        __file__, f"build/test_compile_guard_counter.json",
+        f"gold/test_compile_guard_counter.json")
