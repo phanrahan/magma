@@ -827,6 +827,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._io = SingletonInstanceIO()
         self._finalized = False
         self._dct = {}
+        self._inst_attrs = {}
         self._context = DefinitionContext(StagedPlacer(self._name))
         self._instance_name = None
 
@@ -841,10 +842,17 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def _add_ports(self, **kwargs):
         return list(self._add_port(name, typ) for name, typ in kwargs.items())
 
+    @property
+    def _instances(self):
+        return self._context.placer.instances.copy()
+
     def _set_namespace_key(self, key, value):
         if key in CircuitBuilder._RESERVED_NAMESPACE_KEYS:
             raise Exception(f"Can not set reserved namespace key '{key}'")
         self._dct[key] = value
+
+    def _set_inst_attr(self, key, value):
+        self._inst_attrs[key] = value
 
     def _finalize(self):
         pass
@@ -868,4 +876,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         DefineCircuitKind.__prepare__(self._name, bases)
         t = DefineCircuitKind(self._name, bases, dct)
         self._finalized = True
-        return t(name=self.instance_name)
+        inst = t(name=self._name)
+        for k, v in self._inst_attrs.items():
+            setattr(inst, k, v)
+        return inst

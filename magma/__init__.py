@@ -97,3 +97,4 @@ from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
 from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
                          Decoupled, EnqIO, DeqIO, Irrevocable)
 import magma.smart
+from magma.compile_guard import compile_guard

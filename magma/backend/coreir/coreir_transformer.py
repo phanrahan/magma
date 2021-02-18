@@ -256,6 +256,9 @@ class DefinitionTransformer(TransformerBase):
         for inst, coreir_inst in coreir_insts.items():
             if get_codegen_debug_info() and getattr(inst, "debug_info", False):
                 attach_debug_info(coreir_inst, inst.debug_info)
+            if getattr(inst, "coreir_metadata"):
+                for k, v in inst.coreir_metadata.items():
+                    coreir_inst.add_metadata(k, json.dumps(v))
         for inst in coreir_insts:
             for name, port in inst.interface.ports.items():
                 self.connect_non_outputs(coreir_defn, port)
