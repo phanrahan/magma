@@ -2,11 +2,11 @@ from collections import defaultdict
 from magma.interface import IO
 from magma.circuit import Circuit
 from magma.clock import Clock, AbstractReset
-from magma.passes.passes import CircuitPass
+from magma.passes.passes import DefinitionPass
 from magma.wire import wire
 
 
-class ProcessCompileGuardPass(CircuitPass):
+class ProcessCompileGuardPass(DefinitionPass):
     def _process_compile_guard(self, circuit, compile_guard, instances):
         # Collect drivers produced inside the compile guard
         internal_drivers = set()
