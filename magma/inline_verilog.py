@@ -1,3 +1,4 @@
+import contextlib
 import hashlib
 import string
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
@@ -159,6 +160,8 @@ def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
     cls.inline_verilog_modules.append(_InlineVerilog)
 
     with cls.open():
+        if compile_guard is None:
+            compile_guard = contextlib.nullcontext()
         with compile_guard:
             inst = _InlineVerilog(
                 name=f"{cls.name}_inline_verilog_inst_{prefix}{suffix}"
