@@ -246,7 +246,7 @@ def _make_array_from_bv(N, T, arg):
 def _check_arg(N, T, arg):
     assert (type(arg) == T or type(arg) == T.flip() or
             issubclass(type(type(arg)), type(T)) or
-            issubclass(type(T), type(type(arg))), (type(arg), T))
+            issubclass(type(T), type(type(arg)))), (type(arg), T)
 
 
 def _make_array_length_one(T, arg):
