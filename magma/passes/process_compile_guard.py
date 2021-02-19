@@ -48,7 +48,7 @@ def _make_io_for_external_and_default_drivers(external_drivers,
 
 
 def _copy_instances(instances):
-    # Returns a copy of the instances by calling type and instantiating the 
+    # Returns a copy of the instances by calling type and instantiating the
     # type with the same name (TODO: We should copy all **kwargs if we track
     # them)
     # Also returns a dictionary mapping old drivers (values on old instances)
