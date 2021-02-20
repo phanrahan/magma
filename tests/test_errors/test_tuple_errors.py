@@ -110,10 +110,7 @@ def test_product_width_mismatch(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A: Unconnected\
-"""
+    assert str(e.value) == "Found circuit with errors: Foo"
     assert caplog.messages[0] == """\
 Cannot wire bits(1, 1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))\
 """
@@ -134,10 +131,7 @@ def test_product_width_mismatch2(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A.y
-Foo.A.y: Unconnected\
-"""
+    assert str(e.value) == "Found circuit with errors: Foo"
     assert caplog.messages[0] == """\
 Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))\
 """
