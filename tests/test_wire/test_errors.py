@@ -1,3 +1,4 @@
+import pytest
 import magma as m
 
 from magma import *
