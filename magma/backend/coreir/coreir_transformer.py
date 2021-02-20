@@ -120,7 +120,8 @@ class DefnOrDeclTransformer(TransformerBase):
     def children(self):
         if getattr(self.defn_or_decl, "has_errors", False):
             # Only works with staged logger (new style circuits)
-            raise Exception(f"Found circuit with errors: {self.defn_or_decl.name}")
+            raise Exception(
+                f"Found circuit with errors: {self.defn_or_decl.name}")
         try:
             coreir_module = self.backend.get_module(self.defn_or_decl)
             _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
