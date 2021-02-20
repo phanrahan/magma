@@ -17,7 +17,8 @@ class FindErrorsPass(CircuitPass):
         ALL = enum.auto()
         COLLECT = enum.auto()
 
-    def __init__(self, mode: ErrorReportingMode = ErrorReportingMode.FIRST):
+    def __init__(self, main, mode: ErrorReportingMode = ErrorReportingMode.FIRST):
+        super().__init__(main)
         self._mode = mode
         self._errors = []
 
