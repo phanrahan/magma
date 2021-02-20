@@ -8,6 +8,7 @@ from magma.frontend import coreir_ as coreir_frontend
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
+from magma.passes.find_errors import find_errors_pass
 
 
 _logger = root_logger()
@@ -66,6 +67,7 @@ class CoreIRCompiler(Compiler):
         result = {}
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
+        find_errors_pass(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
         backend.compile(self.main, opts)

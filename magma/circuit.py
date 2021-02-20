@@ -7,7 +7,7 @@ import functools
 import operator
 from collections import namedtuple
 import os
-import logging
+import logging as py_logging  # to avoid confusion
 
 import six
 from . import cache_definition
@@ -124,7 +124,7 @@ class DefinitionContext:
         self._finalize_displays()
         self._finalize_file_close()  # close after displays
         logs = unstage_logger()
-        defn.has_errors = any(log[1] is logging.ERROR for log in logs)
+        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
 
 
 _definition_context_stack = Stack()
