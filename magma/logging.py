@@ -138,7 +138,7 @@ _root_logger.setLevel(config.log_level)
 
 def flush():
     global _staged_logs
-    curr_logs = _staged_logs
+    curr_logs = _staged_logs.copy()
     for logger, level, obj, args, kwargs in curr_logs:
         logger.log(level, obj, *args, **kwargs)
     _staged_logs = []
