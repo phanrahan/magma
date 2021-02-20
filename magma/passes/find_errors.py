@@ -51,8 +51,8 @@ class FindErrorsPass(CircuitPass):
         # If mode == ALL, then raise an error with all the circuit names. In the
         # case of COLLECT or FIRST, do nothing.
         if self._mode == ErrorReportingMode.ALL:
-            msg = (f"Found circuits with errors: {ckt.name for ckt in "
-                   f"self._errors}")
+            msg = (f"Found circuits with errors: "
+                   f"{ckt.name for ckt in self._errors}")
             raise Exception(msg)
 
 
