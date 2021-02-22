@@ -1,0 +1,126 @@
+import pytest
+import magma as m
+
+
+class SB_DFF(m.Circuit):
+    io = m.IO(D=m.In(m.Bit), Q=m.Out(m.Bit), C=m.In(m.Clock))
+
+
+def test_symbol_table_dff():
+    class DFFInit1(m.Circuit):
+        io = m.IO(D=m.In(m.Bit), Q=m.Out(m.Bit), C=m.In(m.Clock))
+        dff_inst = SB_DFF()
+        dff_inst.D @= ~io.D
+        io.Q @= ~dff_inst.Q
+
+    symbol_table = m.compile("build/DFFInit1", DFFInit1)["symbol_table"]
+    assert symbol_table.get_module_name("DFFInit1") == "DFFInit1"
+    assert (symbol_table.get_instance_name("DFFInit1", "SB_DFF_inst0") ==
+            "SB_DFF_inst0")
+    assert symbol_table.get_port_name("DFFInit1", "D") == ("DFFInit1", "D")
+    assert symbol_table.get_port_name("DFFInit1", "Q") == ("DFFInit1", "Q")
+    assert symbol_table.get_port_name("DFFInit1", "C") == ("DFFInit1", "C")
+
+
+def test_symbol_table_dff_list():
+    class DFFList(m.Circuit):
+        io = m.IO(D=m.In(m.Bit), Q=m.Out(m.Bit), C=m.In(m.Clock))
+        dffs = []
+        prev = io.D
+        for i in range(10):
+            dff = SB_DFF()
+            dffs.append(dff)
+            dff.D @= prev
+            prev = dff.Q
+        io.Q @= prev
+
+    symbol_table = m.compile("build/DFFList", DFFList)["symbol_table"]
+    for i in range(10):
+        name = symbol_table.get_instance_name("DFFList", f"SB_DFF_inst{i}")
+        assert name == f"SB_DFF_inst{i}"
+
+
+def test_symbol_table_bundle_flattening():
+    class MyBundle(m.Product):
+        x = m.Bit
+        y = m.Bit
+
+    class WithTuple(m.Circuit):
+        io = m.IO(
+            I1=m.In(MyBundle),
+            O=m.Out(MyBundle),
+            I2=m.In(m.Bit)
+        )
+
+    symbol_table = m.compile("build/WithTuple", WithTuple)["symbol_table"]
+    assert symbol_table.get_port_name("WithTuple", "I1.x") == "I1_x"
+    assert symbol_table.get_port_name("WithTuple", "I1.y") == "I1_y"
+    assert symbol_table.get_port_name("WithTuple", "O.x") == "O_x"
+    assert symbol_table.get_port_name("WithTuple", "O.y") == "O_y"
+    with pytest.raises(Expection):
+        symbol_table.get_port_name("WithTuple", "I1")
+    assert symbol_table.get_port_name("WithTuple", "I2") == "I2"
+
+
+def test_symbol_table_inlining_example():
+    class X(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+
+    class Bar(m.Circuit):
+        _INLINED_ = True
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        x = X(name="x")
+        io.O @= x(io.I)
+
+    class Baz(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        bar = Bar(name="bar")
+        io.O @= bar(io.I)
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        bar = Bar(name="bar")
+        io.O @= bar(io.I)
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        foo = Foo(name="foo")
+        baz = Baz(name="baz")
+        io.O @= foo(baz(io.I))
+
+    symbol_table = m.compile("build/Top", Top)["symbol_table"]
+    assert symbol_table.get_instance_name("Foo", "bar") == m.symbol_table.INLINED
+    assert symbol_table.get_inlined_instance_name("Foo", "bar", "x") == "bar_x"
+
+
+def test_symbol_table_nested_inlining():
+    class X(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+
+    class Bar(m.Circuit):
+        _INLINED_ = True
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        x = X(name="x")
+        io.O @= x(io.I)
+
+    class Baz(m.Circuit):
+        _INLINED_ = True
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        bar = Bar(name="bar")
+        io.O @= bar(io.I)
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        bar = Bar(name="bar")
+        io.O @= bar(io.I)
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        foo = Foo(name="foo")
+        baz = Baz(name="baz")
+        io.O @= foo(baz(io.I))
+
+    symbol_table = m.compile("build/Top", Top)["symbol_table"]
+    assert symbol_table.get_instance_name("Top", "baz") == m.symbol_table.INLINED
+    assert symbol_table.get_instance_name("Foo", "bar") == m.symbol_table.INLINED
+    assert symbol_table.get_inlined_instance_name("Top", "baz", "bar", "x") == "baz_bar_x"
