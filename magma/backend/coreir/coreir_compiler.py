@@ -9,6 +9,7 @@ from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
 from magma.passes.find_errors import find_errors_pass
+from magma.symbol_table import SymbolTable
 
 
 _logger = root_logger()
@@ -69,6 +70,7 @@ class CoreIRCompiler(Compiler):
 
     def compile(self):
         result = {}
+        result["symbol_table"] = symbol_table = SymbolTable()
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         find_errors_pass(self.main)
@@ -76,6 +78,8 @@ class CoreIRCompiler(Compiler):
         opts = _make_opts(backend, self.opts)
         backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
+        if isdefinition(self.main):
+            result["coreir_module"] = backend.get_module(self.main)
         output_json = (self.opts.get("output_intermediate", False) or
                        not self.opts.get("output_verilog", False) or
                        not config.fast_coreir_verilog_compile)
@@ -90,15 +94,13 @@ class CoreIRCompiler(Compiler):
                   else self._compile_verilog)
             fn()
             self._compile_verilog_epilogue()
-            return
+            return result
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or
                                 self.opts.get("footer_str", ""))
         if has_header_or_footer:
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
-        if isdefinition(self.main):
-            result["coreir_module"] = backend.get_module(self.main)
         return result
 
     def _compile_verilog(self):
