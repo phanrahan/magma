@@ -51,7 +51,7 @@ def _wire_temp(bind_arg, temp):
     wire(bind_arg, temp)
 
 
-def _bind(cls, monitor, compile_fn, user_namespace, *args):
+def _bind(cls, monitor, compile_fn, user_namespace, compile_guard, *args):
     bind_str = monitor.verilogFile
     ports = []
     for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
@@ -100,6 +100,12 @@ Bind monitor interface does not match circuit interface
         cls_name = user_namespace + "_" + cls_name
         monitor_name = user_namespace + "_" + monitor_name
     bind_str = f"bind {cls_name} {monitor_name} {monitor_name}_inst (\n    {ports_str}\n);"  # noqa
+    if compile_guard is not None:
+        bind_str = f"""
+`ifdef {compile_guard}
+{bind_str}
+`endif
+"""
     if not os.path.isdir(".magma"):
         os.mkdir(".magma")
     curr_compile_dir = get_compile_dir()
@@ -121,5 +127,6 @@ class BindPass(CircuitPass):
         self.user_namespace = user_namespace
 
     def __call__(self, cls):
-        for monitor, args in cls.bind_modules.items():
-            _bind(cls, monitor, self._compile_fn, self.user_namespace, *args)
+        for monitor, (args, compile_guard) in cls.bind_modules.items():
+            _bind(cls, monitor, self._compile_fn, self.user_namespace,
+                  compile_guard, *args)

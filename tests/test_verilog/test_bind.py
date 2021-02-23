@@ -63,7 +63,8 @@ RTLMonitor_unq1.sv\
     if version >= 4.016:
         assert not os.system('cd tests/test_verilog/build && '
                              'verilator --lint-only bind_uniq_test.v '
-                             'RTLMonitor.sv RTLMonitor_unq1.sv -Wno-MODDUP')
+                             'RTLMonitor.sv RTLMonitor_unq1.sv -Wno-MODDUP'
+                             ' --top-module foo_Main')
         # TODO: For now, we ignore duplicate modules since each monitor will
         # regenerate coreir primitives.  # since these have the same definition
         # it's okay, but in general this is a bad flag to have on because if

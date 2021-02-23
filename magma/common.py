@@ -121,3 +121,11 @@ class ParamDict(dict):
     """
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
+
+
+def is_int(value):
+    try:
+        int(value)
+    except (TypeError, ValueError):
+        return False
+    return True
