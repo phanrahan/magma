@@ -8,7 +8,7 @@ def test_basic():
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
 
-        with m.compile_guard("COND"):
+        with m.compile_guard("COND", defn_name="COND_compile_guard"):
             out = m.Register(m.Bit)()(io.I)
 
         io.O @= io.I
@@ -25,7 +25,7 @@ def test_assert():
         io = m.IO(I=m.In(m.Valid[m.Bits[4]]), O=m.Out(m.Bits[4])) + m.ClockIO()
         io.O @= m.Register(m.Bits[4])()(io.I.data)
 
-        with m.compile_guard("ASSERT_ON"):
+        with m.compile_guard("ASSERT_ON", "ASSERT_ON_compile_guard"):
             count = m.Register(m.UInt[2], has_enable=True)()
             count.I @= count.O + 1
             count.CE @= io.I.valid

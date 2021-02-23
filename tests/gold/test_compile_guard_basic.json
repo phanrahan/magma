@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "CompileGuardCircuit_0":{
+      "COND_compile_guard":{
         "type":["Record",[
           ["port_0","BitIn"],
           ["CLK",["Named","coreir.clkIn"]]
@@ -43,14 +43,14 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "CompileGuardCircuit_0":{
-            "modref":"global.CompileGuardCircuit_0",
+          "COND_compile_guard":{
+            "modref":"global.COND_compile_guard",
             "metadata":{"compile_guard":"COND"}
           }
         },
         "connections":[
-          ["self.CLK","CompileGuardCircuit_0.CLK"],
-          ["self.I","CompileGuardCircuit_0.port_0"],
+          ["self.CLK","COND_compile_guard.CLK"],
+          ["self.I","COND_compile_guard.port_0"],
           ["self.O","self.I"]
         ]
       }

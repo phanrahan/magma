@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List
+from typing import List, Optional
 
 from magma.array import Array
 from magma.bits import Bits
@@ -24,6 +24,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._system_types_added = set()
         self._set_inst_attr("coreir_metadata", {"compile_guard": cond})
         self._port_index = 0
+        self._pre_finalized = False
 
     def _new_port_name(self):
         name = f"port_{self._port_index}"
@@ -40,9 +41,12 @@ class _CompileGuardBuilder(CircuitBuilder):
         external = getattr(self, new_port_name)
         external @= value
 
-    def _pre_finalize(self):
+    def pre_finalize(self):
+        if self._pre_finalized:
+            raise Exception("Can not call pre_finalize multiple times")
         for inst in self._instances:
             self._process_instance(inst)
+        self._pre_finalized = True
 
     def _process_instance(self, inst):
         for port in inst.interface.inputs(include_clocks=True):
@@ -91,8 +95,12 @@ class _CompileGuardBuilder(CircuitBuilder):
 class _CompileGuard:
     __index = 0
 
-    def __init__(self, cond: str):
+    def __init__(self, cond: str,
+                 defn_name: Optional[str],
+                 inst_name: Optional[str]):
         self._cond = cond
+        self._defn_name = defn_name
+        self._inst_name = inst_name
         self._state = None
 
     @staticmethod
@@ -105,17 +113,22 @@ class _CompileGuard:
         if self._state is not None:
             raise Exception("Can not enter compile guard multiple times")
         assert self._state is None
+        if self._defn_name is None:
+            self._defn_name = _CompileGuard._new_name()
         if self._state is None:
-            name = _CompileGuard._new_name()
-            ckt = _CompileGuardBuilder(name, self._cond)
+            ckt = _CompileGuardBuilder(self._defn_name, self._cond)
+            if self._inst_name is None:
+                ckt.set_instance_name(self._inst_name)
             ctx_mgr = _DefinitionContextManager(ckt._context)
             self._state = _CompileGuardState(ckt, ctx_mgr)
         self._state.ctx_mgr.__enter__()
 
     def __exit__(self, typ, value, traceback):
         self._state.ctx_mgr.__exit__(typ, value, traceback)
-        self._state.ckt._pre_finalize()
+        self._state.ckt.pre_finalize()
 
 
-def compile_guard(cond: str):
-    return _CompileGuard(cond)
+def compile_guard(cond: str,
+                  defn_name: Optional[str]=None,
+                  inst_name: Optional[str]=None):
+    return _CompileGuard(cond, defn_name, inst_name)
