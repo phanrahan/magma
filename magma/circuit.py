@@ -817,12 +817,16 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     _RESERVED_NAMESPACE_KEYS = {"io", "_context_", "name"}
 
     def __init__(self, name):
+        # Try to add this builder to a context if one exists currently. A
+        # builder can still be constructed outside of a context, but (a) the
+        # builder will not be automatically finalized, and (b) instantation
+        # might fail.
         try:
             context = _definition_context_stack.peek()
-            context.add_builder(self)
         except IndexError:
-            raise Exception("Can not instance a circuit builder outside a "
-                            "definition")
+            pass
+        else:
+            context.add_builder(self)
         self._name = name
         self._io = SingletonInstanceIO()
         self._finalized = False
