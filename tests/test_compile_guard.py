@@ -3,6 +3,22 @@ import magma.testing
 import fault as f
 
 
+def test_basic():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("COND"):
+            out = m.Register(m.Bit)()(io.I)
+
+        io.O @= io.I
+
+    m.compile("build/test_compile_guard_basic", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_basic.json",
+        f"gold/test_compile_guard_basic.json")
+
+
 def test_compile_guard_counter():
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Valid[m.Bits[4]]), O=m.Out(m.Bits[4])) + m.ClockIO()
@@ -18,18 +34,3 @@ def test_compile_guard_counter():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_counter.json",
         f"gold/test_compile_guard_counter.json")
-
-
-def test_basic():
-
-    class _Top(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
-
-        with m.compile_guard("COND"):
-            out = m.Register(m.Bit)()(io.I)
-
-        io.O @= io.I
-
-    print (repr(_Top))
-    m.compile("Top", _Top)
-    print (open("tests/Top.json").read())
