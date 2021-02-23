@@ -806,7 +806,7 @@ def builder_method(func):
 
     @wraps(func)
     def _wrapped(this, *args, **kwargs):
-        with _DefinitionContextManager(this._context):
+        with _DefinitionContextManager(this.context):
             result = func(this, *args, **kwargs)
         return result
 
@@ -817,12 +817,16 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     _RESERVED_NAMESPACE_KEYS = {"io", "_context_", "name"}
 
     def __init__(self, name):
+        # Try to add this builder to a context if one exists currently. A
+        # builder can still be constructed outside of a context, but (a) the
+        # builder will not be automatically finalized, and (b) instantation
+        # might fail.
         try:
             context = _definition_context_stack.peek()
-            context.add_builder(self)
         except IndexError:
-            raise Exception("Can not instance a circuit builder outside a "
-                            "definition")
+            pass
+        else:
+            context.add_builder(self)
         self._name = name
         self._io = SingletonInstanceIO()
         self._finalized = False
@@ -841,16 +845,23 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def _add_ports(self, **kwargs):
         return list(self._add_port(name, typ) for name, typ in kwargs.items())
 
-    def _set_namespace_key(self, key, value):
+    def _set_definition_attr(self, key, value):
         if key in CircuitBuilder._RESERVED_NAMESPACE_KEYS:
-            raise Exception(f"Can not set reserved namespace key '{key}'")
+            raise Exception(f"Can not set reserved attr '{key}'")
         self._dct[key] = value
 
+    def _open(self):
+        return _DefinitionContextManager(self._context)
+
     def _finalize(self):
-        pass
+        raise NotImplementedError()
 
     def set_instance_name(self, name):
         self._instance_name = name
+
+    @property
+    def context(self):
+        return self._context
 
     @property
     def instance_name(self):
@@ -858,7 +869,13 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
             return self._name
         return self._instance_name
 
-    def finalize(self):
+    @property
+    def defn(self):
+        if not self._finalized:
+            return None
+        return self._defn
+
+    def finalize(self, dont_instantiate: bool = False):
         if self._finalized:
             raise Exception("Can only call finalize on a CircuitBuilder once")
         self._finalize()
@@ -866,6 +883,8 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         dct = {"io": self._io, "_context_": self._context, "name": self._name}
         dct.update(self._dct)
         DefineCircuitKind.__prepare__(self._name, bases)
-        t = DefineCircuitKind(self._name, bases, dct)
+        self._defn = DefineCircuitKind(self._name, bases, dct)
         self._finalized = True
-        return t(name=self.instance_name)
+        if dont_instantiate:
+            return None
+        return self._defn(name=self.instance_name)
