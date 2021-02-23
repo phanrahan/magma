@@ -44,15 +44,17 @@ def test_basic():
 
         builder = _PassThroughBuilder(name="my_pt")
         builder.add()
+        # Check set_instance_name() API.
+        builder.set_instance_name("my_pt_0")
 
         builder.I @= io.x
         io.y @= builder.O
 
     assert repr(_Top) == """\
 _Top = DefineCircuit("_Top", "x", In(Bit), "y", Out(Bit))
-my_pt = my_pt("I", my_pt.I, "O", my_pt.O)
-wire(_Top.x, my_pt.I)
-wire(my_pt.O, _Top.y)
+my_pt_0 = my_pt("I", my_pt_0.I, "O", my_pt_0.O)
+wire(_Top.x, my_pt_0.I)
+wire(my_pt_0.O, _Top.y)
 EndCircuit()"""
     m.compile("build/test_circuit_builder_basic", _Top, output="coreir")
     assert check_files_equal(__file__,
@@ -61,8 +63,9 @@ EndCircuit()"""
     # Check _set_definition_attr.
     assert len(_Top.instances) == 1
     inst = _Top.instances[0]
-    assert inst.name == "my_pt"
+    assert inst.name == "my_pt_0"
     defn = type(inst)
+    assert defn.name == "my_pt"
     assert defn._some_private_attr == None
 
     # Check defn property.

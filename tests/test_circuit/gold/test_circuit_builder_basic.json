@@ -8,13 +8,13 @@
           ["y","Bit"]
         ]],
         "instances":{
-          "my_pt":{
+          "my_pt_0":{
             "modref":"global.my_pt"
           }
         },
         "connections":[
-          ["self.x","my_pt.I"],
-          ["self.y","my_pt.O"]
+          ["self.x","my_pt_0.I"],
+          ["self.y","my_pt_0.O"]
         ]
       },
       "my_gc":{
