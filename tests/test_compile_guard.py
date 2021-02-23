@@ -68,3 +68,23 @@ def test_multiple_array():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_multiple_array.json",
         f"gold/test_compile_guard_multiple_array.json")
+
+
+def test_nested_type():
+
+    class _Top(m.Circuit):
+        T = m.Product.from_fields("anon", dict(x=m.Bit, y=m.Bit))
+        T = m.Array[2, T]
+
+        io = m.IO(I=m.In(T), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("COND", defn_name="COND_compile_guard"):
+            m.Register(m.Bit)()(io.I[1].x)
+            m.Register(m.Bit)()(io.I[0].y)
+
+        io.O @= io.I[0].x
+
+    m.compile("build/test_compile_guard_nested_type", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_nested_type.json",
+        f"gold/test_compile_guard_nested_type.json")
