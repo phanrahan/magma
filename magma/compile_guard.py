@@ -21,7 +21,7 @@ class _CompileGuardBuilder(CircuitBuilder):
     def __init__(self, name, cond):
         super().__init__(name)
         self._cond = cond
-        self._system_types_added = {}
+        self._system_types_added = set()
         self._set_inst_attr("coreir_metadata", {"compile_guard": cond})
 
     def _rewire(self, port, value):
@@ -79,7 +79,7 @@ class _CompileGuardBuilder(CircuitBuilder):
             return
         name = str(port.name)
         self._add_port(name, In(T))
-        self._system_types_added[T] = name
+        self._system_types_added.add(T)
 
 
 class _CompileGuard:
