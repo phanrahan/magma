@@ -1,3 +1,5 @@
+import pytest
+
 import magma as m
 import magma.testing
 import fault as f
@@ -88,3 +90,23 @@ def test_nested_type():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_nested_type.json",
         f"gold/test_compile_guard_nested_type.json")
+
+
+@pytest.mark.skip(reason="nested compile guard context not yet implemented")
+def test_nested_context():
+
+    class _Top(m.Circuit):
+        io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("OUTER", defn_name="OUTER_compile_guard"):
+            m.Register(m.Bit)()(io.I0)
+
+            with m.compile_guard("INNER", defn_name="INNER_compile_guard"):
+                m.Register(m.Bit)()(io.I1)
+
+        io.O @= io.I0
+
+    m.compile("build/test_compile_guard_nested_context", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_nested_context.json",
+        f"gold/test_compile_guard_nested_context.json")
