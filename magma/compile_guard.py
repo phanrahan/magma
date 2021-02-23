@@ -77,6 +77,10 @@ class _CompileGuardBuilder(CircuitBuilder):
             # TODO(rsetaluri): Fix port name collision.
             self._process_port(port, ref=ref.tuple.name)
             return
+        if isinstance(ref, ArrayRef):
+            # TODO(rsetaluri): Fix port name collision.
+            self._process_port(port, ref=ref.array.name)
+            return
         # TODO(rsetaluri): Do the rest of these.
         raise NotImplementedError(ref, type(ref))
 
