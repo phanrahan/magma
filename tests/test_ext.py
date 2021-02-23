@@ -60,14 +60,12 @@ def test_ext_n():
     # zext TypeError.
     with pytest.raises(TypeError) as pytest_e:
         m.zext(value, None)
-        assert False
     assert pytest_e.type is TypeError
     assert pytest_e.value.args == ("Expected non-negative integer, got 'None'",)
 
     # zext ValueError.
     with pytest.raises(TypeError) as pytest_e:
         m.zext(value, -1)
-        assert False
     assert pytest_e.type is TypeError
     assert pytest_e.value.args == ("Expected non-negative integer, got '-1'",)
 
@@ -77,14 +75,12 @@ def test_ext_n():
     # sext TypeError.
     with pytest.raises(TypeError) as pytest_e:
         m.sext(value, None)
-        assert False
     assert pytest_e.type is TypeError
     assert pytest_e.value.args == ("Expected non-negative integer, got 'None'",)
 
     # sext ValueError.
     with pytest.raises(TypeError) as pytest_e:
         m.sext(value, -1)
-        assert False
     assert pytest_e.type is TypeError
     assert pytest_e.value.args == ("Expected non-negative integer, got '-1'",)
 
