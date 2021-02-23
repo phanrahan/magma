@@ -133,6 +133,6 @@ class _CompileGuard:
 
 
 def compile_guard(cond: str,
-                  defn_name: Optional[str]=None,
-                  inst_name: Optional[str]=None):
+                  defn_name: Optional[str] = None,
+                  inst_name: Optional[str] = None):
     return _CompileGuard(cond, defn_name, inst_name)
