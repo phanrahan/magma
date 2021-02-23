@@ -806,7 +806,7 @@ def builder_method(func):
 
     @wraps(func)
     def _wrapped(this, *args, **kwargs):
-        with _DefinitionContextManager(this._context):
+        with _DefinitionContextManager(this.context):
             result = func(this, *args, **kwargs)
         return result
 
@@ -850,11 +850,18 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
             raise Exception(f"Can not set reserved attr '{key}'")
         self._dct[key] = value
 
+    def _open(self):
+        return _DefinitionContextManager(self._context)
+
     def _finalize(self):
         raise NotImplementedError()
 
     def set_instance_name(self, name):
         self._instance_name = name
+
+    @property
+    def context(self):
+        return self._context
 
     @property
     def instance_name(self):
