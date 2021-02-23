@@ -51,3 +51,20 @@ def test_array():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_array.json",
         f"gold/test_compile_guard_array.json")
+
+
+def test_multiple_array():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, m.Bit]), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("COND", defn_name="COND_compile_guard"):
+            m.Register(m.Bit)()(io.I[1])
+            m.Register(m.Bit)()(io.I[0])
+
+        io.O @= io.I[1]
+
+    m.compile("build/test_compile_guard_multiple_array", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_multiple_array.json",
+        f"gold/test_compile_guard_multiple_array.json")
