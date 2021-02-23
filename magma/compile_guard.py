@@ -115,7 +115,6 @@ class _CompileGuard:
     def __exit__(self, typ, value, traceback):
         self._state.ctx_mgr.__exit__(typ, value, traceback)
         self._state.ckt._pre_finalize()
-        # TODO(rsetaluri): Handle inline verilog.
 
 
 def compile_guard(cond: str):
