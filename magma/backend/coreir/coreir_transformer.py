@@ -139,6 +139,11 @@ class DefnOrDeclTransformer(TransformerBase):
                                       self.defn_or_decl)]
 
     def run_self(self):
+        self._run_self_impl()
+        self.opts["symbol_table"].set_module_name(
+            self.defn_or_decl.name, self.coreir_module.name)
+
+    def _run_self_impl(self):
         if self.coreir_module:
             return
         self.coreir_module = self._children[0].coreir_module
@@ -242,6 +247,10 @@ class DefinitionTransformer(TransformerBase):
         coreir_defn = self.coreir_module.new_definition()
         coreir_insts = {inst: self.inst_txs[inst].coreir_inst_gen(coreir_defn)
                         for inst in self.defn.instances}
+        # Set symbol table data.
+        for inst, coreir_inst in coreir_insts.items():
+            self.opts["symbol_table"].set_instance_name(
+                self.defn.name, inst.name, coreir_inst.name)
         # If this module was imported from verilog, do not go through the
         # general module construction flow. Instead just attach the verilog
         # source as metadata and return the module.
@@ -368,9 +377,21 @@ class DeclarationTransformer(LeafTransformer):
         self.coreir_module = None
 
     def run_self(self):
-        self.coreir_module = self.run_self_impl()
+        self.coreir_module = self._run_self_impl()
+        # Set symbol table data.
+        # NOTE(rsetaluri): For some reason, fetching the CoreIR names, re-orders
+        # the ports. I think something is wrong in the C-API or pycoreir.
+        magma_names = list(self.decl.interface.ports.keys())
+        coreir_names = list(k for k, _ in self.coreir_module.type.items())
+        assert len(magma_names) == len(coreir_names)
+        for magma_name, coreir_name in zip(magma_names, coreir_names):
+            self.opts["symbol_table"].set_port_name(
+                self.decl.name,
+                magma_name,
+                self.coreir_module.name,
+                coreir_name)
 
-    def run_self_impl(self):
+    def _run_self_impl(self):
         self.decl = self.decl
         _logger.debug(f"Compiling declaration {self.decl}")
         if self.decl.coreir_lib is not None:

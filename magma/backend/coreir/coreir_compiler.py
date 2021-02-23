@@ -76,6 +76,7 @@ class CoreIRCompiler(Compiler):
         find_errors_pass(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
+        opts["symbol_table"] = symbol_table
         backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
         if isdefinition(self.main):
