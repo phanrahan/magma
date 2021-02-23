@@ -23,9 +23,15 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._cond = cond
         self._system_types_added = set()
         self._set_inst_attr("coreir_metadata", {"compile_guard": cond})
+        self._port_index = 0
+
+    def _new_port_name(self):
+        name = f"port_{self._port_index}"
+        self._port_index += 1
+        return name
 
     def _rewire(self, port, value):
-        new_port_name = f"__{id(port.name.inst)}_{port.name.name}"
+        new_port_name = self._new_port_name()
         T = type(value).undirected_t
         self._add_port(new_port_name, In(T))
         new_port = self._port(new_port_name)
