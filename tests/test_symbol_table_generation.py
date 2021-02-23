@@ -1,5 +1,12 @@
 import pytest
+
 import magma as m
+
+
+def _compile(name, ckt):
+    res = m.compile(name, ckt)
+    # TODO(rsetaluri): Get CoreIR symbol table as well.
+    return res["symbol_table"]
 
 
 class SB_DFF(m.Circuit):
@@ -7,13 +14,14 @@ class SB_DFF(m.Circuit):
 
 
 def test_symbol_table_dff():
+
     class DFFInit1(m.Circuit):
         io = m.IO(D=m.In(m.Bit), Q=m.Out(m.Bit), C=m.In(m.Clock))
         dff_inst = SB_DFF()
         dff_inst.D @= ~io.D
         io.Q @= ~dff_inst.Q
 
-    symbol_table = m.compile("build/DFFInit1", DFFInit1)["symbol_table"]
+    symbol_table = _compile("build/DFFInit1", DFFInit1)
     assert symbol_table.get_module_name("DFFInit1") == "DFFInit1"
     assert (symbol_table.get_instance_name("DFFInit1", "SB_DFF_inst0") ==
             "SB_DFF_inst0")
@@ -23,6 +31,7 @@ def test_symbol_table_dff():
 
 
 def test_symbol_table_dff_list():
+
     class DFFList(m.Circuit):
         io = m.IO(D=m.In(m.Bit), Q=m.Out(m.Bit), C=m.In(m.Clock))
         dffs = []
@@ -34,13 +43,14 @@ def test_symbol_table_dff_list():
             prev = dff.Q
         io.Q @= prev
 
-    symbol_table = m.compile("build/DFFList", DFFList)["symbol_table"]
+    symbol_table = _compile("build/DFFList", DFFList)
     for i in range(10):
         name = symbol_table.get_instance_name("DFFList", f"SB_DFF_inst{i}")
         assert name == f"SB_DFF_inst{i}"
 
 
 def test_symbol_table_bundle_flattening():
+
     class MyBundle(m.Product):
         x = m.Bit
         y = m.Bit
@@ -52,17 +62,22 @@ def test_symbol_table_bundle_flattening():
             I2=m.In(m.Bit)
         )
 
-    symbol_table = m.compile("build/WithTuple", WithTuple)["symbol_table"]
-    assert symbol_table.get_port_name("WithTuple", "I1.x") == "I1_x"
-    assert symbol_table.get_port_name("WithTuple", "I1.y") == "I1_y"
-    assert symbol_table.get_port_name("WithTuple", "O.x") == "O_x"
-    assert symbol_table.get_port_name("WithTuple", "O.y") == "O_y"
-    with pytest.raises(Expection):
-        symbol_table.get_port_name("WithTuple", "I1")
-    assert symbol_table.get_port_name("WithTuple", "I2") == "I2"
+    symbol_table = _compile("build/WithTuple", WithTuple)
+    # NOTE: These two conditions would only hold in the post-CoreIR
+    # mapping. Since we only test the magma-to-CoreIR symbol table for now,
+    # these will not hold.
+    #
+    # assert symbol_table.get_port_name("WithTuple", "I1.x") == "I1_x"
+    # assert symbol_table.get_port_name("WithTuple", "I1.y") == "I1_y"
+    # assert symbol_table.get_port_name("WithTuple", "O.x") == "O_x"
+    # assert symbol_table.get_port_name("WithTuple", "O.y") == "O_y"
+    # with pytest.raises(Expection):
+    #     symbol_table.get_port_name("WithTuple", "I1")
+    # assert symbol_table.get_port_name("WithTuple", "I2") == "I2"
 
 
 def test_symbol_table_inlining_example():
+
     class X(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -88,12 +103,18 @@ def test_symbol_table_inlining_example():
         baz = Baz(name="baz")
         io.O @= foo(baz(io.I))
 
-    symbol_table = m.compile("build/Top", Top)["symbol_table"]
-    assert symbol_table.get_instance_name("Foo", "bar") == m.symbol_table.INLINED
-    assert symbol_table.get_inlined_instance_name("Foo", "bar", "x") == "bar_x"
+    symbol_table = _compile("build/Top", Top)
+    # NOTE: These two conditions would only hold in the post-CoreIR
+    # mapping. Since we only test the magma-to-CoreIR symbol table for now,
+    # these will not hold.
+    #
+    # assert (symbol_table.get_instance_name("Foo", "bar") ==
+    #         m.symbol_table.INLINED)
+    # assert symbol_table.get_inlined_instance_name("Foo", "bar", "x") == "bar_x"
 
 
 def test_symbol_table_nested_inlining():
+
     class X(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -120,7 +141,11 @@ def test_symbol_table_nested_inlining():
         baz = Baz(name="baz")
         io.O @= foo(baz(io.I))
 
-    symbol_table = m.compile("build/Top", Top)["symbol_table"]
-    assert symbol_table.get_instance_name("Top", "baz") == m.symbol_table.INLINED
-    assert symbol_table.get_instance_name("Foo", "bar") == m.symbol_table.INLINED
-    assert symbol_table.get_inlined_instance_name("Top", "baz", "bar", "x") == "baz_bar_x"
+    symbol_table = _compile("build/Top", Top)
+    # NOTE: These two conditions would only hold in the post-CoreIR
+    # mapping. Since we only test the magma-to-CoreIR symbol table for now,
+    # these will not hold.
+    #
+    # assert symbol_table.get_instance_name("Top", "baz") == m.symbol_table.INLINED
+    # assert symbol_table.get_instance_name("Foo", "bar") == m.symbol_table.INLINED
+    # assert symbol_table.get_inlined_instance_name("Top", "baz", "bar", "x") == "baz_bar_x"
