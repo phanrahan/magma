@@ -39,7 +39,8 @@ assign temp5 = {io.intermediate_ndarr[1, 1]};
         circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2,
                      circuit.intermediate_tuple, circuit.some_circ.I,
                      circuit.temp3, circuit.intermediate_ndarr,
-                     circuit.nested_other_circ.other_circ.x.y)
+                     circuit.nested_other_circ.other_circ.x.y,
+                     compile_guard="BIND_ON")
 
 
 RTL.bind(RTLMonitor)

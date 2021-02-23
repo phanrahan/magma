@@ -380,3 +380,16 @@ m.compile("build/bind_test", RTL4, inline=True)
 ```
 
 If you don't want to enable the bind, simply do not import `rtl_monitor`
+
+The `bind` statement also supports an optional `compile_guard=` keyword
+argument that allows the user to wrap the generated bind statement inside a
+verilog `ifdef`.  Here's an example:
+
+```python
+circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2,
+             circuit.intermediate_tuple, compile_guard="BIND_ON")
+# generates
+# `ifdef BIND_ON
+# bind ...
+# endif
+```

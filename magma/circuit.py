@@ -689,8 +689,8 @@ class DefineCircuitKind(CircuitKind):
         """Place a circuit instance in this definition"""
         cls._context_.placer.place(inst)
 
-    def bind(cls, monitor, *args):
-        cls.bind_modules[monitor] = args
+    def bind(cls, monitor, *args, compile_guard=None):
+        cls.bind_modules[monitor] = (args, compile_guard)
 
 
 @six.add_metaclass(DefineCircuitKind)

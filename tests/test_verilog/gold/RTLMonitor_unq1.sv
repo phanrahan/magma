@@ -68,6 +68,8 @@ assign temp5 = intermediate_ndarr[1][1];
 endmodule
 
 
+
+`ifdef BIND_ON
 bind foo_RTL_unq1 foo_RTLMonitor_unq1 foo_RTLMonitor_unq1_inst (
     .CLK(CLK),
     .in1(in1),
@@ -91,3 +93,4 @@ bind foo_RTL_unq1 foo_RTLMonitor_unq1 foo_RTLMonitor_unq1_inst (
     .intermediate_ndarr('{_magma_bind_wire_5_1, _magma_bind_wire_5_0}),
     .tuple_arr('{nested_other_circ._magma_bind_wire_0_0})
 );
+`endif
