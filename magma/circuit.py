@@ -266,13 +266,14 @@ class CircuitKind(type):
             setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
         try:
             context = _definition_context_stack.pop()
+        except IndexError:  # no staged placer
+            cls._context_ = DefinitionContext(Placer(cls))
+        else:
             assert context.placer.name == cls_name
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
             cls._context_.finalize(cls)
-        except IndexError:  # no staged placer
-            cls._context_ = DefinitionContext(Placer(cls))
 
         return cls
 
