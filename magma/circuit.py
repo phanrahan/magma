@@ -862,7 +862,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         return _DefinitionContextManager(self._context)
 
     def _finalize(self):
-        raise NotImplementedError()
+        pass
 
     def set_instance_name(self, name):
         self._instance_name = name
