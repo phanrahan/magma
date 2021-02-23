@@ -19,8 +19,9 @@ def test_basic():
         f"gold/test_compile_guard_basic.json")
 
 
-def test_compile_guard_counter():
-    class Foo(m.Circuit):
+def test_assert():
+
+    class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Valid[m.Bits[4]]), O=m.Out(m.Bits[4])) + m.ClockIO()
         io.O @= m.Register(m.Bits[4])()(io.I.data)
 
@@ -30,7 +31,7 @@ def test_compile_guard_counter():
             count.CE @= io.I.valid
             f.assert_immediate((count.O != 3) | (io.O.value() == 3))
 
-    m.compile("build/test_compile_guard_counter", Foo, inline=True)
+    m.compile("build/test_compile_guard_assert", _Top, inline=True)
     assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_counter.json",
-        f"gold/test_compile_guard_counter.json")
+        __file__, f"build/test_compile_guard_assert.json",
+        f"gold/test_compile_guard_assert.json")
