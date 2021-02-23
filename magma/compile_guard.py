@@ -99,7 +99,7 @@ class _CompileGuard:
     def _new_name():
         index = _CompileGuard.__index
         _CompileGuard.__index += 1
-        return f"IfDefCircuit_{index}"
+        return f"CompileGuardCircuit_{index}"
 
     def __enter__(self):
         if self._state is not None:

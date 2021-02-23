@@ -2,7 +2,7 @@
 "namespaces":{
   "global":{
     "modules":{
-      "IfDefCircuit_0":{
+      "CompileGuardCircuit_0":{
         "type":["Record",[
           ["port_0","BitIn"],
           ["CLK",["Named","coreir.clkIn"]]
@@ -43,14 +43,14 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "IfDefCircuit_0":{
-            "modref":"global.IfDefCircuit_0",
+          "CompileGuardCircuit_0":{
+            "modref":"global.CompileGuardCircuit_0",
             "metadata":{"compile_guard":"COND"}
           }
         },
         "connections":[
-          ["self.CLK","IfDefCircuit_0.CLK"],
-          ["self.I","IfDefCircuit_0.port_0"],
+          ["self.CLK","CompileGuardCircuit_0.CLK"],
+          ["self.I","CompileGuardCircuit_0.port_0"],
           ["self.O","self.I"]
         ]
       }

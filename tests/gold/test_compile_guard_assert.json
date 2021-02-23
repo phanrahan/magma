@@ -2,15 +2,15 @@
 "namespaces":{
   "global":{
     "modules":{
-      "IfDefCircuit_0":{
+      "CompileGuardCircuit_1":{
         "type":["Record",[
           ["port_0","BitIn"],
           ["CLK",["Named","coreir.clkIn"]],
           ["port_1",["Array",4,"BitIn"]]
         ]],
         "instances":{
-          "IfDefCircuit_0_inline_verilog_inst_0":{
-            "modref":"global.IfDefCircuit_0_inline_verilog_0"
+          "CompileGuardCircuit_1_inline_verilog_inst_0":{
+            "modref":"global.CompileGuardCircuit_1_inline_verilog_0"
           },
           "Register_inst0":{
             "modref":"global.Register_unq1"
@@ -53,7 +53,7 @@
           }
         },
         "connections":[
-          ["_magma_inline_wire0.out","IfDefCircuit_0_inline_verilog_inst_0.__magma_inline_value_0"],
+          ["_magma_inline_wire0.out","CompileGuardCircuit_1_inline_verilog_inst_0.__magma_inline_value_0"],
           ["self.port_0","Register_inst0.CE"],
           ["self.CLK","Register_inst0.CLK"],
           ["magma_Bits_2_add_inst0.out","Register_inst0.I"],
@@ -69,7 +69,7 @@
           ["self.port_1","magma_Bits_4_eq_inst0.in0"]
         ]
       },
-      "IfDefCircuit_0_inline_verilog_0":{
+      "CompileGuardCircuit_1_inline_verilog_0":{
         "type":["Record",[
           ["__magma_inline_value_0","BitIn"]
         ]],
@@ -155,8 +155,8 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "IfDefCircuit_0":{
-            "modref":"global.IfDefCircuit_0",
+          "CompileGuardCircuit_1":{
+            "modref":"global.CompileGuardCircuit_1",
             "metadata":{"compile_guard":"ASSERT_ON"}
           },
           "Register_inst0":{
@@ -164,9 +164,9 @@
           }
         },
         "connections":[
-          ["self.CLK","IfDefCircuit_0.CLK"],
-          ["self.I.valid","IfDefCircuit_0.port_0"],
-          ["Register_inst0.O","IfDefCircuit_0.port_1"],
+          ["self.CLK","CompileGuardCircuit_1.CLK"],
+          ["self.I.valid","CompileGuardCircuit_1.port_0"],
+          ["Register_inst0.O","CompileGuardCircuit_1.port_1"],
           ["self.CLK","Register_inst0.CLK"],
           ["self.I.data","Register_inst0.I"],
           ["self.O","Register_inst0.O"]
