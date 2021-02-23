@@ -21,7 +21,7 @@ class _PassThroughBuilder(m.CircuitBuilder):
     def __init__(self, name):
         super().__init__(name)
         self._added = False
-        self._set_namespace_key("_some_private_attr", None)
+        self._set_definition_attr("_some_private_attr", None)
 
     @m.builder_method
     def add(self):
@@ -58,9 +58,30 @@ EndCircuit()"""
     assert check_files_equal(__file__,
                              "build/test_circuit_builder_basic.json",
                              "gold/test_circuit_builder_basic.json")
-    # Check that _set_namespace_key.
+    # Check _set_definition_attr.
     assert len(_Top.instances) == 1
     inst = _Top.instances[0]
     assert inst.name == "my_pt"
     defn = type(inst)
     assert defn._some_private_attr == None
+
+    # Check defn property.
+    assert defn is _Top.builder.defn
+
+    # Check that re-instantiation of builder defn works.
+    class _:
+        defn()
+
+
+def test_dont_instantiate():
+    builder = _PassThroughBuilder(name="my_pt")
+    builder.add()
+    builder.finalize(dont_instantiate=True)
+    assert repr(builder.defn) == """\
+my_pt = DefineCircuit("my_pt", "I", Out(Bit), "O", In(Bit))
+magma_Bit_not_inst0 = magma_Bit_not()
+my_gc = my_gc("I", my_gc.I, "O", my_gc.O)
+wire(my_gc.O, magma_Bit_not_inst0.in)
+wire(my_pt.I, my_gc.I)
+wire(magma_Bit_not_inst0.out, my_pt.O)
+EndCircuit()"""
