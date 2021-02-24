@@ -381,8 +381,6 @@ class DeclarationTransformer(LeafTransformer):
     def run_self(self):
         self.coreir_module = self._run_self_impl()
         # Set symbol table data.
-        # NOTE(rsetaluri): For some reason, fetching the CoreIR names, re-orders
-        # the ports. I think something is wrong in the C-API or pycoreir.
         magma_names = list(self.decl.interface.ports.keys())
         coreir_names = list(k for k, _ in self.coreir_module.type.items())
         assert len(magma_names) == len(coreir_names)
