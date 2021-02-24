@@ -1,5 +1,49 @@
+import abc
 import json
 from typing import Any, Iterable, Tuple
+
+
+class SymbolTableInterface(abc.ABC):
+    @abc.abstractmethod
+    def get_module_name(self, in_module_name: str) -> str:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_instance_name(self,
+                          in_module_name: str,
+                          in_instance_name: str) -> str:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_port_name(self,
+                      in_module_name: str,
+                      in_port_name: str) -> Tuple[str, str]:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def set_module_name(self,
+                        in_module_name: str,
+                        out_module_name: str) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def set_instance_name(self,
+                          in_module_name: str,
+                          in_instance_name: str,
+                          out_instance_name: str) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def set_port_name(self,
+                      in_module_name: str,
+                      in_port_name: str,
+                      out_module_name: str,
+                      out_port_name: str) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def as_json(self, **kwargs):
+        raise NotImplementedError()
 
 
 class _FieldMeta(type):
@@ -101,7 +145,7 @@ class _Field(object, metaclass=_FieldMeta):
                 for k, v in self._map.items()}
 
 
-class SymbolTable:
+class SymbolTable(SymbolTableInterface):
     _fields_ = {
         "module_names": _Field[str, str],
         "instance_names": _Field[(str, str), str],
