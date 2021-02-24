@@ -3,7 +3,7 @@ from ..is_definition import isdefinition
 from .tsort import tsort
 
 __all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass',
-           'pass_lambda', 'instance_graph']
+           'pass_lambda', 'instance_graph', 'dependencies']
 
 
 class Pass(ABC):
@@ -133,6 +133,14 @@ def pass_lambda(cls):
     return _fn
 
 
-def instance_graph(main):
-    p = pass_lambda(BuildInstanceGraphPass)(main)
+def instance_graph(ckt):
+    p = pass_lambda(BuildInstanceGraphPass)(ckt)
     return p.tsortedgraph
+
+
+def dependencies(ckt, include_self=False):
+    graph = instance_graph(ckt)
+    deps = [dep for dep, _ in graph]
+    if include_self:
+        return deps
+    return list(filter(lambda dep: dep is not ckt, deps))
