@@ -30,6 +30,10 @@ from magma.ref import PortViewRef, ArrayRef
 _logger = root_logger().getChild("coreir_backend")
 
 
+def _is_generator(ckt_or_inst):
+    return ckt_or_inst.coreir_genargs is not None
+
+
 def _make_unconnected_error_str(port):
     error_str = port.debug_name
     if port.trace() is not None:
@@ -140,6 +144,9 @@ class DefnOrDeclTransformer(TransformerBase):
 
     def run_self(self):
         self._run_self_impl()
+        # Skip updating symbol table for CoreIR generators.
+        if _is_generator(self.defn_or_decl):
+            return
         self.opts["symbol_table"].set_module_name(
             self.defn_or_decl.name, self.coreir_module.name)
 
@@ -175,7 +182,7 @@ class InstanceTransformer(LeafTransformer):
             lib = self.backend.get_lib(self.inst.coreir_lib)
             if self.inst.coreir_lib == "global":
                 lib = self.opts.get("user_namespace", lib)
-        if self.inst.coreir_genargs is None:
+        if not _is_generator(self.inst):
             module = get_module_of_inst(self.backend.context, self.inst, lib)
             args = get_inst_args(self.inst)
             args = self.backend.context.new_values(args)
@@ -380,6 +387,9 @@ class DeclarationTransformer(LeafTransformer):
 
     def run_self(self):
         self.coreir_module = self._run_self_impl()
+        # Skip updating symbol table for CoreIR generators.
+        if _is_generator(self.decl):
+            return
         # Set symbol table data.
         magma_names = list(self.decl.interface.ports.keys())
         coreir_names = list(k for k, _ in self.coreir_module.type.items())
@@ -401,7 +411,7 @@ class DeclarationTransformer(LeafTransformer):
         if self.decl.coreir_lib in ["coreir", "corebit", "commonlib",
                                     "memory"]:
             lib = self.backend.get_lib(self.decl.coreir_lib)
-            if self.decl.coreir_genargs is None:
+            if not _is_generator(self.decl):
                 return lib.modules[self.decl.coreir_name]
             return lib.generators[self.decl.coreir_name]
         try:
