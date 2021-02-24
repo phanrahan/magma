@@ -15,7 +15,7 @@ from magma.backend.coreir.coreir_utils import (
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
-from magma.passes import InstanceGraphPass
+from magma.passes import instance_graph
 from magma.tuple import Tuple
 from magma.backend.util import get_codegen_debug_info
 from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
@@ -215,11 +215,13 @@ class DefinitionTransformer(TransformerBase):
         self._constant_cache = {}
 
     def children(self):
-        pass_ = InstanceGraphPass(self.defn)
-        pass_.run()
-        deps = [k for k, _ in pass_.tsortedgraph if k is not self.defn]
-        children = [DefnOrDeclTransformer(self.backend, self.opts, dep)
-                    for dep in deps]
+        children = []
+        if not self.opts.get("skip_instance_graph", False):
+            deps = instance_graph(self.defn)
+            opts = self.opts.copy()
+            opts.update({"skip_instance_graph": True})
+            children += [DefnOrDeclTransformer(self.backend, opts, defn_or_decl)
+                         for defn_or_decl, _ in deps]
         children += [self.decl_tx]
         children += self.inst_txs.values()
         return children
