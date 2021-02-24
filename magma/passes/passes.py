@@ -125,7 +125,9 @@ class EditDefinitionPass(DefinitionPass):
 #
 def pass_lambda(cls):
 
-    def _fn(ckt):
-        cls(ckt).run()
+    def _fn(main, *args, **kwargs):
+        p = cls(main, *args, **kwargs)
+        p.run()
+        return p
 
     return _fn

@@ -201,4 +201,8 @@ def test_wire_tuple_to_clock():
         io = m.IO(I=In(T), O=m.Out(m.Clock))
         m.wire(io.I, io.O)
 
-    m.compile("build/Foo", Foo)
+    # Imported here to avoid changing line numbers for above tests
+    import pytest
+    with pytest.raises(Exception) as e:
+        m.compile("build/Foo", Foo)
+    assert str(e.value) == "Found circuit with errors: Foo"
