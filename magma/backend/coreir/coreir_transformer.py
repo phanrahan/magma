@@ -87,6 +87,8 @@ def _unwrap(x):
 
 
 class TransformerBase(ABC):
+    __MISSING = object()
+
     def __init__(self, backend, opts):
         self.backend = backend
         self.opts = opts
@@ -108,6 +110,11 @@ class TransformerBase(ABC):
 
     def run_self(self):
         pass
+
+    def get_opt(self, key, default=__MISSING):
+        if default is TransformerBase.__MISSING:
+            return self.opts[key]
+        return self.opts.get(key, default)
 
 
 class LeafTransformer(TransformerBase):
@@ -144,10 +151,14 @@ class DefnOrDeclTransformer(TransformerBase):
 
     def run_self(self):
         self._run_self_impl()
-        # Skip updating symbol table for CoreIR generators.
+        self._generate_symbols()
+
+    def _generate_symbols(self):
+        if not self.get_opt("generate_symbols", False):
+            return
         if _is_generator(self.defn_or_decl):
             return
-        self.opts["symbol_table"].set_module_name(
+        self.opts.get("symbol_table").set_module_name(
             self.defn_or_decl.name, self.coreir_module.name)
 
     def _run_self_impl(self):
@@ -181,7 +192,7 @@ class InstanceTransformer(LeafTransformer):
         else:
             lib = self.backend.get_lib(self.inst.coreir_lib)
             if self.inst.coreir_lib == "global":
-                lib = self.opts.get("user_namespace", lib)
+                lib = self.get_opt("user_namespace", lib)
         if not _is_generator(self.inst):
             module = get_module_of_inst(self.backend.context, self.inst, lib)
             args = get_inst_args(self.inst)
@@ -223,7 +234,7 @@ class DefinitionTransformer(TransformerBase):
 
     def children(self):
         children = []
-        if not self.opts.get("skip_instance_graph", False):
+        if not self.get_opt("skip_instance_graph", False):
             deps = dependencies(self.defn, include_self=False)
             opts = self.opts.copy()
             opts.update({"skip_instance_graph": True})
@@ -252,14 +263,18 @@ class DefinitionTransformer(TransformerBase):
 
         self.coreir_module.definition = self.get_coreir_defn()
 
+    def _generate_symbols(self, coreir_insts):
+        if not self.get_opt("generate_symbols", False):
+            return
+        for inst, coreir_inst in coreir_insts.items():
+            self.get_opt("symbol_table").set_instance_name(
+                self.defn.name, inst.name, coreir_inst.name)
+
     def get_coreir_defn(self):
         coreir_defn = self.coreir_module.new_definition()
         coreir_insts = {inst: self.inst_txs[inst].coreir_inst_gen(coreir_defn)
                         for inst in self.defn.instances}
-        # Set symbol table data.
-        for inst, coreir_inst in coreir_insts.items():
-            self.opts["symbol_table"].set_instance_name(
-                self.defn.name, inst.name, coreir_inst.name)
+        self._generate_symbols(coreir_insts)
         # If this module was imported from verilog, do not go through the
         # general module construction flow. Instead just attach the verilog
         # source as metadata and return the module.
@@ -387,15 +402,18 @@ class DeclarationTransformer(LeafTransformer):
 
     def run_self(self):
         self.coreir_module = self._run_self_impl()
-        # Skip updating symbol table for CoreIR generators.
+        self._generate_symbols()
+
+    def _generate_symbols(self):
+        if not self.get_opt("generate_symbols", False):
+            return
         if _is_generator(self.decl):
             return
-        # Set symbol table data.
         magma_names = list(self.decl.interface.ports.keys())
         coreir_names = list(k for k, _ in self.coreir_module.type.items())
         assert len(magma_names) == len(coreir_names)
         for magma_name, coreir_name in zip(magma_names, coreir_names):
-            self.opts["symbol_table"].set_port_name(
+            self.opts.get("symbol_table").set_port_name(
                 self.decl.name,
                 magma_name,
                 self.coreir_module.name,
@@ -437,8 +455,8 @@ class DeclarationTransformer(LeafTransformer):
             # overrides user_namespace setting
             namespace = self.backend.get_lib(self.decl.namespace)
         else:
-            namespace = self.opts.get("user_namespace",
-                                      self.backend.context.global_namespace)
+            namespace = self.get_opt("user_namespace",
+                                     self.backend.context.global_namespace)
         coreir_module = namespace.new_module(
             self.decl.coreir_name, module_type, **kwargs)
         if get_codegen_debug_info() and self.decl.debug_info:

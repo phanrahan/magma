@@ -47,15 +47,16 @@ def _make_verilog_cmd(deps, basename, opts):
 
 
 def _make_opts(backend, opts):
-    out = {}
+    new_opts = {}
     user_namespace = opts.get("user_namespace", None)
     if user_namespace is not None:
         if backend.context.has_namespace(user_namespace):
             user_namespace = backend.context.get_namespace(user_namespace)
         else:
             user_namespace = backend.context.new_namespace(user_namespace)
-        out["user_namespace"] = user_namespace
-    return out
+        new_opts["user_namespace"] = user_namespace
+    new_opts["generate_symbols"] = opts.get("generate_symbols", False)
+    return new_opts
 
 
 class CoreIRCompiler(Compiler):

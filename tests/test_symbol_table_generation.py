@@ -4,7 +4,7 @@ import magma as m
 
 
 def _compile(name, ckt):
-    res = m.compile(name, ckt)
+    res = m.compile(name, ckt, generate_symbols=True)
     # TODO(rsetaluri): Get CoreIR symbol table as well.
     return res["symbol_table"]
 
