@@ -23,7 +23,7 @@ class Foo(m.Circuit):
         f.assert_immediate((count.O != 3) | (io.O.value() == 3))
 ```
 
-This generates the following code (some modules ommitted):
+This generates the following code (some modules omitted):
 ```verilog
 ...
 
