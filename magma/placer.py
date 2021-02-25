@@ -129,6 +129,9 @@ class Placer:
             inst.stack = inspect.stack()
         _setup_view(inst)
 
+    def finalize(self, defn):
+        return self
+
 
 class StagedPlacer(ABC):
     def __init__(self, name):
