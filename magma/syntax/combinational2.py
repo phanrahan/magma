@@ -25,11 +25,11 @@ class NameSetter(cst.CSTTransformer):
                          match.Assign([match.AssignTarget(match.Name())])):
             return updated_node.with_changes(
                 value=cst.Call(
-                    cst.Name(self.set_name_var), 
+                    cst.Name(self.set_name_var),
                     [cst.Arg(cst.SimpleString(
                         "\"" + updated_node.targets[0].target.value + "\"")
                     ), cst.Arg(updated_node.value)])
-                )
+            )
         return updated_node
 
 
