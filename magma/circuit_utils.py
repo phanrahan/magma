@@ -3,6 +3,7 @@ import functools
 from typing import Optional
 
 from magma.circuit import CircuitKind
+from magma.conversions import as_bits
 from magma.value_utils import ValueVisitor
 
 
@@ -19,21 +20,34 @@ class _StubifyVisitor(ValueVisitor):
     def modified(self):
         return self._modified
 
-    def _handle_value(self, value):
-        self._modified = True
-        if not value.is_input():
-            value.unused()
-            return
-        if self._stub_type is StubType.ZERO:
-            value @= 0
+    def _drive_output(self, value):
+        if self._stub_type == StubType.ZERO:
+            bits = as_bits(value)
+            bits @= 0
             return
         raise NotImplementedError(self._stub_type)
 
+    def _handle_value(self, value, leaf=False):
+        if value.is_output():
+            self._modified = True
+            value.unused()
+            return
+        if value.is_input():
+            self._modified = True
+            self._drive_output(value)
+            return
+        if leaf:
+            return
+        super().generic_visit(value)
+
+    def generic_visit(self, value):
+        self._handle_value(value, leaf=False)
+
     def visit_Bits(self, value):
-        self._handle_value(value)
+        self._handle_value(value, leaf=True)
 
     def visit_Digital(self, value):
-        self._handle_value(value)
+        self._handle_value(value, leaf=True)
 
 
 def _stubify_impl(ckt: CircuitKind, stub_type: StubType):
