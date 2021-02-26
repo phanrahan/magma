@@ -13,8 +13,14 @@ class StubType(enum.Enum):
 class _StubifyVisitor(ValueVisitor):
     def __init__(self, stub_type: StubType):
         self._stub_type = stub_type
+        self._modified = False
+
+    @property
+    def modified(self):
+        return self._modified
 
     def _handle_value(self, value):
+        self._modified = True
         if not value.is_input():
             value.unused()
             return
@@ -31,8 +37,16 @@ class _StubifyVisitor(ValueVisitor):
 
 
 def _stubify_impl(ckt: CircuitKind, stub_type: StubType):
+    modified = False
     for port in ckt.interface.ports.values():
-        _StubifyVisitor(stub_type).visit(port)
+        visitor = _StubifyVisitor(stub_type)
+        visitor.visit(port)
+        modified |= visitor.modified
+    if modified:
+        # NOTE(rsetaluri): This is a hack because we don't have good handling of
+        # isdefinition when the circuit is modified. We should be doing that
+        # more principled-ly. See https://github.com/phanrahan/magma/issues/929.
+        ckt._is_definition = True
 
 
 def stubify(ckt: CircuitKind, stub_type: StubType):
