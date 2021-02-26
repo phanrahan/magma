@@ -1,7 +1,10 @@
 import functools
-from typing import Optional
+import libcst as cst
+import libcst.matchers as match
+from typing import Optional, MutableMapping
 
-from ast_tools.passes import apply_passes, ssa, if_to_phi, bool_to_bit
+from ast_tools.passes import (apply_passes, ssa, if_to_phi, bool_to_bit, Pass,
+                              PASS_ARGS_T)
 from ast_tools.stack import SymbolTable
 
 from ..circuit import Circuit, IO
@@ -9,6 +12,19 @@ from ..protocol_type import MagmaProtocol
 from ..t import Type
 
 from .util import build_io_args, build_call_args, wire_call_result
+
+
+class NameSetter(cst.CSTTransformer):
+    def leave_assign(self, original_node, updated_node):
+        if match.matches(updated_node, [AssignTarget
+        return updated_node
+
+
+class set_name(Pass):
+    def rewrite(
+        self, tree: cst.CST, env: SymbolTable, metadata: MutableMapping
+    ) -> PASS_ARGS_T:
+        return tree.visit(NameSetter), env, metadata
 
 
 class combinational2(apply_passes):
@@ -20,7 +36,8 @@ class combinational2(apply_passes):
                  ):
         passes = (pre_passes +
                   [ssa(strict=False), bool_to_bit(),
-                   if_to_phi(lambda s, t, f: s.ite(t, f))] +
+                   if_to_phi(lambda s, t, f: s.ite(t, f)),
+                   set_name()] +
                   post_passes)
         super().__init__(passes=passes, env=env, debug=debug, path=path,
                          file_name=file_name)
