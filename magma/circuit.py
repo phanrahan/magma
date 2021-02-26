@@ -652,6 +652,7 @@ class DefineCircuitKind(CircuitKind):
                                 "instead", debug_info=self.debug_info)
                 with _DefinitionContextManager(self._context_):
                     self.definition()
+                self._context_.finalize(self)
                 self._is_definition = True
                 run_unconnected_check = True
             elif self._syntax_style_ is _SyntaxStyle.NEW:

@@ -110,3 +110,21 @@ def test_nested_context():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_nested_context.json",
         f"gold/test_compile_guard_nested_context.json")
+
+
+def test_basic_oldstyle():
+
+    class _Top(m.Circuit):
+        IO = ["I", m.In(m.Bit), "O", m.Out(m.Bit)] + m.ClockInterface()
+
+        @classmethod
+        def definition(io):
+            with m.compile_guard("COND", defn_name="COND_compile_guard"):
+                out = m.Register(m.Bit)()(io.I)
+
+            io.O @= io.I
+
+    m.compile("build/test_compile_guard_basic", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_basic.json",
+        f"gold/test_compile_guard_basic.json")

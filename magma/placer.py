@@ -61,6 +61,7 @@ class Placer:
         self._instance_counter = Counter()
         self._instance_name_map = {}
         self._instances = []
+        self._finalized = False
 
     def instances(self):
         return self._instances
@@ -128,6 +129,12 @@ class Placer:
         if get_debug_mode():
             inst.stack = inspect.stack()
         _setup_view(inst)
+
+    def finalize(self, defn):
+        if self._finalized:
+            raise Exception("Can only call finalize on a placer once")
+        self._finalized = True
+        return self
 
 
 class StagedPlacer(ABC):
