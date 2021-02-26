@@ -2,7 +2,7 @@ import enum
 import functools
 from typing import Optional
 
-from magma.circuit import CircuitKind
+from magma.circuit import CircuitKind, CircuitType, DefineCircuitKind
 from magma.conversions import as_bits
 from magma.value_utils import ValueVisitor
 
@@ -51,8 +51,12 @@ class _StubifyVisitor(ValueVisitor):
 
 
 def _stubify_impl(ckt: CircuitKind, stub_type: StubType):
+    try:
+        interface = ckt.interface
+    except AttributeError:
+        return
     modified = False
-    for port in ckt.interface.ports.values():
+    for port in interface.ports.values():
         visitor = _StubifyVisitor(stub_type)
         visitor.visit(port)
         modified |= visitor.modified
@@ -80,3 +84,14 @@ def circuit_stub(cls=None, *, stub_type: Optional[StubType] = StubType.ZERO):
         return partial(circuit_stub, stub_type=stub_type)
     stubify(cls, stub_type)
     return cls
+
+
+class _CircuitStubMeta(DefineCircuitKind):
+    def __new__(metacls, name, bases, dct):
+        cls = super().__new__(metacls, name, bases, dct)
+        stubify(cls, stub_type=StubType.ZERO)
+        return cls
+
+
+class CircuitStub(CircuitType, metaclass=_CircuitStubMeta):
+    _circuit_base_ = True

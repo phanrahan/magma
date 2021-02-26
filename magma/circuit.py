@@ -377,6 +377,9 @@ class CircuitKind(type):
 @six.add_metaclass(CircuitKind)
 class AnonymousCircuitType(object):
     """Abstract base class for circuits"""
+
+    _circuit_base_ = True
+
     def __init__(self, *largs, **kwargs):
         self.kwargs = dict(**kwargs)
 
@@ -548,6 +551,8 @@ def AnonymousCircuit(*decl):
 
 
 class CircuitType(AnonymousCircuitType):
+    _circuit_base_ = True
+
     """Placed circuit - instances placed in a definition"""
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
@@ -608,23 +613,28 @@ def DeclareCircuit(name, *decl, **args):
     return metacls(name, bases, dct)
 
 
+def _get_name(name, bases, dct):
+    try:
+        return dct["name"]
+    except KeyError:
+        pass
+    # Take name of the first base class which is not a base circuit type, if one
+    # exists.
+    for base in bases:
+        if getattr(base, "_circuit_base_", False):
+            continue
+        if not issubclass(base, AnonymousCircuitType):
+            raise Exception(f"Must subclass from AnonymousCircuitType or a "
+                            f"subclass of AnonymousCircuitType ({base})")
+        return base.name
+    return name
+
+
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
         dct["_cls_name_"] = name  # save original name for debugging purposes
-        if 'name' not in dct:
-            dct['name'] = name
-            # Check if we are a subclass of something other than Circuit; if so,
-            # inherit the name of the first parent.
-            for base in bases:
-                if base is Circuit:
-                    continue
-                if not issubclass(base, AnonymousCircuitType):
-                    raise Exception(f"Must subclass from AnonymousCircuitType "
-                                    f"or a subclass of AnonymousCircuitType "
-                                    f"({base})")
-                dct['name'] = base.name
-                break
-        name = dct['name']
+        name = _get_name(name, bases, dct.copy())
+        dct["name"] = name
         dct["renamed_ports"] = dct.get("renamed_ports", {})
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
@@ -698,7 +708,7 @@ class DefineCircuitKind(CircuitKind):
 
 @six.add_metaclass(DefineCircuitKind)
 class Circuit(CircuitType):
-    pass
+    _circuit_base_ = True
 
 
 @deprecated(
