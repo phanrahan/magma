@@ -27,7 +27,7 @@ def _wrap_value(value):
     if isdigital(T):
         return _ValueWrapper(value, [], "Digital")
     if isbits(T):
-        return _ValueWrapper(value, [], "Bits")
+        return _ValueWrapper(value, [t for t in value], "Bits")
     if isarray(T):
         return _ValueWrapper(value, [t for t in value], "Array")
     if istuple(T):
