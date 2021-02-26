@@ -249,6 +249,10 @@ class DefinitionTransformer(TransformerBase):
             metadata = json.dumps({"verilog_string": self.defn.verilogFile})
             self.coreir_module.add_metadata("verilog", metadata)
             return coreir_defn
+        if hasattr(self.defn, "verilog") and self.defn.verilog:
+            metadata = json.dumps({"verilog_body": self.defn.verilog})
+            self.coreir_module.add_metadata("verilog", metadata)
+            return coreir_defn
         if self.defn.coreir_lib is not None:
             self.backend.include_lib_or_libs(self.defn.coreir_lib)
         for name, port in self.defn.interface.ports.items():
