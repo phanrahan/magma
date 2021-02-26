@@ -1,3 +1,5 @@
+import pytest
+
 import magma as m
 from magma.testing import check_files_equal
 
@@ -17,6 +19,10 @@ def test_circuit_stub_basic():
                   O=m.Out(m.Bit),
                   O3=m.Out(m.Array[4, m.Bits[6]]))
 
+    # Check that open doesn't work.
+    with pytest.raises(NotImplementedError):
+        _Foo.open()
+
     assert m.isdefinition(_Foo)
     out_name = "test_circuit_stub_basic"
     m.compile(f"build/{out_name}", _Foo, output="coreir")
@@ -33,8 +39,14 @@ def test_circuit_stub_subclass():
                   O=m.Out(m.Bit),
                   O3=m.Out(m.Array[4, m.Bits[6]]))
 
+    # Check that open doesn't work.
+    with pytest.raises(NotImplementedError):
+        _Foo.open()
+
     assert m.isdefinition(_Foo)
     out_name = "test_circuit_stub_subclass"
     m.compile(f"build/{out_name}", _Foo, output="coreir")
     assert check_files_equal(
-        __file__, f"build/{out_name}.json", f"gold/test_circuit_stub_basic.json")
+        __file__,
+        f"build/{out_name}.json",
+        f"gold/test_circuit_stub_basic.json")

@@ -51,12 +51,8 @@ class _StubifyVisitor(ValueVisitor):
 
 
 def _stubify_impl(ckt: CircuitKind, stub_type: StubType):
-    try:
-        interface = ckt.interface
-    except AttributeError:
-        return
     modified = False
-    for port in interface.ports.values():
+    for port in ckt.interface.ports.values():
         visitor = _StubifyVisitor(stub_type)
         visitor.visit(port)
         modified |= visitor.modified
@@ -67,9 +63,18 @@ def _stubify_impl(ckt: CircuitKind, stub_type: StubType):
         ckt._is_definition = True
 
 
+def _stub_open(cls):
+    raise NotImplementedError("Can not call open() on a circuit stub")
+
+
 def stubify(ckt: CircuitKind, stub_type: StubType):
     with ckt.open():
         _stubify_impl(ckt, stub_type)
+    # Set ckt.open to be a function which raises a NotImplementedError. Note
+    # that we *can't* do this in the class itself, since we need to call open()
+    # to tie the outputs first (in stubify()). Afterwards, we can override the
+    # method.
+    setattr(ckt, "open", classmethod(_stub_open))
 
 
 def circuit_stub(cls=None, *, stub_type: Optional[StubType] = StubType.ZERO):
@@ -89,7 +94,10 @@ def circuit_stub(cls=None, *, stub_type: Optional[StubType] = StubType.ZERO):
 class _CircuitStubMeta(DefineCircuitKind):
     def __new__(metacls, name, bases, dct):
         cls = super().__new__(metacls, name, bases, dct)
-        stubify(cls, stub_type=StubType.ZERO)
+        # Only call stubify() on user circuits (i.e. do not call on CircuitStub
+        # base class).
+        if not dct.get("_circuit_base_", False):
+            stubify(cls, stub_type=StubType.ZERO)
         return cls
 
 
