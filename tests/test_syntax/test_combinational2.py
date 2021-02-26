@@ -21,7 +21,7 @@ def test_combinational2_basic_if():
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
         io.O @= basic_if(io.I, io.S)
 
-    m.compile("build/test_combinational2_basic_if", Main)
+    m.compile("build/test_combinational2_basic_if", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_combinational2_basic_if.v",
                              f"gold/test_combinational2_basic_if.v")
 
@@ -48,13 +48,13 @@ def test_pre_post_passes(capsys):
         with open(os.path.join(tmpdir, "foo.py"), "r") as output:
             assert output.read() == """\
 def pre_unroll(I: m.Bits[3]) -> m.Bits[3]:
-    _cond_0 = I[0]
-    __0_return_0 = m.Bits[3](0)
-    _cond_1 = I[1]
-    __0_return_1 = m.Bits[3](1)
-    _cond_2 = I[2]
-    __0_return_2 = m.Bits[3](2)
-    __0_return_3 = m.Bits[3](4)
+    _cond_0 = _auto_name_0("_cond_0", I[0])
+    __0_return_0 = _auto_name_0("__0_return_0", m.Bits[3](0))
+    _cond_1 = _auto_name_0("_cond_1", I[1])
+    __0_return_1 = _auto_name_0("__0_return_1", m.Bits[3](1))
+    _cond_2 = _auto_name_0("_cond_2", I[2])
+    __0_return_2 = _auto_name_0("__0_return_2", m.Bits[3](2))
+    __0_return_3 = _auto_name_0("__0_return_3", m.Bits[3](4))
     return __phi(_cond_0, __0_return_0, __phi(_cond_1, __0_return_1, __phi(_cond_2, __0_return_2, __0_return_3)))
 """
 
