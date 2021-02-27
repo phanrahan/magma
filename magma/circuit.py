@@ -629,7 +629,7 @@ class DefineCircuitKind(CircuitKind):
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
 
-        self.verilog = None
+        self.verilog = dct.get("verilog", None)
         self.verilogFile = None
         self.verilogLib = None
 
