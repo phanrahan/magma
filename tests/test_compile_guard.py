@@ -144,4 +144,4 @@ def test_basic_invert():
     m.compile("build/test_compile_guard_basic_invert", _Top)
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_basic_invert.json",
-        f"gold/test_compile_guard_basic_invert_invert.json")
+        f"gold/test_compile_guard_basic_invert.json")
