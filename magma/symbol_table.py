@@ -1,6 +1,6 @@
 import abc
 import json
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Mapping, Tuple
 
 
 class SymbolTableInterface(abc.ABC):
@@ -39,6 +39,18 @@ class SymbolTableInterface(abc.ABC):
                       in_port_name: str,
                       out_module_name: str,
                       out_port_name: str) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def module_names(self) -> Mapping[str, str]:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def instance_names(self) -> Mapping[Tuple[str, str], str]:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def port_names(self) -> Mapping[Tuple[str, str], Tuple[str, str]]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -190,6 +202,15 @@ class SymbolTable(SymbolTableInterface):
         key = in_module_name, in_port_name
         value = out_module_name, out_port_name
         self._mappings["port_names"].set(key, value)
+
+    def module_names(self) -> Mapping[str, str]:
+        return self._mappings["module_names"].dct()
+
+    def instance_names(self) -> Mapping[Tuple[str, str], str]:
+        return self._mappings["instance_names"].dct()
+
+    def port_names(self) -> Mapping[Tuple[str, str], Tuple[str, str]]:
+        return self._mappings["port_names"].dct()
 
     def as_dict(self, for_json=False):
         return {
