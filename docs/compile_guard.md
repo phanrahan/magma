@@ -75,5 +75,5 @@ by using the `ASSERT_ON` define.
 Note that logic inside a compile guard cannot be used outside of a compile
 guard (otherwise a signal may not have a driver when the guard is disabled).
 
-To generate an `ifndef` instead of `ifdef`, pass the argument `invert=True` to
-`m.compile_guard`.
+To generate an `ifndef` instead of `ifdef`, pass the argument
+`type="undefined"` to `m.compile_guard` (the default is `type="defined"`).
