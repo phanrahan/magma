@@ -308,6 +308,8 @@ circuit must similarly be designed in such a way that the logic expects inputs
 every cycle, so enable logic must be explicitly defined).
 
 ## Experimental: Direct to Verilog Compilation
+Note: This feature requires the kratos package (install with `pip install kratos`)
+
 `@combinational_to_verilog` and `@sequential_to_verilog` decorators provide
 support for an alternative compiler that passes `if` statements down to verilog
 and uses an `always_ff` block to implement the sequential registers.
