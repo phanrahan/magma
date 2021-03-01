@@ -39,6 +39,8 @@ def test_value_visitor():
         expected.append(("Array", t.x))
         for tt in t.x:
             expected.append(("Bits", tt))
+            for ttt in tt:
+                expected.append(("Digital", ttt))
         expected.append(("Array", t.y))
         for tt in t.y:
             expected.append(("Digital", tt))
