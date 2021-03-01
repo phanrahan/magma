@@ -235,6 +235,7 @@ class CircuitKind(type):
         cls_name = dct.get("_cls_name_", name)
         name = dct.setdefault('name', name)
 
+        dct.setdefault("_circuit_base_", False)
         dct.setdefault('renamed_ports', {})
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
@@ -621,7 +622,7 @@ def _get_name(name, bases, dct):
     # Take name of the first base class which is not a base circuit type, if one
     # exists.
     for base in bases:
-        if getattr(base, "_circuit_base_", False):
+        if base._circuit_base_:
             continue
         if not issubclass(base, AnonymousCircuitType):
             raise Exception(f"Must subclass from AnonymousCircuitType or a "
