@@ -130,18 +130,18 @@ def test_basic_oldstyle():
         f"gold/test_compile_guard_basic.json")
 
 
-def test_basic_invert():
+def test_basic_undefined():
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
 
         with m.compile_guard("COND", defn_name="COND_compile_guard",
-                             invert=True):
+                             type='undefined'):
             out = m.Register(m.Bit)()(io.I)
 
         io.O @= io.I
 
-    m.compile("build/test_compile_guard_basic_invert", _Top)
+    m.compile("build/test_compile_guard_basic_undefined", _Top)
     assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_basic_invert.json",
-        f"gold/test_compile_guard_basic_invert.json")
+        __file__, f"build/test_compile_guard_basic_undefined.json",
+        f"gold/test_compile_guard_basic_undefined.json")
