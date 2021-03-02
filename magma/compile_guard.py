@@ -18,11 +18,16 @@ class _CompileGuardState:
 
 
 class _CompileGuardBuilder(CircuitBuilder):
-    def __init__(self, name, cond):
+    def __init__(self, name, cond, type):
         super().__init__(name)
         self._cond = cond
         self._system_types_added = set()
-        self._set_inst_attr("coreir_metadata", {"compile_guard": cond})
+        if type not in {"defined", "undefined"}:
+            raise ValueError(f"Unexpected compile guard type: {type}")
+        self._set_inst_attr(
+            "coreir_metadata",
+            {"compile_guard": {"condition_str": cond, "type": type}}
+        )
         self._port_index = 0
         self._pre_finalized = False
 
@@ -101,11 +106,13 @@ class _CompileGuard:
 
     def __init__(self, cond: str,
                  defn_name: Optional[str],
-                 inst_name: Optional[str]):
+                 inst_name: Optional[str],
+                 type: Optional[str] = "defined"):
         self._cond = cond
         self._defn_name = defn_name
         self._inst_name = inst_name
         self._state = None
+        self._type = type
 
     @staticmethod
     def _new_name():
@@ -120,7 +127,7 @@ class _CompileGuard:
         if self._defn_name is None:
             self._defn_name = _CompileGuard._new_name()
         if self._state is None:
-            ckt = _CompileGuardBuilder(self._defn_name, self._cond)
+            ckt = _CompileGuardBuilder(self._defn_name, self._cond, self._type)
             if self._inst_name is None:
                 ckt.set_instance_name(self._inst_name)
             ctx_mgr = _DefinitionContextManager(ckt._context)
@@ -134,5 +141,6 @@ class _CompileGuard:
 
 def compile_guard(cond: str,
                   defn_name: Optional[str] = None,
-                  inst_name: Optional[str] = None):
-    return _CompileGuard(cond, defn_name, inst_name)
+                  inst_name: Optional[str] = None,
+                  type: Optional[str] = "defined"):
+    return _CompileGuard(cond, defn_name, inst_name, type)

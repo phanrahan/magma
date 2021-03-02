@@ -45,7 +45,7 @@
         "instances":{
           "COND_compile_guard":{
             "modref":"global.COND_compile_guard",
-            "metadata":{"compile_guard":"COND"}
+            "metadata":{"compile_guard":{"condition_str":"COND","type":"defined"}}
           }
         },
         "connections":[

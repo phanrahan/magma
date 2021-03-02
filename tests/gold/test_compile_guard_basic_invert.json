@@ -5,22 +5,16 @@
       "COND_compile_guard":{
         "type":["Record",[
           ["port_0","BitIn"],
-          ["CLK",["Named","coreir.clkIn"]],
-          ["port_1","BitIn"]
+          ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
           "Register_inst0":{
-            "modref":"global.Register"
-          },
-          "Register_inst1":{
             "modref":"global.Register"
           }
         },
         "connections":[
           ["self.CLK","Register_inst0.CLK"],
-          ["self.port_0","Register_inst0.I"],
-          ["self.CLK","Register_inst1.CLK"],
-          ["self.port_1","Register_inst1.I"]
+          ["self.port_0","Register_inst0.I"]
         ]
       },
       "Register":{
@@ -44,21 +38,20 @@
       },
       "_Top":{
         "type":["Record",[
-          ["I",["Array",2,["Record",[["x","BitIn"],["y","BitIn"]]]]],
+          ["I","BitIn"],
           ["O","Bit"],
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
           "COND_compile_guard":{
             "modref":"global.COND_compile_guard",
-            "metadata":{"compile_guard":{"condition_str":"COND","type":"defined"}}
+            "metadata":{"compile_guard":{"condition_str":"COND","invert":true}}
           }
         },
         "connections":[
           ["self.CLK","COND_compile_guard.CLK"],
-          ["self.I.1.x","COND_compile_guard.port_0"],
-          ["self.I.0.y","COND_compile_guard.port_1"],
-          ["self.O","self.I.0.x"]
+          ["self.I","COND_compile_guard.port_0"],
+          ["self.O","self.I"]
         ]
       }
     }

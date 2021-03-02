@@ -157,7 +157,7 @@
         "instances":{
           "ASSERT_ON_compile_guard":{
             "modref":"global.ASSERT_ON_compile_guard",
-            "metadata":{"compile_guard":"ASSERT_ON"}
+            "metadata":{"compile_guard":{"condition_str":"ASSERT_ON","type":"defined"}}
           },
           "Register_inst0":{
             "modref":"global.Register"
