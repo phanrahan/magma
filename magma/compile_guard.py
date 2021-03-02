@@ -127,8 +127,7 @@ class _CompileGuard:
         if self._defn_name is None:
             self._defn_name = _CompileGuard._new_name()
         if self._state is None:
-            ckt = _CompileGuardBuilder(self._defn_name, self._cond,
-                                       self._type)
+            ckt = _CompileGuardBuilder(self._defn_name, self._cond, self._type)
             if self._inst_name is None:
                 ckt.set_instance_name(self._inst_name)
             ctx_mgr = _DefinitionContextManager(ckt._context)
