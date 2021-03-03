@@ -223,7 +223,7 @@ class SymbolTable(SymbolTableInterface):
         table = SymbolTable()
         for name, mapping in table._mappings.items():
             T = type(mapping)
-            table._mappings[name] = T.from_dict(dct[name], from_json=True)
+            table._mappings[name] = T.from_dict(dct[name], from_json)
         return table
 
     def as_json(self, **kwargs):
