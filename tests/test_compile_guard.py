@@ -147,7 +147,7 @@ def test_basic_undefined():
         f"gold/test_compile_guard_basic_undefined.json")
 
 
-def test_basic_vcc():
+def test_vcc():
 
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
