@@ -64,9 +64,9 @@ class _CompileGuardBuilder(CircuitBuilder):
                 self._process_undriven(port)
                 return
             ref = value.name
+        if value.const():
+            return
         if isinstance(ref, AnonRef):
-            if value.const():
-                return
             # TODO(rsetaluri): Implement valid anon. values.
             raise NotImplementedError()
         if isinstance(ref, DefnRef):
