@@ -25,9 +25,9 @@ def test_symbol_table_dff():
     assert symbol_table.get_module_name("DFFInit1") == "DFFInit1"
     assert (symbol_table.get_instance_name("DFFInit1", "SB_DFF_inst0") ==
             "SB_DFF_inst0")
-    assert symbol_table.get_port_name("DFFInit1", "D") == ("DFFInit1", "D")
-    assert symbol_table.get_port_name("DFFInit1", "Q") == ("DFFInit1", "Q")
-    assert symbol_table.get_port_name("DFFInit1", "C") == ("DFFInit1", "C")
+    assert symbol_table.get_port_name("DFFInit1", "D") == "D"
+    assert symbol_table.get_port_name("DFFInit1", "Q") == "Q"
+    assert symbol_table.get_port_name("DFFInit1", "C") == "C"
 
 
 def test_symbol_table_dff_list():

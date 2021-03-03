@@ -62,11 +62,10 @@ class _TableProcessor:
             SymbolTable.set_instance_name(
                 master, in_module_name, in_instance_name, out_instance_name)
         for key, value in self._port_names.items():
-            in_module_name, in_port_name = key
-            out_module_name, out_port_name = value
+            in_module_name, in_port = key
+            _, out_port = value
             SymbolTable.set_port_name(
-                master, in_module_name, in_port_name.longname(),
-                out_module_name, out_port_name.longname())
+                master, in_module_name, in_port.longname(), out_port.longname())
 
     def _process_module_names(self, module_names):
         for in_module_name, out_module_name in module_names.items():
@@ -99,7 +98,7 @@ class _TableProcessor:
 
     def _process_port_names(self, port_names, module_names):
         to_del = []
-        for key, (_, out_port_name) in port_names.items():
+        for key, out_port_name in port_names.items():
             in_module_name, in_port_name = key
             out_module_name = _get_mapped_module_name(
                 in_module_name, module_names, self._module_names)
@@ -166,7 +165,6 @@ class MasterSymbolTable(SymbolTable):
     def set_port_name(self,
                       in_module_name: str,
                       in_port_name: str,
-                      out_module_name: str,
                       out_port_name: str) -> None:
         raise Exception("Setting not allowed on master symbol table")
 

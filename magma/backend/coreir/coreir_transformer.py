@@ -414,10 +414,7 @@ class DeclarationTransformer(LeafTransformer):
         assert len(magma_names) == len(coreir_names)
         for magma_name, coreir_name in zip(magma_names, coreir_names):
             self.opts.get("symbol_table").set_port_name(
-                self.decl.name,
-                magma_name,
-                self.coreir_module.name,
-                coreir_name)
+                self.decl.name, magma_name, coreir_name)
 
     def _run_self_impl(self):
         self.decl = self.decl

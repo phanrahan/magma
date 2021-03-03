@@ -70,18 +70,18 @@ def test_port_name():
     def _getter(*args):
         return table.get_port_name(*args)
 
-    _test_basic_mapping(_setter, _getter, 2, 2, _NUM_TRIALS)
+    _test_basic_mapping(_setter, _getter, 2, 1, _NUM_TRIALS)
 
 
 def test_json():
     EXPECTED_JSON = ('{"module_names": {"Foo": "vFoo"}, '
                      '"instance_names": {"Foo,bar": "vbar"}, '
-                     '"port_names": {"Foo,I": ["vFoo", "vI"]}}')
+                     '"port_names": {"Foo,I": "vI"}}')
 
     table = SymbolTable()
     table.set_module_name("Foo", "vFoo")
     table.set_instance_name("Foo", "bar", "vbar")
-    table.set_port_name("Foo", "I", "vFoo", "vI")
+    table.set_port_name("Foo", "I", "vI")
 
     as_json = table.as_json()
     assert as_json == EXPECTED_JSON
@@ -89,5 +89,5 @@ def test_json():
     copy = SymbolTable.from_json(as_json)
     assert table.get_module_name("Foo") == "vFoo"
     assert table.get_instance_name("Foo", "bar") == "vbar"
-    assert table.get_port_name("Foo", "I") == ("vFoo", "vI")
+    assert table.get_port_name("Foo", "I") == "vI"
     assert copy.as_json() == EXPECTED_JSON

@@ -48,19 +48,19 @@ def test_one():
         SymbolTable.from_dict({
             "module_names": {"Top": "CTop"},
             "instance_names": {("Top", "inst"): "c_inst"},
-            "port_names": {("Top", "I"): ("", "in")},
+            "port_names": {("Top", "I"): "in"},
         }),
         SymbolTable.from_dict({
             "module_names": {"CTop": "VTop"},
             "instance_names": {("CTop", "c_inst"): "v_inst"},
-            "port_names": {("CTop", "in.x"): ("", "in_x"),
-                           ("CTop", "in.y"): ("", "in_y")},
+            "port_names": {("CTop", "in.x"): "in_x",
+                           ("CTop", "in.y"): "in_y"},
         }),
         SymbolTable.from_dict({
             "module_names": {"VTop": "OTop"},
             "instance_names": {("VTop", "v_inst"): "o_inst"},
-            "port_names": {("VTop", "in_x"): ("", "in_x"),
-                           ("VTop", "in_y"): ("", "in_y")},
+            "port_names": {("VTop", "in_x"): "in_x",
+                           ("VTop", "in_y"): "in_y"},
         }),
     ])
     dct = master.as_dict()
@@ -71,8 +71,10 @@ def test_one():
         "instance_names": {
             ("Top", "inst"): "o_inst"
         },
-        "port_names": {("Top", "I.x"): ("OTop", "in_x"),
-                       ("Top", "I.y"): ("OTop", "in_y"),},
+        "port_names": {
+            ("Top", "I.x"): "in_x",
+            ("Top", "I.y"): "in_y",
+        },
     }
 
 

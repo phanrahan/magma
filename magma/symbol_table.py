@@ -17,7 +17,7 @@ class SymbolTableInterface(abc.ABC):
     @abc.abstractmethod
     def get_port_name(self,
                       in_module_name: str,
-                      in_port_name: str) -> Tuple[str, str]:
+                      in_port_name: str) -> str:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -37,7 +37,6 @@ class SymbolTableInterface(abc.ABC):
     def set_port_name(self,
                       in_module_name: str,
                       in_port_name: str,
-                      out_module_name: str,
                       out_port_name: str) -> None:
         raise NotImplementedError()
 
@@ -50,7 +49,7 @@ class SymbolTableInterface(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def port_names(self) -> Mapping[Tuple[str, str], Tuple[str, str]]:
+    def port_names(self) -> Mapping[Tuple[str, str], str]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -161,7 +160,7 @@ class SymbolTable(SymbolTableInterface):
     _fields_ = {
         "module_names": _Field[str, str],
         "instance_names": _Field[(str, str), str],
-        "port_names": _Field[(str, str), (str, str)],
+        "port_names": _Field[(str, str), str],
     }
 
     def __init__(self):
@@ -178,7 +177,7 @@ class SymbolTable(SymbolTableInterface):
 
     def get_port_name(self,
                       in_module_name: str,
-                      in_port_name: str) -> Tuple[str, str]:
+                      in_port_name: str) -> str:
         key = in_module_name, in_port_name
         return self._mappings["port_names"].get(key)
 
@@ -197,11 +196,9 @@ class SymbolTable(SymbolTableInterface):
     def set_port_name(self,
                       in_module_name: str,
                       in_port_name: str,
-                      out_module_name: str,
                       out_port_name: str) -> None:
         key = in_module_name, in_port_name
-        value = out_module_name, out_port_name
-        self._mappings["port_names"].set(key, value)
+        self._mappings["port_names"].set(key, out_port_name)
 
     def module_names(self) -> Mapping[str, str]:
         return self._mappings["module_names"].dct()
@@ -209,7 +206,7 @@ class SymbolTable(SymbolTableInterface):
     def instance_names(self) -> Mapping[Tuple[str, str], str]:
         return self._mappings["instance_names"].dct()
 
-    def port_names(self) -> Mapping[Tuple[str, str], Tuple[str, str]]:
+    def port_names(self) -> Mapping[Tuple[str, str], str]:
         return self._mappings["port_names"].dct()
 
     def as_dict(self, for_json=False):
