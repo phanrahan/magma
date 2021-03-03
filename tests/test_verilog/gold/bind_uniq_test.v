@@ -1,11 +1,11 @@
-module coreir_wrap (
+module bar_coreir_wrap (
     input in,
     output out
 );
   assign out = in;
 endmodule
 
-module coreir_undriven #(
+module bar_coreir_undriven #(
     parameter width = 1
 ) (
     output [width-1:0] out
@@ -13,7 +13,7 @@ module coreir_undriven #(
 
 endmodule
 
-module foo_OtherCircuit (
+module bar_foo_OtherCircuit (
     output [19:0] x_y [0:0]
 );
 wire [19:0] undriven_inst0_out;
@@ -25,7 +25,7 @@ coreir_undriven #(
 assign x_y[0] = undriven_inst0_out;
 endmodule
 
-module coreir_term #(
+module bar_coreir_term #(
     parameter width = 1
 ) (
     input [width-1:0] in
@@ -33,7 +33,7 @@ module coreir_term #(
 
 endmodule
 
-module foo_SomeCircuit_unq1 (
+module bar_foo_SomeCircuit_unq1 (
     input [4:0] I
 );
 coreir_term #(
@@ -43,7 +43,7 @@ coreir_term #(
 );
 endmodule
 
-module foo_SomeCircuit (
+module bar_foo_SomeCircuit (
     input [3:0] I
 );
 coreir_term #(
@@ -53,7 +53,7 @@ coreir_term #(
 );
 endmodule
 
-module foo_NestedOtherCircuit (
+module bar_foo_NestedOtherCircuit (
     output [19:0] x_y [0:0]
 );
 wire [19:0] _magma_bind_wire_0_0;
@@ -68,7 +68,7 @@ coreir_term #(
 );
 endmodule
 
-module corebit_undriven (
+module bar_corebit_undriven (
     output out
 );
 
@@ -86,7 +86,7 @@ endmodule
 module andr_4 (input [3:0] I, output O);
 assign O = &(I);
 endmodule
-module corebit_term (
+module bar_corebit_term (
     input in
 );
 
@@ -95,7 +95,7 @@ endmodule
 module logical_and (input I0, input I1, output O);
 assign O = I0 && I1;
 endmodule
-module foo_RTL_unq1 (
+module bar_foo_RTL_unq1 (
     input CLK,
     input handshake_arr_0_ready,
     output handshake_arr_0_valid,
@@ -229,7 +229,7 @@ assign handshake_arr_2_valid = handshake_arr_0_ready;
 assign handshake_valid = handshake_ready;
 endmodule
 
-module foo_RTL (
+module bar_foo_RTL (
     input CLK,
     input handshake_arr_0_ready,
     output handshake_arr_0_valid,
@@ -363,7 +363,7 @@ assign handshake_arr_2_valid = handshake_arr_0_ready;
 assign handshake_valid = handshake_ready;
 endmodule
 
-module foo_Main (
+module bar_foo_Main (
     input CLK
 );
 wire RTL_inst0_handshake_arr_0_valid;

@@ -54,7 +54,8 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     ProcessInlineVerilogPass(main).run()
 
     # Bind after uniquification so the bind logic works on unique modules.
-    BindPass(main, compile, opts.get("user_namespace")).run()
+    BindPass(main, compile, opts.get("user_namespace"),
+             opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
