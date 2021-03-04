@@ -136,15 +136,18 @@ class _Port(_Object):
 class _TableProcessor:
     def __init__(self):
         self._modules = {}
-        self._index = 0
+        self._scope = 0
+        self._finalized = False
 
     def process_table(self, table: SymbolTableInterface):
         self._process_module_names(table.module_names())
         self._process_instance_names(table.instance_names())
         self._process_port_names(table.port_names())
-        self._index += 1
+        self._scope += 1
 
     def finalize(self, table: SymbolTableInterface):
+        if self._finalized:
+            raise Exception("Can not call finalize() multiple times")
         root_modules = list(
             filter(lambda m: m.scope == 0, self._modules.values()))
         for module in root_modules:
@@ -156,56 +159,57 @@ class _TableProcessor:
                 for tail, modifiers in port.tails():
                     src_port = _PortWrapper(port.name, modifiers).longname()
                     table.set_port_name(module.name, src_port, tail.name)
+        self._finalized = True
 
     def _process_module_names(self, module_names):
         for in_module_name, out_module_name in module_names.items():
-            if self._index == 0:
-                src = _Module(in_module_name, self._index)
+            if self._scope == 0:
+                src = _Module(in_module_name, self._scope)
                 root = src
                 self._modules[src.key()] = src
             else:
-                src = self._modules[(self._index, in_module_name)]
+                src = self._modules[(self._scope, in_module_name)]
                 root = src.root
-            dst = _Module(out_module_name, self._index + 1, root=root)
+            dst = _Module(out_module_name, self._scope + 1, root=root)
             src.add_rename(_Rename(dst))
             self._modules[dst.key()] = dst
 
     def _process_instance_names(self, instance_names):
         for key, out_instance_name in instance_names.items():
             in_module_name, in_instance_name = key
-            src_module = self._modules[(self._index, in_module_name)]
+            src_module = self._modules[(self._scope, in_module_name)]
             dst_module = src_module.get_rename().obj
-            if self._index == 0:
-                src_instance = _Instance(in_instance_name, self._index)
+            if self._scope == 0:
+                src_instance = _Instance(in_instance_name, self._scope)
                 root_instance = src_instance
                 src_module.add_instance(src_instance)
             else:
                 src_instance = src_module.get_instance(in_instance_name)
                 root_instance = src_instance.root
             dst_instance = _Instance(
-                out_instance_name, self._index + 1, root=root_instance)
+                out_instance_name, self._scope + 1, root=root_instance)
             dst_module.add_instance(dst_instance)
             src_instance.add_rename(_Rename(dst_instance))
 
     def _process_port_names(self, port_names):
         for key, out_port_name in port_names.items():
             in_module_name, in_port_name = key
-            src_module = self._modules[(self._index, in_module_name)]
+            src_module = self._modules[(self._scope, in_module_name)]
             dst_module = src_module.get_rename().obj
             modifiers = ()
-            if self._index == 0:
-                src_port = _Port(in_port_name, self._index)
+            if self._scope == 0:
+                src_port = _Port(in_port_name, self._scope)
                 root_port = src_port
                 src_module.add_port(src_port)
             else:
                 try:
                     src_port = src_module.get_port(in_port_name)
                 except KeyError:
-                    dummy_port = _Port(in_port_name, self._index)
+                    dummy_port = _Port(in_port_name, self._scope)
                     src_port = src_module.get_port(dummy_port.wrapper.base)
                     modifiers = dummy_port.wrapper.fields
                 root_port = src_port.root
-            dst_port = _Port(out_port_name, self._index + 1, root=root_port)
+            dst_port = _Port(out_port_name, self._scope + 1, root=root_port)
             dst_module.add_port(dst_port)
             src_port.add_rename(_Rename(dst_port, modifiers))
 
