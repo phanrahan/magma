@@ -1,8 +1,8 @@
 import dataclasses
-from typing import Any, List, Mapping, Sequence, Tuple, Optional
+from typing import List, Optional, Sequence, Tuple
 
-from magma.common import make_delegator_cls
-from magma.symbol_table import SymbolTableInterface, SymbolTable
+from magma.symbol_table import (SymbolTableInterface, SymbolTable,
+                                DelegatorSymbolTable, ImmutableSymbolTable)
 
 
 @dataclasses.dataclass
@@ -210,29 +210,7 @@ class _TableProcessor:
             src_port.add_rename(_Rename(dst_port, modifiers))
 
 
-class _ImmutableSymbolTable(SymbolTableInterface):
-    def set_module_name(self,
-                        in_module_name: str,
-                        out_module_name: str) -> None:
-        raise Exception("Setting not allowed on master symbol table")
-
-    def set_instance_name(self,
-                          in_module_name: str,
-                          in_instance_name: str,
-                          out_instance_name: str) -> None:
-        raise Exception("Setting not allowed on master symbol table")
-
-    def set_port_name(self,
-                      in_module_name: str,
-                      in_port_name: str,
-                      out_port_name: str) -> None:
-        raise Exception("Setting not allowed on master symbol table")
-
-
-_DelegatorSymbolTable = make_delegator_cls(SymbolTableInterface)
-
-
-class MasterSymbolTable(_DelegatorSymbolTable, _ImmutableSymbolTable):
+class MasterSymbolTable(DelegatorSymbolTable, ImmutableSymbolTable):
     def __init__(self, tables: Sequence[SymbolTableInterface]):
         super().__init__(SymbolTable())
         processor = _TableProcessor()
