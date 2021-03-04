@@ -1,8 +1,60 @@
 import abc
 import json
-from typing import Any, Iterable, Mapping, Tuple
+from typing import Any, Iterable, Mapping, Tuple, Union
 
 from magma.common import make_delegator_cls
+
+
+class _Sentinel:
+    _instances = []
+
+    def __init__(self, string):
+        _Sentinel._instances.append(self)
+        self._string = string
+
+    @classmethod
+    def match(cls, string):
+        for sentinel in cls._instances:
+            if sentinel.string == string:
+                return sentinel
+        return None
+
+    @property
+    def string(self):
+        return self._string
+
+    def __repr__(self):
+        return f"_Sentinel({self._string})"
+
+    def __str__(self):
+        return self._string
+
+
+SYMBOL_TABLE_INLINED_INSTANCE = _Sentinel("__SYMBOL_TABLE_INLINED_INSTANCE__")
+InstanceNameType = Union[_Sentinel, str]
+
+
+def _unwrap_value(value):
+    if not isinstance(value, _Sentinel):
+        return value
+    return value.string
+
+
+def _is_union(T):
+    try:
+        origin = T.__origin__
+    except AttributeError:
+        return False
+    return origin is Union
+
+
+def _try_isinstance(value, T):
+    try:
+        ret = isinstance(value, T)
+    except:
+        return None
+    return ret
+
 
 class SymbolTableInterface(abc.ABC):
     @abc.abstractmethod
@@ -12,13 +64,20 @@ class SymbolTableInterface(abc.ABC):
     @abc.abstractmethod
     def get_instance_name(self,
                           in_module_name: str,
-                          in_instance_name: str) -> str:
+                          in_instance_name: str) -> InstanceNameType:
         raise NotImplementedError()
 
     @abc.abstractmethod
     def get_port_name(self,
                       in_module_name: str,
                       in_port_name: str) -> str:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_inlined_instance_name(self,
+                                  in_module_name: str,
+                                  in_parent_instance_name: str,
+                                  in_child_instance_name: str) -> str:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -42,11 +101,19 @@ class SymbolTableInterface(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def set_inlined_instance_name(self,
+                                  in_module_name: str,
+                                  in_parent_instance_name: str,
+                                  in_child_instance_name: str,
+                                  out_instance_name) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def module_names(self) -> Mapping[str, str]:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def instance_names(self) -> Mapping[Tuple[str, str], str]:
+    def instance_names(self) -> Mapping[Tuple[str, str], InstanceNameType]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -80,6 +147,13 @@ class ImmutableSymbolTable(SymbolTableInterface):
                       out_port_name: str) -> None:
         raise Exception("Can not set an immutable symbol table")
 
+    def set_inlined_instance_name(self,
+                                  in_module_name: str,
+                                  in_parent_instance_name: str,
+                                  in_child_instance_name: str,
+                                  out_instance_name) -> None:
+        raise Exception("Can not set an immutable symbol table")
+
 
 DelegatorSymbolTable = make_delegator_cls(SymbolTableInterface)
 
@@ -87,7 +161,8 @@ DelegatorSymbolTable = make_delegator_cls(SymbolTableInterface)
 class _FieldMeta(type):
     def __new__(metacls, name, bases, dct, info=(None, None), **kwargs):
         if "_info_" in dct:
-            raise TypeError("class attribute _info_ is reversed by the type machinery")
+            raise TypeError(
+                "class attribute _info_ is reversed by the type machinery")
         dct['_info_'] = info
         return super().__new__(metacls, name, bases, dct, **kwargs)
 
@@ -120,6 +195,8 @@ class _FieldMeta(type):
         value_type = cls.value_type
         if isinstance(value_type, type):
             return 1
+        if _is_union(value_type):
+            return 1
         assert isinstance(value_type, tuple)
         return len(value_type)
 
@@ -143,13 +220,19 @@ class _FieldMeta(type):
             if isinstance(value, list):
                 value = tuple(value)
         if cls.value_length == 1:
-            if not isinstance(value, cls.value_type):
-                raise ValueError()
-        else:
-            if not isinstance(value, tuple):
-                raise ValueError()
-            if len(value) != cls.value_length:
-                raise ValueError()
+            sentinel_match = _Sentinel.match(value)
+            if sentinel_match is not None:
+                value = sentinel_match
+            if _try_isinstance(value, cls.value_type) is True:
+                return value
+            if _is_union(cls.value_type):
+                if any(isinstance(value, T) for T in cls.value_type.__args__):
+                    return value
+            raise ValueError()
+        if not isinstance(value, tuple):
+            raise ValueError()
+        if len(value) != cls.value_length:
+            raise ValueError()
         return value
 
     def from_dict(cls, dct, from_json=False):
@@ -179,15 +262,16 @@ class _Field(object, metaclass=_FieldMeta):
         cls = type(self)
         if not for_json or cls.key_length == 1:
             return self._map.copy()
-        return {",".join([str(ki) for ki in k]): v
+        return {",".join([str(ki) for ki in k]): _unwrap_value(v)
                 for k, v in self._map.items()}
 
 
 class SymbolTable(SymbolTableInterface):
     _fields_ = {
         "module_names": _Field[str, str],
-        "instance_names": _Field[(str, str), str],
+        "instance_names": _Field[(str, str), InstanceNameType],
         "port_names": _Field[(str, str), str],
+        "inlined_instance_names": _Field[(str, str, str), str],
     }
 
     def __init__(self):
@@ -198,7 +282,7 @@ class SymbolTable(SymbolTableInterface):
 
     def get_instance_name(self,
                           in_module_name: str,
-                          in_instance_name: str) -> str:
+                          in_instance_name: str) -> InstanceNameType:
         key = in_module_name, in_instance_name
         return self._mappings["instance_names"].get(key)
 
@@ -207,6 +291,13 @@ class SymbolTable(SymbolTableInterface):
                       in_port_name: str) -> str:
         key = in_module_name, in_port_name
         return self._mappings["port_names"].get(key)
+
+    def get_inlined_instance_name(self,
+                                  in_module_name: str,
+                                  in_parent_instance_name: str,
+                                  in_child_instance_name: str) -> str:
+        key = in_module_name, in_parent_instance_name, in_child_instance_name
+        return self._mappings["inlined_instance_names"].get(key)
 
     def set_module_name(self,
                         in_module_name: str,
@@ -227,10 +318,18 @@ class SymbolTable(SymbolTableInterface):
         key = in_module_name, in_port_name
         self._mappings["port_names"].set(key, out_port_name)
 
+    def set_inlined_instance_name(self,
+                                  in_module_name: str,
+                                  in_parent_instance_name: str,
+                                  in_child_instance_name: str,
+                                  out_instance_name) -> None:
+        key = in_module_name, in_parent_instance_name, in_child_instance_name
+        self._mappings["inlined_instance_names"].set(key, out_instance_name)
+
     def module_names(self) -> Mapping[str, str]:
         return self._mappings["module_names"].dct()
 
-    def instance_names(self) -> Mapping[Tuple[str, str], str]:
+    def instance_names(self) -> Mapping[Tuple[str, str], InstanceNameType]:
         return self._mappings["instance_names"].dct()
 
     def port_names(self) -> Mapping[Tuple[str, str], str]:
