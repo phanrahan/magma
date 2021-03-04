@@ -1,6 +1,7 @@
 import dataclasses
 from typing import Any, List, Mapping, Sequence, Tuple, Optional
 
+from magma.common import make_delegator_cls
 from magma.symbol_table import SymbolTableInterface, SymbolTable
 
 
@@ -143,19 +144,18 @@ class _TableProcessor:
         self._process_port_names(table.port_names())
         self._index += 1
 
-    def update_master(self, master: 'MasterSymbolTable'):
+    def finalize(self, table: SymbolTableInterface):
         root_modules = list(
             filter(lambda m: m.scope == 0, self._modules.values()))
         for module in root_modules:
-            SymbolTable.set_module_name(master, module.name, module.tail().name)
+            table.set_module_name(module.name, module.tail().name)
             for instance in module.instances:
-                SymbolTable.set_instance_name(
-                    master, module.name, instance.name, instance.tail().name)
+                table.set_instance_name(
+                    module.name, instance.name, instance.tail().name)
             for port in module.ports:
                 for tail, modifiers in port.tails():
                     src_port = _PortWrapper(port.name, modifiers).longname()
-                    SymbolTable.set_port_name(
-                        master, module.name, src_port, tail.name)
+                    table.set_port_name(module.name, src_port, tail.name)
 
     def _process_module_names(self, module_names):
         for in_module_name, out_module_name in module_names.items():
@@ -210,14 +210,7 @@ class _TableProcessor:
             src_port.add_rename(_Rename(dst_port, modifiers))
 
 
-class MasterSymbolTable(SymbolTable):
-    def __init__(self, tables: Sequence[SymbolTableInterface]):
-        super().__init__()
-        processor = _TableProcessor()
-        for table in tables:
-            processor.process_table(table)
-        processor.update_master(self)
-
+class _ImmutableSymbolTable(SymbolTableInterface):
     def set_module_name(self,
                         in_module_name: str,
                         out_module_name: str) -> None:
@@ -234,6 +227,18 @@ class MasterSymbolTable(SymbolTable):
                       in_port_name: str,
                       out_port_name: str) -> None:
         raise Exception("Setting not allowed on master symbol table")
+
+
+_DelegatorSymbolTable = make_delegator_cls(SymbolTableInterface)
+
+
+class MasterSymbolTable(_DelegatorSymbolTable, _ImmutableSymbolTable):
+    def __init__(self, tables: Sequence[SymbolTableInterface]):
+        super().__init__(SymbolTable())
+        processor = _TableProcessor()
+        for table in tables:
+            processor.process_table(table)
+        processor.finalize(self._underlying)
 
 
 def make_master_symbol_table(json_filenames: Sequence[str]):

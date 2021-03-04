@@ -53,6 +53,10 @@ class SymbolTableInterface(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def as_dict(self, for_json):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def as_json(self, **kwargs):
         raise NotImplementedError()
 
