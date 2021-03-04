@@ -66,19 +66,19 @@ class ImmutableSymbolTable(SymbolTableInterface):
     def set_module_name(self,
                         in_module_name: str,
                         out_module_name: str) -> None:
-        raise Exception("Setting not allowed on master symbol table")
+        raise Exception("Can not set an immutable symbol table")
 
     def set_instance_name(self,
                           in_module_name: str,
                           in_instance_name: str,
                           out_instance_name: str) -> None:
-        raise Exception("Setting not allowed on master symbol table")
+        raise Exception("Can not set an immutable symbol table")
 
     def set_port_name(self,
                       in_module_name: str,
                       in_port_name: str,
                       out_port_name: str) -> None:
-        raise Exception("Setting not allowed on master symbol table")
+        raise Exception("Can not set an immutable symbol table")
 
 
 DelegatorSymbolTable = make_delegator_cls(SymbolTableInterface)

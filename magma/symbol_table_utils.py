@@ -214,7 +214,7 @@ class _TableProcessor:
             src_port.add_rename(_Rename(dst_port, modifiers))
 
 
-class MasterSymbolTable(DelegatorSymbolTable, ImmutableSymbolTable):
+class MasterSymbolTable(ImmutableSymbolTable, DelegatorSymbolTable):
     def __init__(self, tables: Sequence[SymbolTableInterface]):
         super().__init__(SymbolTable())
         processor = _TableProcessor()
