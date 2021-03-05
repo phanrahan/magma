@@ -10,6 +10,7 @@ from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
 from magma.passes.find_errors import find_errors_pass
 from magma.symbol_table import SymbolTable
+from magma.symbol_table_utils import MasterSymbolTable
 
 
 _logger = root_logger()
@@ -17,6 +18,12 @@ config._register(
     fast_coreir_verilog_compile=EnvConfig(
         "MAGMA_FAST_COREIR_VERILOG_COMPILE", False),
 )
+
+
+def _get_coreir_symbol_table(basename):
+    with open(f"{basename}_symbol_table.json") as f:
+        data = f.read()
+        return SymbolTable.from_json(data)
 
 
 def _make_verilog_cmd(deps, basename, opts):
@@ -43,6 +50,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += f" --verilog-prefix {opts['verilog_prefix']}"
     if opts.get("verilog_prefix_extern", False):
         cmd += " --verilog-prefix-extern"
+    if opts.get("generate_symbols", False):
+        cmd += f" --symbols {basename}_symbol_table.json"
     return cmd
 
 
@@ -96,6 +105,10 @@ class CoreIRCompiler(Compiler):
                   else self._compile_verilog)
             fn()
             self._compile_verilog_epilogue()
+            if self.opts.get("generate_symbols", False):
+                coreir_symbol_table = _get_coreir_symbol_table(self.basename)
+                master = MasterSymbolTable([symbol_table, coreir_symbol_table])
+                result["master_symbol_table"] = master
             return result
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or
