@@ -61,12 +61,10 @@ def test_symbol_table_bundle_flattening():
             O=m.Out(MyBundle),
             I2=m.In(m.Bit)
         )
-
-        io.O @= MyBundle(0, 0)
+        io.O.undriven()
 
     symbol_table = _compile("build/WithTuple", WithTuple)
 
-    print (symbol_table.as_json(indent=4))
     # NOTE: These two conditions would only hold in the post-CoreIR
     # mapping. Since we only test the magma-to-CoreIR symbol table for now,
     # these will not hold.
