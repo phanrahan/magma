@@ -161,3 +161,17 @@ def test_vcc():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_basic_vcc.json",
         f"gold/test_compile_guard_basic_vcc.json")
+
+
+def test_drive_outputs():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        with m.compile_guard("COND"):
+            io.O @= m.Register(m.Bit)()(io.I ^ 1)
+
+    m.compile("build/test_compile_guard_drive_output", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_drive_output.json",
+        f"gold/test_compile_guard_drive_output.json")
