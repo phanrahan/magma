@@ -38,7 +38,8 @@ def test_bind_multi_unique_name():
         RTL5 = RTL.generate(5)()
 
     m.compile("build/bind_uniq_test", Main, inline=True, drive_undriven=True,
-              terminate_unused=True, user_namespace="foo")
+              terminate_unused=True, user_namespace="foo",
+              verilog_prefix="bar_")
     assert m.testing.check_files_equal(__file__,
                                        f"build/bind_uniq_test.v",
                                        f"gold/bind_uniq_test.v")
@@ -64,12 +65,9 @@ RTLMonitor_unq1.sv\
         assert not os.system('cd tests/test_verilog/build && '
                              'verilator --lint-only bind_uniq_test.v '
                              'RTLMonitor.sv RTLMonitor_unq1.sv -Wno-MODDUP'
-                             ' --top-module foo_Main')
+                             ' --top-module bar_foo_Main')
         # TODO: For now, we ignore duplicate modules since each monitor will
-        # regenerate coreir primitives.  # since these have the same definition
+        # regenerate coreir primitives.  since these have the same definition
         # it's okay, but in general this is a bad flag to have on because if
         # you do have duplicate modules with different definitions, you'd want
         # to catch that
-        # When we merge the inline verilog module branch, this will be resolved since
-        # bind modules can be represented explicitly in the graph and compiled
-        # by coreir, so only one definition per primitive will be emitted

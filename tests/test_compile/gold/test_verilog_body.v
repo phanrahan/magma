@@ -1,4 +1,4 @@
-module Foo (
+module baz_Foo (
     input I,
     output O
 );

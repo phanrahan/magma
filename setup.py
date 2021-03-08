@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='magma-lang',
-    version='2.1.39',
+    version='2.1.40',
     url='https://github.com/phanrahan/magma',
     license='MIT',
     maintainer='Lenny Truong',
@@ -36,7 +36,7 @@ setup(
         "pyverilog",
         "numpy",
         "graphviz",
-        "coreir>=2.0.133",
+        "coreir>=2.0.134",
         "hwtypes>=1.4.4",
         "ast_tools>=0.0.16",
         "staticfg"
