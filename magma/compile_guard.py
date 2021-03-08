@@ -12,6 +12,22 @@ from magma.tuple import Tuple
 from magma.value_utils import make_selector
 
 
+def _get_flat_drivees(self, port):
+    if isinstance(port, Array):
+        return sum([_get_flat_drivees(x) for x in port], [])
+    if isinstance(port, Tuple):
+        return sum([_get_flat_drivees(x) for x in port.values()], [])
+    return port.driving()
+
+
+def _get_top_ref(ref):
+    if isinstance(ref, TupleRef):
+        return _get_top_ref(ref.tuple.name)
+    if isinstance(ref, ArrayRef):
+        return _get_top_ref(ref.array.name)
+    return ref
+
+
 @dataclasses.dataclass(frozen=True)
 class _CompileGuardState:
     ckt: CircuitBuilder
@@ -60,22 +76,8 @@ class _CompileGuardBuilder(CircuitBuilder):
         for port in inst.interface.outputs():
             self._process_output(port)
 
-    def _get_flat_drivees(self, port):
-        if isinstance(port, Array):
-            return sum([self._get_flat_drivees(x) for x in port], [])
-        if isinstance(port, Tuple):
-            return sum([self._get_flat_drivees(x) for x in port.values()], [])
-        return port.driving()
-
-    def _get_top_ref(self, ref):
-        if isinstance(ref, TupleRef):
-            return self._get_top_ref(ref.tuple.name)
-        if isinstance(ref, ArrayRef):
-            return self._get_top_ref(ref.array.name)
-        return ref
-
     def _is_external(self, value):
-        top_ref = self._get_top_ref(value.name)
+        top_ref = _get_top_ref(value.name)
         if isinstance(top_ref, DefnRef):
             return True
         if isinstance(top_ref, InstRef):
@@ -83,7 +85,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         return False
 
     def _process_output(self, port):
-        drivees = self._get_flat_drivees(port)
+        drivees = _get_flat_drivees(port)
         external_drivees = list(filter(self._is_external, drivees))
         if not external_drivees:
             return
