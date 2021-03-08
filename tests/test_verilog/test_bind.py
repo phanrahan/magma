@@ -67,11 +67,7 @@ RTLMonitor_unq1.sv\
                              'RTLMonitor.sv RTLMonitor_unq1.sv -Wno-MODDUP'
                              ' --top-module bar_foo_Main')
         # TODO: For now, we ignore duplicate modules since each monitor will
-        # regenerate coreir primitives.  # since these have the same definition
+        # regenerate coreir primitives.  since these have the same definition
         # it's okay, but in general this is a bad flag to have on because if
         # you do have duplicate modules with different definitions, you'd want
         # to catch that
-        # When we merge the inline verilog module branch, this will be resolved
-        # since bind modules can be represented explicitly in the graph and
-        # compiled by coreir, so only one definition per primitive will be
-        # emitted
