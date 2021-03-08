@@ -15,8 +15,10 @@ from magma.value_utils import make_selector
 
 def _get_top_ref(ref):
     if isinstance(ref, TupleRef):
+        # TODO(rsetaluri): Fix port name collision.
         return _get_top_ref(ref.tuple.name)
     if isinstance(ref, ArrayRef):
+        # TODO(rsetaluri): Fix port name collision.
         return _get_top_ref(ref.array.name)
     return ref
 
@@ -76,6 +78,9 @@ class _CompileGuardBuilder(CircuitBuilder):
             return True
         if isinstance(top_ref, InstRef):
             return top_ref.inst not in self._instances
+        if isinstance(top_ref, AnonRef):
+            # TODO(rsetaluri): Implement valid anon. values.
+            raise NotImplementedError()
         return False
 
     def _process_output(self, port):
@@ -105,25 +110,13 @@ class _CompileGuardBuilder(CircuitBuilder):
             ref = value.name
         if value.const():
             return
-        if isinstance(ref, AnonRef):
-            # TODO(rsetaluri): Implement valid anon. values.
-            raise NotImplementedError()
-        if isinstance(ref, DefnRef):
+        if self._is_external(value):
             self._rewire_input(port, value)
             return
+        ref = _get_top_ref(ref)
         if isinstance(ref, InstRef):
-            internal = any(ref.inst is inst for inst in self._instances)
-            if internal:
-                return
-            self._rewire_input(port, value)
-            return
-        if isinstance(ref, TupleRef):
-            # TODO(rsetaluri): Fix port name collision.
-            self._process_input(port, ref=ref.tuple.name)
-            return
-        if isinstance(ref, ArrayRef):
-            # TODO(rsetaluri): Fix port name collision.
-            self._process_input(port, ref=ref.array.name)
+            # Internal instance driver is okay
+            assert not self._is_external(value)
             return
         # TODO(rsetaluri): Do the rest of these.
         raise NotImplementedError(ref, type(ref))
