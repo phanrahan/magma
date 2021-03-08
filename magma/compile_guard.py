@@ -5,19 +5,12 @@ from magma.array import Array
 from magma.bits import Bits
 from magma.clock import Clock
 from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
+from magma.conversions import as_bits
 from magma.digital import Digital
 from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
 from magma.t import In, Out
 from magma.tuple import Tuple
 from magma.value_utils import make_selector
-
-
-def _get_flat_drivees(self, port):
-    if isinstance(port, Array):
-        return sum([_get_flat_drivees(x) for x in port], [])
-    if isinstance(port, Tuple):
-        return sum([_get_flat_drivees(x) for x in port.values()], [])
-    return port.driving()
 
 
 def _get_top_ref(ref):
@@ -85,7 +78,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         return False
 
     def _process_output(self, port):
-        drivees = _get_flat_drivees(port)
+        drivees = sum(as_bits(port).driving(), [])
         external_drivees = list(filter(self._is_external, drivees))
         if not external_drivees:
             return
