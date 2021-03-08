@@ -64,6 +64,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._pre_finalized = True
 
     def _process_instance(self, inst):
+        # TODO(rseatluri,leonardt): Handle mixed types and in-outs.
         for port in inst.interface.inputs(include_clocks=True):
             self._process_input(port)
         for port in inst.interface.outputs():
