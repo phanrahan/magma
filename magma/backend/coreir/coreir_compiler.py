@@ -38,6 +38,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --disable-ndarray"
     if opts.get("verilator_compat", False):
         cmd += " --verilator_compat"
+    if opts.get("verilog_prefix", ""):
+        cmd += f" --verilog-prefix {opts['verilog_prefix']}"
     return cmd
 
 
@@ -113,6 +115,8 @@ class CoreIRCompiler(Compiler):
             verilator_debug=self.opts.get("verilator_debug", False),
             disable_width_cast=self.opts.get("disable_width_cast", False),
         )
+        if self.opts.get("verilog_prefix", False):
+            raise NotImplementedError()
         ret = self.backend.context.compile_to_verilog(top, filename, **opts)
         if not ret:
             raise RuntimeError(f"CoreIR compilation to verilog failed")

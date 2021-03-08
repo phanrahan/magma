@@ -14,7 +14,7 @@ always @(*) begin
 end
 """
 
-    m.compile("build/test_verilog_body", Foo)
+    m.compile("build/test_verilog_body", Foo, verilog_prefix="baz_")
     assert m.testing.check_files_equal(
         __file__, f"build/test_verilog_body.v",
         f"gold/test_verilog_body.v")

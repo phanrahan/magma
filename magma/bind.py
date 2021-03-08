@@ -51,7 +51,8 @@ def _wire_temp(bind_arg, temp):
     wire(bind_arg, temp)
 
 
-def _bind(cls, monitor, compile_fn, user_namespace, compile_guard, *args):
+def _bind(cls, monitor, compile_fn, user_namespace, verilog_prefix,
+          compile_guard, *args):
     bind_str = monitor.verilogFile
     ports = []
     for mon_arg, cls_arg in zip(monitor.interface.ports.values(),
@@ -121,12 +122,13 @@ Bind monitor interface does not match circuit interface
 
 
 class BindPass(CircuitPass):
-    def __init__(self, main, compile_fn, user_namespace):
+    def __init__(self, main, compile_fn, user_namespace, verilog_prefix):
         super().__init__(main)
         self._compile_fn = compile_fn
         self.user_namespace = user_namespace
+        self.verilog_prefix = verilog_prefix
 
     def __call__(self, cls):
         for monitor, (args, compile_guard) in cls.bind_modules.items():
             _bind(cls, monitor, self._compile_fn, self.user_namespace,
-                  compile_guard, *args)
+                  self.verilog_prefix, compile_guard, *args)
