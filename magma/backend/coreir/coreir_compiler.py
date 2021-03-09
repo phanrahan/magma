@@ -40,6 +40,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --verilator_compat"
     if opts.get("verilog_prefix", ""):
         cmd += f" --verilog-prefix {opts['verilog_prefix']}"
+    if opts.get("verilog_prefix_extern", False):
+        cmd += f" --verilog-prefix-extern"
     return cmd
 
 

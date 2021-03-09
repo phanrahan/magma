@@ -1,3 +1,4 @@
+// Module `bar_foo_OtherCircuit` defined externally
 module bar_coreir_wrap (
     input in,
     output out
@@ -11,18 +12,6 @@ module bar_coreir_undriven #(
     output [width-1:0] out
 );
 
-endmodule
-
-module bar_foo_OtherCircuit (
-    output [19:0] x_y [0:0]
-);
-wire [19:0] undriven_inst0_out;
-bar_coreir_undriven #(
-    .width(20)
-) undriven_inst0 (
-    .out(undriven_inst0_out)
-);
-assign x_y[0] = undriven_inst0_out;
 endmodule
 
 module bar_coreir_term #(

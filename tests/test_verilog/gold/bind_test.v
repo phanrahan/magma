@@ -1,3 +1,4 @@
+// Module `foo_OtherCircuit` defined externally
 module orr_4 (input [3:0] I, output O);
 assign O = |(I);
 endmodule
@@ -7,26 +8,6 @@ endmodule
 module andr_4 (input [3:0] I, output O);
 assign O = &(I);
 endmodule
-module coreir_undriven #(
-    parameter width = 1
-) (
-    output [width-1:0] out
-);
-
-endmodule
-
-module foo_OtherCircuit (
-    output [19:0] x_y [0:0]
-);
-wire [19:0] undriven_inst0_out;
-coreir_undriven #(
-    .width(20)
-) undriven_inst0 (
-    .out(undriven_inst0_out)
-);
-assign x_y[0] = undriven_inst0_out;
-endmodule
-
 module coreir_term #(
     parameter width = 1
 ) (

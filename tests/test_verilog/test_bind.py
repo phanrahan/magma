@@ -39,7 +39,7 @@ def test_bind_multi_unique_name():
 
     m.compile("build/bind_uniq_test", Main, inline=True, drive_undriven=True,
               terminate_unused=True, user_namespace="foo",
-              verilog_prefix="bar_")
+              verilog_prefix="bar_", verilog_prefix_extern=True)
     assert m.testing.check_files_equal(__file__,
                                        f"build/bind_uniq_test.v",
                                        f"gold/bind_uniq_test.v")

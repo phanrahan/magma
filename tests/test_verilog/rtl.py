@@ -31,7 +31,6 @@ endmodule
 
         class OtherCircuit(m.Circuit):
             io = m.IO(x=m.Out(T))
-            io.x.undriven()
 
         class NestedOtherCircuit(m.Circuit):
             io = m.IO(x=m.Out(T))
