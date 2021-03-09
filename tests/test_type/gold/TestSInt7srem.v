@@ -1,4 +1,4 @@
-// Module `srem` defined externally
+// Module `coreir_srem__width7` defined externally
 module TestBinary (
     input [6:0] I0,
     input [6:0] I1,

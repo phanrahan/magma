@@ -1,4 +1,4 @@
-// Module `_Decl` defined externally
+// Module `my_namespace__Decl` defined externally
 module my_namespace_Bar (
     input I_x,
     input I_y,

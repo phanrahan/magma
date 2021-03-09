@@ -1,4 +1,4 @@
-// Module `urem` defined externally
+// Module `coreir_urem__width3` defined externally
 module TestBinary (
     input [2:0] I0,
     input [2:0] I1,
