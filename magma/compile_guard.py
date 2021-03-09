@@ -5,10 +5,22 @@ from magma.array import Array
 from magma.bits import Bits
 from magma.clock import Clock
 from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
+from magma.conversions import as_bits
 from magma.digital import Digital
 from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
-from magma.t import In
+from magma.t import In, Out
 from magma.tuple import Tuple
+from magma.value_utils import make_selector
+
+
+def _get_top_ref(ref):
+    if isinstance(ref, TupleRef):
+        # TODO(rsetaluri): Fix port name collision.
+        return _get_top_ref(ref.tuple.name)
+    if isinstance(ref, ArrayRef):
+        # TODO(rsetaluri): Fix port name collision.
+        return _get_top_ref(ref.array.name)
+    return ref
 
 
 @dataclasses.dataclass(frozen=True)
@@ -36,7 +48,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._port_index += 1
         return name
 
-    def _rewire(self, port, value):
+    def _rewire_input(self, port, value):
         new_port_name = self._new_port_name()
         T = type(value).undirected_t
         self._add_port(new_port_name, In(T))
@@ -54,10 +66,42 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._pre_finalized = True
 
     def _process_instance(self, inst):
+        # TODO(rseatluri,leonardt): Handle mixed types and in-outs.
         for port in inst.interface.inputs(include_clocks=True):
-            self._process_port(port)
+            self._process_input(port)
+        for port in inst.interface.outputs():
+            self._process_output(port)
 
-    def _process_port(self, port, ref=None, kwargs=None):
+    def _is_external(self, value):
+        top_ref = _get_top_ref(value.name)
+        if isinstance(top_ref, DefnRef):
+            return True
+        if isinstance(top_ref, InstRef):
+            return top_ref.inst not in self._instances
+        if isinstance(top_ref, AnonRef):
+            # TODO(rsetaluri): Implement valid anon. values.
+            raise NotImplementedError()
+        return False
+
+    def _process_output(self, port):
+        drivees = sum(as_bits(port).driving(), [])
+        external_drivees = list(filter(self._is_external, drivees))
+        if not external_drivees:
+            return
+        new_port_name = self._new_port_name()
+        T = type(port).undirected_t
+        self._add_port(new_port_name, Out(T))
+        new_port = self._port(new_port_name)
+        new_port @= port
+        external = getattr(self, new_port_name)
+        for drivee in external_drivees:
+            old_driver = drivee.value()
+            drivee.unwire(old_driver)
+            selector = make_selector(old_driver)
+            new_driver = selector.select(external)
+            drivee @= new_driver
+
+    def _process_input(self, port, ref=None, kwargs=None):
         value = port.value()
         if ref is None:
             if value is None:
@@ -66,25 +110,13 @@ class _CompileGuardBuilder(CircuitBuilder):
             ref = value.name
         if value.const():
             return
-        if isinstance(ref, AnonRef):
-            # TODO(rsetaluri): Implement valid anon. values.
-            raise NotImplementedError()
-        if isinstance(ref, DefnRef):
-            self._rewire(port, value)
+        if self._is_external(value):
+            self._rewire_input(port, value)
             return
+        ref = _get_top_ref(ref)
         if isinstance(ref, InstRef):
-            internal = any(ref.inst is inst for inst in self._instances)
-            if internal:
-                return
-            self._rewire(port, value)
-            return
-        if isinstance(ref, TupleRef):
-            # TODO(rsetaluri): Fix port name collision.
-            self._process_port(port, ref=ref.tuple.name)
-            return
-        if isinstance(ref, ArrayRef):
-            # TODO(rsetaluri): Fix port name collision.
-            self._process_port(port, ref=ref.array.name)
+            # Internal instance driver is okay
+            assert not self._is_external(value)
             return
         # TODO(rsetaluri): Do the rest of these.
         raise NotImplementedError(ref, type(ref))
