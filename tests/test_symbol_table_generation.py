@@ -3,10 +3,12 @@ import pytest
 import magma as m
 
 
-def _compile(name, ckt):
+def _compile(name, ckt, include_master=False):
     res = m.compile(name, ckt, generate_symbols=True)
-    # TODO(rsetaluri): Get CoreIR symbol table as well.
-    return res["symbol_table"]
+    symbol_table = res["symbol_table"]
+    if not include_master:
+        return res["symbol_table"]
+    return res["symbol_table"], res["master_symbol_table"]
 
 
 class SB_DFF(m.Circuit):
@@ -63,19 +65,27 @@ def test_symbol_table_bundle_flattening():
         )
         io.O.undriven()
 
-    symbol_table = _compile("build/WithTuple", WithTuple)
+    symbol_table, master_symbol_table = _compile(
+        "build/WithTuple", WithTuple, include_master=True)
 
-    # NOTE: These two conditions would only hold in the post-CoreIR
-    # mapping. Since we only test the magma-to-CoreIR symbol table for now,
-    # these will not hold.
-    #
-    # assert symbol_table.get_port_name("WithTuple", "I1.x") == "I1_x"
-    # assert symbol_table.get_port_name("WithTuple", "I1.y") == "I1_y"
-    # assert symbol_table.get_port_name("WithTuple", "O.x") == "O_x"
-    # assert symbol_table.get_port_name("WithTuple", "O.y") == "O_y"
-    # with pytest.raises(Expection):
-    #     symbol_table.get_port_name("WithTuple", "I1")
-    # assert symbol_table.get_port_name("WithTuple", "I2") == "I2"
+    # Check magma -> CoreIR mapping.
+    assert symbol_table.get_module_name("WithTuple") == "WithTuple"
+    assert symbol_table.get_port_name("WithTuple", "I1") == "I1"
+    assert symbol_table.get_port_name("WithTuple", "O") == "O"
+    assert symbol_table.get_port_name("WithTuple", "I2") == "I2"
+    # Check that "I.x" is not mapped at this level.
+    with pytest.raises(Exception):
+        symbol_table.get_port_name("WithTuple", "I1.x")
+
+    # Check magma -> Verilog (master) mapping.
+    assert master_symbol_table.get_port_name("WithTuple", "I1.x") == "I1_x"
+    assert master_symbol_table.get_port_name("WithTuple", "I1.y") == "I1_y"
+    assert master_symbol_table.get_port_name("WithTuple", "O.x") == "O_x"
+    assert master_symbol_table.get_port_name("WithTuple", "O.y") == "O_y"
+    # Check that top-level port "I1" is not mapped in the master mapping.
+    with pytest.raises(Exception):
+        master_symbol_table.get_port_name("WithTuple", "I1")
+    assert master_symbol_table.get_port_name("WithTuple", "I2") == "I2"
 
 
 def test_symbol_table_inlining_example():
