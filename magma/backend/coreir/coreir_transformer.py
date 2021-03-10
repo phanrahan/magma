@@ -414,4 +414,7 @@ class DeclarationTransformer(LeafTransformer):
             attach_debug_info(coreir_module, self.decl.debug_info)
         for key, value in self.decl.coreir_metadata.items():
             coreir_module.add_metadata(key, json.dumps(value))
+        if hasattr(self.decl, "verilog_name"):
+            coreir_module.add_metadata(
+                "verilog_name", json.dumps(self.decl.verilog_name))
         return coreir_module

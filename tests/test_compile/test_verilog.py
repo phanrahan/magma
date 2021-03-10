@@ -18,3 +18,18 @@ end
     assert m.testing.check_files_equal(
         __file__, f"build/test_verilog_body.v",
         f"gold/test_verilog_body.v")
+
+
+def test_verilog_name():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        verilog_name = "Foo"
+
+    class Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= Foo()(io.I)
+
+    m.compile("build/test_verilog_name", Bar, verilog_prefix="baz_")
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_verilog_name.v",
+        f"gold/test_verilog_name.v")
