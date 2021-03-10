@@ -200,6 +200,14 @@ def bfloat(value, n=None):
 
 def concat(*arrays):
     ts = []
+    wrapper = None
+    
+    def _update_wrapper(new, hard=False):
+        if hard or wrapper is None:
+            wrapper = new
+        elif wrapper is not new:
+            wrapper = array
+    
     for a in arrays:
         if isinstance(a, ht.BitVector):
             ts.extend(a.bits())
@@ -208,13 +216,21 @@ def concat(*arrays):
         elif isinstance(a, (bool, ht.Bit)):
             ts.extend([Bit(a)])
         else:
-            if not isinstance(a, Array):
+            if isinstance(a, SInt):
+                _update_wrapper(sint)
+            elif isinstance(a, UInt):
+                _update_wrapper(uint)
+            elif isinstance(a Bits):
+                _update_wrapper(bits)
+            elif isinstance(a, Array):
+                _update_wrapper(array, hard=True)
+            else:
                 raise TypeError(
                     "concat expects values of type Array, BitVector, Bit, or "
                     f"bool, not {a} with type {type(a)}"
                 )
             ts.extend(a.ts)
-    return array(ts)
+    return wrapper(ts)
 
 
 def repeat(value, n):
