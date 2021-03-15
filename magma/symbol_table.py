@@ -51,7 +51,7 @@ def _is_union(T):
 def _try_isinstance(value, T):
     try:
         ret = isinstance(value, T)
-    except:
+    except Exception:
         return None
     return ret
 
