@@ -36,12 +36,6 @@ class _Object:
     def add_rename(self, rename: '_Rename'):
         self._renames.append(rename)
 
-    def print_tree(self, print_self=True, indent=0):
-        if print_self:
-            print (" " * indent + repr(self))
-        for rename in self._renames:
-            rename.obj.print_tree(indent=indent + 1)
-
 
 @dataclasses.dataclass
 class _Rename:
