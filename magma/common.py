@@ -129,3 +129,27 @@ def is_int(value):
     except (TypeError, ValueError):
         return False
     return True
+
+
+def _make_delegate_fn(method):
+
+    def _fn(self, *args, **kwargs):
+        return getattr(self._underlying, method)(*args, **kwargs)
+
+    return _fn
+
+
+def make_delegator_cls(base):
+    methods = base.__abstractmethods__
+
+    class _Delegator(base):
+        def __init__(self, underlying, *args, **kwargs):
+            self._underlying = underlying
+
+    for method in methods:
+        setattr(_Delegator, method, _make_delegate_fn(method))
+    # NOTE(rsetaluri): We should be using the new abc.update_abstractmethods
+    # function. See https://bugs.python.org/issue41905 and
+    # https://docs.python.org/3.10/library/abc.html#abc.update_abstractmethods.
+    _Delegator.__abstractmethods__ = frozenset()
+    return _Delegator

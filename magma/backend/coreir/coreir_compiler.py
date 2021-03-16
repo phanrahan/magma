@@ -9,6 +9,8 @@ from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
 from magma.passes.find_errors import find_errors_pass
+from magma.symbol_table import SymbolTable
+from magma.symbol_table_utils import MasterSymbolTable
 
 
 _logger = root_logger()
@@ -16,6 +18,12 @@ config._register(
     fast_coreir_verilog_compile=EnvConfig(
         "MAGMA_FAST_COREIR_VERILOG_COMPILE", False),
 )
+
+
+def _get_coreir_symbol_table(basename):
+    with open(f"{basename}_symbol_table.json") as f:
+        data = f.read()
+        return SymbolTable.from_json(data)
 
 
 def _make_verilog_cmd(deps, basename, opts):
@@ -42,19 +50,22 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += f" --verilog-prefix {opts['verilog_prefix']}"
     if opts.get("verilog_prefix_extern", False):
         cmd += " --verilog-prefix-extern"
+    if opts.get("generate_symbols", False):
+        cmd += f" --symbols {basename}_symbol_table.json"
     return cmd
 
 
 def _make_opts(backend, opts):
-    out = {}
+    new_opts = {}
     user_namespace = opts.get("user_namespace", None)
     if user_namespace is not None:
         if backend.context.has_namespace(user_namespace):
             user_namespace = backend.context.get_namespace(user_namespace)
         else:
             user_namespace = backend.context.new_namespace(user_namespace)
-        out["user_namespace"] = user_namespace
-    return out
+        new_opts["user_namespace"] = user_namespace
+    new_opts["generate_symbols"] = opts.get("generate_symbols", False)
+    return new_opts
 
 
 class CoreIRCompiler(Compiler):
@@ -69,13 +80,17 @@ class CoreIRCompiler(Compiler):
 
     def compile(self):
         result = {}
+        result["symbol_table"] = symbol_table = SymbolTable()
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         find_errors_pass(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
+        opts["symbol_table"] = symbol_table
         backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
+        if isdefinition(self.main):
+            result["coreir_module"] = backend.get_module(self.main)
         output_json = (self.opts.get("output_intermediate", False) or
                        not self.opts.get("output_verilog", False) or
                        not config.fast_coreir_verilog_compile)
@@ -90,15 +105,17 @@ class CoreIRCompiler(Compiler):
                   else self._compile_verilog)
             fn()
             self._compile_verilog_epilogue()
-            return
+            if self.opts.get("generate_symbols", False):
+                coreir_symbol_table = _get_coreir_symbol_table(self.basename)
+                master = MasterSymbolTable([symbol_table, coreir_symbol_table])
+                result["master_symbol_table"] = master
+            return result
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or
                                 self.opts.get("footer_str", ""))
         if has_header_or_footer:
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
-        if isdefinition(self.main):
-            result["coreir_module"] = backend.get_module(self.main)
         return result
 
     def _compile_verilog(self):
