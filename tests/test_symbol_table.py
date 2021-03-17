@@ -87,7 +87,8 @@ def test_json():
                      '"instance_names": {"Foo,bar": "vbar", '
                      '"Foo,tbi": "__SYMBOL_TABLE_INLINED_INSTANCE__"}, '
                      '"port_names": {"Foo,I": "vI"}, '
-                     '"inlined_instance_names": {"Foo,tbi,leaf": "tbi_leaf"}}')
+                     '"inlined_instance_names": {"Foo,tbi,leaf": "tbi_leaf"}, '
+                     '"instance_types": {}}')
 
     table = SymbolTable()
     table.set_module_name("Foo", "vFoo")

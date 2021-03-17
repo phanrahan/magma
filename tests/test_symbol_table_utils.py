@@ -40,6 +40,7 @@ def test_one():
             ("Top", "I.y"): "in_y",
         },
         "inlined_instance_names": {},
+        "instance_types": {},
     }
 
 
@@ -79,4 +80,5 @@ def test_two():
         },
         "port_names": {},
         "inlined_instance_names": {},
+        "instance_types": {},
     }

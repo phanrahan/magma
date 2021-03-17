@@ -81,6 +81,12 @@ class SymbolTableInterface(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def get_instance_type(self,
+                          in_module_name: str,
+                          in_instance_name: str) -> str:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def set_module_name(self,
                         in_module_name: str,
                         out_module_name: str) -> None:
@@ -109,6 +115,13 @@ class SymbolTableInterface(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def set_instance_type(self,
+                          in_module_name: str,
+                          in_instance_name: str,
+                          out_type: str) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def module_names(self) -> Mapping[str, str]:
         raise NotImplementedError()
 
@@ -123,6 +136,10 @@ class SymbolTableInterface(abc.ABC):
     @abc.abstractmethod
     def inlined_instance_names(self) -> Mapping[Tuple[str, str, str],
                                                 InstanceNameType]:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def instance_types(self) -> Mapping[Tuple[str, str], str]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -157,6 +174,12 @@ class ImmutableSymbolTable(SymbolTableInterface):
                                   in_parent_instance_name: str,
                                   in_child_instance_name: str,
                                   out_instance_name: InstanceNameType) -> None:
+        raise Exception("Can not set an immutable symbol table")
+
+    def set_instance_type(self,
+                          in_module_name: str,
+                          in_instance_name: str,
+                          out_type: str) -> None:
         raise Exception("Can not set an immutable symbol table")
 
 
@@ -277,6 +300,7 @@ class SymbolTable(SymbolTableInterface):
         "instance_names": _Field[(str, str), InstanceNameType],
         "port_names": _Field[(str, str), str],
         "inlined_instance_names": _Field[(str, str, str), InstanceNameType],
+        "instance_types": _Field[(str, str), str],
     }
 
     def __init__(self):
@@ -305,6 +329,12 @@ class SymbolTable(SymbolTableInterface):
         key = in_module_name, in_parent_instance_name, in_child_instance_name
         return self._mappings["inlined_instance_names"].get(key)
 
+    def get_instance_type(self,
+                          in_module_name: str,
+                          in_instance_name: str) -> str:
+        key = in_module_name, in_instance_name
+        return self._mappings["instance_types"].get(key)
+
     def set_module_name(self,
                         in_module_name: str,
                         out_module_name: str) -> None:
@@ -332,6 +362,13 @@ class SymbolTable(SymbolTableInterface):
         key = in_module_name, in_parent_instance_name, in_child_instance_name
         self._mappings["inlined_instance_names"].set(key, out_instance_name)
 
+    def set_instance_type(self,
+                          in_module_name: str,
+                          in_parent_instance_name: str,
+                          out_type: str) -> None:
+        key = in_module_name, in_instance_name
+        self._mappings["instance_types"].set(key, out_type)
+
     def module_names(self) -> Mapping[str, str]:
         return self._mappings["module_names"].dct()
 
@@ -345,6 +382,9 @@ class SymbolTable(SymbolTableInterface):
                                                 InstanceNameType]:
         return self._mappings["inlined_instance_names"].dct()
 
+    def instance_types(self) -> Mapping[Tuple[str, str], str]:
+        return self._mappings["instance_types"].dct()
+
     def as_dict(self, for_json=False):
         return {
             name: field.dct(for_json)
@@ -352,17 +392,24 @@ class SymbolTable(SymbolTableInterface):
         }
 
     @staticmethod
-    def from_dict(dct, from_json=False):
+    def from_dict(dct, from_json=False, allow_missing=True):
         table = SymbolTable()
         for name, mapping in table._mappings.items():
             T = type(mapping)
-            table._mappings[name] = T.from_dict(dct[name], from_json)
+            try:
+                entry = dct[name]
+            except KeyError as err:
+                if not allow_missing:
+                    raise  # re-raise original KeyError
+            else:
+                table._mappings[name] = T.from_dict(entry, from_json)
         return table
 
     def as_json(self, **kwargs):
         return json.dumps(self.as_dict(for_json=True), **kwargs)
 
     @staticmethod
-    def from_json(value):
+    def from_json(value, allow_missing=True):
         dct = json.loads(value)
-        return SymbolTable.from_dict(dct, from_json=True)
+        return SymbolTable.from_dict(
+            dct, from_json=True, allow_missing=allow_missing)
