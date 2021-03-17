@@ -83,7 +83,7 @@ class _Module(_Object):
 
 @dataclasses.dataclass
 class _Instance(_Object):
-    pass
+    type: Optional[str] = None
 
 
 @dataclasses.dataclass(eq=True, frozen=True)
@@ -137,6 +137,7 @@ class _TableProcessor:
         self._process_module_names(table.module_names())
         self._process_instance_names(table.instance_names())
         self._process_port_names(table.port_names())
+        self._process_instance_types(table.instance_types())
         self._scope += 1
 
     def finalize(self, table: SymbolTableInterface):
@@ -149,6 +150,10 @@ class _TableProcessor:
             for instance in module.instances:
                 table.set_instance_name(
                     module.name, instance.name, instance.tail().name)
+                if instance.type is None:
+                    raise ValueError(instance)
+                table.set_instance_type(
+                    module.name, instance.name, instance.type)
             for port in module.ports:
                 for tail, modifiers in port.tails():
                     src_port = _PortWrapper(port.name, modifiers).longname()
@@ -206,6 +211,17 @@ class _TableProcessor:
             dst_port = _Port(out_port_name, self._scope + 1, root=root_port)
             dst_module.add_port(dst_port)
             src_port.add_rename(_Rename(dst_port, modifiers))
+
+    def _process_instance_types(self, instance_types):
+        # For the master symbol table, we only need to track the type
+        # information of the first table.
+        if self._scope != 0:
+            return
+        for key, out_type in instance_types.items():
+            module_name, instance_name = key
+            module = self._modules[(self._scope, module_name)]
+            instance = module.get_instance(instance_name)
+            instance.type = out_type
 
 
 class MasterSymbolTable(ImmutableSymbolTable, DelegatorSymbolTable):

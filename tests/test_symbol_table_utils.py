@@ -11,6 +11,7 @@ def test_one():
             "instance_names": {("Top", "inst"): "c_inst"},
             "port_names": {("Top", "I"): "in"},
             "inlined_instance_names": {},
+            "instance_types": {("Top", "inst"): "MyModule"},
         }),
         SymbolTable.from_dict({
             "module_names": {"CTop": "VTop"},
@@ -40,7 +41,7 @@ def test_one():
             ("Top", "I.y"): "in_y",
         },
         "inlined_instance_names": {},
-        "instance_types": {},
+        "instance_types": {("Top", "inst"): "MyModule"},
     }
 
 
@@ -52,6 +53,8 @@ def test_two():
                                ("a", "foo"): "foo_out"},
             "port_names": {},
             "inlined_instance_names": {},
+            "instance_types": {("x", "inst0"): "MyModule",
+                               ("a", "foo"): "Foo"},
         }),
         SymbolTable.from_dict({
             "module_names": {"y": "z", "b": "b"},
@@ -80,5 +83,8 @@ def test_two():
         },
         "port_names": {},
         "inlined_instance_names": {},
-        "instance_types": {},
+        "instance_types": {
+            ("x", "inst0"): "MyModule",
+            ("a", "foo"): "Foo"
+        },
     }
