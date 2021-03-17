@@ -73,6 +73,30 @@ def test_port_name():
     _test_basic_mapping(_setter, _getter, 2, 1, _NUM_TRIALS)
 
 
+def test_inlined_instance_name_name():
+    table = SymbolTable()
+
+    def _setter(*args):
+        table.set_inlined_instance_name(*args)
+
+    def _getter(*args):
+        return table.get_inlined_instance_name(*args)
+
+    _test_basic_mapping(_setter, _getter, 3, 1, _NUM_TRIALS)
+
+
+def test_instance_type():
+    table = SymbolTable()
+
+    def _setter(*args):
+        table.set_instance_type(*args)
+
+    def _getter(*args):
+        return table.get_instance_type(*args)
+
+    _test_basic_mapping(_setter, _getter, 2, 1, _NUM_TRIALS)
+
+
 def test_inline():
     table = SymbolTable()
     table.set_instance_name("Foo", "bar", SYMBOL_TABLE_INLINED_INSTANCE)
@@ -88,7 +112,7 @@ def test_json():
                      '"Foo,tbi": "__SYMBOL_TABLE_INLINED_INSTANCE__"}, '
                      '"port_names": {"Foo,I": "vI"}, '
                      '"inlined_instance_names": {"Foo,tbi,leaf": "tbi_leaf"}, '
-                     '"instance_types": {}}')
+                     '"instance_types": {"Foo,bar": "Bar"}}')
 
     table = SymbolTable()
     table.set_module_name("Foo", "vFoo")
@@ -96,6 +120,7 @@ def test_json():
     table.set_port_name("Foo", "I", "vI")
     table.set_instance_name("Foo", "tbi", SYMBOL_TABLE_INLINED_INSTANCE)
     table.set_inlined_instance_name("Foo", "tbi", "leaf", "tbi_leaf")
+    table.set_instance_type("Foo", "bar", "Bar")
 
     as_json = table.as_json()
     assert as_json == EXPECTED_JSON
@@ -107,4 +132,5 @@ def test_json():
     assert (table.get_instance_name("Foo", "tbi") is
             SYMBOL_TABLE_INLINED_INSTANCE)
     assert table.get_inlined_instance_name("Foo", "tbi", "leaf") == "tbi_leaf"
+    assert table.get_instance_type("Foo", "bar") == "Bar"
     assert copy.as_json() == EXPECTED_JSON

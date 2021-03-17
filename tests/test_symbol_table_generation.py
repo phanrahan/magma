@@ -30,6 +30,8 @@ def test_symbol_table_dff():
     assert symbol_table.get_port_name("DFFInit1", "D") == "D"
     assert symbol_table.get_port_name("DFFInit1", "Q") == "Q"
     assert symbol_table.get_port_name("DFFInit1", "C") == "C"
+    instance_type = symbol_table.get_instance_type("DFFInit1", "SB_DFF_inst0")
+    assert instance_type == "SB_DFF"
 
 
 def test_symbol_table_dff_list():
@@ -49,6 +51,9 @@ def test_symbol_table_dff_list():
     for i in range(10):
         name = symbol_table.get_instance_name("DFFList", f"SB_DFF_inst{i}")
         assert name == f"SB_DFF_inst{i}"
+        instance_type = symbol_table.get_instance_type(
+            "DFFList", f"SB_DFF_inst{i}")
+        assert instance_type == "SB_DFF"
 
 
 def test_symbol_table_bundle_flattening():

@@ -364,7 +364,7 @@ class SymbolTable(SymbolTableInterface):
 
     def set_instance_type(self,
                           in_module_name: str,
-                          in_parent_instance_name: str,
+                          in_instance_name: str,
                           out_type: str) -> None:
         key = in_module_name, in_instance_name
         self._mappings["instance_types"].set(key, out_type)

@@ -269,6 +269,8 @@ class DefinitionTransformer(TransformerBase):
         for inst, coreir_inst in coreir_insts.items():
             self.get_opt("symbol_table").set_instance_name(
                 self.defn.name, inst.name, coreir_inst.name)
+            self.get_opt("symbol_table").set_instance_type(
+                self.defn.name, inst.name, type(inst).name)
 
     def get_coreir_defn(self):
         coreir_defn = self.coreir_module.new_definition()
