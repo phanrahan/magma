@@ -191,7 +191,9 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
 
     newsource = get_new_source(source_qual, primitive_map, old_circuit, new_circuit)
     # Convert newsource because it might have been casted in the user code
-    newsource = convertbit(newsource, type(newbit).undirected_t)
+    newbit_T = type(newbit).undirected_t
+    if not isinstance(newsource, newbit_T):
+        newsource = convertbit(newsource, newbit_T)
     wire(newsource, newbit)
 
     for collapsed in collapsed_in_bits:
