@@ -90,7 +90,7 @@ class SymbolTableInterface(abc.ABC):
     def set_instance_name(self,
                           in_module_name: str,
                           in_instance_name: str,
-                          out_instance_name: str) -> None:
+                          out_instance_name: InstanceNameType) -> None:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -105,7 +105,7 @@ class SymbolTableInterface(abc.ABC):
                                   in_module_name: str,
                                   in_parent_instance_name: str,
                                   in_child_instance_name: str,
-                                  out_instance_name) -> None:
+                                  out_instance_name: InstanceNameType) -> None:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -118,6 +118,11 @@ class SymbolTableInterface(abc.ABC):
 
     @abc.abstractmethod
     def port_names(self) -> Mapping[Tuple[str, str], str]:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def inlined_instance_names(self) -> Mapping[Tuple[str, str, str],
+                                                InstanceNameType]:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -138,7 +143,7 @@ class ImmutableSymbolTable(SymbolTableInterface):
     def set_instance_name(self,
                           in_module_name: str,
                           in_instance_name: str,
-                          out_instance_name: str) -> None:
+                          out_instance_name: InstanceNameType) -> None:
         raise Exception("Can not set an immutable symbol table")
 
     def set_port_name(self,
@@ -151,7 +156,7 @@ class ImmutableSymbolTable(SymbolTableInterface):
                                   in_module_name: str,
                                   in_parent_instance_name: str,
                                   in_child_instance_name: str,
-                                  out_instance_name) -> None:
+                                  out_instance_name: InstanceNameType) -> None:
         raise Exception("Can not set an immutable symbol table")
 
 
@@ -271,7 +276,7 @@ class SymbolTable(SymbolTableInterface):
         "module_names": _Field[str, str],
         "instance_names": _Field[(str, str), InstanceNameType],
         "port_names": _Field[(str, str), str],
-        "inlined_instance_names": _Field[(str, str, str), str],
+        "inlined_instance_names": _Field[(str, str, str), InstanceNameType],
     }
 
     def __init__(self):
@@ -292,10 +297,11 @@ class SymbolTable(SymbolTableInterface):
         key = in_module_name, in_port_name
         return self._mappings["port_names"].get(key)
 
-    def get_inlined_instance_name(self,
-                                  in_module_name: str,
-                                  in_parent_instance_name: str,
-                                  in_child_instance_name: str) -> str:
+    def get_inlined_instance_name(
+            self,
+            in_module_name: str,
+            in_parent_instance_name: str,
+            in_child_instance_name: str) -> InstanceNameType:
         key = in_module_name, in_parent_instance_name, in_child_instance_name
         return self._mappings["inlined_instance_names"].get(key)
 
@@ -307,7 +313,7 @@ class SymbolTable(SymbolTableInterface):
     def set_instance_name(self,
                           in_module_name: str,
                           in_instance_name: str,
-                          out_instance_name: str) -> None:
+                          out_instance_name: InstanceNameType) -> None:
         key = in_module_name, in_instance_name
         self._mappings["instance_names"].set(key, out_instance_name)
 
@@ -322,7 +328,7 @@ class SymbolTable(SymbolTableInterface):
                                   in_module_name: str,
                                   in_parent_instance_name: str,
                                   in_child_instance_name: str,
-                                  out_instance_name) -> None:
+                                  out_instance_name: InstanceNameType) -> None:
         key = in_module_name, in_parent_instance_name, in_child_instance_name
         self._mappings["inlined_instance_names"].set(key, out_instance_name)
 
@@ -334,6 +340,10 @@ class SymbolTable(SymbolTableInterface):
 
     def port_names(self) -> Mapping[Tuple[str, str], str]:
         return self._mappings["port_names"].dct()
+
+    def inlined_instance_names(self) -> Mapping[Tuple[str, str],
+                                                InstanceNameType]:
+        return self._mappings["inlined_instance_names"].dct()
 
     def as_dict(self, for_json=False):
         return {
