@@ -1,6 +1,6 @@
 from collections import namedtuple, OrderedDict
 from .circuit import CopyInstance, Circuit, IO
-from .conversions import convertbit
+from magma.conversions import convertbit
 from .is_definition import isdefinition
 from .is_primitive import isprimitive
 from .digital import Digital
