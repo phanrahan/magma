@@ -1,5 +1,6 @@
 from collections import namedtuple, OrderedDict
 from .circuit import CopyInstance, Circuit, IO
+from magma.conversions import convertbit
 from .is_definition import isdefinition
 from .is_primitive import isprimitive
 from .digital import Digital
@@ -189,6 +190,10 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
         collapsed_in_bits.append(intermediate_in)
 
     newsource = get_new_source(source_qual, primitive_map, old_circuit, new_circuit)
+    # Convert newsource because it might have been casted in the user code
+    newbit_T = type(newbit).undirected_t
+    if not isinstance(newsource, newbit_T):
+        newsource = convertbit(newsource, newbit_T)
     wire(newsource, newbit)
 
     for collapsed in collapsed_in_bits:
