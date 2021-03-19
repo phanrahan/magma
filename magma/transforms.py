@@ -64,10 +64,10 @@ class TransformedCircuit:
             self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit
 
 
-def _add_arr_mapping(mapping, outerbit, innerbit, outer_scope, inner_scope):
+def _add_array_mapping(mapping, outerbit, innerbit, outer_scope, inner_scope):
     for o, i in zip(outerbit, innerbit):
         if isinstance(o, Array):
-            _add_arr_mapping(mapping, o, i, outer_scope, inner_scope)
+            _add_array_mapping(mapping, o, i, outer_scope, inner_scope)
         oqual = QualifiedBit(bit=o, scope=outer_scope)
         iqual = QualifiedBit(bit=i, scope=inner_scope)
         if o.is_input():
@@ -93,8 +93,8 @@ def get_primitives(outer_circuit, outer_scope):
                 innerloc = QualifiedBit(bit=innerbit, scope=inner_scope)
 
                 if isinstance(outerbit, Array):
-                    _add_arr_mapping(mapping, outerbit, innerbit, outer_scope,
-                                     inner_scope)
+                    _add_array_mapping(mapping, outerbit, innerbit, outer_scope,
+                                      inner_scope)
 
                 if outerbit.is_input():
                     mapping[innerloc] = outerloc
