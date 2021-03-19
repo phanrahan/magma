@@ -11,7 +11,7 @@ def test_anon_bit():
 
     # b0 is treated as an output connected to b1 (treated as input)
     wire(b0, b1)
-    assert b0 is b1._wire.driver.bit
+    assert b0 is b1._wire.driver.val
     assert b1 is b0._wire.driving()[0]
     assert b1.value() is b0
     assert b0.driving() == [b1]

@@ -14,7 +14,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog
+from magma.wire_container import Wire, WiringLog
 from magma.protocol_type import MagmaProtocol
 
 
@@ -295,6 +295,7 @@ class Array(Type, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.ts = _make_array(self, args)
+        self._wire = Wire(self)
 
     @classmethod
     def is_oriented(cls, direction):
