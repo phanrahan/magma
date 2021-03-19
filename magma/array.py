@@ -466,10 +466,14 @@ class Array(Type, metaclass=ArrayMeta):
             )
             return
 
+        if i.iswhole() and o.iswhole():
+            i._wire.connect(o._wire, debug_info)
         for k in range(len(i)):
             i[k].wire(o[k], debug_info)
 
     def unwire(i, o):
+        if i.iswhole() and o.iswhole():
+            i._wire.unwire(o._wire)
         for k in range(len(i)):
             i[k].unwire(o[k])
 
@@ -520,9 +524,18 @@ class Array(Type, metaclass=ArrayMeta):
         return True
 
     def iswhole(self):
-        return Array._iswhole(self.ts)
+        return Array._iswhole([magma_value(t) for t in self.ts])
 
     def trace(self):
+        if self._wire.trace():
+            result = self._wire.trace()
+            if result.anon() and result.iswhole():
+                # For backwards compat with below code, this actually can
+                # unpack anon values into their source array if it's a whole
+                # array (e.g. a converted value)
+                return result.ts[0].name.array
+            return result
+
         ts = [t.trace() for t in self.ts]
 
         for t in ts:
