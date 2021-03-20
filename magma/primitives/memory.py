@@ -78,6 +78,8 @@ class CoreIRMemory(Generator2):
             value_store.set_value(self.rdata, rdata)
 
         self.simulate = _simulate
+        self.primitive = True
+        self.stateful = True
 
 
 class StagedMemoryPortMeta(MagmaProtocolMeta):

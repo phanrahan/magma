@@ -567,6 +567,8 @@ def make_Define(_name, port, direction):
             coreir_genargs = {"width": width}
             def simulate(self, value_store, state_store):
                 pass
+            primitive = True
+            stateful = False
 
         return _Circuit
     return Define

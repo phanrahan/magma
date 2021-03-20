@@ -202,6 +202,8 @@ def make_Define(_name, port, direction):
 
             # Type must be a bit because coreir uses Bit for the primitive.
             io = IO(**{port: direction(Bit)})
+            primitive = True
+            stateful = False
         return _Primitive
     return DefineCorebit
 
