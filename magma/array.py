@@ -354,6 +354,7 @@ class Array(Type, metaclass=ArrayMeta):
                  key[-1] == slice(0, len(self))))
 
     def __getitem__(self, key):
+        self.wire_children()
         if isinstance(key, tuple):
             # ND Array key
             if len(key) == 1:
@@ -468,25 +469,33 @@ class Array(Type, metaclass=ArrayMeta):
 
         if i.iswhole() and o.iswhole():
             i._wire.connect(o._wire, debug_info)
-        for k in range(len(i)):
-            i[k].wire(o[k], debug_info)
+        else:
+            for k in range(len(i)):
+                i[k].wire(o[k], debug_info)
 
     def unwire(i, o):
         if i.iswhole() and o.iswhole():
             i._wire.unwire(o._wire)
-        for k in range(len(i)):
-            i[k].unwire(o[k])
+        if i[0]._wire.driven():
+            for k in range(len(i)):
+                i[k].unwire(o[k])
 
     def driven(self):
+        if self._wire.driven():
+            return True
         for t in self.ts:
             if not t.driven():
                 return False
         return True
 
     def driving(self):
+        if self._wire.driving():
+            return self._wire.driving()
         return [t.driving() for t in self]
 
     def wired(self):
+        if self._wire.wired():
+            return True
         for t in self.ts:
             if not t.wired():
                 return False
@@ -526,9 +535,11 @@ class Array(Type, metaclass=ArrayMeta):
     def iswhole(self):
         return Array._iswhole([magma_value(t) for t in self.ts])
 
-    def trace(self):
-        if self._wire.trace():
-            result = self._wire.trace()
+    def trace(self, skip_self=True):
+        if self._wire.driven():
+            result = self._wire.trace(skip_self)
+            if result is None:
+                return None
             if result.anon() and result.iswhole():
                 # For backwards compat with below code, this actually can
                 # unpack anon values into their source array if it's a whole
@@ -536,10 +547,12 @@ class Array(Type, metaclass=ArrayMeta):
                 return result.ts[0].name.array
             return result
 
-        ts = [t.trace() for t in self.ts]
+        ts = [t.trace(skip_self) for t in self.ts]
 
         for t in ts:
             if t is None:
+                if not skip_self and (self.is_output() or self.is_inout()):
+                    return self
                 return None
 
         if Array._iswhole(ts):
@@ -548,6 +561,14 @@ class Array(Type, metaclass=ArrayMeta):
         return type(self).flip()(ts)
 
     def value(self):
+        if self._wire.wired():
+            result = self._wire.value()
+            if result.anon() and result.iswhole():
+                # For backwards compat with below code, this actually can
+                # unpack anon values into their source array if it's a whole
+                # array (e.g. a converted value)
+                return result.ts[0].name.array
+            return result
         ts = [t.value() for t in self.ts]
 
         for t in ts:
@@ -575,7 +596,18 @@ class Array(Type, metaclass=ArrayMeta):
               for i in range(0, size_T * cls.N, size_T)]
         return cls(ts)
 
+    def wire_children(self):
+        if self._wire.driven() and not self.ts[0].driven():
+            # Need to wire up children if it's only been wired up whole
+            # TODO: We should generalize access to children and stage the
+            # wiring only until they've been referenced (I think we could do
+            # this by making `ts` a property that adds this logic on first
+            # reference)
+            for k in range(len(self)):
+                self.ts[k].wire(self._wire.value()[k])
+
     def flatten(self):
+        self.wire_children()
         return sum([t.flatten() for t in self.ts], [])
 
     def concat(self, other) -> 'AbstractBitVector':

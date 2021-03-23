@@ -93,7 +93,7 @@ class Wire:
         we don't trace to ourselves)
         """
         if self._driver is not None:
-            return self._driver.trace(skip_self=False)
+            return self._driver.val.trace(skip_self=False)
         if not skip_self and (self._val.is_output() or self._val.is_inout()):
             return self._val
         return None

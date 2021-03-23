@@ -190,8 +190,8 @@ class Digital(Type, metaclass=DigitalMeta):
         return self._wire.wired()
 
     # return the input or output Bit connected to this Bit
-    def trace(self):
-        return self._wire.trace()
+    def trace(self, skip_self=True):
+        return self._wire.trace(skip_self)
 
     # return the output Bit connected to this input Bit
     def value(self):

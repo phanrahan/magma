@@ -80,6 +80,8 @@ def get_primitives(outer_circuit, outer_scope):
                 innerloc = QualifiedBit(bit=innerbit, scope=inner_scope)
 
                 if isinstance(outerbit, Array):
+                    innerbit.wire_children()
+                    outerbit.wire_children()
                     for o, i in zip(outerbit, innerbit):
                         oqual = QualifiedBit(bit=o, scope=outer_scope)
                         iqual = QualifiedBit(bit=i, scope=inner_scope)
@@ -160,6 +162,8 @@ def get_new_source(source_qual, primitive_map, old_circuit, new_circuit):
 
 def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit):
     if isinstance(origbit, (Array, Tuple)):
+        if isinstance(origbit, Array):
+            origbit.wire_children()
         assert isinstance(newbit, type(origbit))
         for x, y in zip(origbit, newbit):
             wire_new_bit(x, y, cur_scope, primitive_map, bit_map, old_circuit, flattened_circuit)

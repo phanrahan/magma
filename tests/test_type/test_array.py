@@ -197,7 +197,7 @@ def test_wire():
     assert a1.value() is a0
     assert a0.value() is a1
 
-    assert a0.driving() == [[a1[0]], [a1[1]]]
+    assert a0.driving() == [a1]
 
     b0 = a0[0]
     b1 = a1[0]

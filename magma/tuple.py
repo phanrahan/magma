@@ -338,11 +338,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return Tuple._iswhole(self.ts, self.keys())
 
 
-    def trace(self):
-        ts = [t.trace() for t in self.ts]
+    def trace(self, skip_self=True):
+        ts = [t.trace(skip_self) for t in self.ts]
 
         for t in ts:
             if t is None:
+                if not skip_self and (self.is_output() or self.is_inout()):
+                    return self
                 return None
 
         if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):

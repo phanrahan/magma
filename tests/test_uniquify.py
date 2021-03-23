@@ -64,6 +64,8 @@ def test_uniquify_unequal():
         m.wire(foo_inst.O, bar_inst.I[1])
         m.wire(bar_inst.O[0], io.O)
 
+    print(repr(foo))
+    print(repr(bar))
     assert hash(repr(foo)) != hash(repr(bar))
 
     m.compile("build/uniquify_unequal", top, output="coreir")
