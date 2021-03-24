@@ -24,6 +24,7 @@ from magma.logging import root_logger
 from magma.generator import Generator2
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
+from magma.wire_container import Wire
 
 
 def _error_handler(fn):
@@ -124,10 +125,13 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], Array) and \
                 len(self) > 1 and len(args[0]) <= len(self):
-            self.ts = args[0].ts[:]
+            ts = args[0].ts[:]
             # zext for promoting width
             for i in range(len(self) - len(args[0])):
-                self.ts.append(Bit(0))
+                ts.append(Bit(0))
+            self._ts = None
+            self._make_ts = lambda: ts
+            self._wire = Wire(self)
             Type.__init__(self, **kwargs)
         else:
             Array.__init__(self, *args, **kwargs)
@@ -642,10 +646,13 @@ class SInt(Int):
     def __init__(self, *args, **kwargs):
         if args and len(args) == 1 and isinstance(args[0], Array) and \
                 len(self) > 1 and len(args[0]) <= len(self):
-            self.ts = args[0].ts[:]
+            ts = args[0].ts[:]
             # zext for promoting width
             for i in range(len(self) - len(args[0])):
-                self.ts.append(args[0].ts[-1])
+                ts.append(args[0].ts[-1])
+            self._ts = None
+            self._make_ts = lambda: ts
+            self._wire = Wire(self)
             Type.__init__(self, **kwargs)
         else:
             Array.__init__(self, *args, **kwargs)

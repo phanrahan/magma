@@ -285,17 +285,36 @@ def _make_array_from_args(N, T, args):
     raise TypeError(f"Constructing array with {args} not supported")
 
 
-def _make_array(array, args):
+def _make_array_constructor(array, args):
     if args:
-        return _make_array_from_args(array.N, array.T, args)
-    return _make_array_no_args(array)
+        # For now, we don't stage creation when constructing an array from
+        # arguments since we want the type checking logic to occur at
+        # initialization time.
+        # TODO: We could separate the type checking and constructor logic
+        # allowing to stage the latter
+        result = _make_array_from_args(array.N, array.T, args)
+        return lambda: result
+    return lambda: _make_array_no_args(array)
 
 
 class Array(Type, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
-        self.ts = _make_array(self, args)
+        self._make_ts = _make_array_constructor(self, args)
+        self._ts = None
         self._wire = Wire(self)
+
+    def wire_children(self):
+        if self._wire.driven() and not self._ts[0].driven():
+            for k in range(len(self)):
+                self._ts[k].wire(self._wire.value()[k])
+
+    @property
+    def ts(self):
+        if self._ts is None:
+            self._ts = self._make_ts()
+        self.wire_children()
+        return self._ts
 
     @classmethod
     def is_oriented(cls, direction):
@@ -354,7 +373,6 @@ class Array(Type, metaclass=ArrayMeta):
                  key[-1] == slice(0, len(self))))
 
     def __getitem__(self, key):
-        self.wire_children()
         if isinstance(key, tuple):
             # ND Array key
             if len(key) == 1:
@@ -596,18 +614,7 @@ class Array(Type, metaclass=ArrayMeta):
               for i in range(0, size_T * cls.N, size_T)]
         return cls(ts)
 
-    def wire_children(self):
-        if self._wire.driven() and not self.ts[0].driven():
-            # Need to wire up children if it's only been wired up whole
-            # TODO: We should generalize access to children and stage the
-            # wiring only until they've been referenced (I think we could do
-            # this by making `ts` a property that adds this logic on first
-            # reference)
-            for k in range(len(self)):
-                self.ts[k].wire(self._wire.value()[k])
-
     def flatten(self):
-        self.wire_children()
         return sum([t.flatten() for t in self.ts], [])
 
     def concat(self, other) -> 'AbstractBitVector':
