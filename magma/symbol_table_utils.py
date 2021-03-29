@@ -3,6 +3,7 @@ from typing import List, Optional, Sequence, Tuple
 
 from magma.symbol_table import (SymbolTableInterface, SymbolTable,
                                 DelegatorSymbolTable, ImmutableSymbolTable,
+                                SYMBOL_TABLE_INLINED_INSTANCE,
                                 SYMBOL_TABLE_EMPTY)
 
 
@@ -84,7 +85,29 @@ class _Module(_Object):
 
 @dataclasses.dataclass
 class _Instance(_Object):
-    type: Optional[str] = None
+    type: Optional[_Module] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._inlines = None
+
+    @property
+    def inlined(self):
+        return self._inlines is not None
+
+    @property
+    def inlines(self):
+        if not self.inlined:
+            return None
+        return self._inlines.copy()
+
+    def inline(self):
+        if self.inlined:
+            raise ValueError(self)
+        self._inlines = []
+
+    def add_inline(self, original, new):
+        self._inlines.append((original, new))
 
 
 @dataclasses.dataclass(eq=True, frozen=True)
@@ -128,6 +151,32 @@ class _Port(_Object):
         return tails
 
 
+def _finalize_instance_names(module, instance, table, top=True):
+    tail = instance.tail()
+    if top:
+        if not tail.inlined:
+            table.set_instance_name(
+                module.name, instance.name, (SYMBOL_TABLE_EMPTY, tail.name))
+            return
+        else:
+            table.set_instance_name(
+                module.name, instance.name, (SYMBOL_TABLE_INLINED_INSTANCE, ""))
+    for original, new in tail.inlines:
+        if not new.inlined:
+            table.set_inlined_instance_name(
+                module.name,
+                instance.name,
+                original.root.name,
+                (SYMBOL_TABLE_EMPTY, new.tail().name))
+        else:
+            table.set_inlined_instance_name(
+                module.name,
+                instance.name,
+                original.root.name,
+                (SYMBOL_TABLE_INLINED_INSTANCE, new.tail().name))
+            _finalize_instance_names(module, new, table, top=False)
+
+
 class _TableProcessor:
     def __init__(self):
         self._modules = {}
@@ -139,6 +188,7 @@ class _TableProcessor:
         self._process_instance_names(table.instance_names())
         self._process_port_names(table.port_names())
         self._process_instance_types(table.instance_types())
+        self._process_inlined_instance_names(table.inlined_instance_names())
         self._scope += 1
 
     def finalize(self, table: SymbolTableInterface):
@@ -149,14 +199,9 @@ class _TableProcessor:
         for module in root_modules:
             table.set_module_name(module.name, module.tail().name)
             for instance in module.instances:
-                # TODO(rsetaluri): Deal with inlined instances.
-                instance_name = (SYMBOL_TABLE_EMPTY, instance.tail().name)
-                table.set_instance_name(
-                    module.name, instance.name, instance_name)
-                if instance.type is None:
-                    raise ValueError(instance)
+                _finalize_instance_names(module, instance, table)
                 table.set_instance_type(
-                    module.name, instance.name, instance.type)
+                    module.name, instance.name, instance.type.name)
             for port in module.ports:
                 for tail, modifiers in port.tails():
                     src_port = _PortWrapper(port.name, modifiers).longname()
@@ -179,7 +224,10 @@ class _TableProcessor:
     def _process_instance_names(self, instance_names):
         for key, value in instance_names.items():
             # TODO(rsetaluri): Deal with inlined instances.
-            _, out_instance_name = value
+            sentinel, out_instance_name = value
+            if not (sentinel is SYMBOL_TABLE_EMPTY or
+                    sentinel is SYMBOL_TABLE_INLINED_INSTANCE):
+                raise ValueError((key, value))
             in_module_name, in_instance_name = key
             src_module = self._modules[(self._scope, in_module_name)]
             dst_module = src_module.get_rename().obj
@@ -190,10 +238,13 @@ class _TableProcessor:
             else:
                 src_instance = src_module.get_instance(in_instance_name)
                 root_instance = src_instance.root
-            dst_instance = _Instance(
-                out_instance_name, self._scope + 1, root=root_instance)
-            dst_module.add_instance(dst_instance)
-            src_instance.add_rename(_Rename(dst_instance))
+            if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
+                src_instance.inline()
+            else:
+                dst_instance = _Instance(
+                    out_instance_name, self._scope + 1, root=root_instance)
+                dst_module.add_instance(dst_instance)
+                src_instance.add_rename(_Rename(dst_instance))
 
     def _process_port_names(self, port_names):
         for key, out_port_name in port_names.items():
@@ -218,15 +269,36 @@ class _TableProcessor:
             src_port.add_rename(_Rename(dst_port, modifiers))
 
     def _process_instance_types(self, instance_types):
-        # For the master symbol table, we only need to track the type
-        # information of the first table.
-        if self._scope != 0:
-            return
         for key, out_type in instance_types.items():
             module_name, instance_name = key
             module = self._modules[(self._scope, module_name)]
             instance = module.get_instance(instance_name)
-            instance.type = out_type
+            module_type = self._modules[(self._scope, out_type)]
+            instance.type = module_type
+
+    def _process_inlined_instance_names(self, inlined_instance_names):
+        for key, value in inlined_instance_names.items():
+            module_name, parent_instance_name, child_instance_name = key
+            sentinel, new_instance_name_or_key = value
+            if not (sentinel is SYMBOL_TABLE_EMPTY or
+                    sentinel is SYMBOL_TABLE_INLINED_INSTANCE):
+                raise ValueError((key, value))
+            src_module = self._modules[(self._scope, module_name)]
+            dst_module = src_module.get_rename().obj
+            parent_instance = src_module.get_instance(parent_instance_name)
+            child_instance = parent_instance.type.get_instance(
+                child_instance_name)
+            if not parent_instance.inlined:
+                raise ValueError((key, value))
+            if sentinel is SYMBOL_TABLE_EMPTY:
+                new_instance = _Instance(new_instance_name_or_key, self._scope + 1)
+                dst_module.add_instance(new_instance)
+            else:
+                new_instance = _Instance(new_instance_name_or_key, self._scope)
+                new_instance.inline()
+                src_module.add_instance(new_instance)
+            new_instance.type = child_instance.type
+            parent_instance.add_inline(child_instance, new_instance)
 
 
 class MasterSymbolTable(ImmutableSymbolTable, DelegatorSymbolTable):
