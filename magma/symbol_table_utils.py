@@ -310,6 +310,78 @@ class MasterSymbolTable(ImmutableSymbolTable, DelegatorSymbolTable):
         processor.finalize(self._underlying)
 
 
+class TopLevelInterface:
+
+    class _InlinedLeafInstanceError(Exception):
+        pass
+
+    @dataclasses.dataclass
+    class _Inst:
+        name: str
+        type: str
+
+    def __init__(self, table: SymbolTableInterface):
+        self._table = table
+
+    def get_module_name(self, module_name):
+        return self._table.get_module_name(module_name)
+
+    def _get_inlined_instance_name_impl(
+            self, module: str, parent_inst: _Inst, insts: List[_Inst]):
+        if not insts:
+            return []
+        child_inst = insts[0]
+        sentinel, new_name_or_key = self._table.get_inlined_instance_name(
+            module, parent_inst.name, child_inst.name)
+        if sentinel is SYMBOL_TABLE_EMPTY:
+            name = new_name_or_key
+            insts = insts[1:]
+            return [name] + self._get_instance_name_impl(child_inst.type, insts)
+        if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
+            insts = insts[1:]
+            if not insts:
+                raise TopLevelInterface._InlinedLeafInstanceError()
+            key = TopLevelInterface._Inst(new_name_or_key, None)
+            return self._get_inlined_instance_name_impl(module, key, insts)
+        raise ValueError(sentinel)
+
+    def _get_instance_name_impl(self, module: str, insts: List[_Inst]):
+        if not insts:
+            return []
+        inst = insts[0]
+        sentinel, name = self._table.get_instance_name(module, inst.name)
+        if sentinel is SYMBOL_TABLE_EMPTY:
+            return [name] + self._get_instance_name_impl(inst.type, insts[1:])
+        if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
+            insts = insts[1:]
+            if not insts:
+                raise TopLevelInterface._InlinedLeafInstanceError()
+            return self._get_inlined_instance_name_impl(module, inst, insts)
+        raise ValueError(sentinel)
+
+    def _get_types(self, module: str, insts: List[str]):
+        curr_module = module
+        out = []
+        for inst in insts:
+            curr_module = self._table.get_instance_type(curr_module, inst)
+            out.append(curr_module)
+        return out
+
+    def get_instance_name(self, path: str) -> Optional[str]:
+        module, *insts = path.split(".")
+        if not insts:
+            raise ValueError(path)
+        insts = [TopLevelInterface._Inst(inst, t)
+                 for inst, t in zip(insts, self._get_types(module, insts))]
+        new_path = [self._table.get_module_name(module)]
+        try:
+            inst_path = self._get_instance_name_impl(module, insts)
+        except TopLevelInterface._InlinedLeafInstanceError:
+            return None
+        new_path += inst_path
+        return ".".join(new_path)
+
+
 def make_master_symbol_table(json_filenames: Sequence[str]):
     # TODO(rsetaluri): Make this lazy.
     symbol_tables = []
