@@ -2,7 +2,8 @@ import dataclasses
 from typing import List, Optional, Sequence, Tuple
 
 from magma.symbol_table import (SymbolTableInterface, SymbolTable,
-                                DelegatorSymbolTable, ImmutableSymbolTable)
+                                DelegatorSymbolTable, ImmutableSymbolTable,
+                                SYMBOL_TABLE_EMPTY)
 
 
 @dataclasses.dataclass
@@ -148,8 +149,10 @@ class _TableProcessor:
         for module in root_modules:
             table.set_module_name(module.name, module.tail().name)
             for instance in module.instances:
+                # TODO(rsetaluri): Deal with inlined instances.
+                instance_name = (SYMBOL_TABLE_EMPTY, instance.tail().name)
                 table.set_instance_name(
-                    module.name, instance.name, instance.tail().name)
+                    module.name, instance.name, instance_name)
                 if instance.type is None:
                     raise ValueError(instance)
                 table.set_instance_type(
@@ -174,7 +177,9 @@ class _TableProcessor:
             self._modules[dst.key()] = dst
 
     def _process_instance_names(self, instance_names):
-        for key, out_instance_name in instance_names.items():
+        for key, value in instance_names.items():
+            # TODO(rsetaluri): Deal with inlined instances.
+            _, out_instance_name = value
             in_module_name, in_instance_name = key
             src_module = self._modules[(self._scope, in_module_name)]
             dst_module = src_module.get_rename().obj

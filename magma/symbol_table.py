@@ -1,6 +1,6 @@
 import abc
 import json
-from typing import Any, Iterable, Mapping, Tuple, Union
+from typing import Any, Iterable, Mapping, Tuple
 
 from magma.common import make_delegator_cls
 
@@ -31,21 +31,24 @@ class _Sentinel:
 
 
 SYMBOL_TABLE_INLINED_INSTANCE = _Sentinel("__SYMBOL_TABLE_INLINED_INSTANCE__")
-InstanceNameType = Union[_Sentinel, str]
+SYMBOL_TABLE_EMPTY = _Sentinel("__SYMBOL_TABLE_EMPTY__")
+InstanceNameType = Tuple[_Sentinel, str]
 
 
-def _unwrap_value(value):
-    if not isinstance(value, _Sentinel):
-        return value
-    return value.string
-
-
-def _is_union(T):
+def _is_tuple_annotation(T):
     try:
         origin = T.__origin__
     except AttributeError:
         return False
-    return origin is Union
+    return True
+
+
+def _unwrap_value(value):
+    if isinstance(value, tuple):
+        return tuple(_unwrap_value(v) for v in value)
+    if not isinstance(value, _Sentinel):
+        return value
+    return value.string
 
 
 def _try_isinstance(value, T):
@@ -54,6 +57,15 @@ def _try_isinstance(value, T):
     except Exception:
         return None
     return ret
+
+
+def _type_check_value(value, T):
+    sentinel_match = _Sentinel.match(value)
+    if sentinel_match is not None:
+        value = sentinel_match
+    if _try_isinstance(value, T) is True:
+        return value
+    return None
 
 
 class SymbolTableInterface(abc.ABC):
@@ -223,10 +235,8 @@ class _FieldMeta(type):
         value_type = cls.value_type
         if isinstance(value_type, type):
             return 1
-        if _is_union(value_type):
-            return 1
-        assert isinstance(value_type, tuple)
-        return len(value_type)
+        assert _is_tuple_annotation(value_type)
+        return len(value_type.__args__)
 
     def _parse_key(cls, key, from_json):
         if from_json:
@@ -248,18 +258,17 @@ class _FieldMeta(type):
             if isinstance(value, list):
                 value = tuple(value)
         if cls.value_length == 1:
-            sentinel_match = _Sentinel.match(value)
-            if sentinel_match is not None:
-                value = sentinel_match
-            if _try_isinstance(value, cls.value_type) is True:
-                return value
-            if _is_union(cls.value_type):
-                if any(isinstance(value, T) for T in cls.value_type.__args__):
-                    return value
-            raise ValueError()
+            value = _type_check_value(value, cls.value_type)
+            if value is None:
+                raise ValueError()
+            return value
         if not isinstance(value, tuple):
             raise ValueError()
         if len(value) != cls.value_length:
+            raise ValueError()
+        value = tuple(_type_check_value(v, T)
+                      for v, T in zip(value, cls.value_type.__args__))
+        if any(v is None for v in value):
             raise ValueError()
         return value
 

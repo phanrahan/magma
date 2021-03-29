@@ -23,6 +23,7 @@ from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
+from magma.symbol_table import SYMBOL_TABLE_EMPTY
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -268,7 +269,8 @@ class DefinitionTransformer(TransformerBase):
             return
         for inst, coreir_inst in coreir_insts.items():
             self.get_opt("symbol_table").set_instance_name(
-                self.defn.name, inst.name, coreir_inst.name)
+                self.defn.name, inst.name,
+                (SYMBOL_TABLE_EMPTY, coreir_inst.name))
             self.get_opt("symbol_table").set_instance_type(
                 self.defn.name, inst.name, type(inst).name)
 

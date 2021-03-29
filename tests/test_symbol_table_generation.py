@@ -1,6 +1,7 @@
 import pytest
 
 import magma as m
+from magma.symbol_table import SYMBOL_TABLE_EMPTY
 
 
 def _compile(name, ckt, include_master=False):
@@ -26,7 +27,7 @@ def test_symbol_table_dff():
     symbol_table = _compile("build/DFFInit1", DFFInit1)
     assert symbol_table.get_module_name("DFFInit1") == "DFFInit1"
     assert (symbol_table.get_instance_name("DFFInit1", "SB_DFF_inst0") ==
-            "SB_DFF_inst0")
+            (SYMBOL_TABLE_EMPTY, "SB_DFF_inst0"))
     assert symbol_table.get_port_name("DFFInit1", "D") == "D"
     assert symbol_table.get_port_name("DFFInit1", "Q") == "Q"
     assert symbol_table.get_port_name("DFFInit1", "C") == "C"
@@ -50,7 +51,7 @@ def test_symbol_table_dff_list():
     symbol_table = _compile("build/DFFList", DFFList)
     for i in range(10):
         name = symbol_table.get_instance_name("DFFList", f"SB_DFF_inst{i}")
-        assert name == f"SB_DFF_inst{i}"
+        assert name == (SYMBOL_TABLE_EMPTY, f"SB_DFF_inst{i}")
         instance_type = symbol_table.get_instance_type(
             "DFFList", f"SB_DFF_inst{i}")
         assert instance_type == "SB_DFF"
