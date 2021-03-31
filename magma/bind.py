@@ -100,6 +100,9 @@ Bind monitor interface does not match circuit interface
     if user_namespace is not None:
         cls_name = user_namespace + "_" + cls_name
         monitor_name = user_namespace + "_" + monitor_name
+    if verilog_prefix is not None:
+        cls_name = verilog_prefix + cls_name
+        monitor_name = verilog_prefix + monitor_name
     bind_str = f"bind {cls_name} {monitor_name} {monitor_name}_inst (\n    {ports_str}\n);"  # noqa
     if compile_guard is not None:
         bind_str = f"""
@@ -114,7 +117,7 @@ Bind monitor interface does not match circuit interface
     # Circular dependency, need coreir backend to compile, backend imports
     # circuit (for wrap casts logic, we might be able to factor that out).
     compile_fn(f".magma/{monitor.name}", monitor, inline=True,
-               user_namespace=user_namespace)
+               user_namespace=user_namespace, verilog_prefix=verilog_prefix)
     set_compile_dir(curr_compile_dir)
     with open(f".magma/{monitor.name}.v", "r") as f:
         content = "\n".join((f.read(), bind_str))

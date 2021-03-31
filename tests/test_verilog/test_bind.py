@@ -9,7 +9,8 @@ from subprocess import run
 def test_bind():
     RTL4 = RTL.generate(4)
 
-    m.compile("build/bind_test", RTL4, inline=True, user_namespace="foo")
+    m.compile("build/bind_test", RTL4, inline=True, user_namespace="foo",
+              verilog_prefix="bar_")
     assert m.testing.check_files_equal(__file__,
                                        f"build/bind_test.v",
                                        f"gold/bind_test.v")
@@ -22,7 +23,7 @@ def test_bind():
     if version >= 4.016:
         assert not os.system('cd tests/test_verilog/build && '
                              'verilator --lint-only bind_test.v RTLMonitor.sv '
-                             '--top-module foo_RTL -Wno-MODDUP')
+                             '--top-module bar_foo_RTL -Wno-MODDUP')
     listings_file = "tests/test_verilog/build/bind_test_bind_files.list"
     with open(listings_file, "r") as f:
         assert f.read() == """\
