@@ -209,6 +209,10 @@ class _TableProcessor:
         self._finalized = True
 
     def _process_module_names(self, module_names):
+        if self._scope != 0:
+            unmapped_srcs = {m.name: m
+                             for m in self._modules.values()
+                             if m.scope == self._scope}
         for in_module_name, out_module_name in module_names.items():
             if self._scope == 0:
                 src = _Module(in_module_name, self._scope)
@@ -216,10 +220,16 @@ class _TableProcessor:
                 self._modules[src.key()] = src
             else:
                 src = self._modules[(self._scope, in_module_name)]
+                unmapped_srcs.pop(src.name)
                 root = src.root
             dst = _Module(out_module_name, self._scope + 1, root=root)
             src.add_rename(_Rename(dst))
             self._modules[dst.key()] = dst
+        if self._scope != 0:
+            for src in unmapped_srcs.values():
+                dst = _Module(src.name, self._scope + 1, root=src.root)
+                src.add_rename(_Rename(dst))
+                self._modules[dst.key()] = dst
 
     def _process_instance_names(self, instance_names):
         for key, value in instance_names.items():
