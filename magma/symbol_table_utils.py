@@ -233,7 +233,6 @@ class _TableProcessor:
 
     def _process_instance_names(self, instance_names):
         for key, value in instance_names.items():
-            # TODO(rsetaluri): Deal with inlined instances.
             sentinel, out_instance_name = value
             if not (sentinel is SYMBOL_TABLE_EMPTY or
                     sentinel is SYMBOL_TABLE_INLINED_INSTANCE):
@@ -287,7 +286,9 @@ class _TableProcessor:
             instance.type = module_type
 
     def _process_inlined_instance_names(self, inlined_instance_names):
-        for key, value in inlined_instance_names.items():
+        items = list(inlined_instance_names.items())
+        while items:
+            key, value = items.pop()
             module_name, parent_instance_name, child_instance_name = key
             sentinel, new_instance_name_or_key = value
             if not (sentinel is SYMBOL_TABLE_EMPTY or
@@ -295,7 +296,11 @@ class _TableProcessor:
                 raise ValueError((key, value))
             src_module = self._modules[(self._scope, module_name)]
             dst_module = src_module.get_rename().obj
-            parent_instance = src_module.get_instance(parent_instance_name)
+            try:
+                parent_instance = src_module.get_instance(parent_instance_name)
+            except KeyError:
+                items.insert(0, (key, value))
+                continue
             child_instance = parent_instance.type.get_instance(
                 child_instance_name)
             if not parent_instance.inlined:
