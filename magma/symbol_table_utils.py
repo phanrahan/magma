@@ -1,5 +1,6 @@
 import dataclasses
 from typing import List, Optional, Sequence, Tuple
+import uuid
 
 from magma.symbol_table import (SymbolTableInterface, SymbolTable,
                                 DelegatorSymbolTable, ImmutableSymbolTable,
@@ -182,6 +183,7 @@ class _TableProcessor:
         self._modules = {}
         self._scope = 0
         self._finalized = False
+        self._uniq_key_map = {}
 
     def process_table(self, table: SymbolTableInterface):
         self._process_module_names(table.module_names())
@@ -207,6 +209,15 @@ class _TableProcessor:
                     src_port = _PortWrapper(port.name, modifiers).longname()
                     table.set_port_name(module.name, src_port, tail.name)
         self._finalized = True
+
+    def _get_or_set_uniq_key(self, scope, uniq_key):
+        dict_key = (scope, uniq_key)
+        try:
+            mapped = self._uniq_key_map[dict_key]
+        except KeyError:
+            mapped = str(uuid.uuid4())
+            self._uniq_key_map[dict_key] = mapped
+        return mapped
 
     def _process_module_names(self, module_names):
         if self._scope != 0:
@@ -296,6 +307,8 @@ class _TableProcessor:
                 raise ValueError((key, value))
             src_module = self._modules[(self._scope, module_name)]
             dst_module = src_module.get_rename().obj
+            parent_instance_name = self._uniq_key_map.get(
+                (self._scope, parent_instance_name), parent_instance_name)
             try:
                 parent_instance = src_module.get_instance(parent_instance_name)
             except KeyError:
@@ -306,9 +319,12 @@ class _TableProcessor:
             if not parent_instance.inlined:
                 raise ValueError((key, value))
             if sentinel is SYMBOL_TABLE_EMPTY:
-                new_instance = _Instance(new_instance_name_or_key, self._scope + 1)
+                new_instance = _Instance(
+                    new_instance_name_or_key, self._scope + 1)
                 dst_module.add_instance(new_instance)
             else:
+                new_instance_name_or_key = self._get_or_set_uniq_key(
+                    self._scope, new_instance_name_or_key)
                 new_instance = _Instance(new_instance_name_or_key, self._scope)
                 new_instance.inline()
                 src_module.add_instance(new_instance)
