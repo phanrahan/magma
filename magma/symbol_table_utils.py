@@ -1,6 +1,5 @@
 import dataclasses
 from typing import List, Optional, Sequence, Tuple
-import uuid
 
 from magma.symbol_table import (SymbolTableInterface, SymbolTable,
                                 DelegatorSymbolTable, ImmutableSymbolTable,
@@ -184,6 +183,7 @@ class _TableProcessor:
         self._scope = 0
         self._finalized = False
         self._uniq_key_map = {}
+        self._uniq_key_counter = 0
 
     def process_table(self, table: SymbolTableInterface):
         self._process_module_names(table.module_names())
@@ -210,12 +210,17 @@ class _TableProcessor:
                     table.set_port_name(module.name, src_port, tail.name)
         self._finalized = True
 
+    def _new_unique_key(self):
+        key = f"UNIQ_KEY_{self._uniq_key_counter}"
+        self._uniq_key_counter += 1
+        return key
+
     def _get_or_set_uniq_key(self, scope, uniq_key):
         dict_key = (scope, uniq_key)
         try:
             mapped = self._uniq_key_map[dict_key]
         except KeyError:
-            mapped = str(uuid.uuid4())
+            mapped = self._new_unique_key()
             self._uniq_key_map[dict_key] = mapped
         return mapped
 
