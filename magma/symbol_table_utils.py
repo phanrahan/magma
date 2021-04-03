@@ -80,7 +80,7 @@ class _Module(_Object):
         return self._ports[name]
 
     def remove_port(self, name: str):
-        self._ports.pop(name)
+        del self._ports[name]
 
 
 @dataclasses.dataclass
@@ -158,9 +158,8 @@ def _finalize_instance_names(module, instance, table, top=True):
             table.set_instance_name(
                 module.name, instance.name, (SYMBOL_TABLE_EMPTY, tail.name))
             return
-        else:
-            table.set_instance_name(
-                module.name, instance.name, (SYMBOL_TABLE_INLINED_INSTANCE, ""))
+        table.set_instance_name(
+            module.name, instance.name, (SYMBOL_TABLE_INLINED_INSTANCE, ""))
     for original, new in tail.inlines:
         if not new.inlined:
             table.set_inlined_instance_name(
@@ -236,7 +235,7 @@ class _TableProcessor:
                 self._modules[src.key()] = src
             else:
                 src = self._modules[(self._scope, in_module_name)]
-                unmapped_srcs.pop(src.name)
+                del unmapped_srcs[src.name]
                 root = src.root
             dst = _Module(out_module_name, self._scope + 1, root=root)
             src.add_rename(_Rename(dst))

@@ -40,7 +40,7 @@ def _is_tuple_annotation(T):
         origin = T.__origin__
     except AttributeError:
         return False
-    return True
+    return origin is tuple
 
 
 def _unwrap_value(value):
