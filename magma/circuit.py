@@ -704,6 +704,7 @@ class DefineCircuitKind(CircuitKind):
         cls._context_.placer.place(inst)
 
     def bind(cls, monitor, *args, compile_guard=None):
+        print(cls, monitor)
         cls.bind_modules[monitor] = (args, compile_guard)
 
 

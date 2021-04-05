@@ -67,7 +67,12 @@ def _make_type(cls, *args, **kwargs):
     dct = DefineCircuitKind.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
-    return DefineCircuitKind.__new__(cls, name, bases, dct)
+    # Use circuit bind for the instance
+    dct["bind"] = classmethod(DefineCircuitKind.bind)
+    circuit = DefineCircuitKind.__new__(cls, name, bases, dct)
+    for gen in cls.bind_generators:
+        gen.generate_bind(circuit, *args, **kwargs)
+    return circuit
 
 
 class _Generator2Meta(type):
@@ -75,6 +80,8 @@ class _Generator2Meta(type):
 
     def __new__(metacls, name, bases, dct):
         bases = bases + (DefineCircuitKind,)
+        assert "bind_generators" not in dct
+        dct["bind_generators"] = []
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
@@ -103,6 +110,10 @@ class Generator2(metaclass=_Generator2Meta):
 
     def __call__(cls, *args, **kwargs):
         return DefineCircuitKind.__call__(cls, *args, **kwargs)
+
+    @classmethod
+    def bind(cls, monitor):
+        cls.bind_generators.append(monitor)
 
 
 def reset_generator_cache():
