@@ -205,7 +205,8 @@ def test_inlining_simple():
     }
     tli = SymbolQueryInterface(master)
     assert tli.get_instance_name("M1.i2.i3") == "M1.i2$i3"
-    assert tli.get_instance_name("M1.i2") is None
+    with pytest.raises(SymbolQueryInterface.InlinedLeafInstanceError):
+        tli.get_instance_name("M1.i2")
 
 
 def test_inlining_top_down():
@@ -294,8 +295,10 @@ def test_inlining_top_down():
         },
     }
     tli = SymbolQueryInterface(master)
-    assert tli.get_instance_name("M1.i2") is None
-    assert tli.get_instance_name("M1.i2.i3") is None
+    with pytest.raises(SymbolQueryInterface.InlinedLeafInstanceError):
+        tli.get_instance_name("M1.i2")
+    with pytest.raises(SymbolQueryInterface.InlinedLeafInstanceError):
+        tli.get_instance_name("M1.i2.i3")
     assert tli.get_instance_name("M1.i2.i3.i4") == "M1.i2$i3$i4"
     assert tli.get_instance_name("M1.i2.i3.i4.i5.i6") == "M1.i2$i3$i4.i5.i6"
     assert tli.get_instance_name("M2.i3") == "M2.i3"
@@ -393,10 +396,13 @@ def test_inlining_bottom_up():
         },
     }
     tli = SymbolQueryInterface(master)
-    assert tli.get_instance_name("M1.i2") is None
-    assert tli.get_instance_name("M1.i2.i3") is None
+    with pytest.raises(SymbolQueryInterface.InlinedLeafInstanceError):
+        tli.get_instance_name("M1.i2")
+    with pytest.raises(SymbolQueryInterface.InlinedLeafInstanceError):
+        tli.get_instance_name("M1.i2.i3")
     assert tli.get_instance_name("M1.i2.i3.i4") == "M1.i2$i3$i4"
     assert tli.get_instance_name("M1.i2.i3.i4.i5.i6") == "M1.i2$i3$i4.i5.i6"
-    assert tli.get_instance_name("M2.i3") is None
+    with pytest.raises(SymbolQueryInterface.InlinedLeafInstanceError):
+        tli.get_instance_name("M2.i3")
     assert tli.get_instance_name("M2.i3.i4") == "M2.i3$i4"
     assert tli.get_instance_name("M2.i3.i4.i5") == "M2.i3$i4.i5"

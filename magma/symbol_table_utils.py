@@ -347,7 +347,7 @@ class MasterSymbolTable(ImmutableSymbolTable, DelegatorSymbolTable):
 
 class SymbolQueryInterface:
 
-    class _InlinedLeafInstanceError(Exception):
+    class InlinedLeafInstanceError(Exception):
         pass
 
     @dataclasses.dataclass
@@ -375,7 +375,7 @@ class SymbolQueryInterface:
         if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
             insts = insts[1:]
             if not insts:
-                raise SymbolQueryInterface._InlinedLeafInstanceError()
+                raise SymbolQueryInterface.InlinedLeafInstanceError()
             key = SymbolQueryInterface._Inst(new_name_or_key, None)
             return self._get_inlined_instance_name_impl(module, key, insts)
         raise ValueError(sentinel)
@@ -390,7 +390,7 @@ class SymbolQueryInterface:
         if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
             insts = insts[1:]
             if not insts:
-                raise SymbolQueryInterface._InlinedLeafInstanceError()
+                raise SymbolQueryInterface.InlinedLeafInstanceError()
             return self._get_inlined_instance_name_impl(module, inst, insts)
         raise ValueError(sentinel)
 
@@ -409,10 +409,7 @@ class SymbolQueryInterface:
         insts = [SymbolQueryInterface._Inst(inst, t)
                  for inst, t in zip(insts, self._get_types(module, insts))]
         new_path = [self._table.get_module_name(module)]
-        try:
-            inst_path = self._get_instance_name_impl(module, insts)
-        except SymbolQueryInterface._InlinedLeafInstanceError:
-            return None
+        inst_path = self._get_instance_name_impl(module, insts)
         new_path += inst_path
         return ".".join(new_path)
 
