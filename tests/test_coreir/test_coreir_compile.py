@@ -48,5 +48,3 @@ def test_compile_coreir():
     with open(os.path.join(dir_path, "mapParallel_test.json"), "r") as actual:
         with open(os.path.join(dir_path, "mapParallel_test_gold.json"), "r") as gold:
             assert actual.read() == gold.read()
-    mod = c.load_from_file(os.path.join(dir_path, "mapParallel_test.json"))
-    mod.print_()
