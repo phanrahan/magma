@@ -345,7 +345,7 @@ class MasterSymbolTable(ImmutableSymbolTable, DelegatorSymbolTable):
         processor.finalize(self._underlying)
 
 
-class TopLevelInterface:
+class SymbolQueryInterface:
 
     class _InlinedLeafInstanceError(Exception):
         pass
@@ -375,8 +375,8 @@ class TopLevelInterface:
         if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
             insts = insts[1:]
             if not insts:
-                raise TopLevelInterface._InlinedLeafInstanceError()
-            key = TopLevelInterface._Inst(new_name_or_key, None)
+                raise SymbolQueryInterface._InlinedLeafInstanceError()
+            key = SymbolQueryInterface._Inst(new_name_or_key, None)
             return self._get_inlined_instance_name_impl(module, key, insts)
         raise ValueError(sentinel)
 
@@ -390,7 +390,7 @@ class TopLevelInterface:
         if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
             insts = insts[1:]
             if not insts:
-                raise TopLevelInterface._InlinedLeafInstanceError()
+                raise SymbolQueryInterface._InlinedLeafInstanceError()
             return self._get_inlined_instance_name_impl(module, inst, insts)
         raise ValueError(sentinel)
 
@@ -406,12 +406,12 @@ class TopLevelInterface:
         module, *insts = path.split(".")
         if not insts:
             raise ValueError(path)
-        insts = [TopLevelInterface._Inst(inst, t)
+        insts = [SymbolQueryInterface._Inst(inst, t)
                  for inst, t in zip(insts, self._get_types(module, insts))]
         new_path = [self._table.get_module_name(module)]
         try:
             inst_path = self._get_instance_name_impl(module, insts)
-        except TopLevelInterface._InlinedLeafInstanceError:
+        except SymbolQueryInterface._InlinedLeafInstanceError:
             return None
         new_path += inst_path
         return ".".join(new_path)

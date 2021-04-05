@@ -4,7 +4,7 @@ from typing import Optional
 from magma.symbol_table import (SymbolTable, SYMBOL_TABLE_EMPTY,
                                 SYMBOL_TABLE_INLINED_INSTANCE)
 from magma.symbol_table_utils import (make_master_symbol_table, MasterSymbolTable,
-                                      TopLevelInterface)
+                                      SymbolQueryInterface)
 
 
 def _make_empty(name: str):
@@ -78,7 +78,7 @@ def test_one():
             ("Top", "inst"): "MyModule",
         },
     }
-    tli = TopLevelInterface(master)
+    tli = SymbolQueryInterface(master)
     assert tli.get_module_name("Top") == "OTop"
     assert tli.get_instance_name("Top.inst") == "OTop.o_inst"
 
@@ -203,7 +203,7 @@ def test_inlining_simple():
             ("M2", "i3"): "M3",
         },
     }
-    tli = TopLevelInterface(master)
+    tli = SymbolQueryInterface(master)
     assert tli.get_instance_name("M1.i2.i3") == "M1.i2$i3"
     assert tli.get_instance_name("M1.i2") is None
 
@@ -293,7 +293,7 @@ def test_inlining_top_down():
             ("M5", "i6"): "M6",
         },
     }
-    tli = TopLevelInterface(master)
+    tli = SymbolQueryInterface(master)
     assert tli.get_instance_name("M1.i2") is None
     assert tli.get_instance_name("M1.i2.i3") is None
     assert tli.get_instance_name("M1.i2.i3.i4") == "M1.i2$i3$i4"
@@ -392,7 +392,7 @@ def test_inlining_bottom_up():
             ("M5", "i6"): "M6",
         },
     }
-    tli = TopLevelInterface(master)
+    tli = SymbolQueryInterface(master)
     assert tli.get_instance_name("M1.i2") is None
     assert tli.get_instance_name("M1.i2.i3") is None
     assert tli.get_instance_name("M1.i2.i3.i4") == "M1.i2$i3$i4"
