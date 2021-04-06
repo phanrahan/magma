@@ -78,10 +78,12 @@ class CoreIRBackend:
         return self._namespaces
 
 
-def compile(main, file_name=None, context=None):
+def compile(main, file_name=None, context=None, output=None):
     insert_wrap_casts(main)
     backend = CoreIRBackend(context)
     backend.compile(main)
+    if output is not None:
+        output["coreir_module"] = backend.get_module(main)
     if file_name is None:
         return backend.get_module(main)
     return backend.get_module(main).save_to_file(file_name)
