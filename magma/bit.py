@@ -50,7 +50,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_unary_op(cls, op):
+    def _declare_unary_op(cls, op):
+        assert cls.undirected_t is cls
         assert op == "not", f"simulate not implemented for {op}"
 
         class _MagmaBitOp(Circuit):
@@ -72,7 +73,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_binary_op(cls, op):
+    def _declare_binary_op(cls, op):
+        assert cls.undirected_t is cls
         python_op_name = primitive_to_python(op)
         python_op = getattr(operator, python_op_name)
 
@@ -117,7 +119,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     def __invert__(self):
         # CoreIR uses not instead of invert name
-        return self.declare_unary_op("not")()(self)
+        return type(self).undirected_t._declare_unary_op("not")()(self)
 
     @bit_cast
     @output_only("Cannot use == on an input")
@@ -133,15 +135,15 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @bit_cast
     def __and__(self, other):
-        return self.declare_binary_op("and")()(self, other)
+        return type(self).undirected_t._declare_binary_op("and")()(self, other)
 
     @bit_cast
     def __or__(self, other):
-        return self.declare_binary_op("or")()(self, other)
+        return type(self).undirected_t._declare_binary_op("or")()(self, other)
 
     @bit_cast
     def __xor__(self, other):
-        return self.declare_binary_op("xor")()(self, other)
+        return type(self).undirected_t._declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
         if isinstance(t_branch, list) and isinstance(f_branch, list):
