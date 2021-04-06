@@ -67,7 +67,8 @@ def _make_type(cls, *args, **kwargs):
     dct = DefineCircuitKind.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
-    # Use circuit bind for the instance
+    # Use circuit bind for the instance,
+    # rather than inherited Generator2 bind
     dct["bind"] = classmethod(DefineCircuitKind.bind)
     circuit = DefineCircuitKind.__new__(cls, name, bases, dct)
     for gen in cls.bind_generators:
