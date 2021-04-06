@@ -1,8 +1,11 @@
 import os
+import pytest
+
 import coreir
 import magma as m
 
 
+@pytest.mark.skip("No longer supported functionality")
 def test_compile_coreir():
     width = 16
     numInputs = 4
