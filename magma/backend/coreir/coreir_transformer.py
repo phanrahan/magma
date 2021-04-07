@@ -3,10 +3,12 @@ from copy import copy
 import json
 import logging
 import os
+
+import coreir as pycoreir
+
 from magma.digital import Digital
 from magma.array import Array
 from magma.bits import Bits
-from coreir import Wireable
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
     get_module_of_inst, magma_interface_to_coreir_module_type,
@@ -33,6 +35,18 @@ _logger = root_logger().getChild("coreir_backend")
 
 def _is_generator(ckt_or_inst):
     return ckt_or_inst.coreir_genargs is not None
+
+
+def _coreir_longname(magma_defn_or_decl, coreir_module_or_generator):
+    namespace = coreir_module_or_generator.namespace.name
+    prefix = "" if namespace == "global" else f"{namespace}_"
+    longname = prefix + coreir_module_or_generator.name
+    if isinstance(coreir_module_or_generator, pycoreir.Module):
+        return longname
+    assert isinstance(coreir_module_or_generator, pycoreir.Generator)
+    for k, v in magma_defn_or_decl.coreir_genargs.items():
+        longname += f"__{k}{v}"
+    return longname
 
 
 def _make_unconnected_error_str(port):
@@ -157,10 +171,10 @@ class DefnOrDeclTransformer(TransformerBase):
     def _generate_symbols(self):
         if not self.get_opt("generate_symbols", False):
             return
-        if _is_generator(self.defn_or_decl):
-            return
+        out_module_name = _coreir_longname(
+            self.defn_or_decl, self.coreir_module)
         self.opts.get("symbol_table").set_module_name(
-            self.defn_or_decl.name, self.coreir_module.name)
+            self.defn_or_decl.name, out_module_name)
 
     def _run_self_impl(self):
         if self.coreir_module:
@@ -321,7 +335,7 @@ class DefinitionTransformer(TransformerBase):
     def get_source(self, port, value, module_defn):
         port = _unwrap(port)
         value = _unwrap(value)
-        if isinstance(value, Wireable):
+        if isinstance(value, pycoreir.Wireable):
             return value
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
