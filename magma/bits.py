@@ -180,7 +180,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_unary_op(cls, op):
+    def _declare_unary_op(cls, op):
+        assert cls.undirected_t is cls
         N = len(cls)
         python_op_name = primitive_to_python(op)
 
@@ -204,7 +205,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_binary_op(cls, op):
+    def _declare_binary_op(cls, op):
+        assert cls.undirected_t is cls
         N = len(cls)
         python_op_name = primitive_to_python(op)
         python_op = getattr(operator, python_op_name)
@@ -230,7 +232,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_compare_op(cls, op):
+    def _declare_compare_op(cls, op):
+        assert cls.undirected_t is cls
         N = len(cls)
         python_op_name = primitive_to_python(op)
 
@@ -255,7 +258,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_ite(cls, T):
+    def _declare_ite(cls, T):
+        assert cls.undirected_t is cls
         t_str = str(T)
         # Sanitize
         t_str = t_str.replace("(", "_")
@@ -285,27 +289,27 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return _MagmBitsOp
 
     def bvnot(self) -> 'AbstractBitVector':
-        return self.declare_unary_op("not")()(self)
+        return type(self).undirected_t._declare_unary_op("not")()(self)
 
     @bits_cast
     def bvand(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("and")()(self, other)
+        return type(self).undirected_t._declare_binary_op("and")()(self, other)
 
     @bits_cast
     def bvor(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("or")()(self, other)
+        return type(self).undirected_t._declare_binary_op("or")()(self, other)
 
     @bits_cast
     def bvxor(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("xor")()(self, other)
+        return type(self).undirected_t._declare_binary_op("xor")()(self, other)
 
     @bits_cast
     def bvshl(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("shl")()(self, other)
+        return type(self).undirected_t._declare_binary_op("shl")()(self, other)
 
     @bits_cast
     def bvlshr(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("lshr")()(self, other)
+        return type(self).undirected_t._declare_binary_op("lshr")()(self, other)
 
     def bvashr(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -321,26 +325,26 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @bits_cast
     def bveq(self, other) -> AbstractBit:
-        return self.declare_compare_op("eq")()(self, other)
+        return type(self).undirected_t._declare_compare_op("eq")()(self, other)
 
     @bits_cast
     def bvult(self, other) -> AbstractBit:
-        return self.declare_compare_op("ult")()(self, other)
+        return type(self).undirected_t._declare_compare_op("ult")()(self, other)
 
     @bits_cast
     def bvule(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
             return Type.__le__(self, other)
-        return self.declare_compare_op("ule")()(self, other)
+        return type(self).undirected_t._declare_compare_op("ule")()(self, other)
 
     @bits_cast
     def bvugt(self, other) -> AbstractBit:
-        return self.declare_compare_op("ugt")()(self, other)
+        return type(self).undirected_t._declare_compare_op("ugt")()(self, other)
 
     @bits_cast
     def bvuge(self, other) -> AbstractBit:
-        return self.declare_compare_op("uge")()(self, other)
+        return type(self).undirected_t._declare_compare_op("uge")()(self, other)
 
     def bvslt(self, other) -> AbstractBit:
         raise NotImplementedError()
@@ -355,7 +359,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         raise NotImplementedError()
 
     def bvneg(self) -> 'AbstractBitVector':
-        return self.declare_unary_op("neg")()(self)
+        return type(self).undirected_t._declare_unary_op("neg")()(self)
 
     def adc(self, other: 'Bits', carry: Bit) -> tp.Tuple['Bits', Bit]:
         """
@@ -377,28 +381,28 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         type_ = type(t_branch)
         if type_ != type(f_branch):
             raise TypeError("ite expects same type for both branches")
-        return self.declare_ite(type_)()(t_branch, f_branch,
-                                         self != self.make_constant(0))
+        return type(self).undirected_t._declare_ite(type_)()(
+            t_branch, f_branch, self != self.make_constant(0))
 
     @bits_cast
     def bvadd(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("add")()(self, other)
+        return type(self).undirected_t._declare_binary_op("add")()(self, other)
 
     @bits_cast
     def bvsub(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("sub")()(self, other)
+        return type(self).undirected_t._declare_binary_op("sub")()(self, other)
 
     @bits_cast
     def bvmul(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("mul")()(self, other)
+        return type(self).undirected_t._declare_binary_op("mul")()(self, other)
 
     @bits_cast
     def bvudiv(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("udiv")()(self, other)
+        return type(self).undirected_t._declare_binary_op("udiv")()(self, other)
 
     @bits_cast
     def bvurem(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("urem")()(self, other)
+        return type(self).undirected_t._declare_binary_op("urem")()(self, other)
 
     def bvsdiv(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
@@ -654,34 +658,34 @@ class SInt(Int):
 
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
-        return self.declare_compare_op("slt")()(self, other)
+        return type(self).undirected_t._declare_compare_op("slt")()(self, other)
 
     @bits_cast
     def bvsle(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
             return Type.__le__(self, other)
-        return self.declare_compare_op("sle")()(self, other)
+        return type(self).undirected_t._declare_compare_op("sle")()(self, other)
 
     @bits_cast
     def bvsgt(self, other) -> AbstractBit:
-        return self.declare_compare_op("sgt")()(self, other)
+        return type(self).undirected_t._declare_compare_op("sgt")()(self, other)
 
     @bits_cast
     def bvsge(self, other) -> AbstractBit:
-        return self.declare_compare_op("sge")()(self, other)
+        return type(self).undirected_t._declare_compare_op("sge")()(self, other)
 
     @bits_cast
     def bvsdiv(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("sdiv")()(self, other)
+        return type(self).undirected_t._declare_binary_op("sdiv")()(self, other)
 
     @bits_cast
     def bvsrem(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("srem")()(self, other)
+        return type(self).undirected_t._declare_binary_op("srem")()(self, other)
 
     @bits_cast
     def bvashr(self, other) -> 'AbstractBitVector':
-        return self.declare_binary_op("ashr")()(self, other)
+        return type(self).undirected_t._declare_binary_op("ashr")()(self, other)
 
     @_error_handler
     def __mod__(self, other):
