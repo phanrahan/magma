@@ -38,13 +38,19 @@ def _is_generator(ckt_or_inst):
 
 
 def _coreir_longname(magma_defn_or_decl, coreir_module_or_generator):
+    # NOTE(rsetaluri): This is a proxy to exposing a pycoreir/coreir-c API to
+    # get a module's longname. This logic should be identical right now. Another
+    # caveat is that we don't elaborate the CoreIR generator at the magma level,
+    # so it's longname needs to be dynamically reconstructed anyway.
     namespace = coreir_module_or_generator.namespace.name
     prefix = "" if namespace == "global" else f"{namespace}_"
     longname = prefix + coreir_module_or_generator.name
     if isinstance(coreir_module_or_generator, pycoreir.Module):
         return longname
     assert isinstance(coreir_module_or_generator, pycoreir.Generator)
-    for k, v in magma_defn_or_decl.coreir_genargs.items():
+    param_keys = coreir_module_or_generator.params.keys()
+    for k in param_keys:
+        v = magma_defn_or_decl.coreir_genargs[k]
         longname += f"__{k}{v}"
     return longname
 
