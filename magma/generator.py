@@ -81,8 +81,7 @@ class _Generator2Meta(type):
 
     def __new__(metacls, name, bases, dct):
         bases = bases + (DefineCircuitKind,)
-        assert "bind_generators" not in dct
-        dct["bind_generators"] = []
+        assert dct.setdefault("bind_generators", []) == []
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
