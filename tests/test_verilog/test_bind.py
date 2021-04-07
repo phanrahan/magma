@@ -7,7 +7,7 @@ from subprocess import run
 
 
 def test_bind():
-    RTL4 = RTL.generate(4)
+    RTL4 = RTL(4)
 
     m.compile("build/bind_test", RTL4, inline=True, user_namespace="foo",
               verilog_prefix="bar_")
@@ -35,8 +35,8 @@ def test_bind_multi_unique_name():
     class Main(m.Circuit):
         _ignore_undriven_ = True
         io = m.ClockIO()
-        RTL4 = RTL.generate(4)()
-        RTL5 = RTL.generate(5)()
+        RTL4 = RTL(4)()
+        RTL5 = RTL(5)()
 
     m.compile("build/bind_uniq_test", Main, inline=True, drive_undriven=True,
               terminate_unused=True, user_namespace="foo",
