@@ -282,8 +282,6 @@ class DefinitionTransformer(TransformerBase):
         if not self.get_opt("generate_symbols", False):
             return
         for inst, coreir_inst in coreir_insts.items():
-            if _is_generator(type(inst)):
-                continue
             self.get_opt("symbol_table").set_instance_name(
                 self.defn.name, inst.name,
                 (SYMBOL_TABLE_EMPTY, coreir_inst.name))
