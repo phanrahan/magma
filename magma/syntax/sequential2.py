@@ -2,7 +2,7 @@ import ast
 import libcst as cst
 import libcst.matchers as match
 import magma as magma_module
-from typing import Optional, MutableMapping
+from typing import Optional, MutableMapping, Sequence
 
 from ast_tools.stack import SymbolTable
 from ast_tools.passes import (PASS_ARGS_T, Pass, apply_passes, ssa,
@@ -416,7 +416,9 @@ def sequential2(pre_passes=[], post_passes=[],
                 annotations: Optional[dict] = None,
                 reset_type: AbstractReset = None,
                 has_enable: bool = False,
-                reset_priority: bool = True):
+                reset_priority: bool = True,
+                output_port_names: Optional[Sequence[str]] = None,
+                ):
     passes = (pre_passes + [
         _ReplacePrev(), ssa(strict=False), bool_to_bit(), if_to_phi(_seq_phi)
     ] + post_passes)
@@ -444,7 +446,7 @@ def sequential2(pre_passes=[], post_passes=[],
         if "self" in _annotations:
             raise Exception("Assumed self did not have annotation")
 
-        io_args = build_io_args(_annotations)
+        io_args = build_io_args(_annotations, output_port_names)
 
         class SequentialCircuit(Circuit):
             name = cls.__name__
@@ -464,6 +466,11 @@ def sequential2(pre_passes=[], post_passes=[],
             call_args += build_call_args(io, _annotations)
 
             call_result = cls.__call__(*call_args)
-            wire_call_result(io, call_result, cls.__call__.__annotations__)
+            wire_call_result(
+                io,
+                call_result,
+                cls.__call__.__annotations__,
+                output_port_names
+            )
         return SequentialCircuit
     return seq_inner
