@@ -68,7 +68,7 @@ def _make_type(cls, *args, **kwargs):
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
     # NOTE(leonardt): We need to override the Generator2 classmethod bind with
-    DefineCircuitKind.bind for generator instances (circuits).
+    # DefineCircuitKind.bind for generator instances (circuits).
     dct["bind"] = classmethod(DefineCircuitKind.bind)
     ckt = DefineCircuitKind.__new__(cls, name, bases, dct)
     for gen in cls.bind_generators:
