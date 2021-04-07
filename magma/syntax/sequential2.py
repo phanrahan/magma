@@ -467,10 +467,10 @@ def sequential2(pre_passes=[], post_passes=[],
 
             call_result = cls.__call__(*call_args)
             wire_call_result(
-                    io,
-                    call_result,
-                    cls.__call__.__annotations__,
-                    output_port_names
+                io,
+                call_result,
+                cls.__call__.__annotations__,
+                output_port_names
             )
         return SequentialCircuit
     return seq_inner
