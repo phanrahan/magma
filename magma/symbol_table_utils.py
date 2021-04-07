@@ -69,6 +69,9 @@ class _Module(_Object):
         assert instance.name not in self._instances
         self._instances[instance.name] = instance
 
+    def has_instance(self, name: str):
+        return name in self._instances
+
     def get_instance(self, name: str):
         return self._instances[name]
 
@@ -260,6 +263,8 @@ class _TableProcessor:
                 root_instance = src_instance
                 src_module.add_instance(src_instance)
             else:
+                if not src_module.has_instance(in_instance_name):
+                    continue
                 src_instance = src_module.get_instance(in_instance_name)
                 root_instance = src_instance.root
             if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
