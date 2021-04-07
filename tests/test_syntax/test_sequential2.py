@@ -16,7 +16,6 @@ Register = m.Register
 
 from ast_tools import SymbolTable
 
-
 class DualClockRAM(m.Circuit):
     io = m.IO(
         RADDR=m.In(m.Bits[8]),
@@ -875,3 +874,13 @@ def test_magma_not_in_env():
 
         def __call__(self, i: Data) -> Data:
             return i + 1
+
+
+def test_named_outputs():
+    Data = m.UInt[8]
+    @m.sequential2(output_port_names=['s','c_out'])
+    class Adder:
+        def __call__(self, a: Data, b: Data, c_in: m.Bit) -> (Data, m.Bit):
+            return a.adc(b, c_in)
+
+    assert Adder.interface.ports.keys() == {'a', 'b', 'c_in', 's', 'c_out', 'CLK'}
