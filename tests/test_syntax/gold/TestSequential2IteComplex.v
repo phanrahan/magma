@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(2'h0),
     .width(2)
-) reg_P_inst0 (
+) reg_P2_inst0 (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -37,17 +37,17 @@ module Register (
     output O,
     input CLK
 );
-wire [0:0] reg_P_inst0_out;
+wire [0:0] reg_P1_inst0_out;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
-) reg_P_inst0 (
+) reg_P1_inst0 (
     .clk(CLK),
     .in(I),
-    .out(reg_P_inst0_out)
+    .out(reg_P1_inst0_out)
 );
-assign O = reg_P_inst0_out[0];
+assign O = reg_P1_inst0_out[0];
 endmodule
 
 module Mux2xTuplea_TupleArray2__SequentialRegisterWrapperBit_b_Array2_Bit (

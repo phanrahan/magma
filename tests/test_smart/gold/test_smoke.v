@@ -37,27 +37,27 @@ module Test (
     input [15:0] port35,
     input [0:0] port36
 );
-wire [9:0] magma_Bits_10_add_inst0_out;
-wire [9:0] magma_Bits_10_shl_inst1_out;
-wire [15:0] magma_Bits_16_add_inst0_out;
-wire [15:0] magma_Bits_16_shl_inst0_out;
-assign magma_Bits_10_add_inst0_out = 10'(port12 + ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port13[0]}));
-assign magma_Bits_10_shl_inst1_out = ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port32[0]}) << port31;
-assign magma_Bits_16_add_inst0_out = 16'(({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port9[9:0]}) + port10);
-assign magma_Bits_16_shl_inst0_out = ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port22[9:0]}) << port23;
+wire [9:0] magma_UInt_10_add_inst0_out;
+wire [9:0] magma_UInt_10_shl_inst1_out;
+wire [15:0] magma_UInt_16_add_inst0_out;
+wire [15:0] magma_UInt_16_shl_inst0_out;
+assign magma_UInt_10_add_inst0_out = 10'(port12 + ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port13[0]}));
+assign magma_UInt_10_shl_inst1_out = ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port32[0]}) << port31;
+assign magma_UInt_16_add_inst0_out = 16'(({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port9[9:0]}) + port10);
+assign magma_UInt_16_shl_inst0_out = ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port22[9:0]}) << port23;
 assign port0 = port1[9:0];
 assign port2 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port3[9:0]};
 assign port4 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port5[0]};
 assign port6 = port7[0];
-assign port8 = magma_Bits_16_add_inst0_out[11:0];
-assign port11 = magma_Bits_10_add_inst0_out[0];
+assign port8 = magma_UInt_16_add_inst0_out[11:0];
+assign port11 = magma_UInt_10_add_inst0_out[0];
 assign port14 = ~ ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port15[9:0]});
 assign port16 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port17[9:0]}) <= port18};
 assign port19 = {1'b0,1'b0,1'b0,& port20};
-assign port21 = magma_Bits_16_shl_inst0_out[9:0];
+assign port21 = magma_UInt_16_shl_inst0_out[9:0];
 assign port24 = port26 << ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port25[9:0]});
 assign port27 = port28 << ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port29[0]});
-assign port30 = magma_Bits_10_shl_inst1_out[0];
+assign port30 = magma_UInt_10_shl_inst1_out[0];
 assign port33 = {1'b0,1'b0,1'b0,1'b0,1'b0,port36[0],port35[15:0],port34[9:0]};
 endmodule
 

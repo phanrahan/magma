@@ -23,20 +23,20 @@ module Register (
     output [1:0] O_a [0:0],
     output [1:0] O_b__0_c
 );
-wire [3:0] reg_P_inst0_out;
-wire [3:0] reg_P_inst0_in;
-assign reg_P_inst0_in = {I_b__0_c[1:0],I_a[0][1:0]};
+wire [3:0] reg_P4_inst0_out;
+wire [3:0] reg_P4_inst0_in;
+assign reg_P4_inst0_in = {I_b__0_c[1:0],I_a[0][1:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(4'h0),
     .width(4)
-) reg_P_inst0 (
+) reg_P4_inst0 (
     .clk(CLK),
-    .in(reg_P_inst0_in),
-    .out(reg_P_inst0_out)
+    .in(reg_P4_inst0_in),
+    .out(reg_P4_inst0_out)
 );
-assign O_a[0] = reg_P_inst0_out[1:0];
-assign O_b__0_c = reg_P_inst0_out[3:2];
+assign O_a[0] = reg_P4_inst0_out[1:0];
+assign O_b__0_c = reg_P4_inst0_out[3:2];
 endmodule
 
 module Mux2xTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit (

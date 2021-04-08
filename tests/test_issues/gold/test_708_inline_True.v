@@ -21,13 +21,13 @@ module Test (
     output [7:0] O_a_x,
     input c
 );
-wire [7:0] magma_Bits_8_add_inst0_out;
+wire [7:0] magma_UInt_8_add_inst0_out;
 Mux2xTuplex_UInt8 Mux2xTuplex_UInt8_inst0 (
     .I0_x(8'h00),
-    .I1_x(magma_Bits_8_add_inst0_out),
+    .I1_x(magma_UInt_8_add_inst0_out),
     .O_x(O_a_x),
     .S(c)
 );
-assign magma_Bits_8_add_inst0_out = 8'h00 + 8'h01;
+assign magma_UInt_8_add_inst0_out = 8'h00 + 8'h01;
 endmodule
 

@@ -13,14 +13,14 @@ module TestBinary (
     input [2:0] I1,
     output [2:0] O
 );
-wire [2:0] magma_Bits_3_sub_inst0_out;
+wire [2:0] magma_UInt_3_sub_inst0_out;
 coreir_sub #(
     .width(3)
-) magma_Bits_3_sub_inst0 (
+) magma_UInt_3_sub_inst0 (
     .in0(I0),
     .in1(I1),
-    .out(magma_Bits_3_sub_inst0_out)
+    .out(magma_UInt_3_sub_inst0_out)
 );
-assign O = magma_Bits_3_sub_inst0_out;
+assign O = magma_UInt_3_sub_inst0_out;
 endmodule
 

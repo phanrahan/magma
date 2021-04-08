@@ -58,7 +58,7 @@ coreir_reg_arst #(
     .clk_posedge(1'b1),
     .init(3'h0),
     .width(3)
-) reg_PR_inst0 (
+) reg_PR3_inst0 (
     .clk(CLK),
     .arst(ASYNCRESET),
     .in(enable_mux_O),
@@ -73,15 +73,15 @@ module Test2 (
     input ASYNCRESET
 );
 wire [2:0] Register_inst0_O;
-wire [2:0] magma_Bits_3_add_inst0_out;
+wire [2:0] magma_UInt_3_add_inst0_out;
 Register Register_inst0 (
-    .I(magma_Bits_3_add_inst0_out),
+    .I(magma_UInt_3_add_inst0_out),
     .O(Register_inst0_O),
     .CE(CE),
     .CLK(CLK),
     .ASYNCRESET(ASYNCRESET)
 );
-assign magma_Bits_3_add_inst0_out = 3'(Register_inst0_O + 3'h1);
-assign O = magma_Bits_3_add_inst0_out;
+assign magma_UInt_3_add_inst0_out = 3'(Register_inst0_O + 3'h1);
+assign O = magma_UInt_3_add_inst0_out;
 endmodule
 
