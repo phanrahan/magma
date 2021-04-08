@@ -224,6 +224,8 @@ class GeneratorTransformer(TransformerBase):
         self.coreir_module = self._children[0].coreir_module
 
     def _generate_symbols(self):
+        if not self.get_opt("generate_symbols", False):
+            return
         global _generator_callbacks
 
         def _callback(coreir_inst):
