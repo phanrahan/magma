@@ -110,7 +110,8 @@ class CoreIRCompiler(Compiler):
                 if self.opts.get("dont_merge_symbol_tables", False):
                     result["coreir_symbol_table"] = coreir_symbol_table
                 else:
-                    master = MasterSymbolTable([symbol_table, coreir_symbol_table])
+                    master = MasterSymbolTable([
+                        symbol_table, coreir_symbol_table])
                     result["master_symbol_table"] = master
             return result
         has_header_or_footer = (self.opts.get("header_file", "") or

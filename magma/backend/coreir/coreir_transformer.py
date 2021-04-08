@@ -154,7 +154,8 @@ class DefnOrDeclTransformer(TransformerBase):
 
     def children(self):
         if _is_generator(self.defn_or_decl):
-            return [GeneratorTransformer(self.backend, self.opts, self.defn_or_decl)]
+            return [GeneratorTransformer(
+                self.backend, self.opts, self.defn_or_decl)]
         try:
             coreir_module = self.backend.get_module(self.defn_or_decl)
             _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
