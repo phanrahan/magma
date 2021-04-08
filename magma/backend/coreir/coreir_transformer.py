@@ -33,6 +33,9 @@ from magma.symbol_table import SYMBOL_TABLE_EMPTY
 _logger = root_logger().getChild("coreir_backend")
 
 
+_generator_callbacks = {}
+
+
 def _is_generator(ckt_or_inst):
     return ckt_or_inst.coreir_genargs is not None
 
@@ -150,6 +153,8 @@ class DefnOrDeclTransformer(TransformerBase):
         self.coreir_module = None
 
     def children(self):
+        if _is_generator(self.defn_or_decl):
+            return [GeneratorTransformer(self.backend, self.opts, self.defn_or_decl)]
         try:
             coreir_module = self.backend.get_module(self.defn_or_decl)
             _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
@@ -191,6 +196,46 @@ class DefnOrDeclTransformer(TransformerBase):
             self.defn_or_decl.wrappedModule = self.coreir_module
             libs = self.backend.included_libs()
             self.defn_or_decl.coreir_wrapped_modules_libs_used = libs
+
+
+class GeneratorTransformer(TransformerBase):
+    def __init__(self, backend, opts, defn_or_decl):
+        super().__init__(backend, opts)
+        self.defn_or_decl = defn_or_decl
+        self.coreir_module = None
+
+    def children(self):
+        try:
+            coreir_module = self.backend.get_module(self.defn_or_decl)
+            _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
+            self.coreir_module = coreir_module
+            return []
+        except KeyError:
+            pass
+        assert not isdefinition(self.defn_or_decl)
+        return [DeclarationTransformer(self.backend,
+                                       self.opts,
+                                       self.defn_or_decl)]
+
+    def run_self(self):
+        self._generate_symbols()
+        if self.coreir_module is not None:
+            return
+        self.coreir_module = self._children[0].coreir_module
+
+    def _generate_symbols(self):
+        global _generator_callbacks
+
+        def _callback(coreir_inst):
+            magma_names = list(self.defn_or_decl.interface.ports.keys())
+            coreir_names = list(k for k, _ in coreir_inst.module.type.items())
+            assert len(magma_names) == len(coreir_names)
+            for magma_name, coreir_name in zip(magma_names, coreir_names):
+                self.opts.get("symbol_table").set_port_name(
+                    self.defn_or_decl.name, magma_name, coreir_name)
+
+        assert self.defn_or_decl not in _generator_callbacks
+        _generator_callbacks[self.defn_or_decl] = _callback
 
 
 class InstanceTransformer(LeafTransformer):
@@ -298,6 +343,14 @@ class DefinitionTransformer(TransformerBase):
         coreir_defn = self.coreir_module.new_definition()
         coreir_insts = {inst: self.inst_txs[inst].coreir_inst_gen(coreir_defn)
                         for inst in self.defn.instances}
+        # Call generator callback if necessary.
+        global _generator_callbacks
+        for inst, coreir_inst in coreir_insts.items():
+            try:
+                callback = _generator_callbacks.pop(type(inst))
+            except KeyError:
+                continue
+            callback(coreir_inst)
         self._generate_symbols(coreir_insts)
         # If this module was imported from verilog, do not go through the
         # general module construction flow. Instead just attach the verilog
