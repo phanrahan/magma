@@ -39,31 +39,31 @@
           "magma_Bit_or_inst0":{
             "modref":"corebit.or"
           },
-          "magma_Bits_2_add_inst0":{
-            "genref":"coreir.add",
-            "genargs":{"width":["Int",2]}
-          },
-          "magma_Bits_2_eq_inst0":{
-            "genref":"coreir.eq",
-            "genargs":{"width":["Int",2]}
-          },
           "magma_Bits_4_eq_inst0":{
             "genref":"coreir.eq",
             "genargs":{"width":["Int",4]}
+          },
+          "magma_UInt_2_add_inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",2]}
+          },
+          "magma_UInt_2_eq_inst0":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
           }
         },
         "connections":[
           ["_magma_inline_wire0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
           ["self.port_0","Register_inst0.CE"],
           ["self.CLK","Register_inst0.CLK"],
-          ["magma_Bits_2_add_inst0.out","Register_inst0.I"],
-          ["magma_Bits_2_add_inst0.in0","Register_inst0.O"],
-          ["magma_Bits_2_eq_inst0.in0","Register_inst0.O"],
+          ["magma_UInt_2_add_inst0.out","Register_inst0.I"],
+          ["magma_UInt_2_add_inst0.in0","Register_inst0.O"],
+          ["magma_UInt_2_eq_inst0.in0","Register_inst0.O"],
           ["magma_Bit_or_inst0.out","_magma_inline_wire0.in"],
-          ["magma_Bits_2_add_inst0.in1","const_1_2.out"],
-          ["magma_Bits_2_eq_inst0.in1","const_3_2.out"],
+          ["magma_UInt_2_add_inst0.in1","const_1_2.out"],
+          ["magma_UInt_2_eq_inst0.in1","const_3_2.out"],
           ["magma_Bits_4_eq_inst0.in1","const_3_4.out"],
-          ["magma_Bits_2_eq_inst0.out","magma_Bit_not_inst0.in"],
+          ["magma_UInt_2_eq_inst0.out","magma_Bit_not_inst0.in"],
           ["magma_Bit_or_inst0.in0","magma_Bit_not_inst0.out"],
           ["magma_Bits_4_eq_inst0.out","magma_Bit_or_inst0.in1"],
           ["self.port_1","magma_Bits_4_eq_inst0.in0"]
@@ -110,16 +110,16 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "reg_P_inst0":{
+          "reg_P4_inst0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",4]},
             "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",4],"4'h0"]}
           }
         },
         "connections":[
-          ["self.CLK","reg_P_inst0.clk"],
-          ["self.I","reg_P_inst0.in"],
-          ["self.O","reg_P_inst0.out"]
+          ["self.CLK","reg_P4_inst0.clk"],
+          ["self.I","reg_P4_inst0.in"],
+          ["self.O","reg_P4_inst0.out"]
         ]
       },
       "Register_unq1":{
@@ -133,19 +133,19 @@
           "enable_mux":{
             "modref":"global.Mux2xUInt2"
           },
-          "reg_P_inst0":{
+          "reg_P2_inst0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
             "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
           }
         },
         "connections":[
-          ["reg_P_inst0.out","enable_mux.I0"],
+          ["reg_P2_inst0.out","enable_mux.I0"],
           ["self.I","enable_mux.I1"],
-          ["reg_P_inst0.in","enable_mux.O"],
+          ["reg_P2_inst0.in","enable_mux.O"],
           ["self.CE","enable_mux.S"],
-          ["self.CLK","reg_P_inst0.clk"],
-          ["self.O","reg_P_inst0.out"]
+          ["self.CLK","reg_P2_inst0.clk"],
+          ["self.O","reg_P2_inst0.out"]
         ]
       },
       "_Top":{

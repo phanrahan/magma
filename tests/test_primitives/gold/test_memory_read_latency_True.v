@@ -106,9 +106,9 @@ module Register (
     input CLK
 );
 wire [4:0] enable_mux_O;
-wire [4:0] reg_P_inst0_out;
+wire [4:0] reg_P5_inst0_out;
 Mux2xBits5 enable_mux (
-    .I0(reg_P_inst0_out),
+    .I0(reg_P5_inst0_out),
     .I1(I),
     .S(CE),
     .O(enable_mux_O)
@@ -117,12 +117,12 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(5'h00),
     .width(5)
-) reg_P_inst0 (
+) reg_P5_inst0 (
     .clk(CLK),
     .in(enable_mux_O),
-    .out(reg_P_inst0_out)
+    .out(reg_P5_inst0_out)
 );
-assign O = reg_P_inst0_out;
+assign O = reg_P5_inst0_out;
 endmodule
 
 module Memory (

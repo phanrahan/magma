@@ -116,7 +116,7 @@ wire [7:0] Mux2xArray3_Bits8_inst0_O [2:0];
 wire [7:0] const_173_8_out;
 wire [7:0] const_190_8_out;
 wire [7:0] const_222_8_out;
-wire [23:0] reg_P_inst0_out;
+wire [23:0] reg_P24_inst0_out;
 wire [7:0] Mux2xArray3_Bits8_inst0_I0 [2:0];
 assign Mux2xArray3_Bits8_inst0_I0[2] = I[2];
 assign Mux2xArray3_Bits8_inst0_I0[1] = I[1];
@@ -149,20 +149,20 @@ coreir_const #(
 ) const_222_8 (
     .out(const_222_8_out)
 );
-wire [23:0] reg_P_inst0_in;
-assign reg_P_inst0_in = {Mux2xArray3_Bits8_inst0_O[2][7:0],Mux2xArray3_Bits8_inst0_O[1][7:0],Mux2xArray3_Bits8_inst0_O[0][7:0]};
+wire [23:0] reg_P24_inst0_in;
+assign reg_P24_inst0_in = {Mux2xArray3_Bits8_inst0_O[2][7:0],Mux2xArray3_Bits8_inst0_O[1][7:0],Mux2xArray3_Bits8_inst0_O[0][7:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'hbeadde),
     .width(24)
-) reg_P_inst0 (
+) reg_P24_inst0 (
     .clk(CLK),
-    .in(reg_P_inst0_in),
-    .out(reg_P_inst0_out)
+    .in(reg_P24_inst0_in),
+    .out(reg_P24_inst0_out)
 );
-assign O[2] = reg_P_inst0_out[23:16];
-assign O[1] = reg_P_inst0_out[15:8];
-assign O[0] = reg_P_inst0_out[7:0];
+assign O[2] = reg_P24_inst0_out[23:16];
+assign O[1] = reg_P24_inst0_out[15:8];
+assign O[0] = reg_P24_inst0_out[7:0];
 endmodule
 
 module test_reg_of_nested_array (

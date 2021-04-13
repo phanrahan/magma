@@ -180,7 +180,7 @@ wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out;
 wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out;
 wire [3:0] const_10_4_out;
 wire [7:0] const_222_8_out;
-wire [11:0] reg_P_inst0_out;
+wire [11:0] reg_P12_inst0_out;
 wire [7:0] self_O_x_in;
 wire [3:0] self_O_y_in;
 Mux2xTuplex_Bits8_y_Bits4 Mux2xTuplex_Bits8_y_Bits4_inst0 (
@@ -212,24 +212,24 @@ coreir_const #(
 ) const_222_8 (
     .out(const_222_8_out)
 );
-wire [11:0] reg_P_inst0_in;
-assign reg_P_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out[3:0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out[7:0]};
+wire [11:0] reg_P12_inst0_in;
+assign reg_P12_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out[3:0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out[7:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(12'hade),
     .width(12)
-) reg_P_inst0 (
+) reg_P12_inst0 (
     .clk(CLK),
-    .in(reg_P_inst0_in),
-    .out(reg_P_inst0_out)
+    .in(reg_P12_inst0_in),
+    .out(reg_P12_inst0_out)
 );
 mantle_wire__typeBitIn8 self_O_x (
     .in(self_O_x_in),
-    .out(reg_P_inst0_out[7:0])
+    .out(reg_P12_inst0_out[7:0])
 );
 mantle_wire__typeBitIn4 self_O_y (
     .in(self_O_y_in),
-    .out(reg_P_inst0_out[11:8])
+    .out(reg_P12_inst0_out[11:8])
 );
 assign O_x = self_O_x_in;
 assign O_y = self_O_y_in;

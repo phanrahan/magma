@@ -69,6 +69,9 @@ class _Module(_Object):
         assert instance.name not in self._instances
         self._instances[instance.name] = instance
 
+    def has_instance(self, name: str):
+        return name in self._instances
+
     def get_instance(self, name: str):
         return self._instances[name]
 
@@ -234,7 +237,11 @@ class _TableProcessor:
                 root = src
                 self._modules[src.key()] = src
             else:
-                src = self._modules[(self._scope, in_module_name)]
+                # If this is a new module in this scope, then skip it.
+                try:
+                    src = self._modules[(self._scope, in_module_name)]
+                except KeyError:
+                    continue
                 del unmapped_srcs[src.name]
                 root = src.root
             dst = _Module(out_module_name, self._scope + 1, root=root)
@@ -253,13 +260,22 @@ class _TableProcessor:
                     sentinel is SYMBOL_TABLE_INLINED_INSTANCE):
                 raise ValueError((key, value))
             in_module_name, in_instance_name = key
-            src_module = self._modules[(self._scope, in_module_name)]
+            # If this is a new module in this scope, then skip it, unless this
+            # is the base scope.
+            try:
+                src_module = self._modules[(self._scope, in_module_name)]
+            except KeyError:
+                if self._scope == 0:
+                    raise
+                continue
             dst_module = src_module.get_rename().obj
             if self._scope == 0:
                 src_instance = _Instance(in_instance_name, self._scope)
                 root_instance = src_instance
                 src_module.add_instance(src_instance)
             else:
+                if not src_module.has_instance(in_instance_name):
+                    continue
                 src_instance = src_module.get_instance(in_instance_name)
                 root_instance = src_instance.root
             if sentinel is SYMBOL_TABLE_INLINED_INSTANCE:
@@ -273,7 +289,13 @@ class _TableProcessor:
     def _process_port_names(self, port_names):
         for key, out_port_name in port_names.items():
             in_module_name, in_port_name = key
-            src_module = self._modules[(self._scope, in_module_name)]
+            # If this is a new module in this scope, then skip it.
+            try:
+                src_module = self._modules[(self._scope, in_module_name)]
+            except KeyError:
+                if self._scope == 0:
+                    raise
+                continue
             dst_module = src_module.get_rename().obj
             modifiers = ()
             if self._scope == 0:
@@ -295,7 +317,15 @@ class _TableProcessor:
     def _process_instance_types(self, instance_types):
         for key, out_type in instance_types.items():
             module_name, instance_name = key
-            module = self._modules[(self._scope, module_name)]
+            # If this is a new module in this scope, then skip it.
+            try:
+                module = self._modules[(self._scope, module_name)]
+            except KeyError:
+                continue
+            # If this is a new instance in this module (decl -> defn) then skip
+            # it.
+            if not module.has_instance(instance_name):
+                continue
             instance = module.get_instance(instance_name)
             module_type = self._modules[(self._scope, out_type)]
             instance.type = module_type

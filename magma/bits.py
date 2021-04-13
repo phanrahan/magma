@@ -186,7 +186,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         python_op_name = primitive_to_python(op)
 
         class _MagmBitsOp(Circuit):
-            name = f"magma_Bits_{N}_{op}"
+            name = f"magma_{cls.unsized_t}_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
             coreir_genargs = {"width": N}
@@ -212,7 +212,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         python_op = getattr(operator, python_op_name)
 
         class _MagmBitsOp(Circuit):
-            name = f"magma_Bits_{N}_{op}"
+            name = f"magma_{cls.unsized_t}_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
             coreir_genargs = {"width": N}
@@ -238,7 +238,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         python_op_name = primitive_to_python(op)
 
         class _MagmBitsOp(Circuit):
-            name = f"magma_Bits_{N}_{op}"
+            name = f"magma_{cls.unsized_t}_{N}_{op}"
             coreir_name = op
             coreir_lib = "coreir"
             coreir_genargs = {"width": N}
@@ -269,7 +269,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         N = len(cls)
 
         class _MagmBitsOp(Circuit):
-            name = f"magma_Bits_{N}_ite_{t_str}"
+            name = f"magma_{cls.unsized_t}_{N}_ite_{t_str}"
             coreir_name = "mux"
             coreir_lib = "coreir"
             coreir_genargs = {"width": len(T)}
