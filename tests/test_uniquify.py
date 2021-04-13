@@ -80,7 +80,7 @@ def test_key_error():
         "O": "out",
         "S": "sel",
     }
-    
+
     class I(m.Product):
         data = m.Array[2, m.Bits[6]]
         sel = m.Bits[m.bitutils.clog2(2)]
@@ -286,3 +286,59 @@ def test_multiple_renamed():
     assert check_files_equal(__file__,
                              f"build/{BASENAME}.json",
                              f"gold/{BASENAME}.json")
+
+
+def test_reset_names():
+
+    def _make_foo(width: int):
+
+        class _Foo(m.Circuit):
+            name = "Foo"
+            io = m.IO(I=m.In(m.Bits[width]), O=m.Out(m.Bits[width]))
+            io.O @= io.I
+
+        return _Foo
+
+    Foo1 = _make_foo(1)
+    Foo2 = _make_foo(2)
+
+    class _Top1(m.Circuit):
+        name = "Top1"
+        io = m.IO(I=m.In(m.Bits[3]), O=m.Out(m.Bits[3]))
+        io.O[0:1] @= Foo1()(io.I[0:1])
+        io.O[1:3] @= Foo2()(io.I[1:3])
+
+    # Because _Top1 has instances of 2 different circuits with the name "Foo",
+    # we expect one of them to be uniquified to "Foo_unq1".
+    basename = "uniquify_reset_names_1"
+    m.compile(f"build/{basename}", _Top1, output="coreir")
+    assert check_files_equal(
+        __file__, f"build/{basename}.json", f"gold/{basename}.json")
+
+    # Names of circuits should be reset after compilation, even though they were
+    # uniquified temporarily.
+    assert Foo1.name == "Foo"
+    assert Foo2.name == "Foo"
+
+    # We make sure to clear the CoreIR context.
+    m.frontend.coreir_.ResetCoreIR()
+    m.generator.reset_generator_cache()
+
+    Foo3 = _make_foo(3)
+
+    # Define a new top circuit which will contain instances of *3* different
+    # circuits each with the name "Foo". If names were not reset after
+    # uniquification above, then there will be a conflict. In particular, Foo3
+    # will be renamed to "Foo_unq1" even though Foo2 is already named "Foo_unq1"
+    # (*if* names were *not* reset).
+    class _Top2(m.Circuit):
+        name = "Top2"
+        io = m.IO(I=m.In(m.Bits[6]), O=m.Out(m.Bits[6]))
+        io.O[0:1] @= Foo1()(io.I[0:1])
+        io.O[1:3] @= Foo2()(io.I[1:3])
+        io.O[3:6] @= Foo3()(io.I[3:6])
+
+    basename = "uniquify_reset_names_2"
+    m.compile(f"build/{basename}", _Top2, output="coreir")
+    assert check_files_equal(
+        __file__, f"build/{basename}.json", f"gold/{basename}.json")
