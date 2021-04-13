@@ -1,15 +1,18 @@
 from inspect import getouterframes, currentframe
 from pathlib import PurePath
-from .backend import verilog, blif, firrtl, dot
-from .compiler import Compiler
-from .config import get_compile_dir
-from .uniquification import uniquification_pass, UniquificationMode
-from .passes.clock import WireClockPass
-from .passes.drive_undriven import DriveUndrivenPass
-from .passes.terminate_unused import TerminateUnusedPass
+
+from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.bind import BindPass
+from magma.compiler import Compiler
+from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.passes.clock import WireClockPass
+from magma.passes.drive_undriven import DriveUndrivenPass
+from magma.passes.terminate_unused import TerminateUnusedPass
+from magma.uniquification import (uniquification_pass, UniquificationMode,
+                                  reset_names)
+
 
 __all__ = ["compile"]
 
@@ -47,7 +50,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     compiler = _make_compiler(output, main, basename, opts)
 
     # Default behavior is to perform uniquification, but can be overriden.
-    uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
+    original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 
     # Steps to process inline verilog generation. Required to be run after
     # uniquification.
@@ -67,5 +70,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
 
     if hasattr(main, "fpga"):
         main.fpga.constraints(basename)
+
+    reset_names(original_names)
 
     return result
