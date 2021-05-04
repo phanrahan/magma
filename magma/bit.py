@@ -79,7 +79,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         python_op = getattr(operator, python_op_name)
 
         class _MagmaBitOp(Circuit):
-            name = f"magma_{cls}_{op}"
+            name = f"magma_Bit_{op}"
             coreir_name = op
             coreir_lib = "corebit"
             renamed_ports = coreir_port_mapping
