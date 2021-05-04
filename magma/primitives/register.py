@@ -47,6 +47,7 @@ class _CoreIRRegister(Generator2):
             self.coreir_configargs["arst_posedge"] = False
 
         self.name += f"{width}"
+        self.name += f"_{self.coreir_configargs['init'].value}"
 
         self.stateful = True
         self.primitive = True
