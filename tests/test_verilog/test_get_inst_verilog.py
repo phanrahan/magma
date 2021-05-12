@@ -16,6 +16,17 @@ def test_get_inst_verilog():
 
     class Main(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T))
-        io.O @= T(*Foo()(io.I.x, io.I.y))
+        foo = Foo()
+        # TODO: If we can reconstruct the original tuple for foo, we can just
+        # pass the packed tuple rather than x, y individually
+        io.O @= T(*foo(io.I.x, io.I.y))
+        # TODO: Need API to refer to instance nested inside a verilog imported
+        # module (resolved using the symbol table)
+        # Proposed API is to pass a name for instances, hierarchical reference
+        # using a variable number of string arguments
+        # Then the instance reference provides attributes for magma's standard
+        # type syntax (e.g. dot notation tuples, subscript for arrays)
+        ref = foo.get_instance("bar", "baz").O.x[1]
+        m.inline_verilog('assert ({A} == 1) else $error("ERROR");', A=ref)
 
     m.compile("build/Main", Main)

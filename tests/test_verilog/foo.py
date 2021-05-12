@@ -13,12 +13,12 @@ class Baz(m.Circuit):
 
 class Bar(m.Circuit):
     io = m.IO(I=m.In(T), O=m.Out(T))
-    io.O @= Baz()(io.I)
+    io.O @= Baz(name="baz")(io.I)
 
 
 class Foo(m.Circuit):
     io = m.IO(I=m.In(T), O=m.Out(T))
-    io.O @= Bar()(io.I)
+    io.O @= Bar(name="bar")(io.I)
 
 
 m.compile("build/Foo", Foo)
