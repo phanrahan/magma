@@ -126,11 +126,11 @@ def collect_paths_to_yield(start_idx, block):
     return paths
 
 
-def build_method_name_map(tree):
+def build_method_name_map(tree, cls):
     name_map = {}
     for stmt in tree.body:
         if isinstance(stmt, ast.FunctionDef):
-            name_map[stmt.name] = stmt
+            name_map[stmt.name] = get_ast(getattr(cls, stmt.name)).body[0]
     return name_map
 
 
@@ -158,7 +158,7 @@ def coroutine(pre_passes=[], post_passes=[],
 
     def inner(cls):
         tree = get_ast(cls).body[0]
-        method_name_map = build_method_name_map(tree)
+        method_name_map = build_method_name_map(tree, cls)
 
         call_method = method_name_map["__call__"]
         call_method = inline_yield_from_functions(call_method, method_name_map)
