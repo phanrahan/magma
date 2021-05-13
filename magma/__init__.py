@@ -100,3 +100,4 @@ import magma.smart
 from magma.compile_guard import compile_guard
 from magma.set_name import set_name
 from magma.circuit_utils import circuit_stub, stubify, CircuitStub
+from magma.compile import MagmaCompileException

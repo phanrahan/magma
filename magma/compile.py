@@ -42,7 +42,15 @@ def _get_basename(basename):
     return basename
 
 
+class MagmaCompileException(Exception):
+    pass
+
+
 def compile(basename, main, output="coreir-verilog", **kwargs):
+    if not getattr(main, "is_definition", False):
+        raise MagmaCompileException(
+            f"Trying to compile empty definition {main}"
+        )
     if hasattr(main, "circuit_definition"):
         main = main.circuit_definition
     basename = _get_basename(basename)
