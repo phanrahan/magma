@@ -198,8 +198,10 @@ def test_wire_tuple_to_clock():
         b = m.In(m.Clock)
 
     class Foo(m.Circuit):
-        io = m.IO(I=In(T), O=m.Out(m.Clock))
+        io = m.IO(I=In(T), O=m.Out(m.Clock), x=m.Out(m.Bit))
         m.wire(io.I, io.O)
+        # Wire a dummy output so we don't have an empty defn
+        io.x @= 1
 
     # Imported here to avoid changing line numbers for above tests
     import pytest
