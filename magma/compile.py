@@ -7,6 +7,7 @@ from magma.bind import BindPass
 from magma.compiler import Compiler
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.is_definition import isdefinition
 from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import DriveUndrivenPass
 from magma.passes.terminate_unused import TerminateUnusedPass
@@ -42,7 +43,14 @@ def _get_basename(basename):
     return basename
 
 
+class MagmaCompileException(Exception):
+    pass
+
+
 def compile(basename, main, output="coreir-verilog", **kwargs):
+    if not isdefinition(main):
+        raise MagmaCompileException(
+            f"Trying to compile empty definition {main}")
     if hasattr(main, "circuit_definition"):
         main = main.circuit_definition
     basename = _get_basename(basename)
