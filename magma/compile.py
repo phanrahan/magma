@@ -7,6 +7,7 @@ from magma.bind import BindPass
 from magma.compiler import Compiler
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.is_definition import isdefinition
 from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import DriveUndrivenPass
 from magma.passes.terminate_unused import TerminateUnusedPass
