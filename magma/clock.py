@@ -163,7 +163,6 @@ def get_clocks_from_defn(defn, clocktype):
     for inst in defn.instances:
         for port in inst.interface.ports.values():
             clocks += get_clocks(port, clocktype)
-    print(clocks)
     return clocks
 
 
