@@ -168,16 +168,10 @@ def get_clocks_from_defn(defn, clocktype):
 
 def wireclocktype(defn, inst, clocktype):
     # Check common case: top level clock port
-    clks = (port if isinstance(port, clocktype) else None
-            for port in defn.interface.ports.values())
-    defnclk = first(clks)
-    if defnclk is None:
-        # Check recursive types
-        clks = (get_first_clock(port, clocktype)
-                for port in defn.interface.ports.values())
-        defnclk = first(clks)
-    if defnclk is None:
+    clks = get_clocks_from_defn(defn, clocktype)
+    if len(clks) > 1 or len(clks) == 0:
         return
+    defnclk = clks[0]
     for port in inst.interface.inputs(include_clocks=True):
         wire_clock_port(port, clocktype, defnclk)
 
