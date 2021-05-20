@@ -161,6 +161,13 @@ def get_clocks_from_defn(defn, clocktype):
     for port in defn.interface.ports.values():
         clocks += get_clocks(port, clocktype)
     for inst in defn.instances:
+        # circular import because Wire depends on clock.py
+        # We could move default clock wiring logic to a different file?
+        from magma.primitives.wire import Wire
+        if isinstance(type(inst), Wire):
+            # Skip clock wires, because they are both inputs and outputs, so we
+            # don't treat them as default drivers
+            continue
         for port in inst.interface.ports.values():
             clocks += get_clocks(port, clocktype)
     return clocks
