@@ -134,15 +134,36 @@ def first(iterable):
     return next((item for item in iterable if item is not None), None)
 
 
-def get_first_clock(port, clocktype):
+def get_clocks(port, clocktype):
+    if port.is_input():
+        # We are looking for default drivers (outputs)
+        return []
     if isinstance(port, clocktype):
-        return port
+        return [port]
     if isinstance(port, Tuple):
-        clks = (get_first_clock(elem, clocktype) for elem in port)
-        return first(clks)
+        clks = []
+        for elem in port:
+            clks += get_clocks(elem, clocktype)
+        return clks
     if isinstance(port, Array):
-        return get_first_clock(port[0], clocktype)
-    return None
+        clks = get_clocks(port[0], clocktype)
+        if not clks:
+            # early exit to avoid traversing children when unnecessary
+            return clks
+        for elem in port[1:]:
+            clks += get_clocks(elem)
+        return clks
+    return []
+
+
+def get_clocks_from_defn(defn, clocktype):
+    clocks = []
+    for port in defn.interface.ports.values():
+        clocks += get_clocks(port, clocktype)
+    for inst in defn.instances:
+        for port in inst.interface.ports.values():
+            clocks += get_clocks(port, clocktype)
+    return clocks
 
 
 def wireclocktype(defn, inst, clocktype):
@@ -188,13 +209,14 @@ def get_reset_args(reset_type: Optional[AbstractReset]):
 
 
 def get_default_clocks(defn):
-    clocks = {}
+    default_clocks = {}
     for clock_type in ClockTypes:
-        clocks[clock_type] = first(
-            get_first_clock(port, clock_type)
-            for port in defn.interface.ports.values()
-        )
-    return clocks
+        clocks = get_clocks_from_defn(defn, clock_type)
+        if len(clocks) == 1:
+            default_clocks[clock_type] = clocks[0]
+        else:
+            default_clocks[clock_type] = None
+    return default_clocks
 
 
 def is_clock_or_nested_clock(p):

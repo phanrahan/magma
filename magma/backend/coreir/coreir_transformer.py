@@ -14,6 +14,7 @@ from magma.backend.coreir.coreir_utils import (
     get_module_of_inst, magma_interface_to_coreir_module_type,
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
+from magma.compile_exception import UnconnectedPortException
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
@@ -56,26 +57,6 @@ def _coreir_longname(magma_defn_or_decl, coreir_module_or_generator):
         v = magma_defn_or_decl.coreir_genargs[k]
         longname += f"__{k}{v}"
     return longname
-
-
-def _make_unconnected_error_str(port):
-    error_str = port.debug_name
-    if port.trace() is not None:
-        error_str += ": Connected"
-    elif isinstance(port, (Tuple, Array)):
-        child_str = ""
-        for child in port:
-            child = _make_unconnected_error_str(child)
-            child = "\n    ".join(child.splitlines())
-            child_str += f"\n    {child}"
-        if "Connected" not in child_str:
-            # Handle case when no children are connected (simplify)
-            error_str += ": Unconnected"
-        else:
-            error_str += child_str
-    elif port.trace() is None:
-        error_str += ": Unconnected"
-    return error_str
 
 
 def _collect_drivers(value):
@@ -434,16 +415,14 @@ class DefinitionTransformer(TransformerBase):
         if value is None and is_clock_or_nested_clock(type(port)):
             if not wire_default_clock(port, self.clocks):
                 # No default clock
-                return
+                raise UnconnectedPortException(port)
             value = port.trace()
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
-            error_str = f"Found unconnected port: {port.debug_name}\n"
-            error_str += _make_unconnected_error_str(port)
-            raise Exception(error_str)
+            raise UnconnectedPortException(port)
         source = self.get_source(port, value, module_defn)
         if not source:
             return
