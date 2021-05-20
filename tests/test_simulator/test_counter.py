@@ -1,6 +1,7 @@
 from .test_primitives import *
 from magma.simulator import PythonSimulator
 from magma import *
+from magma.wire_clock import wireclock
 from magma.scope import *
 
 def test():
