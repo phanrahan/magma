@@ -151,7 +151,7 @@ def get_clocks(port, clocktype):
             # early exit to avoid traversing children when unnecessary
             return clks
         for elem in port[1:]:
-            clks += get_clocks(elem)
+            clks += get_clocks(elem, clocktype)
         return clks
     return []
 
