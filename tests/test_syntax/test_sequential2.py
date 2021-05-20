@@ -171,25 +171,6 @@ def test_dual_clock_ram():
                              f"gold/TestSequential2DefaultClock.v")
 
     @m.sequential2()
-    class ImplicitClock:
-        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
-            rdata = DualClockRAM()(
-                RADDR=m.bits(0, 8),
-                WADDR=m.bits(0, 8),
-                WDATA=m.bits(0, 8),
-                WE=m.bit(0),
-                # Always the first Clock argument will be wired up implicitly
-                # RCLK=WCLK
-                # WCLK=WCLK
-            )
-            return rdata
-
-    m.compile("build/TestSequential2ImplicitClock", ImplicitClock)
-    assert check_files_equal(__file__,
-                             f"build/TestSequential2ImplicitClock.v",
-                             f"gold/TestSequential2ImplicitClock.v")
-
-    @m.sequential2()
     class ExplicitClock:
         def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
             rdata = DualClockRAM()(
