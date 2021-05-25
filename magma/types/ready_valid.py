@@ -97,8 +97,7 @@ class ReadyValidProducerKind(ReadyValidKind):
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
-        T_str = cls.undirected_data_t
-        return f"Producer(ReadyValid[{T_str}])"
+        return f"Producer(ReadyValid[{cls.undirected_data_t}])"
 
 
 class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
@@ -175,8 +174,7 @@ class ReadyValidConsumerKind(ReadyValidKind):
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
-        T_str = cls.undirected_data_t
-        return f"Consumer(ReadyValid[{T_str}])"
+        return f"Consumer(ReadyValid[{cls.undirected_data_t}])"
 
 
 class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
