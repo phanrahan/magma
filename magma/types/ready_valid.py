@@ -29,11 +29,14 @@ class ReadyValidKind(ProductKind):
             )
         return undirected_T
 
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {"valid": Bit, "ready": Bit}
+    def _add_data_if_not_none(cls, fields, T, dir):
         if T is not None:
             T = cls._check_T(T)
-            fields["data"] = T
+            fields["data"] = dir(T)
+
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {"valid": Bit, "ready": Bit}
+        cls._add_data_if_not_none(fields, T, lambda x: x)
         return type(f"{cls}[{T}]", (cls, ), fields)
 
     def flip(cls):
@@ -81,9 +84,7 @@ def _no_deq_error(self, value, when=True):
 class ReadyValidProducerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": Out(Bit), "ready": In(Bit)}
-        if T is not None:
-            T = cls._check_T(T)
-            fields["data"] = Out(T)
+        cls._add_data_if_not_none(fields, T, Out)
         t = type(f"{cls}[{T}]", (cls, ), fields)
         if T is None:
             # remove deq methods if no data
@@ -159,9 +160,7 @@ def _no_enq_error(self, value, when=True):
 class ReadyValidConsumerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": In(Bit), "ready": Out(Bit)}
-        if T is not None:
-            T = cls._check_T(T)
-            fields["data"] = In(T)
+        cls._add_data_if_not_none(fields, T, In)
         t = type(f"{cls}[{T}]", (cls, ), fields)
         if T is None:
             t.enq = _enq_error
