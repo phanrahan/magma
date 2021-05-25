@@ -884,3 +884,34 @@ def test_named_outputs():
             return a.adc(b, c_in)
 
     assert Adder.interface.ports.keys() == {'a', 'b', 'c_in', 's', 'c_out', 'CLK'}
+
+
+def test_sequential2_wiring():
+    @m.sequential2()
+    class Foo:
+        def __init__(self):
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
+
+        def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
+            return self.y(self.x(I))
+
+
+    @m.sequential2()
+    class Bar:
+        def __init__(self):
+            self.x = Foo()
+            self.y = Foo()
+
+        def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
+            if I[0]:
+                a = m.reduce(operator.or_, I[1:])
+            else:
+                a = m.reduce(operator.xor, I[1:])
+            self.x.I @= self.y.O
+            self.y.I @= m.bits(a, 4)
+            return self.y.O
+
+    m.compile("build/TestSequential2Wiring", Bar)
+    assert check_files_equal(__file__, f"build/TestSequential2Wiring.v",
+                             f"gold/TestSequential2Wiring.v")
