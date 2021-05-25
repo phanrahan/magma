@@ -39,6 +39,12 @@ class ReadyValidKind(ProductKind):
     def flip(cls):
         raise TypeError("Cannot flip an undirected ReadyValid type")
 
+    @property
+    def undirected_data_t(cls):
+        if "data" in cls.field_dict.keys():
+            return cls.data.undirected_t
+        return None
+
 
 class ReadyValid(Product, metaclass=ReadyValidKind):
     """
@@ -91,10 +97,7 @@ class ReadyValidProducerKind(ReadyValidKind):
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
-        if "T" in cls.field_dict.keys():
-            T_str = cls.data.undirected_t()
-        else:
-            T_str = None
+        T_str = cls.undirected_data_t
         return f"Producer(ReadyValid[{T_str}])"
 
 
@@ -172,10 +175,7 @@ class ReadyValidConsumerKind(ReadyValidKind):
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
-        if "T" in cls.field_dict.keys():
-            T_str = cls.data.undirected_t()
-        else:
-            T_str = None
+        T_str = cls.undirected_data_t
         return f"Consumer(ReadyValid[{T_str}])"
 
 
@@ -292,10 +292,7 @@ class IrrevocableProducer(ReadyValidProducer, Irrevocable):
 
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        if not hasattr(T, "data"):
-            undirected_T = None
-        else:
-            undirected_T = T.data.undirected_t
+        undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return IrrevocableConsumer[undirected_T]
     if issubclass(T, Decoupled):
@@ -307,10 +304,7 @@ def Consumer(T: ReadyValidKind):
 
 def Producer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        if not hasattr(T, "data"):
-            undirected_T = None
-        else:
-            undirected_T = T.data.undirected_t
+        undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return IrrevocableProducer[undirected_T]
     if issubclass(T, Decoupled):
