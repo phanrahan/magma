@@ -30,8 +30,10 @@ class ReadyValidKind(ProductKind):
         return undirected_T
 
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        T = cls._check_T(T)
-        fields = {"valid": Bit, "data": T, "ready": Bit}
+        fields = {"valid": Bit, "ready": Bit}
+        if T is not None:
+            T = cls._check_T(T)
+            fields["data"] = T
         return type(f"{cls}[{T}]", (cls, ), fields)
 
     def flip(cls):
@@ -47,7 +49,10 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
     * m.Consumer(m.ReadyValid[T])  # data/valid are inputs, ready is output
     * m.Producer(m.ReadyValid[T])  # data/valid are outputs, ready is input
 
-    T is the type of data to be wrapped in Ready/Valid
+    T is the type of data to be wrapped in Ready/Valid.
+
+    To create a ReadyValid type with no data, use T=None.  In this case, there
+    will be no data port
 
     The actual semantics of ready/valid are enforced via the use of concrete
     subclasses.
@@ -59,11 +64,26 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         raise NotImplementedError
 
 
+def _deq_error(self, value, when=True):
+    raise Exception("Cannot deq with T=None")
+
+
+def _no_deq_error(self, value, when=True):
+    raise Exception("Cannot no_deq with T=None")
+
+
 class ReadyValidProducerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        T = cls._check_T(T)
-        fields = {"valid": Out(Bit), "data": Out(T), "ready": In(Bit)}
-        return type(f"{cls}[{T}]", (cls, ), fields)
+        fields = {"valid": Out(Bit), "ready": In(Bit)}
+        if T is not None:
+            T = cls._check_T(T)
+            fields["data"] = Out(T)
+        t = type(f"{cls}[{T}]", (cls, ), fields)
+        if T is None:
+            # remove deq methods if no data
+            t.deq = _deq_error
+            t.no_deq = _no_deq_error
+        return t
 
     def flip(cls):
         return Consumer(cls)
@@ -71,7 +91,11 @@ class ReadyValidProducerKind(ReadyValidKind):
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
-        return f"Producer(ReadyValid[{cls.data.undirected_t()}])"
+        if "T" in cls.field_dict.keys():
+            T_str = cls.data.undirected_t()
+        else:
+            T_str = None
+        return f"Producer(ReadyValid[{T_str}])"
 
 
 class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
@@ -122,11 +146,25 @@ class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
             self.ready @= False
 
 
+def _enq_error(self, value, when=True):
+    raise Exception("Cannot enq with T=None")
+
+
+def _no_enq_error(self, value, when=True):
+    raise Exception("Cannot no_enq with T=None")
+
+
 class ReadyValidConsumerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        T = cls._check_T(T)
-        fields = {"valid": In(Bit), "data": In(T), "ready": Out(Bit)}
-        return type(f"{cls}[{T}]", (cls, ), fields)
+        fields = {"valid": In(Bit), "ready": Out(Bit)}
+        if T is not None:
+            T = cls._check_T(T)
+            fields["data"] = In(T)
+        t = type(f"{cls}[{T}]", (cls, ), fields)
+        if T is None:
+            t.enq = _enq_error
+            t.no_enq = _no_enq_error
+        return t
 
     def flip(cls):
         return Producer(cls)
@@ -134,7 +172,11 @@ class ReadyValidConsumerKind(ReadyValidKind):
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
-        return f"Consumer(ReadyValid[{cls.data.undirected_t()}])"
+        if "T" in cls.field_dict.keys():
+            T_str = cls.data.undirected_t()
+        else:
+            T_str = None
+        return f"Consumer(ReadyValid[{T_str}])"
 
 
 class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
@@ -250,7 +292,10 @@ class IrrevocableProducer(ReadyValidProducer, Irrevocable):
 
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        undirected_T = T.data.undirected_t
+        if not hasattr(T, "data"):
+            undirected_T = None
+        else:
+            undirected_T = T.data.undirected_t
     if issubclass(T, Irrevocable):
         return IrrevocableConsumer[undirected_T]
     if issubclass(T, Decoupled):
@@ -262,7 +307,10 @@ def Consumer(T: ReadyValidKind):
 
 def Producer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
-        undirected_T = T.data.undirected_t
+        if not hasattr(T, "data"):
+            undirected_T = None
+        else:
+            undirected_T = T.data.undirected_t
     if issubclass(T, Irrevocable):
         return IrrevocableProducer[undirected_T]
     if issubclass(T, Decoupled):

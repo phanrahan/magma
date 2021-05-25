@@ -179,3 +179,23 @@ def test_flip_ready_valid():
         do_deq = io.deq.fired()
 
         io.deq.data @= io.enq.data
+
+
+def test_ready_valid_none():
+    class Foo(m.Circuit):
+        io = m.IO(producer_handshake=m.Producer(m.ReadyValid[None]),
+                  consumer_handshake=m.Consumer(m.ReadyValid[None]))
+        io.producer_handshake.valid @= io.producer_handshake.ready ^ 1
+        io.consumer_handshake.ready @= io.consumer_handshake.valid ^ 1
+
+        assert not hasattr(io.producer_handshake, "data")
+        assert not hasattr(io.consumer_handshake, "data")
+        with pytest.raises(Exception):
+            io.producer_handshake.enq(1)
+        with pytest.raises(Exception):
+            io.producer_handshake.no_enq(1)
+        with pytest.raises(Exception):
+            io.consumer_handshake.deq()
+        with pytest.raises(Exception):
+            io.consumer_handshake.no_deq(1)
+    m.compile("build/Foo", Foo)
