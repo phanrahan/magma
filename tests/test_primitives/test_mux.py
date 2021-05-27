@@ -136,7 +136,7 @@ def test_basic_mux_product():
 def test_mux_operator():
     class test_mux_operator(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
-        io.O @= m.mux([io.I[0], io.I[1]], io.S)
+        io.O @= m.mux([io.I[0], io.I[1]], io.S, name="foo")
 
     m.compile("build/test_mux_operator", test_mux_operator)
 
