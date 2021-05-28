@@ -5,8 +5,8 @@ import magma as m
 
 # Ideal
 def make_B1(length: int):
-    braid(
-        [lambda x_in, y_in: y_in + x_in * w[i] for in range(length)],
+    return braid(
+        [lambda x_in, y_in: y_in + x_in * w[i] for i in range(length)],
         fork_args=["x_in"],
         fold_args={"y_in": "y_out"})
 
@@ -25,14 +25,14 @@ def make_B1(width: int, length: int, w: List[int]):
 
     class _Top(m.Circuit):
         name = f"B1"
-        io = m.IO(x_in=m.In(T), y_in=m.In(T), y_out=m.Out(T))
+        io = m.IO(x_in=m.In(T), y_out=m.Out(T))
         io += m.ClockIO()
         cells = [_Cell(w[i])() for i in range(length)]
         sys = m.braid(
             cells,
             forkargs=["x_in", "CLK"],
             foldargs={"y_in": "y_out"})
-        io.y_out @= sys(io.x_in, io.y_in)
+        io.y_out @= sys(io.x_in, 0)
 
     return _Top
 
