@@ -21,7 +21,7 @@ def make_F(width: int, length: int, w: List[int]):
         io = m.IO(x_in=m.In(T), y_out=m.Out(T))
         io += m.ClockIO()
         cells = [_Cell(wi)() for wi in w]
-        sys = m.braid(cells, forkargs=["CLK"], foldargs={"x_in": "x_out"})
+        sys = m.braid(cells, foldargs={"x_in": "x_out"})
         _, zs = sys(io.x_in)
         io.y_out @= sum(zs[1:], zs[0])
 

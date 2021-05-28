@@ -30,7 +30,7 @@ def make_B1(width: int, length: int, w: List[int]):
         cells = [_Cell(wi)() for wi in w]
         sys = m.braid(
             cells,
-            forkargs=["x_in", "CLK"],
+            forkargs=["x_in"],
             foldargs={"y_in": "y_out"})
         io.y_out @= sys(io.x_in, 0)
 

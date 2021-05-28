@@ -27,7 +27,7 @@ def make_B2(width: int, length: int, w: List[int]):
         io = m.IO(x_in=m.In(T), y_out=m.Out(m.Array[length, T]))
         io += m.ClockIO()
         cells = [_Cell(wi)() for wi in w]
-        sys = m.braid(cells, forkargs=["x_in", "CLK"], foldargs={"w_in": "w_out"})
+        sys = m.braid(cells, forkargs=["x_in"], foldargs={"w_in": "w_out"})
         # Temporary needed for loop.
         w_in = T()
         w_out, y_out = sys(io.x_in, w_in)
