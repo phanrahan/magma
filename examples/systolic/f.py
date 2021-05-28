@@ -28,5 +28,5 @@ def make_F(width: int, length: int, w: List[int]):
     return _Top
 
 
-F = make_F(4, 3, [0, 0, 0])
+F = make_F(4, 3, [1, 2, 3])
 m.compile(F.name, F, inline=True)
