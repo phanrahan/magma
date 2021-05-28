@@ -27,7 +27,7 @@ def make_B1(width: int, length: int, w: List[int]):
         name = f"B1"
         io = m.IO(x_in=m.In(T), y_out=m.Out(T))
         io += m.ClockIO()
-        cells = [_Cell(w[i])() for i in range(length)]
+        cells = [_Cell(wi)() for wi in w]
         sys = m.braid(
             cells,
             forkargs=["x_in", "CLK"],
