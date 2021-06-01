@@ -50,7 +50,7 @@ class ReadyValidKind(ProductKind):
         try:
             data = cls.field_dict["data"]
         except KeyError:
-             return None
+            return None
         return data.undirected_t
 
 
