@@ -173,4 +173,3 @@ def only(lst: Iterable):
     else:
         msg = f"Expected one element got {[value, new_value] + list(it)}"
         raise IterableOnlyException(msg)
-
