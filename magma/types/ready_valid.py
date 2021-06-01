@@ -64,7 +64,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
     T is the type of data to be wrapped in Ready/Valid.
 
     To create a ReadyValid type with no data, use T=None.  In this case, there
-    will be no data port
+    will be no data port.
 
     The actual semantics of ready/valid are enforced via the use of concrete
     subclasses.
