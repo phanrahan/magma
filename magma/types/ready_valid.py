@@ -47,9 +47,11 @@ class ReadyValidKind(ProductKind):
 
     @property
     def undirected_data_t(cls):
-        if "data" in cls.field_dict.keys():
-            return cls.data.undirected_t
-        return None
+        try:
+            data = cls.field_dict["data"]
+        except KeyError:
+             return None
+        return data.undirected_t
 
 
 class ReadyValid(Product, metaclass=ReadyValidKind):
