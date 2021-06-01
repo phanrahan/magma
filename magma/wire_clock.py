@@ -1,54 +1,56 @@
+import itertools
+from typing import Iterable
+
 from magma.array import Array
 from magma.tuple import Tuple
 from magma.primitives.wire import Wire
 from magma.clock import (ClockTypes, Clock, Reset, Enable, ResetN, AsyncReset,
                          AsyncResetN)
+from magma.common import only, IterableOnlyException
 from magma.wire import wire
 
 
 def get_clocks(port, clocktype):
     if port.is_input():
         # We are looking for default drivers (only need to consider outputs).
-        return []
+        return None
     if isinstance(port, clocktype):
-        return [port]
+        yield port
     if isinstance(port, Tuple):
-        clks = []
-        for elem in port:
-            clks += get_clocks(elem, clocktype)
-        return clks
+        yield from itertools.chain(
+            *(get_clocks(elem, clocktype) for elem in port))
     if isinstance(port, Array):
-        clks = get_clocks(port[0], clocktype)
-        if not clks:
+        first_clks = get_clocks(port[0], clocktype)
+        try:
+            first_clk = next(first_clks)
+        except StopIteration:
             # Exit early to avoid traversing children when unnecessary.
-            return []
-        for elem in port[1:]:
-            clks += get_clocks(elem, clocktype)
-        return clks
-    return []
+            return None
+        yield from itertools.chain(
+            [first_clk], first_clks,
+            *(get_clocks(elem, clocktype) for elem in port[1:]))
 
 
 def get_clocks_from_defn(defn, clocktype):
     clocks = []
     for port in defn.interface.ports.values():
-        clocks += get_clocks(port, clocktype)
+        yield from get_clocks(port, clocktype)
     for inst in defn.instances:
         if isinstance(type(inst), Wire):
             # Skip clock wires, because they are both inputs and outputs, so we
             # don't treat them as default drivers
             continue
         for port in inst.interface.ports.values():
-            clocks += get_clocks(port, clocktype)
-    return clocks
+            yield from get_clocks(port, clocktype)
 
 
 def get_default_clocks(defn):
     default_clocks = {}
     for clock_type in ClockTypes:
         clocks = get_clocks_from_defn(defn, clock_type)
-        if len(clocks) == 1:
-            default_clocks[clock_type] = clocks[0]
-        else:
+        try:
+            default_clocks[clock_type] = only(clocks)
+        except IterableOnlyException:
             default_clocks[clock_type] = None
     return default_clocks
 
@@ -81,9 +83,10 @@ def wire_clock_port(port, clocktype, defnclk):
 def wireclocktype(defn, inst, clocktype):
     # Check common case: top level clock port
     clks = get_clocks_from_defn(defn, clocktype)
-    if len(clks) > 1 or len(clks) == 0:
+    try:
+        defnclk = only(clks)
+    except IterableOnlyException:
         return
-    defnclk = clks[0]
     for port in inst.interface.inputs(include_clocks=True):
         wire_clock_port(port, clocktype, defnclk)
 
