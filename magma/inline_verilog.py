@@ -9,6 +9,7 @@ from magma.view import PortView, InstView
 from magma.digital import Digital
 from magma.bit import Bit
 from magma.array import Array
+from magma.clock import ClockTypes
 from magma.tuple import Tuple
 from magma.wire import wire
 from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
@@ -59,13 +60,20 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
     if isinstance(value, Type):
         if value.is_input():
             value = value.value()
+
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
-            if value not in cls.inline_verilog_wire_map:
+            key = value
+            if isinstance(value, ClockTypes) and not value.driven():
+                # Share wire for undriven clocks so we don't
+                # generate a separate wire for the eventual
+                # driver from the automatic clock wiring logic
+                key = type(value)
+            if key not in cls.inline_verilog_wire_map:
                 temp = _make_temporary(cls, value,
                                        len(cls.inline_verilog_wire_map),
                                        inline_wire_prefix)
-                cls.inline_verilog_wire_map[value] = temp
-            value = cls.inline_verilog_wire_map[value]
+                cls.inline_verilog_wire_map[key] = temp
+            value = cls.inline_verilog_wire_map[key]
     else:
         assert isinstance(value, PortView)
         if value.port.is_input():

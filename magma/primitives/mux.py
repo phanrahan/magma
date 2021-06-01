@@ -144,7 +144,7 @@ def mux(I: list, S, **kwargs):
     if isinstance(S, int):
         return I[S]
     T, I = _infer_mux_type(I)
-    inst = Mux(len(I), T, **kwargs)()
+    inst = Mux(len(I), T)(**kwargs)
     if len(I) == 2 and isinstance(S, Bits[1]):
         S = S[0]
     result = inst(*I, S)
