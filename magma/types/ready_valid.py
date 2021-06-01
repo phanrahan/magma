@@ -90,7 +90,7 @@ class ReadyValidProducerKind(ReadyValidKind):
         _maybe_add_data(cls, fields, T, Out)
         t = type(f"{cls}[{T}]", (cls, ), fields)
         if T is None:
-            # remove deq methods if no data
+            # Remove deq/no_deq methods if no data.
             t.deq = _deq_error
             t.no_deq = _no_deq_error
         return t
