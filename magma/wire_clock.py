@@ -1,5 +1,4 @@
 import itertools
-from typing import Iterable
 
 from magma.array import Array
 from magma.tuple import Tuple

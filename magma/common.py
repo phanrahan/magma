@@ -1,6 +1,7 @@
 import collections
 import collections.abc
 from functools import wraps, partial
+from typing import Iterable
 import warnings
 
 
