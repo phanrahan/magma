@@ -17,7 +17,7 @@ def get_clocks(port, clocktype):
         yield port
     if isinstance(port, Tuple):
         yield from itertools.chain(
-            *(get_clocks(elem, clocktype) for elem in port))
+            get_clocks(elem, clocktype) for elem in port)
     if isinstance(port, Array):
         first_clks = get_clocks(port[0], clocktype)
         try:
@@ -27,11 +27,10 @@ def get_clocks(port, clocktype):
             return None
         yield from itertools.chain(
             [first_clk], first_clks,
-            *(get_clocks(elem, clocktype) for elem in port[1:]))
+            (get_clocks(elem, clocktype) for elem in port[1:]))
 
 
 def get_clocks_from_defn(defn, clocktype):
-    clocks = []
     for port in defn.interface.ports.values():
         yield from get_clocks(port, clocktype)
     for inst in defn.instances:
