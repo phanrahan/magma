@@ -29,10 +29,11 @@ class ReadyValidKind(ProductKind):
             )
         return undirected_T
 
-    def _add_data_if_not_none(cls, fields, T, dir):
-        if T is not None:
-            T = cls._check_T(T)
-            fields["data"] = dir(T)
+    def _maybe_add_data(cls, fields, T, qualifier):
+        if T is None:
+            return
+        T = cls._check_T(T)
+        fields["data"] = qualifier(T)
 
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": Bit, "ready": Bit}
