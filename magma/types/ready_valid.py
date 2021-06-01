@@ -77,11 +77,11 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
 
 
 def _deq_error(self, value, when=True):
-    raise Exception("Cannot deq with T=None")
+    raise Exception(f"{type(self)} does not support deq")
 
 
 def _no_deq_error(self, value, when=True):
-    raise Exception("Cannot no_deq with T=None")
+    raise Exception(f"{type(self)} does not support no_deq")
 
 
 class ReadyValidProducerKind(ReadyValidKind):
@@ -153,11 +153,11 @@ class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
 
 
 def _enq_error(self, value, when=True):
-    raise Exception("Cannot enq with T=None")
+    raise Exception(f"{type(self)} does not support enq")
 
 
 def _no_enq_error(self, value, when=True):
-    raise Exception("Cannot no_enq with T=None")
+    raise Exception(f"{type(self)} does not support no_enq")
 
 
 class ReadyValidConsumerKind(ReadyValidKind):
