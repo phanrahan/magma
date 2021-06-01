@@ -8,7 +8,7 @@ from magma.wire import wire
 
 def get_clocks(port, clocktype):
     if port.is_input():
-        # We are looking for default drivers (outputs)
+        # We are looking for default drivers (only need to consider outputs).
         return []
     if isinstance(port, clocktype):
         return [port]
@@ -20,8 +20,8 @@ def get_clocks(port, clocktype):
     if isinstance(port, Array):
         clks = get_clocks(port[0], clocktype)
         if not clks:
-            # early exit to avoid traversing children when unnecessary
-            return clks
+            # Exit early to avoid traversing children when unnecessary.
+            return []
         for elem in port[1:]:
             clks += get_clocks(elem, clocktype)
         return clks
