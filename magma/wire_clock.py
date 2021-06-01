@@ -1,5 +1,3 @@
-import itertools
-
 from magma.array import Array
 from magma.tuple import Tuple
 from magma.primitives.wire import Wire
@@ -16,8 +14,8 @@ def get_clocks(port, clocktype):
     if isinstance(port, clocktype):
         yield port
     if isinstance(port, Tuple):
-        yield from itertools.chain(
-            *(get_clocks(elem, clocktype) for elem in port))
+        for elem in port:
+            yield from get_clocks(elem, clocktype)
     if isinstance(port, Array):
         first_clks = get_clocks(port[0], clocktype)
         try:
@@ -25,9 +23,10 @@ def get_clocks(port, clocktype):
         except StopIteration:
             # Exit early to avoid traversing children when unnecessary.
             return None
-        yield from itertools.chain(
-            [first_clk], first_clks,
-            *(get_clocks(elem, clocktype) for elem in port[1:]))
+        yield first_clk
+        yield from first_clks
+        for elem in port[1:]:
+            yield from get_clocks(elem, clocktype)
 
 
 def get_clocks_from_defn(defn, clocktype):
