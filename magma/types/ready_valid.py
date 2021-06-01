@@ -14,31 +14,32 @@ class ReadyValidException(Exception):
     pass
 
 
-def _maybe_add_data(fields, T, qualifier):
+def _check_T(cls, T):
+    if not issubclass(T, (Type, MagmaProtocol)):
+        raise TypeError(
+            f"{cls}[T] expected T to be a subclass of m.Type or"
+            f" m.MagmaProtocol not {T}"
+        )
+    undirected_T = T.undirected_t
+    if undirected_T is not T:
+        _logger.warning(
+            f"Type {T} used with ReadyValid is not undirected, converting"
+            " to undirected type"
+        )
+    return undirected_T
+
+
+def _maybe_add_data(cls, fields, T, qualifier):
     if T is None:
         return
-    T = _check_T(T)
+    T = _check_T(cls, T)
     fields["data"] = qualifier(T)
 
 
 class ReadyValidKind(ProductKind):
-    def _check_T(cls, T):
-        if not issubclass(T, (Type, MagmaProtocol)):
-            raise TypeError(
-                f"{cls}[T] expected T to be a subclass of m.Type or"
-                f" m.MagmaProtocol not {T}"
-            )
-        undirected_T = T.undirected_t
-        if undirected_T is not T:
-            _logger.warning(
-                f"Type {T} used with ReadyValid is not undirected, converting"
-                " to undirected type"
-            )
-        return undirected_T
-
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": Bit, "ready": Bit}
-        _maybe_add_data(fields, T, lambda x: x)
+        _maybe_add_data(cls, fields, T, lambda x: x)
         return type(f"{cls}[{T}]", (cls, ), fields)
 
     def flip(cls):
@@ -86,7 +87,7 @@ def _no_deq_error(self, value, when=True):
 class ReadyValidProducerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": Out(Bit), "ready": In(Bit)}
-        _maybe_add_data(fields, T, Out)
+        _maybe_add_data(cls, fields, T, Out)
         t = type(f"{cls}[{T}]", (cls, ), fields)
         if T is None:
             # remove deq methods if no data
@@ -162,7 +163,7 @@ def _no_enq_error(self, value, when=True):
 class ReadyValidConsumerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": In(Bit), "ready": Out(Bit)}
-        _maybe_add_data(fields, T, In)
+        _maybe_add_data(cls, fields, T, In)
         t = type(f"{cls}[{T}]", (cls, ), fields)
         if T is None:
             t.enq = _enq_error
