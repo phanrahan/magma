@@ -2,10 +2,6 @@ from magma.array import Array
 from magma.tuple import Tuple
 
 
-class MagmaCompileException(Exception):
-    pass
-
-
 def _make_unconnected_error_str(port):
     error_str = port.debug_name
     if port.trace() is not None:
@@ -24,6 +20,10 @@ def _make_unconnected_error_str(port):
     elif port.trace() is None:
         error_str += ": Unconnected"
     return error_str
+
+
+class MagmaCompileException(Exception):
+    pass
 
 
 class UnconnectedPortException(MagmaCompileException):
