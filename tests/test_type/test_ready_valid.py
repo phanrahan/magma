@@ -188,6 +188,8 @@ def test_ready_valid_none():
         io.producer_handshake.valid @= io.producer_handshake.ready ^ 1
         io.consumer_handshake.ready @= io.consumer_handshake.valid ^ 1
 
+        assert type(io.producer_handshake).undirected_data_t is None
+        assert type(io.consumer_handshake).undirected_data_t is None
         assert not hasattr(io.producer_handshake, "data")
         assert not hasattr(io.consumer_handshake, "data")
         with pytest.raises(Exception):
