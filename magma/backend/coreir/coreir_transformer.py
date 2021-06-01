@@ -21,8 +21,8 @@ from magma.logging import root_logger
 from magma.passes import dependencies
 from magma.tuple import Tuple
 from magma.backend.util import get_codegen_debug_info
-from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
-                         get_default_clocks)
+from magma.clock import is_clock_or_nested_clock
+from magma.wire_clock import wire_default_clock, get_default_clocks
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
