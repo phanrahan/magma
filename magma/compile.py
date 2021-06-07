@@ -5,6 +5,7 @@ from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.bind import BindPass
 from magma.compiler import Compiler
+from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
@@ -41,10 +42,6 @@ def _get_basename(basename):
         callee_dir = PurePath(callee_filename).parent
         return str(callee_dir.joinpath(basename))
     return basename
-
-
-class MagmaCompileException(Exception):
-    pass
 
 
 def compile(basename, main, output="coreir-verilog", **kwargs):

@@ -5,6 +5,7 @@ from magma.testing import check_files_equal
 from magma import (IO, In, Out, Flip, Clock, Reset, reset, Enable, enable,
                    AsyncReset, Circuit, Bit, bit, wire, compile)
 from magma.digital import DigitalMeta
+from magma.compile_exception import UnconnectedPortException
 
 
 def test_clock():
@@ -430,3 +431,19 @@ def test_clock_undriven():
     class Bar(m.Circuit):
         foo = Foo()
         foo.CLK.undriven()
+
+
+def test_multiple_clock_drivers():
+    class Foo(m.Circuit):
+        io = m.IO(CLK=m.Out(m.Clock))
+
+    class Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        foo = Foo()
+        io.O @= m.Register(m.Bit)()(io.I)
+
+    with pytest.raises(UnconnectedPortException) as e:
+        m.compile("build/test_multiple_clock_drivers", Bar)
+    expected = ("Found unconnected port: "
+                "Bar.Register_inst0.CLK\nBar.Register_inst0.CLK: Unconnected")
+    assert str(e.value) == expected

@@ -61,5 +61,5 @@ def test_nested_clocks():
     class test_circuit(Circuit):
         name = "test_nested_clocks"
         io = IO(**dict(zip(args[::2], args[1::2])))
-        inner_test_circuit()
+        inner_test_circuit()(io.clocks)
     GetCoreIRModule(cirb, test_circuit)
