@@ -42,7 +42,6 @@ def test_simple_alu():
         # Test with fault if available
         import fault
         tester = fault.Tester(SimpleALU)
-        tester.circuit.CLK = 0
         ops = [operator.add, operator.sub, operator.mul, operator.floordiv]
         for i, op in enumerate(ops):
             tester.circuit.config_ = i
@@ -93,7 +92,7 @@ def test_seq_simple():
         # Test with fault if available
         import fault
         target = "verilator"
-        tester = fault.Tester(TestBasicToVerilog, TestBasicToVerilog.CLK)
+        tester = fault.Tester(TestBasicToVerilog)
         stream = hwtypes.BitVector.random(10)
         tester.circuit.ASYNCRESET = 0
         tester.eval()

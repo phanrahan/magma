@@ -16,6 +16,8 @@ from .tuple import Tuple, Product
 from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
 import hwtypes as ht
+from magma.common import is_int
+
 
 __all__ = ['bit']
 __all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
@@ -233,11 +235,14 @@ def check_value_is_not_input(fn):
     return wrapped
 
 
-# @check_value_is_not_input
 def zext(value, n):
     """Extend `value` by `n` zeros"""
-    assert isinstance(value, (UInt, SInt, Bits)) or \
-        isinstance(value, Array) and issubclass(value.T, Digital)
+    assert (isinstance(value, (UInt, SInt, Bits)) or
+            (isinstance(value, Array) and issubclass(value.T, Digital)))
+    if not is_int(n) or n < 0:
+        raise TypeError(f"Expected non-negative integer, got '{n}'")
+    if n == 0:
+        return value
     if isinstance(value, UInt):
         zeros = uint(0, n)
     elif isinstance(value, SInt):
@@ -266,10 +271,14 @@ def zext_to(value, n):
     return zext(value, n - len(value))
 
 
-# @check_value_is_not_input
 def sext(value, n):
     """Extend `value` by `n` replications of the msb (`value[-1]`)"""
-    assert isinstance(value, SInt)
+    if not isinstance(value, SInt):
+        raise TypeError(f"Expeted SInt, got {type(value).undirected_t}")
+    if not is_int(n) or n < 0:
+        raise TypeError(f"Expected non-negative integer, got '{n}'")
+    if n == 0:
+        return value
     return sint(concat(array(value), array([value[-1]] * n)))
 
 
@@ -369,15 +378,6 @@ def replace(value, others: dict):
         return array(l)
     else:
         raise ValueError("replace can only be used with an Array, a Tuple, or Product")
-
-
-def _dispatch(cls, dispatch, *args, **kwargs):
-    mro = cls.mro()
-    for dispatch_cls in mro:
-        fn = dispatch.registry.get(dispatch_cls, None)
-        if fn is not None:
-            return fn(*args, **kwargs)
-    raise NotImplementedError()
 
 
 def as_bits(value):

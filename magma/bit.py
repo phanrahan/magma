@@ -13,10 +13,15 @@ from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
 from .t import Direction, In, Out
 from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
+
+from magma.compatibility import IntegerTypes
 from magma.circuit import Circuit, coreir_port_mapping
+from magma.debug import debug_wire
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
+from magma.protocol_type import magma_type
+from magma.operator_utils import output_only
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -45,7 +50,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_unary_op(cls, op):
+    def _declare_unary_op(cls, op):
+        assert cls.undirected_t is cls
         assert op == "not", f"simulate not implemented for {op}"
 
         class _MagmaBitOp(Circuit):
@@ -67,7 +73,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @classmethod
     @lru_cache(maxsize=None)
-    def declare_binary_op(cls, op):
+    def _declare_binary_op(cls, op):
+        assert cls.undirected_t is cls
         python_op_name = primitive_to_python(op)
         python_op = getattr(operator, python_op_name)
 
@@ -112,77 +119,49 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     def __invert__(self):
         # CoreIR uses not instead of invert name
-        return self.declare_unary_op("not")()(self)
+        return type(self).undirected_t._declare_unary_op("not")()(self)
 
     @bit_cast
+    @output_only("Cannot use == on an input")
     def __eq__(self, other):
         # CoreIR doesn't define an eq primitive for bits
         return ~(self ^ other)
 
     @bit_cast
+    @output_only("Cannot use != on an input")
     def __ne__(self, other):
         # CoreIR doesn't define an ne primitive for bits
         return self ^ other
 
     @bit_cast
     def __and__(self, other):
-        return self.declare_binary_op("and")()(self, other)
+        return type(self).undirected_t._declare_binary_op("and")()(self, other)
 
     @bit_cast
     def __or__(self, other):
-        return self.declare_binary_op("or")()(self, other)
+        return type(self).undirected_t._declare_binary_op("or")()(self, other)
 
     @bit_cast
     def __xor__(self, other):
-        return self.declare_binary_op("xor")()(self, other)
+        return type(self).undirected_t._declare_binary_op("xor")()(self, other)
 
     def ite(self, t_branch, f_branch):
         if isinstance(t_branch, list) and isinstance(f_branch, list):
             if not len(t_branch) == len(f_branch):
                 raise TypeError("Bit.ite of two lists expects the same length")
             return [self.ite(x, y) for x, y in zip(t_branch, f_branch)]
-        t_type = type(t_branch)
-        f_type = type(f_branch)
-
-        # Implicit int/bv conversion
-        if (issubclass(t_type, _IMPLICITLY_COERCED_ITE_TYPES) and
-                not issubclass(f_type, _IMPLICITLY_COERCED_ITE_TYPES)):
-            t_branch = f_type(t_branch)
-            t_type = f_type
-        if (not issubclass(t_type, _IMPLICITLY_COERCED_ITE_TYPES) and
-                issubclass(f_type, _IMPLICITLY_COERCED_ITE_TYPES)):
-            f_branch = t_type(f_branch)
-            f_type = t_type
-
-        # allows undirected types to match (e.g. for temporary values)
-        if (t_type is not f_type and
-                t_type.qualify(Direction.Undirected) is not f_type and
-                f_type.qualify(Direction.Undirected) is not t_type):
-            while True:
-                try:
-                    if t_type.is_wireable(f_type):
-                        break
-                except AttributeError:
-                    pass
-                try:
-                    if f_type.is_wireable(t_type):
-                        break
-                except AttributeError:
-                    pass
-                raise TypeError("ite expects same type for both branches: "
-                                f"{t_type} != {f_type}")
 
         if self.const():
             if self is type(self).VCC:
                 return t_branch
             assert self is type(self).GND
             return f_branch
-        if issubclass(t_type, tuple):
+        if isinstance(t_branch, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # Note: coreir flips t/f cases
-        # self._Mux monkey patched in magma/primitives/mux.py to avoid circular
+        # self._mux monkey patched in magma/primitives/mux.py to avoid circular
         # dependency
-        return self._Mux(2, t_type)()(f_branch, t_branch, self)
+        return self._mux([f_branch, t_branch], self)
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma bit to bool not supported")
@@ -203,6 +182,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             raise TypeError("undriven cannot be used with output/inout")
         self.wire(DefineUndriven()().O)
 
+    @debug_wire
+    def wire(self, o, debug_info):
+        # Cast to Bit here so we don't get a Digital instead
+        if isinstance(o, (IntegerTypes, bool, ht.Bit)):
+            o = Bit(o)
+        return super().wire(o, debug_info)
+
 
 def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
@@ -218,6 +204,8 @@ def make_Define(_name, port, direction):
 
             # Type must be a bit because coreir uses Bit for the primitive.
             io = IO(**{port: direction(Bit)})
+            primitive = True
+            stateful = False
         return _Primitive
     return DefineCorebit
 

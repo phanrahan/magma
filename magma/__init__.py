@@ -15,15 +15,6 @@ def cache_definition(fn):
     cachedFunctions.append(lru_cache(maxsize=None)(fn))
     return cachedFunctions[-1]
 
-def singleton(cls):
-    instance = [None]
-    def wrapper(*args, **kwargs):
-        if instance[0] is None:
-            instance[0] = cls(*args, **kwargs)
-        return instance[0]
-
-    return wrapper
-
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 
 # wires
@@ -101,8 +92,12 @@ from .syntax.coroutine import coroutine
 
 from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
                               Register, get_slice, set_slice, slice,
-                              Memory)
+                              Memory, set_index, register, Wire)
 
-from magma.types import BitPattern, Valid
-from magma.types import BitPattern
+from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
+                         Decoupled, EnqIO, DeqIO, Irrevocable)
 import magma.smart
+from magma.compile_guard import compile_guard
+from magma.set_name import set_name
+from magma.circuit_utils import circuit_stub, stubify, CircuitStub
+from magma.compile import MagmaCompileException

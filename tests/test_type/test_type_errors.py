@@ -15,7 +15,7 @@ def test_array_lengths(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_type/test_type_errors.py:16\033[0m: Cannot wire main.O (type=Array[7, In(Bit)]) to main.buf.I (type=Array[8, In(Bit)]) because the arrays do not have the same length
+\033[1mtests/test_type/test_type_errors.py:16\033[0m: Cannot wire main.O (Array[7, In(Bit)]) to main.buf.I (Array[8, In(Bit)])
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     m.config.set_debug_mode(False)
@@ -33,7 +33,7 @@ def test_array_to_bit(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_type/test_type_errors.py:34\033[0m: Cannot wire main.O (type=In(Bit)) to main.buf.I (type=Array[8, In(Bit)]) because main.O is not an Array
+\033[1mtests/test_type/test_type_errors.py:34\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (Array[8, In(Bit)])
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     m.config.set_debug_mode(False)
@@ -74,7 +74,7 @@ def test_tuple_to_array(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_type/test_type_errors.py:75\033[0m: Cannot wire main.O (type=In(Bit)) to main.buf.I (type=Tuple(a=In(Bit),b=In(Bit))) because main.O is not a Tuple
+\033[1mtests/test_type/test_type_errors.py:75\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (Tuple(a=In(Bit),b=In(Bit)))
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     m.config.set_debug_mode(False)
@@ -96,7 +96,7 @@ def test_bad_tuples(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_type/test_type_errors.py:97\033[0m: Cannot wire main.O (type=Tuple(c=In(Bit),d=In(Bit)), keys=['a', 'b']) to main.buf.I (type=Tuple(a=In(Bit),b=In(Bit)), keys=['c', 'd']) because the tuples do not have the same keys
+\033[1mtests/test_type/test_type_errors.py:97\033[0m: Cannot wire main.O (Tuple(c=In(Bit),d=In(Bit))) to main.buf.I (Tuple(a=In(Bit),b=In(Bit)))
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     m.config.set_debug_mode(False)
@@ -114,7 +114,7 @@ def test_bit_to_array(caplog):
         buf = Buf()
         wire(buf.I, io.O)
     msg = """\
-\033[1mtests/test_type/test_type_errors.py:115\033[0m: Cannot wire main.O (type=In(Bit)) to I (type=Array[8, In(Bit)]) because main.buf.I is not a Digital
+\033[1mtests/test_type/test_type_errors.py:115\033[0m: Cannot wire main.buf.I (Array[8, In(Bit)]) to main.O (In(Bit))
 >>         wire(buf.I, io.O)"""
     assert has_error(caplog, msg)
     m.config.set_debug_mode(False)

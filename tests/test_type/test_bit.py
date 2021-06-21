@@ -356,11 +356,11 @@ def test_ite():
     assert repr(TestITE) == """\
 TestITE = DefineCircuit("TestITE", "I0", In(Bit), "I1", In(Bit), "S", In(Bit), \
 "O", Out(Bit))
-Mux2xOutBit_inst0 = Mux2xOutBit()
-wire(TestITE.I1, Mux2xOutBit_inst0.I0)
-wire(TestITE.I0, Mux2xOutBit_inst0.I1)
-wire(TestITE.S, Mux2xOutBit_inst0.S)
-wire(Mux2xOutBit_inst0.O, TestITE.O)
+Mux2xBit_inst0 = Mux2xBit()
+wire(TestITE.I1, Mux2xBit_inst0.I0)
+wire(TestITE.I0, Mux2xBit_inst0.I1)
+wire(TestITE.S, Mux2xBit_inst0.S)
+wire(Mux2xBit_inst0.O, TestITE.O)
 EndCircuit()\
 """, repr(TestITE)
     m.compile(f"build/TestBitite", TestITE, output="coreir-verilog")

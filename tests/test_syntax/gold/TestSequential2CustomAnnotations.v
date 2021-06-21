@@ -16,30 +16,38 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
+module Register (
+    input [3:0] I,
+    output [3:0] O,
+    input CLK
+);
+coreir_reg #(
+    .clk_posedge(1'b1),
+    .init(4'h0),
+    .width(4)
+) reg_P4_inst0 (
+    .clk(CLK),
+    .in(I),
+    .out(O)
+);
+endmodule
+
 module Basic (
     input [3:0] I,
     input S,
     output [3:0] O,
     input CLK
 );
-wire [3:0] reg_P_inst0_out;
-coreir_reg #(
-    .clk_posedge(1'b1),
-    .init(4'h0),
-    .width(4)
-) reg_P_inst0 (
-    .clk(CLK),
-    .in(I),
-    .out(reg_P_inst0_out)
+wire [3:0] Register_inst0_O;
+Register Register_inst0 (
+    .I(I),
+    .O(Register_inst0_O),
+    .CLK(CLK)
 );
-coreir_reg #(
-    .clk_posedge(1'b1),
-    .init(4'h0),
-    .width(4)
-) reg_P_inst1 (
-    .clk(CLK),
-    .in(reg_P_inst0_out),
-    .out(O)
+Register Register_inst1 (
+    .I(Register_inst0_O),
+    .O(O),
+    .CLK(CLK)
 );
 endmodule
 

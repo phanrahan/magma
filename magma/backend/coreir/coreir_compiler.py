@@ -1,13 +1,16 @@
 import os
 import subprocess
-from .coreir_ import InsertWrapCasts
-from ..compiler import Compiler
-from ..frontend import coreir_ as coreir_frontend
-from ..is_definition import isdefinition
-from ..passes import InstanceGraphPass
-from ..passes.insert_coreir_wires import InsertCoreIRWires
-from ..logging import root_logger
+from magma.compiler import Compiler
 from magma.config import EnvConfig, config
+from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
+from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
+from magma.frontend import coreir_ as coreir_frontend
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes import InstanceGraphPass
+from magma.passes.find_errors import find_errors_pass
+from magma.symbol_table import SymbolTable
+from magma.symbol_table_utils import MasterSymbolTable
 
 
 _logger = root_logger()
@@ -15,6 +18,12 @@ config._register(
     fast_coreir_verilog_compile=EnvConfig(
         "MAGMA_FAST_COREIR_VERILOG_COMPILE", False),
 )
+
+
+def _get_coreir_symbol_table(basename):
+    with open(f"{basename}_symbol_table.json") as f:
+        data = f.read()
+        return SymbolTable.from_json(data)
 
 
 def _make_verilog_cmd(deps, basename, opts):
@@ -37,19 +46,26 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --disable-ndarray"
     if opts.get("verilator_compat", False):
         cmd += " --verilator_compat"
+    if opts.get("verilog_prefix", ""):
+        cmd += f" --verilog-prefix {opts['verilog_prefix']}"
+    if opts.get("verilog_prefix_extern", False):
+        cmd += " --verilog-prefix-extern"
+    if opts.get("generate_symbols", False):
+        cmd += f" --symbols {basename}_symbol_table.json"
     return cmd
 
 
 def _make_opts(backend, opts):
-    out = {}
+    new_opts = {}
     user_namespace = opts.get("user_namespace", None)
     if user_namespace is not None:
         if backend.context.has_namespace(user_namespace):
             user_namespace = backend.context.get_namespace(user_namespace)
         else:
             user_namespace = backend.context.new_namespace(user_namespace)
-        out["user_namespace"] = user_namespace
-    return out
+        new_opts["user_namespace"] = user_namespace
+    new_opts["generate_symbols"] = opts.get("generate_symbols", False)
+    return new_opts
 
 
 class CoreIRCompiler(Compiler):
@@ -63,19 +79,25 @@ class CoreIRCompiler(Compiler):
         self.backend = coreir_frontend.GetCoreIRBackend()
 
     def compile(self):
-        InsertCoreIRWires(self.main).run()
-        InsertWrapCasts(self.main).run()
+        result = {}
+        result["symbol_table"] = symbol_table = SymbolTable()
+        insert_coreir_wires(self.main)
+        insert_wrap_casts(self.main)
+        find_errors_pass(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
+        opts["symbol_table"] = symbol_table
         backend.compile(self.main, opts)
         backend.context.run_passes(self.passes, self.namespaces)
+        if isdefinition(self.main):
+            result["coreir_module"] = backend.get_module(self.main)
         output_json = (self.opts.get("output_intermediate", False) or
                        not self.opts.get("output_verilog", False) or
                        not config.fast_coreir_verilog_compile)
         if output_json:
             filename = f"{self.basename}.json"
             if isdefinition(self.main):
-                backend.context.set_top(backend.modules[self.main.coreir_name])
+                backend.context.set_top(backend.get_module(self.main))
             backend.context.save_to_file(filename, include_default_libs=False)
         if self.opts.get("output_verilog", False):
             fn = (self._fast_compile_verilog
@@ -83,13 +105,22 @@ class CoreIRCompiler(Compiler):
                   else self._compile_verilog)
             fn()
             self._compile_verilog_epilogue()
-            return
+            if self.opts.get("generate_symbols", False):
+                coreir_symbol_table = _get_coreir_symbol_table(self.basename)
+                if not self.opts.get("merge_symbol_tables", True):
+                    result["coreir_symbol_table"] = coreir_symbol_table
+                else:
+                    master = MasterSymbolTable([
+                        symbol_table, coreir_symbol_table])
+                    result["master_symbol_table"] = master
+            return result
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or
                                 self.opts.get("footer_str", ""))
         if has_header_or_footer:
             _logger.warning("[coreir-compiler] header/footer only supported "
                             "when output_verilog=True, ignoring")
+        return result
 
     def _compile_verilog(self):
         cmd = _make_verilog_cmd(self.deps, self.basename, self.opts)
@@ -98,7 +129,7 @@ class CoreIRCompiler(Compiler):
             raise RuntimeError(f"CoreIR cmd '{cmd}' failed with code {ret}")
 
     def _fast_compile_verilog(self):
-        top = self.backend.modules[self.main.coreir_name]
+        top = self.backend.get_module(self.main)
         filename = f"{self.basename}.v"
         opts = dict(
             libs=self.deps,
@@ -107,6 +138,8 @@ class CoreIRCompiler(Compiler):
             verilator_debug=self.opts.get("verilator_debug", False),
             disable_width_cast=self.opts.get("disable_width_cast", False),
         )
+        if self.opts.get("verilog_prefix", False):
+            raise NotImplementedError()
         ret = self.backend.context.compile_to_verilog(top, filename, **opts)
         if not ret:
             raise RuntimeError(f"CoreIR compilation to verilog failed")
@@ -116,7 +149,7 @@ class CoreIRCompiler(Compiler):
 
         bind_files = []
         # TODO(leonardt): We need fresh bind_files for each compile call.
-        for name, file in self.backend.sv_bind_files.items():
+        for name, file in self.backend.bound_modules().items():
             bind_files.append(f"{name}.sv")
             filename = os.path.join(os.path.dirname(self.basename), name)
             with open(f"{filename}.sv", "w") as f:

@@ -1,0 +1,60 @@
+{"top":"global._Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "COND_compile_guard":{
+        "type":["Record",[
+          ["port_0","BitIn"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances":{
+          "Register_inst0":{
+            "modref":"global.Register"
+          }
+        },
+        "connections":[
+          ["self.CLK","Register_inst0.CLK"],
+          ["self.port_0","Register_inst0.I"]
+        ]
+      },
+      "Register":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances":{
+          "reg_P1_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",1]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",1],"1'h0"]}
+          }
+        },
+        "connections":[
+          ["self.CLK","reg_P1_inst0.clk"],
+          ["self.I","reg_P1_inst0.in.0"],
+          ["self.O","reg_P1_inst0.out.0"]
+        ]
+      },
+      "_Top":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances":{
+          "COND_compile_guard":{
+            "modref":"global.COND_compile_guard",
+            "metadata":{"compile_guard":{"condition_str":"COND","type":"defined"}}
+          }
+        },
+        "connections":[
+          ["self.CLK","COND_compile_guard.CLK"],
+          ["self.I.0","COND_compile_guard.port_0"],
+          ["self.O","self.I.1"]
+        ]
+      }
+    }
+  }
+}
+}

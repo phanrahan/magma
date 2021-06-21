@@ -7,6 +7,7 @@ import functools
 import operator
 from collections import namedtuple
 import os
+import logging as py_logging  # to avoid confusion
 
 import six
 from . import cache_definition
@@ -19,7 +20,6 @@ from .logging import root_logger, stage_logger, unstage_logger
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
-from magma.syntax.sequential import sequential
 try:
     import kratos
     from magma.syntax.verilog import combinational_to_verilog, \
@@ -49,15 +49,15 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 _logger = root_logger()
 
 _VERILOG_FILE_OPEN = """
-integer \_file_{filename} ;
-initial \_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
+integer \\_file_{filename} ;
+initial \\_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
 """  # noqa
 
 _VERILOG_FILE_CLOSE = """
-final $fclose(\_file_{filename} );
+final $fclose(\\_file_{filename} );
 """  # noqa
 
-_DEFAULT_VERILOG_LOG_STR = f"""
+_DEFAULT_VERILOG_LOG_STR = """
 `ifndef MAGMA_LOG_LEVEL
     `define MAGMA_LOG_LEVEL 1
 `endif"""
@@ -123,7 +123,8 @@ class DefinitionContext:
         self._finalize_file_opens()  # so displays can refer to open files
         self._finalize_displays()
         self._finalize_file_close()  # close after displays
-        unstage_logger()
+        logs = unstage_logger()
+        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
 
 
 _definition_context_stack = Stack()
@@ -181,9 +182,12 @@ def _add_intermediate_value(value):
     `CircuitKind.__repr__`.
     """
     root = value.name.root()
-    if root is None or root.const():
+    # root is either None, or a NamedRef. If it is a NamedRef which refers to a
+    # constant, then we can proceed with the empty set. Otherwise, we seed the
+    # set with the root value.
+    if root is None or root.value().const():
         return OrderedIdentitySet()
-    return OrderedIdentitySet((root,))
+    return OrderedIdentitySet((root.value(),))
 
 
 def _get_intermediate_values(value):
@@ -231,6 +235,7 @@ class CircuitKind(type):
         cls_name = dct.get("_cls_name_", name)
         name = dct.setdefault('name', name)
 
+        dct.setdefault("_circuit_base_", False)
         dct.setdefault('renamed_ports', {})
         dct.setdefault('primitive', False)
         dct.setdefault('coreir_lib', 'global')
@@ -264,13 +269,14 @@ class CircuitKind(type):
             setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
         try:
             context = _definition_context_stack.pop()
+        except IndexError:  # no staged placer
+            cls._context_ = DefinitionContext(Placer(cls))
+        else:
             assert context.placer.name == cls_name
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
             cls._context_.finalize(cls)
-        except IndexError:  # no staged placer
-            cls._context_ = DefinitionContext(Placer(cls))
 
         return cls
 
@@ -372,6 +378,9 @@ class CircuitKind(type):
 @six.add_metaclass(CircuitKind)
 class AnonymousCircuitType(object):
     """Abstract base class for circuits"""
+
+    _circuit_base_ = True
+
     def __init__(self, *largs, **kwargs):
         self.kwargs = dict(**kwargs)
 
@@ -543,6 +552,8 @@ def AnonymousCircuit(*decl):
 
 
 class CircuitType(AnonymousCircuitType):
+    _circuit_base_ = True
+
     """Placed circuit - instances placed in a definition"""
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
@@ -603,28 +614,33 @@ def DeclareCircuit(name, *decl, **args):
     return metacls(name, bases, dct)
 
 
+def _get_name(name, bases, dct):
+    try:
+        return dct["name"]
+    except KeyError:
+        pass
+    # Take name of the first base class which is not a base circuit type, if one
+    # exists.
+    for base in bases:
+        if base._circuit_base_:
+            continue
+        if not issubclass(base, AnonymousCircuitType):
+            raise Exception(f"Must subclass from AnonymousCircuitType or a "
+                            f"subclass of AnonymousCircuitType ({base})")
+        return base.name
+    return name
+
+
 class DefineCircuitKind(CircuitKind):
     def __new__(metacls, name, bases, dct):
         dct["_cls_name_"] = name  # save original name for debugging purposes
-        if 'name' not in dct:
-            dct['name'] = name
-            # Check if we are a subclass of something other than Circuit; if so,
-            # inherit the name of the first parent.
-            for base in bases:
-                if base is Circuit:
-                    continue
-                if not issubclass(base, AnonymousCircuitType):
-                    raise Exception(f"Must subclass from AnonymousCircuitType "
-                                    f"or a subclass of AnonymousCircuitType "
-                                    f"({base})")
-                dct['name'] = base.name
-                break
-        name = dct['name']
+        name = _get_name(name, bases, dct.copy())
+        dct["name"] = name
         dct["renamed_ports"] = dct.get("renamed_ports", {})
 
         self = CircuitKind.__new__(metacls, name, bases, dct)
 
-        self.verilog = None
+        self.verilog = dct.get("verilog", None)
         self.verilogFile = None
         self.verilogLib = None
 
@@ -647,6 +663,7 @@ class DefineCircuitKind(CircuitKind):
                                 "instead", debug_info=self.debug_info)
                 with _DefinitionContextManager(self._context_):
                     self.definition()
+                self._context_.finalize(self)
                 self._is_definition = True
                 run_unconnected_check = True
             elif self._syntax_style_ is _SyntaxStyle.NEW:
@@ -686,13 +703,13 @@ class DefineCircuitKind(CircuitKind):
         """Place a circuit instance in this definition"""
         cls._context_.placer.place(inst)
 
-    def bind(cls, monitor, *args):
-        cls.bind_modules[monitor] = args
+    def bind(cls, monitor, *args, compile_guard=None):
+        cls.bind_modules[monitor] = (args, compile_guard)
 
 
 @six.add_metaclass(DefineCircuitKind)
 class Circuit(CircuitType):
-    pass
+    _circuit_base_ = True
 
 
 @deprecated(
@@ -772,9 +789,27 @@ coreir_port_mapping = {
 }
 
 
+@deprecated
 def DeclareCoreirCircuit(*args, **kwargs):
     return DeclareCircuit(*args, **kwargs,
                           renamed_ports=coreir_port_mapping)
+
+
+def declare_coreir_circuit(name_: str, ports: dict, coreir_name_: str,
+                           coreir_genargs_: dict, coreir_lib_: str):
+    """
+    parameter names are suffixed with `_` otherwise we get a NameError inside
+    the class definition
+    """
+    class CoreIRCircuit(Circuit):
+        name = name_
+        renamed_ports = coreir_port_mapping
+        io = IO(**ports)
+        coreir_name = coreir_name_
+        coreir_genargs = coreir_genargs_
+        coreir_lib = coreir_lib_
+
+    return CoreIRCircuit
 
 
 class _CircuitBuilderMeta(type):
@@ -785,7 +820,7 @@ def builder_method(func):
 
     @wraps(func)
     def _wrapped(this, *args, **kwargs):
-        with _DefinitionContextManager(this._context):
+        with _DefinitionContextManager(this.context):
             result = func(this, *args, **kwargs)
         return result
 
@@ -796,17 +831,23 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     _RESERVED_NAMESPACE_KEYS = {"io", "_context_", "name"}
 
     def __init__(self, name):
+        # Try to add this builder to a context if one exists currently. A
+        # builder can still be constructed outside of a context, but (a) the
+        # builder will not be automatically finalized, and (b) instantation
+        # might fail.
         try:
             context = _definition_context_stack.peek()
-            context.add_builder(self)
         except IndexError:
-            raise Exception("Can not instance a circuit builder outside a "
-                            "definition")
+            pass
+        else:
+            context.add_builder(self)
         self._name = name
         self._io = SingletonInstanceIO()
         self._finalized = False
         self._dct = {}
+        self._inst_attrs = {}
         self._context = DefinitionContext(StagedPlacer(self._name))
+        self._instance_name = None
 
     def _port(self, name):
         return self._io.ports[name]
@@ -814,16 +855,49 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
     def _add_port(self, name, typ):
         self._io.add(name, typ)
         setattr(self, name, self._io.inst_ports[name])
+        return self._port(name)
 
-    def _set_namespace_key(self, key, value):
+    def _add_ports(self, **kwargs):
+        return list(self._add_port(name, typ) for name, typ in kwargs.items())
+
+    @property
+    def _instances(self):
+        return self._context.placer.instances.copy()
+
+    def _set_definition_attr(self, key, value):
         if key in CircuitBuilder._RESERVED_NAMESPACE_KEYS:
-            raise Exception(f"Can not set reserved namespace key '{key}'")
+            raise Exception(f"Can not set reserved attr '{key}'")
         self._dct[key] = value
+
+    def _set_inst_attr(self, key, value):
+        self._inst_attrs[key] = value
+
+    def _open(self):
+        return _DefinitionContextManager(self._context)
 
     def _finalize(self):
         pass
 
-    def finalize(self):
+    def set_instance_name(self, name):
+        self._instance_name = name
+
+    @property
+    def context(self):
+        return self._context
+
+    @property
+    def instance_name(self):
+        if self._instance_name is None:
+            return self._name
+        return self._instance_name
+
+    @property
+    def defn(self):
+        if not self._finalized:
+            return None
+        return self._defn
+
+    def finalize(self, dont_instantiate: bool = False):
         if self._finalized:
             raise Exception("Can only call finalize on a CircuitBuilder once")
         self._finalize()
@@ -831,6 +905,11 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         dct = {"io": self._io, "_context_": self._context, "name": self._name}
         dct.update(self._dct)
         DefineCircuitKind.__prepare__(self._name, bases)
-        t = DefineCircuitKind(self._name, bases, dct)
+        self._defn = DefineCircuitKind(self._name, bases, dct)
         self._finalized = True
-        return t(name=self._name)
+        if dont_instantiate:
+            return None
+        inst = self._defn(name=self.instance_name)
+        for k, v in self._inst_attrs.items():
+            setattr(inst, k, v)
+        return inst

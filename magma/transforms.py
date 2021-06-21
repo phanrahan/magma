@@ -1,10 +1,12 @@
 from collections import namedtuple, OrderedDict
 from .circuit import CopyInstance, Circuit, IO
+from magma.conversions import convertbit
 from .is_definition import isdefinition
 from .is_primitive import isprimitive
 from .digital import Digital
 from .bit import *
-from .clock import Clock, Enable, Reset, AsyncReset, wiredefaultclock
+from .clock import Clock, Enable, Reset, AsyncReset
+from .wire_clock import wiredefaultclock
 from .array import *
 from .tuple import Tuple
 from .wire import wire
@@ -62,6 +64,19 @@ class TransformedCircuit:
         else:
             self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit
 
+
+def _add_array_mapping(mapping, outerbit, innerbit, outer_scope, inner_scope):
+    for o, i in zip(outerbit, innerbit):
+        if isinstance(o, Array):
+            _add_array_mapping(mapping, o, i, outer_scope, inner_scope)
+        oqual = QualifiedBit(bit=o, scope=outer_scope)
+        iqual = QualifiedBit(bit=i, scope=inner_scope)
+        if o.is_input():
+            mapping[iqual] = oqual
+        else:
+            mapping[oqual] = iqual
+
+
 def get_primitives(outer_circuit, outer_scope):
     primitives = []
     mapping = {}
@@ -79,13 +94,8 @@ def get_primitives(outer_circuit, outer_scope):
                 innerloc = QualifiedBit(bit=innerbit, scope=inner_scope)
 
                 if isinstance(outerbit, Array):
-                    for o, i in zip(outerbit, innerbit):
-                        oqual = QualifiedBit(bit=o, scope=outer_scope)
-                        iqual = QualifiedBit(bit=i, scope=inner_scope)
-                        if o.is_input():
-                            mapping[iqual] = oqual
-                        else:
-                            mapping[oqual] = iqual
+                    _add_array_mapping(mapping, outerbit, innerbit, outer_scope,
+                                      inner_scope)
 
                 if outerbit.is_input():
                     mapping[innerloc] = outerloc
@@ -189,6 +199,10 @@ def wire_new_bit(origbit, newbit, cur_scope, primitive_map, bit_map, old_circuit
         collapsed_in_bits.append(intermediate_in)
 
     newsource = get_new_source(source_qual, primitive_map, old_circuit, new_circuit)
+    # Convert newsource because it might have been casted in the user code
+    newbit_T = type(newbit).undirected_t
+    if not isinstance(newsource, newbit_T):
+        newsource = convertbit(newsource, newbit_T)
     wire(newsource, newbit)
 
     for collapsed in collapsed_in_bits:

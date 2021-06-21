@@ -16,7 +16,23 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
-module Mux2xOutBits4 (
+module Register (
+    input [3:0] I,
+    output [3:0] O,
+    input CLK
+);
+coreir_reg #(
+    .clk_posedge(1'b1),
+    .init(4'h0),
+    .width(4)
+) reg_P4_inst0 (
+    .clk(CLK),
+    .in(I),
+    .out(O)
+);
+endmodule
+
+module Mux2xBits4 (
     input [3:0] I0,
     input [3:0] I1,
     input S,
@@ -41,51 +57,43 @@ module Basic (
     output [3:0] O1,
     input CLK
 );
-wire [3:0] Mux2xOutBits4_inst0_O;
-wire [3:0] Mux2xOutBits4_inst1_O;
-wire [3:0] reg_P_inst0_out;
-wire [3:0] reg_P_inst1_out;
-Mux2xOutBits4 Mux2xOutBits4_inst0 (
-    .I0(reg_P_inst0_out),
-    .I1(reg_P_inst0_out),
+wire [3:0] Mux2xBits4_inst0_O;
+wire [3:0] Mux2xBits4_inst1_O;
+wire [3:0] Register_inst0_O;
+wire [3:0] Register_inst1_O;
+Mux2xBits4 Mux2xBits4_inst0 (
+    .I0(Register_inst0_O),
+    .I1(Register_inst0_O),
     .S(S),
-    .O(Mux2xOutBits4_inst0_O)
+    .O(Mux2xBits4_inst0_O)
 );
-Mux2xOutBits4 Mux2xOutBits4_inst1 (
+Mux2xBits4 Mux2xBits4_inst1 (
     .I0(I),
     .I1(I),
     .S(S),
-    .O(Mux2xOutBits4_inst1_O)
+    .O(Mux2xBits4_inst1_O)
 );
-Mux2xOutBits4 Mux2xOutBits4_inst2 (
-    .I0(reg_P_inst0_out),
+Mux2xBits4 Mux2xBits4_inst2 (
+    .I0(Register_inst0_O),
     .I1(I),
     .S(S),
     .O(O0)
 );
-Mux2xOutBits4 Mux2xOutBits4_inst3 (
+Mux2xBits4 Mux2xBits4_inst3 (
     .I0(I),
-    .I1(reg_P_inst0_out),
+    .I1(Register_inst0_O),
     .S(S),
     .O(O1)
 );
-coreir_reg #(
-    .clk_posedge(1'b1),
-    .init(4'h0),
-    .width(4)
-) reg_P_inst0 (
-    .clk(CLK),
-    .in(Mux2xOutBits4_inst1_O),
-    .out(reg_P_inst0_out)
+Register Register_inst0 (
+    .I(Mux2xBits4_inst1_O),
+    .O(Register_inst0_O),
+    .CLK(CLK)
 );
-coreir_reg #(
-    .clk_posedge(1'b1),
-    .init(4'h0),
-    .width(4)
-) reg_P_inst1 (
-    .clk(CLK),
-    .in(Mux2xOutBits4_inst0_O),
-    .out(reg_P_inst1_out)
+Register Register_inst1 (
+    .I(Mux2xBits4_inst0_O),
+    .O(Register_inst1_O),
+    .CLK(CLK)
 );
 endmodule
 

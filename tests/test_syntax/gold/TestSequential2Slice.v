@@ -25,7 +25,7 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(64'h0000000000000000),
     .width(64)
-) reg_P_inst0 (
+) reg_P64_inst0 (
     .clk(CLK),
     .in(I),
     .out(O)
@@ -212,7 +212,7 @@ end
 assign O = coreir_commonlib_mux56x8_inst0_out;
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -237,70 +237,70 @@ module TestSequential2Slice (
     output [7:0] O,
     input CLK
 );
-wire Mux2xOutBit_inst0_O;
-wire Mux2xOutBit_inst1_O;
-wire Mux2xOutBit_inst10_O;
-wire Mux2xOutBit_inst11_O;
-wire Mux2xOutBit_inst12_O;
-wire Mux2xOutBit_inst13_O;
-wire Mux2xOutBit_inst14_O;
-wire Mux2xOutBit_inst15_O;
-wire Mux2xOutBit_inst16_O;
-wire Mux2xOutBit_inst17_O;
-wire Mux2xOutBit_inst18_O;
-wire Mux2xOutBit_inst19_O;
-wire Mux2xOutBit_inst2_O;
-wire Mux2xOutBit_inst20_O;
-wire Mux2xOutBit_inst21_O;
-wire Mux2xOutBit_inst22_O;
-wire Mux2xOutBit_inst23_O;
-wire Mux2xOutBit_inst24_O;
-wire Mux2xOutBit_inst25_O;
-wire Mux2xOutBit_inst26_O;
-wire Mux2xOutBit_inst27_O;
-wire Mux2xOutBit_inst28_O;
-wire Mux2xOutBit_inst29_O;
-wire Mux2xOutBit_inst3_O;
-wire Mux2xOutBit_inst30_O;
-wire Mux2xOutBit_inst31_O;
-wire Mux2xOutBit_inst32_O;
-wire Mux2xOutBit_inst33_O;
-wire Mux2xOutBit_inst34_O;
-wire Mux2xOutBit_inst35_O;
-wire Mux2xOutBit_inst36_O;
-wire Mux2xOutBit_inst37_O;
-wire Mux2xOutBit_inst38_O;
-wire Mux2xOutBit_inst39_O;
-wire Mux2xOutBit_inst4_O;
-wire Mux2xOutBit_inst40_O;
-wire Mux2xOutBit_inst41_O;
-wire Mux2xOutBit_inst42_O;
-wire Mux2xOutBit_inst43_O;
-wire Mux2xOutBit_inst44_O;
-wire Mux2xOutBit_inst45_O;
-wire Mux2xOutBit_inst46_O;
-wire Mux2xOutBit_inst47_O;
-wire Mux2xOutBit_inst48_O;
-wire Mux2xOutBit_inst49_O;
-wire Mux2xOutBit_inst5_O;
-wire Mux2xOutBit_inst50_O;
-wire Mux2xOutBit_inst51_O;
-wire Mux2xOutBit_inst52_O;
-wire Mux2xOutBit_inst53_O;
-wire Mux2xOutBit_inst54_O;
-wire Mux2xOutBit_inst55_O;
-wire Mux2xOutBit_inst56_O;
-wire Mux2xOutBit_inst57_O;
-wire Mux2xOutBit_inst58_O;
-wire Mux2xOutBit_inst59_O;
-wire Mux2xOutBit_inst6_O;
-wire Mux2xOutBit_inst60_O;
-wire Mux2xOutBit_inst61_O;
-wire Mux2xOutBit_inst62_O;
-wire Mux2xOutBit_inst63_O;
-wire Mux2xOutBit_inst7_O;
-wire Mux2xOutBit_inst8_O;
-wire Mux2xOutBit_inst9_O;
+wire Mux2xBit_inst0_O;
+wire Mux2xBit_inst1_O;
+wire Mux2xBit_inst10_O;
+wire Mux2xBit_inst11_O;
+wire Mux2xBit_inst12_O;
+wire Mux2xBit_inst13_O;
+wire Mux2xBit_inst14_O;
+wire Mux2xBit_inst15_O;
+wire Mux2xBit_inst16_O;
+wire Mux2xBit_inst17_O;
+wire Mux2xBit_inst18_O;
+wire Mux2xBit_inst19_O;
+wire Mux2xBit_inst2_O;
+wire Mux2xBit_inst20_O;
+wire Mux2xBit_inst21_O;
+wire Mux2xBit_inst22_O;
+wire Mux2xBit_inst23_O;
+wire Mux2xBit_inst24_O;
+wire Mux2xBit_inst25_O;
+wire Mux2xBit_inst26_O;
+wire Mux2xBit_inst27_O;
+wire Mux2xBit_inst28_O;
+wire Mux2xBit_inst29_O;
+wire Mux2xBit_inst3_O;
+wire Mux2xBit_inst30_O;
+wire Mux2xBit_inst31_O;
+wire Mux2xBit_inst32_O;
+wire Mux2xBit_inst33_O;
+wire Mux2xBit_inst34_O;
+wire Mux2xBit_inst35_O;
+wire Mux2xBit_inst36_O;
+wire Mux2xBit_inst37_O;
+wire Mux2xBit_inst38_O;
+wire Mux2xBit_inst39_O;
+wire Mux2xBit_inst4_O;
+wire Mux2xBit_inst40_O;
+wire Mux2xBit_inst41_O;
+wire Mux2xBit_inst42_O;
+wire Mux2xBit_inst43_O;
+wire Mux2xBit_inst44_O;
+wire Mux2xBit_inst45_O;
+wire Mux2xBit_inst46_O;
+wire Mux2xBit_inst47_O;
+wire Mux2xBit_inst48_O;
+wire Mux2xBit_inst49_O;
+wire Mux2xBit_inst5_O;
+wire Mux2xBit_inst50_O;
+wire Mux2xBit_inst51_O;
+wire Mux2xBit_inst52_O;
+wire Mux2xBit_inst53_O;
+wire Mux2xBit_inst54_O;
+wire Mux2xBit_inst55_O;
+wire Mux2xBit_inst56_O;
+wire Mux2xBit_inst57_O;
+wire Mux2xBit_inst58_O;
+wire Mux2xBit_inst59_O;
+wire Mux2xBit_inst6_O;
+wire Mux2xBit_inst60_O;
+wire Mux2xBit_inst61_O;
+wire Mux2xBit_inst62_O;
+wire Mux2xBit_inst63_O;
+wire Mux2xBit_inst7_O;
+wire Mux2xBit_inst8_O;
+wire Mux2xBit_inst9_O;
 wire [63:0] Register_inst0_O;
 wire magma_Bit_and_inst0_out;
 wire magma_Bit_and_inst10_out;
@@ -366,72 +366,6 @@ wire magma_Bit_and_inst92_out;
 wire magma_Bit_and_inst94_out;
 wire magma_Bit_and_inst96_out;
 wire magma_Bit_and_inst98_out;
-wire [5:0] magma_Bits_6_mul_inst0_out;
-wire [5:0] magma_Bits_6_mul_inst1_out;
-wire [5:0] magma_Bits_6_sub_inst0_out;
-wire [5:0] magma_Bits_6_sub_inst10_out;
-wire [5:0] magma_Bits_6_sub_inst100_out;
-wire [5:0] magma_Bits_6_sub_inst102_out;
-wire [5:0] magma_Bits_6_sub_inst104_out;
-wire [5:0] magma_Bits_6_sub_inst106_out;
-wire [5:0] magma_Bits_6_sub_inst108_out;
-wire [5:0] magma_Bits_6_sub_inst110_out;
-wire [5:0] magma_Bits_6_sub_inst112_out;
-wire [5:0] magma_Bits_6_sub_inst114_out;
-wire [5:0] magma_Bits_6_sub_inst116_out;
-wire [5:0] magma_Bits_6_sub_inst118_out;
-wire [5:0] magma_Bits_6_sub_inst12_out;
-wire [5:0] magma_Bits_6_sub_inst120_out;
-wire [5:0] magma_Bits_6_sub_inst122_out;
-wire [5:0] magma_Bits_6_sub_inst124_out;
-wire [5:0] magma_Bits_6_sub_inst126_out;
-wire [5:0] magma_Bits_6_sub_inst14_out;
-wire [5:0] magma_Bits_6_sub_inst16_out;
-wire [5:0] magma_Bits_6_sub_inst18_out;
-wire [5:0] magma_Bits_6_sub_inst2_out;
-wire [5:0] magma_Bits_6_sub_inst20_out;
-wire [5:0] magma_Bits_6_sub_inst22_out;
-wire [5:0] magma_Bits_6_sub_inst24_out;
-wire [5:0] magma_Bits_6_sub_inst26_out;
-wire [5:0] magma_Bits_6_sub_inst28_out;
-wire [5:0] magma_Bits_6_sub_inst30_out;
-wire [5:0] magma_Bits_6_sub_inst32_out;
-wire [5:0] magma_Bits_6_sub_inst34_out;
-wire [5:0] magma_Bits_6_sub_inst36_out;
-wire [5:0] magma_Bits_6_sub_inst38_out;
-wire [5:0] magma_Bits_6_sub_inst4_out;
-wire [5:0] magma_Bits_6_sub_inst40_out;
-wire [5:0] magma_Bits_6_sub_inst42_out;
-wire [5:0] magma_Bits_6_sub_inst44_out;
-wire [5:0] magma_Bits_6_sub_inst46_out;
-wire [5:0] magma_Bits_6_sub_inst48_out;
-wire [5:0] magma_Bits_6_sub_inst50_out;
-wire [5:0] magma_Bits_6_sub_inst52_out;
-wire [5:0] magma_Bits_6_sub_inst54_out;
-wire [5:0] magma_Bits_6_sub_inst56_out;
-wire [5:0] magma_Bits_6_sub_inst58_out;
-wire [5:0] magma_Bits_6_sub_inst6_out;
-wire [5:0] magma_Bits_6_sub_inst60_out;
-wire [5:0] magma_Bits_6_sub_inst62_out;
-wire [5:0] magma_Bits_6_sub_inst64_out;
-wire [5:0] magma_Bits_6_sub_inst66_out;
-wire [5:0] magma_Bits_6_sub_inst68_out;
-wire [5:0] magma_Bits_6_sub_inst70_out;
-wire [5:0] magma_Bits_6_sub_inst72_out;
-wire [5:0] magma_Bits_6_sub_inst74_out;
-wire [5:0] magma_Bits_6_sub_inst76_out;
-wire [5:0] magma_Bits_6_sub_inst78_out;
-wire [5:0] magma_Bits_6_sub_inst8_out;
-wire [5:0] magma_Bits_6_sub_inst80_out;
-wire [5:0] magma_Bits_6_sub_inst82_out;
-wire [5:0] magma_Bits_6_sub_inst84_out;
-wire [5:0] magma_Bits_6_sub_inst86_out;
-wire [5:0] magma_Bits_6_sub_inst88_out;
-wire [5:0] magma_Bits_6_sub_inst90_out;
-wire [5:0] magma_Bits_6_sub_inst92_out;
-wire [5:0] magma_Bits_6_sub_inst94_out;
-wire [5:0] magma_Bits_6_sub_inst96_out;
-wire [5:0] magma_Bits_6_sub_inst98_out;
 wire [7:0] magma_Bits_8_lshr_inst0_out;
 wire [7:0] magma_Bits_8_lshr_inst1_out;
 wire [7:0] magma_Bits_8_lshr_inst10_out;
@@ -496,389 +430,455 @@ wire [7:0] magma_Bits_8_lshr_inst63_out;
 wire [7:0] magma_Bits_8_lshr_inst7_out;
 wire [7:0] magma_Bits_8_lshr_inst8_out;
 wire [7:0] magma_Bits_8_lshr_inst9_out;
-Mux2xOutBit Mux2xOutBit_inst0 (
+wire [5:0] magma_UInt_6_mul_inst0_out;
+wire [5:0] magma_UInt_6_mul_inst1_out;
+wire [5:0] magma_UInt_6_sub_inst0_out;
+wire [5:0] magma_UInt_6_sub_inst10_out;
+wire [5:0] magma_UInt_6_sub_inst100_out;
+wire [5:0] magma_UInt_6_sub_inst102_out;
+wire [5:0] magma_UInt_6_sub_inst104_out;
+wire [5:0] magma_UInt_6_sub_inst106_out;
+wire [5:0] magma_UInt_6_sub_inst108_out;
+wire [5:0] magma_UInt_6_sub_inst110_out;
+wire [5:0] magma_UInt_6_sub_inst112_out;
+wire [5:0] magma_UInt_6_sub_inst114_out;
+wire [5:0] magma_UInt_6_sub_inst116_out;
+wire [5:0] magma_UInt_6_sub_inst118_out;
+wire [5:0] magma_UInt_6_sub_inst12_out;
+wire [5:0] magma_UInt_6_sub_inst120_out;
+wire [5:0] magma_UInt_6_sub_inst122_out;
+wire [5:0] magma_UInt_6_sub_inst124_out;
+wire [5:0] magma_UInt_6_sub_inst126_out;
+wire [5:0] magma_UInt_6_sub_inst14_out;
+wire [5:0] magma_UInt_6_sub_inst16_out;
+wire [5:0] magma_UInt_6_sub_inst18_out;
+wire [5:0] magma_UInt_6_sub_inst2_out;
+wire [5:0] magma_UInt_6_sub_inst20_out;
+wire [5:0] magma_UInt_6_sub_inst22_out;
+wire [5:0] magma_UInt_6_sub_inst24_out;
+wire [5:0] magma_UInt_6_sub_inst26_out;
+wire [5:0] magma_UInt_6_sub_inst28_out;
+wire [5:0] magma_UInt_6_sub_inst30_out;
+wire [5:0] magma_UInt_6_sub_inst32_out;
+wire [5:0] magma_UInt_6_sub_inst34_out;
+wire [5:0] magma_UInt_6_sub_inst36_out;
+wire [5:0] magma_UInt_6_sub_inst38_out;
+wire [5:0] magma_UInt_6_sub_inst4_out;
+wire [5:0] magma_UInt_6_sub_inst40_out;
+wire [5:0] magma_UInt_6_sub_inst42_out;
+wire [5:0] magma_UInt_6_sub_inst44_out;
+wire [5:0] magma_UInt_6_sub_inst46_out;
+wire [5:0] magma_UInt_6_sub_inst48_out;
+wire [5:0] magma_UInt_6_sub_inst50_out;
+wire [5:0] magma_UInt_6_sub_inst52_out;
+wire [5:0] magma_UInt_6_sub_inst54_out;
+wire [5:0] magma_UInt_6_sub_inst56_out;
+wire [5:0] magma_UInt_6_sub_inst58_out;
+wire [5:0] magma_UInt_6_sub_inst6_out;
+wire [5:0] magma_UInt_6_sub_inst60_out;
+wire [5:0] magma_UInt_6_sub_inst62_out;
+wire [5:0] magma_UInt_6_sub_inst64_out;
+wire [5:0] magma_UInt_6_sub_inst66_out;
+wire [5:0] magma_UInt_6_sub_inst68_out;
+wire [5:0] magma_UInt_6_sub_inst70_out;
+wire [5:0] magma_UInt_6_sub_inst72_out;
+wire [5:0] magma_UInt_6_sub_inst74_out;
+wire [5:0] magma_UInt_6_sub_inst76_out;
+wire [5:0] magma_UInt_6_sub_inst78_out;
+wire [5:0] magma_UInt_6_sub_inst8_out;
+wire [5:0] magma_UInt_6_sub_inst80_out;
+wire [5:0] magma_UInt_6_sub_inst82_out;
+wire [5:0] magma_UInt_6_sub_inst84_out;
+wire [5:0] magma_UInt_6_sub_inst86_out;
+wire [5:0] magma_UInt_6_sub_inst88_out;
+wire [5:0] magma_UInt_6_sub_inst90_out;
+wire [5:0] magma_UInt_6_sub_inst92_out;
+wire [5:0] magma_UInt_6_sub_inst94_out;
+wire [5:0] magma_UInt_6_sub_inst96_out;
+wire [5:0] magma_UInt_6_sub_inst98_out;
+Mux2xBit Mux2xBit_inst0 (
     .I0(Register_inst0_O[0]),
     .I1(magma_Bits_8_lshr_inst0_out[0]),
     .S(magma_Bit_and_inst0_out),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
-Mux2xOutBit Mux2xOutBit_inst1 (
+Mux2xBit Mux2xBit_inst1 (
     .I0(Register_inst0_O[1]),
     .I1(magma_Bits_8_lshr_inst1_out[0]),
     .S(magma_Bit_and_inst2_out),
-    .O(Mux2xOutBit_inst1_O)
+    .O(Mux2xBit_inst1_O)
 );
-Mux2xOutBit Mux2xOutBit_inst10 (
+Mux2xBit Mux2xBit_inst10 (
     .I0(Register_inst0_O[10]),
     .I1(magma_Bits_8_lshr_inst10_out[0]),
     .S(magma_Bit_and_inst20_out),
-    .O(Mux2xOutBit_inst10_O)
+    .O(Mux2xBit_inst10_O)
 );
-Mux2xOutBit Mux2xOutBit_inst11 (
+Mux2xBit Mux2xBit_inst11 (
     .I0(Register_inst0_O[11]),
     .I1(magma_Bits_8_lshr_inst11_out[0]),
     .S(magma_Bit_and_inst22_out),
-    .O(Mux2xOutBit_inst11_O)
+    .O(Mux2xBit_inst11_O)
 );
-Mux2xOutBit Mux2xOutBit_inst12 (
+Mux2xBit Mux2xBit_inst12 (
     .I0(Register_inst0_O[12]),
     .I1(magma_Bits_8_lshr_inst12_out[0]),
     .S(magma_Bit_and_inst24_out),
-    .O(Mux2xOutBit_inst12_O)
+    .O(Mux2xBit_inst12_O)
 );
-Mux2xOutBit Mux2xOutBit_inst13 (
+Mux2xBit Mux2xBit_inst13 (
     .I0(Register_inst0_O[13]),
     .I1(magma_Bits_8_lshr_inst13_out[0]),
     .S(magma_Bit_and_inst26_out),
-    .O(Mux2xOutBit_inst13_O)
+    .O(Mux2xBit_inst13_O)
 );
-Mux2xOutBit Mux2xOutBit_inst14 (
+Mux2xBit Mux2xBit_inst14 (
     .I0(Register_inst0_O[14]),
     .I1(magma_Bits_8_lshr_inst14_out[0]),
     .S(magma_Bit_and_inst28_out),
-    .O(Mux2xOutBit_inst14_O)
+    .O(Mux2xBit_inst14_O)
 );
-Mux2xOutBit Mux2xOutBit_inst15 (
+Mux2xBit Mux2xBit_inst15 (
     .I0(Register_inst0_O[15]),
     .I1(magma_Bits_8_lshr_inst15_out[0]),
     .S(magma_Bit_and_inst30_out),
-    .O(Mux2xOutBit_inst15_O)
+    .O(Mux2xBit_inst15_O)
 );
-Mux2xOutBit Mux2xOutBit_inst16 (
+Mux2xBit Mux2xBit_inst16 (
     .I0(Register_inst0_O[16]),
     .I1(magma_Bits_8_lshr_inst16_out[0]),
     .S(magma_Bit_and_inst32_out),
-    .O(Mux2xOutBit_inst16_O)
+    .O(Mux2xBit_inst16_O)
 );
-Mux2xOutBit Mux2xOutBit_inst17 (
+Mux2xBit Mux2xBit_inst17 (
     .I0(Register_inst0_O[17]),
     .I1(magma_Bits_8_lshr_inst17_out[0]),
     .S(magma_Bit_and_inst34_out),
-    .O(Mux2xOutBit_inst17_O)
+    .O(Mux2xBit_inst17_O)
 );
-Mux2xOutBit Mux2xOutBit_inst18 (
+Mux2xBit Mux2xBit_inst18 (
     .I0(Register_inst0_O[18]),
     .I1(magma_Bits_8_lshr_inst18_out[0]),
     .S(magma_Bit_and_inst36_out),
-    .O(Mux2xOutBit_inst18_O)
+    .O(Mux2xBit_inst18_O)
 );
-Mux2xOutBit Mux2xOutBit_inst19 (
+Mux2xBit Mux2xBit_inst19 (
     .I0(Register_inst0_O[19]),
     .I1(magma_Bits_8_lshr_inst19_out[0]),
     .S(magma_Bit_and_inst38_out),
-    .O(Mux2xOutBit_inst19_O)
+    .O(Mux2xBit_inst19_O)
 );
-Mux2xOutBit Mux2xOutBit_inst2 (
+Mux2xBit Mux2xBit_inst2 (
     .I0(Register_inst0_O[2]),
     .I1(magma_Bits_8_lshr_inst2_out[0]),
     .S(magma_Bit_and_inst4_out),
-    .O(Mux2xOutBit_inst2_O)
+    .O(Mux2xBit_inst2_O)
 );
-Mux2xOutBit Mux2xOutBit_inst20 (
+Mux2xBit Mux2xBit_inst20 (
     .I0(Register_inst0_O[20]),
     .I1(magma_Bits_8_lshr_inst20_out[0]),
     .S(magma_Bit_and_inst40_out),
-    .O(Mux2xOutBit_inst20_O)
+    .O(Mux2xBit_inst20_O)
 );
-Mux2xOutBit Mux2xOutBit_inst21 (
+Mux2xBit Mux2xBit_inst21 (
     .I0(Register_inst0_O[21]),
     .I1(magma_Bits_8_lshr_inst21_out[0]),
     .S(magma_Bit_and_inst42_out),
-    .O(Mux2xOutBit_inst21_O)
+    .O(Mux2xBit_inst21_O)
 );
-Mux2xOutBit Mux2xOutBit_inst22 (
+Mux2xBit Mux2xBit_inst22 (
     .I0(Register_inst0_O[22]),
     .I1(magma_Bits_8_lshr_inst22_out[0]),
     .S(magma_Bit_and_inst44_out),
-    .O(Mux2xOutBit_inst22_O)
+    .O(Mux2xBit_inst22_O)
 );
-Mux2xOutBit Mux2xOutBit_inst23 (
+Mux2xBit Mux2xBit_inst23 (
     .I0(Register_inst0_O[23]),
     .I1(magma_Bits_8_lshr_inst23_out[0]),
     .S(magma_Bit_and_inst46_out),
-    .O(Mux2xOutBit_inst23_O)
+    .O(Mux2xBit_inst23_O)
 );
-Mux2xOutBit Mux2xOutBit_inst24 (
+Mux2xBit Mux2xBit_inst24 (
     .I0(Register_inst0_O[24]),
     .I1(magma_Bits_8_lshr_inst24_out[0]),
     .S(magma_Bit_and_inst48_out),
-    .O(Mux2xOutBit_inst24_O)
+    .O(Mux2xBit_inst24_O)
 );
-Mux2xOutBit Mux2xOutBit_inst25 (
+Mux2xBit Mux2xBit_inst25 (
     .I0(Register_inst0_O[25]),
     .I1(magma_Bits_8_lshr_inst25_out[0]),
     .S(magma_Bit_and_inst50_out),
-    .O(Mux2xOutBit_inst25_O)
+    .O(Mux2xBit_inst25_O)
 );
-Mux2xOutBit Mux2xOutBit_inst26 (
+Mux2xBit Mux2xBit_inst26 (
     .I0(Register_inst0_O[26]),
     .I1(magma_Bits_8_lshr_inst26_out[0]),
     .S(magma_Bit_and_inst52_out),
-    .O(Mux2xOutBit_inst26_O)
+    .O(Mux2xBit_inst26_O)
 );
-Mux2xOutBit Mux2xOutBit_inst27 (
+Mux2xBit Mux2xBit_inst27 (
     .I0(Register_inst0_O[27]),
     .I1(magma_Bits_8_lshr_inst27_out[0]),
     .S(magma_Bit_and_inst54_out),
-    .O(Mux2xOutBit_inst27_O)
+    .O(Mux2xBit_inst27_O)
 );
-Mux2xOutBit Mux2xOutBit_inst28 (
+Mux2xBit Mux2xBit_inst28 (
     .I0(Register_inst0_O[28]),
     .I1(magma_Bits_8_lshr_inst28_out[0]),
     .S(magma_Bit_and_inst56_out),
-    .O(Mux2xOutBit_inst28_O)
+    .O(Mux2xBit_inst28_O)
 );
-Mux2xOutBit Mux2xOutBit_inst29 (
+Mux2xBit Mux2xBit_inst29 (
     .I0(Register_inst0_O[29]),
     .I1(magma_Bits_8_lshr_inst29_out[0]),
     .S(magma_Bit_and_inst58_out),
-    .O(Mux2xOutBit_inst29_O)
+    .O(Mux2xBit_inst29_O)
 );
-Mux2xOutBit Mux2xOutBit_inst3 (
+Mux2xBit Mux2xBit_inst3 (
     .I0(Register_inst0_O[3]),
     .I1(magma_Bits_8_lshr_inst3_out[0]),
     .S(magma_Bit_and_inst6_out),
-    .O(Mux2xOutBit_inst3_O)
+    .O(Mux2xBit_inst3_O)
 );
-Mux2xOutBit Mux2xOutBit_inst30 (
+Mux2xBit Mux2xBit_inst30 (
     .I0(Register_inst0_O[30]),
     .I1(magma_Bits_8_lshr_inst30_out[0]),
     .S(magma_Bit_and_inst60_out),
-    .O(Mux2xOutBit_inst30_O)
+    .O(Mux2xBit_inst30_O)
 );
-Mux2xOutBit Mux2xOutBit_inst31 (
+Mux2xBit Mux2xBit_inst31 (
     .I0(Register_inst0_O[31]),
     .I1(magma_Bits_8_lshr_inst31_out[0]),
     .S(magma_Bit_and_inst62_out),
-    .O(Mux2xOutBit_inst31_O)
+    .O(Mux2xBit_inst31_O)
 );
-Mux2xOutBit Mux2xOutBit_inst32 (
+Mux2xBit Mux2xBit_inst32 (
     .I0(Register_inst0_O[32]),
     .I1(magma_Bits_8_lshr_inst32_out[0]),
     .S(magma_Bit_and_inst64_out),
-    .O(Mux2xOutBit_inst32_O)
+    .O(Mux2xBit_inst32_O)
 );
-Mux2xOutBit Mux2xOutBit_inst33 (
+Mux2xBit Mux2xBit_inst33 (
     .I0(Register_inst0_O[33]),
     .I1(magma_Bits_8_lshr_inst33_out[0]),
     .S(magma_Bit_and_inst66_out),
-    .O(Mux2xOutBit_inst33_O)
+    .O(Mux2xBit_inst33_O)
 );
-Mux2xOutBit Mux2xOutBit_inst34 (
+Mux2xBit Mux2xBit_inst34 (
     .I0(Register_inst0_O[34]),
     .I1(magma_Bits_8_lshr_inst34_out[0]),
     .S(magma_Bit_and_inst68_out),
-    .O(Mux2xOutBit_inst34_O)
+    .O(Mux2xBit_inst34_O)
 );
-Mux2xOutBit Mux2xOutBit_inst35 (
+Mux2xBit Mux2xBit_inst35 (
     .I0(Register_inst0_O[35]),
     .I1(magma_Bits_8_lshr_inst35_out[0]),
     .S(magma_Bit_and_inst70_out),
-    .O(Mux2xOutBit_inst35_O)
+    .O(Mux2xBit_inst35_O)
 );
-Mux2xOutBit Mux2xOutBit_inst36 (
+Mux2xBit Mux2xBit_inst36 (
     .I0(Register_inst0_O[36]),
     .I1(magma_Bits_8_lshr_inst36_out[0]),
     .S(magma_Bit_and_inst72_out),
-    .O(Mux2xOutBit_inst36_O)
+    .O(Mux2xBit_inst36_O)
 );
-Mux2xOutBit Mux2xOutBit_inst37 (
+Mux2xBit Mux2xBit_inst37 (
     .I0(Register_inst0_O[37]),
     .I1(magma_Bits_8_lshr_inst37_out[0]),
     .S(magma_Bit_and_inst74_out),
-    .O(Mux2xOutBit_inst37_O)
+    .O(Mux2xBit_inst37_O)
 );
-Mux2xOutBit Mux2xOutBit_inst38 (
+Mux2xBit Mux2xBit_inst38 (
     .I0(Register_inst0_O[38]),
     .I1(magma_Bits_8_lshr_inst38_out[0]),
     .S(magma_Bit_and_inst76_out),
-    .O(Mux2xOutBit_inst38_O)
+    .O(Mux2xBit_inst38_O)
 );
-Mux2xOutBit Mux2xOutBit_inst39 (
+Mux2xBit Mux2xBit_inst39 (
     .I0(Register_inst0_O[39]),
     .I1(magma_Bits_8_lshr_inst39_out[0]),
     .S(magma_Bit_and_inst78_out),
-    .O(Mux2xOutBit_inst39_O)
+    .O(Mux2xBit_inst39_O)
 );
-Mux2xOutBit Mux2xOutBit_inst4 (
+Mux2xBit Mux2xBit_inst4 (
     .I0(Register_inst0_O[4]),
     .I1(magma_Bits_8_lshr_inst4_out[0]),
     .S(magma_Bit_and_inst8_out),
-    .O(Mux2xOutBit_inst4_O)
+    .O(Mux2xBit_inst4_O)
 );
-Mux2xOutBit Mux2xOutBit_inst40 (
+Mux2xBit Mux2xBit_inst40 (
     .I0(Register_inst0_O[40]),
     .I1(magma_Bits_8_lshr_inst40_out[0]),
     .S(magma_Bit_and_inst80_out),
-    .O(Mux2xOutBit_inst40_O)
+    .O(Mux2xBit_inst40_O)
 );
-Mux2xOutBit Mux2xOutBit_inst41 (
+Mux2xBit Mux2xBit_inst41 (
     .I0(Register_inst0_O[41]),
     .I1(magma_Bits_8_lshr_inst41_out[0]),
     .S(magma_Bit_and_inst82_out),
-    .O(Mux2xOutBit_inst41_O)
+    .O(Mux2xBit_inst41_O)
 );
-Mux2xOutBit Mux2xOutBit_inst42 (
+Mux2xBit Mux2xBit_inst42 (
     .I0(Register_inst0_O[42]),
     .I1(magma_Bits_8_lshr_inst42_out[0]),
     .S(magma_Bit_and_inst84_out),
-    .O(Mux2xOutBit_inst42_O)
+    .O(Mux2xBit_inst42_O)
 );
-Mux2xOutBit Mux2xOutBit_inst43 (
+Mux2xBit Mux2xBit_inst43 (
     .I0(Register_inst0_O[43]),
     .I1(magma_Bits_8_lshr_inst43_out[0]),
     .S(magma_Bit_and_inst86_out),
-    .O(Mux2xOutBit_inst43_O)
+    .O(Mux2xBit_inst43_O)
 );
-Mux2xOutBit Mux2xOutBit_inst44 (
+Mux2xBit Mux2xBit_inst44 (
     .I0(Register_inst0_O[44]),
     .I1(magma_Bits_8_lshr_inst44_out[0]),
     .S(magma_Bit_and_inst88_out),
-    .O(Mux2xOutBit_inst44_O)
+    .O(Mux2xBit_inst44_O)
 );
-Mux2xOutBit Mux2xOutBit_inst45 (
+Mux2xBit Mux2xBit_inst45 (
     .I0(Register_inst0_O[45]),
     .I1(magma_Bits_8_lshr_inst45_out[0]),
     .S(magma_Bit_and_inst90_out),
-    .O(Mux2xOutBit_inst45_O)
+    .O(Mux2xBit_inst45_O)
 );
-Mux2xOutBit Mux2xOutBit_inst46 (
+Mux2xBit Mux2xBit_inst46 (
     .I0(Register_inst0_O[46]),
     .I1(magma_Bits_8_lshr_inst46_out[0]),
     .S(magma_Bit_and_inst92_out),
-    .O(Mux2xOutBit_inst46_O)
+    .O(Mux2xBit_inst46_O)
 );
-Mux2xOutBit Mux2xOutBit_inst47 (
+Mux2xBit Mux2xBit_inst47 (
     .I0(Register_inst0_O[47]),
     .I1(magma_Bits_8_lshr_inst47_out[0]),
     .S(magma_Bit_and_inst94_out),
-    .O(Mux2xOutBit_inst47_O)
+    .O(Mux2xBit_inst47_O)
 );
-Mux2xOutBit Mux2xOutBit_inst48 (
+Mux2xBit Mux2xBit_inst48 (
     .I0(Register_inst0_O[48]),
     .I1(magma_Bits_8_lshr_inst48_out[0]),
     .S(magma_Bit_and_inst96_out),
-    .O(Mux2xOutBit_inst48_O)
+    .O(Mux2xBit_inst48_O)
 );
-Mux2xOutBit Mux2xOutBit_inst49 (
+Mux2xBit Mux2xBit_inst49 (
     .I0(Register_inst0_O[49]),
     .I1(magma_Bits_8_lshr_inst49_out[0]),
     .S(magma_Bit_and_inst98_out),
-    .O(Mux2xOutBit_inst49_O)
+    .O(Mux2xBit_inst49_O)
 );
-Mux2xOutBit Mux2xOutBit_inst5 (
+Mux2xBit Mux2xBit_inst5 (
     .I0(Register_inst0_O[5]),
     .I1(magma_Bits_8_lshr_inst5_out[0]),
     .S(magma_Bit_and_inst10_out),
-    .O(Mux2xOutBit_inst5_O)
+    .O(Mux2xBit_inst5_O)
 );
-Mux2xOutBit Mux2xOutBit_inst50 (
+Mux2xBit Mux2xBit_inst50 (
     .I0(Register_inst0_O[50]),
     .I1(magma_Bits_8_lshr_inst50_out[0]),
     .S(magma_Bit_and_inst100_out),
-    .O(Mux2xOutBit_inst50_O)
+    .O(Mux2xBit_inst50_O)
 );
-Mux2xOutBit Mux2xOutBit_inst51 (
+Mux2xBit Mux2xBit_inst51 (
     .I0(Register_inst0_O[51]),
     .I1(magma_Bits_8_lshr_inst51_out[0]),
     .S(magma_Bit_and_inst102_out),
-    .O(Mux2xOutBit_inst51_O)
+    .O(Mux2xBit_inst51_O)
 );
-Mux2xOutBit Mux2xOutBit_inst52 (
+Mux2xBit Mux2xBit_inst52 (
     .I0(Register_inst0_O[52]),
     .I1(magma_Bits_8_lshr_inst52_out[0]),
     .S(magma_Bit_and_inst104_out),
-    .O(Mux2xOutBit_inst52_O)
+    .O(Mux2xBit_inst52_O)
 );
-Mux2xOutBit Mux2xOutBit_inst53 (
+Mux2xBit Mux2xBit_inst53 (
     .I0(Register_inst0_O[53]),
     .I1(magma_Bits_8_lshr_inst53_out[0]),
     .S(magma_Bit_and_inst106_out),
-    .O(Mux2xOutBit_inst53_O)
+    .O(Mux2xBit_inst53_O)
 );
-Mux2xOutBit Mux2xOutBit_inst54 (
+Mux2xBit Mux2xBit_inst54 (
     .I0(Register_inst0_O[54]),
     .I1(magma_Bits_8_lshr_inst54_out[0]),
     .S(magma_Bit_and_inst108_out),
-    .O(Mux2xOutBit_inst54_O)
+    .O(Mux2xBit_inst54_O)
 );
-Mux2xOutBit Mux2xOutBit_inst55 (
+Mux2xBit Mux2xBit_inst55 (
     .I0(Register_inst0_O[55]),
     .I1(magma_Bits_8_lshr_inst55_out[0]),
     .S(magma_Bit_and_inst110_out),
-    .O(Mux2xOutBit_inst55_O)
+    .O(Mux2xBit_inst55_O)
 );
-Mux2xOutBit Mux2xOutBit_inst56 (
+Mux2xBit Mux2xBit_inst56 (
     .I0(Register_inst0_O[56]),
     .I1(magma_Bits_8_lshr_inst56_out[0]),
     .S(magma_Bit_and_inst112_out),
-    .O(Mux2xOutBit_inst56_O)
+    .O(Mux2xBit_inst56_O)
 );
-Mux2xOutBit Mux2xOutBit_inst57 (
+Mux2xBit Mux2xBit_inst57 (
     .I0(Register_inst0_O[57]),
     .I1(magma_Bits_8_lshr_inst57_out[0]),
     .S(magma_Bit_and_inst114_out),
-    .O(Mux2xOutBit_inst57_O)
+    .O(Mux2xBit_inst57_O)
 );
-Mux2xOutBit Mux2xOutBit_inst58 (
+Mux2xBit Mux2xBit_inst58 (
     .I0(Register_inst0_O[58]),
     .I1(magma_Bits_8_lshr_inst58_out[0]),
     .S(magma_Bit_and_inst116_out),
-    .O(Mux2xOutBit_inst58_O)
+    .O(Mux2xBit_inst58_O)
 );
-Mux2xOutBit Mux2xOutBit_inst59 (
+Mux2xBit Mux2xBit_inst59 (
     .I0(Register_inst0_O[59]),
     .I1(magma_Bits_8_lshr_inst59_out[0]),
     .S(magma_Bit_and_inst118_out),
-    .O(Mux2xOutBit_inst59_O)
+    .O(Mux2xBit_inst59_O)
 );
-Mux2xOutBit Mux2xOutBit_inst6 (
+Mux2xBit Mux2xBit_inst6 (
     .I0(Register_inst0_O[6]),
     .I1(magma_Bits_8_lshr_inst6_out[0]),
     .S(magma_Bit_and_inst12_out),
-    .O(Mux2xOutBit_inst6_O)
+    .O(Mux2xBit_inst6_O)
 );
-Mux2xOutBit Mux2xOutBit_inst60 (
+Mux2xBit Mux2xBit_inst60 (
     .I0(Register_inst0_O[60]),
     .I1(magma_Bits_8_lshr_inst60_out[0]),
     .S(magma_Bit_and_inst120_out),
-    .O(Mux2xOutBit_inst60_O)
+    .O(Mux2xBit_inst60_O)
 );
-Mux2xOutBit Mux2xOutBit_inst61 (
+Mux2xBit Mux2xBit_inst61 (
     .I0(Register_inst0_O[61]),
     .I1(magma_Bits_8_lshr_inst61_out[0]),
     .S(magma_Bit_and_inst122_out),
-    .O(Mux2xOutBit_inst61_O)
+    .O(Mux2xBit_inst61_O)
 );
-Mux2xOutBit Mux2xOutBit_inst62 (
+Mux2xBit Mux2xBit_inst62 (
     .I0(Register_inst0_O[62]),
     .I1(magma_Bits_8_lshr_inst62_out[0]),
     .S(magma_Bit_and_inst124_out),
-    .O(Mux2xOutBit_inst62_O)
+    .O(Mux2xBit_inst62_O)
 );
-Mux2xOutBit Mux2xOutBit_inst63 (
+Mux2xBit Mux2xBit_inst63 (
     .I0(Register_inst0_O[63]),
     .I1(magma_Bits_8_lshr_inst63_out[0]),
     .S(magma_Bit_and_inst125_out),
-    .O(Mux2xOutBit_inst63_O)
+    .O(Mux2xBit_inst63_O)
 );
-Mux2xOutBit Mux2xOutBit_inst7 (
+Mux2xBit Mux2xBit_inst7 (
     .I0(Register_inst0_O[7]),
     .I1(magma_Bits_8_lshr_inst7_out[0]),
     .S(magma_Bit_and_inst14_out),
-    .O(Mux2xOutBit_inst7_O)
+    .O(Mux2xBit_inst7_O)
 );
-Mux2xOutBit Mux2xOutBit_inst8 (
+Mux2xBit Mux2xBit_inst8 (
     .I0(Register_inst0_O[8]),
     .I1(magma_Bits_8_lshr_inst8_out[0]),
     .S(magma_Bit_and_inst16_out),
-    .O(Mux2xOutBit_inst8_O)
+    .O(Mux2xBit_inst8_O)
 );
-Mux2xOutBit Mux2xOutBit_inst9 (
+Mux2xBit Mux2xBit_inst9 (
     .I0(Register_inst0_O[9]),
     .I1(magma_Bits_8_lshr_inst9_out[0]),
     .S(magma_Bit_and_inst18_out),
-    .O(Mux2xOutBit_inst9_O)
+    .O(Mux2xBit_inst9_O)
 );
 Mux56xBits8 Mux56xBits8_inst0 (
     .I0(Register_inst0_O[7:0]),
@@ -937,209 +937,209 @@ Mux56xBits8 Mux56xBits8_inst0 (
     .I53(Register_inst0_O[60:53]),
     .I54(Register_inst0_O[61:54]),
     .I55(Register_inst0_O[62:55]),
-    .S(magma_Bits_6_mul_inst0_out),
+    .S(magma_UInt_6_mul_inst0_out),
     .O(O)
 );
 wire [63:0] Register_inst0_I;
-assign Register_inst0_I = {Mux2xOutBit_inst63_O,Mux2xOutBit_inst62_O,Mux2xOutBit_inst61_O,Mux2xOutBit_inst60_O,Mux2xOutBit_inst59_O,Mux2xOutBit_inst58_O,Mux2xOutBit_inst57_O,Mux2xOutBit_inst56_O,Mux2xOutBit_inst55_O,Mux2xOutBit_inst54_O,Mux2xOutBit_inst53_O,Mux2xOutBit_inst52_O,Mux2xOutBit_inst51_O,Mux2xOutBit_inst50_O,Mux2xOutBit_inst49_O,Mux2xOutBit_inst48_O,Mux2xOutBit_inst47_O,Mux2xOutBit_inst46_O,Mux2xOutBit_inst45_O,Mux2xOutBit_inst44_O,Mux2xOutBit_inst43_O,Mux2xOutBit_inst42_O,Mux2xOutBit_inst41_O,Mux2xOutBit_inst40_O,Mux2xOutBit_inst39_O,Mux2xOutBit_inst38_O,Mux2xOutBit_inst37_O,Mux2xOutBit_inst36_O,Mux2xOutBit_inst35_O,Mux2xOutBit_inst34_O,Mux2xOutBit_inst33_O,Mux2xOutBit_inst32_O,Mux2xOutBit_inst31_O,Mux2xOutBit_inst30_O,Mux2xOutBit_inst29_O,Mux2xOutBit_inst28_O,Mux2xOutBit_inst27_O,Mux2xOutBit_inst26_O,Mux2xOutBit_inst25_O,Mux2xOutBit_inst24_O,Mux2xOutBit_inst23_O,Mux2xOutBit_inst22_O,Mux2xOutBit_inst21_O,Mux2xOutBit_inst20_O,Mux2xOutBit_inst19_O,Mux2xOutBit_inst18_O,Mux2xOutBit_inst17_O,Mux2xOutBit_inst16_O,Mux2xOutBit_inst15_O,Mux2xOutBit_inst14_O,Mux2xOutBit_inst13_O,Mux2xOutBit_inst12_O,Mux2xOutBit_inst11_O,Mux2xOutBit_inst10_O,Mux2xOutBit_inst9_O,Mux2xOutBit_inst8_O,Mux2xOutBit_inst7_O,Mux2xOutBit_inst6_O,Mux2xOutBit_inst5_O,Mux2xOutBit_inst4_O,Mux2xOutBit_inst3_O,Mux2xOutBit_inst2_O,Mux2xOutBit_inst1_O,Mux2xOutBit_inst0_O};
+assign Register_inst0_I = {Mux2xBit_inst63_O,Mux2xBit_inst62_O,Mux2xBit_inst61_O,Mux2xBit_inst60_O,Mux2xBit_inst59_O,Mux2xBit_inst58_O,Mux2xBit_inst57_O,Mux2xBit_inst56_O,Mux2xBit_inst55_O,Mux2xBit_inst54_O,Mux2xBit_inst53_O,Mux2xBit_inst52_O,Mux2xBit_inst51_O,Mux2xBit_inst50_O,Mux2xBit_inst49_O,Mux2xBit_inst48_O,Mux2xBit_inst47_O,Mux2xBit_inst46_O,Mux2xBit_inst45_O,Mux2xBit_inst44_O,Mux2xBit_inst43_O,Mux2xBit_inst42_O,Mux2xBit_inst41_O,Mux2xBit_inst40_O,Mux2xBit_inst39_O,Mux2xBit_inst38_O,Mux2xBit_inst37_O,Mux2xBit_inst36_O,Mux2xBit_inst35_O,Mux2xBit_inst34_O,Mux2xBit_inst33_O,Mux2xBit_inst32_O,Mux2xBit_inst31_O,Mux2xBit_inst30_O,Mux2xBit_inst29_O,Mux2xBit_inst28_O,Mux2xBit_inst27_O,Mux2xBit_inst26_O,Mux2xBit_inst25_O,Mux2xBit_inst24_O,Mux2xBit_inst23_O,Mux2xBit_inst22_O,Mux2xBit_inst21_O,Mux2xBit_inst20_O,Mux2xBit_inst19_O,Mux2xBit_inst18_O,Mux2xBit_inst17_O,Mux2xBit_inst16_O,Mux2xBit_inst15_O,Mux2xBit_inst14_O,Mux2xBit_inst13_O,Mux2xBit_inst12_O,Mux2xBit_inst11_O,Mux2xBit_inst10_O,Mux2xBit_inst9_O,Mux2xBit_inst8_O,Mux2xBit_inst7_O,Mux2xBit_inst6_O,Mux2xBit_inst5_O,Mux2xBit_inst4_O,Mux2xBit_inst3_O,Mux2xBit_inst2_O,Mux2xBit_inst1_O,Mux2xBit_inst0_O};
 Register Register_inst0 (
     .I(Register_inst0_I),
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign magma_Bit_and_inst0_out = 1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h00);
-assign magma_Bit_and_inst10_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h05)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h05);
-assign magma_Bit_and_inst100_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h32)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h32);
-assign magma_Bit_and_inst102_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h33)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h33);
-assign magma_Bit_and_inst104_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h34)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h34);
-assign magma_Bit_and_inst106_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h35)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h35);
-assign magma_Bit_and_inst108_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h36)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h36);
-assign magma_Bit_and_inst110_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h37)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h37);
-assign magma_Bit_and_inst112_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h38)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h38);
-assign magma_Bit_and_inst114_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h39)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h39);
-assign magma_Bit_and_inst116_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h3a)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3a);
-assign magma_Bit_and_inst118_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h3b)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3b);
-assign magma_Bit_and_inst12_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h06)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h06);
-assign magma_Bit_and_inst120_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h3c)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3c);
-assign magma_Bit_and_inst122_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h3d)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3d);
-assign magma_Bit_and_inst124_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h3e)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3e);
-assign magma_Bit_and_inst125_out = 1'b1 & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3f);
-assign magma_Bit_and_inst14_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h07)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h07);
-assign magma_Bit_and_inst16_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h08)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h08);
-assign magma_Bit_and_inst18_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h09)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h09);
-assign magma_Bit_and_inst2_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h01)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h01);
-assign magma_Bit_and_inst20_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h0a)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0a);
-assign magma_Bit_and_inst22_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h0b)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0b);
-assign magma_Bit_and_inst24_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h0c)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0c);
-assign magma_Bit_and_inst26_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h0d)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0d);
-assign magma_Bit_and_inst28_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h0e)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0e);
-assign magma_Bit_and_inst30_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h0f)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0f);
-assign magma_Bit_and_inst32_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h10)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h10);
-assign magma_Bit_and_inst34_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h11)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h11);
-assign magma_Bit_and_inst36_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h12)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h12);
-assign magma_Bit_and_inst38_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h13)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h13);
-assign magma_Bit_and_inst4_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h02)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h02);
-assign magma_Bit_and_inst40_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h14)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h14);
-assign magma_Bit_and_inst42_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h15)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h15);
-assign magma_Bit_and_inst44_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h16)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h16);
-assign magma_Bit_and_inst46_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h17)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h17);
-assign magma_Bit_and_inst48_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h18)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h18);
-assign magma_Bit_and_inst50_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h19)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h19);
-assign magma_Bit_and_inst52_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h1a)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1a);
-assign magma_Bit_and_inst54_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h1b)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1b);
-assign magma_Bit_and_inst56_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h1c)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1c);
-assign magma_Bit_and_inst58_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h1d)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1d);
-assign magma_Bit_and_inst6_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h03)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h03);
-assign magma_Bit_and_inst60_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h1e)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1e);
-assign magma_Bit_and_inst62_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h1f)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1f);
-assign magma_Bit_and_inst64_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h20)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h20);
-assign magma_Bit_and_inst66_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h21)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h21);
-assign magma_Bit_and_inst68_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h22)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h22);
-assign magma_Bit_and_inst70_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h23)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h23);
-assign magma_Bit_and_inst72_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h24)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h24);
-assign magma_Bit_and_inst74_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h25)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h25);
-assign magma_Bit_and_inst76_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h26)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h26);
-assign magma_Bit_and_inst78_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h27)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h27);
-assign magma_Bit_and_inst8_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h04)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h04);
-assign magma_Bit_and_inst80_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h28)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h28);
-assign magma_Bit_and_inst82_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h29)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h29);
-assign magma_Bit_and_inst84_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h2a)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2a);
-assign magma_Bit_and_inst86_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h2b)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2b);
-assign magma_Bit_and_inst88_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h2c)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2c);
-assign magma_Bit_and_inst90_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h2d)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2d);
-assign magma_Bit_and_inst92_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h2e)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2e);
-assign magma_Bit_and_inst94_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h2f)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2f);
-assign magma_Bit_and_inst96_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h30)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h30);
-assign magma_Bit_and_inst98_out = (1'b1 & (magma_Bits_6_mul_inst1_out <= 6'h31)) & ((6'((6'(magma_Bits_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h31);
-assign magma_Bits_6_mul_inst0_out = 6'(({1'b0,1'b0,1'b0,read_addr[2:0]}) * 6'h08);
-assign magma_Bits_6_mul_inst1_out = 6'(({1'b0,1'b0,1'b0,write_addr[2:0]}) * 6'h08);
-assign magma_Bits_6_sub_inst0_out = 6'(6'h00 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst10_out = 6'(6'h05 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst100_out = 6'(6'h32 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst102_out = 6'(6'h33 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst104_out = 6'(6'h34 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst106_out = 6'(6'h35 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst108_out = 6'(6'h36 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst110_out = 6'(6'h37 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst112_out = 6'(6'h38 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst114_out = 6'(6'h39 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst116_out = 6'(6'h3a - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst118_out = 6'(6'h3b - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst12_out = 6'(6'h06 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst120_out = 6'(6'h3c - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst122_out = 6'(6'h3d - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst124_out = 6'(6'h3e - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst126_out = 6'(6'h3f - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst14_out = 6'(6'h07 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst16_out = 6'(6'h08 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst18_out = 6'(6'h09 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst2_out = 6'(6'h01 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst20_out = 6'(6'h0a - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst22_out = 6'(6'h0b - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst24_out = 6'(6'h0c - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst26_out = 6'(6'h0d - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst28_out = 6'(6'h0e - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst30_out = 6'(6'h0f - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst32_out = 6'(6'h10 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst34_out = 6'(6'h11 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst36_out = 6'(6'h12 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst38_out = 6'(6'h13 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst4_out = 6'(6'h02 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst40_out = 6'(6'h14 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst42_out = 6'(6'h15 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst44_out = 6'(6'h16 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst46_out = 6'(6'h17 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst48_out = 6'(6'h18 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst50_out = 6'(6'h19 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst52_out = 6'(6'h1a - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst54_out = 6'(6'h1b - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst56_out = 6'(6'h1c - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst58_out = 6'(6'h1d - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst6_out = 6'(6'h03 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst60_out = 6'(6'h1e - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst62_out = 6'(6'h1f - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst64_out = 6'(6'h20 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst66_out = 6'(6'h21 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst68_out = 6'(6'h22 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst70_out = 6'(6'h23 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst72_out = 6'(6'h24 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst74_out = 6'(6'h25 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst76_out = 6'(6'h26 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst78_out = 6'(6'h27 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst8_out = 6'(6'h04 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst80_out = 6'(6'h28 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst82_out = 6'(6'h29 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst84_out = 6'(6'h2a - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst86_out = 6'(6'h2b - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst88_out = 6'(6'h2c - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst90_out = 6'(6'h2d - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst92_out = 6'(6'h2e - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst94_out = 6'(6'h2f - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst96_out = 6'(6'h30 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_6_sub_inst98_out = 6'(6'h31 - magma_Bits_6_mul_inst1_out);
-assign magma_Bits_8_lshr_inst0_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst0_out[2:0]});
-assign magma_Bits_8_lshr_inst1_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst2_out[2:0]});
-assign magma_Bits_8_lshr_inst10_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst20_out[2:0]});
-assign magma_Bits_8_lshr_inst11_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst22_out[2:0]});
-assign magma_Bits_8_lshr_inst12_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst24_out[2:0]});
-assign magma_Bits_8_lshr_inst13_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst26_out[2:0]});
-assign magma_Bits_8_lshr_inst14_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst28_out[2:0]});
-assign magma_Bits_8_lshr_inst15_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst30_out[2:0]});
-assign magma_Bits_8_lshr_inst16_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst32_out[2:0]});
-assign magma_Bits_8_lshr_inst17_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst34_out[2:0]});
-assign magma_Bits_8_lshr_inst18_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst36_out[2:0]});
-assign magma_Bits_8_lshr_inst19_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst38_out[2:0]});
-assign magma_Bits_8_lshr_inst2_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst4_out[2:0]});
-assign magma_Bits_8_lshr_inst20_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst40_out[2:0]});
-assign magma_Bits_8_lshr_inst21_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst42_out[2:0]});
-assign magma_Bits_8_lshr_inst22_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst44_out[2:0]});
-assign magma_Bits_8_lshr_inst23_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst46_out[2:0]});
-assign magma_Bits_8_lshr_inst24_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst48_out[2:0]});
-assign magma_Bits_8_lshr_inst25_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst50_out[2:0]});
-assign magma_Bits_8_lshr_inst26_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst52_out[2:0]});
-assign magma_Bits_8_lshr_inst27_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst54_out[2:0]});
-assign magma_Bits_8_lshr_inst28_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst56_out[2:0]});
-assign magma_Bits_8_lshr_inst29_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst58_out[2:0]});
-assign magma_Bits_8_lshr_inst3_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst6_out[2:0]});
-assign magma_Bits_8_lshr_inst30_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst60_out[2:0]});
-assign magma_Bits_8_lshr_inst31_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst62_out[2:0]});
-assign magma_Bits_8_lshr_inst32_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst64_out[2:0]});
-assign magma_Bits_8_lshr_inst33_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst66_out[2:0]});
-assign magma_Bits_8_lshr_inst34_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst68_out[2:0]});
-assign magma_Bits_8_lshr_inst35_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst70_out[2:0]});
-assign magma_Bits_8_lshr_inst36_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst72_out[2:0]});
-assign magma_Bits_8_lshr_inst37_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst74_out[2:0]});
-assign magma_Bits_8_lshr_inst38_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst76_out[2:0]});
-assign magma_Bits_8_lshr_inst39_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst78_out[2:0]});
-assign magma_Bits_8_lshr_inst4_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst8_out[2:0]});
-assign magma_Bits_8_lshr_inst40_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst80_out[2:0]});
-assign magma_Bits_8_lshr_inst41_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst82_out[2:0]});
-assign magma_Bits_8_lshr_inst42_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst84_out[2:0]});
-assign magma_Bits_8_lshr_inst43_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst86_out[2:0]});
-assign magma_Bits_8_lshr_inst44_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst88_out[2:0]});
-assign magma_Bits_8_lshr_inst45_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst90_out[2:0]});
-assign magma_Bits_8_lshr_inst46_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst92_out[2:0]});
-assign magma_Bits_8_lshr_inst47_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst94_out[2:0]});
-assign magma_Bits_8_lshr_inst48_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst96_out[2:0]});
-assign magma_Bits_8_lshr_inst49_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst98_out[2:0]});
-assign magma_Bits_8_lshr_inst5_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst10_out[2:0]});
-assign magma_Bits_8_lshr_inst50_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst100_out[2:0]});
-assign magma_Bits_8_lshr_inst51_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst102_out[2:0]});
-assign magma_Bits_8_lshr_inst52_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst104_out[2:0]});
-assign magma_Bits_8_lshr_inst53_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst106_out[2:0]});
-assign magma_Bits_8_lshr_inst54_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst108_out[2:0]});
-assign magma_Bits_8_lshr_inst55_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst110_out[2:0]});
-assign magma_Bits_8_lshr_inst56_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst112_out[2:0]});
-assign magma_Bits_8_lshr_inst57_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst114_out[2:0]});
-assign magma_Bits_8_lshr_inst58_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst116_out[2:0]});
-assign magma_Bits_8_lshr_inst59_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst118_out[2:0]});
-assign magma_Bits_8_lshr_inst6_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst12_out[2:0]});
-assign magma_Bits_8_lshr_inst60_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst120_out[2:0]});
-assign magma_Bits_8_lshr_inst61_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst122_out[2:0]});
-assign magma_Bits_8_lshr_inst62_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst124_out[2:0]});
-assign magma_Bits_8_lshr_inst63_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst126_out[2:0]});
-assign magma_Bits_8_lshr_inst7_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst14_out[2:0]});
-assign magma_Bits_8_lshr_inst8_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst16_out[2:0]});
-assign magma_Bits_8_lshr_inst9_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_Bits_6_sub_inst18_out[2:0]});
+assign magma_Bit_and_inst0_out = 1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h00);
+assign magma_Bit_and_inst10_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h05)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h05);
+assign magma_Bit_and_inst100_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h32)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h32);
+assign magma_Bit_and_inst102_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h33)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h33);
+assign magma_Bit_and_inst104_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h34)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h34);
+assign magma_Bit_and_inst106_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h35)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h35);
+assign magma_Bit_and_inst108_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h36)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h36);
+assign magma_Bit_and_inst110_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h37)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h37);
+assign magma_Bit_and_inst112_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h38)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h38);
+assign magma_Bit_and_inst114_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h39)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h39);
+assign magma_Bit_and_inst116_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h3a)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3a);
+assign magma_Bit_and_inst118_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h3b)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3b);
+assign magma_Bit_and_inst12_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h06)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h06);
+assign magma_Bit_and_inst120_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h3c)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3c);
+assign magma_Bit_and_inst122_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h3d)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3d);
+assign magma_Bit_and_inst124_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h3e)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3e);
+assign magma_Bit_and_inst125_out = 1'b1 & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h3f);
+assign magma_Bit_and_inst14_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h07)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h07);
+assign magma_Bit_and_inst16_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h08)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h08);
+assign magma_Bit_and_inst18_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h09)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h09);
+assign magma_Bit_and_inst2_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h01)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h01);
+assign magma_Bit_and_inst20_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h0a)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0a);
+assign magma_Bit_and_inst22_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h0b)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0b);
+assign magma_Bit_and_inst24_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h0c)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0c);
+assign magma_Bit_and_inst26_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h0d)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0d);
+assign magma_Bit_and_inst28_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h0e)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0e);
+assign magma_Bit_and_inst30_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h0f)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h0f);
+assign magma_Bit_and_inst32_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h10)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h10);
+assign magma_Bit_and_inst34_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h11)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h11);
+assign magma_Bit_and_inst36_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h12)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h12);
+assign magma_Bit_and_inst38_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h13)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h13);
+assign magma_Bit_and_inst4_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h02)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h02);
+assign magma_Bit_and_inst40_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h14)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h14);
+assign magma_Bit_and_inst42_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h15)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h15);
+assign magma_Bit_and_inst44_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h16)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h16);
+assign magma_Bit_and_inst46_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h17)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h17);
+assign magma_Bit_and_inst48_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h18)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h18);
+assign magma_Bit_and_inst50_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h19)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h19);
+assign magma_Bit_and_inst52_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h1a)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1a);
+assign magma_Bit_and_inst54_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h1b)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1b);
+assign magma_Bit_and_inst56_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h1c)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1c);
+assign magma_Bit_and_inst58_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h1d)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1d);
+assign magma_Bit_and_inst6_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h03)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h03);
+assign magma_Bit_and_inst60_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h1e)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1e);
+assign magma_Bit_and_inst62_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h1f)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h1f);
+assign magma_Bit_and_inst64_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h20)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h20);
+assign magma_Bit_and_inst66_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h21)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h21);
+assign magma_Bit_and_inst68_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h22)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h22);
+assign magma_Bit_and_inst70_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h23)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h23);
+assign magma_Bit_and_inst72_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h24)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h24);
+assign magma_Bit_and_inst74_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h25)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h25);
+assign magma_Bit_and_inst76_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h26)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h26);
+assign magma_Bit_and_inst78_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h27)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h27);
+assign magma_Bit_and_inst8_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h04)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h04);
+assign magma_Bit_and_inst80_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h28)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h28);
+assign magma_Bit_and_inst82_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h29)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h29);
+assign magma_Bit_and_inst84_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2a)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2a);
+assign magma_Bit_and_inst86_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2b)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2b);
+assign magma_Bit_and_inst88_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2c)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2c);
+assign magma_Bit_and_inst90_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2d)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2d);
+assign magma_Bit_and_inst92_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2e)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2e);
+assign magma_Bit_and_inst94_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2f)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2f);
+assign magma_Bit_and_inst96_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h30)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h30);
+assign magma_Bit_and_inst98_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h31)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h31);
+assign magma_Bits_8_lshr_inst0_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst0_out[2:0]});
+assign magma_Bits_8_lshr_inst1_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst2_out[2:0]});
+assign magma_Bits_8_lshr_inst10_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst20_out[2:0]});
+assign magma_Bits_8_lshr_inst11_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst22_out[2:0]});
+assign magma_Bits_8_lshr_inst12_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst24_out[2:0]});
+assign magma_Bits_8_lshr_inst13_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst26_out[2:0]});
+assign magma_Bits_8_lshr_inst14_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst28_out[2:0]});
+assign magma_Bits_8_lshr_inst15_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst30_out[2:0]});
+assign magma_Bits_8_lshr_inst16_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst32_out[2:0]});
+assign magma_Bits_8_lshr_inst17_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst34_out[2:0]});
+assign magma_Bits_8_lshr_inst18_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst36_out[2:0]});
+assign magma_Bits_8_lshr_inst19_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst38_out[2:0]});
+assign magma_Bits_8_lshr_inst2_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst4_out[2:0]});
+assign magma_Bits_8_lshr_inst20_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst40_out[2:0]});
+assign magma_Bits_8_lshr_inst21_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst42_out[2:0]});
+assign magma_Bits_8_lshr_inst22_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst44_out[2:0]});
+assign magma_Bits_8_lshr_inst23_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst46_out[2:0]});
+assign magma_Bits_8_lshr_inst24_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst48_out[2:0]});
+assign magma_Bits_8_lshr_inst25_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst50_out[2:0]});
+assign magma_Bits_8_lshr_inst26_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst52_out[2:0]});
+assign magma_Bits_8_lshr_inst27_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst54_out[2:0]});
+assign magma_Bits_8_lshr_inst28_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst56_out[2:0]});
+assign magma_Bits_8_lshr_inst29_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst58_out[2:0]});
+assign magma_Bits_8_lshr_inst3_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst6_out[2:0]});
+assign magma_Bits_8_lshr_inst30_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst60_out[2:0]});
+assign magma_Bits_8_lshr_inst31_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst62_out[2:0]});
+assign magma_Bits_8_lshr_inst32_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst64_out[2:0]});
+assign magma_Bits_8_lshr_inst33_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst66_out[2:0]});
+assign magma_Bits_8_lshr_inst34_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst68_out[2:0]});
+assign magma_Bits_8_lshr_inst35_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst70_out[2:0]});
+assign magma_Bits_8_lshr_inst36_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst72_out[2:0]});
+assign magma_Bits_8_lshr_inst37_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst74_out[2:0]});
+assign magma_Bits_8_lshr_inst38_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst76_out[2:0]});
+assign magma_Bits_8_lshr_inst39_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst78_out[2:0]});
+assign magma_Bits_8_lshr_inst4_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst8_out[2:0]});
+assign magma_Bits_8_lshr_inst40_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst80_out[2:0]});
+assign magma_Bits_8_lshr_inst41_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst82_out[2:0]});
+assign magma_Bits_8_lshr_inst42_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst84_out[2:0]});
+assign magma_Bits_8_lshr_inst43_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst86_out[2:0]});
+assign magma_Bits_8_lshr_inst44_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst88_out[2:0]});
+assign magma_Bits_8_lshr_inst45_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst90_out[2:0]});
+assign magma_Bits_8_lshr_inst46_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst92_out[2:0]});
+assign magma_Bits_8_lshr_inst47_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst94_out[2:0]});
+assign magma_Bits_8_lshr_inst48_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst96_out[2:0]});
+assign magma_Bits_8_lshr_inst49_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst98_out[2:0]});
+assign magma_Bits_8_lshr_inst5_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst10_out[2:0]});
+assign magma_Bits_8_lshr_inst50_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst100_out[2:0]});
+assign magma_Bits_8_lshr_inst51_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst102_out[2:0]});
+assign magma_Bits_8_lshr_inst52_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst104_out[2:0]});
+assign magma_Bits_8_lshr_inst53_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst106_out[2:0]});
+assign magma_Bits_8_lshr_inst54_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst108_out[2:0]});
+assign magma_Bits_8_lshr_inst55_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst110_out[2:0]});
+assign magma_Bits_8_lshr_inst56_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst112_out[2:0]});
+assign magma_Bits_8_lshr_inst57_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst114_out[2:0]});
+assign magma_Bits_8_lshr_inst58_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst116_out[2:0]});
+assign magma_Bits_8_lshr_inst59_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst118_out[2:0]});
+assign magma_Bits_8_lshr_inst6_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst12_out[2:0]});
+assign magma_Bits_8_lshr_inst60_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst120_out[2:0]});
+assign magma_Bits_8_lshr_inst61_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst122_out[2:0]});
+assign magma_Bits_8_lshr_inst62_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst124_out[2:0]});
+assign magma_Bits_8_lshr_inst63_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst126_out[2:0]});
+assign magma_Bits_8_lshr_inst7_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst14_out[2:0]});
+assign magma_Bits_8_lshr_inst8_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst16_out[2:0]});
+assign magma_Bits_8_lshr_inst9_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst18_out[2:0]});
+assign magma_UInt_6_mul_inst0_out = 6'(({1'b0,1'b0,1'b0,read_addr[2:0]}) * 6'h08);
+assign magma_UInt_6_mul_inst1_out = 6'(({1'b0,1'b0,1'b0,write_addr[2:0]}) * 6'h08);
+assign magma_UInt_6_sub_inst0_out = 6'(6'h00 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst10_out = 6'(6'h05 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst100_out = 6'(6'h32 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst102_out = 6'(6'h33 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst104_out = 6'(6'h34 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst106_out = 6'(6'h35 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst108_out = 6'(6'h36 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst110_out = 6'(6'h37 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst112_out = 6'(6'h38 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst114_out = 6'(6'h39 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst116_out = 6'(6'h3a - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst118_out = 6'(6'h3b - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst12_out = 6'(6'h06 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst120_out = 6'(6'h3c - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst122_out = 6'(6'h3d - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst124_out = 6'(6'h3e - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst126_out = 6'(6'h3f - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst14_out = 6'(6'h07 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst16_out = 6'(6'h08 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst18_out = 6'(6'h09 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst2_out = 6'(6'h01 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst20_out = 6'(6'h0a - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst22_out = 6'(6'h0b - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst24_out = 6'(6'h0c - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst26_out = 6'(6'h0d - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst28_out = 6'(6'h0e - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst30_out = 6'(6'h0f - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst32_out = 6'(6'h10 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst34_out = 6'(6'h11 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst36_out = 6'(6'h12 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst38_out = 6'(6'h13 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst4_out = 6'(6'h02 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst40_out = 6'(6'h14 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst42_out = 6'(6'h15 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst44_out = 6'(6'h16 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst46_out = 6'(6'h17 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst48_out = 6'(6'h18 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst50_out = 6'(6'h19 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst52_out = 6'(6'h1a - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst54_out = 6'(6'h1b - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst56_out = 6'(6'h1c - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst58_out = 6'(6'h1d - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst6_out = 6'(6'h03 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst60_out = 6'(6'h1e - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst62_out = 6'(6'h1f - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst64_out = 6'(6'h20 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst66_out = 6'(6'h21 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst68_out = 6'(6'h22 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst70_out = 6'(6'h23 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst72_out = 6'(6'h24 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst74_out = 6'(6'h25 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst76_out = 6'(6'h26 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst78_out = 6'(6'h27 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst8_out = 6'(6'h04 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst80_out = 6'(6'h28 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst82_out = 6'(6'h29 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst84_out = 6'(6'h2a - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst86_out = 6'(6'h2b - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst88_out = 6'(6'h2c - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst90_out = 6'(6'h2d - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst92_out = 6'(6'h2e - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst94_out = 6'(6'h2f - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst96_out = 6'(6'h30 - magma_UInt_6_mul_inst1_out);
+assign magma_UInt_6_sub_inst98_out = 6'(6'h31 - magma_UInt_6_mul_inst1_out);
 endmodule
 

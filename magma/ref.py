@@ -1,4 +1,5 @@
 import abc
+import typing
 import weakref
 from magma.compatibility import IntegerTypes
 
@@ -20,11 +21,16 @@ class Ref:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def root(self):
+    def parent(self):
         raise NotImplementedError()
 
-    def verilog_name(self):
-        return self.qualifiedname("_")
+    def root(self) -> typing.Optional['Ref']:
+        parent = self.parent()
+        if parent is None:
+            return None
+        if parent is self:
+            return self
+        return parent.root()
 
 
 class AnonRef(Ref):
@@ -37,7 +43,7 @@ class AnonRef(Ref):
     def qualifiedname(self, sep='.'):
         return f"AnonymousValue_{id(self)}"
 
-    def root(self):
+    def parent(self):
         return None
 
     def anon(self):
@@ -49,7 +55,7 @@ class NamedRef(Ref):
         if not isinstance(name, (str, int)):
             raise TypeError("Expected string or int")
         self.name = name
-        self.value = value if value is None else weakref.ref(value)
+        self._value = value if value is None else weakref.ref(value)
 
     def __str__(self):
         return self.name
@@ -60,8 +66,11 @@ class NamedRef(Ref):
     def anon(self):
         return False
 
-    def root(self):
-        return self.value()
+    def parent(self):
+        return self
+
+    def value(self):
+        return self._value if self._value is None else self._value()
 
 
 class InstRef(NamedRef):
@@ -84,7 +93,7 @@ class InstRef(NamedRef):
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
 
-    def root(self):
+    def parent(self):
         return None
 
 
@@ -120,7 +129,7 @@ class DefnRef(NamedRef):
             return self.defn.__name__ + sep + self.name
         return self.name
 
-    def root(self):
+    def parent(self):
         return None
 
 
@@ -162,8 +171,8 @@ class ArrayRef(Ref):
     def anon(self):
         return self.array.name.anon()
 
-    def root(self):
-        return self.array.name.root()
+    def parent(self):
+        return self.array.name
 
 
 class TupleRef(Ref):
@@ -183,14 +192,11 @@ class TupleRef(Ref):
             return (self.tuple.name.qualifiedname(sep=sep) +
                     sep + str(self.index))
 
-    def verilog_name(self):
-        return self.tuple.name.verilog_name() + "_" + str(self.index)
-
     def anon(self):
         return self.tuple.name.anon()
 
-    def root(self):
-        return self.tuple.name.root()
+    def parent(self):
+        return self.tuple.name
 
 
 class PortViewRef(Ref):
@@ -207,7 +213,7 @@ class PortViewRef(Ref):
     def anon(self):
         return self.view.port.anon()
 
-    def root(self):
+    def parent(self):
         return None
 
     def __str__(self):

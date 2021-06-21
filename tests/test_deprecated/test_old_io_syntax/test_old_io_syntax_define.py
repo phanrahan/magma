@@ -2,7 +2,13 @@ import magma as m
 from magma.testing import check_files_equal
 import logging
 import pytest
-import coreir
+import sys
+
+
+# Does not work with older Python version, see
+# https://github.com/phanrahan/magma/issues/704
+if sys.version_info < (3, 8):
+    pytest.skip("requires python3.8 or higher", allow_module_level=True)
 
 
 @pytest.mark.parametrize("target,suffix",

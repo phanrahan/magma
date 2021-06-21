@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from .clock import wiredefaultclock
+from .wire_clock import wiredefaultclock
 
 def compileclocks(cls):
     for instance in cls.instances:

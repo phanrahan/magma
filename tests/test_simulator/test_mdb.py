@@ -5,6 +5,7 @@ from magma.simulator.mdb import SimulationConsole
 from magma import *
 from magma.scope import *
 from magma.passes.debug_name import DebugNamePass
+from magma.wire_clock import wireclock
 
 def test(capsys):
     m.config.set_debug_mode(True)

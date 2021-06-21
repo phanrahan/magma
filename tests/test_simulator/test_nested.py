@@ -1,9 +1,11 @@
+import magma as m
 from magma import *
 from magma.clock import *
-from magma.backend.coreir_ import CoreIRBackend
+from magma.backend.coreir.coreir_backend import CoreIRBackend
 from magma.bitutils import *
 from coreir.context import *
 from magma.simulator.coreir_simulator import CoreIRSimulator
+from magma.simulator.python_simulator import PythonSimulator
 import coreir
 from magma.scope import Scope
 
@@ -50,3 +52,18 @@ def test_simulator_nested_simple():
 
 def test_simulator_nested_complex():
     simulator_nested(False)
+
+
+def test_simulator_nested_array():
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.Array[3, m.Bits[4]]), O=m.Out(m.Array[2, m.Bits[4]]))
+        io += m.ClockIO()
+        reg = m.Register(m.Array[2, m.Bits[4]])()
+        io.O @= reg(io.I[:2])
+        io.I[2].unused()
+
+    sim = PythonSimulator(Main, Main.CLK)
+    sim.set_value(Main.I, [3, 4])
+    sim.evaluate()
+    sim.advance_cycle(1)
+    assert sim.get_value(Main.O) == [3, 4]

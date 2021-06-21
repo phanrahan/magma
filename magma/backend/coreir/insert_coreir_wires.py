@@ -1,57 +1,17 @@
-from ..array import Array
-from magma.bit import Bit
-from ..bits import Bits
-from ..clock import AsyncReset, AsyncResetN, Clock, _ClockType
-from ..circuit import coreir_port_mapping
-from ..conversions import as_bits, from_bits, bit, convertbit
-from ..digital import Digital
-from ..generator import Generator2
-from ..interface import IO
-from .passes import DefinitionPass
-from ..ref import NamedRef, ArrayRef, PortViewRef
-from ..t import In, Out
-from ..tuple import Tuple
+from magma.array import Array
+from magma.clock import AsyncReset, AsyncResetN, Clock, _ClockType
+from magma.conversions import as_bits, from_bits, bit, convertbit
+from magma.digital import Digital
+from magma.generator import Generator2
+from magma.passes.passes import DefinitionPass, pass_lambda
+from magma.primitives.wire import Wire
+from magma.ref import NamedRef, ArrayRef, PortViewRef
+from magma.t import In, Out
+from magma.tuple import Tuple
 
 
 def _sanitize_name(name):
     return name.replace("[", "_").replace("]", "")
-
-
-def _simulate_wire(self, value_store, state_store):
-    value_store.set_value(self.O, value_store.get_value(self.I))
-
-
-class Wire(Generator2):
-    def __init__(self, T):
-        if issubclass(T, (AsyncReset, AsyncResetN, Clock)):
-            self._gen_named_type_wrapper(T)
-            # Standalone return to avoid return-in-init lint warning
-            return
-        if issubclass(T, Digital):
-            coreir_lib = "corebit"
-            coreir_genargs = None
-        else:
-            width = T.flat_length()
-            T = Bits[width]
-            coreir_lib = "coreir"
-            coreir_genargs = {"width": width}
-        self.name = "Wire"
-        self.io = IO(I=In(T), O=Out(T))
-        self.simulate = _simulate_wire
-        self.coreir_name = "wire"
-        self.coreir_lib = coreir_lib
-        self.coreir_genargs = coreir_genargs
-        self.renamed_ports = coreir_port_mapping
-
-    def _gen_named_type_wrapper(self, T):
-        """
-        Generates a container around Wire(Bit) so named types are wrapped
-        properly
-        """
-        assert issubclass(T, Digital)
-        self.io = IO(I=In(T), O=Out(T))
-        self.name = f"Wire{T}"
-        self.io.O @= convertbit(Wire(Bit)()(bit(self.io.I)), T)
 
 
 class InsertCoreIRWires(DefinitionPass):
@@ -162,3 +122,6 @@ class InsertCoreIRWires(DefinitionPass):
         for value in definition.interface.ports.values():
             if not value.is_output():
                 self._insert_wire(value, definition)
+
+
+insert_coreir_wires = pass_lambda(InsertCoreIRWires)

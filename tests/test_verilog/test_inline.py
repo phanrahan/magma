@@ -111,3 +111,158 @@ assign O[{i}] = {i};
     assert m.testing.check_files_equal(__file__,
                                        f"build/test_inline_loop_var.v",
                                        f"gold/test_inline_loop_var.v")
+
+
+def test_clock_inline_verilog():
+    class ClockT(m.Product):
+        clk = m.Out(m.Clock)
+        resetn = m.Out(m.AsyncResetN)
+
+    class Bar(m.Circuit):
+        io = m.IO(clks=ClockT)
+
+    class Foo(m.Circuit):
+        io = m.IO(clks=m.Flip(ClockT))
+
+        bar = Bar()
+        # Since clk is coming from another instance, it is an output Without
+        # changing the type to undirected for the temporary signal, we'll get a
+        # coreir error:
+        #   ERROR: WireOut(Clock) 7 is not a valid coreIR name!. Needs to be =
+        #   ^[a-zA-Z_\-\$][a-zA-Z0-9_\-\$]*
+        clk = bar.clks.clk
+
+        resetn = m.AsyncResetN()
+        resetn @= bar.clks.resetn
+
+        outputVector = m.Bits[8]()
+        outputVector @= 0xDE
+
+        outputValid = m.Bit()
+        outputValid @= 1
+
+        m.inline_verilog("""
+`ASSERT(ERR_output_vector_onehot_when_valid,
+        {outputValid} |-> $onehot({outputVector}, {clk}, {resetn})
+""")
+
+    # Should not throw a coreir error
+    m.compile("build/Foo", Foo, inline=True)
+
+
+def test_inline_verilog_unique():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        m.inline_verilog('always @(*) $display("%d\\n", {io.I});')
+
+    Bar = Foo
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        m.inline_verilog('always @(*) $display("%x\\n", {io.I});')
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        Bar()(io.I)
+        Foo()(io.I)
+
+    m.compile("build/test_inline_verilog_unique", Top)
+    assert m.testing.check_files_equal(__file__,
+                                       f"build/test_inline_verilog_unique.v",
+                                       f"gold/test_inline_verilog_unique.v")
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_inline_verilog_unique_old_style():
+    class Foo(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            io.inline_verilog('always @(*) $display("%d\\n", {I});', I=io.I)
+
+    Bar = Foo
+
+    class Foo(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            io.inline_verilog('always @(*) $display("%x\\n", {I});', I=io.I)
+
+    class Top(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            Bar()(io.I)
+            Foo()(io.I)
+
+    m.compile("build/test_inline_verilog_unique_old_style", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_unique_old_style.v",
+        f"gold/test_inline_verilog_unique.v")
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_inline_verilog_unique_old_style2():
+
+    class Passthru(m.Generator):
+        @staticmethod
+        def generate(Dtype, Id):
+
+            class Passthru(m.Circuit):
+
+                IO = ["I", m.In(Dtype)]
+                IO += ["O", m.Out(Dtype)]
+
+                @classmethod
+                def definition(io):
+
+                    io.O @= io.I
+
+                    io.inline_verilog("""
+initial begin
+    $display("Id = %d", {Id});
+end
+                    """, Id=Id)
+
+            return Passthru
+
+    class Top(m.Circuit):
+        IO = ["I", m.In(m.Bit)]
+        IO += ["O", m.Out(m.Bit)]
+
+        @classmethod
+        def definition(io):
+            passthru0 = Passthru(m.Bit, 0)
+            passthru1 = Passthru(m.Bit, 1)
+
+            passthru0.I @= io.I
+            passthru1.I @= passthru0.O
+            io.O @= passthru1.O
+
+    m.compile("build/test_inline_verilog_unique_old_style2", Top, inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_unique_old_style2.v",
+        f"gold/test_inline_verilog_unique_old_style2.v")
+
+
+def test_inline_verilog_share_default_clocks():
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit)) + m.ClockIO(has_reset=True)
+        # Auto-wired
+        clk = m.Clock()
+        rst = m.Reset()
+        m.inline_verilog("""
+assert property (@(posedge {clk}) disable iff (! {rst}) {io.x} |-> ##1 {io.y});
+""")
+        m.inline_verilog("""
+assert property (@(posedge {clk}) disable iff (! {rst}) {io.x} |-> ##1 {io.y});
+""")
+
+    m.compile("build/test_inline_verilog_share_default_clocks", Foo,
+              inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_share_default_clocks.v",
+        f"gold/test_inline_verilog_share_default_clocks.v")

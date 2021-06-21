@@ -1,14 +1,20 @@
 from inspect import getouterframes, currentframe
 from pathlib import PurePath
-from .backend import verilog, blif, firrtl, dot, coreir_compiler
-from .compiler import Compiler
-from .config import get_compile_dir
-from .uniquification import uniquification_pass, UniquificationMode
-from .passes.clock import WireClockPass
-from .passes.drive_undriven import DriveUndrivenPass
-from .passes.terminate_unused import TerminateUnusedPass
+
+from magma.backend import verilog, blif, firrtl, dot
+from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.bind import BindPass
+from magma.compiler import Compiler
+from magma.compile_exception import MagmaCompileException
+from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.is_definition import isdefinition
+from magma.passes.clock import WireClockPass
+from magma.passes.drive_undriven import DriveUndrivenPass
+from magma.passes.terminate_unused import TerminateUnusedPass
+from magma.uniquification import (uniquification_pass, UniquificationMode,
+                                  reset_names)
+
 
 __all__ = ["compile"]
 
@@ -23,10 +29,10 @@ def _make_compiler(output, main, basename, opts):
     if output == "dot":
         return dot.DotCompiler(main, basename)
     if output == "coreir":
-        return coreir_compiler.CoreIRCompiler(main, basename, opts)
+        return CoreIRCompiler(main, basename, opts)
     if output == "coreir-verilog":
         opts["output_verilog"] = True
-        return coreir_compiler.CoreIRCompiler(main, basename, opts)
+        return CoreIRCompiler(main, basename, opts)
     raise NotImplementedError(f"Backend '{output}' not supported")
 
 
@@ -39,6 +45,9 @@ def _get_basename(basename):
 
 
 def compile(basename, main, output="coreir-verilog", **kwargs):
+    if not isdefinition(main):
+        raise MagmaCompileException(
+            f"Trying to compile empty definition {main}")
     if hasattr(main, "circuit_definition"):
         main = main.circuit_definition
     basename = _get_basename(basename)
@@ -46,20 +55,27 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     compiler = _make_compiler(output, main, basename, opts)
 
     # Default behavior is to perform uniquification, but can be overriden.
-    uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
+    original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))
 
-    # Steps to process inline verilog generation. Required to be run after uniquification.
+    # Steps to process inline verilog generation. Required to be run after
+    # uniquification.
     ProcessInlineVerilogPass(main).run()
 
-    # Bind after uniquification so the bind logic works on unique modules
-    BindPass(main, compile, opts.get("user_namespace")).run()
+    # Bind after uniquification so the bind logic works on unique modules.
+    BindPass(main, compile, opts.get("user_namespace"),
+             opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
     if opts.get("terminate_unused", False):
         TerminateUnusedPass(main).run()
 
-    compiler.compile()
+    result = compiler.compile()
+    result = {} if result is None else result
 
     if hasattr(main, "fpga"):
         main.fpga.constraints(basename)
+
+    reset_names(original_names)
+
+    return result

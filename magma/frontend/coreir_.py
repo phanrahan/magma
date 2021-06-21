@@ -1,20 +1,28 @@
 from magma import cache_definition
-from magma.backend.coreir_ import CoreIRBackend, CoreIRContextSingleton
+from magma.backend.coreir.coreir_backend import CoreIRBackend
+from magma.backend.coreir.coreir_runtime import (coreir_context,
+                                                 reset_coreir_context)
 from magma.circuit import DefineCircuitKind, Circuit
 from magma import cache_definition, Clock, Array, BitIn, BitOut, Product
 from coreir.generator import Generator
+
 
 @cache_definition
 def GetCoreIRBackend():
     return CoreIRBackend()
 
+
 def GetMagmaContext():
-    return CoreIRContextSingleton().get_instance()
+    return coreir_context()
+
 
 def ResetCoreIR():
-    CoreIRContextSingleton().reset_instance()
+    reset_coreir_context()
     backend = GetCoreIRBackend()
+    # NOTE(rsetaluri): backend.reset() is necessary as it clears the data
+    # structures that are CoreIR Context-specific.
     backend.reset()
+
 
 _coreirNamedTypeToPortDict = {
     "clk": Clock,
@@ -102,7 +110,8 @@ def GetCoreIRModule(cirb: CoreIRBackend, circuit: DefineCircuitKind):
             circuitNotInstance = circuit.__class__
         else:
             circuitNotInstance = circuit
-        moduleOrGenerator = cirb.compile(circuitNotInstance)[circuitNotInstance.name]
+        namespaces = cirb.compile(circuitNotInstance)
+        moduleOrGenerator = namespaces[circuitNotInstance.coreir_lib][circuitNotInstance.name]
         # compile can giv eme back the coreIR module or the coreIR generator. if this is
         # the CoreIR generator, call it with the Magma arguments converted to CoreIR ones.
         if isinstance(moduleOrGenerator, Generator):

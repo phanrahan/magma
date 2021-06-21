@@ -1,13 +1,14 @@
 import ast
+import libcst as cst
 from typing import MutableMapping, Optional
 
 import astor
 
 import ast_tools
 from ast_tools.stack import SymbolTable, get_symbol_table
-from ast_tools.passes import (apply_ast_passes, Pass, PASS_ARGS_T, ssa,
+from ast_tools.passes import (apply_passes, Pass, PASS_ARGS_T, ssa,
                               if_to_phi, bool_to_bit)
-from ast_tools.common import gen_free_prefix, gen_free_name
+from ast_tools.common import gen_free_prefix, gen_free_name, to_module
 from ast_tools.immutable_ast import immutable, mutable
 
 import magma as magma_module
@@ -16,8 +17,9 @@ from magma.bit import Bit
 from magma.wire import wire
 
 
-class _ToCombinationalRewriter(ast.NodeTransformer):
+class _ToCombinationalRewriter(cst.CSTTransformer):
     def __init__(self, free_prefix, wire_map, env):
+        super().__init__()
         self.prefix = free_prefix
         self.wire_map = wire_map
         self.env = env
@@ -29,25 +31,33 @@ class _ToCombinationalRewriter(ast.NodeTransformer):
         return new_name
 
     def _gen_assign(self, target, value):
-        key = immutable(target)
+        key = to_module(target).code
         if key not in self.wire_map:
             self.wire_map[key] = self._gen_new_name()
-        target = ast.Name(self.wire_map[key], ast.Store())
-        return ast.Assign([target], value)
+        target = cst.Name(self.wire_map[key])
+        return cst.Assign((cst.AssignTarget(target), ), value)
 
-    def visit_AugAssign(self, node):
-        if not isinstance(node.op, ast.MatMult):
-            return node
-        return self._gen_assign(node.target, node.value)
+    def leave_AugAssign(self, original_node, updated_node):
+        if not isinstance(updated_node.operator, cst.MatrixMultiplyAssign):
+            return updated_node
+        return self._gen_assign(updated_node.target, updated_node.value)
 
-    def visit_Call(self, node):
+    def leave_Expr(self, original_node, updated_node):
+        final_node = super().leave_Expr(original_node, updated_node)
+        if isinstance(final_node.value, cst.Assign):
+            return final_node.value
+        return final_node
+
+    def leave_Call(self, original_node, updated_node):
         if (
-            isinstance(node.func, ast.Attribute) and node.func.attr == "wire"
-            and eval(node.func.value.id, {}, self.env) is magma_module
+            isinstance(updated_node.func, cst.Attribute) and
+            updated_node.func.attr.value == "wire" and
+            eval(updated_node.func.value.value, {}, self.env) is magma_module
         ):
             # m.wire(value, target)
-            return self._gen_assign(node.args[1], node.args[0])
-        return node
+            return self._gen_assign(updated_node.args[1].value,
+                                    updated_node.args[0].value)
+        return updated_node
 
 
 class _RewriteToCombinational(Pass):
@@ -61,23 +71,31 @@ class _RewriteToCombinational(Pass):
         self.wire_map = wire_map
 
     def rewrite(
-        self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
+        self, tree: cst.CSTNode, env: SymbolTable, metadata: MutableMapping
     ) -> PASS_ARGS_T:
         # prefix used for temporaries
         prefix = gen_free_prefix(tree, env)
 
-        tree = _ToCombinationalRewriter(prefix, self.wire_map, env).visit(tree)
-
+        tree = tree.visit(_ToCombinationalRewriter(
+            prefix, self.wire_map, env
+        ))
         # Return targets for wiring and assignments
         return_values = list(self.wire_map.values())
-        elts = [ast.Name(value, ast.Load()) for value in return_values]
-        retval = ast.Tuple(elts, ast.Load()) if len(elts) > 1 else elts[0]
-        tree.body.append(ast.Return(retval))
+        elts = [cst.Name(value) for value in return_values]
+        retval = (cst.Tuple([cst.Element(e) for e in elts])
+                  if len(elts) > 1 else elts[0])
+        tree = tree.with_changes(
+            body=tree.body.with_changes(
+                body=tree.body.body + (
+                    cst.SimpleStatementLine([cst.Return(retval)]),
+                )
+            )
+        )
 
         return tree, env, metadata
 
 
-class inline_combinational(apply_ast_passes):
+class inline_combinational(apply_passes):
     def __init__(self, pre_passes=[], post_passes=[],
                  debug: bool = False,
                  env: Optional[SymbolTable] = None,
@@ -94,8 +112,8 @@ class inline_combinational(apply_ast_passes):
         super().__init__(passes=passes, env=env, debug=debug, path=path,
                          file_name=file_name)
 
-    def exec(self, etree, stree, env):
-        fn = super().exec(etree, stree, env)
+    def exec(self, etree, stree, env, metadata):
+        fn = super().exec(etree, stree, env, metadata)
         result = fn()
         if not isinstance(result, tuple):
             result = (result,)
@@ -104,4 +122,4 @@ class inline_combinational(apply_ast_passes):
             # way we can avoid having to do eval here (other option is to
             # codegen the original augassign in a new tree, but that's
             # effectively the same as evaling)
-            wire(value, eval(astor.to_source(mutable(key)).rstrip(), {}, env))
+            wire(value, eval(key, {}, env))

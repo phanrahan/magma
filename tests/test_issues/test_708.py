@@ -2,14 +2,7 @@ import magma as m
 from magma.testing import check_files_equal
 import os
 import pytest
-import sys
 import tempfile
-
-TEST_SYNTAX_PATH = os.path.join(os.path.dirname(__file__), '../test_syntax')
-
-sys.path.append(TEST_SYNTAX_PATH)
-
-from test_sequential import DefineRegister
 
 
 @pytest.mark.parametrize("inline", [False, True])
@@ -17,7 +10,7 @@ def test_708(inline):
     class A(m.Product):
         x = m.UInt[8]
 
-    @m.circuit.sequential(async_reset=False)
+    @m.sequential2()
     class Test:
         def __init__(self):
             self.a: A = m.namedtuple(x=m.uint(0, 8))

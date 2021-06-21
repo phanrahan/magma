@@ -4,14 +4,7 @@ import functools
 import weakref
 from .circuit import DefineCircuitKind, Circuit
 from . import cache_definition
-
-
-class ParamDict(dict):
-    """
-    Hashable dictionary for simple key: value parameters
-    """
-    def __hash__(self):
-        return hash(tuple(sorted(self.items())))
+from magma.common import ParamDict
 
 
 class GeneratorMeta(type):
@@ -74,7 +67,13 @@ def _make_type(cls, *args, **kwargs):
     dct = DefineCircuitKind.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
-    return DefineCircuitKind.__new__(cls, name, bases, dct)
+    # NOTE(leonardt): We need to override the Generator2 classmethod bind with
+    # DefineCircuitKind.bind for generator instances (circuits).
+    dct["bind"] = classmethod(DefineCircuitKind.bind)
+    ckt = DefineCircuitKind.__new__(cls, name, bases, dct)
+    for gen in cls.bind_generators:
+        gen.generate_bind(ckt, *args, **kwargs)
+    return ckt
 
 
 class _Generator2Meta(type):
@@ -82,6 +81,7 @@ class _Generator2Meta(type):
 
     def __new__(metacls, name, bases, dct):
         bases = bases + (DefineCircuitKind,)
+        assert dct.setdefault("bind_generators", []) == []
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
@@ -110,3 +110,11 @@ class Generator2(metaclass=_Generator2Meta):
 
     def __call__(cls, *args, **kwargs):
         return DefineCircuitKind.__call__(cls, *args, **kwargs)
+
+    @classmethod
+    def bind(cls, monitor):
+        cls.bind_generators.append(monitor)
+
+
+def reset_generator_cache():
+    _Generator2Meta._cache = weakref.WeakValueDictionary()

@@ -3,13 +3,13 @@ import string
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 from magma.circuit import _definition_context_stack, Circuit, IO
 from magma.passes.passes import CircuitPass
-from magma.passes.insert_coreir_wires import Wire
-from magma.verilog_utils import convert_values_to_verilog_str
+from magma.primitives.wire import Wire
 from magma.t import Type, Direction, In
 from magma.view import PortView, InstView
 from magma.digital import Digital
 from magma.bit import Bit
 from magma.array import Array
+from magma.clock import ClockTypes
 from magma.tuple import Tuple
 from magma.wire import wire
 from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
@@ -45,7 +45,7 @@ def _make_temporary(defn, value, num, inline_wire_prefix, parent=None):
     with defn.open():
         # Insert a wire so it can't be inlined out
         temp_name = f"{inline_wire_prefix}{num}"
-        temp = Wire(type(value))(name=temp_name)
+        temp = Wire(type(value).undirected_t)(name=temp_name)
         temp.I @= value
     if parent is not None:
         return PortView(temp.O, parent)
@@ -60,13 +60,20 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
     if isinstance(value, Type):
         if value.is_input():
             value = value.value()
+
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
-            if value not in cls.inline_verilog_wire_map:
+            key = value
+            if isinstance(value, ClockTypes) and not value.driven():
+                # Share wire for undriven clocks so we don't
+                # generate a separate wire for the eventual
+                # driver from the automatic clock wiring logic
+                key = type(value)
+            if key not in cls.inline_verilog_wire_map:
                 temp = _make_temporary(cls, value,
                                        len(cls.inline_verilog_wire_map),
                                        inline_wire_prefix)
-                cls.inline_verilog_wire_map[value] = temp
-            value = cls.inline_verilog_wire_map[value]
+                cls.inline_verilog_wire_map[key] = temp
+            value = cls.inline_verilog_wire_map[key]
     else:
         assert isinstance(value, PortView)
         if value.port.is_input():
@@ -208,6 +215,8 @@ def _process_inline_verilog(cls, format_str, format_args, symbol_table,
 class ProcessInlineVerilogPass(CircuitPass):
     def __call__(self, cls):
         if cls.inline_verilog_generated:
+            return
+        if not cls._context_._inline_verilog:
             return
         cls.inline_verilog_wire_map = {}
         cls.inline_verilog_modules = []

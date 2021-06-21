@@ -8,25 +8,20 @@ module coreir_shl #(
   assign out = in0 << in1;
 endmodule
 
-module coreir_reg_arst #(
+module coreir_reg #(
     parameter width = 1,
-    parameter arst_posedge = 1,
     parameter clk_posedge = 1,
     parameter init = 1
 ) (
     input clk,
-    input arst,
     input [width-1:0] in,
     output [width-1:0] out
 );
-  reg [width-1:0] outReg;
-  wire real_rst;
-  assign real_rst = arst_posedge ? arst : ~arst;
+  reg [width-1:0] outReg=init;
   wire real_clk;
   assign real_clk = clk_posedge ? clk : ~clk;
-  always @(posedge real_clk, posedge real_rst) begin
-    if (real_rst) outReg <= init;
-    else outReg <= in;
+  always @(posedge real_clk) begin
+    outReg <= in;
   end
   assign out = outReg;
 endmodule
@@ -58,12 +53,30 @@ module corebit_const #(
   assign out = value;
 endmodule
 
-module Bar_comb (
-    input [7:0] foo,
-    input [0:0] self_reg_O,
-    output [0:0] O0,
-    output [7:0] O1
+module Register (
+    input [0:0] I,
+    output [0:0] O,
+    input CLK
 );
+wire [0:0] reg_P1_inst0_out;
+coreir_reg #(
+    .clk_posedge(1'b1),
+    .init(1'h0),
+    .width(1)
+) reg_P1_inst0 (
+    .clk(CLK),
+    .in(I),
+    .out(reg_P1_inst0_out)
+);
+assign O = reg_P1_inst0_out;
+endmodule
+
+module Bar (
+    input [7:0] foo,
+    output [7:0] O,
+    input CLK
+);
+wire [0:0] Register_inst0_O;
 wire bit_const_0_None_out;
 wire [7:0] const_1_8_out;
 wire [7:0] const_2_8_out;
@@ -71,6 +84,11 @@ wire [7:0] magma_Bits_8_or_inst0_out;
 wire [7:0] magma_Bits_8_or_inst1_out;
 wire [7:0] magma_Bits_8_shl_inst0_out;
 wire [7:0] magma_Bits_8_shl_inst1_out;
+Register Register_inst0 (
+    .I(Register_inst0_O),
+    .O(Register_inst0_O),
+    .CLK(CLK)
+);
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -120,36 +138,6 @@ coreir_shl #(
     .in1(const_1_8_out),
     .out(magma_Bits_8_shl_inst1_out)
 );
-assign O0 = self_reg_O;
-assign O1 = magma_Bits_8_or_inst1_out;
-endmodule
-
-module Bar (
-    input [7:0] foo,
-    input CLK,
-    input ASYNCRESET,
-    output [7:0] O
-);
-wire [0:0] Bar_comb_inst0_O0;
-wire [7:0] Bar_comb_inst0_O1;
-wire [0:0] reg_PR_inst0_out;
-Bar_comb Bar_comb_inst0 (
-    .foo(foo),
-    .self_reg_O(reg_PR_inst0_out),
-    .O0(Bar_comb_inst0_O0),
-    .O1(Bar_comb_inst0_O1)
-);
-coreir_reg_arst #(
-    .arst_posedge(1'b1),
-    .clk_posedge(1'b1),
-    .init(1'h0),
-    .width(1)
-) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(Bar_comb_inst0_O0),
-    .out(reg_PR_inst0_out)
-);
-assign O = Bar_comb_inst0_O1;
+assign O = magma_Bits_8_or_inst1_out;
 endmodule
 

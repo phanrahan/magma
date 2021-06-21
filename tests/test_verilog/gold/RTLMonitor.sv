@@ -1,11 +1,11 @@
-module coreir_wrap (
+module bar_coreir_wrap (
     input in,
     output out
 );
   assign out = in;
 endmodule
 
-module coreir_term #(
+module bar_coreir_term #(
     parameter width = 1
 ) (
     input [width-1:0] in
@@ -13,13 +13,13 @@ module coreir_term #(
 
 endmodule
 
-module corebit_term (
+module bar_corebit_term (
     input in
 );
 
 endmodule
 
-module foo_RTLMonitor (
+module bar_foo_RTLMonitor (
     input CLK,
     input handshake_arr_0_ready,
     input handshake_arr_0_valid,
@@ -39,7 +39,8 @@ module foo_RTLMonitor (
     input mon_temp2,
     input mon_temp3,
     input [1:0] ndarr [2:0],
-    input out
+    input out,
+    input [19:0] tuple_arr [0:0]
 );
 wire _magma_inline_wire0;
 wire [3:0] _magma_inline_wire1;
@@ -67,7 +68,9 @@ assign temp5 = intermediate_ndarr[1][1];
 endmodule
 
 
-bind foo_RTL foo_RTLMonitor foo_RTLMonitor_inst (
+
+`ifdef BIND_ON
+bind bar_foo_RTL bar_foo_RTLMonitor bar_foo_RTLMonitor_inst (
     .CLK(CLK),
     .in1(in1),
     .in2(in2),
@@ -87,5 +90,7 @@ bind foo_RTL foo_RTLMonitor foo_RTLMonitor_inst (
     .intermediate_tuple__1(_magma_bind_wire_2_1),
     .inst_input(_magma_bind_wire_3),
     .mon_temp3(_magma_bind_wire_4),
-    .intermediate_ndarr('{_magma_bind_wire_5_1, _magma_bind_wire_5_0})
+    .intermediate_ndarr('{_magma_bind_wire_5_1, _magma_bind_wire_5_0}),
+    .tuple_arr('{nested_other_circ._magma_bind_wire_0_0})
 );
+`endif

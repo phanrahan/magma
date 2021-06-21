@@ -49,9 +49,10 @@ class PlacerBase(ABC):
 
 
 def _setup_view(inst):
+    inst_view = InstView(inst)
     # Setup view now because inline strings might use it during defn
     for sub_inst in getattr(type(inst), "instances", []):
-        setattr(inst, sub_inst.name, InstView(sub_inst, InstView(inst)))
+        setattr(inst, sub_inst.name, InstView(sub_inst, inst_view))
 
 
 class Placer:
@@ -61,6 +62,7 @@ class Placer:
         self._instance_counter = Counter()
         self._instance_name_map = {}
         self._instances = []
+        self._finalized = False
 
     def instances(self):
         return self._instances
@@ -128,6 +130,12 @@ class Placer:
         if get_debug_mode():
             inst.stack = inspect.stack()
         _setup_view(inst)
+
+    def finalize(self, defn):
+        if self._finalized:
+            raise Exception("Can only call finalize on a placer once")
+        self._finalized = True
+        return self
 
 
 class StagedPlacer(ABC):

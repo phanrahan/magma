@@ -5,6 +5,7 @@ from magma.testing import check_files_equal
 from magma import (IO, In, Out, Flip, Clock, Reset, reset, Enable, enable,
                    AsyncReset, Circuit, Bit, bit, wire, compile)
 from magma.digital import DigitalMeta
+from magma.compile_exception import UnconnectedPortException
 
 
 def test_clock():
@@ -415,9 +416,34 @@ def test_insert_wrap_casts_temporary():
                              f"gold/test_insert_wrap_casts_temporary.v")
 
 
-def test_wire_error():
-    with pytest.raises(TypeError) as e:
-        class Foo(m.Circuit):
-            io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
-            m.wire(io.I, io.O)
-    assert str(e.value) == "Cannot wire I (T=Out(Clock)) to O (T=In(Reset))"
+def test_wire_error(caplog):
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Clock), O=m.Out(m.Reset))
+        m.wire(io.I, io.O)
+    assert (caplog.messages[0] ==
+            "Cannot wire Foo.I (Out(Clock)) to Foo.O (In(Reset))")
+
+
+def test_clock_undriven():
+    class Foo(m.Circuit):
+        io = m.ClockIO()
+
+    class Bar(m.Circuit):
+        foo = Foo()
+        foo.CLK.undriven()
+
+
+def test_multiple_clock_drivers():
+    class Foo(m.Circuit):
+        io = m.IO(CLK=m.Out(m.Clock))
+
+    class Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+        foo = Foo()
+        io.O @= m.Register(m.Bit)()(io.I)
+
+    with pytest.raises(UnconnectedPortException) as e:
+        m.compile("build/test_multiple_clock_drivers", Bar)
+    expected = ("Found unconnected port: "
+                "Bar.Register_inst0.CLK\nBar.Register_inst0.CLK: Unconnected")
+    assert str(e.value) == expected

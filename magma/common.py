@@ -1,6 +1,7 @@
 import collections
 import collections.abc
 from functools import wraps, partial
+from typing import Iterable
 import warnings
 
 
@@ -113,3 +114,62 @@ def setattrs(obj, dct, pred=None):
     for k, v in dct.items():
         if pred is None or pred(k, v):
             setattr(obj, k, v)
+
+
+class ParamDict(dict):
+    """
+    Hashable dictionary for simple key: value parameters
+    """
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
+
+
+def is_int(value):
+    try:
+        int(value)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def _make_delegate_fn(method):
+
+    def _fn(self, *args, **kwargs):
+        return getattr(self._underlying, method)(*args, **kwargs)
+
+    return _fn
+
+
+def make_delegator_cls(base):
+    methods = base.__abstractmethods__
+
+    class _Delegator(base):
+        def __init__(self, underlying, *args, **kwargs):
+            self._underlying = underlying
+
+    for method in methods:
+        setattr(_Delegator, method, _make_delegate_fn(method))
+    # NOTE(rsetaluri): We should be using the new abc.update_abstractmethods
+    # function. See https://bugs.python.org/issue41905 and
+    # https://docs.python.org/3.10/library/abc.html#abc.update_abstractmethods.
+    _Delegator.__abstractmethods__ = frozenset()
+    return _Delegator
+
+
+class IterableOnlyException(Exception):
+    pass
+
+
+def only(lst: Iterable):
+    it = iter(lst)
+    try:
+        value = next(it)
+    except StopIteration:
+        raise IterableOnlyException("Expected one element, got []") from None
+    try:
+        new_value = next(it)
+    except StopIteration:
+        return value
+    else:
+        msg = f"Expected one element got {[value, new_value] + list(it)}"
+        raise IterableOnlyException(msg)

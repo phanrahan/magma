@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from .is_definition import isdefinition
-from .logging import root_logger
-from .passes import DefinitionPass
+
+from magma.is_definition import isdefinition
+from magma.logging import root_logger
+from magma.passes import DefinitionPass
 
 
 _logger = root_logger()
@@ -23,13 +24,22 @@ class _HashStruct:
     defn_repr: str
     is_verilog: bool
     verilog_str: bool
+    inline_verilog: tuple
 
 
 def _make_hash_struct(definition):
     repr_ = repr(definition)
+    inline_verilog = tuple()
+    for s, args, st, prefix in definition._context_._inline_verilog:
+        inline_verilog += (
+            (s,),
+            (tuple(sorted(args.items())),),
+            (str(st),),
+            (prefix,)
+        )
     if hasattr(definition, "verilogFile") and definition.verilogFile:
-        return _HashStruct(repr_, True, definition.verilogFile)
-    return _HashStruct(repr_, False, "")
+        return _HashStruct(repr_, True, definition.verilogFile, inline_verilog)
+    return _HashStruct(repr_, False, "", inline_verilog)
 
 
 def _hash(definition):
@@ -44,6 +54,11 @@ class UniquificationPass(DefinitionPass):
         self.seen = {}
         self.original_names = {}
 
+    def _rename(self, ckt, new_name):
+        assert ckt not in self.original_names
+        self.original_names[ckt] = ckt.name
+        type(ckt).rename(ckt, new_name)
+
     def __call__(self, definition):
         name = definition.name
         key = _hash(definition)
@@ -53,19 +68,19 @@ class UniquificationPass(DefinitionPass):
             if self.mode is UniquificationMode.UNIQUIFY and len(seen) > 0:
                 suffix = "_unq" + str(len(seen))
                 new_name = name + suffix
-                type(definition).rename(definition, new_name)
+                self._rename(definition, new_name)
                 for module in definition.bind_modules:
-                    type(module).rename(module, module.name + suffix)
+                    self._rename(module, module.name + suffix)
             seen[key] = [definition]
         else:
             if self.mode is not UniquificationMode.UNIQUIFY:
                 assert seen[key][0].name == name
             elif name != seen[key][0].name:
                 new_name = seen[key][0].name
-                type(definition).rename(definition, new_name)
+                self._rename(definition, new_name)
                 for x, y in zip(seen[key][0].bind_modules,
                                 definition.bind_modules):
-                    type(y).rename(y, x.name)
+                    self._rename(y, x.name)
             seen[key].append(definition)
 
     def run(self):
@@ -97,6 +112,11 @@ def _get_mode(mode_or_str):
     if isinstance(mode_or_str, UniquificationMode):
         return mode_or_str
     raise NotImplementedError(f"Unsupported type: {type(mode_or_str)}")
+
+
+def reset_names(original_names):
+    for ckt, original_name in original_names.items():
+        type(ckt).rename(ckt, original_name)
 
 
 # This pass runs uniquification according to @mode and returns a dictionary

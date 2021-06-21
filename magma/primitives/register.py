@@ -5,18 +5,20 @@ import hwtypes as ht
 
 from magma.array import Array
 from magma.bit import Bit
+from magma.clock import Enable
+from magma.common import ParamDict
 from magma.bits import Bits, UInt, SInt
 from magma.circuit import coreir_port_mapping
 from magma.conversions import as_bits, from_bits, bit
 from magma.interface import IO
 from magma.generator import Generator2
-from magma.t import Type, Kind, In, Out
+from magma.t import Type, Kind, In, Out, Direction
 from magma.tuple import Tuple
 from magma.clock import (AbstractReset,
                          AsyncReset, AsyncResetN, Clock, get_reset_args)
 from magma.clock_io import ClockIO
 from magma.primitives.mux import Mux
-from magma.wireable import wireable
+from magma.wire import wire
 
 
 class _CoreIRRegister(Generator2):
@@ -41,10 +43,13 @@ class _CoreIRRegister(Generator2):
 
         if has_async_resetn:
             self.io += IO(arst=In(AsyncResetN))
-            self.name += "R"
+            self.name += "Rn"
             self.coreir_configargs["arst_posedge"] = False
 
+        self.name += f"{width}"
+
         self.stateful = True
+        self.primitive = True
         self.default_kwargs = {"init": coreir.type.BitVector[width](init)}
         self.coreir_genargs = {"width": width}
         self.renamed_ports = coreir_port_mapping
@@ -123,14 +128,16 @@ def _check_init_T(init, T):
         if len(init_T) > 1:
             return False
         return True
-    return wireable(init_T, T)
+    return init_T.is_wireable(T)
 
 
 class Register(Generator2):
     def __init__(self, T: Kind = None,
                  init: Union[Type, int, ht.BitVector] = None,
                  reset_type: AbstractReset = None, has_enable: bool = False,
-                 reset_priority: bool = True):
+                 reset_priority: bool = True, name_map=ParamDict(I="I",
+                                                                 O="O",
+                                                                 CE="CE")):
         """
         T: The type of the value that is stored inside the register (e.g.
            Bits[5])
@@ -146,6 +153,8 @@ class Register(Generator2):
 
         reset_priority: (optional) boolean flag choosing whether synchronous
                         reset (RESET or RESETN) has priority over enable
+
+        name_map: (optional) ParamDict mapping default port names to new names
         """
         if T is None:
             if init is None:
@@ -166,9 +175,13 @@ class Register(Generator2):
             has_async_reset, has_async_resetn, has_reset, has_resetn
         ) = get_reset_args(reset_type)
 
-        self.io = IO(I=In(T), O=Out(T))
-        self.io += ClockIO(has_enable=has_enable,
-                           has_async_reset=has_async_reset,
+        I_name = name_map.get("I", "I")
+        O_name = name_map.get("O", "O")
+        CE_name = name_map.get("CE", "CE")
+        self.io = IO(**{I_name: In(T), O_name: Out(T)})
+        if has_enable:
+            self.io += IO(**{CE_name: In(Enable)})
+        self.io += ClockIO(has_async_reset=has_async_reset,
                            has_async_resetn=has_async_resetn,
                            has_reset=has_reset,
                            has_resetn=has_resetn)
@@ -187,22 +200,36 @@ class Register(Generator2):
                               has_async_reset=has_async_reset,
                               has_async_resetn=has_async_resetn)()
         O = from_bits(T, reg.O)
-        self.io.O @= O
+        wire(O, getattr(self.io, O_name))
 
-        I = self.io.I
+        I = getattr(self.io, I_name)
         if has_reset:
-            reset_select = self.io.RESET
+            reset_select = bit(self.io.RESET)
         elif has_resetn:
             reset_select = ~bit(self.io.RESETN)
+        if has_enable:
+            enable = getattr(self.io, CE_name)
         if (has_reset or has_resetn) and has_enable:
             if reset_priority:
-                I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
+                I = Mux(2, T)(name="enable_mux")(O, I, enable)
                 I = Mux(2, T)()(I, init, reset_select)
             else:
                 I = Mux(2, T)()(I, init, reset_select)
-                I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
+                I = Mux(2, T)(name="enable_mux")(O, I, enable)
         elif has_enable:
-            I = Mux(2, T)(name="enable_mux")(O, I, self.io.CE)
+            I = Mux(2, T)(name="enable_mux")(O, I, enable)
         elif (has_reset or has_resetn):
             I = Mux(2, T)()(I, init, reset_select)
         reg.I @= as_bits(I)
+
+
+def register(value, **kwargs):
+    T = type(value).qualify(Direction.Undirected)
+    inst_kwargs = {}
+    try:
+        name = kwargs.pop("name")
+        inst_kwargs["name"] = name
+    except KeyError:
+        pass
+    ckt = Register(T, **kwargs)
+    return ckt(**inst_kwargs)(value)

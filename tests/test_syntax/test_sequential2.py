@@ -10,16 +10,32 @@ import fault
 from hwtypes import UIntVector
 
 import magma as m
-from test_sequential import Register, DualClockRAM
 from magma.testing import check_files_equal
+
+Register = m.Register
+
+from ast_tools import SymbolTable
+
+class DualClockRAM(m.Circuit):
+    io = m.IO(
+        RADDR=m.In(m.Bits[8]),
+        WADDR=m.In(m.Bits[8]),
+        WDATA=m.In(m.Bits[8]),
+        RDATA=m.Out(m.Bits[8]),
+        WE=m.In(m.Bit),
+        RCLK=m.In(m.Clock),
+        WCLK=m.In(m.Clock)
+    )
+
+    m.wire(m.bits(0, 8), io.RDATA)
 
 
 def test_sequential2_basic():
     @m.sequential2()
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
             return self.y(self.x(I))
@@ -33,8 +49,8 @@ def test_sequential2_assign():
     @m.sequential2()
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
             O = self.y
@@ -55,8 +71,8 @@ def test_sequential2_hierarchy():
     @m.sequential2()
     class Foo:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
             return self.y(self.x(I))
@@ -88,7 +104,7 @@ def test_sequential2_pre_unroll(capsys):
                        debug=True, path=tmpdir, file_name="foo.py")
         class LoopUnroll:
             def __init__(self):
-                self.regs = [[Register(4) for _ in range(3)] for _ in range(2)]
+                self.regs = [[Register(m.Bits[4])() for _ in range(3)] for _ in range(2)]
 
             def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
                 O = self.regs[1][-1]
@@ -100,16 +116,16 @@ def test_sequential2_pre_unroll(capsys):
 
         with open(os.path.join(tmpdir, "foo.py"), "r") as output:
             assert output.read() == """\
-def __call__(self, I: m.Bits[4]) ->m.Bits[4]:
-    O0 = self.regs[1][-1]
+def __call__(self, I: m.Bits[4]) -> m.Bits[4]:
+    O_0 = self.regs[1][-1]
     self.regs[1 - 0][2 - 0] = self.regs[1 - 0][1 - 0]
     self.regs[1 - 0][2 - 1] = self.regs[1 - 0][1 - 1]
     self.regs[1 - 0][0] = __phi(m.Bit(0 == 0), self.regs[0][-1], I)
     self.regs[1 - 1][2 - 0] = self.regs[1 - 1][1 - 0]
     self.regs[1 - 1][2 - 1] = self.regs[1 - 1][1 - 1]
     self.regs[1 - 1][0] = __phi(m.Bit(1 == 0), self.regs[1][-1], I)
-    __return_value0 = O0
-    return __return_value0
+    __0_return_0 = O_0
+    return __0_return_0
 """
 
     assert capsys.readouterr().out == f"""\
@@ -155,25 +171,6 @@ def test_dual_clock_ram():
                              f"gold/TestSequential2DefaultClock.v")
 
     @m.sequential2()
-    class ImplicitClock:
-        def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
-            rdata = DualClockRAM()(
-                RADDR=m.bits(0, 8),
-                WADDR=m.bits(0, 8),
-                WDATA=m.bits(0, 8),
-                WE=m.bit(0),
-                # Always the first Clock argument will be wired up implicitly
-                # RCLK=WCLK
-                # WCLK=WCLK
-            )
-            return rdata
-
-    m.compile("build/TestSequential2ImplicitClock", ImplicitClock)
-    assert check_files_equal(__file__,
-                             f"build/TestSequential2ImplicitClock.v",
-                             f"gold/TestSequential2ImplicitClock.v")
-
-    @m.sequential2()
     class ExplicitClock:
         def __call__(self, WCLK: m.Clock, RCLK: m.Clock) -> m.Bits[8]:
             rdata = DualClockRAM()(
@@ -197,8 +194,8 @@ def test_sequential2_return_tuple():
     @m.sequential2()
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         def __call__(self, I: m.Bits[4], S: m.Bit) -> (m.Bits[4], m.Bits[4]):
             self.y = self.x
@@ -218,8 +215,8 @@ def test_sequential2_custom_annotations():
     @m.sequential2(annotations=annotations)
     class Basic:
         def __init__(self):
-            self.x = Register(4)
-            self.y = Register(4)
+            self.x = Register(m.Bits[4])()
+            self.y = Register(m.Bits[4])()
 
         # Bad annotations to make sure they're overridden
         def __call__(self, I: int, S: str) -> tuple:
@@ -425,7 +422,8 @@ def test_sequential2_ite_array2():
 
 
 def test_sequential2_ite_array_error():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -476,7 +474,8 @@ def test_sequential2_ite_tuple2():
 
 
 def test_sequential2_ite_tuple_error_type():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -527,7 +526,8 @@ def test_sequential2_ite_product2():
 
 
 def test_sequential2_ite_product_error_type():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -542,7 +542,8 @@ def test_sequential2_ite_product_error_type():
 
 
 def test_sequential2_ite_product_error_keys():
-    with pytest.raises(TypeError, match="ite expects same type for both branches"):
+    with pytest.raises(TypeError,
+                       match="Found incompatible types .* in mux inference"):
         @m.sequential2()
         class Test:
             def __init__(self):
@@ -801,3 +802,66 @@ def test_r_ops(op):
     dir_ = os.path.join(os.path.dirname(__file__), "build")
     tester.compile_and_run("verilator", flags=['-Wno-unused'],
                            skip_compile=True, directory=dir_)
+
+
+@pytest.mark.parametrize('op', [operator.invert, operator.neg])
+def test_u_ops(op):
+    @m.sequential2()
+    class Test:
+        def __init__(self):
+            self.x = m.Register(m.SInt[16])()
+
+        def __call__(self, a: m.In(m.SInt[16]),
+                     load: m.In(m.Bit)) -> m.Out(m.SInt[16]):
+            if load:
+                self.x = a
+            else:
+                self.x = op(self.x)
+            return self.x.prev()
+
+    type(Test).rename(Test, f"TestUop{op.__name__}")
+    m.compile(f"build/TestUop{op.__name__}", Test, inline=True)
+    tester = fault.SynchronousTester(Test, clock=Test.CLK)
+    tester.circuit.a = a = 32
+    tester.circuit.load = 1
+    tester.advance_cycle()
+    tester.circuit.load = 0
+    tester.advance_cycle()
+    O = op(a)
+    tester.circuit.O.expect(O)
+    dir_ = os.path.join(os.path.dirname(__file__), "build")
+    tester.compile_and_run("verilator", flags=['-Wno-unused'],
+                           skip_compile=True, directory=dir_)
+
+
+def test_reset_no_init():
+    Data = m.UInt[8]
+
+    @m.sequential2(reset_type=m.AsyncReset)
+    class Inc:
+        def __call__(self, i: Data) -> Data:
+            return i + 1
+
+
+def test_magma_not_in_env():
+
+    Data = m.UInt[8]
+    env = SymbolTable({}, {'Data': Data})
+
+    @m.sequential2(env=env, reset_type=m.AsyncReset)
+    class Inc:
+        def __init__(self):
+            pass
+
+        def __call__(self, i: Data) -> Data:
+            return i + 1
+
+
+def test_named_outputs():
+    Data = m.UInt[8]
+    @m.sequential2(output_port_names=['s','c_out'])
+    class Adder:
+        def __call__(self, a: Data, b: Data, c_in: m.Bit) -> (Data, m.Bit):
+            return a.adc(b, c_in)
+
+    assert Adder.interface.ports.keys() == {'a', 'b', 'c_in', 's', 'c_out', 'CLK'}

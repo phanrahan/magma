@@ -21,20 +21,20 @@ module Register (
     output O,
     input CLK
 );
-wire [0:0] reg_P_inst0_out;
+wire [0:0] reg_P1_inst0_out;
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
     .width(1)
-) reg_P_inst0 (
+) reg_P1_inst0 (
     .clk(CLK),
     .in(I),
-    .out(reg_P_inst0_out)
+    .out(reg_P1_inst0_out)
 );
-assign O = reg_P_inst0_out[0];
+assign O = reg_P1_inst0_out[0];
 endmodule
 
-module Mux2xTuplea_OutBit (
+module Mux2xTuplea__SequentialRegisterWrapperBit (
     input I0_a,
     input I1_a,
     output O_a,
@@ -52,7 +52,7 @@ end
 assign O_a = coreir_commonlib_mux2x1_inst0_out[0];
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -75,22 +75,22 @@ module Test (
     output O_a,
     input sel
 );
-wire Mux2xOutBit_inst0_O;
+wire Mux2xBit_inst0_O;
 wire Register_inst0_O;
-Mux2xOutBit Mux2xOutBit_inst0 (
+Mux2xBit Mux2xBit_inst0 (
     .I0(sel),
     .I1(sel),
     .S(sel),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
-Mux2xTuplea_OutBit Mux2xTuplea_OutBit_inst0 (
+Mux2xTuplea__SequentialRegisterWrapperBit Mux2xTuplea__SequentialRegisterWrapperBit_inst0 (
     .I0_a(Register_inst0_O),
     .I1_a(1'b0),
     .O_a(O_a),
     .S(sel)
 );
 Register Register_inst0 (
-    .I(Mux2xOutBit_inst0_O),
+    .I(Mux2xBit_inst0_O),
     .O(Register_inst0_O),
     .CLK(CLK)
 );

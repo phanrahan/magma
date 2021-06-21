@@ -74,14 +74,14 @@ endmodule
 module Register (
     input [7:0] I,
     output [7:0] O,
-    input CLK,
     input CE,
+    input CLK,
     input RESET
 );
 wire [7:0] Mux2xBits8_inst0_O;
 wire [7:0] const_222_8_out;
 wire [7:0] enable_mux_O;
-wire [7:0] reg_P_inst0_out;
+wire [7:0] reg_P8_inst0_out;
 Mux2xBits8 Mux2xBits8_inst0 (
     .I0(enable_mux_O),
     .I1(const_222_8_out),
@@ -95,7 +95,7 @@ coreir_const #(
     .out(const_222_8_out)
 );
 Mux2xBits8 enable_mux (
-    .I0(reg_P_inst0_out),
+    .I0(reg_P8_inst0_out),
     .I1(I),
     .S(CE),
     .O(enable_mux_O)
@@ -104,12 +104,12 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(8'hde),
     .width(8)
-) reg_P_inst0 (
+) reg_P8_inst0 (
     .clk(CLK),
     .in(Mux2xBits8_inst0_O),
-    .out(reg_P_inst0_out)
+    .out(reg_P8_inst0_out)
 );
-assign O = reg_P_inst0_out;
+assign O = reg_P8_inst0_out;
 endmodule
 
 module test_enable_reg (
@@ -123,8 +123,8 @@ wire [7:0] Register_inst0_O;
 Register Register_inst0 (
     .I(I),
     .O(Register_inst0_O),
-    .CLK(CLK),
     .CE(CE),
+    .CLK(CLK),
     .RESET(RESET)
 );
 assign O = Register_inst0_O;

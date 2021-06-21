@@ -168,9 +168,9 @@ class Foo(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
 
     # reference circuit_definition and instance
-    inv = invert.circuit_definition()  
-    inv.a <= io.I
-    io.O <= inv.O
+    inv = invert.circuit_definition()
+    inv.a @= io.I
+    io.O @= inv.O
 ```
 
 ### Statically Elaborated For Loops

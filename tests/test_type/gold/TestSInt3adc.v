@@ -24,34 +24,34 @@ module TestBinary (
     output COUT
 );
 wire bit_const_0_None_out;
-wire [3:0] magma_Bits_4_add_inst0_out;
-wire [3:0] magma_Bits_4_add_inst1_out;
+wire [3:0] magma_SInt_4_add_inst0_out;
+wire [3:0] magma_SInt_4_add_inst1_out;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
 );
-wire [3:0] magma_Bits_4_add_inst0_in0;
-assign magma_Bits_4_add_inst0_in0 = {I0[2],I0[2:0]};
-wire [3:0] magma_Bits_4_add_inst0_in1;
-assign magma_Bits_4_add_inst0_in1 = {I1[2],I1[2:0]};
+wire [3:0] magma_SInt_4_add_inst0_in0;
+assign magma_SInt_4_add_inst0_in0 = {I0[2],I0[2:0]};
+wire [3:0] magma_SInt_4_add_inst0_in1;
+assign magma_SInt_4_add_inst0_in1 = {I1[2],I1[2:0]};
 coreir_add #(
     .width(4)
-) magma_Bits_4_add_inst0 (
-    .in0(magma_Bits_4_add_inst0_in0),
-    .in1(magma_Bits_4_add_inst0_in1),
-    .out(magma_Bits_4_add_inst0_out)
+) magma_SInt_4_add_inst0 (
+    .in0(magma_SInt_4_add_inst0_in0),
+    .in1(magma_SInt_4_add_inst0_in1),
+    .out(magma_SInt_4_add_inst0_out)
 );
-wire [3:0] magma_Bits_4_add_inst1_in1;
-assign magma_Bits_4_add_inst1_in1 = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,CIN};
+wire [3:0] magma_SInt_4_add_inst1_in1;
+assign magma_SInt_4_add_inst1_in1 = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,CIN};
 coreir_add #(
     .width(4)
-) magma_Bits_4_add_inst1 (
-    .in0(magma_Bits_4_add_inst0_out),
-    .in1(magma_Bits_4_add_inst1_in1),
-    .out(magma_Bits_4_add_inst1_out)
+) magma_SInt_4_add_inst1 (
+    .in0(magma_SInt_4_add_inst0_out),
+    .in1(magma_SInt_4_add_inst1_in1),
+    .out(magma_SInt_4_add_inst1_out)
 );
-assign O = magma_Bits_4_add_inst1_out[2:0];
-assign COUT = magma_Bits_4_add_inst1_out[3];
+assign O = magma_SInt_4_add_inst1_out[2:0];
+assign COUT = magma_SInt_4_add_inst1_out[3];
 endmodule
 

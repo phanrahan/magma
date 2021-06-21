@@ -14,8 +14,8 @@ class RTLMonitor(m.MonitorGenerator):
                       intermediate_tuple=m.In(m.Tuple[m.Bit, m.Bit]),
                       inst_input=m.In(m.Bits[width]),
                       mon_temp3=m.In(m.Bit),
-                      intermediate_ndarr=m.In(m.Array[(3, 2), m.Bit])
-                      )
+                      intermediate_ndarr=m.In(m.Array[(3, 2), m.Bit]),
+                      tuple_arr=m.In(m.Array[1, m.UInt[20]]))
 
             # NOTE: Needs to have a name
             arr_2d = m.Array[2, m.Bits[width]](name="arr_2d")
@@ -38,7 +38,9 @@ assign temp5 = {io.intermediate_ndarr[1, 1]};
 
         circuit.bind(RTLMonitor, circuit.temp1, circuit.temp2,
                      circuit.intermediate_tuple, circuit.some_circ.I,
-                     circuit.temp3, circuit.intermediate_ndarr)
+                     circuit.temp3, circuit.intermediate_ndarr,
+                     circuit.nested_other_circ.other_circ.x.y,
+                     compile_guard="BIND_ON")
 
 
 RTL.bind(RTLMonitor)

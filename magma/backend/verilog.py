@@ -5,7 +5,7 @@ from functools import reduce
 from collections import OrderedDict
 from collections.abc import Sequence
 from ..compiler import Compiler
-from ..ref import DefnRef
+from ..ref import DefnRef, TupleRef
 from ..compatibility import IntegerTypes
 from ..bit import Digital
 from ..clock import Clock, Enable, Reset
@@ -13,7 +13,7 @@ from ..array import Array
 from ..bits import SInt
 from ..tuple import Tuple
 from ..is_definition import isdefinition
-from ..clock import wiredefaultclock
+from ..wire_clock import wiredefaultclock
 from ..logging import root_logger
 from .util import get_codegen_debug_info, make_relative
 from ..config import config, EnvConfig
@@ -29,6 +29,12 @@ _logger.setLevel(config.verilog_backend_log_level)
 
 #__all__  = ['hstr', 'bstr']
 __all__  = ['hstr']
+
+
+def _verilog_name_of_ref(ref):
+    if isinstance(ref, TupleRef):
+        return _verilog_name_of_ref(ref.tuple.name) + "_" + str(ref.index)
+    return ref.qualifiedname("_")
 
 
 # return the hex character for int n
@@ -74,7 +80,7 @@ def vname(t):
             return '{' + ','.join(t) + '}'
 
     assert not t.anon(), (t.name)
-    return t.name.verilog_name()
+    return _verilog_name_of_ref(t.name)
 
 # return the verilog declaration for the data type
 def vdecl(t):
@@ -176,7 +182,7 @@ def compiledefinition(cls):
         if cls.verilogLib:
             import re
             for libName in cls.verilogLib:
-                if re.search("\.v$",libName):
+                if re.search("\\.v$",libName):
                     with open(libName,'r') as libFile:
                         s = libFile.read() + s
                 else:

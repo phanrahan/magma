@@ -16,7 +16,7 @@ def test_input_as_output(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:17\033[0m: Using `main.O` (an input) as an output
+\033[1mtests/test_wire/test_errors.py:17\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (In(Bit))
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -34,7 +34,7 @@ def test_output_as_input(caplog):
         a = A()
         wire(io.I, a.O)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:35\033[0m: Using `main.a.O` (an output) as an input
+\033[1mtests/test_wire/test_errors.py:35\033[0m: Cannot wire main.I (Out(Bit)) to main.a.O (Out(Bit))
 >>         wire(io.I, a.O)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -165,7 +165,7 @@ def test_const_array_error(caplog):
         wire(buf.O, io.O)
 
     msg = """\
-\033[1mtests/test_wire/test_errors.py:164\033[0m: Cannot wire 1 (type=<class 'int'>) to main.buf.I (type=Array[1, In(Bit)]) because conversions from IntegerTypes are only defined for Bits, not general Arrays
+\033[1mtests/test_wire/test_errors.py:164\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[1, In(Bit)])
 >>         wire(1, buf.I)"""
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)
@@ -190,3 +190,21 @@ def test_hanging_anon_error(caplog):
 >>         class _Foo(m.Circuit):"""
         assert caplog.records[0].msg == msg
         assert has_error(caplog, msg)
+
+
+def test_wire_tuple_to_clock():
+    class T(m.Product):
+        a = m.In(m.Clock)
+        b = m.In(m.Clock)
+
+    class Foo(m.Circuit):
+        io = m.IO(I=In(T), O=m.Out(m.Clock), x=m.Out(m.Bit))
+        m.wire(io.I, io.O)
+        # Wire a dummy output so we don't have an empty defn
+        io.x @= 1
+
+    # Imported here to avoid changing line numbers for above tests
+    import pytest
+    with pytest.raises(Exception) as e:
+        m.compile("build/Foo", Foo)
+    assert str(e.value) == "Found circuit with errors: Foo"

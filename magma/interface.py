@@ -496,6 +496,10 @@ class SingletonInstanceIO(IO):
     def inst_ports(self):
         return self._inst_ports.copy()
 
+    def decl(self):
+        return _flatten((name, type(port))
+                        for name, port in self._ports.items())
+
     def make_interface(self):
         decl = self.decl()
         name = _make_interface_name(decl)

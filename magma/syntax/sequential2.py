@@ -1,10 +1,13 @@
 import ast
+import libcst as cst
+import libcst.matchers as match
 import magma as magma_module
-from typing import Optional, MutableMapping
+from typing import Optional, MutableMapping, Sequence
 
 from ast_tools.stack import SymbolTable
-from ast_tools.passes import (PASS_ARGS_T, Pass, apply_ast_passes, ssa,
+from ast_tools.passes import (PASS_ARGS_T, Pass, apply_passes, ssa,
                               if_to_phi, bool_to_bit)
+from ast_tools.common import gen_free_name, to_module
 
 from ..circuit import Circuit, IO
 from ..clock import AbstractReset
@@ -192,10 +195,10 @@ class _SequentialRegisterWrapper(MagmaProtocol,
     def __rrshift__(self, other):
         return other >> self._get_magma_value_()
 
-    def __neg__(self, other):
+    def __neg__(self):
         return -self._get_magma_value_()
 
-    def __invert__(self, other):
+    def __invert__(self):
         return ~self._get_magma_value_()
 
     def ite(self, s, t, f):
@@ -274,56 +277,52 @@ def _seq_phi(s, t, f):
     return s.ite(t, f)
 
 
-class _RegisterUpdater(ast.NodeTransformer):
+class _RegisterUpdater(cst.CSTTransformer):
     """Update m.Register params implicitly"""
-    def __init__(self, env, reset_type, has_enable, reset_priority):
+    def __init__(self, env, reset_type, has_enable, reset_priority, magma_id):
         self.env = env
 
-        for k, v in env.items():
-            if v is magma_module:
-                magma_id = k
-                break
-        if not magma_id:
-            raise Exception("Cannot find magma module")
-
-        self.reset_type = ast.keyword(
-            arg="reset_type",
-            value=ast.parse(f"{magma_id}.{reset_type}").body[0].value,
+        self.reset_type = cst.Arg(
+            cst.parse_expression(f"{magma_id}.{reset_type}"),
+            cst.Name("reset_type"),
         )
-        self.has_enable = ast.keyword(
-            arg="has_enable",
-            value=ast.Constant(has_enable),
+        self.has_enable = cst.Arg(
+            cst.Name(str(has_enable)),
+            cst.Name("has_enable"),
         )
-        self.reset_priority = ast.keyword(
-            arg="reset_priority",
-            value=ast.Constant(reset_priority),
+        self.reset_priority = cst.Arg(
+            cst.Name(str(reset_priority)),
+            cst.Name("reset_priority"),
         )
 
-    def visit_Call(self, node: ast.Call):
+    def _is_m_register(self, node):
+        return (
+            match.matches(
+                node.func,
+                match.Attribute(match.DoNotCare(), match.Name("Register"))
+            ) and
+            eval(node.func.value.value, {}, self.env) is magma_module
+        )
+
+    def leave_Call(self, original_node, updated_node):
         # find m.Register
-        if (
-            isinstance(node.func, ast.Attribute)
-            and isinstance(node.func.value, ast.Name)
-            and node.func.attr == "Register"
-            and eval(node.func.value.id, {}, self.env) is magma_module
-        ):
-            # set params when not exists
-            keywords = []
-            args = set()
-            for keyword in node.keywords:
-                keywords.append(keyword)
-                args.add(keyword.arg)
+        if self._is_m_register(updated_node):
+            args = []
+            keywords = set()
+            for arg in updated_node.args:
+                args.append(arg)
+                if arg.keyword:
+                    keywords.add(arg.keyword.value)
+            if "reset_type" not in keywords:
+                args.append(self.reset_type)
+            if "has_enable" not in keywords:
+                args.append(self.has_enable)
+            if "reset_priority" not in keywords:
+                args.append(self.reset_priority)
 
-            if "reset_type" not in args:
-                keywords.append(self.reset_type)
-            if "has_enable" not in args:
-                keywords.append(self.has_enable)
-            if "reset_priority" not in args:
-                keywords.append(self.reset_priority)
+            return updated_node.with_changes(args=args)
 
-            return ast.Call(func=node.func, args=node.args, keywords=keywords)
-
-        return self.generic_visit(node)
+        return updated_node
 
 
 class _UpdateRegister(Pass):
@@ -333,31 +332,49 @@ class _UpdateRegister(Pass):
         self.has_enable = has_enable
         self.reset_priority = reset_priority
 
+    def _get_or_add_magma_module(self, tree: ast.AST, env: SymbolTable):
+        magma_id = None
+        for k, v in env.items():
+            if v is magma_module:
+                magma_id = k
+                break
+        if magma_id is None:
+            magma_id = gen_free_name(tree, env)
+            env.locals[magma_id] = magma_module
+        return env, magma_id
+
     def rewrite(
         self, tree: ast.AST, env: SymbolTable, metadata: MutableMapping
     ) -> PASS_ARGS_T:
+
+        env, magma_id = self._get_or_add_magma_module(tree, env)
         updater = _RegisterUpdater(env, self.reset_type,
-                                   self.has_enable, self.reset_priority)
-        return updater.visit(tree), env, metadata
+                                   self.has_enable, self.reset_priority,
+                                   magma_id)
+        return tree.visit(updater), env, metadata
 
 
-class _PrevReplacer(ast.NodeTransformer):
+class _PrevReplacer(cst.CSTTransformer):
     """Replace self.attr.prev() with __magma_sequential2_attr"""
     def __init__(self):
+        super().__init__()
         self.attrs = {}
 
-    def visit_Call(self, node: ast.Call):
+    def leave_Call(self, original_node, updated_node):
         # find self.attr.prev()
-        if (isinstance(node.func, ast.Attribute) and
-                isinstance(node.func.value, ast.Attribute) and
-                isinstance(node.func.value.value, ast.Name) and
-                node.func.value.value.id == "self" and
-                node.func.attr == "prev"):
+        if match.matches(
+            updated_node.func,
+            match.Attribute(
+                match.Attribute(match.Name("self")),
+                match.Name("prev")
+            )
+        ):
             # replace self.attr.prev() with __magma_sequential2_attr
-            attr = node.func.value
-            var = f"__magma_sequential2_{attr.attr}"
+            attr = updated_node.func.value
+            var = f"__magma_sequential2_{attr.attr.value}"
             self.attrs[var] = attr
-            return ast.Name(id=var, ctx=ast.Load())
+            return cst.Name(var)
+        return updated_node
         return self.generic_visit(node)
 
 
@@ -378,14 +395,15 @@ class _ReplacePrev(Pass):
                 env: SymbolTable,
                 metadata: MutableMapping) -> PASS_ARGS_T:
         prev_replacer = _PrevReplacer()
-        tree = prev_replacer.visit(tree)
+        tree = tree.visit(prev_replacer)
 
         assigns = []
         for var, attr in prev_replacer.attrs.items():
-            assigns.append(ast.Assign(targets=[
-                ast.Name(id=var, ctx=ast.Store())
-            ], value=attr))
-        tree.body = assigns + tree.body
+            assigns.append(cst.SimpleStatementLine([cst.Assign(targets=[
+                cst.AssignTarget(cst.Name(var))
+            ], value=attr)]))
+        new_body = tuple(assigns) + tree.body.body
+        tree = tree.with_changes(body=tree.body.with_changes(body=new_body))
 
         return tree, env, metadata
 
@@ -398,7 +416,9 @@ def sequential2(pre_passes=[], post_passes=[],
                 annotations: Optional[dict] = None,
                 reset_type: AbstractReset = None,
                 has_enable: bool = False,
-                reset_priority: bool = True):
+                reset_priority: bool = True,
+                output_port_names: Optional[Sequence[str]] = None,
+                ):
     passes = (pre_passes + [
         _ReplacePrev(), ssa(strict=False), bool_to_bit(), if_to_phi(_seq_phi)
     ] + post_passes)
@@ -409,13 +429,15 @@ def sequential2(pre_passes=[], post_passes=[],
         if reset_type:
             update_register = _UpdateRegister(reset_type,
                                               has_enable, reset_priority)
-            cls.__init__ = apply_ast_passes(passes=[update_register],
-                                            debug=debug, env=env, path=path,
-                                            file_name=file_name)(cls.__init__)
+            if cls.__init__ is not object.__init__:
+                cls.__init__ = apply_passes(
+                    passes=[update_register], debug=debug, env=env, path=path,
+                    file_name=file_name
+                )(cls.__init__)
 
-        cls.__call__ = apply_ast_passes(passes, debug=debug, env=env,
-                                        path=path,
-                                        file_name=file_name)(cls.__call__)
+        cls.__call__ = apply_passes(passes, debug=debug, env=env,
+                                    path=path,
+                                    file_name=file_name)(cls.__call__)
         if annotations is None:
             _annotations = cls.__call__.__annotations__
         else:
@@ -424,7 +446,7 @@ def sequential2(pre_passes=[], post_passes=[],
         if "self" in _annotations:
             raise Exception("Assumed self did not have annotation")
 
-        io_args = build_io_args(_annotations)
+        io_args = build_io_args(_annotations, output_port_names)
 
         class SequentialCircuit(Circuit):
             name = cls.__name__
@@ -444,6 +466,11 @@ def sequential2(pre_passes=[], post_passes=[],
             call_args += build_call_args(io, _annotations)
 
             call_result = cls.__call__(*call_args)
-            wire_call_result(io, call_result, cls.__call__.__annotations__)
+            wire_call_result(
+                io,
+                call_result,
+                cls.__call__.__annotations__,
+                output_port_names
+            )
         return SequentialCircuit
     return seq_inner

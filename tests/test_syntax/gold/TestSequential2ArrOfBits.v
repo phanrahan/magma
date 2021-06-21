@@ -21,33 +21,33 @@ module Register (
     output [6:0] O [14:0],
     input CLK
 );
-wire [104:0] reg_P_inst0_out;
-wire [104:0] reg_P_inst0_in;
-assign reg_P_inst0_in = {I[14][6:0],I[13][6:0],I[12][6:0],I[11][6:0],I[10][6:0],I[9][6:0],I[8][6:0],I[7][6:0],I[6][6:0],I[5][6:0],I[4][6:0],I[3][6:0],I[2][6:0],I[1][6:0],I[0][6:0]};
+wire [104:0] reg_P105_inst0_out;
+wire [104:0] reg_P105_inst0_in;
+assign reg_P105_inst0_in = {I[14][6:0],I[13][6:0],I[12][6:0],I[11][6:0],I[10][6:0],I[9][6:0],I[8][6:0],I[7][6:0],I[6][6:0],I[5][6:0],I[4][6:0],I[3][6:0],I[2][6:0],I[1][6:0],I[0][6:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(105'h000000000000000000000000000),
     .width(105)
-) reg_P_inst0 (
+) reg_P105_inst0 (
     .clk(CLK),
-    .in(reg_P_inst0_in),
-    .out(reg_P_inst0_out)
+    .in(reg_P105_inst0_in),
+    .out(reg_P105_inst0_out)
 );
-assign O[14] = reg_P_inst0_out[104:98];
-assign O[13] = reg_P_inst0_out[97:91];
-assign O[12] = reg_P_inst0_out[90:84];
-assign O[11] = reg_P_inst0_out[83:77];
-assign O[10] = reg_P_inst0_out[76:70];
-assign O[9] = reg_P_inst0_out[69:63];
-assign O[8] = reg_P_inst0_out[62:56];
-assign O[7] = reg_P_inst0_out[55:49];
-assign O[6] = reg_P_inst0_out[48:42];
-assign O[5] = reg_P_inst0_out[41:35];
-assign O[4] = reg_P_inst0_out[34:28];
-assign O[3] = reg_P_inst0_out[27:21];
-assign O[2] = reg_P_inst0_out[20:14];
-assign O[1] = reg_P_inst0_out[13:7];
-assign O[0] = reg_P_inst0_out[6:0];
+assign O[14] = reg_P105_inst0_out[104:98];
+assign O[13] = reg_P105_inst0_out[97:91];
+assign O[12] = reg_P105_inst0_out[90:84];
+assign O[11] = reg_P105_inst0_out[83:77];
+assign O[10] = reg_P105_inst0_out[76:70];
+assign O[9] = reg_P105_inst0_out[69:63];
+assign O[8] = reg_P105_inst0_out[62:56];
+assign O[7] = reg_P105_inst0_out[55:49];
+assign O[6] = reg_P105_inst0_out[48:42];
+assign O[5] = reg_P105_inst0_out[41:35];
+assign O[4] = reg_P105_inst0_out[34:28];
+assign O[3] = reg_P105_inst0_out[27:21];
+assign O[2] = reg_P105_inst0_out[20:14];
+assign O[1] = reg_P105_inst0_out[13:7];
+assign O[0] = reg_P105_inst0_out[6:0];
 endmodule
 
 module Test2 (

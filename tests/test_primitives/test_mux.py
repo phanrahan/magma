@@ -136,7 +136,7 @@ def test_basic_mux_product():
 def test_mux_operator():
     class test_mux_operator(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
-        io.O @= m.mux([io.I[0], io.I[1]], io.S)
+        io.O @= m.mux([io.I[0], io.I[1]], io.S, name="foo")
 
     m.compile("build/test_mux_operator", test_mux_operator)
 
@@ -309,3 +309,15 @@ def test_mux_intv_bits(ht_T):
     class Main(m.Circuit):
         O = m.mux([ht_T[4](1), m.Bits[4](2)], m.Bit())
         assert type(O) is m.Out(m.Bits[4])
+
+
+def test_mux_signed_unsigned():
+    class Main(m.Circuit):
+        io = m.IO(a=m.In(m.SInt[16]), b=m.In(m.UInt[16]), s=m.In(m.Bit))
+
+        with pytest.raises(TypeError) as e:
+            m.mux([io.a, io.b], io.s)
+
+        assert str(e.value) == (
+            "Found incompatible types UInt[16] and SInt[16] in mux inference"
+        )

@@ -26,7 +26,7 @@ coreir_mux #(
 assign out = _join_out;
 endmodule
 
-module Mux2xOutBit (
+module Mux2xBit (
     input I0,
     input I1,
     input S,
@@ -50,13 +50,13 @@ module TestITE (
     input S,
     output O
 );
-wire Mux2xOutBit_inst0_O;
-Mux2xOutBit Mux2xOutBit_inst0 (
+wire Mux2xBit_inst0_O;
+Mux2xBit Mux2xBit_inst0 (
     .I0(I1),
     .I1(I0),
     .S(S),
-    .O(Mux2xOutBit_inst0_O)
+    .O(Mux2xBit_inst0_O)
 );
-assign O = Mux2xOutBit_inst0_O;
+assign O = Mux2xBit_inst0_O;
 endmodule
 

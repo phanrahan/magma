@@ -12,7 +12,6 @@ from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out, Direction
 from magma.tuple import Product, Tuple
 from magma.conversions import tuple_
-from magma.wireable import wireable
 
 
 class CoreIRCommonLibMuxN(Generator2):
@@ -101,7 +100,7 @@ def _infer_mux_type(args):
             if issubclass(T, next_T):
                 # upcast
                 T = next_T
-            elif not wireable(next_T, T):
+            elif not next_T.is_wireable(T) and not T.is_wireable(next_T):
                 raise TypeError(
                     f"Found incompatible types {next_T} and {T} in mux"
                     " inference"
@@ -139,7 +138,7 @@ def mux(I: list, S, **kwargs):
         return I[S]
     I = tuple(python_to_magma_coerce(i) for i in I)
     T, I = _infer_mux_type(I)
-    inst = Mux(len(I), T, **kwargs)()
+    inst = Mux(len(I), T)(**kwargs)
     if len(I) == 2 and isinstance(S, Bits[1]):
         S = S[0]
     result = inst(*I, S)
@@ -152,7 +151,7 @@ def mux(I: list, S, **kwargs):
 
 
 # Monkey patch for ite impl without circular dependency
-Bit._Mux = Mux
+Bit._mux = staticmethod(mux)
 
 
 # NOTE(rsetaluri): We monkeypatch this function on to Array due to the circular

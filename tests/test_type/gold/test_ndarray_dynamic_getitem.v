@@ -21,30 +21,30 @@ module Register (
     output [1:0] O [3:0][2:0],
     input CLK
 );
-wire [23:0] reg_P_inst0_out;
-wire [23:0] reg_P_inst0_in;
-assign reg_P_inst0_in = {I[3][2][1:0],I[3][1][1:0],I[3][0][1:0],I[2][2][1:0],I[2][1][1:0],I[2][0][1:0],I[1][2][1:0],I[1][1][1:0],I[1][0][1:0],I[0][2][1:0],I[0][1][1:0],I[0][0][1:0]};
+wire [23:0] reg_P24_inst0_out;
+wire [23:0] reg_P24_inst0_in;
+assign reg_P24_inst0_in = {I[3][2][1:0],I[3][1][1:0],I[3][0][1:0],I[2][2][1:0],I[2][1][1:0],I[2][0][1:0],I[1][2][1:0],I[1][1][1:0],I[1][0][1:0],I[0][2][1:0],I[0][1][1:0],I[0][0][1:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'h000000),
     .width(24)
-) reg_P_inst0 (
+) reg_P24_inst0 (
     .clk(CLK),
-    .in(reg_P_inst0_in),
-    .out(reg_P_inst0_out)
+    .in(reg_P24_inst0_in),
+    .out(reg_P24_inst0_out)
 );
-assign O[3][2] = reg_P_inst0_out[23:22];
-assign O[3][1] = reg_P_inst0_out[21:20];
-assign O[3][0] = reg_P_inst0_out[19:18];
-assign O[2][2] = reg_P_inst0_out[17:16];
-assign O[2][1] = reg_P_inst0_out[15:14];
-assign O[2][0] = reg_P_inst0_out[13:12];
-assign O[1][2] = reg_P_inst0_out[11:10];
-assign O[1][1] = reg_P_inst0_out[9:8];
-assign O[1][0] = reg_P_inst0_out[7:6];
-assign O[0][2] = reg_P_inst0_out[5:4];
-assign O[0][1] = reg_P_inst0_out[3:2];
-assign O[0][0] = reg_P_inst0_out[1:0];
+assign O[3][2] = reg_P24_inst0_out[23:22];
+assign O[3][1] = reg_P24_inst0_out[21:20];
+assign O[3][0] = reg_P24_inst0_out[19:18];
+assign O[2][2] = reg_P24_inst0_out[17:16];
+assign O[2][1] = reg_P24_inst0_out[15:14];
+assign O[2][0] = reg_P24_inst0_out[13:12];
+assign O[1][2] = reg_P24_inst0_out[11:10];
+assign O[1][1] = reg_P24_inst0_out[9:8];
+assign O[1][0] = reg_P24_inst0_out[7:6];
+assign O[0][2] = reg_P24_inst0_out[5:4];
+assign O[0][1] = reg_P24_inst0_out[3:2];
+assign O[0][0] = reg_P24_inst0_out[1:0];
 endmodule
 
 module Mux4xArray3_Array2_Bit (

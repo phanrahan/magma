@@ -1,3 +1,4 @@
+// Module `foo_OtherCircuit` defined externally
 module orr_4 (input [3:0] I, output O);
 assign O = |(I);
 endmodule
@@ -7,7 +8,7 @@ endmodule
 module andr_4 (input [3:0] I, output O);
 assign O = &(I);
 endmodule
-module coreir_term #(
+module bar_coreir_term #(
     parameter width = 1
 ) (
     input [width-1:0] in
@@ -15,23 +16,38 @@ module coreir_term #(
 
 endmodule
 
-module foo_SomeCircuit (
+module bar_foo_SomeCircuit (
     input [3:0] I
 );
-coreir_term #(
+bar_coreir_term #(
     .width(4)
 ) term_inst0 (
     .in(I)
 );
 endmodule
 
-module corebit_term (
+module bar_foo_NestedOtherCircuit (
+    output [19:0] x_y [0:0]
+);
+wire [19:0] _magma_bind_wire_0_0;
+assign _magma_bind_wire_0_0 = x_y[0];
+foo_OtherCircuit other_circ (
+    .x_y(x_y)
+);
+bar_coreir_term #(
+    .width(20)
+) term_inst0 (
+    .in(_magma_bind_wire_0_0)
+);
+endmodule
+
+module bar_corebit_term (
     input in
 );
 
 endmodule
 
-module foo_RTL (
+module bar_foo_RTL (
     input CLK,
     input handshake_arr_0_ready,
     output handshake_arr_0_valid,
@@ -58,12 +74,13 @@ wire andr_4_inst0_O;
 wire [2:0] intermediate_ndarr_0;
 wire [2:0] intermediate_ndarr_1;
 wire [3:0] magma_Bits_4_xor_inst0_out;
+wire [19:0] nested_other_circ_x_y [0:0];
 wire orr_4_inst0_O;
 wire [1:0] self_ndarr_0;
 wire [1:0] self_ndarr_1;
 wire [1:0] self_ndarr_2;
 wire temp3;
-foo_SomeCircuit SomeCircuit_inst0 (
+bar_foo_SomeCircuit SomeCircuit_inst0 (
     .I(magma_Bits_4_xor_inst0_out)
 );
 assign _magma_bind_wire_0 = orr_4_inst0_O;
@@ -78,40 +95,40 @@ andr_4 andr_4_inst0 (
     .I(in1),
     .O(andr_4_inst0_O)
 );
-corebit_term corebit_term_inst0 (
+bar_corebit_term corebit_term_inst0 (
     .in(temp3)
 );
-corebit_term corebit_term_inst1 (
+bar_corebit_term corebit_term_inst1 (
     .in(_magma_bind_wire_0)
 );
-corebit_term corebit_term_inst10 (
+bar_corebit_term corebit_term_inst10 (
     .in(_magma_bind_wire_5_1[1])
 );
-corebit_term corebit_term_inst11 (
+bar_corebit_term corebit_term_inst11 (
     .in(_magma_bind_wire_5_1[2])
 );
-corebit_term corebit_term_inst2 (
+bar_corebit_term corebit_term_inst2 (
     .in(_magma_bind_wire_1)
 );
-corebit_term corebit_term_inst3 (
+bar_corebit_term corebit_term_inst3 (
     .in(_magma_bind_wire_2_0)
 );
-corebit_term corebit_term_inst4 (
+bar_corebit_term corebit_term_inst4 (
     .in(_magma_bind_wire_2_1)
 );
-corebit_term corebit_term_inst5 (
+bar_corebit_term corebit_term_inst5 (
     .in(_magma_bind_wire_4)
 );
-corebit_term corebit_term_inst6 (
+bar_corebit_term corebit_term_inst6 (
     .in(_magma_bind_wire_5_0[0])
 );
-corebit_term corebit_term_inst7 (
+bar_corebit_term corebit_term_inst7 (
     .in(_magma_bind_wire_5_0[1])
 );
-corebit_term corebit_term_inst8 (
+bar_corebit_term corebit_term_inst8 (
     .in(_magma_bind_wire_5_0[2])
 );
-corebit_term corebit_term_inst9 (
+bar_corebit_term corebit_term_inst9 (
     .in(_magma_bind_wire_5_1[0])
 );
 assign intermediate_ndarr_0 = {self_ndarr_2[0],self_ndarr_1[0],self_ndarr_0[0]};
@@ -122,6 +139,9 @@ logical_and logical_and_inst0 (
     .O(out)
 );
 assign magma_Bits_4_xor_inst0_out = in1 ^ in2;
+bar_foo_NestedOtherCircuit nested_other_circ (
+    .x_y(nested_other_circ_x_y)
+);
 orr_4 orr_4_inst0 (
     .I(in1),
     .O(orr_4_inst0_O)
@@ -132,12 +152,12 @@ assign self_ndarr_2 = ndarr[2];
 assign temp3 = andr_4_inst0_O;
 wire [5:0] term_inst0_in;
 assign term_inst0_in = {self_ndarr_2[1:0],self_ndarr_1[1:0],self_ndarr_0[1:0]};
-coreir_term #(
+bar_coreir_term #(
     .width(6)
 ) term_inst0 (
     .in(term_inst0_in)
 );
-coreir_term #(
+bar_coreir_term #(
     .width(4)
 ) term_inst1 (
     .in(_magma_bind_wire_3)

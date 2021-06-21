@@ -86,3 +86,70 @@ class Main(m.Circuit):
 NDArray syntax (tuple type parameter and indexing) is implemented as a simple
 layer on top of the base Array type, so NDArrays support all the standard array
 syntax and operators (e.g. get_slice and set_slice).
+
+
+## Valid
+Magma provides a built-in `Valid` type parametrized by a type `T` that
+constructs a `Product` type with the following fields:
+* `valid: Bit`
+* `data: T`
+
+Example:
+```python
+io = m.IO(I=m.In(m.Valid[m.Bits[5]]), valid=m.Out(m.Bit), data=m.Out(m.Bits[5]))
+io.valid @= io.I.valid
+io.data @= io.I.data
+```
+
+## ReadyValid
+Magma provides a built-in `ReadyValid` type parametrized by a type `T` that
+constructs a `Product` type with the following fields:
+* `valid: Bit`
+* `data: T`
+* `ready: Bit`
+
+The `ReadyValid` type is meant to be used with the type modifiers `Consumer`
+and `Producer`.  A `Producer` outputs `valid` and `data` and receives as input
+`ready`.  A `Consumer` outputs `ready` and receives as input `valid` and `data.
+A handshake occurs when both the `ready` and `valid` signals are high and
+indicates that `data` has been transferred from producer to consumer.  These
+types are based on the correspond Chisel types.
+
+Here's an example:
+```python
+io = m.IO(
+    I=m.Consumer(T[m.Bits[5]]),
+    O=m.Producer(T[m.Bits[5]])
+)
+# NOTE: inside a circuit definition, the types are flipped, so in this example
+# the producer and consumer semantics are viewed from the perspective of the
+# client (i.e. the module instancing this module).
+io.O.valid @= io.I.valid
+io.O.ready @= io.I.ready
+io.O.data @= io.I.data
+```
+
+The `ReadyValid` type provides some convenience methods:
+* `fired()` - Returns a bit that is high when both ready and valid are high.
+  Note that for producers this requires `ready` to be driven, and for consumers
+  `valid` must be driven.
+* `Conumser.enq(data, when=True)` - enqueues the value `data` with an optional
+  enable signal (used to drive the valid)
+* `Conumser.no_enq(when=True)` - indicates no enqueue should occur with an
+  optional condition
+* `Producer.deq(when=True)` - deques a value `data` with an option enable
+  signal (used to drive ready)
+* `Producer.no_deq(when=True)` - indicates no deque should occur with an option
+  condition
+
+Magma provides two subclasses of `ReadyValid` with well defined semantics:
+* `Decoupled` - `valid` indicates the prdoucer has put valid data in `data`,
+  and `ready` indicates that the consumer is ready to accept the data this
+  cycle.  No requirements are made on the signaling of ready or valid.
+* `Irrevocable` - Promises not to change the value of `data` after a cycle
+  where `valid` is high and `ready` is low.  Additionally, once `valid` is
+  raised, it will never be lowered until after `ready` has also been raised
+
+Magma also provides two aliases:
+* `EnqIO[T]` for `Producer(Decoupled[T])`
+* `DeqIO[T]` for `Consumer(Decoupled[T])`

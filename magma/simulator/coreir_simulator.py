@@ -2,7 +2,7 @@ import os
 from tempfile import NamedTemporaryFile
 
 from .simulator import CircuitSimulator, ExecutionState
-from ..backend import coreir_, coreir_utils
+from magma.backend.coreir import coreir_backend, coreir_utils
 from ..frontend.coreir_ import GetMagmaContext
 from ..scope import Scope
 from ..ref import DefnRef, ArrayRef, TupleRef
@@ -154,12 +154,13 @@ class CoreIRSimulator(CircuitSimulator):
             self.ctx = GetMagmaContext()
         else:
             self.ctx = context
-        coreir_.compile(circuit, coreir_filename, context=self.ctx)
+        output = dict()
+        coreir_backend.compile(circuit, coreir_filename, context=self.ctx, output=output)
 
         # Initialize interpreter, get handle back to interpreter state
         self.ctx.get_lib("commonlib")
         self.ctx.enable_symbol_table()
-        coreir_circuit = self.ctx.load_from_file(coreir_filename)
+        coreir_circuit = output["coreir_module"]
         self.ctx.run_passes(["rungenerators", "wireclocks-clk", "verifyconnectivity --noclkrst",
                              "flattentypes", "flatten", "verifyconnectivity --noclkrst", "deletedeadinstances"],
                             namespaces=namespaces)

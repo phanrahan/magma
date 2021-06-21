@@ -21,6 +21,7 @@ from .protocol_type import magma_type, magma_value
 from magma.wire_container import WiringLog
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
+from magma.operator_utils import output_only
 
 
 _logger = root_logger()
@@ -215,11 +216,16 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def keys(cls):
         return [str(i) for i in range(len(cls.fields))]
 
+    @output_only("Cannot use == on an input")
     def __eq__(self, rhs):
         if not isinstance(rhs, type(self)):
             return NotImplemented
         else:
             return self.ts == rhs.ts
+
+    @output_only("Cannot use != on an input")
+    def __ne__(self, rhs):
+        return ~(self == rhs)
 
     def __repr__(self):
         if not self.name.anon():

@@ -1,4 +1,4 @@
-module Mux2xTuplea_OutBit (
+module Mux2xTuplea_Bit (
     input I0_a,
     input I1_a,
     output O_a,
@@ -21,7 +21,7 @@ module Test (
     output O_a,
     input sel
 );
-Mux2xTuplea_OutBit Mux2xTuplea_OutBit_inst0 (
+Mux2xTuplea_Bit Mux2xTuplea_Bit_inst0 (
     .I0_a(1'b1),
     .I1_a(1'b0),
     .O_a(O_a),
