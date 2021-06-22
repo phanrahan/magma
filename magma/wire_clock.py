@@ -1,9 +1,13 @@
+import enum
+
 from magma.array import Array
 from magma.tuple import Tuple
 from magma.primitives.wire import Wire
 from magma.clock import (ClockTypes, Clock, Reset, Enable, ResetN, AsyncReset,
                          AsyncResetN)
-from magma.common import only, IterableOnlyException
+from magma.common import (only, IterableOnlyException,
+                          IterableOnlyFoundMultipleException,
+                          IterableOnlyFoundNoneException)
 from magma.wire import wire
 
 
@@ -41,14 +45,21 @@ def get_clocks_from_defn(defn, clocktype):
             yield from get_clocks(port, clocktype)
 
 
+class DefaultClockResult(enum.Enum):
+    None_ = enum.auto()
+    Multiple = enum.auto()
+
+
 def get_default_clocks(defn):
     default_clocks = {}
     for clock_type in ClockTypes:
         clocks = get_clocks_from_defn(defn, clock_type)
         try:
             default_clocks[clock_type] = only(clocks)
-        except IterableOnlyException:
-            default_clocks[clock_type] = None
+        except IterableOnlyFoundNoneException:
+            default_clocks[clock_type] = DefaultClockResult.None_
+        except IterableOnlyFoundMultipleException:
+            default_clocks[clock_type] = DefaultClockResult.Multiple
     return default_clocks
 
 

@@ -677,6 +677,9 @@ class DefineCircuitKind(CircuitKind):
         if run_unconnected_check:
             self.check_unconnected()
 
+        from magma.add_default_clocks import add_default_clocks
+        add_default_clocks(self)
+
         return self
 
     def check_unconnected(self):
