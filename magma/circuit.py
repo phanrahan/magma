@@ -116,11 +116,21 @@ class DefinitionContext:
         for display in self._displays:
             self.add_inline_verilog(*display.get_inline_verilog())
 
-    def finalize(self, defn):
+    def finalize(self, defn, renamed_ports):
         self.placer = self.placer.finalize(defn)
         for builder in self._builders:
             inst = builder.finalize()
             self.placer.place(inst)
+
+        # Create interface for this circuit class.
+        # This needs to be done after the instance placing so the interface logic
+        # can access the instances (for default clock lifting)
+        IO = _get_interface_type(defn)
+        if IO is not None:
+            defn.IO = IO
+            defn.interface = defn.IO(defn=defn, renamed_ports=renamed_ports)
+            setattrs(defn, defn.interface.ports, lambda k, v: isinstance(k, str))
+
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
         self._finalize_file_opens()  # so displays can refer to open files
@@ -291,7 +301,6 @@ class CircuitKind(type):
         for method in dct.get('circuit_type_methods', []):
             setattr(cls, method.name, method.definition)
 
-        # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
         try:
             context = _definition_context_stack.pop()
@@ -302,15 +311,7 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
-            cls._context_.finalize(cls)
-
-        # This needs to be done after the placer logic so the interface logic
-        # can access the instances (for default clock lifting)
-        IO = _get_interface_type(cls)
-        if IO is not None:
-            cls.IO = IO
-            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
-            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
+            cls._context_.finalize(cls, dct["renamed_ports"])
 
         return cls
 
