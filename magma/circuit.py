@@ -116,7 +116,7 @@ class DefinitionContext:
         for display in self._displays:
             self.add_inline_verilog(*display.get_inline_verilog())
 
-    def finalize(self, defn, renamed_ports):
+    def finalize(self, defn):
         self.placer = self.placer.finalize(defn)
         for builder in self._builders:
             inst = builder.finalize()
@@ -125,11 +125,7 @@ class DefinitionContext:
         # Create interface for this circuit class.
         # This needs to be done after the instance placing so the interface logic
         # can access the instances (for default clock lifting)
-        IO = _get_interface_type(defn)
-        if IO is not None:
-            defn.IO = IO
-            defn.interface = defn.IO(defn=defn, renamed_ports=renamed_ports)
-            setattrs(defn, defn.interface.ports, lambda k, v: isinstance(k, str))
+        defn.setup_IO()
 
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
@@ -302,6 +298,7 @@ class CircuitKind(type):
             setattr(cls, method.name, method.definition)
 
         cls._syntax_style_ = _SyntaxStyle.NONE
+        cls._renamed_ports_ = dct["renamed_ports"]
         try:
             context = _definition_context_stack.pop()
         except IndexError:  # no staged placer
@@ -311,9 +308,16 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
-            cls._context_.finalize(cls, dct["renamed_ports"])
+            cls._context_.finalize(cls)
 
         return cls
+
+    def setup_IO(cls):
+        IO = _get_interface_type(cls)
+        if IO is not None:
+            cls.IO = IO
+            cls.interface = cls.IO(defn=cls, renamed_ports=cls._renamed_ports_)
+            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
 
     def __call__(cls, *largs, **kwargs):
         if get_debug_mode():
