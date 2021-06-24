@@ -473,6 +473,13 @@ class IO(IOInterface):
         decl = self._decl + other._decl
         return IO(**dict(zip(decl[::2], decl[1::2])))
 
+    def add(self, name, typ):
+        # Definition port.
+        ref = LazyDefnRef(name=name)
+        port = _make_port(typ, ref, flip=True)
+        self._ports[name] = port
+        setattr(self, name, port)
+
 
 class SingletonInstanceIO(IO):
     """
@@ -508,11 +515,7 @@ class SingletonInstanceIO(IO):
         return InterfaceKind(name, (_DeclareSingletonInstanceInterface,), dct)
 
     def add(self, name, typ):
-        # Definition port.
-        ref = LazyDefnRef(name=name)
-        port = _make_port(typ, ref, flip=True)
-        self._ports[name] = port
-        setattr(self, name, port)
+        super().add(name, typ)
         # Instance port.
         inst_ref = LazyInstRef(name=name)
         inst_port = _make_port(typ, inst_ref, flip=False)

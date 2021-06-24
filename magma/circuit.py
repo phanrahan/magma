@@ -28,6 +28,7 @@ except ImportError:
     pass
 from .view import PortView
 
+from magma.t import In
 from magma.wire_container import WiringLog
 
 __all__ = ['AnonymousCircuitType']
@@ -155,6 +156,25 @@ def _has_definition(cls, port=None):
     return any(not f.is_output() and f.value() is not None for f in flat)
 
 
+from magma.clock import is_clock_or_nested_clock, Clock
+
+
+def _add_default_clock_if_none(io):
+    has_clock = False
+    for port in io.ports.values():
+        if is_clock_or_nested_clock(type(port), (Clock,)):
+            has_clock = True
+            break
+    if not has_clock and "CLK" not in io.ports.keys():
+        # What should we do in the case that the CLK name is taken,
+        # but isn't a clock type? Seems odd, but we shouldn't cause
+        # an error. For now, we can assume that the user might be
+        # using some custom "Clock" type and not introduce a default
+        # Alternatively we could add a different name
+        io.add("CLK", In(Clock))
+    return io
+
+
 def _get_interface_type(cls):
     if hasattr(cls, "IO") and hasattr(cls, "io"):
         _logger.warning("'IO' and 'io' should not both be specified, ignoring "
@@ -171,6 +191,7 @@ def _get_interface_type(cls):
         return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
+        cls.io = _add_default_clock_if_none(cls.io)
         return cls.io.make_interface()
     return None
 

@@ -15,7 +15,6 @@ from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 
 from magma.compatibility import IntegerTypes
-from magma.circuit import Circuit, coreir_port_mapping
 from magma.debug import debug_wire
 from magma.family import get_family
 from magma.interface import IO
@@ -54,6 +53,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         assert cls.undirected_t is cls
         assert op == "not", f"simulate not implemented for {op}"
 
+        from magma.circuit import Circuit, coreir_port_mapping
         class _MagmaBitOp(Circuit):
             name = f"magma_Bit_{op}"
             coreir_name = op
@@ -78,6 +78,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         python_op_name = primitive_to_python(op)
         python_op = getattr(operator, python_op_name)
 
+        from magma.circuit import Circuit, coreir_port_mapping
         class _MagmaBitOp(Circuit):
             name = f"magma_Bit_{op}"
             coreir_name = op
@@ -193,6 +194,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 def make_Define(_name, port, direction):
     @lru_cache(maxsize=None)
     def DefineCorebit():
+        from magma.circuit import Circuit, coreir_port_mapping
         class _Primitive(Circuit):
             renamed_ports = coreir_port_mapping
             name = f"corebit_{_name}"
