@@ -4,30 +4,20 @@ from .interface import IO
 from .t import In
 
 
-DefaultClockNameMap = {
-    Clock: "CLK",
-    Enable: "CE",
-    Reset: "RESET",
-    ResetN: "RESETN",
-    AsyncReset: "ASYNCRESET",
-    AsyncResetN: "ASYNCRESETN"
-}
-
-
 def ClockIO(has_enable=False, has_reset=False, has_resetn=False, has_ce=False,
             has_async_reset=False, has_async_resetn=False):
-    args = {DefaultClockNameMap[Clock]: In(Clock)}
+    args = {'CLK': In(Clock)}
     has_enable |= has_ce
     if has_enable:
-        args[DefaultClockNameMap[Enable]] = In(Enable)
+        args['CE'] = In(Enable)
     if has_reset:
-        args[DefaultClockNameMap[Reset]] = In(Reset)
+        args['RESET'] = In(Reset)
     if has_resetn:
-        args[DefaultClockNameMap[ResetN]] = In(ResetN)
+        args['RESETN'] = In(ResetN)
     if has_async_reset:
-        args[DefaultClockNameMap[AsyncReset]] = In(AsyncReset)
+        args['ASYNCRESET'] = In(AsyncReset)
     if has_async_resetn:
-        args[DefaultClockNameMap[AsyncResetN]] = In(AsyncResetN)
+        args['ASYNCRESETN'] = In(AsyncResetN)
     return IO(**args)
 
 

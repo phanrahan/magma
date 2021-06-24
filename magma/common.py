@@ -160,25 +160,16 @@ class IterableOnlyException(Exception):
     pass
 
 
-class IterableOnlyFoundNoneException(Exception):
-    pass
-
-
-class IterableOnlyFoundMultipleException(Exception):
-    pass
-
-
 def only(lst: Iterable):
     it = iter(lst)
     try:
         value = next(it)
     except StopIteration:
-        raise IterableOnlyFoundNoneException(
-            "Expected one element, got []") from None
+        raise IterableOnlyException("Expected one element, got []") from None
     try:
         new_value = next(it)
     except StopIteration:
         return value
     else:
         msg = f"Expected one element got {[value, new_value] + list(it)}"
-        raise IterableOnlyFoundMultipleException(msg)
+        raise IterableOnlyException(msg)
