@@ -28,6 +28,7 @@ except ImportError:
     pass
 from .view import PortView
 
+from magma.clock import is_clock_or_nested_clock, Clock
 from magma.t import In
 from magma.wire_container import WiringLog
 
@@ -156,10 +157,8 @@ def _has_definition(cls, port=None):
     return any(not f.is_output() and f.value() is not None for f in flat)
 
 
-from magma.clock import is_clock_or_nested_clock, Clock
-
-
 def _add_default_clock_if_none(io):
+    io.has_default_clock = False
     has_clock = False
     for port in io.ports.values():
         if is_clock_or_nested_clock(type(port), (Clock,)):
@@ -172,6 +171,7 @@ def _add_default_clock_if_none(io):
         # using some custom "Clock" type and not introduce a default
         # Alternatively we could add a different name
         io.add("CLK", In(Clock))
+        io.has_default_clock = True
     return io
 
 
