@@ -322,7 +322,7 @@ def test_coreir_wrap(T):
 
     class top(Circuit):
         name = "top"
-        io = IO(O=Out(Bit))
+        io = IO(O=Out(Bit), r=In(T))
         foo_inst = foo()
         wrap = define_wrap(T, "Bit", Bit)()
         wire(bit(0), wrap.interface.ports["in"])
