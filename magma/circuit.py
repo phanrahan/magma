@@ -2,6 +2,7 @@ import ast
 import enum
 import textwrap
 import inspect
+import itertools
 from functools import wraps
 import functools
 import operator
@@ -157,22 +158,31 @@ def _has_definition(cls, port=None):
     return any(not f.is_output() and f.value() is not None for f in flat)
 
 
-def _add_default_clock_if_none(io):
-    io.has_default_clock = False
-    has_clock = False
-    for port in io.ports.values():
-        if is_clock_or_nested_clock(type(port), (Clock,)):
-            has_clock = True
+def _add_default_clock_if_none(cls):
+    for port in itertools.chain(*(
+            instance.interface.ports.values() for instance in cls.instances)):
+        if (is_clock_or_nested_clock(type(port), (Clock, )) and
+                not port.driven()):
+            # undriven clock found break (past else statement)
             break
-    if not has_clock and "CLK" not in io.ports.keys():
+    else:
+        # no undriven clock found
+        return
+
+    # Check if there's a default clock
+    for port in cls.io.ports.values():
+        if is_clock_or_nested_clock(type(port), (Clock,)):
+            return
+
+    if "CLK" in cls.io.ports.keys():
         # What should we do in the case that the CLK name is taken,
         # but isn't a clock type? Seems odd, but we shouldn't cause
         # an error. For now, we can assume that the user might be
         # using some custom "Clock" type and not introduce a default
         # Alternatively we could add a different name
-        io.add("CLK", In(Clock))
-        io.has_default_clock = True
-    return io
+        return
+
+    cls.io.add("CLK", In(Clock))
 
 
 def _get_interface_type(cls):
@@ -191,7 +201,7 @@ def _get_interface_type(cls):
         return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
-        cls.io = _add_default_clock_if_none(cls.io)
+        _add_default_clock_if_none(cls)
         return cls.io.make_interface()
     return None
 
@@ -283,11 +293,6 @@ class CircuitKind(type):
 
         # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
-        IO = _get_interface_type(cls)
-        if IO is not None:
-            cls.IO = IO
-            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
-            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
         try:
             context = _definition_context_stack.pop()
         except IndexError:  # no staged placer
@@ -298,6 +303,14 @@ class CircuitKind(type):
             # available.
             cls._context_ = dct.get("_context_", context)
             cls._context_.finalize(cls)
+
+        # This needs to be done after the placer logic so the interface logic
+        # can access the instances (for default clock lifting)
+        IO = _get_interface_type(cls)
+        if IO is not None:
+            cls.IO = IO
+            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
+            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
 
         return cls
 

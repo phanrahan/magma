@@ -323,9 +323,6 @@ class _DeclareInterface(_InterfaceBase):
         self.ports = {n: _make_port(t, r, flip) for n, (t, r) in args}
         _rename_ports(self.ports, renamed_ports)
 
-    def remove(self, name):
-        del self.ports[name]
-
 
 class _DeclareSingletonInterface(_DeclareInterface):
     """_DeclareSingletonInterface class"""

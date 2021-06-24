@@ -9,7 +9,7 @@ from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
-from magma.passes.clock import WireClockPass, RemoveDefaultClockIfUnused
+from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import DriveUndrivenPass
 from magma.passes.terminate_unused import TerminateUnusedPass
 from magma.uniquification import (uniquification_pass, UniquificationMode,
@@ -64,8 +64,6 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # Bind after uniquification so the bind logic works on unique modules.
     BindPass(main, compile, opts.get("user_namespace"),
              opts.get("verilog_prefix")).run()
-
-    RemoveDefaultClockIfUnused(main).run()
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()
