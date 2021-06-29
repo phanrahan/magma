@@ -92,3 +92,31 @@ def test_no_cache():
     my_gen_other = _MyGen()
     assert my_gen is not my_gen_other
     assert repr(my_gen) == repr(my_gen_other)
+
+
+def test_debug_info():
+    m.config.set_debug_mode(True)
+
+    class Cell(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+
+    class _MyNewGen(m.Generator2):
+        def __init__(self):
+            self.io = io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+            io.O @= Cell()(io.I)
+
+    _MyNewGenDef = _MyNewGen()
+
+    # Sanity checks.
+    assert Cell.debug_info[0] == __file__
+    assert Cell.debug_info[1] == 100
+
+    # Check generator debug info.
+    cell = _MyNewGenDef.instances[0]
+    assert cell.debug_info[0] == __file__
+    assert cell.debug_info[1] == 106
+    print (_MyNewGenDef.debug_info)
+    assert _MyNewGenDef.debug_info[0] == __file__
+    assert _MyNewGenDef.debug_info[1] == 103
+
+    m.config.set_debug_mode(False)
