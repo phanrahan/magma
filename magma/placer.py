@@ -3,9 +3,13 @@ import ast
 from collections import Counter
 import inspect
 import textwrap
-from .config import get_debug_mode
-from .ref import LazyCircuit
-from .view import InstView
+
+from magma.config import get_debug_mode, config, RuntimeConfig
+from magma.ref import LazyCircuit
+from magma.view import InstView
+
+
+config._register(disable_smart_naming=RuntimeConfig(False))
 
 
 def _parse_name(inst):
@@ -83,7 +87,7 @@ class Placer:
         name of @inst and returns True if available. Otherwise (or if debug mode
         is disabled), returns False.
         """
-        if not get_debug_mode():
+        if not get_debug_mode() or config.disable_smart_naming:
             return False
         basename = _parse_name(inst)
         if not basename:
