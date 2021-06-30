@@ -313,6 +313,7 @@ class CircuitKind(type):
         return cls
 
     def setup_IO(cls):
+        # Called in DefinitionContext.finalize
         IO = _get_interface_type(cls)
         if IO is not None:
             cls.IO = IO
