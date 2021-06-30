@@ -24,6 +24,7 @@ from .wire import wire
 from .t import *
 
 from .bit import *
+import magma.bit_primitives
 
 from .array import *
 from .bits import *
