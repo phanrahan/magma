@@ -81,7 +81,7 @@
         "connections":[
           ["self.__magma_inline_value_0","corebit_term_inst0.in"]
         ],
-        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0"},"str":"initial assert ({__magma_inline_value_0});"}}
+        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_0":"self.__magma_inline_value_0"},"str":"always @(*) begin\n\nassert ({__magma_inline_value_0});\nend\n"}}
       },
       "Mux2xUInt2":{
         "type":["Record",[
