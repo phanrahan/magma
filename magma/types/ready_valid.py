@@ -47,9 +47,11 @@ class ReadyValidKind(ProductKind):
 
     def qualify(cls, direction):
         T = cls.undirected_data_t
-        fields = {"valid": Bit.qualify(direction),
-                  "ready": Bit.qualify(direction),
-                  "data": T.qualify(direction)}
+        fields = {
+            "valid": Bit.qualify(direction),
+            "ready": Bit.qualify(direction),
+            "data": T.qualify(direction)
+        }
         return AnonProduct[fields]
 
     @property
