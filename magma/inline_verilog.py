@@ -52,6 +52,10 @@ def _make_temporary(defn, value, num, inline_wire_prefix, parent=None):
     return temp.O
 
 
+class InlineVerilogError(RuntimeError):
+    pass
+
+
 def _insert_temporary_wires(cls, value, inline_wire_prefix):
     """
     For non DefnRef, insert a temporary Wire instance so the signal isn't
@@ -59,7 +63,12 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
     """
     if isinstance(value, Type):
         if value.is_input():
+            orig_value = value
             value = value.value()
+            if value is None:
+                raise InlineVerilogError(
+                    f"Found reference to undriven input port: "
+                    f"{orig_value.debug_name}")
 
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             key = value
