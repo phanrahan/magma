@@ -67,9 +67,8 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
             value = value.value()
             if value is None:
                 raise InlineVerilogError(
-                    f"Found reference to undriven input port:"
-                    f" {orig_value.debug_name}"
-                )
+                    f"Found reference to undriven input port: "
+                    f"{orig_value.debug_name}")
 
         if not isinstance(_get_top_level_ref(value.name), DefnRef):
             key = value
