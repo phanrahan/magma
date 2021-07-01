@@ -4,7 +4,7 @@ from magma.logging import root_logger
 from magma.primitives.mux import mux
 from magma.t import Type, In, Out
 from magma.protocol_type import MagmaProtocol
-from magma.tuple import Product, ProductKind
+from magma.tuple import Product, ProductKind, AnonProduct
 
 
 _logger = root_logger()
@@ -44,6 +44,15 @@ class ReadyValidKind(ProductKind):
 
     def flip(cls):
         raise TypeError("Cannot flip an undirected ReadyValid type")
+
+    def qualify(cls, direction):
+        T = cls.undirected_data_t
+        fields = {
+            "valid": Bit.qualify(direction),
+            "ready": Bit.qualify(direction),
+            "data": T.qualify(direction)
+        }
+        return AnonProduct[fields]
 
     @property
     def undirected_data_t(cls):

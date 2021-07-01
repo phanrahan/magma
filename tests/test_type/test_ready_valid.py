@@ -201,3 +201,15 @@ def test_ready_valid_none():
         with pytest.raises(Exception):
             io.consumer_handshake.no_deq(1)
     m.compile("build/Foo", Foo)
+
+
+def test_in_ready_valid():
+    T = m.Consumer(m.ReadyValid[m.Bits[8]])
+    T = m.In(T)
+    assert T.ready.is_input()
+    assert T.valid.is_input()
+    assert T.data.is_input()
+    T = T.flip()
+    assert T.ready.is_output()
+    assert T.valid.is_output()
+    assert T.data.is_output()
