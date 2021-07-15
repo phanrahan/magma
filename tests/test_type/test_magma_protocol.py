@@ -5,6 +5,7 @@ from magma.testing import check_files_equal
 import sys
 import os
 
+_CACHE = {}
 class FooMeta(m.MagmaProtocolMeta):
     def _to_magma_(cls):
         # Need way to retrieve underlying magma type
@@ -27,7 +28,7 @@ class FooMeta(m.MagmaProtocolMeta):
         return cls(val)
 
     def __getitem__(cls, T):
-        return type(cls)(f"Foo{T}", (cls, ), {"T": T})
+        return _CACHE.setdefault(T, type(cls)(f"Foo{T}", (cls, ), {"T": T}))
 
 class Foo(m.MagmaProtocol, metaclass=FooMeta):
     def __init__(self, val: Optional[m.Type] = None):
