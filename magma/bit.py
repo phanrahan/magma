@@ -20,7 +20,7 @@ from magma.debug import debug_wire
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
-from magma.protocol_type import magma_type
+from magma.protocol_type import magma_type, MagmaProtocol
 from magma.operator_utils import output_only
 
 
@@ -161,7 +161,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # Note: coreir flips t/f cases
         # self._mux monkey patched in magma/primitives/mux.py to avoid circular
         # dependency
-        return self._mux([f_branch, t_branch], self)
+        r = self._mux([f_branch, t_branch], self)
+
+        # cast protocol values back to protocol
+        if type(t_branch) == type(f_branch) and isinstance(t_branch, MagmaProtocol):
+            r = type(t_branch)._from_magma_value_(r)
+
+        return r
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma bit to bool not supported")
