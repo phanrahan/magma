@@ -1,19 +1,16 @@
 import os
 import pytest
-from hwtypes import BitVector
-import hwtypes as ht
-
-import magma as m
-from magma.testing import check_files_equal
-from magma.primitives import Mux
 
 import fault
+import hwtypes as ht
+import magma as m
+from magma.testing import check_files_equal, SimpleMagmaProtocol
 
 
 def test_basic_mux():
     class test_basic_mux(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
-        io.O @= Mux(2, m.Bit)()(io.I[0], io.I[1], io.S)
+        io.O @= m.Mux(2, m.Bit)()(io.I[0], io.I[1], io.S)
 
     m.compile("build/test_basic_mux", test_basic_mux)
 
@@ -36,7 +33,7 @@ def test_basic_mux():
 def test_basic_mux_bits():
     class test_basic_mux_bits(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, m.Bits[2]]), S=m.In(m.Bit), O=m.Out(m.Bits[2]))
-        io.O @= Mux(2, m.Bits[2])()(io.I[0], io.I[1], io.S)
+        io.O @= m.Mux(2, m.Bits[2])()(io.I[0], io.I[1], io.S)
 
     m.compile("build/test_basic_mux_bits", test_basic_mux_bits)
 
@@ -61,7 +58,7 @@ def test_basic_mux_arr():
 
     class test_basic_mux_arr(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
-        io.O @= Mux(2, T)()(io.I[0], io.I[1], io.S)
+        io.O @= m.Mux(2, T)()(io.I[0], io.I[1], io.S)
 
     m.compile("build/test_basic_mux_arr", test_basic_mux_arr)
 
@@ -86,7 +83,7 @@ def test_basic_mux_tuple():
 
     class test_basic_mux_tuple(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
-        io.O @= Mux(2, T)()(io.I[0], io.I[1], io.S)
+        io.O @= m.Mux(2, T)()(io.I[0], io.I[1], io.S)
 
     m.compile("build/test_basic_mux_tuple", test_basic_mux_tuple)
 
@@ -113,7 +110,7 @@ def test_basic_mux_product():
 
     class test_basic_mux_product(m.Circuit):
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
-        io.O @= Mux(2, T)()(io.I[0], io.I[1], io.S)
+        io.O @= m.Mux(2, T)()(io.I[0], io.I[1], io.S)
 
     m.compile("build/test_basic_mux_product", test_basic_mux_product)
 
@@ -184,8 +181,8 @@ def test_mux_operator_tuple():
         io = m.IO(S=m.In(m.Bit), O0=m.Out(m.Bit), O1=m.Out(m.Bits[2]),
                   O2=m.Out(m.Bit))
         O0, O1, O2 = m.mux([
-            (True, BitVector[2](3), ht.Bit(0)),
-            (False, BitVector[2](0), ht.Bit(1))
+            (True, ht.BitVector[2](3), ht.Bit(0)),
+            (False, ht.BitVector[2](0), ht.Bit(1))
         ], io.S)
         io.O0 @= O0
         io.O1 @= O1
@@ -210,10 +207,10 @@ def test_mux_operator_tuple():
 
 
 def test_mux_tuple_wire():
-    default = (BitVector.random(3), BitVector.random(5))
+    default = (ht.BitVector.random(3), ht.BitVector.random(5))
     inst_map = {
-        0: (BitVector.random(3), BitVector.random(5)),
-        1: (BitVector.random(3), BitVector.random(5)),
+        0: (ht.BitVector.random(3), ht.BitVector.random(5)),
+        1: (ht.BitVector.random(3), ht.BitVector.random(5)),
     }
 
     class Main(m.Circuit):
@@ -228,11 +225,11 @@ def test_mux_dict_lookup():
         io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
 
         dict_ = {
-            0: BitVector[5](0),
-            2: BitVector[5](2),
-            3: BitVector[5](3)
+            0: ht.BitVector[5](0),
+            2: ht.BitVector[5](2),
+            3: ht.BitVector[5](3)
         }
-        io.O @= m.dict_lookup(dict_, io.S, BitVector[5](1))
+        io.O @= m.dict_lookup(dict_, io.S, ht.BitVector[5](1))
 
     m.compile("build/test_mux_dict_lookup", test_mux_dict_lookup)
 
@@ -251,8 +248,8 @@ def test_mux_list_lookup():
     class test_mux_list_lookup(m.Circuit):
         io = m.IO(S=m.In(m.Bits[2]), O=m.Out(m.Bits[5]))
 
-        list_ = [BitVector[5](0), BitVector[5](1), BitVector[5](2)]
-        io.O @= m.list_lookup(list_, io.S, BitVector[5](3))
+        list_ = [ht.BitVector[5](0), ht.BitVector[5](1), ht.BitVector[5](2)]
+        io.O @= m.list_lookup(list_, io.S, ht.BitVector[5](3))
 
     m.compile("build/test_mux_list_lookup", test_mux_list_lookup)
 
@@ -321,3 +318,18 @@ def test_mux_signed_unsigned():
         assert str(e.value) == (
             "Found incompatible types UInt[16] and SInt[16] in mux inference"
         )
+
+
+def test_mux_protocol():
+    T = SimpleMagmaProtocol[m.Bits[8]]
+
+    class _(m.Circuit):
+        x, y = T(), T()
+        s = m.Bit()
+        out = m.mux([x, y], s)
+        assert isinstance(out, T)
+
+    Mux = m.Mux(2, T)
+    assert isinstance(Mux.I0, m.Out(T))
+    assert isinstance(Mux.I1, m.Out(T))
+    assert isinstance(Mux.O, m.In(T))

@@ -89,8 +89,19 @@ class SimpleMagmaProtocolMeta(MagmaProtocolMeta):
         return cls(val)
 
     def __getitem__(cls, T):
-        return SimpleMagmaProtocolMeta._CACHE.setdefault(
-            T, type(cls)(f"SimpleMagmaProtocol{T}", (cls, ), {"T": T}))
+        try:
+            base = cls.base
+        except AttributeError:
+            base = cls
+        dct = {"T": T, "base": base}
+        derived = type(cls)(f"{base.__name__}[{T}]", (cls,), dct)
+        return SimpleMagmaProtocolMeta._CACHE.setdefault(T, derived)
+
+    def __repr__(cls):
+        return str(cls)
+
+    def __str__(cls):
+        return cls.__name__
 
 
 class SimpleMagmaProtocol(MagmaProtocol, metaclass=SimpleMagmaProtocolMeta):

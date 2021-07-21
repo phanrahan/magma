@@ -41,35 +41,35 @@ class Mux(Generator2):
             T = Bits[len(T)]
         if issubclass(T, (bool, ht.Bit)):
             T = Bit
-        if issubclass(T, MagmaProtocol):
-            T = T._to_magma_()
-        T = magma_type(T)
+        # TODO(rsetaluri): Type should be hashable so the generator instance can
+        # be cached.
         T_str = str(T).replace("(", "").replace(")", "")\
                       .replace(",", "_").replace("=", "_")\
                       .replace("[", "").replace("]", "").replace(" ", "")
         self.name = f"Mux{height}x{T_str}"
-        # TODO: Type must be hashable so we can cache.
-        N = T.flat_length()
+        N = magma_type(T).flat_length()
 
-        io_dict = {}
-        for i in range(height):
-            io_dict[f"I{i}"] = In(T)
-        if height == 2:
-            io_dict["S"] = In(Bit)
-        else:
-            io_dict["S"] = In(Array[clog2(height), Bit])
-        io_dict["O"] = Out(T)
+        ports = {f"I{i}": In(T) for i in range(height)}
+        T_S = Bit if height == 2 else Array[clog2(height), Bit]
+        ports["S"] = In(T_S)
+        ports["O"] = Out(T)
 
-        self.io = IO(**io_dict)
+        self.io = io = IO(**ports)
+
         mux = CoreIRCommonLibMuxN(height, N)()
-        data = [Array[N, Bit](getattr(self.io, f"I{i}").flatten())
+        data = [Array[N, Bit](getattr(io, f"I{i}").flatten())
                 for i in range(height)]
         mux.I.data @= Array[height, Array[N, Bit]](data)
         if height == 2:
-            mux.I.sel[0] @= self.io.S
+            mux.I.sel[0] @= io.S
         else:
-            mux.I.sel @= self.io.S
-        self.io.O @= T.unflatten(mux.O.ts)
+            mux.I.sel @= io.S
+        out_ts = mux.O.ts
+        if issubclass(T, MagmaProtocol):
+            out = T._from_magma_value_(T._to_magma_().unflatten(out_ts))
+        else:
+            out = T.unflatten(out_ts)
+        io.O @= out
 
 
 def _infer_mux_type(args):
