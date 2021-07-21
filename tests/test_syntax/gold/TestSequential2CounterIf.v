@@ -32,7 +32,7 @@ coreir_reg #(
 );
 endmodule
 
-module Mux2xSInt16 (
+module Mux2x_SequentialRegisterWrapperSInt16 (
     input [15:0] I0,
     input [15:0] I1,
     input S,
@@ -57,7 +57,7 @@ module Test2 (
 );
 wire [15:0] Register_inst0_O;
 wire [15:0] magma_SInt_16_add_inst0_out;
-Mux2xSInt16 Mux2xSInt16_inst0 (
+Mux2x_SequentialRegisterWrapperSInt16 Mux2x_SequentialRegisterWrapperSInt16_inst0 (
     .I0(Register_inst0_O),
     .I1(magma_SInt_16_add_inst0_out),
     .S(sel),
