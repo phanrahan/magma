@@ -158,16 +158,10 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             return f_branch
         if isinstance(t_branch, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
-        # Note: coreir flips t/f cases
-        # self._mux monkey patched in magma/primitives/mux.py to avoid circular
-        # dependency
-        r = self._mux([f_branch, t_branch], self)
-
-        # cast protocol values back to protocol
-        if type(t_branch) == type(f_branch) and isinstance(t_branch, MagmaProtocol):
-            r = type(t_branch)._from_magma_value_(r)
-
-        return r
+        # NOTE(rsetaluri): CoreIR flips t/f cases.
+        # NOTE(rseatluri): self._mux is monkey patched in
+        # magma/primitives/mux.py to avoid circular dependency.
+        return self._mux([f_branch, t_branch], self)
 
     def __bool__(self) -> bool:
         raise NotImplementedError("Converting magma bit to bool not supported")

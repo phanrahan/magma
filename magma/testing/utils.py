@@ -1,11 +1,16 @@
 """
 Infrastructure for writing magma tests
 """
+import difflib
 import filecmp
 import os
 import sys
-import difflib
-from ..config import get_debug_mode, set_debug_mode
+from typing import Optional
+
+from magma.config import get_debug_mode, set_debug_mode
+from magma.conversions import bits
+from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
+from magma.t import Type, Direction
 
 
 def check_files_equal(callee_file, file1_name, file2_name):
@@ -66,3 +71,49 @@ def has_error(caplog, msg=None):
 
 def has_warning(caplog, msg=None):
     return has_log(caplog, "WARNING", msg)
+
+
+class SimpleMagmaProtocolMeta(MagmaProtocolMeta):
+    _CACHE = {}
+
+    def _to_magma_(cls):
+        return cls.T
+
+    def _qualify_magma_(cls, direction: Direction):
+        return cls[cls.T.qualify(direction)]
+
+    def _flip_magma_(cls):
+        return cls[cls.T.flip()]
+
+    def _from_magma_value_(cls, val: Type):
+        return cls(val)
+
+    def __getitem__(cls, T):
+        try:
+            base = cls.base
+        except AttributeError:
+            base = cls
+        dct = {"T": T, "base": base}
+        derived = type(cls)(f"{base.__name__}[{T}]", (cls,), dct)
+        return SimpleMagmaProtocolMeta._CACHE.setdefault(T, derived)
+
+    def __repr__(cls):
+        return str(cls)
+
+    def __str__(cls):
+        return cls.__name__
+
+
+class SimpleMagmaProtocol(MagmaProtocol, metaclass=SimpleMagmaProtocolMeta):
+    def __init__(self, val: Optional[Type] = None):
+        if val is None:
+            val = self.T()
+        self._val = val
+
+    def _get_magma_value_(self):
+        return self._val
+
+    def non_standard_operation(self):
+        v0 = self._val << 2
+        v1 = bits(self._val[0], len(self.T)) << 1
+        return SimpleMagmaProtocol(v0 | v1 | bits(self._val[0], len(self.T)))
