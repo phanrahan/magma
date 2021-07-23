@@ -2,21 +2,25 @@ import magma as m
 from magma.testing import check_files_equal
 
 
-def test_magma_automatic_clock():
+def test_magma_add_default_clock():
+
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
-        io.O @= m.Register(m.Bit)()(io.I)
+        io.O @= m.register(io.I)
 
-    m.compile("build/Foo", Foo)
-    assert check_files_equal(__file__, f"build/Foo.v",
-                             f"gold/Foo.v")
+    basename = "test_circuit_add_default_clock"
+    m.compile(f"build/{basename}", Foo)
+    assert check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")
 
 
-def test_magma_automatic_clock_not_used():
+def test_magma_add_default_clock_not_used():
+
     class Bar(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
         io.O @= io.I
 
-    m.compile("build/Bar", Bar)
-    assert check_files_equal(__file__, f"build/Bar.v",
-                             f"gold/Bar.v")
+    basename = "test_circuit_add_default_clock_not_used"
+    m.compile(f"build/{basename}", Bar)
+    assert check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")

@@ -1,6 +1,7 @@
 """
-We factor out the definitions of the Bit type primitives into this file to
-avoid a circular dependency between circuit.py, bit.py, and clock.py
+Bit type primitives factored out into a separate file.
+NOTE(leonardt): This avoids a circular dependency between circuit.py, bit.py,
+and clock.py
 """
 from functools import lru_cache
 import operator
@@ -64,6 +65,8 @@ def _declare_binary_op(cls, op):
 
     return _MagmaBitOp
 
+
+# NOTE(leonardt): Monkey patched functions.
 Bit._declare_unary_op = _declare_unary_op
 Bit._declare_binary_op = _declare_binary_op
 
@@ -107,6 +110,7 @@ def undriven(self):
     self.wire(DefineUndriven()().O)
 
 
+# NOTE(leonardt): Monkey patched functions.
 Bit.unused = unused
 Bit.undriven = undriven
 Digital.unused = unused
