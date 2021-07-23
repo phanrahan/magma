@@ -217,8 +217,6 @@ def _get_interface_type(cls, add_default_clock):
 
 def _setup_interface(cls):
     # Called from DefinitionContext.finalize.
-    if hasattr(cls, "IO"):
-        raise RuntimeError("IO already setup")
     IO = _get_interface_type(cls, add_default_clock=True)
     if IO is None:
         return
