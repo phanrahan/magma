@@ -4,18 +4,15 @@ Definition of magma's Bit type
 * Implementation of hwtypes.AbstractBit
 """
 import keyword
-import operator
 import typing as tp
 import functools
-from functools import lru_cache
 import hwtypes as ht
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
-from .t import Direction, In, Out
+from .t import Direction
 from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 
 from magma.compatibility import IntegerTypes
-from magma.circuit import Circuit, coreir_port_mapping
 from magma.debug import debug_wire
 from magma.family import get_family
 from magma.interface import IO
@@ -47,54 +44,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @staticmethod
     def get_family() -> TypeFamily:
         return get_family()
-
-    @classmethod
-    @lru_cache(maxsize=None)
-    def _declare_unary_op(cls, op):
-        assert cls.undirected_t is cls
-        assert op == "not", f"simulate not implemented for {op}"
-
-        class _MagmaBitOp(Circuit):
-            name = f"magma_Bit_{op}"
-            coreir_name = op
-            coreir_lib = "corebit"
-            renamed_ports = coreir_port_mapping
-            primitive = True
-            stateful = False
-
-            io = IO(I=In(Bit), O=Out(Bit))
-
-            def simulate(self, value_store, state_store):
-                I = ht.Bit(value_store.get_value(self.I))
-                O = int(~I)
-                value_store.set_value(self.O, O)
-
-        return _MagmaBitOp
-
-    @classmethod
-    @lru_cache(maxsize=None)
-    def _declare_binary_op(cls, op):
-        assert cls.undirected_t is cls
-        python_op_name = primitive_to_python(op)
-        python_op = getattr(operator, python_op_name)
-
-        class _MagmaBitOp(Circuit):
-            name = f"magma_Bit_{op}"
-            coreir_name = op
-            coreir_lib = "corebit"
-            renamed_ports = coreir_port_mapping
-            primitive = True
-            stateful = False
-
-            io = IO(I0=In(Bit), I1=In(Bit), O=Out(Bit))
-
-            def simulate(self, value_store, state_store):
-                I0 = ht.Bit(value_store.get_value(self.I0))
-                I1 = ht.Bit(value_store.get_value(self.I1))
-                O = int(python_op(I0, I1))
-                value_store.set_value(self.O, O)
-
-        return _MagmaBitOp
 
     def __init__(self, value=None, name=None):
         super().__init__(name=name)
@@ -169,19 +118,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     def __int__(self) -> int:
         raise NotImplementedError("Converting magma bit to int not supported")
 
-    def unused(self):
-        if self.is_input() or self.is_inout():
-            raise TypeError("unused cannot be used with input/inout")
-        if not getattr(self, "_magma_unused_", False):
-            DefineUnused()().I.wire(self)
-            # "Cache" unused calls so only one is produced
-            self._magma_unused_ = True
-
-    def undriven(self):
-        if self.is_output() or self.is_inout():
-            raise TypeError("undriven cannot be used with output/inout")
-        self.wire(DefineUndriven()().O)
-
     @debug_wire
     def wire(self, o, debug_info):
         # Cast to Bit here so we don't get a Digital instead
@@ -189,33 +125,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             o = Bit(o)
         return super().wire(o, debug_info)
 
-
-def make_Define(_name, port, direction):
-    @lru_cache(maxsize=None)
-    def DefineCorebit():
-        class _Primitive(Circuit):
-            renamed_ports = coreir_port_mapping
-            name = f"corebit_{_name}"
-            coreir_name = _name
-            coreir_lib = "corebit"
-
-            def simulate(self, value_store, state_store):
-                pass
-
-            # Type must be a bit because coreir uses Bit for the primitive.
-            io = IO(**{port: direction(Bit)})
-            primitive = True
-            stateful = False
-        return _Primitive
-    return DefineCorebit
-
-
-DefineUndriven = make_Define("undriven", "O", Out)
-DefineUnused = make_Define("term", "I", In)
-
-# Hack to avoid circular dependency
-Digital.unused = Bit.unused
-Digital.undriven = Bit.undriven
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]

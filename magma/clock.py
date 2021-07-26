@@ -120,8 +120,8 @@ def get_reset_args(reset_type: Optional[AbstractReset]):
     return (has_async_reset, has_async_resetn, has_reset, has_resetn)
 
 
-def is_clock_or_nested_clock(p):
-    if issubclass(p, ClockTypes):
+def is_clock_or_nested_clock(p, types=ClockTypes):
+    if issubclass(p, types):
         return True
     if issubclass(p, Array):
         return is_clock_or_nested_clock(p.T)
