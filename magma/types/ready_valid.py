@@ -2,9 +2,9 @@ from typing import Union
 from magma.bit import Bit
 from magma.logging import root_logger
 from magma.primitives.mux import mux
-from magma.t import Type, In, Out
+from magma.t import Type, In, Out, Direction
 from magma.protocol_type import MagmaProtocol
-from magma.tuple import Product, ProductKind, AnonProduct
+from magma.tuple import Product, ProductKind
 
 
 _logger = root_logger()
@@ -46,13 +46,9 @@ class ReadyValidKind(ProductKind):
         raise TypeError("Cannot flip an undirected ReadyValid type")
 
     def qualify(cls, direction):
-        T = cls.undirected_data_t
-        fields = {
-            "valid": Bit.qualify(direction),
-            "ready": Bit.qualify(direction),
-            "data": T.qualify(direction)
-        }
-        return AnonProduct[fields]
+        if direction is not Direction.In:
+            raise TypeError(f"Cannot qualify ReadyValid with {direction}")
+        return Monitor(cls)
 
     @property
     def undirected_data_t(cls):
@@ -80,6 +76,7 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
     The actual semantics of ready/valid are enforced via the use of concrete
     subclasses.
     """
+
     def fired(self):
         """
         Returns a bit that is high when ready and valid are both high
@@ -245,6 +242,25 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
             self.data @= 0
 
 
+class ReadyValidMonitorKind(ReadyValidKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {"valid": In(Bit), "ready": In(Bit)}
+        _maybe_add_data(cls, fields, T, In)
+        return type(f"{cls}[{T}]", (cls, ), fields)
+
+    def flip(cls):
+        raise TypeError("Cannot flip Monitor")
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Monitor(ReadyValid[{cls.undirected_data_t}])"
+
+
+class ReadyValidMonitor(ReadyValid, metaclass=ReadyValidMonitorKind):
+    pass
+
+
 class Decoupled(ReadyValid):
     """
     `valid` indicates the prdoucer has put valid data in `data`, and `ready`
@@ -261,6 +277,10 @@ class DecoupledConsumer(ReadyValidConsumer, Decoupled):
 
 
 class DecoupledProducer(ReadyValidProducer, Decoupled):
+    pass
+
+
+class DecoupledMonitor(ReadyValidMonitor, Decoupled):
     pass
 
 
@@ -301,6 +321,10 @@ class IrrevocableProducer(ReadyValidProducer, Irrevocable):
     pass
 
 
+class IrrevocableMonitor(ReadyValidMonitor, Decoupled):
+    pass
+
+
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
@@ -323,6 +347,18 @@ def Producer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
         return ReadyValidProducer[undirected_T]
     raise TypeError(f"Consumer({T}) is unsupported")
+
+
+def Monitor(T: ReadyValidKind):
+    if issubclass(T, ReadyValid):
+        undirected_T = T.undirected_data_t
+    if issubclass(T, Irrevocable):
+        return IrrevocableMonitor[undirected_T]
+    if issubclass(T, Decoupled):
+        return DecoupledMonitor[undirected_T]
+    if issubclass(T, ReadyValid):
+        return ReadyValidMonitor[undirected_T]
+    raise TypeError(f"Monitor({T}) is unsupported")
 
 
 # TODO: QueueIO and Queue

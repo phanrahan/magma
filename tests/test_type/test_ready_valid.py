@@ -209,7 +209,6 @@ def test_in_ready_valid():
     assert T.ready.is_input()
     assert T.valid.is_input()
     assert T.data.is_input()
-    T = T.flip()
-    assert T.ready.is_output()
-    assert T.valid.is_output()
-    assert T.data.is_output()
+    with pytest.raises(TypeError) as e:
+        T = T.flip()
+    assert str(e.value) == "Cannot flip Monitor"
