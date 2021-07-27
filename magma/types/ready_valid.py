@@ -96,7 +96,7 @@ class ReadyValidProducerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": Out(Bit), "ready": In(Bit)}
         _maybe_add_data(cls, fields, T, Out)
-        t = type(f"{cls}[{T}]", (cls, ), fields)
+        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
         if T is None:
             # Remove deq/no_deq methods if no data.
             t.deq = _deq_error
@@ -172,7 +172,7 @@ class ReadyValidConsumerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": In(Bit), "ready": Out(Bit)}
         _maybe_add_data(cls, fields, T, In)
-        t = type(f"{cls}[{T}]", (cls, ), fields)
+        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
         if T is None:
             t.enq = _enq_error
             t.no_enq = _no_enq_error
@@ -246,7 +246,7 @@ class ReadyValidMonitorKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {"valid": In(Bit), "ready": In(Bit)}
         _maybe_add_data(cls, fields, T, In)
-        return type(f"{cls}[{T}]", (cls, ), fields)
+        return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
 
     def flip(cls):
         raise TypeError("Cannot flip Monitor")

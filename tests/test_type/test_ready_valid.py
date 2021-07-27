@@ -14,6 +14,7 @@ def test_ready_valid_simple(T):
             fired=m.Out(m.Bit)
         )
         assert isinstance(io.I, T)
+        assert isinstance(io.I, T[m.Bits[5]])
         io.O @= io.I
         io.fired @= io.I.fired() & io.O.fired()
 
@@ -209,6 +210,7 @@ def test_in_ready_valid():
     assert T.ready.is_input()
     assert T.valid.is_input()
     assert T.data.is_input()
+    assert issubclass(T, m.ReadyValid[m.Bits[8]])
     with pytest.raises(TypeError) as e:
         T = T.flip()
     assert str(e.value) == "Cannot flip Monitor"
