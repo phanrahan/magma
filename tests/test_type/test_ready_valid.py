@@ -62,7 +62,7 @@ def test_ready_valid_no_enq_when(T):
             I=m.In(m.Bit),
             O=m.Producer(T[m.Bits[5]])
         )
-        io.O.enq(m.Bits[5](0xDE))
+        io.O.enq(m.Bits[5](0x1E))
         io.O.no_enq(when=io.I)
 
     m.compile("build/TestReadyValidNoEnqWhen", TestReadyValidNoEnqWhen,
