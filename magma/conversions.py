@@ -123,8 +123,7 @@ def convertbits(value, n, totype, checkbit):
         else:
             if value.bit_length() > n:
                 raise ValueError(
-                    f"Cannot convert {value} to a {totype} of length {n}"
-                )
+                    f"Cannot convert {value} to a {totype} of length {n}")
         ts = int2seq(value, n)
     elif isinstance(value, ht.BitVector):
         ts = value.bits()
