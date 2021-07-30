@@ -66,7 +66,7 @@ class Mux(Generator2):
             mux.I.sel @= io.S
         out_ts = mux.O.ts
         if issubclass(T, MagmaProtocol):
-            out = T._qualify_magma_(Direction.Out)._from_magma_value_(T._to_magma_().unflatten(out_ts))
+            out = Out(T)._from_magma_value_(T._to_magma_().unflatten(out_ts))
         else:
             out = T.unflatten(out_ts)
         io.O @= out
