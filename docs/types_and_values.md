@@ -153,3 +153,11 @@ Magma provides two subclasses of `ReadyValid` with well defined semantics:
 Magma also provides two aliases:
 * `EnqIO[T]` for `Producer(Decoupled[T])`
 * `DeqIO[T]` for `Consumer(Decoupled[T])`
+
+Beyond `Producer` and `Consumer`, Magma also provides the `Monitor` qualifier
+which takes a ReadyValid type and returns a view of it where all the ports are
+inputs (useful for monitor circuits that want to observe ready valid
+transactions).
+
+`ReadyValid` types provide the standard type property `undirected_t` which
+returns an undirected version of the type.
