@@ -46,9 +46,11 @@ class ReadyValidKind(ProductKind):
         raise TypeError("Cannot flip an undirected ReadyValid type")
 
     def qualify(cls, direction):
-        if direction is not Direction.In:
-            raise TypeError(f"Cannot qualify ReadyValid with {direction}")
-        return Monitor(cls)
+        if direction is Direction.In:
+            return Monitor(cls)
+        if direction is Direction.Undirected:
+            return Undirected(cls)
+        raise TypeError(f"Cannot qualify ReadyValid with {direction}")
 
     @property
     def undirected_data_t(cls):
@@ -359,6 +361,18 @@ def Monitor(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
         return ReadyValidMonitor[undirected_T]
     raise TypeError(f"Monitor({T}) is unsupported")
+
+
+def Undirected(T: ReadyValidKind):
+    if issubclass(T, ReadyValid):
+        undirected_T = T.undirected_data_t
+    if issubclass(T, Irrevocable):
+        return Irrevocable[undirected_T]
+    if issubclass(T, Decoupled):
+        return Decoupled[undirected_T]
+    if issubclass(T, ReadyValid):
+        return ReadyValid[undirected_T]
+    raise TypeError(f"Undirected({T}) is unsupported")
 
 
 # TODO: QueueIO and Queue

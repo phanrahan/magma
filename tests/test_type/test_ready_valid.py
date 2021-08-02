@@ -204,7 +204,7 @@ def test_ready_valid_none():
     m.compile("build/Foo", Foo)
 
 
-def test_in_ready_valid():
+def test_qualify_ready_valid():
     T = m.Consumer(m.ReadyValid[m.Bits[8]])
     T = m.In(T)
     assert T.ready.is_input()
@@ -214,3 +214,15 @@ def test_in_ready_valid():
     with pytest.raises(TypeError) as e:
         T = T.flip()
     assert str(e.value) == "Cannot flip Monitor"
+
+    T = T.undirected_t
+    assert not T.ready.is_input()
+    assert not T.valid.is_input()
+    assert not T.data.is_input()
+    assert not T.ready.is_output()
+    assert not T.valid.is_output()
+    assert not T.data.is_output()
+    assert not T.ready.is_inout()
+    assert not T.valid.is_inout()
+    assert not T.data.is_inout()
+    assert issubclass(T, m.ReadyValid[m.Bits[8]])
