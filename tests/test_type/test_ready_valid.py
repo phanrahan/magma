@@ -215,18 +215,18 @@ def test_qualify_ready_valid(qualifiers, is_valid):
         for q in qualifiers:
             T = q(T)
             assert issubclass(T, m.ReadyValid[m.Bits[8]])
-            if q is m.In:
-                with pytest.raises(TypeError) as e:
-                    T.flip()
-                assert str(e.value) == "Cannot flip Monitor"
-            elif q in (m.Producer, m.Consumer):
+            if q in (m.Producer, m.Consumer):
                 T = T.flip()
                 assert issubclass(T, m.ReadyValid[m.Bits[8]])
             else:
+                if q is m.In:
+                    msg = "Cannot flip Monitor"
+                else:
+                    msg = (
+                        "Cannot flip an undirected ReadyValid type")
                 with pytest.raises(TypeError) as e:
                     T.flip()
-                assert str(e.value) == (
-                    "Cannot flip an undirected ReadyValid type")
+                assert str(e.value) == msg
         return
 
     with pytest.raises(TypeError) as e:
