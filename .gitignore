@@ -106,3 +106,5 @@ tests/test_verilog/build/
 .ignore
 .vim
 prof
+
+*.sublime-*
