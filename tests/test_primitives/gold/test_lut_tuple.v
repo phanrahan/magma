@@ -38,7 +38,7 @@ lutN #(
     .out(coreir_lut3_inst0_out)
 );
 assign O__0 = coreir_lut1_inst0_out;
-assign O__1 = {coreir_lut2_inst0_out,coreir_lut3_inst0_out};
+assign O__1 = {coreir_lut3_inst0_out,coreir_lut2_inst0_out};
 endmodule
 
 module test_lut_tuple (

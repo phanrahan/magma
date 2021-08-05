@@ -239,6 +239,10 @@ def _make_array_from_bv(N, T, arg):
         raise TypeError(
             f"Cannot construct Array[{N}, {T}] with BitVector of length "
             f"{len(arg)} (sizes must match)")
+    if isinstance(arg, int) and arg.bit_length() > N:
+        raise ValueError(
+            f"Cannot construct Array[{N}, {T}] with integer {arg} "
+            f"(requires truncation)")
     bits = int2seq(arg, N) if isinstance(arg, int) else arg.bits()
     return [T(bit) for bit in bits]
 

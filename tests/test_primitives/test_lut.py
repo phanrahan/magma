@@ -63,8 +63,8 @@ def test_lut_bit():
 
 def test_lut_nested_array():
     contents = (
-        m.Array[2, m.Bits[2]]([m.Bits[2](0xDE), m.Bits[2](0xAD)]),
-        m.Array[2, m.Bits[2]]([m.Bits[2](0xBE), m.Bits[2](0xEF)])
+        m.Array[2, m.Bits[2]]([m.Bits[2](3), m.Bits[2](0x1)]),
+        m.Array[2, m.Bits[2]]([m.Bits[2](0), m.Bits[2](0x2)])
     )
 
     class test_lut_nested_array(m.Circuit):
@@ -89,8 +89,8 @@ def test_lut_nested_array():
 
 def test_lut_tuple():
     contents = (
-        m.Tuple[m.Bit, m.Bits[2]](m.Bit(True), m.Bits[2](0xAD)),
-        m.Tuple[m.Bit, m.Bits[2]](m.Bit(False), m.Bits[2](0xEF))
+        m.Tuple[m.Bit, m.Bits[2]](m.Bit(True), m.Bits[2](2)),
+        m.Tuple[m.Bit, m.Bits[2]](m.Bit(False), m.Bits[2](3))
     )
 
     class test_lut_tuple(m.Circuit):
@@ -124,10 +124,10 @@ def test_lut_arr_of_product():
         Y = m.Bits[2]
 
     contents = (
-        m.Array[2, A]([A(m.Bit(True), m.Bits[2](0xDE)),
-                       A(m.Bit(False), m.Bits[2](0xAD))]),
-        m.Array[2, A]([A(m.Bit(False), m.Bits[2](0xBE)),
-                       A(m.Bit(True), m.Bits[2](0xEF))])
+        m.Array[2, A]([A(m.Bit(True), m.Bits[2](0)),
+                       A(m.Bit(False), m.Bits[2](1))]),
+        m.Array[2, A]([A(m.Bit(False), m.Bits[2](2)),
+                       A(m.Bit(True), m.Bits[2](3))])
     )
 
     class test_lut_arr_of_product(m.Circuit):

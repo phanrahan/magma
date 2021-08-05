@@ -24,6 +24,7 @@ from .wire import wire
 from .t import *
 
 from .bit import *
+import magma.bit_primitives
 
 from .array import *
 from .bits import *
@@ -95,8 +96,9 @@ from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
                               Memory, set_index, register, Wire)
 
 from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
-                         Decoupled, EnqIO, DeqIO, Irrevocable)
+                         Decoupled, EnqIO, DeqIO, Irrevocable, Monitor)
 import magma.smart
 from magma.compile_guard import compile_guard
 from magma.set_name import set_name
 from magma.circuit_utils import circuit_stub, stubify, CircuitStub
+from magma.compile import MagmaCompileException

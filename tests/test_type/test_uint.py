@@ -126,10 +126,10 @@ def test_compare(n, op):
     }[op]
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(Bit))
-magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
-wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
-wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
-wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+magma_UInt_{n}_{op}_inst0 = magma_UInt_{n}_{op}()
+wire(TestBinary.I0, magma_UInt_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_UInt_{n}_{op}_inst0.in1)
+wire(magma_UInt_{n}_{op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
     compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
@@ -162,10 +162,10 @@ def test_binary(n, op):
         op = "urem"
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "O", Out(UInt[{n}]))
-magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
-wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
-wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
-wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+magma_UInt_{n}_{op}_inst0 = magma_UInt_{n}_{op}()
+wire(TestBinary.I0, magma_UInt_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_UInt_{n}_{op}_inst0.in1)
+wire(magma_UInt_{n}_{op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
     compile(f"build/TestUInt{n}{op}", TestBinary, output="coreir-verilog")
@@ -183,29 +183,29 @@ def test_adc(n):
         io.O <= result
         io.COUT <= carry
 
-    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_Bits_{n + 1}_add_inst0.in0[{i}])"
+    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_UInt_{n + 1}_add_inst0.in0[{i}])"
                           for i in range(n))
-    in0_wires += f"\nwire(GND, magma_Bits_{n + 1}_add_inst0.in0[{n}])"
+    in0_wires += f"\nwire(GND, magma_UInt_{n + 1}_add_inst0.in0[{n}])"
 
-    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_Bits_{n + 1}_add_inst0.in1[{i}])"
+    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_UInt_{n + 1}_add_inst0.in1[{i}])"
                           for i in range(n))
-    in1_wires += f"\nwire(GND, magma_Bits_{n + 1}_add_inst0.in1[{n}])"
+    in1_wires += f"\nwire(GND, magma_UInt_{n + 1}_add_inst0.in1[{n}])"
 
     carry_wires = "\n".join(
-        f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+        f"wire(GND, magma_UInt_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
 
-    out_wires = "\n".join(f"wire(magma_Bits_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
+    out_wires = "\n".join(f"wire(magma_UInt_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
                           for i in range(n))
-    out_wires += f"\nwire(magma_Bits_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
+    out_wires += f"\nwire(magma_UInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "CIN", In(Bit), "O", Out(UInt[{n}]), "COUT", Out(Bit))
-magma_Bits_{n + 1}_add_inst0 = magma_Bits_{n + 1}_add()
-magma_Bits_{n + 1}_add_inst1 = magma_Bits_{n + 1}_add()
+magma_UInt_{n + 1}_add_inst0 = magma_UInt_{n + 1}_add()
+magma_UInt_{n + 1}_add_inst1 = magma_UInt_{n + 1}_add()
 {in0_wires}
 {in1_wires}
-wire(magma_Bits_{n + 1}_add_inst0.out, magma_Bits_{n + 1}_add_inst1.in0)
-wire(TestBinary.CIN, magma_Bits_{n + 1}_add_inst1.in1[0])
+wire(magma_UInt_{n + 1}_add_inst0.out, magma_UInt_{n + 1}_add_inst1.in0)
+wire(TestBinary.CIN, magma_UInt_{n + 1}_add_inst1.in1[0])
 {carry_wires}
 {out_wires}
 EndCircuit()\

@@ -7,6 +7,7 @@ from .compatibility import StringTypes
 
 __all__  = ['seq2int', 'int2seq', 'ints2seq', 'fun2seq', 'lutinit']
 __all__ += ['int2uint', 'clz', 'pow2', 'log2', 'clog2', 'rol', 'ror']
+__all__ += ['clog2safe']
 
 #
 # seq to int
@@ -109,6 +110,13 @@ def clog2(x):
     if x > (1 << y):
         y = y + 1
     return y
+
+
+def clog2safe(x):
+    if x == 1:
+        return 1
+    return clog2(x)
+
 
 def pow2(n):
     return 1 << n

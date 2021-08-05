@@ -13,14 +13,14 @@ module TestBinary (
     input [2:0] I1,
     output O
 );
-wire magma_Bits_3_sge_inst0_out;
+wire magma_SInt_3_sge_inst0_out;
 coreir_sge #(
     .width(3)
-) magma_Bits_3_sge_inst0 (
+) magma_SInt_3_sge_inst0 (
     .in0(I0),
     .in1(I1),
-    .out(magma_Bits_3_sge_inst0_out)
+    .out(magma_SInt_3_sge_inst0_out)
 );
-assign O = magma_Bits_3_sge_inst0_out;
+assign O = magma_SInt_3_sge_inst0_out;
 endmodule
 

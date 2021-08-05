@@ -105,73 +105,6 @@ def ClockInterface(has_enable=False, has_reset=False, has_ce=False,
     return args
 
 
-def wire_clock_port(port, clocktype, defnclk):
-    wired = False
-    if isinstance(port, Tuple):
-        for elem in port:
-            wired |= wire_clock_port(elem, clocktype, defnclk)
-    elif isinstance(port, Array):
-        wired = wire_clock_port(port[0], clocktype, defnclk)
-        # Only traverse all children circuit if first child has a clock
-        if not wired:
-            return False
-        # TODO: Magma doesn't support length zero array, so slicing a
-        # length 1 array off the end doesn't work as expected in normal
-        # Python, so we explicilty slice port.ts
-        for t in port.ts[1:]:
-            for elem in port[1:]:
-                wire_clock_port(elem, clocktype, defnclk)
-    elif isinstance(port, clocktype) and port.trace() is None:
-        # Trace to last undriven driver
-        while port.driven():
-            port = port.value()
-        wire(defnclk, port)
-        wired = True
-    return wired
-
-
-def first(iterable):
-    return next((item for item in iterable if item is not None), None)
-
-
-def get_first_clock(port, clocktype):
-    if isinstance(port, clocktype):
-        return port
-    if isinstance(port, Tuple):
-        clks = (get_first_clock(elem, clocktype) for elem in port)
-        return first(clks)
-    if isinstance(port, Array):
-        return get_first_clock(port[0], clocktype)
-    return None
-
-
-def wireclocktype(defn, inst, clocktype):
-    # Check common case: top level clock port
-    clks = (port if isinstance(port, clocktype) else None
-            for port in defn.interface.ports.values())
-    defnclk = first(clks)
-    if defnclk is None:
-        # Check recursive types
-        clks = (get_first_clock(port, clocktype)
-                for port in defn.interface.ports.values())
-        defnclk = first(clks)
-    if defnclk is None:
-        return
-    for port in inst.interface.inputs(include_clocks=True):
-        wire_clock_port(port, clocktype, defnclk)
-
-
-def wiredefaultclock(defn, inst):
-    wireclocktype(defn, inst, Clock)
-
-
-def wireclock(define, circuit):
-    wireclocktype(define, circuit, Reset)
-    wireclocktype(define, circuit, AsyncReset)
-    wireclocktype(define, circuit, AsyncResetN)
-    wireclocktype(define, circuit, Enable)
-
-
 def get_reset_args(reset_type: Optional[AbstractReset]):
     if reset_type is None:
         return tuple(False for _ in range(4))
@@ -187,18 +120,8 @@ def get_reset_args(reset_type: Optional[AbstractReset]):
     return (has_async_reset, has_async_resetn, has_reset, has_resetn)
 
 
-def get_default_clocks(defn):
-    clocks = {}
-    for clock_type in ClockTypes:
-        clocks[clock_type] = first(
-            get_first_clock(port, clock_type)
-            for port in defn.interface.ports.values()
-        )
-    return clocks
-
-
-def is_clock_or_nested_clock(p):
-    if issubclass(p, ClockTypes):
+def is_clock_or_nested_clock(p, types=ClockTypes):
+    if issubclass(p, types):
         return True
     if issubclass(p, Array):
         return is_clock_or_nested_clock(p.T)
@@ -207,11 +130,3 @@ def is_clock_or_nested_clock(p):
             if is_clock_or_nested_clock(item):
                 return True
     return False
-
-
-def wire_default_clock(port, clocks):
-    clock_wired = False
-    for type_, default_driver in clocks.items():
-        if default_driver is not None:
-            clock_wired |= wire_clock_port(port, type_, default_driver)
-    return clock_wired

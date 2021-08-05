@@ -43,8 +43,10 @@ class _CoreIRRegister(Generator2):
 
         if has_async_resetn:
             self.io += IO(arst=In(AsyncResetN))
-            self.name += "R"
+            self.name += "Rn"
             self.coreir_configargs["arst_posedge"] = False
+
+        self.name += f"{width}"
 
         self.stateful = True
         self.primitive = True

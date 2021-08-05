@@ -41,12 +41,12 @@ wire magma_Bit_and_inst4_out;
 wire magma_Bit_and_inst5_out;
 wire magma_Bit_and_inst6_out;
 wire magma_Bit_and_inst7_out;
-wire [2:0] magma_Bits_3_sub_inst0_out;
-wire [2:0] magma_Bits_3_sub_inst10_out;
-wire [2:0] magma_Bits_3_sub_inst2_out;
-wire [2:0] magma_Bits_3_sub_inst4_out;
-wire [2:0] magma_Bits_3_sub_inst6_out;
-wire [2:0] magma_Bits_3_sub_inst8_out;
+wire [2:0] magma_UInt_3_sub_inst0_out;
+wire [2:0] magma_UInt_3_sub_inst10_out;
+wire [2:0] magma_UInt_3_sub_inst2_out;
+wire [2:0] magma_UInt_3_sub_inst4_out;
+wire [2:0] magma_UInt_3_sub_inst6_out;
+wire [2:0] magma_UInt_3_sub_inst8_out;
 wire [1:0] Mux2xArray3_Array2_Bit_inst0_I0 [2:0];
 assign Mux2xArray3_Array2_Bit_inst0_I0[2] = I[0][2];
 assign Mux2xArray3_Array2_Bit_inst0_I0[1] = I[0][1];
@@ -58,7 +58,7 @@ assign Mux2xArray3_Array2_Bit_inst0_I1[0] = I[1][0];
 Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst0 (
     .I0(Mux2xArray3_Array2_Bit_inst0_I0),
     .I1(Mux2xArray3_Array2_Bit_inst0_I1),
-    .S(magma_Bits_3_sub_inst0_out[0]),
+    .S(magma_UInt_3_sub_inst0_out[0]),
     .O(Mux2xArray3_Array2_Bit_inst0_O)
 );
 wire [1:0] Mux2xArray3_Array2_Bit_inst1_I0 [2:0];
@@ -86,7 +86,7 @@ assign Mux2xArray3_Array2_Bit_inst10_I1[0] = I[1][0];
 Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst10 (
     .I0(Mux2xArray3_Array2_Bit_inst10_I0),
     .I1(Mux2xArray3_Array2_Bit_inst10_I1),
-    .S(magma_Bits_3_sub_inst10_out[0]),
+    .S(magma_UInt_3_sub_inst10_out[0]),
     .O(Mux2xArray3_Array2_Bit_inst10_O)
 );
 wire [1:0] Mux2xArray3_Array2_Bit_inst11_I0 [2:0];
@@ -114,7 +114,7 @@ assign Mux2xArray3_Array2_Bit_inst2_I1[0] = I[1][0];
 Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst2 (
     .I0(Mux2xArray3_Array2_Bit_inst2_I0),
     .I1(Mux2xArray3_Array2_Bit_inst2_I1),
-    .S(magma_Bits_3_sub_inst2_out[0]),
+    .S(magma_UInt_3_sub_inst2_out[0]),
     .O(Mux2xArray3_Array2_Bit_inst2_O)
 );
 wire [1:0] Mux2xArray3_Array2_Bit_inst3_I0 [2:0];
@@ -142,7 +142,7 @@ assign Mux2xArray3_Array2_Bit_inst4_I1[0] = I[1][0];
 Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst4 (
     .I0(Mux2xArray3_Array2_Bit_inst4_I0),
     .I1(Mux2xArray3_Array2_Bit_inst4_I1),
-    .S(magma_Bits_3_sub_inst4_out[0]),
+    .S(magma_UInt_3_sub_inst4_out[0]),
     .O(Mux2xArray3_Array2_Bit_inst4_O)
 );
 wire [1:0] Mux2xArray3_Array2_Bit_inst5_I0 [2:0];
@@ -170,7 +170,7 @@ assign Mux2xArray3_Array2_Bit_inst6_I1[0] = I[1][0];
 Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst6 (
     .I0(Mux2xArray3_Array2_Bit_inst6_I0),
     .I1(Mux2xArray3_Array2_Bit_inst6_I1),
-    .S(magma_Bits_3_sub_inst6_out[0]),
+    .S(magma_UInt_3_sub_inst6_out[0]),
     .O(Mux2xArray3_Array2_Bit_inst6_O)
 );
 wire [1:0] Mux2xArray3_Array2_Bit_inst7_I0 [2:0];
@@ -198,7 +198,7 @@ assign Mux2xArray3_Array2_Bit_inst8_I1[0] = I[1][0];
 Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst8 (
     .I0(Mux2xArray3_Array2_Bit_inst8_I0),
     .I1(Mux2xArray3_Array2_Bit_inst8_I1),
-    .S(magma_Bits_3_sub_inst8_out[0]),
+    .S(magma_UInt_3_sub_inst8_out[0]),
     .O(Mux2xArray3_Array2_Bit_inst8_O)
 );
 wire [1:0] Mux2xArray3_Array2_Bit_inst9_I0 [2:0];
@@ -221,12 +221,12 @@ assign magma_Bit_and_inst4_out = (1'b1 & (({1'b0,x[1:0]}) <= 3'h2)) & ((3'((3'((
 assign magma_Bit_and_inst5_out = 1'b1 & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h3);
 assign magma_Bit_and_inst6_out = 1'b1 & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h4);
 assign magma_Bit_and_inst7_out = 1'b1 & ((3'((3'(({1'b0,x[1:0]}) + 3'h2)) - 3'h1)) >= 3'h5);
-assign magma_Bits_3_sub_inst0_out = 3'(3'h0 - ({1'b0,x[1:0]}));
-assign magma_Bits_3_sub_inst10_out = 3'(3'h5 - ({1'b0,x[1:0]}));
-assign magma_Bits_3_sub_inst2_out = 3'(3'h1 - ({1'b0,x[1:0]}));
-assign magma_Bits_3_sub_inst4_out = 3'(3'h2 - ({1'b0,x[1:0]}));
-assign magma_Bits_3_sub_inst6_out = 3'(3'h3 - ({1'b0,x[1:0]}));
-assign magma_Bits_3_sub_inst8_out = 3'(3'h4 - ({1'b0,x[1:0]}));
+assign magma_UInt_3_sub_inst0_out = 3'(3'h0 - ({1'b0,x[1:0]}));
+assign magma_UInt_3_sub_inst10_out = 3'(3'h5 - ({1'b0,x[1:0]}));
+assign magma_UInt_3_sub_inst2_out = 3'(3'h1 - ({1'b0,x[1:0]}));
+assign magma_UInt_3_sub_inst4_out = 3'(3'h2 - ({1'b0,x[1:0]}));
+assign magma_UInt_3_sub_inst6_out = 3'(3'h3 - ({1'b0,x[1:0]}));
+assign magma_UInt_3_sub_inst8_out = 3'(3'h4 - ({1'b0,x[1:0]}));
 assign O[5][2] = Mux2xArray3_Array2_Bit_inst11_O[2];
 assign O[5][1] = Mux2xArray3_Array2_Bit_inst11_O[1];
 assign O[5][0] = Mux2xArray3_Array2_Bit_inst11_O[0];

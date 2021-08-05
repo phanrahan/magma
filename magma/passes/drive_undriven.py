@@ -1,8 +1,8 @@
 from .passes import EditDefinitionPass
 from ..is_definition import isdefinition
 from magma.array import Array
-from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
-                         get_default_clocks)
+from magma.clock import is_clock_or_nested_clock
+from magma.wire_clock import wire_default_clock, get_default_clocks
 from magma.tuple import Tuple
 
 

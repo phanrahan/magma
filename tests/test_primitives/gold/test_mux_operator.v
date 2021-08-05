@@ -49,13 +49,13 @@ module test_mux_operator (
     input S,
     output O
 );
-wire Mux2xBit_inst0_O;
-Mux2xBit Mux2xBit_inst0 (
+wire foo_O;
+Mux2xBit foo (
     .I0(I[0]),
     .I1(I[1]),
     .S(S),
-    .O(Mux2xBit_inst0_O)
+    .O(foo_O)
 );
-assign O = Mux2xBit_inst0_O;
+assign O = foo_O;
 endmodule
 

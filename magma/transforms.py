@@ -5,7 +5,8 @@ from .is_definition import isdefinition
 from .is_primitive import isprimitive
 from .digital import Digital
 from .bit import *
-from .clock import Clock, Enable, Reset, AsyncReset, wiredefaultclock
+from .clock import Clock, Enable, Reset, AsyncReset
+from .wire_clock import wiredefaultclock
 from .array import *
 from .tuple import Tuple
 from .wire import wire
@@ -63,6 +64,19 @@ class TransformedCircuit:
         else:
             self.orig_to_new[QualifiedBit(bit=orig_bit, scope=orig_scope)] = new_bit
 
+
+def _add_array_mapping(mapping, outerbit, innerbit, outer_scope, inner_scope):
+    for o, i in zip(outerbit, innerbit):
+        if isinstance(o, Array):
+            _add_array_mapping(mapping, o, i, outer_scope, inner_scope)
+        oqual = QualifiedBit(bit=o, scope=outer_scope)
+        iqual = QualifiedBit(bit=i, scope=inner_scope)
+        if o.is_input():
+            mapping[iqual] = oqual
+        else:
+            mapping[oqual] = iqual
+
+
 def get_primitives(outer_circuit, outer_scope):
     primitives = []
     mapping = {}
@@ -82,13 +96,8 @@ def get_primitives(outer_circuit, outer_scope):
                 if isinstance(outerbit, Array):
                     innerbit.wire_children()
                     outerbit.wire_children()
-                    for o, i in zip(outerbit, innerbit):
-                        oqual = QualifiedBit(bit=o, scope=outer_scope)
-                        iqual = QualifiedBit(bit=i, scope=inner_scope)
-                        if o.is_input():
-                            mapping[iqual] = oqual
-                        else:
-                            mapping[oqual] = iqual
+                    _add_array_mapping(mapping, outerbit, innerbit, outer_scope,
+                                       inner_scope)
 
                 if outerbit.is_input():
                     mapping[innerloc] = outerloc

@@ -2,6 +2,7 @@ import ast
 import enum
 import textwrap
 import inspect
+import itertools
 from functools import wraps
 import functools
 import operator
@@ -28,6 +29,8 @@ except ImportError:
     pass
 from .view import PortView
 
+from magma.clock import is_clock_or_nested_clock, Clock
+from magma.t import In
 from magma.wire_container import WiringLog
 
 __all__ = ['AnonymousCircuitType']
@@ -118,6 +121,10 @@ class DefinitionContext:
         for builder in self._builders:
             inst = builder.finalize()
             self.placer.place(inst)
+        # Create the interface for this circuit. This needs to be done after all
+        # instances are introduced so that the logic to automatically add clocks
+        # to the interface has access to all sub-circuits.
+        _setup_interface(defn)
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
         self._finalize_file_opens()  # so displays can refer to open files
@@ -155,7 +162,38 @@ def _has_definition(cls, port=None):
     return any(not f.is_output() and f.value() is not None for f in flat)
 
 
-def _get_interface_type(cls):
+def _maybe_add_default_clock(cls):
+    """
+    If circuit @cls needs a default input clock (requires that both (a) @cls has
+    an instance that has an undriven clock port and (b) @cls *doesn't* already
+    have a default clock input), then we add one with the name "CLK". If a port
+    with name "CLK" already exists then we do not add any port.
+    """
+    # Check if @cls already has a default clock.
+    for port in cls.io.ports.values():
+        if is_clock_or_nested_clock(type(port), (Clock,)):
+            return
+
+    # Check all instances in @cls for an undriven clock port.
+    inst_ports = itertools.chain(
+        *(instance.interface.ports.values() for instance in cls.instances))
+    for port in inst_ports:
+        T = type(port)
+        if is_clock_or_nested_clock(T, (Clock,)) and not port.driven():
+            break  # undriven clock found
+    else:  # no undriven clock found
+        return
+    if "CLK" in cls.io.ports.keys():
+        # What should we do in the case that the CLK name is taken, but isn't a
+        # clock type? Seems odd, but we shouldn't cause an error. For now, we
+        # can assume that the user might be using some custom "Clock" type and
+        # not introduce a default.  Alternatively we could add a different name.
+        return
+
+    cls.io.add("CLK", In(Clock))
+
+
+def _get_interface_type(cls, add_default_clock):
     if hasattr(cls, "IO") and hasattr(cls, "io"):
         _logger.warning("'IO' and 'io' should not both be specified, ignoring "
                         "'io'", debug_info=cls.debug_info)
@@ -171,8 +209,20 @@ def _get_interface_type(cls):
         return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
+        if add_default_clock:
+            _maybe_add_default_clock(cls)
         return cls.io.make_interface()
     return None
+
+
+def _setup_interface(cls):
+    # Called from DefinitionContext.finalize.
+    IO = _get_interface_type(cls, add_default_clock=True)
+    if IO is None:
+        return
+    cls.IO = IO
+    cls.interface = cls.IO(defn=cls, renamed_ports=cls._renamed_ports_)
+    setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
 
 
 def _add_intermediate_value(value):
@@ -260,13 +310,8 @@ class CircuitKind(type):
         for method in dct.get('circuit_type_methods', []):
             setattr(cls, method.name, method.definition)
 
-        # Create interface for this circuit class.
         cls._syntax_style_ = _SyntaxStyle.NONE
-        IO = _get_interface_type(cls)
-        if IO is not None:
-            cls.IO = IO
-            cls.interface = cls.IO(defn=cls, renamed_ports=dct["renamed_ports"])
-            setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
+        cls._renamed_ports_ = dct["renamed_ports"]
         try:
             context = _definition_context_stack.pop()
         except IndexError:  # no staged placer

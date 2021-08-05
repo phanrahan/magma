@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from itertools import chain
-from .common import deprecated, setattrs
+from .common import deprecated
 from .compatibility import IntegerTypes, StringTypes
 from .protocol_type import MagmaProtocolMeta
 from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
@@ -423,14 +423,10 @@ class IO(IOInterface):
     def __init__(self, **kwargs):
         self._ports = {}
         self._decl = []
-        names = kwargs.keys()
-        types = kwargs.values()
-        refs = (LazyDefnRef(name=name) for name in kwargs)
-        args = zip(kwargs.keys(), zip(kwargs.values(), refs))
-        self._ports = {n: _make_port(t, r, flip=True) for n, (t, r) in args}
-        setattrs(self, self._ports)
-        self._decl = _flatten(zip(names, types))
+        self._decl = _flatten(kwargs.items())
         self._bound = False
+        for name, typ in kwargs.items():
+            self.add(name, typ)
 
     @property
     def ports(self):
@@ -473,6 +469,15 @@ class IO(IOInterface):
         decl = self._decl + other._decl
         return IO(**dict(zip(decl[::2], decl[1::2])))
 
+    def add(self, name, typ):
+        if self._bound:
+            raise RuntimeError("Can not add to a bound IO")
+        # Definition port.
+        ref = LazyDefnRef(name=name)
+        port = _make_port(typ, ref, flip=True)
+        self._ports[name] = port
+        setattr(self, name, port)
+
 
 class SingletonInstanceIO(IO):
     """
@@ -508,11 +513,7 @@ class SingletonInstanceIO(IO):
         return InterfaceKind(name, (_DeclareSingletonInstanceInterface,), dct)
 
     def add(self, name, typ):
-        # Definition port.
-        ref = LazyDefnRef(name=name)
-        port = _make_port(typ, ref, flip=True)
-        self._ports[name] = port
-        setattr(self, name, port)
+        super().add(name, typ)
         # Instance port.
         inst_ref = LazyInstRef(name=name)
         inst_port = _make_port(typ, inst_ref, flip=False)

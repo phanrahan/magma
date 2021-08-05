@@ -27,19 +27,19 @@ module Register (
     input CLK,
     input ASYNCRESETN
 );
-wire [7:0] reg_PR_inst0_out;
+wire [7:0] reg_PRn8_inst0_out;
 coreir_reg_arst #(
     .arst_posedge(1'b0),
     .clk_posedge(1'b1),
     .init(8'hde),
     .width(8)
-) reg_PR_inst0 (
+) reg_PRn8_inst0 (
     .clk(CLK),
     .arst(ASYNCRESETN),
     .in(I),
-    .out(reg_PR_inst0_out)
+    .out(reg_PRn8_inst0_out)
 );
-assign O = reg_PR_inst0_out;
+assign O = reg_PRn8_inst0_out;
 endmodule
 
 module test_reg_async_resetn (

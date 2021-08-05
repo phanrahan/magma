@@ -436,3 +436,13 @@ def test_rop_type_error(op, op_str):
             f"unsupported operand type(s) for {op_str}: 'Bits[(5, Bit)]' and "
             "'Bits[(4, Bit)]'"
         )
+
+
+def test_python_bits_from_int_truncation_error():
+    with pytest.raises(ValueError) as e:
+        m.Bits[2](4)
+    assert str(e.value) == (
+        "Cannot construct Array[2, Bit] with integer 4 (requires truncation)")
+    with pytest.raises(ValueError) as e:
+        m.bits(4, 2)
+    assert str(e.value) == "Cannot convert 4 to a Bits of length 2"

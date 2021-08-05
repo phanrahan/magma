@@ -120,6 +120,10 @@ def convertbits(value, n, totype, checkbit):
     if isinstance(value, IntegerTypes):
         if n is None:
             n = max(value.bit_length(), 1)
+        else:
+            if value.bit_length() > n:
+                raise ValueError(
+                    f"Cannot convert {value} to a {totype} of length {n}")
         ts = int2seq(value, n)
     elif isinstance(value, ht.BitVector):
         ts = value.bits()

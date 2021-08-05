@@ -3,26 +3,30 @@ from copy import copy
 import json
 import logging
 import os
+
+import coreir as pycoreir
+
 from magma.digital import Digital
 from magma.array import Array
 from magma.bits import Bits
-from coreir import Wireable
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
     get_module_of_inst, magma_interface_to_coreir_module_type,
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
+from magma.compile_exception import UnconnectedPortException
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import dependencies
 from magma.tuple import Tuple
 from magma.backend.util import get_codegen_debug_info
-from magma.clock import (wire_default_clock, is_clock_or_nested_clock,
-                         get_default_clocks)
+from magma.clock import is_clock_or_nested_clock
+from magma.wire_clock import wire_default_clock, get_default_clocks
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
+from magma.symbol_table import SYMBOL_TABLE_EMPTY
 
 
 # NOTE(rsetaluri): We do not need to set the level of this logger since it has
@@ -30,28 +34,29 @@ from magma.ref import PortViewRef, ArrayRef
 _logger = root_logger().getChild("coreir_backend")
 
 
+_generator_callbacks = {}
+
+
 def _is_generator(ckt_or_inst):
     return ckt_or_inst.coreir_genargs is not None
 
 
-def _make_unconnected_error_str(port):
-    error_str = port.debug_name
-    if port.trace() is not None:
-        error_str += ": Connected"
-    elif isinstance(port, (Tuple, Array)):
-        child_str = ""
-        for child in port:
-            child = _make_unconnected_error_str(child)
-            child = "\n    ".join(child.splitlines())
-            child_str += f"\n    {child}"
-        if "Connected" not in child_str:
-            # Handle case when no children are connected (simplify)
-            error_str += ": Unconnected"
-        else:
-            error_str += child_str
-    elif port.trace() is None:
-        error_str += ": Unconnected"
-    return error_str
+def _coreir_longname(magma_defn_or_decl, coreir_module_or_generator):
+    # NOTE(rsetaluri): This is a proxy to exposing a pycoreir/coreir-c API to
+    # get a module's longname. This logic should be identical right now. Another
+    # caveat is that we don't elaborate the CoreIR generator at the magma level,
+    # so it's longname needs to be dynamically reconstructed anyway.
+    namespace = coreir_module_or_generator.namespace.name
+    prefix = "" if namespace == "global" else f"{namespace}_"
+    longname = prefix + coreir_module_or_generator.name
+    if isinstance(coreir_module_or_generator, pycoreir.Module):
+        return longname
+    assert isinstance(coreir_module_or_generator, pycoreir.Generator)
+    param_keys = coreir_module_or_generator.params.keys()
+    for k in param_keys:
+        v = magma_defn_or_decl.coreir_genargs[k]
+        longname += f"__{k}{v}"
+    return longname
 
 
 def _collect_drivers(value):
@@ -129,6 +134,9 @@ class DefnOrDeclTransformer(TransformerBase):
         self.coreir_module = None
 
     def children(self):
+        if _is_generator(self.defn_or_decl):
+            return [GeneratorTransformer(
+                self.backend, self.opts, self.defn_or_decl)]
         try:
             coreir_module = self.backend.get_module(self.defn_or_decl)
             _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
@@ -156,10 +164,10 @@ class DefnOrDeclTransformer(TransformerBase):
     def _generate_symbols(self):
         if not self.get_opt("generate_symbols", False):
             return
-        if _is_generator(self.defn_or_decl):
-            return
+        out_module_name = _coreir_longname(
+            self.defn_or_decl, self.coreir_module)
         self.opts.get("symbol_table").set_module_name(
-            self.defn_or_decl.name, self.coreir_module.name)
+            self.defn_or_decl.name, out_module_name)
 
     def _run_self_impl(self):
         if self.coreir_module:
@@ -170,6 +178,48 @@ class DefnOrDeclTransformer(TransformerBase):
             self.defn_or_decl.wrappedModule = self.coreir_module
             libs = self.backend.included_libs()
             self.defn_or_decl.coreir_wrapped_modules_libs_used = libs
+
+
+class GeneratorTransformer(TransformerBase):
+    def __init__(self, backend, opts, defn_or_decl):
+        super().__init__(backend, opts)
+        self.defn_or_decl = defn_or_decl
+        self.coreir_module = None
+
+    def children(self):
+        try:
+            coreir_module = self.backend.get_module(self.defn_or_decl)
+            _logger.debug(f"{self.defn_or_decl} already compiled, skipping")
+            self.coreir_module = coreir_module
+            return []
+        except KeyError:
+            pass
+        assert not isdefinition(self.defn_or_decl)
+        return [DeclarationTransformer(self.backend,
+                                       self.opts,
+                                       self.defn_or_decl)]
+
+    def run_self(self):
+        self._generate_symbols()
+        if self.coreir_module is not None:
+            return
+        self.coreir_module = self._children[0].coreir_module
+
+    def _generate_symbols(self):
+        if not self.get_opt("generate_symbols", False):
+            return
+        global _generator_callbacks
+
+        def _callback(coreir_inst):
+            magma_names = list(self.defn_or_decl.interface.ports.keys())
+            coreir_names = list(k for k, _ in coreir_inst.module.type.items())
+            assert len(magma_names) == len(coreir_names)
+            for magma_name, coreir_name in zip(magma_names, coreir_names):
+                self.opts.get("symbol_table").set_port_name(
+                    self.defn_or_decl.name, magma_name, coreir_name)
+
+        assert self.defn_or_decl not in _generator_callbacks
+        _generator_callbacks[self.defn_or_decl] = _callback
 
 
 class InstanceTransformer(LeafTransformer):
@@ -268,12 +318,23 @@ class DefinitionTransformer(TransformerBase):
             return
         for inst, coreir_inst in coreir_insts.items():
             self.get_opt("symbol_table").set_instance_name(
-                self.defn.name, inst.name, coreir_inst.name)
+                self.defn.name, inst.name,
+                (SYMBOL_TABLE_EMPTY, coreir_inst.name))
+            self.get_opt("symbol_table").set_instance_type(
+                self.defn.name, inst.name, type(inst).name)
 
     def get_coreir_defn(self):
         coreir_defn = self.coreir_module.new_definition()
         coreir_insts = {inst: self.inst_txs[inst].coreir_inst_gen(coreir_defn)
                         for inst in self.defn.instances}
+        # Call generator callback if necessary.
+        global _generator_callbacks
+        for inst, coreir_inst in coreir_insts.items():
+            try:
+                callback = _generator_callbacks.pop(type(inst))
+            except KeyError:
+                continue
+            callback(coreir_inst)
         self._generate_symbols(coreir_insts)
         # If this module was imported from verilog, do not go through the
         # general module construction flow. Instead just attach the verilog
@@ -315,7 +376,7 @@ class DefinitionTransformer(TransformerBase):
     def get_source(self, port, value, module_defn):
         port = _unwrap(port)
         value = _unwrap(value)
-        if isinstance(value, Wireable):
+        if isinstance(value, pycoreir.Wireable):
             return value
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
@@ -354,16 +415,14 @@ class DefinitionTransformer(TransformerBase):
         if value is None and is_clock_or_nested_clock(type(port)):
             if not wire_default_clock(port, self.clocks):
                 # No default clock
-                return
+                raise UnconnectedPortException(port)
             value = port.trace()
         if value is None:
             if port.is_inout():
                 return  # skip inouts because they might be conn. as an input.
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
-            error_str = f"Found unconnected port: {port.debug_name}\n"
-            error_str += _make_unconnected_error_str(port)
-            raise Exception(error_str)
+            raise UnconnectedPortException(port)
         source = self.get_source(port, value, module_defn)
         if not source:
             return

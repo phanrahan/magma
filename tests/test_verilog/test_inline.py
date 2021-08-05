@@ -1,5 +1,6 @@
 import magma as m
 import magma.testing
+from magma.inline_verilog import InlineVerilogError
 import pytest
 
 
@@ -246,3 +247,38 @@ end
     assert m.testing.check_files_equal(
         __file__, f"build/test_inline_verilog_unique_old_style2.v",
         f"gold/test_inline_verilog_unique_old_style2.v")
+
+
+def test_inline_verilog_share_default_clocks():
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Bit), y=m.In(m.Bit)) + m.ClockIO(has_reset=True)
+        # Auto-wired
+        clk = m.Clock()
+        rst = m.Reset()
+        m.inline_verilog("""
+assert property (@(posedge {clk}) disable iff (! {rst}) {io.x} |-> ##1 {io.y});
+""")
+        m.inline_verilog("""
+assert property (@(posedge {clk}) disable iff (! {rst}) {io.x} |-> ##1 {io.y});
+""")
+
+    m.compile("build/test_inline_verilog_share_default_clocks", Foo,
+              inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_share_default_clocks.v",
+        f"gold/test_inline_verilog_share_default_clocks.v")
+
+
+def test_inline_verilog_error():
+    class Main(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit), arr=m.In(m.Bits[2]))
+        io += m.ClockIO()
+        # Should error because io.O is undriven
+        m.inline_verilog("""
+assert property (@(posedge CLK) {I} |-> ##1 {O});
+""", O=io.O, I=io.I, inline_wire_prefix="_foo_prefix_")
+
+    with pytest.raises(InlineVerilogError) as e:
+        m.compile('build/Main', Main)
+
+    assert str(e.value) == "Found reference to undriven input port: Main.O"

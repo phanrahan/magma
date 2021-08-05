@@ -126,10 +126,10 @@ def test_compare(n, op):
     }[op]
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "O", Out(Bit))
-magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
-wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
-wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
-wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+magma_SInt_{n}_{op}_inst0 = magma_SInt_{n}_{op}()
+wire(TestBinary.I0, magma_SInt_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_SInt_{n}_{op}_inst0.in1)
+wire(magma_SInt_{n}_{op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
     compile(f"build/TestSInt{n}{op}", TestBinary, output="coreir-verilog")
@@ -164,10 +164,10 @@ def test_binary(n, op):
         op = "ashr"
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "O", Out(SInt[{n}]))
-magma_Bits_{n}_{op}_inst0 = magma_Bits_{n}_{op}()
-wire(TestBinary.I0, magma_Bits_{n}_{op}_inst0.in0)
-wire(TestBinary.I1, magma_Bits_{n}_{op}_inst0.in1)
-wire(magma_Bits_{n}_{op}_inst0.out, TestBinary.O)
+magma_SInt_{n}_{op}_inst0 = magma_SInt_{n}_{op}()
+wire(TestBinary.I0, magma_SInt_{n}_{op}_inst0.in0)
+wire(TestBinary.I1, magma_SInt_{n}_{op}_inst0.in1)
+wire(magma_SInt_{n}_{op}_inst0.out, TestBinary.O)
 EndCircuit()\
 """
     compile(f"build/TestSInt{n}{op}", TestBinary, output="coreir-verilog")
@@ -185,29 +185,29 @@ def test_adc(n):
         io.O <= result
         io.COUT <= carry
 
-    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_Bits_{n + 1}_add_inst0.in0[{i}])"
+    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_SInt_{n + 1}_add_inst0.in0[{i}])"
                           for i in range(n))
-    in0_wires += f"\nwire(TestBinary.I0[{n - 1}], magma_Bits_{n + 1}_add_inst0.in0[{n}])"
+    in0_wires += f"\nwire(TestBinary.I0[{n - 1}], magma_SInt_{n + 1}_add_inst0.in0[{n}])"
 
-    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_Bits_{n + 1}_add_inst0.in1[{i}])"
+    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_SInt_{n + 1}_add_inst0.in1[{i}])"
                           for i in range(n))
-    in1_wires += f"\nwire(TestBinary.I1[{n - 1}], magma_Bits_{n + 1}_add_inst0.in1[{n}])"
+    in1_wires += f"\nwire(TestBinary.I1[{n - 1}], magma_SInt_{n + 1}_add_inst0.in1[{n}])"
 
     carry_wires = "\n".join(
-        f"wire(GND, magma_Bits_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+        f"wire(GND, magma_SInt_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
 
-    out_wires = "\n".join(f"wire(magma_Bits_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
+    out_wires = "\n".join(f"wire(magma_SInt_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
                           for i in range(n))
-    out_wires += f"\nwire(magma_Bits_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
+    out_wires += f"\nwire(magma_SInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
 
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "CIN", In(Bit), "O", Out(SInt[{n}]), "COUT", Out(Bit))
-magma_Bits_{n + 1}_add_inst0 = magma_Bits_{n + 1}_add()
-magma_Bits_{n + 1}_add_inst1 = magma_Bits_{n + 1}_add()
+magma_SInt_{n + 1}_add_inst0 = magma_SInt_{n + 1}_add()
+magma_SInt_{n + 1}_add_inst1 = magma_SInt_{n + 1}_add()
 {in0_wires}
 {in1_wires}
-wire(magma_Bits_{n + 1}_add_inst0.out, magma_Bits_{n + 1}_add_inst1.in0)
-wire(TestBinary.CIN, magma_Bits_{n + 1}_add_inst1.in1[0])
+wire(magma_SInt_{n + 1}_add_inst0.out, magma_SInt_{n + 1}_add_inst1.in0)
+wire(TestBinary.CIN, magma_SInt_{n + 1}_add_inst1.in1[0])
 {carry_wires}
 {out_wires}
 EndCircuit()\
@@ -235,9 +235,9 @@ def test_negate(n):
 
     assert repr(TestNegate) == f"""\
 TestNegate = DefineCircuit("TestNegate", "I", In(SInt[{n}]), "O", Out(SInt[{n}]))
-magma_Bits_{n}_neg_inst0 = magma_Bits_{n}_neg()
-wire(TestNegate.I, magma_Bits_{n}_neg_inst0.in)
-wire(magma_Bits_{n}_neg_inst0.out, TestNegate.O)
+magma_SInt_{n}_neg_inst0 = magma_SInt_{n}_neg()
+wire(TestNegate.I, magma_SInt_{n}_neg_inst0.in)
+wire(magma_SInt_{n}_neg_inst0.out, TestNegate.O)
 EndCircuit()\
 """
     compile(f"build/TestSInt{n}neg", TestNegate, output="coreir-verilog")

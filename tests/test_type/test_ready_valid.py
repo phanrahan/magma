@@ -14,6 +14,7 @@ def test_ready_valid_simple(T):
             fired=m.Out(m.Bit)
         )
         assert isinstance(io.I, T)
+        assert isinstance(io.I, T[m.Bits[5]])
         io.O @= io.I
         io.fired @= io.I.fired() & io.O.fired()
 
@@ -62,7 +63,7 @@ def test_ready_valid_no_enq_when(T):
             I=m.In(m.Bit),
             O=m.Producer(T[m.Bits[5]])
         )
-        io.O.enq(m.Bits[5](0xDE))
+        io.O.enq(m.Bits[5](0x1E))
         io.O.no_enq(when=io.I)
 
     m.compile("build/TestReadyValidNoEnqWhen", TestReadyValidNoEnqWhen,
@@ -179,3 +180,56 @@ def test_flip_ready_valid():
         do_deq = io.deq.fired()
 
         io.deq.data @= io.enq.data
+
+
+def test_ready_valid_none():
+    class Foo(m.Circuit):
+        io = m.IO(producer_handshake=m.Producer(m.ReadyValid[None]),
+                  consumer_handshake=m.Consumer(m.ReadyValid[None]))
+        io.producer_handshake.valid @= io.producer_handshake.ready ^ 1
+        io.consumer_handshake.ready @= io.consumer_handshake.valid ^ 1
+
+        assert type(io.producer_handshake).undirected_data_t is None
+        assert type(io.consumer_handshake).undirected_data_t is None
+        assert not hasattr(io.producer_handshake, "data")
+        assert not hasattr(io.consumer_handshake, "data")
+        with pytest.raises(Exception):
+            io.producer_handshake.enq(1)
+        with pytest.raises(Exception):
+            io.producer_handshake.no_enq(1)
+        with pytest.raises(Exception):
+            io.consumer_handshake.deq()
+        with pytest.raises(Exception):
+            io.consumer_handshake.no_deq(1)
+    m.compile("build/Foo", Foo)
+
+
+@pytest.mark.parametrize("qualifiers,is_valid", [
+    ((m.Consumer, m.Producer, m.In, lambda x: x.undirected_t), True),
+    ((m.Out,), False),
+])
+def test_qualify_ready_valid(qualifiers, is_valid):
+    T = m.ReadyValid[m.Bits[8]]
+
+    if is_valid:
+        for q in qualifiers:
+            T = q(T)
+            assert issubclass(T, m.ReadyValid[m.Bits[8]])
+            if q in (m.Producer, m.Consumer):
+                T = T.flip()
+                assert issubclass(T, m.ReadyValid[m.Bits[8]])
+            else:
+                if q is m.In:
+                    msg = "Cannot flip Monitor"
+                else:
+                    msg = (
+                        "Cannot flip an undirected ReadyValid type")
+                with pytest.raises(TypeError) as e:
+                    T.flip()
+                assert str(e.value) == msg
+        return
+
+    with pytest.raises(TypeError) as e:
+        assert len(qualifiers) == 1, "assume one invalid qualifier"
+        qualifiers[0](T)
+    assert str(e.value) == "Cannot qualify ReadyValid with Direction.Out"

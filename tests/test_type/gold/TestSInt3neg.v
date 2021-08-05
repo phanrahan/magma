@@ -11,13 +11,13 @@ module TestNegate (
     input [2:0] I,
     output [2:0] O
 );
-wire [2:0] magma_Bits_3_neg_inst0_out;
+wire [2:0] magma_SInt_3_neg_inst0_out;
 coreir_neg #(
     .width(3)
-) magma_Bits_3_neg_inst0 (
+) magma_SInt_3_neg_inst0 (
     .in(I),
-    .out(magma_Bits_3_neg_inst0_out)
+    .out(magma_SInt_3_neg_inst0_out)
 );
-assign O = magma_Bits_3_neg_inst0_out;
+assign O = magma_SInt_3_neg_inst0_out;
 endmodule
 

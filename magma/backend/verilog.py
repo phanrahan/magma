@@ -13,7 +13,7 @@ from ..array import Array
 from ..bits import SInt
 from ..tuple import Tuple
 from ..is_definition import isdefinition
-from ..clock import wiredefaultclock
+from ..wire_clock import wiredefaultclock
 from ..logging import root_logger
 from .util import get_codegen_debug_info, make_relative
 from ..config import config, EnvConfig

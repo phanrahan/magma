@@ -25,14 +25,14 @@ coreir_reg #(
     .clk_posedge(1'b1),
     .init(16'h0000),
     .width(16)
-) reg_P_inst0 (
+) reg_P16_inst0 (
     .clk(CLK),
     .in(I),
     .out(O)
 );
 endmodule
 
-module Mux2xSInt16 (
+module Mux2x_SequentialRegisterWrapperSInt16 (
     input [15:0] I0,
     input [15:0] I1,
     input S,
@@ -56,10 +56,10 @@ module Test2 (
     input CLK
 );
 wire [15:0] Register_inst0_O;
-wire [15:0] magma_Bits_16_add_inst0_out;
-Mux2xSInt16 Mux2xSInt16_inst0 (
+wire [15:0] magma_SInt_16_add_inst0_out;
+Mux2x_SequentialRegisterWrapperSInt16 Mux2x_SequentialRegisterWrapperSInt16_inst0 (
     .I0(Register_inst0_O),
-    .I1(magma_Bits_16_add_inst0_out),
+    .I1(magma_SInt_16_add_inst0_out),
     .S(sel),
     .O(O)
 );
@@ -68,6 +68,6 @@ Register Register_inst0 (
     .O(Register_inst0_O),
     .CLK(CLK)
 );
-assign magma_Bits_16_add_inst0_out = 16'(Register_inst0_O + 16'h0001);
+assign magma_SInt_16_add_inst0_out = 16'(Register_inst0_O + 16'h0001);
 endmodule
 

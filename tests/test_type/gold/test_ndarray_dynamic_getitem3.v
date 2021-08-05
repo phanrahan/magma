@@ -21,42 +21,42 @@ module Register (
     output [1:0] O [3:0][1:0][2:0],
     input CLK
 );
-wire [47:0] reg_P_inst0_out;
-wire [47:0] reg_P_inst0_in;
-assign reg_P_inst0_in = {I[3][1][2][1:0],I[3][1][1][1:0],I[3][1][0][1:0],I[3][0][2][1:0],I[3][0][1][1:0],I[3][0][0][1:0],I[2][1][2][1:0],I[2][1][1][1:0],I[2][1][0][1:0],I[2][0][2][1:0],I[2][0][1][1:0],I[2][0][0][1:0],I[1][1][2][1:0],I[1][1][1][1:0],I[1][1][0][1:0],I[1][0][2][1:0],I[1][0][1][1:0],I[1][0][0][1:0],I[0][1][2][1:0],I[0][1][1][1:0],I[0][1][0][1:0],I[0][0][2][1:0],I[0][0][1][1:0],I[0][0][0][1:0]};
+wire [47:0] reg_P48_inst0_out;
+wire [47:0] reg_P48_inst0_in;
+assign reg_P48_inst0_in = {I[3][1][2][1:0],I[3][1][1][1:0],I[3][1][0][1:0],I[3][0][2][1:0],I[3][0][1][1:0],I[3][0][0][1:0],I[2][1][2][1:0],I[2][1][1][1:0],I[2][1][0][1:0],I[2][0][2][1:0],I[2][0][1][1:0],I[2][0][0][1:0],I[1][1][2][1:0],I[1][1][1][1:0],I[1][1][0][1:0],I[1][0][2][1:0],I[1][0][1][1:0],I[1][0][0][1:0],I[0][1][2][1:0],I[0][1][1][1:0],I[0][1][0][1:0],I[0][0][2][1:0],I[0][0][1][1:0],I[0][0][0][1:0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(48'h000000000000),
     .width(48)
-) reg_P_inst0 (
+) reg_P48_inst0 (
     .clk(CLK),
-    .in(reg_P_inst0_in),
-    .out(reg_P_inst0_out)
+    .in(reg_P48_inst0_in),
+    .out(reg_P48_inst0_out)
 );
-assign O[3][1][2] = reg_P_inst0_out[47:46];
-assign O[3][1][1] = reg_P_inst0_out[45:44];
-assign O[3][1][0] = reg_P_inst0_out[43:42];
-assign O[3][0][2] = reg_P_inst0_out[41:40];
-assign O[3][0][1] = reg_P_inst0_out[39:38];
-assign O[3][0][0] = reg_P_inst0_out[37:36];
-assign O[2][1][2] = reg_P_inst0_out[35:34];
-assign O[2][1][1] = reg_P_inst0_out[33:32];
-assign O[2][1][0] = reg_P_inst0_out[31:30];
-assign O[2][0][2] = reg_P_inst0_out[29:28];
-assign O[2][0][1] = reg_P_inst0_out[27:26];
-assign O[2][0][0] = reg_P_inst0_out[25:24];
-assign O[1][1][2] = reg_P_inst0_out[23:22];
-assign O[1][1][1] = reg_P_inst0_out[21:20];
-assign O[1][1][0] = reg_P_inst0_out[19:18];
-assign O[1][0][2] = reg_P_inst0_out[17:16];
-assign O[1][0][1] = reg_P_inst0_out[15:14];
-assign O[1][0][0] = reg_P_inst0_out[13:12];
-assign O[0][1][2] = reg_P_inst0_out[11:10];
-assign O[0][1][1] = reg_P_inst0_out[9:8];
-assign O[0][1][0] = reg_P_inst0_out[7:6];
-assign O[0][0][2] = reg_P_inst0_out[5:4];
-assign O[0][0][1] = reg_P_inst0_out[3:2];
-assign O[0][0][0] = reg_P_inst0_out[1:0];
+assign O[3][1][2] = reg_P48_inst0_out[47:46];
+assign O[3][1][1] = reg_P48_inst0_out[45:44];
+assign O[3][1][0] = reg_P48_inst0_out[43:42];
+assign O[3][0][2] = reg_P48_inst0_out[41:40];
+assign O[3][0][1] = reg_P48_inst0_out[39:38];
+assign O[3][0][0] = reg_P48_inst0_out[37:36];
+assign O[2][1][2] = reg_P48_inst0_out[35:34];
+assign O[2][1][1] = reg_P48_inst0_out[33:32];
+assign O[2][1][0] = reg_P48_inst0_out[31:30];
+assign O[2][0][2] = reg_P48_inst0_out[29:28];
+assign O[2][0][1] = reg_P48_inst0_out[27:26];
+assign O[2][0][0] = reg_P48_inst0_out[25:24];
+assign O[1][1][2] = reg_P48_inst0_out[23:22];
+assign O[1][1][1] = reg_P48_inst0_out[21:20];
+assign O[1][1][0] = reg_P48_inst0_out[19:18];
+assign O[1][0][2] = reg_P48_inst0_out[17:16];
+assign O[1][0][1] = reg_P48_inst0_out[15:14];
+assign O[1][0][0] = reg_P48_inst0_out[13:12];
+assign O[0][1][2] = reg_P48_inst0_out[11:10];
+assign O[0][1][1] = reg_P48_inst0_out[9:8];
+assign O[0][1][0] = reg_P48_inst0_out[7:6];
+assign O[0][0][2] = reg_P48_inst0_out[5:4];
+assign O[0][0][1] = reg_P48_inst0_out[3:2];
+assign O[0][0][0] = reg_P48_inst0_out[1:0];
 endmodule
 
 module Mux4xArray2_Array3_Array2_Bit (

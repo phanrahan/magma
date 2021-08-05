@@ -9,7 +9,8 @@
       },
       "top":{
         "type":["Record",[
-          ["O","Bit"]
+          ["O","Bit"],
+          ["r",["Named","coreir.clkIn"]]
         ]],
         "instances":{
           "bit_const_0_None":{

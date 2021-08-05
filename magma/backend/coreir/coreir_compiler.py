@@ -107,8 +107,12 @@ class CoreIRCompiler(Compiler):
             self._compile_verilog_epilogue()
             if self.opts.get("generate_symbols", False):
                 coreir_symbol_table = _get_coreir_symbol_table(self.basename)
-                master = MasterSymbolTable([symbol_table, coreir_symbol_table])
-                result["master_symbol_table"] = master
+                if not self.opts.get("merge_symbol_tables", True):
+                    result["coreir_symbol_table"] = coreir_symbol_table
+                else:
+                    master = MasterSymbolTable([
+                        symbol_table, coreir_symbol_table])
+                    result["master_symbol_table"] = master
             return result
         has_header_or_footer = (self.opts.get("header_file", "") or
                                 self.opts.get("header_str", "") or

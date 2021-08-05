@@ -1,6 +1,7 @@
 import collections
 import collections.abc
 from functools import wraps, partial
+from typing import Iterable
 import warnings
 
 
@@ -153,3 +154,22 @@ def make_delegator_cls(base):
     # https://docs.python.org/3.10/library/abc.html#abc.update_abstractmethods.
     _Delegator.__abstractmethods__ = frozenset()
     return _Delegator
+
+
+class IterableOnlyException(Exception):
+    pass
+
+
+def only(lst: Iterable):
+    it = iter(lst)
+    try:
+        value = next(it)
+    except StopIteration:
+        raise IterableOnlyException("Expected one element, got []") from None
+    try:
+        new_value = next(it)
+    except StopIteration:
+        return value
+    else:
+        msg = f"Expected one element got {[value, new_value] + list(it)}"
+        raise IterableOnlyException(msg)

@@ -49,9 +49,10 @@ class PlacerBase(ABC):
 
 
 def _setup_view(inst):
+    inst_view = InstView(inst)
     # Setup view now because inline strings might use it during defn
     for sub_inst in getattr(type(inst), "instances", []):
-        setattr(inst, sub_inst.name, InstView(sub_inst, InstView(inst)))
+        setattr(inst, sub_inst.name, InstView(sub_inst, inst_view))
 
 
 class Placer:

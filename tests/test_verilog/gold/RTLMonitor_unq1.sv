@@ -1,11 +1,11 @@
-module coreir_wrap (
+module bar_coreir_wrap (
     input in,
     output out
 );
   assign out = in;
 endmodule
 
-module coreir_term #(
+module bar_coreir_term #(
     parameter width = 1
 ) (
     input [width-1:0] in
@@ -13,13 +13,13 @@ module coreir_term #(
 
 endmodule
 
-module corebit_term (
+module bar_corebit_term (
     input in
 );
 
 endmodule
 
-module foo_RTLMonitor_unq1 (
+module bar_foo_RTLMonitor_unq1 (
     input CLK,
     input handshake_arr_0_ready,
     input handshake_arr_0_valid,
@@ -70,7 +70,7 @@ endmodule
 
 
 `ifdef BIND_ON
-bind foo_RTL_unq1 foo_RTLMonitor_unq1 foo_RTLMonitor_unq1_inst (
+bind bar_foo_RTL_unq1 bar_foo_RTLMonitor_unq1 bar_foo_RTLMonitor_unq1_inst (
     .CLK(CLK),
     .in1(in1),
     .in2(in2),
