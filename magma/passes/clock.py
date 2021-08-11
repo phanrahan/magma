@@ -1,3 +1,4 @@
+import itertools
 from typing import Iterable, Mapping
 
 from magma.array import Array
@@ -25,7 +26,7 @@ def _get_output_clocks_in_array(
     first_clks = get_output_clocks_in_value(value[0], clock_type)
     try:
         first_clk = next(first_clks)
-    except StopIteration:  # early exit to avoid traversing children
+    except StopIteration:  # early exit to avoid traversing other elements
         return None
     yield first_clk
     yield from first_clks
@@ -84,41 +85,48 @@ def get_all_output_clocks_in_defn(
     return default_clocks
 
 
-def drive_undriven_clocks_in_value(
-        value: Type, clock_type: Kind, driver: Type) -> bool:
+def _get_undriven_clocks_in_array(
+        value: Array, clock_type: Kind) -> Iterable[Type]:
     """
-    Drives all undriven values of type @clock_type contained in @value with
-    @driver. Returns whether any such values were driven by @driver.
+    Returns all undriven values of type @clock_type contained in array @value.
     """
+    # First check if the first element has any undriven.
+    it = get_undriven_clocks_in_value(value[0], clock_type)
+    try:
+        first = next(it)
+    except StopIteration:  # early exit to avoid traversing other elements
+        return
+    yield first
+    yield from it
+    # NOTE(leonardt): Since magma arrays don't support zero-length values, we
+    # have to check the size before slicing.
+    if len(value) <= 1:
+        return
+    for elem in value[1:]:
+        yield from get_undriven_clocks_in_value(elem, clock_type)
+
+
+def get_undriven_clocks_in_value(
+        value: Type, clock_type: Kind) -> Iterable[Type]:
+    """Returns all undriven values of type @clock_type contained in @value."""
     if isinstance(value, Tuple):
-        has_undriven = False
         for elem in value:
-            elem_has_undriven = drive_undriven_clocks_in_value(
-                elem, clock_type, driver)
-            has_undriven |= elem_has_undriven
-        return has_undriven
+            yield from get_undriven_clocks_in_value(elem, clock_type)
+        return
     if isinstance(value, Array):
-        # First check if the first element has any undriven.
-        has_undriven = drive_undriven_clocks_in_value(
-            value[0], clock_type, driver)
-        # Only traverse all children circuit if first child has a clock.
-        if not has_undriven:
-            return False
-        # TODO(leonardt): Magma doesn't supvalue length zero array, so slicing a
-        # length 1 array off the end doesn't work as expected in normal Python,
-        # so we explicilty slice value.ts.
-        for t in value.ts[1:]:
-            for elem in value[1:]:
-                drive_undriven_clocks_in_value(elem, clock_type, driver)
-        return True
+        yield from _get_undriven_clocks_in_array(value, clock_type)
+        return
     if isinstance(value, clock_type) and value.trace() is None:
         # Trace back to last undriven driver.
         while value.driven():
             value = value.value()
-        _logger.info(f"Auto-wiring {repr(driver)} to {repr(value)}")
-        value @= driver
-        return True
-    return False
+        yield value
+    return
+
+
+def _drive_value_with_clock(value: Type, clk: Type):
+    _logger.info(f"Auto-wiring {repr(clk)} to {repr(value)}")
+    value @= clk
 
 
 def drive_undriven_clocks_in_inst(
@@ -129,6 +137,14 @@ def drive_undriven_clocks_in_inst(
     exists (either due to no drivers or multiple drivers existing), then this
     function is a no-op.
     """
+    undrivens = []
+    for port in inst.interface.inputs(include_clocks=True):
+        undrivens = itertools.chain(
+            undrivens, get_undriven_clocks_in_value(port, clock_type))
+    try:
+        undriven = next(undrivens)
+    except StopIteration:
+        return
     clks = get_output_clocks_in_defn(defn, clock_type)
     try:
         clk = only(clks)
@@ -142,8 +158,10 @@ def drive_undriven_clocks_in_inst(
             f"Found multiple clocks in {defn.name}; skipping auto-wiring "
             f"{clock_type}")
         return
-    for port in inst.interface.inputs(include_clocks=True):
-        drive_undriven_clocks_in_value(port, clock_type, clk)
+    # Restore undrivens after popping off the first element.
+    undrivens = itertools.chain([undriven], undrivens)
+    for undriven in undrivens:
+        _drive_value_with_clock(undriven, clk)
 
 
 def drive_all_undriven_clocks_in_value(
@@ -156,7 +174,10 @@ def drive_all_undriven_clocks_in_value(
     for clock_type, clk in clocks.items():
         if clk is None:
             continue
-        has_undriven |= drive_undriven_clocks_in_value(value, clock_type, clk)
+        undrivens = get_undriven_clocks_in_value(value, clock_type)
+        for undriven in undrivens:
+            has_undriven = True
+            _drive_value_with_clock(undriven, clk)
     return has_undriven
 
 
