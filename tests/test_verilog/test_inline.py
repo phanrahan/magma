@@ -282,3 +282,21 @@ assert property (@(posedge CLK) {I} |-> ##1 {O});
         m.compile('build/Main', Main)
 
     assert str(e.value) == "Found reference to undriven input port: Main.O"
+
+
+def test_inline_passthrough_wire():
+    class Foo(m.Circuit):
+        T = m.AnonProduct[dict(x=m.Bit, y=m.Bits[4])]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= io.I
+        
+        m.inline_verilog("""
+    assert {io.I.y[0]} == {io.I.y[1]}
+""")
+        m.inline_verilog("""
+    assert {io.I.y[1:3]} == {io.I.y[2:4]}
+""")
+    m.compile("build/test_inline_passthrough_wire", Foo, inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_passthrough_wire.v",
+        f"gold/test_inline_passthrough_wire.v")

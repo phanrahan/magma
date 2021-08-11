@@ -36,16 +36,20 @@ module Foo (
 );
 wire _magma_inline_wire0_O;
 wire _magma_inline_wire1;
+wire _magma_inline_wire2;
+wire _magma_inline_wire3;
 WireClock _magma_inline_wire0 (
     .I(CLK),
     .O(_magma_inline_wire0_O)
 );
 assign _magma_inline_wire1 = RESET;
+assign _magma_inline_wire2 = x;
+assign _magma_inline_wire3 = y;
 
-assert property (@(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1) x |-> ##1 y);
+assert property (@(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1) _magma_inline_wire2 |-> ##1 _magma_inline_wire3);
 
 
-assert property (@(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1) x |-> ##1 y);
+assert property (@(posedge _magma_inline_wire0_O) disable iff (! _magma_inline_wire1) _magma_inline_wire2 |-> ##1 _magma_inline_wire3);
 
 endmodule
 

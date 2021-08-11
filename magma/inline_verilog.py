@@ -15,14 +15,6 @@ from magma.wire import wire
 from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
 
 
-def _get_top_level_ref(ref):
-    if isinstance(ref, ArrayRef):
-        return _get_top_level_ref(ref.array.name)
-    if isinstance(ref, TupleRef):
-        return _get_top_level_ref(ref.tuple.name)
-    return ref
-
-
 def _get_view_inst_parent(view):
     while not isinstance(view, InstView):
         assert isinstance(view, PortView), type(view)
@@ -58,8 +50,10 @@ class InlineVerilogError(RuntimeError):
 
 def _insert_temporary_wires(cls, value, inline_wire_prefix):
     """
-    For non DefnRef, insert a temporary Wire instance so the signal isn't
-    inlined out
+    Insert a temporary Wire instance so the signal isn't inlined out.
+
+    We have to do this for DefnRef because the coreir inline.cpp logic
+    sometimes inserts temporary wires for DefnRef that eventually get inlined.
     """
     if isinstance(value, Type):
         if value.is_input():
@@ -70,19 +64,18 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
                     f"Found reference to undriven input port: "
                     f"{orig_value.debug_name}")
 
-        if not isinstance(_get_top_level_ref(value.name), DefnRef):
-            key = value
-            if isinstance(value, ClockTypes) and not value.driven():
-                # Share wire for undriven clocks so we don't
-                # generate a separate wire for the eventual
-                # driver from the automatic clock wiring logic
-                key = type(value)
-            if key not in cls.inline_verilog_wire_map:
-                temp = _make_temporary(cls, value,
-                                       len(cls.inline_verilog_wire_map),
-                                       inline_wire_prefix)
-                cls.inline_verilog_wire_map[key] = temp
-            value = cls.inline_verilog_wire_map[key]
+        key = value
+        if isinstance(value, ClockTypes) and not value.driven():
+            # Share wire for undriven clocks so we don't
+            # generate a separate wire for the eventual
+            # driver from the automatic clock wiring logic
+            key = type(value)
+        if key not in cls.inline_verilog_wire_map:
+            temp = _make_temporary(cls, value,
+                                   len(cls.inline_verilog_wire_map),
+                                   inline_wire_prefix)
+            cls.inline_verilog_wire_map[key] = temp
+        value = cls.inline_verilog_wire_map[key]
     else:
         assert isinstance(value, PortView)
         if value.port.is_input():
