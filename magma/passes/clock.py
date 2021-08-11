@@ -1,6 +1,5 @@
-from ..is_definition import isdefinition
-from ..wire_clock import wiredefaultclock, wireclock
-from .passes import DefinitionPass
+from magma.passes.passes import DefinitionPass
+from magma.wire_clock import wiredefaultclock, wireclock
 
 
 class WireClockPass(DefinitionPass):
