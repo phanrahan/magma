@@ -47,3 +47,17 @@ def test_drive_undriven_clock_types_multiple_clocks_logging(caplog):
 
     msg = f"Found multiple clocks in {Foo.name}; skipping auto-wiring {m.Clock}"
     assert has_warning(caplog, msg)
+
+
+def test_drive_undriven_clock_types_combinational_logging(caplog):
+    T = m.Bit
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= ~io.I
+
+    inst = Foo.instances[0]
+    drive_undriven_clock_types_in_inst(Foo, inst)
+
+    msg = f"Found no clocks in {Foo.name}; skipping auto-wiring {m.Clock}"
+    assert not has_warning(caplog, msg)
