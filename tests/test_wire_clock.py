@@ -1,5 +1,5 @@
 import magma as m
-from magma.wire_clock import wiredefaultclock
+from magma.wire_clock import drive_undriven_clock_types_in_inst
 from magma.testing.utils import has_info, has_warning
 
 
@@ -11,7 +11,7 @@ def test_wire_clock_succesful_logging(caplog):
         io.O @= m.register(io.I)
 
     Foo_reg = Foo.instances[0]
-    wiredefaultclock(Foo, Foo_reg)
+    drive_undriven_clock_types_in_inst(Foo, Foo_reg)
 
     msg = f"Auto-wiring {repr(Foo.CLK)} to {repr(Foo_reg.CLK)}"
     assert has_info(caplog, msg)
@@ -29,7 +29,7 @@ def test_wire_clock_no_clock_logging(caplog):
         Foo.O @= m.register(Foo.I)
 
     Foo_reg = Foo.instances[0]
-    wiredefaultclock(Foo, Foo_reg)
+    drive_undriven_clock_types_in_inst(Foo, Foo_reg)
 
     msg = f"Found no clocks in {Foo.name}; skipping auto-wiring {m.Clock}"
     assert has_warning(caplog, msg)
@@ -43,7 +43,7 @@ def test_wire_clock_multiple_clocks_logging(caplog):
         io.O @= m.register(io.I)
 
     Foo_reg = Foo.instances[0]
-    wiredefaultclock(Foo, Foo_reg)
+    drive_undriven_clock_types_in_inst(Foo, Foo_reg)
 
     msg = f"Found multiple clocks in {Foo.name}; skipping auto-wiring {m.Clock}"
     assert has_warning(caplog, msg)

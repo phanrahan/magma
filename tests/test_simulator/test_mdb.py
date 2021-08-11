@@ -5,7 +5,7 @@ from magma.simulator.mdb import SimulationConsole
 from magma import *
 from magma.scope import *
 from magma.passes.debug_name import DebugNamePass
-from magma.wire_clock import wireclock
+from magma.wire_clock import drive_undriven_other_clock_types_in_inst
 
 def test(capsys):
     m.config.set_debug_mode(True)
@@ -75,7 +75,7 @@ def test(capsys):
     
             wire(inc.COUT, io.COUT)
     
-        wireclock(Counter, Counter.reg)
+        drive_undriven_other_clock_types_in_inst(Counter, Counter.reg)
     
         return Counter()
     

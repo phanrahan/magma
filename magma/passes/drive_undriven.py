@@ -2,7 +2,8 @@ from .passes import EditDefinitionPass
 from ..is_definition import isdefinition
 from magma.array import Array
 from magma.clock import is_clock_or_nested_clock
-from magma.wire_clock import wire_default_clock, get_default_clocks
+from magma.wire_clock import (
+    drive_all_undriven_clocks_in_value, get_all_output_clocks_in_defn)
 from magma.tuple import Tuple
 
 
@@ -22,7 +23,7 @@ def _drive_if_undriven_input(port, clocks):
             # children
             return _drive_undriven_children(port, clocks)
         if (not is_clock_or_nested_clock(type(port)) or
-                not wire_default_clock(port, clocks)):
+                not drive_all_undriven_clocks_in_value(port, clocks)):
             port.undriven()
         # We always return True, even if we do default clock wiring since in
         # this case, it should be a definition now
@@ -39,7 +40,7 @@ def _drive_undriven(interface, clocks):
 
 class DriveUndrivenPass(EditDefinitionPass):
     def edit(self, circuit):
-        clocks = get_default_clocks(circuit)
+        clocks = get_all_output_clocks_in_defn(circuit)
         if _drive_undriven(circuit.interface, clocks):
             circuit._is_definition = True
         if not isdefinition(circuit):

@@ -1,3 +1,4 @@
+import functools
 from typing import Iterable, Mapping
 
 from magma.array import Array
@@ -160,23 +161,14 @@ def drive_all_undriven_clocks_in_value(
     return has_undriven
 
 
-# OLD METHODS
-
-def wiredefaultclock(defn, inst):
+def drive_undriven_clock_types_in_inst(defn: DefineCircuitKind, inst: Circuit):
     drive_undriven_clocks_in_inst(defn, inst, Clock)
 
 
-def wireclock(defn, inst):
+def drive_undriven_other_clock_types_in_inst(
+        defn: DefineCircuitKind, inst: Circuit):
     drive_undriven_clocks_in_inst(defn, inst, Reset)
     drive_undriven_clocks_in_inst(defn, inst, ResetN)
     drive_undriven_clocks_in_inst(defn, inst, AsyncReset)
     drive_undriven_clocks_in_inst(defn, inst, AsyncResetN)
     drive_undriven_clocks_in_inst(defn, inst, Enable)
-
-
-def wire_default_clock(value, clocks):
-    return drive_all_undriven_clocks_in_value(value, clocks)
-
-
-def get_default_clocks(defn):
-    return get_all_output_clocks_in_defn(defn)
