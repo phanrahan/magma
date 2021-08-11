@@ -13,7 +13,7 @@ from ..array import Array
 from ..bits import SInt
 from ..tuple import Tuple
 from ..is_definition import isdefinition
-from ..wire_clock import drive_undriven_clock_types_in_inst
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from ..logging import root_logger
 from .util import get_codegen_debug_info, make_relative
 from ..config import config, EnvConfig

@@ -5,7 +5,7 @@ from ..bitutils import seq2int, fun2seq
 from ..bit import Bit, Digital
 from ..array import Array
 from ..compiler import make_compiler
-from ..wire_clock import drive_undriven_clock_types_in_inst
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from ..is_definition import isdefinition
 
 __all__ = ['compile']

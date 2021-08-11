@@ -1,7 +1,7 @@
 from .test_primitives import *
 from magma.simulator import PythonSimulator
 from magma import *
-from magma.wire_clock import drive_undriven_other_clock_types_in_inst
+from magma.passes.clock import drive_undriven_other_clock_types_in_inst
 from magma.scope import *
 
 def test():

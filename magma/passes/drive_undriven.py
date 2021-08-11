@@ -2,7 +2,7 @@ from .passes import EditDefinitionPass
 from ..is_definition import isdefinition
 from magma.array import Array
 from magma.clock import is_clock_or_nested_clock
-from magma.wire_clock import (
+from magma.passes.clock import (
     drive_all_undriven_clocks_in_value, get_all_output_clocks_in_defn)
 from magma.tuple import Tuple
 

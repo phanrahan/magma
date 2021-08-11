@@ -22,7 +22,7 @@ from magma.passes import dependencies
 from magma.tuple import Tuple
 from magma.backend.util import get_codegen_debug_info
 from magma.clock import is_clock_or_nested_clock
-from magma.wire_clock import (
+from magma.passes.clock import (
     drive_all_undriven_clocks_in_value, get_all_output_clocks_in_defn)
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta

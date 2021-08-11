@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from .wire_clock import drive_undriven_clock_types_in_inst
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 
 def compileclocks(cls):
     for instance in cls.instances:

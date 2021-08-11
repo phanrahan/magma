@@ -1,5 +1,5 @@
 import magma as m
-from magma.wire_clock import drive_undriven_clock_types_in_inst
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from magma.testing.utils import has_info, has_warning
 
 

@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from ..bit import Bit, Digital
 from ..array import Array
-from ..wire_clock import drive_undriven_clock_types_in_inst
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from ..compiler import make_compiler
 from .verilog import find
 
