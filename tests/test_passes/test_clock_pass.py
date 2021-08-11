@@ -3,7 +3,7 @@ from magma.passes.clock import drive_undriven_clock_types_in_inst
 from magma.testing.utils import has_info, has_warning
 
 
-def test_wire_clock_succesful_logging(caplog):
+def test_drive_undriven_clock_types_succesful_logging(caplog):
     T = m.Bit
 
     class Foo(m.Circuit):
@@ -17,7 +17,7 @@ def test_wire_clock_succesful_logging(caplog):
     assert has_info(caplog, msg)
 
 
-def test_wire_clock_no_clock_logging(caplog):
+def test_drive_undriven_clock_types_no_clock_logging(caplog):
     T = m.Bit
 
     class Foo(m.Circuit):
@@ -35,7 +35,7 @@ def test_wire_clock_no_clock_logging(caplog):
     assert has_warning(caplog, msg)
 
 
-def test_wire_clock_multiple_clocks_logging(caplog):
+def test_drive_undriven_clock_types_multiple_clocks_logging(caplog):
     T = m.Bit
 
     class Foo(m.Circuit):
