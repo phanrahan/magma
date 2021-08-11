@@ -50,10 +50,10 @@ class InlineVerilogError(RuntimeError):
 
 def _insert_temporary_wires(cls, value, inline_wire_prefix):
     """
-    Insert a temporary Wire instance so the signal isn't inlined out
+    Insert a temporary Wire instance so the signal isn't inlined out.
 
     We have to do this for DefnRef because the coreir inline.cpp logic
-    sometimes inserts temporary wires for DefnRef that eventually get inlined
+    sometimes inserts temporary wires for DefnRef that eventually get inlined.
     """
     if isinstance(value, Type):
         if value.is_input():
