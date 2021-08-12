@@ -66,7 +66,7 @@ def verilog_name(name, inst_sep="_", disable_ndarray=False):
         tuple_name = verilog_name(name.tuple.name,
                                   disable_ndarray=disable_ndarray)
         index = name.index
-        if name.root() is None:
+        if type(name.root()) is not NamedRef:
             # Not a named temporary that will be flattened to a wire
             try:
                 int(index)

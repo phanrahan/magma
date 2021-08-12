@@ -30,6 +30,7 @@ except ImportError:
 from .view import PortView
 
 from magma.clock import is_clock_or_nested_clock, Clock
+from magma.ref import NamedRef
 from magma.t import In
 from magma.wire_container import WiringLog
 
@@ -232,12 +233,11 @@ def _add_intermediate_value(value):
     `CircuitKind.__repr__`.
     """
     root = value.name.root()
-    # root is either None, or a NamedRef. If it is a NamedRef which refers to a
-    # constant, then we can proceed with the empty set. Otherwise, we seed the
-    # set with the root value.
-    if root is None or root.value().const():
-        return OrderedIdentitySet()
-    return OrderedIdentitySet((root.value(),))
+    # If it is a NamedRef which doesn't refer to a constant, then we seed the
+    # set with the root value. Otherwise, we can proceed with the empty set
+    if type(root) is NamedRef and not root.value().const():
+        return OrderedIdentitySet((root.value(),))
+    return OrderedIdentitySet()
 
 
 def _get_intermediate_values(value):

@@ -134,6 +134,13 @@ class Type(object):
         """
         return self.name.anon() and not self.is_output() and self.driven()
 
+    @abc.abstractmethod
+    def inst(self):
+        """
+        If value is part of a port on an instance, return that instance, otherwise None
+        """
+        raise NotImplementedError()
+
 
 class Kind(type):
     # Subclasses only need to implement one of these methods.

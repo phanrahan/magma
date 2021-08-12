@@ -20,14 +20,11 @@ class Ref:
     def anon(self):
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def parent(self):
-        raise NotImplementedError()
+        return self
 
     def root(self) -> typing.Optional['Ref']:
         parent = self.parent()
-        if parent is None:
-            return None
         if parent is self:
             return self
         return parent.root()
@@ -42,9 +39,6 @@ class AnonRef(Ref):
 
     def qualifiedname(self, sep='.'):
         return f"AnonymousValue_{id(self)}"
-
-    def parent(self):
-        return None
 
     def anon(self):
         return True
@@ -65,9 +59,6 @@ class NamedRef(Ref):
 
     def anon(self):
         return False
-
-    def parent(self):
-        return self
 
     def value(self):
         return self._value if self._value is None else self._value()
@@ -92,9 +83,6 @@ class InstRef(NamedRef):
             if sep == ".":
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
-
-    def parent(self):
-        return None
 
 
 class LazyInstRef(InstRef):
@@ -128,9 +116,6 @@ class DefnRef(NamedRef):
         if sep == ".":
             return self.defn.__name__ + sep + self.name
         return self.name
-
-    def parent(self):
-        return None
 
 
 class LazyCircuit:
@@ -212,9 +197,6 @@ class PortViewRef(Ref):
 
     def anon(self):
         return self.view.port.anon()
-
-    def parent(self):
-        return None
 
     def __str__(self):
         return str(self.view.port.name)
