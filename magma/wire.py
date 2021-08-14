@@ -6,6 +6,8 @@ from .debug import debug_wire
 from .logging import root_logger
 from .protocol_type import magma_value
 
+from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
+from magma.ref import LazyCircuit, PortViewRef
 from magma.wire_container import WiringLog
 
 
@@ -51,6 +53,46 @@ def wire(o, i, debug_info=None):
         if isinstance(i, _CONSTANTS) or not i.is_input():
             # Flip i and o.
             i, o = o, i
+
+    if isinstance(i, _CONSTANTS) or isinstance(o, _CONSTANTS):
+        pass
+    elif (isinstance(i.name, PortViewRef) or
+          isinstance(o.name, PortViewRef)):
+        pass
+    elif i.temp() or o.temp():
+        pass
+    elif (i.defn() is not None and
+          o.defn() is not None and
+          i.defn() is o.defn()):
+        pass
+    # TODO: How to handle circuit builders?
+    elif (i.inst() is not None and
+          i.inst() is LazyCircuit):
+        pass
+    # TODO: How to handle circuit builders?
+    elif (o.inst() is not None and
+          o.inst() is LazyCircuit):
+        pass
+    elif (i.inst() is not None and
+          o.defn() is not None and
+          i.inst().defn is o.defn() and
+          (o.defn() is LazyCircuit or
+           o.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
+        pass
+    elif (o.inst() is not None and
+          i.defn() is not None and
+          o.inst().defn is i.defn() and
+          (i.defn() is LazyCircuit or
+           i.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
+        pass
+    elif (o.inst() is not None and
+          i.inst() is not None and
+          o.inst().defn is i.inst().defn and
+          (i.inst().defn is LazyCircuit or
+           i.inst().defn is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
+        pass
+    else:
+        raise Exception(f"Cannot wire together {o} and {i}")
 
     i_T, o_T = type(i), type(o)
     if not i_T.is_wireable(o_T):

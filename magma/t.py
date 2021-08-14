@@ -134,12 +134,27 @@ class Type(object):
         """
         return self.name.anon() and not self.is_output() and self.driven()
 
-    @abc.abstractmethod
     def inst(self):
         """
-        If value is part of a port on an instance, return that instance, otherwise None
+        If value is part of a port on an instance, return that instance,
+        otherwise None
         """
-        raise NotImplementedError()
+        if not isinstance(self.name.root(), InstRef):
+            return None
+        return self.name.root().inst
+
+    def defn(self):
+        """
+        If value is part of a port on an definition, return that definition,
+        otherwise None
+        """
+        if not isinstance(self.name.root(), DefnRef):
+            return None
+        return self.name.root().defn
+
+    def temp(self):
+        return (type(self.name.root()) is NamedRef or 
+                type(self.name.root()) is AnonRef)
 
 
 class Kind(type):

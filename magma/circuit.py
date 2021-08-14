@@ -12,7 +12,7 @@ import logging as py_logging  # to avoid confusion
 
 import six
 from . import cache_definition
-from .common import deprecated, setattrs, Stack, OrderedIdentitySet
+from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -30,6 +30,7 @@ except ImportError:
 from .view import PortView
 
 from magma.clock import is_clock_or_nested_clock, Clock
+from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
 from magma.ref import NamedRef
 from magma.t import In
 from magma.wire_container import WiringLog
@@ -117,15 +118,17 @@ class DefinitionContext:
         for display in self._displays:
             self.add_inline_verilog(*display.get_inline_verilog())
 
-    def finalize(self, defn):
+    def place_instances(self, defn):
         self.placer = self.placer.finalize(defn)
         for builder in self._builders:
             inst = builder.finalize()
             self.placer.place(inst)
+
+    def finalize(self, defn):
         # Create the interface for this circuit. This needs to be done after all
         # instances are introduced so that the logic to automatically add clocks
         # to the interface has access to all sub-circuits.
-        _setup_interface(defn)
+        # _setup_interface(defn)
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
         self._finalize_file_opens()  # so displays can refer to open files
@@ -135,18 +138,15 @@ class DefinitionContext:
         defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
 
 
-_definition_context_stack = Stack()
-
-
 class _DefinitionContextManager:
     def __init__(self, context):
         self._context = context
 
     def __enter__(self):
-        _definition_context_stack.push(self._context)
+        DEFINITION_CONTEXT_STACK.push(self._context)
 
     def __exit__(self, typ, value, traceback):
-        _definition_context_stack.pop()
+        DEFINITION_CONTEXT_STACK.pop()
 
 
 def _has_definition(cls, port=None):
@@ -219,9 +219,10 @@ def _get_interface_type(cls, add_default_clock):
 def _setup_interface(cls):
     # Called from DefinitionContext.finalize.
     IO = _get_interface_type(cls, add_default_clock=True)
-    if IO is None:
+    if not hasattr(cls, "IO") and not hasattr(cls, "io"):
         return
-    cls.IO = IO
+    if IO is not None:
+        cls.IO = IO
     cls.interface = cls.IO(defn=cls, renamed_ports=cls._renamed_ports_)
     setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
 
@@ -276,7 +277,7 @@ def _get_intermediate_values(value):
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         context = DefinitionContext(StagedPlacer(name))
-        _definition_context_stack.push(context)
+        DEFINITION_CONTEXT_STACK.push(context)
         return type.__prepare__(name, bases, **kwargs)
 
     """Metaclass for creating circuits."""
@@ -313,7 +314,7 @@ class CircuitKind(type):
         cls._syntax_style_ = _SyntaxStyle.NONE
         cls._renamed_ports_ = dct["renamed_ports"]
         try:
-            context = _definition_context_stack.pop()
+            context = DEFINITION_CONTEXT_STACK.pop()
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
         else:
@@ -321,6 +322,8 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
+            cls._context_.place_instances(cls)
+            _setup_interface(cls)
             cls._context_.finalize(cls)
 
         return cls
@@ -603,7 +606,7 @@ class CircuitType(AnonymousCircuitType):
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
         try:
-            context = _definition_context_stack.peek()
+            context = DEFINITION_CONTEXT_STACK.peek()
             context.placer.place(self)
         except IndexError:  # instances must happen inside a definition context
             raise Exception("Can not instance a circuit outside a definition")
@@ -706,8 +709,10 @@ class DefineCircuitKind(CircuitKind):
                 _logger.warning("'definition' class method syntax is "
                                 "deprecated, use inline definition syntax "
                                 "instead", debug_info=self.debug_info)
+                _setup_interface(self)
                 with _DefinitionContextManager(self._context_):
                     self.definition()
+                self._context_.place_instances(self)
                 self._context_.finalize(self)
                 self._is_definition = True
                 run_unconnected_check = True
@@ -782,13 +787,13 @@ def DefineCircuit(name, *decl, **args):
                     renamed_ports=args.get('renamed_ports', {}),
                     kratos=args.get("kratos", None)))
     defn = metacls(name, bases, dct)
-    _definition_context_stack.push(defn._context_)
+    DEFINITION_CONTEXT_STACK.push(defn._context_)
     return defn
 
 
 def EndDefine():
     try:
-        context = _definition_context_stack.pop()
+        context = DEFINITION_CONTEXT_STACK.pop()
     except IndexError:
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
@@ -881,7 +886,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         # builder will not be automatically finalized, and (b) instantation
         # might fail.
         try:
-            context = _definition_context_stack.peek()
+            context = DEFINITION_CONTEXT_STACK.peek()
         except IndexError:
             pass
         else:

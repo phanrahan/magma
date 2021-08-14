@@ -10,17 +10,14 @@ def test_braid():
         lut0 = And2(name='lut0')
         lut1 = And2(name='lut1')
 
-    lut0 = _Top.lut0
-    lut1 = _Top.lut1
+        lut = braid([lut0,lut1])
+        assert repr(lut) == 'AnonymousCircuitType("I0", array([lut0.I0, lut1.I0]), "I1", array([lut0.I1, lut1.I1]), "O", array([lut0.O, lut1.O]))'
 
-    lut = braid([lut0,lut1])
-    assert repr(lut) == 'AnonymousCircuitType("I0", array([lut0.I0, lut1.I0]), "I1", array([lut0.I1, lut1.I1]), "O", array([lut0.O, lut1.O]))'
+        lut = braid([lut0,lut1], foldargs={'I1':'O'})
+        assert repr(lut) == 'AnonymousCircuitType("I0", array([lut0.I0, lut1.I0]), "I1", lut0.I1, "O", lut1.O)'
 
-    lut = braid([lut0,lut1], foldargs={'I1':'O'})
-    assert repr(lut) == 'AnonymousCircuitType("I0", array([lut0.I0, lut1.I0]), "I1", lut0.I1, "O", lut1.O)'
-
-    lut = braid([lut0,lut1], scanargs={'I1':'O'})
-    assert repr(lut) == 'AnonymousCircuitType("I0", array([lut0.I0, lut1.I0]), "I1", lut0.I1, "O", array([lut0.O, lut1.O]))'
+        lut = braid([lut0,lut1], scanargs={'I1':'O'})
+        assert repr(lut) == 'AnonymousCircuitType("I0", array([lut0.I0, lut1.I0]), "I1", lut0.I1, "O", array([lut0.O, lut1.O]))'
 
 
 def test_compose():

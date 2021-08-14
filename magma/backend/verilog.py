@@ -204,7 +204,8 @@ def compiledefinition(cls):
         #print('compile instances')
         # emit the structured verilog for each instance
         for instance in cls.instances:
-            wiredefaultclock(cls, instance)
+            with cls.open():
+                wiredefaultclock(cls, instance)
             if getattr(instance, "debug_info", False) and \
                     instance.debug_info.filename and instance.debug_info.lineno and \
                     get_codegen_debug_info():

@@ -40,9 +40,8 @@ class InsertCoreIRWires(DefinitionPass):
                 driver.name.name = "_" + driver.name.name
 
             name = f"{driver_name}"
-            with definition.open():
-                wire_inst = Wire(T)(name=name)
-                self.wire_map[driver] = wire_inst
+            wire_inst = Wire(T)(name=name)
+            self.wire_map[driver] = wire_inst
         wire_inst = self.wire_map[driver]
         wire_input = wire_inst.I
         wire_output = wire_inst.O
@@ -106,8 +105,9 @@ class InsertCoreIRWires(DefinitionPass):
             return
 
         value.unwire(driver)
-        self._make_wire(driver, value, definition)
-        self._insert_wire(driver, definition)
+        with definition.open():
+            self._make_wire(driver, value, definition)
+            self._insert_wire(driver, definition)
 
     def __call__(self, definition):
         if getattr(definition, "_coreir_wires_inserted_", False):

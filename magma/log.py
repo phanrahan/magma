@@ -1,6 +1,6 @@
 import functools
 
-from .circuit import _definition_context_stack
+from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
 from .display import Display
 
 
@@ -38,7 +38,7 @@ class Error(Log):
 def _make_log_func(T):
     @functools.wraps(_make_log_func)
     def log_func(log_str, *args, file=None):
-        context = _definition_context_stack.peek()
+        context = DEFINITION_CONTEXT_STACK.peek()
         log = T(log_str, args, file=file)
         context.add_display(log)
         context.insert_default_log_level()

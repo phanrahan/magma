@@ -413,9 +413,10 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value):
         if value is None and is_clock_or_nested_clock(type(port)):
-            if not wire_default_clock(port, self.clocks):
-                # No default clock
-                raise UnconnectedPortException(port)
+            with self.defn.open():
+                if not wire_default_clock(port, self.clocks):
+                    # No default clock
+                    raise UnconnectedPortException(port)
             value = port.trace()
         if value is None:
             if port.is_inout():

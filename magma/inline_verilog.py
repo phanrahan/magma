@@ -1,7 +1,8 @@
 import hashlib
 import string
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
-from magma.circuit import _definition_context_stack, Circuit, IO
+from magma.circuit import Circuit, IO
+from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
 from magma.passes.passes import CircuitPass
 from magma.primitives.wire import Wire
 from magma.t import Type, Direction, In
@@ -235,6 +236,6 @@ def inline_verilog(format_str, inline_wire_prefix="_magma_inline_wire",
     exec(_SKIP_FRAME_DEBUG_STMT)
     symbol_table = get_symbol_table([inline_verilog], copy_locals=True)
 
-    context = _definition_context_stack.peek()
+    context = DEFINITION_CONTEXT_STACK.peek()
     context.add_inline_verilog(format_str, kwargs, symbol_table,
                                inline_wire_prefix)

@@ -1,4 +1,4 @@
-from .circuit import _definition_context_stack
+from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
 from .t import Type
 
 
@@ -132,7 +132,7 @@ end
 
 
 def display(display_str, *args, file=None):
-    context = _definition_context_stack.peek()
+    context = DEFINITION_CONTEXT_STACK.peek()
     disp = Display(display_str, args, file)
     context.add_display(disp)
     return disp
@@ -143,7 +143,7 @@ class File:
         self.filename = filename
         self.mode = mode
 
-        context = _definition_context_stack.peek()
+        context = DEFINITION_CONTEXT_STACK.peek()
         context.add_file(self)
 
     def __enter__(self):

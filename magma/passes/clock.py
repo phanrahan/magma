@@ -5,6 +5,7 @@ from .passes import DefinitionPass
 
 class WireClockPass(DefinitionPass):
     def __call__(self, definition):
-        for instance in definition.instances:
-            wiredefaultclock(definition, instance)
-            wireclock(definition, instance)
+        with definition.open():
+            for instance in definition.instances:
+                wiredefaultclock(definition, instance)
+                wireclock(definition, instance)
