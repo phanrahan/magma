@@ -153,10 +153,10 @@ def root_logger():
 
 def stage_logger():
     global _staged_logging
-    _staged_logging.append(True)
+    _staged_logging = True
 
 
 def unstage_logger():
     global _staged_logging
-    assert _staged_logging.pop() is True
+    _staged_logging = False
     return flush()
