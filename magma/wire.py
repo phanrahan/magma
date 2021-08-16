@@ -62,9 +62,16 @@ def wire(o, i, debug_info=None):
     elif i.temp() or o.temp():
         pass
     elif (i.defn() is not None and
-          o.defn() is not None and
-          i.defn() is o.defn()):
-        pass
+          o.defn() is not None):
+        if i.defn() is not o.defn():
+            _logger.error(
+                WiringLog(f"Cannot wire {o} to {i} because they are not from"
+                          f" the same definition:"
+                          f"\n    {o} is from {o.defn()},"
+                          f"\n    {i} is from {i.defn()}"),
+                debug_info=debug_info
+            )
+            return
     # TODO: How to handle circuit builders?
     elif (i.inst() is not None and
           i.inst() is LazyCircuit):

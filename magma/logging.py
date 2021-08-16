@@ -16,7 +16,9 @@ config._register(
 )
 
 
-_staged_logging = False
+# Use stack semantics for nested definitions (so a nested definition doesn't
+# unstage an enclosing definition)
+_staged_logging = []
 _staged_logs = []
 
 
@@ -151,10 +153,10 @@ def root_logger():
 
 def stage_logger():
     global _staged_logging
-    _staged_logging = True
+    _staged_logging.append(True)
 
 
 def unstage_logger():
     global _staged_logging
-    _staged_logging = False
+    assert _staged_logging.pop() is True
     return flush()
