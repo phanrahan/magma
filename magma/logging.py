@@ -16,9 +16,7 @@ config._register(
 )
 
 
-# Use stack semantics for nested definitions (so a nested definition doesn't
-# unstage an enclosing definition)
-_staged_logging = []
+_staged_logging = False
 _staged_logs = []
 
 
