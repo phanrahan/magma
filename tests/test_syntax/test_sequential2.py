@@ -11,6 +11,7 @@ from hwtypes import UIntVector
 
 import magma as m
 from magma.testing import check_files_equal
+from magma.logging import unstage_logger
 
 Register = m.Register
 
@@ -435,6 +436,8 @@ def test_sequential2_ite_array_error():
                     return m.array([m.bit(0), m.bit(0)])
                 else:
                     return m.array([self.v.prev()])
+    # Need to unstage logger for subsequent tests (remove error circuit)
+    unstage_logger()
 
 
 def test_sequential2_ite_tuple():
@@ -487,6 +490,8 @@ def test_sequential2_ite_tuple_error_type():
                     return m.tuple_(m.bits(0, 2))
                 else:
                     return m.tuple_(self.v.prev())
+    # Need to unstage logger for subsequent tests (remove error circuit)
+    unstage_logger()
 
 
 def test_sequential2_ite_product():
@@ -539,6 +544,8 @@ def test_sequential2_ite_product_error_type():
                     return m.namedtuple(a=m.bits(0, 2))
                 else:
                     return m.namedtuple(a=self.v.prev())
+    # Need to unstage logger for subsequent tests (remove error circuit)
+    unstage_logger()
 
 
 def test_sequential2_ite_product_error_keys():
@@ -555,6 +562,8 @@ def test_sequential2_ite_product_error_keys():
                     return m.namedtuple(a=m.bit(0))
                 else:
                     return m.namedtuple(b=self.v.prev())
+    # Need to unstage logger for subsequent tests (remove error circuit)
+    unstage_logger()
 
 
 def test_sequential2_ite_nested():

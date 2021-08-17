@@ -65,10 +65,8 @@ def wire(o, i, debug_info=None):
           o.defn() is not None):
         if i.defn() is not o.defn():
             _logger.error(
-                WiringLog(f"Cannot wire {o} to {i} because they are not from"
-                          f" the same definition:"
-                          f"\n    {o} is from {o.defn()},"
-                          f"\n    {i} is from {i.defn()}"),
+                WiringLog("Cannot wire {} to {} because they are not from"
+                          " the same definition", o, i),
                 debug_info=debug_info
             )
             return

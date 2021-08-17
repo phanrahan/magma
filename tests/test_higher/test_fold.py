@@ -11,7 +11,8 @@ def test_fold_shift_register(caplog):
         ) + m.ClockIO(has_async_reset=True)
         regs = [m.Register(m.UInt[4], reset_type=m.AsyncReset,
                            has_enable=True)() for _ in range(4)]
-        io.O @= m.fold(regs, foldargs={"I": "O"})(io.I, CE=io.shift)
+        io.O @= m.fold(regs, foldargs={"I": "O"},
+                       forkargs=["CE"])(io.I, CE=io.shift)
 
     m.compile("build/EnableShiftRegister", EnableShiftRegister)
 
@@ -29,7 +30,8 @@ def test_fold_reset_shift_register():
         ) + m.ClockIO(has_resetn=True)
         regs = [m.Register(m.UInt[4], has_enable=True, reset_type=m.ResetN)()
                 for _ in range(4)]
-        io.O @= m.fold(regs, foldargs={"I": "O"})(io.I, CE=io.shift)
+        io.O @= m.fold(regs, foldargs={"I": "O"},
+                       forkargs=["CE"])(io.I, CE=io.shift)
 
     # This should not raise an unconnected port exception
     m.compile("build/ResetShiftRegister", ResetShiftRegister)

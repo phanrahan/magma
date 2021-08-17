@@ -16,7 +16,9 @@ config._register(
 )
 
 
-_staged_logging = False
+# Note(leonardt): Use stack for logs so nested definitions don't corrupt log
+# state of enclosing circuits
+_staged_logging = []
 _staged_logs = []
 
 
@@ -98,28 +100,28 @@ class _MagmaLogger(logging.Logger):
     def debug(self, msg, *args, **kwargs):
         global _staged_logging
         if _staged_logging:
-            _staged_logs.append((self, logging.DEBUG, msg, args, kwargs))
+            _staged_logs[-1].append((self, logging.DEBUG, msg, args, kwargs))
             return
         _MagmaLogger.__with_preamble(super().debug, msg, *args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
         global _staged_logging
         if _staged_logging:
-            _staged_logs.append((self, logging.INFO, msg, args, kwargs))
+            _staged_logs[-1].append((self, logging.INFO, msg, args, kwargs))
             return
         _MagmaLogger.__with_preamble(super().info, msg, *args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
         global _staged_logging
         if _staged_logging:
-            _staged_logs.append((self, logging.WARNING, msg, args, kwargs))
+            _staged_logs[-1].append((self, logging.WARNING, msg, args, kwargs))
             return
         _MagmaLogger.__with_preamble(super().warning, msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
         global _staged_logging
         if _staged_logging:
-            _staged_logs.append((self, logging.ERROR, msg, args, kwargs))
+            _staged_logs[-1].append((self, logging.ERROR, msg, args, kwargs))
             return
         _MagmaLogger.__with_preamble(super().error, msg, *args, **kwargs)
 
@@ -137,11 +139,9 @@ _root_logger.setLevel(config.log_level)
 
 
 def flush():
-    global _staged_logs
-    curr_logs = _staged_logs.copy()
+    curr_logs = _staged_logs.pop()
     for logger, level, obj, args, kwargs in curr_logs:
         logger.log(level, obj, *args, **kwargs)
-    _staged_logs = []
     return curr_logs
 
 
@@ -151,10 +151,11 @@ def root_logger():
 
 def stage_logger():
     global _staged_logging
-    _staged_logging = True
+    _staged_logging.append(True)
+    _staged_logs.append([])
 
 
 def unstage_logger():
     global _staged_logging
-    _staged_logging = False
+    _staged_logging.pop()
     return flush()

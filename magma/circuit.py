@@ -124,7 +124,7 @@ class DefinitionContext:
             inst = builder.finalize()
             self.placer.place(inst)
 
-    def finalize(self, defn):
+    def finalize(self, defn, staged_logs=True):
         # Create the interface for this circuit. This needs to be done after all
         # instances are introduced so that the logic to automatically add clocks
         # to the interface has access to all sub-circuits.
@@ -134,8 +134,9 @@ class DefinitionContext:
         self._finalize_file_opens()  # so displays can refer to open files
         self._finalize_displays()
         self._finalize_file_close()  # close after displays
-        logs = unstage_logger()
-        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
+        if staged_logs:
+            logs = unstage_logger()
+            defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
 
 
 class _DefinitionContextManager:
@@ -317,6 +318,8 @@ class CircuitKind(type):
             context = DEFINITION_CONTEXT_STACK.pop()
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
+            # Need to remove from log stack
+            assert not unstage_logger()
         else:
             assert context.placer.name == cls_name
             # Override staged context with '_context_' from namespace if
@@ -713,7 +716,7 @@ class DefineCircuitKind(CircuitKind):
                 with _DefinitionContextManager(self._context_):
                     self.definition()
                 self._context_.place_instances(self)
-                self._context_.finalize(self)
+                self._context_.finalize(self, staged_logs=False)
                 self._is_definition = True
                 run_unconnected_check = True
             elif self._syntax_style_ is _SyntaxStyle.NEW:
@@ -956,6 +959,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         dct.update(self._dct)
         DefineCircuitKind.__prepare__(self._name, bases)
         self._defn = DefineCircuitKind(self._name, bases, dct)
+        self._context.finalize(self._defn)
         self._finalized = True
         if dont_instantiate:
             return None
