@@ -17,6 +17,7 @@ from magma.backend.coreir.coreir_utils import (
 from magma.compile_exception import UnconnectedPortException
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
+from magma.linking import get_linked_modules
 from magma.logging import root_logger
 from magma.passes import dependencies
 from magma.tuple import Tuple
@@ -160,6 +161,13 @@ class DefnOrDeclTransformer(TransformerBase):
     def run_self(self):
         self._run_self_impl()
         self._generate_symbols()
+        self._link_modules()
+
+    def _link_modules(self):
+        targets = get_linked_modules(self.defn_or_decl)
+        for key, target in targets.items():
+            target = self.backend.get_module(target)
+            self.coreir_module.link_module(key, target)
 
     def _generate_symbols(self):
         if not self.get_opt("generate_symbols", False):
