@@ -28,7 +28,7 @@ from magma.clock import is_clock_or_nested_clock
 from magma.wire_clock import wire_default_clock, get_default_clocks
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
-from magma.ref import PortViewRef, ArrayRef
+from magma.ref import PortViewRef, ArrayRef, LazyCircuit
 from magma.symbol_table import SYMBOL_TABLE_EMPTY
 
 
@@ -43,54 +43,43 @@ _generator_callbacks = {}
 _CONSTANTS = (IntegerTypes, BitVector, Bit)
 
 
-def _check_wiring_context(i, o, debug_info):
+def _check_wiring_context(i, o):
     """
     Ensures that i and o come from the same definition context
     """
-    if isinstance(i, _CONSTANTS) or isinstance(o, _CONSTANTS):
+    if isinstance(o, Slice):
+        o = o.value
+    if isinstance(i, Slice):
+        i = i.value
+    i, o = _unwrap(i), _unwrap(o)
+    if o.temp() or i.temp():
+        # Will be handled recursively by the get_source logic
         return
-    if i is None or o is None:
-        # If either is as temporary without a source, we cannot check its
-        # context
+    if o.const():
         return
     elif (isinstance(i.name, PortViewRef) or
           isinstance(o.name, PortViewRef)):
-        pass
+        return
     elif (i.defn() is not None and
           o.defn() is not None):
         if i.defn() is not o.defn():
             raise MagmaCompileException(
                 f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
                 " not from the same definition")
-            return
-    # TODO: How to handle circuit builders?
-    elif (i.inst() is not None and
-          i.inst() is LazyCircuit):
-        pass
-    # TODO: How to handle circuit builders?
-    elif (o.inst() is not None and
-          o.inst() is LazyCircuit):
-        pass
+        return
     elif (i.inst() is not None and
           o.defn() is not None and
-          i.inst().defn is o.defn() and
-          (o.defn() is LazyCircuit or
-           o.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
-        pass
+          i.inst().defn is o.defn()):
+        return
     elif (o.inst() is not None and
           i.defn() is not None and
-          o.inst().defn is i.defn() and
-          (i.defn() is LazyCircuit or
-           i.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
-        pass
+          o.inst().defn is i.defn()):
+        return
     elif (o.inst() is not None and
           i.inst() is not None and
-          o.inst().defn is i.inst().defn and
-          (i.inst().defn is LazyCircuit or
-           i.inst().defn is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
-        pass
-    else:
-        raise WiringException(f"Cannot wire together {o} and {i}")
+          o.inst().defn is i.inst().defn):
+        return
+    raise MagmaCompileException(f"Cannot wire together {o} and {i}")
 
 
 def _is_generator(ckt_or_inst):
@@ -480,7 +469,7 @@ class DefinitionTransformer(TransformerBase):
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise UnconnectedPortException(port)
-        _check_wiring_context(port, value, getattr(port, "debug_info", None))
+        _check_wiring_context(port, value)
         source = self.get_source(port, value, module_defn)
         if not source:
             return
