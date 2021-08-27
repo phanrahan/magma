@@ -17,16 +17,35 @@ _logger = root_logger()
 _CONSTANTS = (IntegerTypes, BitVector, Bit)
 
 
+class WiringException(Exception):
+    pass
+
+
+def _get_source(value):
+    """
+    Traces temporaries back to their source (if it exists) to resolve context
+    """
+    if value.temp():
+        value = value.trace()
+    if value is not None and value.temp():
+        # Could trace back to an anon output value
+        return None
+    return value
+
+
 def _check_wiring_context(i, o, debug_info):
     """
     Ensures that i and o come from the same definition context
     """
     if isinstance(i, _CONSTANTS) or isinstance(o, _CONSTANTS):
-        pass
+        return
+    i, o = _get_source(i), _get_source(o)
+    if i is None or o is None:
+        # If either is as temporary without a source, we cannot check its
+        # context
+        return
     elif (isinstance(i.name, PortViewRef) or
           isinstance(o.name, PortViewRef)):
-        pass
-    elif i.temp() or o.temp():
         pass
     elif (i.defn() is not None and
           o.defn() is not None):
@@ -64,7 +83,7 @@ def _check_wiring_context(i, o, debug_info):
            i.inst().defn is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
         pass
     else:
-        raise Exception(f"Cannot wire together {o} and {i}")
+        raise WiringException(f"Cannot wire together {o} and {i}")
 
 
 @debug_wire

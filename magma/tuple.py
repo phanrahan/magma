@@ -8,6 +8,8 @@ from hwtypes.adt import (
     Product,
     ProductMeta,
 )
+from hwtypes import BitVector, Bit
+
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
@@ -181,7 +183,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         if len(largs) > 0:
             assert len(largs) == len(self)
             for k, t, T in zip(self.keys(), largs, self.types()):
-                if type(t) is bool:
+                if isinstance(t, (IntegerTypes, BitVector, Bit)):
                     t = T(t)
                 self.ts.append(t)
                 if not isinstance(self, AnonProduct):
@@ -336,7 +338,6 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
     def iswhole(self):
         return Tuple._iswhole(self.ts, self.keys())
-
 
     def trace(self):
         ts = [t.trace() for t in self.ts]

@@ -1,5 +1,6 @@
 import pytest
 import magma as m
+from magma.compile_exception import MagmaCompileException
 
 
 def test_missing_generator_paren(caplog):
@@ -21,9 +22,30 @@ def test_missing_generator_paren(caplog):
             foo = Foo(width)()
             m.wire(foo.x, self.io.a)
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Bar", Bar(4))
     assert str(e.value) == "Found circuit with errors: Bar"
-    assert (str(caplog.records[-1].msg) ==
+    assert (str(caplog.records[0].msg) ==
             "Cannot wire Bar.a to Foo.y because they are not from the same"
+            " definition")
+
+
+def test_bad_temp(caplog):
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        z = m.Bits[8]()
+        z @= io.x
+        io.y @= z
+    # Should not raise an error
+    m.compile("build/Foo", Foo)
+
+    class Bar(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        io.y @= Foo.z
+
+    with pytest.raises(MagmaCompileException) as e:
+        m.compile("build/Bar", Bar)
+    assert str(e.value) == "Found circuit with errors: Bar"
+    assert (str(caplog.records[0].msg) ==
+            "Cannot wire Foo.x to Bar.y because they are not from the same"
             " definition")

@@ -1,6 +1,7 @@
 import enum
 
 from magma.passes.passes import CircuitPass, pass_lambda
+from magma.compile_exception import MagmaCompileException
 
 
 _HAS_ERROR_KEY = "_has_errors_"
@@ -41,7 +42,8 @@ class FindErrorsPass(CircuitPass):
     def _handle_error(self, ckt):
         if self._mode == FindErrorsPass.ErrorReportingMode.FIRST:
             assert not self._errors
-            raise Exception(f"Found circuit with errors: {ckt.name}")
+            raise MagmaCompileException(
+                f"Found circuit with errors: {ckt.name}")
         collect = (self._mode == FindErrorsPass.ErrorReportingMode.ALL or
                    self._mode == FindErrorsPass.ErrorReportingMode.COLLECT)
         if collect:
