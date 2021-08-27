@@ -57,25 +57,25 @@ def _check_wiring_context(i, o):
         return
     if o.const():
         return
-    elif (isinstance(i.name, PortViewRef) or
+    if (isinstance(i.name, PortViewRef) or
           isinstance(o.name, PortViewRef)):
         return
-    elif (i.defn() is not None and
+    if (i.defn() is not None and
           o.defn() is not None):
         if i.defn() is not o.defn():
             raise MagmaCompileException(
                 f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
                 " not from the same definition")
         return
-    elif (i.inst() is not None and
+    if (i.inst() is not None and
           o.defn() is not None and
           i.inst().defn is o.defn()):
         return
-    elif (o.inst() is not None and
+    if (o.inst() is not None and
           i.defn() is not None and
           o.inst().defn is i.defn()):
         return
-    elif (o.inst() is not None and
+    if (o.inst() is not None and
           i.inst() is not None and
           o.inst().defn is i.inst().defn):
         return
