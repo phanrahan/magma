@@ -5,6 +5,7 @@ import logging
 import os
 
 import coreir as pycoreir
+from hwtypes import BitVector, Bit
 
 from magma.digital import Digital
 from magma.array import Array
@@ -14,7 +15,9 @@ from magma.backend.coreir.coreir_utils import (
     get_module_of_inst, magma_interface_to_coreir_module_type,
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
-from magma.compile_exception import UnconnectedPortException
+from magma.compatibility import IntegerTypes
+from magma.compile_exception import (UnconnectedPortException,
+                                     MagmaCompileException)
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
@@ -35,6 +38,59 @@ _logger = root_logger().getChild("coreir_backend")
 
 
 _generator_callbacks = {}
+
+
+_CONSTANTS = (IntegerTypes, BitVector, Bit)
+
+
+def _check_wiring_context(i, o, debug_info):
+    """
+    Ensures that i and o come from the same definition context
+    """
+    if isinstance(i, _CONSTANTS) or isinstance(o, _CONSTANTS):
+        return
+    if i is None or o is None:
+        # If either is as temporary without a source, we cannot check its
+        # context
+        return
+    elif (isinstance(i.name, PortViewRef) or
+          isinstance(o.name, PortViewRef)):
+        pass
+    elif (i.defn() is not None and
+          o.defn() is not None):
+        if i.defn() is not o.defn():
+            raise MagmaCompileException(
+                f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
+                " not from the same definition")
+            return
+    # TODO: How to handle circuit builders?
+    elif (i.inst() is not None and
+          i.inst() is LazyCircuit):
+        pass
+    # TODO: How to handle circuit builders?
+    elif (o.inst() is not None and
+          o.inst() is LazyCircuit):
+        pass
+    elif (i.inst() is not None and
+          o.defn() is not None and
+          i.inst().defn is o.defn() and
+          (o.defn() is LazyCircuit or
+           o.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
+        pass
+    elif (o.inst() is not None and
+          i.defn() is not None and
+          o.inst().defn is i.defn() and
+          (i.defn() is LazyCircuit or
+           i.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
+        pass
+    elif (o.inst() is not None and
+          i.inst() is not None and
+          o.inst().defn is i.inst().defn and
+          (i.inst().defn is LazyCircuit or
+           i.inst().defn is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
+        pass
+    else:
+        raise WiringException(f"Cannot wire together {o} and {i}")
 
 
 def _is_generator(ckt_or_inst):
@@ -424,6 +480,7 @@ class DefinitionTransformer(TransformerBase):
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise UnconnectedPortException(port)
+        _check_wiring_context(port, value, getattr(port, "debug_info", None))
         source = self.get_source(port, value, module_defn)
         if not source:
             return

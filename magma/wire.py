@@ -6,8 +6,6 @@ from .debug import debug_wire
 from .logging import root_logger
 from .protocol_type import magma_value
 
-from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
-from magma.ref import LazyCircuit, PortViewRef
 from magma.wire_container import WiringLog
 
 
@@ -15,75 +13,6 @@ _logger = root_logger()
 
 
 _CONSTANTS = (IntegerTypes, BitVector, Bit)
-
-
-class WiringException(Exception):
-    pass
-
-
-def _get_source(value):
-    """
-    Traces temporaries back to their source (if it exists) to resolve context
-    """
-    if value.temp():
-        value = value.trace()
-    if value is not None and value.temp():
-        # Could trace back to an anon output value
-        return None
-    return value
-
-
-def _check_wiring_context(i, o, debug_info):
-    """
-    Ensures that i and o come from the same definition context
-    """
-    if isinstance(i, _CONSTANTS) or isinstance(o, _CONSTANTS):
-        return
-    i, o = _get_source(i), _get_source(o)
-    if i is None or o is None:
-        # If either is as temporary without a source, we cannot check its
-        # context
-        return
-    elif (isinstance(i.name, PortViewRef) or
-          isinstance(o.name, PortViewRef)):
-        pass
-    elif (i.defn() is not None and
-          o.defn() is not None):
-        if i.defn() is not o.defn():
-            _logger.error(
-                WiringLog("Cannot wire {} to {} because they are not from"
-                          " the same definition", o, i),
-                debug_info=debug_info
-            )
-            return
-    # TODO: How to handle circuit builders?
-    elif (i.inst() is not None and
-          i.inst() is LazyCircuit):
-        pass
-    # TODO: How to handle circuit builders?
-    elif (o.inst() is not None and
-          o.inst() is LazyCircuit):
-        pass
-    elif (i.inst() is not None and
-          o.defn() is not None and
-          i.inst().defn is o.defn() and
-          (o.defn() is LazyCircuit or
-           o.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
-        pass
-    elif (o.inst() is not None and
-          i.defn() is not None and
-          o.inst().defn is i.defn() and
-          (i.defn() is LazyCircuit or
-           i.defn() is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
-        pass
-    elif (o.inst() is not None and
-          i.inst() is not None and
-          o.inst().defn is i.inst().defn and
-          (i.inst().defn is LazyCircuit or
-           i.inst().defn is DEFINITION_CONTEXT_STACK.peek().placer._defn)):
-        pass
-    else:
-        raise WiringException(f"Cannot wire together {o} and {i}")
 
 
 @debug_wire
@@ -122,8 +51,6 @@ def wire(o, i, debug_info=None):
         if isinstance(i, _CONSTANTS) or not i.is_input():
             # Flip i and o.
             i, o = o, i
-
-    _check_wiring_context(i, o, debug_info)
 
     i_T, o_T = type(i), type(o)
     if not i_T.is_wireable(o_T):
