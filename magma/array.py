@@ -381,6 +381,8 @@ class Array(Type, metaclass=ArrayMeta):
             # indexed using a dynamic magma value, generate mux circuit
             return self.dynamic_mux_select(key)
         if isinstance(key, slice):
+            n = len(range(*key.indices(len(self))))
+            return type(self)[n, self.T]()
             if not _is_valid_slice(self.N, key):
                 raise IndexError(f"array index out of range "
                                  f"(type={type(self)}, key={key})")
@@ -441,6 +443,7 @@ class Array(Type, metaclass=ArrayMeta):
 
     @debug_wire
     def wire(i, o, debug_info):
+        return
         if not isinstance(o, ArrayType):
             if isinstance(o, IntegerTypes):
                 _logger.error(
