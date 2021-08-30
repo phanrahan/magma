@@ -220,10 +220,9 @@ def _get_interface_type(cls, add_default_clock):
 def _setup_interface(cls):
     # Called from DefinitionContext.finalize.
     IO = _get_interface_type(cls, add_default_clock=True)
-    if not hasattr(cls, "IO") and not hasattr(cls, "io"):
+    if IO is None:
         return
-    if IO is not None:
-        cls.IO = IO
+    cls.IO = IO
     cls.interface = cls.IO(defn=cls, renamed_ports=cls._renamed_ports_)
     setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
 
