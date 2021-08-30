@@ -28,7 +28,7 @@ from magma.clock import is_clock_or_nested_clock
 from magma.wire_clock import wire_default_clock, get_default_clocks
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
-from magma.ref import PortViewRef, ArrayRef, LazyCircuit
+from magma.ref import PortViewRef, ArrayRef
 from magma.symbol_table import SYMBOL_TABLE_EMPTY
 
 
