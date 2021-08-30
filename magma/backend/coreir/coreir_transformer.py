@@ -62,11 +62,8 @@ def _check_wiring_context(i, o):
     if isinstance(o.name, PortViewRef):
         o = o.name.root()
     if (i.defn() is not None and
-            o.defn() is not None):
-        if i.defn() is not o.defn():
-            raise MagmaCompileException(
-                f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
-                " not from the same definition")
+            o.defn() is not None and
+            i.defn() is o.defn()):
         return
     if (i.inst() is not None and
             o.defn() is not None and
@@ -80,7 +77,9 @@ def _check_wiring_context(i, o):
             i.inst() is not None and
             o.inst().defn is i.inst().defn):
         return
-    raise MagmaCompileException(f"Cannot wire together {o} and {i}")
+    raise MagmaCompileException(
+        f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
+        " not from the same definition context")
 
 
 def _is_generator(ckt_or_inst):

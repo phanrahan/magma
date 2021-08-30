@@ -25,7 +25,7 @@ def test_missing_generator_paren(caplog):
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Bar", Bar(4))
     assert str(e.value) == ("Cannot wire Bar.a to Foo.y because they are not "
-                            "from the same definition")
+                            "from the same definition context")
 
 
 def test_bad_temp(caplog):
@@ -44,7 +44,7 @@ def test_bad_temp(caplog):
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Bar", Bar)
     assert str(e.value) == ("Cannot wire Foo.x to Bar.y because they are not "
-                            "from the same definition")
+                            "from the same definition context")
 
 
 def test_bad_temp2(caplog):
@@ -61,4 +61,30 @@ def test_bad_temp2(caplog):
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Foo", Foo)
     assert str(e.value) == ("Cannot wire Bar.x to Foo.y because they are not "
-                            "from the same definition")
+                            "from the same definition context")
+
+
+def test_bad_portview(caplog):
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        z = m.Bits[8]()
+        io.y @= z
+
+    class Bar(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        foo = Foo()
+        io.y @= foo(io.x)
+
+    class Baz(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        bar = Bar()
+        io.y @= bar(io.x)
+
+    class Biz(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        io.y @= Baz.bar.foo.y
+
+    with pytest.raises(MagmaCompileException) as e:
+        m.compile("build/Foo", Biz)
+    assert str(e.value) == ("Cannot wire Bar.Foo_inst0.y to Biz.y because they are not "
+                            "from the same definition context")
