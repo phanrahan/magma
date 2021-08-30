@@ -318,8 +318,6 @@ class CircuitKind(type):
             context = _definition_context_stack.pop()
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
-            # Need to remove from log stack
-            assert not unstage_logger()
         else:
             assert context.placer.name == cls_name
             # Override staged context with '_context_' from namespace if
@@ -710,7 +708,6 @@ class DefineCircuitKind(CircuitKind):
                 _logger.warning("'definition' class method syntax is "
                                 "deprecated, use inline definition syntax "
                                 "instead", debug_info=self.debug_info)
-                _setup_interface(self)
                 with _DefinitionContextManager(self._context_):
                     self.definition()
                 self._context_.finalize(self)
@@ -956,7 +953,6 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         dct.update(self._dct)
         DefineCircuitKind.__prepare__(self._name, bases)
         self._defn = DefineCircuitKind(self._name, bases, dct)
-        self._context.finalize(self._defn)
         self._finalized = True
         if dont_instantiate:
             return None
