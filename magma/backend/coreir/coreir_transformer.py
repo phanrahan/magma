@@ -5,7 +5,6 @@ import logging
 import os
 
 import coreir as pycoreir
-from hwtypes import BitVector, Bit
 
 from magma.digital import Digital
 from magma.array import Array
@@ -38,9 +37,6 @@ _logger = root_logger().getChild("coreir_backend")
 
 
 _generator_callbacks = {}
-
-
-_CONSTANTS = (IntegerTypes, BitVector, Bit)
 
 
 def _check_wiring_context(i, o):
