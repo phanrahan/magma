@@ -57,9 +57,10 @@ def _check_wiring_context(i, o):
         return
     if o.const():
         return
-    if (isinstance(i.name, PortViewRef) or
-            isinstance(o.name, PortViewRef)):
-        return
+    if isinstance(i.name, PortViewRef):
+        i = i.name.root()
+    if isinstance(o.name, PortViewRef):
+        o = o.name.root()
     if (i.defn() is not None and
             o.defn() is not None):
         if i.defn() is not o.defn():

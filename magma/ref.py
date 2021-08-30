@@ -189,6 +189,7 @@ class PortViewRef(Ref):
     Used for values that are connection references to a hierarchical value
     (using the view logic)
     """
+
     def __init__(self, view):
         self.view = view
 
@@ -200,3 +201,6 @@ class PortViewRef(Ref):
 
     def __str__(self):
         return str(self.view.port.name)
+
+    def root(self):
+        return self.view.root()
