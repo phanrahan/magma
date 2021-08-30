@@ -12,7 +12,7 @@ import logging as py_logging  # to avoid confusion
 
 import six
 from . import cache_definition
-from .common import deprecated, setattrs, OrderedIdentitySet
+from .common import deprecated, setattrs, Stack, OrderedIdentitySet
 from .interface import *
 from .wire import *
 from .config import get_debug_mode
@@ -30,7 +30,6 @@ except ImportError:
 from .view import PortView
 
 from magma.clock import is_clock_or_nested_clock, Clock
-from magma.definition_context_stack import DEFINITION_CONTEXT_STACK
 from magma.ref import NamedRef
 from magma.t import In
 from magma.wire_container import WiringLog
@@ -118,25 +117,26 @@ class DefinitionContext:
         for display in self._displays:
             self.add_inline_verilog(*display.get_inline_verilog())
 
-    def place_instances(self, defn):
+    def finalize(self, defn):
         self.placer = self.placer.finalize(defn)
         for builder in self._builders:
             inst = builder.finalize()
             self.placer.place(inst)
 
-    def finalize(self, defn, staged_logs=True):
         # Create the interface for this circuit. This needs to be done after all
         # instances are introduced so that the logic to automatically add clocks
         # to the interface has access to all sub-circuits.
-        # _setup_interface(defn)
+        _setup_interface(defn)
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
         self._finalize_file_opens()  # so displays can refer to open files
         self._finalize_displays()
         self._finalize_file_close()  # close after displays
-        if staged_logs:
-            logs = unstage_logger()
-            defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
+        logs = unstage_logger()
+        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
+
+
+_definition_context_stack = Stack()
 
 
 class _DefinitionContextManager:
@@ -144,10 +144,10 @@ class _DefinitionContextManager:
         self._context = context
 
     def __enter__(self):
-        DEFINITION_CONTEXT_STACK.push(self._context)
+        _definition_context_stack.push(self._context)
 
     def __exit__(self, typ, value, traceback):
-        DEFINITION_CONTEXT_STACK.pop()
+        _definition_context_stack.pop()
 
 
 def _has_definition(cls, port=None):
@@ -278,7 +278,7 @@ def _get_intermediate_values(value):
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
         context = DefinitionContext(StagedPlacer(name))
-        DEFINITION_CONTEXT_STACK.push(context)
+        _definition_context_stack.push(context)
         return type.__prepare__(name, bases, **kwargs)
 
     """Metaclass for creating circuits."""
@@ -315,7 +315,7 @@ class CircuitKind(type):
         cls._syntax_style_ = _SyntaxStyle.NONE
         cls._renamed_ports_ = dct["renamed_ports"]
         try:
-            context = DEFINITION_CONTEXT_STACK.pop()
+            context = _definition_context_stack.pop()
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
             # Need to remove from log stack
@@ -325,8 +325,6 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
-            cls._context_.place_instances(cls)
-            _setup_interface(cls)
             cls._context_.finalize(cls)
 
         return cls
@@ -609,7 +607,7 @@ class CircuitType(AnonymousCircuitType):
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
         try:
-            context = DEFINITION_CONTEXT_STACK.peek()
+            context = _definition_context_stack.peek()
             context.placer.place(self)
         except IndexError:  # instances must happen inside a definition context
             raise Exception("Can not instance a circuit outside a definition")
@@ -715,8 +713,7 @@ class DefineCircuitKind(CircuitKind):
                 _setup_interface(self)
                 with _DefinitionContextManager(self._context_):
                     self.definition()
-                self._context_.place_instances(self)
-                self._context_.finalize(self, staged_logs=False)
+                self._context_.finalize(self)
                 self._is_definition = True
                 run_unconnected_check = True
             elif self._syntax_style_ is _SyntaxStyle.NEW:
@@ -790,13 +787,13 @@ def DefineCircuit(name, *decl, **args):
                     renamed_ports=args.get('renamed_ports', {}),
                     kratos=args.get("kratos", None)))
     defn = metacls(name, bases, dct)
-    DEFINITION_CONTEXT_STACK.push(defn._context_)
+    _definition_context_stack.push(defn._context_)
     return defn
 
 
 def EndDefine():
     try:
-        context = DEFINITION_CONTEXT_STACK.pop()
+        context = _definition_context_stack.pop()
     except IndexError:
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
@@ -889,7 +886,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         # builder will not be automatically finalized, and (b) instantation
         # might fail.
         try:
-            context = DEFINITION_CONTEXT_STACK.peek()
+            context = _definition_context_stack.peek()
         except IndexError:
             pass
         else:
