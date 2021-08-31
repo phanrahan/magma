@@ -17,7 +17,6 @@ def _get_defn(value):
     return get_ref_defn(value.name)
 
 
-
 def check_wiring_context(i, o):
     """
     Ensures that i and o come from the same definition context

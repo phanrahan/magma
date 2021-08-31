@@ -108,4 +108,35 @@ def test_bad_inst(caplog):
     with pytest.raises(MagmaCompileException) as e:
         m.compile("build/Bar", Bar)
     assert str(e.value) == ("Cannot wire Baz.Bar_inst0.y to Bar.Foo_inst0.x "
-                            "because they are not from the same definition context")
+                            "because they are not from the same definition "
+                            "context")
+
+
+def test_bad_defn(caplog):
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        io.y @= io.x
+
+    class Bar(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        io.y @= Foo.x
+
+    with pytest.raises(MagmaCompileException) as e:
+        m.compile("build/Bar", Bar)
+    assert str(e.value) == ("Cannot wire Foo.x to Bar.y "
+                            "because they are not from the same definition "
+                            "context")
+
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]), z=m.Out(m.Bits[8]))
+        io.z @= io.x
+
+    class Bar(m.Circuit):
+        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        Foo.y @= io.x
+
+    with pytest.raises(MagmaCompileException) as e:
+        m.compile("build/Foo", Foo)
+    assert str(e.value) == ("Cannot wire Bar.x to Foo.y "
+                            "because they are not from the same definition "
+                            "context")
