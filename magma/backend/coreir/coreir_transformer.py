@@ -15,9 +15,7 @@ from magma.backend.coreir.coreir_utils import (
     get_module_of_inst, magma_interface_to_coreir_module_type,
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
-from magma.compatibility import IntegerTypes
-from magma.compile_exception import (UnconnectedPortException,
-                                     MagmaCompileException)
+from magma.compile_exception import UnconnectedPortException
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.logging import root_logger

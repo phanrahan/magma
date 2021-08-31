@@ -204,3 +204,28 @@ class PortViewRef(Ref):
 
     def root(self):
         return self.view.root()
+
+
+def get_ref_inst(ref):
+    """
+    If value is part of a port on an instance, return that instance,
+    otherwise None
+    """
+    if not isinstance(ref.root(), InstRef):
+        return None
+    return ref.root().inst
+
+
+def get_ref_defn(ref):
+    """
+    If value is part of a port on an definition, return that definition,
+    otherwise None
+    """
+    if not isinstance(ref.root(), DefnRef):
+        return None
+    return ref.root().defn
+
+
+def is_temp_ref(ref):
+    return (type(ref.root()) is NamedRef or
+            type(ref.root()) is AnonRef)
