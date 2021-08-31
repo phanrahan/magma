@@ -9,6 +9,7 @@ import coreir as pycoreir
 from magma.digital import Digital
 from magma.array import Array
 from magma.bits import Bits
+from magma.backend.check_wiring_context import check_wiring_context
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
     get_module_of_inst, magma_interface_to_coreir_module_type,
@@ -37,45 +38,6 @@ _logger = root_logger().getChild("coreir_backend")
 
 
 _generator_callbacks = {}
-
-
-def _check_wiring_context(i, o):
-    """
-    Ensures that i and o come from the same definition context
-    """
-    if isinstance(o, Slice):
-        o = o.value
-    if isinstance(i, Slice):
-        i = i.value
-    i, o = _unwrap(i), _unwrap(o)
-    if o.temp() or i.temp():
-        # Will be handled recursively by the get_source logic
-        return
-    if o.const():
-        return
-    if isinstance(i.name, PortViewRef):
-        i = i.name.root()
-    if isinstance(o.name, PortViewRef):
-        o = o.name.root()
-    if (i.defn() is not None and
-            o.defn() is not None and
-            i.defn() is o.defn()):
-        return
-    if (i.inst() is not None and
-            o.defn() is not None and
-            i.inst().defn is o.defn()):
-        return
-    if (o.inst() is not None and
-            i.defn() is not None and
-            o.inst().defn is i.defn()):
-        return
-    if (o.inst() is not None and
-            i.inst() is not None and
-            o.inst().defn is i.inst().defn):
-        return
-    raise MagmaCompileException(
-        f"Cannot wire {o.debug_name} to {i.debug_name} because they are"
-        " not from the same definition context")
 
 
 def _is_generator(ckt_or_inst):
@@ -465,7 +427,7 @@ class DefinitionTransformer(TransformerBase):
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise UnconnectedPortException(port)
-        _check_wiring_context(port, value)
+        check_wiring_context(port, value)
         source = self.get_source(port, value, module_defn)
         if not source:
             return
