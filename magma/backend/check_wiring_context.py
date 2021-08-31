@@ -2,6 +2,20 @@ from magma.backend.coreir.coreir_utils import Slice
 from magma.ref import PortViewRef, get_ref_inst, get_ref_defn, is_temp_ref
 from magma.protocol_type import magma_value
 from magma.compile_exception import MagmaCompileException
+from magma.view import InstView
+
+
+def _get_inst(value):
+    if isinstance(value, InstView):
+        return value.inst
+    return get_ref_inst(value.name)
+
+
+def _get_defn(value):
+    if isinstance(value, InstView):
+        return None
+    return get_ref_defn(value.name)
+
 
 
 def check_wiring_context(i, o):
@@ -26,12 +40,12 @@ def check_wiring_context(i, o):
         i = i.name.root()
     if isinstance(o.name, PortViewRef):
         o = o.name.root()
-    i_defn = get_ref_defn(i.name)
-    o_defn = get_ref_defn(o.name)
+    i_defn = _get_defn(i)
+    o_defn = _get_defn(o)
     if i_defn is not None and o_defn is not None and i_defn is o_defn:
         return
-    i_inst = get_ref_inst(i.name)
-    o_inst = get_ref_inst(o.name)
+    i_inst = _get_inst(i)
+    o_inst = _get_inst(o)
     if i_inst is not None and o_defn is not None and i_inst.defn is o_defn:
         return
     if o_inst is not None and i_defn is not None and o_inst.defn is i_defn:

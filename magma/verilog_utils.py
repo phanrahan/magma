@@ -41,11 +41,11 @@ def value_to_verilog_name(value, disable_ndarray=False):
 def verilog_name(name, inst_sep="_", disable_ndarray=False):
     if isinstance(name, PortViewRef):
         curr = name.view.parent
-        path = curr.inst().name + "."
+        hierarchical_path = curr.inst.name + "."
         while isinstance(curr.parent, InstView):
-            path = curr.parent.inst().name + "." + path
+            hierarchical_path = curr.parent.inst.name + "." + hierarchical_path
             curr = curr.parent
-        return path + verilog_name(
+        return hierarchical_path + verilog_name(
             name.view.port.name, disable_ndarray=disable_ndarray)
     if isinstance(name, DefnRef):
         return str(name)
