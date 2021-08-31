@@ -7,8 +7,8 @@ def array_2d(i=128, j=128):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Array[i, m.Array[j, m.Bit]]), O=m.Out(m.Array[i, m.Array[j, m.Bit]]))
         k = i // 2
-        io.O[:k] @= io.I[k:]
-        io.O[k:] @= io.I[:k]
+        m.wire(io.O[:k], io.I[k:])
+        m.wire(io.O[k:], io.I[:k])
 
 
 data = {

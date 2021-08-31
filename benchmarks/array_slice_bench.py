@@ -7,8 +7,8 @@ def simple_array_slice(n=128):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Array[n, m.Bit]), O=m.Out(m.Array[n, m.Bit]))
         i = n // 2
-        io.O[:i] @= io.I[i:]
-        io.O[i:] @= io.I[:i]
+        m.wire(io.O[:i], io.I[i:])
+        m.wire(io.O[i:], io.I[:i])
 
 
 data = {

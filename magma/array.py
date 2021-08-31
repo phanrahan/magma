@@ -569,6 +569,7 @@ class Array(Type, metaclass=ArrayMeta):
         return cls(ts)
 
     def flatten(self):
+        return []
         return sum([t.flatten() for t in self.ts], [])
 
     def concat(self, other) -> 'AbstractBitVector':
