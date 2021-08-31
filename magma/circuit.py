@@ -117,16 +117,13 @@ class DefinitionContext:
         for display in self._displays:
             self.add_inline_verilog(*display.get_inline_verilog())
 
-    def finalize(self, defn):
+    def place_instances(self, defn):
         self.placer = self.placer.finalize(defn)
         for builder in self._builders:
             inst = builder.finalize()
             self.placer.place(inst)
 
-        # Create the interface for this circuit. This needs to be done after all
-        # instances are introduced so that the logic to automatically add clocks
-        # to the interface has access to all sub-circuits.
-        _setup_interface(defn)
+    def finalize(self, defn):
         if self._insert_default_log_level:
             self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
         self._finalize_file_opens()  # so displays can refer to open files
@@ -218,11 +215,11 @@ def _get_interface_type(cls, add_default_clock):
 
 
 def _setup_interface(cls):
-    # Called from DefinitionContext.finalize.
     IO = _get_interface_type(cls, add_default_clock=True)
-    if IO is None:
+    if not hasattr(cls, "IO") and not hasattr(cls, "io"):
         return
-    cls.IO = IO
+    if IO is not None:
+        cls.IO = IO
     cls.interface = cls.IO(defn=cls, renamed_ports=cls._renamed_ports_)
     setattrs(cls, cls.interface.ports, lambda k, v: isinstance(k, str))
 
@@ -322,6 +319,8 @@ class CircuitKind(type):
             # Override staged context with '_context_' from namespace if
             # available.
             cls._context_ = dct.get("_context_", context)
+            cls._context_.place_instances(cls)
+            _setup_interface(cls)
             cls._context_.finalize(cls)
 
         return cls
@@ -707,8 +706,13 @@ class DefineCircuitKind(CircuitKind):
                 _logger.warning("'definition' class method syntax is "
                                 "deprecated, use inline definition syntax "
                                 "instead", debug_info=self.debug_info)
+                # NOTE(leonardt): We can call setup here before placing
+                # instances because old style IO syntax doesn't support the
+                # automatic clock lifting anyways
+                _setup_interface(self)
                 with _DefinitionContextManager(self._context_):
                     self.definition()
+                self._context_.place_instances(self)
                 self._context_.finalize(self)
                 self._is_definition = True
                 run_unconnected_check = True
@@ -952,6 +956,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         dct.update(self._dct)
         DefineCircuitKind.__prepare__(self._name, bases)
         self._defn = DefineCircuitKind(self._name, bases, dct)
+        self._context.finalize(self._defn)
         self._finalized = True
         if dont_instantiate:
             return None

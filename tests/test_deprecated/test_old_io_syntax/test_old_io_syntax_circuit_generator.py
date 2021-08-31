@@ -68,6 +68,7 @@ with pytest.warns(DeprecationWarning):
 def test_add_generator():
     with pytest.warns(DeprecationWarning):
         Add8cin = DefineAdd(8, has_cin=True, has_cout=False)
+        print(repr(Add8cin))
         assert Add8cin._generator_arguments.args == (8,)
         assert Add8cin._generator_arguments.kwargs == {"has_cin": True, "has_cout": False}
         test_circuit = DefineCircuit("test", "I0", In(Bits[8]), "I1", In(Bits[8]),
