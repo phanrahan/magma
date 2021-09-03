@@ -17,7 +17,8 @@ from magma.backend.coreir.coreir_utils import (
 from magma.compile_exception import UnconnectedPortException
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
-from magma.linking import get_linked_modules
+from magma.linking import (
+    get_linked_modules, has_default_linked_module, get_default_linked_module)
 from magma.logging import root_logger
 from magma.passes import dependencies
 from magma.tuple import Tuple
@@ -161,7 +162,15 @@ class DefnOrDeclTransformer(TransformerBase):
     def run_self(self):
         self._run_self_impl()
         self._generate_symbols()
+        self._link_default_module()
         self._link_modules()
+
+    def _link_default_module(self):
+        if not has_default_linked_module(self.defn_or_decl):
+            return
+        target = get_default_linked_module(self.defn_or_decl)
+        target = self.backend.get_module(target)
+        self.coreir_module.link_default_module(target)
 
     def _link_modules(self):
         targets = get_linked_modules(self.defn_or_decl)
