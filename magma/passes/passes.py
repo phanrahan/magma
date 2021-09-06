@@ -95,6 +95,9 @@ class BuildInstanceGraphPass(DefinitionPass):
                 self.graph[inst_defn] = []
             if inst_defn not in self.graph[defn]:
                 self.graph[defn].append(inst_defn)
+        for target in get_all_linked_modules(defn):
+            if target not in self.graph[defn]:
+                self.graph[defn].append(target)
 
     def done(self):
         graph = []
