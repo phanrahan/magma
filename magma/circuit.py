@@ -157,6 +157,10 @@ def _has_definition(cls, port=None):
         if not interface:
             return False
         return any(_has_definition(cls, p) for p in interface.ports.values())
+    if port.is_output() and port.value() is not None:
+        # TODO(leonardt): Here is one case that we can avoid recursion over
+        # children
+        return True
     flat = port.flatten()
     return any(not f.is_output() and f.value() is not None for f in flat)
 

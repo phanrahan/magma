@@ -104,3 +104,5 @@ from magma.set_name import set_name
 from magma.circuit_utils import circuit_stub, stubify, CircuitStub
 from magma.compile import MagmaCompileException
 from magma.linking import link_module, link_default_module, clear_link_info
+
+from magma.array import Array2

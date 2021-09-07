@@ -129,3 +129,33 @@ class Wire:
     @property
     def bit(self):
         return self._bit
+
+
+class Wireable:
+    def __init__(self):
+        self._wire = Wire(self)
+
+    def wired(self):
+        return self._wire.wired()
+
+    # return the input or output Bit connected to this Bit
+    def trace(self):
+        return self._wire.trace()
+
+    # return the output Bit connected to this input Bit
+    def value(self):
+        return self._wire.value()
+
+    def driven(self):
+        return self._wire.driven()
+
+    def driving(self):
+        return self._wire.driving()
+
+    def unwire(i, o):
+        i._wire.unwire(o._wire)
+
+    def wire(self, o, debug_info):
+        self._wire.connect(o._wire, debug_info)
+        self.debug_info = debug_info
+        o.debug_info = debug_info

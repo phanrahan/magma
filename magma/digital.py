@@ -8,7 +8,7 @@ from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
-from magma.wire_container import Wire, WiringLog
+from magma.wire_container import Wire, WiringLog, Wireable
 
 
 _logger = root_logger()
@@ -144,10 +144,10 @@ class DigitalMeta(ABCMeta, Kind):
     __hash__ = type.__hash__
 
 
-class Digital(Type, metaclass=DigitalMeta):
+class Digital(Type, Wireable, metaclass=DigitalMeta):
     def __init__(self, value=None, name=None):
-        super().__init__(name=name)
-        self._wire = Wire(self)
+        Type.__init__(self, name=name)
+        Wireable.__init__(self)
 
     @classmethod
     def is_oriented(cls, direction):
@@ -164,44 +164,23 @@ class Digital(Type, metaclass=DigitalMeta):
 
     @debug_wire
     def wire(self, o, debug_info):
-        i = self
-        o = magma_value(o)
         # promote integer types to LOW/HIGH
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = HIGH if o else LOW
 
+        o = magma_value(o)
         if not isinstance(o, Digital):
             _logger.error(
-                WiringLog(f"Cannot wire {{}} (type={type(i)}) to {o} "
+                WiringLog(f"Cannot wire {{}} (type={type(self)}) to {o} "
                           f"(type={type(o)}) because {{}} is not a Digital",
-                          i, o),
+                          self, o),
                 debug_info=debug_info
             )
             return
-
-        i._wire.connect(o._wire, debug_info)
-        i.debug_info = debug_info
-        o.debug_info = debug_info
+        Wireable.wire(self, o, debug_info)
 
     def iswhole(self):
         return True
-
-    def wired(self):
-        return self._wire.wired()
-
-    # return the input or output Bit connected to this Bit
-    def trace(self):
-        return self._wire.trace()
-
-    # return the output Bit connected to this input Bit
-    def value(self):
-        return self._wire.value()
-
-    def driven(self):
-        return self._wire.driven()
-
-    def driving(self):
-        return self._wire.driving()
 
     @classmethod
     def unflatten(cls, value):
@@ -215,9 +194,6 @@ class Digital(Type, metaclass=DigitalMeta):
     def const(self):
         cls = type(self)
         return self is cls.VCC or self is cls.GND
-
-    def unwire(i, o):
-        i._wire.unwire(o._wire)
 
     @classmethod
     def flat_length(cls):

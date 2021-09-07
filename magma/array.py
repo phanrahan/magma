@@ -14,7 +14,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog
+from magma.wire_container import WiringLog, Wire, Wireable
 from magma.protocol_type import MagmaProtocol
 
 
@@ -439,8 +439,8 @@ class Array(Type, metaclass=ArrayMeta):
     def as_list(self):
         return [self[i] for i in range(len(self))]
 
-    @debug_wire
-    def wire(i, o, debug_info):
+    def _check_wireable(self, o, debug_info):
+        i = self
         if not isinstance(o, ArrayType):
             if isinstance(o, IntegerTypes):
                 _logger.error(
@@ -468,6 +468,10 @@ class Array(Type, metaclass=ArrayMeta):
                 debug_info=debug_info
             )
             return
+
+    @debug_wire
+    def wire(i, o, debug_info):
+        self._check_wireable(o, debug_info)
 
         for k in range(len(i)):
             i[k].wire(o[k], debug_info)
@@ -585,3 +589,26 @@ class Array(Type, metaclass=ArrayMeta):
 
 
 ArrayType = Array
+
+
+class Array2(Wireable, Array):
+    def __init__(self, *args, **kwargs):
+        # Skip Array constructor since we don't want to create children
+        Type.__init__(self, **kwargs)
+        Wireable.__init__(self)
+
+    @debug_wire
+    def wire(self, o, debug_info):
+        self._check_wireable(o, debug_info)
+        Wireable.wire(self, o, debug_info)
+
+    def flatten(self):
+        return self
+
+    def iswhole(self):
+        # TODO(leonardt): Should be false for slices
+        return True
+
+    def const(self):
+        # TODO(leonardt): Support const
+        return False
