@@ -386,7 +386,7 @@ class DefinitionTransformer(TransformerBase):
     def connect_non_outputs(self, module_defn, port):
         # Recurse into non input types that may contain inout children.
         if isinstance(port, Tuple) and not port.is_input() or \
-           (isinstance(port, Array) and not port.T.is_input() and 
+           (isinstance(port, Array) and not port.T.is_input() and
                 not port.T.is_output()):
             for elem in port:
                 self.connect_non_outputs(module_defn, elem)

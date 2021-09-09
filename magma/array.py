@@ -471,7 +471,7 @@ class Array(Type, metaclass=ArrayMeta):
 
     @debug_wire
     def wire(i, o, debug_info):
-        self._check_wireable(o, debug_info)
+        i._check_wireable(o, debug_info)
 
         for k in range(len(i)):
             i[k].wire(o[k], debug_info)
@@ -602,6 +602,8 @@ class Array2(Wireable, Array):
         self._check_wireable(o, debug_info)
         Wireable.wire(self, o, debug_info)
 
+    # TODO(leonardt): unwire
+
     def flatten(self):
         return self
 
@@ -612,3 +614,23 @@ class Array2(Wireable, Array):
     def const(self):
         # TODO(leonardt): Support const
         return False
+
+    def _make_slice(self, key):
+        import magma as m
+        class Slice(m.Circuit):
+            io = m.IO(I=In(type(self)), O=Out(Array2[1, type(self).T]))
+            coreir_genargs = {"hi": key + 1, "lo": key, "width": len(self)}
+            coreir_name = "slice"
+            coreir_lib = "coreir"
+            renamed_ports = m.circuit.coreir_port_mapping
+        return Slice
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._make_slice(key)()(self)
+        raise NotImplementedError(type(key))
+
+    def flatten(self):
+        # TODO(leonardt/array2): Avoid recursion in circuit _has_definition
+        # logic, should probably use different logic and preserve this API?
+        return [self]

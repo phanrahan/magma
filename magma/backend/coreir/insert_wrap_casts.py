@@ -42,12 +42,13 @@ class InsertWrapCasts(DefinitionPass):
         if not port.driven():
             return False
         value = port.value()
-        if not isinstance(port, _NAMEDTYPES) or isinstance(value, _NAMEDTYPES):
+        if not (isinstance(port, _NAMEDTYPES) or
+                isinstance(value, _NAMEDTYPES)):
             return self.wrap_if_named_type(value, definition)
         undirected_t = type(port).qualify(Direction.Undirected)
         if issubclass(type(value), undirected_t):
             return self.wrap_if_named_type(value, definition)
-        port_is_clock_type = isinstance(port, (AsyncReset, AsyncResetN, Clock))
+        port_is_clock_type = isinstance(port, _NAMEDTYPES)
         if port_is_clock_type:
             T = Out(type(port))
         else:
