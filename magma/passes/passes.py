@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
-from ..is_definition import isdefinition
-from .tsort import tsort
+
+from magma.is_definition import isdefinition
+from magma.linking import get_all_linked_modules, has_any_linked_modules
+from magma.passes.tsort import tsort
+
 
 __all__ = ['Pass', 'InstancePass', 'DefinitionPass', 'InstanceGraphPass',
            'pass_lambda', 'instance_graph', 'dependencies']
@@ -52,6 +55,9 @@ class CircuitPass(Pass):
         if isdefinition(circuit):
             for inst in circuit.instances:
                 self._run(type(inst))
+        link_targets = get_all_linked_modules(circuit)
+        for target in link_targets:
+            self._run(target)
         # Call each definition only once.
         id_ = id(circuit)
         if id_ not in self.circuits:
@@ -70,7 +76,7 @@ class DefinitionPass(CircuitPass):
     Run only only on circuits with definitions
     """
     def _run(self, circuit):
-        if not isdefinition(circuit):
+        if not isdefinition(circuit) and not has_any_linked_modules(circuit):
             return
         super()._run(circuit)
 
@@ -89,6 +95,9 @@ class BuildInstanceGraphPass(DefinitionPass):
                 self.graph[inst_defn] = []
             if inst_defn not in self.graph[defn]:
                 self.graph[defn].append(inst_defn)
+        for target in get_all_linked_modules(defn):
+            if target not in self.graph[defn]:
+                self.graph[defn].append(target)
 
     def done(self):
         graph = []
