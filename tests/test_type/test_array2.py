@@ -14,6 +14,7 @@ def test_array2_basic():
 
 
 def test_array2_getitem_index():
+    # TODO(leonardt/array2): dynamically generate Concat logic
     class Concat(m.Circuit):
 
         io = m.IO(I0=m.In(m.Array2[1, m.Bit]), I1=m.In(m.Array2[1, m.Bit]),
