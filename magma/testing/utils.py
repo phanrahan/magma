@@ -65,6 +65,10 @@ def has_log(caplog, level=None, msg=None):
     return any(gen)
 
 
+def has_info(caplog, msg=None):
+    return has_log(caplog, "INFO", msg)
+
+
 def has_error(caplog, msg=None):
     return has_log(caplog, "ERROR", msg)
 

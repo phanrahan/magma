@@ -24,7 +24,8 @@ from magma.passes import dependencies
 from magma.tuple import Tuple
 from magma.backend.util import get_codegen_debug_info
 from magma.clock import is_clock_or_nested_clock
-from magma.wire_clock import wire_default_clock, get_default_clocks
+from magma.passes.clock import (
+    drive_all_undriven_clocks_in_value, get_all_output_clocks_in_defn)
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
@@ -296,7 +297,7 @@ class DefinitionTransformer(TransformerBase):
             inst: InstanceTransformer(self.backend, self.opts, inst, self.defn)
             for inst in self.defn.instances
         }
-        self.clocks = get_default_clocks(defn)
+        self.clocks = get_all_output_clocks_in_defn(defn)
         self._constant_cache = {}
 
     def children(self):
@@ -430,7 +431,7 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value):
         if value is None and is_clock_or_nested_clock(type(port)):
-            if not wire_default_clock(port, self.clocks):
+            if not drive_all_undriven_clocks_in_value(port, self.clocks):
                 # No default clock
                 raise UnconnectedPortException(port)
             value = port.trace()

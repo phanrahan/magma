@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from ..bit import Bit, Digital
 from ..array import Array
-from ..wire_clock import wiredefaultclock
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from ..compiler import make_compiler
 from .verilog import find
 
@@ -105,7 +105,7 @@ def compiledefinition(cls):
             if getattr(instance, "firrtl_op", False):
                 s += compile_primitive(instance)
             else:
-                wiredefaultclock(cls, instance)
+                drive_undriven_clock_types_in_inst(cls, instance)
                 s += compileinstance(instance)
 
         # assign to module output arguments

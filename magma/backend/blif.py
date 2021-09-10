@@ -5,7 +5,7 @@ from ..bitutils import seq2int, fun2seq
 from ..bit import Bit, Digital
 from ..array import Array
 from ..compiler import make_compiler
-from ..wire_clock import wiredefaultclock
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from ..is_definition import isdefinition
 
 __all__ = ['compile']
@@ -86,7 +86,7 @@ def compileprimitive(prim, prefix, location):
 def compiledefinition(defn, prefix, location=None):
     s = ''
     for instance in defn.instances:
-        wiredefaultclock(defn, instance)
+        drive_undriven_clock_types_in_inst(defn, instance)
         if location and instance.loc:
             x = location[0] + instance.loc[0]
             y = location[1] + instance.loc[1]

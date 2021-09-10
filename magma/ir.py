@@ -1,9 +1,9 @@
 from collections import OrderedDict
-from .wire_clock import wiredefaultclock
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 
 def compileclocks(cls):
     for instance in cls.instances:
-        wiredefaultclock(cls, instance)
+        drive_undriven_clock_types_in_inst(cls, instance)
 
 def compile(main):
 
