@@ -98,8 +98,8 @@ def _get_undriven_clocks_in_array(
         return
     yield first
     yield from it
-    # NOTE(leonardt): Since magma arrays don't support zero-length values, we
-    # have to check the size before slicing.
+    # NOTE(rsetaluri): Since magma does not allow zero-length arrays, we need to
+    # check that the length of the array is > 1 before slicing it with [1:].
     if len(value) <= 1:
         return
     for elem in value[1:]:
