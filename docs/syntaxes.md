@@ -220,7 +220,7 @@ class Main(m.Circuit):
 
     O1 = m.Bit()
 
-    @m.inline_combinational(debug=True, file_name="inline_comb.py")
+    @m.inline_combinational()
     def logic():
         if io.invert:
             reg.I @= ~reg.O
