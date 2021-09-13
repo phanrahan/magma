@@ -218,14 +218,16 @@ class Main(m.Circuit):
     io += m.ClockIO()
     reg = m.Register(m.Bit)()
 
-    @m.inline_combinational()
+    O1 = m.Bit()
+
+    @m.inline_combinational(debug=True, file_name="inline_comb.py")
     def logic():
         if io.invert:
             reg.I @= ~reg.O
-            O1 = ~reg.O
+            O1 @= ~reg.O
         else:
             reg.I @= reg.O
-            O1 = reg.O
+            O1 @= reg.O
 
     io.O0 @= reg.O
     io.O1 @= O1
