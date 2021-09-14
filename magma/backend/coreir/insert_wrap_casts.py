@@ -1,15 +1,12 @@
-from magma.array import Array
+from magma.array import Array, Array2
 from magma.circuit import Circuit
-from magma.clock import AsyncReset, AsyncResetN, Clock, is_clock_or_nested_clock
+from magma.clock import AsyncReset, AsyncResetN, Clock
 from magma.conversions import convertbit
 from magma.interface import IO
 from magma.passes import DefinitionPass, pass_lambda
 from magma.t import In, Out, Direction
 from magma.tuple import Tuple
 from magma.wire import wire
-
-
-_NAMEDTYPES = (AsyncReset, AsyncResetN, Clock)
 
 
 class InsertWrapCasts(DefinitionPass):
@@ -33,22 +30,30 @@ class InsertWrapCasts(DefinitionPass):
             for t in port:
                 wrapped |= self.wrap_if_named_type(t, definition)
             return wrapped
-        if isinstance(port, Array):
-            if not is_clock_or_nested_clock(type(port).T, _NAMEDTYPES):
+        if isinstance(port, Array) and not isinstance(port, Array2):
+            # NOTE(leonardt): Array2 are always bulk connected, so we don't
+            # need to check children
+            wrapped = self.wrap_if_named_type(port[0], definition)
+            if not wrapped:
                 return False
-            for t in port:
+            # TODO: Magma doesn't support length zero array, so slicing a
+            # length 1 array off the end doesn't work as expected in normal
+            # Python, so we explicilty slice port.ts
+            for t in port.ts[1:]:
                 self.wrap_if_named_type(t, definition)
             return True
         if not port.driven():
             return False
         value = port.value()
-        if not (isinstance(port, _NAMEDTYPES) or
-                isinstance(value, _NAMEDTYPES)):
+        # TODO(leonardt): Array2 are always bulk connected, so we need to
+        # handle them here without recursion
+        if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
+                isinstance(value, (AsyncReset, AsyncResetN, Clock))):
             return self.wrap_if_named_type(value, definition)
         undirected_t = type(port).qualify(Direction.Undirected)
         if issubclass(type(value), undirected_t):
             return self.wrap_if_named_type(value, definition)
-        port_is_clock_type = isinstance(port, _NAMEDTYPES)
+        port_is_clock_type = isinstance(port, (AsyncReset, AsyncResetN, Clock))
         if port_is_clock_type:
             T = Out(type(port))
         else:
