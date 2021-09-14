@@ -32,6 +32,6 @@ def test_array2_getitem_index():
         # io.O[0] @= io.I[1]
         io.O @= Concat()(io.I[1], io.I[0])
 
-    m.compile("build/test_array2_basic", Foo)
-    assert check_files_equal(__file__, "build/test_array2_basic.v",
-                             "gold/test_array2_basic.v")
+    m.compile("build/test_array2_getitem_index", Foo)
+    assert check_files_equal(__file__, "build/test_array2_getitem_index.v",
+                             "gold/test_array2_getitem_index.v")
