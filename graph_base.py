@@ -3,6 +3,7 @@ from typing import Any, Iterable
 
 
 Graph = nx.MultiDiGraph
+Node = Any
 
 
 def topological_sort(g: Graph) -> Iterable[Any]:
