@@ -1,3 +1,6 @@
+import dataclasses
+from typing import Tuple
+
 import magma as m
 
 from graph_base import Graph, Node, topological_sort
@@ -33,8 +36,6 @@ class RemoveDuplicateEdgesTransformer(NodeTransformer):
         return [node], edges
 
 
-from typing import Tuple
-import dataclasses
 @dataclasses.dataclass(frozen=True)
 class Net:
     ports: Tuple
@@ -61,14 +62,17 @@ class NetMerger(NodeTransformer):
         edges = []
         for edge in self.graph.in_edges(predecessor, data=True):
             src, _, data = edge
+            data.setdefault("info", predecessor)
             edges.append((src, new_node, data))
         for edge in self.graph.out_edges(predecessor, data=True):
             _, dst, data = edge
             if dst is node:
                 continue
+            data.setdefault("info", None)
             edges.append((new_node, dst, data))
         for edge in self.graph.out_edges(node, data=True):
             _, dst, data = edge
+            data.setdefault("info", node)
             edges.append((new_node, dst, data))        
         self.graph.remove_node(predecessor)
         return [new_node], edges

@@ -16,5 +16,11 @@ def flatten_magma_graph(g: Graph):
         return str(node)
 
     g_flat.add_nodes_from(map(make_str, g.nodes()))
-    g_flat.add_edges_from((make_str(u), make_str(v)) for u, v in g.edges())
+    for src, dst, data in g.edges(data=True):
+        src = make_str(src)
+        dst = make_str(dst)
+        label = None
+        if "info" in data:
+            label = make_str(data["info"])
+        g_flat.add_edge(src, dst, label=label)
     return g_flat
