@@ -5,7 +5,7 @@ import magma as m
 from graph_base import Graph
 
 
-def _get_inst_or_defn(value: m.Type):
+def get_inst_or_defn_or_die(value: m.Type):
     ref = value.name
     try:
         return ref.inst, True
@@ -31,6 +31,12 @@ class MagmaInstNode(MagmaNodeBase):
     inst: m.Circuit
 
 
+@dataclasses.dataclass(frozen=True)
+class MagmaPortNode(MagmaNodeBase):
+    port_name: str
+    port_index: int
+
+
 class MagmaEdgeInfoBase:
     pass
 
@@ -45,7 +51,7 @@ def _traverse_inputs(g: Graph, interface: m.Interface, this: MagmaNodeBase):
     for port in interface.inputs():
         driver = port.trace()
         assert isinstance(driver.name, (m.ref.InstRef, m.ref.DefnRef))
-        root, is_inst = _get_inst_or_defn(driver)
+        root, is_inst = get_inst_or_defn_or_die(driver)
         if is_inst:
             neighbor = MagmaInstNode(root)
         else:
