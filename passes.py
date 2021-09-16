@@ -4,7 +4,7 @@ from typing import Tuple
 import magma as m
 
 from graph_lib import Graph, Node, topological_sort
-from visitor import NodeTransformer
+from pass_base import NodeTransformer
 
 
 class SplitPortEdgesTranformer(NodeTransformer):
