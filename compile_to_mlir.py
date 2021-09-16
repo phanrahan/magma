@@ -1,7 +1,7 @@
 from graph_lib import Graph, write_to_dot
 from magma_graph import build_magma_graph
 from debug_utils import flatten_magma_graph
-from mlir_passes import *
+from mlir_visitors import *
 from common_visitors import *
 from magma_visitors import *
 from mlir_utils import magma_type_to_mlir_type, mlir_values_to_string
