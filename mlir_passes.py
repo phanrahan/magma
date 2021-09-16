@@ -5,7 +5,7 @@ import magma as m
 
 from graph_base import Graph, Node
 from graph_utils import NodeVisitor, NodeTransformer
-from mlir_wrapper import MlirContext, MlirValue
+from mlir_wrapper import MlirContext, MlirValue, MlirType, MlirIntegerType
 from passes import Net
 
 
@@ -27,28 +27,13 @@ MlirNodeVisitor = _mlir_base_pass_factory(NodeVisitor)
 MlirNodeTransformer = _mlir_base_pass_factory(NodeTransformer)
 
 
-class ModuleInputSplitter(MlirNodeTransformer):
-    def generic_visit(self, node: Node):
-        if not isinstance(node, m.DefineCircuitKind):
-            return node
-        nodes = [node]
-        edges = list(self.graph.in_edges(node, data=True))
-        nodes_to_remove = []
-        for edge in self.graph.out_edges(node, data=True):
-            _, dst, data = edge
-            assert isinstance(dst, Net)
-            port = data["info"]
-            assert dst.ports[0] is port
-            value = self.ctx.new_value(port.name, force=True)
-            nodes.append(value)
-            assert len(list(self.graph.predecessors(dst))) == 1
-            for edge in self.graph.out_edges(dst, data=True):
-                _, descendant, data = edge
-                edges.append((value, descendant, data))
-            nodes_to_remove.append(dst)
-        for node in nodes_to_remove:
-            self.graph.remove_node(node)
-        return nodes, edges
+def lower_type(type: m.Kind) -> MlirType:
+    type = type.undirected_t
+    if issubclass(type, m.Digital):
+        return MlirIntegerType(1)
+    if issubclass(type, m.Bits):
+        return MlirIntegerType(type.N)
+    raise NotImplementedError(type)
 
 
 class ModuleInputSplitter(MlirNodeTransformer):
@@ -63,7 +48,8 @@ class ModuleInputSplitter(MlirNodeTransformer):
             assert isinstance(dst, Net)
             port = data["info"]
             assert dst.ports[0] is port
-            value = self.ctx.new_value(port.name, force=True)
+            t = lower_type(type(port))
+            value = self.ctx.new_value(t, port.name, force=True)
             nodes.append(value)
             assert len(list(self.graph.predecessors(dst))) == 1
             for edge in self.graph.out_edges(dst, data=True):
@@ -87,7 +73,8 @@ def replace_node(g: Graph, orig: Node, new: Node) -> Iterable[Any]:
 class NetToValueTransformer(MlirNodeTransformer):
     def visit_Net(self, node: Net):
         assert len(list(self.graph.predecessors(node))) == 1
-        value = self.ctx.new_value()
+        t = lower_type(type(node.ports[0]))
+        value = self.ctx.new_value(t)
         edges = list(replace_node(self.graph, node, value))
         return [value], edges
 
