@@ -229,5 +229,5 @@ def get_ref_defn(ref):
 
 
 def is_temp_ref(ref):
-    return (type(ref.root()) is NamedRef or
-            type(ref.root()) is AnonRef)
+    root = ref.root()
+    return (type(root) is NamedRef or type(root) is AnonRef)
