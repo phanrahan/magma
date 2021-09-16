@@ -17,16 +17,6 @@ def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
     raise NotImplementedError(type)
 
 
-def mlir_values_to_string(values: Iterable[MlirValue], mode=0) -> str:
-    if mode == 0:
-        mapper = lambda v: v.name
-    elif mode == 1:
-        mapper = lambda v: v.type.emit()
-    else:
-        mapper = lambda v: f"{v.name}: {v.type.emit()}"
-    return ', '.join(map(mapper, values))
-
-
 def magma_module_to_mlir_op(module: ModuleLike) -> MlirOp:
     if isinstance(module, m.Circuit):
         return CombOp(module.name, type(module).coreir_name)

@@ -4,15 +4,14 @@ from typing import Any, Iterable, List
 import magma as m
 
 from common_visitors import replace_node
-from emitter import Emitter
 from graph_lib import Graph, Node
 from graph_visitor import NodeVisitor, NodeTransformer
 from magma_graph import Net
 from mlir_context import MlirContext, Contextual
+from mlir_emitter import MlirEmitter
 from mlir_graph import MlirOp
 from mlir_type import MlirType
-from mlir_utils import (
-    magma_type_to_mlir_type, magma_module_to_mlir_op, mlir_values_to_string)
+from mlir_utils import magma_type_to_mlir_type, magma_module_to_mlir_op
 from mlir_value import MlirValue
 
 
@@ -117,7 +116,7 @@ def _sort_values(g: Graph, node: MlirOp):
 
 
 class EmitMlirVisitor(NodeVisitor):
-    def __init__(self, g: Graph, emitter: Emitter):
+    def __init__(self, g: Graph, emitter: MlirEmitter):
         super().__init__(g)
         self._emitter = emitter
 
@@ -127,10 +126,4 @@ class EmitMlirVisitor(NodeVisitor):
     def generic_visit(self, node: MlirOp):
         assert isinstance(node, MlirOp)
         inputs, outputs = _sort_values(self.graph, node)
-        emission = node.emit()
-        emission = emission.format(
-            input_names=mlir_values_to_string(inputs, 0),
-            output_names=mlir_values_to_string(outputs, 0),
-            input_types=mlir_values_to_string(inputs, 1),
-            output_types=mlir_values_to_string(outputs, 1))
-        self._emitter.emit(emission)
+        self._emitter.emit_op(node, inputs, outputs)
