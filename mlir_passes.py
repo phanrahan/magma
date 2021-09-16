@@ -116,3 +116,41 @@ class EdgePortToIndexTransformer(MlirNodeTransformer):
             data["info"] = finder(port, node.interface.outputs())
             edges.append((src, dst, data))
         return [node], edges
+
+
+import dataclasses
+
+
+@dataclasses.dataclass(frozen=True)
+class MlirOp:
+    name: str
+
+
+@dataclasses.dataclass(frozen=True)
+class CombOp(MlirOp):
+    name: str
+    op: str
+
+
+@dataclasses.dataclass(frozen=True)
+class HwOutputOp(MlirOp):
+    name: str
+
+
+def lower_module_to_op(module): #: ModuleLike):
+    if isinstance(module, m.Circuit):
+        return CombOp(module.name, type(module).coreir_name)
+    if isinstance(module, m.DefineCircuitKind):
+        return HwOutputOp(module.name)
+    raise NotImplementedError()
+
+
+class ModuleToOpTransformer(MlirNodeTransformer):
+    def visit_MlirValue(self, node: MlirValue):
+        return node
+
+    def generic_visit(self, node: Node):
+        assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
+        new_node = lower_module_to_op(node)
+        edges = list(replace_node(self.graph, node, new_node))
+        return [new_node], edges
