@@ -1,7 +1,7 @@
 from .test_primitives import *
 from magma.simulator import PythonSimulator
 from magma import *
-from magma.wire_clock import wireclock
+from magma.passes.clock import drive_undriven_other_clock_types_in_inst
 from magma.scope import *
 
 def test():
@@ -66,7 +66,7 @@ def test():
 
             wire(inc.COUT, io.COUT)
 
-        wireclock(Counter, Counter.reg)
+        drive_undriven_other_clock_types_in_inst(Counter, Counter.reg)
 
         return Counter()
 

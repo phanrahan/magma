@@ -18,12 +18,15 @@ from magma.backend.coreir.coreir_utils import (
 from magma.compile_exception import UnconnectedPortException
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
+from magma.linking import (
+    get_linked_modules, has_default_linked_module, get_default_linked_module)
 from magma.logging import root_logger
 from magma.passes import dependencies
 from magma.tuple import Tuple
 from magma.backend.util import get_codegen_debug_info
 from magma.clock import is_clock_or_nested_clock
-from magma.wire_clock import wire_default_clock, get_default_clocks
+from magma.passes.clock import (
+    drive_all_undriven_clocks_in_value, get_all_output_clocks_in_defn)
 from magma.config import get_debug_mode
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef, ArrayRef
@@ -161,6 +164,21 @@ class DefnOrDeclTransformer(TransformerBase):
     def run_self(self):
         self._run_self_impl()
         self._generate_symbols()
+        self._link_default_module()
+        self._link_modules()
+
+    def _link_default_module(self):
+        if not has_default_linked_module(self.defn_or_decl):
+            return
+        target = get_default_linked_module(self.defn_or_decl)
+        target = self.backend.get_module(target)
+        self.coreir_module.link_default_module(target)
+
+    def _link_modules(self):
+        targets = get_linked_modules(self.defn_or_decl)
+        for key, target in targets.items():
+            target = self.backend.get_module(target)
+            self.coreir_module.link_module(key, target)
 
     def _generate_symbols(self):
         if not self.get_opt("generate_symbols", False):
@@ -280,7 +298,7 @@ class DefinitionTransformer(TransformerBase):
             inst: InstanceTransformer(self.backend, self.opts, inst, self.defn)
             for inst in self.defn.instances
         }
-        self.clocks = get_default_clocks(defn)
+        self.clocks = get_all_output_clocks_in_defn(defn)
         self._constant_cache = {}
 
     def children(self):
@@ -415,7 +433,7 @@ class DefinitionTransformer(TransformerBase):
     def connect(self, module_defn, port, value):
         if value is None and is_clock_or_nested_clock(type(port)):
             with self.defn.open():
-                if not wire_default_clock(port, self.clocks):
+                if not drive_all_undriven_clocks_in_value(port, self.clocks):
                     # No default clock
                     raise UnconnectedPortException(port)
             value = port.trace()

@@ -13,7 +13,7 @@ from ..array import Array
 from ..bits import SInt
 from ..tuple import Tuple
 from ..is_definition import isdefinition
-from ..wire_clock import wiredefaultclock
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from ..logging import root_logger
 from .util import get_codegen_debug_info, make_relative
 from ..config import config, EnvConfig
@@ -205,7 +205,7 @@ def compiledefinition(cls):
         # emit the structured verilog for each instance
         for instance in cls.instances:
             with cls.open():
-                wiredefaultclock(cls, instance)
+                drive_undriven_clock_types_in_inst(cls, instance)
             if getattr(instance, "debug_info", False) and \
                     instance.debug_info.filename and instance.debug_info.lineno and \
                     get_codegen_debug_info():

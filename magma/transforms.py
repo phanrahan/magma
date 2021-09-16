@@ -6,7 +6,7 @@ from .is_primitive import isprimitive
 from .digital import Digital
 from .bit import *
 from .clock import Clock, Enable, Reset, AsyncReset
-from .wire_clock import wiredefaultclock
+from magma.passes.clock import drive_undriven_clock_types_in_inst
 from .array import *
 from .tuple import Tuple
 from .wire import wire

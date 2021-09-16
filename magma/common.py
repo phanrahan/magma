@@ -156,7 +156,15 @@ def make_delegator_cls(base):
     return _Delegator
 
 
-class IterableOnlyException(Exception):
+class IterableException(ValueError):
+    pass
+
+
+class EmptyIterableException(IterableException):
+    pass
+
+
+class NonSignletonIterableException(IterableException):
     pass
 
 
@@ -165,11 +173,11 @@ def only(lst: Iterable):
     try:
         value = next(it)
     except StopIteration:
-        raise IterableOnlyException("Expected one element, got []") from None
+        raise EmptyIterableException() from None
     try:
         new_value = next(it)
     except StopIteration:
         return value
     else:
-        msg = f"Expected one element got {[value, new_value] + list(it)}"
-        raise IterableOnlyException(msg)
+        elements = [value, new_value] + list(it)
+        raise NonSignletonIterableException(elements)
