@@ -232,7 +232,7 @@ def _add_intermediate_value(value):
     """
     root = value.name.root()
     # If it is a NamedRef which doesn't refer to a constant, then we seed the
-    # set with the root value. Otherwise, we can proceed with the empty set
+    # set with the root value. Otherwise, we can proceed with the empty set.
     if type(root) is NamedRef and not root.value().const():
         return OrderedIdentitySet((root.value(),))
     return OrderedIdentitySet()
