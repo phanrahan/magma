@@ -615,11 +615,15 @@ class Array2(Wireable, Array):
         # TODO(leonardt): Support const
         return False
 
-    def _make_slice(self, key):
+    def _make_slice(self, start, stop=None):
+        if stop is None:
+            stop = start + 1
         import magma as m
+
         class Slice(m.Circuit):
-            io = m.IO(I=In(type(self)), O=Out(Array2[1, type(self).T]))
-            coreir_genargs = {"hi": key + 1, "lo": key, "width": len(self)}
+            io = m.IO(I=In(type(self)),
+                      O=Out(Array2[stop - start, type(self).T]))
+            coreir_genargs = {"hi": stop, "lo": start, "width": len(self)}
             coreir_name = "slice"
             coreir_lib = "coreir"
             renamed_ports = m.circuit.coreir_port_mapping
@@ -628,6 +632,11 @@ class Array2(Wireable, Array):
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._make_slice(key)()(self)
+        if isinstance(key, slice):
+            start = key.start if key.start is not None else 0
+            stop = key.stop if key.stop is not None else len(self)
+            assert key.step is None, "Variable slice step not implemented"
+            return self._make_slice(start, stop)()(self)
         raise NotImplementedError(type(key))
 
     def flatten(self):
