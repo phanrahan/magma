@@ -1,19 +1,16 @@
-import dataclasses
 from typing import Any, Callable, Iterable, Optional
 
-from graph_lib import Graph
+from graph_lib import Graph, Node, NodeOrderer
 
 
-NodeOrderer = Callable[[Graph], Iterable[Any]]
-
-
-def order_nodes(g: Graph, node_orderer: Optional[NodeOrderer]):
+def order_nodes(
+        g: Graph, node_orderer: Optional[NodeOrderer]) -> Iterable[Node]:
     if node_orderer is None:
         return g.nodes()
     return node_orderer(g)
 
 
-def _process_transform_info(transform_info, g: Graph, node: Any):
+def _process_transform_info(transform_info, g: Graph, node: Node):
     if transform_info is node:
         return
     orig = node
@@ -34,7 +31,7 @@ class NodeVisitor:
         nodes = order_nodes(self._g, node_orderer)
         self._run_on_nodes(nodes)
 
-    def _run_on_nodes(self, nodes: Iterable[Any], ):
+    def _run_on_nodes(self, nodes: Iterable[Any]):
         for node in nodes:
             self.visit(node)
 
