@@ -2,7 +2,7 @@ from typing import Union
 
 import magma as m
 
-from graph_base import Graph
+from graph_lib import Graph
 
 
 ModuleLike = Union[m.DefineCircuitKind, m.Circuit]

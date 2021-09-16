@@ -3,7 +3,7 @@ from typing import Tuple
 
 import magma as m
 
-from graph_base import Graph, Node, topological_sort
+from graph_lib import Graph, Node, topological_sort
 from graph_utils import NodeTransformer
 
 

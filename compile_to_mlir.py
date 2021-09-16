@@ -1,11 +1,11 @@
-from graph_base import write_to_dot
+from graph_lib import Graph, write_to_dot
 from magma_graph import build_magma_graph
 from debug_utils import flatten_magma_graph
 from passes import *
 from mlir_passes import *
 
 
-def emit_module(ckt, g):
+def emit_module(ckt: m.DefineCircuitKind, g: Graph):
     emitter = Emitter()
     inputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
               for port in ckt.interface.outputs()]

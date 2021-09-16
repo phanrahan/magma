@@ -1,6 +1,6 @@
 import magma as m
 
-from graph_base import Graph
+from graph_lib import Graph
 
 
 def flatten_magma_graph(g: Graph):

@@ -1,7 +1,7 @@
 import dataclasses
 from typing import Any, Callable, Iterable, Optional
 
-from graph_base import Graph
+from graph_lib import Graph
 
 
 NodeOrderer = Callable[[Graph], Iterable[Any]]
