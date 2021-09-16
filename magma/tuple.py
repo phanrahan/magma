@@ -9,7 +9,6 @@ from hwtypes.adt import (
     ProductMeta,
 )
 from hwtypes import BitVector, Bit
-
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
