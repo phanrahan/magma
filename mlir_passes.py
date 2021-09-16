@@ -5,7 +5,7 @@ import magma as m
 
 from graph_lib import Graph, Node, topological_sort
 from graph_visitor import NodeVisitor, NodeTransformer
-from mlir_wrapper import MlirContext, MlirValue, MlirType, MlirIntegerType
+from mlir_utils import MlirContext, MlirValue, MlirType, MlirIntegerType
 from magma_graph import Net
 from common_visitors import replace_node
 
