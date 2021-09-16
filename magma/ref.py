@@ -209,11 +209,12 @@ class PortViewRef(Ref):
 def get_ref_inst(ref):
     """
     If value is part of a port on an instance, return that instance,
-    otherwise None
+    otherwise None.
     """
-    if not isinstance(ref.root(), InstRef):
+    root = ref.root()
+    if not isinstance(root, InstRef):
         return None
-    return ref.root().inst
+    return root.inst
 
 
 def get_ref_defn(ref):
