@@ -64,6 +64,10 @@ class NamedRef(Ref):
         return self._value if self._value is None else self._value()
 
 
+class TempNamedRef(NamedRef):
+    pass
+
+
 class InstRef(NamedRef):
     def __init__(self, inst, name):
         super().__init__(name)
@@ -230,4 +234,4 @@ def get_ref_defn(ref):
 
 def is_temp_ref(ref):
     root = ref.root()
-    return (type(root) is NamedRef or type(root) is AnonRef)
+    return isinstance(root, (TempNamedRef, AnonRef))

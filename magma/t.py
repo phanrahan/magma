@@ -2,7 +2,7 @@ import abc
 import enum
 from magma.common import deprecated
 from magma.compatibility import IntegerTypes, StringTypes
-from magma.ref import AnonRef, NamedRef, DefnRef, InstRef
+from magma.ref import AnonRef, NamedRef, TempNamedRef, DefnRef, InstRef
 from magma.protocol_type import magma_value
 from magma.wire import wire
 
@@ -19,7 +19,7 @@ class Type(object):
         if name is None:
             name = AnonRef()
         elif isinstance(name, str):
-            name = NamedRef(name=name, value=self)
+            name = TempNamedRef(name=name, value=self)
         self.name = name
 
     __hash__ = object.__hash__
