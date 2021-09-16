@@ -8,7 +8,6 @@ from .bit import Bit
 from .bits import Bits
 from .digital import DigitalMeta
 from .clock import Clock, Reset, AsyncReset, AsyncResetN, Enable
-from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
@@ -16,7 +15,11 @@ from .tuple import Tuple, Product
 from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
 import hwtypes as ht
+from magma.array import Array, Array2
+from magma.circuit import coreir_port_mapping
 from magma.common import is_int
+from magma.generator import Generator2
+from magma.interface import IO
 
 
 __all__ = ['bit']
@@ -27,7 +30,7 @@ __all__ += ['bits', 'uint', 'sint']
 
 __all__ += ['tuple_', 'namedtuple']
 
-__all__ += ['concat', 'repeat']
+__all__ += ['concat', 'repeat', 'concat2']
 __all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
 __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
@@ -219,6 +222,25 @@ def concat(*arrays):
                 )
             ts.extend(a.ts)
     return array(ts)
+
+
+class Concat(Generator2):
+    def __init__(self, n1, n2):
+        self.io = IO(I0=In(Array2[n1, Bit]),
+                     I1=In(Array2[n2, Bit]),
+                     O=Out(Array2[n1 + n2, Bit]))
+
+        self.coreir_genargs = {"width0": n1, "width1": n2}
+        self.coreir_name = "concat"
+        self.coreir_lib = "coreir"
+        self.renamed_ports = coreir_port_mapping
+
+
+def concat2(*arrays):
+    curr = arrays[0]
+    for next_ in arrays[1:]:
+        curr = Concat(len(curr), len(next_))()(curr, next_)
+    return curr
 
 
 def repeat(value, n):
