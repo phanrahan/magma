@@ -4,7 +4,7 @@ from typing import Any, Iterable, List, Optional
 import magma as m
 
 from graph_lib import Graph, Node, topological_sort
-from graph_utils import NodeVisitor, NodeTransformer
+from pass_base import NodeVisitor, NodeTransformer
 from mlir_wrapper import MlirContext, MlirValue, MlirType, MlirIntegerType
 from passes import Net
 
