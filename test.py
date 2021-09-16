@@ -7,6 +7,19 @@ from passes import *
 from mlir_passes import *
 
 
+def emit_module(ckt, g):
+    emitter = Emitter()
+    inputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
+              for port in ckt.interface.outputs()]
+    outputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
+               for port in ckt.interface.inputs()]
+    emitter.emit(f"hw.module @{ckt.name}({values_to_string(inputs, 2)}) -> ({values_to_string(outputs, 2)}) {{")
+    emitter.push()
+    EmitMlirVisitor(g, emitter).run(topological_sort)
+    emitter.pop()
+    emitter.emit("}")
+
+
 def main():
     g = build_magma_graph(comb)
 
@@ -22,11 +35,8 @@ def main():
     EdgePortToIndexTransformer(g, ctx).run()
     ModuleToOpTransformer(g, ctx).run()
 
-    emitter = Emitter()
-    emitter.push()
-    EmitMlirVisitor(g, emitter).run(topological_sort)
-    emitter.pop()
-    
+    emit_module(comb, g)
+
     write_to_dot(flatten_magma_graph(g), "graph-lowered.txt")
 
 
