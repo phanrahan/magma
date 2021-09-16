@@ -8,7 +8,7 @@ from magma.passes.passes import CircuitPass
 from magma.primitives.wire import Wire
 from magma.tuple import Tuple
 from magma.verilog_utils import value_to_verilog_name, is_nd_array
-from magma.ref import NamedRef, AnonRef
+from magma.ref import TempNamedRef, AnonRef
 from magma.t import Direction
 from magma.conversions import from_bits, as_bits
 from magma.view import PortView, InstView
@@ -21,7 +21,7 @@ def _should_disable_ndarray(mon_arg, bind_arg):
         bind_arg = bind_arg.port
 
     if (isinstance(mon_arg, Array) and
-            type(bind_arg.name.root()) in (NamedRef, AnonRef)):
+            isinstance(bind_arg.name.root(), (TempNamedRef, AnonRef))):
 
         # Disable NDArray logic for temporary since CoreIR Wire primitive (used
         # for temporaries) does not support ndarrays yet (root() is not None
