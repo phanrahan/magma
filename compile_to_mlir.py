@@ -1,11 +1,19 @@
-from graph_lib import Graph, write_to_dot
+import dataclasses
+
+import magma as m
+
+from common_visitors import RemoveDuplicateEdgesTransformer
+from graph_lib import Graph, topological_sort
 from magma_graph import build_magma_graph
-from debug_utils import flatten_magma_graph
-from mlir_visitors import *
-from common_visitors import *
-from magma_visitors import *
+from magma_visitors import SplitPortEdgesTranformer, MergeNetsTransformer
+from mlir_context import MlirContext
+from mlir_emitter import MlirEmitter
+from mlir_graph import MlirOp
 from mlir_utils import magma_type_to_mlir_type
-from mlir_emitter import mlir_values_to_string
+from mlir_value import MlirValue
+from mlir_visitors import (
+    ModuleInputSplitter, NetToValueTransformer, EdgePortToIndexTransformer,
+    ModuleToOpTransformer, EmitMlirVisitor)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -33,19 +41,14 @@ def emit_module(ckt: m.DefineCircuitKind, g: Graph):
 
 def compile_to_mlir(ckt: m.DefineCircuitKind):
     g = build_magma_graph(ckt)
-
-    write_to_dot(flatten_magma_graph(g), "graph.txt")
+    ctx = MlirContext()
 
     SplitPortEdgesTranformer(g).run()
     RemoveDuplicateEdgesTransformer(g).run()
     MergeNetsTransformer(g).run()
-
-    ctx = MlirContext()
     ModuleInputSplitter(g, ctx).run()
     NetToValueTransformer(g, ctx).run(topological_sort)
     EdgePortToIndexTransformer(g).run()
     ModuleToOpTransformer(g).run()
 
     emit_module(ckt, g)
-
-    write_to_dot(flatten_magma_graph(g), "graph-lowered.txt")

@@ -1,6 +1,6 @@
 import magma as m
 
-from graph_lib import Graph, Node, topological_sort
+from graph_lib import Graph, Node
 from graph_visitor import NodeTransformer
 from magma_graph import Net
 
