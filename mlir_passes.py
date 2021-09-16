@@ -106,8 +106,14 @@ class EdgePortToIndexTransformer(MlirNodeTransformer):
         return [node], edges
 
 
-def values_to_string(values: Iterable[MlirValue]) -> str:
-    return ', '.join(map(lambda v: v.name, values))
+def values_to_string(values: Iterable[MlirValue], mode=0) -> str:
+    if mode == 0:
+        mapper = lambda v: v.name
+    elif mode == 1:
+        mapper = lambda v: v.type.emit()
+    else:
+        mapper = lambda v: f"{v.name}: {v.type.emit()}"
+    return ', '.join(map(mapper, values))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -121,7 +127,7 @@ class CombOp(MlirOp):
     op: str
 
     def emit(self, inputs, outputs):
-        print (f"{values_to_string(outputs)} = comb.{self.op} {values_to_string(inputs)}")
+        print (f"{values_to_string(outputs)} = comb.{self.op} {values_to_string(inputs)} : {values_to_string(outputs, 1)}")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -129,7 +135,7 @@ class HwOutputOp(MlirOp):
     name: str
 
     def emit(self, inputs, outputs):
-        print (f"hw.output {values_to_string(inputs)}")
+        print (f"hw.output {values_to_string(inputs)} : {values_to_string(inputs, 1)}")
 
 
 def lower_module_to_op(module): #: ModuleLike):
