@@ -7,7 +7,10 @@ from common_visitors import replace_node
 from graph_lib import Graph, Node
 from graph_visitor import NodeVisitor, NodeTransformer
 from magma_graph import Net
-from mlir_utils import Contextual, MlirContext, MlirValue, lower_type
+from mlir_context import MlirContext, Contextual
+from mlir_type import MlirType
+from mlir_utils import magma_type_to_mlir_type
+from mlir_value import MlirValue
 
 
 class ModuleInputSplitter(NodeTransformer, Contextual):
@@ -26,7 +29,7 @@ class ModuleInputSplitter(NodeTransformer, Contextual):
             assert isinstance(dst, Net)
             port = data["info"]
             assert dst.ports[0] is port
-            t = lower_type(type(port))
+            t = magma_type_to_mlir_type(type(port))
             value = self.ctx.new_value(t, port.name, force=True)
             nodes.append(value)
             assert len(list(self.graph.predecessors(dst))) == 1
@@ -46,7 +49,7 @@ class NetToValueTransformer(NodeTransformer, Contextual):
 
     def visit_Net(self, node: Net):
         assert len(list(self.graph.predecessors(node))) == 1
-        t = lower_type(type(node.ports[0]))
+        t = magma_type_to_mlir_type(type(node.ports[0]))
         value = self.ctx.new_value(t)
         edges = list(replace_node(self.graph, node, value))
         return [value], edges

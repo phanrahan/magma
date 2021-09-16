@@ -4,13 +4,14 @@ from debug_utils import flatten_magma_graph
 from mlir_passes import *
 from common_visitors import *
 from magma_visitors import *
+from mlir_utils import magma_type_to_mlir_type
 
 
 def emit_module(ckt: m.DefineCircuitKind, g: Graph):
     emitter = Emitter()
-    inputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
+    inputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
               for port in ckt.interface.outputs()]
-    outputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
+    outputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
                for port in ckt.interface.inputs()]
     emitter.emit(f"hw.module @{ckt.name}({values_to_string(inputs, 2)}) -> ({values_to_string(outputs, 2)}) {{")
     emitter.push()
