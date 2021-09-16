@@ -101,11 +101,13 @@ def sort_values(g: Graph, node: MlirOp):
     outputs = {}
     for edge in g.in_edges(node, data=True):
         src, _, data = edge
+        assert isinstance(src, MlirValue)
         idx = data["info"]
         assert idx not in inputs
         inputs[idx] = src
     for edge in g.out_edges(node, data=True):
         _, dst, data = edge
+        assert isinstance(dst, MlirValue)
         idx = data["info"]
         assert idx not in outputs
         outputs[idx] = dst
