@@ -1,5 +1,5 @@
 from comb import comb
-from graph_base import write_to_dot
+from graph_base import write_to_dot, topological_sort
 from magma_graph import build_magma_graph
 #from mlir_graph import lower_graph
 from debug_utils import flatten_magma_graph
@@ -18,9 +18,10 @@ def main():
 
     ctx = MlirContext()
     ModuleInputSplitter(g, ctx).run()
-    NetToValueTransformer(g, ctx).run()
+    NetToValueTransformer(g, ctx).run(topological_sort)
     EdgePortToIndexTransformer(g, ctx).run()
     ModuleToOpTransformer(g, ctx).run()
+    EmitMlirVisitor(g).run(topological_sort)
     
     write_to_dot(flatten_magma_graph(g), "graph-lowered.txt")
 

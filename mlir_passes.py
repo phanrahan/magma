@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Any, Iterable, List
 
 import magma as m
@@ -118,7 +119,8 @@ class EdgePortToIndexTransformer(MlirNodeTransformer):
         return [node], edges
 
 
-import dataclasses
+def values_to_string(values: Iterable[MlirValue]) -> str:
+    return ', '.join(map(lambda v: v.name, values))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -131,10 +133,16 @@ class CombOp(MlirOp):
     name: str
     op: str
 
+    def emit(self, inputs, outputs):
+        print (f"{values_to_string(outputs)} = comb.{self.op} {values_to_string(inputs)}")
+
 
 @dataclasses.dataclass(frozen=True)
 class HwOutputOp(MlirOp):
     name: str
+
+    def emit(self, inputs, outputs):
+        print (f"hw.output {values_to_string(inputs)}")
 
 
 def lower_module_to_op(module): #: ModuleLike):
@@ -154,3 +162,31 @@ class ModuleToOpTransformer(MlirNodeTransformer):
         new_node = lower_module_to_op(node)
         edges = list(replace_node(self.graph, node, new_node))
         return [new_node], edges
+
+
+def sort_values(g: Graph, node: MlirOp):
+    inputs = {}
+    outputs = {}
+    for edge in g.in_edges(node, data=True):
+        src, _, data = edge
+        idx = data["info"]
+        assert idx not in inputs
+        inputs[idx] = src
+    for edge in g.out_edges(node, data=True):
+        _, dst, data = edge
+        idx = data["info"]
+        assert idx not in outputs
+        outputs[idx] = dst
+    inputs = [inputs[i] for i in range(len(inputs))]
+    outputs = [outputs[i] for i in range(len(outputs))]
+    return inputs, outputs
+
+
+class EmitMlirVisitor(NodeVisitor):
+    def visit_MlirValue(self, node: MlirValue):
+        pass
+
+    def generic_visit(self, node: MlirOp):
+        assert isinstance(node, MlirOp)
+        inputs, outputs = sort_values(self.graph, node)
+        node.emit(inputs, outputs)
