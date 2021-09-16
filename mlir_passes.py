@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Iterable, List
+from typing import Any, Iterable, List, Optional
 
 import magma as m
 
@@ -127,7 +127,7 @@ class CombOp(MlirOp):
     op: str
 
     def emit(self, inputs, outputs):
-        print (f"{values_to_string(outputs)} = comb.{self.op} {values_to_string(inputs)} : {values_to_string(outputs, 1)}")
+        return (f"{values_to_string(outputs)} = comb.{self.op} {values_to_string(inputs)} : {values_to_string(outputs, 1)}")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -135,7 +135,7 @@ class HwOutputOp(MlirOp):
     name: str
 
     def emit(self, inputs, outputs):
-        print (f"hw.output {values_to_string(inputs)} : {values_to_string(inputs, 1)}")
+        return (f"hw.output {values_to_string(inputs)} : {values_to_string(inputs, 1)}")
 
 
 def lower_module_to_op(module): #: ModuleLike):
@@ -175,11 +175,32 @@ def sort_values(g: Graph, node: MlirOp):
     return inputs, outputs
 
 
+class Emitter:
+    def __init__(self):
+        self._indent = 0
+
+    def push(self):
+        self._indent += 1
+
+    def pop(self):
+        self._indent -= 1
+
+    def emit(self, line: str):
+        tab = f"{'    '*self._indent}"
+        print (f"{tab}{line}")
+
+
 class EmitMlirVisitor(NodeVisitor):
+    def __init__(self, g: Graph, emitter: Optional[Emitter] = None):
+        super().__init__(g)
+        if emitter is None:
+            emitter = Emitter()
+        self._emitter = emitter
+
     def visit_MlirValue(self, node: MlirValue):
         pass
 
     def generic_visit(self, node: MlirOp):
         assert isinstance(node, MlirOp)
         inputs, outputs = sort_values(self.graph, node)
-        node.emit(inputs, outputs)
+        self._emitter.emit(node.emit(inputs, outputs))

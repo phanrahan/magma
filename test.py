@@ -21,7 +21,11 @@ def main():
     NetToValueTransformer(g, ctx).run(topological_sort)
     EdgePortToIndexTransformer(g, ctx).run()
     ModuleToOpTransformer(g, ctx).run()
-    EmitMlirVisitor(g).run(topological_sort)
+
+    emitter = Emitter()
+    emitter.push()
+    EmitMlirVisitor(g, emitter).run(topological_sort)
+    emitter.pop()
     
     write_to_dot(flatten_magma_graph(g), "graph-lowered.txt")
 
