@@ -26,7 +26,7 @@ def compile_to_mlir(ckt: m.DefineCircuitKind):
 
     SplitPortEdgesTranformer(g).run()
     RemoveDuplicateEdgesTransformer(g).run()
-    NetMerger(g).run()
+    MergeNetsTransformer(g).run()
 
     ctx = MlirContext()
     ModuleInputSplitter(g, ctx).run()

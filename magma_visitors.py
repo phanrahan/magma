@@ -21,7 +21,7 @@ class SplitPortEdgesTranformer(NodeTransformer):
         return nodes, edges
 
 
-class NetMerger(NodeTransformer):
+class MergeNetsTransformer(NodeTransformer):
     def _make_new_node(node: Node, predecessor: Node):
         if isinstance(predecessor, m.Type):
             return Net((predecessor, node))
@@ -36,7 +36,7 @@ class NetMerger(NodeTransformer):
         predecessors = list(self.graph.predecessors(node))
         assert len(predecessors) == 1
         predecessor = predecessors[0]
-        new_node = NetMerger._make_new_node(node, predecessor)
+        new_node = MergeNetsTransformer._make_new_node(node, predecessor)
         if new_node is None:
             return node
         edges = []
