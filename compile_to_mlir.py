@@ -3,6 +3,7 @@ from magma_graph import build_magma_graph
 from debug_utils import flatten_magma_graph
 from passes import *
 from mlir_passes import *
+from common_visitors import *
 
 
 def emit_module(ckt: m.DefineCircuitKind, g: Graph):
