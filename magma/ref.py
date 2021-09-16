@@ -220,11 +220,12 @@ def get_ref_inst(ref):
 def get_ref_defn(ref):
     """
     If value is part of a port on an definition, return that definition,
-    otherwise None
+    otherwise None.
     """
-    if not isinstance(ref.root(), DefnRef):
+    root = ref.root()
+    if not isinstance(root, DefnRef):
         return None
-    return ref.root().defn
+    return root.defn
 
 
 def is_temp_ref(ref):
