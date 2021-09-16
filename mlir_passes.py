@@ -5,7 +5,7 @@ import magma as m
 
 from graph_lib import Graph, Node, topological_sort
 from graph_visitor import NodeVisitor, NodeTransformer
-from mlir_utils import MlirContext, MlirValue, MlirType, MlirIntegerType
+from mlir_utils import MlirContext, MlirValue, lower_type
 from magma_graph import Net
 from common_visitors import replace_node
 
@@ -26,15 +26,6 @@ def _mlir_base_pass_factory(base):
 
 MlirNodeVisitor = _mlir_base_pass_factory(NodeVisitor)
 MlirNodeTransformer = _mlir_base_pass_factory(NodeTransformer)
-
-
-def lower_type(type: m.Kind) -> MlirType:
-    type = type.undirected_t
-    if issubclass(type, m.Digital):
-        return MlirIntegerType(1)
-    if issubclass(type, m.Bits):
-        return MlirIntegerType(type.N)
-    raise NotImplementedError(type)
 
 
 class ModuleInputSplitter(MlirNodeTransformer):

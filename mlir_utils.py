@@ -1,7 +1,9 @@
 import abc
 import collections
 import dataclasses
-from typing import List, Optional
+from typing import Optional
+
+import magma as m
 
 
 class MlirType(abc.ABC):
@@ -16,6 +18,15 @@ class MlirIntegerType(MlirType):
 
     def emit(self) -> str:
         return f"i{self.n}"
+
+
+def lower_type(type: m.Kind) -> MlirType:
+    type = type.undirected_t
+    if issubclass(type, m.Digital):
+        return MlirIntegerType(1)
+    if issubclass(type, m.Bits):
+        return MlirIntegerType(type.N)
+    raise NotImplementedError(type)
 
 
 @dataclasses.dataclass(frozen=True)
