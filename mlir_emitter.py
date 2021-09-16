@@ -26,5 +26,7 @@ class MlirEmitter(Emitter):
             input_names=mlir_values_to_string(inputs, 0),
             output_names=mlir_values_to_string(outputs, 0),
             input_types=mlir_values_to_string(inputs, 1),
-            output_types=mlir_values_to_string(outputs, 1))
+            output_types=mlir_values_to_string(outputs, 1),
+            input_names_and_types=mlir_values_to_string(inputs, 2),
+            output_names_and_types=mlir_values_to_string(outputs, 2))
         self.emit(emission)

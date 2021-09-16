@@ -8,8 +8,13 @@ from mlir_utils import magma_type_to_mlir_type
 from mlir_emitter import mlir_values_to_string
 
 
+@dataclasses.dataclass(frozen=True)
 class HwModuleOp(MlirOp):
-    pass
+    name: str
+
+    def emit(self) -> str:
+        return (f"hw.module @{self.name}({{output_names_and_types}}) -> "
+                f"({{output_names_and_types}}) {{{{")
 
 
 def emit_module(ckt: m.DefineCircuitKind, g: Graph):
@@ -18,7 +23,8 @@ def emit_module(ckt: m.DefineCircuitKind, g: Graph):
               for port in ckt.interface.outputs()]
     outputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
                for port in ckt.interface.inputs()]
-    emitter.emit(f"hw.module @{ckt.name}({mlir_values_to_string(inputs, 2)}) -> ({mlir_values_to_string(outputs, 2)}) {{")
+    op = HwModuleOp(ckt.name)
+    emitter.emit_op(op, inputs, outputs)
     emitter.push()
     EmitMlirVisitor(g, emitter).run(topological_sort)
     emitter.pop()
