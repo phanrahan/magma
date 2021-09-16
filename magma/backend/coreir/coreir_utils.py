@@ -8,7 +8,6 @@ from magma.ref import (ArrayRef, DefnRef, TupleRef, InstRef, NamedRef,
                        PortViewRef)
 from magma.tuple import Tuple
 from magma.protocol_type import magma_type, magma_value
-from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.backend.util import make_relative
 
 
@@ -188,11 +187,3 @@ class Slice:
     def get_coreir_select(self,):
         return (magma_name_to_coreir_select(self.value.name) +
                 f".{self.low}:{self.high}")
-
-
-def _unwrap(x):
-    if isinstance(x, MagmaProtocol):
-        return x._get_magma_value_()
-    if isinstance(x, MagmaProtocolMeta):
-        return x._to_magma_()
-    return x
