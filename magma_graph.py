@@ -1,4 +1,5 @@
-from typing import Union
+import dataclasses
+from typing import Tuple, Union
 
 import magma as m
 
@@ -24,6 +25,11 @@ def _traverse_inputs(g: Graph, module: ModuleLike):
         root, _ = _get_inst_or_defn_or_die(driver)
         info = dict(src=driver, dst=port)
         g.add_edge(root, module, info=info)
+
+
+@dataclasses.dataclass(frozen=True)
+class Net:
+    ports: Tuple[m.Type]
 
 
 def build_magma_graph(ckt: m.DefineCircuitKind) -> Graph:
