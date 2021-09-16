@@ -14,7 +14,7 @@ class CombOp(MlirOp):
     name: str
     op: str
 
-    def emit(self, inputs: List[MlirValue], outputs: List[MlirValue]) -> str:
+    def emit(self):
         return (f"{{output_names}} = comb.{self.op} {{input_names}} : "
                 f"{{output_types}}")
 
@@ -23,5 +23,5 @@ class CombOp(MlirOp):
 class HwOutputOp(MlirOp):
     name: str
 
-    def emit(self, inputs: List[MlirValue], outputs: List[MlirValue]) -> str:
-        return f"hw.output {{input_names}} : {{input_types}}"
+    def emit(self):
+        return (f"hw.output {{input_names}} : {{input_types}}")

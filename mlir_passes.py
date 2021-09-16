@@ -4,12 +4,15 @@ from typing import Any, Iterable, List, Optional
 import magma as m
 
 from common_visitors import replace_node
+from emitter import Emitter
 from graph_lib import Graph, Node
 from graph_visitor import NodeVisitor, NodeTransformer
 from magma_graph import Net
 from mlir_context import MlirContext, Contextual
+from mlir_graph import MlirOp
 from mlir_type import MlirType
-from mlir_utils import magma_type_to_mlir_type
+from mlir_utils import (
+    magma_type_to_mlir_type, magma_module_to_mlir_op, mlir_values_to_string)
 from mlir_value import MlirValue
 
 
@@ -82,53 +85,13 @@ class EdgePortToIndexTransformer(NodeTransformer):
         return [node], edges
 
 
-def values_to_string(values: Iterable[MlirValue], mode=0) -> str:
-    if mode == 0:
-        mapper = lambda v: v.name
-    elif mode == 1:
-        mapper = lambda v: v.type.emit()
-    else:
-        mapper = lambda v: f"{v.name}: {v.type.emit()}"
-    return ', '.join(map(mapper, values))
-
-
-@dataclasses.dataclass(frozen=True)
-class MlirOp:
-    name: str
-
-
-@dataclasses.dataclass(frozen=True)
-class CombOp(MlirOp):
-    name: str
-    op: str
-
-    def emit(self, inputs, outputs):
-        return (f"{values_to_string(outputs)} = comb.{self.op} {values_to_string(inputs)} : {values_to_string(outputs, 1)}")
-
-
-@dataclasses.dataclass(frozen=True)
-class HwOutputOp(MlirOp):
-    name: str
-
-    def emit(self, inputs, outputs):
-        return (f"hw.output {values_to_string(inputs)} : {values_to_string(inputs, 1)}")
-
-
-def lower_module_to_op(module): #: ModuleLike):
-    if isinstance(module, m.Circuit):
-        return CombOp(module.name, type(module).coreir_name)
-    if isinstance(module, m.DefineCircuitKind):
-        return HwOutputOp(module.name)
-    raise NotImplementedError()
-
-
 class ModuleToOpTransformer(NodeTransformer):
     def visit_MlirValue(self, node: MlirValue):
         return node
 
     def generic_visit(self, node: Node):
         assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
-        new_node = lower_module_to_op(node)
+        new_node = magma_module_to_mlir_op(node)
         edges = list(replace_node(self.graph, node, new_node))
         return [new_node], edges
 
@@ -151,21 +114,6 @@ def sort_values(g: Graph, node: MlirOp):
     return inputs, outputs
 
 
-class Emitter:
-    def __init__(self):
-        self._indent = 0
-
-    def push(self):
-        self._indent += 1
-
-    def pop(self):
-        self._indent -= 1
-
-    def emit(self, line: str):
-        tab = f"{'    '*self._indent}"
-        print (f"{tab}{line}")
-
-
 class EmitMlirVisitor(NodeVisitor):
     def __init__(self, g: Graph, emitter: Optional[Emitter] = None):
         super().__init__(g)
@@ -179,4 +127,10 @@ class EmitMlirVisitor(NodeVisitor):
     def generic_visit(self, node: MlirOp):
         assert isinstance(node, MlirOp)
         inputs, outputs = sort_values(self.graph, node)
-        self._emitter.emit(node.emit(inputs, outputs))
+        emitted = node.emit()
+        emitted = emitted.format(
+            input_names=mlir_values_to_string(inputs, 0),
+            output_names=mlir_values_to_string(outputs, 0),
+            input_types=mlir_values_to_string(inputs, 1),
+            output_types=mlir_values_to_string(outputs, 1))
+        self._emitter.emit(emitted)
