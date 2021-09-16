@@ -58,29 +58,29 @@ class NetToValueTransformer(NodeTransformer, Contextual):
         return [value], edges
 
 
+def _get_value_index(value: m.Type, values: List[m.Type]) -> int:
+    for i, v in enumerate(values):
+        if v is value:
+            return i
+    raise KeyError(value)
+
+
 class EdgePortToIndexTransformer(NodeTransformer):
     def visit_MlirValue(self, node: MlirValue):
         return node
 
-    def _get_index(value: m.Type, values: List[m.Type]) -> int:
-        for i, v in enumerate(values):
-            if v is value:
-                return i
-        raise KeyError()
-
     def generic_visit(self, node: Node):
         assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
         edges = []
-        finder = type(self)._get_index
         for edge in self.graph.in_edges(node, data=True):
             src, dst, data = edge
             port = data["info"]
-            data["info"] = finder(port, node.interface.inputs())
+            data["info"] = _get_value_index(port, node.interface.inputs())
             edges.append((src, dst, data))
         for edge in self.graph.out_edges(node, data=True):
             src, dst, data = edge
             port = data["info"]
-            data["info"] = finder(port, node.interface.outputs())
+            data["info"] = _get_value_index(port, node.interface.outputs())
             edges.append((src, dst, data))
         return [node], edges
 
@@ -96,7 +96,7 @@ class ModuleToOpTransformer(NodeTransformer):
         return [new_node], edges
 
 
-def sort_values(g: Graph, node: MlirOp):
+def _sort_values(g: Graph, node: MlirOp):
     inputs = {}
     outputs = {}
     for edge in g.in_edges(node, data=True):
@@ -126,7 +126,7 @@ class EmitMlirVisitor(NodeVisitor):
 
     def generic_visit(self, node: MlirOp):
         assert isinstance(node, MlirOp)
-        inputs, outputs = sort_values(self.graph, node)
+        inputs, outputs = _sort_values(self.graph, node)
         emission = node.emit()
         emission = emission.format(
             input_names=mlir_values_to_string(inputs, 0),
