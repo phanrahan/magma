@@ -18,6 +18,7 @@ def main():
 
     ctx = MlirContext()
     ModuleInputSplitter(g, ctx).run()
+    NetToValueTransformer(g, ctx).run()
     
     write_to_dot(flatten_magma_graph(g), "graph-lowered.txt")
 

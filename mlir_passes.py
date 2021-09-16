@@ -48,3 +48,41 @@ class ModuleInputSplitter(MlirNodeTransformer):
         for node in nodes_to_remove:
             self.graph.remove_node(node)
         return nodes, edges
+
+
+class ModuleInputSplitter(MlirNodeTransformer):
+    def generic_visit(self, node: Node):
+        if not isinstance(node, m.DefineCircuitKind):
+            return node
+        nodes = [node]
+        edges = list(self.graph.in_edges(node, data=True))
+        nodes_to_remove = []
+        for edge in self.graph.out_edges(node, data=True):
+            _, dst, data = edge
+            assert isinstance(dst, Net)
+            port = data["info"]
+            assert dst.ports[0] is port
+            value = self.ctx.new_value(port.name, force=True)
+            nodes.append(value)
+            assert len(list(self.graph.predecessors(dst))) == 1
+            for edge in self.graph.out_edges(dst, data=True):
+                _, descendant, data = edge
+                edges.append((value, descendant, data))
+            nodes_to_remove.append(dst)
+        for node in nodes_to_remove:
+            self.graph.remove_node(node)
+        return nodes, edges
+
+
+class NetToValueTransformer(MlirNodeTransformer):
+    def visit_Net(self, node: Node):
+        assert len(list(self.graph.predecessors(node))) == 1
+        value = self.ctx.new_value()
+        edges = []
+        for edge in self.graph.in_edges(node, data=True):
+            src, _, data = edge
+            edges.append((src, value, data))
+        for edge in self.graph.out_edges(node, data=True):
+            _, dst, data = edge
+            edges.append((value, dst, data))
+        return [value], edges
