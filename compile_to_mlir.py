@@ -31,8 +31,8 @@ def compile_to_mlir(ckt: m.DefineCircuitKind):
     ctx = MlirContext()
     ModuleInputSplitter(g, ctx).run()
     NetToValueTransformer(g, ctx).run(topological_sort)
-    EdgePortToIndexTransformer(g, ctx).run()
-    ModuleToOpTransformer(g, ctx).run()
+    EdgePortToIndexTransformer(g).run()
+    ModuleToOpTransformer(g).run()
 
     emit_module(ckt, g)
 

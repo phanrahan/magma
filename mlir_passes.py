@@ -3,32 +3,18 @@ from typing import Any, Iterable, List, Optional
 
 import magma as m
 
-from graph_lib import Graph, Node, topological_sort
-from graph_visitor import NodeVisitor, NodeTransformer
-from mlir_utils import MlirContext, MlirValue, lower_type
-from magma_graph import Net
 from common_visitors import replace_node
+from graph_lib import Graph, Node
+from graph_visitor import NodeVisitor, NodeTransformer
+from magma_graph import Net
+from mlir_utils import Contextual, MlirContext, MlirValue, lower_type
 
 
-def _mlir_base_pass_factory(base):
+class ModuleInputSplitter(NodeTransformer, Contextual):
+    def __init__(self, g: Graph, ctx: MlirContext):
+        super().__init__(g)
+        self._ctx = ctx
 
-    class MlirPass(base):
-        def __init__(self, g: Graph, ctx: MlirContext):
-            super().__init__(g)
-            self._ctx = ctx
-
-        @property
-        def ctx(self) -> MlirContext:
-            return self._ctx
-
-    return MlirPass
-
-
-MlirNodeVisitor = _mlir_base_pass_factory(NodeVisitor)
-MlirNodeTransformer = _mlir_base_pass_factory(NodeTransformer)
-
-
-class ModuleInputSplitter(MlirNodeTransformer):
     def generic_visit(self, node: Node):
         if not isinstance(node, m.DefineCircuitKind):
             return node
@@ -53,7 +39,11 @@ class ModuleInputSplitter(MlirNodeTransformer):
         return nodes, edges
 
 
-class NetToValueTransformer(MlirNodeTransformer):
+class NetToValueTransformer(NodeTransformer, Contextual):
+    def __init__(self, g: Graph, ctx: MlirContext):
+        super().__init__(g)
+        self._ctx = ctx
+
     def visit_Net(self, node: Net):
         assert len(list(self.graph.predecessors(node))) == 1
         t = lower_type(type(node.ports[0]))
@@ -62,7 +52,7 @@ class NetToValueTransformer(MlirNodeTransformer):
         return [value], edges
 
 
-class EdgePortToIndexTransformer(MlirNodeTransformer):
+class EdgePortToIndexTransformer(NodeTransformer):
     def visit_MlirValue(self, node: MlirValue):
         return node
 
@@ -129,7 +119,7 @@ def lower_module_to_op(module): #: ModuleLike):
     raise NotImplementedError()
 
 
-class ModuleToOpTransformer(MlirNodeTransformer):
+class ModuleToOpTransformer(NodeTransformer):
     def visit_MlirValue(self, node: MlirValue):
         return node
 

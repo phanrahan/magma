@@ -65,3 +65,12 @@ class MlirContext:
             force: bool = False) -> MlirValue:
         name = self._name_gen(name, force)
         return MlirValue(name, type)
+
+
+class Contextual:
+    def __init__(self, ctx: MlirContext):
+        self._ctx = MlirContext
+
+    @property
+    def ctx(self) -> MlirContext:
+        return self._ctx
