@@ -204,16 +204,3 @@ class EmitMlirVisitor(NodeVisitor):
         assert isinstance(node, MlirOp)
         inputs, outputs = sort_values(self.graph, node)
         self._emitter.emit(node.emit(inputs, outputs))
-
-
-def emit_module(ckt, g):
-    emitter = Emitter()
-    inputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
-              for port in ckt.interface.outputs()]
-    outputs = [MlirValue(f"%{port.name}", lower_type(type(port)))
-               for port in ckt.interface.inputs()]
-    emitter.emit(f"hw.module @{ckt.name}({values_to_string(inputs, 2)}) -> ({values_to_string(outputs, 2)}) {{")
-    emitter.push()
-    EmitMlirVisitor(g, emitter).run(topological_sort)
-    emitter.pop()
-    emitter.emit("}")
