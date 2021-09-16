@@ -1,10 +1,10 @@
-from typing import Iterable
+from typing import Any, Iterable, List
 
 import magma as m
 
 from graph_base import Graph, Node
 from graph_utils import NodeVisitor, NodeTransformer
-from mlir_wrapper import MlirContext
+from mlir_wrapper import MlirContext, MlirValue
 from passes import Net
 
 
@@ -74,15 +74,45 @@ class ModuleInputSplitter(MlirNodeTransformer):
         return nodes, edges
 
 
+def replace_node(g: Graph, orig: Node, new: Node) -> Iterable[Any]:
+    for edge in g.in_edges(orig, data=True):
+        src, _, data = edge
+        yield (src, new, data)
+    for edge in g.out_edges(orig, data=True):
+        _, dst, data = edge
+        yield (new, dst, data)
+
+
 class NetToValueTransformer(MlirNodeTransformer):
-    def visit_Net(self, node: Node):
+    def visit_Net(self, node: Net):
         assert len(list(self.graph.predecessors(node))) == 1
         value = self.ctx.new_value()
-        edges = []
-        for edge in self.graph.in_edges(node, data=True):
-            src, _, data = edge
-            edges.append((src, value, data))
-        for edge in self.graph.out_edges(node, data=True):
-            _, dst, data = edge
-            edges.append((value, dst, data))
+        edges = list(replace_node(self.graph, node, value))
         return [value], edges
+
+
+class EdgePortToIndexTransformer(MlirNodeTransformer):
+    def visit_MlirValue(self, node: MlirValue):
+        return node
+
+    def _get_index(value: m.Type, values: List[m.Type]) -> int:
+        for i, v in enumerate(values):
+            if v is value:
+                return i
+        raise KeyError()
+
+    def generic_visit(self, node: Node):
+        assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
+        edges = []
+        finder = type(self)._get_index
+        for edge in self.graph.in_edges(node, data=True):
+            src, dst, data = edge
+            port = data["info"]
+            data["info"] = finder(port, node.interface.inputs())
+            edges.append((src, dst, data))
+        for edge in self.graph.out_edges(node, data=True):
+            src, dst, data = edge
+            port = data["info"]
+            data["info"] = finder(port, node.interface.outputs())
+            edges.append((src, dst, data))
+        return [node], edges
