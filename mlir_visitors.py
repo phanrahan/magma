@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, List
 
 import magma as m
 
@@ -117,10 +117,8 @@ def sort_values(g: Graph, node: MlirOp):
 
 
 class EmitMlirVisitor(NodeVisitor):
-    def __init__(self, g: Graph, emitter: Optional[Emitter] = None):
+    def __init__(self, g: Graph, emitter: Emitter):
         super().__init__(g)
-        if emitter is None:
-            emitter = Emitter()
         self._emitter = emitter
 
     def visit_MlirValue(self, node: MlirValue):
@@ -129,10 +127,10 @@ class EmitMlirVisitor(NodeVisitor):
     def generic_visit(self, node: MlirOp):
         assert isinstance(node, MlirOp)
         inputs, outputs = sort_values(self.graph, node)
-        emitted = node.emit()
-        emitted = emitted.format(
+        emission = node.emit()
+        emission = emission.format(
             input_names=mlir_values_to_string(inputs, 0),
             output_names=mlir_values_to_string(outputs, 0),
             input_types=mlir_values_to_string(inputs, 1),
             output_types=mlir_values_to_string(outputs, 1))
-        self._emitter.emit(emitted)
+        self._emitter.emit(emission)
