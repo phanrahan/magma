@@ -7,6 +7,7 @@ from graph_lib import Graph, Node, topological_sort
 from graph_visitor import NodeVisitor, NodeTransformer
 from mlir_wrapper import MlirContext, MlirValue, MlirType, MlirIntegerType
 from magma_graph import Net
+from common_visitors import replace_node
 
 
 def _mlir_base_pass_factory(base):
@@ -59,15 +60,6 @@ class ModuleInputSplitter(MlirNodeTransformer):
         for node in nodes_to_remove:
             self.graph.remove_node(node)
         return nodes, edges
-
-
-def replace_node(g: Graph, orig: Node, new: Node) -> Iterable[Any]:
-    for edge in g.in_edges(orig, data=True):
-        src, _, data = edge
-        yield (src, new, data)
-    for edge in g.out_edges(orig, data=True):
-        _, dst, data = edge
-        yield (new, dst, data)
 
 
 class NetToValueTransformer(MlirNodeTransformer):

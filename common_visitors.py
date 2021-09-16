@@ -1,4 +1,6 @@
-from graph_lib import Node
+from typing import Iterable
+
+from graph_lib import Graph, Node, Edge
 from graph_visitor import NodeTransformer
 
 
@@ -13,3 +15,12 @@ class RemoveDuplicateEdgesTransformer(NodeTransformer):
             dsts.add(dst)
             edges.append((src, dst, data))
         return [node], edges
+
+
+def replace_node(g: Graph, orig: Node, new: Node) -> Iterable[Edge]:
+    for edge in g.in_edges(orig, data=True):
+        src, _, data = edge
+        yield (src, new, data)
+    for edge in g.out_edges(orig, data=True):
+        _, dst, data = edge
+        yield (new, dst, data)
