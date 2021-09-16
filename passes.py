@@ -20,7 +20,7 @@ class SplitPortEdgesTranformer(NodeTransformer):
             edges.append((src, src_port, {}))
             edges.append((src_port, dst_port, {}))
             edges.append((dst_port, dst, {}))
-        return [node], edges
+        return nodes, edges
 
 
 class RemoveDuplicateEdgesTransformer(NodeTransformer):
