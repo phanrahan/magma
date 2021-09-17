@@ -40,8 +40,7 @@ def emit_module(emitter: MlirEmitter, ckt: m.DefineCircuitKind, g: Graph):
     emitter.emit("}")
 
 
-def compile_to_mlir(
-        ckt: m.DefineCircuitKind, sout: Optional[io.TextIOBase] = None):
+def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     g = build_magma_graph(ckt)
     ctx = MlirContext()
 
@@ -53,5 +52,13 @@ def compile_to_mlir(
     EdgePortToIndexTransformer(g).run()
     ModuleToOpTransformer(g).run()
 
-    emitter = MlirEmitter(sout)
     emit_module(emitter, ckt, g)
+
+
+def compile_to_mlir(ckt: m.DefineCircuitKind, sout: Optional[io.TextIOBase] = None):
+    deps = m.passes.dependencies(ckt, include_self=True)
+    emitter = MlirEmitter(sout)
+    for dep in deps:
+        if not m.isdefinition(dep):
+            continue
+        compile_defn_to_mlir(dep, emitter)
