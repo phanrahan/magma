@@ -3,13 +3,14 @@ from typing import Any, Iterable, List
 
 import magma as m
 
+from common import dict_from_items
 from common_visitors import replace_node
 from graph_lib import Graph, Node
 from graph_visitor import NodeVisitor, NodeTransformer
 from magma_graph import Net
 from mlir_context import MlirContext, Contextual
 from mlir_emitter import MlirEmitter
-from mlir_graph import MlirOp
+from mlir_graph import MlirOp, MlirMultiOp, op_kind_get_attr
 from mlir_type import MlirType
 from mlir_utils import magma_type_to_mlir_type, magma_module_to_mlir_op
 from mlir_value import MlirValue
@@ -84,13 +85,17 @@ class EdgePortToIndexTransformer(NodeTransformer):
         return [node], edges
 
 
-class ModuleToOpTransformer(NodeTransformer):
+class ModuleToOpTransformer(NodeTransformer, Contextual):
+    def __init__(self, g: Graph, ctx: MlirContext):
+        super().__init__(g)
+        self._ctx = ctx
+
     def visit_MlirValue(self, node: MlirValue):
         return node
 
     def generic_visit(self, node: Node):
         assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
-        new_node = magma_module_to_mlir_op(node)
+        new_node = magma_module_to_mlir_op(self.ctx, node)
         edges = list(replace_node(self.graph, node, new_node))
         return [new_node], edges
 
@@ -115,6 +120,26 @@ def _sort_values(g: Graph, node: MlirOp):
     return inputs, outputs
 
 
+class MultiOpFlattener(NodeTransformer):
+    def visit_MlirMultiOp(self, op: MlirMultiOp):
+        # TODO(rsetaluri): Run this to convergence (i.e. until there are no more
+        # multi-ops).
+        assert isinstance(op, MlirMultiOp)
+        nodes = list(op.ops)
+        edges = list((u, v, dict_from_items(d)) for u, v, d in op.edges)
+        for i, edge in enumerate(self.graph.in_edges(op, data=True)):
+            src, _, data = edge
+            new_dst, idx = op.input_nodes[i]
+            data["info"] = idx
+            edges.append((src, new_dst, data))
+        for i, edge in enumerate(self.graph.out_edges(op, data=True)):
+            _, dst, data = edge
+            new_src, idx = op.output_nodes[i]
+            data["info"] = idx
+            edges.append((new_src, dst, data))
+        return nodes, edges
+
+
 class EmitMlirVisitor(NodeVisitor):
     def __init__(self, g: Graph, emitter: MlirEmitter):
         super().__init__(g)
@@ -126,4 +151,10 @@ class EmitMlirVisitor(NodeVisitor):
     def generic_visit(self, node: MlirOp):
         assert isinstance(node, MlirOp)
         inputs, outputs = _sort_values(self.graph, node)
+        # TODO(rsetaluri): We should think about how to structure this more
+        # elegantly. It smells bad to do this transform here since it should be
+        # done at the time that the magma op is lowered to the mlir op, not at
+        # emit-time.
+        if op_kind_get_attr(node, "inputs_reversed", default=False):
+            inputs = list(reversed(inputs))
         self._emitter.emit_op(node, inputs, outputs)

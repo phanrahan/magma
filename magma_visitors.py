@@ -12,7 +12,7 @@ class SplitPortEdgesTranformer(NodeTransformer):
         for edge in self.graph.out_edges(node, data=True):
             src, dst, data = edge
             info = data["info"]
-            src_port, dst_port = info["src"], info["dst"]            
+            src_port, dst_port = info["src"], info["dst"]
             nodes.append(src_port)
             nodes.append(dst_port)
             edges.append((src, src_port, {}))
@@ -29,7 +29,7 @@ class MergeNetsTransformer(NodeTransformer):
             ports = tuple(list(predecessor.ports) + [node])
             return Net(ports)
         return None
-    
+
     def generic_visit(self, node: Node):
         if not isinstance(node, m.Type):
             return node
@@ -53,6 +53,6 @@ class MergeNetsTransformer(NodeTransformer):
         for edge in self.graph.out_edges(node, data=True):
             _, dst, data = edge
             data.setdefault("info", node)
-            edges.append((new_node, dst, data))        
+            edges.append((new_node, dst, data))
         self.graph.remove_node(predecessor)
         return [new_node], edges

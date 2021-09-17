@@ -9,6 +9,8 @@ from examples import *
 _ckts = [
     comb,
     simple_hierarchy,
+    simple_aggregates_bits,
+    simple_aggregates_array,
 ]
 
 

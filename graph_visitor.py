@@ -52,7 +52,7 @@ class NodeTransformer(NodeVisitor):
     def run(self, node_orderer: Optional[NodeOrderer] = None):
         nodes = list(order_nodes(self._g, node_orderer))
         self._run_on_nodes(nodes)
-    
+
     def generic_visit(self, node: Any):
         return node
 

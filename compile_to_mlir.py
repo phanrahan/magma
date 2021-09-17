@@ -15,7 +15,7 @@ from mlir_utils import magma_type_to_mlir_type
 from mlir_value import MlirValue
 from mlir_visitors import (
     ModuleInputSplitter, NetToValueTransformer, EdgePortToIndexTransformer,
-    ModuleToOpTransformer, EmitMlirVisitor)
+    ModuleToOpTransformer, MultiOpFlattener, EmitMlirVisitor)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -23,8 +23,8 @@ class HwModuleOp(MlirOp):
     name: str
 
     def emit(self) -> str:
-        return (f"hw.module @{self.name}({{input_names_and_types}}) -> "
-                f"({{output_names_and_types}}) {{{{")
+        return (f"hw.module @{self.name}({{inputs.signature}}) -> "
+                f"({{outputs.signature}}) {{{{")
 
 
 def emit_module(emitter: MlirEmitter, ckt: m.DefineCircuitKind, g: Graph):
@@ -50,7 +50,8 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     ModuleInputSplitter(g, ctx).run()
     NetToValueTransformer(g, ctx).run(topological_sort)
     EdgePortToIndexTransformer(g).run()
-    ModuleToOpTransformer(g).run()
+    ModuleToOpTransformer(g, ctx).run()
+    MultiOpFlattener(g).run()
 
     emit_module(emitter, ckt, g)
 

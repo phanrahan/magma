@@ -8,6 +8,39 @@ from mlir_value import MlirValue
 MlirValueList = List[MlirValue]
 
 
+class _WrappedValueList:
+    def __init__(self, values: MlirValueList):
+        self._values = values
+
+    @property
+    def names(self) -> str:
+        return mlir_values_to_string(self._values, mode=0)
+
+    @property
+    def types(self) -> str:
+        return mlir_values_to_string(self._values, mode=1)
+
+    @property
+    def signature(self) -> str:
+        return mlir_values_to_string(self._values, mode=2)
+
+    def __getitem__(self, key: int) -> '_WrappedValue':
+        return _WrappedValue(self._values[key])
+
+
+class _WrappedValue:
+    def __init__(self, value: MlirValue):
+        self._wrapped_value_list = _WrappedValueList([value])
+
+    @property
+    def name(self) -> str:
+        return self._wrapped_value_list.names
+
+    @property
+    def type(self) -> str:
+        return self._wrapped_value_list.types
+
+
 def mlir_values_to_string(values: MlirValueList, mode: int = 0) -> str:
     if mode == 0:
         mapper = lambda v: v.name
@@ -23,10 +56,6 @@ class MlirEmitter(Emitter):
             self, op: MlirOp, inputs: MlirValueList, outputs: MlirValueList):
         emission = op.emit()
         emission = emission.format(
-            input_names=mlir_values_to_string(inputs, 0),
-            output_names=mlir_values_to_string(outputs, 0),
-            input_types=mlir_values_to_string(inputs, 1),
-            output_types=mlir_values_to_string(outputs, 1),
-            input_names_and_types=mlir_values_to_string(inputs, 2),
-            output_names_and_types=mlir_values_to_string(outputs, 2))
+            inputs=_WrappedValueList(inputs),
+            outputs=_WrappedValueList(outputs))
         self.emit(emission)

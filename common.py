@@ -1,4 +1,8 @@
 import functools
+from typing import Any, Dict, Iterable, Tuple
+
+
+_MISSING = object()
 
 
 def wrap_with_not_implemented_error(fn):
@@ -11,3 +15,12 @@ def wrap_with_not_implemented_error(fn):
         return ret
 
     return wrapped
+
+
+def missing() -> object:
+    global _MISSING
+    return _MISSING
+
+
+def dict_from_items(items: Iterable[Tuple[Any, Any]]) -> Dict:
+    return {k: v for k, v in items}
