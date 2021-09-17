@@ -1,4 +1,4 @@
-hw.module @comb(%y: i16, %z: i16) -> (%y: i16, %z: i16) {
+hw.module @comb(%a: i16, %b: i16, %c: i16) -> (%y: i16, %z: i16) {
     %0 = comb.not %a : i16
     %1 = comb.or %a, %0 : i16
     %2 = comb.or %1, %b : i16

@@ -23,7 +23,7 @@ class HwModuleOp(MlirOp):
     name: str
 
     def emit(self) -> str:
-        return (f"hw.module @{self.name}({{output_names_and_types}}) -> "
+        return (f"hw.module @{self.name}({{input_names_and_types}}) -> "
                 f"({{output_names_and_types}}) {{{{")
 
 
