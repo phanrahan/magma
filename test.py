@@ -8,6 +8,7 @@ from examples import *
 
 _ckts = [
     comb,
+    simple_hierarchy,
 ]
 
 
