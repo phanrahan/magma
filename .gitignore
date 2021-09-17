@@ -2,3 +2,4 @@ archive/*
 __pycache__/*
 *.txt
 *.pdf
+*.mlir

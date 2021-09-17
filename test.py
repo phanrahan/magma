@@ -1,10 +1,19 @@
-from comb import comb
+import pytest
+
+from magma.testing import check_files_equal
+
 from compile_to_mlir import compile_to_mlir
+from examples import *
 
 
-def main():
-    compile_to_mlir(comb)
+_ckts = [
+    comb,
+]
 
 
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("ckt", _ckts)
+def test_compile_to_mlir(ckt):
+    filename = f"{ckt.name}.mlir"
+    with open(filename, "w") as f:
+        compile_to_mlir(ckt, f)
+    assert check_files_equal(__file__, "comb.mlir", "golds/comb.mlir")
