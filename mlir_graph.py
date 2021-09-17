@@ -20,6 +20,17 @@ class CombOp(MlirOp):
 
 
 @dataclasses.dataclass(frozen=True)
+class HwInstanceOp(MlirOp):
+    name: str
+    defn: str
+
+    def emit(self):
+        return (f"{{output_names}} = hw.instance \"{self.name}\" "
+                f"@{self.defn}({{input_names}}) : ({{input_types}}) -> "
+                f"({{output_types}})")
+
+
+@dataclasses.dataclass(frozen=True)
 class HwOutputOp(MlirOp):
     name: str
 
