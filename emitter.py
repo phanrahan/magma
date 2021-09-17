@@ -1,6 +1,11 @@
+import io
+import sys
+
+
 class Emitter:
-    def __init__(self):
+    def __init__(self, sout: io.TextIOBase = sys.stdout):
         self._indent = 0
+        self._sout = sout
 
     def push(self):
         self._indent += 1
@@ -10,4 +15,4 @@ class Emitter:
 
     def emit(self, line: str):
         tab = f"{'    '*self._indent}"
-        print (f"{tab}{line}")
+        self._sout.write(f"{tab}{line}\n")

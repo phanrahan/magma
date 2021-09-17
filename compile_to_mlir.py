@@ -1,4 +1,6 @@
 import dataclasses
+import io
+from typing import Optional
 
 import magma as m
 
@@ -25,8 +27,7 @@ class HwModuleOp(MlirOp):
                 f"({{output_names_and_types}}) {{{{")
 
 
-def emit_module(ckt: m.DefineCircuitKind, g: Graph):
-    emitter = MlirEmitter()
+def emit_module(emitter: MlirEmitter, ckt: m.DefineCircuitKind, g: Graph):
     inputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
               for port in ckt.interface.outputs()]
     outputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
@@ -39,7 +40,8 @@ def emit_module(ckt: m.DefineCircuitKind, g: Graph):
     emitter.emit("}")
 
 
-def compile_to_mlir(ckt: m.DefineCircuitKind):
+def compile_to_mlir(
+        ckt: m.DefineCircuitKind, sout: Optional[io.TextIOBase] = None):
     g = build_magma_graph(ckt)
     ctx = MlirContext()
 
@@ -51,4 +53,5 @@ def compile_to_mlir(ckt: m.DefineCircuitKind):
     EdgePortToIndexTransformer(g).run()
     ModuleToOpTransformer(g).run()
 
-    emit_module(ckt, g)
+    emitter = MlirEmitter(sout)
+    emit_module(emitter, ckt, g)
