@@ -1,16 +1,27 @@
+import pytest
+
 import magma as m
 from magma.testing import check_files_equal
 
 
-def test_array2_basic():
+def _check_compile(name, circ):
+    m.compile(f"build/{name}", circ)
+    assert check_files_equal(__file__, f"build/{name}.v", f"gold/{name}.v")
+
+
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_basic(nested):
     class Foo(m.Circuit):
         T = m.Array2[2, m.Bit]
+        if nested:
+            T = m.Array2[2, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O @= io.I
 
-    m.compile("build/test_array2_basic", Foo)
-    assert check_files_equal(__file__, "build/test_array2_basic.v",
-                             "gold/test_array2_basic.v")
+    name = "test_array2_basic"
+    if nested:
+        name += "_nested"
+    _check_compile(name, Foo)
 
 
 def test_array2_getitem_index():
