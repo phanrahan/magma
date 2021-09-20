@@ -596,6 +596,7 @@ class Array2(Wireable, Array):
         # Skip Array constructor since we don't want to create children
         Type.__init__(self, **kwargs)
         Wireable.__init__(self)
+        self.drivers = []
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -603,9 +604,6 @@ class Array2(Wireable, Array):
         Wireable.wire(self, o, debug_info)
 
     # TODO(leonardt): unwire
-
-    def flatten(self):
-        return self
 
     def iswhole(self):
         # TODO(leonardt): Should be false for slices
@@ -631,15 +629,44 @@ class Array2(Wireable, Array):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self._make_slice(key)()(self)
+            if self.is_output():
+                return self._make_slice(key)()(self)
+            return InputArrayItem(self, key)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
             assert key.step is None, "Variable slice step not implemented"
-            return self._make_slice(start, stop)()(self)
+            if self.is_output():
+                return self._make_slice(start, stop)()(self)
+            raise NotImplementedError()
         raise NotImplementedError(type(key))
 
     def flatten(self):
         # TODO(leonardt/array2): Avoid recursion in circuit _has_definition
         # logic, should probably use different logic and preserve this API?
         return [self]
+
+    def add_driver(self, key, driver):
+        self.drivers.append((key, driver))
+
+    def __setitem__(self, key, val):
+        # TODO(leonardt/array2): Validate setitem
+        pass
+
+    def trace(self):
+        if self.drivers and not self.driven():
+            assert len(self.drivers) > 1
+            import magma as m
+            drivers = sorted(self.drivers, key=lambda x: x[0])
+            self @= m.concat2(*[d[1] for d in drivers])
+            self.drivers = []
+        return super().trace()
+
+
+class InputArrayItem:
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.key = key
+
+    def __imatmul__(self, driver):
+        self.parent.add_driver(self.key, driver)

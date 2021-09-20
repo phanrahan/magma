@@ -732,7 +732,9 @@ class DefineCircuitKind(CircuitKind):
         run_unconnected_check = run_unconnected_check and not \
             dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
-            self.check_unconnected()
+            # Open for inserting concat nodes in array2 trace
+            with self.open():
+                self.check_unconnected()
 
         return self
 
