@@ -654,6 +654,13 @@ class Array2(Wireable, Array):
         pass
 
     def trace(self):
+        # TODO(leonardt/array2): For now, we "resolve" the drivers into a concat
+        # node when `trace` is called during circuit unconnected check.  Is
+        # there a better way to do this?  One option would be to track all
+        # Array2 values in a definition and run an explicit "finalize" pass
+        # Another option is to somehow maintain the concat tree as the wiring
+        # is done, then search for "undriven" sentinal values that are used as
+        # the concat tree is being built
         if self.drivers and not self.driven():
             assert len(self.drivers) > 1
             import magma as m
