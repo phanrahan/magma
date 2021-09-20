@@ -631,6 +631,7 @@ class Array2(Wireable, Array):
         if isinstance(key, int):
             if self.is_output():
                 return self._make_slice(key)()(self)
+            assert self.is_input(), "inout unsupported"
             return InputArrayItem(self, key)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
@@ -638,7 +639,8 @@ class Array2(Wireable, Array):
             assert key.step is None, "Variable slice step not implemented"
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
-            raise NotImplementedError()
+            assert self.is_input(), "inout unsupported"
+            return InputArrayItem(self, start)
         raise NotImplementedError(type(key))
 
     def flatten(self):
@@ -664,6 +666,7 @@ class Array2(Wireable, Array):
         if self.drivers and not self.driven():
             assert len(self.drivers) > 1
             import magma as m
+            # TODO: Validate non overlapping
             drivers = sorted(self.drivers, key=lambda x: x[0])
             self @= m.concat2(*[d[1] for d in drivers])
             self.drivers = []
