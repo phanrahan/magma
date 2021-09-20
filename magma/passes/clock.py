@@ -4,7 +4,8 @@ from typing import Iterable, Mapping
 from magma.array import Array
 from magma.circuit import Circuit, DefineCircuitKind
 from magma.clock import (
-    ClockTypes, Clock, Reset, Enable, ResetN, AsyncReset, AsyncResetN)
+    ClockTypes, Clock, Reset, Enable, ResetN, AsyncReset, AsyncResetN,
+    is_clock_or_nested_clock)
 from magma.common import (
     only, IterableException, EmptyIterableException,
     NonSignletonIterableException)
@@ -23,14 +24,9 @@ def _get_output_clocks_in_array(
     """
     Gets all output values of type @clock_type recursively contained in @value.
     """
-    first_clks = get_output_clocks_in_value(value[0], clock_type)
-    try:
-        first_clk = next(first_clks)
-    except StopIteration:  # early exit to avoid traversing other elements
+    if not is_clock_or_nested_clock(type(value).T, (clock_type, )):
         return None
-    yield first_clk
-    yield from first_clks
-    for elem in value[1:]:
+    for elem in value:
         yield from get_output_clocks_in_value(elem, clock_type)
 
 
