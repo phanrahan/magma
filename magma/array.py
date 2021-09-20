@@ -628,6 +628,11 @@ class Array2(Wireable, Array):
         return Slice
 
     def __getitem__(self, key):
+        # TODO(leonardt/array2): The concat/slice flow won't work for complex
+        # children that can't be flattened into input/output bits (e.g.
+        # multi-directional tuples).  I think the best option for this case
+        # might be to revert to the old recursive logic, since they'll be
+        # flattened out downstream anyways
         if isinstance(key, int):
             if self.is_output():
                 return self._make_slice(key)()(self)
@@ -666,7 +671,7 @@ class Array2(Wireable, Array):
         if self.drivers and not self.driven():
             assert len(self.drivers) > 1
             import magma as m
-            # TODO: Validate non overlapping
+            # TODO(leonardt/array2): Validate non overlapping
             drivers = sorted(self.drivers, key=lambda x: x[0])
             self @= m.concat2(*[d[1] for d in drivers])
             self.drivers = []
