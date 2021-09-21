@@ -15,6 +15,11 @@ def test_ready_valid_simple(T):
         )
         assert isinstance(io.I, T)
         assert isinstance(io.I, T[m.Bits[5]])
+        # Flipped because defn view
+        assert type(io.I).is_producer()
+        assert type(io.O).is_consumer()
+        assert io.I.is_producer()
+        assert io.O.is_consumer()
         io.O @= io.I
         io.fired @= io.I.fired() & io.O.fired()
 
