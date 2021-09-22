@@ -5,7 +5,9 @@ import magma as m
 
 from graph_lib import Graph
 from magma_graph_utils import (
-    MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp, make_instance)
+    MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
+    MagmaProductGetOp, MagmaProductCreateOp,
+    make_instance)
 
 
 ModuleLike = Union[m.DefineCircuitKind, m.Circuit]
@@ -40,13 +42,30 @@ def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
             info = dict(src=creator.O, dst=value)
             g.add_edge(creator, module, info=info)
             return
+        if isinstance(driver, m.Product):
+            T = type(driver)
+            creator = make_instance(MagmaProductCreateOp(T))
+            for k, t in T.field_dict.items():
+                element = getattr(driver, k)
+                creator_input = getattr(creator, f"I{k}")
+                _process_driver(g, creator_input, element, creator)
+            info = dict(src=creator.O, dst=value)
+            g.add_edge(creator, module, info=info)
+            return
         raise NotImplementedError(driver, ref)
     if isinstance(ref, m.ref.ArrayRef):
         T = type(ref.array)
-        slicer = make_instance(MagmaArrayGetOp(T, ref.index))
-        _process_driver(g, slicer.I, ref.array, slicer)
-        info = dict(src=slicer.O, dst=value)
-        g.add_edge(slicer, module, info=info)
+        getter = make_instance(MagmaArrayGetOp(T, ref.index))
+        _process_driver(g, getter.I, ref.array, getter)
+        info = dict(src=getter.O, dst=value)
+        g.add_edge(getter, module, info=info)
+        return
+    if isinstance(ref, m.ref.TupleRef):
+        T = type(ref.tuple)
+        getter = make_instance(MagmaProductGetOp(T, ref.index))
+        _process_driver(g, getter.I, ref.tuple, getter)
+        info = dict(src=getter.O, dst=value)
+        g.add_edge(getter, module, info=info)
         return
     raise NotImplementedError(driver, type(driver), ref, type(ref))
 

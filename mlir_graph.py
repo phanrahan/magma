@@ -103,6 +103,25 @@ class HwArrayCreateOp(MlirOp):
 
 
 @dataclasses.dataclass(frozen=True)
+class HwStructExtractOp(MlirOp):
+    name: str
+    field: str
+
+    def emit(self):
+        return (f"{{outputs.names}} = hw.struct_extract "
+                f"{{inputs.names}}[\"{self.field}\"] : {{inputs.types}}")
+
+
+@dataclasses.dataclass(frozen=True)
+class HwStructCreateOp(MlirOp):
+    name: str
+
+    def emit(self):
+        return (f"{{outputs.names}} = hw.struct_create ({{inputs.names}}) : "
+                f"{{outputs.types}}")
+
+
+@dataclasses.dataclass(frozen=True)
 class HwInstanceOp(MlirOp):
     name: str
     defn: str

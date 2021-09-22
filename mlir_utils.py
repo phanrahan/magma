@@ -5,13 +5,16 @@ import magma as m
 from common import wrap_with_not_implemented_error
 from graph_lib import Graph
 from magma_graph import ModuleLike
-from magma_graph_utils import MagmaArrayGetOp, MagmaArrayCreateOp
+from magma_graph_utils import (
+    MagmaArrayGetOp, MagmaArrayCreateOp,
+    MagmaProductGetOp, MagmaProductCreateOp)
 from mlir_context import MlirContext
 from mlir_graph import (
     MlirOp, MlirMultiOp,
-    HwConstantOp, HwArrayGetOp, HwArrayCreateOp, HwInstanceOp, HwOutputOp,
+    HwConstantOp, HwInstanceOp, HwOutputOp,
+    HwArrayGetOp, HwArrayCreateOp, HwStructExtractOp, HwStructCreateOp,
     CombOp, CombExtractOp, CombConcatOp)
-from mlir_type import MlirType, MlirIntegerType, HwArrayType
+from mlir_type import MlirType, MlirIntegerType, HwArrayType, HwStructType
 from mlir_value import MlirValue
 
 
@@ -40,6 +43,10 @@ def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
         return MlirIntegerType(type.N)
     if issubclass(type, m.Array):
         return HwArrayType((type.N,), magma_type_to_mlir_type(type.T))
+    if issubclass(type, m.Product):
+        fields = {k: magma_type_to_mlir_type(t)
+                  for k, t in type.field_dict.items()}
+        return HwStructType(tuple(fields.items()))
 
 
 @wrap_with_not_implemented_error
@@ -56,6 +63,10 @@ def magma_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
         if isinstance(defn.T, m.BitsMeta):
             return CombConcatOp(inst.name)
         return HwArrayCreateOp(inst.name)
+    if isinstance(defn, MagmaProductGetOp):
+        return HwStructExtractOp(inst.name, defn.index)
+    if isinstance(defn, MagmaProductCreateOp):
+        return HwStructCreateOp(inst.name)
 
 
 @wrap_with_not_implemented_error

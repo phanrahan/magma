@@ -25,3 +25,12 @@ class HwArrayType(MlirType):
     def emit(self) -> str:
         dim_str = "x".join(map(str, self.dims))
         return f"!hw.array<{dim_str}x{self.T.emit()}>"
+
+
+@dataclasses.dataclass(frozen=True)
+class HwStructType(MlirType):
+    fields: Tuple[Tuple[str, MlirType]]
+
+    def emit(self) -> str:
+        field_str = ", ".join(f"{k}: {t.emit()}" for k, t in self.fields)
+        return f"!hw.struct<{field_str}>"
