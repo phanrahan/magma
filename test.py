@@ -12,6 +12,7 @@ _ckts = [
     simple_aggregates_bits,
     simple_aggregates_array,
     simple_aggregates_nested_array,
+    complex_aggregates_nested_array,
 ]
 
 

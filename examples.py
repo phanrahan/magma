@@ -41,3 +41,12 @@ class simple_aggregates_nested_array(m.Circuit):
     half = int(T.N / 2)
     io.y[:half] @= io.a[half:]
     io.y[half:] @= io.a[:half]
+
+
+class complex_aggregates_nested_array(m.Circuit):
+    T = m.Array[8, m.Array[4, m.Bits[16]]]
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    half = int(T.N / 2)
+    io.y[:half] @= io.a[half:]
+    for i in range(half, T.N):
+        io.y[i] @= io.a[0]
