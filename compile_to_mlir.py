@@ -5,7 +5,8 @@ from typing import Optional
 import magma as m
 
 from common_visitors import RemoveDuplicateEdgesTransformer
-from graph_lib import Graph, topological_sort
+from debug_utils import flatten_magma_graph
+from graph_lib import Graph, topological_sort, write_to_dot
 from magma_graph import build_magma_graph
 from magma_visitors import SplitPortEdgesTranformer, MergeNetsTransformer
 from mlir_context import MlirContext
@@ -16,6 +17,11 @@ from mlir_value import MlirValue
 from mlir_visitors import (
     ModuleInputSplitter, NetToValueTransformer, EdgePortToIndexTransformer,
     ModuleToOpTransformer, MultiOpFlattener, EmitMlirVisitor)
+
+
+def _dump_graph(g: Graph, filename: str):
+    g = flatten_magma_graph(g)
+    write_to_dot(g, filename)
 
 
 @dataclasses.dataclass(frozen=True)
