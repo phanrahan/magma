@@ -1,5 +1,7 @@
 import magma as m
 
+from common import make_unique_name
+
 
 def _make_type_string(T: m.Kind):
     _REPLACEMENTS = (
@@ -14,7 +16,7 @@ def make_instance(defn: m.circuit.CircuitKind) -> m.Circuit:
     insts = []
 
     class _(m.Circuit):
-        i = defn()
+        i = defn(name=make_unique_name())
         insts.append(i)
 
     return insts[0]

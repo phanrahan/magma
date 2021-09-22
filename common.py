@@ -1,5 +1,6 @@
 import functools
 from typing import Any, Dict, Iterable, Tuple
+import uuid
 
 
 _MISSING = object()
@@ -24,3 +25,7 @@ def missing() -> object:
 
 def dict_from_items(items: Iterable[Tuple[Any, Any]]) -> Dict:
     return {k: v for k, v in items}
+
+
+def make_unique_name() -> str:
+    return str(uuid.uuid4())
