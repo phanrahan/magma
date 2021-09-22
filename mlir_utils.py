@@ -3,6 +3,7 @@ from typing import Iterable
 import magma as m
 
 from common import wrap_with_not_implemented_error
+from graph_lib import Graph
 from magma_graph import ModuleLike
 from magma_graph_utils import MagmaArrayGetOp, MagmaArrayCreateOp
 from mlir_context import MlirContext
@@ -15,18 +16,19 @@ from mlir_value import MlirValue
 
 
 def _make_hw_array_get_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
+    g = Graph()
     defn = type(inst)
     assert isinstance(defn, MagmaArrayGetOp)
     const = HwConstantOp(inst.name, defn.index)
     width = m.bitutils.clog2(len(defn.I))
     value = ctx.new_value(MlirIntegerType(width))
     getter = HwArrayGetOp(inst.name)
-    edges = ((const, value, (("info", 0),)),
-             (value, getter, (("info", 1),)))
-    input_nodes = ((getter, 0),)
-    output_nodes = ((getter, 0),)
-    return MlirMultiOp(
-        inst.name, (getter, const, value), edges, input_nodes, output_nodes)
+    g.add_nodes_from((const, value, getter))
+    g.add_edge(const, value, **{"info": 0})
+    g.add_edge(value, getter, **{"info": 1})
+    inputs = ((getter, 0),)
+    outputs = ((getter, 0),)
+    return MlirMultiOp(inst.name, g, inputs, outputs)
 
 
 @wrap_with_not_implemented_error

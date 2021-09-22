@@ -2,6 +2,7 @@ import dataclasses
 from typing import Any, Tuple
 
 from common import missing
+from graph_lib import Graph, Node
 from mlir_value import MlirValue
 
 
@@ -36,10 +37,9 @@ class MlirOp:
 @dataclasses.dataclass(frozen=True)
 class MlirMultiOp(MlirOp):
     name: str
-    ops: Tuple[MlirOp]
-    edges: Tuple[MlirOp, MlirOp, HashableMapping]
-    input_nodes: Tuple[Tuple[MlirOp, int]]
-    output_nodes: Tuple[Tuple[MlirOp, int]]
+    graph: Graph
+    primary_inputs: Tuple[Tuple[Node, int]]
+    primary_outputs: Tuple[Tuple[Node, int]]
 
 
 @dataclasses.dataclass(frozen=True)

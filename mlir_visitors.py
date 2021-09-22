@@ -3,7 +3,6 @@ from typing import Any, Iterable, List
 
 import magma as m
 
-from common import dict_from_items
 from common_visitors import replace_node
 from graph_lib import Graph, Node
 from graph_visitor import NodeVisitor, NodeTransformer
@@ -125,16 +124,16 @@ class MultiOpFlattener(NodeTransformer):
         # TODO(rsetaluri): Run this to convergence (i.e. until there are no more
         # multi-ops).
         assert isinstance(op, MlirMultiOp)
-        nodes = list(op.ops)
-        edges = list((u, v, dict_from_items(d)) for u, v, d in op.edges)
+        nodes = list(op.graph.nodes)
+        edges = list((u, v, data) for u, v, data in op.graph.edges(data=True))
         for i, edge in enumerate(self.graph.in_edges(op, data=True)):
             src, _, data = edge
-            new_dst, idx = op.input_nodes[i]
+            new_dst, idx = op.primary_inputs[i]
             data["info"] = idx
             edges.append((src, new_dst, data))
         for i, edge in enumerate(self.graph.out_edges(op, data=True)):
             _, dst, data = edge
-            new_src, idx = op.output_nodes[i]
+            new_src, idx = op.primary_outputs[i]
             data["info"] = idx
             edges.append((new_src, dst, data))
         return nodes, edges
