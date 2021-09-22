@@ -1,3 +1,5 @@
+import itertools
+
 import magma as m
 
 
@@ -44,9 +46,12 @@ class simple_aggregates_nested_array(m.Circuit):
 
 
 class complex_aggregates_nested_array(m.Circuit):
-    T = m.Array[8, m.Array[4, m.Bits[16]]]
+    T = m.Array[2, m.Array[3, m.Bits[4]]]
     io = m.IO(a=m.In(T), y=m.Out(T))
-    half = int(T.N / 2)
-    io.y[:half] @= io.a[half:]
-    for i in range(half, T.N):
-        io.y[i] @= io.a[0]
+
+    I, J, K = T.N, T.T.N, T.T.T.N
+    for i, j, k in itertools.product(range(I), range(J), range(K)):
+        i1, j1, k1 = I - i - 1, J - j - 1, K - k - 1
+        a0 = io.a[i][j][k]
+        a1 = io.a[i1][j1][k1]
+        io.y[i][j][k] @= a0 | a1
