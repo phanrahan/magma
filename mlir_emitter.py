@@ -14,15 +14,15 @@ class _WrappedValueList:
 
     @property
     def names(self) -> str:
-        return mlir_values_to_string(self._values, mode=0)
+        return ", ".join(v.name for v in self._values)
 
     @property
     def types(self) -> str:
-        return mlir_values_to_string(self._values, mode=1)
+        return ", ".join(v.type.emit() for v in self._values)
 
     @property
     def signature(self) -> str:
-        return mlir_values_to_string(self._values, mode=2)
+        return ", ".join(f"{v.name}: {v.type.emit()}" for v in self._values)
 
     def __getitem__(self, key: int) -> '_WrappedValue':
         return _WrappedValue(self._values[key])
@@ -30,25 +30,15 @@ class _WrappedValueList:
 
 class _WrappedValue:
     def __init__(self, value: MlirValue):
-        self._wrapped_value_list = _WrappedValueList([value])
+        self._value = value
 
     @property
     def name(self) -> str:
-        return self._wrapped_value_list.names
+        return self._value.name
 
     @property
     def type(self) -> str:
-        return self._wrapped_value_list.types
-
-
-def mlir_values_to_string(values: MlirValueList, mode: int = 0) -> str:
-    if mode == 0:
-        mapper = lambda v: v.name
-    elif mode == 1:
-        mapper = lambda v: v.type.emit()
-    else:
-        mapper = lambda v: f"{v.name}: {v.type.emit()}"
-    return ', '.join(map(mapper, values))
+        return self._value.type.emit()
 
 
 class MlirEmitter(Emitter):
