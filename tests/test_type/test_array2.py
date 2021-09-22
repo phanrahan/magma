@@ -4,7 +4,9 @@ import magma as m
 from magma.testing import check_files_equal
 
 
-def _check_compile(name, circ):
+def _check_compile(name, circ, nested=False):
+    if nested:
+        name += "_nested"
     m.compile(f"build/{name}", circ)
     assert check_files_equal(__file__, f"build/{name}.v", f"gold/{name}.v")
 
@@ -18,21 +20,19 @@ def test_array2_basic(nested):
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O @= io.I
 
-    name = "test_array2_basic"
-    if nested:
-        name += "_nested"
-    _check_compile(name, Foo)
+    _check_compile("test_array2_basic", Foo, nested)
 
 
-def test_array2_getitem_index():
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_getitem_index(nested):
     class Foo(m.Circuit):
         T = m.Array2[2, m.Bit]
+        if nested:
+            T = m.Array2[2, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
-        io.O @= m.concat2(io.I[1], io.I[0])
+        io.O @= m.concat2(io.I[1:], io.I[:1])
 
-    m.compile("build/test_array2_getitem_index", Foo)
-    assert check_files_equal(__file__, "build/test_array2_getitem_index.v",
-                             "gold/test_array2_getitem_index.v")
+    _check_compile("test_array2_getitem_index", Foo, nested)
 
 
 def test_array2_getitem_slice():

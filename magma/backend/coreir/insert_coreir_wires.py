@@ -8,10 +8,7 @@ from magma.primitives.wire import Wire
 from magma.ref import NamedRef, ArrayRef, PortViewRef
 from magma.t import In, Out
 from magma.tuple import Tuple
-
-
-def _sanitize_name(name):
-    return name.replace("[", "_").replace("]", "")
+from magma.backend.coreir.coreir_utils import sanitize_name
 
 
 class InsertCoreIRWires(DefinitionPass):

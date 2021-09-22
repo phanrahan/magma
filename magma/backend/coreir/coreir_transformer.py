@@ -7,7 +7,7 @@ import os
 import coreir as pycoreir
 
 from magma.digital import Digital
-from magma.array import Array
+from magma.array import Array, Array2
 from magma.bits import Bits
 from magma.backend.check_wiring_context import check_wiring_context
 from magma.backend.coreir.coreir_utils import (
@@ -402,6 +402,10 @@ class DefinitionTransformer(TransformerBase):
             return module_defn.select(value.get_coreir_select())
         if isinstance(value, Bits) and value.const():
             return self._const_instance(value, len(value), module_defn)
+        if value.anon() and isinstance(value, Array2):
+            for p, v in zip(port.ts, value):
+                self.connect(module_defn, p, v)
+            return None
         if value.anon() and isinstance(value, Array):
             drivers = _collect_drivers(value)
             offset = 0

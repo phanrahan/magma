@@ -596,11 +596,17 @@ class Array2(Wireable, Array):
         # Skip Array constructor since we don't want to create children
         Type.__init__(self, **kwargs)
         Wireable.__init__(self)
+        self.args = args
         self.drivers = []
+        self._ts = None
 
     @debug_wire
     def wire(self, o, debug_info):
         self._check_wireable(o, debug_info)
+        if isinstance(o, Array) and o.anon():
+            for j, k in zip(self.ts, o):
+                Array.wire(j, k, debug_info)
+            return
         Wireable.wire(self, o, debug_info)
 
     # TODO(leonardt): unwire
@@ -618,14 +624,27 @@ class Array2(Wireable, Array):
             stop = start + 1
         import magma as m
 
-        class Slice(m.Circuit):
-            io = m.IO(I=In(type(self)),
-                      O=Out(Array2[stop - start, type(self).T]))
-            coreir_genargs = {"hi": stop, "lo": start, "width": len(self)}
-            coreir_name = "slice"
-            coreir_lib = "coreir"
-            renamed_ports = m.circuit.coreir_port_mapping
-        return Slice
+        class Slice(m.Generator2):
+            def __init__(self, T, start, stop):
+                # TODO: Uniquification not catching this case, probably because
+                # no instances and only the wiring structure is different,
+                # maybe has to do with repr/value of array2?
+                self.name = f"slice_{start}_{stop}_{T}"
+                self.name = m.backend.coreir.coreir_utils.sanitize_name(
+                    self.name)
+                self.io = m.IO(I=In(T), O=Out(Array2[stop - start, T.T]))
+                if issubclass(T.T, Bit):
+                    self.coreir_genargs = {"hi": stop, "lo": start,
+                                           "width": len(T)}
+                    self.coreir_name = "slice"
+                    self.coreir_lib = "coreir"
+                    self.renamed_ports = m.circuit.coreir_port_mapping
+                else:
+                    flat_len = T.T.flat_length()
+                    self.io.O @= m.from_bits(
+                        type(self.io.O).undirected_t,
+                        m.as_bits(self.io.I)[start * flat_len:stop * flat_len])
+        return Slice(type(self), start, stop)
 
     def __getitem__(self, key):
         # TODO(leonardt/array2): The concat/slice flow won't work for complex
@@ -634,10 +653,7 @@ class Array2(Wireable, Array):
         # might be to revert to the old recursive logic, since they'll be
         # flattened out downstream anyways
         if isinstance(key, int):
-            if self.is_output():
-                return self._make_slice(key)()(self)
-            assert self.is_input(), "inout unsupported"
-            return InputArrayItem(self, key)
+            return self.ts[key]
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
@@ -648,10 +664,11 @@ class Array2(Wireable, Array):
             return InputArrayItem(self, start)
         raise NotImplementedError(type(key))
 
-    def flatten(self):
-        # TODO(leonardt/array2): Avoid recursion in circuit _has_definition
-        # logic, should probably use different logic and preserve this API?
-        return [self]
+    @property
+    def ts(self):
+        if self._ts is None:
+            self._ts = _make_array(self, self.args)
+        return self._ts
 
     def add_driver(self, key, driver):
         self.drivers.append((key, driver))
@@ -675,6 +692,8 @@ class Array2(Wireable, Array):
             drivers = sorted(self.drivers, key=lambda x: x[0])
             self @= m.concat2(*[d[1] for d in drivers])
             self.drivers = []
+        if self._ts:
+            return Array.trace(self)
         return super().trace()
 
 
@@ -684,4 +703,7 @@ class InputArrayItem:
         self.key = key
 
     def __imatmul__(self, driver):
+        self.parent.add_driver(self.key, driver)
+
+    def wire(self, driver):
         self.parent.add_driver(self.key, driver)

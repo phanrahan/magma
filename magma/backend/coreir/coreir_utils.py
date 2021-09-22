@@ -187,3 +187,9 @@ class Slice:
     def get_coreir_select(self,):
         return (magma_name_to_coreir_select(self.value.name) +
                 f".{self.low}:{self.high}")
+
+
+def sanitize_name(name):
+    return name.replace("[", "_").replace("]", "")\
+               .replace("(", "").replace(")", "")\
+               .replace(",", "").replace(" ", "_")
