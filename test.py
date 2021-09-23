@@ -15,6 +15,7 @@ _ckts = [
     complex_aggregates_nested_array,
     simple_aggregates_tuple,
     simple_constant,
+    aggregate_constant,
 ]
 
 

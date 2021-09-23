@@ -68,3 +68,10 @@ class simple_aggregates_tuple(m.Circuit):
 class simple_constant(m.Circuit):
     io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
     io.O @= io.I << 1
+
+
+class aggregate_constant(m.Circuit):
+    T = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bits[4]))
+    io = m.IO(y=m.Out(T))
+    y = T(m.Bits[8](0), m.Bits[4](0))
+    io.y @= y
