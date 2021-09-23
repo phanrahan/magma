@@ -9,7 +9,7 @@ from graph_visitor import NodeVisitor, NodeTransformer
 from magma_graph import Net
 from mlir_context import MlirContext, Contextual
 from mlir_emitter import MlirEmitter
-from mlir_graph import MlirOp, MlirMultiOp, op_kind_get_attr
+from mlir_graph import MlirOp, MlirMultiOp, CombConcatOp, op_kind_get_attr
 from mlir_type import MlirType
 from mlir_utils import magma_type_to_mlir_type, magma_module_to_mlir_op
 from mlir_value import MlirValue
@@ -137,6 +137,25 @@ class MultiOpFlattener(NodeTransformer):
             data["info"] = idx
             edges.append((new_src, dst, data))
         return nodes, edges
+
+
+class RemoveSingletonCombConcatOpsTransformer(NodeTransformer):
+    def visit_CombConcatOp(self, op: CombConcatOp):
+        assert isinstance(op, CombConcatOp)
+        predecessors = list(self.graph.predecessors(op))
+        if len(predecessors) > 1:
+            return op
+        assert len(predecessors) == 1
+        predecessor = predecessors[0]
+        successors = list(self.graph.successors(op))
+        assert len(successors) == 1
+        successor = successors[0]
+        edges = []
+        for edge in self.graph.out_edges(successor, data=True):
+            _, dst, data = edge
+            edges.append((predecessor, dst, data))
+        self.graph.remove_node(successor)
+        return [predecessor], edges
 
 
 class EmitMlirVisitor(NodeVisitor):

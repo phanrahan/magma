@@ -16,7 +16,8 @@ from mlir_utils import magma_type_to_mlir_type
 from mlir_value import MlirValue
 from mlir_visitors import (
     ModuleInputSplitter, NetToValueTransformer, EdgePortToIndexTransformer,
-    ModuleToOpTransformer, MultiOpFlattener, EmitMlirVisitor)
+    ModuleToOpTransformer, MultiOpFlattener,
+    RemoveSingletonCombConcatOpsTransformer, EmitMlirVisitor)
 
 
 def _dump_graph(g: Graph, filename: str):
@@ -58,6 +59,7 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     EdgePortToIndexTransformer(g).run()
     ModuleToOpTransformer(g, ctx).run()
     MultiOpFlattener(g).run()
+    RemoveSingletonCombConcatOpsTransformer(g).run()
 
     emit_module(emitter, ckt, g)
 

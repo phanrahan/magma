@@ -77,7 +77,7 @@ class aggregate_constant(m.Circuit):
     io.y @= y
 
 
-simple_mux = m.Mux(T=m.Bits[8], height=4)
+simple_mux = m.Mux(T=m.Bits[8], height=2)
 
 
 aggregate_mux = m.Mux(
