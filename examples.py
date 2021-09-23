@@ -63,3 +63,8 @@ class simple_aggregates_tuple(m.Circuit):
     io = m.IO(a=m.In(T), y=m.Out(T))
     io.y.x @= ~io.a.x
     io.y.y @= ~io.a.y
+
+
+class simple_constant(m.Circuit):
+    io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+    io.O @= io.I << 1

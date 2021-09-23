@@ -7,7 +7,8 @@ from graph_lib import Graph
 from magma_graph import ModuleLike
 from magma_graph_utils import (
     MagmaArrayGetOp, MagmaArrayCreateOp,
-    MagmaProductGetOp, MagmaProductCreateOp)
+    MagmaProductGetOp, MagmaProductCreateOp,
+    MagmaBitConstantOp, MagmaBitsConstantOp)
 from mlir_context import MlirContext
 from mlir_graph import (
     MlirOp, MlirMultiOp,
@@ -93,6 +94,10 @@ def magma_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
         return HwStructExtractOp(inst.name, defn.index)
     if isinstance(defn, MagmaProductCreateOp):
         return HwStructCreateOp(inst.name)
+    if isinstance(defn, MagmaBitConstantOp):
+        return HwConstantOp(inst.name, int(defn.value))
+    if isinstance(defn, MagmaBitsConstantOp):
+        return HwConstantOp(inst.name, defn.value)
 
 
 @wrap_with_not_implemented_error

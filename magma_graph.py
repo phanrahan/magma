@@ -7,6 +7,7 @@ from graph_lib import Graph
 from magma_graph_utils import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
+    MagmaBitConstantOp, MagmaBitsConstantOp,
     make_instance)
 
 
@@ -23,6 +24,17 @@ def _get_inst_or_defn_or_die(value: m.Type) -> ModuleLike:
 
 
 def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
+    if driver.const():
+        if isinstance(driver, m.Digital):
+            const = make_instance(MagmaBitConstantOp(bool(driver)))
+            info = dict(src=const.O, dst=value)
+            g.add_edge(const, module, info=info)
+            return
+        if isinstance(driver, m.Bits):
+            const = make_instance(MagmaBitsConstantOp(type(driver), int(driver)))
+            info = dict(src=const.O, dst=value)
+            g.add_edge(const, module, info=info)
+            return
     ref = driver.name
     if isinstance(ref, m.ref.InstRef):
         info = dict(src=driver, dst=value)

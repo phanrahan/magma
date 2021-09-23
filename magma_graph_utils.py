@@ -90,3 +90,27 @@ class MagmaProductCreateOp(m.Generator2):
         fields = T.field_dict
         self.io = (m.IO(**{f"I{k}": m.In(t) for k, t in fields.items()}) +
                    m.IO(O=m.Out(T)))
+
+
+class MagmaBitConstantOp(m.Generator2):
+    def __init__(self, T: m.DigitalMeta, value: bool):
+        assert isinstance(T, m.DigitalMeta)
+        T = T.undirected_t
+        self.name = f"magma_bit_constant_op_{_make_type_string(T)}"
+        self.primitive = True
+
+        self.io = m.IO(O=m.Out(T))
+
+        self.value = value
+
+
+class MagmaBitsConstantOp(m.Generator2):
+    def __init__(self, T: m.BitsMeta, value: int):
+        assert isinstance(T, m.BitsMeta)
+        T = T.undirected_t
+        self.name = f"magma_bits_constant_op_{_make_type_string(T)}"
+        self.primitive = True
+
+        self.io = m.IO(O=m.Out(T))
+
+        self.value = value
