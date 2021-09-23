@@ -53,6 +53,16 @@ class CombOp(MlirOp):
 
 
 @dataclasses.dataclass(frozen=True)
+class CombICmpOp(MlirOp):
+    name: str
+    predicate: str
+
+    def emit(self):
+        return (f"{{outputs.names}} = comb.icmp {self.predicate} "
+                f"{{inputs.names}} : {{inputs[0].type}}")
+
+
+@dataclasses.dataclass(frozen=True)
 class CombExtractOp(MlirOp):
     name: str
     lo: int

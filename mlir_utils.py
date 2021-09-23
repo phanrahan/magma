@@ -14,7 +14,7 @@ from mlir_graph import (
     MlirOp, MlirMultiOp,
     HwConstantOp, HwInstanceOp, HwOutputOp,
     HwArrayGetOp, HwArrayCreateOp, HwStructExtractOp, HwStructCreateOp,
-    CombOp, CombExtractOp, CombConcatOp)
+    CombOp, CombICmpOp, CombExtractOp, CombConcatOp)
 from mlir_type import MlirType, MlirIntegerType, HwArrayType, HwStructType
 from mlir_value import MlirValue
 
@@ -103,6 +103,8 @@ def coreir_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
     assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
     if defn.coreir_name == "not":
         return _make_not_op(ctx, inst)
+    if defn.coreir_name in ("eq",):
+        return CombICmpOp(inst.name, defn.coreir_name)
     return CombOp(inst.name, defn.coreir_name)
 
 
