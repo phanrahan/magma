@@ -678,6 +678,15 @@ class Array2(Wireable, Array):
         # TODO(leonardt/array2): Validate setitem
         pass
 
+    def _resolve_drivers(self):
+        if self.drivers and not self.driven():
+            assert len(self.drivers) > 1
+            import magma as m
+            # TODO(leonardt/array2): Validate non overlapping
+            drivers = sorted(self.drivers, key=lambda x: x[0])
+            self @= m.concat2(*[d[1] for d in drivers])
+            self.drivers = []
+
     def trace(self):
         # TODO(leonardt/array2): For now, we "resolve" the drivers into a concat
         # node when `trace` is called during circuit unconnected check.  Is
@@ -686,19 +695,16 @@ class Array2(Wireable, Array):
         # Another option is to somehow maintain the concat tree as the wiring
         # is done, then search for "undriven" sentinal values that are used as
         # the concat tree is being built
-        if self.drivers and not self.driven():
-            assert len(self.drivers) > 1
-            import magma as m
-            # TODO(leonardt/array2): Validate non overlapping
-            drivers = sorted(self.drivers, key=lambda x: x[0])
-            self @= m.concat2(*[d[1] for d in drivers])
-            self.drivers = []
-        print(self._ts)
+        self._resolve_drivers()
         if self._ts:
-            print(type(self._ts[0]))
-            print([t.trace() for t in self.ts])
             return Array.trace(self)
         return super().trace()
+
+    def value(self):
+        self._resolve_drivers()
+        if self._ts:
+            return Array.value(self)
+        return super().value()
 
 
 class InputArrayItem:

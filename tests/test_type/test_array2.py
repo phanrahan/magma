@@ -52,7 +52,7 @@ def test_array2_wire_to_index(nested):
     class Foo(m.Circuit):
         T = m.Array2[2, m.Bit]
         if nested:
-            T = m.Array[2, T]
+            T = m.Array2[2, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O[0] @= io.I[1]
         io.O[1] @= io.I[0]
