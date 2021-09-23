@@ -693,7 +693,10 @@ class Array2(Wireable, Array):
             drivers = sorted(self.drivers, key=lambda x: x[0])
             self @= m.concat2(*[d[1] for d in drivers])
             self.drivers = []
+        print(self._ts)
         if self._ts:
+            print(type(self._ts[0]))
+            print([t.trace() for t in self.ts])
             return Array.trace(self)
         return super().trace()
 
