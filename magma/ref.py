@@ -20,14 +20,11 @@ class Ref:
     def anon(self):
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def parent(self):
-        raise NotImplementedError()
+        return self
 
     def root(self) -> typing.Optional['Ref']:
         parent = self.parent()
-        if parent is None:
-            return None
         if parent is self:
             return self
         return parent.root()
@@ -42,9 +39,6 @@ class AnonRef(Ref):
 
     def qualifiedname(self, sep='.'):
         return f"AnonymousValue_{id(self)}"
-
-    def parent(self):
-        return None
 
     def anon(self):
         return True
@@ -66,11 +60,12 @@ class NamedRef(Ref):
     def anon(self):
         return False
 
-    def parent(self):
-        return self
-
     def value(self):
         return self._value if self._value is None else self._value()
+
+
+class TempNamedRef(NamedRef):
+    pass
 
 
 class InstRef(NamedRef):
@@ -92,9 +87,6 @@ class InstRef(NamedRef):
             if sep == ".":
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
-
-    def parent(self):
-        return None
 
 
 class LazyInstRef(InstRef):
@@ -128,9 +120,6 @@ class DefnRef(NamedRef):
         if sep == ".":
             return self.defn.__name__ + sep + self.name
         return self.name
-
-    def parent(self):
-        return None
 
 
 class LazyCircuit:
@@ -204,6 +193,7 @@ class PortViewRef(Ref):
     Used for values that are connection references to a hierarchical value
     (using the view logic)
     """
+
     def __init__(self, view):
         self.view = view
 
@@ -213,8 +203,35 @@ class PortViewRef(Ref):
     def anon(self):
         return self.view.port.anon()
 
-    def parent(self):
-        return None
-
     def __str__(self):
         return str(self.view.port.name)
+
+    def root(self):
+        return self.view.root()
+
+
+def get_ref_inst(ref):
+    """
+    If value is part of a port on an instance, return that instance,
+    otherwise None.
+    """
+    root = ref.root()
+    if not isinstance(root, InstRef):
+        return None
+    return root.inst
+
+
+def get_ref_defn(ref):
+    """
+    If value is part of a port on an definition, return that definition,
+    otherwise None.
+    """
+    root = ref.root()
+    if not isinstance(root, DefnRef):
+        return None
+    return root.defn
+
+
+def is_temp_ref(ref):
+    root = ref.root()
+    return isinstance(root, (TempNamedRef, AnonRef))

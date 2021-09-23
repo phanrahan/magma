@@ -4,7 +4,7 @@ from itertools import chain
 from .common import deprecated
 from .compatibility import IntegerTypes, StringTypes
 from .protocol_type import MagmaProtocolMeta
-from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
+from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, TempNamedRef
 from .t import Type, Kind, Direction
 
 
@@ -52,7 +52,7 @@ def _make_ref(name, inst, defn):
         return InstRef(inst, name)
     if defn:
         return DefnRef(defn, name)
-    return NamedRef(name)
+    return TempNamedRef(name)
 
 
 def _make_port(typ, ref, flip):

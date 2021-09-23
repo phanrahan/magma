@@ -69,10 +69,6 @@ def DefineModuleWrapper(cirb: CoreIRBackend, coreirModule, uniqueName, deps):
         IO = _get_ports_as_list(_get_ports(coreirModule.type, renamed_ports))
         wrappedModule = coreirModule
         coreir_wrapped_modules_libs_used = set(deps)
-
-        @classmethod
-        def definition(cls):
-            pass
     return ModuleWrapper
 
 def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,
@@ -83,8 +79,6 @@ def DefineCircuitFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, gener
     deps = [namespace] + dependentNamespaces
     if runGenerators:
         cirb.context.run_passes(["rungenerators"], deps)
-    print(cirb, cirb.context, cirb.context.context)
-    print(moduleToWrap, moduleToWrap.context, moduleToWrap.context.context)
     return DefineModuleWrapper(cirb, moduleToWrap, uniqueName, deps)
 
 def CircuitInstanceFromGeneratorWrapper(cirb: CoreIRBackend, namespace: str, generator: str,

@@ -79,8 +79,8 @@ def test_add_generator():
         io = IO(I0=In(Bits[8]), I1=In(Bits[8]),
             CIN=In(Bit), O=Out(Bits[8]))
         adder = Add8cin()
+        adder(io.I0, io.I1, io.CIN)
         wire(io.O, adder.O)
-    wire(test_circuit, test_circuit.adder)
     print(repr(test_circuit))
     compile("build/test_add8cin", test_circuit, output="coreir")
     assert check_files_equal(__file__,

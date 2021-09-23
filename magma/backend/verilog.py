@@ -204,7 +204,8 @@ def compiledefinition(cls):
         #print('compile instances')
         # emit the structured verilog for each instance
         for instance in cls.instances:
-            drive_undriven_clock_types_in_inst(cls, instance)
+            with cls.open():
+                drive_undriven_clock_types_in_inst(cls, instance)
             if getattr(instance, "debug_info", False) and \
                     instance.debug_info.filename and instance.debug_info.lineno and \
                     get_codegen_debug_info():

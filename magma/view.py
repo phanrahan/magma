@@ -51,6 +51,12 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
             curr = curr.parent
         return hierarchical_path
 
+    def root(self):
+        curr = self.parent
+        while isinstance(curr.parent, InstView):
+            curr = curr.parent
+        return curr
+
     def __str__(self):
         return (self.get_hierarchical_coreir_select() +
                 self.port.name.qualifiedname())

@@ -2,7 +2,7 @@ from magma.array import Array
 from magma.circuit import Circuit
 from magma.digital import Digital
 from magma.ref import (DefnRef, InstRef, NamedRef, ArrayRef, TupleRef,
-                       PortViewRef)
+                       PortViewRef, TempNamedRef)
 from magma.t import Type, Direction
 from magma.tuple import Tuple
 from magma.view import InstView, PortView
@@ -66,7 +66,7 @@ def verilog_name(name, inst_sep="_", disable_ndarray=False):
         tuple_name = verilog_name(name.tuple.name,
                                   disable_ndarray=disable_ndarray)
         index = name.index
-        if name.root() is None:
+        if not isinstance(name.root(), TempNamedRef):
             # Not a named temporary that will be flattened to a wire
             try:
                 int(index)

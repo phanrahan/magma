@@ -83,14 +83,17 @@ def test_mismatch_outputs_circuit(caplog):
         name = "A"
         io = IO(I=In(Bit), J=In(Bit), O=Out(Bit), U=Out(Bit))
 
-    class main(Circuit):
+    class Main(Circuit):
         name = "main"
         io = IO(I=In(Bit), O=Out(Bit))
+
+    class Foo(Circuit):
         a = A()
-    main.a(main)
+        main = Main()
+        a(main)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:90\033[0m: Number of inputs is not equal to the number of outputs, expected 2 inputs, got 1. Only 1 will be wired.
->>     main.a(main)"""
+\033[1mtests/test_wire/test_errors.py:93\033[0m: Number of inputs is not equal to the number of outputs, expected 2 inputs, got 1. Only 1 will be wired.
+>>         a(main)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
 
@@ -107,7 +110,7 @@ def test_no_inputs_circuit(caplog):
         a = A()
         wire(io.I, a)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:108\033[0m: Wiring an output to a circuit with no input arguments, skipping
+\033[1mtests/test_wire/test_errors.py:111\033[0m: Wiring an output to a circuit with no input arguments, skipping
 >>         wire(io.I, a)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -125,7 +128,7 @@ def test_multiple_inputs_circuit(caplog):
         a = A()
         wire(io.I, a)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:126\033[0m: Wiring an output to a circuit with more than one input argument, using the first input main.a.I
+\033[1mtests/test_wire/test_errors.py:129\033[0m: Wiring an output to a circuit with more than one input argument, using the first input main.a.I
 >>         wire(io.I, a)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -143,7 +146,7 @@ def test_no_key(caplog):
         a = A()
         a(K=io.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:144\033[0m: Instance main.a does not have input K
+\033[1mtests/test_wire/test_errors.py:147\033[0m: Instance main.a does not have input K
 >>         a(K=io.I)"""
 
     assert has_warning(caplog, msg)
@@ -165,7 +168,7 @@ def test_const_array_error(caplog):
         wire(buf.O, io.O)
 
     msg = """\
-\033[1mtests/test_wire/test_errors.py:164\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[1, In(Bit)])
+\033[1mtests/test_wire/test_errors.py:167\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[1, In(Bit)])
 >>         wire(1, buf.I)"""
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)
@@ -186,7 +189,7 @@ def test_hanging_anon_error(caplog):
             assert str(e) == "Found unconnected port: _Foo.O\n_Foo.O: Unconnected"
 
         msg = """\
-\033[1mtests/test_wire/test_errors.py:177\033[0m: Output port _Foo.O not driven
+\033[1mtests/test_wire/test_errors.py:180\033[0m: Output port _Foo.O not driven
 >>         class _Foo(m.Circuit):"""
         assert caplog.records[0].msg == msg
         assert has_error(caplog, msg)

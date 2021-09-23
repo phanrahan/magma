@@ -19,6 +19,13 @@
           ["self.I1","commonlib_smax_width_16_inst0.in1"],
           ["self.O","commonlib_smax_width_16_inst0.out"]
         ]
+      },
+      "commonlib_smax_width_16":{
+        "type":["Record",[
+          ["in0",["Array",16,"BitIn"]],
+          ["in1",["Array",16,"BitIn"]],
+          ["out",["Array",16,"Bit"]]
+        ]]
       }
     }
   }

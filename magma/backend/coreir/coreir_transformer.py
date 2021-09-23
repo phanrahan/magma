@@ -9,6 +9,7 @@ import coreir as pycoreir
 from magma.digital import Digital
 from magma.array import Array
 from magma.bits import Bits
+from magma.backend.check_wiring_context import check_wiring_context
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
     get_module_of_inst, magma_interface_to_coreir_module_type,
@@ -431,9 +432,10 @@ class DefinitionTransformer(TransformerBase):
 
     def connect(self, module_defn, port, value):
         if value is None and is_clock_or_nested_clock(type(port)):
-            if not drive_all_undriven_clocks_in_value(port, self.clocks):
-                # No default clock
-                raise UnconnectedPortException(port)
+            with self.defn.open():
+                if not drive_all_undriven_clocks_in_value(port, self.clocks):
+                    # No default clock
+                    raise UnconnectedPortException(port)
             value = port.trace()
         if value is None:
             if port.is_inout():
@@ -441,6 +443,7 @@ class DefinitionTransformer(TransformerBase):
             if getattr(self.defn, "_ignore_undriven_", False):
                 return
             raise UnconnectedPortException(port)
+        check_wiring_context(port, value)
         source = self.get_source(port, value, module_defn)
         if not source:
             return
