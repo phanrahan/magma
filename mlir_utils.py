@@ -28,9 +28,9 @@ def _make_hw_array_get_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
     value = ctx.new_value(MlirIntegerType(width))
     getter = HwArrayGetOp(inst.name)
     g.add_nodes_from((const, value, getter))
-    g.add_edge(const, value, **{"info": 0})
-    g.add_edge(value, getter, **{"info": 1})
-    inputs = ((getter, 0),)
+    g.add_edge(const, value, info=0)
+    g.add_edge(value, getter, info=1)
+    inputs = ((getter, 0, 0),)
     outputs = ((getter, 0),)
     return MlirMultiOp(inst.name, g, inputs, outputs)
 
@@ -45,10 +45,30 @@ def _make_not_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
     value = ctx.new_value(MlirIntegerType(width))
     xor = CombOp(inst.name, "xor")
     g.add_nodes_from((const, value, xor))
-    g.add_edge(const, value, **{"info": 0})
-    g.add_edge(value, xor, **{"info": 1})
-    inputs = ((xor, 0),)
+    g.add_edge(const, value, info=0)
+    g.add_edge(value, xor, info=1)
+    inputs = ((xor, 0, 0),)
     outputs = ((xor, 0),)
+    return MlirMultiOp(inst.name, g, inputs, outputs)
+
+
+def _make_mux_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
+    defn = type(inst)
+    assert defn.coreir_lib == "commonlib" and defn.coreir_name == "muxn"
+    g = Graph()
+    data_extractor = HwStructExtractOp(inst.name, "data")
+    sel_extractor = HwStructExtractOp(inst.name, "sel")
+    data_value = ctx.new_value(magma_type_to_mlir_type(type(defn.I.data)))
+    sel_value = ctx.new_value(magma_type_to_mlir_type(type(defn.I.sel)))
+    getter = HwArrayGetOp(inst.name)
+    g.add_nodes_from(
+        (data_extractor, sel_extractor, data_value, sel_value, getter))
+    g.add_edge(data_extractor, data_value, info=0)
+    g.add_edge(sel_extractor, sel_value, info=0)
+    g.add_edge(data_value, getter, info=0)
+    g.add_edge(sel_value, getter, info=1)
+    inputs = ((data_extractor, 0, 0), (sel_extractor, 0, 0))
+    outputs = ((getter, 0),)
     return MlirMultiOp(inst.name, g, inputs, outputs)
 
 
@@ -60,11 +80,21 @@ def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
     if issubclass(type, m.Bits):
         return MlirIntegerType(type.N)
     if issubclass(type, m.Array):
+        if issubclass(type.T, m.Bit):
+            return magma_type_to_mlir_type(m.Bits[type.N])
         return HwArrayType((type.N,), magma_type_to_mlir_type(type.T))
     if issubclass(type, m.Product):
         fields = {k: magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return HwStructType(tuple(fields.items()))
+
+
+@wrap_with_not_implemented_error
+def commonlib_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
+    defn = type(inst)
+    assert defn.coreir_lib == "commonlib"
+    if defn.coreir_name == "muxn":
+        return _make_mux_op(ctx, inst)
 
 
 @wrap_with_not_implemented_error
@@ -82,12 +112,14 @@ def magma_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
     assert m.isprimitive(defn)
     if defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit":
         return coreir_primitive_to_mlir_op(ctx, inst)
+    if defn.coreir_lib == "commonlib":
+        return commonlib_primitive_to_mlir_op(ctx, inst)
     if isinstance(defn, MagmaArrayGetOp):
-        if isinstance(defn.T, m.BitsMeta):
+        if isinstance(defn.T, m.BitsMeta) or issubclass(defn.T.T, m.Bit):
             return CombExtractOp(inst.name, defn.index, defn.index + 1)
         return _make_hw_array_get_op(ctx, inst)
     if isinstance(defn, MagmaArrayCreateOp):
-        if isinstance(defn.T, m.BitsMeta):
+        if isinstance(defn.T, m.BitsMeta) or issubclass(defn.T.T, m.Bit):
             return CombConcatOp(inst.name)
         return HwArrayCreateOp(inst.name)
     if isinstance(defn, MagmaProductGetOp):

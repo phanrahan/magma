@@ -16,6 +16,8 @@ _ckts = [
     simple_aggregates_tuple,
     simple_constant,
     aggregate_constant,
+    simple_mux,
+    aggregate_mux,
 ]
 
 

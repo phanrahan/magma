@@ -126,9 +126,9 @@ class MultiOpFlattener(NodeTransformer):
         assert isinstance(op, MlirMultiOp)
         nodes = list(op.graph.nodes)
         edges = list((u, v, data) for u, v, data in op.graph.edges(data=True))
-        for i, edge in enumerate(self.graph.in_edges(op, data=True)):
-            src, _, data = edge
-            new_dst, idx = op.primary_inputs[i]
+        in_edges = list(self.graph.in_edges(op, data=True))
+        for new_dst, in_edge_idx, idx in op.primary_inputs:
+            src, _, data = in_edges[in_edge_idx]
             data["info"] = idx
             edges.append((src, new_dst, data))
         for i, edge in enumerate(self.graph.out_edges(op, data=True)):

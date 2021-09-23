@@ -75,3 +75,10 @@ class aggregate_constant(m.Circuit):
     io = m.IO(y=m.Out(T))
     y = T(m.Bits[8](0), m.Bits[4](0))
     io.y @= y
+
+
+simple_mux = m.Mux(T=m.Bits[8], height=4)
+
+
+aggregate_mux = m.Mux(
+    T=m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit)), height=6)

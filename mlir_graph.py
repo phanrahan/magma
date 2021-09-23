@@ -38,7 +38,7 @@ class MlirOp:
 class MlirMultiOp(MlirOp):
     name: str
     graph: Graph
-    primary_inputs: Tuple[Tuple[Node, int]]
+    primary_inputs: Tuple[Tuple[Node, int, int]]
     primary_outputs: Tuple[Tuple[Node, int]]
 
 
