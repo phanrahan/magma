@@ -19,9 +19,9 @@ from mlir_value import MlirValue
 
 
 def _make_hw_array_get_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
-    g = Graph()
     defn = type(inst)
     assert isinstance(defn, MagmaArrayGetOp)
+    g = Graph()
     const = HwConstantOp(inst.name, defn.index)
     width = m.bitutils.clog2(len(defn.I))
     value = ctx.new_value(MlirIntegerType(width))
@@ -31,6 +31,23 @@ def _make_hw_array_get_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
     g.add_edge(value, getter, **{"info": 1})
     inputs = ((getter, 0),)
     outputs = ((getter, 0),)
+    return MlirMultiOp(inst.name, g, inputs, outputs)
+
+
+def _make_not_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
+    defn = type(inst)
+    assert ((defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
+            and defn.coreir_name == "not")
+    g = Graph()
+    const = HwConstantOp(inst.name, -1)
+    width = 1 if defn.coreir_lib == "corebit" else len(defn.O)
+    value = ctx.new_value(MlirIntegerType(width))
+    xor = CombOp(inst.name, "xor")
+    g.add_nodes_from((const, value, xor))
+    g.add_edge(const, value, **{"info": 0})
+    g.add_edge(value, xor, **{"info": 1})
+    inputs = ((xor, 0),)
+    outputs = ((xor, 0),)
     return MlirMultiOp(inst.name, g, inputs, outputs)
 
 
@@ -50,11 +67,20 @@ def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
 
 
 @wrap_with_not_implemented_error
+def coreir_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
+    defn = type(inst)
+    assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
+    if defn.coreir_name == "not":
+        return _make_not_op(ctx, inst)
+    return CombOp(inst.name, defn.coreir_name)
+
+
+@wrap_with_not_implemented_error
 def magma_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
     defn = type(inst)
     assert m.isprimitive(defn)
     if defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit":
-        return CombOp(inst.name, defn.coreir_name)
+        return coreir_primitive_to_mlir_op(ctx, inst)
     if isinstance(defn, MagmaArrayGetOp):
         if isinstance(defn.T, m.BitsMeta):
             return CombExtractOp(inst.name, defn.index, defn.index + 1)
