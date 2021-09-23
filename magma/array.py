@@ -626,9 +626,10 @@ class Array2(Wireable, Array):
 
         class Slice(m.Generator2):
             def __init__(self, T, start, stop):
-                # TODO: Uniquification not catching this case, probably because
-                # no instances and only the wiring structure is different,
-                # maybe has to do with repr/value of array2?
+                # TODO(leonardt/array2): Uniquification not catching this
+                # case, probably because no instances and only the wiring
+                # structure is different, maybe has to do with repr/value of
+                # array2?
                 self.name = f"slice_{start}_{stop}_{T}"
                 self.name = m.backend.coreir.coreir_utils.sanitize_name(
                     self.name)
