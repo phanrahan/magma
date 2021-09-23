@@ -85,14 +85,6 @@ class ReadyValid(Product, metaclass=ReadyValidKind):
         """
         raise NotImplementedError
 
-    @classmethod
-    def is_producer(cls):
-        return isinstance(cls, ReadyValidProducerKind)
-
-    @classmethod
-    def is_consumer(cls):
-        return isinstance(cls, ReadyValidConsumerKind)
-
 
 def _deq_error(self, value, when=True):
     raise Exception(f"{type(self)} does not support deq")
@@ -381,6 +373,14 @@ def Undirected(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
         return ReadyValid[undirected_T]
     raise TypeError(f"Undirected({T}) is unsupported")
+
+
+def is_producer(T):
+    return isinstance(T, (ReadyValidProducerKind, ReadyValidProducer))
+
+
+def is_consumer(T):
+    return isinstance(T, (ReadyValidConsumerKind, ReadyValidConsumer))
 
 
 # TODO: QueueIO and Queue
