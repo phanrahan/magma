@@ -96,7 +96,8 @@ from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
                               Memory, set_index, register, Wire)
 
 from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
-                         Decoupled, EnqIO, DeqIO, Irrevocable, Monitor)
+                         Decoupled, EnqIO, DeqIO, Irrevocable, Monitor,
+                         is_producer, is_consumer)
 import magma.smart
 from magma.compile_guard import compile_guard
 from magma.set_name import set_name

@@ -375,4 +375,12 @@ def Undirected(T: ReadyValidKind):
     raise TypeError(f"Undirected({T}) is unsupported")
 
 
+def is_producer(T):
+    return isinstance(T, (ReadyValidProducerKind, ReadyValidProducer))
+
+
+def is_consumer(T):
+    return isinstance(T, (ReadyValidConsumerKind, ReadyValidConsumer))
+
+
 # TODO: QueueIO and Queue
