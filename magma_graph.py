@@ -89,7 +89,7 @@ def _traverse_input(g: Graph, value: m.Type, module):
 
 
 def _traverse_inputs(g: Graph, module: ModuleLike):
-    for port in module.interface.inputs():
+    for port in module.interface.inputs(include_clocks=True):
         _traverse_input(g, port, module)
 
 

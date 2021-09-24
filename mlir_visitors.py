@@ -71,15 +71,17 @@ class EdgePortToIndexTransformer(NodeTransformer):
     def generic_visit(self, node: Node):
         assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
         edges = []
+        node_inputs = node.interface.inputs(include_clocks=True)
+        node_outputs = node.interface.outputs()
         for edge in self.graph.in_edges(node, data=True):
             src, dst, data = edge
             port = data["info"]
-            data["info"] = _get_value_index(port, node.interface.inputs())
+            data["info"] = _get_value_index(port, node_inputs)
             edges.append((src, dst, data))
         for edge in self.graph.out_edges(node, data=True):
             src, dst, data = edge
             port = data["info"]
-            data["info"] = _get_value_index(port, node.interface.outputs())
+            data["info"] = _get_value_index(port, node_outputs)
             edges.append((src, dst, data))
         return [node], edges
 
@@ -127,6 +129,7 @@ class MultiOpFlattener(NodeTransformer):
         nodes = list(op.graph.nodes)
         edges = list((u, v, data) for u, v, data in op.graph.edges(data=True))
         in_edges = list(self.graph.in_edges(op, data=True))
+        in_edges = sorted(in_edges, key=lambda e: e[2]["info"])
         for new_dst, in_edge_idx, idx in op.primary_inputs:
             src, _, data = in_edges[in_edge_idx]
             data["info"] = idx

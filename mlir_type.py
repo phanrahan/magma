@@ -34,3 +34,11 @@ class HwStructType(MlirType):
     def emit(self) -> str:
         field_str = ", ".join(f"{k}: {t.emit()}" for k, t in self.fields)
         return f"!hw.struct<{field_str}>"
+
+
+@dataclasses.dataclass(frozen=True)
+class HwInOutType(MlirType):
+    T: MlirType
+
+    def emit(self) -> str:
+        return f"!hw.inout<{self.T.emit()}>"

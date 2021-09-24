@@ -14,8 +14,10 @@ from mlir_graph import (
     MlirOp, MlirMultiOp,
     HwConstantOp, HwInstanceOp, HwOutputOp,
     HwArrayGetOp, HwArrayCreateOp, HwStructExtractOp, HwStructCreateOp,
-    CombOp, CombICmpOp, CombExtractOp, CombConcatOp)
-from mlir_type import MlirType, MlirIntegerType, HwArrayType, HwStructType
+    CombOp, CombICmpOp, CombExtractOp, CombConcatOp, CombMuxOp,
+    SvRegOp, SvReadInOutOp, SvRegAssignOp, SvRegInitOp)
+from mlir_type import (
+    MlirType, MlirIntegerType, HwArrayType, HwStructType, HwInOutType)
 from mlir_value import MlirValue
 
 
@@ -72,6 +74,33 @@ def _make_mux_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
     return MlirMultiOp(inst.name, g, inputs, outputs)
 
 
+def _make_reg_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
+    defn = type(inst)
+    assert defn.coreir_lib == "coreir" and defn.coreir_name == "reg"
+    g = Graph()
+    value_type = magma_type_to_mlir_type(type(defn.O))
+    reg_type = HwInOutType(value_type)
+    reg_op = SvRegOp(inst.name)
+    reg = ctx.new_value(reg_type)
+    reg_reader = SvReadInOutOp(inst.name)
+    reg_assigner = SvRegAssignOp(inst.name, True)
+    reg_initer = SvRegInitOp(inst.name)
+    reg_init_op = HwConstantOp(inst.name, defn.coreir_configargs["init"].value)
+    reg_init_value = ctx.new_value(value_type)
+    g.add_nodes_from((
+        reg_op, reg, reg_reader, reg_assigner, reg_initer, reg_init_op,
+        reg_init_value))
+    g.add_edge(reg_op, reg, info=0)
+    g.add_edge(reg, reg_reader, info=0)
+    g.add_edge(reg, reg_assigner, info=1)
+    g.add_edge(reg, reg_initer, info=0)
+    g.add_edge(reg_init_op, reg_init_value, info=0)
+    g.add_edge(reg_init_value, reg_initer, info=1)
+    inputs = ((reg_assigner, 0, 0), (reg_assigner, 1, 2))
+    outputs = ((reg_reader, 0),)
+    return MlirMultiOp(inst.name, g, inputs, outputs)
+
+
 @wrap_with_not_implemented_error
 def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
     type = type.undirected_t
@@ -105,6 +134,8 @@ def coreir_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
         return _make_not_op(ctx, inst)
     if defn.coreir_name in ("eq",):
         return CombICmpOp(inst.name, defn.coreir_name)
+    if defn.coreir_name == "reg":
+        return _make_reg_op(ctx, inst)
     return CombOp(inst.name, defn.coreir_name)
 
 

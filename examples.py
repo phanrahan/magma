@@ -80,5 +80,16 @@ class aggregate_constant(m.Circuit):
 simple_mux = m.Mux(T=m.Bits[8], height=2)
 
 
-aggregate_mux = m.Mux(
-    T=m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit)), height=6)
+_T_product = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+
+
+aggregate_mux = m.Mux(T=_T_product, height=6)
+
+
+simple_register = m.Register(T=m.Bits[8])
+m.passes.clock.WireClockPass(simple_register).run()
+
+
+_init = _T_product(m.Bits[8](6), m.Bit(1))
+complex_register = m.Register(_T_product, init=_init)
+m.passes.clock.WireClockPass(complex_register).run()

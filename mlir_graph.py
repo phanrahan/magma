@@ -84,6 +84,15 @@ class CombConcatOp(MlirOp):
 
 
 @dataclasses.dataclass(frozen=True)
+class CombMuxOp(MlirOp):
+    name: str
+
+    def emit(self):
+        return (f"{{outputs.names}} = comb.mux {{inputs.names}} : "
+                f"{{outputs.types}}")
+
+
+@dataclasses.dataclass(frozen=True)
 class HwConstantOp(MlirOp):
     name: str
     value: int
@@ -148,3 +157,44 @@ class HwOutputOp(MlirOp):
 
     def emit(self):
         return (f"hw.output {{inputs.names}} : {{inputs.types}}")
+
+
+@dataclasses.dataclass(frozen=True)
+class SvRegOp(MlirOp):
+    name: str
+
+    def emit(self):
+        return (f"{{outputs.names}} = sv.reg {{{{name = \"{self.name}\"}}}} : "
+                f"{{outputs.types}}")
+
+
+@dataclasses.dataclass(frozen=True)
+class SvReadInOutOp(MlirOp):
+    name: str
+
+    def emit(self):
+        return (f"{{outputs.names}} = sv.read_inout {{inputs.names}} : "
+                f"{{inputs.types}}")
+
+
+# NOTE(rsetaluri): This is a canned op to emulate a sv.alwaysff region.
+@dataclasses.dataclass(frozen=True)
+class SvRegAssignOp(MlirOp):
+    name: str
+    sensitivity: bool
+
+    def emit(self):
+        sense = "posedge" if self.sensitivity else "negedge"
+        return (f"sv.alwaysff({sense} {{inputs[2].name}}) {{{{ sv.passign "
+                f"{{inputs[1].name}}, {{inputs[0].name}} : "
+                f"{{inputs[0].type}} }}}}")
+
+
+# NOTE(rsetaluri): This is a canned op to emulate a sv.initial region.
+@dataclasses.dataclass(frozen=True)
+class SvRegInitOp(MlirOp):
+    name: str
+
+    def emit(self):
+        return (f"sv.initial {{{{ sv.bpassign {{inputs[0].name}}, "
+                f"{{inputs[1].name}} : {{inputs[1].type}} }}}}")

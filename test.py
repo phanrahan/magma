@@ -18,6 +18,8 @@ _ckts = [
     aggregate_constant,
     simple_mux,
     aggregate_mux,
+    #simple_register,
+    complex_register,
 ]
 
 
