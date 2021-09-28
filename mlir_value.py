@@ -1,9 +1,19 @@
 import dataclasses
+from typing import Union
 
 from mlir_type import MlirType
 
 
+class _Anonymous: pass
+
+
 @dataclasses.dataclass(frozen=True)
 class MlirValue:
-    name: str
     type: MlirType
+    name: Union[str, _Anonymous] = dataclasses.field(default_factory=_Anonymous)
+
+
+def value_is_anonymous(value: MlirValue) -> bool:
+    if not isinstance(value, MlirValue):
+        raise TypeError(value)
+    return isinstance(value.name, _Anonymous)

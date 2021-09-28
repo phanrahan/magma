@@ -28,13 +28,16 @@ class MlirContext:
     def __init__(self):
         self._name_gen = MlirNameGenerator()
 
-    def new_value(
+    def anonymous_value(self, type: MlirType) -> MlirValue:
+        return MlirValue(type)
+
+    def named_value(
             self,
             type: MlirType,
             name: Optional[str] = None,
             force: bool = False) -> MlirValue:
         name = self._name_gen(name, force)
-        return MlirValue(name, type)
+        return MlirValue(type, name=name)
 
 
 class Contextual:

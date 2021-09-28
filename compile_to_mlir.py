@@ -35,9 +35,9 @@ class HwModuleOp(MlirOp):
 
 
 def emit_module(emitter: MlirEmitter, ckt: m.DefineCircuitKind, g: Graph):
-    inputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
+    inputs = [MlirValue(magma_type_to_mlir_type(type(port)), f"%{port.name}")
               for port in ckt.interface.outputs()]
-    outputs = [MlirValue(f"%{port.name}", magma_type_to_mlir_type(type(port)))
+    outputs = [MlirValue(magma_type_to_mlir_type(type(port)), f"%{port.name}")
                for port in ckt.interface.inputs()]
     op = HwModuleOp(ckt.name)
     emitter.emit_op(op, inputs, outputs)

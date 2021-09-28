@@ -32,7 +32,7 @@ class ModuleInputSplitter(NodeTransformer, Contextual):
             port = data["info"]
             assert dst.ports[0] is port
             t = magma_type_to_mlir_type(type(port))
-            value = self.ctx.new_value(t, port.name, force=True)
+            value = self.ctx.named_value(t, port.name, force=True)
             nodes.append(value)
             assert len(list(self.graph.predecessors(dst))) == 1
             for edge in self.graph.out_edges(dst, data=True):
@@ -52,7 +52,7 @@ class NetToValueTransformer(NodeTransformer, Contextual):
     def visit_Net(self, node: Net):
         assert len(list(self.graph.predecessors(node))) == 1
         t = magma_type_to_mlir_type(type(node.ports[0]))
-        value = self.ctx.new_value(t)
+        value = self.ctx.named_value(t)
         edges = list(replace_node(self.graph, node, value))
         return [value], edges
 
