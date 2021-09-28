@@ -93,3 +93,16 @@ m.passes.clock.WireClockPass(simple_register).run()
 _init = _T_product(m.Bits[8](6), m.Bit(1))
 complex_register = m.Register(_T_product, init=_init)
 m.passes.clock.WireClockPass(complex_register).run()
+
+
+class counter(m.Circuit):
+    T = m.UInt[16]
+    io = m.IO(y=m.Out(T)) + m.ClockIO()
+    O = T()
+    reg = m.Register(T)()
+    O @= reg.O
+    reg.I @= O + 1
+    io.y @= O
+
+
+m.passes.clock.WireClockPass(counter).run()

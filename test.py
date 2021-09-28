@@ -20,6 +20,7 @@ _ckts = [
     aggregate_mux,
     #simple_register,
     complex_register,
+    counter,
 ]
 
 
