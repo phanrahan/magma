@@ -17,7 +17,8 @@ from mlir_value import MlirValue
 from mlir_visitors import (
     ModuleInputSplitter, NetToValueTransformer, EdgePortToIndexTransformer,
     ModuleToOpTransformer, MultiOpFlattener,
-    RemoveSingletonCombConcatOpsTransformer, EmitMlirVisitor)
+    RemoveSingletonCombConcatOpsTransformer, DeanonymizeValuesTransformer,
+    EmitMlirVisitor)
 
 
 def _dump_graph(g: Graph, filename: str):
@@ -60,6 +61,7 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     ModuleToOpTransformer(g, ctx).run()
     MultiOpFlattener(g).run()
     RemoveSingletonCombConcatOpsTransformer(g).run()
+    DeanonymizeValuesTransformer(g, ctx).run(topological_sort)
 
     emit_module(emitter, ckt, g)
 

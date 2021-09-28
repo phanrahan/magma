@@ -12,7 +12,7 @@ from mlir_emitter import MlirEmitter
 from mlir_graph import MlirOp, MlirMultiOp, CombConcatOp, op_kind_get_attr
 from mlir_type import MlirType
 from mlir_utils import magma_type_to_mlir_type, magma_module_to_mlir_op
-from mlir_value import MlirValue
+from mlir_value import MlirValue, mlir_value_is_anonymous
 
 
 class ModuleInputSplitter(NodeTransformer, Contextual):
@@ -52,7 +52,7 @@ class NetToValueTransformer(NodeTransformer, Contextual):
     def visit_Net(self, node: Net):
         assert len(list(self.graph.predecessors(node))) == 1
         t = magma_type_to_mlir_type(type(node.ports[0]))
-        value = self.ctx.named_value(t)
+        value = self.ctx.anonymous_value(t)
         edges = list(replace_node(self.graph, node, value))
         return [value], edges
 
@@ -159,6 +159,20 @@ class RemoveSingletonCombConcatOpsTransformer(NodeTransformer):
             edges.append((predecessor, dst, data))
         self.graph.remove_node(successor)
         return [predecessor], edges
+
+
+class DeanonymizeValuesTransformer(NodeTransformer, Contextual):
+    def __init__(self, g: Graph, ctx: MlirContext):
+        super().__init__(g)
+        self._ctx = ctx
+
+    def visit_MlirValue(self, value: MlirValue):
+        assert isinstance(value, MlirValue)
+        if not mlir_value_is_anonymous(value):
+            return value
+        named_value = self.ctx.named_value(value.type)
+        edges = list(replace_node(self.graph, value, named_value))
+        return [named_value], edges
 
 
 class EmitMlirVisitor(NodeVisitor):

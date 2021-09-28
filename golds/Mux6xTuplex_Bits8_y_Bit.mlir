@@ -109,19 +109,19 @@ hw.module @Mux6xTuplex_Bits8_y_Bit(%I0: !hw.struct<x: i8, y: i1>, %I1: !hw.struc
     %107 = comb.concat %53, %101, %100, %99, %98, %97, %96, %95, %94 : (i1, i1, i1, i1, i1, i1, i1, i1, i1) -> i9
     %108 = hw.array_create %107, %106, %105, %104, %103, %102 : i9
     %109 = hw.struct_create (%108, %S) : !hw.struct<data: !hw.array<6xi9>, sel: i3>
-    %122 = hw.struct_extract %109["data"] : !hw.struct<data: !hw.array<6xi9>, sel: i3>
-    %123 = hw.struct_extract %109["sel"] : !hw.struct<data: !hw.array<6xi9>, sel: i3>
-    %110 = hw.array_get %122[%123] : !hw.array<6xi9>
-    %111 = comb.extract %110 from 0 : (i9) -> i1
-    %112 = comb.extract %110 from 1 : (i9) -> i1
-    %113 = comb.extract %110 from 2 : (i9) -> i1
-    %114 = comb.extract %110 from 3 : (i9) -> i1
-    %115 = comb.extract %110 from 4 : (i9) -> i1
-    %116 = comb.extract %110 from 5 : (i9) -> i1
-    %117 = comb.extract %110 from 6 : (i9) -> i1
-    %118 = comb.extract %110 from 7 : (i9) -> i1
-    %119 = comb.extract %110 from 8 : (i9) -> i1
-    %120 = comb.concat %118, %117, %116, %115, %114, %113, %112, %111 : (i1, i1, i1, i1, i1, i1, i1, i1) -> i8
-    %121 = hw.struct_create (%120, %119) : !hw.struct<x: i8, y: i1>
-    hw.output %121 : !hw.struct<x: i8, y: i1>
+    %110 = hw.struct_extract %109["data"] : !hw.struct<data: !hw.array<6xi9>, sel: i3>
+    %111 = hw.struct_extract %109["sel"] : !hw.struct<data: !hw.array<6xi9>, sel: i3>
+    %112 = hw.array_get %110[%111] : !hw.array<6xi9>
+    %113 = comb.extract %112 from 0 : (i9) -> i1
+    %114 = comb.extract %112 from 1 : (i9) -> i1
+    %115 = comb.extract %112 from 2 : (i9) -> i1
+    %116 = comb.extract %112 from 3 : (i9) -> i1
+    %117 = comb.extract %112 from 4 : (i9) -> i1
+    %118 = comb.extract %112 from 5 : (i9) -> i1
+    %119 = comb.extract %112 from 6 : (i9) -> i1
+    %120 = comb.extract %112 from 7 : (i9) -> i1
+    %121 = comb.extract %112 from 8 : (i9) -> i1
+    %122 = comb.concat %120, %119, %118, %117, %116, %115, %114, %113 : (i1, i1, i1, i1, i1, i1, i1, i1) -> i8
+    %123 = hw.struct_create (%122, %121) : !hw.struct<x: i8, y: i1>
+    hw.output %123 : !hw.struct<x: i8, y: i1>
 }

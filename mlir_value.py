@@ -13,7 +13,7 @@ class MlirValue:
     name: Union[str, _Anonymous] = dataclasses.field(default_factory=_Anonymous)
 
 
-def value_is_anonymous(value: MlirValue) -> bool:
+def mlir_value_is_anonymous(value: MlirValue) -> bool:
     if not isinstance(value, MlirValue):
         raise TypeError(value)
     return isinstance(value.name, _Anonymous)
