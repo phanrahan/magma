@@ -65,8 +65,13 @@ def _get_value_index(value: m.Type, values: List[m.Type]) -> int:
 
 
 class EdgePortToIndexTransformer(NodeTransformer):
-    def visit_MlirValue(self, node: MlirValue):
-        return node
+    def visit_Net(self, net: Net):
+        assert isinstance(net, Net)
+        return net
+
+    def visit_MlirValue(self, value: MlirValue):
+        assert isinstance(value, MlirValue)
+        return value
 
     def generic_visit(self, node: Node):
         assert isinstance(node, (m.DefineCircuitKind, m.Circuit))
@@ -91,8 +96,13 @@ class ModuleToOpTransformer(NodeTransformer, Contextual):
         super().__init__(g)
         self._ctx = ctx
 
-    def visit_MlirValue(self, node: MlirValue):
-        return node
+    def visit_Net(self, net: Net):
+        assert isinstance(net, Net)
+        return net
+
+    def visit_MlirValue(self, value: MlirValue):
+        assert isinstance(value, MlirValue)
+        return value
 
     def generic_visit(self, node: Node):
         assert isinstance(node, (m.DefineCircuitKind, m.Circuit))

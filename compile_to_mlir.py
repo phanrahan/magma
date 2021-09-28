@@ -56,11 +56,11 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     RemoveDuplicateEdgesTransformer(g).run()
     MergeNetsTransformer(g).run()
     ModuleInputSplitter(g, ctx).run()
-    NetToValueTransformer(g, ctx).run(topological_sort)
     EdgePortToIndexTransformer(g).run()
     ModuleToOpTransformer(g, ctx).run()
     MultiOpFlattener(g).run()
     RemoveSingletonCombConcatOpsTransformer(g).run()
+    NetToValueTransformer(g, ctx).run(topological_sort)
     DeanonymizeValuesTransformer(g, ctx).run(topological_sort)
 
     emit_module(emitter, ckt, g)
