@@ -60,7 +60,7 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     ModuleToOpTransformer(g, ctx).run()
     MultiOpFlattener(g).run()
     RemoveSingletonCombConcatOpsTransformer(g).run()
-    NetToValueTransformer(g, ctx).run(topological_sort)
+    NetToValueTransformer(g, ctx).run()
     DeanonymizeValuesTransformer(g, ctx).run(topological_sort)
 
     emit_module(emitter, ckt, g)
