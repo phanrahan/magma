@@ -626,35 +626,29 @@ class Array2(Wireable, Array):
 
         class Slice(m.Generator2):
             def __init__(self, T, start, stop):
-                # TODO(leonardt/array2): Uniquification not catching this
-                # case, probably because no instances and only the wiring
-                # structure is different, maybe has to do with repr/value of
-                # array2?
-                self.name = f"slice_{start}_{stop}_{T}"
-                self.name = m.backend.coreir.coreir_utils.sanitize_name(
-                    self.name)
                 self.io = m.IO(I=In(T), O=Out(Array2[stop - start, T.T]))
-                if issubclass(T.T, Bit):
-                    self.coreir_genargs = {"hi": stop, "lo": start,
-                                           "width": len(T)}
-                    self.coreir_name = "slice"
-                    self.coreir_lib = "coreir"
-                    self.renamed_ports = m.circuit.coreir_port_mapping
-                else:
-                    flat_len = T.T.flat_length()
-                    self.io.O @= m.from_bits(
-                        type(self.io.O).undirected_t,
-                        m.as_bits(self.io.I)[start * flat_len:stop * flat_len])
+                self.coreir_genargs = {"t": T, "hi": stop,
+                                       "lo": start}
+                self.coreir_name = "sliceArrT"
+                self.coreir_lib = "mantle"
+                self.renamed_ports = m.circuit.coreir_port_mapping
         return Slice(type(self), start, stop)
 
+    def _make_get(self, index):
+        import magma as m
+
+        class Index(m.Generator2):
+            def __init__(self, T, i):
+                self.io = m.IO(I=In(T), O=Out(T.T))
+                self.coreir_genargs = {"t": T, "i": i}
+                self.coreir_name = "getArrT"
+                self.coreir_lib = "mantle"
+                self.renamed_ports = m.circuit.coreir_port_mapping
+        return Index(type(self), index)
+
     def __getitem__(self, key):
-        # TODO(leonardt/array2): The concat/slice flow won't work for complex
-        # children that can't be flattened into input/output bits (e.g.
-        # multi-directional tuples).  I think the best option for this case
-        # might be to revert to the old recursive logic, since they'll be
-        # flattened out downstream anyways
         if isinstance(key, int):
-            return self.ts[key]
+            return self._make_get(key)()(self)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)

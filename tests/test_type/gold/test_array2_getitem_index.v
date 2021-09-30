@@ -1,12 +1,15 @@
-module coreir_slice #(
-    parameter hi = 1,
-    parameter lo = 0,
-    parameter width = 1
-) (
-    input [width-1:0] in,
-    output [hi-lo-1:0] out
+module mantle_sliceArrT__hi2__lo1__tBitIn2 (
+    input [1:0] in,
+    output [0:0] out
 );
-  assign out = in[hi-1:lo];
+assign out = in[1];
+endmodule
+
+module mantle_sliceArrT__hi1__lo0__tBitIn2 (
+    input [1:0] in,
+    output [0:0] out
+);
+assign out = in[0];
 endmodule
 
 module coreir_concat #(
@@ -25,31 +28,23 @@ module Foo (
     output [1:0] O
 );
 wire [1:0] Concat_inst0_out;
-wire [0:0] slice_0_1_Array_2_OutBit_inst0_out;
-wire [0:0] slice_1_2_Array_2_OutBit_inst0_out;
+wire [0:0] Slice_inst0_out;
+wire [0:0] Slice_inst1_out;
 coreir_concat #(
     .width0(1),
     .width1(1)
 ) Concat_inst0 (
-    .in0(slice_1_2_Array_2_OutBit_inst0_out),
-    .in1(slice_0_1_Array_2_OutBit_inst0_out),
+    .in0(Slice_inst0_out),
+    .in1(Slice_inst1_out),
     .out(Concat_inst0_out)
 );
-coreir_slice #(
-    .hi(1),
-    .lo(0),
-    .width(2)
-) slice_0_1_Array_2_OutBit_inst0 (
+mantle_sliceArrT__hi2__lo1__tBitIn2 Slice_inst0 (
     .in(I),
-    .out(slice_0_1_Array_2_OutBit_inst0_out)
+    .out(Slice_inst0_out)
 );
-coreir_slice #(
-    .hi(2),
-    .lo(1),
-    .width(2)
-) slice_1_2_Array_2_OutBit_inst0 (
+mantle_sliceArrT__hi1__lo0__tBitIn2 Slice_inst1 (
     .in(I),
-    .out(slice_1_2_Array_2_OutBit_inst0_out)
+    .out(Slice_inst1_out)
 );
 assign O = Concat_inst0_out;
 endmodule
