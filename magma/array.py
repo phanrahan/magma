@@ -598,7 +598,6 @@ class Array2(Wireable, Array):
         Wireable.__init__(self)
         self.args = args
         self.drivers = []
-        self._ts = None
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -648,7 +647,11 @@ class Array2(Wireable, Array):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self._make_get(key)()(self)
+            if self.is_output():
+                return self._make_get(key)()(self)
+            assert self.is_input(), "inout unsupported"
+            # TODO(leonardt/array2): Maintain concat tree
+            return InputArrayItem(self, key)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
@@ -656,17 +659,12 @@ class Array2(Wireable, Array):
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
             assert self.is_input(), "inout unsupported"
-            return InputArrayItem(self, start)
+            return InputArrayItem(self, start, True)
         raise NotImplementedError(type(key))
 
-    @property
-    def ts(self):
-        if self._ts is None:
-            self._ts = _make_array(self, self.args)
-        return self._ts
-
-    def add_driver(self, key, driver):
-        self.drivers.append((key, driver))
+    def add_driver(self, key, driver, is_slice):
+        # TODO(leonardt/array2): Make this an object
+        self.drivers.append((key, driver, is_slice))
 
     def __setitem__(self, key, val):
         # TODO(leonardt/array2): Validate setitem
@@ -678,7 +676,12 @@ class Array2(Wireable, Array):
             import magma as m
             # TODO(leonardt/array2): Validate non overlapping
             drivers = sorted(self.drivers, key=lambda x: x[0])
-            self @= m.concat2(*[d[1] for d in drivers])
+            _drivers = []
+            for _, driver, is_slice in drivers:
+                if not is_slice:
+                    driver = m.array([driver])
+                _drivers.append(driver)
+            self @= m.concat2(*_drivers)
             self.drivers = []
 
     def trace(self):
@@ -690,24 +693,25 @@ class Array2(Wireable, Array):
         # is done, then search for "undriven" sentinal values that are used as
         # the concat tree is being built
         self._resolve_drivers()
-        if self._ts:
-            return Array.trace(self)
         return super().trace()
 
     def value(self):
         self._resolve_drivers()
-        if self._ts:
-            return Array.value(self)
         return super().value()
+
+    def flatten(self):
+        # TODO(leonardt/array2): Avoid flatten calls
+        return [self]
 
 
 class InputArrayItem:
-    def __init__(self, parent, key):
+    def __init__(self, parent, key, is_slice=False):
         self.parent = parent
         self.key = key
+        self.is_slice = is_slice
 
     def __imatmul__(self, driver):
-        self.parent.add_driver(self.key, driver)
+        self.parent.add_driver(self.key, driver, self.is_slice)
 
     def wire(self, driver):
-        self.parent.add_driver(self.key, driver)
+        self.parent.add_driver(self.key, driver, self.is_slice)

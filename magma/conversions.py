@@ -232,19 +232,10 @@ class Concat(Generator2):
             # TODO(leonardt/array2): Support subclasses?
             raise TypeError(f"Cannot concat {t1} and {t2}")
         self.io = IO(I0=In(t1), I1=In(t2), O=Out(Array2[n1 + n2, child_T]))
-        if issubclass(child_T, Bit):
-            self.coreir_genargs = {"width0": n1, "width1": n2}
-            self.coreir_name = "concat"
-            self.coreir_lib = "coreir"
-            self.renamed_ports = coreir_port_mapping
-        else:
-            out_T = Array2[n1 + n2, child_T]
-            flat_len = child_T.flat_length()
-            child_t1 = Array[n1 * flat_len, Bit]
-            child_t2 = Array[n2 * flat_len, Bit]
-            output = Concat(child_t1, child_t2)()(as_bits(self.io.I0),
-                                                  as_bits(self.io.I1))
-            self.io.O @= from_bits(out_T, output)
+        self.coreir_genargs = {"t0": t1, "t1": t2}
+        self.coreir_name = "concatArrT"
+        self.coreir_lib = "mantle"
+        self.renamed_ports = coreir_port_mapping
 
 
 def concat2(*arrays):
