@@ -30,6 +30,7 @@ class NodeVisitor:
     def run(self, node_orderer: Optional[NodeOrderer] = None):
         nodes = order_nodes(self._g, node_orderer)
         self._run_on_nodes(nodes)
+        self.finalize()
 
     def _run_on_nodes(self, nodes: Iterable[Any]):
         for node in nodes:
@@ -47,11 +48,15 @@ class NodeVisitor:
     def graph(self):
         return self._g
 
+    def finalize(self):
+        return
+
 
 class NodeTransformer(NodeVisitor):
     def run(self, node_orderer: Optional[NodeOrderer] = None):
         nodes = list(order_nodes(self._g, node_orderer))
         self._run_on_nodes(nodes)
+        self.finalize()
 
     def generic_visit(self, node: Any):
         return node

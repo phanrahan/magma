@@ -4,13 +4,15 @@ from typing import Any, Iterable, List
 import magma as m
 
 from common_visitors import replace_node
-from graph_lib import Graph, Node
+from graph_lib import Graph, Node, simple_cycles
 from graph_visitor import NodeVisitor, NodeTransformer
 from magma_graph import Net
 from mlir_context import MlirContext, Contextual
 from mlir_emitter import MlirEmitter
-from mlir_graph import MlirOp, MlirMultiOp, CombConcatOp, op_kind_get_attr
-from mlir_type import MlirType
+from mlir_graph import (
+    MlirOp, MlirMultiOp, op_kind_get_attr,
+    HwOutputOp, CombConcatOp, SvWireOp, SvAssignOp, SvReadInOutOp)
+from mlir_type import MlirType, HwInOutType
 from mlir_utils import magma_type_to_mlir_type, magma_module_to_mlir_op
 from mlir_value import MlirValue, mlir_value_is_anonymous
 
@@ -189,17 +191,77 @@ class EmitMlirVisitor(NodeVisitor):
     def __init__(self, g: Graph, emitter: MlirEmitter):
         super().__init__(g)
         self._emitter = emitter
+        self._hw_output_op = None
 
     def visit_MlirValue(self, node: MlirValue):
         pass
 
-    def generic_visit(self, node: MlirOp):
-        assert isinstance(node, MlirOp)
-        inputs, outputs = _sort_values(self.graph, node)
+    def visit_HwOutputOp(self, op: HwOutputOp):
+        assert isinstance(op, HwOutputOp)
+        if self._hw_output_op is not None:
+            raise RuntimeError("Found multiple HwOutputOp")
+        self._hw_output_op = op
+
+    def _emit_op(self, op: MlirOp):
+        inputs, outputs = _sort_values(self.graph, op)
         # TODO(rsetaluri): We should think about how to structure this more
         # elegantly. It smells bad to do this transform here since it should be
         # done at the time that the magma op is lowered to the mlir op, not at
         # emit-time.
-        if op_kind_get_attr(node, "inputs_reversed", default=False):
+        if op_kind_get_attr(op, "inputs_reversed", default=False):
             inputs = list(reversed(inputs))
-        self._emitter.emit_op(node, inputs, outputs)
+        self._emitter.emit_op(op, inputs, outputs)
+
+    def generic_visit(self, op: MlirOp):
+        assert isinstance(op, MlirOp)
+        self._emit_op(op)
+
+    def finalize(self):
+        if self._hw_output_op is None:
+            raise RuntimeError("Expected exactly 1 HwOutputOp, found none")
+        self._emit_op(self._hw_output_op)
+
+
+def break_cycle(g: Graph, ctx: MlirContext, value: MlirValue, op: MlirOp):
+    assert isinstance(value, MlirValue)
+    assert isinstance(op, MlirOp)
+    print (value, op)
+    value_type = value.type
+    assert not isinstance(value_type, HwInOutType)
+    wire_value_type = HwInOutType(value_type)
+    wire_op = SvWireOp(op.name)
+    wire_value = ctx.anonymous_value(wire_value_type)
+    assign_op = SvAssignOp(op.name)
+    read_op = SvReadInOutOp(op.name)
+    read_value = ctx.anonymous_value(wire_value_type)
+    g.add_nodes_from((wire_op, wire_value, assign_op, read_op, read_value))
+    g.add_edge(wire_op, wire_value, info=0)
+    g.add_edge(wire_value, assign_op, info=0)
+    g.add_edge(value, assign_op, info=1)
+    g.add_edge(wire_value, read_op, info=0)
+    g.add_edge(read_op, read_value, info=0)
+    new_edge_data = []
+    keys_to_remove = []
+    for key, data in g.get_edge_data(value, op).items():
+        new_edge_data.append(data)
+        keys_to_remove.append(key)
+    for data in new_edge_data:
+        g.add_edge(read_value, op, **data)
+    for key in keys_to_remove:
+        g.remove_edge(value, op, key)
+
+
+def break_cycles(g: Graph, ctx: MlirContext):
+    cycles = simple_cycles(g)
+    for cycle in cycles:
+        assert len(cycle) >= 2
+        if isinstance(cycle[0], MlirValue):
+            assert isinstance(cycle[1], MlirOp)
+            value = cycle[0]
+            op = cycle[1]
+        else:
+            assert isinstance(cycle[0], MlirOp)
+            assert isinstance(cycle[-1], MlirValue)
+            value = cycle[-1]
+            op = cycle[0]
+        break_cycle(g, ctx, value, op)

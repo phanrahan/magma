@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 
 from common import missing
 from graph_lib import Graph, Node
@@ -198,3 +198,20 @@ class SvRegInitOp(MlirOp):
     def emit(self):
         return (f"sv.initial {{{{ sv.bpassign {{inputs[0].name}}, "
                 f"{{inputs[1].name}} : {{inputs[1].type}} }}}}")
+
+
+class SvWireOp(MlirOp):
+    name: str
+    sym: Optional[str] = None
+
+    def emit(self):
+        if self.sym is not None:
+            raise NotImplementedError()
+        return (f"{{outputs.names}} = sv.wire : {{outputs.types}}")
+
+
+class SvAssignOp(MlirOp):
+    name: str
+
+    def emit(self):
+        return (f"sv.assign {{inputs.names}} : {{inputs[1].type}}")
