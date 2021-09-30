@@ -43,4 +43,4 @@ bar = pygal.Bar()
 bar.x_labels = ns
 bar.add('backend_orig', list(data["backend_orig"].values()))
 bar.add('backend_new', list(data["backend_new"].values()))
-bar.render_to_file("array_bench_with_backend.svg")
+bar.render_to_file("array_bench_backend.svg")

@@ -3,32 +3,34 @@ import timeit
 import pygal
 
 
-def simple_array_slice(T, n=128):
+def simple_array_slice(T, n=128, compile=False):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(T[n, m.Bit]), O=m.Out(T[n, m.Bit]))
         i = n // 2
         io.O[:i] @= io.I[i:]
         io.O[i:] @= io.I[:i]
+    if compile:
+        m.compile("build/Foo", Foo)
 
 
 data = {
     "frontend_orig": {},
     "frontend_new": {},
-    # "backend": {}
+    "backend_orig": {},
+    "backend_new": {},
 }
 
 ns = [128, 256, 512, 1024, 2048]
 
 for n in ns:
-    num_trials = 5
-    t = 0
-    for _ in range(num_trials):
-        t += timeit.Timer(lambda: simple_array_slice(m.Array, n)).timeit(number=2)
-    data["frontend_orig"][n] = t / num_trials
-    t = 0
-    for _ in range(num_trials):
-        t += timeit.Timer(lambda: simple_array_slice(m.Array2, n)).timeit(number=2)
-    data["frontend_new"][n] = t / num_trials
+    no_compile = timeit.Timer(lambda: simple_array_slice(m.Array, n)).timeit(number=2)
+    with_compile = timeit.Timer(lambda: simple_array_slice(m.Array, n, True)).timeit(number=2)
+    data["frontend_orig"][n] = no_compile
+    data["backend_orig"][n] = with_compile - no_compile
+    no_compile = timeit.Timer(lambda: simple_array_slice(m.Array2, n)).timeit(number=2)
+    with_compile = timeit.Timer(lambda: simple_array_slice(m.Array2, n, True)).timeit(number=2)
+    data["frontend_new"][n] = no_compile
+    data["backend_new"][n] = with_compile - no_compile
 
 print(data)
 
@@ -37,3 +39,9 @@ bar.x_labels = ns
 bar.add('frontend_orig', list(data["frontend_orig"].values()))
 bar.add('frontend_new', list(data["frontend_new"].values()))
 bar.render_to_file("slice.svg")
+
+bar = pygal.Bar()
+bar.x_labels = ns
+bar.add('backend_orig', list(data["backend_orig"].values()))
+bar.add('backend_new', list(data["backend_new"].values()))
+bar.render_to_file("slice_backend.svg")
