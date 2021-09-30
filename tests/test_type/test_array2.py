@@ -60,13 +60,15 @@ def test_array2_wire_to_index(nested):
     _check_compile("test_array2_wire_to_index", Foo, nested)
 
 
-def test_array2_wire_to_slice():
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_wire_to_slice(nested):
     class Foo(m.Circuit):
         T = m.Array2[4, m.Bit]
+        if nested:
+            T = m.Array2[4, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O[:2] @= io.I[2:]
         io.O[2:] @= io.I[:2]
 
-    m.compile("build/test_array2_wire_to_slice", Foo)
-    assert check_files_equal(__file__, "build/test_array2_wire_to_slice.v",
-                             "gold/test_array2_wire_to_slice.v")
+
+    _check_compile("test_array2_wire_to_slice", Foo, nested)
