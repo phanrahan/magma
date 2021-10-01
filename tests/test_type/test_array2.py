@@ -96,3 +96,16 @@ def test_array2_tuple():
 
 
     _check_compile("test_array2_tuple", Foo)
+
+
+def test_tuple_array2():
+    class Foo(m.Circuit):
+        T = m.Tuple[m.Bit, m.Array2[2, m.Bit]]
+        io = m.IO(I=m.In(T),
+                  O=m.Out(T))
+        io.O[0] @= io.I[0]
+        io.O[1][1] @= io.I[1][0]
+        io.O[1][0] @= io.I[1][1]
+
+
+    _check_compile("test_tuple_array2", Foo)
