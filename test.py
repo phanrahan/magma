@@ -22,6 +22,7 @@ _ckts = [
     complex_register,
     counter,
     twizzle,
+    simple_unused_output,
 ]
 
 

@@ -129,3 +129,10 @@ class twizzle(m.Circuit):
     t1.I1 @= t0.O1
     t1.I2 @= t0.O2
     io.O @= t1.O2
+
+
+class simple_unused_output(m.Circuit):
+    T = m.Bits[16]
+    io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T))
+    _, z = comb()(io.a, io.b, io.c)
+    io.y @= z
