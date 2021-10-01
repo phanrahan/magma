@@ -197,7 +197,7 @@ class _CompileGuardSelect(Generator2):
                 stmt = "`else"
             else:
                 stmt = "`elsif"
-            self.verilog += f"""
+            self.verilog += f"""\
 {stmt} {key}
     assign O = I{i};
 """

@@ -38,13 +38,10 @@ module _CompileGuardSelect (
     input I2,
     output O
 );
-
 `ifdef COND1
     assign O = I0;
-
 `elsif COND2
     assign O = I1;
-
 `else default
     assign O = I2;
 `endif
