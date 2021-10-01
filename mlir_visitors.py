@@ -233,7 +233,7 @@ def break_cycle(g: Graph, ctx: MlirContext, value: MlirValue, op: MlirOp):
     wire_value = ctx.anonymous_value(wire_value_type)
     assign_op = SvAssignOp(op.name)
     read_op = SvReadInOutOp(op.name)
-    read_value = ctx.anonymous_value(wire_value_type)
+    read_value = ctx.anonymous_value(value_type)
     g.add_nodes_from((wire_op, wire_value, assign_op, read_op, read_value))
     g.add_edge(wire_op, wire_value, info=0)
     g.add_edge(wire_value, assign_op, info=0)
