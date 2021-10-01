@@ -72,3 +72,27 @@ def test_array2_wire_to_slice(nested):
 
 
     _check_compile("test_array2_wire_to_slice", Foo, nested)
+
+
+def test_array2_tuple():
+    class Foo(m.Circuit):
+        T = m.Array2[4, m.Tuple[m.Bit, m.Bits[2]]]
+        io = m.IO(I=m.In(T),
+                  O0=m.Out(T),
+                  O1=m.Out(T),
+                  O2=m.Out(T),
+                  O3=m.Out(T))
+        io.O0 @= io.I
+
+        io.O1 @= m.concat2(io.I[2:], io.I[:2])
+
+        io.O2[0] @= io.I[1]
+        io.O2[1] @= io.I[0]
+        io.O2[2] @= io.I[3]
+        io.O2[3] @= io.I[2]
+
+        io.O3[:2] @= io.I[2:]
+        io.O3[2:] @= io.I[:2]
+
+
+    _check_compile("test_array2_tuple", Foo)
