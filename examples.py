@@ -106,3 +106,26 @@ class counter(m.Circuit):
 
 
 m.passes.clock.WireClockPass(counter).run()
+
+
+class _twizzler(m.Circuit):
+    name = "twizzler"
+    io = m.IO(
+        I0=m.In(m.Bit), I1=m.In(m.Bit), I2=m.In(m.Bit),
+        O0=m.Out(m.Bit), O1=m.Out(m.Bit), O2=m.Out(m.Bit))
+    io.O0 @= ~io.I1
+    io.O1 @= ~io.I0
+    io.O2 @= ~io.I2
+
+
+class twizzle(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    t0 = _twizzler(name="t0")
+    t1 = _twizzler(name="t1")
+    t0.I0 @= io.I
+    t0.I1 @= t1.O0
+    t0.I2 @= t1.O1
+    t1.I0 @= t0.O0
+    t1.I1 @= t0.O1
+    t1.I2 @= t0.O2
+    io.O @= t1.O2

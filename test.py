@@ -21,6 +21,7 @@ _ckts = [
     #simple_register,
     complex_register,
     counter,
+    twizzle,
 ]
 
 
