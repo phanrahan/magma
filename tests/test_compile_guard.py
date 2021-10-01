@@ -175,3 +175,21 @@ def test_drive_outputs():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_drive_output.json",
         f"gold/test_compile_guard_drive_output.json")
+
+
+def test_compile_guard_select():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        x = m.Register(m.Bit)()(io.I ^ 1)
+        y = m.Register(m.Bit)()(io.I)
+
+        io.O @= m.compile_guard_select(
+            COND1=x, COND2=y, default=io.I
+        )
+
+    m.compile("build/test_compile_guard_selct", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_selct.v",
+        f"gold/test_compile_guard_selct.v")

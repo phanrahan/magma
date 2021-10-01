@@ -1,16 +1,15 @@
 import dataclasses
-from typing import List, Optional
+from typing import Optional
 
-from magma.array import Array
-from magma.bits import Bits
 from magma.clock import Clock
 from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
 from magma.conversions import as_bits
-from magma.digital import Digital
+from magma.generator import Generator2
+from magma.interface import IO
 from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
 from magma.t import In, Out
-from magma.tuple import Tuple
 from magma.value_utils import make_selector
+from magma.inline_verilog import inline_verilog
 
 
 def _get_top_ref(ref):
@@ -176,3 +175,38 @@ def compile_guard(cond: str,
                   inst_name: Optional[str] = None,
                   type: Optional[str] = "defined"):
     return _CompileGuard(cond, defn_name, inst_name, type)
+
+
+class _CompileGuardSelect(Generator2):
+    def __init__(self, **kwargs):
+        T_Out = next(iter(kwargs.values()))
+        for T in kwargs.values():
+            # TODO(leonardt): Add mux style inference rules
+            if T is not T_Out:
+                raise TypeError(
+                    "Found incompatible types in compile guard select")
+        self.io = IO(**{f"I{i}": In(value)
+                        for i, value in enumerate(kwargs.values())})
+        self.io += IO(O=Out(T_Out))
+        verilog = ""
+        for i, key in enumerate(kwargs.keys()):
+            if i == 0:
+                stmt = "`ifdef"
+            elif key == "default":
+                assert i == len(kwargs) - 1
+                stmt = "`else"
+            else:
+                stmt = "`elsif"
+            verilog += f"""
+{stmt} {key}
+    assign O = I{i};
+"""
+        verilog += "`endif"
+
+
+def compile_guard_select(**kwargs):
+    # Insertion order makes this the last element for if/elif/else logic
+    kwargs["default"] = kwargs.pop("default")
+    return _CompileGuardSelect(
+        **{key: type(value) for key, value in kwargs.items()},
+    )()(*kwargs.values())

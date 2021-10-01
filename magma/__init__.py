@@ -99,7 +99,7 @@ from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
                          Decoupled, EnqIO, DeqIO, Irrevocable, Monitor,
                          is_producer, is_consumer)
 import magma.smart
-from magma.compile_guard import compile_guard
+from magma.compile_guard import compile_guard, compile_guard_select
 from magma.set_name import set_name
 from magma.circuit_utils import circuit_stub, stubify, CircuitStub
 from magma.compile import MagmaCompileException
