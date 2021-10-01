@@ -1,6 +1,5 @@
 import functools
 from typing import Any, Dict, Iterable, Tuple
-import uuid
 
 
 _MISSING = object()
@@ -23,5 +22,11 @@ def missing() -> object:
     return _MISSING
 
 
+_unique_name_index = 0
+
+
 def make_unique_name() -> str:
-    return str(uuid.uuid4())
+    global _unique_name_index
+    name = "%032d" % _unique_name_index
+    _unique_name_index += 1
+    return name
