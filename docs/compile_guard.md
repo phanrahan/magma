@@ -93,3 +93,6 @@ class Top(m.Circuit):
         COND1=x, COND2=y, default=io.I
     )
 ```
+
+**NOTE:** `compile_guard_select` currently requires that all arguments have the
+same type, please convert them first if that's not the case.
