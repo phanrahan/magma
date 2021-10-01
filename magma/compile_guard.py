@@ -191,14 +191,14 @@ class _CompileGuardSelect(Generator2):
         self.verilog = ""
         for i, key in enumerate(kwargs.keys()):
             if i == 0:
-                stmt = "`ifdef"
+                stmt = f"`ifdef {key}"
             elif key == "default":
                 assert i == len(kwargs) - 1
                 stmt = "`else"
             else:
-                stmt = "`elsif"
+                stmt = f"`elsif {key}"
             self.verilog += f"""\
-{stmt} {key}
+{stmt}
     assign O = I{i};
 """
         self.verilog += "`endif"

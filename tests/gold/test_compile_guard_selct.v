@@ -26,7 +26,7 @@ module _CompileGuardSelect (
     assign O = I0;
 `elsif COND2
     assign O = I1;
-`else default
+`else
     assign O = I2;
 `endif
 endmodule

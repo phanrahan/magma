@@ -96,3 +96,15 @@ class Top(m.Circuit):
 
 **NOTE:** `compile_guard_select` currently requires that all arguments have the
 same type, please convert them first if that's not the case.
+
+**NOTE:** priority for the selected driver is defined by the order of the
+arguments.  The above example will generate verilog equivalent to
+```verilog
+`ifdef COND1
+    assign O = x;
+`elsif COND2
+    assign O = y;
+`else
+    assign O = I;
+`endif
+```
