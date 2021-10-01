@@ -81,7 +81,8 @@ To generate an `ifndef` instead of `ifdef`, pass the argument
 ## compile_guard_select
 To conditionally drive a value based on a compile guard, use the
 `m.compile_guard_select` function which takes keyword arguments mapping
-a compile guard name to a driver.  Here's a simple example:
+a compile guard name to a driver.  Use the special keyword argument `default`
+to set the default driver.  Here's a simple example:
 ```python
 class Top(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
@@ -97,8 +98,8 @@ class Top(m.Circuit):
 **NOTE:** `compile_guard_select` currently requires that all arguments have the
 same type, please convert them first if that's not the case.
 
-**NOTE:** priority for the selected driver is defined by the order of the
-arguments.  The above example will generate verilog equivalent to
+**NOTE:** priority for the selected (non-default) driver is defined by the
+order of the arguments.  The above example will generate verilog equivalent to
 ```verilog
 `ifdef COND1
     assign O = x;
