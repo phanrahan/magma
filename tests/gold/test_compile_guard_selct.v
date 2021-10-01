@@ -16,22 +16,6 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
-module corebit_xor (
-    input in0,
-    input in1,
-    output out
-);
-  assign out = in0 ^ in1;
-endmodule
-
-module corebit_const #(
-    parameter value = 1
-) (
-    output out
-);
-  assign out = value;
-endmodule
-
 module _CompileGuardSelect (
     input I0,
     input I1,
@@ -72,8 +56,6 @@ module _Top (
 );
 wire Register_inst0_O;
 wire Register_inst1_O;
-wire _CompileGuardSelect_inst0_O;
-wire bit_const_1_None_out;
 wire magma_Bit_xor_inst0_out;
 Register Register_inst0 (
     .I(magma_Bit_xor_inst0_out),
@@ -89,18 +71,8 @@ _CompileGuardSelect _CompileGuardSelect_inst0 (
     .I0(Register_inst0_O),
     .I1(Register_inst1_O),
     .I2(I),
-    .O(_CompileGuardSelect_inst0_O)
+    .O(O)
 );
-corebit_const #(
-    .value(1'b1)
-) bit_const_1_None (
-    .out(bit_const_1_None_out)
-);
-corebit_xor magma_Bit_xor_inst0 (
-    .in0(I),
-    .in1(bit_const_1_None_out),
-    .out(magma_Bit_xor_inst0_out)
-);
-assign O = _CompileGuardSelect_inst0_O;
+assign magma_Bit_xor_inst0_out = I ^ 1'b1;
 endmodule
 
