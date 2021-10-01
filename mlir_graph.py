@@ -1,7 +1,7 @@
 import dataclasses
 from typing import Any, Optional, Tuple
 
-from common import missing
+from common import missing, make_unique_name
 from graph_lib import Graph, Node
 from mlir_value import MlirValue
 
@@ -31,7 +31,7 @@ def op_kind_get_attr(op_kind: type, key: str, default: Any = missing()):
 
 @dataclasses.dataclass(frozen=True)
 class MlirOp:
-    name: str
+    id: str = dataclasses.field(default_factory=make_unique_name, init=False)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -200,6 +200,7 @@ class SvRegInitOp(MlirOp):
                 f"{{inputs[1].name}} : {{inputs[1].type}} }}}}")
 
 
+@dataclasses.dataclass(frozen=True)
 class SvWireOp(MlirOp):
     name: str
     sym: Optional[str] = None
@@ -210,6 +211,7 @@ class SvWireOp(MlirOp):
         return (f"{{outputs.names}} = sv.wire : {{outputs.types}}")
 
 
+@dataclasses.dataclass(frozen=True)
 class SvAssignOp(MlirOp):
     name: str
 
