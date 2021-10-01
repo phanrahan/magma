@@ -77,3 +77,19 @@ guard (otherwise a signal may not have a driver when the guard is disabled).
 
 To generate an `ifndef` instead of `ifdef`, pass the argument
 `type="undefined"` to `m.compile_guard` (the default is `type="defined"`).
+
+## compile_guard_select
+To conditionally drive a value based on a compile guard, use the
+`m.compile_guard_select` function which takes keyword arguments mapping
+a compile guard name to a driver.  Here's a simple example:
+```python
+class Top(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+    x = m.Register(m.Bit)()(io.I ^ 1)
+    y = m.Register(m.Bit)()(io.I)
+
+    io.O @= m.compile_guard_select(
+        COND1=x, COND2=y, default=io.I
+    )
+```

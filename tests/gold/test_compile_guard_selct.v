@@ -1,4 +1,3 @@
-// Module `_CompileGuardSelect` defined externally
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -31,6 +30,24 @@ module corebit_const #(
     output out
 );
   assign out = value;
+endmodule
+
+module _CompileGuardSelect (
+    input I0,
+    input I1,
+    input I2,
+    output O
+);
+
+`ifdef COND1
+    assign O = I0;
+
+`elsif COND2
+    assign O = I1;
+
+`else default
+    assign O = I2;
+`endif
 endmodule
 
 module Register (

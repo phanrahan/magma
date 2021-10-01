@@ -188,7 +188,7 @@ class _CompileGuardSelect(Generator2):
         self.io = IO(**{f"I{i}": In(value)
                         for i, value in enumerate(kwargs.values())})
         self.io += IO(O=Out(T_Out))
-        verilog = ""
+        self.verilog = ""
         for i, key in enumerate(kwargs.keys()):
             if i == 0:
                 stmt = "`ifdef"
@@ -197,11 +197,11 @@ class _CompileGuardSelect(Generator2):
                 stmt = "`else"
             else:
                 stmt = "`elsif"
-            verilog += f"""
+            self.verilog += f"""
 {stmt} {key}
     assign O = I{i};
 """
-        verilog += "`endif"
+        self.verilog += "`endif"
 
 
 def compile_guard_select(**kwargs):

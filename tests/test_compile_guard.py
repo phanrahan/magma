@@ -178,7 +178,6 @@ def test_drive_outputs():
 
 
 def test_compile_guard_select():
-
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
 
@@ -191,5 +190,5 @@ def test_compile_guard_select():
 
     m.compile("build/test_compile_guard_selct", _Top)
     assert m.testing.check_files_equal(
-        __file__, f"build/test_compile_guard_selct.v",
-        f"gold/test_compile_guard_selct.v")
+        __file__, "build/test_compile_guard_selct.v",
+        "gold/test_compile_guard_selct.v")
