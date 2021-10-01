@@ -253,6 +253,7 @@ def break_cycle(g: Graph, ctx: MlirContext, value: MlirValue, op: MlirOp):
 
 def break_cycles(g: Graph, ctx: MlirContext):
     cycles = simple_cycles(g)
+    seen = set()
     for cycle in cycles:
         assert len(cycle) >= 2
         if isinstance(cycle[0], MlirValue):
@@ -264,4 +265,7 @@ def break_cycles(g: Graph, ctx: MlirContext):
             assert isinstance(cycle[-1], MlirValue)
             value = cycle[-1]
             op = cycle[0]
+        if (value, op) in seen:
+            continue
+        seen.add((value, op))
         break_cycle(g, ctx, value, op)
