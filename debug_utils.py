@@ -19,7 +19,7 @@ def flatten_magma_graph(g: Graph):
     for src, dst, data in g.edges(data=True):
         src = make_str(src)
         dst = make_str(dst)
-        label = None
+        label = str(data)
         if "info" in data:
             label = make_str(data["info"])
         g_flat.add_edge(src, dst, label=label)

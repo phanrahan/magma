@@ -21,6 +21,30 @@ class SplitPortEdgesTranformer(NodeTransformer):
         return nodes, edges
 
 
+class AddAllOutputsTranformer(NodeTransformer):
+    def generic_visit(self, node: Node):
+        if not isinstance(node, m.Circuit):
+            return node
+        modified = False
+        new_nodes = []
+        new_edges = []
+        for port in node.interface.outputs():
+            try:
+                self.graph[node][port]
+            except KeyError:
+                modified = True
+                new_nodes.append(port)
+                new_edges.append((node, port, {}))
+        if not modified:
+            assert (not new_edges) and (not new_nodes)
+            return node
+        nodes = [node] + new_nodes
+        edges = (list(self.graph.in_edges(node, data=True)) +
+                 list(self.graph.out_edges(node, data=True)) +
+                 new_edges)
+        return nodes, edges
+
+
 class MergeNetsTransformer(NodeTransformer):
     def _make_new_node(node: Node, predecessor: Node):
         if isinstance(predecessor, m.Type):
@@ -38,7 +62,11 @@ class MergeNetsTransformer(NodeTransformer):
         predecessor = predecessors[0]
         new_node = MergeNetsTransformer._make_new_node(node, predecessor)
         if new_node is None:
-            return node
+            new_node = Net((node,))
+            out_edges = self.graph.out_edges(node, data=True)
+            edges = [(new_node, dst, data) for (_, dst, data) in out_edges]
+            edges.append((predecessor, new_node, dict(info=node)))
+            return [new_node], edges
         edges = []
         for edge in self.graph.in_edges(predecessor, data=True):
             src, _, data = edge

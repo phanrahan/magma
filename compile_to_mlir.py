@@ -8,7 +8,8 @@ from common_visitors import RemoveDuplicateEdgesTransformer
 from debug_utils import flatten_magma_graph
 from graph_lib import Graph, topological_sort, write_to_dot
 from magma_graph import build_magma_graph
-from magma_visitors import SplitPortEdgesTranformer, MergeNetsTransformer
+from magma_visitors import (
+    SplitPortEdgesTranformer, AddAllOutputsTranformer, MergeNetsTransformer)
 from mlir_context import MlirContext
 from mlir_emitter import MlirEmitter
 from mlir_graph import MlirOp
@@ -53,6 +54,7 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     ctx = MlirContext()
 
     SplitPortEdgesTranformer(g).run()
+    AddAllOutputsTranformer(g).run()
     RemoveDuplicateEdgesTransformer(g).run()
     MergeNetsTransformer(g).run()
     ModuleInputSplitter(g, ctx).run()
