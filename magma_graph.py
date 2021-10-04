@@ -23,10 +23,21 @@ def _get_inst_or_defn_or_die(value: m.Type) -> ModuleLike:
     return ref.defn, False
 
 
+def _const_digital_to_bool(digital: m.Digital) -> bool:
+    assert isinstance(digital, m.Digital)
+    assert digital.const()
+    T = type(digital)
+    if digital is T.GND:
+        return False
+    assert digital is T.VCC
+    return True
+
+
 def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
     if driver.const():
         if isinstance(driver, m.Digital):
-            const = make_instance(MagmaBitConstantOp(bool(driver)))
+            as_bool = _const_digital_to_bool(driver)
+            const = make_instance(MagmaBitConstantOp(type(driver), as_bool))
             info = dict(src=const.O, dst=value)
             g.add_edge(const, module, info=info)
             return
