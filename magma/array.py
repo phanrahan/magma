@@ -605,6 +605,7 @@ class Array2(Wireable, Array):
         Wireable.__init__(self)
         self.args = args
         self.drivers = []
+        self._drivers_resolved = False
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -649,7 +650,7 @@ class Array2(Wireable, Array):
         raise NotImplementedError(type(key))
 
     def add_driver(self, start_idx, value, is_slice):
-        if self.drivers is None:
+        if self._drivers_resolved:
             raise Exception("Drivers already resolved, cannot add another "
                             "driver")
         self.drivers.append(_Array2Driver(start_idx, value, is_slice))
@@ -673,20 +674,22 @@ class Array2(Wireable, Array):
     # _concat defined in conversions.py
 
     def _resolve_drivers(self):
-        if self.drivers and not self.driven():
-            assert len(self.drivers) > 1
-            # TODO(leonardt/array2): Validate non overlapping
-            sorted_drivers = sorted(self.drivers, key=lambda x: x.start_idx)
-            driver_values = []
-            for driver in sorted_drivers:
-                if not driver.is_slice:
-                    # We use old array logic for handling Array constructed
-                    # with child value
-                    driver_values.append(self._array_old([driver.value]))
-                else:
-                    driver_values.append(driver.value)
-            self @= self._concat(*driver_values)
-            self.drivers = None
+        if self._drivers_resolved or not self.drivers:
+            return
+        assert len(self.drivers) > 1
+        # TODO(leonardt/array2): Validate non overlapping
+        # TODO(leonardt/array2): Validate whole
+        sorted_drivers = sorted(self.drivers, key=lambda x: x.start_idx)
+        driver_values = []
+        for driver in sorted_drivers:
+            if not driver.is_slice:
+                # We use old array logic for handling Array constructed
+                # with child value
+                driver_values.append(self._array_old([driver.value]))
+            else:
+                driver_values.append(driver.value)
+        self @= self._concat(*driver_values)
+        self._drivers_resolved = True
 
     def trace(self):
         # TODO(leonardt/array2): For now, we "resolve" the drivers into a concat
@@ -704,8 +707,7 @@ class Array2(Wireable, Array):
         return super().value()
 
     def flatten(self):
-        # TODO(leonardt/array2): Avoid flatten calls
-        return [self]
+        return [d.value for d in self.drivers]
 
 
 class InputArrayItem:

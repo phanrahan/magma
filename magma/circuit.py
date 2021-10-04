@@ -160,8 +160,7 @@ def _has_definition(cls, port=None):
     if port.is_output():
         return False
     if not port.is_output() and port.value() is not None:
-        # TODO(leonardt): Here is one case that we can avoid recursion over
-        # children
+        # Avoid flatten when whole value is driven
         return True
     flat = port.flatten()
     return any(not f.is_output() and f.value() is not None for f in flat)
