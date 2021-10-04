@@ -245,6 +245,10 @@ def concat2(*arrays):
     return curr
 
 
+Array2._array_old = staticmethod(array)
+Array2._concat = staticmethod(concat2)
+
+
 def repeat(value, n):
     if isinstance(magma_value(value), Bit):
         repeats = bits(n * [value])

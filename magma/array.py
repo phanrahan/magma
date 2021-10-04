@@ -591,6 +591,13 @@ class Array(Type, metaclass=ArrayMeta):
 ArrayType = Array
 
 
+class _Array2Driver:
+    def __init__(self, start_idx, value, is_slice):
+        self.start_idx = start_idx
+        self.value = value
+        self.is_slice = is_slice
+
+
 class Array2(Wireable, Array):
     def __init__(self, *args, **kwargs):
         # Skip Array constructor since we don't want to create children
@@ -640,9 +647,11 @@ class Array2(Wireable, Array):
             return InputArrayItem(self, start, key, True)
         raise NotImplementedError(type(key))
 
-    def add_driver(self, start_idx, driver, is_slice):
-        # TODO(leonardt/array2): Make this an object
-        self.drivers.append((start_idx, driver, is_slice))
+    def add_driver(self, start_idx, value, is_slice):
+        if self.drivers is None:
+            raise Exception("Drivers already resolved, cannot add another "
+                            "driver")
+        self.drivers.append(_Array2Driver(start_idx, value, is_slice))
 
     def __setitem__(self, key, val):
         error = False
@@ -659,19 +668,24 @@ class Array2(Wireable, Array):
             )
         return error
 
+    # _array_old defined in conversions.py
+    # _concat defined in conversions.py
+
     def _resolve_drivers(self):
         if self.drivers and not self.driven():
             assert len(self.drivers) > 1
-            import magma as m
             # TODO(leonardt/array2): Validate non overlapping
-            drivers = sorted(self.drivers, key=lambda x: x[0])
-            _drivers = []
-            for _, driver, is_slice in drivers:
-                if not is_slice:
-                    driver = m.array([driver])
-                _drivers.append(driver)
-            self @= m.concat2(*_drivers)
-            self.drivers = []
+            sorted_drivers = sorted(self.drivers, key=lambda x: x.start_idx)
+            driver_values = []
+            for driver in sorted_drivers:
+                if not driver.is_slice:
+                    # We use old array logic for handling Array constructed
+                    # with child value
+                    driver_values.append(self._array_old([driver.value]))
+                else:
+                    driver_values.append(driver.value)
+            self @= self._concat(*driver_values)
+            self.drivers = None
 
     def trace(self):
         # TODO(leonardt/array2): For now, we "resolve" the drivers into a concat
@@ -700,9 +714,9 @@ class InputArrayItem:
         self.key = key
         self.is_slice = is_slice
 
-    def __imatmul__(self, driver):
-        self.wire(driver)
+    def __imatmul__(self, value):
+        self.wire(value)
         return self
 
-    def wire(self, driver):
-        self.parent.add_driver(self.start_idx, driver, self.is_slice)
+    def wire(self, value):
+        self.parent.add_driver(self.start_idx, value, self.is_slice)
