@@ -23,6 +23,7 @@ _ckts = [
     counter,
     twizzle,
     simple_unused_output,
+    feedthrough,
 ]
 
 

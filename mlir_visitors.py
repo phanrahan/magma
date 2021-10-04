@@ -26,7 +26,11 @@ class ModuleInputSplitter(NodeTransformer, Contextual):
         if not isinstance(node, m.DefineCircuitKind):
             return node
         nodes = [node]
-        edges = list(self.graph.in_edges(node, data=True))
+        # NOTE(rsetaluri): This is a hack needed to handle feedthroughs, since
+        # the net->output edge will get included without the filter here.
+        edges = list(filter(
+            lambda e: node not in self.graph.predecessors(e[0]),
+            self.graph.in_edges(node, data=True)))
         nodes_to_remove = []
         for edge in self.graph.out_edges(node, data=True):
             _, dst, data = edge

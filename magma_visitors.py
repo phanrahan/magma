@@ -7,7 +7,10 @@ from magma_graph import Net
 
 class SplitPortEdgesTranformer(NodeTransformer):
     def generic_visit(self, node: Node):
-        edges = list(self.graph.in_edges(node, data=True))
+        # NOTE(rsetaluri): This is a hack needed to handle feedthroughs, since
+        # the self-loop edge will get included without the filter here.
+        edges = list(filter(
+            lambda e: e[0] is not e[1], self.graph.in_edges(node, data=True)))
         nodes = [node]
         for edge in self.graph.out_edges(node, data=True):
             src, dst, data = edge

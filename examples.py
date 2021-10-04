@@ -136,3 +136,8 @@ class simple_unused_output(m.Circuit):
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T))
     _, z = comb()(io.a, io.b, io.c)
     io.y @= z
+
+
+class feedthrough(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= io.I
