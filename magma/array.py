@@ -724,6 +724,13 @@ class Array2(Wireable, Array):
                         i += 1
 
     def flatten(self):
+        # TODO(leonardt/array2): Should we preserve slices in flatten? Or use
+        # an alternate API/logic for circuit._has_definition to avoid fully
+        # flattening?
+        # Note: We can benchmark the cost of this by avoiding flattening for
+        # circuit._has_definition by change this to:
+        # return [self]
+        # As of 10/4/21 seems to be a negligible cost
         self._make_ts()
         return self._ts
 
