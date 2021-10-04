@@ -1,0 +1,5 @@
+magma-lang
+mantle
+pytest
+fault
+networkx

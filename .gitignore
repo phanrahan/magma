@@ -1,6 +1,5 @@
 archive/*
-__pycache__/*
-*.txt
-*.pdf
+*/__pycache__/*
 *.mlir
-!golds/*
+!src/golds/*
+env/*
