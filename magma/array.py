@@ -618,32 +618,7 @@ class Array2(Wireable, Array):
         # TODO(leonardt): Support const
         return False
 
-    def _make_slice(self, start, stop=None):
-        if stop is None:
-            stop = start + 1
-        import magma as m
-
-        class Slice(m.Generator2):
-            def __init__(self, T, start, stop):
-                self.io = m.IO(I=In(T), O=Out(Array2[stop - start, T.T]))
-                self.coreir_genargs = {"t": T, "hi": stop,
-                                       "lo": start}
-                self.coreir_name = "sliceArrT"
-                self.coreir_lib = "mantle"
-                self.renamed_ports = m.circuit.coreir_port_mapping
-        return Slice(type(self), start, stop)
-
-    def _make_get(self, index):
-        import magma as m
-
-        class Index(m.Generator2):
-            def __init__(self, T, i):
-                self.io = m.IO(I=In(T), O=Out(T.T))
-                self.coreir_genargs = {"t": T, "i": i}
-                self.coreir_name = "getArrT"
-                self.coreir_lib = "mantle"
-                self.renamed_ports = m.circuit.coreir_port_mapping
-        return Index(type(self), index)
+    # _make_slice and _make_get defined in magma/primitives/array2.py
 
     def __getitem__(self, key):
         if isinstance(key, int):
