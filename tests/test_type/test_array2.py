@@ -70,7 +70,6 @@ def test_array2_wire_to_slice(nested):
         io.O[:2] @= io.I[2:]
         io.O[2:] @= io.I[:2]
 
-
     _check_compile("test_array2_wire_to_slice", Foo, nested)
 
 
@@ -94,7 +93,6 @@ def test_array2_tuple():
         io.O3[:2] @= io.I[2:]
         io.O3[2:] @= io.I[:2]
 
-
     _check_compile("test_array2_tuple", Foo)
 
 
@@ -106,6 +104,5 @@ def test_tuple_array2():
         io.O[0] @= io.I[0]
         io.O[1][1] @= io.I[1][0]
         io.O[1][0] @= io.I[1][1]
-
 
     _check_compile("test_tuple_array2", Foo)
