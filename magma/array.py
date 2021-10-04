@@ -616,6 +616,9 @@ class Array2(Wireable, Array):
 
     def const(self):
         # TODO(leonardt): Support const
+        # Two cases:
+        #   1) Array of const (can we handle with old array logic?)
+        #   2) Const bits (handle with Bits2)
         return False
 
     # _make_slice and _make_get defined in magma/primitives/array2.py
@@ -626,7 +629,7 @@ class Array2(Wireable, Array):
                 return self._make_get(key)()(self)
             assert self.is_input(), "inout unsupported"
             # TODO(leonardt/array2): Maintain concat tree
-            return InputArrayItem(self, key)
+            return InputArrayItem(self, key, key)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
@@ -634,16 +637,27 @@ class Array2(Wireable, Array):
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
             assert self.is_input(), "inout unsupported"
-            return InputArrayItem(self, start, True)
+            return InputArrayItem(self, start, key, True)
         raise NotImplementedError(type(key))
 
-    def add_driver(self, key, driver, is_slice):
+    def add_driver(self, start_idx, driver, is_slice):
         # TODO(leonardt/array2): Make this an object
-        self.drivers.append((key, driver, is_slice))
+        self.drivers.append((start_idx, driver, is_slice))
 
     def __setitem__(self, key, val):
-        # TODO(leonardt/array2): Validate setitem
-        pass
+        error = False
+        if not isinstance(val, InputArrayItem):
+            error = True
+        elif val.parent is not self:
+            error = True
+        elif val.key != key:
+            error = True
+        if error:
+            _logger.error(
+                WiringLog(f"May not mutate array, trying to replace "
+                          f"{{}}[{key}] with {{}}", self, val)
+            )
+        return error
 
     def _resolve_drivers(self):
         if self.drivers and not self.driven():
@@ -680,13 +694,15 @@ class Array2(Wireable, Array):
 
 
 class InputArrayItem:
-    def __init__(self, parent, key, is_slice=False):
+    def __init__(self, parent, start_idx, key, is_slice=False):
         self.parent = parent
+        self.start_idx = start_idx
         self.key = key
         self.is_slice = is_slice
 
     def __imatmul__(self, driver):
-        self.parent.add_driver(self.key, driver, self.is_slice)
+        self.wire(driver)
+        return self
 
     def wire(self, driver):
-        self.parent.add_driver(self.key, driver, self.is_slice)
+        self.parent.add_driver(self.start_idx, driver, self.is_slice)
