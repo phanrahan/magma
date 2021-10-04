@@ -46,8 +46,8 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     %20 = comb.icmp eq %14, %0 : i16
     %21 = comb.sub %15, %12 : i16
     %22 = comb.icmp ult %13, %16 : i16
-    %23 = hw.instance "Mux2xUInt16_inst2" @Mux2xUInt16(%18, %b, %load) : (i16, i16, i1) -> (i16)
-    %24 = comb.sub %17, %19 : i16
+    %23 = hw.instance "Mux2xUInt16_inst2" @Mux2xUInt16(%17, %b, %load) : (i16, i16, i1) -> (i16)
+    %24 = comb.sub %18, %19 : i16
     sv.assign %7, %19 : i16
     sv.assign %8, %19 : i16
     %25 = comb.xor %20, %2 : i1
@@ -59,10 +59,10 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     sv.assign %4, %27 : i16
     sv.assign %5, %27 : i16
     sv.assign %6, %27 : i16
-    sv.assign %9, %27 : i16
+    sv.assign %10, %27 : i16
     %31 = hw.instance "Mux2xUInt16_inst1" @Mux2xUInt16(%28, %a, %load) : (i16, i16, i1) -> (i16)
     %32 = hw.instance "Mux2x_SequentialRegisterWrapperUInt16_inst2" @Mux2x_SequentialRegisterWrapperUInt16(%27, %30, %25) : (i16, i16, i1) -> (i16)
     sv.assign %3, %31 : i16
-    sv.assign %10, %32 : i16
+    sv.assign %9, %32 : i16
     hw.output %19, %29 : i16, i1
 }
