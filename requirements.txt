@@ -3,3 +3,4 @@ mantle
 pytest
 fault
 networkx
+-e magma_examples

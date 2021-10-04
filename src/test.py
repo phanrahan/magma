@@ -4,6 +4,7 @@ from magma.testing import check_files_equal
 
 from compile_to_mlir import compile_to_mlir
 from examples import *
+from test_utils import get_magma_examples
 
 
 _ckts = [
@@ -25,28 +26,7 @@ _ckts = [
     simple_unused_output,
     feedthrough,
 ]
-
-
-def _add_magma_examples():
-    import glob
-    import importlib
-    import sys
-    global _ckts
-    PATH = "magma_examples/magma_examples"
-    SKIPS = ("risc",)
-    sys.path.append(PATH)
-    py_filenames = glob.glob(f"{PATH}/*.py")
-    for py_filename in py_filenames:
-        py_module_name = py_filename.split("/")[-1].split(".")[0]
-        if py_module_name in SKIPS:
-            continue
-        py_module = importlib.import_module(py_module_name)
-        _ckts += list(filter(
-            lambda v: isinstance(v, m.DefineCircuitKind),
-            (getattr(py_module, k) for k in dir(py_module))))
-
-
-_add_magma_examples()
+_ckts += get_magma_examples()
 
 
 @pytest.mark.parametrize("ckt", _ckts)
