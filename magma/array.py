@@ -606,6 +606,7 @@ class Array2(Wireable, Array):
         self.args = args
         self.drivers = []
         self._drivers_resolved = False
+        self._ts = None
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -706,21 +707,25 @@ class Array2(Wireable, Array):
         self._resolve_drivers()
         return super().value()
 
+    def _make_ts(self):
+        if self._ts is None:
+            self._ts = [self.T(name=ArrayRef(self, i)) for i in range(self.N)]
+            # TODO(leonardt/array2): Handle partially driven
+            i = 0
+            for driver in self.drivers:
+                if not isinstance(driver.key, slice):
+                    # TODO(leonardt/array2): Do we need an Array2Ref?
+                    self._ts[i] @= driver.value
+                    i += 1
+                else:
+                    for _ in range(driver.key.start, driver.key.stop,
+                                   driver.key.step):
+                        self._ts[i] @= driver.value
+                        i += 1
+
     def flatten(self):
-        # TODO(leonardt/array2): Cache `ts`
-        flat = []
-        for driver in self.drivers:
-            if not isinstance(driver.key, slice):
-                t = self.T()
-                t @= driver.value
-                flat.append(t)
-            else:
-                for i in range(driver.key.start, driver.key.stop,
-                               driver.key.step):
-                    t = self.T()
-                    t @= driver.value[i]
-                    flat.append(t)
-        return flat
+        self._make_ts()
+        return self._ts
 
 
 class InputArrayItem:
