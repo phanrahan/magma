@@ -229,7 +229,6 @@ class EmitMlirVisitor(NodeVisitor):
 def break_cycle(g: Graph, ctx: MlirContext, value: MlirValue, op: MlirOp):
     assert isinstance(value, MlirValue)
     assert isinstance(op, MlirOp)
-    print (value, op)
     value_type = value.type
     assert not isinstance(value_type, HwInOutType)
     wire_value_type = HwInOutType(value_type)
