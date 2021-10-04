@@ -592,10 +592,10 @@ ArrayType = Array
 
 
 class _Array2Driver:
-    def __init__(self, start_idx, value, is_slice):
+    def __init__(self, start_idx, value, key):
         self.start_idx = start_idx
         self.value = value
-        self.is_slice = is_slice
+        self.key = key
 
 
 class Array2(Wireable, Array):
@@ -646,14 +646,14 @@ class Array2(Wireable, Array):
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
             assert self.is_input(), "inout unsupported"
-            return InputArrayItem(self, start, key, True)
+            return InputArrayItem(self, start, key)
         raise NotImplementedError(type(key))
 
-    def add_driver(self, start_idx, value, is_slice):
+    def add_driver(self, start_idx, value, key):
         if self._drivers_resolved:
             raise Exception("Drivers already resolved, cannot add another "
                             "driver")
-        self.drivers.append(_Array2Driver(start_idx, value, is_slice))
+        self.drivers.append(_Array2Driver(start_idx, value, key))
 
     def __setitem__(self, key, val):
         error = False
@@ -682,7 +682,7 @@ class Array2(Wireable, Array):
         sorted_drivers = sorted(self.drivers, key=lambda x: x.start_idx)
         driver_values = []
         for driver in sorted_drivers:
-            if not driver.is_slice:
+            if not isinstance(driver.key, slice):
                 # We use old array logic for handling Array constructed
                 # with child value
                 driver_values.append(self._array_old([driver.value]))
@@ -707,19 +707,31 @@ class Array2(Wireable, Array):
         return super().value()
 
     def flatten(self):
-        return [d.value for d in self.drivers]
+        # TODO(leonardt/array2): Cache `ts`
+        flat = []
+        for driver in self.drivers:
+            if not isinstance(driver.key, slice):
+                t = self.T()
+                t @= driver.value
+                flat.append(t)
+            else:
+                for i in range(driver.key.start, driver.key.stop,
+                               driver.key.step):
+                    t = self.T()
+                    t @= driver.value[i]
+                    flat.append(t)
+        return flat
 
 
 class InputArrayItem:
-    def __init__(self, parent, start_idx, key, is_slice=False):
+    def __init__(self, parent, start_idx, key):
         self.parent = parent
         self.start_idx = start_idx
         self.key = key
-        self.is_slice = is_slice
 
     def __imatmul__(self, value):
         self.wire(value)
         return self
 
     def wire(self, value):
-        self.parent.add_driver(self.start_idx, value, self.is_slice)
+        self.parent.add_driver(self.start_idx, value, self.key)
