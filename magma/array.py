@@ -635,7 +635,8 @@ class Array2(Wireable, Array):
             if self.is_output():
                 return self._make_get(key)()(self)
             assert self.is_input(), "inout unsupported"
-            # TODO(leonardt/array2): Maintain concat tree
+            # TODO(leonardt/array2): Cache per index/slice for wiring up
+            # children incrementally (e.g. product fields)
             return InputArrayItem(self, key, key)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
