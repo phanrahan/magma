@@ -132,7 +132,7 @@ def coreir_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
     assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
     if defn.coreir_name == "not":
         return _make_not_op(ctx, inst)
-    if defn.coreir_name in ("eq",):
+    if defn.coreir_name in ("eq", "ult"):
         return CombICmpOp(inst.name, defn.coreir_name)
     if defn.coreir_name == "reg":
         return _make_reg_op(ctx, inst)
