@@ -658,9 +658,8 @@ class Array2(Wireable, Array):
         raise NotImplementedError(type(key))
 
     def add_driver(self, start_idx, value, key):
-        if self._drivers_resolved:
-            raise Exception("Drivers already resolved, cannot add another "
-                            "driver")
+        assert not self._drivers_resolved, (
+            "Drivers already resolved, cannot add another driver")
         self.drivers.append(_Array2Driver(start_idx, value, key))
 
     def __setitem__(self, key, val):
