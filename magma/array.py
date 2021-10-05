@@ -728,14 +728,10 @@ class Array2(Wireable, Array):
         return self._ts
 
     def flatten(self):
-        # TODO(leonardt/array2): Should we preserve slices in flatten? Or use
-        # an alternate API/logic for circuit._has_definition to avoid fully
-        # flattening?
-        # Note: We can benchmark the cost of this by avoiding flattening for
-        # circuit._has_definition by change this to:
-        # return [self]
-        # As of 10/4/21 seems to be a negligible cost
         return sum([t.flatten() for t in self._get_ts()], [])
+
+    def has_any_driver(self):
+        return len(self.drivers) > 0
 
 
 class InputArrayItem:

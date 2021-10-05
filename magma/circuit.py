@@ -162,8 +162,7 @@ def _has_definition(cls, port=None):
     if not port.is_output() and port.value() is not None:
         # Avoid flatten when whole value is driven
         return True
-    flat = port.flatten()
-    return any(not f.is_output() and f.value() is not None for f in flat)
+    return port.has_any_driver()
 
 
 def _maybe_add_default_clock(cls):
