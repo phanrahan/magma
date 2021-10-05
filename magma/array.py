@@ -632,6 +632,11 @@ class Array2(Wireable, Array):
         return False
 
     # _make_slice and _make_get defined in magma/primitives/array2.py
+    def _make_slice(*args, **kwargs):
+        raise NotImplementedError()
+
+    def _make_get(*args, **kwargs):
+        raise NotImplementedError()
 
     def __getitem__(self, key):
         if isinstance(key, int):
