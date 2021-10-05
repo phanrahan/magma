@@ -631,11 +631,12 @@ class Array2(Wireable, Array):
         #   2) Const bits (handle with Bits2)
         return False
 
-    # _make_slice and _make_get defined in magma/primitives/array2.py
     def _make_slice(*args, **kwargs):
+        """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
     def _make_get(*args, **kwargs):
+        """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
     def __getitem__(self, key):
@@ -677,8 +678,13 @@ class Array2(Wireable, Array):
             )
         return error
 
-    # _array_old defined in conversions.py
-    # _concat defined in conversions.py
+    def _array_old(*args, **kwargs):
+        """Monkey patched in magma/conversions.py"""
+        raise NotImplementedError()
+
+    def _concat(*args, **kwargs):
+        """Monkey patched in magma/conversions.py"""
+        raise NotImplementedError()
 
     def _resolve_drivers(self):
         if self._drivers_resolved or not self.drivers:
