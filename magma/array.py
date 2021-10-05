@@ -620,7 +620,8 @@ class Array2(Wireable, Array):
     # TODO(leonardt): unwire
 
     def iswhole(self):
-        # TODO(leonardt): Should be false for slices
+        # NOTE(leonardt): If we add support for construction Array2 with
+        # existing values, then this could be false
         return True
 
     def const(self):
