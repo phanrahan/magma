@@ -107,6 +107,11 @@ $ brew install python3
 $ sudo apt-get install python3 python3-pip
 ```
 
+### Arch
+```
+$ pacman -S python python-pip
+```
+
 ## Installing Dependencies
 Magma depends on some third-party libraries that should be installed using your
 operating system's package manager.
@@ -123,7 +128,7 @@ $ sudo apt-get install make gcc g++ verilator libgmp-dev libmpfr-dev libmpc-dev
 
 ## Arch
 ```
-$ sudo pacman -S verilator gmp mpfr libmpc
+$ pacman -S verilator gmp mpfr libmpc tk
 ```
 
 ## User Setup
