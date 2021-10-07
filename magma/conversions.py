@@ -228,10 +228,10 @@ class Concat(Generator2):
     def __init__(self, t1, t2):
         n1, n2 = len(t1), len(t2)
         child_T = t1.T
-        if child_T is not t2.T:
+        if not (child_T is t2.T or child_T.is_wireable(t2.T)):
             raise TypeError(f"Cannot concat {t1} and {t2}")
         self.io = IO(I0=In(t1), I1=In(t2), O=Out(Array2[n1 + n2, child_T]))
-        self.coreir_genargs = {"t0": t1, "t1": t2}
+        self.coreir_genargs = {"t0": Out(t1), "t1": Out(t2)}
         self.coreir_name = "concatArrT"
         self.coreir_lib = "mantle"
         self.renamed_ports = coreir_port_mapping

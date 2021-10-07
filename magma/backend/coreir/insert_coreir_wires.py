@@ -5,10 +5,15 @@ from magma.digital import Digital
 from magma.generator import Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.wire import Wire
-from magma.ref import NamedRef, ArrayRef, PortViewRef
+from magma.ref import NamedRef, ArrayRef, PortViewRef, InstRef
 from magma.t import In, Out
 from magma.tuple import Tuple
-from magma.backend.coreir.coreir_utils import sanitize_name
+
+
+def _sanitize_name(name):
+    return name.replace("[", "_").replace("]", "")\
+               .replace("(", "").replace(")", "")\
+               .replace(",", "").replace(" ", "_")
 
 
 class InsertCoreIRWires(DefinitionPass):
@@ -94,6 +99,9 @@ class InsertCoreIRWires(DefinitionPass):
 
         if (driver is None or driver.is_output() or driver.is_inout() or
                 driver.name.anon()):
+            return
+
+        if isinstance(driver.name.root(), InstRef):
             return
 
         if isinstance(driver.name, PortViewRef):

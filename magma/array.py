@@ -605,16 +605,16 @@ class Array2(Wireable, Array):
         Wireable.__init__(self)
         self.args = args
         self.drivers = []
-        self._drivers_resolved = False
         self._ts = None
+        self._index_map = {}
 
     @debug_wire
     def wire(self, o, debug_info):
         self._check_wireable(o, debug_info)
-        if isinstance(o, Array) and o.anon():
-            for j, k in zip(self.ts, o):
-                Array.wire(j, k, debug_info)
-            return
+        # if isinstance(o, Array) and o.anon():
+        #     for j, k in zip(self.ts, o):
+        #         Array.wire(j, k, debug_info)
+        #     return
         Wireable.wire(self, o, debug_info)
 
     # TODO(leonardt): unwire
@@ -639,14 +639,41 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
+    def _make_lift(*args, **kwargs):
+        """Monkey patched in magma/primitives/array2.py"""
+        raise NotImplementedError()
+
     def __getitem__(self, key):
         if isinstance(key, int):
             if self.is_output():
                 return self._make_get(key)()(self)
             assert self.is_input(), "inout unsupported"
-            # TODO(leonardt/array2): Cache per index/slice for wiring up
-            # children incrementally (e.g. product fields)
-            return InputArrayItem(self, key, key)
+            if self._index_map:
+                for k, v in self._index_map.items():
+                    # TODO(leonardt/array2): Make slice key an object
+                    if isinstance(k, tuple):
+                        if k[0] <= key < k[1]:
+                            return v[key - k[0]]
+                    elif isinstance(k, int):
+                        if k == key:
+                            return v
+            args = []
+            if key > 0:
+                wire = self._make_wire(Array2[key, self.T])()
+                self._index_map[(0, key)] = wire.I
+                args.append(wire.O)
+            key_wire = self._make_wire(self.T)()
+            self._index_map[key] = key_wire.I
+            args.append(self._make_lift()()(key_wire.O))
+            if key < self.N - 1:
+                j = self.N - (key + 1)
+                T = Array2[j, self.T]
+                wire = self._make_wire(T)()
+                self._index_map[(key + 1, self.N)] = wire.I
+                args.append(wire.O)
+            self @= self._concat(*args)
+            return key_wire.I
+            # return self._get_t(key)
         if isinstance(key, slice):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
@@ -654,22 +681,41 @@ class Array2(Wireable, Array):
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
             assert self.is_input(), "inout unsupported"
-            return InputArrayItem(self, start, key)
+            if self._index_map:
+                for k, v in self._index_map.items():
+                    # TODO(leonardt/array2): Make slice key an object
+                    if isinstance(k, tuple):
+                        if k[0] == start and stop == k[1]:
+                            return v
+                        elif k[0] <= start and stop < k[1]:
+                            return v[start - k[0]:stop - k[0]]
+            args = []
+            if start > 0:
+                wire = self._make_wire(Array2[start, self.T])()
+                self._index_map[(0, start)] = wire.I
+                args.append(wire.O)
+            key_wire = self._make_wire(Array2[stop - start, self.T])()
+            self._index_map[(start, stop)] = key_wire.I
+            args.append(key_wire.O)
+            if stop < self.N:
+                j = self.N - stop
+                T = Array2[j, self.T]
+                wire = self._make_wire(T)()
+                self._index_map[(stop, self.N)] = wire.I
+                args.append(wire.O)
+            self @= self._concat(*args)
+            return key_wire.I
         raise NotImplementedError(type(key))
 
-    def add_driver(self, start_idx, value, key):
-        assert not self._drivers_resolved, (
-            "Drivers already resolved, cannot add another driver")
-        self.drivers.append(_Array2Driver(start_idx, value, key))
-
     def __setitem__(self, key, val):
+        # TODO(leonardt/array2): Validate setitem?
+        return False
         error = False
-        if not isinstance(val, InputArrayItem):
-            error = True
-        elif val.parent is not self:
-            error = True
-        elif val.key != key:
-            error = True
+        for k, v in self._index_map.items():
+            if isinstance(k, int) and k == key:
+                error = v is val
+            elif isinstance(k, tuple) and k[0] <= key < k[1]:
+                error = (v is val) or (val in v)
         if error:
             _logger.error(
                 WiringLog(f"May not mutate array, trying to replace "
@@ -685,75 +731,15 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/conversions.py"""
         raise NotImplementedError()
 
-    def _resolve_drivers(self):
-        if self._drivers_resolved or not self.drivers:
-            return
-        assert len(self.drivers) > 1
-        # TODO(leonardt/array2): Validate non overlapping
-        # TODO(leonardt/array2): Validate whole
-        sorted_drivers = sorted(self.drivers, key=lambda x: x.start_idx)
-        driver_values = []
-        for driver in sorted_drivers:
-            if not isinstance(driver.key, slice):
-                # We use old array logic for handling Array constructed
-                # with child value
-                driver_values.append(self._array_old([driver.value]))
-            else:
-                driver_values.append(driver.value)
-        self @= self._concat(*driver_values)
-        self._drivers_resolved = True
-
-    def trace(self):
-        # TODO(leonardt/array2): For now, we "resolve" the drivers into a concat
-        # node when `trace` is called during circuit unconnected check.  Is
-        # there a better way to do this?  One option would be to track all
-        # Array2 values in a definition and run an explicit "finalize" pass
-        # Another option is to somehow maintain the concat tree as the wiring
-        # is done, then search for "undriven" sentinal values that are used as
-        # the concat tree is being built
-        self._resolve_drivers()
-        return super().trace()
-
-    def value(self):
-        self._resolve_drivers()
-        return super().value()
-
-    def _make_ts(self):
-        self._ts = [self.T(name=ArrayRef(self, i)) for i in range(self.N)]
-        # TODO(leonardt/array2): Handle partially driven
-        i = 0
-        for driver in self.drivers:
-            if not isinstance(driver.key, slice):
-                # TODO(leonardt/array2): Do we need an Array2Ref?
-                self._ts[i] @= driver.value
-                i += 1
-            else:
-                for _ in range(driver.key.start, driver.key.stop,
-                               driver.key.step):
-                    self._ts[i] @= driver.value
-                    i += 1
-
-    def _get_ts(self):
+    def _get_t(self, i):
         if self._ts is None:
-            self._make_ts()
-        return self._ts
+            self._ts = [None for _ in range(self.N)]
+        if self._ts[i] is None:
+            self._ts[i] = self.T(name=ArrayRef(self, i))
+        return self._ts[i]
 
     def flatten(self):
-        return sum([t.flatten() for t in self._get_ts()], [])
+        return [self]
 
-    def has_any_driver(self):
-        return len(self.drivers) > 0
-
-
-class InputArrayItem:
-    def __init__(self, parent, start_idx, key):
-        self.parent = parent
-        self.start_idx = start_idx
-        self.key = key
-
-    def __imatmul__(self, value):
-        self.wire(value)
-        return self
-
-    def wire(self, value):
-        self.parent.add_driver(self.start_idx, value, self.key)
+    def __repr__(self):
+        return Type.__repr__(self)

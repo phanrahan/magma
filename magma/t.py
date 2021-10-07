@@ -134,17 +134,6 @@ class Type(object):
         """
         return self.name.anon() and not self.is_output() and self.driven()
 
-    def has_any_driver(self):
-        """
-        Returns true if the value or any child values have a driver
-
-        Used by circuit for checking if a definition exists (we allows Array2
-        to override this logic to avoid flattening since it may driven by
-        slices and we don't want to realize all the children if not needed)
-        """
-        flat = self.flatten()
-        return any(not f.is_output() and f.value() is not None for f in flat)
-
 
 class Kind(type):
     # Subclasses only need to implement one of these methods.

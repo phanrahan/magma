@@ -1,3 +1,10 @@
+module mantle_wire__typeBit42 (
+    input [3:0] in [1:0],
+    output [3:0] out [1:0]
+);
+assign out = in;
+endmodule
+
 module mantle_sliceArrT__hi4__lo2__tBitIn44 (
     input [3:0] in [3:0],
     output [3:0] out [1:0]
@@ -32,12 +39,14 @@ module Foo (
 wire [3:0] Concat_inst0_out [3:0];
 wire [3:0] Slice_inst0_out [1:0];
 wire [3:0] Slice_inst1_out [1:0];
+wire [3:0] Wire_inst0_out [1:0];
+wire [3:0] Wire_inst1_out [1:0];
 wire [3:0] Concat_inst0_in0 [1:0];
-assign Concat_inst0_in0[1] = Slice_inst0_out[1];
-assign Concat_inst0_in0[0] = Slice_inst0_out[0];
+assign Concat_inst0_in0[1] = Wire_inst0_out[1];
+assign Concat_inst0_in0[0] = Wire_inst0_out[0];
 wire [3:0] Concat_inst0_in1 [1:0];
-assign Concat_inst0_in1[1] = Slice_inst1_out[1];
-assign Concat_inst0_in1[0] = Slice_inst1_out[0];
+assign Concat_inst0_in1[1] = Wire_inst1_out[1];
+assign Concat_inst0_in1[0] = Wire_inst1_out[0];
 mantle_concatArrT__t0BitIn42__t1BitIn42 Concat_inst0 (
     .in0(Concat_inst0_in0),
     .in1(Concat_inst0_in1),
@@ -60,6 +69,20 @@ assign Slice_inst1_in[0] = I[0];
 mantle_sliceArrT__hi2__lo0__tBitIn44 Slice_inst1 (
     .in(Slice_inst1_in),
     .out(Slice_inst1_out)
+);
+wire [3:0] Wire_inst0_in [1:0];
+assign Wire_inst0_in[1] = Slice_inst0_out[1];
+assign Wire_inst0_in[0] = Slice_inst0_out[0];
+mantle_wire__typeBit42 Wire_inst0 (
+    .in(Wire_inst0_in),
+    .out(Wire_inst0_out)
+);
+wire [3:0] Wire_inst1_in [1:0];
+assign Wire_inst1_in[1] = Slice_inst1_out[1];
+assign Wire_inst1_in[0] = Slice_inst1_out[0];
+mantle_wire__typeBit42 Wire_inst1 (
+    .in(Wire_inst1_in),
+    .out(Wire_inst1_out)
 );
 assign O[3] = Concat_inst0_out[3];
 assign O[2] = Concat_inst0_out[2];

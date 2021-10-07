@@ -106,3 +106,14 @@ def test_tuple_array2():
         io.O[1][0] @= io.I[1][1]
 
     _check_compile("test_tuple_array2", Foo)
+
+
+def test_array2_incremental_child_wire():
+    class Foo(m.Circuit):
+        T = m.Array2[4, m.Tuple[m.Bit, m.Bits[2]]]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        for i in range(4):
+            io.O[i][0] @= io.I[3 - i][0]
+            io.O[i][1] @= io.I[i][1]
+
+    _check_compile("test_array2_incremental_child_wire", Foo)

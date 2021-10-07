@@ -29,6 +29,7 @@ except ImportError:
     pass
 from .view import PortView
 
+from magma.array import Array2
 from magma.clock import is_clock_or_nested_clock, Clock
 from magma.ref import TempNamedRef
 from magma.t import In
@@ -162,7 +163,8 @@ def _has_definition(cls, port=None):
     if not port.is_output() and port.value() is not None:
         # Avoid flatten when whole value is driven
         return True
-    return port.has_any_driver()
+    flat = port.flatten()
+    return any(not f.is_output() and f.value() is not None for f in flat)
 
 
 def _maybe_add_default_clock(cls):
@@ -261,11 +263,11 @@ def _get_intermediate_values(value):
     driver = value.value()
     if driver is None:
         return OrderedIdentitySet()
-    if value.flat_length() > 1 and driver.name.anon():
-        return functools.reduce(
-            operator.or_,
-            (_get_intermediate_values(f) for f in value.flatten()),
-            OrderedIdentitySet())
+    flat = value.flatten()
+    if len(flat) > 1 and driver.name.anon() and not isinstance(driver, Array2):
+        return functools.reduce(operator.or_,
+                                (_get_intermediate_values(f) for f in flat),
+                                OrderedIdentitySet())
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
@@ -730,9 +732,7 @@ class DefineCircuitKind(CircuitKind):
         run_unconnected_check = run_unconnected_check and not \
             dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
-            # Open for inserting concat nodes in array2 trace
-            with self.open():
-                self.check_unconnected()
+            self.check_unconnected()
 
         return self
 
