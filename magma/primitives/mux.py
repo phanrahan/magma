@@ -10,6 +10,7 @@ from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out, Direction
 from magma.tuple import Product, Tuple
+from magma.type_utils import type_to_sanitized_string
 from magma.conversions import tuple_
 
 
@@ -43,9 +44,7 @@ class Mux(Generator2):
             T = Bit
         # TODO(rsetaluri): Type should be hashable so the generator instance can
         # be cached.
-        T_str = str(T).replace("(", "").replace(")", "")\
-                      .replace(",", "_").replace("=", "_")\
-                      .replace("[", "").replace("]", "").replace(" ", "")
+        T_str = type_to_sanitized_string(T)
         self.name = f"Mux{height}x{T_str}"
         N = magma_type(T).flat_length()
 

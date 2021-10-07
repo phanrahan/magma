@@ -1,15 +1,17 @@
 import dataclasses
-from typing import Optional
+from typing import Optional, Tuple
 
 from magma.clock import Clock
 from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
 from magma.conversions import as_bits
 from magma.generator import Generator2
-from magma.interface import IO
-from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
-from magma.t import In, Out
-from magma.value_utils import make_selector
 from magma.inline_verilog import inline_verilog
+from magma.interface import IO
+from magma.primitives.mux import infer_mux_type
+from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
+from magma.t import Kind, In, Out
+from magma.type_utils import type_to_sanitized_string
+from magma.value_utils import make_selector
 
 
 def _get_top_ref(ref):
@@ -178,22 +180,16 @@ def compile_guard(cond: str,
 
 
 class _CompileGuardSelect(Generator2):
-    def __init__(self, **kwargs):
-        T_Out = next(iter(kwargs.values()))
-        for T in kwargs.values():
-            # TODO(leonardt): Add mux style inference rules
-            if T is not T_Out:
-                raise TypeError(
-                    "Found incompatible types in compile guard select")
-        self.io = IO(**{f"I{i}": In(value)
-                        for i, value in enumerate(kwargs.values())})
-        self.io += IO(O=Out(T_Out))
+    def __init__(self, T: Kind, keys: Tuple[str]):
+        num_keys = len(keys)
+        assert num_keys > 1
+        self.io = IO(**{f"I{i}": In(T) for i in range(num_keys)}, O=Out(T))
         self.verilog = ""
-        for i, key in enumerate(kwargs.keys()):
+        for i, key in enumerate(keys):
             if i == 0:
                 stmt = f"`ifdef {key}"
             elif key == "default":
-                assert i == len(kwargs) - 1
+                assert i == (num_keys - 1)
                 stmt = "`else"
             else:
                 stmt = f"`elsif {key}"
@@ -202,11 +198,20 @@ class _CompileGuardSelect(Generator2):
     assign O = I{i};
 """
         self.verilog += "`endif"
+        T_str = type_to_sanitized_string(T)
+        self.name = f"CompileGuardSelect_{T_str}_{'_'.join(keys)}"
 
 
 def compile_guard_select(**kwargs):
-    # Insertion order makes this the last element for if/elif/else logic
-    kwargs["default"] = kwargs.pop("default")
-    return _CompileGuardSelect(
-        **{key: type(value) for key, value in kwargs.items()},
-    )()(*kwargs.values())
+    try:
+        default = kwargs.pop("default")
+    except KeyError:
+        raise ValueError("Expected default argument") from None
+    if not (len(kwargs) > 1):
+        raise ValueError("Expected at least one key besides default")
+    # We rely on insertion order to make the default the last element for the
+    # generated if/elif/else code.
+    kwargs["default"] = default
+    T, _ = infer_mux_type(list(kwargs.values()))
+    Select = _CompileGuardSelect(T, tuple(kwargs.keys()))
+    return Select()(*kwargs.values())

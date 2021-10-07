@@ -16,21 +16,6 @@ module coreir_reg #(
   assign out = outReg;
 endmodule
 
-module _CompileGuardSelect (
-    input I0,
-    input I1,
-    input I2,
-    output O
-);
-`ifdef COND1
-    assign O = I0;
-`elsif COND2
-    assign O = I1;
-`else
-    assign O = I2;
-`endif
-endmodule
-
 module Register (
     input I,
     output O,
@@ -49,6 +34,21 @@ coreir_reg #(
 assign O = reg_P1_inst0_out[0];
 endmodule
 
+module CompileGuardSelect_Bit_COND1_COND2_default (
+    input I0,
+    input I1,
+    input I2,
+    output O
+);
+`ifdef COND1
+    assign O = I0;
+`elsif COND2
+    assign O = I1;
+`else
+    assign O = I2;
+`endif
+endmodule
+
 module _Top (
     input I,
     output O,
@@ -57,6 +57,12 @@ module _Top (
 wire Register_inst0_O;
 wire Register_inst1_O;
 wire magma_Bit_xor_inst0_out;
+CompileGuardSelect_Bit_COND1_COND2_default CompileGuardSelect_Bit_COND1_COND2_default_inst0 (
+    .I0(Register_inst0_O),
+    .I1(Register_inst1_O),
+    .I2(I),
+    .O(O)
+);
 Register Register_inst0 (
     .I(magma_Bit_xor_inst0_out),
     .O(Register_inst0_O),
@@ -66,12 +72,6 @@ Register Register_inst1 (
     .I(I),
     .O(Register_inst1_O),
     .CLK(CLK)
-);
-_CompileGuardSelect _CompileGuardSelect_inst0 (
-    .I0(Register_inst0_O),
-    .I1(Register_inst1_O),
-    .I2(I),
-    .O(O)
 );
 assign magma_Bit_xor_inst0_out = I ^ 1'b1;
 endmodule

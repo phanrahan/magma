@@ -147,3 +147,14 @@ def to_hwtypes(T: Kind):
         _fields = tuple(to_hwtypes(v) for v in T.fields)
         return ht.Tuple[_fields]
     raise NotImplementedError(T)
+
+
+def type_to_sanitized_string(T: Kind) -> str:
+    return str(T).\
+        replace("(", "").\
+        replace(")", "").\
+        replace(",", "_").\
+        replace("=", "_").\
+        replace("[", "").\
+        replace("]", "").\
+        replace(" ", "")

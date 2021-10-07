@@ -188,7 +188,7 @@ def test_compile_guard_select():
             COND1=x, COND2=y, default=io.I
         )
 
-    m.compile("build/test_compile_guard_selct", _Top, inline=True)
+    m.compile("build/test_compile_guard_select", _Top, inline=True)
     assert m.testing.check_files_equal(
-        __file__, "build/test_compile_guard_selct.v",
-        "gold/test_compile_guard_selct.v")
+        __file__, "build/test_compile_guard_select.v",
+        "gold/test_compile_guard_select.v")
