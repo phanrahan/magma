@@ -1,9 +1,11 @@
 import dataclasses
 from typing import Optional, Tuple
 
+from magma.bits import BitsMeta
 from magma.clock import Clock
 from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
 from magma.conversions import as_bits
+from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.inline_verilog import inline_verilog
 from magma.interface import IO
@@ -179,8 +181,19 @@ def compile_guard(cond: str,
     return _CompileGuard(cond, defn_name, inst_name, type)
 
 
+def _is_simple_type(T: Kind) -> bool:
+    return isinstance(T, (DigitalMeta, BitsMeta))
+
+
 class _CompileGuardSelect(Generator2):
     def __init__(self, T: Kind, keys: Tuple[str]):
+        # NOTE(rsetaluri): We need to add this check because the implementation
+        # of this generator emits verilog directly, and thereby requires that no
+        # transformations happen to the port names/types. If the type is not
+        # "simple" (i.e. Bit or Bits[N]) then the assumption breaks down and
+        # this implementation will not work.
+        if not _is_simple_type(T):
+            raise TypeError(f"Unsupported type: {T}")
         num_keys = len(keys)
         assert num_keys > 1
         self.io = IO(**{f"I{i}": In(T) for i in range(num_keys)}, O=Out(T))
