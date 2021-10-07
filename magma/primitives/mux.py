@@ -123,6 +123,9 @@ def _infer_mux_type(args):
     return T, args
 
 
+infer_mux_type = _infer_mux_type
+
+
 def mux(I: list, S, **kwargs):
     """
     How type inference works on I:
