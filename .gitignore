@@ -1,5 +1,7 @@
 archive/*
 */__pycache__/*
 *.mlir
+*.json
+*.v
 !src/golds/*
 env/*
