@@ -1,15 +1,18 @@
 import dataclasses
-from typing import List, Optional
+from typing import Optional, Tuple
 
-from magma.array import Array
-from magma.bits import Bits
+from magma.bits import BitsMeta
 from magma.clock import Clock
 from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
 from magma.conversions import as_bits
-from magma.digital import Digital
+from magma.digital import DigitalMeta
+from magma.generator import Generator2
+from magma.inline_verilog import inline_verilog
+from magma.interface import IO
+from magma.primitives.mux import infer_mux_type
 from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
-from magma.t import In, Out
-from magma.tuple import Tuple
+from magma.t import Kind, In, Out
+from magma.type_utils import type_to_sanitized_string
 from magma.value_utils import make_selector
 
 
@@ -176,3 +179,52 @@ def compile_guard(cond: str,
                   inst_name: Optional[str] = None,
                   type: Optional[str] = "defined"):
     return _CompileGuard(cond, defn_name, inst_name, type)
+
+
+def _is_simple_type(T: Kind) -> bool:
+    return isinstance(T, (DigitalMeta, BitsMeta))
+
+
+class _CompileGuardSelect(Generator2):
+    def __init__(self, T: Kind, keys: Tuple[str]):
+        # NOTE(rsetaluri): We need to add this check because the implementation
+        # of this generator emits verilog directly, and thereby requires that no
+        # transformations happen to the port names/types. If the type is not
+        # "simple" (i.e. Bit or Bits[N]) then the assumption breaks down and
+        # this implementation will not work.
+        if not _is_simple_type(T):
+            raise TypeError(f"Unsupported type: {T}")
+        num_keys = len(keys)
+        assert num_keys > 1
+        self.io = IO(**{f"I{i}": In(T) for i in range(num_keys)}, O=Out(T))
+        self.verilog = ""
+        for i, key in enumerate(keys):
+            if i == 0:
+                stmt = f"`ifdef {key}"
+            elif key == "default":
+                assert i == (num_keys - 1)
+                stmt = "`else"
+            else:
+                stmt = f"`elsif {key}"
+            self.verilog += f"""\
+{stmt}
+    assign O = I{i};
+"""
+        self.verilog += "`endif"
+        T_str = type_to_sanitized_string(T)
+        self.name = f"CompileGuardSelect_{T_str}_{'_'.join(keys)}"
+
+
+def compile_guard_select(**kwargs):
+    try:
+        default = kwargs.pop("default")
+    except KeyError:
+        raise ValueError("Expected default argument") from None
+    if not (len(kwargs) > 1):
+        raise ValueError("Expected at least one key besides default")
+    # We rely on insertion order to make the default the last element for the
+    # generated if/elif/else code.
+    kwargs["default"] = default
+    T, _ = infer_mux_type(list(kwargs.values()))
+    Select = _CompileGuardSelect(T, tuple(kwargs.keys()))
+    return Select()(*kwargs.values())

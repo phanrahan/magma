@@ -175,3 +175,34 @@ def test_drive_outputs():
     assert m.testing.check_files_equal(
         __file__, f"build/test_compile_guard_drive_output.json",
         f"gold/test_compile_guard_drive_output.json")
+
+
+def test_compile_guard_select_basic():
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+
+        x = m.Register(m.Bit)()(io.I ^ 1)
+        y = m.Register(m.Bit)()(io.I)
+
+        io.O @= m.compile_guard_select(
+            COND1=x, COND2=y, default=io.I
+        )
+
+    basename = "test_compile_guard_select_basic"
+    m.compile(f"build/{basename}", _Top, inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+
+
+def test_compile_guard_select_complex_type():
+    T = m.Product.from_fields("anonymous", dict(x=m.Bit, y=m.Bit))
+
+    def make_top():
+
+        class _Top(m.Circuit):
+            io = m.IO(I0=m.In(T), I1=m.In(T), O=m.Out(T))
+            io.O @= m.compile_guard_select(
+                COND1=io.I0, COND2=io.I1, default=io.I0)
+
+    with pytest.raises(TypeError):
+        make_top()
