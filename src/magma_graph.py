@@ -78,7 +78,7 @@ def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
         raise NotImplementedError(driver, ref)
     if isinstance(ref, m.ref.ArrayRef):
         T = type(ref.array)
-        getter = make_instance(MagmaArrayGetOp(T, ref.index))
+        getter = make_instance(MagmaArrayGetOp(T), index=ref.index)
         _process_driver(g, getter.I, ref.array, getter)
         info = dict(src=getter.O, dst=value)
         g.add_edge(getter, module, info=info)

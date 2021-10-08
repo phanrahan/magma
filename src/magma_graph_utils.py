@@ -15,28 +15,27 @@ def _make_type_string(T: m.Kind):
     return s
 
 
-def make_instance(defn: m.circuit.CircuitKind) -> m.Circuit:
+def make_instance(defn: m.circuit.CircuitKind, **kwargs) -> m.Circuit:
     insts = []
 
     class _(m.Circuit):
-        i = defn(name=make_unique_name())
+        i = defn(name=make_unique_name(), **kwargs)
         insts.append(i)
 
     return insts[0]
 
 
 class MagmaArrayGetOp(m.Generator2):
-    def __init__(self, T: m.ArrayMeta, index: int):
+    def __init__(self, T: m.ArrayMeta):
         assert isinstance(T, m.ArrayMeta)
         T = T.undirected_t
-        self.name = f"magma_array_get_op_{_make_type_string(T)}_{index}"
+        self.name = f"magma_array_get_op_{_make_type_string(T)}"
         self.primitive = True
 
         T_out = T.T
         self.io = m.IO(I=m.In(T), O=m.Out(T_out))
 
         self.T = T
-        self.index = index
 
 
 class MagmaArraySliceOp(m.Generator2):

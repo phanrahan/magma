@@ -25,7 +25,7 @@ def _make_hw_array_get_op(ctx: MlirContext, inst: m.Circuit) -> MlirMultiOp:
     defn = type(inst)
     assert isinstance(defn, MagmaArrayGetOp)
     g = Graph()
-    const = HwConstantOp(inst.name, defn.index)
+    const = HwConstantOp(inst.name, inst.kwargs["index"])
     width = m.bitutils.clog2(len(defn.I))
     value = ctx.anonymous_value(MlirIntegerType(width))
     getter = HwArrayGetOp(inst.name)
@@ -149,7 +149,8 @@ def magma_primitive_to_mlir_op(ctx: MlirContext, inst: m.Circuit) -> MlirOp:
         return commonlib_primitive_to_mlir_op(ctx, inst)
     if isinstance(defn, MagmaArrayGetOp):
         if isinstance(defn.T, m.BitsMeta) or issubclass(defn.T.T, m.Bit):
-            return CombExtractOp(inst.name, defn.index, defn.index + 1)
+            index = inst.kwargs["index"]
+            return CombExtractOp(inst.name, index, index + 1)
         return _make_hw_array_get_op(ctx, inst)
     if isinstance(defn, MagmaArrayCreateOp):
         if isinstance(defn.T, m.BitsMeta) or issubclass(defn.T.T, m.Bit):
