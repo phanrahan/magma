@@ -1,5 +1,6 @@
 import dataclasses
 import io
+import sys
 from typing import Optional
 
 import magma as m
@@ -70,6 +71,8 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
 
 
 def compile_to_mlir(ckt: m.DefineCircuitKind, sout: Optional[io.TextIOBase] = None):
+    if sout is None:
+        sout = sys.stdout
     deps = m.passes.dependencies(ckt, include_self=True)
     emitter = MlirEmitter(sout)
     for dep in deps:
