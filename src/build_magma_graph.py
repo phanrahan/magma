@@ -1,26 +1,13 @@
 import dataclasses
-from typing import Tuple, Union
 
 import magma as m
 
 from graph_lib import Graph
-from magma_graph_utils import (
+from magma_common import ModuleLike, make_instance
+from magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
-    MagmaBitConstantOp, MagmaBitsConstantOp,
-    make_instance)
-
-
-ModuleLike = Union[m.DefineCircuitKind, m.Circuit]
-
-
-def _get_inst_or_defn_or_die(value: m.Type) -> ModuleLike:
-    ref = value.name
-    try:
-        return ref.inst, True
-    except AttributeError:
-        pass
-    return ref.defn, False
+    MagmaBitConstantOp, MagmaBitsConstantOp)
 
 
 def _const_digital_to_bool(digital: m.Digital) -> bool:
@@ -42,7 +29,8 @@ def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
             g.add_edge(const, module, info=info)
             return
         if isinstance(driver, m.Bits):
-            const = make_instance(MagmaBitsConstantOp(type(driver), int(driver)))
+            op = MagmaBitsConstantOp(type(driver), int(driver))
+            const = make_instance(op)
             info = dict(src=const.O, dst=value)
             g.add_edge(const, module, info=info)
             return
@@ -102,11 +90,6 @@ def _traverse_input(g: Graph, value: m.Type, module):
 def _traverse_inputs(g: Graph, module: ModuleLike):
     for port in module.interface.inputs(include_clocks=True):
         _traverse_input(g, port, module)
-
-
-@dataclasses.dataclass(frozen=True)
-class Net:
-    ports: Tuple[m.Type]
 
 
 def build_magma_graph(ckt: m.DefineCircuitKind) -> Graph:

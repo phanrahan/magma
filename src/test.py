@@ -8,7 +8,7 @@ from test_utils import get_magma_examples
 
 
 _ckts = [
-    comb,
+    simple_comb,
     simple_hierarchy,
     simple_aggregates_bits,
     simple_aggregates_array,

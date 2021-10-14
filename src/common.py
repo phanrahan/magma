@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 from typing import Any, Dict, Iterable, Tuple
 
@@ -30,3 +31,27 @@ def make_unique_name() -> str:
     name = "%032d" % _unique_name_index
     _unique_name_index += 1
     return name
+
+
+def default_list_field(**kwargs):
+    return dataclasses.field(default_factory=list, **kwargs)
+
+
+@dataclasses.dataclass
+class WithId:
+    id: str = dataclasses.field(default_factory=make_unique_name, init=False)
+
+
+class Stack:
+    """Lightweight wrapper over builtin lists to provide a stack interface"""
+    def __init__(self):
+        self._stack = []
+
+    def push(self, value):
+        self._stack.append(value)
+
+    def pop(self):
+        return self._stack.pop()
+
+    def peek(self):
+        return self._stack[-1]

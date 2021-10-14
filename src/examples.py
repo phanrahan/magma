@@ -3,7 +3,7 @@ import itertools
 import magma as m
 
 
-class comb(m.Circuit):
+class simple_comb(m.Circuit):
     T = m.Bits[16]
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
     a = ~io.a
@@ -16,7 +16,7 @@ class comb(m.Circuit):
 class simple_hierarchy(m.Circuit):
     T = m.Bits[16]
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
-    y, z = comb()(io.a, io.b, io.c)
+    y, z = simple_comb()(io.a, io.b, io.c)
     io.y @= y
     io.z @= z
 
@@ -134,7 +134,7 @@ class twizzle(m.Circuit):
 class simple_unused_output(m.Circuit):
     T = m.Bits[16]
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T))
-    _, z = comb()(io.a, io.b, io.c)
+    _, z = simple_comb()(io.a, io.b, io.c)
     io.y @= z
 
 
