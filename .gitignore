@@ -5,3 +5,4 @@ archive/*
 *.v
 !src/golds/*
 env/*
+src/*.txt

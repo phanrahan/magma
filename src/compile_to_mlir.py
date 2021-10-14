@@ -1,7 +1,7 @@
 import dataclasses
 import io
 import sys
-from typing import Optional
+from typing import List, Optional
 
 import magma as m
 
@@ -54,18 +54,28 @@ def compile_defn_to_mlir(ckt: m.DefineCircuitKind, emitter: MlirEmitter):
     g = build_magma_graph(ckt)
     ctx = MlirContext()
 
-    SplitPortEdgesTranformer(g).run()
-    AddAllOutputsTranformer(g).run()
-    RemoveDuplicateEdgesTransformer(g).run()
-    MergeNetsTransformer(g).run()
-    ModuleInputSplitter(g, ctx).run()
-    EdgePortToIndexTransformer(g).run()
-    ModuleToOpTransformer(g, ctx).run()
-    MultiOpFlattener(g).run()
-    RemoveSingletonCombConcatOpsTransformer(g).run()
-    NetToValueTransformer(g, ctx).run()
+    def _run_pass(cls: type, cons_args: List = None, run_args: List = None):
+        if cons_args is None:
+            cons_args = []
+        if run_args is None:
+            run_args = []
+        pass_name = cls.__name__
+        _dump_graph(g, f"pre_{pass_name}.txt")
+        cls(g, *cons_args).run(*run_args)
+        _dump_graph(g, f"post_{pass_name}.txt")
+
+    _run_pass(SplitPortEdgesTranformer)
+    _run_pass(AddAllOutputsTranformer)
+    _run_pass(RemoveDuplicateEdgesTransformer)
+    _run_pass(MergeNetsTransformer)
+    _run_pass(ModuleInputSplitter, [ctx])
+    _run_pass(EdgePortToIndexTransformer)
+    _run_pass(ModuleToOpTransformer, [ctx])
+    _run_pass(MultiOpFlattener)
+    _run_pass(RemoveSingletonCombConcatOpsTransformer)
+    _run_pass(NetToValueTransformer, [ctx])
     break_cycles(g, ctx)
-    DeanonymizeValuesTransformer(g, ctx).run(topological_sort)
+    _run_pass(DeanonymizeValuesTransformer, [ctx], [topological_sort])
 
     emit_module(emitter, ckt, g)
 
