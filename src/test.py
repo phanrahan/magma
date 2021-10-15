@@ -25,6 +25,7 @@ _ckts = [
     twizzle,
     simple_unused_output,
     feedthrough,
+    no_outputs,
 ]
 _ckts += get_magma_examples()
 

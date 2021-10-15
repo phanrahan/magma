@@ -323,6 +323,8 @@ def lower_magma_defn_to_hw_module_op(defn: m.DefineCircuitKind):
         operands=inputs,
         results=named_outputs)
     visitor = ModuleVisitor(graph, ctx)
+    if not named_outputs:
+        return
     with push_block(op):
         visitor.visit(defn)
         output_values = [

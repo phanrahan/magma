@@ -141,3 +141,8 @@ class simple_unused_output(m.Circuit):
 class feedthrough(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= io.I
+
+
+class no_outputs(m.Circuit):
+    io = m.IO(I=m.In(m.Bit))
+    ~io.I
