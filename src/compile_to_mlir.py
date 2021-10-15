@@ -132,15 +132,31 @@ class ModuleVisitor:
     def visit_coreir_reg(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert defn.coreir_name == "reg"
+        assert defn.coreir_name == "reg" or defn.coreir_name == "reg_arst"
         reg = self._ctx.new_value(
             hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
         sv.RegOp(name=inst.name, results=[reg])
-        with push_block(sv.AlwaysFFOp(operands=[module.operands[1]])):
+        clock_edge = "posedge"
+        has_reset = (defn.coreir_name == "reg_arst")
+        operands = [module.operands[1]]
+        attrs = dict(clock_edge=clock_edge)
+        if has_reset:
+            reset_type = "asyncreset"
+            arst_posedge = defn.coreir_configargs["arst_posedge"]
+            reset_edge = "posedge" if arst_posedge else "negedge"
+            operands.append(module.operands[2])
+            attrs.update(dict(reset_type=reset_type, reset_edge=reset_edge))
+        always = sv.AlwaysFFOp(operands=operands, **attrs)
+        init = defn.coreir_configargs["init"].value
+        const = self.make_constant(type(defn.I), init)
+        with push_block(always.body_block):
             sv.PAssignOp(operands=[reg, module.operands[0]])
+        if defn.coreir_name == "reg_arst":
+            always.operands.append(module.operands[1])
+        if has_reset:
+            with push_block(always.reset_block):
+                sv.PAssignOp(operands=[reg, const])
         with push_block(sv.InitialOp()):
-            init = defn.coreir_configargs["init"].value
-            const = self.make_constant(type(defn.I), init)
             sv.BPAssignOp(operands=[reg, const])
         sv.ReadInOutOp(operands=[reg], results=module.results.copy())
         return True
@@ -158,7 +174,7 @@ class ModuleVisitor:
                 operands=module.operands,
                 results=module.results)
             return True
-        if defn.coreir_name == "reg":
+        if defn.coreir_name in ("reg", "reg_arst"):
             return self.visit_coreir_reg(module)
         comb.BaseOp(
             op_name=defn.coreir_name,

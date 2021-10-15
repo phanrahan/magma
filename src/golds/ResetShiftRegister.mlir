@@ -17,8 +17,8 @@ hw.module @Register(%I: i4, %CE: i1, %CLK: i1, %RESETN: i1) -> (%O: i4) {
     sv.alwaysff(posedge %CLK) {
         sv.passign %6, %5 : i4
     }
+    %7 = hw.constant 0 : i4
     sv.initial {
-        %7 = hw.constant 0 : i4
         sv.bpassign %6, %7 : i4
     }
     %0 = sv.read_inout %6 : !hw.inout<i4>

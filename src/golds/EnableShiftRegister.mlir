@@ -9,7 +9,17 @@ hw.module @Mux2xUInt4(%I0: i4, %I1: i4, %S: i1) -> (%O: i4) {
 }
 hw.module @Register(%I: i4, %CE: i1, %CLK: i1, %ASYNCRESET: i1) -> (%O: i4) {
     %1 = hw.instance "enable_mux" @Mux2xUInt4(%0, %I, %CE) : (i4, i4, i1) -> (i4)
-    %0 = comb.reg_arst %1, %CLK, %ASYNCRESET : i4
+    %2 = sv.reg {name = "reg_PR4_inst0"} : !hw.inout<i4>
+    sv.alwaysff(posedge %CLK) {
+        sv.passign %2, %1 : i4
+    } (asyncreset : posedge %ASYNCRESET) {
+        sv.passign %2, %3 : i4
+    }
+    %3 = hw.constant 0 : i4
+    sv.initial {
+        sv.bpassign %2, %3 : i4
+    }
+    %0 = sv.read_inout %2 : !hw.inout<i4>
     hw.output %0 : i4
 }
 hw.module @EnableShiftRegister(%I: i4, %shift: i1, %CLK: i1, %ASYNCRESET: i1) -> (%O: i4) {

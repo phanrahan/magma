@@ -61,14 +61,48 @@ class BPAssignOp(MlirOp):
 @dataclasses.dataclass
 class AlwaysFFOp(MlirOp):
     operands: List[MlirValue]
+    clock_edge: str
+    reset_type: str = None
+    reset_edge: str = None
 
     def __post_init__(self):
         self.regions.append(MlirRegion())
         self.regions[0].blocks.append(MlirBlock())
-        self._block = self.regions[0].blocks[0]
+        self._body_block = self.regions[0].blocks[0]
+        if self.reset_type is None:
+            return
+        self.regions.append(MlirRegion())
+        self.regions[1].blocks.append(MlirBlock())
+        self._reset_block = self.regions[1].blocks[0]
 
-    def add_operation(self, operation: MlirOp):
-        self._block.operations.append(operation)
+    @property
+    def body_block(self) -> MlirBlock:
+        return self._body_block
+
+    @property
+    def reset_block(self) -> MlirBlock:
+        return self._reset_block
+
+    def print(self, printer: PrinterBase):
+        printer.print(f"sv.alwaysff({self.clock_edge} ")
+        print_names(self.operands[0], printer)
+        printer.print(") {")
+        printer.flush()
+        printer.push()
+        self.body_block.print(printer)
+        printer.pop()
+        printer.print("}")
+        if self.reset_type is None:
+            printer.flush()
+            return
+        printer.print(f" ({self.reset_type} : {self.reset_edge} ")
+        print_names(self.operands[1], printer)
+        printer.print(") {")
+        printer.flush()
+        printer.push()
+        self.reset_block.print(printer)
+        printer.pop()
+        printer.print_line("}")
 
     def print_op(self, printer: PrinterBase):
         printer.print("sv.alwaysff(posedge ")

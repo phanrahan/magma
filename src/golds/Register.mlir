@@ -21,8 +21,8 @@ hw.module @Register(%I: !hw.struct<x: i8, y: i1>, %CLK: i1) -> (%O: !hw.struct<x
     sv.alwaysff(posedge %CLK) {
         sv.passign %19, %17 : i9
     }
+    %20 = hw.constant 262 : i9
     sv.initial {
-        %20 = hw.constant 262 : i9
         sv.bpassign %19, %20 : i9
     }
     %18 = sv.read_inout %19 : !hw.inout<i9>
