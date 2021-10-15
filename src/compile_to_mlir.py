@@ -1,7 +1,7 @@
 import dataclasses
 import io
 import sys
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import magma as m
 
@@ -37,21 +37,27 @@ class ModuleContext:
             return self._value_map[port]
         except KeyError:
             pass
-        self._value_map[port] = value = self.new_value(type(port), **kwargs)
+        self._value_map[port] = value = self.new_value(port, **kwargs)
         return value
 
-    def set_value(self, port: m.Type, value: MlirValue):
+    def set_mapped_value(self, port: m.Type, value: MlirValue):
         if port in self._value_map:
             raise ValueError(f"Port {port} already mapped")
         self._value_map[port] = value
 
-    def new_typed_value(self, mlir_type: MlirType, **kwargs) -> MlirValue:
+    def new_value(
+            self, value_or_type: Union[m.Type, m.Kind, MlirType],
+            **kwargs) -> MlirValue:
+        if isinstance(value_or_type, m.Type):
+            mlir_type = magma_type_to_mlir_type(type(value_or_type))
+        elif isinstance(value_or_type, m.Kind):
+            mlir_type = magma_type_to_mlir_type(value_or_type)
+        elif isinstance(value_or_type, MlirType):
+            mlir_type = value_or_type
+        else:
+            raise TypeError(value_or_type)
         name = self._name_gen(**kwargs)
         return MlirValue(mlir_type, name)
-
-    def new_value(self, magma_type: m.Kind, **kwargs) -> MlirValue:
-        mlir_type = magma_type_to_mlir_type(magma_type)
-        return self.new_typed_value(mlir_type, **kwargs)
 
 
 @wrap_with_not_implemented_error
@@ -127,7 +133,7 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert defn.coreir_name == "reg"
-        reg = self._ctx.new_typed_value(
+        reg = self._ctx.new_value(
             hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
         sv.RegOp(name=inst.name, results=[reg])
         with push_block(sv.AlwaysFFOp(operands=[module.operands[1]])):
@@ -157,8 +163,8 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert defn.coreir_name == "muxn"
-        data = self._ctx.new_value(type(defn.I.data))
-        sel = self._ctx.new_value(type(defn.I.sel))
+        data = self._ctx.new_value(defn.I.data)
+        sel = self._ctx.new_value(defn.I.sel)
         hw.StructExtractOp(
             field="data",
             operands=module.operands.copy(),
@@ -273,7 +279,7 @@ class ModuleVisitor:
             info = data["info"]
             src_port, dst_port = info["src"], info["dst"]
             src_value = self._ctx.get_or_make_mapped_value(src_port)
-            self._ctx.set_value(dst_port, src_value)
+            self._ctx.set_mapped_value(dst_port, src_value)
         assert self.visit_module(ModuleWrapper.make(module, self._ctx))
 
 
@@ -285,7 +291,7 @@ def lower_magma_defn_to_hw_module_op(defn: m.DefineCircuitKind):
         for port in defn.interface.outputs()
     ]
     named_outputs = [
-        ctx.new_value(type(port), name=port.name, force=True)
+        ctx.new_value(port, name=port.name, force=True)
         for port in defn.interface.inputs()
     ]
     op = hw.ModuleOp(
