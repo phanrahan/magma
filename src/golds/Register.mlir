@@ -21,17 +21,21 @@ hw.module @Register(%I: !hw.struct<x: i8, y: i1>, %CLK: i1) -> (%O: !hw.struct<x
     sv.alwaysff(posedge %CLK) {
         sv.passign %19, %17 : i9
     }
+    sv.initial {
+        %20 = hw.constant 262 : i9
+        sv.bpassign %19, %20 : i9
+    }
     %18 = sv.read_inout %19 : !hw.inout<i9>
-    %20 = comb.extract %18 from 0 : (i9) -> i1
-    %21 = comb.extract %18 from 1 : (i9) -> i1
-    %22 = comb.extract %18 from 2 : (i9) -> i1
-    %23 = comb.extract %18 from 3 : (i9) -> i1
-    %24 = comb.extract %18 from 4 : (i9) -> i1
-    %25 = comb.extract %18 from 5 : (i9) -> i1
-    %26 = comb.extract %18 from 6 : (i9) -> i1
-    %27 = comb.extract %18 from 7 : (i9) -> i1
-    %28 = comb.concat %27, %26, %25, %24, %23, %22, %21, %20 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
-    %29 = comb.extract %18 from 8 : (i9) -> i1
-    %30 = hw.struct_create (%28, %29) : !hw.struct<x: i8, y: i1>
-    hw.output %30 : !hw.struct<x: i8, y: i1>
+    %21 = comb.extract %18 from 0 : (i9) -> i1
+    %22 = comb.extract %18 from 1 : (i9) -> i1
+    %23 = comb.extract %18 from 2 : (i9) -> i1
+    %24 = comb.extract %18 from 3 : (i9) -> i1
+    %25 = comb.extract %18 from 4 : (i9) -> i1
+    %26 = comb.extract %18 from 5 : (i9) -> i1
+    %27 = comb.extract %18 from 6 : (i9) -> i1
+    %28 = comb.extract %18 from 7 : (i9) -> i1
+    %29 = comb.concat %28, %27, %26, %25, %24, %23, %22, %21 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %30 = comb.extract %18 from 8 : (i9) -> i1
+    %31 = hw.struct_create (%29, %30) : !hw.struct<x: i8, y: i1>
+    hw.output %31 : !hw.struct<x: i8, y: i1>
 }
