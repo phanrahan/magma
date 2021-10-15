@@ -27,7 +27,7 @@ hw.module @ByteSelector(%I: i32, %offset: i2) -> (%O: i8) {
     %16 = comb.extract %I from 23 : (i32) -> i1
     %17 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
     %18 = hw.constant 2 : i2
-    %19 = comb.eq %offset, %18 : i1
+    %19 = comb.icmp eq %offset, %18 : i2
     %20 = hw.instance "Mux2xUInt8_inst0" @Mux2xUInt8(%8, %17, %19) : (i8, i8, i1) -> (i8)
     %21 = comb.extract %I from 8 : (i32) -> i1
     %22 = comb.extract %I from 9 : (i32) -> i1
@@ -39,7 +39,7 @@ hw.module @ByteSelector(%I: i32, %offset: i2) -> (%O: i8) {
     %28 = comb.extract %I from 15 : (i32) -> i1
     %29 = comb.concat %28, %27, %26, %25, %24, %23, %22, %21 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
     %30 = hw.constant 1 : i2
-    %31 = comb.eq %offset, %30 : i1
+    %31 = comb.icmp eq %offset, %30 : i2
     %32 = hw.instance "Mux2xUInt8_inst1" @Mux2xUInt8(%20, %29, %31) : (i8, i8, i1) -> (i8)
     %33 = comb.extract %I from 0 : (i32) -> i1
     %34 = comb.extract %I from 1 : (i32) -> i1
@@ -51,7 +51,7 @@ hw.module @ByteSelector(%I: i32, %offset: i2) -> (%O: i8) {
     %40 = comb.extract %I from 7 : (i32) -> i1
     %41 = comb.concat %40, %39, %38, %37, %36, %35, %34, %33 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
     %42 = hw.constant 0 : i2
-    %43 = comb.eq %offset, %42 : i1
+    %43 = comb.icmp eq %offset, %42 : i2
     %44 = hw.instance "Mux2xUInt8_inst2" @Mux2xUInt8(%32, %41, %43) : (i8, i8, i1) -> (i8)
     hw.output %44 : i8
 }

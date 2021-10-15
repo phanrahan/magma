@@ -30,10 +30,10 @@ hw.module @Mux2x_SequentialRegisterWrapperUInt16(%I0: i16, %I1: i16, %S: i1) -> 
 }
 hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     %2 = comb.sub %0, %1 : i16
-    %3 = comb.ult %0, %1 : i1
+    %3 = comb.icmp ult %0, %1 : i16
     %4 = hw.instance "Mux2xUInt16_inst0" @Mux2xUInt16(%2, %0, %3) : (i16, i16, i1) -> (i16)
     %5 = hw.constant 0 : i16
-    %6 = comb.eq %0, %5 : i1
+    %6 = comb.icmp eq %0, %5 : i16
     %8 = hw.constant -1 : i1
     %7 = comb.xor %8, %6 : i1
     %9 = hw.instance "Mux2x_SequentialRegisterWrapperUInt16_inst2" @Mux2x_SequentialRegisterWrapperUInt16(%0, %4, %7) : (i16, i16, i1) -> (i16)
@@ -45,6 +45,6 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     %14 = hw.instance "Mux2xUInt16_inst1" @Mux2xUInt16(%13, %a, %load) : (i16, i16, i1) -> (i16)
     %1 = hw.instance "Register_inst0" @Register(%14, %CLK) : (i16, i1) -> (i16)
     %15 = hw.constant 0 : i16
-    %16 = comb.eq %0, %15 : i1
+    %16 = comb.icmp eq %0, %15 : i16
     hw.output %1, %16 : i16, i1
 }

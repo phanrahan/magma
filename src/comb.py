@@ -58,4 +58,18 @@ class ExtractOp(MlirOp):
         print_types(self.results, printer)
 
 
+@dataclasses.dataclass
+class ICmpOp(MlirOp):
+    operands: List[MlirValue]
+    results: List[MlirValue]
+    predicate: str
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(f" = comb.icmp {self.predicate} ")
+        print_names(self.operands, printer)
+        printer.print(f" : ")
+        print_types(self.operands[0], printer)
+
+
 end_dialect()
