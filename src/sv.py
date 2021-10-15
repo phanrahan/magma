@@ -48,6 +48,17 @@ class PAssignOp(MlirOp):
 
     
 @dataclasses.dataclass
+class BPAssignOp(MlirOp):
+    operands: List[MlirValue]
+
+    def print_op(self, printer: PrinterBase):
+        printer.print(f"sv.bpassign ")
+        print_names(self.operands, printer)
+        printer.print(" : ")
+        print_types(self.operands[1], printer)
+
+
+@dataclasses.dataclass
 class AlwaysFFOp(MlirOp):
     operands: List[MlirValue]
 
@@ -63,6 +74,20 @@ class AlwaysFFOp(MlirOp):
         printer.print("sv.alwaysff(posedge ")
         print_names(self.operands, printer)
         printer.print(")")
+
+
+@dataclasses.dataclass
+class InitialOp(MlirOp):
+    def __post_init__(self):
+        self.regions.append(MlirRegion())
+        self.regions[0].blocks.append(MlirBlock())
+        self._block = self.regions[0].blocks[0]
+
+    def add_operation(self, operation: MlirOp):
+        self._block.operations.append(operation)
+
+    def print_op(self, printer: PrinterBase):
+        printer.print("sv.initial")
 
 
 end_dialect()

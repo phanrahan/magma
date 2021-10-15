@@ -138,6 +138,10 @@ class ModuleVisitor:
         sv.RegOp(name=inst.name, results=[reg])
         with push_block(sv.AlwaysFFOp(operands=[module.operands[1]])):
             sv.PAssignOp(operands=[reg, module.operands[0]])
+        with push_block(sv.InitialOp()):
+            init = defn.coreir_configargs["init"].value
+            const = self.make_constant(type(defn.I), init)
+            sv.BPAssignOp(operands=[reg, const])
         sv.ReadInOutOp(operands=[reg], results=module.results.copy())
         return True
 
