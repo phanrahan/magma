@@ -15,7 +15,7 @@ from magma_common import ModuleLike as MagmaModuleLike
 from magma_ops import (
     MagmaArrayGetOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
-    MagmaBitsConstantOp)
+    MagmaBitConstantOp, MagmaBitsConstantOp)
 from mlir_name_generator import MlirNameGenerator
 from mlir import push_block
 from mlir import MlirValue
@@ -231,8 +231,8 @@ class ModuleVisitor:
                 operands=list(reversed(module.operands)),
                 results=module.results)
             return True
-        if isinstance(defn, MagmaBitsConstantOp):
-            hw.ConstantOp(value=defn.value, results=module.results)
+        if isinstance(defn, (MagmaBitConstantOp, MagmaBitsConstantOp)):
+            hw.ConstantOp(value=int(defn.value), results=module.results)
             return True
         if isinstance(defn, MagmaProductGetOp):
             hw.StructExtractOp(
