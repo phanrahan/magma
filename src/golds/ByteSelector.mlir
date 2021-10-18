@@ -1,12 +1,3 @@
-hw.module @Mux2xUInt8(%I0: i8, %I1: i8, %S: i1) -> (%O: i8) {
-    %0 = hw.array_create %I1, %I0 : i8
-    %1 = comb.merge %S : i1
-    %2 = hw.struct_create (%0, %1) : !hw.struct<data: !hw.array<2xi8>, sel: i1>
-    %4 = hw.struct_extract %2["data"] : !hw.struct<data: !hw.array<2xi8>, sel: i1>
-    %5 = hw.struct_extract %2["sel"] : !hw.struct<data: !hw.array<2xi8>, sel: i1>
-    %3 = hw.array_get %4[%5] : !hw.array<2xi8>
-    hw.output %3 : i8
-}
 hw.module @ByteSelector(%I: i32, %offset: i2) -> (%O: i8) {
     %0 = comb.extract %I from 24 : (i32) -> i1
     %1 = comb.extract %I from 25 : (i32) -> i1
@@ -28,30 +19,33 @@ hw.module @ByteSelector(%I: i32, %offset: i2) -> (%O: i8) {
     %17 = comb.concat %16, %15, %14, %13, %12, %11, %10, %9 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
     %18 = hw.constant 2 : i2
     %19 = comb.icmp eq %offset, %18 : i2
-    %20 = hw.instance "Mux2xUInt8_inst0" @Mux2xUInt8(%8, %17, %19) : (i8, i8, i1) -> (i8)
-    %21 = comb.extract %I from 8 : (i32) -> i1
-    %22 = comb.extract %I from 9 : (i32) -> i1
-    %23 = comb.extract %I from 10 : (i32) -> i1
-    %24 = comb.extract %I from 11 : (i32) -> i1
-    %25 = comb.extract %I from 12 : (i32) -> i1
-    %26 = comb.extract %I from 13 : (i32) -> i1
-    %27 = comb.extract %I from 14 : (i32) -> i1
-    %28 = comb.extract %I from 15 : (i32) -> i1
-    %29 = comb.concat %28, %27, %26, %25, %24, %23, %22, %21 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
-    %30 = hw.constant 1 : i2
-    %31 = comb.icmp eq %offset, %30 : i2
-    %32 = hw.instance "Mux2xUInt8_inst1" @Mux2xUInt8(%20, %29, %31) : (i8, i8, i1) -> (i8)
-    %33 = comb.extract %I from 0 : (i32) -> i1
-    %34 = comb.extract %I from 1 : (i32) -> i1
-    %35 = comb.extract %I from 2 : (i32) -> i1
-    %36 = comb.extract %I from 3 : (i32) -> i1
-    %37 = comb.extract %I from 4 : (i32) -> i1
-    %38 = comb.extract %I from 5 : (i32) -> i1
-    %39 = comb.extract %I from 6 : (i32) -> i1
-    %40 = comb.extract %I from 7 : (i32) -> i1
-    %41 = comb.concat %40, %39, %38, %37, %36, %35, %34, %33 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
-    %42 = hw.constant 0 : i2
-    %43 = comb.icmp eq %offset, %42 : i2
-    %44 = hw.instance "Mux2xUInt8_inst2" @Mux2xUInt8(%32, %41, %43) : (i8, i8, i1) -> (i8)
-    hw.output %44 : i8
+    %21 = hw.array_create %8, %17 : i8
+    %20 = hw.array_get %21[%19] : !hw.array<2xi8>
+    %22 = comb.extract %I from 8 : (i32) -> i1
+    %23 = comb.extract %I from 9 : (i32) -> i1
+    %24 = comb.extract %I from 10 : (i32) -> i1
+    %25 = comb.extract %I from 11 : (i32) -> i1
+    %26 = comb.extract %I from 12 : (i32) -> i1
+    %27 = comb.extract %I from 13 : (i32) -> i1
+    %28 = comb.extract %I from 14 : (i32) -> i1
+    %29 = comb.extract %I from 15 : (i32) -> i1
+    %30 = comb.concat %29, %28, %27, %26, %25, %24, %23, %22 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %31 = hw.constant 1 : i2
+    %32 = comb.icmp eq %offset, %31 : i2
+    %34 = hw.array_create %20, %30 : i8
+    %33 = hw.array_get %34[%32] : !hw.array<2xi8>
+    %35 = comb.extract %I from 0 : (i32) -> i1
+    %36 = comb.extract %I from 1 : (i32) -> i1
+    %37 = comb.extract %I from 2 : (i32) -> i1
+    %38 = comb.extract %I from 3 : (i32) -> i1
+    %39 = comb.extract %I from 4 : (i32) -> i1
+    %40 = comb.extract %I from 5 : (i32) -> i1
+    %41 = comb.extract %I from 6 : (i32) -> i1
+    %42 = comb.extract %I from 7 : (i32) -> i1
+    %43 = comb.concat %42, %41, %40, %39, %38, %37, %36, %35 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %44 = hw.constant 0 : i2
+    %45 = comb.icmp eq %offset, %44 : i2
+    %47 = hw.array_create %33, %43 : i8
+    %46 = hw.array_get %47[%45] : !hw.array<2xi8>
+    hw.output %46 : i8
 }

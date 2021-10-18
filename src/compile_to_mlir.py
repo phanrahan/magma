@@ -271,10 +271,32 @@ class ModuleVisitor:
             return True
 
     @wrap_with_not_implemented_error
+    def visit_magma_mux(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, m.Mux)
+        # NOTE(rsetaluri): This is a round-about way to get the height while
+        # magma.Mux does not store those parameters. That should be fixed in
+        # magma/primitives/mux.py.
+        height = len(list(filter(
+            lambda p: "I" in p.name.name, defn.interface.outputs())))
+        T = type(defn.I0)
+        array = self._ctx.new_value(m.Array[height, T])
+        hw.ArrayCreateOp(
+            operands=module.operands[:-1],
+            results=[array])
+        hw.ArrayGetOp(
+            operands=[array, module.operands[-1]],
+            results=module.results)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_instance(self, module: ModuleWrapper) -> bool:
         inst = module.module
         assert isinstance(inst, m.circuit.AnonymousCircuitType)
         defn = type(inst)
+        if isinstance(defn, m.Mux):
+            return self.visit_magma_mux(module)
         if m.isprimitive(defn):
             return self.visit_primitive(module)
         hw.InstanceOp(
@@ -335,11 +357,19 @@ def lower_magma_defn_to_hw_module_op(defn: m.DefineCircuitKind):
 
 def lower_magma_defn_to_mlir_module_op(
         defn: m.DefineCircuitKind) -> builtin.ModuleOp:
+
+    # NOTE(rsetaluri): This is a round-about way to mark new types as
+    # primitives. These definitions should actually be marked as primitives.
+    def isdefinition(defn_or_decl: m.circuit.CircuitKind):
+        if isinstance(defn_or_decl, m.Mux):
+            return False
+        return m.isdefinition(defn_or_decl)
+
     deps = m.passes.dependencies(defn, include_self=True)
     module = builtin.ModuleOp()
     with push_block(module):
         for dep in deps:
-            if not m.isdefinition(dep):
+            if not isdefinition(dep):
                 continue
             lower_magma_defn_to_hw_module_op(dep)
     return module
