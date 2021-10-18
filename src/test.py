@@ -26,6 +26,8 @@ _ckts = [
     simple_unused_output,
     feedthrough,
     no_outputs,
+    simple_mixed_direction_ports,
+    complex_mixed_direction_ports,
 ]
 _ckts += get_magma_examples()
 

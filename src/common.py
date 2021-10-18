@@ -55,3 +55,9 @@ class Stack:
 
     def peek(self):
         return self._stack[-1]
+
+
+def replace_all(s: str, replacements: Dict[str, str]) -> str:
+    for old, new in replacements.items():
+        s = s.replace(old, new)
+    return s

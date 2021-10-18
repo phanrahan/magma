@@ -3,7 +3,7 @@ import dataclasses
 import magma as m
 
 from graph_lib import Graph
-from magma_common import ModuleLike, make_instance
+from magma_common import ModuleLike, make_instance, visit_value_by_direction
 from magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
@@ -20,7 +20,19 @@ def _const_digital_to_bool(digital: m.Digital) -> bool:
     return True
 
 
-def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
+def _get_inst_or_defn_or_die(ref):
+    try:
+        return ref.inst
+    except AttributeError:
+        pass
+    try:
+        return ref.defn
+    except AttributeError:
+        pass
+    assert False
+
+
+def _visit_driver(g: Graph, value: m.Type, driver: m.Type, module):
     if driver.const():
         if isinstance(driver, m.Digital):
             as_bool = _const_digital_to_bool(driver)
@@ -49,7 +61,7 @@ def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
             creator = make_instance(MagmaArrayCreateOp(T))
             for i, element in enumerate(driver):
                 creator_input = getattr(creator, f"I{i}")
-                _process_driver(g, creator_input, element, creator)
+                _visit_driver(g, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)
             g.add_edge(creator, module, info=info)
             return
@@ -59,42 +71,56 @@ def _process_driver(g: Graph, value: m.Type, driver: m.Type, module):
             for k, t in T.field_dict.items():
                 element = getattr(driver, k)
                 creator_input = getattr(creator, f"I{k}")
-                _process_driver(g, creator_input, element, creator)
+                _visit_driver(g, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)
             g.add_edge(creator, module, info=info)
             return
         raise NotImplementedError(driver, ref)
     if isinstance(ref, m.ref.ArrayRef):
+        if ref.array.is_mixed():
+            info=dict(src=driver, dst=value)
+            src_module = _get_inst_or_defn_or_die(ref.array.name.root())
+            g.add_edge(src_module, module, info=info)
+            return
         T = type(ref.array)
         getter = make_instance(MagmaArrayGetOp(T), index=ref.index)
-        _process_driver(g, getter.I, ref.array, getter)
+        _visit_driver(g, getter.I, ref.array, getter)
         info = dict(src=getter.O, dst=value)
         g.add_edge(getter, module, info=info)
         return
     if isinstance(ref, m.ref.TupleRef):
+        if ref.tuple.is_mixed():
+            info=dict(src=driver, dst=value)
+            src_module = _get_inst_or_defn_or_die(ref.tuple.name.root())
+            g.add_edge(src_module, module, info=info)
+            return
         T = type(ref.tuple)
         getter = make_instance(MagmaProductGetOp(T, ref.index))
-        _process_driver(g, getter.I, ref.tuple, getter)
+        _visit_driver(g, getter.I, ref.tuple, getter)
         info = dict(src=getter.O, dst=value)
         g.add_edge(getter, module, info=info)
         return
     raise NotImplementedError(driver, type(driver), ref, type(ref))
 
 
-def _traverse_input(g: Graph, value: m.Type, module):
+def _visit_input(g: Graph, value: m.Type, module: ModuleLike):
     driver = value.trace()
     assert driver is not None
-    _process_driver(g, value, driver, module)
+    _visit_driver(g, value, driver, module)
 
 
-def _traverse_inputs(g: Graph, module: ModuleLike):
-    for port in module.interface.inputs(include_clocks=True):
-        _traverse_input(g, port, module)
+def _visit_inputs(g: Graph, module: ModuleLike):
+    for port in module.interface.ports.values():
+        visit_value_by_direction(
+            port,
+            lambda p: _visit_input(g, p, module),
+            lambda _: None
+        )
 
 
 def build_magma_graph(ckt: m.DefineCircuitKind) -> Graph:
     g = Graph()
-    _traverse_inputs(g, ckt)
+    _visit_inputs(g, ckt)
     for inst in ckt.instances:
-        _traverse_inputs(g, inst)
+        _visit_inputs(g, inst)
     return g

@@ -146,3 +146,29 @@ class feedthrough(m.Circuit):
 class no_outputs(m.Circuit):
     io = m.IO(I=m.In(m.Bit))
     ~io.I
+
+
+class simple_mixed_direction_ports(m.Circuit):
+    S = m.Bits[8]
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(S)))
+    io = m.IO(a=m.Array[8, T], b=T.flip())
+    m.wire(io.a[1], io.b)
+    for i, aa in enumerate(io.a):
+        if i == 1: continue
+        aa.y @= 0
+
+
+class _Foo(m.Circuit):
+    S = m.Bits[8]
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(S)))
+    io = m.IO(a=T)
+    io.a.y @= io.a.x
+
+
+class complex_mixed_direction_ports(m.Circuit):
+    S = m.Bits[8]
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(S)))
+    io = m.IO(a=T)
+    simple = _Foo()
+    m.wire(io.a.x, simple.a.x)
+    m.wire(io.a.y, simple.a.y)

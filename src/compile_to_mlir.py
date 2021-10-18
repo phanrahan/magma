@@ -11,7 +11,10 @@ from comb import comb
 from common import wrap_with_not_implemented_error
 from graph_lib import Graph
 from hw import hw
-from magma_common import ModuleLike as MagmaModuleLike
+from magma_common import (
+    ModuleLike as MagmaModuleLike,
+    value_or_type_to_string as magma_value_or_type_to_string,
+    visit_value_by_direction as visit_magma_value_by_direction)
 from magma_ops import (
     MagmaArrayGetOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
@@ -82,14 +85,11 @@ def get_module_interface(
     operands = []
     results = []
     for port in module.interface.ports.values():
-        if port.is_input():
-            value = ctx.get_or_make_mapped_value(port)
-            operands.append(value)
-        elif port.is_output():
-            value = ctx.get_or_make_mapped_value(port)
-            results.append(value)
-        else:
-            raise NotImplementedError()
+        visit_magma_value_by_direction(
+            port,
+            lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
+            lambda p: results.append(ctx.get_or_make_mapped_value(p))
+        )
     return operands, results
 
 
@@ -273,7 +273,7 @@ class ModuleVisitor:
     @wrap_with_not_implemented_error
     def visit_instance(self, module: ModuleWrapper) -> bool:
         inst = module.module
-        assert isinstance(inst, m.Circuit)
+        assert isinstance(inst, m.circuit.AnonymousCircuitType)
         defn = type(inst)
         if m.isprimitive(defn):
             return self.visit_primitive(module)
@@ -288,7 +288,7 @@ class ModuleVisitor:
     def visit_module(self, module: ModuleWrapper) -> bool:
         if isinstance(module.module, m.DefineCircuitKind):
             return True
-        if isinstance(module.module, m.Circuit):
+        if isinstance(module.module, m.circuit.AnonymousCircuitType):
             return self.visit_instance(module)
 
     def visit(self, module: MagmaModuleLike):
@@ -310,14 +310,16 @@ class ModuleVisitor:
 def lower_magma_defn_to_hw_module_op(defn: m.DefineCircuitKind):
     graph = build_magma_graph(defn)
     ctx = ModuleContext()
-    inputs = [
-        ctx.get_or_make_mapped_value(port, name=port.name, force=True)
-        for port in defn.interface.outputs()
-    ]
-    named_outputs = [
-        ctx.new_value(port, name=port.name, force=True)
-        for port in defn.interface.inputs()
-    ]
+
+    def new_values(fn, ports):
+        namer = magma_value_or_type_to_string
+        return [fn(port, name=namer(port), force=True) for port in ports]
+
+    i, o = [], []
+    for port in defn.interface.ports.values():
+        visit_magma_value_by_direction(port, i.append, o.append)
+    inputs = new_values(ctx.get_or_make_mapped_value, o)
+    named_outputs = new_values(ctx.new_value, i)
     op = hw.ModuleOp(
         name=defn.name,
         operands=inputs,
@@ -327,10 +329,7 @@ def lower_magma_defn_to_hw_module_op(defn: m.DefineCircuitKind):
         return
     with push_block(op):
         visitor.visit(defn)
-        output_values = [
-            ctx.get_or_make_mapped_value(port, name=port.name, force=True)
-            for port in defn.interface.inputs()
-        ]
+        output_values = new_values(ctx.get_or_make_mapped_value, i)
         hw.OutputOp(operands=output_values)
 
 

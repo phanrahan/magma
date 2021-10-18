@@ -2,14 +2,14 @@ from typing import Union
 
 import magma as m
 
-from magma_common import make_type_string
+from magma_common import value_or_type_to_string
 
 
 class MagmaArrayGetOp(m.Generator2):
     def __init__(self, T: m.ArrayMeta):
         assert isinstance(T, m.ArrayMeta)
         T = T.undirected_t
-        self.name = f"magma_array_get_op_{make_type_string(T)}"
+        self.name = f"magma_array_get_op_{value_or_type_to_string(T)}"
         self.primitive = True
 
         T_out = T.T
@@ -22,7 +22,8 @@ class MagmaArraySliceOp(m.Generator2):
     def __init__(self, T: m.ArrayMeta, lo: int, hi: int):
         assert isinstance(T, m.ArrayMeta)
         T = T.undirected_t
-        self.name = f"magma_array_slice_op_{make_type_string(T)}_{lo}_{hi}"
+        type_string = value_or_type_to_string(T)
+        self.name = f"magma_array_slice_op_{type_string}_{lo}_{hi}"
         self.primitive = True
 
         T_out = T.unsized_t[hi - lo]
@@ -37,7 +38,7 @@ class MagmaArrayCreateOp(m.Generator2):
     def __init__(self, T: m.ArrayMeta):
         assert isinstance(T, m.ArrayMeta)
         T = T.undirected_t
-        self.name = f"magma_array_create_op_{make_type_string(T)}"
+        self.name = f"magma_array_create_op_{value_or_type_to_string(T)}"
         self.primitive = True
 
         self.io = (m.IO(**{f"I{i}": m.In(T.T) for i in range(T.N)}) +
@@ -49,7 +50,7 @@ class MagmaProductGetOp(m.Generator2):
     def __init__(self, T: m.ProductMeta, index: Union[int, str]):
         assert isinstance(T, m.ProductMeta)
         T = T.undirected_t
-        self.name = f"magma_product_get_op_{make_type_string(T)}_{index}"
+        self.name = f"magma_product_get_op_{value_or_type_to_string(T)}_{index}"
         self.primitive = True
 
         T_out = T.field_dict[index]
@@ -63,7 +64,7 @@ class MagmaProductCreateOp(m.Generator2):
     def __init__(self, T: m.ProductMeta):
         assert isinstance(T, m.ProductMeta)
         T = T.undirected_t
-        self.name = f"magma_tuple_create_op_{make_type_string(T)}"
+        self.name = f"magma_tuple_create_op_{value_or_type_to_string(T)}"
         self.primitive = True
 
         fields = T.field_dict
@@ -75,7 +76,7 @@ class MagmaBitConstantOp(m.Generator2):
     def __init__(self, T: m.DigitalMeta, value: bool):
         assert isinstance(T, m.DigitalMeta)
         T = T.undirected_t
-        self.name = f"magma_bit_constant_op_{make_type_string(T)}"
+        self.name = f"magma_bit_constant_op_{value_or_type_to_string(T)}"
         self.primitive = True
 
         self.io = m.IO(O=m.Out(T))
@@ -87,7 +88,7 @@ class MagmaBitsConstantOp(m.Generator2):
     def __init__(self, T: m.BitsMeta, value: int):
         assert isinstance(T, m.BitsMeta)
         T = T.undirected_t
-        self.name = f"magma_bits_constant_op_{make_type_string(T)}"
+        self.name = f"magma_bits_constant_op_{value_or_type_to_string(T)}"
         self.primitive = True
 
         self.io = m.IO(O=m.Out(T))
