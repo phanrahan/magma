@@ -1,7 +1,7 @@
 import dataclasses
 import io
 import sys
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import magma as m
 
@@ -64,6 +64,18 @@ class ModuleContext:
 
 
 @wrap_with_not_implemented_error
+def parse_reset_type(T: m.Kind) -> Tuple[str, str]:
+     if T is m.Reset:
+         return "syncreset", "posedge"
+     if T is m.ResetN:
+         return "syncreset", "negedge"
+     if T is m.AsyncReset:
+         return "asyncreset", "posedge"
+     if T is m.AsyncResetN:
+         return "asyncreset", "negedge"
+
+
+@wrap_with_not_implemented_error
 def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
     type = type.undirected_t
     if issubclass(type, m.Digital):
@@ -111,10 +123,21 @@ class ModuleVisitor:
         self._ctx = ctx
         self._visited = set()
 
-    def make_constant(self, T: m.Kind, value: int):
+    def make_constant(self, T: m.Kind, value: Any) -> MlirValue:
         result = self._ctx.new_value(T)
-        hw.ConstantOp(value=value, results=[result])
-        return result
+        if isinstance(T, (m.DigitalMeta, m.BitsMeta)):
+            hw.ConstantOp(value=int(value), results=[result])
+            return result
+        if isinstance(T, m.ArrayMeta):
+            operands = [self.make_constant(T.T, v) for v in value]
+            hw.ArrayCreateOp(operands=operands, results=[result])
+            return result
+        if isinstance(T, m.ProductMeta):
+            fields = T.field_dict.items()
+            operands = [self.make_constant(t, value[k]) for k, t in fields]
+            hw.StructCreateOp(operands=operands, results=[result])
+            return result
+        raise TypeError(T)
 
     @wrap_with_not_implemented_error
     def visit_coreir_not(self, module: ModuleWrapper) -> bool:
@@ -151,9 +174,8 @@ class ModuleVisitor:
         const = self.make_constant(type(defn.I), init)
         with push_block(always.body_block):
             sv.PAssignOp(operands=[reg, module.operands[0]])
-        if defn.coreir_name == "reg_arst":
-            always.operands.append(module.operands[1])
         if has_reset:
+            always.operands.append(module.operands[1])
             with push_block(always.reset_block):
                 sv.PAssignOp(operands=[reg, const])
         with push_block(sv.InitialOp()):
@@ -292,12 +314,42 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_magma_register(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        reg = self._ctx.new_value(
+            hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
+        sv.RegOp(name=inst.name, results=[reg])
+        clock_edge = "posedge"
+        has_reset = defn.reset_type is not None
+        operands = [module.operands[1]]
+        attrs = dict(clock_edge=clock_edge)
+        if has_reset:
+            operands.append(module.operands[2])
+            reset_type, reset_edge = parse_reset_type(defn.reset_type)
+            attrs.update(dict(reset_type=reset_type, reset_edge=reset_edge))
+        always = sv.AlwaysFFOp(operands=operands, **attrs)
+        const = self.make_constant(type(defn.I), defn.init)
+        with push_block(always.body_block):
+            sv.PAssignOp(operands=[reg, module.operands[0]])
+        if has_reset:
+            always.operands.append(module.operands[1])
+            with push_block(always.reset_block):
+                sv.PAssignOp(operands=[reg, const])
+        with push_block(sv.InitialOp()):
+            sv.BPAssignOp(operands=[reg, const])
+        sv.ReadInOutOp(operands=[reg], results=module.results.copy())
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_instance(self, module: ModuleWrapper) -> bool:
         inst = module.module
         assert isinstance(inst, m.circuit.AnonymousCircuitType)
         defn = type(inst)
         if isinstance(defn, m.Mux):
             return self.visit_magma_mux(module)
+        if isinstance(defn, m.Register):
+            return self.visit_magma_register(module)
         if m.isprimitive(defn):
             return self.visit_primitive(module)
         hw.InstanceOp(
@@ -363,6 +415,8 @@ def lower_magma_defn_to_mlir_module_op(
     # primitives. These definitions should actually be marked as primitives.
     def isdefinition(defn_or_decl: m.circuit.CircuitKind):
         if isinstance(defn_or_decl, m.Mux):
+            return False
+        if isinstance(defn_or_decl, m.Register):
             return False
         return m.isdefinition(defn_or_decl)
 

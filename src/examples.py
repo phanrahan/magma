@@ -90,14 +90,22 @@ class aggregate_mux_wrapper(m.Circuit):
     io.y @= m.mux([io.a, not_a], io.s)
 
 
-simple_register = m.Register(T=m.Bits[8])
-m.passes.clock.WireClockPass(simple_register).run()
+class simple_register_wrapper(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    io.y @= m.register(io.a, init=3, name="reg0")
 
-_T_product = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
 
-_init = _T_product(m.Bits[8](6), m.Bit(1))
-complex_register = m.Register(_T_product, init=_init)
-m.passes.clock.WireClockPass(complex_register).run()
+class complex_register_wrapper(m.Circuit):
+    T0 = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    T1 = m.Array[6, m.Bits[16]]
+    T2 = m.Product.from_fields("anon", dict(u=T0, v=T1))
+    io = m.IO(a=m.In(T0), b=m.In(T1), y=m.Out(T2))
+    io += m.ClockIO(has_async_reset=True)
+    reg_a = m.register(io.a, init=T0(10, 1), reset_type=m.AsyncReset)
+    reg_b = m.register(io.b, init=T1(*(i * 2 for i in range(T1.N))))
+    y = T2(reg_a, reg_b)
+    io.y @= y
 
 
 class counter(m.Circuit):

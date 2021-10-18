@@ -1,17 +1,3 @@
-hw.module @Register(%I: i1, %CLK: i1) -> (%O: i1) {
-    %0 = comb.merge %I : i1
-    %2 = sv.reg {name = "reg_P1_inst0"} : !hw.inout<i1>
-    sv.alwaysff(posedge %CLK) {
-        sv.passign %2, %0 : i1
-    }
-    %3 = hw.constant 0 : i1
-    sv.initial {
-        sv.bpassign %2, %3 : i1
-    }
-    %1 = sv.read_inout %2 : !hw.inout<i1>
-    %4 = comb.extract %1 from 0 : (i1) -> i1
-    hw.output %4 : i1
-}
 hw.module @Cell(%neighbors: i8, %running: i1, %write_enable: i1, %write_value: i1, %CLK: i1) -> (%out: i1) {
     %0 = hw.constant 0 : i1
     %1 = hw.constant 1 : i1
@@ -82,6 +68,14 @@ hw.module @Cell(%neighbors: i8, %running: i1, %write_enable: i1, %write_value: i
     %66 = comb.xor %67, %running : i1
     %69 = hw.array_create %62, %64 : i1
     %68 = hw.array_get %69[%66] : !hw.array<2xi1>
-    %2 = hw.instance "Register_inst0" @Register(%68, %CLK) : (i1, i1) -> (i1)
+    %70 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
+    sv.alwaysff(posedge %CLK) {
+        sv.passign %70, %68 : i1
+    }
+    %71 = hw.constant 0 : i1
+    sv.initial {
+        sv.bpassign %70, %71 : i1
+    }
+    %2 = sv.read_inout %70 : !hw.inout<i1>
     hw.output %2 : i1
 }

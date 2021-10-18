@@ -1,15 +1,3 @@
-hw.module @Register(%I: i16, %CLK: i1) -> (%O: i16) {
-    %1 = sv.reg {name = "reg_P16_inst0"} : !hw.inout<i16>
-    sv.alwaysff(posedge %CLK) {
-        sv.passign %1, %I : i16
-    }
-    %2 = hw.constant 0 : i16
-    sv.initial {
-        sv.bpassign %1, %2 : i16
-    }
-    %0 = sv.read_inout %1 : !hw.inout<i16>
-    hw.output %0 : i16
-}
 hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     %2 = comb.sub %0, %1 : i16
     %3 = comb.icmp ult %0, %1 : i16
@@ -23,16 +11,32 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     %10 = hw.array_get %11[%8] : !hw.array<2xi16>
     %13 = hw.array_create %10, %b : i16
     %12 = hw.array_get %13[%load] : !hw.array<2xi16>
-    %0 = hw.instance "Register_inst1" @Register(%12, %CLK) : (i16, i1) -> (i16)
-    %14 = comb.sub %1, %0 : i16
-    %16 = hw.array_create %1, %14 : i16
-    %15 = hw.array_get %16[%3] : !hw.array<2xi16>
-    %18 = hw.array_create %1, %15 : i16
-    %17 = hw.array_get %18[%8] : !hw.array<2xi16>
-    %20 = hw.array_create %17, %a : i16
-    %19 = hw.array_get %20[%load] : !hw.array<2xi16>
-    %1 = hw.instance "Register_inst0" @Register(%19, %CLK) : (i16, i1) -> (i16)
-    %21 = hw.constant 0 : i16
-    %22 = comb.icmp eq %0, %21 : i16
-    hw.output %1, %22 : i16, i1
+    %14 = sv.reg {name = "Register_inst1"} : !hw.inout<i16>
+    sv.alwaysff(posedge %CLK) {
+        sv.passign %14, %12 : i16
+    }
+    %15 = hw.constant 0 : i16
+    sv.initial {
+        sv.bpassign %14, %15 : i16
+    }
+    %0 = sv.read_inout %14 : !hw.inout<i16>
+    %16 = comb.sub %1, %0 : i16
+    %18 = hw.array_create %1, %16 : i16
+    %17 = hw.array_get %18[%3] : !hw.array<2xi16>
+    %20 = hw.array_create %1, %17 : i16
+    %19 = hw.array_get %20[%8] : !hw.array<2xi16>
+    %22 = hw.array_create %19, %a : i16
+    %21 = hw.array_get %22[%load] : !hw.array<2xi16>
+    %23 = sv.reg {name = "Register_inst0"} : !hw.inout<i16>
+    sv.alwaysff(posedge %CLK) {
+        sv.passign %23, %21 : i16
+    }
+    %24 = hw.constant 0 : i16
+    sv.initial {
+        sv.bpassign %23, %24 : i16
+    }
+    %1 = sv.read_inout %23 : !hw.inout<i16>
+    %25 = hw.constant 0 : i16
+    %26 = comb.icmp eq %0, %25 : i16
+    hw.output %1, %26 : i16, i1
 }
