@@ -62,26 +62,26 @@ hw.module @Cell(%neighbors: i8, %running: i1, %write_enable: i1, %write_value: i
     %47 = comb.icmp eq %45, %46 : i3
     %48 = comb.and %3, %47 : i1
     %50 = hw.array_create %0, %1 : i1
-    %49 = hw.array_get %50[%48] : i2
+    %49 = hw.array_get %50[%48] : !hw.array<2xi1>
     %51 = hw.constant 0 : i1
     %52 = hw.constant 1 : i1
     %53 = hw.constant 4 : i3
     %54 = comb.icmp ult %45, %53 : i3
     %56 = hw.array_create %51, %52 : i1
-    %55 = hw.array_get %56[%54] : i2
+    %55 = hw.array_get %56[%54] : !hw.array<2xi1>
     %57 = hw.constant 0 : i1
     %58 = hw.constant 2 : i3
     %59 = comb.icmp ult %45, %58 : i3
     %61 = hw.array_create %55, %57 : i1
-    %60 = hw.array_get %61[%59] : i2
+    %60 = hw.array_get %61[%59] : !hw.array<2xi1>
     %63 = hw.array_create %49, %60 : i1
-    %62 = hw.array_get %63[%2] : i2
+    %62 = hw.array_get %63[%2] : !hw.array<2xi1>
     %65 = hw.array_create %2, %write_value : i1
-    %64 = hw.array_get %65[%write_enable] : i2
+    %64 = hw.array_get %65[%write_enable] : !hw.array<2xi1>
     %67 = hw.constant -1 : i1
     %66 = comb.xor %67, %running : i1
     %69 = hw.array_create %62, %64 : i1
-    %68 = hw.array_get %69[%66] : i2
+    %68 = hw.array_get %69[%66] : !hw.array<2xi1>
     %2 = hw.instance "Register_inst0" @Register(%68, %CLK) : (i1, i1) -> (i1)
     hw.output %2 : i1
 }

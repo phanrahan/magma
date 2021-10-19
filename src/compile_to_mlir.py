@@ -281,7 +281,8 @@ class ModuleVisitor:
         height = len(list(filter(
             lambda p: "I" in p.name.name, defn.interface.outputs())))
         T = type(defn.I0)
-        array = self._ctx.new_value(m.Array[height, T])
+        mlir_type = hw.ArrayType((height,), magma_type_to_mlir_type(T))
+        array = self._ctx.new_value(mlir_type)
         hw.ArrayCreateOp(
             operands=module.operands[:-1],
             results=[array])

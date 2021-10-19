@@ -20,9 +20,9 @@ hw.module @Parity(%I: i1, %CLK: i1) -> (%O: i1) {
     %6 = hw.constant -1 : i1
     %5 = comb.xor %6, %4 : i1
     %8 = hw.array_create %0, %1 : i1
-    %7 = hw.array_get %8[%5] : i2
+    %7 = hw.array_get %8[%5] : !hw.array<2xi1>
     %10 = hw.array_create %3, %7 : i1
-    %9 = hw.array_get %10[%I] : i2
+    %9 = hw.array_get %10[%I] : !hw.array<2xi1>
     %3 = hw.instance "Register_inst0" @Register(%9, %CLK) : (i1, i1) -> (i1)
     %11 = hw.constant 1 : i1
     %12 = comb.xor %3, %11 : i1
