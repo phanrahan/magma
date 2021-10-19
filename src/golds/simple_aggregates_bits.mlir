@@ -15,6 +15,6 @@ hw.module @simple_aggregates_bits(%a: i16) -> (%y: i16) {
     %13 = comb.extract %a from 5 : (i16) -> i1
     %14 = comb.extract %a from 6 : (i16) -> i1
     %15 = comb.extract %a from 7 : (i16) -> i1
-    %16 = comb.concat %15, %14, %13, %12, %11, %10, %9, %8, %7, %6, %5, %4, %3, %2, %1, %0 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> i16
+    %16 = comb.concat %15, %14, %13, %12, %11, %10, %9, %8, %7, %6, %5, %4, %3, %2, %1, %0 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> (i16)
     hw.output %16 : i16
 }

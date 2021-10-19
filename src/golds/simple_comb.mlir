@@ -5,7 +5,3 @@ hw.module @simple_comb(%a: i16, %b: i16, %c: i16) -> (%y: i16, %z: i16) {
     %3 = comb.or %2, %b : i16
     hw.output %3, %3 : i16, i16
 }
-hw.module @simple_unused_output(%a: i16, %b: i16, %c: i16) -> (%y: i16) {
-    %0, %1 = hw.instance "simple_comb_inst0" @simple_comb(%a, %b, %c) : (i16, i16, i16) -> (i16, i16)
-    hw.output %1 : i16
-}

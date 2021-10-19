@@ -3,7 +3,7 @@ import itertools
 import magma as m
 
 
-class comb(m.Circuit):
+class simple_comb(m.Circuit):
     T = m.Bits[16]
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
     a = ~io.a
@@ -16,7 +16,7 @@ class comb(m.Circuit):
 class simple_hierarchy(m.Circuit):
     T = m.Bits[16]
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
-    y, z = comb()(io.a, io.b, io.c)
+    y, z = simple_comb()(io.a, io.b, io.c)
     io.y @= y
     io.z @= z
 
@@ -77,22 +77,35 @@ class aggregate_constant(m.Circuit):
     io.y @= y
 
 
-simple_mux = m.Mux(T=m.Bits[8], height=2)
+class simple_mux_wrapper(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(a=m.In(T), s=m.In(m.Bit), y=m.Out(T))
+    io.y @= m.mux([io.a, ~io.a], io.s)
 
 
-_T_product = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+class aggregate_mux_wrapper(m.Circuit):
+    T = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    io = m.IO(a=m.In(T), s=m.In(m.Bit), y=m.Out(T))
+    not_a = T(*map(lambda x: ~x, io.a))
+    io.y @= m.mux([io.a, not_a], io.s)
 
 
-aggregate_mux = m.Mux(T=_T_product, height=6)
+class simple_register_wrapper(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    io.y @= m.register(io.a, init=3, name="reg0")
 
 
-simple_register = m.Register(T=m.Bits[8])
-m.passes.clock.WireClockPass(simple_register).run()
-
-
-_init = _T_product(m.Bits[8](6), m.Bit(1))
-complex_register = m.Register(_T_product, init=_init)
-m.passes.clock.WireClockPass(complex_register).run()
+class complex_register_wrapper(m.Circuit):
+    T0 = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    T1 = m.Array[6, m.Bits[16]]
+    T2 = m.Product.from_fields("anon", dict(u=T0, v=T1))
+    io = m.IO(a=m.In(T0), b=m.In(T1), y=m.Out(T2))
+    io += m.ClockIO(has_async_reset=True)
+    reg_a = m.register(io.a, init=T0(10, 1), reset_type=m.AsyncReset)
+    reg_b = m.register(io.b, init=T1(*(i * 2 for i in range(T1.N))))
+    y = T2(reg_a, reg_b)
+    io.y @= y
 
 
 class counter(m.Circuit):
@@ -134,10 +147,41 @@ class twizzle(m.Circuit):
 class simple_unused_output(m.Circuit):
     T = m.Bits[16]
     io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T))
-    _, z = comb()(io.a, io.b, io.c)
+    _, z = simple_comb()(io.a, io.b, io.c)
     io.y @= z
 
 
 class feedthrough(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= io.I
+
+
+class no_outputs(m.Circuit):
+    io = m.IO(I=m.In(m.Bit))
+    ~io.I
+
+
+class simple_mixed_direction_ports(m.Circuit):
+    S = m.Bits[8]
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(S)))
+    io = m.IO(a=m.Array[8, T], b=T.flip())
+    m.wire(io.a[1], io.b)
+    for i, aa in enumerate(io.a):
+        if i == 1: continue
+        aa.y @= 0
+
+
+class _Foo(m.Circuit):
+    S = m.Bits[8]
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(S)))
+    io = m.IO(a=T)
+    io.a.y @= io.a.x
+
+
+class complex_mixed_direction_ports(m.Circuit):
+    S = m.Bits[8]
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(S)))
+    io = m.IO(a=T)
+    simple = _Foo()
+    m.wire(io.a.x, simple.a.x)
+    m.wire(io.a.y, simple.a.y)
