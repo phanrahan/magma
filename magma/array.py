@@ -598,6 +598,12 @@ class _Array2Driver:
         self.key = key
 
 
+class _SliceKey:
+    def __init__(self, start, stop):
+        self.start = start
+        self.stop = stop
+
+
 class Array2(Wireable, Array):
     def __init__(self, *args, **kwargs):
         # Skip Array constructor since we don't want to create children
@@ -643,24 +649,37 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
+    def _check_index_map(self, key):
+        if not self._index_map:
+            return None
+        for k, v in self._index_map.items():
+            if isinstance(key, slice):
+                if isinstance(k, _SliceKey):
+                    if k.start == key.start and key.stop == k.stop:
+                        return v
+                    elif k.start <= key.start and key.stop < k.stop:
+                        return v[key.start - k.start:key.stop - k.stop]
+            else:
+                if isinstance(k, _SliceKey):
+                    if k.start <= key < k.stop:
+                        return v[key - k.start]
+                elif isinstance(k, int):
+                    if k == key:
+                        return v
+        return None
+
     def __getitem__(self, key):
         if isinstance(key, int):
             if self.is_output():
                 return self._make_get(key)()(self)
             assert self.is_input(), "inout unsupported"
-            if self._index_map:
-                for k, v in self._index_map.items():
-                    # TODO(leonardt/array2): Make slice key an object
-                    if isinstance(k, tuple):
-                        if k[0] <= key < k[1]:
-                            return v[key - k[0]]
-                    elif isinstance(k, int):
-                        if k == key:
-                            return v
+            result = self._check_index_map(key)
+            if result is not None:
+                return result
             args = []
             if key > 0:
                 wire = self._make_wire(Array2[key, self.T])()
-                self._index_map[(0, key)] = wire.I
+                self._index_map[_SliceKey(0, key)] = wire.I
                 args.append(wire.O)
             key_wire = self._make_wire(self.T)()
             self._index_map[key] = key_wire.I
@@ -669,7 +688,7 @@ class Array2(Wireable, Array):
                 j = self.N - (key + 1)
                 T = Array2[j, self.T]
                 wire = self._make_wire(T)()
-                self._index_map[(key + 1, self.N)] = wire.I
+                self._index_map[_SliceKey(key + 1, self.N)] = wire.I
                 args.append(wire.O)
             self @= self._concat(*args)
             return key_wire.I
@@ -678,30 +697,26 @@ class Array2(Wireable, Array):
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
             assert key.step is None, "Variable slice step not implemented"
+            key = slice(start, stop, key.step)
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
             assert self.is_input(), "inout unsupported"
-            if self._index_map:
-                for k, v in self._index_map.items():
-                    # TODO(leonardt/array2): Make slice key an object
-                    if isinstance(k, tuple):
-                        if k[0] == start and stop == k[1]:
-                            return v
-                        elif k[0] <= start and stop < k[1]:
-                            return v[start - k[0]:stop - k[0]]
+            result = self._check_index_map(key)
+            if result is not None:
+                return result
             args = []
             if start > 0:
                 wire = self._make_wire(Array2[start, self.T])()
-                self._index_map[(0, start)] = wire.I
+                self._index_map[_SliceKey(0, start)] = wire.I
                 args.append(wire.O)
             key_wire = self._make_wire(Array2[stop - start, self.T])()
-            self._index_map[(start, stop)] = key_wire.I
+            self._index_map[_SliceKey(start, stop)] = key_wire.I
             args.append(key_wire.O)
             if stop < self.N:
                 j = self.N - stop
                 T = Array2[j, self.T]
                 wire = self._make_wire(T)()
-                self._index_map[(stop, self.N)] = wire.I
+                self._index_map[_SliceKey(stop, self.N)] = wire.I
                 args.append(wire.O)
             self @= self._concat(*args)
             return key_wire.I
