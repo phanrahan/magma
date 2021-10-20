@@ -599,6 +599,9 @@ class _Array2Driver:
 
 
 class _SliceKey:
+    """
+    Used to encapsulate the comparison logic for _IndexMap slice keys
+    """
     def __init__(self, start, stop):
         self.start = start
         self.stop = stop
@@ -614,6 +617,13 @@ class _SliceKey:
 
 
 class _IndexMap(dict):
+    """
+    Container used to store mapping from Array index (int or slice) to a child
+    in the concat tree
+
+    Encapsulates the lookup logic for descending the concat tree using the
+    `get` method (which returns None if the map does not contain the index)
+    """
     def _check_int_key(self, dict_key, index_key, value):
         if isinstance(dict_key, _SliceKey) and dict_key.contains_int(index_key):
             return value[index_key - dict_key.start]
