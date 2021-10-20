@@ -603,6 +603,15 @@ class _SliceKey:
         self.start = start
         self.stop = stop
 
+    def matches(self, slice_):
+        return slice_.start == self.start and slice_.stop == self.stop
+
+    def contains_slice(self, key):
+        return self.start <= key.start and key.stop < self.stop
+
+    def contains_int(self, key):
+        return self.start <= key < self.stop
+
 
 class Array2(Wireable, Array):
     def __init__(self, *args, **kwargs):
@@ -655,13 +664,13 @@ class Array2(Wireable, Array):
         for k, v in self._index_map.items():
             if isinstance(key, slice):
                 if isinstance(k, _SliceKey):
-                    if k.start == key.start and key.stop == k.stop:
+                    if k.matches(key):
                         return v
-                    elif k.start <= key.start and key.stop < k.stop:
+                    if k.contains_slice(key):
                         return v[key.start - k.start:key.stop - k.stop]
             else:
                 if isinstance(k, _SliceKey):
-                    if k.start <= key < k.stop:
+                    if k.contains_int(key):
                         return v[key - k.start]
                 elif isinstance(k, int):
                     if k == key:
