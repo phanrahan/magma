@@ -613,6 +613,42 @@ class _SliceKey:
         return self.start <= key < self.stop
 
 
+class _IndexMap(dict):
+    def _check_int_key(self, dict_key, index_key, value):
+        if isinstance(dict_key, _SliceKey) and dict_key.contains_int(index_key):
+            return value[index_key - dict_key.start]
+        elif isinstance(dict_key, int) and dict_key == index_key:
+            return value
+        return None
+
+    def _check_slice_key(self, dict_key, index_key, value):
+        if isinstance(dict_key, _SliceKey):
+            if dict_key.matches(index_key):
+                return value
+            if dict_key.contains_slice(index_key):
+                return value[index_key.start - dict_key.start:
+                             index_key.stop - dict_key.stop]
+        return None
+
+    def _check_key(self, dict_key, index_key, value):
+        if isinstance(index_key, slice):
+            result = self._check_slice_key(dict_key, index_key, value)
+        else:
+            result = self._check_int_key(dict_key, index_key, value)
+        if result is not None:
+            return result
+        return None
+
+    def get(self, key):
+        if not self:
+            return None
+        for k, v in self.items():
+            result = self._check_key(k, key, v)
+            if result is not None:
+                return result
+        return None
+
+
 class Array2(Wireable, Array):
     def __init__(self, *args, **kwargs):
         # Skip Array constructor since we don't want to create children
@@ -621,7 +657,7 @@ class Array2(Wireable, Array):
         self.args = args
         self.drivers = []
         self._ts = None
-        self._index_map = {}
+        self._index_map = _IndexMap()
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -658,31 +694,12 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
-    def _check_index_map(self, key):
-        if not self._index_map:
-            return None
-        for k, v in self._index_map.items():
-            if isinstance(key, slice):
-                if isinstance(k, _SliceKey):
-                    if k.matches(key):
-                        return v
-                    if k.contains_slice(key):
-                        return v[key.start - k.start:key.stop - k.stop]
-            else:
-                if isinstance(k, _SliceKey):
-                    if k.contains_int(key):
-                        return v[key - k.start]
-                elif isinstance(k, int):
-                    if k == key:
-                        return v
-        return None
-
     def __getitem__(self, key):
         if isinstance(key, int):
             if self.is_output():
                 return self._make_get(key)()(self)
             assert self.is_input(), "inout unsupported"
-            result = self._check_index_map(key)
+            result = self._index_map.get(key)
             if result is not None:
                 return result
             args = []
@@ -710,7 +727,7 @@ class Array2(Wireable, Array):
             if self.is_output():
                 return self._make_slice(start, stop)()(self)
             assert self.is_input(), "inout unsupported"
-            result = self._check_index_map(key)
+            result = self._index_map.get(key)
             if result is not None:
                 return result
             args = []
