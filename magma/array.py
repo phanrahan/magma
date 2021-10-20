@@ -704,59 +704,73 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            if self.is_output():
-                return self._make_get(key)()(self)
-            assert self.is_input(), "inout unsupported"
-            result = self._index_map.get(key)
-            if result is not None:
-                return result
-            args = []
-            if key > 0:
-                wire = self._make_wire(Array2[key, self.T])()
-                self._index_map[_SliceKey(0, key)] = wire.I
-                args.append(wire.O)
-            key_wire = self._make_wire(self.T)()
-            self._index_map[key] = key_wire.I
-            args.append(self._make_lift()()(key_wire.O))
-            if key < self.N - 1:
-                j = self.N - (key + 1)
-                T = Array2[j, self.T]
-                wire = self._make_wire(T)()
-                self._index_map[_SliceKey(key + 1, self.N)] = wire.I
-                args.append(wire.O)
-            self @= self._concat(*args)
-            return key_wire.I
-            # return self._get_t(key)
+    def _build_tree(self, key):
+        """
+        Builds the concat tree for fetching the item at index `key`
+
+        The indices before and after key are driven by temporary wires which
+        are stored in the `self._index_map` so that future references to those
+        indices will descend the tree
+        """
         if isinstance(key, slice):
+            start = key.start
+            # To match int key, we change this logic to be inclusive
+            stop = key.stop - 1
+        else:
+            start = key
+            stop = key
+        args = []
+
+        # If start is greater than 0, create the slice object for the elements
+        # before it
+        if start > 0:
+            wire = self._make_wire(Array2[start, self.T])()
+            self._index_map[_SliceKey(0, start)] = wire.I
+            args.append(wire.O)
+
+        # Create object for requested index
+        if isinstance(key, slice):
+            key_wire = self._make_wire(Array2[key.stop - key.start, self.T])()
+            index = _SliceKey(key.start, key.stop)
+            key_arg = key_wire.O
+        else:
+            key_wire = self._make_wire(self.T)()
+            index = key
+            # Lift from child type to array for concat
+            key_arg = self._make_lift()()(key_wire.O)
+        self._index_map[index] = key_wire.I
+        args.append(key_arg)
+
+        # If stop is not the final index, create teh slice object for the
+        # elements after it
+        if stop < self.N - 1:
+            j = self.N - (stop + 1)
+            T = Array2[j, self.T]
+            wire = self._make_wire(T)()
+            self._index_map[_SliceKey(stop + 1, self.N)] = wire.I
+            args.append(wire.O)
+        self @= self._concat(*args)
+        return key_wire.I
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            # Normalize slice by mapping None to concrete int values
             start = key.start if key.start is not None else 0
             stop = key.stop if key.stop is not None else len(self)
             assert key.step is None, "Variable slice step not implemented"
             key = slice(start, stop, key.step)
-            if self.is_output():
-                return self._make_slice(start, stop)()(self)
-            assert self.is_input(), "inout unsupported"
-            result = self._index_map.get(key)
-            if result is not None:
-                return result
-            args = []
-            if start > 0:
-                wire = self._make_wire(Array2[start, self.T])()
-                self._index_map[_SliceKey(0, start)] = wire.I
-                args.append(wire.O)
-            key_wire = self._make_wire(Array2[stop - start, self.T])()
-            self._index_map[_SliceKey(start, stop)] = key_wire.I
-            args.append(key_wire.O)
-            if stop < self.N:
-                j = self.N - stop
-                T = Array2[j, self.T]
-                wire = self._make_wire(T)()
-                self._index_map[_SliceKey(stop, self.N)] = wire.I
-                args.append(wire.O)
-            self @= self._concat(*args)
-            return key_wire.I
-        raise NotImplementedError(type(key))
+        if self.is_output():
+            if isinstance(key, int):
+                return self._make_get(key)()(self)
+            if isinstance(key, slice):
+                return self._make_slice(key.start, key.stop)()(self)
+            raise NotImplementedError(key)
+        if self.is_inout():
+            raise NotImplementedError()
+        result = self._index_map.get(key)
+        if result is not None:
+            return result
+        return self._build_tree(key)
 
     def __setitem__(self, key, val):
         # TODO(leonardt/array2): Validate setitem?
