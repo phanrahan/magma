@@ -775,18 +775,6 @@ class Array2(Wireable, Array):
     def __setitem__(self, key, val):
         # TODO(leonardt/array2): Validate setitem?
         return False
-        error = False
-        for k, v in self._index_map.items():
-            if isinstance(k, int) and k == key:
-                error = v is val
-            elif isinstance(k, tuple) and k[0] <= key < k[1]:
-                error = (v is val) or (val in v)
-        if error:
-            _logger.error(
-                WiringLog(f"May not mutate array, trying to replace "
-                          f"{{}}[{key}] with {{}}", self, val)
-            )
-        return error
 
     def _array_old(*args, **kwargs):
         """Monkey patched in magma/conversions.py"""
