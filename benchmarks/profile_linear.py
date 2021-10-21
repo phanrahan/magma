@@ -22,7 +22,7 @@ cProfile.run('linear(m.Array2, 128, True)', 'linearstats')
 
 p = pstats.Stats('linearstats')
 p = p.strip_dirs()
-p.sort_stats(SortKey.CUMULATIVE).print_stats(35)
+p.sort_stats(SortKey.CUMULATIVE).print_stats(40)
 
 
 # cProfile.run('linear(m.Array, 128, True)', 'linearoldstats')

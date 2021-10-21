@@ -126,6 +126,14 @@ class TupleKind(TupleMeta, Kind):
             new_fields.append(T.flip())
         return cls.unbound_t[new_fields]
 
+    @property
+    def direction(cls):
+        directions = iter(t.direction for t in cls.fields)
+        first = next(directions)
+        if all(d == first for d in directions):
+            return first
+        return None
+
     def __call__(cls, *args, **kwargs):
         obj = cls.__new__(cls, *args)
         obj.__init__(*args, **kwargs)

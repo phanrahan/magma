@@ -1,5 +1,5 @@
 import weakref
-from functools import reduce
+from functools import reduce, lru_cache
 from abc import ABCMeta
 from hwtypes import BitVector
 from .common import deprecated
@@ -182,14 +182,23 @@ class ArrayMeta(ABCMeta, Kind):
     def __repr__(cls):
         return f"Array[{cls.N}, {cls.T}]"
 
+    @lru_cache()
     def qualify(cls, direction):
         # Handle qualified, unsized/child e.g. In(Array) and In(Out(Array))
         if cls.T is None or isinstance(cls.T, Direction):
             return cls[None, direction]
+        if cls.direction == direction:
+            return cls
         return cls[cls.N, cls.T.qualify(direction)]
 
+    @lru_cache()
     def flip(cls):
         return cls[cls.N, cls.T.flip()]
+
+    @property
+    @lru_cache()
+    def direction(cls):
+        return cls.T.direction
 
     def __eq__(cls, rhs):
         if not isinstance(rhs, ArrayMeta):
