@@ -1,8 +1,6 @@
 import magma as m
 import timeit
 import pygal
-import sys
-sys.setrecursionlimit(100000)
 
 
 def linear(T, n=128, compile=False):
@@ -11,6 +9,9 @@ def linear(T, n=128, compile=False):
         for i in range(n):
             io.O[(n - 1) - i] @= io.I[i]
     if compile:
+        m.clear_cachedFunctions()
+        m.frontend.coreir_.ResetCoreIR()
+        m.generator.reset_generator_cache()
         m.compile("build/Foo", Foo)
 
 

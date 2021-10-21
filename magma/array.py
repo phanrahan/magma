@@ -609,11 +609,20 @@ class _SliceKey:
     def matches(self, slice_):
         return slice_.start == self.start and slice_.stop == self.stop
 
+    def __eq__(self, slice_):
+        return slice_.start == self.start and slice_.stop == self.stop
+
     def contains_slice(self, key):
         return self.start <= key.start and key.stop < self.stop
 
     def contains_int(self, key):
         return self.start <= key < self.stop
+
+    def __hash__(self):
+        return hash((self.start, self.stop))
+
+    def __repr__(self):
+        return f"_SliceKey({self.start}, {self.stop})"
 
 
 class _IndexMap(dict):
@@ -624,20 +633,42 @@ class _IndexMap(dict):
     Encapsulates the lookup logic for descending the concat tree using the
     `get` method (which returns None if the map does not contain the index)
     """
+    def __init__(self):
+        super().__init__()
+        self._reverse_key_list = []
+
     def _check_int_key(self, dict_key, index_key, value):
         if isinstance(dict_key, _SliceKey) and dict_key.contains_int(index_key):
-            return value[index_key - dict_key.start]
-        elif isinstance(dict_key, int) and dict_key == index_key:
-            return value
+            result = value[index_key - dict_key.start]
+            for k, v in value._index_map.items():
+                if isinstance(k, _SliceKey):
+                    k = _SliceKey(k.start + dict_key.start,
+                                  k.stop + dict_key.start)
+                else:
+                    k += dict_key.start
+                self[k] = v
+            # self[index_key] = result
+            return result
+        # elif isinstance(dict_key, int) and dict_key == index_key:
+        #     return value
         return None
 
     def _check_slice_key(self, dict_key, index_key, value):
         if isinstance(dict_key, _SliceKey):
-            if dict_key.matches(index_key):
-                return value
+            # if dict_key.matches(index_key):
+            #     return value
             if dict_key.contains_slice(index_key):
-                return value[index_key.start - dict_key.start:
-                             index_key.stop - dict_key.stop]
+                result = value[index_key.start - dict_key.start:
+                               index_key.stop - dict_key.stop]
+                for k, v in value._index_map.items():
+                    if isinstance(k, _SliceKey):
+                        k = _SliceKey(k.start + dict_key.start,
+                                      k.stop + dict_key.start)
+                    else:
+                        k += dict_key.start
+                    self[k] = v
+                # self[index_key] = result
+                return result
         return None
 
     def _check_key(self, dict_key, index_key, value):
@@ -649,10 +680,24 @@ class _IndexMap(dict):
             return result
         return None
 
+    def __setitem__(self, k, v):
+        super().__setitem__(k, v)
+        self._reverse_key_list.insert(0, k)
+
     def get(self, key):
         if not self:
             return None
-        for k, v in self.items():
+
+        # Try a direct lookup to avoid recursive traversal when possible
+        direct_key = key
+        if isinstance(key, slice):
+            direct_key = _SliceKey(key.start, key.stop)
+        result = super().get(direct_key)
+        if result is not None:
+            return result
+
+        for k in self._reverse_key_list:
+            v = self[k]
             result = self._check_key(k, key, v)
             if result is not None:
                 return result
