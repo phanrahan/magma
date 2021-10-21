@@ -1,17 +1,3 @@
-module mantle_wire__typeBit21 (
-    input [1:0] in [0:0],
-    output [1:0] out [0:0]
-);
-assign out = in;
-endmodule
-
-module mantle_wire__typeBit2 (
-    input [1:0] in,
-    output [1:0] out
-);
-assign out = in;
-endmodule
-
 module mantle_liftArrT__tBit21 (
     input [1:0] in,
     output [1:0] out [0:0]
@@ -51,13 +37,10 @@ wire [1:0] Index_inst0_out;
 wire [1:0] Index_inst1_out;
 wire [1:0] Lift_inst0_out [0:0];
 wire [1:0] Lift_inst1_out [0:0];
-wire [1:0] Wire_inst0_out;
-wire [1:0] Wire_inst1_out [0:0];
-wire [1:0] Wire_inst2_out;
 wire [1:0] Concat_inst0_in0 [0:0];
 assign Concat_inst0_in0[0] = Lift_inst0_out[0];
 wire [1:0] Concat_inst0_in1 [0:0];
-assign Concat_inst0_in1[0] = Wire_inst1_out[0];
+assign Concat_inst0_in1[0] = Lift_inst1_out[0];
 mantle_concatArrT__t0BitIn21__t1BitIn21 Concat_inst0 (
     .in0(Concat_inst0_in0),
     .in1(Concat_inst0_in1),
@@ -78,26 +61,12 @@ mantle_getArrT__i0__tBitIn22 Index_inst1 (
     .out(Index_inst1_out)
 );
 mantle_liftArrT__tBit21 Lift_inst0 (
-    .in(Wire_inst0_out),
+    .in(Index_inst0_out),
     .out(Lift_inst0_out)
 );
 mantle_liftArrT__tBit21 Lift_inst1 (
-    .in(Wire_inst2_out),
-    .out(Lift_inst1_out)
-);
-mantle_wire__typeBit2 Wire_inst0 (
-    .in(Index_inst0_out),
-    .out(Wire_inst0_out)
-);
-wire [1:0] Wire_inst1_in [0:0];
-assign Wire_inst1_in[0] = Lift_inst1_out[0];
-mantle_wire__typeBit21 Wire_inst1 (
-    .in(Wire_inst1_in),
-    .out(Wire_inst1_out)
-);
-mantle_wire__typeBit2 Wire_inst2 (
     .in(Index_inst1_out),
-    .out(Wire_inst2_out)
+    .out(Lift_inst1_out)
 );
 assign O[1] = Concat_inst0_out[1];
 assign O[0] = Concat_inst0_out[0];

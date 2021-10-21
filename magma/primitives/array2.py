@@ -42,7 +42,7 @@ Array2._make_slice = _make_slice
 class Lift(Generator2):
     def __init__(self, T):
         self.io = IO(I=In(T), O=Out(Array2[1, T]))
-        self.coreir_genargs = {"t": Array2[1, T]}
+        self.coreir_genargs = {"t": Array2[1, In(T)]}
         self.coreir_name = "liftArrT"
         self.coreir_lib = "mantle"
         self.renamed_ports = coreir_port_mapping

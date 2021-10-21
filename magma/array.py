@@ -766,42 +766,46 @@ class Array2(Wireable, Array):
         # If start is greater than 0, create the slice object for the elements
         # before it
         if start > 0:
-            wire = self._make_wire(Array2[start, self.T])()
-            self._index_map[_SliceKey(0, start)] = wire.I
-            self._update_parent_index_map(_SliceKey(0, start), wire.I)
-            wire.I._parent = self
-            wire.I._parent_index_offset = 0
-            args.append(wire.O)
+            # wire = self._make_wire(Array2[start, self.T])()
+            wire = Array2[start, self.T.undirected_t]()
+            self._index_map[_SliceKey(0, start)] = wire
+            self._update_parent_index_map(_SliceKey(0, start), wire)
+            wire._parent = self
+            wire._parent_index_offset = 0
+            args.append(wire)
 
         # Create object for requested index
         if isinstance(key, slice):
-            key_wire = self._make_wire(Array2[key.stop - key.start, self.T])()
+            # key_wire = self._make_wire(Array2[key.stop - key.start, self.T])()
+            key_wire = Array2[key.stop - key.start, self.T.undirected_t]()
             index = _SliceKey(key.start, key.stop)
-            key_arg = key_wire.O
+            key_arg = key_wire
         else:
-            key_wire = self._make_wire(self.T)()
+            # key_wire = self._make_wire(self.T)()
+            key_wire = self.T.undirected_t()
             index = key
             # Lift from child type to array for concat
-            key_arg = self._make_lift()()(key_wire.O)
-        self._index_map[index] = key_wire.I
-        self._update_parent_index_map(index, key_wire.I)
-        key_wire.I.parent = self
-        key_wire.I._parent_index_offset = index
+            key_arg = self._make_lift()()(key_wire)
+        self._index_map[index] = key_wire
+        self._update_parent_index_map(index, key_wire)
+        key_wire._parent = self
+        key_wire._parent_index_offset = index
         args.append(key_arg)
 
         # If stop is not the final index, create teh slice object for the
         # elements after it
         if stop < self.N - 1:
             j = self.N - (stop + 1)
-            T = Array2[j, self.T]
-            wire = self._make_wire(T)()
-            self._index_map[_SliceKey(stop + 1, self.N)] = wire.I
-            self._update_parent_index_map(_SliceKey(stop + 1, self.N), wire.I)
-            wire.I._parent = self
-            wire.I._parent_index_offset = stop + 1
-            args.append(wire.O)
+            T = Array2[j, self.T.undirected_t]
+            # wire = self._make_wire(T)()
+            wire = T()
+            self._index_map[_SliceKey(stop + 1, self.N)] = wire
+            self._update_parent_index_map(_SliceKey(stop + 1, self.N), wire)
+            wire._parent = self
+            wire._parent_index_offset = stop + 1
+            args.append(wire)
         self @= self._concat(*args)
-        return key_wire.I
+        return key_wire
 
     def __getitem__(self, key):
         if isinstance(key, slice):

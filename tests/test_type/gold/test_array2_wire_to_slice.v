@@ -1,10 +1,3 @@
-module mantle_wire__typeBit2 (
-    input [1:0] in,
-    output [1:0] out
-);
-assign out = in;
-endmodule
-
 module mantle_sliceArrT__hi4__lo2__tBitIn4 (
     input [3:0] in,
     output [1:0] out
@@ -34,11 +27,9 @@ module Foo (
 wire [3:0] Concat_inst0_out;
 wire [1:0] Slice_inst0_out;
 wire [1:0] Slice_inst1_out;
-wire [1:0] Wire_inst0_out;
-wire [1:0] Wire_inst1_out;
 mantle_concatArrT__t0BitIn2__t1BitIn2 Concat_inst0 (
-    .in0(Wire_inst0_out),
-    .in1(Wire_inst1_out),
+    .in0(Slice_inst0_out),
+    .in1(Slice_inst1_out),
     .out(Concat_inst0_out)
 );
 mantle_sliceArrT__hi4__lo2__tBitIn4 Slice_inst0 (
@@ -48,14 +39,6 @@ mantle_sliceArrT__hi4__lo2__tBitIn4 Slice_inst0 (
 mantle_sliceArrT__hi2__lo0__tBitIn4 Slice_inst1 (
     .in(I),
     .out(Slice_inst1_out)
-);
-mantle_wire__typeBit2 Wire_inst0 (
-    .in(Slice_inst0_out),
-    .out(Wire_inst0_out)
-);
-mantle_wire__typeBit2 Wire_inst1 (
-    .in(Slice_inst1_out),
-    .out(Wire_inst1_out)
 );
 assign O = Concat_inst0_out;
 endmodule
