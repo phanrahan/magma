@@ -639,16 +639,7 @@ class _IndexMap(dict):
 
     def _check_int_key(self, dict_key, index_key, value):
         if isinstance(dict_key, _SliceKey) and dict_key.contains_int(index_key):
-            result = value[index_key - dict_key.start]
-            for k, v in value._index_map.items():
-                if isinstance(k, _SliceKey):
-                    k = _SliceKey(k.start + dict_key.start,
-                                  k.stop + dict_key.start)
-                else:
-                    k += dict_key.start
-                self[k] = v
-            # self[index_key] = result
-            return result
+            return value[index_key - dict_key.start]
         # elif isinstance(dict_key, int) and dict_key == index_key:
         #     return value
         return None
@@ -658,17 +649,8 @@ class _IndexMap(dict):
             # if dict_key.matches(index_key):
             #     return value
             if dict_key.contains_slice(index_key):
-                result = value[index_key.start - dict_key.start:
-                               index_key.stop - dict_key.stop]
-                for k, v in value._index_map.items():
-                    if isinstance(k, _SliceKey):
-                        k = _SliceKey(k.start + dict_key.start,
-                                      k.stop + dict_key.start)
-                    else:
-                        k += dict_key.start
-                    self[k] = v
-                # self[index_key] = result
-                return result
+                return value[index_key.start - dict_key.start:
+                             index_key.stop - dict_key.stop]
         return None
 
     def _check_key(self, dict_key, index_key, value):
@@ -713,6 +695,8 @@ class Array2(Wireable, Array):
         self.drivers = []
         self._ts = None
         self._index_map = _IndexMap()
+        self._parent = None
+        self._parent_index_offset = None
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -749,6 +733,19 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
 
+    def _update_parent_index_map(self, index, value):
+        if self._parent is None:
+            return
+        if isinstance(index, _SliceKey):
+            index = _SliceKey(self._parent_index_offset + index.start,
+                              self._parent_index_offset + index.stop)
+        else:
+            # TODO: Add += operator for _SliceKey
+            index += self._parent_index_offset
+        # TODO: Wrap update parent logic in index map update
+        self._parent._index_map[index] = value
+        self._parent._update_parent_index_map(index, value)
+
     def _build_tree(self, key):
         """
         Builds the concat tree for fetching the item at index `key`
@@ -771,6 +768,9 @@ class Array2(Wireable, Array):
         if start > 0:
             wire = self._make_wire(Array2[start, self.T])()
             self._index_map[_SliceKey(0, start)] = wire.I
+            self._update_parent_index_map(_SliceKey(0, start), wire.I)
+            wire.I._parent = self
+            wire.I._parent_index_offset = 0
             args.append(wire.O)
 
         # Create object for requested index
@@ -784,6 +784,9 @@ class Array2(Wireable, Array):
             # Lift from child type to array for concat
             key_arg = self._make_lift()()(key_wire.O)
         self._index_map[index] = key_wire.I
+        self._update_parent_index_map(index, key_wire.I)
+        key_wire.I.parent = self
+        key_wire.I._parent_index_offset = index
         args.append(key_arg)
 
         # If stop is not the final index, create teh slice object for the
@@ -793,6 +796,9 @@ class Array2(Wireable, Array):
             T = Array2[j, self.T]
             wire = self._make_wire(T)()
             self._index_map[_SliceKey(stop + 1, self.N)] = wire.I
+            self._update_parent_index_map(_SliceKey(stop + 1, self.N), wire.I)
+            wire.I._parent = self
+            wire.I._parent_index_offset = stop + 1
             args.append(wire.O)
         self @= self._concat(*args)
         return key_wire.I
