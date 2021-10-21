@@ -766,7 +766,6 @@ class Array2(Wireable, Array):
         # If start is greater than 0, create the slice object for the elements
         # before it
         if start > 0:
-            # wire = self._make_wire(Array2[start, self.T])()
             wire = Array2[start, self.T.undirected_t]()
             self._index_map[_SliceKey(0, start)] = wire
             self._update_parent_index_map(_SliceKey(0, start), wire)
@@ -776,12 +775,10 @@ class Array2(Wireable, Array):
 
         # Create object for requested index
         if isinstance(key, slice):
-            # key_wire = self._make_wire(Array2[key.stop - key.start, self.T])()
             key_wire = Array2[key.stop - key.start, self.T.undirected_t]()
             index = _SliceKey(key.start, key.stop)
             key_arg = key_wire
         else:
-            # key_wire = self._make_wire(self.T)()
             key_wire = self.T.undirected_t()
             index = key
             # Lift from child type to array for concat
@@ -797,7 +794,6 @@ class Array2(Wireable, Array):
         if stop < self.N - 1:
             j = self.N - (stop + 1)
             T = Array2[j, self.T.undirected_t]
-            # wire = self._make_wire(T)()
             wire = T()
             self._index_map[_SliceKey(stop + 1, self.N)] = wire
             self._update_parent_index_map(_SliceKey(stop + 1, self.N), wire)

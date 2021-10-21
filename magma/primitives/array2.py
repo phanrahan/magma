@@ -53,19 +53,3 @@ def _make_lift(self):
 
 
 Array2._make_lift = _make_lift
-
-
-class Wire(Generator2):
-    def __init__(self, T):
-        self.io = IO(I=In(T), O=Out(T))
-        self.coreir_genargs = {"type": T}
-        self.coreir_name = "wire"
-        self.coreir_lib = "mantle"
-        self.renamed_ports = coreir_port_mapping
-
-
-def _make_wire(self, T):
-    return Wire(T)
-
-
-Array2._make_wire = _make_wire
