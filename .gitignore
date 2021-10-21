@@ -108,3 +108,4 @@ tests/test_verilog/build/
 prof
 
 *.sublime-*
+benchmarks/linearstats
