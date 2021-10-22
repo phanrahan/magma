@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 import io
 import sys
 from typing import Any, List, Optional, Tuple, Union
@@ -76,6 +77,7 @@ def parse_reset_type(T: m.Kind) -> Tuple[str, str]:
 
 
 @wrap_with_not_implemented_error
+@functools.lru_cache()
 def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
     type = type.undirected_t
     if issubclass(type, m.Digital):
@@ -434,7 +436,6 @@ def compile_to_mlir(
         defn: m.DefineCircuitKind, sout: Optional[io.TextIOBase] = None):
     if sout is None:
         sout = sys.stdout
-    deps = m.passes.dependencies(defn, include_self=True)
     printer = PrinterBase(sout=sout)
     module = lower_magma_defn_to_mlir_module_op(defn)
     for hw_module in module.regions[0].blocks[0].operations:
