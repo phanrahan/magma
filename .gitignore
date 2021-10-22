@@ -109,3 +109,4 @@ prof
 
 *.sublime-*
 benchmarks/linearstats
+benchmarks/linearoldstats

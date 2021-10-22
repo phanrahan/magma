@@ -1,4 +1,5 @@
 import itertools
+from functools import lru_cache
 from collections import OrderedDict
 from hwtypes.adt import (
     TupleMeta,
@@ -127,6 +128,7 @@ class TupleKind(TupleMeta, Kind):
         return cls.unbound_t[new_fields]
 
     @property
+    @lru_cache()
     def direction(cls):
         directions = iter(t.direction for t in cls.fields)
         first = next(directions)
