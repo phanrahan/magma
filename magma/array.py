@@ -710,10 +710,6 @@ class Array2(Wireable, Array):
     @debug_wire
     def wire(self, o, debug_info):
         self._check_wireable(o, debug_info)
-        # if isinstance(o, Array) and o.anon():
-        #     for j, k in zip(self.ts, o):
-        #         Array.wire(j, k, debug_info)
-        #     return
         Wireable.wire(self, o, debug_info)
 
     # TODO(leonardt): unwire
