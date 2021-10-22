@@ -844,13 +844,6 @@ class Array2(Wireable, Array):
         """Monkey patched in magma/conversions.py"""
         raise NotImplementedError()
 
-    def _get_t(self, i):
-        if self._ts is None:
-            self._ts = [None for _ in range(self.N)]
-        if self._ts[i] is None:
-            self._ts[i] = self.T(name=ArrayRef(self, i))
-        return self._ts[i]
-
     def flatten(self):
         return [self]
 
