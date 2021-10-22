@@ -6,3 +6,4 @@ archive/*
 !src/golds/*
 env/*
 src/*.txt
+*.pstats
