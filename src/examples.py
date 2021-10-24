@@ -185,3 +185,12 @@ class complex_mixed_direction_ports2(m.Circuit):
     simple = simple_mixed_direction_ports()
     m.wire(io.a.x, simple.a.x)
     m.wire(io.a.y, simple.a.y)
+
+
+class simple_decl(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+
+
+class simple_decl_external(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= simple_decl()(io.I)
