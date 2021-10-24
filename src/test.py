@@ -30,6 +30,7 @@ _ckts = [
     complex_mixed_direction_ports,
     complex_mixed_direction_ports2,
     simple_decl_external,
+    simple_verilog_defn_wrapper,
 ]
 _ckts += get_magma_examples()
 

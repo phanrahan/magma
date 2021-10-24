@@ -194,3 +194,13 @@ class simple_decl(m.Circuit):
 class simple_decl_external(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= simple_decl()(io.I)
+
+
+class simple_verilog_defn(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    verilog = "assign O = I;"
+
+
+class simple_verilog_defn_wrapper(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= simple_verilog_defn()(io.I)
