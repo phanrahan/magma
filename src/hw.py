@@ -85,6 +85,20 @@ class ConstantOp(MlirOp):
 
 
 @dataclasses.dataclass
+class ModuleExternOp(MlirOp):
+    operands: List[MlirValue]
+    results: List[MlirValue]
+    name: str
+
+    def print_op(self, printer: PrinterBase):
+        printer.print(f"hw.module.extern @{self.name}(")
+        print_signature(self.operands, printer)
+        printer.print(") -> (")
+        print_signature(self.results, printer)
+        printer.print(")")
+
+
+@dataclasses.dataclass
 class InstanceOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]

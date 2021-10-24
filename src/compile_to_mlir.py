@@ -384,51 +384,53 @@ class ModuleVisitor:
         assert self.visit_module(ModuleWrapper.make(module, self._ctx))
 
 
-def lower_magma_defn_to_hw_module_op(defn: m.DefineCircuitKind):
-    graph = build_magma_graph(defn)
-    ctx = ModuleContext()
+def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
+    # NOTE(rsetaluri): This is a round-about way to mark new types as
+    # primitives. These definitions should actually be marked as primitives.
+    if m.isprimitive(defn_or_decl):
+        return
+    if isinstance(defn_or_decl, m.Mux):
+        return
+    if isinstance(defn_or_decl, m.Register):
+        return
 
     def new_values(fn, ports):
         namer = magma_value_or_type_to_string
         return [fn(port, name=namer(port), force=True) for port in ports]
 
     i, o = [], []
-    for port in defn.interface.ports.values():
+    for port in defn_or_decl.interface.ports.values():
         visit_magma_value_by_direction(port, i.append, o.append)
+    ctx = ModuleContext()
     inputs = new_values(ctx.get_or_make_mapped_value, o)
     named_outputs = new_values(ctx.new_value, i)
+    if not m.isdefinition(defn_or_decl):
+        hw.ModuleExternOp(
+            name=defn_or_decl.name,
+            operands=inputs,
+            results=named_outputs)
+        return
     op = hw.ModuleOp(
-        name=defn.name,
+        name=defn_or_decl.name,
         operands=inputs,
         results=named_outputs)
+    graph = build_magma_graph(defn_or_decl)
     visitor = ModuleVisitor(graph, ctx)
     if not named_outputs:
         return
     with push_block(op):
-        visitor.visit(defn)
+        visitor.visit(defn_or_decl)
         output_values = new_values(ctx.get_or_make_mapped_value, i)
         hw.OutputOp(operands=output_values)
 
 
 def lower_magma_defn_to_mlir_module_op(
         defn: m.DefineCircuitKind) -> builtin.ModuleOp:
-
-    # NOTE(rsetaluri): This is a round-about way to mark new types as
-    # primitives. These definitions should actually be marked as primitives.
-    def isdefinition(defn_or_decl: m.circuit.CircuitKind):
-        if isinstance(defn_or_decl, m.Mux):
-            return False
-        if isinstance(defn_or_decl, m.Register):
-            return False
-        return m.isdefinition(defn_or_decl)
-
     deps = m.passes.dependencies(defn, include_self=True)
     module = builtin.ModuleOp()
     with push_block(module):
         for dep in deps:
-            if not isdefinition(dep):
-                continue
-            lower_magma_defn_to_hw_module_op(dep)
+            lower_magma_defn_or_decl_to_hw(dep)
     return module
 
 
@@ -438,5 +440,5 @@ def compile_to_mlir(
         sout = sys.stdout
     printer = PrinterBase(sout=sout)
     module = lower_magma_defn_to_mlir_module_op(defn)
-    for hw_module in module.regions[0].blocks[0].operations:
-        hw_module.print(printer)
+    for op in module.regions[0].blocks[0].operations:
+        op.print(printer)
