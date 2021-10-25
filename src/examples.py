@@ -204,3 +204,8 @@ class simple_verilog_defn(m.Circuit):
 class simple_verilog_defn_wrapper(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= simple_verilog_defn()(io.I)
+
+
+class simple_length_one_array(m.Circuit):
+    io = m.IO(I=m.In(m.Array[1, m.Bits[8]]), O=m.Out(m.Bits[8]))
+    io.O @= io.I[0]
