@@ -384,14 +384,30 @@ class ModuleVisitor:
         assert self.visit_module(ModuleWrapper.make(module, self._ctx))
 
 
-def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
+def treat_as_primitive(defn_or_decl: m.circuit.CircuitKind) -> bool:
     # NOTE(rsetaluri): This is a round-about way to mark new types as
     # primitives. These definitions should actually be marked as primitives.
     if m.isprimitive(defn_or_decl):
-        return
+        return True
     if isinstance(defn_or_decl, m.Mux):
-        return
+        return True
     if isinstance(defn_or_decl, m.Register):
+        return True
+    return False
+
+
+def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
+    if not m.isdefinition(defn_or_decl):
+        return False
+    if getattr(defn_or_decl, "verilog", ""):
+        return False
+    if getattr(defn_or_decl, "verilogFile", ""):
+        return False
+    return True
+
+
+def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
+    if treat_as_primitive(defn_or_decl):
         return
 
     def new_values(fn, ports):
@@ -404,7 +420,7 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
     ctx = ModuleContext()
     inputs = new_values(ctx.get_or_make_mapped_value, o)
     named_outputs = new_values(ctx.new_value, i)
-    if not m.isdefinition(defn_or_decl):
+    if not treat_as_definition(defn_or_decl):
         hw.ModuleExternOp(
             name=defn_or_decl.name,
             operands=inputs,
@@ -416,12 +432,11 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
         results=named_outputs)
     graph = build_magma_graph(defn_or_decl)
     visitor = ModuleVisitor(graph, ctx)
-    if not named_outputs:
-        return
     with push_block(op):
         visitor.visit(defn_or_decl)
         output_values = new_values(ctx.get_or_make_mapped_value, i)
-        hw.OutputOp(operands=output_values)
+        if named_outputs:
+            hw.OutputOp(operands=output_values)
 
 
 def lower_magma_defn_to_mlir_module_op(
