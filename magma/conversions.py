@@ -237,11 +237,34 @@ class Concat(Generator2):
         self.renamed_ports = coreir_port_mapping
 
 
+class ConcatN(Generator2):
+    def __init__(self, *ts):
+        child_T = ts[0].T
+        for T in ts[1:]:
+            if not (child_T is T.T or child_T.is_wireable(T.T)):
+                raise TypeError(f"Cannot concat {ts[0]} and {T}")
+        self.renamed_ports = {"O": "out"}
+        ports = {}
+        out_N = 0
+        Ns = []
+        for i, T in enumerate(ts):
+            ports[f"I{i}"] = In(T)
+            self.renamed_ports[f"I{i}"] = f"in{i}"
+            out_N += len(T)
+            Ns.append(len(T))
+        ports["O"] = Out(Array2[out_N, child_T])
+        self.io = IO(**ports)
+        self.coreir_genargs = {"t_child": Out(child_T), "Ns": Ns}
+        self.coreir_name = "concatNArrT"
+        self.coreir_lib = "mantle"
+
+
 def concat2(*arrays):
-    curr = arrays[0]
-    for next_ in arrays[1:]:
-        curr = Concat(type(curr), type(next_))()(curr, next_)
-    return curr
+    return ConcatN(*(type(arr) for arr in arrays))()(*arrays)
+    # curr = arrays[0]
+    # for next_ in arrays[1:]:
+    #     curr = Concat(type(curr), type(next_))()(curr, next_)
+    # return curr
 
 
 Array2._array_old = staticmethod(array)

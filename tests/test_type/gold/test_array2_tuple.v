@@ -112,7 +112,7 @@ assign out__0 = in_0__0;
 assign out__1 = in_0__1;
 endmodule
 
-module mantle_concatArrT__t0_0BitIn_1BitIn22__t1_0BitIn_1BitIn22 (
+module mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 (
     input in0_0__0,
     input [1:0] in0_0__1,
     input in0_1__0,
@@ -140,7 +140,17 @@ assign out_3__0 = in1_1__0;
 assign out_3__1 = in1_1__1;
 endmodule
 
-module mantle_concatArrT__t0_0BitIn_1BitIn21__t1_0BitIn_1BitIn23 (
+module mantle_concatNArrT__Ns1__t_child_0BitIn_1BitIn2 (
+    input in0_0__0,
+    input [1:0] in0_0__1,
+    output out_0__0,
+    output [1:0] out_0__1
+);
+assign out_0__0 = in0_0__0;
+assign out_0__1 = in0_0__1;
+endmodule
+
+module mantle_concatNArrT__Ns13__t_child_0BitIn_1BitIn2 (
     input in0_0__0,
     input [1:0] in0_0__1,
     input in1_0__0,
@@ -168,7 +178,7 @@ assign out_3__0 = in1_2__0;
 assign out_3__1 = in1_2__1;
 endmodule
 
-module mantle_concatArrT__t0_0BitIn_1BitIn21__t1_0BitIn_1BitIn22 (
+module mantle_concatNArrT__Ns12__t_child_0BitIn_1BitIn2 (
     input in0_0__0,
     input [1:0] in0_0__1,
     input in1_0__0,
@@ -190,7 +200,7 @@ assign out_2__0 = in1_1__0;
 assign out_2__1 = in1_1__1;
 endmodule
 
-module mantle_concatArrT__t0_0BitIn_1BitIn21__t1_0BitIn_1BitIn21 (
+module mantle_concatNArrT__Ns11__t_child_0BitIn_1BitIn2 (
     input in0_0__0,
     input [1:0] in0_0__1,
     input in1_0__0,
@@ -248,40 +258,42 @@ module Foo (
     output O3_3__0,
     output [1:0] O3_3__1
 );
-wire Concat_inst0_out_0__0;
-wire [1:0] Concat_inst0_out_0__1;
-wire Concat_inst0_out_1__0;
-wire [1:0] Concat_inst0_out_1__1;
-wire Concat_inst0_out_2__0;
-wire [1:0] Concat_inst0_out_2__1;
-wire Concat_inst0_out_3__0;
-wire [1:0] Concat_inst0_out_3__1;
-wire Concat_inst1_out_0__0;
-wire [1:0] Concat_inst1_out_0__1;
-wire Concat_inst1_out_1__0;
-wire [1:0] Concat_inst1_out_1__1;
-wire Concat_inst1_out_2__0;
-wire [1:0] Concat_inst1_out_2__1;
-wire Concat_inst1_out_3__0;
-wire [1:0] Concat_inst1_out_3__1;
-wire Concat_inst2_out_0__0;
-wire [1:0] Concat_inst2_out_0__1;
-wire Concat_inst2_out_1__0;
-wire [1:0] Concat_inst2_out_1__1;
-wire Concat_inst2_out_2__0;
-wire [1:0] Concat_inst2_out_2__1;
-wire Concat_inst3_out_0__0;
-wire [1:0] Concat_inst3_out_0__1;
-wire Concat_inst3_out_1__0;
-wire [1:0] Concat_inst3_out_1__1;
-wire Concat_inst4_out_0__0;
-wire [1:0] Concat_inst4_out_0__1;
-wire Concat_inst4_out_1__0;
-wire [1:0] Concat_inst4_out_1__1;
-wire Concat_inst4_out_2__0;
-wire [1:0] Concat_inst4_out_2__1;
-wire Concat_inst4_out_3__0;
-wire [1:0] Concat_inst4_out_3__1;
+wire ConcatN_inst0_out_0__0;
+wire [1:0] ConcatN_inst0_out_0__1;
+wire ConcatN_inst0_out_1__0;
+wire [1:0] ConcatN_inst0_out_1__1;
+wire ConcatN_inst0_out_2__0;
+wire [1:0] ConcatN_inst0_out_2__1;
+wire ConcatN_inst0_out_3__0;
+wire [1:0] ConcatN_inst0_out_3__1;
+wire ConcatN_inst1_out_0__0;
+wire [1:0] ConcatN_inst1_out_0__1;
+wire ConcatN_inst1_out_1__0;
+wire [1:0] ConcatN_inst1_out_1__1;
+wire ConcatN_inst1_out_2__0;
+wire [1:0] ConcatN_inst1_out_2__1;
+wire ConcatN_inst1_out_3__0;
+wire [1:0] ConcatN_inst1_out_3__1;
+wire ConcatN_inst2_out_0__0;
+wire [1:0] ConcatN_inst2_out_0__1;
+wire ConcatN_inst2_out_1__0;
+wire [1:0] ConcatN_inst2_out_1__1;
+wire ConcatN_inst2_out_2__0;
+wire [1:0] ConcatN_inst2_out_2__1;
+wire ConcatN_inst3_out_0__0;
+wire [1:0] ConcatN_inst3_out_0__1;
+wire ConcatN_inst3_out_1__0;
+wire [1:0] ConcatN_inst3_out_1__1;
+wire ConcatN_inst4_out_0__0;
+wire [1:0] ConcatN_inst4_out_0__1;
+wire ConcatN_inst5_out_0__0;
+wire [1:0] ConcatN_inst5_out_0__1;
+wire ConcatN_inst5_out_1__0;
+wire [1:0] ConcatN_inst5_out_1__1;
+wire ConcatN_inst5_out_2__0;
+wire [1:0] ConcatN_inst5_out_2__1;
+wire ConcatN_inst5_out_3__0;
+wire [1:0] ConcatN_inst5_out_3__1;
 wire Index_inst0_out__0;
 wire [1:0] Index_inst0_out__1;
 wire Index_inst1_out__0;
@@ -314,7 +326,7 @@ wire Slice_inst3_out_0__0;
 wire [1:0] Slice_inst3_out_0__1;
 wire Slice_inst3_out_1__0;
 wire [1:0] Slice_inst3_out_1__1;
-mantle_concatArrT__t0_0BitIn_1BitIn22__t1_0BitIn_1BitIn22 Concat_inst0 (
+mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 ConcatN_inst0 (
     .in0_0__0(Slice_inst0_out_0__0),
     .in0_0__1(Slice_inst0_out_0__1),
     .in0_1__0(Slice_inst0_out_1__0),
@@ -323,58 +335,64 @@ mantle_concatArrT__t0_0BitIn_1BitIn22__t1_0BitIn_1BitIn22 Concat_inst0 (
     .in1_0__1(Slice_inst1_out_0__1),
     .in1_1__0(Slice_inst1_out_1__0),
     .in1_1__1(Slice_inst1_out_1__1),
-    .out_0__0(Concat_inst0_out_0__0),
-    .out_0__1(Concat_inst0_out_0__1),
-    .out_1__0(Concat_inst0_out_1__0),
-    .out_1__1(Concat_inst0_out_1__1),
-    .out_2__0(Concat_inst0_out_2__0),
-    .out_2__1(Concat_inst0_out_2__1),
-    .out_3__0(Concat_inst0_out_3__0),
-    .out_3__1(Concat_inst0_out_3__1)
+    .out_0__0(ConcatN_inst0_out_0__0),
+    .out_0__1(ConcatN_inst0_out_0__1),
+    .out_1__0(ConcatN_inst0_out_1__0),
+    .out_1__1(ConcatN_inst0_out_1__1),
+    .out_2__0(ConcatN_inst0_out_2__0),
+    .out_2__1(ConcatN_inst0_out_2__1),
+    .out_3__0(ConcatN_inst0_out_3__0),
+    .out_3__1(ConcatN_inst0_out_3__1)
 );
-mantle_concatArrT__t0_0BitIn_1BitIn21__t1_0BitIn_1BitIn23 Concat_inst1 (
+mantle_concatNArrT__Ns13__t_child_0BitIn_1BitIn2 ConcatN_inst1 (
     .in0_0__0(Lift_inst0_out_0__0),
     .in0_0__1(Lift_inst0_out_0__1),
-    .in1_0__0(Concat_inst2_out_0__0),
-    .in1_0__1(Concat_inst2_out_0__1),
-    .in1_1__0(Concat_inst2_out_1__0),
-    .in1_1__1(Concat_inst2_out_1__1),
-    .in1_2__0(Concat_inst2_out_2__0),
-    .in1_2__1(Concat_inst2_out_2__1),
-    .out_0__0(Concat_inst1_out_0__0),
-    .out_0__1(Concat_inst1_out_0__1),
-    .out_1__0(Concat_inst1_out_1__0),
-    .out_1__1(Concat_inst1_out_1__1),
-    .out_2__0(Concat_inst1_out_2__0),
-    .out_2__1(Concat_inst1_out_2__1),
-    .out_3__0(Concat_inst1_out_3__0),
-    .out_3__1(Concat_inst1_out_3__1)
+    .in1_0__0(ConcatN_inst2_out_0__0),
+    .in1_0__1(ConcatN_inst2_out_0__1),
+    .in1_1__0(ConcatN_inst2_out_1__0),
+    .in1_1__1(ConcatN_inst2_out_1__1),
+    .in1_2__0(ConcatN_inst2_out_2__0),
+    .in1_2__1(ConcatN_inst2_out_2__1),
+    .out_0__0(ConcatN_inst1_out_0__0),
+    .out_0__1(ConcatN_inst1_out_0__1),
+    .out_1__0(ConcatN_inst1_out_1__0),
+    .out_1__1(ConcatN_inst1_out_1__1),
+    .out_2__0(ConcatN_inst1_out_2__0),
+    .out_2__1(ConcatN_inst1_out_2__1),
+    .out_3__0(ConcatN_inst1_out_3__0),
+    .out_3__1(ConcatN_inst1_out_3__1)
 );
-mantle_concatArrT__t0_0BitIn_1BitIn21__t1_0BitIn_1BitIn22 Concat_inst2 (
+mantle_concatNArrT__Ns12__t_child_0BitIn_1BitIn2 ConcatN_inst2 (
     .in0_0__0(Lift_inst1_out_0__0),
     .in0_0__1(Lift_inst1_out_0__1),
-    .in1_0__0(Concat_inst3_out_0__0),
-    .in1_0__1(Concat_inst3_out_0__1),
-    .in1_1__0(Concat_inst3_out_1__0),
-    .in1_1__1(Concat_inst3_out_1__1),
-    .out_0__0(Concat_inst2_out_0__0),
-    .out_0__1(Concat_inst2_out_0__1),
-    .out_1__0(Concat_inst2_out_1__0),
-    .out_1__1(Concat_inst2_out_1__1),
-    .out_2__0(Concat_inst2_out_2__0),
-    .out_2__1(Concat_inst2_out_2__1)
+    .in1_0__0(ConcatN_inst3_out_0__0),
+    .in1_0__1(ConcatN_inst3_out_0__1),
+    .in1_1__0(ConcatN_inst3_out_1__0),
+    .in1_1__1(ConcatN_inst3_out_1__1),
+    .out_0__0(ConcatN_inst2_out_0__0),
+    .out_0__1(ConcatN_inst2_out_0__1),
+    .out_1__0(ConcatN_inst2_out_1__0),
+    .out_1__1(ConcatN_inst2_out_1__1),
+    .out_2__0(ConcatN_inst2_out_2__0),
+    .out_2__1(ConcatN_inst2_out_2__1)
 );
-mantle_concatArrT__t0_0BitIn_1BitIn21__t1_0BitIn_1BitIn21 Concat_inst3 (
+mantle_concatNArrT__Ns11__t_child_0BitIn_1BitIn2 ConcatN_inst3 (
     .in0_0__0(Lift_inst2_out_0__0),
     .in0_0__1(Lift_inst2_out_0__1),
-    .in1_0__0(Lift_inst3_out_0__0),
-    .in1_0__1(Lift_inst3_out_0__1),
-    .out_0__0(Concat_inst3_out_0__0),
-    .out_0__1(Concat_inst3_out_0__1),
-    .out_1__0(Concat_inst3_out_1__0),
-    .out_1__1(Concat_inst3_out_1__1)
+    .in1_0__0(ConcatN_inst4_out_0__0),
+    .in1_0__1(ConcatN_inst4_out_0__1),
+    .out_0__0(ConcatN_inst3_out_0__0),
+    .out_0__1(ConcatN_inst3_out_0__1),
+    .out_1__0(ConcatN_inst3_out_1__0),
+    .out_1__1(ConcatN_inst3_out_1__1)
 );
-mantle_concatArrT__t0_0BitIn_1BitIn22__t1_0BitIn_1BitIn22 Concat_inst4 (
+mantle_concatNArrT__Ns1__t_child_0BitIn_1BitIn2 ConcatN_inst4 (
+    .in0_0__0(Lift_inst3_out_0__0),
+    .in0_0__1(Lift_inst3_out_0__1),
+    .out_0__0(ConcatN_inst4_out_0__0),
+    .out_0__1(ConcatN_inst4_out_0__1)
+);
+mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 ConcatN_inst5 (
     .in0_0__0(Slice_inst2_out_0__0),
     .in0_0__1(Slice_inst2_out_0__1),
     .in0_1__0(Slice_inst2_out_1__0),
@@ -383,14 +401,14 @@ mantle_concatArrT__t0_0BitIn_1BitIn22__t1_0BitIn_1BitIn22 Concat_inst4 (
     .in1_0__1(Slice_inst3_out_0__1),
     .in1_1__0(Slice_inst3_out_1__0),
     .in1_1__1(Slice_inst3_out_1__1),
-    .out_0__0(Concat_inst4_out_0__0),
-    .out_0__1(Concat_inst4_out_0__1),
-    .out_1__0(Concat_inst4_out_1__0),
-    .out_1__1(Concat_inst4_out_1__1),
-    .out_2__0(Concat_inst4_out_2__0),
-    .out_2__1(Concat_inst4_out_2__1),
-    .out_3__0(Concat_inst4_out_3__0),
-    .out_3__1(Concat_inst4_out_3__1)
+    .out_0__0(ConcatN_inst5_out_0__0),
+    .out_0__1(ConcatN_inst5_out_0__1),
+    .out_1__0(ConcatN_inst5_out_1__0),
+    .out_1__1(ConcatN_inst5_out_1__1),
+    .out_2__0(ConcatN_inst5_out_2__0),
+    .out_2__1(ConcatN_inst5_out_2__1),
+    .out_3__0(ConcatN_inst5_out_3__0),
+    .out_3__1(ConcatN_inst5_out_3__1)
 );
 mantle_getArrT__i1__t_0BitIn_1BitIn24 Index_inst0 (
     .in_0__0(I_0__0),
@@ -528,29 +546,29 @@ assign O0_2__0 = I_2__0;
 assign O0_2__1 = I_2__1;
 assign O0_3__0 = I_3__0;
 assign O0_3__1 = I_3__1;
-assign O1_0__0 = Concat_inst0_out_0__0;
-assign O1_0__1 = Concat_inst0_out_0__1;
-assign O1_1__0 = Concat_inst0_out_1__0;
-assign O1_1__1 = Concat_inst0_out_1__1;
-assign O1_2__0 = Concat_inst0_out_2__0;
-assign O1_2__1 = Concat_inst0_out_2__1;
-assign O1_3__0 = Concat_inst0_out_3__0;
-assign O1_3__1 = Concat_inst0_out_3__1;
-assign O2_0__0 = Concat_inst1_out_0__0;
-assign O2_0__1 = Concat_inst1_out_0__1;
-assign O2_1__0 = Concat_inst1_out_1__0;
-assign O2_1__1 = Concat_inst1_out_1__1;
-assign O2_2__0 = Concat_inst1_out_2__0;
-assign O2_2__1 = Concat_inst1_out_2__1;
-assign O2_3__0 = Concat_inst1_out_3__0;
-assign O2_3__1 = Concat_inst1_out_3__1;
-assign O3_0__0 = Concat_inst4_out_0__0;
-assign O3_0__1 = Concat_inst4_out_0__1;
-assign O3_1__0 = Concat_inst4_out_1__0;
-assign O3_1__1 = Concat_inst4_out_1__1;
-assign O3_2__0 = Concat_inst4_out_2__0;
-assign O3_2__1 = Concat_inst4_out_2__1;
-assign O3_3__0 = Concat_inst4_out_3__0;
-assign O3_3__1 = Concat_inst4_out_3__1;
+assign O1_0__0 = ConcatN_inst0_out_0__0;
+assign O1_0__1 = ConcatN_inst0_out_0__1;
+assign O1_1__0 = ConcatN_inst0_out_1__0;
+assign O1_1__1 = ConcatN_inst0_out_1__1;
+assign O1_2__0 = ConcatN_inst0_out_2__0;
+assign O1_2__1 = ConcatN_inst0_out_2__1;
+assign O1_3__0 = ConcatN_inst0_out_3__0;
+assign O1_3__1 = ConcatN_inst0_out_3__1;
+assign O2_0__0 = ConcatN_inst1_out_0__0;
+assign O2_0__1 = ConcatN_inst1_out_0__1;
+assign O2_1__0 = ConcatN_inst1_out_1__0;
+assign O2_1__1 = ConcatN_inst1_out_1__1;
+assign O2_2__0 = ConcatN_inst1_out_2__0;
+assign O2_2__1 = ConcatN_inst1_out_2__1;
+assign O2_3__0 = ConcatN_inst1_out_3__0;
+assign O2_3__1 = ConcatN_inst1_out_3__1;
+assign O3_0__0 = ConcatN_inst5_out_0__0;
+assign O3_0__1 = ConcatN_inst5_out_0__1;
+assign O3_1__0 = ConcatN_inst5_out_1__0;
+assign O3_1__1 = ConcatN_inst5_out_1__1;
+assign O3_2__0 = ConcatN_inst5_out_2__0;
+assign O3_2__1 = ConcatN_inst5_out_2__1;
+assign O3_3__0 = ConcatN_inst5_out_3__0;
+assign O3_3__1 = ConcatN_inst5_out_3__1;
 endmodule
 
