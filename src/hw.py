@@ -146,6 +146,19 @@ class ArrayCreateOp(MlirOp):
 
 
 @dataclasses.dataclass
+class ArrayConcatOp(MlirOp):
+    operands: List[MlirValue]
+    results: List[MlirValue]
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(" = hw.array_concat ")
+        print_names(self.operands, printer)
+        printer.print(" : ")
+        print_types(self.operands, printer)
+
+
+@dataclasses.dataclass
 class StructExtractOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]

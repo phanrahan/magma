@@ -125,17 +125,21 @@ class ModuleVisitor:
         self._ctx = ctx
         self._visited = set()
 
-    def make_constant(self, T: m.Kind, value: Any) -> MlirValue:
+    def make_constant(
+            self, T: m.Kind, value: Optional[Any] = None) -> MlirValue:
         result = self._ctx.new_value(T)
         if isinstance(T, (m.DigitalMeta, m.BitsMeta)):
+            value = value if value is not None else 0
             hw.ConstantOp(value=int(value), results=[result])
             return result
         if isinstance(T, m.ArrayMeta):
+            value = value if value is not None else (None for _ in range(T.N))
             operands = [self.make_constant(T.T, v) for v in value]
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
         if isinstance(T, m.ProductMeta):
             fields = T.field_dict.items()
+            value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
             hw.StructCreateOp(operands=operands, results=[result])
             return result
@@ -239,10 +243,28 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, MagmaArrayGetOp)
-        sel_size = m.bitutils.clog2(len(defn.I))
-        index = self.make_constant(m.Bits[sel_size], inst.kwargs["index"])
+        size = len(defn.I)
+        operands = module.operands
+        # NOTE(rsetaluri): This is "hacky" way to emit IR for ArrayGet(Array[1,
+        # _], _) to work, since MLIR doesn't support i0 integer
+        # constants. Instead, we form an Array[2, _] using a concat with a dummy
+        # (const) element, and then perform ArrayGet on the Array[2, _] type
+        # using an i1 constant.
+        # TODO(rsetaluri): Figure out how to emit hw.array_get for
+        # !hw.array_type<1x_> types.
+        if size == 1:
+            other = self.make_constant(type(defn.I))
+            concat_type = hw.ArrayType((2,), operands[0].type.T)
+            concat = self._ctx.new_value(concat_type)
+            hw.ArrayConcatOp(
+                operands=[operands[0], other],
+                results=[concat])
+            operands = [concat]
+            size = 2
+        num_sel_bits = m.bitutils.clog2(size)
+        index = self.make_constant(m.Bits[num_sel_bits], inst.kwargs["index"])
         hw.ArrayGetOp(
-            operands=(module.operands + [index]),
+            operands=(operands + [index]),
             results=module.results)
         return True
 
