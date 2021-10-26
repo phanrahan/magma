@@ -16,8 +16,8 @@ def combined(T, n=128, compile=False):
         else:
             for i in range(n):
                 io.O[(n - 1) - i] @= io.I[i]
-        io.O2[:n//2] @= io.I[n//2:]
-        io.O2[n//2:] @= io.I[:n//2]
+        io.O2[:n // 2] @= io.I[n // 2:]
+        io.O2[n // 2:] @= io.I[:n // 2]
 
     if compile:
         m.clear_cachedFunctions()
