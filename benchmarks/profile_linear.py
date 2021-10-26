@@ -12,8 +12,9 @@ def linear(T, n=128, compile=False):
         O = []
         for i in range(n):
             O.insert(0, io.I[i:i + 1])
-            # io.O[(n - 1) - i] @= io.I[i]
         io.O @= m.concat2(*O)
+        # for i in range(n):
+        #     io.O[(n - 1) - i] @= io.I[i]
     if compile:
         m.clear_cachedFunctions()
         m.frontend.coreir_.ResetCoreIR()
@@ -21,7 +22,7 @@ def linear(T, n=128, compile=False):
         m.compile("build/Foo", Foo)
 
 
-cProfile.run('linear(m.Array, 128, False)', 'linearstats')
+cProfile.run('linear(m.Array2, 128, False)', 'linearstats')
 
 p = pstats.Stats('linearstats')
 p = p.strip_dirs()
