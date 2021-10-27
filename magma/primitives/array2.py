@@ -67,6 +67,7 @@ class Slices(Generator2):
                                                            slices)}
         self.coreir_name = "slicesArrT"
         self.coreir_lib = "mantle"
+        self.combinational = True
 
 
 def _make_slices(self, slices):

@@ -257,6 +257,7 @@ class ConcatN(Generator2):
         self.coreir_genargs = {"t_child": Out(child_T), "Ns": Ns}
         self.coreir_name = "concatNArrT"
         self.coreir_lib = "mantle"
+        self.combinational = True
 
 
 def concat2(*arrays):
