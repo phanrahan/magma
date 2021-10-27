@@ -122,7 +122,10 @@ class ArrayMeta(ABCMeta, Kind):
                 return cls.abstract_t[index]
 
         bases = []
-        bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
+        bases.extend(b[index] for b in cls.__bases__
+                     # Skip array for Array2 for performance
+                     if isinstance(b, mcs) and not (cls is Array2 and
+                                                    b is Array))
         # only add base classes if we're have a child type
         # (skipped in the case of In(Array))
         if not isinstance(index[1], Direction):
@@ -177,10 +180,10 @@ class ArrayMeta(ABCMeta, Kind):
         if isinstance(cls.T, Direction):
             assert cls.N is None
             return f"{cls.T.name}(Array)"
-        return f"Array[{cls.N}, {cls.T}]"
+        return f"{cls.__name__}[{cls.N}, {cls.T}]"
 
     def __repr__(cls):
-        return f"Array[{cls.N}, {cls.T}]"
+        return f"{cls.__name__}[{cls.N}, {cls.T}]"
 
     @lru_cache()
     def qualify(cls, direction):

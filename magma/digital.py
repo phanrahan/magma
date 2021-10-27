@@ -123,6 +123,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __len__(cls):
         return 1
 
+    @lru_cache()
     def qualify(cls, direction):
         return cls[direction]
 
