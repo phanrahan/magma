@@ -150,6 +150,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
         Wireable.__init__(self)
 
     @classmethod
+    @lru_cache()
     def is_oriented(cls, direction):
         if not cls.is_directed:
             return direction == Direction.Undirected

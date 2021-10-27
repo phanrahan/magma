@@ -53,3 +53,24 @@ def _make_lift(self):
 
 
 Array2._make_lift = _make_lift
+
+
+class Slices(Generator2):
+    def __init__(self, T, slices):
+        self.renamed_ports = coreir_port_mapping
+        ports = {"I": In(T)}
+        for i, slice in enumerate(slices):
+            ports[f"O{i}"] = Out(T[slice[0] - slice[1], T.T])
+            self.renamed_ports[f"O{i}"] = f"out{i}"
+        self.io = IO(**ports)
+        self.coreir_genargs = {"t": Out(T), "slices": list(list(s) for s in
+                                                           slices)}
+        self.coreir_name = "slicesArrT"
+        self.coreir_lib = "mantle"
+
+
+def _make_slices(self, slices):
+    return Slices(type(self), slices)
+
+
+Array2._make_slices = _make_slices

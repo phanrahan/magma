@@ -442,6 +442,7 @@ class Array(Type, metaclass=ArrayMeta):
         return self.wire(o, get_callee_frame_info())
 
     @classmethod
+    @lru_cache()
     def is_oriented(cls, direction):
         return cls.T.is_oriented(direction)
 

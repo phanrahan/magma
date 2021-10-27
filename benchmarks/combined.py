@@ -1,24 +1,16 @@
 import magma as m
 import timeit
 import pygal
+from magma.primitives.array2 import Slices
 
 
 def combined(T, n=128, compile=False):
-    class Slices(m.Circuit):
-        io = m.IO(I=m.In(T[n, m.Bit]))
-        for i in range(n):
-            io += m.IO(**{f"O{i}": m.Out(T[1, m.Bit])})
-        # for i in range(n):
-        #     m.wire(getattr(io, f"O{i}"), io.I[i])
-
     class Foo(m.Circuit):
         io = m.IO(I=m.In(T[n, m.Bit]), O=m.Out(T[n, m.Bit]),
                   O2=m.Out(T[n, m.Bit]))
         if T is m.Array2:
-            # O = []
-            # for i in range(n):
-            #     O.insert(0, io.I[i:i + 1])
-            io.O @= m.concat2(*Slices()(io.I))
+            slices = tuple((i + 1, i) for i in range(n))
+            io.O @= m.concat2(*Slices(T[n, m.Bit], slices)()(io.I))
         else:
             for i in range(n):
                 io.O[(n - 1) - i] @= io.I[i]
