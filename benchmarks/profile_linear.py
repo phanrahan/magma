@@ -10,9 +10,14 @@ from magma.primitives.array2 import Slices
 def linear(T, n=128, compile=False):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(T[n, m.Bit]), O=m.Out(T[n, m.Bit]))
+
         if T is m.Array2:
             slices = tuple((i + 1, i) for i in range(n - 1, -1, -1))
-            io.O @= m.concat2(*Slices(T[n, m.Bit], slices)()(io.I))
+
+            def make_slice(io, slices):
+                return Slices(T[n, m.Bit], slices)()(io.I)
+
+            io.O @= m.concat2(*make_slice(io, slices))
         # O = []
         # for i in range(n):
         #     O.insert(0, io.I[i:i + 1])

@@ -31,7 +31,7 @@ data = {
     "backend_new": {},
 }
 
-ns = [128, 256, 512]
+ns = [128, 256, 512, 1024]
 
 for n in ns:
     no_compile = timeit.Timer(lambda: linear(m.Array, n)).timeit(number=2)

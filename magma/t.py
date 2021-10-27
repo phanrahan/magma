@@ -173,10 +173,12 @@ class Kind(type):
         return cls is not cls.qualify(Direction.Undirected)
 
 
+@lru_cache()
 def In(T):
     return T.qualify(Direction.In)
 
 
+@lru_cache()
 def Out(T):
     return T.qualify(Direction.Out)
 

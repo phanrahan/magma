@@ -19,7 +19,7 @@ def _flatten(l):
 
 
 def _make_interface_name(decl):
-    return f"Interface({', '.join([str(d) for d in decl])})"
+    return f"Interface"
 
 
 def _is_valid_port(port):
@@ -146,7 +146,8 @@ class InterfaceKind(Kind):
     def __str__(cls):
         args = [f"\"{arg}\"" if i % 2 == 0 else str(arg)
                 for i, arg in enumerate(cls._decl)]
-        return ", ".join(args)
+        arg_str = ", ".join(args)
+        return f"Interface({arg_str})"
 
     def __eq__(cls, rhs):
         return cls._decl == rhs._decl
@@ -423,10 +424,11 @@ class IO(IOInterface):
     def __init__(self, **kwargs):
         self._ports = {}
         self._decl = []
-        self._decl = _flatten(kwargs.items())
         self._bound = False
         for name, typ in kwargs.items():
             self.add(name, typ)
+            self._decl.append(name)
+            self._decl.append(typ)
 
     @property
     def ports(self):
@@ -476,7 +478,12 @@ class IO(IOInterface):
         ref = LazyDefnRef(name=name)
         port = _make_port(typ, ref, flip=True)
         self._ports[name] = port
-        setattr(self, name, port)
+
+    def __getattr__(self, key):
+        if key in self._ports:
+            return self._ports[key]
+        return super().__getattr(key)
+
 
 
 class SingletonInstanceIO(IO):

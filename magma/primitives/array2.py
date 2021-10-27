@@ -63,8 +63,8 @@ class Slices(Generator2):
             ports[f"O{i}"] = Out(T[slice[0] - slice[1], T.T])
             self.renamed_ports[f"O{i}"] = f"out{i}"
         self.io = IO(**ports)
-        self.coreir_genargs = {"t": Out(T), "slices": list(list(s) for s in
-                                                           slices)}
+        self.coreir_genargs = {"t": Out(T),
+                               "slices": list(list(s) for s in slices)}
         self.coreir_name = "slicesArrT"
         self.coreir_lib = "mantle"
         self.combinational = True

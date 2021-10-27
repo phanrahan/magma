@@ -705,9 +705,6 @@ class Array2(Wireable, Array):
         # Skip Array constructor since we don't want to create children
         Type.__init__(self, **kwargs)
         Wireable.__init__(self)
-        self.args = args
-        self.drivers = []
-        self._ts = None
         self._index_map = _IndexMap()
         self._parent = None
         self._parent_index_offset = None
