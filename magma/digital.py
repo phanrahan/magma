@@ -129,6 +129,7 @@ class DigitalMeta(ABCMeta, Kind):
     def __eq__(cls, rhs):
         return isinstance(rhs, DigitalMeta)
 
+    @lru_cache()
     def is_wireable(cls, rhs):
         if issubclass(rhs, (bool, int, ht.Bit)):
             return True
