@@ -65,6 +65,7 @@ class Type(object):
         return cls.is_oriented(Direction.Out)
 
     @classmethod
+    @lru_cache()
     def is_inout(cls):
         return cls.is_oriented(Direction.InOut)
 

@@ -492,7 +492,7 @@ class AnonymousCircuitType(object):
                 f"wired.")
             _logger.warning(msg, debug_info=debug_info)
         for i in range(min(ni, no)):
-            wire(outputs[i], inputs[i], debug_info)
+            inputs[i].wire(outputs[i], debug_info)
 
     def wire(self, output, debug_info):
         """Wire a single output to the circuit's inputs"""
