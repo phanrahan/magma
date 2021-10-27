@@ -7,7 +7,8 @@ from magma.primitives.array2 import Slices
 def combined(T, n=128, compile=False):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(T[n, m.Bit]), O=m.Out(T[n, m.Bit]),
-                  O2=m.Out(T[n, m.Bit]))
+                  O2=m.Out(T[n, m.Bit]),
+                  O3=m.Out(T[n, m.Bit]))
         if T is m.Array2:
             slices = tuple((i + 1, i) for i in range(n))
             io.O @= m.concat2(*Slices(T[n, m.Bit], slices)()(io.I))
@@ -16,6 +17,7 @@ def combined(T, n=128, compile=False):
                 io.O[(n - 1) - i] @= io.I[i]
         io.O2[:n // 2] @= io.I[n // 2:]
         io.O2[n // 2:] @= io.I[:n // 2]
+        io.O3 @= io.I
 
     if compile:
         m.clear_cachedFunctions()
