@@ -1,6 +1,8 @@
 """
 Monkey patched functions to avoid circular dependencies in Array2 definitions
 """
+from functools import lru_cache
+
 from magma.interface import IO
 from magma.t import In, Out
 from magma.circuit import coreir_port_mapping, CircuitBuilder, builder_method
@@ -85,11 +87,15 @@ class SliceBuilder(CircuitBuilder):
         self._add_port("in", In(self.T))
         getattr(self, "in").wire(I)
 
+    @lru_cache()
+    def _make_type(self, n):
+        return Array2[n, self.T.T]
+
     @builder_method
     def add(self, start, stop):
         if (stop, start) not in self._slices:
             name = f"out{len(self._slices)}"
-            typ = Array2[stop - start, self.T.T]
+            typ = self._make_type(stop - start)
             self._add_port(name, typ)
             self._slices[(stop, start)] = getattr(self, name)
         return self._slices[(stop, start)]
