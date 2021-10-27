@@ -205,6 +205,7 @@ class ArrayMeta(ABCMeta, Kind):
             return NotImplemented
         return (cls.N == rhs.N) and (cls.T == rhs.T)
 
+    @lru_cache()
     def is_wireable(cls, rhs):
         rhs = magma_type(rhs)
         if not isinstance(rhs, ArrayMeta) or cls.N != rhs.N:
