@@ -482,7 +482,7 @@ class IO(IOInterface):
     def __getattr__(self, key):
         if key in self._ports:
             return self._ports[key]
-        return super().__getattr(key)
+        return super().__getattribute__(key)
 
 
 
