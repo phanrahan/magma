@@ -708,6 +708,7 @@ class Array2(Wireable, Array):
         self._index_map = _IndexMap()
         self._parent = None
         self._parent_index_offset = None
+        self._slice_builder = None
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -728,9 +729,10 @@ class Array2(Wireable, Array):
         #   2) Const bits (handle with Bits2)
         return False
 
-    def _make_slice(*args, **kwargs):
-        """Monkey patched in magma/primitives/array2.py"""
-        raise NotImplementedError()
+    def _make_slice(self, start, stop):
+        if not self._slice_builder:
+            self._slice_builder = self._make_slice_builder()
+        return self._slice_builder.add(start, stop)
 
     def _make_get(*args, **kwargs):
         """Monkey patched in magma/primitives/array2.py"""
@@ -821,7 +823,7 @@ class Array2(Wireable, Array):
             if isinstance(key, int):
                 return self._make_get(key)()(self)
             if isinstance(key, slice):
-                return self._make_slice(key.start, key.stop)()(self)
+                return self._make_slice(key.start, key.stop)
             raise NotImplementedError(key)
         if self.is_inout():
             raise NotImplementedError()

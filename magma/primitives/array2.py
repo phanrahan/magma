@@ -3,7 +3,7 @@ Monkey patched functions to avoid circular dependencies in Array2 definitions
 """
 from magma.interface import IO
 from magma.t import In, Out
-from magma.circuit import coreir_port_mapping
+from magma.circuit import coreir_port_mapping, CircuitBuilder, builder_method
 from magma.generator import Generator2
 from magma.array import Array2
 
@@ -36,7 +36,7 @@ def _make_slice(self, start, stop=None):
     return Slice(type(self), start, stop)
 
 
-Array2._make_slice = _make_slice
+# Array2._make_slice = _make_slice
 
 
 class Lift(Generator2):
@@ -75,3 +75,32 @@ def _make_slices(self, slices):
 
 
 Array2._make_slices = _make_slices
+
+
+class SliceBuilder(CircuitBuilder):
+    def __init__(self, I):
+        super().__init__("SliceBuilder")
+        self._slices = {}
+        self.T = type(I)
+        self._add_port("in", In(self.T))
+        getattr(self, "in").wire(I)
+
+    @builder_method
+    def add(self, start, stop):
+        if (stop, start) not in self._slices:
+            name = f"out{len(self._slices)}"
+            typ = Array2[stop - start, self.T.T]
+            self._add_port(name, typ)
+            self._slices[(stop, start)] = getattr(self, name)
+        return self._slices[(stop, start)]
+
+    def _finalize(self):
+        slices_param = list(list(s) for s in self._slices.keys())
+        self._set_definition_attr("coreir_genargs",
+                                  {"t": Out(self.T), "slices": slices_param})
+        self._set_definition_attr("coreir_name", "slicesArrT")
+        self._set_definition_attr("coreir_lib", "mantle")
+        self._set_definition_attr("combinational", True)
+
+
+Array2._make_slice_builder = lambda self: SliceBuilder(self)
