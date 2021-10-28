@@ -5,18 +5,13 @@ module mantle_liftArrT__tBit1 (
 assign out = in;
 endmodule
 
-module mantle_getArrT__i1__tBitIn2 (
+module mantle_getsArrT__gets10__tBitIn2 (
     input [1:0] in,
-    output out
+    output out0,
+    output out1
 );
-assign out = in[1];
-endmodule
-
-module mantle_getArrT__i0__tBitIn2 (
-    input [1:0] in,
-    output out
-);
-assign out = in[0];
+assign out0 = in[1];
+assign out1 = in[0];
 endmodule
 
 module mantle_concatNArrT__Ns1__t_childBitIn (
@@ -40,8 +35,8 @@ module Foo (
 );
 wire [1:0] ConcatN_inst0_out;
 wire [0:0] ConcatN_inst1_out;
-wire Index_inst0_out;
-wire Index_inst1_out;
+wire GetsBuilder_out0;
+wire GetsBuilder_out1;
 wire [0:0] Lift_inst0_out;
 wire [0:0] Lift_inst1_out;
 mantle_concatNArrT__Ns11__t_childBitIn ConcatN_inst0 (
@@ -53,20 +48,17 @@ mantle_concatNArrT__Ns1__t_childBitIn ConcatN_inst1 (
     .in0(Lift_inst1_out),
     .out(ConcatN_inst1_out)
 );
-mantle_getArrT__i1__tBitIn2 Index_inst0 (
+mantle_getsArrT__gets10__tBitIn2 GetsBuilder (
     .in(I),
-    .out(Index_inst0_out)
-);
-mantle_getArrT__i0__tBitIn2 Index_inst1 (
-    .in(I),
-    .out(Index_inst1_out)
+    .out0(GetsBuilder_out0),
+    .out1(GetsBuilder_out1)
 );
 mantle_liftArrT__tBit1 Lift_inst0 (
-    .in(Index_inst0_out),
+    .in(GetsBuilder_out0),
     .out(Lift_inst0_out)
 );
 mantle_liftArrT__tBit1 Lift_inst1 (
-    .in(Index_inst1_out),
+    .in(GetsBuilder_out1),
     .out(Lift_inst1_out)
 );
 assign O = ConcatN_inst0_out;

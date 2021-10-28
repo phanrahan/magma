@@ -19,7 +19,7 @@ class Index(Generator2):
         self.renamed_ports = coreir_port_mapping
 
 
-Array2._make_get = lambda self, index: Index(type(self), index)
+# Array2._make_get = lambda self, index: Index(type(self), index)
 
 
 class Slice(Generator2):
@@ -79,9 +79,9 @@ def _make_slices(self, slices):
 Array2._make_slices = _make_slices
 
 
-class SliceBuilder(CircuitBuilder):
+class SlicesBuilder(CircuitBuilder):
     def __init__(self, I):
-        super().__init__("SliceBuilder")
+        super().__init__("SlicesBuilder")
         self._slices = {}
         self.T = type(I)
         self._add_port("in", In(self.T))
@@ -109,4 +109,32 @@ class SliceBuilder(CircuitBuilder):
         self._set_definition_attr("combinational", True)
 
 
-Array2._make_slice_builder = lambda self: SliceBuilder(self)
+Array2._make_slices_builder = lambda self: SlicesBuilder(self)
+
+
+class GetsBuilder(CircuitBuilder):
+    def __init__(self, I):
+        super().__init__("GetsBuilder")
+        self._gets = {}
+        self.T = type(I)
+        self._add_port("in", In(self.T))
+        getattr(self, "in").wire(I)
+
+    @builder_method
+    def add(self, idx):
+        if idx not in self._gets:
+            name = f"out{len(self._gets)}"
+            self._add_port(name, self.T.T)
+            self._gets[idx] = getattr(self, name)
+        return self._gets[idx]
+
+    def _finalize(self):
+        gets_param = list(self._gets.keys())
+        self._set_definition_attr("coreir_genargs",
+                                  {"t": Out(self.T), "gets": gets_param})
+        self._set_definition_attr("coreir_name", "getsArrT")
+        self._set_definition_attr("coreir_lib", "mantle")
+        self._set_definition_attr("combinational", True)
+
+
+Array2._make_gets_builder = lambda self: GetsBuilder(self)
