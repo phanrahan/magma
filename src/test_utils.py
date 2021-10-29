@@ -4,12 +4,54 @@ import importlib
 from typing import List
 
 import magma as m
+from magma.testing import check_files_equal
 import magma_examples
 
+from compile_to_mlir import compile_to_mlir
+import examples
 
-_SKIPS = (
+
+_MAGMA_EXAMPLES_TO_SKIP = (
     "risc",
 )
+
+
+def run_test_compile_to_mlir(ckt: m.DefineCircuitKind):
+    m.passes.clock.WireClockPass(ckt).run()
+    filename = f"{ckt.name}.mlir"
+    with open(filename, "w") as f:
+        compile_to_mlir(ckt, f)
+    assert check_files_equal(__file__, filename, f"golds/{filename}")
+
+
+@functools.lru_cache()
+def get_local_examples() -> List[m.DefineCircuitKind]:
+    return [
+        examples.simple_comb,
+        examples.simple_hierarchy,
+        examples.simple_aggregates_bits,
+        examples.simple_aggregates_array,
+        examples.simple_aggregates_nested_array,
+        examples.complex_aggregates_nested_array,
+        examples.simple_aggregates_tuple,
+        examples.simple_constant,
+        examples.aggregate_constant,
+        examples.simple_mux_wrapper,
+        examples.aggregate_mux_wrapper,
+        examples.simple_register_wrapper,
+        examples.complex_register_wrapper,
+        examples.counter,
+        examples.twizzle,
+        examples.simple_unused_output,
+        examples.feedthrough,
+        examples.no_outputs,
+        examples.simple_mixed_direction_ports,
+        examples.complex_mixed_direction_ports,
+        examples.complex_mixed_direction_ports2,
+        examples.simple_decl_external,
+        examples.simple_verilog_defn_wrapper,
+        examples.simple_length_one_array,
+    ]
 
 
 @functools.lru_cache()
@@ -19,7 +61,7 @@ def get_magma_examples() -> List[m.DefineCircuitKind]:
     ckts = []
     for py_filename in py_filenames:
         py_module_name = py_filename.split("/")[-1].split(".")[0]
-        if py_module_name in _SKIPS:
+        if py_module_name in _MAGMA_EXAMPLES_TO_SKIP:
             continue
         full_name = f"magma_examples.{py_module_name}"
         py_module = importlib.import_module(full_name)
