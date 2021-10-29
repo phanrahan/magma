@@ -1,6 +1,7 @@
 import contextlib
 import cProfile
 import pstats
+from typing import Optional
 
 import magma as m
 
@@ -17,9 +18,11 @@ def profiler():
         profile.disable()
 
 
-def benchmark(defn: m.DefineCircuitKind):
+def benchmark(defn: m.DefineCircuitKind, tag: Optional[str] = None):
     m.passes.clock.WireClockPass(defn).run()
     basename = defn.name
+    if tag:
+        basename = f"{basename}.{tag}"
     with open(f"{basename}.mlir", "w") as f:
         with profiler() as pr:
             compile_to_mlir(defn, f)
