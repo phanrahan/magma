@@ -55,13 +55,14 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
 
 
 @functools.lru_cache()
-def get_magma_examples() -> List[m.DefineCircuitKind]:
+def get_magma_examples(
+        skips=_MAGMA_EXAMPLES_TO_SKIP) -> List[m.DefineCircuitKind]:
     path = magma_examples.__path__
     py_filenames = glob.glob(f"{path._path[0]}/*.py")
     ckts = []
     for py_filename in py_filenames:
         py_module_name = py_filename.split("/")[-1].split(".")[0]
-        if py_module_name in _MAGMA_EXAMPLES_TO_SKIP:
+        if py_module_name in skips:
             continue
         full_name = f"magma_examples.{py_module_name}"
         py_module = importlib.import_module(full_name)
