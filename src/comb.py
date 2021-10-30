@@ -72,4 +72,17 @@ class ICmpOp(MlirOp):
         print_types(self.operands[0], printer)
 
 
+@dataclasses.dataclass
+class ParityOp(MlirOp):
+    operands: List[MlirValue]
+    results: List[MlirValue]
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(f" = comb.parity ")
+        print_names(self.operands, printer)
+        printer.print(" : ")
+        print_types(self.operands, printer)
+
+
 end_dialect()

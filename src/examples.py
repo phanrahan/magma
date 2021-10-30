@@ -215,3 +215,14 @@ class simple_array_of_bit(m.Circuit):
     T = m.Array[8, m.Bit]
     io = m.IO(I=m.In(T), O=m.Out(T))
     io.O @= T(list(reversed(io.I)))
+
+
+class simple_reduction(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(
+        I0=m.In(T), I1=m.In(T), I2=m.In(T),
+        O0=m.Out(m.Bit), O1=m.Out(m.Bit), O2=m.Out(m.Bit)
+    )
+    io.O1 @= io.I1.reduce_or()
+    io.O0 @= io.I0.reduce_and()
+    io.O2 @= io.I2.reduce_xor()

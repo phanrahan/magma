@@ -201,6 +201,30 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_coreir_reduce(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert (defn.coreir_name in ("orr", "andr", "xorr"))
+        size = len(defn.I)
+        if defn.coreir_name == "orr":
+            const = self.make_constant(type(defn.I), value=0)
+            comb.ICmpOp(
+                predicate="ne",
+                operands=[module.operands[0], const],
+                results=module.results)
+        elif defn.coreir_name == "andr":
+            const = self.make_constant(type(defn.I), value=-1)
+            comb.ICmpOp(
+                predicate="eq",
+                operands=[module.operands[0], const],
+                results=module.results)
+        elif defn.coreir_name == "xorr":
+            comb.ParityOp(
+                operands=module.operands,
+                results=module.results)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_coreir_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -215,6 +239,8 @@ class ModuleVisitor:
             return True
         if defn.coreir_name in ("reg", "reg_arst"):
             return self.visit_coreir_reg(module)
+        if defn.coreir_name in ("orr", "andr", "xorr"):
+            return self.visit_coreir_reduce(module)
         comb.BaseOp(
             op_name=defn.coreir_name,
             operands=module.operands,

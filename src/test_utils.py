@@ -52,6 +52,7 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
         examples.simple_verilog_defn_wrapper,
         examples.simple_length_one_array,
         examples.simple_array_of_bit,
+        examples.simple_reduction,
     ]
 
 
