@@ -372,7 +372,7 @@ class ModuleVisitor:
             return self.visit_array_get(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
             T = inst_wrapper.attrs["T"]
-            if isinstance(T, m.BitsMeta) or issubclass(T, m.Bit):
+            if isinstance(T, m.BitsMeta) or issubclass(T.T, m.Bit):
                 if len(module.operands) == 1:
                     comb.BaseOp(
                         op_name="merge",
