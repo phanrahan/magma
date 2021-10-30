@@ -14,12 +14,11 @@ from graph_lib import Graph
 from hw import hw
 from magma_common import (
     ModuleLike as MagmaModuleLike,
+    ValueWrapper as MagmaValueWrapper,
+    InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
-    visit_value_by_direction as visit_magma_value_by_direction)
-from magma_ops import (
-    MagmaArrayGetOp, MagmaArrayCreateOp,
-    MagmaProductGetOp, MagmaProductCreateOp,
-    MagmaBitConstantOp, MagmaBitsConstantOp)
+    visit_value_by_direction as visit_magma_value_by_direction,
+    visit_value_wrapper_by_direction as visit_magma_value_wrapper_by_direction)
 from mlir_name_generator import MlirNameGenerator
 from mlir import push_block
 from mlir import MlirValue
@@ -58,6 +57,8 @@ class ModuleContext:
             mlir_type = magma_type_to_mlir_type(value_or_type)
         elif isinstance(value_or_type, MlirType):
             mlir_type = value_or_type
+        elif isinstance(value_or_type, MagmaValueWrapper):
+            mlir_type = magma_type_to_mlir_type(value_or_type.T)
         else:
             raise TypeError(value_or_type)
         name = self._name_gen(**kwargs)
@@ -115,6 +116,16 @@ class ModuleWrapper:
 
     @staticmethod
     def make(module: MagmaModuleLike, ctx: ModuleContext) -> 'ModuleWrapper':
+        if isinstance(module, MagmaInstanceWrapper):
+            operands = []
+            results = []
+            for port in module.ports.values():
+                visit_magma_value_wrapper_by_direction(
+                    port,
+                    lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
+                    lambda p: results.append(ctx.get_or_make_mapped_value(p))
+                )
+            return ModuleWrapper(module, operands, results)
         operands, results = get_module_interface(module, ctx)
         return ModuleWrapper(module, operands, results)
 
@@ -240,11 +251,11 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_array_get(self, module: ModuleWrapper) -> bool:
-        inst = module.module
-        defn = type(inst)
-        assert isinstance(defn, MagmaArrayGetOp)
-        size = len(defn.I)
+        inst_wrapper = module.module
+        T = inst_wrapper.attrs["T"]
+        size = T.N
         operands = module.operands
+        index = inst_wrapper.attrs["index"]
         # NOTE(rsetaluri): This is "hacky" way to emit IR for ArrayGet(Array[1,
         # _], _) to work, since MLIR doesn't support i0 integer
         # constants. Instead, we form an Array[2, _] using a concat with a dummy
@@ -253,7 +264,8 @@ class ModuleVisitor:
         # TODO(rsetaluri): Figure out how to emit hw.array_get for
         # !hw.array_type<1x_> types.
         if size == 1:
-            other = self.make_constant(type(defn.I))
+            assert index == 0
+            other = self.make_constant(T)
             concat_type = hw.ArrayType((2,), operands[0].type.T)
             concat = self._ctx.new_value(concat_type)
             hw.ArrayConcatOp(
@@ -262,7 +274,7 @@ class ModuleVisitor:
             operands = [concat]
             size = 2
         num_sel_bits = m.bitutils.clog2(size)
-        index = self.make_constant(m.Bits[num_sel_bits], inst.kwargs["index"])
+        index = self.make_constant(m.Bits[num_sel_bits], index)
         hw.ArrayGetOp(
             operands=(operands + [index]),
             results=module.results)
@@ -277,44 +289,6 @@ class ModuleVisitor:
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)
-        if isinstance(defn, MagmaArrayGetOp):
-            if isinstance(defn.T, m.BitsMeta) or issubclass(defn.T.T, m.Bit):
-                comb.ExtractOp(
-                    operands=module.operands,
-                    results=module.results,
-                    lo=inst.kwargs["index"])
-                return True
-            return self.visit_array_get(module)
-        if isinstance(defn, MagmaArrayCreateOp):
-            if isinstance(defn.T, m.BitsMeta) or issubclass(defn.T.T, m.Bit):
-                if len(module.operands) == 1:
-                    comb.BaseOp(
-                        op_name="merge",
-                        operands=module.operands,
-                        results=module.results)
-                    return True
-                comb.ConcatOp(
-                    operands=list(reversed(module.operands)),
-                    results=module.results)
-                return True
-            hw.ArrayCreateOp(
-                operands=list(reversed(module.operands)),
-                results=module.results)
-            return True
-        if isinstance(defn, (MagmaBitConstantOp, MagmaBitsConstantOp)):
-            hw.ConstantOp(value=int(defn.value), results=module.results)
-            return True
-        if isinstance(defn, MagmaProductGetOp):
-            hw.StructExtractOp(
-                field=defn.index,
-                operands=module.operands,
-                results=module.results)
-            return True
-        if isinstance(defn, MagmaProductCreateOp):
-            hw.StructCreateOp(
-                operands=module.operands,
-                results=module.results)
-            return True
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
@@ -384,11 +358,63 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_instance_wrapper(self, module: ModuleWrapper) -> bool:
+        inst_wrapper = module.module
+        assert isinstance(inst_wrapper, MagmaInstanceWrapper)
+        if inst_wrapper.name.startswith("magma_array_get_op_"):
+            T = inst_wrapper.attrs["T"]
+            if isinstance(T, m.BitsMeta) or issubclass(T.T, m.Bit):
+                comb.ExtractOp(
+                    operands=module.operands,
+                    results=module.results,
+                    lo=inst_wrapper.attrs["index"])
+                return True
+            return self.visit_array_get(module)
+        if inst_wrapper.name.startswith("magma_array_create_op"):
+            T = inst_wrapper.attrs["T"]
+            if isinstance(T, m.BitsMeta) or issubclass(T.T, m.Bit):
+                if len(module.operands) == 1:
+                    comb.BaseOp(
+                        op_name="merge",
+                        operands=module.operands,
+                        results=module.results)
+                    return True
+                comb.ConcatOp(
+                    operands=list(reversed(module.operands)),
+                    results=module.results)
+                return True
+            hw.ArrayCreateOp(
+                operands=list(reversed(module.operands)),
+                results=module.results)
+            return True
+        if inst_wrapper.name.startswith("magma_product_get_op"):
+            index = inst_wrapper.attrs["index"]
+            hw.StructExtractOp(
+                field=index,
+                operands=module.operands,
+                results=module.results)
+            return True
+        if inst_wrapper.name.startswith("magma_product_create_op"):
+            hw.StructCreateOp(
+                operands=module.operands,
+                results=module.results)
+            return True
+        is_const = (
+            inst_wrapper.name.startswith("magma_bit_constant_op") or
+            inst_wrapper.name.startswith("magma_bits_constant_op"))
+        if is_const:
+            value = inst_wrapper.attrs["value"]
+            hw.ConstantOp(value=int(value), results=module.results)
+            return True
+
+    @wrap_with_not_implemented_error
     def visit_module(self, module: ModuleWrapper) -> bool:
         if isinstance(module.module, m.DefineCircuitKind):
             return True
         if isinstance(module.module, m.circuit.AnonymousCircuitType):
             return self.visit_instance(module)
+        if isinstance(module.module, MagmaInstanceWrapper):
+            return self.visit_instance_wrapper(module)
 
     def visit(self, module: MagmaModuleLike):
         if module in self._visited:
