@@ -209,3 +209,9 @@ class simple_verilog_defn_wrapper(m.Circuit):
 class simple_length_one_array(m.Circuit):
     io = m.IO(I=m.In(m.Array[1, m.Bits[8]]), O=m.Out(m.Bits[8]))
     io.O @= io.I[0]
+
+
+class simple_array_of_bit(m.Circuit):
+    T = m.Array[8, m.Bit]
+    io = m.IO(I=m.In(T), O=m.Out(T))
+    io.O @= T(list(reversed(io.I)))
