@@ -54,6 +54,8 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
         examples.simple_array_of_bit,
         examples.simple_reduction,
         examples.simple_shifts,
+        examples.simple_wire,
+        examples.complex_wire,
     ]
 
 

@@ -239,3 +239,29 @@ class simple_shifts(m.Circuit):
     io.O0 @= io.I00 << io.I01
     io.O1 @= io.I10 >> io.I11
     io.O2 @= io.I20 >> io.I21
+
+
+class simple_wire(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(I=m.In(T), O=m.Out(T))
+    tmp = T(name="tmp")
+    tmp @= io.I
+    io.O @= tmp
+
+
+class complex_wire(m.Circuit):
+    Ts = (m.Bits[8], m.Reset, m.Array[4, m.Bits[8]],)
+    io = m.IO(
+        **{f"I{i}": m.In(T) for i, T in enumerate(Ts)},
+        **{f"O{i}": m.Out(T) for i, T in enumerate(Ts)}
+    )
+    for i in range(3):
+        I = getattr(io, f"I{i}")
+        O = getattr(io, f"O{i}")
+        tmp = Ts[i](name=f"tmp{i}")
+        tmp @= I
+        O @= tmp
+
+
+m.backend.coreir.insert_coreir_wires.insert_coreir_wires(simple_wire)
+m.backend.coreir.insert_coreir_wires.insert_coreir_wires(complex_wire)
