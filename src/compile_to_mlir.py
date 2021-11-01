@@ -241,8 +241,13 @@ class ModuleVisitor:
             return self.visit_coreir_reg(module)
         if defn.coreir_name in ("orr", "andr", "xorr"):
             return self.visit_coreir_reduce(module)
+        op_name = defn.coreir_name
+        if op_name == "ashr":
+            op_name = "shrs"
+        if op_name == "lshr":
+            op_name = "shru"
         comb.BaseOp(
-            op_name=defn.coreir_name,
+            op_name=op_name,
             operands=module.operands,
             results=module.results)
         return True

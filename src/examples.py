@@ -226,3 +226,16 @@ class simple_reduction(m.Circuit):
     io.O1 @= io.I1.reduce_or()
     io.O0 @= io.I0.reduce_and()
     io.O2 @= io.I2.reduce_xor()
+
+
+class simple_shifts(m.Circuit):
+    T0 = m.Bits[8]
+    T1 = m.SInt[8]
+    io = m.IO(
+        I00=m.In(T0), I01=m.In(T0), O0=m.Out(T0),
+        I10=m.In(T0), I11=m.In(T0), O1=m.Out(T0),
+        I20=m.In(T1), I21=m.In(T1), O2=m.Out(T1)
+    )
+    io.O0 @= io.I00 << io.I01
+    io.O1 @= io.I10 >> io.I11
+    io.O2 @= io.I20 >> io.I21
