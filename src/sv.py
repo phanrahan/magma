@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List
+from typing import List, Optional
 
 from mlir import MlirDialect, begin_dialect, end_dialect
 from mlir_printer_utils import print_names, print_types
@@ -37,6 +37,17 @@ class ReadInOutOp(MlirOp):
 
 
 @dataclasses.dataclass
+class AssignOp(MlirOp):
+    operands: List[MlirValue]
+
+    def print_op(self, printer: PrinterBase):
+        printer.print(f"sv.assign ")
+        print_names(self.operands, printer)
+        printer.print(" : ")
+        print_types(self.operands[1], printer)
+
+
+@dataclasses.dataclass
 class PAssignOp(MlirOp):
     operands: List[MlirValue]
 
@@ -46,7 +57,7 @@ class PAssignOp(MlirOp):
         printer.print(" : ")
         print_types(self.operands[1], printer)
 
-    
+
 @dataclasses.dataclass
 class BPAssignOp(MlirOp):
     operands: List[MlirValue]
@@ -122,6 +133,21 @@ class InitialOp(MlirOp):
 
     def print_op(self, printer: PrinterBase):
         printer.print("sv.initial")
+
+
+@dataclasses.dataclass
+class WireOp(MlirOp):
+    results: List[MlirValue]
+    name: str
+    sym: Optional[str] = None
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(" = sv.wire ")
+        if self.sym is not None:
+            printer.print(f"sym {self.sym} ")
+        printer.print(f"{{name=\"{self.name}\"}} : ")
+        print_types(self.results, printer)
 
 
 end_dialect()

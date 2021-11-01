@@ -225,6 +225,20 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_coreir_wire(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert defn.coreir_name == "wire"
+        T = type(defn.I)
+        mlir_type = hw.InOutType(magma_type_to_mlir_type(T))
+        wire = self._ctx.new_value(mlir_type)
+        sym = f"@{inst.name}"
+        sv.WireOp(results=[wire], name=inst.name, sym=sym)
+        sv.AssignOp(operands=[wire, module.operands[0]])
+        sv.ReadInOutOp(operands=[wire], results=module.results)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_coreir_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -241,6 +255,8 @@ class ModuleVisitor:
             return self.visit_coreir_reg(module)
         if defn.coreir_name in ("orr", "andr", "xorr"):
             return self.visit_coreir_reduce(module)
+        if defn.coreir_name == "wire":
+            return self.visit_coreir_wire(module)
         op_name = defn.coreir_name
         if op_name == "ashr":
             op_name = "shrs"
