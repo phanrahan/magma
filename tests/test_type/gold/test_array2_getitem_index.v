@@ -1,12 +1,3 @@
-module mantle_slicesArrT__slices2110__tBitIn2 (
-    input [1:0] in,
-    output [0:0] out0,
-    output [0:0] out1
-);
-assign out0 = in[1];
-assign out1 = in[0];
-endmodule
-
 module mantle_concatNArrT__Ns11__t_childBitIn (
     input [0:0] in0,
     input [0:0] in1,
@@ -20,17 +11,10 @@ module Foo (
     output [1:0] O
 );
 wire [1:0] ConcatN_inst0_out;
-wire [0:0] SlicesBuilder_out0;
-wire [0:0] SlicesBuilder_out1;
 mantle_concatNArrT__Ns11__t_childBitIn ConcatN_inst0 (
-    .in0(SlicesBuilder_out0),
-    .in1(SlicesBuilder_out1),
+    .in0(I[1:1]),
+    .in1(I[0:0]),
     .out(ConcatN_inst0_out)
-);
-mantle_slicesArrT__slices2110__tBitIn2 SlicesBuilder (
-    .in(I),
-    .out0(SlicesBuilder_out0),
-    .out1(SlicesBuilder_out1)
 );
 assign O = ConcatN_inst0_out;
 endmodule

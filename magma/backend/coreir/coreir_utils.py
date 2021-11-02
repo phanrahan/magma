@@ -32,7 +32,12 @@ def magma_name_to_coreir_select(name):
         return f"self.{name.name}"
     if isinstance(name, ArrayRef):
         array_name = magma_name_to_coreir_select(name.array.name)
-        return f"{array_name}.{name.index}"
+        if isinstance(name.index, int):
+            idx_str = name.index
+        else:
+            assert isinstance(name.index, slice)
+            idx_str = f"{name.index.start}:{name.index.stop}"
+        return f"{array_name}.{idx_str}"
     if isinstance(name, TupleRef):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)
         key_name = _tuple_key_to_string(name.index)

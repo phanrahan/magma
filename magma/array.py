@@ -735,11 +735,6 @@ class Array2(Wireable, Array):
             self._slices_builder = self._make_slices_builder()
         return self._slices_builder.add(start, stop)
 
-    def _make_get(self, idx):
-        if not self._gets_builder:
-            self._gets_builder = self._make_gets_builder()
-        return self._gets_builder.add(idx)
-
     def _make_lift(*args, **kwargs):
         """Monkey patched in magma/primitives/array2.py"""
         raise NotImplementedError()
@@ -822,10 +817,21 @@ class Array2(Wireable, Array):
             assert key.step is None, "Variable slice step not implemented"
             key = slice(start, stop, key.step)
         if self.is_output():
+            # TODO: cache these references
             if isinstance(key, int):
                 return self.T(name=ArrayRef(self, key))
-                return self._make_get(key)
             if isinstance(key, slice):
+                # NOTE(leonardt): coreir select syntax only works for slicing
+                # array of bits, so for now we generate a slices instance for
+                # complex arrays.  We could improve this by either recursively
+                # connecting the elements in the backend when encountering a
+                # slice of a complex array (avoids cost slices defn/instance
+                # but requires recursive traversal) or by changing the backend
+                # to support the slice syntax for complex arrays (I think this
+                # effectively pushes the complexity to the verilog backend
+                # which requires flattening the slices for the flattened types)
+                if issubclass(self.T, Bit):
+                    return Array2[key.stop - key.start, self.T](name=ArrayRef(self, key))
                 return self._make_slice(key.start, key.stop)
             raise NotImplementedError(key)
         if self.is_inout():
