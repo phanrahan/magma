@@ -823,6 +823,7 @@ class Array2(Wireable, Array):
             key = slice(start, stop, key.step)
         if self.is_output():
             if isinstance(key, int):
+                return self.T(name=ArrayRef(self, key))
                 return self._make_get(key)
             if isinstance(key, slice):
                 return self._make_slice(key.start, key.stop)

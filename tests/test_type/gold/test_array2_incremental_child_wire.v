@@ -8,34 +8,6 @@ assign out_0__0 = in__0;
 assign out_0__1 = in__1;
 endmodule
 
-module mantle_getsArrT__gets3021__t_0BitIn_1BitIn24 (
-    input in_0__0,
-    input [1:0] in_0__1,
-    input in_1__0,
-    input [1:0] in_1__1,
-    input in_2__0,
-    input [1:0] in_2__1,
-    input in_3__0,
-    input [1:0] in_3__1,
-    output out0__0,
-    output [1:0] out0__1,
-    output out1__0,
-    output [1:0] out1__1,
-    output out2__0,
-    output [1:0] out2__1,
-    output out3__0,
-    output [1:0] out3__1
-);
-assign out0__0 = in_3__0;
-assign out0__1 = in_3__1;
-assign out1__0 = in_0__0;
-assign out1__1 = in_0__1;
-assign out2__0 = in_2__0;
-assign out2__1 = in_2__1;
-assign out3__0 = in_1__0;
-assign out3__1 = in_1__1;
-endmodule
-
 module mantle_concatNArrT__Ns1__t_child_0BitIn_1BitIn2 (
     input in0_0__0,
     input [1:0] in0_0__1,
@@ -150,14 +122,6 @@ wire ConcatN_inst2_out_1__0;
 wire [1:0] ConcatN_inst2_out_1__1;
 wire ConcatN_inst3_out_0__0;
 wire [1:0] ConcatN_inst3_out_0__1;
-wire GetsBuilder_out0__0;
-wire [1:0] GetsBuilder_out0__1;
-wire GetsBuilder_out1__0;
-wire [1:0] GetsBuilder_out1__1;
-wire GetsBuilder_out2__0;
-wire [1:0] GetsBuilder_out2__1;
-wire GetsBuilder_out3__0;
-wire [1:0] GetsBuilder_out3__1;
 wire Lift_inst0_out_0__0;
 wire [1:0] Lift_inst0_out_0__1;
 wire Lift_inst1_out_0__0;
@@ -214,45 +178,27 @@ mantle_concatNArrT__Ns1__t_child_0BitIn_1BitIn2 ConcatN_inst3 (
     .out_0__0(ConcatN_inst3_out_0__0),
     .out_0__1(ConcatN_inst3_out_0__1)
 );
-mantle_getsArrT__gets3021__t_0BitIn_1BitIn24 GetsBuilder (
-    .in_0__0(I_0__0),
-    .in_0__1(I_0__1),
-    .in_1__0(I_1__0),
-    .in_1__1(I_1__1),
-    .in_2__0(I_2__0),
-    .in_2__1(I_2__1),
-    .in_3__0(I_3__0),
-    .in_3__1(I_3__1),
-    .out0__0(GetsBuilder_out0__0),
-    .out0__1(GetsBuilder_out0__1),
-    .out1__0(GetsBuilder_out1__0),
-    .out1__1(GetsBuilder_out1__1),
-    .out2__0(GetsBuilder_out2__0),
-    .out2__1(GetsBuilder_out2__1),
-    .out3__0(GetsBuilder_out3__0),
-    .out3__1(GetsBuilder_out3__1)
-);
 mantle_liftArrT__t_0Bit_1Bit21 Lift_inst0 (
-    .in__0(GetsBuilder_out0__0),
-    .in__1(GetsBuilder_out1__1),
+    .in__0(I_3__0),
+    .in__1(I_0__1),
     .out_0__0(Lift_inst0_out_0__0),
     .out_0__1(Lift_inst0_out_0__1)
 );
 mantle_liftArrT__t_0Bit_1Bit21 Lift_inst1 (
-    .in__0(GetsBuilder_out2__0),
-    .in__1(GetsBuilder_out3__1),
+    .in__0(I_2__0),
+    .in__1(I_1__1),
     .out_0__0(Lift_inst1_out_0__0),
     .out_0__1(Lift_inst1_out_0__1)
 );
 mantle_liftArrT__t_0Bit_1Bit21 Lift_inst2 (
-    .in__0(GetsBuilder_out3__0),
-    .in__1(GetsBuilder_out2__1),
+    .in__0(I_1__0),
+    .in__1(I_2__1),
     .out_0__0(Lift_inst2_out_0__0),
     .out_0__1(Lift_inst2_out_0__1)
 );
 mantle_liftArrT__t_0Bit_1Bit21 Lift_inst3 (
-    .in__0(GetsBuilder_out1__0),
-    .in__1(GetsBuilder_out0__1),
+    .in__0(I_0__0),
+    .in__1(I_3__1),
     .out_0__0(Lift_inst3_out_0__0),
     .out_0__1(Lift_inst3_out_0__1)
 );
