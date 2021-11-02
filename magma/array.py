@@ -710,6 +710,8 @@ class Array2(Wireable, Array):
         self._parent_index_offset = None
         self._slices_builder = None
         self._gets_builder = None
+        self._ts = {}
+        self._slices = {}
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -809,6 +811,21 @@ class Array2(Wireable, Array):
         self @= self._concat(*args)
         return key_wire
 
+    # TODO(leonardt/array2): Use setdefault pattern?
+    def _get_t(self, index):
+        if index not in self._ts:
+            self._ts[index] = self.T(name=ArrayRef(self, index))
+        return self._ts[index]
+
+    # TODO(leonardt/array2): Use setdefault pattern?
+    def _get_slice(self, slice_):
+        key = (slice_.start, slice_.stop)
+        if key not in self._slices:
+            self._slices[key] = Array2[slice_.stop - slice_.start, self.T](
+                name=ArrayRef(self, slice_)
+            )
+        return self._slices[key]
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             # Normalize slice by mapping None to concrete int values
@@ -817,8 +834,6 @@ class Array2(Wireable, Array):
             assert key.step is None, "Variable slice step not implemented"
             key = slice(start, stop, key.step)
         if self.is_output():
-            # TODO: cache these references
-
             # For nested references of slice objects, we compute the offset
             # from the original array to simplify bookkeeping as well as
             # reducing the size of the select in the backend
@@ -830,10 +845,10 @@ class Array2(Wireable, Array):
                 arr = arr.name.array
 
             if isinstance(key, int):
-                return self.T(name=ArrayRef(arr, offset + key))
+                return arr._get_t(offset + key)
             if isinstance(key, slice):
-                return Array2[key.stop - key.start, self.T](name=ArrayRef(
-                    arr, slice(offset + key.start, offset + key.stop)))
+                return arr._get_slice(slice(offset + key.start,
+                                            offset + key.stop))
             raise NotImplementedError(key)
         if self.is_inout():
             raise NotImplementedError()
