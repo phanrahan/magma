@@ -818,10 +818,22 @@ class Array2(Wireable, Array):
             key = slice(start, stop, key.step)
         if self.is_output():
             # TODO: cache these references
+
+            # For nested references of slice objects, we compute the offset
+            # from the original array to simplify bookkeeping for overlapping
+            # indices as well as reducing the size of the select in the backend
+            arr = self
+            offset = 0
+            while isinstance(arr.name, ArrayRef):
+                assert isinstance(arr.name.index, slice)
+                offset += arr.name.index.start
+                arr = arr.name.array
+
             if isinstance(key, int):
-                return self.T(name=ArrayRef(self, key))
+                return self.T(name=ArrayRef(arr, offset + key))
             if isinstance(key, slice):
-                return Array2[key.stop - key.start, self.T](name=ArrayRef(self, key))
+                return Array2[key.stop - key.start, self.T](name=ArrayRef(
+                    arr, slice(offset + key.start, offset + key.stop)))
             raise NotImplementedError(key)
         if self.is_inout():
             raise NotImplementedError()

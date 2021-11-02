@@ -117,3 +117,29 @@ def test_array2_incremental_child_wire():
             io.O[i][1] @= io.I[i][1]
 
     _check_compile("test_array2_incremental_child_wire", Foo)
+
+
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_getitem_slice_of_slice(nested):
+    class Foo(m.Circuit):
+        T = m.Array2[4, m.Bit]
+        if nested:
+            T = m.Array2[4, T]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= m.concat2(io.I[1:][:2],
+                          io.I[:3][1:])
+
+    _check_compile("test_array2_getitem_slice_of_slice", Foo, nested)
+
+
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_getitem_index_of_slice(nested):
+    class Foo(m.Circuit):
+        T = m.Array2[2, m.Bit]
+        if nested:
+            T = m.Array2[2, T]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O[0] @= io.I[1:][0]
+        io.O[1] @= io.I[:1][0]
+
+    _check_compile("test_array2_getitem_index_of_slice", Foo, nested)
