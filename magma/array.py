@@ -820,8 +820,8 @@ class Array2(Wireable, Array):
             # TODO: cache these references
 
             # For nested references of slice objects, we compute the offset
-            # from the original array to simplify bookkeeping for overlapping
-            # indices as well as reducing the size of the select in the backend
+            # from the original array to simplify bookkeeping as well as
+            # reducing the size of the select in the backend
             arr = self
             offset = 0
             while isinstance(arr.name, ArrayRef):
