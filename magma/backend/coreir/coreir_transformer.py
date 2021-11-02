@@ -429,6 +429,19 @@ class DefinitionTransformer(TransformerBase):
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
+        if (isinstance(value, Array2) and isinstance(value.name, ArrayRef) and
+                isinstance(value.name.index, slice) and
+                not issubclass(value.T, Digital)):
+            # coreir does not support slice syntax for non-array of bits, so we
+            # recursively connect here
+            # TODO(leonardt/array2): recursive offset for getitem of slice ref
+            offset = value.name.index.start
+            value_children = [value.T(name=ArrayRef(value.name.array, offset + i))
+                             for i in range(value.N)]
+            port_children = [port.T(name=ArrayRef(port, i)) for i in range(value.N)]
+            for p, v in zip(port_children, value_children):
+                self.connect(module_defn, p, v)
+            return None
         return module_defn.select(magma_port_to_coreir_port(value))
 
     def connect(self, module_defn, port, value):

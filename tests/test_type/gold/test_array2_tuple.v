@@ -1,31 +1,3 @@
-module mantle_slicesArrT__slices4220__t_0BitIn_1BitIn24 (
-    input in_0__0,
-    input [1:0] in_0__1,
-    input in_1__0,
-    input [1:0] in_1__1,
-    input in_2__0,
-    input [1:0] in_2__1,
-    input in_3__0,
-    input [1:0] in_3__1,
-    output out0_0__0,
-    output [1:0] out0_0__1,
-    output out0_1__0,
-    output [1:0] out0_1__1,
-    output out1_0__0,
-    output [1:0] out1_0__1,
-    output out1_1__0,
-    output [1:0] out1_1__1
-);
-assign out0_0__0 = in_2__0;
-assign out0_0__1 = in_2__1;
-assign out0_1__0 = in_3__0;
-assign out0_1__1 = in_3__1;
-assign out1_0__0 = in_0__0;
-assign out1_0__1 = in_0__1;
-assign out1_1__0 = in_1__0;
-assign out1_1__1 = in_1__1;
-endmodule
-
 module mantle_liftArrT__t_0Bit_1Bit21 (
     input in__0,
     input [1:0] in__1,
@@ -226,23 +198,15 @@ wire Lift_inst2_out_0__0;
 wire [1:0] Lift_inst2_out_0__1;
 wire Lift_inst3_out_0__0;
 wire [1:0] Lift_inst3_out_0__1;
-wire SlicesBuilder_out0_0__0;
-wire [1:0] SlicesBuilder_out0_0__1;
-wire SlicesBuilder_out0_1__0;
-wire [1:0] SlicesBuilder_out0_1__1;
-wire SlicesBuilder_out1_0__0;
-wire [1:0] SlicesBuilder_out1_0__1;
-wire SlicesBuilder_out1_1__0;
-wire [1:0] SlicesBuilder_out1_1__1;
 mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 ConcatN_inst0 (
-    .in0_0__0(SlicesBuilder_out0_0__0),
-    .in0_0__1(SlicesBuilder_out0_0__1),
-    .in0_1__0(SlicesBuilder_out0_1__0),
-    .in0_1__1(SlicesBuilder_out0_1__1),
-    .in1_0__0(SlicesBuilder_out1_0__0),
-    .in1_0__1(SlicesBuilder_out1_0__1),
-    .in1_1__0(SlicesBuilder_out1_1__0),
-    .in1_1__1(SlicesBuilder_out1_1__1),
+    .in0_0__0(I_2__0),
+    .in0_0__1(I_2__1),
+    .in0_1__0(I_3__0),
+    .in0_1__1(I_3__1),
+    .in1_0__0(I_0__0),
+    .in1_0__1(I_0__1),
+    .in1_1__0(I_1__0),
+    .in1_1__1(I_1__1),
     .out_0__0(ConcatN_inst0_out_0__0),
     .out_0__1(ConcatN_inst0_out_0__1),
     .out_1__0(ConcatN_inst0_out_1__0),
@@ -301,14 +265,14 @@ mantle_concatNArrT__Ns1__t_child_0BitIn_1BitIn2 ConcatN_inst4 (
     .out_0__1(ConcatN_inst4_out_0__1)
 );
 mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 ConcatN_inst5 (
-    .in0_0__0(SlicesBuilder_out0_0__0),
-    .in0_0__1(SlicesBuilder_out0_0__1),
-    .in0_1__0(SlicesBuilder_out0_1__0),
-    .in0_1__1(SlicesBuilder_out0_1__1),
-    .in1_0__0(SlicesBuilder_out1_0__0),
-    .in1_0__1(SlicesBuilder_out1_0__1),
-    .in1_1__0(SlicesBuilder_out1_1__0),
-    .in1_1__1(SlicesBuilder_out1_1__1),
+    .in0_0__0(I_2__0),
+    .in0_0__1(I_2__1),
+    .in0_1__0(I_3__0),
+    .in0_1__1(I_3__1),
+    .in1_0__0(I_0__0),
+    .in1_0__1(I_0__1),
+    .in1_1__0(I_1__0),
+    .in1_1__1(I_1__1),
     .out_0__0(ConcatN_inst5_out_0__0),
     .out_0__1(ConcatN_inst5_out_0__1),
     .out_1__0(ConcatN_inst5_out_1__0),
@@ -341,24 +305,6 @@ mantle_liftArrT__t_0Bit_1Bit21 Lift_inst3 (
     .in__1(I_2__1),
     .out_0__0(Lift_inst3_out_0__0),
     .out_0__1(Lift_inst3_out_0__1)
-);
-mantle_slicesArrT__slices4220__t_0BitIn_1BitIn24 SlicesBuilder (
-    .in_0__0(I_0__0),
-    .in_0__1(I_0__1),
-    .in_1__0(I_1__0),
-    .in_1__1(I_1__1),
-    .in_2__0(I_2__0),
-    .in_2__1(I_2__1),
-    .in_3__0(I_3__0),
-    .in_3__1(I_3__1),
-    .out0_0__0(SlicesBuilder_out0_0__0),
-    .out0_0__1(SlicesBuilder_out0_0__1),
-    .out0_1__0(SlicesBuilder_out0_1__0),
-    .out0_1__1(SlicesBuilder_out0_1__1),
-    .out1_0__0(SlicesBuilder_out1_0__0),
-    .out1_0__1(SlicesBuilder_out1_0__1),
-    .out1_1__0(SlicesBuilder_out1_1__0),
-    .out1_1__1(SlicesBuilder_out1_1__1)
 );
 assign O0_0__0 = I_0__0;
 assign O0_0__1 = I_0__1;
