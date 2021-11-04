@@ -827,6 +827,8 @@ class Array2(Wireable, Array):
         return self._slices[key]
 
     def __getitem__(self, key):
+        if isinstance(key, int) and key > self.N - 1:
+            raise IndexError()
         if isinstance(key, slice):
             # Normalize slice by mapping None to concrete int values
             start = key.start if key.start is not None else 0
@@ -852,6 +854,21 @@ class Array2(Wireable, Array):
             raise NotImplementedError(key)
         if self.is_inout():
             raise NotImplementedError()
+        # For nested references of slice objects, we compute the offset
+        # from the original array to simplify bookkeeping as well as
+        # reducing the size of the select in the backend
+        arr = self
+        offset = 0
+        while isinstance(arr.name, ArrayRef):
+            assert isinstance(arr.name.index, slice)
+            offset += arr.name.index.start
+            arr = arr.name.array
+
+        if isinstance(key, int):
+            return arr._get_t(offset + key)
+        if isinstance(key, slice):
+            return arr._get_slice(slice(offset + key.start,
+                                        offset + key.stop))
         result = self._index_map.get(key)
         if result is not None:
             return result
@@ -870,7 +887,24 @@ class Array2(Wireable, Array):
         raise NotImplementedError()
 
     def flatten(self):
+        # TODO(leonardt/array2): Can we preserve old flatten interface?
         return [self]
 
     def __repr__(self):
         return Type.__repr__(self)
+
+    def value(self):
+        if self._ts:
+            ts = [t.value() for t in self._ts.values()]
+            if any(t is None for t in ts):
+                return None
+            return Array[self.N, self.T.flip()](ts)
+        return super().value()
+
+    def trace(self):
+        if self._ts:
+            ts = [t.trace() for t in self._ts.values()]
+            if any(t is None for t in ts):
+                return None
+            return Array[self.N, self.T.flip()](ts)
+        return super().trace()

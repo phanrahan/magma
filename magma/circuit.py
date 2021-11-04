@@ -265,7 +265,7 @@ def _get_intermediate_values(value):
     if driver is None:
         return OrderedIdentitySet()
     flat = value.flatten()
-    if len(flat) > 1 and driver.name.anon() and not isinstance(driver, Array2):
+    if len(flat) > 1 and driver.name.anon():
         return functools.reduce(operator.or_,
                                 (_get_intermediate_values(f) for f in flat),
                                 OrderedIdentitySet())
