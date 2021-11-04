@@ -893,17 +893,36 @@ class Array2(Wireable, Array):
     def __repr__(self):
         return Type.__repr__(self)
 
+    def _get_ts(self):
+        return [self._get_t(i) for i in range(self.N)]
+
     def value(self):
+        for k, v in self._slices.items():
+            if not v.driven():
+                continue
+            driver = v.value()
+            for i in range(k[0], k[1]):
+                j = i - k[0]
+                if self[i].value() is not driver[j]:
+                    self[i] @= driver[j]
         if self._ts:
-            ts = [t.value() for t in self._ts.values()]
+            ts = [t.value() for t in self._get_ts()]
             if any(t is None for t in ts):
                 return None
             return Array[self.N, self.T.flip()](ts)
         return super().value()
 
     def trace(self):
-        if self._ts:
-            ts = [t.trace() for t in self._ts.values()]
+        for k, v in self._slices.items():
+            if not v.driven():
+                continue
+            driver = v.value()
+            for i in range(k[0], k[1]):
+                j = i - k[0]
+                if self[i].value() is not driver[j]:
+                    self[i] @= driver[j]
+        if self._ts or self._slices:
+            ts = [t.trace() for t in self._get_ts()]
             if any(t is None for t in ts):
                 return None
             return Array[self.N, self.T.flip()](ts)
