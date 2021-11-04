@@ -713,6 +713,14 @@ class Array2(Wireable, Array):
         self._check_wireable(o, debug_info)
         Wireable.wire(self, o, debug_info)
 
+        if (isinstance(self.name, ArrayRef) and
+                isinstance(self.name.index, slice)):
+            # We are a slice, update our array to maintain consistency of wired
+            # children (e.g for overlapping index/slices)
+            # TODO(leonardt/array2): Can we avoid doing this unless necessary?
+            for i in range(self.N):
+                self.name.array[self.name.index.start + i] @= o[i]
+
     # TODO(leonardt): unwire
 
     def iswhole(self):
@@ -793,6 +801,7 @@ class Array2(Wireable, Array):
         return [self._get_t(i) for i in range(self.N)]
 
     def _resolve_slice_drivers(self):
+        return
         for k, v in self._slices.items():
             if not v.driven():
                 continue
