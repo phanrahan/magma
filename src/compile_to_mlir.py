@@ -509,9 +509,9 @@ def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
     return True
 
 
-def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
+def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
     if treat_as_primitive(defn_or_decl):
-        return
+        return False
 
     def new_values(fn, ports):
         namer = magma_value_or_type_to_string
@@ -528,7 +528,7 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
             name=defn_or_decl.name,
             operands=inputs,
             results=named_outputs)
-        return
+        return True
     op = hw.ModuleOp(
         name=defn_or_decl.name,
         operands=inputs,
@@ -540,15 +540,21 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind):
         output_values = new_values(ctx.get_or_make_mapped_value, i)
         if named_outputs:
             hw.OutputOp(operands=output_values)
+    return True
 
 
 def lower_magma_defn_to_mlir_module_op(
         defn: m.DefineCircuitKind) -> builtin.ModuleOp:
+    seen = set()
     deps = m.passes.dependencies(defn, include_self=True)
     module = builtin.ModuleOp()
     with push_block(module):
         for dep in deps:
-            lower_magma_defn_or_decl_to_hw(dep)
+            if dep.name in seen:
+                continue
+            lowered = lower_magma_defn_or_decl_to_hw(dep)
+            if lowered:
+                seen.add(dep.name)
     return module
 
 
