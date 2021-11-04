@@ -257,6 +257,14 @@ class ModuleVisitor:
             return self.visit_coreir_reduce(module)
         if defn.coreir_name == "wire":
             return self.visit_coreir_wire(module)
+        if defn.coreir_name == "wrap":
+            assert isinstance(module.operands[0].type, builtin.IntegerType)
+            assert isinstance(module.results[0].type, builtin.IntegerType)
+            comb.BaseOp(
+                op_name="merge",
+                operands=module.operands,
+                results=module.results)
+            return True
         op_name = defn.coreir_name
         if op_name == "ashr":
             op_name = "shrs"
