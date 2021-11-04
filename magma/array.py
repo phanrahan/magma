@@ -718,6 +718,9 @@ class Array2(Wireable, Array):
             # We are a slice, update our array to maintain consistency of wired
             # children (e.g for overlapping index/slices)
             # TODO(leonardt/array2): Can we avoid doing this unless necessary?
+            # Ideally (for performance) we could treat slices as "whole"
+            # objects rather than having to unpack their wiring into their
+            # children
             for i in range(self.N):
                 self.name.array[self.name.index.start + i] @= o[i]
 
