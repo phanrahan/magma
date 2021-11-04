@@ -174,3 +174,20 @@ def test_array2_overlapping_index(nested, caplog):
                                           "wire, using last connection. Input: "
                                           "Foo.O[0], Old Output: Foo.I[1], "
                                           "New Output: Foo.I[0]")
+
+
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_overlapping_index_slice(nested, caplog):
+    class Foo(m.Circuit):
+        T = m.Array2[2, m.Bit]
+        if nested:
+            T = m.Array2[2, T]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O[0] @= io.I[1]
+        io.O[0:2] @= io.I
+
+    _check_compile("test_array2_overlapping_index_slice", Foo, nested)
+    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
+                                          "wire, using last connection. Input: "
+                                          "Foo.O[0], Old Output: Foo.I[1], "
+                                          "New Output: Foo.I[0]")
