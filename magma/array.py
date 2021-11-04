@@ -800,17 +800,6 @@ class Array2(Wireable, Array):
     def _get_ts(self):
         return [self._get_t(i) for i in range(self.N)]
 
-    def _resolve_slice_drivers(self):
-        return
-        for k, v in self._slices.items():
-            if not v.driven():
-                continue
-            driver = v.value()
-            for i in range(k[0], k[1]):
-                j = i - k[0]
-                if self[i].value() is not driver[j]:
-                    self[i] @= driver[j]
-
     def _collect_ts(self, func):
         ts = [func(t) for t in self._get_ts()]
         if any(t is None for t in ts):
@@ -818,13 +807,11 @@ class Array2(Wireable, Array):
         return Array[self.N, self.T.flip()](ts)
 
     def value(self):
-        self._resolve_slice_drivers()
         if self._ts:
             return self._collect_ts(lambda x: x.value())
         return super().value()
 
     def trace(self):
-        self._resolve_slice_drivers()
         if self._ts:
             return self._collect_ts(lambda x: x.trace())
         return super().trace()
