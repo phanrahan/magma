@@ -705,11 +705,6 @@ class Array2(Wireable, Array):
         # Skip Array constructor since we don't want to create children
         Type.__init__(self, **kwargs)
         Wireable.__init__(self)
-        self._index_map = _IndexMap()
-        self._parent = None
-        self._parent_index_offset = None
-        self._slices_builder = None
-        self._gets_builder = None
         self._ts = {}
         self._slices = {}
 
@@ -731,85 +726,6 @@ class Array2(Wireable, Array):
         #   1) Array of const (can we handle with old array logic?)
         #   2) Const bits (handle with Bits2)
         return False
-
-    def _make_slice(self, start, stop):
-        if not self._slices_builder:
-            self._slices_builder = self._make_slices_builder()
-        return self._slices_builder.add(start, stop)
-
-    def _make_lift(*args, **kwargs):
-        """Monkey patched in magma/primitives/array2.py"""
-        raise NotImplementedError()
-
-    def _update_parent_index_map(self, index, value):
-        if self._parent is None:
-            return
-        if isinstance(index, _SliceKey):
-            index = _SliceKey(self._parent_index_offset + index.start,
-                              self._parent_index_offset + index.stop)
-        else:
-            # TODO: Add += operator for _SliceKey
-            index += self._parent_index_offset
-        # TODO: Wrap update parent logic in index map update
-        self._parent._index_map[index] = value
-        self._parent._update_parent_index_map(index, value)
-
-    def _build_tree(self, key):
-        """
-        Builds the concat tree for fetching the item at index `key`
-
-        The indices before and after key are driven by temporary wires which
-        are stored in the `self._index_map` so that future references to those
-        indices will descend the tree
-        """
-        if isinstance(key, slice):
-            start = key.start
-            # To match int key, we change this logic to be inclusive
-            stop = key.stop - 1
-        else:
-            start = key
-            stop = key
-        args = []
-
-        # If start is greater than 0, create the slice object for the elements
-        # before it
-        if start > 0:
-            wire = Array2[start, self.T.undirected_t]()
-            self._index_map[_SliceKey(0, start)] = wire
-            self._update_parent_index_map(_SliceKey(0, start), wire)
-            wire._parent = self
-            wire._parent_index_offset = 0
-            args.append(wire)
-
-        # Create object for requested index
-        if isinstance(key, slice):
-            key_wire = Array2[key.stop - key.start, self.T.undirected_t]()
-            index = _SliceKey(key.start, key.stop)
-            key_arg = key_wire
-        else:
-            key_wire = self.T.undirected_t()
-            index = key
-            # Lift from child type to array for concat
-            key_arg = self._make_lift()()(key_wire)
-        self._index_map[index] = key_wire
-        self._update_parent_index_map(index, key_wire)
-        key_wire._parent = self
-        key_wire._parent_index_offset = index
-        args.append(key_arg)
-
-        # If stop is not the final index, create teh slice object for the
-        # elements after it
-        if stop < self.N - 1:
-            j = self.N - (stop + 1)
-            T = Array2[j, self.T.undirected_t]
-            wire = T()
-            self._index_map[_SliceKey(stop + 1, self.N)] = wire
-            self._update_parent_index_map(_SliceKey(stop + 1, self.N), wire)
-            wire._parent = self
-            wire._parent_index_offset = stop + 1
-            args.append(wire)
-        self @= self._concat(*args)
-        return key_wire
 
     # TODO(leonardt/array2): Use setdefault pattern?
     def _get_t(self, index):
@@ -835,23 +751,6 @@ class Array2(Wireable, Array):
             stop = key.stop if key.stop is not None else len(self)
             assert key.step is None, "Variable slice step not implemented"
             key = slice(start, stop, key.step)
-        if self.is_output():
-            # For nested references of slice objects, we compute the offset
-            # from the original array to simplify bookkeeping as well as
-            # reducing the size of the select in the backend
-            arr = self
-            offset = 0
-            while isinstance(arr.name, ArrayRef):
-                assert isinstance(arr.name.index, slice)
-                offset += arr.name.index.start
-                arr = arr.name.array
-
-            if isinstance(key, int):
-                return arr._get_t(offset + key)
-            if isinstance(key, slice):
-                return arr._get_slice(slice(offset + key.start,
-                                            offset + key.stop))
-            raise NotImplementedError(key)
         if self.is_inout():
             raise NotImplementedError()
         # For nested references of slice objects, we compute the offset
@@ -869,10 +768,7 @@ class Array2(Wireable, Array):
         if isinstance(key, slice):
             return arr._get_slice(slice(offset + key.start,
                                         offset + key.stop))
-        result = self._index_map.get(key)
-        if result is not None:
-            return result
-        return self._build_tree(key)
+        raise NotImplementedError(key)
 
     def __setitem__(self, key, val):
         # TODO(leonardt/array2): Validate setitem?
