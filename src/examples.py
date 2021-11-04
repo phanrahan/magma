@@ -273,3 +273,22 @@ class simple_wrap_cast(m.Circuit):
 
 
 m.backend.coreir.insert_wrap_casts.insert_wrap_casts(simple_wrap_cast)
+
+
+class simple_redefinition_module0(m.Circuit):
+    name = "simple_redefinition_module"
+    io = m.IO(a=m.In(m.Bit), y=m.Out(m.Bit))
+    io.y @= io.a
+
+
+class simple_redefinition_module1(m.Circuit):
+    name = "simple_redefinition_module"
+    io = m.IO(a=m.In(m.Bit), y=m.Out(m.Bit))
+    io.y @= io.a
+
+
+class simple_redefinition(m.Circuit):
+    io = m.IO(a=m.In(m.Bit), y=m.Out(m.Bit))
+    i0 = simple_redefinition_module0()
+    i1 = simple_redefinition_module1()
+    io.y @= i1(i0(io.a))
