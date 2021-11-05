@@ -297,12 +297,31 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_lutN(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert defn.coreir_name == "lutN"
+        init = defn.coreir_configargs["init"]
+        consts = [self.make_constant(m.Bit, b) for b in init]
+        mlir_type = hw.ArrayType((len(init),), builtin.IntegerType(1))
+        array = self._ctx.new_value(mlir_type)
+        hw.ArrayCreateOp(
+            operands=consts,
+            results=array)
+        hw.ArrayGetOp(
+            operands=[array, module.operands[0]],
+            results=module.results)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_commonlib_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
         assert defn.coreir_lib == "commonlib"
         if defn.coreir_name == "muxn":
             return self.visit_muxn(module)
+        if defn.coreir_name == "lutN":
+            return self.visit_lutN(module)
 
     @wrap_with_not_implemented_error
     def visit_array_get(self, module: ModuleWrapper) -> bool:
