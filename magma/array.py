@@ -735,6 +735,11 @@ class Array2(Wireable, Array):
     def _get_t(self, index):
         if index not in self._ts:
             self._ts[index] = self.T(name=ArrayRef(self, index))
+        if self._wire.driven():
+            value = self._wire.value()
+            Wireable.unwire(self, value)
+            for i in range(len(self)):
+                self._get_t(i).wire(value[i])
         return self._ts[index]
 
     # TODO(leonardt/array2): Use setdefault pattern?
