@@ -292,3 +292,10 @@ class simple_redefinition(m.Circuit):
     i0 = simple_redefinition_module0()
     i1 = simple_redefinition_module1()
     io.y @= i1(i0(io.a))
+
+
+class simple_lut(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(a=m.In(m.Bits[2]), y=m.Out(T))
+    values = T(0xDE), T(0xAD), T(0xBE), T(0xEF)
+    io.y @= m.LUT(T, values)()(io.a)
