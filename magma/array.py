@@ -826,6 +826,8 @@ class Array2(Wireable, Array):
 
     def _resolve_slice(self, key, value):
         driver = value.value()
+        if driver is None:
+            return
         for i in range(key[0], key[1]):
             self._get_t(i).wire(driver[i - key[0]])
 

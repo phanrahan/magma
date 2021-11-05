@@ -14,9 +14,10 @@ from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
 from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit
-from .array import Array, ArrayMeta
+from .array import Array2, ArrayMeta
 from .t import Type, Direction, In, Out
 from magma.circuit import Circuit, coreir_port_mapping, IO
+from magma.bitutils import seq2int, int2seq
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
@@ -24,6 +25,7 @@ from magma.logging import root_logger
 from magma.generator import Generator2
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
+from magma.ref import InstRef
 
 
 def _error_handler(fn):
@@ -68,17 +70,54 @@ def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
     return wrapped
 
 
+class BitsConst(Generator2):
+    def __init__(self, value: tuple, N: int):
+        self.coreir_name = "const"
+        self.coreir_lib = "coreir"
+        self.coreir_genargs = {"width": N}
+        self.coreir_configargs = {"value": seq2int(value)}
+        self.renamed_ports = coreir_port_mapping
+        self.primitive = True
+        self.stateful = False
+        self.io = IO(O=Out(Bits[len(value)]))
+        self._value = value
+
+    def simulate(self, value_store, state_store):
+        value_store.set_value(self.O, self.value)
+
+
 class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
 
     def __call__(cls, *args, **kwargs):
+        if len(args) == 1:
+            if (isinstance(args[0], list) and
+                    all(isinstance(x, int) for x in args[0])):
+                return BitsConst(tuple(args[0]), cls.N)().O
+            if isinstance(args[0], int):
+                return BitsConst(tuple(int2seq(args[0], cls.N)), cls.N)().O
+            if isinstance(args[0], Bits):
+                if args[0].const():
+                    return BitsConst(tuple(int2seq(int(args[0]), cls.N)), cls.N)().O
+                arg_len = len(args[0])
+                if arg_len == cls.N:
+                    return args[0]
+                result = super().__call__(*args, **kwargs)
+                if arg_len < cls.N:
+                    # Zext
+                    result[:arg_len] @= args[0]
+                    result[arg_len:] @= Bits[cls.N - arg_len](0)
+                else:
+                    # Truncate
+                    result @= args[0][:cls.N]
+                return result
         result = super().__call__(*args, **kwargs)
-        if all(x.is_output() for x in result.ts) and not cls.is_output():
-            if cls.is_input() or cls.is_inout():
-                raise TypeError("Can't construct output with input/inout")
-            # Make it an output
-            return cls.qualify(Direction.Out)(*args, **kwargs)
+        # if all(x.is_output() for x in result.ts) and not cls.is_output():
+        #     if cls.is_input() or cls.is_inout():
+        #         raise TypeError("Can't construct output with input/inout")
+        #     # Make it an output
+        #     return cls.qualify(Direction.Out)(*args, **kwargs)
         return result
 
     def __getitem__(cls, index):
@@ -117,40 +156,39 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         return super().is_wireable(rhs)
 
 
-class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
-    __hash__ = Array.__hash__
+class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
+    __hash__ = Array2.__hash__
     hwtypes_T = ht.BitVector
 
-    def __init__(self, *args, **kwargs):
-        if args and len(args) == 1 and isinstance(args[0], Array) and \
-                len(self) > 1 and len(args[0]) <= len(self):
-            self.ts = args[0].ts[:]
-            # zext for promoting width
-            for i in range(len(self) - len(args[0])):
-                self.ts.append(Bit(0))
-            Type.__init__(self, **kwargs)
-        else:
-            Array.__init__(self, *args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     if args and len(args) == 1 and isinstance(args[0], Array2) and \
+    #             len(self) > 1 and len(args[0]) <= len(self):
+    #         self.ts = args[0].ts[:]
+    #         # zext for promoting width
+    #         for i in range(len(self) - len(args[0])):
+    #             self.ts.append(Bit(0))
+    #         Type.__init__(self, **kwargs)
+    #     else:
+    #         Array2.__init__(self, *args, **kwargs)
+
+    def const(self):
+        return (isinstance(self.name, InstRef) and
+                isinstance(type(self.name.inst), BitsConst))
 
     def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
         if self.const():
-            return f'bits({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'bits([{}])'.format(', '.join(ts))
+            return f'{type(self).undirected_t}({int(self)})'
+        return super().__repr__()
+        # if not self.name.anon():
+        #     return super().__repr__()
+        # ts = [repr(t) for t in self.ts]
+        # return 'bits([{}])'.format(', '.join(ts))
 
     def bits(self):
         if not self.const():
             raise Exception("Not a constant")
 
-        def _convert(x):
-            if x is type(x).VCC:
-                return True
-            assert x is type(x).GND
-            return False
-
-        return [_convert(x) for x in self.ts]
+        return type(self.name.inst)._value
 
     def __int__(self):
         if not self.const():
@@ -646,7 +684,7 @@ class SInt(Int):
     hwtypes_T = ht.SIntVector
 
     def __init__(self, *args, **kwargs):
-        if args and len(args) == 1 and isinstance(args[0], Array) and \
+        if args and len(args) == 1 and isinstance(args[0], Array2) and \
                 len(self) > 1 and len(args[0]) <= len(self):
             self.ts = args[0].ts[:]
             # zext for promoting width
@@ -654,7 +692,7 @@ class SInt(Int):
                 self.ts.append(args[0].ts[-1])
             Type.__init__(self, **kwargs)
         else:
-            Array.__init__(self, *args, **kwargs)
+            Array2.__init__(self, *args, **kwargs)
 
     @bits_cast
     def bvslt(self, other) -> AbstractBit:

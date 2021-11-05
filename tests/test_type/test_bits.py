@@ -121,31 +121,33 @@ def test_construct():
     """
     Test `m.bits` interface
     """
-    a_1 = m.bits([1, 1])
-    print(type(a_1))
-    assert isinstance(a_1, m.BitsType)
+    class Foo(m.Circuit):
+        a_1 = m.bits([1, 1])
+        print(type(a_1))
+        assert isinstance(a_1, m.BitsType)
 
-    # test promote
-    assert isinstance(m.Bits[16](a_1), m.Bits)
-    assert repr(m.Bits[16](
-        a_1)) == "bits(3, 16)"
+        # test promote
+        assert isinstance(m.Bits[16](a_1), m.Bits)
+        assert repr(m.Bits[16](
+            a_1)) == "Bits[16](3)"
 
 
 def test_const():
     """
     Test constant constructor interface
     """
-    data = m.Bits[16]
-    zero = data(0)
 
     def check_equal(x, y):
-        return all(a is b for a, b in zip(x, y))
+        return int(x) == int(y)
 
-    assert check_equal(zero, m.bits(0, 16))
+    class Foo(m.Circuit):
+        data = m.Bits[16]
+        zero = data(0)
+        assert check_equal(zero, m.bits(0, 16))
 
-    assert check_equal(data(16), m.Bits[16].make_constant(16))
-    assert check_equal(m.Bits[4](0xe), m.Bits[16].make_constant(0xe, 4))
-    assert check_equal(m.Bits[4](0xe), m.Bits.make_constant(0xe, 4))
+        assert check_equal(data(16), m.Bits[16].make_constant(16))
+        assert check_equal(m.Bits[4](0xe), m.Bits[16].make_constant(0xe, 4))
+        assert check_equal(m.Bits[4](0xe), m.Bits.make_constant(0xe, 4))
 
 
 def test_setitem_bfloat():
