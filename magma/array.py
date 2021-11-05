@@ -713,17 +713,6 @@ class Array2(Wireable, Array):
         self._check_wireable(o, debug_info)
         Wireable.wire(self, o, debug_info)
 
-        if (isinstance(self.name, ArrayRef) and
-                isinstance(self.name.index, slice)):
-            # We are a slice, update our array to maintain consistency of wired
-            # children (e.g for overlapping index/slices)
-            # TODO(leonardt/array2): Can we avoid doing this unless necessary?
-            # Ideally (for performance) we could treat slices as "whole"
-            # objects rather than having to unpack their wiring into their
-            # children
-            for i in range(self.N):
-                self.name.array[self.name.index.start + i] @= o[i]
-
     # TODO(leonardt): unwire
 
     def iswhole(self):
@@ -762,6 +751,8 @@ class Array2(Wireable, Array):
             stop = key.stop if key.stop is not None else len(self)
             assert key.step is None, "Variable slice step not implemented"
             key = slice(start, stop, key.step)
+            if (key.start > self.N - 1 or key.stop > self.N):
+                raise IndexError(key)
         if self.is_inout():
             raise NotImplementedError()
         # For nested references of slice objects, we compute the offset
@@ -774,6 +765,16 @@ class Array2(Wireable, Array):
             offset += arr.name.index.start
             arr = arr.name.array
 
+        if self.is_input():
+            # Resolve any slices that overlap with this reference
+            for k, v in self._slices.items():
+                if ((isinstance(key, int) and k[0] <= key < k[1]) or
+                        (isinstance(key, slice) and (
+                            k[0] <= key.start < k[1] or
+                            k[0] < key.stop <= k[1]))):
+                    self._resolve_slice(k, v)
+                    del self._slices[k]
+                    break
         if isinstance(key, int):
             return arr._get_t(offset + key)
         if isinstance(key, slice):
@@ -810,11 +811,24 @@ class Array2(Wireable, Array):
         return Array[self.N, self.T.flip()](ts)
 
     def value(self):
+        self._resolve_slice_drivers()
         if self._ts:
             return self._collect_ts(lambda x: x.value())
         return super().value()
 
     def trace(self):
+        self._resolve_slice_drivers()
         if self._ts:
             return self._collect_ts(lambda x: x.trace())
         return super().trace()
+
+    def _resolve_slice(self, key, value):
+        driver = value.value()
+        for i in range(key[0], key[1]):
+            self._get_t(i).wire(driver[i - key[0]])
+
+    def _resolve_slice_drivers(self):
+        for k, v in self._slices.items():
+            if not v.driven():
+                continue
+            self._resolve_slice(k, v)
