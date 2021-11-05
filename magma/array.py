@@ -828,7 +828,9 @@ class Array2(Wireable, Array):
             self._get_t(i).wire(driver[i - key[0]])
 
     def _resolve_slice_drivers(self):
-        for k, v in self._slices.items():
+        items = list(self._slices.items())
+        for k, v in items:
             if not v.driven():
                 continue
             self._resolve_slice(k, v)
+            del self._slices[k]
