@@ -767,6 +767,8 @@ class Array2(Wireable, Array):
 
         if self.is_input():
             # Resolve any slices that overlap with this reference
+            # TODO(leonardt/array2): We could improve lookup performance by
+            # maintaining a mapping from "contained" index slice object
             for k, v in self._slices.items():
                 if ((isinstance(key, int) and k[0] <= key < k[1]) or
                         (isinstance(key, slice) and (
@@ -829,6 +831,15 @@ class Array2(Wireable, Array):
 
     def _resolve_slice_drivers(self):
         items = list(self._slices.items())
+        # TODO(leonardt/array2): We could improve performance by avoiding
+        # resolving the drivers in the backend, but that would require either:
+        #   a: changing the value/trace API to handle slices rather than a
+        #      "flattened" list of drivers (similarly need to update the iter
+        #      logic to return slice objects rather than each individual index)
+        #
+        #   b: resolving using a concat instance, which avoids needing the
+        #      above mentioned API changes, but pays the price of defn/inst/type
+        #      overhead
         for k, v in items:
             if not v.driven():
                 continue
