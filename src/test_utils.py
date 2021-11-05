@@ -59,6 +59,7 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
         examples.simple_wrap_cast,
         examples.simple_redefinition,
         examples.simple_lut,
+        examples.complex_lut,
     ]
 
 

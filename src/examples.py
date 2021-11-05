@@ -299,3 +299,12 @@ class simple_lut(m.Circuit):
     io = m.IO(a=m.In(m.Bits[2]), y=m.Out(T))
     values = T(0xDE), T(0xAD), T(0xBE), T(0xEF)
     io.y @= m.LUT(T, values)()(io.a)
+
+
+class complex_lut(m.Circuit):
+    T0 = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    T = m.Array[2, T0]
+    T_flat = m.Bits[T.flat_length()]
+    io = m.IO(a=m.In(m.Bits[2]), y=m.Out(T))
+    values = T_flat(71183), T_flat(100207), T_flat(234315), T_flat(140574)
+    io.y @= m.LUT(T, values)()(io.a)
