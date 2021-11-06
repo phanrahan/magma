@@ -343,3 +343,17 @@ def test_array2_overlapping_override_bulk_wire_slice(nested, caplog):
                                           "wire, using last connection. Input: "
                                           "Foo.O[1], Old Output: Foo.I[1], "
                                           "New Output: Foo.I[3]")
+
+
+@pytest.mark.parametrize('nested', [False, True])
+def test_array2_overlapping_override_bulk_wire2(nested, caplog):
+    class Foo(m.Circuit):
+        T = m.Array2[4, m.Bit]
+        if nested:
+            T = m.Array2[4, T]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= io.I
+        io.O[0] @= io.I[2]
+        io.O @= io.I
+
+    _check_compile("test_array2_overlapping_override_bulk_wire2", Foo, nested)
