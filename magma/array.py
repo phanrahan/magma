@@ -769,9 +769,9 @@ class Array2(Wireable, Array):
         # reducing the size of the select in the backend
         arr = self
         offset = 0
-        while isinstance(arr.name, ArrayRef):
+        if isinstance(arr.name, ArrayRef):
             assert isinstance(arr.name.index, slice)
-            offset += arr.name.index.start
+            offset = arr.name.index.start
             arr = arr.name.array
 
         if isinstance(key, int):
