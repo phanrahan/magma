@@ -736,6 +736,7 @@ class Array2(Wireable, Array):
         if index not in self._ts:
             self._ts[index] = self.T(name=ArrayRef(self, index))
         if self._wire.driven():
+            # Resolve bulk connection before returning child reference
             value = self._wire.value()
             Wireable.unwire(self, value)
             for i in range(len(self)):
