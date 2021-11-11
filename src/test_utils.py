@@ -1,7 +1,8 @@
 import functools
 import glob
 import importlib
-from typing import List
+import os
+from typing import List, Optional
 
 import magma as m
 from magma.testing import check_files_equal
@@ -15,13 +16,30 @@ _MAGMA_EXAMPLES_TO_SKIP = (
     "risc",
 )
 
+_MLIR_TO_VERILOG_BIN = "./run.sh"
 
-def run_test_compile_to_mlir(ckt: m.DefineCircuitKind):
+
+def get_check_verilog(default: bool) -> bool:
+    return os.environ.get("CHECK_VERILOG", default)
+
+
+def run_verilog_check(mlir_filename: str, verilog_filename: str):
+    cmd = f"cat {mlir_filename} | {_MLIR_TO_VERILOG_BIN} > out.v"
+    os.system(cmd)
+    assert check_files_equal(__file__, "out.v", verilog_filename)
+
+
+def run_test_compile_to_mlir(
+        ckt: m.DefineCircuitKind, check_verilog: Optional[bool] = None):
+    if check_verilog is None:
+        check_verilog = get_check_verilog(False)
     m.passes.clock.WireClockPass(ckt).run()
     filename = f"{ckt.name}.mlir"
     with open(filename, "w") as f:
         compile_to_mlir(ckt, f)
     assert check_files_equal(__file__, filename, f"golds/{filename}")
+    if check_verilog:
+        run_verilog_check(filename, f"golds/{ckt.name}.v")
 
 
 @functools.lru_cache()
