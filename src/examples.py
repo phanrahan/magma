@@ -308,3 +308,9 @@ class complex_lut(m.Circuit):
     io = m.IO(a=m.In(m.Bits[2]), y=m.Out(T))
     values = T_flat(71183), T_flat(100207), T_flat(234315), T_flat(140574)
     io.y @= m.LUT(T, values)()(io.a)
+
+
+class simple_side_effect_instance(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    no_outputs()(io.I)
+    io.O @= io.I

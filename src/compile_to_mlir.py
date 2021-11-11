@@ -504,6 +504,11 @@ class ModuleVisitor:
             src_value = self._ctx.get_or_make_mapped_value(src_port)
             self._ctx.set_mapped_value(dst_port, src_value)
         assert self.visit_module(ModuleWrapper.make(module, self._ctx))
+        instances = getattr(module, "instances", [])
+        for inst in instances:
+            if inst in self._visited:
+                continue
+            self.visit(inst)
 
 
 def treat_as_primitive(defn_or_decl: m.circuit.CircuitKind) -> bool:

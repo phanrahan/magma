@@ -106,9 +106,10 @@ class InstanceOp(MlirOp):
     module: str
 
     def print_op(self, printer: PrinterBase):
-        print_names(self.results, printer)
-        printer.print(f" = hw.instance \"{self.name}\" ")
-        printer.print(f"@{self.module}(")
+        if self.results:
+            print_names(self.results, printer)
+            printer.print(" = ")
+        printer.print(f"hw.instance \"{self.name}\" @{self.module}(")
         print_names(self.operands, printer)
         printer.print(") : (")
         print_types(self.operands, printer)

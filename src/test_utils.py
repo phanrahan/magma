@@ -60,6 +60,7 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
         examples.simple_redefinition,
         examples.simple_lut,
         examples.complex_lut,
+        examples.simple_side_effect_instance,
     ]
 
 
