@@ -2,7 +2,7 @@ import dataclasses
 import functools
 import io
 import sys
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Mapping, Optional, Tuple, Union
 
 import magma as m
 
@@ -264,6 +264,8 @@ class ModuleVisitor:
                 op_name="merge",
                 operands=module.operands,
                 results=module.results)
+            return True
+        if defn.coreir_name == "term":
             return True
         op_name = defn.coreir_name
         if op_name == "ashr":
@@ -533,6 +535,13 @@ def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
     return True
 
 
+def lower_inline_verilog_strs(
+        inline_verilog_strs: List[Tuple[str, Mapping[str, m.Type]]]):
+    for string, references in inline_verilog_strs:
+        assert not references
+        sv.VerbatimOp(operands=[], string=string)
+
+
 def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
     if treat_as_primitive(defn_or_decl):
         return False
@@ -561,6 +570,7 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
     visitor = ModuleVisitor(graph, ctx)
     with push_block(op):
         visitor.visit(defn_or_decl)
+        lower_inline_verilog_strs(defn_or_decl.inline_verilog_strs)
         output_values = new_values(ctx.get_or_make_mapped_value, i)
         if named_outputs:
             hw.OutputOp(operands=output_values)

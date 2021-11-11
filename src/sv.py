@@ -150,4 +150,13 @@ class WireOp(MlirOp):
         print_types(self.results, printer)
 
 
+@dataclasses.dataclass
+class VerbatimOp(MlirOp):
+    operands: List[MlirOp]
+    string: str
+
+    def print_op(self, printer: PrinterBase):
+        printer.print(f"sv.verbatim \"{self.string}\"")
+
+
 end_dialect()
