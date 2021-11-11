@@ -20,7 +20,6 @@ hw.module @Parity(%I: i1, %CLK: i1) -> (%O: i1) {
     %3 = sv.read_inout %11 : !hw.inout<i1>
     %13 = hw.constant 1 : i1
     %14 = comb.xor %3, %13 : i1
-    %16 = hw.constant -1 : i1
-    %15 = comb.xor %16, %14 : i1
+    %15 = comb.xor %6, %14 : i1
     hw.output %15 : i1
 }

@@ -12,28 +12,25 @@ hw.module @ShiftRegister(%I: i1, %CLK: i1) -> (%O: i1) {
     sv.alwaysff(posedge %CLK) {
         sv.passign %4, %0 : i1
     }
-    %5 = hw.constant 0 : i1
     sv.initial {
-        sv.bpassign %4, %5 : i1
+        sv.bpassign %4, %2 : i1
     }
     %3 = sv.read_inout %4 : !hw.inout<i1>
-    %7 = sv.reg {name = "Register_inst2"} : !hw.inout<i1>
+    %6 = sv.reg {name = "Register_inst2"} : !hw.inout<i1>
     sv.alwaysff(posedge %CLK) {
-        sv.passign %7, %3 : i1
+        sv.passign %6, %3 : i1
     }
-    %8 = hw.constant 0 : i1
     sv.initial {
-        sv.bpassign %7, %8 : i1
+        sv.bpassign %6, %2 : i1
     }
-    %6 = sv.read_inout %7 : !hw.inout<i1>
-    %10 = sv.reg {name = "Register_inst3"} : !hw.inout<i1>
+    %5 = sv.read_inout %6 : !hw.inout<i1>
+    %8 = sv.reg {name = "Register_inst3"} : !hw.inout<i1>
     sv.alwaysff(posedge %CLK) {
-        sv.passign %10, %6 : i1
+        sv.passign %8, %5 : i1
     }
-    %11 = hw.constant 0 : i1
     sv.initial {
-        sv.bpassign %10, %11 : i1
+        sv.bpassign %8, %2 : i1
     }
-    %9 = sv.read_inout %10 : !hw.inout<i1>
-    hw.output %9 : i1
+    %7 = sv.read_inout %8 : !hw.inout<i1>
+    hw.output %7 : i1
 }

@@ -14,34 +14,31 @@ hw.module @EnableShiftRegister(%I: i4, %shift: i1, %CLK: i1, %ASYNCRESET: i1) ->
     sv.alwaysff(posedge %shift) {
         sv.passign %4, %0 : i4
     } (asyncreset : posedge %CLK) {
-        sv.passign %4, %5 : i4
+        sv.passign %4, %2 : i4
     }
-    %5 = hw.constant 0 : i4
     sv.initial {
-        sv.bpassign %4, %5 : i4
+        sv.bpassign %4, %2 : i4
     }
     %3 = sv.read_inout %4 : !hw.inout<i4>
-    %7 = sv.reg {name = "Register_inst2"} : !hw.inout<i4>
+    %6 = sv.reg {name = "Register_inst2"} : !hw.inout<i4>
     sv.alwaysff(posedge %shift) {
-        sv.passign %7, %3 : i4
+        sv.passign %6, %3 : i4
     } (asyncreset : posedge %CLK) {
-        sv.passign %7, %8 : i4
+        sv.passign %6, %2 : i4
     }
-    %8 = hw.constant 0 : i4
     sv.initial {
-        sv.bpassign %7, %8 : i4
+        sv.bpassign %6, %2 : i4
     }
-    %6 = sv.read_inout %7 : !hw.inout<i4>
-    %10 = sv.reg {name = "Register_inst3"} : !hw.inout<i4>
+    %5 = sv.read_inout %6 : !hw.inout<i4>
+    %8 = sv.reg {name = "Register_inst3"} : !hw.inout<i4>
     sv.alwaysff(posedge %shift) {
-        sv.passign %10, %6 : i4
+        sv.passign %8, %5 : i4
     } (asyncreset : posedge %CLK) {
-        sv.passign %10, %11 : i4
+        sv.passign %8, %2 : i4
     }
-    %11 = hw.constant 0 : i4
     sv.initial {
-        sv.bpassign %10, %11 : i4
+        sv.bpassign %8, %2 : i4
     }
-    %9 = sv.read_inout %10 : !hw.inout<i4>
-    hw.output %9 : i4
+    %7 = sv.read_inout %8 : !hw.inout<i4>
+    hw.output %7 : i4
 }

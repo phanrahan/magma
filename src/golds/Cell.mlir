@@ -64,18 +64,17 @@ hw.module @Cell(%neighbors: i8, %running: i1, %write_enable: i1, %write_value: i
     %62 = hw.array_get %63[%2] : !hw.array<2xi1>
     %65 = hw.array_create %2, %write_value : i1
     %64 = hw.array_get %65[%write_enable] : !hw.array<2xi1>
-    %67 = hw.constant -1 : i1
-    %66 = comb.xor %67, %running : i1
-    %69 = hw.array_create %62, %64 : i1
-    %68 = hw.array_get %69[%66] : !hw.array<2xi1>
-    %70 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
+    %66 = comb.xor %4, %running : i1
+    %68 = hw.array_create %62, %64 : i1
+    %67 = hw.array_get %68[%66] : !hw.array<2xi1>
+    %69 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
     sv.alwaysff(posedge %CLK) {
-        sv.passign %70, %68 : i1
+        sv.passign %69, %67 : i1
     }
-    %71 = hw.constant 0 : i1
+    %70 = hw.constant 0 : i1
     sv.initial {
-        sv.bpassign %70, %71 : i1
+        sv.bpassign %69, %70 : i1
     }
-    %2 = sv.read_inout %70 : !hw.inout<i1>
+    %2 = sv.read_inout %69 : !hw.inout<i1>
     hw.output %2 : i1
 }

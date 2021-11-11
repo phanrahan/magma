@@ -136,6 +136,7 @@ class ModuleVisitor:
         self._ctx = ctx
         self._visited = set()
 
+    @functools.lru_cache()
     def make_constant(
             self, T: m.Kind, value: Optional[Any] = None) -> MlirValue:
         result = self._ctx.new_value(T)

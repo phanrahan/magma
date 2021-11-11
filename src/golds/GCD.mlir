@@ -31,12 +31,11 @@ hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
     sv.alwaysff(posedge %CLK) {
         sv.passign %23, %21 : i16
     }
-    %24 = hw.constant 0 : i16
     sv.initial {
-        sv.bpassign %23, %24 : i16
+        sv.bpassign %23, %15 : i16
     }
     %1 = sv.read_inout %23 : !hw.inout<i16>
-    %25 = hw.constant 0 : i16
-    %26 = comb.icmp eq %0, %25 : i16
-    hw.output %1, %26 : i16, i1
+    %24 = hw.constant 0 : i16
+    %25 = comb.icmp eq %0, %24 : i16
+    hw.output %1, %25 : i16, i1
 }
