@@ -1,6 +1,7 @@
 import itertools
 
 import magma as m
+from magma.inline_verilog import ProcessInlineVerilogPass
 
 
 class simple_comb(m.Circuit):
@@ -314,3 +315,12 @@ class simple_side_effect_instance(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     no_outputs()(io.I)
     io.O @= io.I
+
+
+class simple_inline_verilog(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= io.I
+    m.inline_verilog("// This is a comment.")
+
+
+ProcessInlineVerilogPass(simple_inline_verilog).run()
