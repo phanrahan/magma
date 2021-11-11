@@ -536,10 +536,14 @@ def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
 
 
 def lower_inline_verilog_strs(
+        ctx: ModuleContext,
         inline_verilog_strs: List[Tuple[str, Mapping[str, m.Type]]]):
     for string, references in inline_verilog_strs:
-        assert not references
-        sv.VerbatimOp(operands=[], string=string)
+        operands = []
+        for i, (key, value) in enumerate(references.items()):
+            string = string.replace(key, f"{{{i}}}")
+            operands.append(ctx.get_or_make_mapped_value(value))
+        sv.VerbatimOp(operands=operands, string=string)
 
 
 def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
@@ -570,7 +574,7 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
     visitor = ModuleVisitor(graph, ctx)
     with push_block(op):
         visitor.visit(defn_or_decl)
-        lower_inline_verilog_strs(defn_or_decl.inline_verilog_strs)
+        lower_inline_verilog_strs(ctx, defn_or_decl.inline_verilog_strs)
         output_values = new_values(ctx.get_or_make_mapped_value, i)
         if named_outputs:
             hw.OutputOp(operands=output_values)

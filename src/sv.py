@@ -157,6 +157,11 @@ class VerbatimOp(MlirOp):
 
     def print_op(self, printer: PrinterBase):
         printer.print(f"sv.verbatim \"{self.string}\"")
+        if self.operands:
+            printer.print(" (")
+            print_names(self.operands, printer)
+            printer.print(") : ")
+            print_types(self.operands, printer)
 
 
 end_dialect()
