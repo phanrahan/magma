@@ -324,3 +324,15 @@ class simple_inline_verilog(m.Circuit):
 
 
 ProcessInlineVerilogPass(simple_inline_verilog).run()
+
+
+class complex_inline_verilog(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= m.register(io.I)
+    m.inline_verilog(
+        "assert property (@(posedge CLK) {I} |-> ##1 {O});",
+        O=io.O, I=io.I
+    )
+
+
+ProcessInlineVerilogPass(complex_inline_verilog).run()
