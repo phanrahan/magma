@@ -71,16 +71,26 @@ def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
 
 
 class BitsConst(Generator2):
-    def __init__(self, value: tuple, N: int):
+    def __init__(self, value: tp.Union[int, tuple], N: int):
+        if isinstance(value, tuple):
+            value = seq2int(value)
+        else:
+            value = int(value)
+        value = BitVector[N](value)
         self.coreir_name = "const"
         self.coreir_lib = "coreir"
         self.coreir_genargs = {"width": N}
-        self.coreir_configargs = {"value": seq2int(value)}
+        self.coreir_configargs = {"value": value}
         self.renamed_ports = coreir_port_mapping
         self.primitive = True
         self.stateful = False
-        self.io = IO(O=Out(Bits[len(value)]))
+        self.io = IO(O=Out(Bits[N]))
         self._value = value
+
+        def __repr__(self):
+            return f"{self.name} = BitsConst({value}, {N})"
+
+        self.__repr__ = __repr__
 
     def simulate(self, value_store, state_store):
         value_store.set_value(self.O, self.value)
@@ -99,7 +109,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 return BitsConst(tuple(int2seq(args[0], cls.N)), cls.N)().O
             if isinstance(args[0], Bits):
                 if args[0].const():
-                    return BitsConst(tuple(int2seq(int(args[0]), cls.N)), cls.N)().O
+                    return BitsConst(tuple(int2seq(int(args[0]), cls.N)),
+                                     cls.N)().O
                 arg_len = len(args[0])
                 if arg_len == cls.N:
                     return args[0]
@@ -112,6 +123,12 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                     # Truncate
                     result @= args[0][:cls.N]
                 return result
+            if type(args[0]).is_wireable(cls):
+                # Type conversion done with wiring to an anon value
+                result = cls()
+                result @= args[0]
+                return result
+            raise NotImplementedError(args[0])
         result = super().__call__(*args, **kwargs)
         # if all(x.is_output() for x in result.ts) and not cls.is_output():
         #     if cls.is_input() or cls.is_inout():
@@ -369,11 +386,15 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
     def bvult(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("ult")()(self, other)
 
-    @bits_cast
     def bvule(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
             return Type.__le__(self, other)
+        # We coerce after wiring for simplicity
+        try:
+            other = _coerce(type(self), other)
+        except TypeError:
+            return NotImplemented
         return type(self).undirected_t._declare_compare_op("ule")()(self, other)
 
     @bits_cast
@@ -643,14 +664,6 @@ class Int(Bits):
 class UInt(Int):
     hwtypes_T = ht.UIntVector
 
-    def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
-        if self.const():
-            return f'uint({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'uint([{}])'.format(', '.join(ts))
-
     @_error_handler
     def __floordiv__(self, other):
         return self.bvudiv(other)
@@ -783,14 +796,6 @@ class SInt(Int):
 
         T = type(self).unsized_t
         return self.concat(T[ext]([self[-1] for _ in range(ext)]))
-
-    def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
-        if self.const():
-            return f'sint({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'sint([{}])'.format(', '.join(ts))
 
     def __int__(self):
         if not self.const():

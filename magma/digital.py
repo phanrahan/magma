@@ -8,6 +8,7 @@ from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
+from magma.ref import ArrayRef
 from magma.wire_container import Wire, WiringLog, Wireable
 
 
@@ -196,7 +197,8 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
 
     def const(self):
         cls = type(self)
-        return self is cls.VCC or self is cls.GND
+        return (self is cls.VCC or self is cls.GND or
+                (isinstance(self.name, ArrayRef) and self.name.array.const()))
 
     @classmethod
     def flat_length(cls):

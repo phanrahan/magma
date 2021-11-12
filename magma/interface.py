@@ -143,11 +143,13 @@ class InterfaceKind(Kind):
     def __iter__(cls):
         return iter(cls.ports)
 
-    def __str__(cls):
+    def get_arg_str(cls):
         args = [f"\"{arg}\"" if i % 2 == 0 else str(arg)
                 for i, arg in enumerate(cls._decl)]
-        arg_str = ", ".join(args)
-        return f"Interface({arg_str})"
+        return ", ".join(args)
+
+    def __str__(cls):
+        return f"Interface({self.get_arg_str()})"
 
     def __eq__(cls, rhs):
         return cls._decl == rhs._decl

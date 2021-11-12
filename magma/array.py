@@ -758,7 +758,15 @@ class Array2(Wireable, Array):
         if isinstance(key, slice):
             # Normalize slice by mapping None to concrete int values
             start = key.start if key.start is not None else 0
+            if start < 0:
+                start = self.N + start
+                if start < 0:
+                    raise IndexError(key)
             stop = key.stop if key.stop is not None else len(self)
+            if stop < 0:
+                stop = self.N + stop
+                if stop < 0:
+                    raise IndexError(key)
             assert key.step is None, "Variable slice step not implemented"
             key = slice(start, stop, key.step)
             if (key.start > self.N - 1 or key.stop > self.N):
@@ -793,6 +801,9 @@ class Array2(Wireable, Array):
     def _concat(*args, **kwargs):
         """Monkey patched in magma/conversions.py"""
         raise NotImplementedError()
+
+    def concat(self, other):
+        return self._concat(self, other)
 
     def flatten(self):
         # TODO(leonardt/array2): Can we preserve old flatten interface?

@@ -162,22 +162,11 @@ def test_setitem_bfloat():
     print(repr(TestCircuit))
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
-wire(TestCircuit.I[0], TestCircuit.O[0])
-wire(TestCircuit.I[1], TestCircuit.O[1])
-wire(TestCircuit.I[2], TestCircuit.O[2])
-wire(TestCircuit.I[3], TestCircuit.O[3])
-wire(TestCircuit.I[4], TestCircuit.O[4])
-wire(TestCircuit.I[5], TestCircuit.O[5])
-wire(TestCircuit.I[6], TestCircuit.O[6])
-wire(TestCircuit.I[7], TestCircuit.O[7])
-wire(TestCircuit.I[8], TestCircuit.O[8])
-wire(TestCircuit.I[9], TestCircuit.O[9])
-wire(TestCircuit.I[10], TestCircuit.O[10])
-wire(TestCircuit.I[11], TestCircuit.O[11])
-wire(TestCircuit.I[12], TestCircuit.O[12])
-wire(TestCircuit.I[13], TestCircuit.O[13])
-wire(TestCircuit.I[14], TestCircuit.O[14])
-wire(GND, TestCircuit.O[15])
+BitsConst_inst0 = BitsConst(0, 1)
+ConcatN_inst0 = ConcatN()
+wire(TestCircuit.I[slice(0, 15, None)], ConcatN_inst0.in0)
+wire(BitsConst_inst0.out, ConcatN_inst0.in1)
+wire(ConcatN_inst0.out, TestCircuit.O)
 EndCircuit()\
 """  # noqa
 
@@ -251,18 +240,20 @@ def test_ite(n):
 
     gnd_wires = '\n'.join(
         f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
+    print(repr(TestITE))
     assert repr(TestITE) == f"""\
-TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
+TestITE = DefineCircuit("TestITE", "I0", In(Bits[1]), "I1", In(Bits[1]), "S", In(Bits[1]), "O", Out(Bits[1]))
+BitsConst_inst0 = BitsConst(0, 1)
 magma_Bit_not_inst0 = magma_Bit_not()
-magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
-magma_Bits_{n}_ite_Out_Bits_{n}_inst0 = magma_Bits_{n}_ite_Out_Bits_{n}()
-wire(magma_Bits_{n}_eq_inst0.out, magma_Bit_not_inst0.in)
-wire(TestITE.S, magma_Bits_{n}_eq_inst0.in0)
-{gnd_wires}
-wire(TestITE.I0, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in0)
-wire(TestITE.I1, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in1)
-wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
-wire(magma_Bits_{n}_ite_Out_Bits_{n}_inst0.out, TestITE.O)
+magma_Bits_1_eq_inst0 = magma_Bits_1_eq()
+magma_Bits_1_ite_Out_Bits_1_inst0 = magma_Bits_1_ite_Out_Bits_1()
+wire(magma_Bits_1_eq_inst0.out, magma_Bit_not_inst0.in)
+wire(TestITE.S, magma_Bits_1_eq_inst0.in0)
+wire(BitsConst_inst0.out, magma_Bits_1_eq_inst0.in1)
+wire(TestITE.I0, magma_Bits_1_ite_Out_Bits_1_inst0.in0)
+wire(TestITE.I1, magma_Bits_1_ite_Out_Bits_1_inst0.in1)
+wire(magma_Bit_not_inst0.out, magma_Bits_1_ite_Out_Bits_1_inst0.sel)
+wire(magma_Bits_1_ite_Out_Bits_1_inst0.out, TestITE.O)
 EndCircuit()\
 """
     m.compile(f"build/TestBits{n}ITE", TestITE, output="coreir-verilog")
