@@ -13,7 +13,7 @@ from magma.t import Direction
 from magma.conversions import from_bits, as_bits
 from magma.view import PortView, InstView
 from magma.wire import wire
-from magma.inline_verilog import _get_view_inst_parent
+from magma.inline_verilog_impl import _get_view_inst_parent
 
 
 def _should_disable_ndarray(mon_arg, bind_arg):

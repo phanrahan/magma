@@ -8,7 +8,6 @@ import functools
 import operator
 from collections import namedtuple
 import os
-import logging as py_logging  # to avoid confusion
 
 import six
 from . import cache_definition
@@ -17,7 +16,6 @@ from .interface import *
 from .wire import *
 from .config import get_debug_mode
 from .debug import get_callee_frame_info, debug_info
-from .logging import root_logger, stage_logger, unstage_logger
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
 from magma.syntax.combinational import combinational
@@ -27,12 +25,15 @@ try:
         sequential_to_verilog
 except ImportError:
     pass
-from .view import PortView
 
 from magma.clock import is_clock_or_nested_clock, Clock
+from magma.definition_context import DefinitionContext
+from magma.logging import root_logger
 from magma.ref import TempNamedRef
 from magma.t import In
+from magma.view import PortView
 from magma.wire_container import WiringLog
+
 
 __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
@@ -52,86 +53,11 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
 _logger = root_logger()
 
-_VERILOG_FILE_OPEN = """
-integer \\_file_{filename} ;
-initial \\_file_{filename} = $fopen(\"{filename}\", \"{mode}\");
-"""  # noqa
-
-_VERILOG_FILE_CLOSE = """
-final $fclose(\\_file_{filename} );
-"""  # noqa
-
-_DEFAULT_VERILOG_LOG_STR = """
-`ifndef MAGMA_LOG_LEVEL
-    `define MAGMA_LOG_LEVEL 1
-`endif"""
-
 
 class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
     OLD = enum.auto()
     NEW = enum.auto()
-
-
-class DefinitionContext:
-    def __init__(self, placer):
-        stage_logger()
-        self.placer = placer
-        self._inline_verilog = []
-        self._displays = []
-        self._insert_default_log_level = False
-        self._files = []
-        self._builders = []
-        self.metadata = {}
-
-    def add_builder(self, builder):
-        self._builders.append(builder)
-
-    def add_file(self, file):
-        self._files.append(file)
-
-    def _finalize_file_opens(self):
-        for file in self._files:
-            self.add_inline_verilog(
-                _VERILOG_FILE_OPEN.format(filename=file.filename,
-                                          mode=file.mode),
-                {}, {})
-
-    def _finalize_file_close(self):
-        for file in self._files:
-            self.add_inline_verilog(
-                _VERILOG_FILE_CLOSE.format(filename=file.filename),
-                {}, {})
-
-    def add_inline_verilog(self, format_str, format_args, symbol_table,
-                           inline_wire_prefix="_magma_inline_wire"):
-        self._inline_verilog.append((format_str, format_args, symbol_table,
-                                     inline_wire_prefix))
-
-    def insert_default_log_level(self):
-        self._insert_default_log_level = True
-
-    def add_display(self, display):
-        self._displays.append(display)
-
-    def _finalize_displays(self):
-        for display in self._displays:
-            self.add_inline_verilog(*display.get_inline_verilog())
-
-    def place_instances(self, defn):
-        self.placer = self.placer.finalize(defn)
-        for builder in self._builders:
-            inst = builder.finalize()
-            self.placer.place(inst)
-
-    def finalize(self, defn):
-        if self._insert_default_log_level:
-            self.add_inline_verilog(_DEFAULT_VERILOG_LOG_STR, {}, {})
-        self._finalize_file_opens()  # so displays can refer to open files
-        self._finalize_displays()
-        self._finalize_file_close()  # close after displays
-        logs = unstage_logger()
-        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
 
 
 _definition_context_stack = Stack()
@@ -150,8 +76,6 @@ class _DefinitionContextManager:
 
 def _has_definition(cls, port=None):
     if cls.instances:
-        return True
-    if cls._context_._inline_verilog:
         return True
     if port is None:
         interface = getattr(cls, "interface", None)

@@ -64,6 +64,10 @@ class Placer:
         self._instances = []
         self._finalized = False
 
+    @property
+    def name(self):
+        return self._defn.name
+
     def instances(self):
         return self._instances
 

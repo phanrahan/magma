@@ -30,13 +30,6 @@ class _HashStruct:
 def _make_hash_struct(definition):
     repr_ = repr(definition)
     inline_verilog = tuple()
-    for s, args, st, prefix in definition._context_._inline_verilog:
-        inline_verilog += (
-            (s,),
-            (tuple(sorted(args.items())),),
-            (str(st),),
-            (prefix,)
-        )
     for inline_str, connect_references in definition.inline_verilog_strs:
         connect_references = tuple(connect_references.items())
         inline_verilog += (inline_str, connect_references)
