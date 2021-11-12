@@ -3,7 +3,7 @@ import dataclasses
 import magma as m
 
 from graph_lib import Graph
-from magma_common import ModuleLike, visit_value_by_direction
+from magma_common import ModuleLike, visit_value_by_direction, safe_root
 from magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
@@ -93,7 +93,7 @@ def _visit_driver(
     if isinstance(ref, m.ref.ArrayRef):
         if ref.array.is_mixed():
             info=dict(src=driver, dst=value)
-            src_module = _get_inst_or_defn_or_die(ref.array.name.root())
+            src_module = _get_inst_or_defn_or_die(safe_root(ref.array.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
         cache_key = (ref.array, ref.index)
@@ -110,7 +110,7 @@ def _visit_driver(
     if isinstance(ref, m.ref.TupleRef):
         if ref.tuple.is_mixed():
             info=dict(src=driver, dst=value)
-            src_module = _get_inst_or_defn_or_die(ref.tuple.name.root())
+            src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
         cache_key = (ref.tuple, ref.index)

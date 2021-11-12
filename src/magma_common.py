@@ -104,3 +104,17 @@ class InstanceWrapper:
     @property
     def attrs(self) -> Mapping[str, Any]:
         return self._attrs.copy()
+
+
+def safe_root(ref: m.ref.Ref) -> m.ref.Ref:
+    """Returns the root ref of @ref."""
+    # TODO(rsetaluri): This should be able to return `ref.root()`, but depends
+    # on #990.
+    parent = ref
+    if isinstance(ref, m.ref.ArrayRef):
+        parent = ref.array.name
+    elif isinstance(ref, m.ref.TupleRef):
+        parent = ref.tuple.name
+    if parent is ref:
+        return ref
+    return safe_root(parent)
