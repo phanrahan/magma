@@ -37,6 +37,9 @@ def _make_hash_struct(definition):
             (str(st),),
             (prefix,)
         )
+    for inline_str, connect_references in definition.inline_verilog_strs:
+        connect_references = tuple(connect_references.items())
+        inline_verilog += (inline_str, connect_references)
     if hasattr(definition, "verilogFile") and definition.verilogFile:
         return _HashStruct(repr_, True, definition.verilogFile, inline_verilog)
     return _HashStruct(repr_, False, "", inline_verilog)

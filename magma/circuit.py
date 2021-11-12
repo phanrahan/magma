@@ -82,6 +82,7 @@ class DefinitionContext:
         self._insert_default_log_level = False
         self._files = []
         self._builders = []
+        self.metadata = {}
 
     def add_builder(self, builder):
         self._builders.append(builder)
@@ -418,7 +419,10 @@ class CircuitKind(type):
     @deprecated(msg="cls.inline_verilog is deprecated, use m.inline_verilog"
                 "instead")
     def inline_verilog(cls, inline_str, **kwargs):
-        cls._context_.add_inline_verilog(inline_str, kwargs, None)
+        # NOTE(rsetaluri): This is a hack to avoid a circular import.
+        from magma.inline_verilog import inline_verilog as m_inline_verilog
+        with _DefinitionContextManager(cls._context_):
+            m_inline_verilog(inline_str, **kwargs)
 
 
 @six.add_metaclass(CircuitKind)

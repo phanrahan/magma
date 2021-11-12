@@ -22,9 +22,13 @@ def _get_view_inst_parent(view):
     return view
 
 
-def _make_inline_value(cls, inline_value_map, value):
+def _get_context():
+    return _definition_context_stack.peek()
+
+
+def _make_inline_value(inline_value_map, value):
     if isinstance(value, Array) and not issubclass(value.T, Digital):
-        return "'{" + ", ".join(_make_inline_value(cls, inline_value_map, t)
+        return "'{" + ", ".join(_make_inline_value(inline_value_map, t)
                                 for t in reversed(value)) + "}"
     if isinstance(value, Tuple):
         raise NotImplementedError("Inlining tuple to verilog")
@@ -34,7 +38,13 @@ def _make_inline_value(cls, inline_value_map, value):
 
 
 def _make_temporary(defn, value, num, inline_wire_prefix, parent=None):
-    with defn.open():
+    if defn is not None:
+        with defn.open():
+            # Insert a wire so it can't be inlined out
+            temp_name = f"{inline_wire_prefix}{num}"
+            temp = Wire(type(value).undirected_t)(name=temp_name)
+            temp.I @= value
+    else:
         # Insert a wire so it can't be inlined out
         temp_name = f"{inline_wire_prefix}{num}"
         temp = Wire(type(value).undirected_t)(name=temp_name)
@@ -48,13 +58,14 @@ class InlineVerilogError(RuntimeError):
     pass
 
 
-def _insert_temporary_wires(cls, value, inline_wire_prefix):
+def _insert_temporary_wires(value, inline_wire_prefix):
     """
     Insert a temporary Wire instance so the signal isn't inlined out.
 
     We have to do this for DefnRef because the coreir inline.cpp logic
     sometimes inserts temporary wires for DefnRef that eventually get inlined.
     """
+    wire_map = _get_context().metadata.setdefault("inline_verilog_wire_map", {})
     if isinstance(value, Type):
         if value.is_input():
             orig_value = value
@@ -62,7 +73,7 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
             if value is None:
                 raise InlineVerilogError(
                     f"Found reference to undriven input port: "
-                    f"{orig_value.debug_name}")
+                    f"{repr(orig_value)}")
 
         key = value
         if isinstance(value, ClockTypes) and not value.driven():
@@ -70,12 +81,12 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
             # generate a separate wire for the eventual
             # driver from the automatic clock wiring logic
             key = type(value)
-        if key not in cls.inline_verilog_wire_map:
-            temp = _make_temporary(cls, value,
-                                   len(cls.inline_verilog_wire_map),
+        if key not in wire_map:
+            temp = _make_temporary(None, value,
+                                   len(wire_map),
                                    inline_wire_prefix)
-            cls.inline_verilog_wire_map[key] = temp
-        value = cls.inline_verilog_wire_map[key]
+            wire_map[key] = temp
+        value = wire_map[key]
     else:
         assert isinstance(value, PortView)
         if value.port.is_input():
@@ -91,7 +102,7 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
             # deep hierarchies where the driver could come from a far away
             # place, at which point we can add this feature)
             raise NotImplementedError()
-        if value not in cls.inline_verilog_wire_map:
+        if value not in wire_map:
             # get first instance parent, then the parent of that will
             # be the container where we insert a wire
             parent = _get_view_inst_parent(value).parent
@@ -100,12 +111,11 @@ def _insert_temporary_wires(cls, value, inline_wire_prefix):
             else:
                 assert isinstance(parent, Circuit)
                 defn = type(parent)
-
             temp = _make_temporary(defn, value.port,
-                                   len(cls.inline_verilog_wire_map),
+                                   len(wire_map),
                                    inline_wire_prefix, parent)
-            cls.inline_verilog_wire_map[value] = temp
-        value = cls.inline_verilog_wire_map[value]
+            wire_map[value] = temp
+        value = wire_map[value]
     return value
 
 
@@ -126,19 +136,21 @@ def _build_io(inline_value_map):
     return io
 
 
-def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
+def _inline_verilog(inline_str, inline_value_map, inline_wire_prefix,
                     **kwargs):
+    inline_verilog_modules = _get_context().metadata.setdefault(
+        "inline_verilog_modules", [])
     format_args = {}
     for key, arg in kwargs.items():
         if isinstance(arg, (Type, PortView)):
-            arg = _make_inline_value(cls, inline_value_map, arg)
+            arg = _make_inline_value(inline_value_map, arg)
         format_args[key] = arg
     inline_str = inline_str.format(**format_args)
 
     # modules/instances will be sorted lexigraphically in the generated
     # verilog, so we need to generate a lexicographically increasing string
     # based on the module count
-    i = len(cls.inline_verilog_modules)
+    i = len(inline_verilog_modules)
 
     # For every 10 modules, we insert a prefix 9 (so it comes after the
     # previous 1-9 digits)
@@ -150,7 +162,7 @@ def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
     class _InlineVerilog(Circuit):
 
         # Unique name (hash) since uniquify doesn't check inline_verilog
-        name = f"{cls.name}_inline_verilog_{prefix}{suffix}"
+        name = f"{_get_context().placer.name}_inline_verilog_{prefix}{suffix}"
 
         io = _build_io(inline_value_map)
 
@@ -166,23 +178,22 @@ def _inline_verilog(cls, inline_str, inline_value_map, inline_wire_prefix,
 
         inline_verilog_strs = [(inline_str, connect_references)]
 
-    cls.inline_verilog_modules.append(_InlineVerilog)
+    inline_verilog_modules.append(_InlineVerilog)
 
-    with cls.open():
-        inst = _InlineVerilog(
-            name=f"{cls.name}_inline_verilog_inst_{prefix}{suffix}"
-        )
-        # Dummy var so there's a defn for inline verilog without any
-        # interpoalted avlues
-        if not inline_value_map:
-            inst.I @= 0
+    inst = _InlineVerilog(
+        name=f"inline_verilog_inst_{prefix}{suffix}"
+    )
+    # Dummy var so there's a defn for inline verilog without any
+    # interpoalted avlues
+    if not inline_value_map:
+        inst.I @= 0
 
     for key, value in inline_value_map.items():
-        value = _insert_temporary_wires(cls, value, inline_wire_prefix)
+        value = _insert_temporary_wires(value, inline_wire_prefix)
         wire(value, getattr(inst, key))
 
 
-def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
+def _process_fstring_syntax(format_str, format_args, inline_value_map,
                             symbol_table):
     fieldnames = [fname
                   for _, fname, _, _ in string.Formatter().parse(format_str)
@@ -196,7 +207,7 @@ def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
             continue
         if isinstance(value, (Type, PortView)):
             # These have special handling, don't convert to string.
-            value = _make_inline_value(cls, inline_value_map, value)
+            value = _make_inline_value(inline_value_map, value)
             # Stage for subsequent format call for regular kwargs inside
             # _inline_verilog
             value = value.replace("{", "{{").replace("}", "}}")
@@ -204,37 +215,24 @@ def _process_fstring_syntax(format_str, format_args, cls, inline_value_map,
     return format_str
 
 
-def _process_inline_verilog(cls, format_str, format_args, symbol_table,
+def _process_inline_verilog(format_str, format_args, symbol_table,
                             inline_wire_prefix):
     inline_value_map = {}
     if symbol_table is not None:
-        format_str = _process_fstring_syntax(format_str, format_args, cls,
+        format_str = _process_fstring_syntax(format_str, format_args,
                                              inline_value_map, symbol_table)
-    _inline_verilog(cls, format_str, inline_value_map, inline_wire_prefix,
+    _inline_verilog(format_str, inline_value_map, inline_wire_prefix,
                     **format_args)
 
 
 class ProcessInlineVerilogPass(CircuitPass):
-    def __call__(self, cls):
-        if cls.inline_verilog_generated:
-            return
-        if not cls._context_._inline_verilog:
-            return
-        cls.inline_verilog_wire_map = {}
-        cls.inline_verilog_modules = []
-        with cls.open():
-            for fields in cls._context_._inline_verilog:
-                _process_inline_verilog(cls, *fields)
-        if getattr(cls, "instances", []):
-            cls._is_definition = True
-        cls.inline_verilog_generated = True
+    def __call__(self, _):
+        pass
 
 
 def inline_verilog(format_str, inline_wire_prefix="_magma_inline_wire",
                    **kwargs):
     exec(_SKIP_FRAME_DEBUG_STMT)
     symbol_table = get_symbol_table([inline_verilog], copy_locals=True)
-
-    context = _definition_context_stack.peek()
-    context.add_inline_verilog(format_str, kwargs, symbol_table,
-                               inline_wire_prefix)
+    _process_inline_verilog(
+        format_str, kwargs, symbol_table, inline_wire_prefix)
