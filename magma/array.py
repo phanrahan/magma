@@ -720,8 +720,11 @@ class Array2(Wireable, Array):
     # TODO(leonardt): unwire
 
     def iswhole(self):
-        # NOTE(leonardt): If we add support for construction Array2 with
-        # existing values, then this could be false
+        if self._ts:
+            # TODO(leonardt/array2): There is a case when all the children are
+            # driven by the same array, in which case we could traverse the
+            # children to check
+            return False
         return True
 
     def const(self):
@@ -830,3 +833,8 @@ class Array2(Wireable, Array):
         if self._ts:
             return self._collect_ts(lambda x: x.trace())
         return super().trace()
+
+    def driven(self):
+        if self._ts:
+            return all(t.driven() for t in self._get_ts())
+        return super().driven()

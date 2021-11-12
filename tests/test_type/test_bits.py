@@ -331,6 +331,7 @@ def test_bvcomp(n):
         # Nasty precidence issue with <= operator means we need parens here
         io.O <= io.I0.bvcomp(io.I1)
 
+    print(repr(TestBinary))
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bits[1]))
 magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()

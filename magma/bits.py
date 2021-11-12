@@ -130,7 +130,12 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 result = cls()
                 result @= args[0]
                 return result
-            raise NotImplementedError(args[0])
+            if isinstance(args[0], Bit):
+                # Type conversion done with wiring to an anon value
+                result = cls()
+                result[0] @= args[0]
+                return result
+            raise NotImplementedError(cls, args[0], type(args[0]))
         result = super().__call__(*args, **kwargs)
         # if all(x.is_output() for x in result.ts) and not cls.is_output():
         #     if cls.is_input() or cls.is_inout():
@@ -476,7 +481,10 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
         if r <= 0:
             raise ValueError()
 
-        return type(self).unsized_t[r * self.size](r * self.ts)
+        result = type(self).unsized_t[r * self.size]()
+        for i in range(r):
+            result[i * self.size:(i + 1) * self.size] @= self
+        return result
 
     def sext(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
