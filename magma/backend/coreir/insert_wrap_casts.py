@@ -17,6 +17,7 @@ class InsertWrapCasts(DefinitionPass):
             coreir_genargs = {"type": wrap_type}
             coreir_name = "wrap"
             coreir_lib = "coreir"
+            primitive = True
 
             def simulate(self, value_store, state_store):
                 input_val = value_store.get_value(getattr(self, "in"))

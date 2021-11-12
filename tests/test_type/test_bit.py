@@ -378,5 +378,5 @@ EndCircuit()\
 
 @pytest.mark.parametrize("op", [int, bool])
 def test_errors(op):
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(ValueError):
         op(m.Bit(name="b"))

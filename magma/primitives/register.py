@@ -112,7 +112,7 @@ def _get_T_from_init(init):
         return Bits[len(init)]
     if isinstance(init, Type):
         return type(init)
-    raise ValueError("Could not infer register type from {init}")
+    raise ValueError(f"Could not infer register type from {init}")
 
 
 def _check_init_T(init, T):
@@ -190,6 +190,9 @@ class Register(Generator2):
 
         if isinstance(init, int):
             init = _zero_init(T, init)
+
+        self.init = init
+        self.reset_type = reset_type
 
         coreir_init = init
         if isinstance(coreir_init, Type):

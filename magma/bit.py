@@ -101,10 +101,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             return [self.ite(x, y) for x, y in zip(t_branch, f_branch)]
 
         if self.const():
-            if self is type(self).VCC:
-                return t_branch
-            assert self is type(self).GND
-            return f_branch
+            return t_branch if bool(self) else f_branch
         if isinstance(t_branch, tuple):
             return tuple(self.ite(t, f) for t, f in zip(t_branch, f_branch))
         # NOTE(rsetaluri): CoreIR flips t/f cases.
@@ -113,10 +110,16 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return self._mux([f_branch, t_branch], self)
 
     def __bool__(self) -> bool:
-        raise NotImplementedError("Converting magma bit to bool not supported")
+        if not self.const():
+            raise ValueError(
+                "Converting non-constant magma bit to bool not supported")
+        if self is type(self).VCC:
+            return True
+        assert self is type(self).GND
+        return False
 
     def __int__(self) -> int:
-        raise NotImplementedError("Converting magma bit to int not supported")
+        return int(bool(self))
 
     @debug_wire
     def wire(self, o, debug_info):
