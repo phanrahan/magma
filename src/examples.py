@@ -320,7 +320,10 @@ class simple_side_effect_instance(m.Circuit):
 class simple_inline_verilog(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= io.I
-    m.inline_verilog("// This is a comment.")
+    m.inline_verilog(
+"""
+	// This is a comment.
+""")
 
 
 ProcessInlineVerilogPass(simple_inline_verilog).run()

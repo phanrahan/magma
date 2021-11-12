@@ -156,7 +156,10 @@ class VerbatimOp(MlirOp):
     string: str
 
     def print_op(self, printer: PrinterBase):
-        printer.print(f"sv.verbatim \"{self.string}\"")
+        # NOTE(rsetaluri): This is a hack to "double-escape" escape characters
+        # like `\n`, `\t`.
+        string = repr(self.string)[1:-1]
+        printer.print(f"sv.verbatim \"{string}\"")
         if self.operands:
             printer.print(" (")
             print_names(self.operands, printer)
