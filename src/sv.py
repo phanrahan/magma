@@ -159,6 +159,7 @@ class VerbatimOp(MlirOp):
         # NOTE(rsetaluri): This is a hack to "double-escape" escape characters
         # like `\n`, `\t`.
         string = repr(self.string)[1:-1]
+        string = string.replace("\"", "\\\"")
         printer.print(f"sv.verbatim \"{string}\"")
         if self.operands:
             printer.print(" (")

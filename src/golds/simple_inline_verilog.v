@@ -2,7 +2,7 @@ module simple_inline_verilog_inline_verilog_0(
   input I);
 
   
-  	// This is a comment.	// <stdin>:3:5
+  	// This is a "comment".	// <stdin>:3:5
 endmodule
 
 module simple_inline_verilog(
