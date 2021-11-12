@@ -137,7 +137,7 @@ def drive_undriven_clocks_in_inst(
     exists (either due to no drivers or multiple drivers existing), then this
     function is a no-op.
     """
-    undrivens = []
+    undrivens = iter(())
     for port in inst.interface.inputs(include_clocks=True):
         undrivens = itertools.chain(
             undrivens, get_undriven_clocks_in_value(port, clock_type))
