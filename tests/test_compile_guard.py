@@ -206,3 +206,23 @@ def test_compile_guard_select_complex_type():
 
     with pytest.raises(TypeError):
         make_top()
+
+
+def test_compile_guard_counter_example():
+    class Foo(m.Circuit):
+        io = m.IO(advance=m.In(m.Bit), valid=m.In(m.Bit))
+        io += m.ClockIO(has_async_resetn=True)
+        with m.compile_guard("ASSERT_ON"):
+            counter = m.Register(m.UInt[16], reset_type=m.AsyncResetN,
+                                 has_enable=True)()
+            counter.CLK @= io.CLK
+            counter.ASYNCRESETN @= io.ASYNCRESETN
+            counter.I @= counter.O + 1
+            counter.CE @= io.advance
+            f.assert_(f.sva(counter.O == 0xDEAD, "|->", ~io.valid),
+                      on=f.posedge(io.CLK))
+
+    m.compile("build/test_compile_guard_counter_example", Foo)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_compile_guard_counter_example.v",
+        f"gold/test_compile_guard_counter_example.v")
