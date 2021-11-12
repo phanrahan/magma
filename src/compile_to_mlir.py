@@ -246,7 +246,10 @@ class ModuleVisitor:
         assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
         if defn.coreir_name == "not":
             return self.visit_coreir_not(module)
-        if defn.coreir_name in ("eq", "ult"):
+        if defn.coreir_name in (
+                "eq", "ult", "eq", "ne", "slt", "sle", "sgt", "sge", "ult",
+                "ule", "ugt", "uge",
+        ):
             comb.ICmpOp(
                 predicate=defn.coreir_name,
                 operands=module.operands,
