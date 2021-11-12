@@ -34,6 +34,7 @@ class Wire(Generator2):
         self.coreir_lib = coreir_lib
         self.coreir_genargs = coreir_genargs
         self.renamed_ports = coreir_port_mapping
+        self.primitive = True
 
     def _gen_named_type_wrapper(self, T):
         """

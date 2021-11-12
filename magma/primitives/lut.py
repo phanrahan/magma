@@ -32,6 +32,7 @@ class _CoreIRLUT(Generator2):
         self.coreir_lib = "commonlib"
         self.coreir_genargs = {"N": n}
         self.coreir_configargs = {"init": contents}
+        self.primitive = True
 
 
 def _to_int(value):
