@@ -160,6 +160,7 @@ class VerbatimOp(MlirOp):
         # like `\n`, `\t`.
         string = repr(self.string)[1:-1]
         string = string.replace("\"", "\\\"")
+        string = string.replace("\\\'", "'")
         printer.print(f"sv.verbatim \"{string}\"")
         if self.operands:
             printer.print(" (")

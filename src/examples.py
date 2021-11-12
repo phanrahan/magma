@@ -322,7 +322,7 @@ class simple_inline_verilog(m.Circuit):
     io.O @= io.I
     m.inline_verilog(
 """
-	// This is a "comment".
+	// This is 'a' "comment".
 """)
 
 
