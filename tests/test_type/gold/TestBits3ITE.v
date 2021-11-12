@@ -41,15 +41,15 @@ module TestITE (
     input [2:0] S,
     output [2:0] O
 );
-wire [2:0] const_0_3_out;
+wire [2:0] BitsConst_inst0_out;
 wire magma_Bit_not_inst0_out;
 wire magma_Bits_3_eq_inst0_out;
 wire [2:0] magma_Bits_3_ite_Out_Bits_3_inst0_out;
 coreir_const #(
     .value(3'h0),
     .width(3)
-) const_0_3 (
-    .out(const_0_3_out)
+) BitsConst_inst0 (
+    .out(BitsConst_inst0_out)
 );
 corebit_not magma_Bit_not_inst0 (
     .in(magma_Bits_3_eq_inst0_out),
@@ -59,7 +59,7 @@ coreir_eq #(
     .width(3)
 ) magma_Bits_3_eq_inst0 (
     .in0(S),
-    .in1(const_0_3_out),
+    .in1(BitsConst_inst0_out),
     .out(magma_Bits_3_eq_inst0_out)
 );
 coreir_mux #(

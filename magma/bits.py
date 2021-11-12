@@ -92,8 +92,10 @@ class BitsConst(Generator2):
 
         self.__repr__ = __repr__
 
-    def simulate(self, value_store, state_store):
-        value_store.set_value(self.O, self.value)
+        def simulate(self, value_store, state_store):
+            value_store.set_value(self.O, value)
+
+        self.simulate = simulate
 
 
 class BitsMeta(AbstractBitVectorMeta, ArrayMeta):

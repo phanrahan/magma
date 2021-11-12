@@ -257,7 +257,19 @@ class ConcatN(Generator2):
         self.coreir_genargs = {"t_child": Out(child_T), "Ns": Ns}
         self.coreir_name = "concatNArrT"
         self.coreir_lib = "mantle"
+        # TODO(leonardt/array2): Unify combinational/stateful attribute
         self.combinational = True
+
+        self.primitive = True
+        self.stateful = False
+
+        def simulate(self, value_store, state_store):
+            value = []
+            for key in ports.keys():
+                value.extend(value_store.get_value(getattr(self, key)))
+            value_store.set_value(self.O, value)
+
+        self.simulate = simulate
 
 
 def concat2(*arrays):

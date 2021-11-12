@@ -1,7 +1,16 @@
-module corebit_const #(
+module mantle_concatNArrT__Ns33__t_childBitIn (
+    input [2:0] in0,
+    input [2:0] in1,
+    output [5:0] out
+);
+assign out = {in1[2],in1[1],in1[0],in0[2],in0[1],in0[0]};
+endmodule
+
+module coreir_const #(
+    parameter width = 1,
     parameter value = 1
 ) (
-    output out
+    output [width-1:0] out
 );
   assign out = value;
 endmodule
@@ -10,12 +19,19 @@ module TestExt (
     input [2:0] I,
     output [5:0] O
 );
-wire bit_const_0_None_out;
-corebit_const #(
-    .value(1'b0)
-) bit_const_0_None (
-    .out(bit_const_0_None_out)
+wire [2:0] BitsConst_inst0_out;
+wire [5:0] ConcatN_inst0_out;
+coreir_const #(
+    .value(3'h0),
+    .width(3)
+) BitsConst_inst0 (
+    .out(BitsConst_inst0_out)
 );
-assign O = {bit_const_0_None_out,bit_const_0_None_out,bit_const_0_None_out,I[2:0]};
+mantle_concatNArrT__Ns33__t_childBitIn ConcatN_inst0 (
+    .in0(I),
+    .in1(BitsConst_inst0_out),
+    .out(ConcatN_inst0_out)
+);
+assign O = ConcatN_inst0_out;
 endmodule
 

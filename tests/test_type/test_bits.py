@@ -159,7 +159,6 @@ def test_setitem_bfloat():
         a = io.I
         b = a[0:-1].concat(m.bits(0, 1))
         io.O <= b
-    print(repr(TestCircuit))
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
 BitsConst_inst0 = BitsConst(0, 1)
@@ -238,22 +237,19 @@ def test_ite(n):
 
         io.O <= io.S.ite(io.I0, io.I1)
 
-    gnd_wires = '\n'.join(
-        f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
-    print(repr(TestITE))
     assert repr(TestITE) == f"""\
-TestITE = DefineCircuit("TestITE", "I0", In(Bits[1]), "I1", In(Bits[1]), "S", In(Bits[1]), "O", Out(Bits[1]))
-BitsConst_inst0 = BitsConst(0, 1)
+TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
+BitsConst_inst0 = BitsConst(0, {n})
 magma_Bit_not_inst0 = magma_Bit_not()
-magma_Bits_1_eq_inst0 = magma_Bits_1_eq()
-magma_Bits_1_ite_Out_Bits_1_inst0 = magma_Bits_1_ite_Out_Bits_1()
-wire(magma_Bits_1_eq_inst0.out, magma_Bit_not_inst0.in)
-wire(TestITE.S, magma_Bits_1_eq_inst0.in0)
-wire(BitsConst_inst0.out, magma_Bits_1_eq_inst0.in1)
-wire(TestITE.I0, magma_Bits_1_ite_Out_Bits_1_inst0.in0)
-wire(TestITE.I1, magma_Bits_1_ite_Out_Bits_1_inst0.in1)
-wire(magma_Bit_not_inst0.out, magma_Bits_1_ite_Out_Bits_1_inst0.sel)
-wire(magma_Bits_1_ite_Out_Bits_1_inst0.out, TestITE.O)
+magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
+magma_Bits_{n}_ite_Out_Bits_{n}_inst0 = magma_Bits_{n}_ite_Out_Bits_{n}()
+wire(magma_Bits_{n}_eq_inst0.out, magma_Bit_not_inst0.in)
+wire(TestITE.S, magma_Bits_{n}_eq_inst0.in0)
+wire(BitsConst_inst0.out, magma_Bits_{n}_eq_inst0.in1)
+wire(TestITE.I0, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in0)
+wire(TestITE.I1, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in1)
+wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
+wire(magma_Bits_{n}_ite_Out_Bits_{n}_inst0.out, TestITE.O)
 EndCircuit()\
 """
     m.compile(f"build/TestBits{n}ITE", TestITE, output="coreir-verilog")
@@ -307,13 +303,13 @@ def test_zext(n):
         # Nasty precidence issue with <= operator means we need parens here
         io.O <= io.I.zext(3)
 
-    i_wires = '\n'.join(
-        f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
-    gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
-{i_wires}
-{gnd_wires}
+BitsConst_inst0 = BitsConst(0, 3)
+ConcatN_inst0 = ConcatN()
+wire(TestExt.I, ConcatN_inst0.in0)
+wire(BitsConst_inst0.out, ConcatN_inst0.in1)
+wire(ConcatN_inst0.out, TestExt.O)
 EndCircuit()\
 """
     m.compile(f"build/TestBits{n}ext", TestExt, output="coreir-verilog")
