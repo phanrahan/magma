@@ -40,8 +40,8 @@ def _make_log_func(T):
     def log_func(log_str, *args, file=None):
         context = _definition_context_stack.peek()
         log = T(log_str, args, file=file)
-        context.add_display(log)
-        context.insert_default_log_level()
+        context.get_child("display").add_display(log)
+        context.get_child("display").insert_default_log_level()
         return log
     return log_func
 

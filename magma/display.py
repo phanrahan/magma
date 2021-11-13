@@ -134,7 +134,7 @@ end
 def display(display_str, *args, file=None):
     context = _definition_context_stack.peek()
     disp = Display(display_str, args, file)
-    context.add_display(disp)
+    context.get_child("display").add_display(disp)
     return disp
 
 
@@ -144,7 +144,7 @@ class File:
         self.mode = mode
 
         context = _definition_context_stack.peek()
-        context.add_file(self)
+        context.get_child("display").add_file(self)
 
     def __enter__(self):
         return self

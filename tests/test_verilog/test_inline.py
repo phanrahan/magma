@@ -2,7 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
-from magma.inline_verilog_impl import InlineVerilogError
+from magma.inline_verilog import InlineVerilogError
 
 
 def test_inline_verilog():
