@@ -4,20 +4,20 @@ from typing import Mapping, Optional, Union
 
 from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 
-from magma.circuit import _definition_context_stack, Circuit, IO
-from magma.passes.passes import CircuitPass
-from magma.circuit import Circuit, IO
-from magma.definition_context import DefinitionContext
-from magma.primitives.wire import Wire
-from magma.t import Type, Direction, In
-from magma.view import PortView, InstView
-from magma.digital import Digital
-from magma.bit import Bit
 from magma.array import Array
+from magma.bit import Bit
+from magma.circuit import Circuit, peek_definition_context_stack
 from magma.clock import ClockTypes
-from magma.tuple import Tuple
-from magma.wire import wire
+from magma.definition_context import DefinitionContext
+from magma.digital import Digital
+from magma.interface import IO
+from magma.passes.passes import CircuitPass
+from magma.primitives.wire import Wire
 from magma.ref import DefnRef, InstRef, ArrayRef, TupleRef
+from magma.t import Type, Direction, In
+from magma.tuple import Tuple
+from magma.view import PortView, InstView
+from magma.wire import wire
 
 
 ValueLike = Union[Type, PortView]
@@ -252,7 +252,7 @@ def inline_verilog_impl(
         format_args: Mapping[str, ValueLike],
         symbol_table: Mapping,
         inline_wire_prefix: str):
-    context = _definition_context_stack.peek()
+    context = peek_definition_context_stack()
     _process_inline_verilog(
         context, format_str, format_args, symbol_table, inline_wire_prefix)
 

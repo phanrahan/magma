@@ -29,9 +29,9 @@ def _inline_verilog(
         symbol_table: Mapping,
         inline_wire_prefix: str = "_magma_inline_wire"):
     # NOTE(rsetaluri): These are hacks to avoid a circular dependency.
-    from magma.circuit import _DefinitionContextManager
+    from magma.circuit import DefinitionContextManager
     from magma.inline_verilog import inline_verilog_impl
-    with _DefinitionContextManager(context):
+    with DefinitionContextManager(context):
         inline_verilog_impl(
             format_str, format_args, symbol_table, inline_wire_prefix)
 

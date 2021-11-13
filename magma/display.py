@@ -1,5 +1,5 @@
-from .circuit import _definition_context_stack
-from .t import Type
+from magma.circuit import peek_definition_context_stack
+from magma.t import Type
 
 
 class _Time:
@@ -132,7 +132,7 @@ end
 
 
 def display(display_str, *args, file=None):
-    context = _definition_context_stack.peek()
+    context = peek_definition_context_stack()
     disp = Display(display_str, args, file)
     context.get_child("display").add_display(disp)
     return disp
@@ -143,7 +143,7 @@ class File:
         self.filename = filename
         self.mode = mode
 
-        context = _definition_context_stack.peek()
+        context = peek_definition_context_stack()
         context.get_child("display").add_file(self)
 
     def __enter__(self):

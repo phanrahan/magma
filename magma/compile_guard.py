@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 
 from magma.bits import BitsMeta
 from magma.clock import Clock
-from magma.circuit import Circuit, CircuitBuilder, _DefinitionContextManager
+from magma.circuit import Circuit, CircuitBuilder, DefinitionContextManager
 from magma.conversions import as_bits
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
@@ -29,7 +29,7 @@ def _get_top_ref(ref):
 @dataclasses.dataclass(frozen=True)
 class _CompileGuardState:
     ckt: CircuitBuilder
-    ctx_mgr: _DefinitionContextManager
+    ctx_mgr: DefinitionContextManager
 
 
 class _CompileGuardBuilder(CircuitBuilder):
@@ -165,7 +165,7 @@ class _CompileGuard:
             ckt = _CompileGuardBuilder(self._defn_name, self._cond, self._type)
             if self._inst_name is None:
                 ckt.set_instance_name(self._inst_name)
-            ctx_mgr = _DefinitionContextManager(ckt._context)
+            ctx_mgr = DefinitionContextManager(ckt._context)
             self._state = _CompileGuardState(ckt, ctx_mgr)
         self._state.ctx_mgr.__enter__()
 

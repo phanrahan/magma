@@ -63,8 +63,12 @@ class _SyntaxStyle(enum.Enum):
 _definition_context_stack = Stack()
 
 
+def peek_definition_context_stack() -> DefinitionContext:
+    return _definition_context_stack.peek()
+
+
 class _DefinitionContextManager:
-    def __init__(self, context):
+    def __init__(self, context: DefinitionContext):
         self._context = context
 
     def __enter__(self):
@@ -72,6 +76,9 @@ class _DefinitionContextManager:
 
     def __exit__(self, typ, value, traceback):
         _definition_context_stack.pop()
+
+
+DefinitionContextManager = _DefinitionContextManager
 
 
 def _has_definition(cls, port=None):
