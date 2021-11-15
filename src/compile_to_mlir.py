@@ -420,6 +420,18 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_inline_verilog(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        inline_verilog_strs = defn.inline_verilog_strs
+        assert inline_verilog_strs
+        for string, references in inline_verilog_strs:
+            for i, (key, value) in enumerate(references.items()):
+                string = string.replace(key, f"{{{i}}}")
+            sv.VerbatimOp(operands=module.operands, string=string)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_instance(self, module: ModuleWrapper) -> bool:
         inst = module.module
         assert isinstance(inst, m.circuit.AnonymousCircuitType)
@@ -428,6 +440,8 @@ class ModuleVisitor:
             return self.visit_magma_mux(module)
         if isinstance(defn, m.Register):
             return self.visit_magma_register(module)
+        if getattr(defn, "inline_verilog_strs", []):
+            return self.visit_inline_verilog(module)
         if m.isprimitive(defn):
             return self.visit_primitive(module)
         hw.InstanceOp(
@@ -525,6 +539,8 @@ def treat_as_primitive(defn_or_decl: m.circuit.CircuitKind) -> bool:
     if isinstance(defn_or_decl, m.Mux):
         return True
     if isinstance(defn_or_decl, m.Register):
+        return True
+    if getattr(defn_or_decl, "inline_verilog_strs", []):
         return True
     return False
 
