@@ -56,6 +56,8 @@ class UniquificationPass(DefinitionPass):
         type(ckt).rename(ckt, new_name)
 
     def __call__(self, definition):
+        for module in definition.bind_modules:
+            self._run(module)
         name = definition.name
         key = _hash(definition)
 
@@ -65,8 +67,6 @@ class UniquificationPass(DefinitionPass):
                 suffix = "_unq" + str(len(seen))
                 new_name = name + suffix
                 self._rename(definition, new_name)
-                for module in definition.bind_modules:
-                    self._rename(module, module.name + suffix)
             seen[key] = [definition]
         else:
             if self.mode is not UniquificationMode.UNIQUIFY:
@@ -74,9 +74,6 @@ class UniquificationPass(DefinitionPass):
             elif name != seen[key][0].name:
                 new_name = seen[key][0].name
                 self._rename(definition, new_name)
-                for x, y in zip(seen[key][0].bind_modules,
-                                definition.bind_modules):
-                    self._rename(y, x.name)
             seen[key].append(definition)
 
     def run(self):
