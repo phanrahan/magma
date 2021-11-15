@@ -192,7 +192,8 @@ def _inline_verilog(
         inline_verilog_strs = [(inline_str, connect_references)]
 
     inline_verilog_modules.append(_InlineVerilog)
-    inst = _InlineVerilog(name=f"inline_verilog_inst_{prefix}{suffix}")
+    inst_name = f"{context.placer.name}_inline_verilog_inst_{prefix}{suffix}"
+    inst = _InlineVerilog(name=inst_name)
     # If there no interpolated values, _build_io adds a dummy port to avoid an
     # empty IO. We drive that with 0 here to avoid a hanging input.
     if not inline_value_map:
