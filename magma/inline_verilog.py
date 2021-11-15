@@ -37,11 +37,11 @@ def _get_view_inst_parent(view):
 def _make_inline_value(
         inline_value_map: Mapping[str, ValueLike], value: ValueLike) -> str:
     if isinstance(value, Array) and not issubclass(value.T, Digital):
-        return (
-            "'{" + ", ".join(
+        key = ", ".join(
             _make_inline_value(inline_value_map, t)
-            for t in reversed(value)) + "}"
+            for t in reversed(value)
         )
+        return f"'{{{key}}}"
     if isinstance(value, Tuple):
         raise NotImplementedError(value)
     key = f"__magma_inline_value_{len(inline_value_map)}"
@@ -61,7 +61,7 @@ def _make_temporary(
         temp = Wire(type(value).undirected_t)(name=temp_name)
         temp.I @= value
         return temp
-    
+
     # Insert a wire so that the value can't be inlined. If @defn is not None
     # then it needs to be `open()`'ed.
     if defn is not None:
