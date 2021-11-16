@@ -358,3 +358,24 @@ ProcessInlineVerilogPass(simple_bind_asserts).run()
 simple_bind.bind(simple_bind_asserts)
 m.passes.clock.WireClockPass(simple_bind).run()
 m.passes.clock.WireClockPass(simple_bind_asserts).run()
+
+
+class complex_bind(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    not_I = ~io.I
+    io.O @= m.register(~not_I)
+
+
+class complex_bind_asserts(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit)) + m.ClockIO() + m.IO(I0=m.In(m.Bit))
+    m.inline_verilog(
+        "assert property (@(posedge CLK) {I} |-> ##1 {O});"
+        "assert property ({I} |-> {I0};",
+        O=io.O, I=io.I, I0=io.I0
+    )
+
+
+ProcessInlineVerilogPass(complex_bind_asserts).run()
+complex_bind.bind(complex_bind_asserts, complex_bind.not_I)
+m.passes.clock.WireClockPass(complex_bind).run()
+m.passes.clock.WireClockPass(complex_bind_asserts).run()
