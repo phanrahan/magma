@@ -1,7 +1,11 @@
+import difflib
 import functools
 import glob
 import importlib
+import io
 import os
+import pathlib
+import sys
 from typing import List, Optional
 
 import magma as m
@@ -10,23 +14,50 @@ import magma_examples
 
 from compile_to_mlir import compile_to_mlir
 import examples
+from mlir_to_verilog import mlir_to_verilog
 
 
+_CMP_BUFSIZE = 8 * 1024
 _MAGMA_EXAMPLES_TO_SKIP = (
     "risc",
 )
 
-_MLIR_TO_VERILOG_BIN = "./run.sh"
+
+def cmp_streams(
+        s1: io.RawIOBase,
+        s2: io.RawIOBase,
+        bufsize: int = _CMP_BUFSIZE) -> bool:
+    while True:
+        b1 = s1.read(bufsize)
+        b2 = s2.read(bufsize)
+        if b1 != b2:
+            return False
+        if not b1:
+            return True
+    raise RuntimeError("Should not reach here")
+
+
+def check_streams_equal(
+        s1: io.RawIOBase,
+        s2: io.RawIOBase,
+        from_label: str = "",
+        to_label: str = "",
+        writer: io.TextIOBase = sys.stderr):
+    cmp = cmp_streams(s1, s2)
+    if cmp:
+        return True
+    s1.seek(0)
+    s2.seek(0)
+    ts1 = io.TextIOWrapper(s1)
+    ts2 = io.TextIOWrapper(s2)
+    diff = difflib.unified_diff(
+        ts1.readlines(), ts2.readlines(), from_label, to_label)
+    writer.writelines(diff)
+    return False
 
 
 def get_check_verilog(default: bool) -> bool:
     return os.environ.get("CHECK_VERILOG", default)
-
-
-def run_verilog_check(mlir_filename: str, verilog_filename: str):
-    cmd = f"cat {mlir_filename} | {_MLIR_TO_VERILOG_BIN} > out.v"
-    os.system(cmd)
-    assert check_files_equal(__file__, "out.v", verilog_filename)
 
 
 def run_test_compile_to_mlir(
@@ -34,12 +65,18 @@ def run_test_compile_to_mlir(
     if check_verilog is None:
         check_verilog = get_check_verilog(False)
     m.passes.clock.WireClockPass(ckt).run()
-    filename = f"{ckt.name}.mlir"
-    with open(filename, "w") as f:
-        compile_to_mlir(ckt, f)
-    assert check_files_equal(__file__, filename, f"golds/{filename}")
+    mlir_out = io.TextIOWrapper(io.BytesIO())
+    compile_to_mlir(ckt, mlir_out)
+    mlir_out.seek(0)
+    with open(f"golds/{ckt.name}.mlir", "rb") as mlir_gold:
+        assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
     if check_verilog:
-        run_verilog_check(filename, f"golds/{ckt.name}.v")
+        with open(f"golds/{ckt.name}.v", "rb") as verilog_gold:
+            mlir_out.seek(0)
+            verilog_out = io.BytesIO()
+            mlir_to_verilog(mlir_out.buffer, verilog_out)
+            verilog_out.seek(0)
+            assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
 
 
 @functools.lru_cache()

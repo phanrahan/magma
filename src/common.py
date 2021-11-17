@@ -1,6 +1,6 @@
 import dataclasses
 import functools
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Callable, Dict, Iterable, Tuple
 
 
 _MISSING = object()
@@ -65,3 +65,14 @@ def replace_all(s: str, replacements: Dict[str, str]) -> str:
 
 def constant(value: Any):
     return lambda: value
+
+
+def try_call(fn: Callable[[], Any], ExceptionType: Any):
+    if ExceptionType is None:
+        ExceptionType = BaseException
+    try:
+        ret = fn()
+    except ExceptionType:
+        pass
+    else:
+        return ret
