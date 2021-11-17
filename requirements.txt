@@ -1,4 +1,5 @@
-magma-lang
+-e git://github.com/phanrahan/magma.git#egg=magma-lang
+# magma-lang
 mantle
 pytest
 fault
