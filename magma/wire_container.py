@@ -94,6 +94,10 @@ class Wire:
         """
         if self._driver is not None:
             return self._driver.trace(skip_self=False)
+        if self._bit.driven():
+            # Could be an Array driven non-bulk
+            # TODO(leonardt/array2): Is skip_self an issue in this case?
+            return self._bit.trace()
         if not skip_self and (self._bit.is_output() or self._bit.is_inout()):
             return self._bit
         return None

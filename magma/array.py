@@ -716,8 +716,22 @@ class Array2(Wireable, Array):
                 isinstance(self.name.index, slice)):
             for i in range(len(self)):
                 self.name.array[self.name.index.start + i] @= o[i]
+        if self._ts:
+            # TODO(leonardt/array2): Optimize performance of this logic, needed
+            # for converting Bit to Bits[1] and maintaining value mapping,
+            # perhaps we need a variant of Array2 that handles construction
+            # with existing values
+            for i in range(len(self)):
+                if self._get_t(i).value() is not o[i]:
+                    self._get_t(i).wire(o[i])
 
-    # TODO(leonardt): unwire
+    def unwire(self, o):
+        if self._ts:
+            for k in range(len(self)):
+                self[k].unwire(o[k])
+            assert not Wireable.wired(self)
+        else:
+            Wireable.unwire(self, o)
 
     def iswhole(self):
         if self._ts:
@@ -781,8 +795,7 @@ class Array2(Wireable, Array):
         # reducing the size of the select in the backend
         arr = self
         offset = 0
-        if isinstance(arr.name, ArrayRef):
-            assert isinstance(arr.name.index, slice)
+        if isinstance(arr.name, ArrayRef) and isinstance(arr.name.index, slice):
             offset = arr.name.index.start
             arr = arr.name.array
 
@@ -809,8 +822,9 @@ class Array2(Wireable, Array):
         return self._concat(self, other)
 
     def flatten(self):
-        # TODO(leonardt/array2): Can we preserve old flatten interface?
-        return [self]
+        # TODO(leonardt/array2): Audit where this is used and optimize to avoid
+        # where possible
+        return sum([self._get_t(i).flatten() for i in range(self.N)], [])
 
     def __repr__(self):
         return Type.__repr__(self)
@@ -818,10 +832,16 @@ class Array2(Wireable, Array):
     def _get_ts(self):
         return [self._get_t(i) for i in range(self.N)]
 
+    @property
+    def ts(self):
+        return self._get_ts()
+
     def _collect_ts(self, func):
         ts = [func(t) for t in self._get_ts()]
         if any(t is None for t in ts):
             return None
+        if Array._iswhole(ts):
+            return ts[0].name.array
         return Array[self.N, self.T.flip()](ts)
 
     def value(self):

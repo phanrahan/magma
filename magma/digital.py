@@ -197,8 +197,11 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
 
     def const(self):
         cls = type(self)
+        import magma as m
         return (self is cls.VCC or self is cls.GND or
-                (isinstance(self.name, ArrayRef) and self.name.array.const()))
+                (isinstance(self.name, ArrayRef) and
+                 isinstance(self.name.array, m.Bits) and
+                 self.name.array.const()))
 
     @classmethod
     def flat_length(cls):

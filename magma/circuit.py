@@ -740,13 +740,15 @@ class DefineCircuitKind(CircuitKind):
     def check_unconnected(self):
         for port in self.interface.inputs():
             if port.trace() is None:
-                msg = f"Output port {self.name}.{port.name} not driven"
+                msg = (f"Interface output port {self.name}.{port.name} not"
+                       " driven")
                 _logger.error(msg, debug_info=self.debug_info)
 
         for inst in self.instances:
             for port in inst.interface.inputs():
                 if port.trace() is None:
-                    msg = f"Input port {inst.name}.{port.name} not driven"
+                    msg = (f"Instance input port {inst.name}.{port.name} not"
+                           " driven")
                     _logger.error(msg, debug_info=inst.debug_info)
 
     @property

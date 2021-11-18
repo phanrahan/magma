@@ -437,7 +437,7 @@ class DefinitionTransformer(TransformerBase):
             # TODO(leonardt/array2): recursive offset for getitem of slice ref
             offset = value.name.index.start
             value_children = [value.T(name=ArrayRef(value.name.array, offset + i))
-                             for i in range(value.N)]
+                              for i in range(value.N)]
             port_children = [port.T(name=ArrayRef(port, i)) for i in range(port.N)]
             for p, v in zip(port_children, value_children):
                 self.connect(module_defn, p, v)

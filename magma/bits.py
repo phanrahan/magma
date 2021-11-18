@@ -14,7 +14,7 @@ from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
 from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit
-from .array import Array2, ArrayMeta
+from .array import Array2, ArrayMeta, Array
 from .t import Type, Direction, In, Out
 from magma.circuit import Circuit, coreir_port_mapping, IO
 from magma.bitutils import seq2int, int2seq
@@ -138,14 +138,24 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                     # # Truncate
                     # result @= args[0][:cls.N]
                 return result
+            if isinstance(args[0], list):
+                if len(args[0]) != len(cls):
+                    raise TypeError(
+                        f"List initializer for Bits[{len(cls)}] must be same "
+                        f"length, not {len(args[0])}"
+                    )
+                result = cls.undirected_t()
+                for x, y in zip(result, args[0]):
+                    x @= y
+                return result
             if type(args[0]).is_wireable(cls):
                 # Type conversion done with wiring to an anon value
-                result = cls()
+                result = cls.undirected_t()
                 result @= args[0]
                 return result
             if isinstance(args[0], Bit):
                 # Type conversion done with wiring to an anon value
-                result = cls()
+                result = cls.undirected_t()
                 result[0] @= args[0]
                 return result
             raise NotImplementedError(cls, args[0], type(args[0]))
@@ -209,6 +219,8 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
     #         Array2.__init__(self, *args, **kwargs)
 
     def const(self):
+        if self.driven():
+            return self.trace().const()
         return (isinstance(self.name, InstRef) and
                 isinstance(type(self.name.inst), BitsConst))
 
@@ -225,6 +237,8 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
         if not self.const():
             raise Exception("Not a constant")
 
+        if self.driven():
+            return [bool(t) for t in self.trace()]
         return type(self.name.inst)._value
 
     def __int__(self):

@@ -82,12 +82,14 @@ class _CompileGuardBuilder(CircuitBuilder):
         if isinstance(top_ref, InstRef):
             return top_ref.inst not in self._instances
         if isinstance(top_ref, AnonRef):
+            return self._is_external(value.driving())
             # TODO(rsetaluri): Implement valid anon. values.
             raise NotImplementedError()
         return False
 
     def _process_output(self, port):
-        drivees = sum(as_bits(port).driving(), [])
+        # drivees = sum(as_bits(port).driving(), [])
+        drivees = port.driving()
         external_drivees = list(filter(self._is_external, drivees))
         if not external_drivees:
             return
