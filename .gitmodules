@@ -1,6 +1,9 @@
 [submodule "circt"]
 	path = circt
 	url = https://github.com/llvm/circt.git
+        ignore = dirty
+
 [submodule "magma_examples"]
 	path = magma_examples
 	url = git@github.com:leonardt/magma_examples.git
+        ignore = dirty
