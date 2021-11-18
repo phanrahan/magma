@@ -112,6 +112,7 @@ class MlirOpMeta(abc.ABCMeta):
         dialect = maybe_peek_dialect()
         if dialect is not None:
             dialect.register_op(cls)
+            cls.__qualname__ = f"{dialect.name}.{cls.__qualname__}"
         return cls
 
 
