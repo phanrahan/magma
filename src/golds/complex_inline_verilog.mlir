@@ -1,4 +1,4 @@
-hw.module @complex_inline_verilog(%I: i1, %CLK: i1) -> (%O: i1) {
+hw.module @complex_inline_verilog(%I: i1, %CLK: i1) -> (O: i1) {
     %1 = sv.reg {name = "Register_inst0"} : !hw.inout<i1>
     sv.alwaysff(posedge %CLK) {
         sv.passign %1, %I : i1

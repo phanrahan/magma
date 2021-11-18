@@ -17,5 +17,5 @@ class MlirNameGenerator:
         if force:
             if index != 0:
                 raise RuntimeError()
-            return f"%{name}"
-        return f"%{name}{index}"
+            return name
+        return name + str(index)

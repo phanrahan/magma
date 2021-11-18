@@ -1,4 +1,4 @@
-hw.module @simple_wire(%I: i8) -> (%O: i8) {
+hw.module @simple_wire(%I: i8) -> (O: i8) {
     %1 = sv.wire sym @tmp {name="tmp"} : !hw.inout<i8>
     sv.assign %1, %I : i8
     %0 = sv.read_inout %1 : !hw.inout<i8>

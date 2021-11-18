@@ -1,4 +1,4 @@
-hw.module @HiLoMultiplier(%A: i16, %B: i16) -> (%Hi: i16, %Lo: i16) {
+hw.module @HiLoMultiplier(%A: i16, %B: i16) -> (Hi: i16, Lo: i16) {
     %0 = comb.extract %A from 0 : (i16) -> i1
     %1 = comb.extract %A from 1 : (i16) -> i1
     %2 = comb.extract %A from 2 : (i16) -> i1
@@ -31,7 +31,7 @@ hw.module @HiLoMultiplier(%A: i16, %B: i16) -> (%Hi: i16, %Lo: i16) {
     %29 = hw.constant 0 : i1
     %30 = hw.constant 0 : i1
     %31 = hw.constant 0 : i1
-    %32 = comb.concat %31, %30, %29, %28, %27, %26, %25, %24, %23, %22, %21, %20, %19, %18, %17, %16, %15, %14, %13, %12, %11, %10, %9, %8, %7, %6, %5, %4, %3, %2, %1, %0 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> (i32)
+    %32 = comb.concat %31, %30, %29, %28, %27, %26, %25, %24, %23, %22, %21, %20, %19, %18, %17, %16, %15, %14, %13, %12, %11, %10, %9, %8, %7, %6, %5, %4, %3, %2, %1, %0 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
     %33 = comb.extract %B from 0 : (i16) -> i1
     %34 = comb.extract %B from 1 : (i16) -> i1
     %35 = comb.extract %B from 2 : (i16) -> i1
@@ -64,7 +64,7 @@ hw.module @HiLoMultiplier(%A: i16, %B: i16) -> (%Hi: i16, %Lo: i16) {
     %62 = hw.constant 0 : i1
     %63 = hw.constant 0 : i1
     %64 = hw.constant 0 : i1
-    %65 = comb.concat %64, %63, %62, %61, %60, %59, %58, %57, %56, %55, %54, %53, %52, %51, %50, %49, %48, %47, %46, %45, %44, %43, %42, %41, %40, %39, %38, %37, %36, %35, %34, %33 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> (i32)
+    %65 = comb.concat %64, %63, %62, %61, %60, %59, %58, %57, %56, %55, %54, %53, %52, %51, %50, %49, %48, %47, %46, %45, %44, %43, %42, %41, %40, %39, %38, %37, %36, %35, %34, %33 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
     %66 = comb.mul %32, %65 : i32
     %67 = comb.extract %66 from 16 : (i32) -> i1
     %68 = comb.extract %66 from 17 : (i32) -> i1
@@ -82,7 +82,7 @@ hw.module @HiLoMultiplier(%A: i16, %B: i16) -> (%Hi: i16, %Lo: i16) {
     %80 = comb.extract %66 from 29 : (i32) -> i1
     %81 = comb.extract %66 from 30 : (i32) -> i1
     %82 = comb.extract %66 from 31 : (i32) -> i1
-    %83 = comb.concat %82, %81, %80, %79, %78, %77, %76, %75, %74, %73, %72, %71, %70, %69, %68, %67 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> (i16)
+    %83 = comb.concat %82, %81, %80, %79, %78, %77, %76, %75, %74, %73, %72, %71, %70, %69, %68, %67 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
     %84 = comb.extract %66 from 0 : (i32) -> i1
     %85 = comb.extract %66 from 1 : (i32) -> i1
     %86 = comb.extract %66 from 2 : (i32) -> i1
@@ -99,6 +99,6 @@ hw.module @HiLoMultiplier(%A: i16, %B: i16) -> (%Hi: i16, %Lo: i16) {
     %97 = comb.extract %66 from 13 : (i32) -> i1
     %98 = comb.extract %66 from 14 : (i32) -> i1
     %99 = comb.extract %66 from 15 : (i32) -> i1
-    %100 = comb.concat %99, %98, %97, %96, %95, %94, %93, %92, %91, %90, %89, %88, %87, %86, %85, %84 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> (i16)
+    %100 = comb.concat %99, %98, %97, %96, %95, %94, %93, %92, %91, %90, %89, %88, %87, %86, %85, %84 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
     hw.output %83, %100 : i16, i16
 }

@@ -1,14 +1,14 @@
-hw.module @BasicALU(%a: i4, %b: i4, %opcode: i4) -> (%out: i4) {
+hw.module @BasicALU(%a: i4, %b: i4, %opcode: i4) -> (out: i4) {
     %0 = comb.icmp eq %a, %b : i4
     %1 = hw.constant 0 : i1
     %2 = hw.constant 0 : i1
     %3 = hw.constant 0 : i1
-    %4 = comb.concat %3, %2, %1, %0 : (i1, i1, i1, i1) -> (i4)
+    %4 = comb.concat %3, %2, %1, %0 : i1, i1, i1, i1
     %5 = comb.icmp ult %a, %b : i4
     %6 = hw.constant 0 : i1
     %7 = hw.constant 0 : i1
     %8 = hw.constant 0 : i1
-    %9 = comb.concat %8, %7, %6, %5 : (i1, i1, i1, i1) -> (i4)
+    %9 = comb.concat %8, %7, %6, %5 : i1, i1, i1, i1
     %10 = hw.constant 8 : i4
     %11 = comb.icmp eq %opcode, %10 : i4
     %13 = hw.array_create %4, %9 : i4

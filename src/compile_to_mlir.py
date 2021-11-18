@@ -2,6 +2,7 @@ import dataclasses
 import functools
 import io
 import sys
+import weakref
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
 import magma as m
@@ -27,10 +28,34 @@ from printer_base import PrinterBase
 from sv import sv
 
 
-class ModuleContext:
+class GlobalContext:
     def __init__(self):
+        self._modules = {}
+
+    def add_module(
+            self, defn_or_decl: m.circuit.CircuitKind, module: hw.ModuleOp):
+        key = self._make_key(defn_or_decl)
+        if key in self._modules:
+            raise ValueError(f"{str(defn_or_decl)} already present")
+        self._modules[key] = module
+
+    def get_module(self, defn_or_decl: m.circuit.CircuitKind) -> hw.ModuleOp:
+        key = self._make_key(defn_or_decl)
+        return self._modules[key]
+
+    def _make_key(self, defn_or_decl: m.circuit.CircuitKind):
+        return defn_or_decl.name
+
+    
+class ModuleContext:
+    def __init__(self, parent: weakref.ReferenceType):
+        self._parent = parent
         self._name_gen = MlirNameGenerator()
         self._value_map = {}
+
+    @property
+    def parent(self) -> GlobalContext:
+        return self._parent()
 
     def get_mapped_value(self, port: m.Type) -> MlirValue:
         return self._value_map[port]
@@ -228,10 +253,7 @@ class ModuleVisitor:
     @wrap_with_not_implemented_error
     def visit_coreir_wire(self, module: ModuleWrapper) -> bool:
         inst = module.module
-        defn = type(inst)
-        assert defn.coreir_name == "wire"
-        T = type(defn.I)
-        mlir_type = hw.InOutType(magma_type_to_mlir_type(T))
+        mlir_type = hw.InOutType(module.operands[0].type)
         wire = self._ctx.new_value(mlir_type)
         sym = f"@{inst.name}"
         sv.WireOp(results=[wire], name=inst.name, sym=sym)
@@ -259,16 +281,10 @@ class ModuleVisitor:
             return self.visit_coreir_reg(module)
         if defn.coreir_name in ("orr", "andr", "xorr"):
             return self.visit_coreir_reduce(module)
-        if defn.coreir_name == "wire":
+        if defn.coreir_name ==  "wire":
             return self.visit_coreir_wire(module)
         if defn.coreir_name == "wrap":
-            assert isinstance(module.operands[0].type, builtin.IntegerType)
-            assert isinstance(module.results[0].type, builtin.IntegerType)
-            comb.BaseOp(
-                op_name="merge",
-                operands=module.operands,
-                results=module.results)
-            return True
+            return self.visit_coreir_wire(module)
         if defn.coreir_name == "term":
             return True
         op_name = defn.coreir_name
@@ -446,7 +462,7 @@ class ModuleVisitor:
             return self.visit_primitive(module)
         hw.InstanceOp(
             name=inst.name,
-            module=defn.name,
+            module=self._ctx.parent.get_module(defn),
             operands=module.operands,
             results=module.results)
         return True
@@ -555,7 +571,9 @@ def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
     return True
 
 
-def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
+def lower_magma_defn_or_decl_to_hw(
+        ctx: GlobalContext,
+        defn_or_decl: m.circuit.CircuitKind) -> bool:
     if treat_as_primitive(defn_or_decl):
         return False
 
@@ -566,19 +584,21 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
     i, o = [], []
     for port in defn_or_decl.interface.ports.values():
         visit_magma_value_by_direction(port, i.append, o.append)
-    ctx = ModuleContext()
+    ctx = ModuleContext(weakref.ref(ctx))
     inputs = new_values(ctx.get_or_make_mapped_value, o)
     named_outputs = new_values(ctx.new_value, i)
     if not treat_as_definition(defn_or_decl):
-        hw.ModuleExternOp(
+        op = hw.ModuleExternOp(
             name=defn_or_decl.name,
             operands=inputs,
             results=named_outputs)
+        ctx.parent.add_module(defn_or_decl, op)
         return True
     op = hw.ModuleOp(
         name=defn_or_decl.name,
         operands=inputs,
         results=named_outputs)
+    ctx.parent.add_module(defn_or_decl, op)
     graph = build_magma_graph(defn_or_decl)
     visitor = ModuleVisitor(graph, ctx)
     with push_block(op):
@@ -590,7 +610,7 @@ def lower_magma_defn_or_decl_to_hw(defn_or_decl: m.circuit.CircuitKind) -> bool:
 
 
 def lower_magma_defn_to_mlir_module_op(
-        defn: m.DefineCircuitKind) -> builtin.ModuleOp:
+        ctx: GlobalContext, defn: m.DefineCircuitKind) -> builtin.ModuleOp:
     seen = set()
     deps = m.passes.dependencies(defn, include_self=True)
     module = builtin.ModuleOp()
@@ -598,7 +618,7 @@ def lower_magma_defn_to_mlir_module_op(
         for dep in deps:
             if dep.name in seen:
                 continue
-            lowered = lower_magma_defn_or_decl_to_hw(dep)
+            lowered = lower_magma_defn_or_decl_to_hw(ctx, dep)
             if lowered:
                 seen.add(dep.name)
     return module
@@ -609,6 +629,7 @@ def compile_to_mlir(
     if sout is None:
         sout = sys.stdout
     printer = PrinterBase(sout=sout)
-    module = lower_magma_defn_to_mlir_module_op(defn)
+    ctx = GlobalContext()
+    module = lower_magma_defn_to_mlir_module_op(ctx, defn)
     for op in module.regions[0].blocks[0].operations:
         op.print(printer)

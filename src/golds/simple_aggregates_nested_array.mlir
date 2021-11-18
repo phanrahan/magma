@@ -1,4 +1,4 @@
-hw.module @simple_aggregates_nested_array(%a: !hw.array<8x!hw.array<4xi16>>) -> (%y: !hw.array<8x!hw.array<4xi16>>) {
+hw.module @simple_aggregates_nested_array(%a: !hw.array<8x!hw.array<4xi16>>) -> (y: !hw.array<8x!hw.array<4xi16>>) {
     %1 = hw.constant 4 : i3
     %0 = hw.array_get %a[%1] : !hw.array<8x!hw.array<4xi16>>
     %3 = hw.constant 5 : i3

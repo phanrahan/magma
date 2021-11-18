@@ -27,7 +27,11 @@ class MlirType(metaclass=MlirTypeMeta):
 @dataclasses.dataclass(frozen=True)
 class MlirValue:
     type: MlirType
-    name: str
+    raw_name: str
+
+    @property
+    def name(self) -> str:
+        return f"%{self.raw_name}"
 
 
 @dataclasses.dataclass

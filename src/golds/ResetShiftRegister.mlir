@@ -1,4 +1,4 @@
-hw.module @ResetShiftRegister(%I: i4, %shift: i1, %CLK: i1, %RESETN: i1) -> (%O: i4) {
+hw.module @ResetShiftRegister(%I: i4, %shift: i1, %CLK: i1, %RESETN: i1) -> (O: i4) {
     %1 = sv.reg {name = "Register_inst0"} : !hw.inout<i4>
     sv.alwaysff(posedge %shift) {
         sv.passign %1, %I : i4
