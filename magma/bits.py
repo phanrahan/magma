@@ -108,7 +108,17 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                     all(isinstance(x, int) for x in args[0])):
                 return BitsConst(tuple(args[0]), cls.N)().O
             if isinstance(args[0], int):
+                if isinstance(args[0], int) and args[0].bit_length() > cls.N:
+                    raise ValueError(
+                        f"Cannot construct Bits[{cls.N}] with integer "
+                        f"{args[0]} (requires truncation)")
                 return BitsConst(tuple(int2seq(args[0], cls.N)), cls.N)().O
+            if isinstance(args[0], BitVector):
+                if isinstance(args[0], BitVector) and len(args[0]) != cls.N:
+                    raise TypeError(
+                        f"Cannot construct Bits[{cls.N}] with BitVector of "
+                        f"length {len(args[0])} (sizes must match)")
+                return BitsConst(tuple(args[0].bits()), cls.N)().O
             if isinstance(args[0], Bits):
                 if args[0].const():
                     return BitsConst(tuple(int2seq(int(args[0]), cls.N)),
@@ -117,13 +127,16 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 if arg_len == cls.N:
                     return args[0]
                 result = super().__call__(*args, **kwargs)
-                if arg_len < cls.N:
-                    # Zext
-                    result[:arg_len] @= args[0]
-                    result[arg_len:] @= Bits[cls.N - arg_len](0)
-                else:
-                    # Truncate
-                    result @= args[0][:cls.N]
+                if arg_len != cls.N:
+                    raise TypeError(
+                        f"Will not do implicit conversion of bits length")
+                # if arg_len < cls.N:
+                    # # Zext
+                    # result[:arg_len] @= args[0]
+                    # result[arg_len:] @= Bits[cls.N - arg_len](0)
+                # else:
+                    # # Truncate
+                    # result @= args[0][:cls.N]
                 return result
             if type(args[0]).is_wireable(cls):
                 # Type conversion done with wiring to an anon value

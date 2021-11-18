@@ -429,10 +429,11 @@ def test_rop_type_error(op, op_str):
 
 
 def test_python_bits_from_int_truncation_error():
-    with pytest.raises(ValueError) as e:
-        m.Bits[2](4)
-    assert str(e.value) == (
-        "Cannot construct Array[2, Bit] with integer 4 (requires truncation)")
-    with pytest.raises(ValueError) as e:
-        m.bits(4, 2)
-    assert str(e.value) == "Cannot convert 4 to a Bits of length 2"
+    class Foo(m.Circuit):
+        with pytest.raises(ValueError) as e:
+            m.Bits[2](4)
+        assert str(e.value) == (
+            "Cannot construct Bits[2] with integer 4 (requires truncation)")
+        with pytest.raises(ValueError) as e:
+            m.bits(4, 2)
+        assert str(e.value) == "Cannot convert 4 to a Bits of length 2"
