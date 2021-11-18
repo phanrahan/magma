@@ -77,14 +77,10 @@ class AlwaysFFOp(MlirOp):
     reset_edge: str = None
 
     def __post_init__(self):
-        self.regions.append(MlirRegion())
-        self.regions[0].blocks.append(MlirBlock())
-        self._body_block = self.regions[0].blocks[0]
+        self._body_block = self.new_region().new_block()
         if self.reset_type is None:
             return
-        self.regions.append(MlirRegion())
-        self.regions[1].blocks.append(MlirBlock())
-        self._reset_block = self.regions[1].blocks[0]
+        self._reset_block = self.new_region().new_block()
 
     @property
     def body_block(self) -> MlirBlock:
@@ -124,12 +120,10 @@ class AlwaysFFOp(MlirOp):
 @dataclasses.dataclass
 class InitialOp(MlirOp):
     def __post_init__(self):
-        self.regions.append(MlirRegion())
-        self.regions[0].blocks.append(MlirBlock())
-        self._block = self.regions[0].blocks[0]
+        self._block = self.new_region().new_block()
 
     def add_operation(self, operation: MlirOp):
-        self._block.operations.append(operation)
+        self._block.add_operation(operation)
 
     def print_op(self, printer: PrinterBase):
         printer.print("sv.initial")

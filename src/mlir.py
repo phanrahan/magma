@@ -3,7 +3,7 @@ import contextlib
 import dataclasses
 from typing import List, Optional, Tuple
 
-from common import Stack, WithId, default_list_field
+from common import Stack, WithId, default_field, constant
 from printer_base import PrinterBase
 
 
@@ -36,15 +36,20 @@ class MlirValue:
 
 @dataclasses.dataclass
 class MlirBlock(WithId):
-    operations: List['MlirOp'] = default_list_field(init=False)
-    arguments: List[MlirValue] = default_list_field(init=False)
+    operations: List['MlirOp'] = default_field(list, init=False)
+    arguments: List[MlirValue] = default_field(list, init=False)
+    parent: Optional['MlirRegion'] = default_field(constant(None), init=False)
+
+    def add_operation(self, operation: 'MlirOp'):
+        operation.set_parent(self)
+        self.operations.append(operation)
+
+    def set_parent(self, parent: 'MlirRegion'):
+        self.parent = parent
 
     def print(self, printer: PrinterBase):
         for operation in self.operations:
             operation.print(printer)
-
-    def add_operation(self, operation: 'MlirOp'):
-        self.operations.append(operation)
 
 
 _block_stack = Stack()
@@ -66,7 +71,17 @@ def push_block(block):
 
 @dataclasses.dataclass
 class MlirRegion(WithId):
-    blocks: List[MlirBlock] = default_list_field(init=False)
+    blocks: List[MlirBlock] = default_field(list, init=False)
+    parent: Optional['MlirOp'] = default_field(constant(None), init=False)
+
+    def new_block(self) -> MlirBlock:
+        block = MlirBlock()
+        block.set_parent(self)
+        self.blocks.append(block)
+        return block
+
+    def set_parent(self, parent: 'MlirOp'):
+        self.parent = parent
 
     def print(self, printer: PrinterBase):
         for block in self.blocks:
@@ -96,9 +111,19 @@ class MlirOpMeta(abc.ABCMeta):
 
 @dataclasses.dataclass
 class MlirOp(WithId, metaclass=MlirOpMeta):
-    regions: List[MlirRegion] = default_list_field(init=False)
-    operands: List[MlirValue] = default_list_field(init=False)
-    results: List[MlirValue] = default_list_field(init=False)
+    regions: List[MlirRegion] = default_field(list, init=False)
+    operands: List[MlirValue] = default_field(list, init=False)
+    results: List[MlirValue] = default_field(list, init=False)
+    parent: Optional[MlirBlock] = default_field(constant(None), init=False)
+
+    def new_region(self) -> MlirRegion:
+        region = MlirRegion()
+        region.set_parent(self)
+        self.regions.append(region)
+        return region
+
+    def set_parent(self, parent: MlirBlock):
+        self.parent = parent
 
     def print(self, printer: PrinterBase):
         self.print_op(printer)
