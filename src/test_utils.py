@@ -6,14 +6,13 @@ import io
 import os
 import pathlib
 import sys
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import magma as m
-from magma.testing import check_files_equal
-import magma_examples
 
 from compile_to_mlir import compile_to_mlir
 import examples
+import magma_examples
 from mlir_to_verilog import mlir_to_verilog
 
 
@@ -21,6 +20,40 @@ _CMP_BUFSIZE = 8 * 1024
 _MAGMA_EXAMPLES_TO_SKIP = (
     "risc",
 )
+
+
+def _maybe_get_env(value: Any, key: str, default: Any) -> Any:
+    if value is not None:
+        return value
+    typ = type(default)
+    return typ(os.environ.get(key, default))
+
+
+def _compile_to_mlir(
+        ckt: m.DefineCircuitKind, write_output_files: bool) -> io.TextIOBase:
+    if not write_output_files:
+        mlir_out = io.TextIOWrapper(io.BytesIO())
+        compile_to_mlir(ckt, mlir_out)
+        return mlir_out
+    filename = f"{ckt.name}.mlir"
+    with open(filename, "w") as mlir_out:
+        compile_to_mlir(ckt, mlir_out)
+    mlir_out = open(filename, "rb")
+    return io.TextIOWrapper(mlir_out)
+
+
+def _compile_to_verilog(
+        ckt: m.DefineCircuitKind,
+        mlir_out: io.RawIOBase,
+        write_output_files: bool) -> io.RawIOBase:
+    if not write_output_files:
+        verilog_out = io.BytesIO()
+        mlir_to_verilog(mlir_out, verilog_out)
+        return verilog_out
+    filename = f"{ckt.name}.v"
+    with open(filename, "wb") as verilog_out:
+        mlir_to_verilog(mlir_out, verilog_out)
+    return open(filename, "rb")
 
 
 def cmp_streams(
@@ -56,25 +89,23 @@ def check_streams_equal(
     return False
 
 
-def get_check_verilog(default: bool) -> bool:
-    return os.environ.get("CHECK_VERILOG", default)
-
-
 def run_test_compile_to_mlir(
-        ckt: m.DefineCircuitKind, check_verilog: Optional[bool] = None):
-    if check_verilog is None:
-        check_verilog = get_check_verilog(False)
+        ckt: m.DefineCircuitKind,
+        check_verilog: Optional[bool] = None,
+        write_output_files: Optional[bool] = None):
+    check_verilog = _maybe_get_env(check_verilog, "CHECK_VERILOG", 0)
+    write_output_files = _maybe_get_env(
+        write_output_files, "WRITE_OUTPUT_FILES", 0)
     m.passes.clock.WireClockPass(ckt).run()
-    mlir_out = io.TextIOWrapper(io.BytesIO())
-    compile_to_mlir(ckt, mlir_out)
+    mlir_out = _compile_to_mlir(ckt, write_output_files)
     mlir_out.seek(0)
     with open(f"golds/{ckt.name}.mlir", "rb") as mlir_gold:
         assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
     if check_verilog:
         with open(f"golds/{ckt.name}.v", "rb") as verilog_gold:
             mlir_out.seek(0)
-            verilog_out = io.BytesIO()
-            mlir_to_verilog(mlir_out.buffer, verilog_out)
+            verilog_out = _compile_to_verilog(
+                ckt, mlir_out.buffer, write_output_files)
             verilog_out.seek(0)
             assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
 
