@@ -180,7 +180,7 @@ class ArrayMeta(ABCMeta, Kind):
         if isinstance(cls.T, Direction):
             assert cls.N is None
             return f"{cls.T.name}(Array)"
-        return f"{cls.__name__}[{cls.N}, {cls.T}]"
+        return cls.__name__
 
     def __repr__(cls):
         return f"{cls.__name__}[{cls.N}, {cls.T}]"
@@ -799,12 +799,14 @@ class Array2(Wireable, Array):
             offset = arr.name.index.start
             arr = arr.name.array
 
+        if isinstance(key, BitVector):
+            key = int(key)
         if isinstance(key, int):
             return arr._get_t(offset + key)
         if isinstance(key, slice):
             return arr._get_slice(slice(offset + key.start,
                                         offset + key.stop))
-        raise NotImplementedError(key)
+        raise NotImplementedError(key, type(key))
 
     def __setitem__(self, key, val):
         # TODO(leonardt/array2): Validate setitem?

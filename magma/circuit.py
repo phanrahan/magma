@@ -264,11 +264,12 @@ def _get_intermediate_values(value):
     driver = value.value()
     if driver is None:
         return OrderedIdentitySet()
-    flat = value.flatten()
-    if len(flat) > 1 and driver.name.anon():
-        return functools.reduce(operator.or_,
-                                (_get_intermediate_values(f) for f in flat),
-                                OrderedIdentitySet())
+    if driver.name.anon():
+        flat = value.flatten()
+        if len(flat) > 1:
+            return functools.reduce(
+                operator.or_, (_get_intermediate_values(f) for f in flat),
+                OrderedIdentitySet())
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)

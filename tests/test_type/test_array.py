@@ -53,11 +53,11 @@ def test_array():
 def test_qualify_array():
     assert str(In(Array)) == "In(Array)"
     assert str(Out(In(Array))) == "Out(Array)"
-    assert str(In(Array)[5, Bit]) == "Array[5, In(Bit)]"
-    assert str(Out(In(Array))[5, Bit]) == "Array[5, Out(Bit)]"
+    assert str(In(Array)[5, Bit]) == "Array[(5, In(Bit))]"
+    assert str(Out(In(Array))[5, Bit]) == "Array[(5, Out(Bit))]"
 
     # Array qualifer overrides child qualifer
-    assert str(In(Array)[5, Out(Bit)]) == "Array[5, In(Bit)]"
+    assert str(In(Array)[5, Out(Bit)]) == "Array[(5, In(Bit))]"
 
     assert In(Array) is In(Array)
     assert Out(In(Array)) is Out(Array)
