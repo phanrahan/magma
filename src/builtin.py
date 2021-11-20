@@ -23,6 +23,10 @@ class ModuleOp(MlirOp):
     def __post_init__(self):
         self._block = self.new_region().new_block()
 
+    @property
+    def block(self) -> MlirBlock:
+        return self._block
+
     def add_operation(self, operation: MlirOp):
         self._block.add_operation(operation)
 

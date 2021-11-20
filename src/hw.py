@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Tuple
+from typing import ClassVar, List, Tuple
 
 from mlir import MlirDialect, begin_dialect, end_dialect
 from mlir_printer_utils import print_names, print_types, print_signature
@@ -41,23 +41,33 @@ class InOutType(MlirType):
 
 
 @dataclasses.dataclass
-class ModuleOp(MlirOp):
+class ModuleOpBase(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
     name: str
 
-    def __post_init__(self):
-        self._block = self.new_region().new_block()
-
     def print_op(self, printer: PrinterBase):
-        printer.print(f"hw.module @{self.name}(")
+        printer.print(f"hw.{self.op_name} @{self.name}(")
         print_signature(self.operands, printer)
         printer.print(") -> (")
         print_signature(self.results, printer, raw_names=True)
         printer.print(")")
 
+
+@dataclasses.dataclass
+class ModuleOp(ModuleOpBase):
+    op_name: ClassVar[str] = "module"
+
+    def __post_init__(self):
+        self._block = self.new_region().new_block()
+
     def add_operation(self, operation: MlirOp):
         self._block.add_operation(operation)
+
+
+@dataclasses.dataclass
+class ModuleExternOp(ModuleOpBase):
+    op_name: ClassVar[str] = "module.extern"
 
 
 @dataclasses.dataclass
@@ -80,20 +90,6 @@ class ConstantOp(MlirOp):
         print_names(self.results, printer)
         printer.print(f" = hw.constant {self.value} : ")
         print_types(self.results, printer)
-
-
-@dataclasses.dataclass
-class ModuleExternOp(MlirOp):
-    operands: List[MlirValue]
-    results: List[MlirValue]
-    name: str
-
-    def print_op(self, printer: PrinterBase):
-        printer.print(f"hw.module.extern @{self.name}(")
-        print_signature(self.operands, printer)
-        printer.print(") -> (")
-        print_signature(self.results, printer, raw_names=True)
-        printer.print(")")
 
 
 @dataclasses.dataclass
