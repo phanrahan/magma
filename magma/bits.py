@@ -15,7 +15,7 @@ from .compatibility import IntegerTypes
 from .ref import AnonRef
 from .bit import Bit
 from .array import Array2, ArrayMeta, Array
-from .t import Type, Direction, In, Out
+from .t import Type, Direction, In, Out, Kind
 from magma.circuit import Circuit, coreir_port_mapping, IO
 from magma.bitutils import seq2int, int2seq
 from magma.family import get_family
@@ -70,25 +70,25 @@ def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
     return wrapped
 
 
-class BitsConst(Generator2):
-    def __init__(self, value: tp.Union[int, tuple], N: int):
+class Const(Generator2):
+    def __init__(self, value: tp.Union[int, tuple], T: 'BitsMeta'):
         if isinstance(value, tuple):
             value = seq2int(value)
         else:
             value = int(value)
-        value = BitVector[N](value)
+        value = BitVector[T.N](value)
         self.coreir_name = "const"
         self.coreir_lib = "coreir"
-        self.coreir_genargs = {"width": N}
+        self.coreir_genargs = {"width": T.N}
         self.coreir_configargs = {"value": value}
         self.renamed_ports = coreir_port_mapping
         self.primitive = True
         self.stateful = False
-        self.io = IO(O=Out(Bits[N]))
+        self.io = IO(O=Out(T))
         self._value = value
 
         def __repr__(self):
-            return f"{self.name} = BitsConst({value}, {N})"
+            return f"{self.name} = Const({value}, {T})"
 
         self.__repr__ = __repr__
 
@@ -106,23 +106,25 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         if len(args) == 1:
             if (isinstance(args[0], list) and
                     all(isinstance(x, int) for x in args[0])):
-                return BitsConst(tuple(args[0]), cls.N)().O
+                return Const(tuple(args[0]), cls.undirected_t)().O
             if isinstance(args[0], int):
                 if isinstance(args[0], int) and args[0].bit_length() > cls.N:
                     raise ValueError(
-                        f"Cannot construct Bits[{cls.N}] with integer "
-                        f"{args[0]} (requires truncation)")
-                return BitsConst(tuple(int2seq(args[0], cls.N)), cls.N)().O
+                        f"Cannot construct {cls.__name__}[{cls.N}] with "
+                        f"integer {args[0]} (requires truncation)")
+                return Const(tuple(int2seq(args[0], cls.N)),
+                             cls.undirected_t)().O
             if isinstance(args[0], BitVector):
                 if isinstance(args[0], BitVector) and len(args[0]) != cls.N:
                     raise TypeError(
-                        f"Cannot construct Bits[{cls.N}] with BitVector of "
-                        f"length {len(args[0])} (sizes must match)")
-                return BitsConst(tuple(args[0].bits()), cls.N)().O
+                        f"Cannot construct {cls.__name__}[{cls.N}] with "
+                        f"BitVector of length {len(args[0])} (sizes must "
+                        "match)")
+                return Const(tuple(args[0].bits()), cls)().O
             if isinstance(args[0], Bits):
                 if args[0].const():
-                    return BitsConst(tuple(int2seq(int(args[0]), cls.N)),
-                                     cls.N)().O
+                    return Const(tuple(int2seq(int(args[0]), cls.N)),
+                                 cls.undirected_t)().O
                 arg_len = len(args[0])
                 if arg_len == cls.N:
                     return args[0]
@@ -222,7 +224,7 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
         if self.driven():
             return self.trace().const()
         return (isinstance(self.name, InstRef) and
-                isinstance(type(self.name.inst), BitsConst))
+                isinstance(type(self.name.inst), Const))
 
     def __repr__(self):
         if self.const():
