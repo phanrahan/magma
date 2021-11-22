@@ -161,10 +161,10 @@ def test_setitem_bfloat():
         io.O <= b
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
-BitsConst_inst0 = BitsConst(0, 1)
 ConcatN_inst0 = ConcatN()
+Const_inst0 = Const(0, Bits[1])
 wire(TestCircuit.I[slice(0, 15, None)], ConcatN_inst0.in0)
-wire(BitsConst_inst0.out, ConcatN_inst0.in1)
+wire(Const_inst0.out, ConcatN_inst0.in1)
 wire(ConcatN_inst0.out, TestCircuit.O)
 EndCircuit()\
 """  # noqa
@@ -239,13 +239,13 @@ def test_ite(n):
 
     assert repr(TestITE) == f"""\
 TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
-BitsConst_inst0 = BitsConst(0, {n})
+Const_inst0 = Const(0, Bits[{n}])
 magma_Bit_not_inst0 = magma_Bit_not()
 magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
 magma_Bits_{n}_ite_Out_Bits_{n}_inst0 = magma_Bits_{n}_ite_Out_Bits_{n}()
 wire(magma_Bits_{n}_eq_inst0.out, magma_Bit_not_inst0.in)
 wire(TestITE.S, magma_Bits_{n}_eq_inst0.in0)
-wire(BitsConst_inst0.out, magma_Bits_{n}_eq_inst0.in1)
+wire(Const_inst0.out, magma_Bits_{n}_eq_inst0.in1)
 wire(TestITE.I0, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in0)
 wire(TestITE.I1, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in1)
 wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
@@ -305,10 +305,10 @@ def test_zext(n):
 
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
-BitsConst_inst0 = BitsConst(0, 3)
 ConcatN_inst0 = ConcatN()
+Const_inst0 = Const(0, Bits[3])
 wire(TestExt.I, ConcatN_inst0.in0)
-wire(BitsConst_inst0.out, ConcatN_inst0.in1)
+wire(Const_inst0.out, ConcatN_inst0.in1)
 wire(ConcatN_inst0.out, TestExt.O)
 EndCircuit()\
 """

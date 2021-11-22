@@ -110,14 +110,14 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             if isinstance(args[0], int):
                 if isinstance(args[0], int) and args[0].bit_length() > cls.N:
                     raise ValueError(
-                        f"Cannot construct {cls.__name__}[{cls.N}] with "
+                        f"Cannot construct {cls.orig_name}[{cls.N}] with "
                         f"integer {args[0]} (requires truncation)")
                 return Const(tuple(int2seq(args[0], cls.N)),
                              cls.undirected_t)().O
             if isinstance(args[0], BitVector):
                 if isinstance(args[0], BitVector) and len(args[0]) != cls.N:
                     raise TypeError(
-                        f"Cannot construct {cls.__name__}[{cls.N}] with "
+                        f"Cannot construct {cls.orig_name}[{cls.N}] with "
                         f"BitVector of length {len(args[0])} (sizes must "
                         "match)")
                 return Const(tuple(args[0].bits()), cls)().O

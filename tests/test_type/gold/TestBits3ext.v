@@ -19,18 +19,18 @@ module TestExt (
     input [2:0] I,
     output [5:0] O
 );
-wire [2:0] BitsConst_inst0_out;
 wire [5:0] ConcatN_inst0_out;
+wire [2:0] Const_inst0_out;
+mantle_concatNArrT__Ns33__t_childBitIn ConcatN_inst0 (
+    .in0(I),
+    .in1(Const_inst0_out),
+    .out(ConcatN_inst0_out)
+);
 coreir_const #(
     .value(3'h0),
     .width(3)
-) BitsConst_inst0 (
-    .out(BitsConst_inst0_out)
-);
-mantle_concatNArrT__Ns33__t_childBitIn ConcatN_inst0 (
-    .in0(I),
-    .in1(BitsConst_inst0_out),
-    .out(ConcatN_inst0_out)
+) Const_inst0 (
+    .out(Const_inst0_out)
 );
 assign O = ConcatN_inst0_out;
 endmodule
