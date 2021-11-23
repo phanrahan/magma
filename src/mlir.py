@@ -54,6 +54,17 @@ class MlirSymbol:
         return f"@{self.raw_name}"
 
 
+class MlirAttributeMeta(DialectKind):
+    def _register_(cls, dialect):
+        dialect.register_attribute(cls)
+
+
+class MlirAttribute(metaclass=MlirAttributeMeta):
+    @abc.abstractmethod
+    def emit(self) -> str:
+        raise NotImplementedError()
+
+
 @dataclasses.dataclass
 class MlirBlock(WithId):
     operations: List['MlirOp'] = default_field(list, init=False)
@@ -184,6 +195,9 @@ class MlirDialect:
 
     def register_type(self, t: type):
         self._register(t, "t", MlirType)
+
+    def register_attribute(self, attr: type):
+        self._register(attr, "attr", MlirAttribute)
 
 
 _dialect_stack = Stack()
