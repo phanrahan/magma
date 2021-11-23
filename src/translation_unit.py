@@ -77,6 +77,7 @@ class TranslationUnit:
                 hardware_module.compile()
                 if hardware_module.hw_module:
                     self.set_hardware_module(dep, hardware_module)
+                    self.set_mapped_symbol(dep, hardware_module.hw_module.name)
 
     @staticmethod
     def _make_key(magma_defn_or_decl: m.circuit.CircuitKind) -> str:

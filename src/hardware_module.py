@@ -634,15 +634,17 @@ class HardwareModule:
             visit_magma_value_by_direction(port, i.append, o.append)
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
+        name = self.parent.new_symbol(
+             name=self._magma_defn_or_decl.name, force=True)
         if not treat_as_definition(self._magma_defn_or_decl):
             return hw.ModuleExternOp(
-                name=self._magma_defn_or_decl.name,
+                name=name,
                 operands=inputs,
                 results=named_outputs)
         bind_processor = BindProcessor(self, self._magma_defn_or_decl)
         bind_processor.preprocess()
         op = hw.ModuleOp(
-            name=self._magma_defn_or_decl.name,
+            name=name,
             operands=inputs,
             results=named_outputs)
         graph = build_magma_graph(self._magma_defn_or_decl)

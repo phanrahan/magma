@@ -44,10 +44,10 @@ class InOutType(MlirType):
 class ModuleOpBase(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
-    name: str
+    name: MlirSymbol
 
     def print_op(self, printer: PrinterBase):
-        printer.print(f"hw.{self.op_name} @{self.name}(")
+        printer.print(f"hw.{self.op_name} {self.name.name}(")
         print_signature(self.operands, printer)
         printer.print(") -> (")
         print_signature(self.results, printer, raw_names=True)
@@ -107,7 +107,7 @@ class InstanceOp(MlirOp):
         printer.print(f"hw.instance \"{self.name}\" ")
         if self.sym is not None:
             printer.print(f"sym {self.sym.name} ")
-        printer.print(f"@{self.module.name}(")
+        printer.print(f"{self.module.name.name}(")
         operands = [
             f"{m_operand.raw_name}: {operand.name}: {operand.type.emit()}"
             for operand, m_operand in zip(self.operands, self.module.operands)
