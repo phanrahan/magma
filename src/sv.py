@@ -163,4 +163,12 @@ class VerbatimOp(MlirOp):
             print_types(self.operands, printer)
 
 
+@dataclasses.dataclass
+class BindOp(MlirOp):
+    instance: str
+
+    def print_op(self, printer: PrinterBase):
+        printer.print(f"sv.bind {self.instance}")
+
+
 end_dialect()
