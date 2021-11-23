@@ -108,6 +108,8 @@ def run_test_compile_to_mlir(
                 ckt, mlir_out.buffer, write_output_files)
             verilog_out.seek(0)
             assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
+        verilog_out.close
+    mlir_out.close()
 
 
 @functools.lru_cache()
