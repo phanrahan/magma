@@ -532,11 +532,13 @@ class BindProcessor:
 
     def process(self):
         self._syms = []
-        for bind_module, (_, _) in self._defn.bind_modules.items():
+        for bind_module, (args, _) in self._defn.bind_modules.items():
             operands = [
                 self._ctx.get_mapped_value(p)
                 for p in self._defn.interface.ports.values()
             ]
+            for arg in args:
+                operands.append(self._ctx.get_mapped_value(arg))
             inst_name = f"{bind_module.name}_inst"
             sym = f"@{self._defn.name}.{inst_name}"
             inst = hw.InstanceOp(
