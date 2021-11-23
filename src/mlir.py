@@ -1,7 +1,7 @@
 import abc
 import contextlib
 import dataclasses
-from typing import List, Optional, Tuple
+from typing import List, Mapping, Optional, Tuple
 import weakref
 
 from common import Stack, WithId, default_field, constant
@@ -121,6 +121,7 @@ class MlirOp(WithId, metaclass=MlirOpMeta):
     regions: List[MlirRegion] = default_field(list, init=False)
     operands: List[MlirValue] = default_field(list, init=False)
     results: List[MlirValue] = default_field(list, init=False)
+    attr_dict: Mapping = default_field(dict, init=False)
     # @parent is of type MlirBlock.
     parent: OptionalWeakRef = default_field(constant(None), init=False)
 

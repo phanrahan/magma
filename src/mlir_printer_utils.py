@@ -1,4 +1,4 @@
-from typing import Callable, List, Union
+from typing import Callable, List, Mapping, Union
 
 from mlir import MlirValue
 from printer_base import PrinterBase
@@ -44,3 +44,8 @@ def print_signature(
     get_name = get_name_fn(raw_names)
     signatures = (f"{get_name(v)}: {v.type.emit()}" for v in value_list)
     printer.print(", ".join(signatures))
+
+
+def print_attr_dict(attr_dict: Mapping, printer: PrinterBase):
+    attr_dict_to_string = ", ".join(f"{k} = {v}" for k, v in attr_dict.items())
+    printer.print(f"{{{attr_dict_to_string}}}")
