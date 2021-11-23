@@ -1,4 +1,4 @@
-hw.module @VecSearch(%CLK: i1) -> (%out: i4) {
+hw.module @VecSearch(%CLK: i1) -> (out: i4) {
     %0 = hw.constant 0 : i4
     %1 = hw.constant 4 : i4
     %2 = hw.constant 15 : i4

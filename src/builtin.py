@@ -21,12 +21,14 @@ class IntegerType(MlirType):
 @dataclasses.dataclass
 class ModuleOp(MlirOp):
     def __post_init__(self):
-        self.regions.append(MlirRegion())
-        self.regions[0].blocks.append(MlirBlock())
-        self._block = self.regions[0].blocks[0]
+        self._block = self.new_region().new_block()
+
+    @property
+    def block(self) -> MlirBlock:
+        return self._block
 
     def add_operation(self, operation: MlirOp):
-        self._block.operations.append(operation)
+        self._block.add_operation(operation)
 
     def print_op(self, printer: PrinterBase):
         printer.print("module")

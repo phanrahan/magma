@@ -1,4 +1,4 @@
-hw.module @Parity(%I: i1, %CLK: i1) -> (%O: i1) {
+hw.module @Parity(%I: i1, %CLK: i1) -> (O: i1) {
     %0 = hw.constant 0 : i1
     %1 = hw.constant 1 : i1
     %2 = hw.constant 0 : i1

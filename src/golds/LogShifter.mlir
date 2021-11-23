@@ -1,4 +1,4 @@
-hw.module @LogShifter(%I: i16, %shift_amount: i4, %CLK: i1) -> (%O: i16) {
+hw.module @LogShifter(%I: i16, %shift_amount: i4, %CLK: i1) -> (O: i16) {
     %0 = hw.constant 8 : i16
     %1 = comb.shl %I, %0 : i16
     %2 = comb.extract %shift_amount from 3 : (i4) -> i1

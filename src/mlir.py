@@ -2,9 +2,13 @@ import abc
 import contextlib
 import dataclasses
 from typing import List, Optional, Tuple
+import weakref
 
-from common import Stack, WithId, default_list_field
+from common import Stack, WithId, default_field, constant
 from printer_base import PrinterBase
+
+
+OptionalWeakRef = Optional[weakref.ReferenceType]
 
 
 class MlirTypeMeta(abc.ABCMeta):
@@ -27,20 +31,30 @@ class MlirType(metaclass=MlirTypeMeta):
 @dataclasses.dataclass(frozen=True)
 class MlirValue:
     type: MlirType
-    name: str
+    raw_name: str
+
+    @property
+    def name(self) -> str:
+        return f"%{self.raw_name}"
 
 
 @dataclasses.dataclass
 class MlirBlock(WithId):
-    operations: List['MlirOp'] = default_list_field(init=False)
-    arguments: List[MlirValue] = default_list_field(init=False)
+    operations: List['MlirOp'] = default_field(list, init=False)
+    arguments: List[MlirValue] = default_field(list, init=False)
+    # parent is of type MlirRegion.
+    parent: OptionalWeakRef = default_field(constant(None), init=False)
+
+    def add_operation(self, operation: 'MlirOp'):
+        operation.set_parent(self)
+        self.operations.append(operation)
+
+    def set_parent(self, parent: 'MlirRegion'):
+        self.parent = weakref.ref(parent)
 
     def print(self, printer: PrinterBase):
         for operation in self.operations:
             operation.print(printer)
-
-    def add_operation(self, operation: 'MlirOp'):
-        self.operations.append(operation)
 
 
 _block_stack = Stack()
@@ -62,7 +76,18 @@ def push_block(block):
 
 @dataclasses.dataclass
 class MlirRegion(WithId):
-    blocks: List[MlirBlock] = default_list_field(init=False)
+    blocks: List[MlirBlock] = default_field(list, init=False)
+    # @parent is of type MlirOp.
+    parent: OptionalWeakRef = default_field(constant(None), init=False)
+
+    def new_block(self) -> MlirBlock:
+        block = MlirBlock()
+        block.set_parent(self)
+        self.blocks.append(block)
+        return block
+
+    def set_parent(self, parent: 'MlirOp'):
+        self.parent = weakref.ref(parent)
 
     def print(self, printer: PrinterBase):
         for block in self.blocks:
@@ -87,14 +112,26 @@ class MlirOpMeta(abc.ABCMeta):
         dialect = maybe_peek_dialect()
         if dialect is not None:
             dialect.register_op(cls)
+            cls.__qualname__ = f"{dialect.name}.{cls.__qualname__}"
         return cls
 
 
 @dataclasses.dataclass
 class MlirOp(WithId, metaclass=MlirOpMeta):
-    regions: List[MlirRegion] = default_list_field(init=False)
-    operands: List[MlirValue] = default_list_field(init=False)
-    results: List[MlirValue] = default_list_field(init=False)
+    regions: List[MlirRegion] = default_field(list, init=False)
+    operands: List[MlirValue] = default_field(list, init=False)
+    results: List[MlirValue] = default_field(list, init=False)
+    # @parent is of type MlirBlock.
+    parent: OptionalWeakRef = default_field(constant(None), init=False)
+
+    def new_region(self) -> MlirRegion:
+        region = MlirRegion()
+        region.set_parent(self)
+        self.regions.append(region)
+        return region
+
+    def set_parent(self, parent: MlirBlock):
+        self.parent = weakref.ref(parent)
 
     def print(self, printer: PrinterBase):
         self.print_op(printer)

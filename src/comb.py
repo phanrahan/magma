@@ -35,11 +35,8 @@ class ConcatOp(MlirOp):
         print_names(self.results, printer)
         printer.print(f" = comb.concat ")
         print_names(self.operands, printer)
-        printer.print(" : (")
+        printer.print(" : ")
         print_types(self.operands, printer)
-        printer.print(") -> (")
-        print_types(self.results, printer)
-        printer.print(")")
 
 
 @dataclasses.dataclass

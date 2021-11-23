@@ -1,4 +1,4 @@
-hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (%O0: i8, %O1: i1, %O2: !hw.array<4xi8>) {
+hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (O0: i8, O1: i1, O2: !hw.array<4xi8>) {
     %1 = sv.wire sym @tmp0 {name="tmp0"} : !hw.inout<i8>
     sv.assign %1, %I0 : i8
     %0 = sv.read_inout %1 : !hw.inout<i8>
@@ -45,7 +45,7 @@ hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (%O0: i8, %O1
     %41 = comb.extract %34 from 5 : (i8) -> i1
     %42 = comb.extract %34 from 6 : (i8) -> i1
     %43 = comb.extract %34 from 7 : (i8) -> i1
-    %44 = comb.concat %43, %42, %41, %40, %39, %38, %37, %36, %33, %32, %31, %30, %29, %28, %27, %26, %23, %22, %21, %20, %19, %18, %17, %16, %13, %12, %11, %10, %9, %8, %7, %6 : (i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1) -> (i32)
+    %44 = comb.concat %43, %42, %41, %40, %39, %38, %37, %36, %33, %32, %31, %30, %29, %28, %27, %26, %23, %22, %21, %20, %19, %18, %17, %16, %13, %12, %11, %10, %9, %8, %7, %6 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
     %46 = sv.wire sym @tmp2 {name="tmp2"} : !hw.inout<i32>
     sv.assign %46, %44 : i32
     %45 = sv.read_inout %46 : !hw.inout<i32>
@@ -57,7 +57,7 @@ hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (%O0: i8, %O1
     %52 = comb.extract %45 from 5 : (i32) -> i1
     %53 = comb.extract %45 from 6 : (i32) -> i1
     %54 = comb.extract %45 from 7 : (i32) -> i1
-    %55 = comb.concat %54, %53, %52, %51, %50, %49, %48, %47 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %55 = comb.concat %54, %53, %52, %51, %50, %49, %48, %47 : i1, i1, i1, i1, i1, i1, i1, i1
     %56 = comb.extract %45 from 8 : (i32) -> i1
     %57 = comb.extract %45 from 9 : (i32) -> i1
     %58 = comb.extract %45 from 10 : (i32) -> i1
@@ -66,7 +66,7 @@ hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (%O0: i8, %O1
     %61 = comb.extract %45 from 13 : (i32) -> i1
     %62 = comb.extract %45 from 14 : (i32) -> i1
     %63 = comb.extract %45 from 15 : (i32) -> i1
-    %64 = comb.concat %63, %62, %61, %60, %59, %58, %57, %56 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %64 = comb.concat %63, %62, %61, %60, %59, %58, %57, %56 : i1, i1, i1, i1, i1, i1, i1, i1
     %65 = comb.extract %45 from 16 : (i32) -> i1
     %66 = comb.extract %45 from 17 : (i32) -> i1
     %67 = comb.extract %45 from 18 : (i32) -> i1
@@ -75,7 +75,7 @@ hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (%O0: i8, %O1
     %70 = comb.extract %45 from 21 : (i32) -> i1
     %71 = comb.extract %45 from 22 : (i32) -> i1
     %72 = comb.extract %45 from 23 : (i32) -> i1
-    %73 = comb.concat %72, %71, %70, %69, %68, %67, %66, %65 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %73 = comb.concat %72, %71, %70, %69, %68, %67, %66, %65 : i1, i1, i1, i1, i1, i1, i1, i1
     %74 = comb.extract %45 from 24 : (i32) -> i1
     %75 = comb.extract %45 from 25 : (i32) -> i1
     %76 = comb.extract %45 from 26 : (i32) -> i1
@@ -84,7 +84,7 @@ hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (%O0: i8, %O1
     %79 = comb.extract %45 from 29 : (i32) -> i1
     %80 = comb.extract %45 from 30 : (i32) -> i1
     %81 = comb.extract %45 from 31 : (i32) -> i1
-    %82 = comb.concat %81, %80, %79, %78, %77, %76, %75, %74 : (i1, i1, i1, i1, i1, i1, i1, i1) -> (i8)
+    %82 = comb.concat %81, %80, %79, %78, %77, %76, %75, %74 : i1, i1, i1, i1, i1, i1, i1, i1
     %83 = hw.array_create %82, %73, %64, %55 : i8
     hw.output %0, %2, %83 : i8, i1, !hw.array<4xi8>
 }

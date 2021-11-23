@@ -1,4 +1,4 @@
-hw.module @SimpleALU(%a: i4, %b: i4, %opcode: i2) -> (%out: i4) {
+hw.module @SimpleALU(%a: i4, %b: i4, %opcode: i2) -> (out: i4) {
     %0 = hw.constant 2 : i2
     %1 = comb.icmp eq %opcode, %0 : i2
     %3 = hw.array_create %b, %a : i4

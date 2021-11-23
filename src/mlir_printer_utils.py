@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Callable, List, Union
 
 from mlir import MlirValue
 from printer_base import PrinterBase
@@ -6,6 +6,12 @@ from printer_base import PrinterBase
 
 MlirValueList = List[MlirValue]
 MlirValueOrMlirValueList = Union[MlirValue, MlirValueList]
+
+
+def get_name_fn(raw_names: bool) -> Callable[[MlirValue], str]:
+    if raw_names:
+        return lambda value: value.raw_name
+    return lambda value: value.name        
 
 
 def _maybe_wrap_value_or_value_list(
@@ -16,9 +22,12 @@ def _maybe_wrap_value_or_value_list(
 
 
 def print_names(
-        value_or_value_list: MlirValueOrMlirValueList, printer: PrinterBase):
+        value_or_value_list: MlirValueOrMlirValueList,
+        printer: PrinterBase,
+        raw_names: bool = False):
     value_list = _maybe_wrap_value_or_value_list(value_or_value_list)
-    printer.print(", ".join(v.name for v in value_list))
+    get_name = get_name_fn(raw_names)
+    printer.print(", ".join(get_name(v) for v in value_list))
 
 
 def print_types(
@@ -28,6 +37,10 @@ def print_types(
 
 
 def print_signature(
-        value_or_value_list: MlirValueOrMlirValueList, printer: PrinterBase):
+        value_or_value_list: MlirValueOrMlirValueList,
+        printer: PrinterBase,
+        raw_names: bool = False):
     value_list = _maybe_wrap_value_or_value_list(value_or_value_list)
-    printer.print(", ".join(f"{v.name}: {v.type.emit()}" for v in value_list))
+    get_name = get_name_fn(raw_names)
+    signatures = (f"{get_name(v)}: {v.type.emit()}" for v in value_list)
+    printer.print(", ".join(signatures))

@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Tuple
+from typing import ClassVar, List, Tuple
 
 from mlir import MlirDialect, begin_dialect, end_dialect
 from mlir_printer_utils import print_names, print_types, print_signature
@@ -41,25 +41,33 @@ class InOutType(MlirType):
 
 
 @dataclasses.dataclass
-class ModuleOp(MlirOp):
+class ModuleOpBase(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
     name: str
 
-    def __post_init__(self):
-        self.regions.append(MlirRegion())
-        self.regions[0].blocks.append(MlirBlock())
-        self._block = self.regions[0].blocks[0]        
-
     def print_op(self, printer: PrinterBase):
-        printer.print(f"hw.module @{self.name}(")
+        printer.print(f"hw.{self.op_name} @{self.name}(")
         print_signature(self.operands, printer)
         printer.print(") -> (")
-        print_signature(self.results, printer)
+        print_signature(self.results, printer, raw_names=True)
         printer.print(")")
 
+
+@dataclasses.dataclass
+class ModuleOp(ModuleOpBase):
+    op_name: ClassVar[str] = "module"
+
+    def __post_init__(self):
+        self._block = self.new_region().new_block()
+
     def add_operation(self, operation: MlirOp):
-        self._block.operations.append(operation)
+        self._block.add_operation(operation)
+
+
+@dataclasses.dataclass
+class ModuleExternOp(ModuleOpBase):
+    op_name: ClassVar[str] = "module.extern"
 
 
 @dataclasses.dataclass
@@ -85,36 +93,28 @@ class ConstantOp(MlirOp):
 
 
 @dataclasses.dataclass
-class ModuleExternOp(MlirOp):
-    operands: List[MlirValue]
-    results: List[MlirValue]
-    name: str
-
-    def print_op(self, printer: PrinterBase):
-        printer.print(f"hw.module.extern @{self.name}(")
-        print_signature(self.operands, printer)
-        printer.print(") -> (")
-        print_signature(self.results, printer)
-        printer.print(")")
-
-
-@dataclasses.dataclass
 class InstanceOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
     name: str
-    module: str
+    module: ModuleOp
 
     def print_op(self, printer: PrinterBase):
         if self.results:
             print_names(self.results, printer)
             printer.print(" = ")
-        printer.print(f"hw.instance \"{self.name}\" @{self.module}(")
-        print_names(self.operands, printer)
-        printer.print(") : (")
-        print_types(self.operands, printer)
+        printer.print(f"hw.instance \"{self.name}\" @{self.module.name}(")
+        operands = [
+            f"{m_operand.raw_name}: {operand.name}: {operand.type.emit()}"
+            for operand, m_operand in zip(self.operands, self.module.operands)
+        ]
+        printer.print(", ".join(operands))
         printer.print(") -> (")
-        print_types(self.results, printer)
+        results = [
+            f"{m_result.raw_name}: {result.type.emit()}"
+            for result, m_result in zip(self.results, self.module.results)
+        ]
+        printer.print(", ".join(results))
         printer.print(")")
 
 

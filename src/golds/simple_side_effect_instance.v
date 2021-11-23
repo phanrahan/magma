@@ -1,9 +1,9 @@
-module no_outputs(
+module no_outputs(	// <stdin>:1:1
   input I);
 
 endmodule
 
-module simple_side_effect_instance(
+module simple_side_effect_instance(	// <stdin>:5:1
   input  I,
   output O);
 

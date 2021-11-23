@@ -1,4 +1,4 @@
-module complex_mixed_direction_ports(
+module complex_mixed_direction_ports(	// <stdin>:1:1
   input  [7:0] complex_mixed_direction_ports_a_0_x, complex_mixed_direction_ports_a_1_x,
   input  [7:0] complex_mixed_direction_ports_a_2_x, complex_mixed_direction_ports_a_3_x,
   input  [7:0] complex_mixed_direction_ports_a_4_x, complex_mixed_direction_ports_a_5_x,
@@ -10,14 +10,14 @@ module complex_mixed_direction_ports(
   output [7:0] complex_mixed_direction_ports_a_6_y, complex_mixed_direction_ports_a_7_y,
   output [7:0] complex_mixed_direction_ports_b_x);
 
-  assign complex_mixed_direction_ports_a_0_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_a_1_y = complex_mixed_direction_ports_b_y;	// <stdin>:4:5
-  assign complex_mixed_direction_ports_a_2_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_a_3_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_a_4_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_a_5_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_a_6_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_a_7_y = 8'h0;	// <stdin>:3:14, :4:5
-  assign complex_mixed_direction_ports_b_x = complex_mixed_direction_ports_a_1_x;	// <stdin>:4:5
+  assign complex_mixed_direction_ports_a_0_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_a_1_y = complex_mixed_direction_ports_b_y;	// <stdin>:9:5
+  assign complex_mixed_direction_ports_a_2_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_a_3_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_a_4_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_a_5_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_a_6_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_a_7_y = 8'h0;	// <stdin>:2:10, :9:5
+  assign complex_mixed_direction_ports_b_x = complex_mixed_direction_ports_a_1_x;	// <stdin>:9:5
 endmodule
 

@@ -1,4 +1,4 @@
-hw.module @FullAdder(%a: i1, %b: i1, %cin: i1) -> (%sum_: i1, %cout: i1) {
+hw.module @FullAdder(%a: i1, %b: i1, %cin: i1) -> (sum_: i1, cout: i1) {
     %0 = comb.xor %a, %b : i1
     %1 = comb.xor %0, %cin : i1
     %2 = comb.and %a, %b : i1

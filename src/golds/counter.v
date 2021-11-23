@@ -1,16 +1,13 @@
-module counter(
+module counter(	// <stdin>:1:1
   input         CLK,
   output [15:0] y);
 
-  wire [15:0] _T;	// <stdin>:13:10
-  reg  [15:0] Register_inst0;	// <stdin>:5:23
+  reg [15:0] Register_inst0;	// <stdin>:4:10
 
-  wire [15:0] _T_0 = _T + 16'h1;	// <stdin>:3:15, :4:10, :13:10
-  always @(posedge CLK)	// <stdin>:6:5
-    Register_inst0 <= _T_0;	// <stdin>:7:7
+  always_ff @(posedge CLK)	// <stdin>:5:5
+    Register_inst0 <= Register_inst0 + 16'h1;	// <stdin>:2:10, :3:10, :6:9, :12:10
   initial	// <stdin>:9:5
-    Register_inst0 = 16'h0;	// <stdin>:10:17, :11:7
-  assign _T = Register_inst0;	// <stdin>:13:10
-  assign y = _T;	// <stdin>:13:10, :14:5
+    Register_inst0 = 16'h0;	// <stdin>:8:10, :10:9
+  assign y = Register_inst0;	// <stdin>:12:10, :13:5
 endmodule
 

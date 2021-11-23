@@ -1,4 +1,4 @@
-hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (%O0: i16, %O1: i1) {
+hw.module @GCD(%a: i16, %b: i16, %load: i1, %CLK: i1) -> (O0: i16, O1: i1) {
     %2 = comb.sub %0, %1 : i16
     %3 = comb.icmp ult %0, %1 : i16
     %5 = hw.array_create %2, %0 : i16
