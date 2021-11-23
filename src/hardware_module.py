@@ -558,7 +558,7 @@ class BindProcessor:
     def post_process(self):
         defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
         for sym in self._syms:
-            instance = f"#hw.innerNameRef<{defn_sym.name}::{sym.name}>"
+            instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
 
 

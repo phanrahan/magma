@@ -1,6 +1,7 @@
 import dataclasses
 from typing import List, Optional
 
+from hw import hw
 from mlir import (
     MlirDialect, MlirOp, MlirBlock, MlirValue, MlirSymbol,
     begin_dialect, end_dialect)
@@ -165,10 +166,10 @@ class VerbatimOp(MlirOp):
 
 @dataclasses.dataclass
 class BindOp(MlirOp):
-    instance: str
+    instance: hw.InnerRefAttr
 
     def print_op(self, printer: PrinterBase):
-        printer.print(f"sv.bind {self.instance}")
+        printer.print(f"sv.bind {self.instance.emit()}")
 
 
 end_dialect()
