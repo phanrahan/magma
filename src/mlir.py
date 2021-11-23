@@ -38,6 +38,16 @@ class MlirValue:
         return f"%{self.raw_name}"
 
 
+@dataclasses.dataclass(frozen=True)
+class MlirSymbol:
+    type: MlirType
+    raw_name: str
+
+    @property
+    def name(self) -> str:
+        return f"@{self.raw_name}"
+
+
 @dataclasses.dataclass
 class MlirBlock(WithId):
     operations: List['MlirOp'] = default_field(list, init=False)
