@@ -1,3 +1,4 @@
+import contextlib
 import hashlib
 import string
 from typing import Mapping, Optional, Union
@@ -64,10 +65,8 @@ def _make_temporary(
 
     # Insert a wire so that the value can't be inlined. If @defn is not None
     # then it needs to be `open()`'ed.
-    if defn is not None:
-        with defn.open():
-            temp = _insert_wire()
-    else:
+    ctx = contextlib.nullcontext() if defn is None else defn.open()
+    with ctx:
         temp = _insert_wire()
     if parent is not None:
         return PortView(temp.O, parent)
