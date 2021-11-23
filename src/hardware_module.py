@@ -512,6 +512,48 @@ def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
     return True
 
 
+class BindProcessor:
+    def __init__(self, ctx, defn: m.circuit.CircuitKind):
+        self._ctx = ctx
+        self._defn = defn
+
+    def preprocess(self):
+        for bind_module in self._defn.bind_modules:
+            # TODO(rsetaluri): Here we should check if @bind_module has already
+            # been compiled, in the case that the bound module is either used
+            # multiple times or is also a "normal" module that was compiled
+            # elsewhere. Currently, the `set_hardware_module` call will raise an
+            # error if @bind_module has been compiled already.
+            hardware_module = self._ctx.parent.new_hardware_module(bind_module)
+            hardware_module.compile()
+            assert hardware_module.hw_module is not None
+            self._ctx.parent.set_hardware_module(
+                 bind_module, hardware_module.hw_module)
+
+    def process(self):
+        self._syms = []
+        for bind_module, (_, _) in self._defn.bind_modules.items():
+            operands = [
+                self._ctx.get_mapped_value(p)
+                for p in self._defn.interface.ports.values()
+            ]
+            inst_name = f"{bind_module.name}_inst"
+            sym = f"@{self._defn.name}.{inst_name}"
+            inst = hw.InstanceOp(
+                name=inst_name,
+                module=self._ctx.parent.get_hardware_module(bind_module),
+                operands=operands,
+                results=[],
+                sym=sym)
+            inst.attr_dict["doNotPrint"] = 1
+            self._syms.append((f"@{self._defn.name}", sym))
+
+    def post_process(self):
+        for defn_sym, inst_sym in self._syms:
+            instance = f"#hw.innerNameRef<{defn_sym}::{inst_sym}>"
+            sv.BindOp(instance=instance)
+
+
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: m.circuit.CircuitKind,
@@ -587,6 +629,8 @@ class HardwareModule:
                 name=self._magma_defn_or_decl.name,
                 operands=inputs,
                 results=named_outputs)
+        bind_processor = BindProcessor(self, self._magma_defn_or_decl)
+        bind_processor.preprocess()
         op = hw.ModuleOp(
             name=self._magma_defn_or_decl.name,
             operands=inputs,
@@ -595,7 +639,9 @@ class HardwareModule:
         visitor = ModuleVisitor(graph, self)
         with push_block(op):
             visitor.visit(self._magma_defn_or_decl)
+            bind_processor.process()
             output_values = new_values(self.get_or_make_mapped_value, i)
             if named_outputs:
                 hw.OutputOp(operands=output_values)
+        bind_processor.post_process()
         return op
