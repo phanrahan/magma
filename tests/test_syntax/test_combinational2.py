@@ -84,3 +84,16 @@ END SOURCE_LINES
     assert check_files_equal(__file__,
                              f"build/test_combinational2_pre_post_passes.v",
                              f"gold/test_combinational2_pre_post_passes.v")
+
+
+def test_temporary_driver_repr():
+
+    def f3(I: m.Bit) -> m.Tuple[m.Bit]:
+        if I == 0:
+            O = m.Bit(0)
+        else:
+            O = m.Bit(1)
+        return m.tuple_([O])
+
+    f3 = m.combinational2()(f3)
+    repr(f3.circuit_definition)

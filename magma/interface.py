@@ -124,7 +124,7 @@ def _make_wires(value, wired):
         if (driver, value) in wired:
             break
         s += _make_wire_str(driver, value, wired)
-        if driver.is_output():
+        if not driver.driven():
             break
         value = driver
         driver = driver.value()
