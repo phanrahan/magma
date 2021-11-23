@@ -1,10 +1,12 @@
+from typing import Any
 import weakref
 
 import magma as m
 
 from builtin import builtin
 from hardware_module import HardwareModule
-from mlir import push_block
+from mlir import MlirSymbol, push_block
+from scoped_name_generator import ScopedNameGenerator
 
 
 class TranslationUnit:
@@ -12,6 +14,8 @@ class TranslationUnit:
         self._magma_top = magma_top
         self._mlir_module = builtin.ModuleOp()
         self._hardware_modules = {}
+        self._symbol_map = {}
+        self._symbol_name_generator = ScopedNameGenerator()
 
     @property
     def magma_top(self) -> m.DefineCircuitKind:
@@ -42,6 +46,25 @@ class TranslationUnit:
             self, magma_defn_or_decl: m.circuit.CircuitKind) -> bool:
         key = self._make_key(magma_defn_or_decl)
         return key in self._hardware_modules
+
+    def get_mapped_symbol(self, obj: m.Type) -> MlirSymbol:
+        return self._symbol_map[obj]
+
+    def get_or_make_mapped_symbol(self, obj: Any, **kwargs) -> MlirSymbol:
+        try:
+            return self._symbol_map[obj]
+        except KeyError:
+            pass
+        self._symbol_map[obj] = symbol = self.new_symbol(obj, **kwargs)
+        return symbol
+
+    def set_mapped_symbol(self, obj: Any, symbol: MlirSymbol):
+        if obj in self._symbol_map:
+            raise ValueError(f"{obj} already mapped")
+        self._symbol_map[obj] = symbol
+
+    def new_symbol(self, **kwargs) -> MlirSymbol:
+        return self._symbol_name_generator(**kwargs)
 
     def compile(self):
         deps = m.passes.dependencies(self._magma_top, include_self=True)
