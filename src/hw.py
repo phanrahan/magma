@@ -2,7 +2,7 @@ import dataclasses
 from typing import ClassVar, List, Optional, Tuple
 
 from mlir import (
-    MlirDialect, MlirOp,  MlirValue, MlirType, MlirSymbol,
+    MlirDialect, MlirOp,  MlirValue, MlirType, MlirSymbol, MlirAttribute,
     begin_dialect, end_dialect)
 from mlir_printer_utils import (
     print_names, print_types, print_signature, print_attr_dict)
@@ -38,6 +38,15 @@ class InOutType(MlirType):
 
     def emit(self) -> str:
         return f"!hw.inout<{self.T.emit()}>"
+
+
+@dataclasses.dataclass(frozen=True)
+class InnerRefAttr(MlirAttribute):
+    module: MlirSymbol
+    name: MlirSymbol
+
+    def emit(self) -> str:
+        return f"#hw.innerNameRef<{self.module.name}::{self.name.name}>"
 
 
 @dataclasses.dataclass
