@@ -545,18 +545,20 @@ class BindProcessor:
                  (self._defn, bind_module),
                  name=f"{self._defn.name}.{inst_name}",
                  force=True)
+            module = self._ctx.parent.get_hardware_module(bind_module)
             inst = hw.InstanceOp(
                 name=inst_name,
-                module=self._ctx.parent.get_hardware_module(bind_module),
+                module=module,
                 operands=operands,
                 results=[],
                 sym=sym)
             inst.attr_dict["doNotPrint"] = 1
-            self._syms.append((f"@{self._defn.name}", sym))
+            self._syms.append(sym)
 
     def post_process(self):
-        for defn_sym, inst_sym in self._syms:
-            instance = f"#hw.innerNameRef<{defn_sym}::{inst_sym.name}>"
+        defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
+        for sym in self._syms:
+            instance = f"#hw.innerNameRef<{defn_sym.name}::{sym.name}>"
             sv.BindOp(instance=instance)
 
 
@@ -634,7 +636,8 @@ class HardwareModule:
             visit_magma_value_by_direction(port, i.append, o.append)
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
-        name = self.parent.new_symbol(
+        name = self.parent.get_or_make_mapped_symbol(
+             self._magma_defn_or_decl,
              name=self._magma_defn_or_decl.name, force=True)
         if not treat_as_definition(self._magma_defn_or_decl):
             return hw.ModuleExternOp(
