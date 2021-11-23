@@ -21,6 +21,10 @@ class TranslationUnit:
     def mlir_module(self) -> builtin.ModuleOp:
         return self._mlir_module
 
+    def new_hardware_module(
+            self, magma_defn_or_decl: m.circuit.CircuitKind) -> HardwareModule:
+        return HardwareModule(magma_defn_or_decl, weakref.ref(self))
+
     def get_hardware_module(
             self, magma_defn_or_decl: m.circuit.CircuitKind) -> HardwareModule:
         key = self._make_key(magma_defn_or_decl)
@@ -45,7 +49,7 @@ class TranslationUnit:
             for dep in deps:
                 if self.has_hardware_module(dep):
                     continue
-                hardware_module = HardwareModule(dep, weakref.ref(self))
+                hardware_module = self.new_hardware_module(dep)
                 hardware_module.compile()
                 if hardware_module.hw_module:
                     self.set_hardware_module(dep, hardware_module)
