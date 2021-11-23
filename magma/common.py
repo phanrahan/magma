@@ -1,3 +1,4 @@
+import abc
 import collections
 import collections.abc
 from functools import wraps, partial
@@ -181,3 +182,26 @@ def only(lst: Iterable):
     else:
         elements = [value, new_value] + list(it)
         raise NonSignletonIterableException(elements)
+
+
+class Finalizable(abc.ABC):
+    @abc.abstractmethod
+    def finalize(self):
+        raise NotImplementedError()
+
+
+class FinalizableDelegator(Finalizable):
+    def __init__(self):
+        self._children = {}
+
+    def add_child(self, key: str, child: Finalizable):
+        if key in self._children:
+            raise ValueError(f"key '{key}' already present")
+        self._children[key] = child
+
+    def get_child(self, key: str) -> Finalizable:
+        return self._children[key]
+
+    def finalize(self):
+        for child in self._children.values():
+            child.finalize()

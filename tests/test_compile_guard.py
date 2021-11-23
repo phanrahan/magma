@@ -206,3 +206,19 @@ def test_compile_guard_select_complex_type():
 
     with pytest.raises(TypeError):
         make_top()
+
+
+def test_contained_inline_verilog():
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= io.I
+        with m.compile_guard("DEBUG", "DebugModule"):
+            reg = m.Register(m.Bit)(name="reg")
+            reg.I @= reg.O | io.I
+            m.inline_verilog("assert {io.I};")
+
+    basename = "test_compile_guard_contained_inline_verilog"
+    m.compile(f"build/{basename}", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")
