@@ -40,7 +40,6 @@ class MlirValue:
 
 @dataclasses.dataclass(frozen=True)
 class MlirSymbol:
-    type: MlirType
     raw_name: str
 
     @property

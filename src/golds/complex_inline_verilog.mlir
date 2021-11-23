@@ -8,10 +8,10 @@ hw.module @complex_inline_verilog(%I: i1, %CLK: i1) -> (O: i1) {
         sv.bpassign %1, %2 : i1
     }
     %0 = sv.read_inout %1 : !hw.inout<i1>
-    %4 = sv.wire sym @_magma_inline_wire0 {name="_magma_inline_wire0"} : !hw.inout<i1>
+    %4 = sv.wire sym @complex_inline_verilog._magma_inline_wire0 {name="_magma_inline_wire0"} : !hw.inout<i1>
     sv.assign %4, %0 : i1
     %3 = sv.read_inout %4 : !hw.inout<i1>
-    %6 = sv.wire sym @_magma_inline_wire1 {name="_magma_inline_wire1"} : !hw.inout<i1>
+    %6 = sv.wire sym @complex_inline_verilog._magma_inline_wire1 {name="_magma_inline_wire1"} : !hw.inout<i1>
     sv.assign %6, %I : i1
     %5 = sv.read_inout %6 : !hw.inout<i1>
     sv.verbatim "assert property (@(posedge CLK) {{1}} |-> ##1 {{0}});" (%3, %5) : i1, i1

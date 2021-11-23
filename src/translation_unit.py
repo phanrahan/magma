@@ -55,7 +55,7 @@ class TranslationUnit:
             return self._symbol_map[obj]
         except KeyError:
             pass
-        self._symbol_map[obj] = symbol = self.new_symbol(obj, **kwargs)
+        self._symbol_map[obj] = symbol = self.new_symbol(**kwargs)
         return symbol
 
     def set_mapped_symbol(self, obj: Any, symbol: MlirSymbol):
@@ -64,7 +64,8 @@ class TranslationUnit:
         self._symbol_map[obj] = symbol
 
     def new_symbol(self, **kwargs) -> MlirSymbol:
-        return self._symbol_name_generator(**kwargs)
+        name = self._symbol_name_generator(**kwargs)
+        return MlirSymbol(name)
 
     def compile(self):
         deps = m.passes.dependencies(self._magma_top, include_self=True)

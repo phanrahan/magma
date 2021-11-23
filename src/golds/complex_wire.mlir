@@ -1,8 +1,8 @@
 hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (O0: i8, O1: i1, O2: !hw.array<4xi8>) {
-    %1 = sv.wire sym @tmp0 {name="tmp0"} : !hw.inout<i8>
+    %1 = sv.wire sym @complex_wire.tmp0 {name="tmp0"} : !hw.inout<i8>
     sv.assign %1, %I0 : i8
     %0 = sv.read_inout %1 : !hw.inout<i8>
-    %3 = sv.wire sym @tmp1 {name="tmp1"} : !hw.inout<i1>
+    %3 = sv.wire sym @complex_wire.tmp1 {name="tmp1"} : !hw.inout<i1>
     sv.assign %3, %I1 : i1
     %2 = sv.read_inout %3 : !hw.inout<i1>
     %5 = hw.constant 0 : i2
@@ -46,7 +46,7 @@ hw.module @complex_wire(%I0: i8, %I1: i1, %I2: !hw.array<4xi8>) -> (O0: i8, O1: 
     %42 = comb.extract %34 from 6 : (i8) -> i1
     %43 = comb.extract %34 from 7 : (i8) -> i1
     %44 = comb.concat %43, %42, %41, %40, %39, %38, %37, %36, %33, %32, %31, %30, %29, %28, %27, %26, %23, %22, %21, %20, %19, %18, %17, %16, %13, %12, %11, %10, %9, %8, %7, %6 : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
-    %46 = sv.wire sym @tmp2 {name="tmp2"} : !hw.inout<i32>
+    %46 = sv.wire sym @complex_wire.tmp2 {name="tmp2"} : !hw.inout<i32>
     sv.assign %46, %44 : i32
     %45 = sv.read_inout %46 : !hw.inout<i32>
     %47 = comb.extract %45 from 0 : (i32) -> i1

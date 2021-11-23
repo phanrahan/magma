@@ -195,7 +195,8 @@ class ModuleVisitor:
         inst = module.module
         mlir_type = hw.InOutType(module.operands[0].type)
         wire = self._ctx.new_value(mlir_type)
-        sym = f"@{inst.name}"
+        sym = self._ctx.parent.get_or_make_mapped_symbol(
+             inst, name=f"{self._ctx.name}.{inst.name}", force=True)
         sv.WireOp(results=[wire], name=inst.name, sym=sym)
         sv.AssignOp(operands=[wire, module.operands[0]])
         sv.ReadInOutOp(operands=[wire], results=module.results)
@@ -540,7 +541,10 @@ class BindProcessor:
             for arg in args:
                 operands.append(self._ctx.get_mapped_value(arg))
             inst_name = f"{bind_module.name}_inst"
-            sym = f"@{self._defn.name}.{inst_name}"
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                 (self._defn, bind_module),
+                 name=f"{self._defn.name}.{inst_name}",
+                 force=True)
             inst = hw.InstanceOp(
                 name=inst_name,
                 module=self._ctx.parent.get_hardware_module(bind_module),
@@ -552,7 +556,7 @@ class BindProcessor:
 
     def post_process(self):
         for defn_sym, inst_sym in self._syms:
-            instance = f"#hw.innerNameRef<{defn_sym}::{inst_sym}>"
+            instance = f"#hw.innerNameRef<{defn_sym}::{inst_sym.name}>"
             sv.BindOp(instance=instance)
 
 
@@ -575,8 +579,12 @@ class HardwareModule:
         return self._parent()
 
     @property
-    def hw_module(self):
+    def hw_module(self) -> hw.ModuleOpBase:
         return self._hw_module
+
+    @property
+    def name(self) -> str:
+        return self._magma_defn_or_decl.name
 
     def get_mapped_value(self, port: m.Type) -> MlirValue:
         return self._value_map[port]
