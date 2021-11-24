@@ -11,15 +11,22 @@ from printer_base import PrinterBase
 OptionalWeakRef = Optional[weakref.ReferenceType]
 
 
-class MlirTypeMeta(abc.ABCMeta):
+class DialectKind(abc.ABCMeta):
     def __new__(metacls, name, bases, dct):
         cls = super().__new__(metacls, name, bases, dct)
-        if name == "MlirType":
+        try:
+            maybe_peek_dialect
+        except NameError:
             return cls
         dialect = maybe_peek_dialect()
         if dialect is not None:
-            dialect.register_type(cls)
+            cls._register_(dialect)
         return cls
+
+
+class MlirTypeMeta(DialectKind):
+    def _register_(cls, dialect):
+        dialect.register_type(cls)
 
 
 class MlirType(metaclass=MlirTypeMeta):
@@ -36,6 +43,26 @@ class MlirValue:
     @property
     def name(self) -> str:
         return f"%{self.raw_name}"
+
+
+@dataclasses.dataclass(frozen=True)
+class MlirSymbol:
+    raw_name: str
+
+    @property
+    def name(self) -> str:
+        return f"@{self.raw_name}"
+
+
+class MlirAttributeMeta(DialectKind):
+    def _register_(cls, dialect):
+        dialect.register_attribute(cls)
+
+
+class MlirAttribute(metaclass=MlirAttributeMeta):
+    @abc.abstractmethod
+    def emit(self) -> str:
+        raise NotImplementedError()
 
 
 @dataclasses.dataclass
@@ -94,7 +121,10 @@ class MlirRegion(WithId):
             block.print(printer)
 
 
-class MlirOpMeta(abc.ABCMeta):
+class MlirOpMeta(DialectKind):
+    def _register_(cls, dialect):
+        dialect.register_op(cls)
+
     def __call__(cls, *args, **kwargs):
         obj = super().__call__(*args, **kwargs)
         try:
@@ -104,16 +134,6 @@ class MlirOpMeta(abc.ABCMeta):
         else:
             block.add_operation(obj)
         return obj
-
-    def __new__(metacls, name, bases, dct):
-        cls = super().__new__(metacls, name, bases, dct)
-        if name == "MlirOp":
-            return cls
-        dialect = maybe_peek_dialect()
-        if dialect is not None:
-            dialect.register_op(cls)
-            cls.__qualname__ = f"{dialect.name}.{cls.__qualname__}"
-        return cls
 
 
 @dataclasses.dataclass
@@ -175,6 +195,9 @@ class MlirDialect:
 
     def register_type(self, t: type):
         self._register(t, "t", MlirType)
+
+    def register_attribute(self, attr: type):
+        self._register(attr, "attr", MlirAttribute)
 
 
 _dialect_stack = Stack()

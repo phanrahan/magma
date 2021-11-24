@@ -195,7 +195,8 @@ class ModuleVisitor:
         inst = module.module
         mlir_type = hw.InOutType(module.operands[0].type)
         wire = self._ctx.new_value(mlir_type)
-        sym = f"@{inst.name}"
+        sym = self._ctx.parent.get_or_make_mapped_symbol(
+             inst, name=f"{self._ctx.name}.{inst.name}", force=True)
         sv.WireOp(results=[wire], name=inst.name, sym=sym)
         sv.AssignOp(operands=[wire, module.operands[0]])
         sv.ReadInOutOp(operands=[wire], results=module.results)
@@ -540,19 +541,24 @@ class BindProcessor:
             for arg in args:
                 operands.append(self._ctx.get_mapped_value(arg))
             inst_name = f"{bind_module.name}_inst"
-            sym = f"@{self._defn.name}.{inst_name}"
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                 (self._defn, bind_module),
+                 name=f"{self._defn.name}.{inst_name}",
+                 force=True)
+            module = self._ctx.parent.get_hardware_module(bind_module)
             inst = hw.InstanceOp(
                 name=inst_name,
-                module=self._ctx.parent.get_hardware_module(bind_module),
+                module=module,
                 operands=operands,
                 results=[],
                 sym=sym)
             inst.attr_dict["doNotPrint"] = 1
-            self._syms.append((f"@{self._defn.name}", sym))
+            self._syms.append(sym)
 
     def post_process(self):
-        for defn_sym, inst_sym in self._syms:
-            instance = f"#hw.innerNameRef<{defn_sym}::{inst_sym}>"
+        defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
+        for sym in self._syms:
+            instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
 
 
@@ -575,8 +581,12 @@ class HardwareModule:
         return self._parent()
 
     @property
-    def hw_module(self):
+    def hw_module(self) -> hw.ModuleOpBase:
         return self._hw_module
+
+    @property
+    def name(self) -> str:
+        return self._magma_defn_or_decl.name
 
     def get_mapped_value(self, port: m.Type) -> MlirValue:
         return self._value_map[port]
@@ -626,15 +636,18 @@ class HardwareModule:
             visit_magma_value_by_direction(port, i.append, o.append)
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
+        name = self.parent.get_or_make_mapped_symbol(
+             self._magma_defn_or_decl,
+             name=self._magma_defn_or_decl.name, force=True)
         if not treat_as_definition(self._magma_defn_or_decl):
             return hw.ModuleExternOp(
-                name=self._magma_defn_or_decl.name,
+                name=name,
                 operands=inputs,
                 results=named_outputs)
         bind_processor = BindProcessor(self, self._magma_defn_or_decl)
         bind_processor.preprocess()
         op = hw.ModuleOp(
-            name=self._magma_defn_or_decl.name,
+            name=name,
             operands=inputs,
             results=named_outputs)
         graph = build_magma_graph(self._magma_defn_or_decl)

@@ -1,10 +1,11 @@
 import dataclasses
 from typing import List, Optional
 
-from mlir import MlirDialect, begin_dialect, end_dialect
+from hw import hw
+from mlir import (
+    MlirDialect, MlirOp, MlirBlock, MlirValue, MlirSymbol,
+    begin_dialect, end_dialect)
 from mlir_printer_utils import print_names, print_types
-from mlir import MlirOp, MlirRegion, MlirBlock
-from mlir import MlirValue
 from printer_base import PrinterBase
 
 
@@ -133,13 +134,13 @@ class InitialOp(MlirOp):
 class WireOp(MlirOp):
     results: List[MlirValue]
     name: str
-    sym: Optional[str] = None
+    sym: Optional[MlirSymbol] = None
 
     def print_op(self, printer: PrinterBase):
         print_names(self.results, printer)
         printer.print(" = sv.wire ")
         if self.sym is not None:
-            printer.print(f"sym {self.sym} ")
+            printer.print(f"sym {self.sym.name} ")
         printer.print(f"{{name=\"{self.name}\"}} : ")
         print_types(self.results, printer)
 
@@ -165,10 +166,10 @@ class VerbatimOp(MlirOp):
 
 @dataclasses.dataclass
 class BindOp(MlirOp):
-    instance: str
+    instance: hw.InnerRefAttr
 
     def print_op(self, printer: PrinterBase):
-        printer.print(f"sv.bind {self.instance}")
+        printer.print(f"sv.bind {self.instance.emit()}")
 
 
 end_dialect()
