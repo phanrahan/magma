@@ -84,21 +84,22 @@ def test_flip():
 
 
 def test_construct():
-    a1 = uint([1, 1])
-    print(type(a1))
-    assert isinstance(a1, UInt)
-    assert isinstance(a1, Bits)
-    assert not isinstance(a1, SInt)
+    class Foo(m.Circuit):
+        a1 = uint([1, 1])
+        print(type(a1))
+        assert isinstance(a1, UInt)
+        assert isinstance(a1, Bits)
+        assert not isinstance(a1, SInt)
 
-    assert isinstance(UInt[15](a1), UInt)
-    assert repr(UInt[16](
-        a1)) == "uint(3, 16)"
+        assert isinstance(UInt[15](a1), UInt)
+        assert repr(UInt[16](
+            a1)) == "UInt[16](3)"
 
-    # Test explicit conversion
-    assert isinstance(sint(a1), SInt)
-    assert not isinstance(sint(a1), UInt)
+        # Test explicit conversion
+        assert isinstance(sint(a1), SInt)
+        assert not isinstance(sint(a1), UInt)
 
-    assert not isinstance(sint(1, 1), UInt)
+        assert not isinstance(sint(1, 1), UInt)
 
 
 @pytest.mark.parametrize("n", [1, 3])
@@ -183,31 +184,28 @@ def test_adc(n):
         io.O <= result
         io.COUT <= carry
 
-    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_UInt_{n + 1}_add_inst0.in0[{i}])"
-                          for i in range(n))
-    in0_wires += f"\nwire(GND, magma_UInt_{n + 1}_add_inst0.in0[{n}])"
-
-    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_UInt_{n + 1}_add_inst0.in1[{i}])"
-                          for i in range(n))
-    in1_wires += f"\nwire(GND, magma_UInt_{n + 1}_add_inst0.in1[{n}])"
-
-    carry_wires = "\n".join(
-        f"wire(GND, magma_UInt_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
-
-    out_wires = "\n".join(f"wire(magma_UInt_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
-                          for i in range(n))
-    out_wires += f"\nwire(magma_UInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
-
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(UInt[{n}]), "I1", In(UInt[{n}]), "CIN", In(Bit), "O", Out(UInt[{n}]), "COUT", Out(Bit))
+ConcatN_inst0 = ConcatN()
+ConcatN_inst1 = ConcatN()
+ConcatN_inst2 = ConcatN()
+Const_inst0 = Const(0, UInt[1])
+Const_inst1 = Const(0, UInt[1])
+Const_inst2 = Const(0, UInt[{n}])
 magma_UInt_{n + 1}_add_inst0 = magma_UInt_{n + 1}_add()
 magma_UInt_{n + 1}_add_inst1 = magma_UInt_{n + 1}_add()
-{in0_wires}
-{in1_wires}
+wire(TestBinary.I0, ConcatN_inst0.in0)
+wire(Const_inst0.out, ConcatN_inst0.in1)
+wire(TestBinary.I1, ConcatN_inst1.in0)
+wire(Const_inst1.out, ConcatN_inst1.in1)
+wire(TestBinary.CIN, ConcatN_inst2.in0[0])
+wire(Const_inst2.out, ConcatN_inst2.in1)
+wire(ConcatN_inst0.out, magma_UInt_{n + 1}_add_inst0.in0)
+wire(ConcatN_inst1.out, magma_UInt_{n + 1}_add_inst0.in1)
 wire(magma_UInt_{n + 1}_add_inst0.out, magma_UInt_{n + 1}_add_inst1.in0)
-wire(TestBinary.CIN, magma_UInt_{n + 1}_add_inst1.in1[0])
-{carry_wires}
-{out_wires}
+wire(ConcatN_inst2.out, magma_UInt_{n + 1}_add_inst1.in1)
+wire(magma_UInt_{n + 1}_add_inst1.out[slice(0, {n}, None)], TestBinary.O)
+wire(magma_UInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)
 EndCircuit()\
 """
     compile(f"build/TestUInt{n}adc", TestBinary, output="coreir-verilog")
