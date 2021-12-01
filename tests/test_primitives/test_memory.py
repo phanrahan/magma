@@ -42,6 +42,7 @@ def test_memory_basic():
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -87,6 +88,7 @@ def test_memory_product():
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -103,17 +105,19 @@ def test_memory_product_init():
         {"X": 127, "Y": 0},
     ]
 
-    init_value = [
-        m.namedtuple(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8)) for d in test_data
-    ]
-
     class test_memory_product_init(m.Circuit):
+        init_value = [
+            m.namedtuple(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8))
+            for d in test_data
+        ]
+
         io = m.IO(
             raddr=m.In(m.Bits[2]),
             rdata=m.Out(T),
             clk=m.In(m.Clock),
         )
-        Mem4xT = m.Memory(len(test_data), T, read_only=True, init=tuple(init_value))()
+        Mem4xT = m.Memory(len(test_data), T, read_only=True,
+                          init=tuple(init_value))()
         Mem4xT.RADDR @= io.raddr
         io.rdata @= Mem4xT.RDATA
 
@@ -129,6 +133,7 @@ def test_memory_product_init():
         tester.circuit.rdata.X.expect(test_data[i]["X"])
         tester.circuit.rdata.Y.expect(test_data[i]["Y"])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -175,6 +180,7 @@ def test_memory_arr():
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -247,6 +253,7 @@ def test_memory_read_latency(en):
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[2])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -275,6 +282,7 @@ def test_memory_read_only():
         tester.advance_cycle()
         tester.circuit.rdata.expect(init[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 

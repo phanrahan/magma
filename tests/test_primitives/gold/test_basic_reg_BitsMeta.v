@@ -110,7 +110,14 @@ module test_basic_reg (
     input CLK,
     input RESET
 );
+wire [7:0] Const_inst0_out;
 wire [7:0] Register_inst0_O;
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
 Register Register_inst0 (
     .I(I),
     .O(Register_inst0_O),

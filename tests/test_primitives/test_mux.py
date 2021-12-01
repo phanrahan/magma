@@ -202,6 +202,7 @@ def test_mux_operator_tuple():
     tester.circuit.O1.expect(0)
     tester.circuit.O2.expect(1)
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -238,7 +239,7 @@ def test_mux_dict_lookup():
         tester.circuit.S = i
         tester.eval()
         tester.circuit.O.expect(i)
-    
+
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
@@ -258,7 +259,7 @@ def test_mux_list_lookup():
         tester.circuit.S = i
         tester.eval()
         tester.circuit.O.expect(i)
-    
+
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
@@ -289,6 +290,7 @@ def test_mux_array_select_bits_1():
     tester.circuit.O.expect(I[0])
 
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 

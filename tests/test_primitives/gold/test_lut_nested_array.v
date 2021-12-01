@@ -1,3 +1,12 @@
+module coreir_const #(
+    parameter width = 1,
+    parameter value = 1
+) (
+    output [width-1:0] out
+);
+  assign out = value;
+endmodule
+
 module lutN #(
     parameter N = 1,
     parameter init = 1
@@ -52,7 +61,35 @@ module test_lut_nested_array (
     input [0:0] I,
     output [1:0] O [1:0]
 );
+wire [1:0] Const_inst0_out;
+wire [1:0] Const_inst1_out;
+wire [1:0] Const_inst2_out;
+wire [1:0] Const_inst3_out;
 wire [1:0] LUT_inst0_O [1:0];
+coreir_const #(
+    .value(2'h3),
+    .width(2)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(2'h1),
+    .width(2)
+) Const_inst1 (
+    .out(Const_inst1_out)
+);
+coreir_const #(
+    .value(2'h0),
+    .width(2)
+) Const_inst2 (
+    .out(Const_inst2_out)
+);
+coreir_const #(
+    .value(2'h2),
+    .width(2)
+) Const_inst3 (
+    .out(Const_inst3_out)
+);
 LUT LUT_inst0 (
     .I(I),
     .O(LUT_inst0_O)

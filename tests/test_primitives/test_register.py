@@ -15,11 +15,13 @@ def test_basic_reg(init_T):
         io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
         io += m.ClockIO(has_reset=True)
         io.O @= Register(m.Bits[8], init_T(0xDE), reset_type=m.Reset)()(io.I)
+    print(repr(test_basic_reg))
 
-    m.compile("build/test_basic_reg", test_basic_reg)
+    m.compile(f"build/test_basic_reg_{type(init_T).__name__}", test_basic_reg)
 
-    assert check_files_equal(__file__, f"build/test_basic_reg.v",
-                             f"gold/test_basic_reg.v")
+    assert check_files_equal(__file__,
+                             f"build/test_basic_reg_{type(init_T).__name__}.v",
+                             f"gold/test_basic_reg_{type(init_T).__name__}.v")
 
     tester = fault.SynchronousTester(test_basic_reg, test_basic_reg.CLK)
     tester.circuit.I = 0
@@ -44,6 +46,7 @@ def test_basic_reg(init_T):
     tester.advance_cycle()
     tester.circuit.O.expect(3)
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -52,7 +55,7 @@ def test_reg_of_product():
     class T(m.Product):
         x = m.Bits[8]
         y = m.Bits[4]
-        
+
     class test_reg_of_product(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO(has_reset=True)
         io.O @= Register(T, T(m.Bits[8](0xDE), m.Bits[4](0xA)),
@@ -86,13 +89,14 @@ def test_reg_of_product():
     tester.advance_cycle()
     tester.circuit.O.expect((6, 7))
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
 
 def test_reg_of_nested_array():
     T = m.Array[3, m.Bits[8]]
-        
+
     class test_reg_of_nested_array(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO(has_reset=True)
         io.O @= Register(T, T(m.Bits[8](0xDE), m.Bits[8](0xAD),
@@ -127,13 +131,14 @@ def test_reg_of_nested_array():
     tester.advance_cycle()
     tester.circuit.O.expect([8, 9, 10])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
 
 def test_reg_async_resetn():
     T = m.Bits[8]
-        
+
     class test_reg_async_resetn(m.Circuit):
         io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO(has_async_resetn=True)
         io.O @= Register(T, T(0xDE), reset_type=m.AsyncResetN)()(io.I)
@@ -169,6 +174,7 @@ def test_reg_async_resetn():
     tester.step(2)
     tester.circuit.O.expect(3)
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -235,6 +241,7 @@ def test_enable_reg():
     tester.advance_cycle()
     tester.circuit.O.expect(0xDE)
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -271,6 +278,7 @@ def test_resetn():
     tester.advance_cycle()
     tester.circuit.O.expect(0xDE)
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -293,6 +301,7 @@ def test_reg_init_uniq():
     tester.circuit.O0.expect(0)
     tester.circuit.O1.expect(1)
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -334,6 +343,7 @@ def test_basic_reg_function():
     tester.advance_cycle()
     tester.circuit.O.expect(3)
     tester.compile_and_run("verilator",
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 

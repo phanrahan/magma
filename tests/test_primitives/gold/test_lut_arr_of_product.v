@@ -1,3 +1,12 @@
+module coreir_const #(
+    parameter width = 1,
+    parameter value = 1
+) (
+    output [width-1:0] out
+);
+  assign out = value;
+endmodule
+
 module lutN #(
     parameter N = 1,
     parameter init = 1
@@ -76,10 +85,38 @@ module test_lut_arr_of_product (
     output O_1_X,
     output [1:0] O_1_Y
 );
+wire [1:0] Const_inst0_out;
+wire [1:0] Const_inst1_out;
+wire [1:0] Const_inst2_out;
+wire [1:0] Const_inst3_out;
 wire LUT_inst0_O_0_X;
 wire [1:0] LUT_inst0_O_0_Y;
 wire LUT_inst0_O_1_X;
 wire [1:0] LUT_inst0_O_1_Y;
+coreir_const #(
+    .value(2'h0),
+    .width(2)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(2'h1),
+    .width(2)
+) Const_inst1 (
+    .out(Const_inst1_out)
+);
+coreir_const #(
+    .value(2'h2),
+    .width(2)
+) Const_inst2 (
+    .out(Const_inst2_out)
+);
+coreir_const #(
+    .value(2'h3),
+    .width(2)
+) Const_inst3 (
+    .out(Const_inst3_out)
+);
 LUT LUT_inst0 (
     .I(I),
     .O_0_X(LUT_inst0_O_0_X),

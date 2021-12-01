@@ -21,13 +21,29 @@ module coreir_reg_arst #(
   assign out = outReg;
 endmodule
 
+module coreir_const #(
+    parameter width = 1,
+    parameter value = 1
+) (
+    output [width-1:0] out
+);
+  assign out = value;
+endmodule
+
 module Register (
     input [7:0] I,
     output [7:0] O,
     input CLK,
     input ASYNCRESETN
 );
+wire [7:0] Const_inst0_out;
 wire [7:0] reg_PRn8_inst0_out;
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
 coreir_reg_arst #(
     .arst_posedge(1'b0),
     .clk_posedge(1'b1),
@@ -48,7 +64,14 @@ module test_reg_async_resetn (
     input CLK,
     input ASYNCRESETN
 );
+wire [7:0] Const_inst0_out;
 wire [7:0] Register_inst0_O;
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
 Register Register_inst0 (
     .I(I),
     .O(Register_inst0_O),

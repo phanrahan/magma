@@ -64,6 +64,15 @@ module coreir_mux #(
   assign out = sel ? in1 : in0;
 endmodule
 
+module coreir_const #(
+    parameter width = 1,
+    parameter value = 1
+) (
+    output [width-1:0] out
+);
+  assign out = value;
+endmodule
+
 module commonlib_muxn__N2__width5 (
     input [4:0] in_data [1:0],
     input [0:0] in_sel,
@@ -105,8 +114,22 @@ module Register (
     input CE,
     input CLK
 );
+wire [4:0] Const_inst0_out;
+wire [4:0] Const_inst1_out;
 wire [4:0] enable_mux_O;
 wire [4:0] reg_P5_inst0_out;
+coreir_const #(
+    .value(5'h00),
+    .width(5)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(5'h00),
+    .width(5)
+) Const_inst1 (
+    .out(Const_inst1_out)
+);
 Mux2xBits5 enable_mux (
     .I0(reg_P5_inst0_out),
     .I1(I),

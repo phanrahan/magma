@@ -174,20 +174,32 @@ module Register (
     output [3:0] O_y,
     input RESET
 );
+wire [7:0] Const_inst0_out;
+wire [3:0] Const_inst1_out;
 wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_unq1;
 wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_unq1;
 wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out;
 wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out;
-wire [3:0] const_10_4_out;
-wire [7:0] const_222_8_out;
 wire [11:0] reg_P12_inst0_out;
 wire [7:0] self_O_x_in;
 wire [3:0] self_O_y_in;
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(4'ha),
+    .width(4)
+) Const_inst1 (
+    .out(Const_inst1_out)
+);
 Mux2xTuplex_Bits8_y_Bits4 Mux2xTuplex_Bits8_y_Bits4_inst0 (
     .I0_x(I_x),
     .I0_y(I_y),
-    .I1_x(const_222_8_out),
-    .I1_y(const_10_4_out),
+    .I1_x(Const_inst0_out),
+    .I1_y(Const_inst1_out),
     .O_x(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_unq1),
     .O_y(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_unq1),
     .S(RESET)
@@ -199,18 +211,6 @@ mantle_wire__typeBit8 Mux2xTuplex_Bits8_y_Bits4_inst0_O_x (
 mantle_wire__typeBit4 Mux2xTuplex_Bits8_y_Bits4_inst0_O_y (
     .in(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_unq1),
     .out(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out)
-);
-coreir_const #(
-    .value(4'ha),
-    .width(4)
-) const_10_4 (
-    .out(const_10_4_out)
-);
-coreir_const #(
-    .value(8'hde),
-    .width(8)
-) const_222_8 (
-    .out(const_222_8_out)
 );
 wire [11:0] reg_P12_inst0_in;
 assign reg_P12_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out[3:0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out[7:0]};
@@ -243,8 +243,22 @@ module test_reg_of_product (
     output [3:0] O_y,
     input RESET
 );
+wire [7:0] Const_inst0_out;
+wire [3:0] Const_inst1_out;
 wire [7:0] Register_inst0_O_x;
 wire [3:0] Register_inst0_O_y;
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(4'ha),
+    .width(4)
+) Const_inst1 (
+    .out(Const_inst1_out)
+);
 Register Register_inst0 (
     .CLK(CLK),
     .I_x(I_x),
