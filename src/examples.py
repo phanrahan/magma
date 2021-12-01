@@ -379,3 +379,17 @@ ProcessInlineVerilogPass(complex_bind_asserts).run()
 complex_bind.bind(complex_bind_asserts, complex_bind.not_I)
 m.passes.clock.WireClockPass(complex_bind).run()
 m.passes.clock.WireClockPass(complex_bind_asserts).run()
+
+
+class simple_compile_guard(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+    with m.compile_guard(
+            "COND1", defn_name="COND1_compile_guard", type="defined"):
+        out = m.Register(m.Bit)()(io.I)
+    with m.compile_guard(
+            "COND2", defn_name="COND2_compile_guard", type="undefined"):
+        out = m.Register(m.Bit)()(io.I)
+    io.O @= io.I
+
+
+m.passes.clock.WireClockPass(simple_compile_guard).run()
