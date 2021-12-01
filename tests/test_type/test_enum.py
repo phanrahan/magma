@@ -14,7 +14,7 @@ def test_enum():
     class circuit(m.Circuit):
         name = "enum_test"
         io = m.IO(I=m.In(State),
-                              O=m.Out(m.Array[2, State]))
+                  O=m.Out(m.Array[2, State]))
         m.wire(io.I, io.O[0])
         m.wire(State.zero, io.O[1])
     m.compile("build/test_enum", circuit, output="coreir-verilog")
@@ -30,11 +30,12 @@ def test_enum_max_value():
     class circuit(m.Circuit):
         name = "enum_test_max_value"
         io = m.IO(I=m.In(State),
-                              O=m.Out(m.Array[2, State]))
+                  O=m.Out(m.Array[2, State]))
         m.wire(io.I, io.O[0])
         m.wire(State.four, io.O[1])
     m.compile("build/test_enum_max_value", circuit, output="coreir-verilog")
-    assert check_files_equal(__file__, "build/test_enum_max_value.v", "gold/test_enum_max_value.v")
+    assert check_files_equal(__file__, "build/test_enum_max_value.v",
+                             "gold/test_enum_max_value.v")
 
 
 def test_reserved():

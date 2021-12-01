@@ -126,35 +126,39 @@ def test_tuple_product():
 def test_zext(type_, value):
     if type_ != sint:
         value = abs(value)
-    in_ = type_(value, 16)
-    out = zext(in_, 16)
-    assert len(out.bits()) == 32
-    # If we have a negative number, then zext should not return the same (signed
-    # value). It will instead return the unsigned interpretation of the original
-    # bits.
-    if value < 0:
-        assert int(out) == seq2int(in_.bits())
-    else:
-        assert int(out) == value
+
+    class Foo(m.Circuit):
+        in_ = type_(value, 16)
+        out = zext(in_, 16)
+        assert len(out.bits()) == 32
+        # If we have a negative number, then zext should not return the same (signed
+        # value). It will instead return the unsigned interpretation of the original
+        # bits.
+        if value < 0:
+            assert int(out) == seq2int(in_.bits())
+        else:
+            assert int(out) == value
 
 
 @pytest.mark.parametrize("value", [-5, 0, 10])
 def test_sext(value):
-    in_ = sint(value, 16)
-    # TODO(rsetaluri): Ideally, zext(sint) should return an object of type
-    # SintType, instead it returns an object of type Array. For now, we wrap
-    # the result of zext() in sint().
-    out = sint(sext(in_, 16))
-    assert len(out.bits()) == 32
-    assert int(out) == value
+    class Foo(m.Circuit):
+        in_ = sint(value, 16)
+        # TODO(rsetaluri): Ideally, zext(sint) should return an object of type
+        # SintType, instead it returns an object of type Array. For now, we wrap
+        # the result of zext() in sint().
+        out = sint(sext(in_, 16))
+        assert len(out.bits()) == 32
+        assert int(out) == value
 
 
 @pytest.mark.skip("Check removed so anonymous bits can be extended")
 @pytest.mark.parametrize("op", [m.zext, m.sext])
 def test_extension_error(op):
     try:
-        a = m.In(m.SInt[2])()
-        op(a, 2)
+        class Foo(m.Circuit):
+            a = m.In(m.SInt[2])()
+            op(a, 2)
         assert False, "This should raise an exception"
     except Exception as e:
         assert str(e) == f"{op.__name__} only works with non input values"
@@ -163,23 +167,28 @@ def test_extension_error(op):
 @pytest.mark.parametrize("op", [m.zext, m.sext])
 def test_extension_no_error(op):
     try:
-        a = m.Out(m.SInt[2])()
-        op(a, 2)
+        class Foo(m.Circuit):
+            a = m.Out(m.SInt[2])()
+            op(a, 2)
     except Exception as e:
         assert False, "This should work"
 
 
 def test_bits_of_bit():
-    assert repr(m.bits(m.Bit(1), 2)) == "bits(1, 2)"
+    class Foo(m.Circuit):
+        assert repr(m.bits(m.Bit(1), 2)) == "Bits[2](1)"
 
 
 def test_uint_of_bit():
-    assert repr(m.uint(m.Bit(1), 2)) == "uint(1, 2)"
+    class Foo(m.Circuit):
+        assert repr(m.uint(m.Bit(1), 2)) == "UInt[2](1)"
 
 
 def test_sint_of_bit():
-    assert repr(m.sint(m.Bit(1), 2)) == "sint(-1, 2)"
+    class Foo(m.Circuit):
+        assert repr(m.sint(m.Bit(1), 2)) == "SInt[2](-1)"
 
 
 def test_array_1_nested():
-    assert isinstance(m.array([m.bits(0, 3)]), m.Array[1, m.Bits[3]])
+    class Foo(m.Circuit):
+        assert isinstance(m.array([m.bits(0, 3)]), m.Array[1, m.Bits[3]])
