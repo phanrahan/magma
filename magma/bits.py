@@ -822,6 +822,7 @@ class SInt(Int):
         b = other.sext(1)
         c = carry.zext(T.size)
 
+        print(type(a), type(b), type(c))
         res = a + b + c
         return res[0:-1], res[-1]
 

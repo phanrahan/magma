@@ -735,10 +735,7 @@ class Array2(Wireable, Array):
 
     def iswhole(self):
         if self._ts:
-            # TODO(leonardt/array2): There is a case when all the children are
-            # driven by the same array, in which case we could traverse the
-            # children to check
-            return False
+            return Array._iswhole(self._get_ts())
         return True
 
     def const(self):
@@ -802,6 +799,8 @@ class Array2(Wireable, Array):
         if isinstance(key, BitVector):
             key = int(key)
         if isinstance(key, int):
+            if key < 0:
+                key += len(self)
             return arr._get_t(offset + key)
         if isinstance(key, slice):
             return arr._get_slice(slice(offset + key.start,

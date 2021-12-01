@@ -58,7 +58,14 @@ module Register (
     output [0:0] O,
     input CLK
 );
+wire [0:0] Const_inst0_out;
 wire [0:0] reg_P1_inst0_out;
+coreir_const #(
+    .value(1'h0),
+    .width(1)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(1'h0),
@@ -76,14 +83,26 @@ module Bar (
     output [7:0] O,
     input CLK
 );
+wire [7:0] Const_inst0_out;
+wire [7:0] Const_inst1_out;
 wire [0:0] Register_inst0_O;
 wire bit_const_0_None_out;
-wire [7:0] const_1_8_out;
-wire [7:0] const_2_8_out;
 wire [7:0] magma_Bits_8_or_inst0_out;
 wire [7:0] magma_Bits_8_or_inst1_out;
 wire [7:0] magma_Bits_8_shl_inst0_out;
 wire [7:0] magma_Bits_8_shl_inst1_out;
+coreir_const #(
+    .value(8'h02),
+    .width(8)
+) Const_inst0 (
+    .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(8'h01),
+    .width(8)
+) Const_inst1 (
+    .out(Const_inst1_out)
+);
 Register Register_inst0 (
     .I(Register_inst0_O),
     .O(Register_inst0_O),
@@ -93,18 +112,6 @@ corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
     .out(bit_const_0_None_out)
-);
-coreir_const #(
-    .value(8'h01),
-    .width(8)
-) const_1_8 (
-    .out(const_1_8_out)
-);
-coreir_const #(
-    .value(8'h02),
-    .width(8)
-) const_2_8 (
-    .out(const_2_8_out)
 );
 coreir_or #(
     .width(8)
@@ -126,7 +133,7 @@ coreir_shl #(
     .width(8)
 ) magma_Bits_8_shl_inst0 (
     .in0(foo),
-    .in1(const_2_8_out),
+    .in1(Const_inst0_out),
     .out(magma_Bits_8_shl_inst0_out)
 );
 wire [7:0] magma_Bits_8_shl_inst1_in0;
@@ -135,7 +142,7 @@ coreir_shl #(
     .width(8)
 ) magma_Bits_8_shl_inst1 (
     .in0(magma_Bits_8_shl_inst1_in0),
-    .in1(const_1_8_out),
+    .in1(Const_inst1_out),
     .out(magma_Bits_8_shl_inst1_out)
 );
 assign O = magma_Bits_8_or_inst1_out;

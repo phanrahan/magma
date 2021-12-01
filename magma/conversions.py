@@ -252,7 +252,7 @@ class ConcatN(Generator2):
             self.renamed_ports[f"I{i}"] = f"in{i}"
             out_N += len(T)
             Ns.append(len(T))
-        ports["O"] = Out(Array2[out_N, child_T])
+        ports["O"] = Out(ts[0][out_N, child_T])
         self.io = IO(**ports)
         self.coreir_genargs = {"t_child": Out(child_T), "Ns": Ns}
         self.coreir_name = "concatNArrT"
@@ -266,7 +266,10 @@ class ConcatN(Generator2):
         def simulate(self, value_store, state_store):
             value = []
             for key in ports.keys():
-                value.extend(value_store.get_value(getattr(self, key)))
+                next_value = value_store.get_value(getattr(self, key))
+                if isinstance(next_value, int):
+                    next_value = ht.BitVector[len(ports[key])](next_value)
+                value.extend(next_value)
             value_store.set_value(self.O, value)
 
         self.simulate = simulate
