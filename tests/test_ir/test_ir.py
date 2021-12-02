@@ -25,7 +25,7 @@ def test_print_ir():
     result = compile(main)
     #print(result)
     assert result == """\
-AndN2 = DefineCircuit("AndN2", "I", Array[2, In(Bit)], "O", Out(Bit))
+AndN2 = DefineCircuit("AndN2", "I", Array[(2, In(Bit))], "O", Out(Bit))
 And2_inst0 = And2()
 wire(AndN2.I[0], And2_inst0.I0)
 wire(AndN2.I[1], And2_inst0.I1)

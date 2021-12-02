@@ -450,9 +450,13 @@ def replace(value, others: dict):
 
 
 def as_bits(value):
+    if isinstance(value, Bits):
+        return value
     return bits(value.flatten())
 
 
 def from_bits(cls, value):
+    if issubclass(cls, Bits):
+        return value
     ts = value.ts
     return cls.unflatten(ts)

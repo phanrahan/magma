@@ -273,7 +273,7 @@ def _get_intermediate_values(value):
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
-        if not driver.is_input():
+        if driver.is_output():
             break
         value = driver
         driver = driver.value()
