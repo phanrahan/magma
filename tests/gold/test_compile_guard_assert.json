@@ -12,17 +12,17 @@
           "ASSERT_ON_compile_guard_inline_verilog_inst_0":{
             "modref":"global.ASSERT_ON_compile_guard_inline_verilog_0"
           },
-          "BitsConst_inst0":{
+          "Const_inst0":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
             "modargs":{"value":[["BitVector",2],"2'h1"]}
           },
-          "BitsConst_inst1":{
+          "Const_inst1":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
             "modargs":{"value":[["BitVector",2],"2'h3"]}
           },
-          "BitsConst_inst2":{
+          "Const_inst2":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",4]},
             "modargs":{"value":[["BitVector",4],"4'h3"]}
@@ -54,9 +54,9 @@
         },
         "connections":[
           ["_FAULT_ASSERT_WIRE_0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
-          ["magma_UInt_2_add_inst0.in1","BitsConst_inst0.out"],
-          ["magma_UInt_2_eq_inst0.in1","BitsConst_inst1.out"],
-          ["magma_Bits_4_eq_inst0.in1","BitsConst_inst2.out"],
+          ["magma_UInt_2_add_inst0.in1","Const_inst0.out"],
+          ["magma_UInt_2_eq_inst0.in1","Const_inst1.out"],
+          ["magma_Bits_4_eq_inst0.in1","Const_inst2.out"],
           ["self.port_0","Register_inst0.CE"],
           ["self.CLK","Register_inst0.CLK"],
           ["magma_UInt_2_add_inst0.out","Register_inst0.I"],
@@ -110,7 +110,12 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "BitsConst_inst0":{
+          "Const_inst0":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",4]},
+            "modargs":{"value":[["BitVector",4],"4'h0"]}
+          },
+          "Const_inst1":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",4]},
             "modargs":{"value":[["BitVector",4],"4'h0"]}
@@ -135,7 +140,12 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "BitsConst_inst0":{
+          "Const_inst0":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"value":[["BitVector",2],"2'h0"]}
+          },
+          "Const_inst1":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
             "modargs":{"value":[["BitVector",2],"2'h0"]}

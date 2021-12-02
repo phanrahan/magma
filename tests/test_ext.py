@@ -7,14 +7,24 @@ import magma as m
 WIDTH = 4
 NTESTS = 8
 
+
+def _check_equal(a, b):
+    assert isinstance(type(a.name.inst), m.conversions.ConcatN)
+    assert isinstance(type(b.name.inst), m.conversions.ConcatN)
+    assert type(a.name.inst.I1.value()) == type(b.name.inst.I1.value())
+    assert int(a.name.inst.I1.value()) == int(b.name.inst.I1.value())
+    assert a.name.inst.I0.value() is b.name.inst.I0.value()
+
+
 @pytest.mark.parametrize('T', [m.Bits, m.UInt, m.SInt])
 def test_zext(T):
     for _ in range(NTESTS):
         val = random.randrange(1 << WIDTH)
         ext = random.randrange(1, 5)
-        a =  T[WIDTH](val)
+        a = T[WIDTH](val)
         b = a.zext(ext)
-        assert b.bits() == a.concat(T[ext](0)).bits()
+        a = a.concat(T[ext](0))
+        _check_equal(a, b)
 
 
 @pytest.mark.parametrize('T', [m.SInt])
@@ -22,12 +32,12 @@ def test_sext(T):
     for _ in range(NTESTS):
         val = random.randrange(1 << WIDTH)
         ext = random.randrange(1, 5)
-        a =  T[WIDTH](val)
+        a = T[WIDTH](val)
         b = a.sext(ext)
         if (val >> (WIDTH - 1)):
-            assert b.bits() == a.concat(T[ext](-1)).bits()
+            _check_equal(a.concat(T[ext](-1)), b)
         else:
-            assert b.bits() == a.concat(T[ext](0)).bits()
+            _check_equal(a.concat(T[ext](0)), b)
 
 
 @pytest.mark.parametrize('T', [m.Bits, m.UInt, m.SInt])
@@ -35,12 +45,12 @@ def test_ext(T):
     for _ in range(NTESTS):
         val = random.randrange(1 << WIDTH)
         ext = random.randrange(1, 5)
-        a =  T[WIDTH](val)
+        a = T[WIDTH](val)
         b = a.ext(ext)
         if T is m.SInt:
-            assert b.bits() == a.sext(ext).bits()
+            _check_equal(a.sext(ext), b)
         else:
-            assert b.bits() == a.zext(ext).bits()
+            _check_equal(a.zext(ext), b)
 
 
 @pytest.mark.parametrize('T', [m.Bits, m.UInt, m.SInt])
