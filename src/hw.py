@@ -106,7 +106,7 @@ class InstanceOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
     name: str
-    module: ModuleOp
+    module: ModuleOpBase
     sym: Optional[MlirSymbol] = None
 
     def print_op(self, printer: PrinterBase):

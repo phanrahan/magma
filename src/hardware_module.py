@@ -1,6 +1,7 @@
+import contextlib
 import dataclasses
 import functools
-from typing import List, Tuple, Union, Optional, Any
+from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
 import magma as m
@@ -18,7 +19,7 @@ from magma_common import (
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_by_direction as visit_magma_value_by_direction,
     visit_value_wrapper_by_direction as visit_magma_value_wrapper_by_direction)
-from mlir import MlirType, MlirValue, push_block
+from mlir import MlirType, MlirValue, MlirSymbol, push_block
 from printer_base import PrinterBase
 from scoped_name_generator import ScopedNameGenerator
 from sv import sv
@@ -69,6 +70,33 @@ def get_module_interface(
             lambda p: results.append(ctx.get_or_make_mapped_value(p))
         )
     return operands, results
+
+
+def make_hw_instance_op(
+        operands: MlirValueList,
+        results: MlirValueList,
+        name: str,
+        module: hw.ModuleOp,
+        sym: Optional[MlirSymbol] = None,
+        compile_guard: Optional[Mapping] = None) -> hw.InstanceOp:
+    if compile_guard is not None:
+        if_def = sv.IfDefOp(compile_guard["condition_str"])
+        block = (
+            if_def.then_block
+            if compile_guard["type"] == "defined"
+            else if_def.else_block
+        )
+        ctx = push_block(block)
+    else:
+        ctx = contextlib.nullcontext()
+    with ctx:
+        op = hw.InstanceOp(
+            name=name,
+            module=module,
+            operands=operands,
+            results=results,
+            sym=sym)
+    return op
 
 
 @dataclasses.dataclass(frozen=True)
@@ -402,11 +430,14 @@ class ModuleVisitor:
         if m.isprimitive(defn):
             return self.visit_primitive(module)
         module_type = self._ctx.parent.get_hardware_module(defn).hw_module
-        op = hw.InstanceOp(
+        metadata = getattr(inst, "coreir_metadata", {})
+        compile_guard = metadata.get("compile_guard", None)
+        make_hw_instance_op(
             name=inst.name,
             module=module_type,
             operands=module.operands,
-            results=module.results)
+            results=module.results,
+            compile_guard=compile_guard)
         return True
 
     @wrap_with_not_implemented_error

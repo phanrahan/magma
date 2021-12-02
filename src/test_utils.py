@@ -153,6 +153,7 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
         examples.complex_inline_verilog,
         examples.simple_bind,
         examples.complex_bind,
+        examples.simple_compile_guard,
     ]
 
 
