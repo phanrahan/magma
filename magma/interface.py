@@ -149,7 +149,7 @@ class InterfaceKind(Kind):
         return ", ".join(args)
 
     def __str__(cls):
-        return f"Interface({self.get_arg_str()})"
+        return f"Interface({cls.get_arg_str()})"
 
     def __eq__(cls, rhs):
         return cls._decl == rhs._decl

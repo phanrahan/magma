@@ -7,14 +7,14 @@
           ["O",["Array",1,["Array",3,"Bit"]]]
         ]],
         "instances":{
-          "const_0_3":{
+          "Const_inst0":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",3]},
             "modargs":{"value":[["BitVector",3],"3'h0"]}
           }
         },
         "connections":[
-          ["self.O.0","const_0_3.out"]
+          ["self.O.0","Const_inst0.out"]
         ]
       }
     }
