@@ -30,14 +30,14 @@ MlirValueList = List[MlirValue]
 
 @wrap_with_not_implemented_error
 def parse_reset_type(T: m.Kind) -> Tuple[str, str]:
-     if T is m.Reset:
-         return "syncreset", "posedge"
-     if T is m.ResetN:
-         return "syncreset", "negedge"
-     if T is m.AsyncReset:
-         return "asyncreset", "posedge"
-     if T is m.AsyncResetN:
-         return "asyncreset", "negedge"
+    if T is m.Reset:
+        return "syncreset", "posedge"
+    if T is m.ResetN:
+        return "syncreset", "negedge"
+    if T is m.AsyncReset:
+        return "asyncreset", "posedge"
+    if T is m.AsyncResetN:
+        return "asyncreset", "negedge"
 
 
 @wrap_with_not_implemented_error
