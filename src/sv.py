@@ -113,9 +113,7 @@ class AlwaysFFOp(MlirOp):
         printer.print_line("}")
 
     def print_op(self, printer: PrinterBase):
-        printer.print("sv.alwaysff(posedge ")
-        print_names(self.operands, printer)
-        printer.print(")")
+        raise NotImplementedError()
 
 
 @dataclasses.dataclass
