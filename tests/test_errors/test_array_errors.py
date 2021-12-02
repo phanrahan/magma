@@ -59,4 +59,4 @@ def test_invalid_slice(_slice):
         with pytest.raises(IndexError) as e:
             io.A[_slice]
         assert str(e.value) == ("array index out of range "
-                                f"(type=Array[2, In(Bits[2])], key={_slice})")
+                                f"(type=Array[(2, In(Bits[2]))], key={_slice})")

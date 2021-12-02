@@ -24,10 +24,10 @@ def _io_similar(lhs, rhs):
 
 def test_1():
     I0 = m.make_interface("a", m.In(m.Bit), "b", m.Out(m.Bits[2]))
-    assert str(I0) == '"a", In(Bit), "b", Out(Bits[2])'
+    assert str(I0) == 'Interface("a", In(Bit), "b", Out(Bits[2]))'
 
     i0 = I0()
-    assert str(i0) == '"a", In(Bit), "b", Out(Bits[2])'
+    assert str(i0) == 'Interface("a", In(Bit), "b", Out(Bits[2]))'
 
 
 def test_io_class_basic():
