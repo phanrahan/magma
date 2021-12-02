@@ -140,7 +140,8 @@ def test_2d_array_error(caplog):
         m.compile("build/test_unwired_output", main, output="verilog")
         assert False, "Should raise exception"
     except Exception as e:
-        assert str(e) == "Argument main.I of type Array[2, Array[3, Out(Bit)]] is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa
+        print(str(e))
+        assert str(e) == "Argument main.I of type Array[(2, Array[(3, Out(Bit))])] is not supported, the verilog backend only supports simple 1-d array of bits of the form Array(N, Bit)"  # noqa
 
 
 class XY(m.Product):

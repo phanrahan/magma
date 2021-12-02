@@ -71,7 +71,7 @@ def test_new_style_unconnected(caplog):
         m.wire(io.I, io.O[0])
 
     assert m.isdefinition(_Foo)
-    assert has_error(caplog, "Output port _Foo.O not driven")
+    assert has_error(caplog, "Interface output port _Foo.O not driven")
 
 
 def test_new_style_with_definition_method(caplog):
@@ -121,8 +121,8 @@ def test_inst_wiring_error(caplog):
     assert has_error(
         caplog,
         "Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))")
-    assert has_error(caplog, "Output port _Foo.O not driven")
-    assert has_error(caplog, "Input port _Bar_inst0.I not driven")
+    assert has_error(caplog, "Interface output port _Foo.O not driven")
+    assert has_error(caplog, "Instance input port _Bar_inst0.I not driven")
 
 
 def test_nested_definition():

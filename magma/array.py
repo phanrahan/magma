@@ -183,7 +183,7 @@ class ArrayMeta(ABCMeta, Kind):
         return cls.__name__
 
     def __repr__(cls):
-        return f"{cls.__name__}[{cls.N}, {cls.T}]"
+        return f"{cls.__name__}"
 
     @lru_cache()
     def qualify(cls, direction):
