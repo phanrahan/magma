@@ -30,13 +30,9 @@ class _HashStruct:
 def _make_hash_struct(definition):
     repr_ = repr(definition)
     inline_verilog = tuple()
-    for s, args, st, prefix in definition._context_._inline_verilog:
-        inline_verilog += (
-            (s,),
-            (tuple(sorted(args.items())),),
-            (str(st),),
-            (prefix,)
-        )
+    for inline_str, connect_references in definition.inline_verilog_strs:
+        connect_references = tuple(connect_references.items())
+        inline_verilog += (inline_str, connect_references)
     if hasattr(definition, "verilogFile") and definition.verilogFile:
         return _HashStruct(repr_, True, definition.verilogFile, inline_verilog)
     return _HashStruct(repr_, False, "", inline_verilog)
@@ -60,6 +56,8 @@ class UniquificationPass(DefinitionPass):
         type(ckt).rename(ckt, new_name)
 
     def __call__(self, definition):
+        for module in definition.bind_modules:
+            self._run(module)
         name = definition.name
         key = _hash(definition)
 
@@ -69,8 +67,6 @@ class UniquificationPass(DefinitionPass):
                 suffix = "_unq" + str(len(seen))
                 new_name = name + suffix
                 self._rename(definition, new_name)
-                for module in definition.bind_modules:
-                    self._rename(module, module.name + suffix)
             seen[key] = [definition]
         else:
             if self.mode is not UniquificationMode.UNIQUIFY:
@@ -78,9 +74,6 @@ class UniquificationPass(DefinitionPass):
             elif name != seen[key][0].name:
                 new_name = seen[key][0].name
                 self._rename(definition, new_name)
-                for x, y in zip(seen[key][0].bind_modules,
-                                definition.bind_modules):
-                    self._rename(y, x.name)
             seen[key].append(definition)
 
     def run(self):
