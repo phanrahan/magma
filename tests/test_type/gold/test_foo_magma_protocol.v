@@ -59,12 +59,19 @@ module Register (
     input CLK
 );
 wire [0:0] Const_inst0_out;
+wire [0:0] Const_inst1_out;
 wire [0:0] reg_P1_inst0_out;
 coreir_const #(
     .value(1'h0),
     .width(1)
 ) Const_inst0 (
     .out(Const_inst0_out)
+);
+coreir_const #(
+    .value(1'h0),
+    .width(1)
+) Const_inst1 (
+    .out(Const_inst1_out)
 );
 coreir_reg #(
     .clk_posedge(1'b1),

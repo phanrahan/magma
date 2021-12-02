@@ -711,6 +711,10 @@ class Array2(Wireable, Array):
     @debug_wire
     def wire(self, o, debug_info):
         self._check_wireable(o, debug_info)
+        if isinstance(o, Array) and not isinstance(o, Array2):
+            for i, o in zip(self, o):
+                i.wire(o)
+            return
         Wireable.wire(self, o, debug_info)
         if (isinstance(self.name, ArrayRef) and
                 isinstance(self.name.index, slice)):
