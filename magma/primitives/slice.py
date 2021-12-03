@@ -64,6 +64,5 @@ def set_slice(target: Bits, value: Bits, start: UInt, width: int):
         value_idx = (uint(i, clog2(len(target))) - start)[:clog2(len(value))]
         if len(value_idx) == 1:
             value_idx = value_idx[0]
-        print(int(target[i]))
         output[i] @= in_slice_range.ite(value[value_idx], target[i])
     return output
