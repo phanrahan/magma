@@ -542,7 +542,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
 
     @staticmethod
     def from_bits(value):
-        assert isinstance(value, Bits)
+        assert isinstance(value, Bits), type(value)
         signed = isinstance(value, SInt)
         return SmartBits[len(value), signed](value)
 

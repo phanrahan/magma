@@ -213,7 +213,8 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
 
     def const(self):
         if self.driven():
-            return self.trace().const()
+            trace = self.trace()
+            return trace is not None and trace.const()
         return (isinstance(self.name, InstRef) and
                 isinstance(type(self.name.inst), Const))
 
@@ -646,6 +647,12 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
 
     def reduce_and(self):
         return reduce(operator.and_, self)
+
+    @property
+    def debug_name(self):
+        if self.const():
+            return repr(self)
+        return super().debug_name
 
 
 def make_Define(_name, port, direction):

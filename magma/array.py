@@ -765,7 +765,7 @@ class Array2(Wireable, Array):
     def _get_slice(self, slice_):
         key = (slice_.start, slice_.stop)
         if key not in self._slices:
-            self._slices[key] = Array2[slice_.stop - slice_.start, self.T](
+            self._slices[key] = type(self)[slice_.stop - slice_.start, self.T](
                 name=ArrayRef(self, slice_)
             )
         return self._slices[key]

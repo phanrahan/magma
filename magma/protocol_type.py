@@ -48,6 +48,10 @@ class MagmaProtocolMeta(type):
     def is_bindable(cls, rhs):
         return cls._to_magma_().is_bindable(rhs)
 
+    @property
+    def direction(cls) -> int:
+        return cls._to_magma_().direction
+
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
     @abc.abstractmethod

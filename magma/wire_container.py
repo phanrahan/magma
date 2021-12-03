@@ -12,8 +12,6 @@ class WiringLog:
     def get_debug_name(self, bit):
         if isinstance(bit, int):
             return bit
-        if bit.const():
-            return repr(bit)
         return bit.debug_name
 
     def __str__(self):

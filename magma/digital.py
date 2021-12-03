@@ -227,6 +227,12 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
             return "GND"
         return Type.__repr__(self)
 
+    @property
+    def debug_name(self):
+        if self.const():
+            return repr(self)
+        return super().debug_name
+
 
 VCC = Digital.VCC
 GND = Digital.GND
