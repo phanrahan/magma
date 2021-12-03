@@ -179,7 +179,7 @@ def get_inst_args(inst):
 def constant_to_value(constant):
     assert constant.const()
     if isinstance(constant, Digital):
-        return 1 if constant is type(constant).VCC else 0
+        return int(constant)
     if isinstance(constant, Array):
         values = [constant_to_value(c) for c in constant]
         return BitVector[len(constant)](values)
