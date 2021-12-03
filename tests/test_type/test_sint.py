@@ -189,10 +189,6 @@ def test_adc(n):
     carry_wires = "\n".join(
         f"wire(GND, magma_SInt_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
 
-    out_wires = "\n".join(f"wire(magma_SInt_{n + 1}_add_inst1.out[{i}], TestBinary.O[{i}])"
-                          for i in range(n))
-    out_wires += f"\nwire(magma_SInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)"
-
     print(repr(TestBinary))
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "CIN", In(Bit), "O", Out(SInt[{n}]), "COUT", Out(Bit))
@@ -212,7 +208,8 @@ wire(ConcatN_inst0.out, magma_SInt_{n + 1}_add_inst0.in0)
 wire(ConcatN_inst1.out, magma_SInt_{n + 1}_add_inst0.in1)
 wire(magma_SInt_{n + 1}_add_inst0.out, magma_SInt_{n + 1}_add_inst1.in0)
 wire(ConcatN_inst2.out, magma_SInt_{n + 1}_add_inst1.in1)
-{out_wires}
+wire(magma_SInt_{n + 1}_add_inst1.out[slice(0, {n}, None)], TestBinary.O)
+wire(magma_SInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)
 EndCircuit()\
 """
     compile(f"build/TestSInt{n}adc", TestBinary, output="coreir-verilog")

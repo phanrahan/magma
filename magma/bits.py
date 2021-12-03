@@ -212,7 +212,10 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
     hwtypes_T = ht.BitVector
 
     def const(self):
-        if self.driven():
+        if not self.is_input() and self.driven():
+            # We treat intermediate values that are driven by a constant as a
+            # constant as well (helpful when a constant is converted to another
+            # type by wiring it to an intermediate)
             trace = self.trace()
             return trace is not None and trace.const()
         return (isinstance(self.name, InstRef) and

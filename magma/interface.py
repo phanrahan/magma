@@ -151,6 +151,9 @@ class InterfaceKind(Kind):
     def __str__(cls):
         return f"Interface({cls.get_arg_str()})"
 
+    def __repr__(cls):
+        return str(cls)
+
     def __eq__(cls, rhs):
         return cls._decl == rhs._decl
 

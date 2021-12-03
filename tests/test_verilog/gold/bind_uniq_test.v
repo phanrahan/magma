@@ -517,6 +517,26 @@ bar_corebit_undriven corebit_undriven_inst8 (
 bar_corebit_undriven corebit_undriven_inst9 (
     .out(corebit_undriven_inst9_out)
 );
+bar_coreir_term #(
+    .width(4)
+) term_inst0 (
+    .in(undriven_inst0_out)
+);
+bar_coreir_term #(
+    .width(4)
+) term_inst1 (
+    .in(undriven_inst1_out)
+);
+bar_coreir_term #(
+    .width(5)
+) term_inst2 (
+    .in(undriven_inst2_out)
+);
+bar_coreir_term #(
+    .width(5)
+) term_inst3 (
+    .in(undriven_inst3_out)
+);
 bar_coreir_undriven #(
     .width(4)
 ) undriven_inst0 (
