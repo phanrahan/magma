@@ -117,7 +117,7 @@ coreir_term #(
 assign O = reg_P8_inst0_out;
 endmodule
 
-module test_basic_reg (
+module test_basic_reg_BitsMeta (
     input [7:0] I,
     output [7:0] O,
     input CLK,
