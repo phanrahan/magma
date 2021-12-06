@@ -38,6 +38,14 @@ module mantle_concatNArrT__Ns106__t_childBitIn (
 assign out = {in1[5],in1[4],in1[3],in1[2],in1[1],in1[0],in0[9],in0[8],in0[7],in0[6],in0[5],in0[4],in0[3],in0[2],in0[1],in0[0]};
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Test (
     output [9:0] port0,
     input [15:0] port1,
@@ -164,6 +172,71 @@ assign magma_UInt_10_shl_inst1_out = ConcatN_inst11_out << port31;
 assign magma_UInt_16_add_inst0_out = 16'(ConcatN_inst2_out + port10);
 assign magma_UInt_16_shl_inst0_out = ConcatN_inst8_out << port23;
 assign magma_UInt_16_ule_inst0_out = ConcatN_inst5_out <= port18;
+coreir_term #(
+    .width(6)
+) term_inst0 (
+    .in(6'h00)
+);
+coreir_term #(
+    .width(9)
+) term_inst1 (
+    .in(9'h000)
+);
+coreir_term #(
+    .width(9)
+) term_inst10 (
+    .in(9'h000)
+);
+coreir_term #(
+    .width(9)
+) term_inst11 (
+    .in(9'h000)
+);
+coreir_term #(
+    .width(5)
+) term_inst12 (
+    .in(5'h00)
+);
+coreir_term #(
+    .width(6)
+) term_inst2 (
+    .in(6'h00)
+);
+coreir_term #(
+    .width(9)
+) term_inst3 (
+    .in(9'h000)
+);
+coreir_term #(
+    .width(6)
+) term_inst4 (
+    .in(6'h00)
+);
+coreir_term #(
+    .width(6)
+) term_inst5 (
+    .in(6'h00)
+);
+coreir_term #(
+    .width(11)
+) term_inst6 (
+    .in(11'h000)
+);
+coreir_term #(
+    .width(3)
+) term_inst7 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(6)
+) term_inst8 (
+    .in(6'h00)
+);
+coreir_term #(
+    .width(6)
+) term_inst9 (
+    .in(6'h00)
+);
 assign port0 = port1[9:0];
 assign port6 = port7[0];
 assign port8 = magma_UInt_16_add_inst0_out[11:0];

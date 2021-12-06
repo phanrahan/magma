@@ -14,6 +14,14 @@ module mantle_concatNArrT__Ns13__t_childBitIn (
 assign out = {in1[2],in1[1],in1[0],in0[0]};
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_const #(
     parameter width = 1,
     parameter value = 1
@@ -80,6 +88,11 @@ coreir_add #(
     .in0(magma_SInt_4_add_inst0_out),
     .in1(ConcatN_inst2_out),
     .out(magma_SInt_4_add_inst1_out)
+);
+coreir_term #(
+    .width(3)
+) term_inst0 (
+    .in(Const_inst0_out)
 );
 assign O = magma_SInt_4_add_inst1_out[2:0];
 assign COUT = magma_SInt_4_add_inst1_out[3];

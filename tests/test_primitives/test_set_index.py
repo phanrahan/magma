@@ -26,7 +26,8 @@ def test_set_index():
     m.compile("build/test_set_index", test_set_index)
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"))
+                                                  "build"),
+                           flags=["-Wno-unused"])
 
 
 def test_set_index_array():
@@ -49,4 +50,5 @@ def test_set_index_array():
     m.compile("build/test_set_index_array", test_set_index_array)
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"))
+                                                  "build"),
+                           flags=["-Wno-unused"])

@@ -6,6 +6,14 @@ module mantle_concatNArrT__Ns33__t_childBitIn (
 assign out = {in1[2],in1[1],in1[0],in0[2],in0[1],in0[0]};
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Mux2xBit (
     input I0,
     input I1,
@@ -259,6 +267,316 @@ assign magma_UInt_4_sub_inst22_out = 4'(4'hb - ({Const_inst1_out[1:0],x[1:0]}));
 assign magma_UInt_4_sub_inst4_out = 4'(4'h2 - ({Const_inst1_out[1:0],x[1:0]}));
 assign magma_UInt_4_sub_inst6_out = 4'(4'h3 - ({Const_inst1_out[1:0],x[1:0]}));
 assign magma_UInt_4_sub_inst8_out = 4'(4'h4 - ({Const_inst1_out[1:0],x[1:0]}));
+coreir_term #(
+    .width(12)
+) term_inst0 (
+    .in(12'hfff)
+);
+coreir_term #(
+    .width(2)
+) term_inst1 (
+    .in(Const_inst1_out)
+);
+coreir_term #(
+    .width(3)
+) term_inst10 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst11 (
+    .in(4'h2)
+);
+coreir_term #(
+    .width(4)
+) term_inst12 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst13 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst14 (
+    .in(4'h2)
+);
+coreir_term #(
+    .width(4)
+) term_inst15 (
+    .in(4'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst16 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst17 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst18 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst19 (
+    .in(4'h3)
+);
+coreir_term #(
+    .width(4)
+) term_inst2 (
+    .in(4'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst20 (
+    .in(4'h3)
+);
+coreir_term #(
+    .width(3)
+) term_inst21 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst22 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst23 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst24 (
+    .in(4'h4)
+);
+coreir_term #(
+    .width(4)
+) term_inst25 (
+    .in(4'h4)
+);
+coreir_term #(
+    .width(3)
+) term_inst26 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst27 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst28 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst29 (
+    .in(4'h5)
+);
+coreir_term #(
+    .width(4)
+) term_inst3 (
+    .in(4'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst30 (
+    .in(4'h5)
+);
+coreir_term #(
+    .width(3)
+) term_inst31 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst32 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst33 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst34 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst35 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(3)
+) term_inst36 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst37 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst38 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst39 (
+    .in(4'h7)
+);
+coreir_term #(
+    .width(3)
+) term_inst4 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst40 (
+    .in(4'h7)
+);
+coreir_term #(
+    .width(3)
+) term_inst41 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst42 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst43 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst44 (
+    .in(4'h8)
+);
+coreir_term #(
+    .width(4)
+) term_inst45 (
+    .in(4'h8)
+);
+coreir_term #(
+    .width(3)
+) term_inst46 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst47 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst48 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst49 (
+    .in(4'h9)
+);
+coreir_term #(
+    .width(4)
+) term_inst5 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst50 (
+    .in(4'h9)
+);
+coreir_term #(
+    .width(3)
+) term_inst51 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst52 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst53 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst54 (
+    .in(4'ha)
+);
+coreir_term #(
+    .width(4)
+) term_inst55 (
+    .in(4'ha)
+);
+coreir_term #(
+    .width(3)
+) term_inst56 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst57 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst58 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst59 (
+    .in(4'hb)
+);
+coreir_term #(
+    .width(4)
+) term_inst6 (
+    .in(4'h6)
+);
+coreir_term #(
+    .width(4)
+) term_inst60 (
+    .in(4'hb)
+);
+coreir_term #(
+    .width(3)
+) term_inst61 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst7 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst8 (
+    .in(4'h1)
+);
+coreir_term #(
+    .width(4)
+) term_inst9 (
+    .in(4'h1)
+);
 assign O = {Mux2xBit_inst11_O,Mux2xBit_inst10_O,Mux2xBit_inst9_O,Mux2xBit_inst8_O,Mux2xBit_inst7_O,Mux2xBit_inst6_O,Mux2xBit_inst5_O,Mux2xBit_inst4_O,Mux2xBit_inst3_O,Mux2xBit_inst2_O,Mux2xBit_inst1_O,Mux2xBit_inst0_O};
 endmodule
 

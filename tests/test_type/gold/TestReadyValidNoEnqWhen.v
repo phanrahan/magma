@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Mux2xBits5 (
     input [4:0] I0,
     input [4:0] I1,
@@ -51,6 +59,16 @@ Mux2xBits5 Mux2xBits5_inst0 (
     .I1(5'h00),
     .S(I),
     .O(O_data)
+);
+coreir_term #(
+    .width(5)
+) term_inst0 (
+    .in(5'h1e)
+);
+coreir_term #(
+    .width(5)
+) term_inst1 (
+    .in(5'h00)
 );
 endmodule
 

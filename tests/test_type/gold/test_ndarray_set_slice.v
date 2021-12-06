@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Mux2xArray3_Array2_Bit (
     input [1:0] I0 [2:0],
     input [1:0] I1 [2:0],
@@ -227,6 +235,131 @@ assign magma_UInt_3_sub_inst2_out = 3'(3'h1 - ({1'b0,x[1:0]}));
 assign magma_UInt_3_sub_inst4_out = 3'(3'h2 - ({1'b0,x[1:0]}));
 assign magma_UInt_3_sub_inst6_out = 3'(3'h3 - ({1'b0,x[1:0]}));
 assign magma_UInt_3_sub_inst8_out = 3'(3'h4 - ({1'b0,x[1:0]}));
+coreir_term #(
+    .width(1)
+) term_inst0 (
+    .in(1'h0)
+);
+coreir_term #(
+    .width(3)
+) term_inst1 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(3)
+) term_inst10 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst11 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst12 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst13 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst14 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst15 (
+    .in(3'h3)
+);
+coreir_term #(
+    .width(3)
+) term_inst16 (
+    .in(3'h3)
+);
+coreir_term #(
+    .width(3)
+) term_inst17 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst18 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst19 (
+    .in(3'h4)
+);
+coreir_term #(
+    .width(3)
+) term_inst2 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(3)
+) term_inst20 (
+    .in(3'h4)
+);
+coreir_term #(
+    .width(3)
+) term_inst21 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst22 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst23 (
+    .in(3'h5)
+);
+coreir_term #(
+    .width(3)
+) term_inst24 (
+    .in(3'h5)
+);
+coreir_term #(
+    .width(3)
+) term_inst3 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst4 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst5 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst6 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst7 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst8 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst9 (
+    .in(3'h2)
+);
 assign O[5][2] = Mux2xArray3_Array2_Bit_inst11_O[2];
 assign O[5][1] = Mux2xArray3_Array2_Bit_inst11_O[1];
 assign O[5][0] = Mux2xArray3_Array2_Bit_inst11_O[0];

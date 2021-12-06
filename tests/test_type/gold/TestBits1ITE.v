@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -69,6 +77,11 @@ coreir_mux #(
     .in1(I1),
     .sel(magma_Bit_not_inst0_out),
     .out(magma_Bits_1_ite_Out_Bits_1_inst0_out)
+);
+coreir_term #(
+    .width(1)
+) term_inst0 (
+    .in(Const_inst0_out)
 );
 assign O = magma_Bits_1_ite_Out_Bits_1_inst0_out;
 endmodule

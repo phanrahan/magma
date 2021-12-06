@@ -35,6 +35,14 @@ module coreir_sync_read_mem #(
 
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -152,6 +160,16 @@ coreir_reg #(
     .clk(CLK),
     .in(enable_mux_O),
     .out(reg_P5_inst0_out)
+);
+coreir_term #(
+    .width(5)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(5)
+) term_inst1 (
+    .in(Const_inst1_out)
 );
 assign O = reg_P5_inst0_out;
 endmodule

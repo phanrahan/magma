@@ -40,6 +40,14 @@ module mantle_wire__typeBit12 (
 assign out = in;
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -231,6 +239,16 @@ mantle_wire__typeBitIn4 self_O_y (
     .in(self_O_y_in),
     .out(reg_P12_inst0_out[11:8])
 );
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(4)
+) term_inst1 (
+    .in(Const_inst1_out)
+);
 assign O_x = self_O_x_in;
 assign O_y = self_O_y_in;
 endmodule
@@ -266,6 +284,16 @@ Register Register_inst0 (
     .O_x(Register_inst0_O_x),
     .O_y(Register_inst0_O_y),
     .RESET(RESET)
+);
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(4)
+) term_inst1 (
+    .in(Const_inst1_out)
 );
 assign O_x = Register_inst0_O_x;
 assign O_y = Register_inst0_O_y;

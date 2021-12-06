@@ -29,12 +29,6 @@ class _ClockType(Digital):
             return False
         return True
 
-    def __bool__(self) -> bool:
-        return Bit.__bool__(self)
-
-    def __int__(self) -> int:
-        return Bit.__int__(self)
-
 
 class Clock(_ClockType, metaclass=DigitalMeta):
     pass

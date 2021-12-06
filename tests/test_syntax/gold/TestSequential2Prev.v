@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -30,6 +38,16 @@ coreir_reg #(
     .in(I),
     .out(O)
 );
+coreir_term #(
+    .width(3)
+) term_inst0 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(3)
+) term_inst1 (
+    .in(3'h0)
+);
 endmodule
 
 module Test2 (
@@ -43,5 +61,10 @@ Register Register_inst0 (
     .CLK(CLK)
 );
 assign magma_UInt_3_add_inst0_out = 3'(O + 3'h1);
+coreir_term #(
+    .width(3)
+) term_inst0 (
+    .in(3'h1)
+);
 endmodule
 

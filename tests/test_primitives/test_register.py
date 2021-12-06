@@ -318,7 +318,7 @@ def test_basic_reg_function():
 
     assert check_files_equal(__file__,
                              f"build/test_basic_reg_function.v",
-                             f"gold/test_basic_reg.v")
+                             f"gold/test_basic_reg_function.v")
 
     tester = fault.SynchronousTester(test_basic_reg, test_basic_reg.CLK)
     tester.circuit.I = 0

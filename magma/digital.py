@@ -233,6 +233,20 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
             return repr(self)
         return super().debug_name
 
+    def __bool__(self) -> bool:
+        if not self.const():
+            raise ValueError(
+                "Converting non-constant magma bit to bool not supported")
+        if isinstance(self.name, ArrayRef) and self.name.array.const():
+            return bool(self.name.array.bits()[self.name.index])
+        if self is type(self).VCC:
+            return True
+        assert self is type(self).GND
+        return False
+
+    def __int__(self) -> int:
+        return int(bool(self))
+
 
 VCC = Digital.VCC
 GND = Digital.GND

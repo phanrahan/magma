@@ -136,7 +136,9 @@ def _copy_const(value):
         return value
     if isinstance(value, Bits):
         return type(value)(int(value))
-    if isinstance(value, (Tuple, Array)):
+    if isinstance(value, Array):
+        return type(value)(list(_copy_const(v) for v in value))
+    if isinstance(value, Tuple):
         return type(value)(*(_copy_const(v) for v in value))
     raise NotImplementedError(type(value))
 

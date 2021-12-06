@@ -44,6 +44,10 @@
             "genref":"coreir.term",
             "genargs":{"width":["Int",10]}
           },
+          "term_inst10":{
+            "genref":"coreir.term",
+            "genargs":{"width":["Int",24]}
+          },
           "term_inst2":{
             "genref":"coreir.term",
             "genargs":{"width":["Int",10]}
@@ -67,9 +71,20 @@
           "term_inst7":{
             "genref":"coreir.term",
             "genargs":{"width":["Int",10]}
+          },
+          "term_inst8":{
+            "genref":"coreir.term",
+            "genargs":{"width":["Int",1]}
+          },
+          "term_inst9":{
+            "genref":"coreir.term",
+            "genargs":{"width":["Int",1]}
           }
         },
         "connections":[
+          ["term_inst8.in","Const_inst0.out"],
+          ["term_inst9.in","Const_inst1.out"],
+          ["term_inst10.in","Const_inst2.out"],
           ["self.O3.0.0:6","Const_inst2.out.0:6"],
           ["self.O3.2.0:6","Const_inst2.out.12:18"],
           ["self.O3.3.0:6","Const_inst2.out.18:24"],

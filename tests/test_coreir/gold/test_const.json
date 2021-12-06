@@ -11,10 +11,15 @@
             "genref":"coreir.const",
             "genargs":{"width":["Int",3]},
             "modargs":{"value":[["BitVector",3],"3'h0"]}
+          },
+          "term_inst0":{
+            "genref":"coreir.term",
+            "genargs":{"width":["Int",3]}
           }
         },
         "connections":[
-          ["self.O.0","Const_inst0.out"]
+          ["self.O.0","Const_inst0.out"],
+          ["term_inst0.in","Const_inst0.out"]
         ]
       }
     }

@@ -22,9 +22,14 @@
           "coreir_Add8_cin_inst1":{
             "genref":"coreir.add",
             "genargs":{"width":["Int",8]}
+          },
+          "term_inst0":{
+            "genref":"coreir.term",
+            "genargs":{"width":["Int",7]}
           }
         },
         "connections":[
+          ["term_inst0.in","Const_inst0.out"],
           ["coreir_Add8_cin_inst1.in0.0:7","Const_inst0.out.0:7"],
           ["coreir_Add8_cin_inst1.out","coreir_Add8_cin_inst0.in0"],
           ["self.I1","coreir_Add8_cin_inst0.in1"],

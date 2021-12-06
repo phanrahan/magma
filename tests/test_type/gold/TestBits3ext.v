@@ -6,6 +6,14 @@ module mantle_concatNArrT__Ns33__t_childBitIn (
 assign out = {in1[2],in1[1],in1[0],in0[2],in0[1],in0[0]};
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_const #(
     parameter width = 1,
     parameter value = 1
@@ -31,6 +39,11 @@ coreir_const #(
     .width(3)
 ) Const_inst0 (
     .out(Const_inst0_out)
+);
+coreir_term #(
+    .width(3)
+) term_inst0 (
+    .in(Const_inst0_out)
 );
 assign O = ConcatN_inst0_out;
 endmodule

@@ -1,4 +1,12 @@
 // Module `Buf` defined externally
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_const #(
     parameter width = 1,
     parameter value = 1
@@ -22,6 +30,11 @@ coreir_const #(
     .width(3)
 ) Const_inst0 (
     .out(Const_inst0_out)
+);
+coreir_term #(
+    .width(3)
+) term_inst0 (
+    .in(Const_inst0_out)
 );
 assign O = Buf_inst0_O;
 endmodule

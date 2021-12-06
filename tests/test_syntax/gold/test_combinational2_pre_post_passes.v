@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Mux2xBits3 (
     input [2:0] I0,
     input [2:0] I1,
@@ -54,5 +62,25 @@ assign __0_return_3 = 3'h4;
 assign _cond_0 = I[0];
 assign _cond_1 = I[1];
 assign _cond_2 = I[2];
+coreir_term #(
+    .width(3)
+) term_inst0 (
+    .in(3'h0)
+);
+coreir_term #(
+    .width(3)
+) term_inst1 (
+    .in(3'h1)
+);
+coreir_term #(
+    .width(3)
+) term_inst2 (
+    .in(3'h2)
+);
+coreir_term #(
+    .width(3)
+) term_inst3 (
+    .in(3'h4)
+);
 endmodule
 

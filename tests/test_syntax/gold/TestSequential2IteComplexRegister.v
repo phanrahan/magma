@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -34,6 +42,11 @@ coreir_reg #(
     .clk(CLK),
     .in(reg_P4_inst0_in),
     .out(reg_P4_inst0_out)
+);
+coreir_term #(
+    .width(2)
+) term_inst0 (
+    .in(2'h0)
 );
 assign O_a[0] = reg_P4_inst0_out[1:0];
 assign O_b__0_c = reg_P4_inst0_out[3:2];
@@ -106,6 +119,11 @@ Register Register_inst0 (
     .I_b__0_c(Mux2x_SequentialRegisterWrapperTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst0_O_b__0_c),
     .O_a(Register_inst0_O_a),
     .O_b__0_c(Register_inst0_O_b__0_c)
+);
+coreir_term #(
+    .width(2)
+) term_inst0 (
+    .in(2'h0)
 );
 assign O_a[0] = Mux2x_SequentialRegisterWrapperTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit_inst1_O_a[0];
 endmodule

@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Mux2xTuplex_UInt8 (
     input [7:0] I0_x,
     input [7:0] I1_x,
@@ -29,5 +37,15 @@ Mux2xTuplex_UInt8 Mux2xTuplex_UInt8_inst0 (
     .S(c)
 );
 assign magma_UInt_8_add_inst0_out = 8'h00 + 8'h01;
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(8'h00)
+);
+coreir_term #(
+    .width(8)
+) term_inst1 (
+    .in(8'h01)
+);
 endmodule
 

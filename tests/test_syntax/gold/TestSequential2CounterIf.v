@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -29,6 +37,11 @@ coreir_reg #(
     .clk(CLK),
     .in(I),
     .out(O)
+);
+coreir_term #(
+    .width(16)
+) term_inst0 (
+    .in(16'h0000)
 );
 endmodule
 
@@ -69,5 +82,15 @@ Register Register_inst0 (
     .CLK(CLK)
 );
 assign magma_SInt_16_add_inst0_out = 16'(Register_inst0_O + 16'h0001);
+coreir_term #(
+    .width(16)
+) term_inst0 (
+    .in(16'h0000)
+);
+coreir_term #(
+    .width(16)
+) term_inst1 (
+    .in(16'h0001)
+);
 endmodule
 

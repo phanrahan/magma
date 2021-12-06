@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg_arst #(
     parameter width = 1,
     parameter arst_posedge = 1,
@@ -55,6 +63,11 @@ coreir_reg_arst #(
     .in(I),
     .out(reg_PRn8_inst0_out)
 );
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
 assign O = reg_PRn8_inst0_out;
 endmodule
 
@@ -77,6 +90,11 @@ Register Register_inst0 (
     .O(Register_inst0_O),
     .CLK(CLK),
     .ASYNCRESETN(ASYNCRESETN)
+);
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
 );
 assign O = Register_inst0_O;
 endmodule

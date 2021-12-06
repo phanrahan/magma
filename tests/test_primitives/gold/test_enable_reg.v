@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -109,6 +117,11 @@ coreir_reg #(
     .in(Mux2xBits8_inst0_O),
     .out(reg_P8_inst0_out)
 );
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
 assign O = reg_P8_inst0_out;
 endmodule
 
@@ -133,6 +146,11 @@ Register Register_inst0 (
     .CE(CE),
     .CLK(CLK),
     .RESET(RESET)
+);
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
 );
 assign O = Register_inst0_O;
 endmodule

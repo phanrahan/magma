@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -32,6 +40,156 @@ coreir_reg #(
     .clk(CLK),
     .in(reg_P105_inst0_in),
     .out(reg_P105_inst0_out)
+);
+coreir_term #(
+    .width(7)
+) term_inst0 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst1 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst10 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst11 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst12 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst13 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst14 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst15 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst16 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst17 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst18 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst19 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst2 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst20 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst21 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst22 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst23 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst24 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst25 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst26 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst27 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst28 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst29 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst3 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst4 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst5 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst6 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst7 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst8 (
+    .in(7'h00)
+);
+coreir_term #(
+    .width(7)
+) term_inst9 (
+    .in(7'h00)
 );
 assign O[14] = reg_P105_inst0_out[104:98];
 assign O[13] = reg_P105_inst0_out[97:91];

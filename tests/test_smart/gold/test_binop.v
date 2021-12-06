@@ -22,6 +22,14 @@ module mantle_concatNArrT__Ns124__t_childBitIn (
 assign out = {in1[3],in1[2],in1[1],in1[0],in0[11],in0[10],in0[9],in0[8],in0[7],in0[6],in0[5],in0[4],in0[3],in0[2],in0[1],in0[0]};
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module _Test (
     input [7:0] I0,
     input [11:0] I1,
@@ -55,6 +63,26 @@ mantle_concatNArrT__Ns124__t_childBitIn ConcatN_inst3 (
     .out(ConcatN_inst3_out)
 );
 assign magma_UInt_12_add_inst0_out = 12'(ConcatN_inst0_out + I1);
+coreir_term #(
+    .width(4)
+) term_inst0 (
+    .in(4'h0)
+);
+coreir_term #(
+    .width(4)
+) term_inst1 (
+    .in(4'h0)
+);
+coreir_term #(
+    .width(8)
+) term_inst2 (
+    .in(8'h00)
+);
+coreir_term #(
+    .width(4)
+) term_inst3 (
+    .in(4'h0)
+);
 assign O1 = magma_UInt_12_add_inst0_out[7:0];
 assign O2 = 12'(ConcatN_inst1_out + I1);
 assign O3 = 16'(ConcatN_inst2_out + ConcatN_inst3_out);

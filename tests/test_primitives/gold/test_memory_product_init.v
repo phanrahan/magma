@@ -5,6 +5,14 @@ module mantle_wire__typeBitIn8 (
 assign in = out;
 endmodule
 
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -115,6 +123,16 @@ mantle_wire__typeBitIn8 self_RDATA_Y (
     .in(self_RDATA_Y_in),
     .out(coreir_mem4x16_inst0_rdata[15:8])
 );
+coreir_term #(
+    .width(2)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(16)
+) term_inst1 (
+    .in(Const_inst1_out)
+);
 assign RDATA_X = self_RDATA_X_in;
 assign RDATA_Y = self_RDATA_Y_in;
 endmodule
@@ -188,6 +206,46 @@ Memory Memory_inst0 (
     .RADDR(raddr),
     .RDATA_X(Memory_inst0_RDATA_X),
     .RDATA_Y(Memory_inst0_RDATA_Y)
+);
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst1 (
+    .in(Const_inst1_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst2 (
+    .in(Const_inst2_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst3 (
+    .in(Const_inst3_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst4 (
+    .in(Const_inst4_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst5 (
+    .in(Const_inst5_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst6 (
+    .in(Const_inst6_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst7 (
+    .in(Const_inst7_out)
 );
 assign rdata_X = Memory_inst0_RDATA_X;
 assign rdata_Y = Memory_inst0_RDATA_Y;

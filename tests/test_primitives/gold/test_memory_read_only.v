@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -96,6 +104,16 @@ coreir_mem #(
     .wen(bit_const_0_None_out),
     .rdata(coreir_mem4x5_inst0_rdata),
     .raddr(RADDR)
+);
+coreir_term #(
+    .width(2)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(5)
+) term_inst1 (
+    .in(Const_inst1_out)
 );
 assign RDATA = coreir_mem4x5_inst0_rdata;
 endmodule

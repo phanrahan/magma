@@ -242,7 +242,8 @@ def test_mux_dict_lookup():
 
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"))
+                                                  "build"),
+                           flags=["-Wno-unused"])
 
 
 def test_mux_list_lookup():
@@ -262,7 +263,8 @@ def test_mux_list_lookup():
 
     tester.compile_and_run("verilator", skip_compile=True,
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"))
+                                                  "build"),
+                           flags=["-Wno-unused"])
 
 
 def test_mux_array_select_bits_1():

@@ -25,6 +25,7 @@ from magma.logging import root_logger
 from magma.generator import Generator2
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
+from magma.protocol_type import magma_type, magma_value
 from magma.ref import InstRef
 
 
@@ -49,6 +50,7 @@ def _check_size(val, T):
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
+    T = magma_type(T)
     if isinstance(val, ht.BitVector):
         _check_size(val, T)
         val = val.bits()
@@ -102,67 +104,74 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
 
+    def _make_const(cls, val, T):
+        out = Const(val, T)().O
+        # Mark unused for register init case otherwise we get unconnected error
+        out.unused()
+        return out
+
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
-            if (isinstance(args[0], list) and
-                    all(isinstance(x, int) for x in args[0])):
-                return Const(tuple(args[0]), cls.undirected_t)().O
-            if isinstance(args[0], int):
-                if isinstance(args[0], int) and args[0].bit_length() > cls.N:
+            arg = magma_value(args[0])
+            if (isinstance(arg, list) and
+                    all(isinstance(x, int) for x in arg)):
+                return cls._make_const(tuple(arg), cls.undirected_t)
+            if isinstance(arg, int):
+                if isinstance(arg, int) and arg.bit_length() > cls.N:
                     raise ValueError(
                         f"Cannot construct {cls.orig_name}[{cls.N}] with "
-                        f"integer {args[0]} (requires truncation)")
-                return Const(tuple(int2seq(args[0], cls.N)),
-                             cls.undirected_t)().O
-            if isinstance(args[0], BitVector):
-                if isinstance(args[0], BitVector) and len(args[0]) != cls.N:
+                        f"integer {arg} (requires truncation)")
+                return cls._make_const(tuple(int2seq(arg, cls.N)),
+                                       cls.undirected_t)
+            if isinstance(arg, BitVector):
+                if isinstance(arg, BitVector) and len(arg) != cls.N:
                     raise TypeError(
                         f"Cannot construct {cls.orig_name}[{cls.N}] with "
-                        f"BitVector of length {len(args[0])} (sizes must "
+                        f"BitVector of length {len(arg)} (sizes must "
                         "match)")
-                return Const(tuple(args[0].bits()), cls)().O
-            if isinstance(args[0], Bits):
-                if args[0].const():
-                    return Const(tuple(int2seq(int(args[0]), cls.N)),
-                                 cls.undirected_t)().O
-                arg_len = len(args[0])
+                return cls._make_const(tuple(arg.bits()), cls)
+            if isinstance(arg, Bits):
+                if arg.const():
+                    return cls._make_const(tuple(int2seq(int(arg), cls.N)),
+                                           cls.undirected_t)
+                arg_len = len(arg)
                 if arg_len == cls.N:
-                    return args[0]
+                    return arg
                 result = super().__call__(*args, **kwargs)
                 if arg_len != cls.N:
                     raise TypeError(
                         f"Will not do implicit conversion of bits length")
                 # if arg_len < cls.N:
                     # # Zext
-                    # result[:arg_len] @= args[0]
+                    # result[:arg_len] @= arg
                     # result[arg_len:] @= Bits[cls.N - arg_len](0)
                 # else:
                     # # Truncate
-                    # result @= args[0][:cls.N]
+                    # result @= arg[:cls.N]
                 # TODO(leonardt/array2): zext/sext for Bits/UInt/SInt
                 # constructor with smaller size
                 return result
-            if isinstance(args[0], list):
-                if len(args[0]) != len(cls):
+            if isinstance(arg, list):
+                if len(arg) != len(cls):
                     raise TypeError(
                         f"List initializer for Bits[{len(cls)}] must be same "
-                        f"length, not {len(args[0])}"
+                        f"length, not {len(arg)}"
                     )
                 result = cls.undirected_t()
-                for x, y in zip(result, args[0]):
+                for x, y in zip(result, arg):
                     x @= y
                 return result
-            if type(args[0]).is_wireable(cls):
+            if type(arg).is_wireable(cls):
                 # Type conversion done with wiring to an anon value
                 result = cls.undirected_t()
-                result @= args[0]
+                result @= arg
                 return result
-            if isinstance(args[0], Bit):
+            if isinstance(arg, Bit):
                 # Type conversion done with wiring to an anon value
                 result = cls.undirected_t()
-                result[0] @= args[0]
+                result[0] @= arg
                 return result
-            raise NotImplementedError(cls, args[0], type(args[0]))
+            raise NotImplementedError(cls, arg, type(arg))
         result = super().__call__(*args, **kwargs)
         # if all(x.is_output() for x in result.ts) and not cls.is_output():
         #     if cls.is_input() or cls.is_inout():

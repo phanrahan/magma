@@ -485,6 +485,7 @@ class Array(Type, metaclass=ArrayMeta):
 
     @debug_wire
     def wire(i, o, debug_info):
+        o = magma_value(o)
         i._check_wireable(o, debug_info)
 
         for k in range(len(i)):
@@ -710,6 +711,7 @@ class Array2(Wireable, Array):
 
     @debug_wire
     def wire(self, o, debug_info):
+        o = magma_value(o)
         self._check_wireable(o, debug_info)
         if isinstance(o, Array) and not isinstance(o, Array2):
             for i, o in zip(self, o):
@@ -752,7 +754,11 @@ class Array2(Wireable, Array):
     # TODO(leonardt/array2): Use setdefault pattern?
     def _get_t(self, index):
         if index not in self._ts:
-            self._ts[index] = self.T(name=ArrayRef(self, index))
+            if issubclass(self.T, MagmaProtocol):
+                self._ts[index] = self.T._from_magma_value_(
+                    self.T._to_magma_()(name=ArrayRef(self, index)))
+            else:
+                self._ts[index] = self.T(name=ArrayRef(self, index))
         if self._wire.driven():
             # Resolve bulk connection before returning child reference
             value = self._wire.value()
@@ -812,7 +818,12 @@ class Array2(Wireable, Array):
         raise NotImplementedError(key, type(key))
 
     def __setitem__(self, key, val):
-        # TODO(leonardt/array2): Validate setitem?
+        if val is not self[key]:
+            _logger.error(
+                WiringLog(f"May not mutate array, trying to replace "
+                          f"{{}}[{key}] ({{}}) with {{}}", self, self[key], val)
+            )
+            return True
         return False
 
     def _array_old(*args, **kwargs):

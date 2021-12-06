@@ -110,20 +110,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # magma/primitives/mux.py to avoid circular dependency.
         return self._mux([f_branch, t_branch], self)
 
-    def __bool__(self) -> bool:
-        if not self.const():
-            raise ValueError(
-                "Converting non-constant magma bit to bool not supported")
-        if isinstance(self.name, ArrayRef) and self.name.array.const():
-            return bool(self.name.array.bits()[self.name.index])
-        if self is type(self).VCC:
-            return True
-        assert self is type(self).GND
-        return False
-
-    def __int__(self) -> int:
-        return int(bool(self))
-
     @debug_wire
     def wire(self, o, debug_info):
         # Cast to Bit here so we don't get a Digital instead

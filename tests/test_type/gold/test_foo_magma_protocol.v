@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_shl #(
     parameter width = 1
 ) (
@@ -82,6 +90,16 @@ coreir_reg #(
     .in(I),
     .out(reg_P1_inst0_out)
 );
+coreir_term #(
+    .width(1)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(1)
+) term_inst1 (
+    .in(Const_inst1_out)
+);
 assign O = reg_P1_inst0_out;
 endmodule
 
@@ -151,6 +169,16 @@ coreir_shl #(
     .in0(magma_Bits_8_shl_inst1_in0),
     .in1(Const_inst1_out),
     .out(magma_Bits_8_shl_inst1_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(8)
+) term_inst1 (
+    .in(Const_inst1_out)
 );
 assign O = magma_Bits_8_or_inst1_out;
 endmodule

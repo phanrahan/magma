@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module Mux2xBits5 (
     input [4:0] I0,
     input [4:0] I1,
@@ -32,6 +40,11 @@ Mux2xBits5 Mux2xBits5_inst0 (
     .O(O_data)
 );
 assign magma_Bit_or_inst1_out = I_valid | 1'b0;
+coreir_term #(
+    .width(5)
+) term_inst0 (
+    .in(5'h00)
+);
 assign I_ready = 1'b0 | I_valid;
 assign O_valid = magma_Bit_or_inst1_out;
 endmodule

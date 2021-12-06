@@ -271,6 +271,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
     @debug_wire
     def wire(i, o, debug_info):
+        o = magma_value(o)
         if not isinstance(o, Tuple):
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "

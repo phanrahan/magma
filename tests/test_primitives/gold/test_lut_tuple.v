@@ -1,3 +1,11 @@
+module coreir_term #(
+    parameter width = 1
+) (
+    input [width-1:0] in
+);
+
+endmodule
+
 module coreir_const #(
     parameter width = 1,
     parameter value = 1
@@ -75,6 +83,16 @@ LUT LUT_inst0 (
     .I(I),
     .O__0(LUT_inst0_O__0),
     .O__1(LUT_inst0_O__1)
+);
+coreir_term #(
+    .width(2)
+) term_inst0 (
+    .in(Const_inst0_out)
+);
+coreir_term #(
+    .width(2)
+) term_inst1 (
+    .in(Const_inst1_out)
 );
 assign O__0 = LUT_inst0_O__0;
 assign O__1 = LUT_inst0_O__1;
