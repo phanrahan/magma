@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -86,21 +78,21 @@ module Register (
     input CLK,
     input RESET
 );
-wire [7:0] Const_inst0_out;
 wire [7:0] Mux2xBits8_inst0_O;
+wire [7:0] const_222_8_out;
 wire [7:0] enable_mux_O;
 wire [7:0] reg_P8_inst0_out;
+Mux2xBits8 Mux2xBits8_inst0 (
+    .I0(enable_mux_O),
+    .I1(const_222_8_out),
+    .S(RESET),
+    .O(Mux2xBits8_inst0_O)
+);
 coreir_const #(
     .value(8'hde),
     .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-Mux2xBits8 Mux2xBits8_inst0 (
-    .I0(enable_mux_O),
-    .I1(Const_inst0_out),
-    .S(RESET),
-    .O(Mux2xBits8_inst0_O)
+) const_222_8 (
+    .out(const_222_8_out)
 );
 Mux2xBits8 enable_mux (
     .I0(reg_P8_inst0_out),
@@ -117,11 +109,6 @@ coreir_reg #(
     .in(Mux2xBits8_inst0_O),
     .out(reg_P8_inst0_out)
 );
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
 assign O = reg_P8_inst0_out;
 endmodule
 
@@ -132,25 +119,13 @@ module test_enable_reg (
     input CE,
     input RESET
 );
-wire [7:0] Const_inst0_out;
 wire [7:0] Register_inst0_O;
-coreir_const #(
-    .value(8'hde),
-    .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
 Register Register_inst0 (
     .I(I),
     .O(Register_inst0_O),
     .CE(CE),
     .CLK(CLK),
     .RESET(RESET)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
 );
 assign O = Register_inst0_O;
 endmodule

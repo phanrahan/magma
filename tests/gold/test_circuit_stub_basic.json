@@ -11,24 +11,14 @@
           ["O3",["Array",4,["Array",6,"Bit"]]]
         ]],
         "instances":{
-          "Const_inst0":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",1]},
-            "modargs":{"value":[["BitVector",1],"1'h0"]}
-          },
-          "Const_inst1":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",1]},
-            "modargs":{"value":[["BitVector",1],"1'h0"]}
-          },
-          "Const_inst2":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",24]},
-            "modargs":{"value":[["BitVector",24],"24'h000000"]}
-          },
           "bit_const_0_None":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",false]}
+          },
+          "const_0_6":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",6]},
+            "modargs":{"value":[["BitVector",6],"6'h00"]}
           },
           "corebit_term_inst0":{
             "modref":"corebit.term"
@@ -43,10 +33,6 @@
           "term_inst1":{
             "genref":"coreir.term",
             "genargs":{"width":["Int",10]}
-          },
-          "term_inst10":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",24]}
           },
           "term_inst2":{
             "genref":"coreir.term",
@@ -71,26 +57,15 @@
           "term_inst7":{
             "genref":"coreir.term",
             "genargs":{"width":["Int",10]}
-          },
-          "term_inst8":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",1]}
-          },
-          "term_inst9":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",1]}
           }
         },
         "connections":[
-          ["term_inst8.in","Const_inst0.out"],
-          ["term_inst9.in","Const_inst1.out"],
-          ["term_inst10.in","Const_inst2.out"],
-          ["self.O3.0.0:6","Const_inst2.out.0:6"],
-          ["self.O3.2.0:6","Const_inst2.out.12:18"],
-          ["self.O3.3.0:6","Const_inst2.out.18:24"],
-          ["self.O3.1.0:6","Const_inst2.out.6:12"],
           ["self.O","bit_const_0_None.out"],
           ["self.mixed.y","bit_const_0_None.out"],
+          ["self.O3.0","const_0_6.out"],
+          ["self.O3.1","const_0_6.out"],
+          ["self.O3.2","const_0_6.out"],
+          ["self.O3.3","const_0_6.out"],
           ["self.I","corebit_term_inst0.in"],
           ["self.mixed.x","corebit_term_inst1.in"],
           ["term_inst0.in","self.I0.0"],

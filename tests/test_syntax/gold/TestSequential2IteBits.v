@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -37,11 +29,6 @@ coreir_reg #(
     .clk(CLK),
     .in(I),
     .out(O)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(8'h00)
 );
 endmodule
 
@@ -104,11 +91,6 @@ Register Register_inst0 (
     .I(Mux2x_SequentialRegisterWrapperBits8_inst0_O),
     .O(Register_inst0_O),
     .CLK(CLK)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(8'h00)
 );
 endmodule
 

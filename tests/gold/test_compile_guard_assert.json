@@ -12,26 +12,26 @@
           "ASSERT_ON_compile_guard_inline_verilog_inst_0":{
             "modref":"global.ASSERT_ON_compile_guard_inline_verilog_0"
           },
-          "Const_inst0":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],"2'h1"]}
-          },
-          "Const_inst1":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],"2'h3"]}
-          },
-          "Const_inst2":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",4]},
-            "modargs":{"value":[["BitVector",4],"4'h3"]}
-          },
           "Register_inst0":{
             "modref":"global.Register_unq1"
           },
           "_FAULT_ASSERT_WIRE_0":{
             "modref":"corebit.wire"
+          },
+          "const_1_2":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"value":[["BitVector",2],"2'h1"]}
+          },
+          "const_3_2":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"value":[["BitVector",2],"2'h3"]}
+          },
+          "const_3_4":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",4]},
+            "modargs":{"value":[["BitVector",4],"4'h3"]}
           },
           "magma_Bit_not_inst0":{
             "modref":"corebit.not"
@@ -50,34 +50,19 @@
           "magma_UInt_2_eq_inst0":{
             "genref":"coreir.eq",
             "genargs":{"width":["Int",2]}
-          },
-          "term_inst0":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",2]}
-          },
-          "term_inst1":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",2]}
-          },
-          "term_inst2":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",4]}
           }
         },
         "connections":[
           ["_FAULT_ASSERT_WIRE_0.out","ASSERT_ON_compile_guard_inline_verilog_inst_0.__magma_inline_value_0"],
-          ["magma_UInt_2_add_inst0.in1","Const_inst0.out"],
-          ["term_inst0.in","Const_inst0.out"],
-          ["magma_UInt_2_eq_inst0.in1","Const_inst1.out"],
-          ["term_inst1.in","Const_inst1.out"],
-          ["magma_Bits_4_eq_inst0.in1","Const_inst2.out"],
-          ["term_inst2.in","Const_inst2.out"],
           ["self.port_0","Register_inst0.CE"],
           ["self.CLK","Register_inst0.CLK"],
           ["magma_UInt_2_add_inst0.out","Register_inst0.I"],
           ["magma_UInt_2_add_inst0.in0","Register_inst0.O"],
           ["magma_UInt_2_eq_inst0.in0","Register_inst0.O"],
           ["magma_Bit_or_inst0.out","_FAULT_ASSERT_WIRE_0.in"],
+          ["magma_UInt_2_add_inst0.in1","const_1_2.out"],
+          ["magma_UInt_2_eq_inst0.in1","const_3_2.out"],
+          ["magma_Bits_4_eq_inst0.in1","const_3_4.out"],
           ["magma_UInt_2_eq_inst0.out","magma_Bit_not_inst0.in"],
           ["magma_Bit_or_inst0.in0","magma_Bit_not_inst0.out"],
           ["magma_Bits_4_eq_inst0.out","magma_Bit_or_inst0.in1"],
@@ -125,33 +110,13 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "Const_inst0":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",4]},
-            "modargs":{"value":[["BitVector",4],"4'h0"]}
-          },
-          "Const_inst1":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",4]},
-            "modargs":{"value":[["BitVector",4],"4'h0"]}
-          },
           "reg_P4_inst0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",4]},
             "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",4],"4'h0"]}
-          },
-          "term_inst0":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",4]}
-          },
-          "term_inst1":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",4]}
           }
         },
         "connections":[
-          ["term_inst0.in","Const_inst0.out"],
-          ["term_inst1.in","Const_inst1.out"],
           ["self.CLK","reg_P4_inst0.clk"],
           ["self.I","reg_P4_inst0.in"],
           ["self.O","reg_P4_inst0.out"]
@@ -165,16 +130,6 @@
           ["CLK",["Named","coreir.clkIn"]]
         ]],
         "instances":{
-          "Const_inst0":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],"2'h0"]}
-          },
-          "Const_inst1":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],"2'h0"]}
-          },
           "enable_mux":{
             "modref":"global.Mux2xUInt2"
           },
@@ -182,19 +137,9 @@
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
             "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
-          },
-          "term_inst0":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",2]}
-          },
-          "term_inst1":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",2]}
           }
         },
         "connections":[
-          ["term_inst0.in","Const_inst0.out"],
-          ["term_inst1.in","Const_inst1.out"],
           ["reg_P2_inst0.out","enable_mux.I0"],
           ["self.I","enable_mux.I1"],
           ["reg_P2_inst0.in","enable_mux.O"],

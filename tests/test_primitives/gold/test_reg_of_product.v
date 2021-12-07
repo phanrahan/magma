@@ -19,33 +19,11 @@ module mantle_wire__typeBitIn12 (
 assign in = out;
 endmodule
 
-module mantle_wire__typeBit8 (
-    input [7:0] in,
-    output [7:0] out
-);
-assign out = in;
-endmodule
-
-module mantle_wire__typeBit4 (
-    input [3:0] in,
-    output [3:0] out
-);
-assign out = in;
-endmodule
-
 module mantle_wire__typeBit12 (
     input [11:0] in,
     output [11:0] out
 );
 assign out = in;
-endmodule
-
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
 endmodule
 
 module coreir_reg #(
@@ -116,10 +94,6 @@ wire [11:0] coreir_commonlib_mux2x12_inst0_out_unq1;
 wire [11:0] coreir_commonlib_mux2x12_inst0_in_data_0_in;
 wire [11:0] coreir_commonlib_mux2x12_inst0_in_data_1_in;
 wire [11:0] coreir_commonlib_mux2x12_inst0_out_out;
-wire [7:0] self_I0_x_out;
-wire [3:0] self_I0_y_out;
-wire [7:0] self_I1_x_out;
-wire [3:0] self_I1_y_out;
 wire [7:0] self_O_x_in;
 wire [3:0] self_O_y_in;
 wire [11:0] coreir_commonlib_mux2x12_inst0_in_data [1:0];
@@ -131,13 +105,13 @@ commonlib_muxn__N2__width12 coreir_commonlib_mux2x12_inst0 (
     .out(coreir_commonlib_mux2x12_inst0_out_unq1)
 );
 wire [11:0] coreir_commonlib_mux2x12_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x12_inst0_in_data_0_out = {self_I0_y_out[3:0],self_I0_x_out[7:0]};
+assign coreir_commonlib_mux2x12_inst0_in_data_0_out = {I0_y,I0_x};
 mantle_wire__typeBitIn12 coreir_commonlib_mux2x12_inst0_in_data_0 (
     .in(coreir_commonlib_mux2x12_inst0_in_data_0_in),
     .out(coreir_commonlib_mux2x12_inst0_in_data_0_out)
 );
 wire [11:0] coreir_commonlib_mux2x12_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x12_inst0_in_data_1_out = {self_I1_y_out[3:0],self_I1_x_out[7:0]};
+assign coreir_commonlib_mux2x12_inst0_in_data_1_out = {I1_y,I1_x};
 mantle_wire__typeBitIn12 coreir_commonlib_mux2x12_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x12_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x12_inst0_in_data_1_out)
@@ -145,22 +119,6 @@ mantle_wire__typeBitIn12 coreir_commonlib_mux2x12_inst0_in_data_1 (
 mantle_wire__typeBit12 coreir_commonlib_mux2x12_inst0_out (
     .in(coreir_commonlib_mux2x12_inst0_out_unq1),
     .out(coreir_commonlib_mux2x12_inst0_out_out)
-);
-mantle_wire__typeBit8 self_I0_x (
-    .in(I0_x),
-    .out(self_I0_x_out)
-);
-mantle_wire__typeBit4 self_I0_y (
-    .in(I0_y),
-    .out(self_I0_y_out)
-);
-mantle_wire__typeBit8 self_I1_x (
-    .in(I1_x),
-    .out(self_I1_x_out)
-);
-mantle_wire__typeBit4 self_I1_y (
-    .in(I1_y),
-    .out(self_I1_y_out)
 );
 mantle_wire__typeBitIn8 self_O_x (
     .in(self_O_x_in),
@@ -182,46 +140,36 @@ module Register (
     output [3:0] O_y,
     input RESET
 );
-wire [7:0] Const_inst0_out;
-wire [3:0] Const_inst1_out;
-wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_unq1;
-wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_unq1;
-wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out;
-wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out;
+wire [7:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_x;
+wire [3:0] Mux2xTuplex_Bits8_y_Bits4_inst0_O_y;
+wire [3:0] const_10_4_out;
+wire [7:0] const_222_8_out;
 wire [11:0] reg_P12_inst0_out;
 wire [7:0] self_O_x_in;
 wire [3:0] self_O_y_in;
-coreir_const #(
-    .value(8'hde),
-    .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
+Mux2xTuplex_Bits8_y_Bits4 Mux2xTuplex_Bits8_y_Bits4_inst0 (
+    .I0_x(I_x),
+    .I0_y(I_y),
+    .I1_x(const_222_8_out),
+    .I1_y(const_10_4_out),
+    .O_x(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x),
+    .O_y(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y),
+    .S(RESET)
 );
 coreir_const #(
     .value(4'ha),
     .width(4)
-) Const_inst1 (
-    .out(Const_inst1_out)
+) const_10_4 (
+    .out(const_10_4_out)
 );
-Mux2xTuplex_Bits8_y_Bits4 Mux2xTuplex_Bits8_y_Bits4_inst0 (
-    .I0_x(I_x),
-    .I0_y(I_y),
-    .I1_x(Const_inst0_out),
-    .I1_y(Const_inst1_out),
-    .O_x(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_unq1),
-    .O_y(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_unq1),
-    .S(RESET)
-);
-mantle_wire__typeBit8 Mux2xTuplex_Bits8_y_Bits4_inst0_O_x (
-    .in(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_unq1),
-    .out(Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out)
-);
-mantle_wire__typeBit4 Mux2xTuplex_Bits8_y_Bits4_inst0_O_y (
-    .in(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_unq1),
-    .out(Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out)
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) const_222_8 (
+    .out(const_222_8_out)
 );
 wire [11:0] reg_P12_inst0_in;
-assign reg_P12_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y_out[3:0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x_out[7:0]};
+assign reg_P12_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y,Mux2xTuplex_Bits8_y_Bits4_inst0_O_x};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(12'hade),
@@ -239,16 +187,6 @@ mantle_wire__typeBitIn4 self_O_y (
     .in(self_O_y_in),
     .out(reg_P12_inst0_out[11:8])
 );
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
-coreir_term #(
-    .width(4)
-) term_inst1 (
-    .in(Const_inst1_out)
-);
 assign O_x = self_O_x_in;
 assign O_y = self_O_y_in;
 endmodule
@@ -261,22 +199,8 @@ module test_reg_of_product (
     output [3:0] O_y,
     input RESET
 );
-wire [7:0] Const_inst0_out;
-wire [3:0] Const_inst1_out;
 wire [7:0] Register_inst0_O_x;
 wire [3:0] Register_inst0_O_y;
-coreir_const #(
-    .value(8'hde),
-    .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-coreir_const #(
-    .value(4'ha),
-    .width(4)
-) Const_inst1 (
-    .out(Const_inst1_out)
-);
 Register Register_inst0 (
     .CLK(CLK),
     .I_x(I_x),
@@ -284,16 +208,6 @@ Register Register_inst0 (
     .O_x(Register_inst0_O_x),
     .O_y(Register_inst0_O_y),
     .RESET(RESET)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
-coreir_term #(
-    .width(4)
-) term_inst1 (
-    .in(Const_inst1_out)
 );
 assign O_x = Register_inst0_O_x;
 assign O_y = Register_inst0_O_y;

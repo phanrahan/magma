@@ -77,20 +77,20 @@ module Register (
     input CLK,
     input RESET
 );
-wire [7:0] Const_inst0_out;
 wire [7:0] Mux2xBits8_inst0_O;
+wire [7:0] const_222_8_out;
 wire [7:0] reg_P8_inst0_out;
+Mux2xBits8 Mux2xBits8_inst0 (
+    .I0(I),
+    .I1(const_222_8_out),
+    .S(RESET),
+    .O(Mux2xBits8_inst0_O)
+);
 coreir_const #(
     .value(8'hde),
     .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-Mux2xBits8 Mux2xBits8_inst0 (
-    .I0(I),
-    .I1(Const_inst0_out),
-    .S(RESET),
-    .O(Mux2xBits8_inst0_O)
+) const_222_8 (
+    .out(const_222_8_out)
 );
 coreir_reg #(
     .clk_posedge(1'b1),

@@ -17,25 +17,20 @@
           ["z","Bit"]
         ]],
         "instances":{
-          "Const_inst0":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",1]},
-            "modargs":{"value":[["BitVector",1],"1'h0"]}
-          },
           "MyMux1x2_inst0":{
             "modref":"global.MyMux1x2"
           },
-          "term_inst0":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",1]}
+          "const_0_1":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",1]},
+            "modargs":{"value":[["BitVector",1],"1'h0"]}
           }
         },
         "connections":[
-          ["MyMux1x2_inst0.S","Const_inst0.out"],
-          ["term_inst0.in","Const_inst0.out"],
           ["self.x","MyMux1x2_inst0.I0.0"],
           ["self.y","MyMux1x2_inst0.I1.0"],
-          ["self.z","MyMux1x2_inst0.O.0"]
+          ["self.z","MyMux1x2_inst0.O.0"],
+          ["const_0_1.out","MyMux1x2_inst0.S"]
         ]
       }
     }

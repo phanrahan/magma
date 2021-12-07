@@ -14,14 +14,6 @@ module mantle_concatNArrT__Ns17__t_childBitIn (
 assign out = {in1[6],in1[5],in1[4],in1[3],in1[2],in1[1],in1[0],in0[0]};
 endmodule
 
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_const #(
     parameter width = 1,
     parameter value = 1
@@ -51,7 +43,7 @@ module TestBinary (
 wire [7:0] ConcatN_inst0_out;
 wire [7:0] ConcatN_inst1_out;
 wire [7:0] ConcatN_inst2_out;
-wire [6:0] Const_inst0_out;
+wire [6:0] const_0_7_out;
 wire [7:0] magma_SInt_8_add_inst0_out;
 wire [7:0] magma_SInt_8_add_inst1_out;
 mantle_concatNArrT__Ns71__t_childBitIn ConcatN_inst0 (
@@ -66,14 +58,14 @@ mantle_concatNArrT__Ns71__t_childBitIn ConcatN_inst1 (
 );
 mantle_concatNArrT__Ns17__t_childBitIn ConcatN_inst2 (
     .in0(CIN),
-    .in1(Const_inst0_out),
+    .in1(const_0_7_out),
     .out(ConcatN_inst2_out)
 );
 coreir_const #(
     .value(7'h00),
     .width(7)
-) Const_inst0 (
-    .out(Const_inst0_out)
+) const_0_7 (
+    .out(const_0_7_out)
 );
 coreir_add #(
     .width(8)
@@ -88,11 +80,6 @@ coreir_add #(
     .in0(magma_SInt_8_add_inst0_out),
     .in1(ConcatN_inst2_out),
     .out(magma_SInt_8_add_inst1_out)
-);
-coreir_term #(
-    .width(7)
-) term_inst0 (
-    .in(Const_inst0_out)
 );
 assign O = magma_SInt_8_add_inst1_out[6:0];
 assign COUT = magma_SInt_8_add_inst1_out[7];

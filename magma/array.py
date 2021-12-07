@@ -858,6 +858,9 @@ class Array2(Wireable, Array):
             return None
         if Array._iswhole(ts):
             return ts[0].name.array
+        if all(t.const() for t in ts):
+            # Pack into Bits const if possible
+            return type(self).flip()(ts)
         return Array[self.N, self.T.flip()](ts)
 
     def value(self):

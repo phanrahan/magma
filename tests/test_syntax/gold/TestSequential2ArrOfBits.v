@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -31,7 +23,7 @@ module Register (
 );
 wire [104:0] reg_P105_inst0_out;
 wire [104:0] reg_P105_inst0_in;
-assign reg_P105_inst0_in = {I[14][6:0],I[13][6:0],I[12][6:0],I[11][6:0],I[10][6:0],I[9][6:0],I[8][6:0],I[7][6:0],I[6][6:0],I[5][6:0],I[4][6:0],I[3][6:0],I[2][6:0],I[1][6:0],I[0][6:0]};
+assign reg_P105_inst0_in = {I[14],I[13],I[12],I[11],I[10],I[9],I[8],I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(105'h000000000000000000000000000),
@@ -40,156 +32,6 @@ coreir_reg #(
     .clk(CLK),
     .in(reg_P105_inst0_in),
     .out(reg_P105_inst0_out)
-);
-coreir_term #(
-    .width(7)
-) term_inst0 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst1 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst10 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst11 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst12 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst13 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst14 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst15 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst16 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst17 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst18 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst19 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst2 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst20 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst21 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst22 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst23 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst24 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst25 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst26 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst27 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst28 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst29 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst3 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst4 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst5 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst6 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst7 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst8 (
-    .in(7'h00)
-);
-coreir_term #(
-    .width(7)
-) term_inst9 (
-    .in(7'h00)
 );
 assign O[14] = reg_P105_inst0_out[104:98];
 assign O[13] = reg_P105_inst0_out[97:91];

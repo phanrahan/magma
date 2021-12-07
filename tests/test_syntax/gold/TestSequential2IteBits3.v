@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -83,11 +75,9 @@ module Test (
     output [7:0] O_a,
     input sel
 );
-wire [3:0] Const_inst0_out;
 wire [7:0] Mux2xTuplea_Bits8_inst0_I1_a;
 wire Mux2x_SequentialRegisterWrapperBit_inst0_O;
 wire Register_inst0_O;
-assign Const_inst0_out = 4'h0;
 wire [7:0] Mux2xTuplea_Bits8_inst0_I0_a;
 assign Mux2xTuplea_Bits8_inst0_I0_a = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,Register_inst0_O};
 Mux2xTuplea_Bits8 Mux2xTuplea_Bits8_inst0 (
@@ -96,7 +86,7 @@ Mux2xTuplea_Bits8 Mux2xTuplea_Bits8_inst0 (
     .O_a(O_a),
     .S(sel)
 );
-assign Mux2xTuplea_Bits8_inst0_I1_a = {Register_inst0_O,Register_inst0_O,Register_inst0_O,Register_inst0_O,Const_inst0_out[3:0]};
+assign Mux2xTuplea_Bits8_inst0_I1_a = {Register_inst0_O,Register_inst0_O,Register_inst0_O,Register_inst0_O,4'h0};
 Mux2x_SequentialRegisterWrapperBit Mux2x_SequentialRegisterWrapperBit_inst0 (
     .I0(Register_inst0_O),
     .I1(Register_inst0_O),
@@ -107,11 +97,6 @@ Register Register_inst0 (
     .I(Mux2x_SequentialRegisterWrapperBit_inst0_O),
     .O(Register_inst0_O),
     .CLK(CLK)
-);
-coreir_term #(
-    .width(4)
-) term_inst0 (
-    .in(Const_inst0_out)
 );
 endmodule
 

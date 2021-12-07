@@ -19,13 +19,6 @@ module mantle_wire__typeBit3 (
 assign out = in;
 endmodule
 
-module mantle_wire__typeBit2 (
-    input [1:0] in,
-    output [1:0] out
-);
-assign out = in;
-endmodule
-
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -67,8 +60,6 @@ wire [2:0] coreir_commonlib_mux2x3_inst0_out_unq1;
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_0_in;
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_1_in;
 wire [2:0] coreir_commonlib_mux2x3_inst0_out_out;
-wire [1:0] self_I0__1_out;
-wire [1:0] self_I1__1_out;
 wire [1:0] self_O__1_in;
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data [1:0];
 assign coreir_commonlib_mux2x3_inst0_in_data[1] = coreir_commonlib_mux2x3_inst0_in_data_1_in;
@@ -79,13 +70,13 @@ commonlib_muxn__N2__width3 coreir_commonlib_mux2x3_inst0 (
     .out(coreir_commonlib_mux2x3_inst0_out_unq1)
 );
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x3_inst0_in_data_0_out = {self_I0__1_out[1:0],I0__0};
+assign coreir_commonlib_mux2x3_inst0_in_data_0_out = {I0__1,I0__0};
 mantle_wire__typeBitIn3 coreir_commonlib_mux2x3_inst0_in_data_0 (
     .in(coreir_commonlib_mux2x3_inst0_in_data_0_in),
     .out(coreir_commonlib_mux2x3_inst0_in_data_0_out)
 );
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x3_inst0_in_data_1_out = {self_I1__1_out[1:0],I1__0};
+assign coreir_commonlib_mux2x3_inst0_in_data_1_out = {I1__1,I1__0};
 mantle_wire__typeBitIn3 coreir_commonlib_mux2x3_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x3_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x3_inst0_in_data_1_out)
@@ -93,14 +84,6 @@ mantle_wire__typeBitIn3 coreir_commonlib_mux2x3_inst0_in_data_1 (
 mantle_wire__typeBit3 coreir_commonlib_mux2x3_inst0_out (
     .in(coreir_commonlib_mux2x3_inst0_out_unq1),
     .out(coreir_commonlib_mux2x3_inst0_out_out)
-);
-mantle_wire__typeBit2 self_I0__1 (
-    .in(I0__1),
-    .out(self_I0__1_out)
-);
-mantle_wire__typeBit2 self_I1__1 (
-    .in(I1__1),
-    .out(self_I1__1_out)
 );
 mantle_wire__typeBitIn2 self_O__1 (
     .in(self_O__1_in),

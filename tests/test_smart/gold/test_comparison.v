@@ -14,14 +14,6 @@ module mantle_concatNArrT__Ns115__t_childBitIn (
 assign out = {in1[14],in1[13],in1[12],in1[11],in1[10],in1[9],in1[8],in1[7],in1[6],in1[5],in1[4],in1[3],in1[2],in1[1],in1[0],in0[0]};
 endmodule
 
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module _Test (
     input [7:0] I0,
     input [11:0] I1,
@@ -47,21 +39,6 @@ mantle_concatNArrT__Ns115__t_childBitIn ConcatN_inst2 (
     .out(O2)
 );
 assign magma_UInt_12_eq_inst1_out = ConcatN_inst1_out == I1;
-coreir_term #(
-    .width(4)
-) term_inst0 (
-    .in(4'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst1 (
-    .in(4'h0)
-);
-coreir_term #(
-    .width(15)
-) term_inst2 (
-    .in(15'h0000)
-);
 assign O1 = ConcatN_inst0_out == I1;
 endmodule
 

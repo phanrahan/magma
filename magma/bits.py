@@ -26,7 +26,7 @@ from magma.generator import Generator2
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
 from magma.protocol_type import magma_type, magma_value
-from magma.ref import InstRef
+from magma.ref import ConstRef
 
 
 def _error_handler(fn):
@@ -104,47 +104,47 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
 
-    def _make_const(cls, val, T):
-        out = Const(val, T)().O
-        # Mark unused for register init case otherwise we get unconnected error
-        out.unused()
-        return out
+    def _make_const(cls, value):
+        if isinstance(value, tuple):
+            value = seq2int(value)
+        else:
+            value = int(value)
+        value = BitVector[cls.N](value)
+        return Out(cls)(const_value=value, name=ConstRef(repr(value)))
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
             arg = magma_value(args[0])
             if (isinstance(arg, list) and
                     all(isinstance(x, int) for x in arg)):
-                return cls._make_const(tuple(arg), cls.undirected_t)
+                return cls._make_const(tuple(arg))
             if isinstance(arg, int):
                 if isinstance(arg, int) and arg.bit_length() > cls.N:
                     raise ValueError(
                         f"Cannot construct {cls.orig_name}[{cls.N}] with "
                         f"integer {arg} (requires truncation)")
-                return cls._make_const(tuple(int2seq(arg, cls.N)),
-                                       cls.undirected_t)
+                return cls._make_const(tuple(int2seq(arg, cls.N)))
             if isinstance(arg, BitVector):
                 if isinstance(arg, BitVector) and len(arg) != cls.N:
                     raise TypeError(
                         f"Cannot construct {cls.orig_name}[{cls.N}] with "
                         f"BitVector of length {len(arg)} (sizes must "
                         "match)")
-                return cls._make_const(tuple(arg.bits()), cls)
+                return cls._make_const(tuple(arg.bits()))
             if isinstance(arg, Bits):
                 if arg.const():
-                    return cls._make_const(tuple(int2seq(int(arg), cls.N)),
-                                           cls.undirected_t)
+                    return cls._make_const(tuple(int2seq(int(arg), cls.N)))
                 arg_len = len(arg)
                 if arg_len == cls.N:
                     return arg
                 result = super().__call__(*args, **kwargs)
-                if arg_len != cls.N:
+                if arg_len > cls.N:
                     raise TypeError(
-                        f"Will not do implicit conversion of bits length")
-                # if arg_len < cls.N:
-                    # # Zext
-                    # result[:arg_len] @= arg
-                    # result[arg_len:] @= Bits[cls.N - arg_len](0)
+                        f"Will not do implicit truncation of bits length")
+                assert arg_len < cls.N
+                # Zext
+                result[:arg_len] @= arg
+                result[arg_len:] @= Bits[cls.N - arg_len](0)
                 # else:
                     # # Truncate
                     # result @= arg[:cls.N]
@@ -157,6 +157,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                         f"List initializer for Bits[{len(cls)}] must be same "
                         f"length, not {len(arg)}"
                     )
+                if all(isinstance(x, Type) and x.const() for x in arg):
+                    return cls._make_const(seq2int(list(int(x) for x in arg)))
                 result = cls.undirected_t()
                 for x, y in zip(result, arg):
                     x @= y
@@ -167,6 +169,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 result @= arg
                 return result
             if isinstance(arg, Bit):
+                if arg.const():
+                    return cls._make_const(int(arg))
                 # Type conversion done with wiring to an anon value
                 result = cls.undirected_t()
                 result[0] @= arg
@@ -220,15 +224,12 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array2.__hash__
     hwtypes_T = ht.BitVector
 
+    def __init__(self, *args, const_value=None, **kwargs):
+        self._const_value = const_value
+        super().__init__(*args, **kwargs)
+
     def const(self):
-        if not self.is_input() and self.driven():
-            # We treat intermediate values that are driven by a constant as a
-            # constant as well (helpful when a constant is converted to another
-            # type by wiring it to an intermediate)
-            trace = self.trace()
-            return trace is not None and trace.const()
-        return (isinstance(self.name, InstRef) and
-                isinstance(type(self.name.inst), Const))
+        return self._const_value is not None
 
     def __repr__(self):
         if self.const():
@@ -242,10 +243,7 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
     def bits(self):
         if not self.const():
             raise Exception("Not a constant")
-
-        if self.driven():
-            return [bool(t) for t in self.trace()]
-        return type(self.name.inst)._value
+        return self._const_value.bits()
 
     def __int__(self):
         if not self.const():
@@ -649,6 +647,12 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
             if len(index) < len(self):
                 index = index.zext(len(self) - len(index))
             return (self >> index)[0]
+        if self.const():
+            if isinstance(index, int):
+                return Bit(self._const_value[index])
+            assert isinstance(index, slice)
+            result = self._const_value[index]
+            return Bits[len(result)](result)
         return super().__getitem__(index)
 
     def reduce_or(self):

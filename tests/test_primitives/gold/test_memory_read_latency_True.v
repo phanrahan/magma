@@ -35,14 +35,6 @@ module coreir_sync_read_mem #(
 
 endmodule
 
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -70,15 +62,6 @@ module coreir_mux #(
     output [width-1:0] out
 );
   assign out = sel ? in1 : in0;
-endmodule
-
-module coreir_const #(
-    parameter width = 1,
-    parameter value = 1
-) (
-    output [width-1:0] out
-);
-  assign out = value;
 endmodule
 
 module commonlib_muxn__N2__width5 (
@@ -122,22 +105,8 @@ module Register (
     input CE,
     input CLK
 );
-wire [4:0] Const_inst0_out;
-wire [4:0] Const_inst1_out;
 wire [4:0] enable_mux_O;
 wire [4:0] reg_P5_inst0_out;
-coreir_const #(
-    .value(5'h00),
-    .width(5)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-coreir_const #(
-    .value(5'h00),
-    .width(5)
-) Const_inst1 (
-    .out(Const_inst1_out)
-);
 Mux2xBits5 enable_mux (
     .I0(reg_P5_inst0_out),
     .I1(I),
@@ -152,16 +121,6 @@ coreir_reg #(
     .clk(CLK),
     .in(enable_mux_O),
     .out(reg_P5_inst0_out)
-);
-coreir_term #(
-    .width(5)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
-coreir_term #(
-    .width(5)
-) term_inst1 (
-    .in(Const_inst1_out)
 );
 assign O = reg_P5_inst0_out;
 endmodule

@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -49,15 +41,15 @@ module TestITE (
     input [2:0] S,
     output [2:0] O
 );
-wire [2:0] Const_inst0_out;
+wire [2:0] const_0_3_out;
 wire magma_Bit_not_inst0_out;
 wire magma_Bits_3_eq_inst0_out;
 wire [2:0] magma_Bits_3_ite_Out_Bits_3_inst0_out;
 coreir_const #(
     .value(3'h0),
     .width(3)
-) Const_inst0 (
-    .out(Const_inst0_out)
+) const_0_3 (
+    .out(const_0_3_out)
 );
 corebit_not magma_Bit_not_inst0 (
     .in(magma_Bits_3_eq_inst0_out),
@@ -67,7 +59,7 @@ coreir_eq #(
     .width(3)
 ) magma_Bits_3_eq_inst0 (
     .in0(S),
-    .in1(Const_inst0_out),
+    .in1(const_0_3_out),
     .out(magma_Bits_3_eq_inst0_out)
 );
 coreir_mux #(
@@ -77,11 +69,6 @@ coreir_mux #(
     .in1(I1),
     .sel(magma_Bit_not_inst0_out),
     .out(magma_Bits_3_ite_Out_Bits_3_inst0_out)
-);
-coreir_term #(
-    .width(3)
-) term_inst0 (
-    .in(Const_inst0_out)
 );
 assign O = magma_Bits_3_ite_Out_Bits_3_inst0_out;
 endmodule

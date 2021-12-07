@@ -26,20 +26,6 @@ module mantle_wire__typeBit6 (
 assign out = in;
 endmodule
 
-module mantle_wire__typeBit4 (
-    input [3:0] in,
-    output [3:0] out
-);
-assign out = in;
-endmodule
-
-module mantle_wire__typeBit2 (
-    input [1:0] in,
-    output [1:0] out
-);
-assign out = in;
-endmodule
-
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -81,10 +67,6 @@ wire [5:0] coreir_commonlib_mux2x6_inst0_out_unq1;
 wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_0_in;
 wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_1_in;
 wire [5:0] coreir_commonlib_mux2x6_inst0_out_out;
-wire [1:0] self_I0_X_out;
-wire [3:0] self_I0_Y_out;
-wire [1:0] self_I1_X_out;
-wire [3:0] self_I1_Y_out;
 wire [1:0] self_O_X_in;
 wire [3:0] self_O_Y_in;
 wire [5:0] coreir_commonlib_mux2x6_inst0_in_data [1:0];
@@ -96,13 +78,13 @@ commonlib_muxn__N2__width6 coreir_commonlib_mux2x6_inst0 (
     .out(coreir_commonlib_mux2x6_inst0_out_unq1)
 );
 wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x6_inst0_in_data_0_out = {self_I0_Y_out[3:0],self_I0_X_out[1:0]};
+assign coreir_commonlib_mux2x6_inst0_in_data_0_out = {I0_Y,I0_X};
 mantle_wire__typeBitIn6 coreir_commonlib_mux2x6_inst0_in_data_0 (
     .in(coreir_commonlib_mux2x6_inst0_in_data_0_in),
     .out(coreir_commonlib_mux2x6_inst0_in_data_0_out)
 );
 wire [5:0] coreir_commonlib_mux2x6_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x6_inst0_in_data_1_out = {self_I1_Y_out[3:0],self_I1_X_out[1:0]};
+assign coreir_commonlib_mux2x6_inst0_in_data_1_out = {I1_Y,I1_X};
 mantle_wire__typeBitIn6 coreir_commonlib_mux2x6_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x6_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x6_inst0_in_data_1_out)
@@ -110,22 +92,6 @@ mantle_wire__typeBitIn6 coreir_commonlib_mux2x6_inst0_in_data_1 (
 mantle_wire__typeBit6 coreir_commonlib_mux2x6_inst0_out (
     .in(coreir_commonlib_mux2x6_inst0_out_unq1),
     .out(coreir_commonlib_mux2x6_inst0_out_out)
-);
-mantle_wire__typeBit2 self_I0_X (
-    .in(I0_X),
-    .out(self_I0_X_out)
-);
-mantle_wire__typeBit4 self_I0_Y (
-    .in(I0_Y),
-    .out(self_I0_Y_out)
-);
-mantle_wire__typeBit2 self_I1_X (
-    .in(I1_X),
-    .out(self_I1_X_out)
-);
-mantle_wire__typeBit4 self_I1_Y (
-    .in(I1_Y),
-    .out(self_I1_Y_out)
 );
 mantle_wire__typeBitIn2 self_O_X (
     .in(self_O_X_in),

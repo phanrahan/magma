@@ -15,7 +15,7 @@ Foo Foo_inst0 (
     .I(Foo_inst0_I),
     .O(Foo_inst0_O)
 );
-assign x = {Foo_inst0_O[4][4:0],Foo_inst0_O[3][4:0],Foo_inst0_O[2][4:0],Foo_inst0_O[1][4:0],Foo_inst0_O[0][4:0]};
+assign x = {Foo_inst0_O[4],Foo_inst0_O[3],Foo_inst0_O[2],Foo_inst0_O[1],Foo_inst0_O[0]};
 assign O[4] = x[24:20];
 assign O[3] = x[19:15];
 assign O[2] = x[14:10];

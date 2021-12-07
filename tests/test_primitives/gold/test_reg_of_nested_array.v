@@ -12,14 +12,6 @@ module mantle_wire__typeBit24 (
 assign out = in;
 endmodule
 
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -94,13 +86,13 @@ commonlib_muxn__N2__width24 coreir_commonlib_mux2x24_inst0 (
     .out(coreir_commonlib_mux2x24_inst0_out_unq1)
 );
 wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x24_inst0_in_data_0_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
+assign coreir_commonlib_mux2x24_inst0_in_data_0_out = {I0[2],I0[1],I0[0]};
 mantle_wire__typeBitIn24 coreir_commonlib_mux2x24_inst0_in_data_0 (
     .in(coreir_commonlib_mux2x24_inst0_in_data_0_in),
     .out(coreir_commonlib_mux2x24_inst0_in_data_0_out)
 );
 wire [23:0] coreir_commonlib_mux2x24_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x24_inst0_in_data_1_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
+assign coreir_commonlib_mux2x24_inst0_in_data_1_out = {I1[2],I1[1],I1[0]};
 mantle_wire__typeBitIn24 coreir_commonlib_mux2x24_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x24_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x24_inst0_in_data_1_out)
@@ -120,45 +112,45 @@ module Register (
     input CLK,
     input RESET
 );
-wire [7:0] Const_inst0_out;
-wire [7:0] Const_inst1_out;
-wire [7:0] Const_inst2_out;
 wire [7:0] Mux2xArray3_Bits8_inst0_O [2:0];
+wire [7:0] const_173_8_out;
+wire [7:0] const_190_8_out;
+wire [7:0] const_222_8_out;
 wire [23:0] reg_P24_inst0_out;
-coreir_const #(
-    .value(8'hde),
-    .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-coreir_const #(
-    .value(8'had),
-    .width(8)
-) Const_inst1 (
-    .out(Const_inst1_out)
-);
-coreir_const #(
-    .value(8'hbe),
-    .width(8)
-) Const_inst2 (
-    .out(Const_inst2_out)
-);
 wire [7:0] Mux2xArray3_Bits8_inst0_I0 [2:0];
 assign Mux2xArray3_Bits8_inst0_I0[2] = I[2];
 assign Mux2xArray3_Bits8_inst0_I0[1] = I[1];
 assign Mux2xArray3_Bits8_inst0_I0[0] = I[0];
 wire [7:0] Mux2xArray3_Bits8_inst0_I1 [2:0];
-assign Mux2xArray3_Bits8_inst0_I1[2] = Const_inst2_out;
-assign Mux2xArray3_Bits8_inst0_I1[1] = Const_inst1_out;
-assign Mux2xArray3_Bits8_inst0_I1[0] = Const_inst0_out;
+assign Mux2xArray3_Bits8_inst0_I1[2] = const_190_8_out;
+assign Mux2xArray3_Bits8_inst0_I1[1] = const_173_8_out;
+assign Mux2xArray3_Bits8_inst0_I1[0] = const_222_8_out;
 Mux2xArray3_Bits8 Mux2xArray3_Bits8_inst0 (
     .I0(Mux2xArray3_Bits8_inst0_I0),
     .I1(Mux2xArray3_Bits8_inst0_I1),
     .S(RESET),
     .O(Mux2xArray3_Bits8_inst0_O)
 );
+coreir_const #(
+    .value(8'had),
+    .width(8)
+) const_173_8 (
+    .out(const_173_8_out)
+);
+coreir_const #(
+    .value(8'hbe),
+    .width(8)
+) const_190_8 (
+    .out(const_190_8_out)
+);
+coreir_const #(
+    .value(8'hde),
+    .width(8)
+) const_222_8 (
+    .out(const_222_8_out)
+);
 wire [23:0] reg_P24_inst0_in;
-assign reg_P24_inst0_in = {Mux2xArray3_Bits8_inst0_O[2][7:0],Mux2xArray3_Bits8_inst0_O[1][7:0],Mux2xArray3_Bits8_inst0_O[0][7:0]};
+assign reg_P24_inst0_in = {Mux2xArray3_Bits8_inst0_O[2],Mux2xArray3_Bits8_inst0_O[1],Mux2xArray3_Bits8_inst0_O[0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'hbeadde),
@@ -167,21 +159,6 @@ coreir_reg #(
     .clk(CLK),
     .in(reg_P24_inst0_in),
     .out(reg_P24_inst0_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst1 (
-    .in(Const_inst1_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst2 (
-    .in(Const_inst2_out)
 );
 assign O[2] = reg_P24_inst0_out[23:16];
 assign O[1] = reg_P24_inst0_out[15:8];
@@ -194,28 +171,7 @@ module test_reg_of_nested_array (
     input CLK,
     input RESET
 );
-wire [7:0] Const_inst0_out;
-wire [7:0] Const_inst1_out;
-wire [7:0] Const_inst2_out;
 wire [7:0] Register_inst0_O [2:0];
-coreir_const #(
-    .value(8'hde),
-    .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-coreir_const #(
-    .value(8'had),
-    .width(8)
-) Const_inst1 (
-    .out(Const_inst1_out)
-);
-coreir_const #(
-    .value(8'hbe),
-    .width(8)
-) Const_inst2 (
-    .out(Const_inst2_out)
-);
 wire [7:0] Register_inst0_I [2:0];
 assign Register_inst0_I[2] = I[2];
 assign Register_inst0_I[1] = I[1];
@@ -225,21 +181,6 @@ Register Register_inst0 (
     .O(Register_inst0_O),
     .CLK(CLK),
     .RESET(RESET)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst1 (
-    .in(Const_inst1_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst2 (
-    .in(Const_inst2_out)
 );
 assign O[2] = Register_inst0_O[2];
 assign O[1] = Register_inst0_O[1];

@@ -59,13 +59,13 @@ commonlib_muxn__N2__width4 coreir_commonlib_mux2x4_inst0 (
     .out(coreir_commonlib_mux2x4_inst0_out_unq1)
 );
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x4_inst0_in_data_0_out = {I0[1][1:0],I0[0][1:0]};
+assign coreir_commonlib_mux2x4_inst0_in_data_0_out = {I0[1],I0[0]};
 mantle_wire__typeBitIn4 coreir_commonlib_mux2x4_inst0_in_data_0 (
     .in(coreir_commonlib_mux2x4_inst0_in_data_0_in),
     .out(coreir_commonlib_mux2x4_inst0_in_data_0_out)
 );
 wire [3:0] coreir_commonlib_mux2x4_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x4_inst0_in_data_1_out = {I1[1][1:0],I1[0][1:0]};
+assign coreir_commonlib_mux2x4_inst0_in_data_1_out = {I1[1],I1[0]};
 mantle_wire__typeBitIn4 coreir_commonlib_mux2x4_inst0_in_data_1 (
     .in(coreir_commonlib_mux2x4_inst0_in_data_1_in),
     .out(coreir_commonlib_mux2x4_inst0_in_data_1_out)

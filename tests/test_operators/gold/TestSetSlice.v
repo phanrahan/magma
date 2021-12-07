@@ -6,14 +6,6 @@ module mantle_concatNArrT__Ns33__t_childBitIn (
 assign out = {in1[2],in1[1],in1[0],in0[2],in0[1],in0[0]};
 endmodule
 
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module Mux2xBit (
     input I0,
     input I1,
@@ -49,7 +41,6 @@ wire [5:0] ConcatN_inst6_out;
 wire [5:0] ConcatN_inst7_out;
 wire [5:0] ConcatN_inst8_out;
 wire [5:0] ConcatN_inst9_out;
-wire [1:0] Const_inst1_out;
 wire Mux2xBit_inst0_O;
 wire Mux2xBit_inst1_O;
 wire Mux2xBit_inst10_O;
@@ -158,7 +149,6 @@ mantle_concatNArrT__Ns33__t_childBitIn ConcatN_inst9 (
     .in1(3'h0),
     .out(ConcatN_inst9_out)
 );
-assign Const_inst1_out = 2'h0;
 Mux2xBit Mux2xBit_inst0 (
     .I0(1'b1),
     .I1(magma_Bits_6_lshr_inst0_out[0]),
@@ -231,18 +221,18 @@ Mux2xBit Mux2xBit_inst9 (
     .S(magma_Bit_and_inst11_out),
     .O(Mux2xBit_inst9_O)
 );
-assign magma_Bit_and_inst0_out = 1'b1 & (({Const_inst1_out[1:0],x[1:0]}) <= 4'h0);
-assign magma_Bit_and_inst10_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h8);
-assign magma_Bit_and_inst11_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h9);
-assign magma_Bit_and_inst12_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'ha);
-assign magma_Bit_and_inst13_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'hb);
-assign magma_Bit_and_inst2_out = (1'b1 & (({Const_inst1_out[1:0],x[1:0]}) <= 4'h1)) & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h1);
-assign magma_Bit_and_inst4_out = (1'b1 & (({Const_inst1_out[1:0],x[1:0]}) <= 4'h2)) & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h2);
-assign magma_Bit_and_inst5_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h3);
-assign magma_Bit_and_inst6_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h4);
-assign magma_Bit_and_inst7_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h5);
-assign magma_Bit_and_inst8_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h6);
-assign magma_Bit_and_inst9_out = 1'b1 & ((4'((4'(({Const_inst1_out[1:0],x[1:0]}) + 4'h6)) - 4'h1)) >= 4'h7);
+assign magma_Bit_and_inst0_out = 1'b1 & (({2'h0,x}) <= 4'h0);
+assign magma_Bit_and_inst10_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h8);
+assign magma_Bit_and_inst11_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h9);
+assign magma_Bit_and_inst12_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'ha);
+assign magma_Bit_and_inst13_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'hb);
+assign magma_Bit_and_inst2_out = (1'b1 & (({2'h0,x}) <= 4'h1)) & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h1);
+assign magma_Bit_and_inst4_out = (1'b1 & (({2'h0,x}) <= 4'h2)) & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h2);
+assign magma_Bit_and_inst5_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h3);
+assign magma_Bit_and_inst6_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h4);
+assign magma_Bit_and_inst7_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h5);
+assign magma_Bit_and_inst8_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h6);
+assign magma_Bit_and_inst9_out = 1'b1 & ((4'((4'(({2'h0,x}) + 4'h6)) - 4'h1)) >= 4'h7);
 assign magma_Bits_6_lshr_inst0_out = I >> ConcatN_inst0_out;
 assign magma_Bits_6_lshr_inst1_out = I >> ConcatN_inst1_out;
 assign magma_Bits_6_lshr_inst10_out = I >> ConcatN_inst10_out;
@@ -255,328 +245,18 @@ assign magma_Bits_6_lshr_inst6_out = I >> ConcatN_inst6_out;
 assign magma_Bits_6_lshr_inst7_out = I >> ConcatN_inst7_out;
 assign magma_Bits_6_lshr_inst8_out = I >> ConcatN_inst8_out;
 assign magma_Bits_6_lshr_inst9_out = I >> ConcatN_inst9_out;
-assign magma_UInt_4_sub_inst0_out = 4'(4'h0 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst10_out = 4'(4'h5 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst12_out = 4'(4'h6 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst14_out = 4'(4'h7 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst16_out = 4'(4'h8 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst18_out = 4'(4'h9 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst2_out = 4'(4'h1 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst20_out = 4'(4'ha - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst22_out = 4'(4'hb - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst4_out = 4'(4'h2 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst6_out = 4'(4'h3 - ({Const_inst1_out[1:0],x[1:0]}));
-assign magma_UInt_4_sub_inst8_out = 4'(4'h4 - ({Const_inst1_out[1:0],x[1:0]}));
-coreir_term #(
-    .width(12)
-) term_inst0 (
-    .in(12'hfff)
-);
-coreir_term #(
-    .width(2)
-) term_inst1 (
-    .in(Const_inst1_out)
-);
-coreir_term #(
-    .width(3)
-) term_inst10 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst11 (
-    .in(4'h2)
-);
-coreir_term #(
-    .width(4)
-) term_inst12 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst13 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst14 (
-    .in(4'h2)
-);
-coreir_term #(
-    .width(4)
-) term_inst15 (
-    .in(4'h2)
-);
-coreir_term #(
-    .width(3)
-) term_inst16 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst17 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst18 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst19 (
-    .in(4'h3)
-);
-coreir_term #(
-    .width(4)
-) term_inst2 (
-    .in(4'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst20 (
-    .in(4'h3)
-);
-coreir_term #(
-    .width(3)
-) term_inst21 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst22 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst23 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst24 (
-    .in(4'h4)
-);
-coreir_term #(
-    .width(4)
-) term_inst25 (
-    .in(4'h4)
-);
-coreir_term #(
-    .width(3)
-) term_inst26 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst27 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst28 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst29 (
-    .in(4'h5)
-);
-coreir_term #(
-    .width(4)
-) term_inst3 (
-    .in(4'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst30 (
-    .in(4'h5)
-);
-coreir_term #(
-    .width(3)
-) term_inst31 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst32 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst33 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst34 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst35 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(3)
-) term_inst36 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst37 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst38 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst39 (
-    .in(4'h7)
-);
-coreir_term #(
-    .width(3)
-) term_inst4 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst40 (
-    .in(4'h7)
-);
-coreir_term #(
-    .width(3)
-) term_inst41 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst42 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst43 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst44 (
-    .in(4'h8)
-);
-coreir_term #(
-    .width(4)
-) term_inst45 (
-    .in(4'h8)
-);
-coreir_term #(
-    .width(3)
-) term_inst46 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst47 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst48 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst49 (
-    .in(4'h9)
-);
-coreir_term #(
-    .width(4)
-) term_inst5 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst50 (
-    .in(4'h9)
-);
-coreir_term #(
-    .width(3)
-) term_inst51 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst52 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst53 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst54 (
-    .in(4'ha)
-);
-coreir_term #(
-    .width(4)
-) term_inst55 (
-    .in(4'ha)
-);
-coreir_term #(
-    .width(3)
-) term_inst56 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst57 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst58 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst59 (
-    .in(4'hb)
-);
-coreir_term #(
-    .width(4)
-) term_inst6 (
-    .in(4'h6)
-);
-coreir_term #(
-    .width(4)
-) term_inst60 (
-    .in(4'hb)
-);
-coreir_term #(
-    .width(3)
-) term_inst61 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst7 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst8 (
-    .in(4'h1)
-);
-coreir_term #(
-    .width(4)
-) term_inst9 (
-    .in(4'h1)
-);
+assign magma_UInt_4_sub_inst0_out = 4'(4'h0 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst10_out = 4'(4'h5 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst12_out = 4'(4'h6 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst14_out = 4'(4'h7 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst16_out = 4'(4'h8 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst18_out = 4'(4'h9 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst2_out = 4'(4'h1 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst20_out = 4'(4'ha - ({2'h0,x}));
+assign magma_UInt_4_sub_inst22_out = 4'(4'hb - ({2'h0,x}));
+assign magma_UInt_4_sub_inst4_out = 4'(4'h2 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst6_out = 4'(4'h3 - ({2'h0,x}));
+assign magma_UInt_4_sub_inst8_out = 4'(4'h4 - ({2'h0,x}));
 assign O = {Mux2xBit_inst11_O,Mux2xBit_inst10_O,Mux2xBit_inst9_O,Mux2xBit_inst8_O,Mux2xBit_inst7_O,Mux2xBit_inst6_O,Mux2xBit_inst5_O,Mux2xBit_inst4_O,Mux2xBit_inst3_O,Mux2xBit_inst2_O,Mux2xBit_inst1_O,Mux2xBit_inst0_O};
 endmodule
 

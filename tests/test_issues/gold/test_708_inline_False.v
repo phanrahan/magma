@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -75,44 +67,34 @@ module Test (
     output [7:0] O_a_x,
     input c
 );
-wire [7:0] Const_inst0_out;
-wire [7:0] Const_inst1_out;
 wire [7:0] Mux2xTuplex_UInt8_inst0_O_x;
+wire [7:0] const_0_8_out;
+wire [7:0] const_1_8_out;
 wire [7:0] magma_UInt_8_add_inst0_out;
-coreir_const #(
-    .value(8'h00),
-    .width(8)
-) Const_inst0 (
-    .out(Const_inst0_out)
-);
-coreir_const #(
-    .value(8'h01),
-    .width(8)
-) Const_inst1 (
-    .out(Const_inst1_out)
-);
 Mux2xTuplex_UInt8 Mux2xTuplex_UInt8_inst0 (
-    .I0_x(Const_inst0_out),
+    .I0_x(const_0_8_out),
     .I1_x(magma_UInt_8_add_inst0_out),
     .O_x(Mux2xTuplex_UInt8_inst0_O_x),
     .S(c)
 );
+coreir_const #(
+    .value(8'h00),
+    .width(8)
+) const_0_8 (
+    .out(const_0_8_out)
+);
+coreir_const #(
+    .value(8'h01),
+    .width(8)
+) const_1_8 (
+    .out(const_1_8_out)
+);
 coreir_add #(
     .width(8)
 ) magma_UInt_8_add_inst0 (
-    .in0(Const_inst0_out),
-    .in1(Const_inst1_out),
+    .in0(const_0_8_out),
+    .in1(const_1_8_out),
     .out(magma_UInt_8_add_inst0_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst0 (
-    .in(Const_inst0_out)
-);
-coreir_term #(
-    .width(8)
-) term_inst1 (
-    .in(Const_inst1_out)
 );
 assign O_a_x = Mux2xTuplex_UInt8_inst0_O_x;
 endmodule

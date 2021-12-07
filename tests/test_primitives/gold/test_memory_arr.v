@@ -5,13 +5,6 @@ module mantle_wire__typeBitIn5 (
 assign in = out;
 endmodule
 
-module mantle_wire__typeBit5 (
-    input [4:0] in,
-    output [4:0] out
-);
-assign out = in;
-endmodule
-
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -71,10 +64,8 @@ module Memory (
 wire [11:0] coreir_mem4x12_inst0_rdata;
 wire [4:0] self_RDATA_0_Y_in;
 wire [4:0] self_RDATA_1_Y_in;
-wire [4:0] self_WDATA_0_Y_out;
-wire [4:0] self_WDATA_1_Y_out;
 wire [11:0] coreir_mem4x12_inst0_wdata;
-assign coreir_mem4x12_inst0_wdata = {self_WDATA_1_Y_out[4:0],WDATA_1_X,self_WDATA_0_Y_out[4:0],WDATA_0_X};
+assign coreir_mem4x12_inst0_wdata = {WDATA_1_Y,WDATA_1_X,WDATA_0_Y,WDATA_0_X};
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
@@ -95,14 +86,6 @@ mantle_wire__typeBitIn5 self_RDATA_0_Y (
 mantle_wire__typeBitIn5 self_RDATA_1_Y (
     .in(self_RDATA_1_Y_in),
     .out(coreir_mem4x12_inst0_rdata[11:7])
-);
-mantle_wire__typeBit5 self_WDATA_0_Y (
-    .in(WDATA_0_Y),
-    .out(self_WDATA_0_Y_out)
-);
-mantle_wire__typeBit5 self_WDATA_1_Y (
-    .in(WDATA_1_Y),
-    .out(self_WDATA_1_Y_out)
 );
 assign RDATA_0_X = coreir_mem4x12_inst0_rdata[0];
 assign RDATA_0_Y = self_RDATA_0_Y_in;

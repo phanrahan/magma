@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg_arst #(
     parameter width = 1,
     parameter arst_posedge = 1,
@@ -72,16 +64,6 @@ coreir_reg_arst #(
     .in(enable_mux_O),
     .out(O)
 );
-coreir_term #(
-    .width(3)
-) term_inst0 (
-    .in(3'h0)
-);
-coreir_term #(
-    .width(3)
-) term_inst1 (
-    .in(3'h0)
-);
 endmodule
 
 module Test2 (
@@ -100,11 +82,6 @@ Register Register_inst0 (
     .ASYNCRESET(ASYNCRESET)
 );
 assign magma_UInt_3_add_inst0_out = 3'(Register_inst0_O + 3'h1);
-coreir_term #(
-    .width(3)
-) term_inst0 (
-    .in(3'h1)
-);
 assign O = magma_UInt_3_add_inst0_out;
 endmodule
 

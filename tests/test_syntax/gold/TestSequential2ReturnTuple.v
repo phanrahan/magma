@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -37,16 +29,6 @@ coreir_reg #(
     .clk(CLK),
     .in(I),
     .out(O)
-);
-coreir_term #(
-    .width(4)
-) term_inst0 (
-    .in(4'h0)
-);
-coreir_term #(
-    .width(4)
-) term_inst1 (
-    .in(4'h0)
 );
 endmodule
 

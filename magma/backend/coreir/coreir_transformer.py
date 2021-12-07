@@ -413,10 +413,14 @@ class DefinitionTransformer(TransformerBase):
                     # extra array dimension
                     self.connect(module_defn, port[offset], d[0])
                 else:
+                    if d.iswhole():
+                        value = d[0].name.array
+                    else:
+                        value = Slice(d[0].name.array, d[0].name.index,
+                                      d[-1].name.index + 1)
                     self.connect(module_defn,
                                  Slice(port, offset, offset + len(d)),
-                                 Slice(d[0].name.array, d[0].name.index,
-                                       d[-1].name.index + 1))
+                                 value)
                 offset += len(d)
 
             return None
@@ -426,6 +430,8 @@ class DefinitionTransformer(TransformerBase):
             return None
         if isinstance(value, Digital) and value.const():
             return self._const_instance(value, None, module_defn)
+        if isinstance(value, Array) and value.const():
+            return self._const_instance(value, len(value), module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))

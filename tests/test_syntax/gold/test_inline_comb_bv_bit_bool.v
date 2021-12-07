@@ -1,11 +1,3 @@
-module coreir_term #(
-    parameter width = 1
-) (
-    input [width-1:0] in
-);
-
-endmodule
-
 module Mux2xBits2 (
     input [1:0] I0,
     input [1:0] I1,
@@ -65,16 +57,6 @@ Mux2xBits2 Mux2xBits2_inst0 (
     .I1(2'h2),
     .S(s),
     .O(O0)
-);
-coreir_term #(
-    .width(2)
-) term_inst0 (
-    .in(2'h1)
-);
-coreir_term #(
-    .width(2)
-) term_inst1 (
-    .in(2'h2)
 );
 endmodule
 
