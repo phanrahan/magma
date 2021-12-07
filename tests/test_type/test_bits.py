@@ -434,3 +434,11 @@ def test_python_bits_from_int_truncation_error():
         with pytest.raises(ValueError) as e:
             m.bits(4, 2)
         assert str(e.value) == "Cannot convert 4 to a Bits of length 2"
+
+
+def test_bits_promote():
+    class TestBinary(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[3]), O=m.Out(m.Bits[6]))
+        io.O @= Bits[6](io.I)
+        assert int(io.O[4].trace()) == 0
+        assert int(io.O[5].trace()) == 0

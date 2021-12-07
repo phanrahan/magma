@@ -261,3 +261,11 @@ def test_rop_type_error(op, op_str):
             f"unsupported operand type(s) for {op_str}: 'UInt[(5, Bit)]' and "
             "'UInt[(4, Bit)]'"
         )
+
+
+def test_uint_promote():
+    class TestBinary(Circuit):
+        io = IO(I=In(UInt[3]), O=Out(UInt[6]))
+        io.O @= UInt[6](io.I)
+        assert int(io.O[4].trace()) == 0
+        assert int(io.O[5].trace()) == 0
