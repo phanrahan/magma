@@ -292,3 +292,11 @@ def test_rop_type_error(op, op_str):
             f"unsupported operand type(s) for {op_str}: 'SInt[(5, Bit)]' and "
             "'SInt[(4, Bit)]'"
         )
+
+
+def test_sint_promote():
+    class TestBinary(Circuit):
+        io = IO(I=In(SInt[3]), O=Out(SInt[6]))
+        io.O @= SInt[6](io.I)
+        assert io.O[4].trace() is io.I[-1]
+        assert io.O[5].trace() is io.I[-1]

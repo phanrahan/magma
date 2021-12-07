@@ -135,29 +135,31 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 if arg.const():
                     return cls._make_const(tuple(int2seq(int(arg), cls.N)))
                 arg_len = len(arg)
-                if arg_len == cls.N:
+                if type(arg) is cls:
+                    # Don't need to cast
                     return arg
                 result = super().__call__(*args, **kwargs)
+                if arg_len == cls.N:
+                    return result
                 if arg_len > cls.N:
                     raise TypeError(
                         f"Will not do implicit truncation of bits length")
                 assert arg_len < cls.N
-                # Zext
-                result[:arg_len] @= arg
-                result[arg_len:] @= Bits[cls.N - arg_len](0)
-                # else:
-                    # # Truncate
-                    # result @= arg[:cls.N]
-                # TODO(leonardt/array2): zext/sext for Bits/UInt/SInt
-                # constructor with smaller size
-                return result
+                return cls._extend(result, arg)
             if isinstance(arg, list):
                 if len(arg) != len(cls):
                     raise TypeError(
                         f"List initializer for Bits[{len(cls)}] must be same "
                         f"length, not {len(arg)}"
                     )
-                if all(isinstance(x, Type) and x.const() for x in arg):
+
+                def _const(x):
+                    if isinstance(x, Type) and x.const():
+                        return True
+                    if isinstance(x, (bool, int, ht.Bit, BitVector)):
+                        return True
+                    return False
+                if all(_const(x) for x in arg):
                     return cls._make_const(seq2int(list(int(x) for x in arg)))
                 result = cls.undirected_t()
                 for x, y in zip(result, arg):
@@ -224,6 +226,12 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array2.__hash__
     hwtypes_T = ht.BitVector
 
+    @classmethod
+    def _extend(cls, result, arg):
+        result[:len(arg)] @= arg
+        result[len(arg):] @= Bits[cls.N - len(arg)](0)
+        return result
+
     def __init__(self, *args, const_value=None, **kwargs):
         self._const_value = const_value
         super().__init__(*args, **kwargs)
@@ -235,10 +243,6 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
         if self.const():
             return f'{type(self).undirected_t}({int(self)})'
         return super().__repr__()
-        # if not self.name.anon():
-        #     return super().__repr__()
-        # ts = [repr(t) for t in self.ts]
-        # return 'bits([{}])'.format(', '.join(ts))
 
     def bits(self):
         if not self.const():
@@ -647,13 +651,19 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
             if len(index) < len(self):
                 index = index.zext(len(self) - len(index))
             return (self >> index)[0]
-        if self.const():
-            if isinstance(index, int):
-                return Bit(self._const_value[index])
-            assert isinstance(index, slice)
-            result = self._const_value[index]
-            return Bits[len(result)](result)
+        # if self.const():
+        #     if isinstance(index, int):
+        #         return Bit(self._const_value[index])
+        #     assert isinstance(index, slice)
+        #     result = self._const_value[index]
+        #     return Bits[len(result)](result)
         return super().__getitem__(index)
+
+    # @property
+    # def ts(self):
+    #     if self.const():
+    #         return [Bit(i) for i in self.bits()]
+    #     return super().ts
 
     def reduce_or(self):
         return reduce(operator.or_, self)
@@ -748,6 +758,13 @@ class UInt(Int):
 
 class SInt(Int):
     hwtypes_T = ht.SIntVector
+
+    @classmethod
+    def _extend(cls, result, arg):
+        result[:len(arg)] @= arg
+        for i in range(len(arg), cls.N):
+            result[i] @= arg[-1]
+        return result
 
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
