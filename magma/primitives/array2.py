@@ -138,3 +138,13 @@ class GetsBuilder(CircuitBuilder):
 
 
 Array2._make_gets_builder = lambda self: GetsBuilder(self)
+
+
+class Reverse(Generator2):
+    def __init__(self, T):
+        self.io = IO(I=In(T), O=Out(T))
+        for i in range(T.N):
+            self.io.O[T.N - 1 - i] @= self.io.I[i]
+
+
+Array2.reversed = lambda self: Reverse(type(self))()(self)

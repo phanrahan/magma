@@ -357,3 +357,13 @@ def test_array2_overlapping_override_bulk_wire2(nested, caplog):
         io.O @= io.I
 
     _check_compile("test_array2_overlapping_override_bulk_wire2", Foo, nested)
+
+
+def test_array2_reversed():
+    T = m.Array2[4, m.Bit]
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= io.I[::-1]
+
+    _check_compile("test_array2_reversed", Foo, False)

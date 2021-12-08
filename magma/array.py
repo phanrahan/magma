@@ -780,6 +780,8 @@ class Array2(Wireable, Array):
         if isinstance(key, int) and key > self.N - 1:
             raise IndexError()
         if isinstance(key, slice):
+            if key.start is None and key.stop is None and key.step == -1:
+                return self.reversed()
             # Normalize slice by mapping None to concrete int values
             start = key.start if key.start is not None else 0
             if start < 0:
