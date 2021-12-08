@@ -131,7 +131,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                         f"BitVector of length {len(arg)} (sizes must "
                         "match)")
                 return cls._make_const(tuple(arg.bits()))
-            if isinstance(arg, Bits):
+            if isinstance(arg, Array) and issubclass(arg.T, Bit):
                 if arg.const():
                     return cls._make_const(tuple(int2seq(int(arg), cls.N)))
                 arg_len = len(arg)
