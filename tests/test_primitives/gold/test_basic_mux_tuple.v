@@ -1,24 +1,3 @@
-module mantle_wire__typeBitIn3 (
-    output [2:0] in,
-    input [2:0] out
-);
-assign in = out;
-endmodule
-
-module mantle_wire__typeBitIn2 (
-    output [1:0] in,
-    input [1:0] out
-);
-assign in = out;
-endmodule
-
-module mantle_wire__typeBit3 (
-    input [2:0] in,
-    output [2:0] out
-);
-assign out = in;
-endmodule
-
 module coreir_mux #(
     parameter width = 1
 ) (
@@ -56,41 +35,17 @@ module Mux2xTupleBit_Bits2 (
     output [1:0] O__1,
     input S
 );
-wire [2:0] coreir_commonlib_mux2x3_inst0_out_unq1;
-wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_0_in;
-wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_1_in;
-wire [2:0] coreir_commonlib_mux2x3_inst0_out_out;
-wire [1:0] self_O__1_in;
+wire [2:0] coreir_commonlib_mux2x3_inst0_out;
 wire [2:0] coreir_commonlib_mux2x3_inst0_in_data [1:0];
-assign coreir_commonlib_mux2x3_inst0_in_data[1] = coreir_commonlib_mux2x3_inst0_in_data_1_in;
-assign coreir_commonlib_mux2x3_inst0_in_data[0] = coreir_commonlib_mux2x3_inst0_in_data_0_in;
+assign coreir_commonlib_mux2x3_inst0_in_data[1] = {I1__1[1],I1__1[0],I1__0};
+assign coreir_commonlib_mux2x3_inst0_in_data[0] = {I0__1[1],I0__1[0],I0__0};
 commonlib_muxn__N2__width3 coreir_commonlib_mux2x3_inst0 (
     .in_data(coreir_commonlib_mux2x3_inst0_in_data),
     .in_sel(S),
-    .out(coreir_commonlib_mux2x3_inst0_out_unq1)
+    .out(coreir_commonlib_mux2x3_inst0_out)
 );
-wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_0_out;
-assign coreir_commonlib_mux2x3_inst0_in_data_0_out = {I0__1,I0__0};
-mantle_wire__typeBitIn3 coreir_commonlib_mux2x3_inst0_in_data_0 (
-    .in(coreir_commonlib_mux2x3_inst0_in_data_0_in),
-    .out(coreir_commonlib_mux2x3_inst0_in_data_0_out)
-);
-wire [2:0] coreir_commonlib_mux2x3_inst0_in_data_1_out;
-assign coreir_commonlib_mux2x3_inst0_in_data_1_out = {I1__1,I1__0};
-mantle_wire__typeBitIn3 coreir_commonlib_mux2x3_inst0_in_data_1 (
-    .in(coreir_commonlib_mux2x3_inst0_in_data_1_in),
-    .out(coreir_commonlib_mux2x3_inst0_in_data_1_out)
-);
-mantle_wire__typeBit3 coreir_commonlib_mux2x3_inst0_out (
-    .in(coreir_commonlib_mux2x3_inst0_out_unq1),
-    .out(coreir_commonlib_mux2x3_inst0_out_out)
-);
-mantle_wire__typeBitIn2 self_O__1 (
-    .in(self_O__1_in),
-    .out(coreir_commonlib_mux2x3_inst0_out_out[2:1])
-);
-assign O__0 = coreir_commonlib_mux2x3_inst0_out_out[0];
-assign O__1 = self_O__1_in;
+assign O__0 = coreir_commonlib_mux2x3_inst0_out[0];
+assign O__1 = {coreir_commonlib_mux2x3_inst0_out[2],coreir_commonlib_mux2x3_inst0_out[1]};
 endmodule
 
 module test_basic_mux_tuple (

@@ -190,7 +190,7 @@ orr_5 orr_5_inst0 (
 );
 assign temp3 = andr_5_inst0_O;
 wire [5:0] term_inst0_in;
-assign term_inst0_in = {ndarr[2],ndarr[1],ndarr[0]};
+assign term_inst0_in = {ndarr[2][1],ndarr[2][0],ndarr[1][1],ndarr[1][0],ndarr[0][1],ndarr[0][0]};
 bar_coreir_term #(
     .width(6)
 ) term_inst0 (
@@ -318,7 +318,7 @@ orr_4 orr_4_inst0 (
 );
 assign temp3 = andr_4_inst0_O;
 wire [5:0] term_inst0_in;
-assign term_inst0_in = {ndarr[2],ndarr[1],ndarr[0]};
+assign term_inst0_in = {ndarr[2][1],ndarr[2][0],ndarr[1][1],ndarr[1][0],ndarr[0][1],ndarr[0][0]};
 bar_coreir_term #(
     .width(6)
 ) term_inst0 (

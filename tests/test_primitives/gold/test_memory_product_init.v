@@ -1,10 +1,3 @@
-module mantle_wire__typeBitIn8 (
-    output [7:0] in,
-    input [7:0] out
-);
-assign in = out;
-endmodule
-
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -74,8 +67,6 @@ wire bit_const_0_None_out;
 wire [15:0] const_0_16_out;
 wire [1:0] const_0_2_out;
 wire [15:0] coreir_mem4x16_inst0_rdata;
-wire [7:0] self_RDATA_X_in;
-wire [7:0] self_RDATA_Y_in;
 corebit_const #(
     .value(1'b0)
 ) bit_const_0_None (
@@ -107,16 +98,8 @@ coreir_mem #(
     .rdata(coreir_mem4x16_inst0_rdata),
     .raddr(RADDR)
 );
-mantle_wire__typeBitIn8 self_RDATA_X (
-    .in(self_RDATA_X_in),
-    .out(coreir_mem4x16_inst0_rdata[7:0])
-);
-mantle_wire__typeBitIn8 self_RDATA_Y (
-    .in(self_RDATA_Y_in),
-    .out(coreir_mem4x16_inst0_rdata[15:8])
-);
-assign RDATA_X = self_RDATA_X_in;
-assign RDATA_Y = self_RDATA_Y_in;
+assign RDATA_X = {coreir_mem4x16_inst0_rdata[7],coreir_mem4x16_inst0_rdata[6],coreir_mem4x16_inst0_rdata[5],coreir_mem4x16_inst0_rdata[4],coreir_mem4x16_inst0_rdata[3],coreir_mem4x16_inst0_rdata[2],coreir_mem4x16_inst0_rdata[1],coreir_mem4x16_inst0_rdata[0]};
+assign RDATA_Y = {coreir_mem4x16_inst0_rdata[15],coreir_mem4x16_inst0_rdata[14],coreir_mem4x16_inst0_rdata[13],coreir_mem4x16_inst0_rdata[12],coreir_mem4x16_inst0_rdata[11],coreir_mem4x16_inst0_rdata[10],coreir_mem4x16_inst0_rdata[9],coreir_mem4x16_inst0_rdata[8]};
 endmodule
 
 module test_memory_product_init (
