@@ -75,6 +75,7 @@ def _collect_drivers(value):
         # one, append the current slice to drivers (may introduce slices of
         # length 1)
         if not (
+            value[i].name.anon() or
             isinstance(value[i].name, ArrayRef) and
             issubclass(value[i].name.array.T, Digital) and
             isinstance(value[i - 1].name, ArrayRef) and
@@ -402,29 +403,7 @@ class DefinitionTransformer(TransformerBase):
             return module_defn.select(value.get_coreir_select())
         # if isinstance(value, Bits) and value.const():
         #     return self._const_instance(value, len(value), module_defn)
-        if value.anon() and isinstance(value, Array):
-            drivers = _collect_drivers(value)
-            offset = 0
-            for d in drivers:
-                d = _unwrap(d)
-                if len(d) == 1:
-                    # _collect_drivers will introduce a slice of length 1 for
-                    # non-slices, so we index them here with 0 to unpack the
-                    # extra array dimension
-                    self.connect(module_defn, port[offset], d[0])
-                else:
-                    if d.iswhole():
-                        value = d[0].name.array
-                    else:
-                        value = Slice(d[0].name.array, d[0].name.index,
-                                      d[-1].name.index + 1)
-                    self.connect(module_defn,
-                                 Slice(port, offset, offset + len(d)),
-                                 value)
-                offset += len(d)
-
-            return None
-        if isinstance(value, Tuple) and value.anon():
+        if isinstance(value, (Tuple, Array)) and value.anon():
             for p, v in zip(port, value):
                 self.connect(module_defn, p, v)
             return None
@@ -442,9 +421,11 @@ class DefinitionTransformer(TransformerBase):
             # recursively connect here
             # TODO(leonardt/array2): recursive offset for getitem of slice ref
             offset = value.name.index.start
-            value_children = [value.T(name=ArrayRef(value.name.array, offset + i))
+            value_children = [value.T(name=ArrayRef(value.name.array, offset +
+                                                    i))
                               for i in range(value.N)]
-            port_children = [port.T(name=ArrayRef(port, i)) for i in range(port.N)]
+            port_children = [port.T(name=ArrayRef(port, i))
+                             for i in range(port.N)]
             for p, v in zip(port_children, value_children):
                 self.connect(module_defn, p, v)
             return None
