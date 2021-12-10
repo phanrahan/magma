@@ -804,7 +804,7 @@ class Array2(Wireable, Array):
         # reducing the size of the select in the backend
         arr = self
         offset = 0
-        if isinstance(arr.name, ArrayRef) and isinstance(arr.name.index, slice):
+        if arr._is_slice():
             offset = arr.name.index.start
             arr = arr.name.array
 
@@ -866,16 +866,26 @@ class Array2(Wireable, Array):
         return Array[self.N, self.T.flip()](ts)
 
     def value(self):
+        if self._is_slice():
+            return self.name.array.value()[self.name.index]
         if self._ts:
             return self._collect_ts(lambda x: x.value())
         return super().value()
 
     def trace(self):
+        if self._is_slice():
+            return self.name.array.trace()[self.name.index]
         if self._ts:
             return self._collect_ts(lambda x: x.trace())
         return super().trace()
 
     def driven(self):
+        if self._is_slice():
+            return self.name.array.driven()
         if self._ts:
             return all(t.driven() for t in self._get_ts())
         return super().driven()
+
+    def _is_slice(self):
+        return (isinstance(self.name, ArrayRef) and
+                isinstance(self.name.index, slice))

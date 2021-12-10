@@ -6,10 +6,11 @@ from magma.testing.utils import has_error
 
 def _make_unconnected_io():
     class _Circuit(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[2]))
+        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[2]), x=m.Out(m.Bit))
 
         # Leave io.O[1] unwired.
         io.O[0] <= io.I[0]
+        io.x @= 0
 
     return _Circuit
 
@@ -57,7 +58,7 @@ def test_unconnected_io(caplog):
 def test_unconnected_instance(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_instance()
-        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:26\x1b[0m: Instance input port buf.I not driven
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:27\x1b[0m: Instance input port buf.I not driven
 >>         buf = _Buffer()"""
         assert has_error(caplog, expected)
 

@@ -92,6 +92,9 @@ def _has_definition(cls, port=None):
         return any(_has_definition(cls, p) for p in interface.ports.values())
     if port.is_output():
         return False
+    if port.is_mixed():
+        # mixed direction
+        return any(_has_definition(cls, p) for p in port)
     return port.driven()
 
 

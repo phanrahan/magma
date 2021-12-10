@@ -66,9 +66,10 @@ def test_new_style_not_isdefinition():
 
 def test_new_style_unconnected(caplog):
     class _Foo(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bits[2]))
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bits[2]), x=m.Out(m.Bit))
 
         m.wire(io.I, io.O[0])
+        io.x @= 0
 
     assert m.isdefinition(_Foo)
     assert has_error(caplog, "Interface output port _Foo.O not driven")
