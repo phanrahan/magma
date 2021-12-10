@@ -848,6 +848,7 @@ class Array2(Wireable, Array):
         return Type.__repr__(self)
 
     def _get_ts(self):
+        print(self)
         return [self._get_t(i) for i in range(self.N)]
 
     @property

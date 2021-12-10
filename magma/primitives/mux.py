@@ -1,6 +1,6 @@
 import hwtypes as ht
 from hwtypes import BitVector, UIntVector, SIntVector
-from magma.array import Array
+from magma.array import Array, Array2
 from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
 from magma.bitutils import clog2, seq2int
@@ -17,10 +17,10 @@ from magma.conversions import tuple_, as_bits, from_bits
 class CoreIRCommonLibMuxN(Generator2):
     def __init__(self, N: int, width: int):
         self.name = f"coreir_commonlib_mux{N}x{width}"
-        FlatT = Array[width, Bit]
-        MuxInT = Product.from_fields("anon", dict(data=Array[N, FlatT],
-                                                  sel=Array[clog2(N), Bit]))
-        self.io = IO(I=In(MuxInT), O=Out(Array[width, Bit]))
+        FlatT = Array2[width, Bit]
+        MuxInT = Product.from_fields("anon", dict(data=Array2[N, FlatT],
+                                                  sel=Array2[clog2(N), Bit]))
+        self.io = IO(I=In(MuxInT), O=Out(Array2[width, Bit]))
         self.renamed_ports = coreir_port_mapping
         self.coreir_name = "muxn"
         self.coreir_lib = "commonlib"
@@ -49,7 +49,7 @@ class Mux(Generator2):
         N = magma_type(T).flat_length()
 
         ports = {f"I{i}": In(T) for i in range(height)}
-        T_S = Bit if height == 2 else Array[clog2(height), Bit]
+        T_S = Bit if height == 2 else Array2[clog2(height), Bit]
         ports["S"] = In(T_S)
         ports["O"] = Out(T)
 
@@ -57,7 +57,10 @@ class Mux(Generator2):
 
         mux = CoreIRCommonLibMuxN(height, N)()
         data = [as_bits(getattr(io, f"I{i}")) for i in range(height)]
-        mux.I.data @= Array[height, Array[N, Bit]](data)
+        # TODO(leonardt/array2): Fix constructor logic for Array2
+        # mux.I.data @= Array2[height, Array2[N, Bit]](data)
+        for i, o in zip(mux.I.data, data):
+            i @= o
         if height == 2:
             mux.I.sel[0] @= io.S
         else:
