@@ -15,4 +15,4 @@ echo password=$PYPI_PASSWORD                     >> ~/.pypirc
 pip install twine
 python setup.py sdist build
 
-twine upload dist/*
+twine upload dist/* -u leonardt -p $PYPI_PASSWORD
