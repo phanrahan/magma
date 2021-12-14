@@ -456,12 +456,6 @@ class ModuleVisitor:
         if inst_wrapper.name.startswith("magma_array_create_op"):
             T = inst_wrapper.attrs["T"]
             if isinstance(T, m.BitsMeta) or issubclass(T.T, m.Bit):
-                if len(module.operands) == 1:
-                    comb.BaseOp(
-                        op_name="merge",
-                        operands=module.operands,
-                        results=module.results)
-                    return True
                 comb.ConcatOp(
                     operands=list(reversed(module.operands)),
                     results=module.results)

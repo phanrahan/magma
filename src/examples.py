@@ -212,6 +212,11 @@ class simple_length_one_array(m.Circuit):
     io.O @= io.I[0]
 
 
+class simple_length_one_bits(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bits[1]))
+    io.O[0] @= io.I
+
+
 class simple_array_of_bit(m.Circuit):
     T = m.Array[8, m.Bit]
     io = m.IO(I=m.In(T), O=m.Out(T))
