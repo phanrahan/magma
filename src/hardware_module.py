@@ -28,6 +28,15 @@ from sv import sv
 MlirValueList = List[MlirValue]
 
 
+def _get_defn_or_decl_output_name(defn_or_decl: m.circuit.CircuitKind) -> str:
+    metadata = defn_or_decl.coreir_metadata
+    try:
+        return metadata["verilog_name"]
+    except KeyError:
+        pass
+    return defn_or_decl.name
+
+
 @wrap_with_not_implemented_error
 def parse_reset_type(T: m.Kind) -> Tuple[str, str]:
     if T is m.Reset:
@@ -661,9 +670,11 @@ class HardwareModule:
             visit_magma_value_by_direction(port, i.append, o.append)
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
+        defn_or_decl_output_name = _get_defn_or_decl_output_name(
+            self._magma_defn_or_decl)
         name = self.parent.get_or_make_mapped_symbol(
-             self._magma_defn_or_decl,
-             name=self._magma_defn_or_decl.name, force=True)
+            self._magma_defn_or_decl,
+            name=defn_or_decl_output_name, force=True)
         if not treat_as_definition(self._magma_defn_or_decl):
             return hw.ModuleExternOp(
                 name=name,

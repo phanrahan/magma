@@ -398,3 +398,9 @@ class simple_compile_guard(m.Circuit):
 
 
 m.passes.clock.WireClockPass(simple_compile_guard).run()
+
+
+class simple_custom_verilog_name(m.Circuit):
+    coreir_metadata = {"verilog_name": "simple_custom_verilog_name_custom_name"}
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= io.I
