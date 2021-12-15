@@ -22,7 +22,10 @@ _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS = {
 
 
 def value_or_type_to_string(value_or_type: Union[m.Type, m.Kind]):
-    s = str(value_or_type)
+    if isinstance(value_or_type, m.Type):
+        s = value_or_type.name.qualifiedname("_")
+    else:
+        s = str(value_or_type)
     return replace_all(s, _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS)
 
 
