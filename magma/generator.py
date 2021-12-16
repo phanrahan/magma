@@ -1,10 +1,14 @@
 from abc import abstractmethod, ABCMeta
 import collections
 import functools
+import inspect
 import weakref
-from .circuit import DefineCircuitKind, Circuit
-from . import cache_definition
+
+from magma import cache_definition
+from magma.circuit import DefineCircuitKind, Circuit
 from magma.common import ParamDict
+from magma.config import get_debug_mode
+from magma.debug import debug_info
 
 
 class GeneratorMeta(type):
@@ -60,6 +64,18 @@ def _make_key(cls, *args, **kwargs):
     return (cls, ParamDict(dct))
 
 
+def _maybe_add_debug_info(dct, cls):
+    if "debug_info" in dct:
+        return
+    if not get_debug_mode():
+        dct["debug_info"] = None
+        return
+    _, lineno = inspect.getsourcelines(cls)
+    filename = inspect.getsourcefile(cls)
+    module = inspect.getmodule(cls)
+    dct["debug_info"] = debug_info(filename, lineno, module)
+
+
 def _make_type(cls, *args, **kwargs):
     dummy = type.__new__(cls, "", (), {})
     name = cls.__name__
@@ -70,6 +86,7 @@ def _make_type(cls, *args, **kwargs):
     # NOTE(leonardt): We need to override the Generator2 classmethod bind with
     # DefineCircuitKind.bind for generator instances (circuits).
     dct["bind"] = classmethod(DefineCircuitKind.bind)
+    _maybe_add_debug_info(dct, cls)
     ckt = DefineCircuitKind.__new__(cls, name, bases, dct)
     for gen in cls.bind_generators:
         gen.generate_bind(ckt, *args, **kwargs)
