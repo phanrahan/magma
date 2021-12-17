@@ -10,7 +10,8 @@ from magma.generator import Generator2
 from magma.inline_verilog import inline_verilog
 from magma.interface import IO
 from magma.primitives.mux import infer_mux_type
-from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
+from magma.ref import (
+    AnonRef, ArrayRef, DefnRef, InstRef, TupleRef, TempNamedRef)
 from magma.t import Kind, In, Out
 from magma.type_utils import type_to_sanitized_string
 from magma.value_utils import make_selector
@@ -24,6 +25,10 @@ def _get_top_ref(ref):
         # TODO(rsetaluri): Fix port name collision.
         return _get_top_ref(ref.array.name)
     return ref
+
+
+class CompileGuardUndrivenTemporaryError(RuntimeError):
+    pass
 
 
 @dataclasses.dataclass(frozen=True)
@@ -76,14 +81,30 @@ class _CompileGuardBuilder(CircuitBuilder):
             self._process_output(port)
 
     def _is_external(self, value):
+        # A value is external if it is either a port of the containing
+        # definition, or a port of an instance contained in the containing
+        # definition. To compute this we consider three cases:
+        #   (1) @value is a port of a definition. In this case we assume that
+        #       the definition is the containing definition (this not being the
+        #       case is an error, and will be caught anyway downstream).
+        #   (2) @value is a port of an instance. If the instance is contained
+        #       inside *ourself*, then @value is *not* external. Otherwise, we
+        #       assume @value is external (again, if the instance is not
+        #       contained in the containing definition, an error will be raised
+        #       downstream anyway).
+        #   (3) @value is a temporary. If @value itself is not driven, then we
+        #       do not have sufficient information to determine externality, and
+        #       raise an error. Otherwise, we recursively call _is_external on
+        #       the driver of @value.
         top_ref = _get_top_ref(value.name)
         if isinstance(top_ref, DefnRef):
             return True
         if isinstance(top_ref, InstRef):
             return top_ref.inst not in self._instances
-        if isinstance(top_ref, AnonRef):
-            # TODO(rsetaluri): Implement valid anon. values.
-            raise NotImplementedError()
+        if isinstance(top_ref, (TempNamedRef, AnonRef)):
+            if not value.driven():
+                raise CompileGuardUndrivenTemporaryError()
+            return self._is_external(value.value())
         return False
 
     def _process_output(self, port):
@@ -104,28 +125,32 @@ class _CompileGuardBuilder(CircuitBuilder):
             new_driver = selector.select(external)
             drivee @= new_driver
 
-    def _process_input(self, port, ref=None, kwargs=None):
-        value = port.value()
-        if ref is None:
-            if value is None:
-                self._process_undriven(port)
-                return
-            ref = value.name
-        if value.const():
+    def _process_input(self, port):
+        # There are 4 total cases here:
+        #   (1) @port is undriven, in which case we delegate to
+        #       _process_undriven_input.
+        #   (2) @port is driven by @driver:
+        #       (a) @driver is a constant, in which case we do not have to do
+        #           anything and can leave the driver as is.
+        #       (b) @driver is 'external' (see _is_external for a definition),
+        #           in which case we need to rewire the input through a new port
+        #           (ala boring).
+        #       (c) @driver is 'internal', in which case we again need to do
+        #           nothing. Because _is_external is exhaustive, we can simply
+        #           assume in the implicit else clause that we don't need to do
+        #           anything.
+        if not port.driven():
+            self._process_undriven_input(port)
             return
-        if self._is_external(value):
-            self._rewire_input(port, value)
+        driver = port.value()
+        if driver.const():
             return
-        ref = _get_top_ref(ref)
-        if isinstance(ref, InstRef):
-            # Internal instance driver is okay
-            assert not self._is_external(value)
+        if self._is_external(driver):
+            self._rewire_input(port, driver)
             return
-        # TODO(rsetaluri): Do the rest of these.
-        raise NotImplementedError(ref, type(ref))
 
-    def _process_undriven(self, port):
-        # TODO(rsetaluri): Add other system types
+    def _process_undriven_input(self, port):
+        # TODO(rsetaluri): Add other system types.
         if not isinstance(port, Clock):
             return
         T = type(port).undirected_t

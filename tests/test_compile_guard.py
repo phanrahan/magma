@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
+from magma.compile_guard import CompileGuardUndrivenTemporaryError
 import fault as f
 
 
@@ -222,3 +223,61 @@ def test_contained_inline_verilog():
     m.compile(f"build/{basename}", Top)
     assert m.testing.check_files_equal(
         __file__, f"build/{basename}.v", f"gold/{basename}.v")
+
+
+@pytest.mark.parametrize("named", (False, True))
+def test_temp_external(named):
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        if named:
+            temp = m.Bit(name="temp")
+        else:
+            temp = m.Bit()
+        temp @= io.I
+        io.O @= temp
+        with m.compile_guard("DEBUG", "DebugModule"):
+            reg = m.Register(m.Bit)(name="reg")
+            reg.I @= temp
+
+    basename = f"test_compile_guard_temp_external_named_{named}"
+    m.compile(f"build/{basename}", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+
+
+@pytest.mark.parametrize("named", (False, True))
+def test_temp_internal(named):
+
+    class Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+        io.O @= io.I
+        with m.compile_guard("DEBUG", "DebugModule"):
+            reg = m.Register(m.Bit)(name="reg")
+            reg.I @= io.I
+            if named:
+                temp = m.Bit(name="temp")
+            else:
+                temp = m.Bit()
+            temp @= reg.O
+            reg2 = m.Register(m.Bit)(name="reg2")
+            reg2.I @= temp
+
+    basename = f"test_compile_guard_temp_internal_named_{named}"
+    m.compile(f"build/{basename}", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+
+
+@pytest.mark.parametrize("named", (False, True))
+def test_temp_undriven(named):
+
+    with pytest.raises(CompileGuardUndrivenTemporaryError):
+
+        class Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+            io.O @= io.I
+            temp = m.Bit()
+            with m.compile_guard("DEBUG", "DebugModule"):
+                reg = m.Register(m.Bit)(name="reg")
+                reg.I @= temp
