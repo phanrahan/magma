@@ -60,7 +60,7 @@ def test_basic_mux_arr():
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
         io.O @= m.Mux(2, T)()(io.I[0], io.I[1], io.S)
 
-    m.compile("build/test_basic_mux_arr", test_basic_mux_arr)
+    m.compile("build/test_basic_mux_arr", test_basic_mux_arr, inline=True)
 
     assert check_files_equal(__file__, f"build/test_basic_mux_arr.v",
                              f"gold/test_basic_mux_arr.v")
@@ -85,7 +85,7 @@ def test_basic_mux_tuple():
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
         io.O @= m.Mux(2, T)()(io.I[0], io.I[1], io.S)
 
-    m.compile("build/test_basic_mux_tuple", test_basic_mux_tuple)
+    m.compile("build/test_basic_mux_tuple", test_basic_mux_tuple, inline=True)
 
     assert check_files_equal(__file__, f"build/test_basic_mux_tuple.v",
                              f"gold/test_basic_mux_tuple.v")
@@ -112,7 +112,8 @@ def test_basic_mux_product():
         io = m.IO(I=m.In(m.Array[2, T]), S=m.In(m.Bit), O=m.Out(T))
         io.O @= m.Mux(2, T)()(io.I[0], io.I[1], io.S)
 
-    m.compile("build/test_basic_mux_product", test_basic_mux_product)
+    m.compile("build/test_basic_mux_product", test_basic_mux_product,
+              inline=True)
 
     assert check_files_equal(__file__, f"build/test_basic_mux_product.v",
                              f"gold/test_basic_mux_product.v")

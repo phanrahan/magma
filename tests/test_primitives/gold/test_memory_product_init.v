@@ -40,50 +40,13 @@ module coreir_mem #(
 
 endmodule
 
-module coreir_const #(
-    parameter width = 1,
-    parameter value = 1
-) (
-    output [width-1:0] out
-);
-  assign out = value;
-endmodule
-
-module corebit_const #(
-    parameter value = 1
-) (
-    output out
-);
-  assign out = value;
-endmodule
-
 module Memory (
     input CLK,
     input [1:0] RADDR,
     output [7:0] RDATA_X,
     output [7:0] RDATA_Y
 );
-wire bit_const_0_None_out;
-wire [15:0] const_0_16_out;
-wire [1:0] const_0_2_out;
 wire [15:0] coreir_mem4x16_inst0_rdata;
-corebit_const #(
-    .value(1'b0)
-) bit_const_0_None (
-    .out(bit_const_0_None_out)
-);
-coreir_const #(
-    .value(16'h0000),
-    .width(16)
-) const_0_16 (
-    .out(const_0_16_out)
-);
-coreir_const #(
-    .value(2'h0),
-    .width(2)
-) const_0_2 (
-    .out(const_0_2_out)
-);
 coreir_mem #(
     .init({16'd127,16'd65535,16'd32640,16'd32768}),
     .depth(4),
@@ -92,14 +55,14 @@ coreir_mem #(
     .width(16)
 ) coreir_mem4x16_inst0 (
     .clk(CLK),
-    .wdata(const_0_16_out),
-    .waddr(const_0_2_out),
-    .wen(bit_const_0_None_out),
+    .wdata(16'h0000),
+    .waddr(2'h0),
+    .wen(1'b0),
     .rdata(coreir_mem4x16_inst0_rdata),
     .raddr(RADDR)
 );
-assign RDATA_X = {coreir_mem4x16_inst0_rdata[7],coreir_mem4x16_inst0_rdata[6],coreir_mem4x16_inst0_rdata[5],coreir_mem4x16_inst0_rdata[4],coreir_mem4x16_inst0_rdata[3],coreir_mem4x16_inst0_rdata[2],coreir_mem4x16_inst0_rdata[1],coreir_mem4x16_inst0_rdata[0]};
-assign RDATA_Y = {coreir_mem4x16_inst0_rdata[15],coreir_mem4x16_inst0_rdata[14],coreir_mem4x16_inst0_rdata[13],coreir_mem4x16_inst0_rdata[12],coreir_mem4x16_inst0_rdata[11],coreir_mem4x16_inst0_rdata[10],coreir_mem4x16_inst0_rdata[9],coreir_mem4x16_inst0_rdata[8]};
+assign RDATA_X = coreir_mem4x16_inst0_rdata[7:0];
+assign RDATA_Y = coreir_mem4x16_inst0_rdata[15:8];
 endmodule
 
 module test_memory_product_init (
@@ -108,15 +71,11 @@ module test_memory_product_init (
     output [7:0] rdata_X,
     output [7:0] rdata_Y
 );
-wire [7:0] Memory_inst0_RDATA_X;
-wire [7:0] Memory_inst0_RDATA_Y;
 Memory Memory_inst0 (
     .CLK(clk),
     .RADDR(raddr),
-    .RDATA_X(Memory_inst0_RDATA_X),
-    .RDATA_Y(Memory_inst0_RDATA_Y)
+    .RDATA_X(rdata_X),
+    .RDATA_Y(rdata_Y)
 );
-assign rdata_X = Memory_inst0_RDATA_X;
-assign rdata_Y = Memory_inst0_RDATA_Y;
 endmodule
 

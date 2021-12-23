@@ -425,6 +425,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             mixed |= field.is_mixed()
         return mixed or (input + output + inout) > 1
 
+    def connection_iter(self):
+        for elem in self:
+            yield elem, elem.trace()
+
 
 def _add_properties(ns, fields):
     def _make_prop(field_type, idx):

@@ -404,8 +404,8 @@ class DefinitionTransformer(TransformerBase):
         # if isinstance(value, Bits) and value.const():
         #     return self._const_instance(value, len(value), module_defn)
         if isinstance(value, (Tuple, Array)) and value.anon():
-            for p, v in zip(port, value):
-                self.connect(module_defn, p, v)
+            for sink, source in port.connection_iter():
+                self.connect(module_defn, sink, source)
             return None
         if isinstance(value, Digital) and value.const():
             return self._const_instance(value, None, module_defn)

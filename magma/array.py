@@ -602,6 +602,35 @@ class Array(Type, metaclass=ArrayMeta):
     def is_mixed(cls):
         return cls.T.is_mixed()
 
+    def connection_iter(self):
+        value = self.trace()
+        start_idx = 0
+        for i in range(1, len(self)):
+            if value[i].name.anon() or not (
+                isinstance(value[i].name, ArrayRef) and
+                issubclass(value[i].name.array.T, Digital) and
+                isinstance(value[i - 1].name, ArrayRef) and
+                value[i].name.array is value[i - 1].name.array and
+                value[i].name.index == value[i - 1].name.index + 1
+            ):
+                if start_idx == i - 1:
+                    yield self[start_idx], value[start_idx]
+                else:
+                    first_elem = value[start_idx]
+                    arr = first_elem.name.array
+                    offset = first_elem.name.index
+                    slice_value = arr[offset:offset + (i - start_idx)]
+                    yield self[start_idx:i], slice_value
+                start_idx = i
+        if start_idx == len(self) - 1:
+            yield self[start_idx], value[start_idx]
+        else:
+            first_elem = value[start_idx]
+            arr = first_elem.name.array
+            offset = first_elem.name.index
+            slice_value = arr[offset:offset + (i - start_idx + 1)]
+            yield self[start_idx:], slice_value
+
 
 ArrayType = Array
 

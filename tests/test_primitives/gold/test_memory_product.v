@@ -52,7 +52,7 @@ module Memory (
 );
 wire [5:0] coreir_mem4x6_inst0_rdata;
 wire [5:0] coreir_mem4x6_inst0_wdata;
-assign coreir_mem4x6_inst0_wdata = {WDATA_Y[4],WDATA_Y[3],WDATA_Y[2],WDATA_Y[1],WDATA_Y[0],WDATA_X};
+assign coreir_mem4x6_inst0_wdata = {WDATA_Y[4:0],WDATA_X};
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
@@ -67,7 +67,7 @@ coreir_mem #(
     .raddr(RADDR)
 );
 assign RDATA_X = coreir_mem4x6_inst0_rdata[0];
-assign RDATA_Y = {coreir_mem4x6_inst0_rdata[5],coreir_mem4x6_inst0_rdata[4],coreir_mem4x6_inst0_rdata[3],coreir_mem4x6_inst0_rdata[2],coreir_mem4x6_inst0_rdata[1]};
+assign RDATA_Y = coreir_mem4x6_inst0_rdata[5:1];
 endmodule
 
 module test_memory_product (
@@ -80,19 +80,15 @@ module test_memory_product (
     input [4:0] wdata_Y,
     input wen
 );
-wire Memory_inst0_RDATA_X;
-wire [4:0] Memory_inst0_RDATA_Y;
 Memory Memory_inst0 (
     .CLK(clk),
     .RADDR(raddr),
-    .RDATA_X(Memory_inst0_RDATA_X),
-    .RDATA_Y(Memory_inst0_RDATA_Y),
+    .RDATA_X(rdata_X),
+    .RDATA_Y(rdata_Y),
     .WADDR(waddr),
     .WDATA_X(wdata_X),
     .WDATA_Y(wdata_Y),
-    .WE(wen)
+    .WE(1'b1)
 );
-assign rdata_X = Memory_inst0_RDATA_X;
-assign rdata_Y = Memory_inst0_RDATA_Y;
 endmodule
 

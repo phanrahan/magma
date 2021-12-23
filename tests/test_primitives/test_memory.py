@@ -67,9 +67,9 @@ def test_memory_product():
         io.rdata @= Mem4xT.RDATA
         Mem4xT.WADDR @= io.waddr
         Mem4xT.WDATA @= io.wdata
+        Mem4xT.WE @= 1
 
-    m.compile("build/test_memory_product", test_memory_product)
-
+    m.compile("build/test_memory_product", test_memory_product, inline=True)
     assert check_files_equal(__file__, f"build/test_memory_product.v",
                              f"gold/test_memory_product.v")
     tester = fault.SynchronousTester(test_memory_product,
@@ -121,7 +121,8 @@ def test_memory_product_init():
         Mem4xT.RADDR @= io.raddr
         io.rdata @= Mem4xT.RDATA
 
-    m.compile("build/test_memory_product_init", test_memory_product_init)
+    m.compile("build/test_memory_product_init", test_memory_product_init,
+              inline=True)
 
     assert check_files_equal(__file__, f"build/test_memory_product_init.v",
                              f"gold/test_memory_product_init.v")
@@ -158,8 +159,9 @@ def test_memory_arr():
         io.rdata @= Mem4xT.RDATA
         Mem4xT.WADDR @= io.waddr
         Mem4xT.WDATA @= io.wdata
+        Mem4xT.WE @= 1
 
-    m.compile("build/test_memory_arr", test_memory_arr)
+    m.compile("build/test_memory_arr", test_memory_arr, inline=True)
 
     assert check_files_equal(__file__, f"build/test_memory_arr.v",
                              f"gold/test_memory_arr.v")

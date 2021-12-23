@@ -62,7 +62,7 @@ def test_reg_of_product():
         io.O @= Register(T, T(m.Bits[8](0xDE), m.Bits[4](0xA)),
                          reset_type=m.Reset)()(io.I)
 
-    m.compile("build/test_reg_of_product", test_reg_of_product)
+    m.compile("build/test_reg_of_product", test_reg_of_product, inline=True)
 
     assert check_files_equal(__file__, f"build/test_reg_of_product.v",
                              f"gold/test_reg_of_product.v")
@@ -103,7 +103,8 @@ def test_reg_of_nested_array():
         io.O @= Register(T, T(m.Bits[8](0xDE), m.Bits[8](0xAD),
                               m.Bits[8](0xBE)), reset_type=m.Reset)()(io.I)
 
-    m.compile("build/test_reg_of_nested_array", test_reg_of_nested_array)
+    m.compile("build/test_reg_of_nested_array", test_reg_of_nested_array,
+              inline=True)
 
     assert check_files_equal(__file__, f"build/test_reg_of_nested_array.v",
                              f"gold/test_reg_of_nested_array.v")
@@ -190,7 +191,7 @@ def test_reg_of_product_zero_init():
         io.O @= Register(T, reset_type=m.Reset)()(io.I)
 
     m.compile("build/test_reg_of_product_zero_init",
-              test_reg_of_product_zero_init)
+              test_reg_of_product_zero_init, inline=True)
 
     assert check_files_equal(__file__, f"build/test_reg_of_product_zero_init.v",
                              f"gold/test_reg_of_product_zero_init.v")
