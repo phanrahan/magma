@@ -420,8 +420,11 @@ class ModuleVisitor:
         inline_verilog_strs = defn.inline_verilog_strs
         assert inline_verilog_strs
         for string, references in inline_verilog_strs:
-            for i, (key, value) in enumerate(references.items()):
-                string = string.replace(key, f"{{{i}}}")
+            # NOTE(rsetaluri): We assume that the order of the references
+            # matches the order of the ports to the encapsulating inline verilog
+            # module (which is safe as of magma:d3e8c95).
+            fmt_kwargs = {k: f"{{{{{i}}}}}" for i, k in enumerate(references)}
+            string = string.format(**fmt_kwargs)
             sv.VerbatimOp(operands=module.operands, string=string)
         return True
 
