@@ -9,7 +9,7 @@ import magma as m
 from build_magma_graph import build_magma_graph
 from builtin import builtin
 from comb import comb
-from common import wrap_with_not_implemented_error
+from common import wrap_with_not_implemented_error, SafeFormatDict
 from graph_lib import Graph
 from hw import hw
 from magma_common import (
@@ -422,9 +422,9 @@ class ModuleVisitor:
         for string, references in inline_verilog_strs:
             # NOTE(rsetaluri): We assume that the order of the references
             # matches the order of the ports to the encapsulating inline verilog
-            # module (which is safe as of magma:d3e8c95).
+            # module (which is safe as of phanrahan/magma:d3e8c95).
             fmt_kwargs = {k: f"{{{{{i}}}}}" for i, k in enumerate(references)}
-            string = string.format(**fmt_kwargs)
+            string = string.format_map(SafeFormatDict(**fmt_kwargs))
             sv.VerbatimOp(operands=module.operands, string=string)
         return True
 
