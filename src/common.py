@@ -58,12 +58,6 @@ class Stack:
         return self._stack[-1]
 
 
-class SafeFormatDict(collections.UserDict):
-    def __missing__(self, key: str) -> Any:
-        assert isinstance(key, str)
-        return "{" + key + "}"
-
-
 def replace_all(s: str, replacements: Dict[str, str]) -> str:
     for old, new in replacements.items():
         s = s.replace(old, new)

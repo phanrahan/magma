@@ -9,7 +9,7 @@ import magma as m
 from build_magma_graph import build_magma_graph
 from builtin import builtin
 from comb import comb
-from common import wrap_with_not_implemented_error, SafeFormatDict
+from common import wrap_with_not_implemented_error
 from graph_lib import Graph
 from hw import hw
 from magma_common import (
@@ -423,8 +423,18 @@ class ModuleVisitor:
             # NOTE(rsetaluri): We assume that the order of the references
             # matches the order of the ports to the encapsulating inline verilog
             # module (which is safe as of phanrahan/magma:d3e8c95).
-            fmt_kwargs = {k: f"{{{{{i}}}}}" for i, k in enumerate(references)}
-            string = string.format_map(SafeFormatDict(**fmt_kwargs))
+            replacement_map = {
+                k: f"{{{{{i}}}}}" for i, k in enumerate(references)
+            }
+            # NOTE(rsetaluri): We need to traverse the replacements in order of
+            # decreasing key-length (i.e. strlen) in order to ensure that we
+            # don't replace e.g. "key10" with "{repl}0" where both "key1" and
+            # "key10" are keys.
+            replacements = reversed(sorted(
+                replacement_map.items(), key=lambda kv: len(kv[1])))
+            for k, v in replacements:
+                k = "{" + k + "}"
+                string = string.replace(k, v)
             sv.VerbatimOp(operands=module.operands, string=string)
         return True
 
