@@ -105,5 +105,9 @@ hw.module @complex_inline_verilog(%I: i12, %CLK: i1) -> (O: i12) {
     sv.assign %74, %72 : i1
     %73 = sv.read_inout %74 : !hw.inout<i1>
     sv.verbatim "assert property (@(posedge CLK) {{0}} |-> ##1 {{1}});\nassert property (@(posedge CLK) {{2}} |-> ##1 {{3}});\nassert property (@(posedge CLK) {{4}} |-> ##1 {{5}});\nassert property (@(posedge CLK) {{6}} |-> ##1 {{7}});\nassert property (@(posedge CLK) {{8}} |-> ##1 {{9}});\nassert property (@(posedge CLK) {{10}} |-> ##1 {{11}});\nassert property (@(posedge CLK) {{12}} |-> ##1 {{13}});\nassert property (@(posedge CLK) {{14}} |-> ##1 {{15}});\nassert property (@(posedge CLK) {{16}} |-> ##1 {{17}});\nassert property (@(posedge CLK) {{18}} |-> ##1 {{19}});\nassert property (@(posedge CLK) {{20}} |-> ##1 {{21}});\nassert property (@(posedge CLK) {{22}} |-> ##1 {{23}});" (%4, %7, %10, %13, %16, %19, %22, %25, %28, %31, %34, %37, %40, %43, %46, %49, %52, %55, %58, %61, %64, %67, %70, %73) : i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1, i1
+    %76 = sv.wire sym @complex_inline_verilog._magma_inline_wire24 {name="_magma_inline_wire24"} : !hw.inout<i12>
+    sv.assign %76, %I : i12
+    %75 = sv.read_inout %76 : !hw.inout<i12>
+    sv.verbatim "// A fun{k}y comment with {{0}}" (%75) : i12
     hw.output %0 : i12
 }

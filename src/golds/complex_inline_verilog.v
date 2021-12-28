@@ -28,6 +28,7 @@ module complex_inline_verilog(	// <stdin>:1:1
   wire        _magma_inline_wire21;	// <stdin>:96:11
   wire        _magma_inline_wire22;	// <stdin>:100:11
   wire        _magma_inline_wire23;	// <stdin>:104:11
+  wire [11:0] _magma_inline_wire24;	// <stdin>:108:11
 
   always_ff @(posedge CLK)	// <stdin>:3:5
     Register_inst0 <= I;	// <stdin>:4:9
@@ -69,6 +70,8 @@ module complex_inline_verilog(	// <stdin>:1:1
   assert property (@(posedge CLK) _magma_inline_wire18 |-> ##1 _magma_inline_wire19);
   assert property (@(posedge CLK) _magma_inline_wire20 |-> ##1 _magma_inline_wire21);
   assert property (@(posedge CLK) _magma_inline_wire22 |-> ##1 _magma_inline_wire23);	// <stdin>:14:10, :18:10, :22:11, :26:11, :30:11, :34:11, :38:11, :42:11, :46:11, :50:11, :54:11, :58:11, :62:11, :66:11, :70:11, :74:11, :78:11, :82:11, :86:11, :90:11, :94:11, :98:11, :102:11, :106:11, :107:5
-  assign O = Register_inst0;	// <stdin>:10:10, :108:5
+  assign _magma_inline_wire24 = I;	// <stdin>:109:5
+  // A fun{k}y comment with _magma_inline_wire24	// <stdin>:110:11, :111:5
+  assign O = Register_inst0;	// <stdin>:10:10, :112:5
 endmodule
 

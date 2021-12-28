@@ -343,6 +343,7 @@ class complex_inline_verilog(m.Circuit):
         refs[f"I{i}"] = io.I[i]
         refs[f"O{i}"] = io.O[i]
     m.inline_verilog(string, **refs)
+    m.inline_verilog("// A fun{{k}}y comment with {I}", I=io.I)
 
 
 class simple_bind(m.Circuit):
