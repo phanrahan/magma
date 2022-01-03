@@ -4,17 +4,17 @@ module Mux2xArray2_Bits2 (
     input S,
     output [1:0] O [1:0]
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out_unq1;
+reg [3:0] coreir_commonlib_mux2x4_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out_unq1 = {I0[1][1:0],I0[0][1:0]};
+    coreir_commonlib_mux2x4_inst0_out = {I0[1][1:0],I0[0][1:0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out_unq1 = {I1[1][1:0],I1[0][1:0]};
+    coreir_commonlib_mux2x4_inst0_out = {I1[1][1:0],I1[0][1:0]};
 end
 end
 
-assign O[1] = coreir_commonlib_mux2x4_inst0_out_unq1[3:2];
-assign O[0] = coreir_commonlib_mux2x4_inst0_out_unq1[1:0];
+assign O[1] = {coreir_commonlib_mux2x4_inst0_out[3],coreir_commonlib_mux2x4_inst0_out[2]};
+assign O[0] = {coreir_commonlib_mux2x4_inst0_out[1],coreir_commonlib_mux2x4_inst0_out[0]};
 endmodule
 
 module test_basic_mux_arr (

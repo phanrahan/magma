@@ -22,18 +22,18 @@ module Mux2xArray3_Bits8 (
     input S,
     output [7:0] O [2:0]
 );
-reg [23:0] coreir_commonlib_mux2x24_inst0_out_unq1;
+reg [23:0] coreir_commonlib_mux2x24_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x24_inst0_out_unq1 = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
+    coreir_commonlib_mux2x24_inst0_out = {I0[2][7:0],I0[1][7:0],I0[0][7:0]};
 end else begin
-    coreir_commonlib_mux2x24_inst0_out_unq1 = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
+    coreir_commonlib_mux2x24_inst0_out = {I1[2][7:0],I1[1][7:0],I1[0][7:0]};
 end
 end
 
-assign O[2] = coreir_commonlib_mux2x24_inst0_out_unq1[23:16];
-assign O[1] = coreir_commonlib_mux2x24_inst0_out_unq1[15:8];
-assign O[0] = coreir_commonlib_mux2x24_inst0_out_unq1[7:0];
+assign O[2] = {coreir_commonlib_mux2x24_inst0_out[23],coreir_commonlib_mux2x24_inst0_out[22],coreir_commonlib_mux2x24_inst0_out[21],coreir_commonlib_mux2x24_inst0_out[20],coreir_commonlib_mux2x24_inst0_out[19],coreir_commonlib_mux2x24_inst0_out[18],coreir_commonlib_mux2x24_inst0_out[17],coreir_commonlib_mux2x24_inst0_out[16]};
+assign O[1] = {coreir_commonlib_mux2x24_inst0_out[15],coreir_commonlib_mux2x24_inst0_out[14],coreir_commonlib_mux2x24_inst0_out[13],coreir_commonlib_mux2x24_inst0_out[12],coreir_commonlib_mux2x24_inst0_out[11],coreir_commonlib_mux2x24_inst0_out[10],coreir_commonlib_mux2x24_inst0_out[9],coreir_commonlib_mux2x24_inst0_out[8]};
+assign O[0] = {coreir_commonlib_mux2x24_inst0_out[7],coreir_commonlib_mux2x24_inst0_out[6],coreir_commonlib_mux2x24_inst0_out[5],coreir_commonlib_mux2x24_inst0_out[4],coreir_commonlib_mux2x24_inst0_out[3],coreir_commonlib_mux2x24_inst0_out[2],coreir_commonlib_mux2x24_inst0_out[1],coreir_commonlib_mux2x24_inst0_out[0]};
 endmodule
 
 module Register (
@@ -69,9 +69,9 @@ coreir_reg #(
     .in(reg_P24_inst0_in),
     .out(reg_P24_inst0_out)
 );
-assign O[2] = reg_P24_inst0_out[23:16];
-assign O[1] = reg_P24_inst0_out[15:8];
-assign O[0] = reg_P24_inst0_out[7:0];
+assign O[2] = {reg_P24_inst0_out[23],reg_P24_inst0_out[22],reg_P24_inst0_out[21],reg_P24_inst0_out[20],reg_P24_inst0_out[19],reg_P24_inst0_out[18],reg_P24_inst0_out[17],reg_P24_inst0_out[16]};
+assign O[1] = {reg_P24_inst0_out[15],reg_P24_inst0_out[14],reg_P24_inst0_out[13],reg_P24_inst0_out[12],reg_P24_inst0_out[11],reg_P24_inst0_out[10],reg_P24_inst0_out[9],reg_P24_inst0_out[8]};
+assign O[0] = {reg_P24_inst0_out[7],reg_P24_inst0_out[6],reg_P24_inst0_out[5],reg_P24_inst0_out[4],reg_P24_inst0_out[3],reg_P24_inst0_out[2],reg_P24_inst0_out[1],reg_P24_inst0_out[0]};
 endmodule
 
 module test_reg_of_nested_array (

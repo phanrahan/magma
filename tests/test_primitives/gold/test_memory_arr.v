@@ -71,9 +71,9 @@ coreir_mem #(
     .raddr(RADDR)
 );
 assign RDATA_0_X = coreir_mem4x12_inst0_rdata[0];
-assign RDATA_0_Y = coreir_mem4x12_inst0_rdata[5:1];
+assign RDATA_0_Y = {coreir_mem4x12_inst0_rdata[5],coreir_mem4x12_inst0_rdata[4],coreir_mem4x12_inst0_rdata[3],coreir_mem4x12_inst0_rdata[2],coreir_mem4x12_inst0_rdata[1]};
 assign RDATA_1_X = coreir_mem4x12_inst0_rdata[6];
-assign RDATA_1_Y = coreir_mem4x12_inst0_rdata[11:7];
+assign RDATA_1_Y = {coreir_mem4x12_inst0_rdata[11],coreir_mem4x12_inst0_rdata[10],coreir_mem4x12_inst0_rdata[9],coreir_mem4x12_inst0_rdata[8],coreir_mem4x12_inst0_rdata[7]};
 endmodule
 
 module test_memory_arr (

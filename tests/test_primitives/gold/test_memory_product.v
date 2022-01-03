@@ -67,7 +67,7 @@ coreir_mem #(
     .raddr(RADDR)
 );
 assign RDATA_X = coreir_mem4x6_inst0_rdata[0];
-assign RDATA_Y = coreir_mem4x6_inst0_rdata[5:1];
+assign RDATA_Y = {coreir_mem4x6_inst0_rdata[5],coreir_mem4x6_inst0_rdata[4],coreir_mem4x6_inst0_rdata[3],coreir_mem4x6_inst0_rdata[2],coreir_mem4x6_inst0_rdata[1]};
 endmodule
 
 module test_memory_product (

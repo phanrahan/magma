@@ -307,6 +307,17 @@ def _make_array(array, args):
         return _make_array_from_args(array.N, array.T, args)
     return _make_array_no_args(array)
 
+def _is_next_elem_in_slice(next_, prev):
+    # Helper function for Array.connect_iter()
+    return (isinstance(next_.name, ArrayRef) and
+            # only support slice of bits in coreir
+            issubclass(next_.name.array.T, Digital) and
+            isinstance(prev.name, ArrayRef) and
+            # from same arrays
+            next_.name.array is prev.name.array and
+            # subsequent index
+            next_.name.index == prev.name.index + 1)
+
 
 class Array(Type, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
@@ -602,34 +613,34 @@ class Array(Type, metaclass=ArrayMeta):
     def is_mixed(cls):
         return cls.T.is_mixed()
 
-    def connection_iter(self):
-        value = self.trace()
-        start_idx = 0
-        for i in range(1, len(self)):
-            if value[i].name.anon() or not (
-                isinstance(value[i].name, ArrayRef) and
-                issubclass(value[i].name.array.T, Digital) and
-                isinstance(value[i - 1].name, ArrayRef) and
-                value[i].name.array is value[i - 1].name.array and
-                value[i].name.index == value[i - 1].name.index + 1
-            ):
-                if start_idx == i - 1:
-                    yield self[start_idx], value[start_idx]
-                else:
-                    first_elem = value[start_idx]
-                    arr = first_elem.name.array
-                    offset = first_elem.name.index
-                    slice_value = arr[offset:offset + (i - start_idx)]
-                    yield self[start_idx:i], slice_value
-                start_idx = i
-        if start_idx == len(self) - 1:
+    def _yield_curr_slice_or_elem(self, value, start_idx, i):
+        # Helper function for connection_iter()
+        # Dispatches on whether the next elem yielded should be a slice or
+        # single element
+        if start_idx == i - 1:
             yield self[start_idx], value[start_idx]
         else:
             first_elem = value[start_idx]
             arr = first_elem.name.array
             offset = first_elem.name.index
-            slice_value = arr[offset:offset + (i - start_idx + 1)]
-            yield self[start_idx:], slice_value
+            slice_value = arr[offset:offset + (i - start_idx)]
+            yield self[start_idx:i], slice_value
+
+    def connection_iter(self):
+        value = self.trace()
+        start_idx = 0
+        for i in range(1, len(self)):
+            if (value[i].name.anon() or
+                    not _is_next_elem_in_slice(value[i], value[i - 1])):
+                yield from self._yield_curr_slice_or_elem(value, start_idx, i)
+                start_idx = i
+        if start_idx == 0:
+            # If we try to iterate and we find value is a slice, this means it
+            # cannot be sliced in the backend (i.e. not an array of bits), so
+            # here we iterate element by element instead
+            yield from zip(self, value)
+        else:
+            yield from self._yield_curr_slice_or_elem(value, start_idx, i)
 
 
 ArrayType = Array

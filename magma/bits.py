@@ -651,12 +651,12 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
             if len(index) < len(self):
                 index = index.zext(len(self) - len(index))
             return (self >> index)[0]
-        # if self.const():
-        #     if isinstance(index, int):
-        #         return Bit(self._const_value[index])
-        #     assert isinstance(index, slice)
-        #     result = self._const_value[index]
-        #     return Bits[len(result)](result)
+        if self.const():
+            if isinstance(index, int):
+                return Bit(self._const_value[index])
+            assert isinstance(index, slice)
+            result = self._const_value[index]
+            return Bits[len(result)](result)
         return super().__getitem__(index)
 
     # @property

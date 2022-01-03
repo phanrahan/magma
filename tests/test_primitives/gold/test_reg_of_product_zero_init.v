@@ -25,17 +25,17 @@ module Mux2xTuplex_Bits8_y_Bits4 (
     output [3:0] O_y,
     input S
 );
-reg [11:0] coreir_commonlib_mux2x12_inst0_out_unq1;
+reg [11:0] coreir_commonlib_mux2x12_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x12_inst0_out_unq1 = {I0_y[3:0],I0_x[7:0]};
+    coreir_commonlib_mux2x12_inst0_out = {I0_y[3:0],I0_x[7:0]};
 end else begin
-    coreir_commonlib_mux2x12_inst0_out_unq1 = {I1_y[3:0],I1_x[7:0]};
+    coreir_commonlib_mux2x12_inst0_out = {I1_y[3:0],I1_x[7:0]};
 end
 end
 
-assign O_x = coreir_commonlib_mux2x12_inst0_out_unq1[7:0];
-assign O_y = coreir_commonlib_mux2x12_inst0_out_unq1[11:8];
+assign O_x = {coreir_commonlib_mux2x12_inst0_out[7],coreir_commonlib_mux2x12_inst0_out[6],coreir_commonlib_mux2x12_inst0_out[5],coreir_commonlib_mux2x12_inst0_out[4],coreir_commonlib_mux2x12_inst0_out[3],coreir_commonlib_mux2x12_inst0_out[2],coreir_commonlib_mux2x12_inst0_out[1],coreir_commonlib_mux2x12_inst0_out[0]};
+assign O_y = {coreir_commonlib_mux2x12_inst0_out[11],coreir_commonlib_mux2x12_inst0_out[10],coreir_commonlib_mux2x12_inst0_out[9],coreir_commonlib_mux2x12_inst0_out[8]};
 endmodule
 
 module Register (
@@ -69,8 +69,8 @@ coreir_reg #(
     .in(reg_P12_inst0_in),
     .out(reg_P12_inst0_out)
 );
-assign O_x = reg_P12_inst0_out[7:0];
-assign O_y = reg_P12_inst0_out[11:8];
+assign O_x = {reg_P12_inst0_out[7],reg_P12_inst0_out[6],reg_P12_inst0_out[5],reg_P12_inst0_out[4],reg_P12_inst0_out[3],reg_P12_inst0_out[2],reg_P12_inst0_out[1],reg_P12_inst0_out[0]};
+assign O_y = {reg_P12_inst0_out[11],reg_P12_inst0_out[10],reg_P12_inst0_out[9],reg_P12_inst0_out[8]};
 endmodule
 
 module test_reg_of_product_zero_init (
