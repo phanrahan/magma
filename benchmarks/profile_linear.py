@@ -4,7 +4,6 @@ import cProfile
 import magma as m
 import timeit
 import pygal
-from magma.primitives.array2 import Slices
 
 
 def linear(T, n=128, compile=False):
