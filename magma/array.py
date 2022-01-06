@@ -626,21 +626,40 @@ class Array(Type, metaclass=ArrayMeta):
             slice_value = arr[offset:offset + (i - start_idx)]
             yield self[start_idx:i], slice_value
 
-    def connection_iter(self):
-        value = self.trace()
-        start_idx = 0
-        for i in range(1, len(self)):
-            if (value[i].name.anon() or
-                    not _is_next_elem_in_slice(value[i], value[i - 1])):
-                yield from self._yield_curr_slice_or_elem(value, start_idx, i)
-                start_idx = i
-        if start_idx == 0:
-            # If we try to iterate and we find value is a slice, this means it
-            # cannot be sliced in the backend (i.e. not an array of bits), so
-            # here we iterate element by element instead
-            yield from zip(self, value)
-        else:
-            yield from self._yield_curr_slice_or_elem(value, start_idx, i)
+    def connection_iter(self, only_slice_bits=False):
+        i = 0
+        while i < self.N:
+            if i in self._ts:
+                yield self._ts[i], self._ts[i].trace()
+                i += 1
+            else:
+                for k, v in self._slices.items():
+                    if k[0] == i:
+                        for j in range(k[0], k[1]):
+                            assert j not in self._ts
+                        if only_slice_bits and not issubclass(self.T, Bit):
+                            yield from zip(v, v.trace())
+                        else:
+                            yield v, v.trace()
+                        i = k[1]
+                        break
+                else:
+                    raise Exception()
+        # value = self.trace()
+        # start_idx = 0
+        # for i in range(1, len(self)):
+        #     if (value[i].name.anon() or
+        #             not _is_next_elem_in_slice(value[i], value[i - 1])):
+        #         yield from self._yield_curr_slice_or_elem(value, start_idx, i)
+        #         start_idx = i
+        # if start_idx == 0:
+        #     # If we try to iterate and we find value is a slice, this means it
+        #     # cannot be sliced in the backend (i.e. not an array of bits), so
+        #     # here we iterate element by element instead
+        #     yield from zip(self, value)
+        # else:
+        #     yield from self._yield_curr_slice_or_elem(value, start_idx,
+        #                                               len(self))
 
 
 ArrayType = Array
@@ -758,10 +777,12 @@ class Array2(Wireable, Array):
                 i.wire(o)
             return
         Wireable.wire(self, o, debug_info)
-        if (isinstance(self.name, ArrayRef) and
-                isinstance(self.name.index, slice)):
-            for i in range(len(self)):
-                self.name.array[self.name.index.start + i] @= o[i]
+        # if (isinstance(self.name, ArrayRef) and
+        #         isinstance(self.name.index, slice)):
+        #     for i in range(len(self)):
+        #         idx = self.name.index.start + i
+        #         if idx in self.name.array._ts:
+        #             self.name.array[self.name.index.start + i] @= o[i]
         if self._ts:
             # TODO(leonardt/array2): Optimize performance of this logic, needed
             # for converting Bit to Bits[1] and maintaining value mapping,
@@ -780,8 +801,8 @@ class Array2(Wireable, Array):
             Wireable.unwire(self, o)
 
     def iswhole(self):
-        if self._ts:
-            return Array._iswhole(self._get_ts())
+        if self._has_children():
+            return Array._iswhole(self._collect_children(lambda x: x))
         return True
 
     def const(self):
@@ -794,11 +815,18 @@ class Array2(Wireable, Array):
     # TODO(leonardt/array2): Use setdefault pattern?
     def _get_t(self, index):
         if index not in self._ts:
+            if self._is_slice():
+                return self.name.array._get_t(self.name.index.start + index)
             if issubclass(self.T, MagmaProtocol):
                 self._ts[index] = self.T._from_magma_value_(
                     self.T._to_magma_()(name=ArrayRef(self, index)))
             else:
                 self._ts[index] = self.T(name=ArrayRef(self, index))
+            # Update slices to have matching child reference
+            for k, v in self._slices.items():
+                if k[0] <= index < k[1]:
+                    assert index - k[0] not in v._ts
+                    v._ts[index - k[0]] = self._ts[index]
         if self._wire.driven():
             # Resolve bulk connection before returning child reference
             value = self._wire.value()
@@ -814,6 +842,10 @@ class Array2(Wireable, Array):
             self._slices[key] = type(self)[slice_.stop - slice_.start, self.T](
                 name=ArrayRef(self, slice_)
             )
+            # Populate existing children
+            for i in range(slice_.start, slice_.stop):
+                if i in self._ts:
+                    self._slices[key]._ts[i - slice_.start] = self._get_t(i)
         return self._slices[key]
 
     def __getitem__(self, key):
@@ -882,7 +914,21 @@ class Array2(Wireable, Array):
     def flatten(self):
         # TODO(leonardt/array2): Audit where this is used and optimize to avoid
         # where possible
-        return sum([self._get_t(i).flatten() for i in range(self.N)], [])
+        # return sum([self._get_t(i).flatten() for i in range(self.N)], [])
+        ts = []
+        i = 0
+        while i < self.N:
+            for k, v in self._slices.items():
+                if k[0] == i:
+                    for j in range(k[0], k[1]):
+                        assert j not in self._ts
+                    ts.extend(v.flatten())
+                    i = k[1]
+                    break
+            else:
+                i += 1
+                ts.extend(self._get_t(i).flatten())
+        return ts
 
     def __repr__(self):
         return Type.__repr__(self)
@@ -894,8 +940,24 @@ class Array2(Wireable, Array):
     def ts(self):
         return self._get_ts()
 
-    def _collect_ts(self, func):
-        ts = [func(t) for t in self._get_ts()]
+    def _collect_children(self, func):
+        # ts = [func(t) for t in self._get_ts()]
+        ts = []
+        i = 0
+        while i < self.N:
+            if i in self._ts:
+                ts.append(func(self._ts[i]))
+                i += 1
+            else:
+                for k, v in self._slices.items():
+                    if k[0] == i:
+                        for j in range(k[0], k[1]):
+                            assert j not in self._ts
+                        ts.extend(func(v).ts)
+                        i = k[1]
+                        break
+                else:
+                    return None
         if any(t is None for t in ts):
             return None
         if Array._iswhole(ts):
@@ -905,25 +967,47 @@ class Array2(Wireable, Array):
             return type(self).flip()(ts)
         return Array[self.N, self.T.flip()](ts)
 
+    def _has_children(self):
+        return bool(self._ts) or bool(self._slices)
+
     def value(self):
-        if self._is_slice():
-            return self.name.array.value()[self.name.index]
-        if self._ts:
-            return self._collect_ts(lambda x: x.value())
+        # if self._is_slice():
+        #     return self.name.array.value()[self.name.index]
+        if self._has_children():
+            return self._collect_children(lambda x: x.value())
         return super().value()
 
     def trace(self):
-        if self._is_slice():
-            return self.name.array.trace()[self.name.index]
-        if self._ts:
-            return self._collect_ts(lambda x: x.trace())
+        # if self._is_slice():
+        #     return self.name.array.trace()[self.name.index]
+        if self._has_children():
+            return self._collect_children(lambda x: x.trace())
         return super().trace()
 
     def driven(self):
-        if self._is_slice():
-            return self.name.array.driven()
-        if self._ts:
-            return all(t.driven() for t in self._get_ts())
+        # if self._is_slice():
+        #     return self.name.array.driven()
+        if self._has_children():
+            # TODO(leonardt/array2): Update for slice children
+            i = 0
+            while i < self.N:
+                if i in self._ts:
+                    if not self._ts[i].driven():
+                        return False
+                    i += 1
+                else:
+                    for k, v in self._slices.items():
+                        if k[0] == i:
+                            for j in range(k[0], k[1]):
+                                assert j not in self._ts
+                            if not v.driven():
+                                return False
+                            i = k[1]
+                            break
+                    else:
+                        return False
+            return True
+            # return all(t.driven() for t in self._get_ts())
         return super().driven()
 
     def _is_slice(self):

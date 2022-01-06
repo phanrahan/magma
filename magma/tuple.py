@@ -425,7 +425,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             mixed |= field.is_mixed()
         return mixed or (input + output + inout) > 1
 
-    def connection_iter(self):
+    def connection_iter(self, only_slice_bits=False):
         for elem in self:
             yield elem, elem.trace()
 

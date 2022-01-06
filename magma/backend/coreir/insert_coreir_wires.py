@@ -76,7 +76,7 @@ class InsertCoreIRWires(DefinitionPass):
 
     def _insert_wire(self, value, definition):
         if value.is_mixed():  # mixed children
-            for child in value:
+            for child, _ in value.connection_iter():
                 if not child.is_output():
                     self._insert_wire(child, definition)
             return
@@ -91,9 +91,9 @@ class InsertCoreIRWires(DefinitionPass):
             value, driver = driver, driver.value()
 
         descend = (isinstance(driver, (Array, Tuple)) and
-                   not driver.iswhole())
+                   driver.anon())
         if descend:
-            for child in value:
+            for child, _ in value.connection_iter():
                 self._insert_wire(child, definition)
             return
 

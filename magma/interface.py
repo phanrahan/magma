@@ -84,7 +84,7 @@ def _make_wire_str(driver, value, wired):
     if (value, driver) in wired:
         return ""
     wired.add((value, driver))
-    if driver.iswhole():
+    if not driver.anon():
         iname = value.name.qualifiedname()
         oname = driver.name.qualifiedname()
         return f"wire({oname}, {iname})\n"
@@ -111,12 +111,14 @@ def _make_wires(value, wired):
     if value.is_output():
         return ""
     if value.is_mixed():
-        return "".join(_make_wires(v, wired) for v in value)
+        return "".join(_make_wires(v, wired)
+                       for v, _ in value.connection_iter())
     driver = value.value()
     if driver is None:
         return ""
-    if not driver.iswhole():
-        return "".join(_make_wires(v, wired) for v in value)
+    if driver.anon():
+        return "".join(_make_wires(v, wired)
+                       for v, _ in value.connection_iter())
     while driver is not None and driver.is_driven_anon_temporary():
         driver = driver.value()
     s = ""

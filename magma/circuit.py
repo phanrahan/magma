@@ -196,11 +196,17 @@ def _get_intermediate_values(value):
     if driver is None:
         return OrderedIdentitySet()
     if driver.name.anon():
-        flat = value.flatten()
-        if len(flat) > 1:
+        conn_iter = list(value.connection_iter())
+        if len(conn_iter) > 1:
             return functools.reduce(
-                operator.or_, (_get_intermediate_values(f) for f in flat),
+                operator.or_, (_get_intermediate_values(v) for v, _ in
+                               conn_iter),
                 OrderedIdentitySet())
+        # flat = value.flatten()
+        # if len(flat) > 1:
+        #     return functools.reduce(
+        #         operator.or_, (_get_intermediate_values(f) for f in flat),
+        #         OrderedIdentitySet())
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
