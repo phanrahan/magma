@@ -197,6 +197,8 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
 
     def const(self):
         cls = type(self)
+        # TODO(leonardt/array2): we could avoid this circular import by marking
+        # const Bits when they are created as child references to a const Bits
         import magma as m
         return (self is cls.VCC or self is cls.GND or
                 (isinstance(self.name, ArrayRef) and
