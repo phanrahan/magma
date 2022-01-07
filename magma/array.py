@@ -307,8 +307,9 @@ def _make_array(array, args):
         return _make_array_from_args(array.N, array.T, args)
     return _make_array_no_args(array)
 
+
 def _is_next_elem_in_slice(next_, prev):
-    # Helper function for Array.connect_iter()
+    # Helper function for Array.connection_iter()
     return (isinstance(next_.name, ArrayRef) and
             # only support slice of bits in coreir
             issubclass(next_.name.array.T, Digital) and
@@ -823,10 +824,22 @@ class Array2(Wireable, Array):
             else:
                 self._ts[index] = self.T(name=ArrayRef(self, index))
             # Update slices to have matching child reference
-            for k, v in self._slices.items():
+            # TODO(leonardt/array2): Overlapping Slices
+            for k, v in list(self._slices.items()):
                 if k[0] <= index < k[1]:
-                    assert index - k[0] not in v._ts
+                    # assert index - k[0] not in v._ts
                     v._ts[index - k[0]] = self._ts[index]
+                    for i in range(k[0], k[1]):
+                        if i == index:
+                            continue
+                        if i not in self._ts:
+                            self._ts[i] = self.T(name=ArrayRef(self, i))
+                        v._ts[i - k[0]] = self._ts[i]
+                    if v._wire.driven():
+                        value = v._wire.value()
+                        Wireable.unwire(v, value)
+                        for i in range(k[0], k[1]):
+                            self._ts[i] @= value[i - k[0]]
         if self._wire.driven():
             # Resolve bulk connection before returning child reference
             value = self._wire.value()
@@ -837,15 +850,30 @@ class Array2(Wireable, Array):
 
     # TODO(leonardt/array2): Use setdefault pattern?
     def _get_slice(self, slice_):
+        if self._wire.driven():
+            # Resolve bulk connection before returning child reference
+            value = self._wire.value()
+            Wireable.unwire(self, value)
+            for i in range(len(self)):
+                self._get_t(i).wire(value[i])
         key = (slice_.start, slice_.stop)
         if key not in self._slices:
+            for k, v in list(self._slices.items()):
+                if k[0] <= slice_.start < k[1] or k[0] <= slice_.stop < k[1]:
+                    for i in range(k[0], k[1]):
+                        self._get_t(i)
+                    # TODO(leonardt/array2): Optimize to find the index range
+                    # necessary to iterate once
             self._slices[key] = type(self)[slice_.stop - slice_.start, self.T](
                 name=ArrayRef(self, slice_)
             )
             # Populate existing children
-            for i in range(slice_.start, slice_.stop):
-                if i in self._ts:
-                    self._slices[key]._ts[i - slice_.start] = self._get_t(i)
+            if any(i in self._ts for i in range(slice_.start, slice_.stop)):
+                for i in range(slice_.start, slice_.stop):
+                    if i in self._ts:
+                        self._slices[key]._ts[i - slice_.start] = self._ts[i]
+                    else:
+                        self._slices[key]._ts[i - slice_.start] = self._get_t(i)
         return self._slices[key]
 
     def __getitem__(self, key):
@@ -999,7 +1027,7 @@ class Array2(Wireable, Array):
                     for k, v in self._slices.items():
                         if k[0] == i:
                             for j in range(k[0], k[1]):
-                                assert j not in self._ts
+                                assert j not in self._ts, (j, k)
                             if not v.driven():
                                 return False
                             i = k[1]
