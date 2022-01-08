@@ -195,7 +195,7 @@ def _get_intermediate_values(value):
     driver = value.value()
     if driver is None:
         return OrderedIdentitySet()
-    if driver.name.anon():
+    if getattr(type(driver), "N", False) and driver.name.anon():
         conn_iter = list(value.connection_iter())
         if len(conn_iter) > 1:
             return functools.reduce(

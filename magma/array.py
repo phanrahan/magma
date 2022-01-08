@@ -628,39 +628,24 @@ class Array(Type, metaclass=ArrayMeta):
             yield self[start_idx:i], slice_value
 
     def connection_iter(self, only_slice_bits=False):
-        i = 0
-        while i < self.N:
-            if i in self._ts:
-                yield self._ts[i], self._ts[i].trace()
-                i += 1
-            else:
-                for k, v in self._slices.items():
-                    if k[0] == i:
-                        for j in range(k[0], k[1]):
-                            assert j not in self._ts
-                        if only_slice_bits and not issubclass(self.T, Bit):
-                            yield from zip(v, v.trace())
-                        else:
-                            yield v, v.trace()
-                        i = k[1]
-                        break
-                else:
-                    raise Exception()
-        # value = self.trace()
-        # start_idx = 0
-        # for i in range(1, len(self)):
-        #     if (value[i].name.anon() or
-        #             not _is_next_elem_in_slice(value[i], value[i - 1])):
-        #         yield from self._yield_curr_slice_or_elem(value, start_idx, i)
-        #         start_idx = i
-        # if start_idx == 0:
-        #     # If we try to iterate and we find value is a slice, this means it
-        #     # cannot be sliced in the backend (i.e. not an array of bits), so
-        #     # here we iterate element by element instead
-        #     yield from zip(self, value)
-        # else:
-        #     yield from self._yield_curr_slice_or_elem(value, start_idx,
-        #                                               len(self))
+        value = self.trace()
+        if value is None:
+            yield from ((t, t.trace()) for t in self)
+            return
+        start_idx = 0
+        for i in range(1, len(self)):
+            if (value[i].name.anon() or
+                    not _is_next_elem_in_slice(value[i], value[i - 1])):
+                yield from self._yield_curr_slice_or_elem(value, start_idx, i)
+                start_idx = i
+        if start_idx == 0:
+            # If we try to iterate and we find value is a slice, this means it
+            # cannot be sliced in the backend (i.e. not an array of bits), so
+            # here we iterate element by element instead
+            yield from zip(self, value)
+        else:
+            yield from self._yield_curr_slice_or_elem(value, start_idx,
+                                                      len(self))
 
 
 ArrayType = Array
@@ -954,8 +939,8 @@ class Array2(Wireable, Array):
                     i = k[1]
                     break
             else:
-                i += 1
                 ts.extend(self._get_t(i).flatten())
+                i += 1
         return ts
 
     def __repr__(self):
@@ -1041,3 +1026,30 @@ class Array2(Wireable, Array):
     def _is_slice(self):
         return (isinstance(self.name, ArrayRef) and
                 isinstance(self.name.index, slice))
+
+    def connection_iter(self, only_slice_bits=False):
+        if self._wire.driven():
+            driver = self.trace()
+            if driver is None:
+                return
+            # Anon whole driver, e.g. Bit to Bits[1]
+            yield from zip(self, driver)
+            return
+        i = 0
+        while i < self.N:
+            if i in self._ts:
+                yield self._ts[i], self._ts[i].trace()
+                i += 1
+            else:
+                for k, v in self._slices.items():
+                    if k[0] == i:
+                        for j in range(k[0], k[1]):
+                            assert j not in self._ts
+                        if only_slice_bits and not issubclass(self.T, Bit):
+                            yield from zip(v, v.trace())
+                        else:
+                            yield v, v.trace()
+                        i = k[1]
+                        break
+                else:
+                    raise Exception(self, i)

@@ -10,9 +10,9 @@ module Mux2xTupleBit_Bits2 (
 reg [2:0] coreir_commonlib_mux2x3_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x3_inst0_out = {I0__1[1:0],I0__0};
+    coreir_commonlib_mux2x3_inst0_out = {I0__1[1],I0__1[0],I0__0};
 end else begin
-    coreir_commonlib_mux2x3_inst0_out = {I1__1[1:0],I1__0};
+    coreir_commonlib_mux2x3_inst0_out = {I1__1[1],I1__1[0],I1__0};
 end
 end
 

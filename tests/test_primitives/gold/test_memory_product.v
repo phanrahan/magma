@@ -52,7 +52,7 @@ module Memory (
 );
 wire [5:0] coreir_mem4x6_inst0_rdata;
 wire [5:0] coreir_mem4x6_inst0_wdata;
-assign coreir_mem4x6_inst0_wdata = {WDATA_Y[4:0],WDATA_X};
+assign coreir_mem4x6_inst0_wdata = {WDATA_Y[4],WDATA_Y[3],WDATA_Y[2],WDATA_Y[1],WDATA_Y[0],WDATA_X};
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),

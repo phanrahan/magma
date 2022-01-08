@@ -112,7 +112,7 @@ mantle_concatNArrT__Ns19__t_childBitIn ConcatN_inst11 (
     .out(ConcatN_inst11_out)
 );
 wire [26:0] ConcatN_inst12_in0;
-assign ConcatN_inst12_in0 = {port36[0],port35[15:0],port34[9:0]};
+assign ConcatN_inst12_in0 = {port36[0],port35[15],port35[14],port35[13],port35[12],port35[11],port35[10],port35[9],port35[8],port35[7],port35[6],port35[5],port35[4],port35[3],port35[2],port35[1],port35[0],port34[9],port34[8],port34[7],port34[6],port34[5],port34[4],port34[3],port34[2],port34[1],port34[0]};
 mantle_concatNArrT__Ns275__t_childBitIn ConcatN_inst12 (
     .in0(ConcatN_inst12_in0),
     .in1(5'h00),

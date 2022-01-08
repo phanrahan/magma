@@ -7,9 +7,9 @@ module Mux2xArray2_Bits2 (
 reg [3:0] coreir_commonlib_mux2x4_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = {I0[1][1:0],I0[0][1:0]};
+    coreir_commonlib_mux2x4_inst0_out = {I0[1][1],I0[1][0],I0[0][1],I0[0][0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = {I1[1][1:0],I1[0][1:0]};
+    coreir_commonlib_mux2x4_inst0_out = {I1[1][1],I1[1][0],I1[0][1],I1[0][0]};
 end
 end
 

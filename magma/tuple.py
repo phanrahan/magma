@@ -143,7 +143,7 @@ class TupleKind(TupleMeta, Kind):
 
     @property
     def N(cls):
-        return len(cls)
+        return len(cls.fields)
 
     def __str__(cls):
         if not cls.is_bound:

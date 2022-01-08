@@ -550,6 +550,9 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
         signed = type(self)._signed
         return f"SmartBits[{len(self)}, {signed}]({str(self._value)})"
 
+    def connection_iter(self):
+        yield from zip(self, self.trace())
+
 
 SmartBit = SmartBits[1]
 
