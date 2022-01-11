@@ -793,67 +793,98 @@ class Array2(Wireable, Array):
     def const(self):
         return False
 
+    def _resolve_bulk_wire(self):
+        """
+        If a child reference is made, we "expand" a bulk wire into the
+        constiuent children to maintain consistency
+        """
+        if self._wire.driven():
+            value = self._wire.value()
+            Wireable.unwire(self, value)
+            for i in range(len(self)):
+                self._get_t(i).wire(value[i])
+
+    def _make_t(self, index):
+        if issubclass(self.T, MagmaProtocol):
+            return self.T._from_magma_value_(
+                self.T._to_magma_()(name=ArrayRef(self, index)))
+        else:
+            return self.T(name=ArrayRef(self, index))
+
     def _get_t(self, index):
         if index not in self._ts:
             if self._is_slice():
+                # Maintain consistency by always fetching child object from top
+                # level array
                 return self.name.array._get_t(self.name.index.start + index)
-            if issubclass(self.T, MagmaProtocol):
-                self._ts[index] = self.T._from_magma_value_(
-                    self.T._to_magma_()(name=ArrayRef(self, index)))
-            else:
-                self._ts[index] = self.T(name=ArrayRef(self, index))
-            # Update slices to have matching child reference
-            # TODO(leonardt/array2): Overlapping Slices
+            self._ts[index] = t = self._make_t(index)
+            # Update existing slices to have matching child references
             for k, v in list(self._slices.items()):
                 if k[0] <= index < k[1]:
-                    # assert index - k[0] not in v._ts
-                    v._ts[index - k[0]] = self._ts[index]
+                    assert v._ts.get(index - k[0], t) is t
+                    v._ts[index - k[0]] = t
                     for i in range(k[0], k[1]):
                         if i == index:
                             continue
-                        if i not in self._ts:
-                            self._ts[i] = self.T(name=ArrayRef(self, i))
-                        v._ts[i - k[0]] = self._ts[i]
+                        self._get_t(i)
+                    # Resolve driver
                     if v._wire.driven():
                         value = v._wire.value()
                         Wireable.unwire(v, value)
                         for i in range(k[0], k[1]):
                             self._ts[i] @= value[i - k[0]]
-        if self._wire.driven():
-            # Resolve bulk connection before returning child reference
-            value = self._wire.value()
-            Wireable.unwire(self, value)
-            for i in range(len(self)):
-                self._get_t(i).wire(value[i])
+        self._resolve_bulk_wire()
         return self._ts[index]
 
+    def _resolve_overlapping_indices(self, slice_, value):
+        """
+        If there's any overlapping children or slices, collect the total range
+        of the children and realize them so slices are "expanded" and maintain
+        consistency
+        """
+        overlapping = any(i in self._ts
+                          for i in range(slice_.start, slice_.stop))
+        start = slice_.start
+        stop = slice_.stop
+        for k, v in list(self._slices.items()):
+            if k == (slice_.start, slice_.stop):
+                continue
+            if k[0] <= slice_.start < k[1] or k[0] <= slice_.stop < k[1]:
+                overlapping = True
+        if overlapping:
+            for i in range(start, stop):
+                # _get_t to populate slice children and resolve any overlaps
+                value._ts[i - start] = self._get_t(i)
+        return overlapping
+
     def _get_slice(self, slice_):
-        if self._wire.driven():
-            # Resolve bulk connection before returning child reference
-            value = self._wire.value()
-            Wireable.unwire(self, value)
-            for i in range(len(self)):
-                self._get_t(i).wire(value[i])
         key = (slice_.start, slice_.stop)
         if key not in self._slices:
-            for k, v in list(self._slices.items()):
-                if k[0] <= slice_.start < k[1] or k[0] <= slice_.stop < k[1]:
-                    for i in range(k[0], k[1]):
-                        self._get_t(i)
-                    # TODO(leonardt/array2): Optimize to find the index range
-                    # necessary to iterate once
+            # TODO(leonardt/array2): Avoid duplicate logic with expanding for
+            # existing chilren
             self._slices[key] = type(self)[slice_.stop - slice_.start, self.T](
                 name=ArrayRef(self, slice_)
             )
             self._slices_by_start_index[key[0]] = self._slices[key]
-            # Populate existing children
-            if any(i in self._ts for i in range(slice_.start, slice_.stop)):
-                for i in range(slice_.start, slice_.stop):
-                    if i in self._ts:
-                        self._slices[key]._ts[i - slice_.start] = self._ts[i]
-                    else:
-                        self._slices[key]._ts[i - slice_.start] = self._get_t(i)
+            self._resolve_overlapping_indices(slice_, self._slices[key])
+        self._resolve_bulk_wire()
         return self._slices[key]
+
+    def _normalize_slice_key(self, key):
+        # Normalize slice by mapping None to concrete int values
+        start = key.start if key.start is not None else 0
+        if start < 0:
+            start = self.N + start
+            if start < 0:
+                raise IndexError(key)
+        stop = key.stop if key.stop is not None else len(self)
+        if stop < 0:
+            stop = self.N + stop
+            if stop < 0:
+                raise IndexError(key)
+        if key.step is not None:
+            raise NotImplementedError("Variable slice step not implemented")
+        return slice(start, stop, key.step)
 
     def __getitem__(self, key):
         if isinstance(key, int) and key > self.N - 1:
@@ -861,19 +892,7 @@ class Array2(Wireable, Array):
         if isinstance(key, slice):
             if key.start is None and key.stop is None and key.step == -1:
                 return self.reversed()
-            # Normalize slice by mapping None to concrete int values
-            start = key.start if key.start is not None else 0
-            if start < 0:
-                start = self.N + start
-                if start < 0:
-                    raise IndexError(key)
-            stop = key.stop if key.stop is not None else len(self)
-            if stop < 0:
-                stop = self.N + stop
-                if stop < 0:
-                    raise IndexError(key)
-            assert key.step is None, "Variable slice step not implemented"
-            key = slice(start, stop, key.step)
+            key = self._normalize_slice_key(key)
             if (key.start > self.N - 1 or key.stop > self.N):
                 raise IndexError(key)
         if self.is_inout():
