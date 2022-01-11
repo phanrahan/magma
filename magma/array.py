@@ -757,6 +757,7 @@ class Array2(Wireable, Array):
         Wireable.__init__(self)
         self._ts = {}
         self._slices = {}
+        self._slices_by_start_index = {}
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -856,6 +857,7 @@ class Array2(Wireable, Array):
             self._slices[key] = type(self)[slice_.stop - slice_.start, self.T](
                 name=ArrayRef(self, slice_)
             )
+            self._slices_by_start_index[key[0]] = self._slices[key]
             # Populate existing children
             if any(i in self._ts for i in range(slice_.start, slice_.stop)):
                 for i in range(slice_.start, slice_.stop):
@@ -949,16 +951,15 @@ class Array2(Wireable, Array):
 
     def _collect_children(self, func):
         ts = []
-        for child in map(func, self._children_iter()):
-            if child is None:
+        for child in self._children_iter():
+            result = func(child)
+            if result is None:
                 return None
-            elif _is_slice_child(child):
+            if _is_slice_child(child):
                 # TODO: Could we avoid calling .ts here?
-                ts.extend(func(child).ts)
+                ts.extend(result.ts)
             else:
-                ts.append(func(child))
-        if any(t is None for t in ts):
-            return None
+                ts.append(result)
         if Array._iswhole(ts):
             return ts[0].name.array
         if all(t.const() for t in ts):
@@ -999,17 +1000,21 @@ class Array2(Wireable, Array):
             if i in self._ts:
                 yield self._ts[i]
                 i += 1
+            elif i in self._slices_by_start_index:
+                # We only need to lookup one slice by start index because if
+                # multiple slices overlap, they're children will be realized
+                # and in self._ts
+                value = self._slices_by_start_index[i]
+                slice_ = value.name.index
+                # Make sure there's no overlapping children realized (otherwise
+                # all this slice children should have been realized)
+                for j in range(slice_.start, slice_.stop):
+                    assert j not in self._ts
+                yield value
+                i = slice_.stop
             else:
-                for k, v in self._slices.items():
-                    if k[0] == i:
-                        for j in range(k[0], k[1]):
-                            assert j not in self._ts, (j, k)
-                        yield v
-                        i = k[1]
-                        break
-                else:
-                    yield self._get_t(i)
-                    i += 1
+                yield self._get_t(i)
+                i += 1
 
     def connection_iter(self, only_slice_bits=False):
         if self._wire.driven():
