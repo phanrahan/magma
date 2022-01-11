@@ -793,7 +793,6 @@ class Array2(Wireable, Array):
     def const(self):
         return False
 
-    # TODO(leonardt/array2): Use setdefault pattern?
     def _get_t(self, index):
         if index not in self._ts:
             if self._is_slice():
@@ -828,7 +827,6 @@ class Array2(Wireable, Array):
                 self._get_t(i).wire(value[i])
         return self._ts[index]
 
-    # TODO(leonardt/array2): Use setdefault pattern?
     def _get_slice(self, slice_):
         if self._wire.driven():
             # Resolve bulk connection before returning child reference
