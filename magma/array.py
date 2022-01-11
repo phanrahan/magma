@@ -320,6 +320,10 @@ def _is_next_elem_in_slice(next_, prev):
             next_.name.index == prev.name.index + 1)
 
 
+def _is_slice_child(child):
+    return isinstance(child, Array2) and child._is_slice()
+
+
 class Array(Type, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
@@ -929,18 +933,8 @@ class Array2(Wireable, Array):
         # where possible
         # return sum([self._get_t(i).flatten() for i in range(self.N)], [])
         ts = []
-        i = 0
-        while i < self.N:
-            for k, v in self._slices.items():
-                if k[0] == i:
-                    for j in range(k[0], k[1]):
-                        assert j not in self._ts
-                    ts.extend(v.flatten())
-                    i = k[1]
-                    break
-            else:
-                ts.extend(self._get_t(i).flatten())
-                i += 1
+        for child in self._children_iter():
+            ts.extend(child.flatten())
         return ts
 
     def __repr__(self):
@@ -954,23 +948,15 @@ class Array2(Wireable, Array):
         return self._get_ts()
 
     def _collect_children(self, func):
-        # ts = [func(t) for t in self._get_ts()]
         ts = []
-        i = 0
-        while i < self.N:
-            if i in self._ts:
-                ts.append(func(self._ts[i]))
-                i += 1
+        for child in map(func, self._children_iter()):
+            if child is None:
+                return None
+            elif _is_slice_child(child):
+                # TODO: Could we avoid calling .ts here?
+                ts.extend(func(child).ts)
             else:
-                for k, v in self._slices.items():
-                    if k[0] == i:
-                        for j in range(k[0], k[1]):
-                            assert j not in self._ts
-                        ts.extend(func(v).ts)
-                        i = k[1]
-                        break
-                else:
-                    return None
+                ts.append(func(child))
         if any(t is None for t in ts):
             return None
         if Array._iswhole(ts):
@@ -984,48 +970,46 @@ class Array2(Wireable, Array):
         return bool(self._ts) or bool(self._slices)
 
     def value(self):
-        # if self._is_slice():
-        #     return self.name.array.value()[self.name.index]
         if self._has_children():
             return self._collect_children(lambda x: x.value())
         return super().value()
 
     def trace(self):
-        # if self._is_slice():
-        #     return self.name.array.trace()[self.name.index]
         if self._has_children():
             return self._collect_children(lambda x: x.trace())
         return super().trace()
 
     def driven(self):
-        # if self._is_slice():
-        #     return self.name.array.driven()
         if self._has_children():
-            # TODO(leonardt/array2): Update for slice children
-            i = 0
-            while i < self.N:
-                if i in self._ts:
-                    if not self._ts[i].driven():
-                        return False
-                    i += 1
-                else:
-                    for k, v in self._slices.items():
-                        if k[0] == i:
-                            for j in range(k[0], k[1]):
-                                assert j not in self._ts, (j, k)
-                            if not v.driven():
-                                return False
-                            i = k[1]
-                            break
-                    else:
-                        return False
+            for child in self._children_iter():
+                if child is None:
+                    return False
+                if not child.driven():
+                    return False
             return True
-            # return all(t.driven() for t in self._get_ts())
         return super().driven()
 
     def _is_slice(self):
         return (isinstance(self.name, ArrayRef) and
                 isinstance(self.name.index, slice))
+
+    def _children_iter(self):
+        i = 0
+        while i < self.N:
+            if i in self._ts:
+                yield self._ts[i]
+                i += 1
+            else:
+                for k, v in self._slices.items():
+                    if k[0] == i:
+                        for j in range(k[0], k[1]):
+                            assert j not in self._ts, (j, k)
+                        yield v
+                        i = k[1]
+                        break
+                else:
+                    yield self._get_t(i)
+                    i += 1
 
     def connection_iter(self, only_slice_bits=False):
         if self._wire.driven():
@@ -1035,21 +1019,9 @@ class Array2(Wireable, Array):
             # Anon whole driver, e.g. Bit to Bits[1]
             yield from zip(self, driver)
             return
-        i = 0
-        while i < self.N:
-            if i in self._ts:
-                yield self._ts[i], self._ts[i].trace()
-                i += 1
+        for child in self._children_iter():
+            if (_is_slice_child(child) and only_slice_bits and
+                    not issubclass(self.T, Bit)):
+                yield from zip(child, child.trace())
             else:
-                for k, v in self._slices.items():
-                    if k[0] == i:
-                        for j in range(k[0], k[1]):
-                            assert j not in self._ts
-                        if only_slice_bits and not issubclass(self.T, Bit):
-                            yield from zip(v, v.trace())
-                        else:
-                            yield v, v.trace()
-                        i = k[1]
-                        break
-                else:
-                    raise Exception(self, i)
+                yield child, child.trace()
