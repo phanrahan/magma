@@ -823,11 +823,19 @@ class Array2(Wireable, Array):
                 if k[0] <= index < k[1]:
                     assert v._ts.get(index - k[0], t) is t
                     v._ts[index - k[0]] = t
+                    # TODO(leonardt/array2): Can we compute the range of get_t
+                    # needed to avoided extra calls? At least this will just be
+                    # a dict lookup so not too expensive
                     for i in range(k[0], k[1]):
                         if i == index:
                             continue
                         self._get_t(i)
                     # Resolve driver
+                    # TODO(leonardt/array2): I think we should only ever have 2
+                    # overlapping slices (the case when we create a new slice
+                    # and call _get_t to resolve them).  We should (a) validate
+                    # this assumption, and (b) optimize for this case (can we
+                    # exit early once we encounter the slices of interest?)
                     if v._wire.driven():
                         value = v._wire.value()
                         Wireable.unwire(v, value)
