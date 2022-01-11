@@ -768,12 +768,6 @@ class Array2(Wireable, Array):
                 i.wire(o)
             return
         Wireable.wire(self, o, debug_info)
-        # if (isinstance(self.name, ArrayRef) and
-        #         isinstance(self.name.index, slice)):
-        #     for i in range(len(self)):
-        #         idx = self.name.index.start + i
-        #         if idx in self.name.array._ts:
-        #             self.name.array[self.name.index.start + i] @= o[i]
         if self._ts:
             # TODO(leonardt/array2): Optimize performance of this logic, needed
             # for converting Bit to Bits[1] and maintaining value mapping,
@@ -797,10 +791,6 @@ class Array2(Wireable, Array):
         return True
 
     def const(self):
-        # TODO(leonardt): Support const
-        # Two cases:
-        #   1) Array of const (can we handle with old array logic?)
-        #   2) Const bits (handle with Bits2)
         return False
 
     # TODO(leonardt/array2): Use setdefault pattern?
