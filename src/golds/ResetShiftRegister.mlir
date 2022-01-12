@@ -1,8 +1,10 @@
 hw.module @ResetShiftRegister(%I: i4, %shift: i1, %CLK: i1, %RESETN: i1) -> (O: i4) {
     %1 = sv.reg {name = "Register_inst0"} : !hw.inout<i4>
-    sv.alwaysff(posedge %shift) {
-        sv.passign %1, %I : i4
-    } (syncreset : negedge %CLK) {
+    sv.alwaysff(posedge %CLK) {
+        sv.if %shift {
+            sv.passign %1, %I : i4
+        }
+    } (syncreset : negedge %RESETN) {
         sv.passign %1, %2 : i4
     }
     %2 = hw.constant 0 : i4
@@ -11,9 +13,11 @@ hw.module @ResetShiftRegister(%I: i4, %shift: i1, %CLK: i1, %RESETN: i1) -> (O: 
     }
     %0 = sv.read_inout %1 : !hw.inout<i4>
     %4 = sv.reg {name = "Register_inst1"} : !hw.inout<i4>
-    sv.alwaysff(posedge %shift) {
-        sv.passign %4, %0 : i4
-    } (syncreset : negedge %CLK) {
+    sv.alwaysff(posedge %CLK) {
+        sv.if %shift {
+            sv.passign %4, %0 : i4
+        }
+    } (syncreset : negedge %RESETN) {
         sv.passign %4, %2 : i4
     }
     sv.initial {
@@ -21,9 +25,11 @@ hw.module @ResetShiftRegister(%I: i4, %shift: i1, %CLK: i1, %RESETN: i1) -> (O: 
     }
     %3 = sv.read_inout %4 : !hw.inout<i4>
     %6 = sv.reg {name = "Register_inst2"} : !hw.inout<i4>
-    sv.alwaysff(posedge %shift) {
-        sv.passign %6, %3 : i4
-    } (syncreset : negedge %CLK) {
+    sv.alwaysff(posedge %CLK) {
+        sv.if %shift {
+            sv.passign %6, %3 : i4
+        }
+    } (syncreset : negedge %RESETN) {
         sv.passign %6, %2 : i4
     }
     sv.initial {
@@ -31,9 +37,11 @@ hw.module @ResetShiftRegister(%I: i4, %shift: i1, %CLK: i1, %RESETN: i1) -> (O: 
     }
     %5 = sv.read_inout %6 : !hw.inout<i4>
     %8 = sv.reg {name = "Register_inst3"} : !hw.inout<i4>
-    sv.alwaysff(posedge %shift) {
-        sv.passign %8, %5 : i4
-    } (syncreset : negedge %CLK) {
+    sv.alwaysff(posedge %CLK) {
+        sv.if %shift {
+            sv.passign %8, %5 : i4
+        }
+    } (syncreset : negedge %RESETN) {
         sv.passign %8, %2 : i4
     }
     sv.initial {

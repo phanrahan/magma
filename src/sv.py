@@ -209,4 +209,45 @@ class IfDefOp(MlirOp):
         raise NotImplementedError()
 
 
+@dataclasses.dataclass
+class IfOp(MlirOp):
+    operands: List[MlirOp]
+
+    def __post_init__(self):
+        self._then_block = self.new_region().new_block()
+        self._else_block = None
+
+    @property
+    def then_block(self) -> MlirBlock:
+        return self._then_block
+
+    @property
+    def else_block(self) -> MlirBlock:
+        if self._else_block is None:
+            self._else_block = self.new_region().new_block()
+        return self._else_block
+
+    def print(self, printer: PrinterBase):
+        printer.print(f"sv.if ")
+        print_names(self.operands[0], printer)
+        printer.print(" {")
+        printer.flush()
+        printer.push()
+        self._then_block.print(printer)
+        printer.pop()
+        printer.print("}")
+        if self._else_block is None:
+            printer.flush()
+            return
+        printer.print(" else {")
+        printer.flush()
+        printer.push()
+        self._else_block.print(printer)
+        printer.pop()
+        printer.print_line("}")
+
+    def print_op(self, printer: PrinterBase):
+        raise NotImplementedError()
+
+
 end_dialect()

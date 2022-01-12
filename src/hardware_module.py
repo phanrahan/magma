@@ -394,18 +394,32 @@ class ModuleVisitor:
         sv.RegOp(name=inst.name, results=[reg])
         clock_edge = "posedge"
         has_reset = defn.reset_type is not None
-        operands = [module.operands[1]]
+        # NOTE(resetaluri): This is a hack until
+        # magma/primitives/register.py:Register is updated to store this
+        # generator parameter directly.
+        has_enable = "CE" in defn.interface.ports
+        data = module.operands[0]
+        if has_enable:
+            enable = module.operands[1]
+            clk = module.operands[2]
+        else:
+            clk = module.operands[1]
+        always_operands = [clk]
         attrs = dict(clock_edge=clock_edge)
         if has_reset:
-            operands.append(module.operands[2])
+            reset = module.operands[-1]
+            always_operands.append(reset)
             reset_type, reset_edge = parse_reset_type(defn.reset_type)
             attrs.update(dict(reset_type=reset_type, reset_edge=reset_edge))
-        always = sv.AlwaysFFOp(operands=operands, **attrs)
+        always = sv.AlwaysFFOp(operands=always_operands, **attrs)
         const = self.make_constant(type(defn.I), defn.init)
         with push_block(always.body_block):
-            sv.PAssignOp(operands=[reg, module.operands[0]])
+            ctx = contextlib.nullcontext()
+            if has_enable:
+                ctx = push_block(sv.IfOp(operands=[enable]).then_block)
+            with ctx:
+                sv.PAssignOp(operands=[reg, data])
         if has_reset:
-            always.operands.append(module.operands[1])
             with push_block(always.reset_block):
                 sv.PAssignOp(operands=[reg, const])
         with push_block(sv.InitialOp()):
