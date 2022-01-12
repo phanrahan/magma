@@ -102,9 +102,14 @@ class complex_register_wrapper(m.Circuit):
     T1 = m.Array[6, m.Bits[16]]
     T2 = m.Product.from_fields("anon", dict(u=T0, v=T1))
     io = m.IO(a=m.In(T0), b=m.In(T1), y=m.Out(T2))
-    io += m.ClockIO(has_async_reset=True)
-    reg_a = m.register(io.a, init=T0(10, 1), reset_type=m.AsyncReset)
+    io += m.ClockIO(has_enable=True, has_async_reset=True)
+    # reg_a has both a reset and enable signal. reg_b has only a reset signal,
+    # and reg_c has only an enable signal. reg_a and reg_b have complex types,
+    # and init values.
+    reg_a = m.register(
+        io.a, init=T0(10, 1), reset_type=m.AsyncReset, has_enable=True)
     reg_b = m.register(io.b, init=T1(*(i * 2 for i in range(T1.N))))
+    reg_c = m.register(io.a.x, has_enable=True)
     y = T2(reg_a, reg_b)
     io.y @= y
 
