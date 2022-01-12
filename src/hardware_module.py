@@ -414,7 +414,11 @@ class ModuleVisitor:
         always = sv.AlwaysFFOp(operands=always_operands, **attrs)
         const = self.make_constant(type(defn.I), defn.init)
         with push_block(always.body_block):
-            sv.PAssignOp(operands=[reg, data])
+            ctx = contextlib.nullcontext()
+            if has_enable:
+                ctx = push_block(sv.IfOp(operands=[enable]).then_block)
+            with ctx:
+                sv.PAssignOp(operands=[reg, data])
         if has_reset:
             with push_block(always.reset_block):
                 sv.PAssignOp(operands=[reg, const])
