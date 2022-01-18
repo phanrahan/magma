@@ -245,6 +245,10 @@ class ConcatN(Generator2):
         self.coreir_name = "concatNArrT"
         self.coreir_lib = "mantle"
         # TODO(leonardt/array2): Unify combinational/stateful attribute
+        # NOTE(leonardt/array2): This attribute was added in Array2 performance
+        # hacking, it's no longer necessary for the core change, but could be
+        # still useful as a minor performance improvement (we can avoid
+        # traversal of ports when doing automatic clock wiring logic)
         self.combinational = True
 
         self.primitive = True
