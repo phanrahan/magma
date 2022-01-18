@@ -72,34 +72,6 @@ def bits_cast(fn: tp.Callable[['Bits', 'Bits'], tp.Any]) -> \
     return wrapped
 
 
-class Const(Generator2):
-    def __init__(self, value: tp.Union[int, tuple], T: 'BitsMeta'):
-        if isinstance(value, tuple):
-            value = seq2int(value)
-        else:
-            value = int(value)
-        value = BitVector[T.N](value)
-        self.coreir_name = "const"
-        self.coreir_lib = "coreir"
-        self.coreir_genargs = {"width": T.N}
-        self.coreir_configargs = {"value": value}
-        self.renamed_ports = coreir_port_mapping
-        self.primitive = True
-        self.stateful = False
-        self.io = IO(O=Out(T))
-        self._value = value
-
-        def __repr__(self):
-            return f"{self.name} = Const({value}, {T})"
-
-        self.__repr__ = __repr__
-
-        def simulate(self, value_store, state_store):
-            value_store.set_value(self.O, value)
-
-        self.simulate = simulate
-
-
 class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
@@ -656,7 +628,7 @@ class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
                 return Bit(self._const_value[index])
             assert isinstance(index, slice)
             result = self._const_value[index]
-            return Bits[len(result)](result)
+            return type(self)[len(result)](result)
         return super().__getitem__(index)
 
     # @property

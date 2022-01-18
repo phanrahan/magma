@@ -862,12 +862,9 @@ class Array2(Wireable, Array):
     def __repr__(self):
         return Type.__repr__(self)
 
-    def _get_ts(self):
-        return [self._get_t(i) for i in range(self.N)]
-
     @property
     def ts(self):
-        return self._get_ts()
+        return [elem for elem in self]
 
     def _collect_children(self, func):
         ts = []
@@ -933,7 +930,7 @@ class Array2(Wireable, Array):
                 yield value
                 i = slice_.stop
             else:
-                yield self._get_t(i)
+                yield self[i]
                 i += 1
 
     def connection_iter(self, only_slice_bits=False):
