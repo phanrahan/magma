@@ -268,10 +268,6 @@ class ConcatN(Generator2):
 
 def concat2(*arrays):
     return ConcatN(*(type(arr) for arr in arrays))()(*arrays)
-    # curr = arrays[0]
-    # for next_ in arrays[1:]:
-    #     curr = Concat(type(curr), type(next_))()(curr, next_)
-    # return curr
 
 
 Array2._array_old = staticmethod(array)
