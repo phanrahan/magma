@@ -16,14 +16,8 @@ def combined(T, n=128, compile=False):
                   O4=m.Out(T[n, m.Bits[8]]),
                   O5=m.Out(T[n, m.Bit]),
                   )
-        if T is m.Array2:
-            O = []
-            for i in range(n):
-                O.insert(0, io.I[i:i + 1])
-            io.O @= m.concat2(*O)
-        else:
-            for i in range(n):
-                io.O[(n - 1) - i] @= io.I[i]
+        for i in range(n):
+            io.O[(n - 1) - i] @= io.I[i]
         io.O2[:n // 2] @= io.I[n // 2:]
         io.O2[n // 2:] @= io.I[:n // 2]
         io.O3 @= io.I

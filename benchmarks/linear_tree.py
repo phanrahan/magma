@@ -6,14 +6,8 @@ import pygal
 def linear(T, n=128, compile=False):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(T[n, m.Bit]), O=m.Out(T[n, m.Bit]))
-        if T is m.Array2:
-            O = []
-            for i in range(n):
-                O.insert(0, io.I[i:i + 1])
-            io.O @= m.concat2(*O)
-        else:
-            for i in range(n):
-                io.O[(n - 1) - i] @= io.I[i]
+        for i in range(n):
+            io.O[(n - 1) - i] @= io.I[i]
     if compile:
         m.clear_cachedFunctions()
         m.frontend.coreir_.ResetCoreIR()
