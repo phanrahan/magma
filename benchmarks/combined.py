@@ -1,7 +1,6 @@
 import magma as m
 import timeit
 import pygal
-from magma.primitives.array2 import Slices
 
 
 def combined(T, n=128, compile=False):
