@@ -1,12 +1,15 @@
-from magma.array import Array, Array2
+from magma.array import Array
 from magma.circuit import Circuit
-from magma.clock import AsyncReset, AsyncResetN, Clock
+from magma.clock import AsyncReset, AsyncResetN, Clock, is_clock_or_nested_clock
 from magma.conversions import convertbit
 from magma.interface import IO
 from magma.passes import DefinitionPass, pass_lambda
 from magma.t import In, Out, Direction
 from magma.tuple import Tuple
 from magma.wire import wire
+
+
+NAMED_TYPES = (AsyncReset, AsyncResetN, Clock)
 
 
 class InsertWrapCasts(DefinitionPass):
@@ -25,30 +28,32 @@ class InsertWrapCasts(DefinitionPass):
         return Wrap
 
     def wrap_if_named_type(self, port, definition):
+        if not port.driven():
+            return False
+        value = port.value()
         if isinstance(port, Tuple):
             wrapped = False
             for t in port:
                 wrapped |= self.wrap_if_named_type(t, definition)
             return wrapped
-        if isinstance(port, Array) and not isinstance(port, Array2):
-            # NOTE(leonardt): Array2 are always bulk connected, so we don't
-            # need to check children
-            wrapped = self.wrap_if_named_type(port[0], definition)
-            if not wrapped:
-                return False
-            # TODO: Magma doesn't support length zero array, so slicing a
-            # length 1 array off the end doesn't work as expected in normal
-            # Python, so we explicilty slice port.ts
-            for t in port.ts[1:]:
-                self.wrap_if_named_type(t, definition)
-            return True
-        if not port.driven():
-            return False
-        value = port.value()
-        # TODO(leonardt): Array2 are always bulk connected, so we need to
-        # handle them here without recursion
-        if not (isinstance(port, (AsyncReset, AsyncResetN, Clock)) or
-                isinstance(value, (AsyncReset, AsyncResetN, Clock))):
+        if isinstance(port, Array):
+            # Avoid recursion when possible (for Array2) by checking the nested
+            # array type and only descending if necessary
+            # Note(leonardt): If value is anon, we need to check the children
+            # via recursion in case the children are named types (since
+            # .value() will return Array[N, T.flip()], the anon value may not
+            # have the namedtypes in its type)
+            if (is_clock_or_nested_clock(type(port), NAMED_TYPES) or
+                    is_clock_or_nested_clock(type(value), NAMED_TYPES) or
+                    value.anon()):
+                for child, _ in port.connection_iter():
+                    if not self.wrap_if_named_type(child, definition):
+                        return False
+                return True
+            else:
+                return self.wrap_if_named_type(value, definition)
+        if not (isinstance(port, NAMED_TYPES) or
+                isinstance(value, NAMED_TYPES)):
             return self.wrap_if_named_type(value, definition)
         undirected_t = type(port).qualify(Direction.Undirected)
         if issubclass(type(value), undirected_t):
