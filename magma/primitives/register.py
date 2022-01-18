@@ -131,18 +131,6 @@ def _check_init_T(init, T):
     return init_T.is_wireable(T)
 
 
-def _copy_const(value):
-    if isinstance(value, Bit):
-        return value
-    if isinstance(value, Bits):
-        return type(value)(int(value))
-    if isinstance(value, Array):
-        return type(value)(list(_copy_const(v) for v in value))
-    if isinstance(value, Tuple):
-        return type(value)(*(_copy_const(v) for v in value))
-    raise NotImplementedError(type(value))
-
-
 class Register(Generator2):
     def __init__(self, T: Kind = None,
                  init: Union[Type, int, ht.BitVector] = None,
@@ -202,13 +190,6 @@ class Register(Generator2):
 
         if isinstance(init, int):
             init = _zero_init(T, init)
-
-        if isinstance(init, Type):
-            # TODO(leonardt/array2): We have to copy const values into this
-            # definition context, if we resolve them as a compiler pass rather
-            # than creating the instances on the fly, we can remove this logic
-            assert init.const()
-            init = _copy_const(init)
 
         self.init = init
         self.reset_type = reset_type

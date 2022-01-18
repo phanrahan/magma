@@ -839,10 +839,6 @@ class Array2(Wireable, Array):
             return True
         return False
 
-    def _array_old(*args, **kwargs):
-        """Monkey patched in magma/conversions.py"""
-        raise NotImplementedError()
-
     def _concat(*args, **kwargs):
         """Monkey patched in magma/conversions.py"""
         raise NotImplementedError()
