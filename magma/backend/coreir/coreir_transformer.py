@@ -419,7 +419,6 @@ class DefinitionTransformer(TransformerBase):
                 not issubclass(value.T, Digital)):
             # coreir does not support slice syntax for non-array of bits, so we
             # recursively connect here
-            # TODO(leonardt/array2): recursive offset for getitem of slice ref
             offset = value.name.index.start
             value_children = [value.T(name=ArrayRef(value.name.array, offset +
                                                     i))
