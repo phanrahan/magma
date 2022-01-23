@@ -1,14 +1,10 @@
 from abc import ABC, abstractmethod
-from copy import copy
 import json
-import logging
-import os
 
 import coreir as pycoreir
 
 from magma.digital import Digital
-from magma.array import Array, Array2
-from magma.bits import Bits
+from magma.array import Array
 from magma.backend.check_wiring_context import check_wiring_context
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
@@ -414,7 +410,7 @@ class DefinitionTransformer(TransformerBase):
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
-        if (isinstance(value, Array2) and isinstance(value.name, ArrayRef) and
+        if (isinstance(value, Array) and isinstance(value.name, ArrayRef) and
                 isinstance(value.name.index, slice) and
                 not issubclass(value.T, Digital)):
             # coreir does not support slice syntax for non-array of bits, so we

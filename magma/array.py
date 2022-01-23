@@ -123,9 +123,9 @@ class ArrayMeta(ABCMeta, Kind):
 
         bases = []
         bases.extend(b[index] for b in cls.__bases__
-                     # Skip array for Array2 for performance
-                     if isinstance(b, mcs) and not (cls is Array2 and
-                                                    b is Array))
+                     # Skip array for Array for performance
+                     if isinstance(b, mcs) and not (cls is Array and
+                                                    b is ArrayOld))
         # only add base classes if we're have a child type
         # (skipped in the case of In(Array))
         if not isinstance(index[1], Direction):
@@ -321,10 +321,10 @@ def _is_next_elem_in_slice(next_, prev):
 
 
 def _is_slice_child(child):
-    return isinstance(child, Array2) and child._is_slice()
+    return isinstance(child, Array) and child._is_slice()
 
 
-class Array(Type, metaclass=ArrayMeta):
+class ArrayOld(Type, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.ts = _make_array(self, args)
@@ -425,12 +425,13 @@ class Array(Type, metaclass=ArrayMeta):
             return self.ts[key]
 
     def __setitem__(self, key, val):
-        error = False
         old = self[key]
-        if isinstance(old, Array):
+        if old is val:
+            error = False
+        elif isinstance(old, ArrayOld):
             if len(old) != len(val):
                 error = True
-            elif issubclass(old.T, Array):
+            elif issubclass(old.T, ArrayOld):
                 # If array of array, check that we can do elementwise setitem
                 # (will return true if there's an error)
                 # We can't just do an `is` check on the children since those
@@ -440,7 +441,7 @@ class Array(Type, metaclass=ArrayMeta):
                             for i in range(len(old)))
             elif any(old[i] is not val[i] for i in range(len(old))):
                 error = True
-        elif old is not val:
+        else:
             error = True
 
         if error:
@@ -558,7 +559,7 @@ class Array(Type, metaclass=ArrayMeta):
         return True
 
     def iswhole(self):
-        return Array._iswhole(self.ts)
+        return ArrayOld._iswhole(self.ts)
 
     def trace(self):
         ts = [t.trace() for t in self.ts]
@@ -567,7 +568,7 @@ class Array(Type, metaclass=ArrayMeta):
             if t is None:
                 return None
 
-        if Array._iswhole(ts):
+        if ArrayOld._iswhole(ts):
             return ts[0].name.array
 
         return type(self).flip()(ts)
@@ -579,7 +580,7 @@ class Array(Type, metaclass=ArrayMeta):
             if t is None:
                 return None
 
-        if Array._iswhole(ts):
+        if ArrayOld._iswhole(ts):
             return ts[0].name.array
 
         return type(self).flip()(ts)
@@ -652,23 +653,25 @@ class Array(Type, metaclass=ArrayMeta):
                                                       len(self))
 
 
-ArrayType = Array
+ArrayType = ArrayOld
 
 
-class Array2(Wireable, Array):
+class Array(Wireable, ArrayOld):
     def __init__(self, *args, **kwargs):
-        # Skip Array constructor since we don't want to create children
         Type.__init__(self, **kwargs)
         Wireable.__init__(self)
         self._ts = {}
         self._slices = {}
         self._slices_by_start_index = {}
+        if args:
+            for i, t in enumerate(_make_array(self, args)):
+                self._ts[i] = t
 
     @debug_wire
     def wire(self, o, debug_info):
         o = magma_value(o)
         self._check_wireable(o, debug_info)
-        if isinstance(o, Array) and not isinstance(o, Array2):
+        if isinstance(o, Array) and not isinstance(o, Array):
             for i, o in zip(self, o):
                 i.wire(o)
             return
@@ -800,14 +803,38 @@ class Array2(Wireable, Array):
         return slice(start, stop, key.step)
 
     def __getitem__(self, key):
+        if isinstance(key, Type):
+            # indexed using a dynamic magma value, generate mux circuit
+            return self.dynamic_mux_select(key)
+        if isinstance(key, tuple):
+            # ND Array key
+            if len(key) == 1:
+                return self[key[0]]
+
+            if not isinstance(key[-1], slice):
+                return self[key[-1]][key[:-1]]
+            if not self._is_whole_slice(key):
+                # If it's not a slice of the whole array, first slice the
+                # current array (self), then replace with a slice of the whole
+                # array (this is how we determine that we're ready to traverse
+                # into the children)
+                this_key = key[-1]
+                result = self[this_key][key[:-1] + (slice(None), )]
+                return result
+            # Last index is selecting the whole array, recurse into the
+            # children and slice off the inner indices
+            inner_ts = [t[key[:-1]] for t in self.ts]
+            # Get the type from the children and return the final value
+            return type(self)[len(self), type(inner_ts[0])](inner_ts)
         if isinstance(key, int) and key > self.N - 1:
             raise IndexError()
         if isinstance(key, slice):
+            if not _is_valid_slice(self.N, key):
+                raise IndexError(f"array index out of range "
+                                 f"(type={type(self)}, key={key})")
             if key.start is None and key.stop is None and key.step == -1:
                 return self.reversed()
             key = self._normalize_slice_key(key)
-            if (key.start > self.N - 1 or key.stop > self.N):
-                raise IndexError(key)
         if self.is_inout():
             raise NotImplementedError()
         # For nested references of slice objects, we compute the offset
@@ -830,15 +857,6 @@ class Array2(Wireable, Array):
                                         offset + key.stop))
         raise NotImplementedError(key, type(key))
 
-    def __setitem__(self, key, val):
-        if val is not self[key]:
-            _logger.error(
-                WiringLog(f"May not mutate array, trying to replace "
-                          f"{{}}[{key}] ({{}}) with {{}}", self, self[key], val)
-            )
-            return True
-        return False
-
     def _concat(*args, **kwargs):
         """Monkey patched in magma/conversions.py"""
         raise NotImplementedError()
@@ -856,6 +874,9 @@ class Array2(Wireable, Array):
         return ts
 
     def __repr__(self):
+        if self.name.anon():
+            t_strs = ', '.join(repr(t) for t in self.ts)
+            return f'array([{t_strs}])'
         return Type.__repr__(self)
 
     @property
@@ -868,7 +889,7 @@ class Array2(Wireable, Array):
             result = func(child)
             if result is None:
                 return None
-            if _is_slice_child(child):
+            if _is_slice_child(child) and child.name.array is self:
                 # TODO: Could we avoid calling .ts here?
                 ts.extend(result.ts)
             else:
@@ -888,9 +909,17 @@ class Array2(Wireable, Array):
             return self._collect_children(lambda x: x.value())
         return super().value()
 
-    def trace(self):
+    def trace(self, skip_self=True):
         if self._has_children():
-            return self._collect_children(lambda x: x.trace())
+            def _trace(t):
+                result = t.trace(skip_self)
+                if result is not None:
+                    return result
+                if not skip_self and (t.is_output() or t.is_inout()):
+                    return t
+                return None
+            result = self._collect_children(_trace)
+            return result
         return super().trace()
 
     def driven(self):
@@ -943,3 +972,6 @@ class Array2(Wireable, Array):
                 yield from zip(child, child.trace())
             else:
                 yield child, child.trace()
+
+    def has_children(self):
+        return True

@@ -241,6 +241,9 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
     def __int__(self) -> int:
         return int(bool(self))
 
+    def has_children(self):
+        return False
+
 
 VCC = Digital.VCC
 GND = Digital.GND

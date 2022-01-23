@@ -14,7 +14,9 @@ def test_concat():
 
 def test_concat_bit():
     class Foo(m.Circuit):
-        assert int(m.bits(m.concat(ht.Bit(True), True, m.bits(1)))) == 7
+        x = m.concat(ht.Bit(True), True, m.bits(1))
+        print([y.const() for y in x])
+        assert int(m.bits(x)) == 7
 
 
 def test_ext():
@@ -45,6 +47,5 @@ def test_convert_extend(op):
         if op is m.sint:
             assert isinstance(type(value.name.inst), m.conversions.ConcatN)
             # Check sext logic
-            # TODO(leonardt/array2): Here it would be nice if the trace API could traverse concat nodes
             for x in value.name.inst.I1.trace():
                 assert x is io.I[4]

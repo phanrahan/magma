@@ -26,7 +26,6 @@ try:
 except ImportError:
     pass
 
-from magma.array import Array2
 from magma.clock import is_clock_or_nested_clock, Clock
 from magma.definition_context import DefinitionContext
 from magma.logging import root_logger

@@ -18,5 +18,3 @@ def test_flatten():
     a = array(t.flatten())
     print(a.name)
     print(type(a))
-
-test_flatten()

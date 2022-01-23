@@ -15,7 +15,7 @@ from .tuple import Tuple, Product
 from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
 import hwtypes as ht
-from magma.array import Array, Array2
+from magma.array import Array
 from magma.circuit import coreir_port_mapping
 from magma.common import is_int
 from magma.generator import Generator2
@@ -267,11 +267,14 @@ class ConcatN(Generator2):
 
 
 def concat2(*arrays):
+    # TODO(leonardt/array2): Do we still need a concat primitive? This was
+    # added for performance when using the tree approach, but now we might
+    # consider just reverting to the "array_create(ts)" approach we used before
     return ConcatN(*(type(arr) for arr in arrays))()(*arrays)
 
 
-Array2._array_old = staticmethod(array)
-Array2._concat = staticmethod(concat2)
+Array._array_old = staticmethod(array)
+Array._concat = staticmethod(concat2)
 
 
 def repeat(value, n):

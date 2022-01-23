@@ -1,6 +1,5 @@
 import abc
 import copy
-import enum
 import inspect
 import operator
 
@@ -10,7 +9,7 @@ from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 from magma.t import Direction
-from magma.type_utils import TypeTransformer, isuint, issint
+from magma.type_utils import TypeTransformer, issint
 from magma.value_utils import ValueVisitor, make_selector
 
 

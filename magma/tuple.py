@@ -349,11 +349,15 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def iswhole(self):
         return Tuple._iswhole(self.ts, self.keys())
 
-    def trace(self):
-        ts = [t.trace() for t in self.ts]
-
-        for t in ts:
-            if t is None:
+    def trace(self, skip_self=True):
+        ts = []
+        for t in self.ts:
+            result = t.trace(skip_self)
+            if result is not None:
+                ts.append(result)
+            elif not skip_self and (t.is_output() or t.is_inout()):
+                ts.append(t)
+            else:
                 return None
 
         if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
@@ -428,6 +432,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def connection_iter(self, only_slice_bits=False):
         for elem in self:
             yield elem, elem.trace()
+
+    def has_children(self):
+        return True
 
 
 def _add_properties(ns, fields):

@@ -12,11 +12,10 @@ from hwtypes import BitVector
 from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
     InconsistentSizeError
 from .compatibility import IntegerTypes
-from .ref import AnonRef
 from .bit import Bit
-from .array import Array2, ArrayMeta, Array
-from .t import Type, Direction, In, Out, Kind
-from magma.circuit import Circuit, coreir_port_mapping, IO
+from .array import ArrayMeta, Array
+from .t import Type, Direction, In, Out
+from magma.circuit import Circuit, coreir_port_mapping
 from magma.bitutils import seq2int, int2seq
 from magma.family import get_family
 from magma.interface import IO
@@ -110,14 +109,14 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 if type(arg) is cls:
                     # Don't need to cast
                     return arg
-                result = super().__call__(*args, **kwargs)
                 if arg_len == cls.N:
                     return result
                 if arg_len > cls.N:
                     raise TypeError(
                         f"Will not do implicit truncation of bits length")
                 assert arg_len < cls.N
-                return cls._extend(result, arg)
+                args = cls._extend(arg)
+                return super().__call__(*args, **kwargs)
             if isinstance(arg, list):
                 if len(arg) != len(cls):
                     raise TypeError(
@@ -133,6 +132,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                     return False
                 if all(_const(x) for x in arg):
                     return cls._make_const(seq2int(list(int(x) for x in arg)))
+                return super().__call__(*args, **kwargs)
                 result = cls.undirected_t()
                 for x, y in zip(result, arg):
                     x @= y
@@ -194,15 +194,15 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         return super().is_wireable(rhs)
 
 
-class Bits(Array2, AbstractBitVector, metaclass=BitsMeta):
-    __hash__ = Array2.__hash__
+class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
+    __hash__ = Array.__hash__
     hwtypes_T = ht.BitVector
 
     @classmethod
-    def _extend(cls, result, arg):
-        result[:len(arg)] @= arg
-        result[len(arg):] @= Bits[cls.N - len(arg)](0)
-        return result
+    def _extend(cls, arg):
+        # TODO(leonardt/array2): We could use concat here for performance to
+        # avoid creating .ts
+        return arg.ts + [0 for _ in range(cls.N - len(arg))]
 
     def __init__(self, *args, const_value=None, **kwargs):
         self._const_value = const_value
@@ -732,11 +732,10 @@ class SInt(Int):
     hwtypes_T = ht.SIntVector
 
     @classmethod
-    def _extend(cls, result, arg):
-        result[:len(arg)] @= arg
-        for i in range(len(arg), cls.N):
-            result[i] @= arg[-1]
-        return result
+    def _extend(cls, arg):
+        # TODO(leonardt/array2): We could use concat here for performance to
+        # avoid creating .ts
+        return arg.ts + [arg[-1] for _ in range(cls.N - len(arg))]
 
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
@@ -814,7 +813,6 @@ class SInt(Int):
         b = other.sext(1)
         c = carry.zext(T.size)
 
-        print(type(a), type(b), type(c))
         res = a + b + c
         return res[0:-1], res[-1]
 

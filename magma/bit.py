@@ -74,6 +74,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @bit_cast
     @output_only("Cannot use == on an input")
     def __eq__(self, other):
+        if self is other:
+            return True
         # CoreIR doesn't define an eq primitive for bits
         return ~(self ^ other)
 

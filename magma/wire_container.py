@@ -94,12 +94,12 @@ class Wire:
         """
         if self._driver is not None:
             return self._driver.trace(skip_self=False)
-        if self._bit.driven():
-            # Could be an Array driven non-bulk
-            # TODO(leonardt/array2): Is skip_self an issue in this case?
-            return self._bit.trace()
         if not skip_self and (self._bit.is_output() or self._bit.is_inout()):
             return self._bit
+        if not skip_self and self._bit.has_children():
+            # Could be an Array driven non-bulk, so check if children can be
+            # traced
+            return self._bit.trace(skip_self=False)
         return None
 
     def value(self):
@@ -143,8 +143,8 @@ class Wireable:
         return self._wire.wired()
 
     # return the input or output Bit connected to this Bit
-    def trace(self):
-        return self._wire.trace()
+    def trace(self, skip_self=True):
+        return self._wire.trace(skip_self)
 
     # return the output Bit connected to this input Bit
     def value(self):

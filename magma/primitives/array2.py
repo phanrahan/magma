@@ -5,7 +5,7 @@ Monkey patched functions to avoid circular dependencies in Array2 definitions
 from magma.interface import IO
 from magma.t import In, Out
 from magma.generator import Generator2
-from magma.array import Array2
+from magma.array import Array
 
 
 class Reverse(Generator2):
@@ -15,4 +15,4 @@ class Reverse(Generator2):
             self.io.O[T.N - 1 - i] @= self.io.I[i]
 
 
-Array2.reversed = lambda self: Reverse(type(self))()(self)
+Array.reversed = lambda self: Reverse(type(self))()(self)
