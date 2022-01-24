@@ -350,3 +350,11 @@ def test_array2_reversed():
         io.O @= io.I[::-1]
 
     _check_compile("test_array2_reversed", Foo, False)
+
+
+def test_array2_variable_step_slice():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Array[4, m.Bit]), O=m.Out(m.Array[2, m.Bit]))
+        io.O @= io.I[1:4:2]
+
+    _check_compile("test_array2_variable_step_slice", Foo, False)

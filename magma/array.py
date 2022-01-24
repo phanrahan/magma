@@ -829,11 +829,14 @@ class Array(Wireable, ArrayOld):
         if isinstance(key, int) and key > self.N - 1:
             raise IndexError()
         if isinstance(key, slice):
+            if key.step is not None:
+                # Use Python indexing logic
+                indices = [i for i in range(len(self))][key]
+                return type(self)[len(indices), self.T](
+                    [self[i] for i in indices])
             if not _is_valid_slice(self.N, key):
                 raise IndexError(f"array index out of range "
                                  f"(type={type(self)}, key={key})")
-            if key.start is None and key.stop is None and key.step == -1:
-                return self.reversed()
             key = self._normalize_slice_key(key)
         if self.is_inout():
             raise NotImplementedError()
