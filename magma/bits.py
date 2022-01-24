@@ -117,6 +117,8 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 assert arg_len < cls.N
                 args = cls._extend(arg)
                 return super().__call__(*args, **kwargs)
+            if isinstance(arg, Array):
+                return super().__call__(arg.ts, **kwargs)
             if isinstance(arg, list):
                 if len(arg) != len(cls):
                     raise TypeError(
@@ -133,10 +135,6 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 if all(_const(x) for x in arg):
                     return cls._make_const(seq2int(list(int(x) for x in arg)))
                 return super().__call__(*args, **kwargs)
-                result = cls.undirected_t()
-                for x, y in zip(result, arg):
-                    x @= y
-                return result
             if type(arg).is_wireable(cls):
                 # Type conversion done with wiring to an anon value
                 result = cls.undirected_t()
@@ -145,17 +143,9 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             if isinstance(arg, Bit):
                 if arg.const():
                     return cls._make_const(int(arg))
-                # Type conversion done with wiring to an anon value
-                result = cls.undirected_t()
-                result[0] @= arg
-                return result
+                return super().__call__([arg], **kwargs)
             raise NotImplementedError(cls, arg, type(arg))
         result = super().__call__(*args, **kwargs)
-        # if all(x.is_output() for x in result.ts) and not cls.is_output():
-        #     if cls.is_input() or cls.is_inout():
-        #         raise TypeError("Can't construct output with input/inout")
-        #     # Make it an output
-        #     return cls.qualify(Direction.Out)(*args, **kwargs)
         return result
 
     def __getitem__(cls, index):

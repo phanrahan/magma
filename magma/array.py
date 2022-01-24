@@ -426,8 +426,10 @@ class ArrayOld(Type, metaclass=ArrayMeta):
 
     def __setitem__(self, key, val):
         old = self[key]
+        error = False
         if old is val:
-            error = False
+            # Early "exit" (avoid recursion in other branches)
+            pass
         elif isinstance(old, ArrayOld):
             if len(old) != len(val):
                 error = True
