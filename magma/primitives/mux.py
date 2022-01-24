@@ -57,10 +57,7 @@ class Mux(Generator2):
 
         mux = CoreIRCommonLibMuxN(height, N)()
         data = [as_bits(getattr(io, f"I{i}")) for i in range(height)]
-        # TODO(leonardt/array2): Fix constructor logic for Array2
-        # mux.I.data @= Array2[height, Array2[N, Bit]](data)
-        for i, o in zip(mux.I.data, data):
-            i @= o
+        mux.I.data @= Array[height, Bits[N]](data)
         if height == 2:
             mux.I.sel[0] @= io.S
         else:
