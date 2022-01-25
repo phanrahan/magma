@@ -24,6 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault
         pip install kratos  # test optional dependency
+        pip install -e git+https://github.com/leonardt/fault.git@array2#egg=fault
         pip install -e .
     - name: Test with pytest
       run: |
