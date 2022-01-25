@@ -109,13 +109,13 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 if type(arg) is cls:
                     # Don't need to cast
                     return arg
-                if arg_len == cls.N:
-                    return result
                 if arg_len > cls.N:
                     raise TypeError(
                         f"Will not do implicit truncation of bits length")
-                assert arg_len < cls.N
-                args = cls._extend(arg)
+
+                args = arg.ts
+                if arg_len < cls.N:
+                    args = cls._extend(args)
                 return super().__call__(*args, **kwargs)
             if isinstance(arg, Array):
                 return super().__call__(arg.ts, **kwargs)
@@ -189,10 +189,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     hwtypes_T = ht.BitVector
 
     @classmethod
-    def _extend(cls, arg):
-        # TODO(leonardt/array2): We could use concat here for performance to
-        # avoid creating .ts
-        return arg.ts + [0 for _ in range(cls.N - len(arg))]
+    def _extend(cls, args):
+        return args + [0 for _ in range(cls.N - len(args))]
 
     def __init__(self, *args, const_value=None, **kwargs):
         self._const_value = const_value
@@ -722,10 +720,8 @@ class SInt(Int):
     hwtypes_T = ht.SIntVector
 
     @classmethod
-    def _extend(cls, arg):
-        # TODO(leonardt/array2): We could use concat here for performance to
-        # avoid creating .ts
-        return arg.ts + [arg[-1] for _ in range(cls.N - len(arg))]
+    def _extend(cls, args):
+        return args + [args[-1] for _ in range(cls.N - len(args))]
 
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
