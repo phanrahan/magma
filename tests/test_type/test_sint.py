@@ -189,24 +189,27 @@ def test_adc(n):
     carry_wires = "\n".join(
         f"wire(GND, magma_SInt_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
 
-    print(repr(TestBinary))
+
+    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_SInt_{n + 1}_add_inst0.in0[{i}])"
+                          for i in range(n))
+    in0_wires += f"\nwire(TestBinary.I0[{n - 1}], magma_SInt_{n + 1}_add_inst0.in0[{n}])"
+
+    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_SInt_{n + 1}_add_inst0.in1[{i}])"
+                          for i in range(n))
+    in1_wires += f"\nwire(TestBinary.I1[{n - 1}], magma_SInt_{n + 1}_add_inst0.in1[{n}])"
+
+    carry_wires = "\n".join(
+        f"wire(GND, magma_SInt_{n + 1}_add_inst1.in1[{i + 1}])" for i in range(n))
+
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(SInt[{n}]), "I1", In(SInt[{n}]), "CIN", In(Bit), "O", Out(SInt[{n}]), "COUT", Out(Bit))
-ConcatN_inst0 = ConcatN()
-ConcatN_inst1 = ConcatN()
-ConcatN_inst2 = ConcatN()
 magma_SInt_{n + 1}_add_inst0 = magma_SInt_{n + 1}_add()
 magma_SInt_{n + 1}_add_inst1 = magma_SInt_{n + 1}_add()
-wire(TestBinary.I0, ConcatN_inst0.in0)
-wire(TestBinary.I0[{n - 1}], ConcatN_inst0.in1[0])
-wire(TestBinary.I1, ConcatN_inst1.in0)
-wire(TestBinary.I1[{n - 1}], ConcatN_inst1.in1[0])
-wire(TestBinary.CIN, ConcatN_inst2.in0[0])
-wire(BitVector[{n}](0), ConcatN_inst2.in1)
-wire(ConcatN_inst0.out, magma_SInt_{n + 1}_add_inst0.in0)
-wire(ConcatN_inst1.out, magma_SInt_{n + 1}_add_inst0.in1)
+{in0_wires}
+{in1_wires}
 wire(magma_SInt_{n + 1}_add_inst0.out, magma_SInt_{n + 1}_add_inst1.in0)
-wire(ConcatN_inst2.out, magma_SInt_{n + 1}_add_inst1.in1)
+wire(TestBinary.CIN, magma_SInt_{n + 1}_add_inst1.in1[0])
+{carry_wires}
 wire(magma_SInt_{n + 1}_add_inst1.out[slice(0, {n}, None)], TestBinary.O)
 wire(magma_SInt_{n + 1}_add_inst1.out[{n}], TestBinary.COUT)
 EndCircuit()\

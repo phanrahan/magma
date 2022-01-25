@@ -1,11 +1,3 @@
-module mantle_concatNArrT__Ns35__t_childBitIn (
-    input [2:0] in0,
-    input [4:0] in1,
-    output [7:0] out
-);
-assign out = {in1[4],in1[3],in1[2],in1[1],in1[0],in0[2],in0[1],in0[0]};
-endmodule
-
 module coreir_reg #(
     parameter width = 1,
     parameter clk_posedge = 1,
@@ -245,70 +237,6 @@ module TestSequential2Slice (
     output [7:0] O,
     input CLK
 );
-wire [7:0] ConcatN_inst0_out;
-wire [7:0] ConcatN_inst1_out;
-wire [7:0] ConcatN_inst10_out;
-wire [7:0] ConcatN_inst11_out;
-wire [7:0] ConcatN_inst12_out;
-wire [7:0] ConcatN_inst13_out;
-wire [7:0] ConcatN_inst14_out;
-wire [7:0] ConcatN_inst15_out;
-wire [7:0] ConcatN_inst16_out;
-wire [7:0] ConcatN_inst17_out;
-wire [7:0] ConcatN_inst18_out;
-wire [7:0] ConcatN_inst19_out;
-wire [7:0] ConcatN_inst2_out;
-wire [7:0] ConcatN_inst20_out;
-wire [7:0] ConcatN_inst21_out;
-wire [7:0] ConcatN_inst22_out;
-wire [7:0] ConcatN_inst23_out;
-wire [7:0] ConcatN_inst24_out;
-wire [7:0] ConcatN_inst25_out;
-wire [7:0] ConcatN_inst26_out;
-wire [7:0] ConcatN_inst27_out;
-wire [7:0] ConcatN_inst28_out;
-wire [7:0] ConcatN_inst29_out;
-wire [7:0] ConcatN_inst3_out;
-wire [7:0] ConcatN_inst30_out;
-wire [7:0] ConcatN_inst31_out;
-wire [7:0] ConcatN_inst32_out;
-wire [7:0] ConcatN_inst33_out;
-wire [7:0] ConcatN_inst34_out;
-wire [7:0] ConcatN_inst35_out;
-wire [7:0] ConcatN_inst36_out;
-wire [7:0] ConcatN_inst37_out;
-wire [7:0] ConcatN_inst38_out;
-wire [7:0] ConcatN_inst39_out;
-wire [7:0] ConcatN_inst4_out;
-wire [7:0] ConcatN_inst40_out;
-wire [7:0] ConcatN_inst41_out;
-wire [7:0] ConcatN_inst42_out;
-wire [7:0] ConcatN_inst43_out;
-wire [7:0] ConcatN_inst44_out;
-wire [7:0] ConcatN_inst45_out;
-wire [7:0] ConcatN_inst46_out;
-wire [7:0] ConcatN_inst47_out;
-wire [7:0] ConcatN_inst48_out;
-wire [7:0] ConcatN_inst49_out;
-wire [7:0] ConcatN_inst5_out;
-wire [7:0] ConcatN_inst50_out;
-wire [7:0] ConcatN_inst51_out;
-wire [7:0] ConcatN_inst52_out;
-wire [7:0] ConcatN_inst53_out;
-wire [7:0] ConcatN_inst54_out;
-wire [7:0] ConcatN_inst55_out;
-wire [7:0] ConcatN_inst56_out;
-wire [7:0] ConcatN_inst57_out;
-wire [7:0] ConcatN_inst58_out;
-wire [7:0] ConcatN_inst59_out;
-wire [7:0] ConcatN_inst6_out;
-wire [7:0] ConcatN_inst60_out;
-wire [7:0] ConcatN_inst61_out;
-wire [7:0] ConcatN_inst62_out;
-wire [7:0] ConcatN_inst63_out;
-wire [7:0] ConcatN_inst7_out;
-wire [7:0] ConcatN_inst8_out;
-wire [7:0] ConcatN_inst9_out;
 wire Mux2xBit_inst0_O;
 wire Mux2xBit_inst1_O;
 wire Mux2xBit_inst10_O;
@@ -568,326 +496,6 @@ wire [5:0] magma_UInt_6_sub_inst92_out;
 wire [5:0] magma_UInt_6_sub_inst94_out;
 wire [5:0] magma_UInt_6_sub_inst96_out;
 wire [5:0] magma_UInt_6_sub_inst98_out;
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst0 (
-    .in0(magma_UInt_6_sub_inst0_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst0_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst1 (
-    .in0(magma_UInt_6_sub_inst2_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst1_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst10 (
-    .in0(magma_UInt_6_sub_inst20_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst10_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst11 (
-    .in0(magma_UInt_6_sub_inst22_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst11_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst12 (
-    .in0(magma_UInt_6_sub_inst24_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst12_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst13 (
-    .in0(magma_UInt_6_sub_inst26_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst13_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst14 (
-    .in0(magma_UInt_6_sub_inst28_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst14_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst15 (
-    .in0(magma_UInt_6_sub_inst30_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst15_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst16 (
-    .in0(magma_UInt_6_sub_inst32_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst16_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst17 (
-    .in0(magma_UInt_6_sub_inst34_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst17_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst18 (
-    .in0(magma_UInt_6_sub_inst36_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst18_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst19 (
-    .in0(magma_UInt_6_sub_inst38_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst19_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst2 (
-    .in0(magma_UInt_6_sub_inst4_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst2_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst20 (
-    .in0(magma_UInt_6_sub_inst40_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst20_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst21 (
-    .in0(magma_UInt_6_sub_inst42_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst21_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst22 (
-    .in0(magma_UInt_6_sub_inst44_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst22_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst23 (
-    .in0(magma_UInt_6_sub_inst46_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst23_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst24 (
-    .in0(magma_UInt_6_sub_inst48_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst24_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst25 (
-    .in0(magma_UInt_6_sub_inst50_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst25_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst26 (
-    .in0(magma_UInt_6_sub_inst52_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst26_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst27 (
-    .in0(magma_UInt_6_sub_inst54_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst27_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst28 (
-    .in0(magma_UInt_6_sub_inst56_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst28_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst29 (
-    .in0(magma_UInt_6_sub_inst58_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst29_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst3 (
-    .in0(magma_UInt_6_sub_inst6_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst3_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst30 (
-    .in0(magma_UInt_6_sub_inst60_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst30_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst31 (
-    .in0(magma_UInt_6_sub_inst62_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst31_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst32 (
-    .in0(magma_UInt_6_sub_inst64_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst32_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst33 (
-    .in0(magma_UInt_6_sub_inst66_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst33_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst34 (
-    .in0(magma_UInt_6_sub_inst68_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst34_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst35 (
-    .in0(magma_UInt_6_sub_inst70_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst35_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst36 (
-    .in0(magma_UInt_6_sub_inst72_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst36_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst37 (
-    .in0(magma_UInt_6_sub_inst74_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst37_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst38 (
-    .in0(magma_UInt_6_sub_inst76_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst38_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst39 (
-    .in0(magma_UInt_6_sub_inst78_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst39_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst4 (
-    .in0(magma_UInt_6_sub_inst8_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst4_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst40 (
-    .in0(magma_UInt_6_sub_inst80_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst40_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst41 (
-    .in0(magma_UInt_6_sub_inst82_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst41_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst42 (
-    .in0(magma_UInt_6_sub_inst84_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst42_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst43 (
-    .in0(magma_UInt_6_sub_inst86_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst43_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst44 (
-    .in0(magma_UInt_6_sub_inst88_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst44_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst45 (
-    .in0(magma_UInt_6_sub_inst90_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst45_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst46 (
-    .in0(magma_UInt_6_sub_inst92_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst46_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst47 (
-    .in0(magma_UInt_6_sub_inst94_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst47_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst48 (
-    .in0(magma_UInt_6_sub_inst96_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst48_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst49 (
-    .in0(magma_UInt_6_sub_inst98_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst49_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst5 (
-    .in0(magma_UInt_6_sub_inst10_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst5_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst50 (
-    .in0(magma_UInt_6_sub_inst100_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst50_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst51 (
-    .in0(magma_UInt_6_sub_inst102_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst51_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst52 (
-    .in0(magma_UInt_6_sub_inst104_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst52_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst53 (
-    .in0(magma_UInt_6_sub_inst106_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst53_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst54 (
-    .in0(magma_UInt_6_sub_inst108_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst54_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst55 (
-    .in0(magma_UInt_6_sub_inst110_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst55_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst56 (
-    .in0(magma_UInt_6_sub_inst112_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst56_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst57 (
-    .in0(magma_UInt_6_sub_inst114_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst57_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst58 (
-    .in0(magma_UInt_6_sub_inst116_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst58_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst59 (
-    .in0(magma_UInt_6_sub_inst118_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst59_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst6 (
-    .in0(magma_UInt_6_sub_inst12_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst6_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst60 (
-    .in0(magma_UInt_6_sub_inst120_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst60_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst61 (
-    .in0(magma_UInt_6_sub_inst122_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst61_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst62 (
-    .in0(magma_UInt_6_sub_inst124_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst62_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst63 (
-    .in0(magma_UInt_6_sub_inst126_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst63_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst7 (
-    .in0(magma_UInt_6_sub_inst14_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst7_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst8 (
-    .in0(magma_UInt_6_sub_inst16_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst8_out)
-);
-mantle_concatNArrT__Ns35__t_childBitIn ConcatN_inst9 (
-    .in0(magma_UInt_6_sub_inst18_out[2:0]),
-    .in1(5'h00),
-    .out(ConcatN_inst9_out)
-);
 Mux2xBit Mux2xBit_inst0 (
     .I0(Register_inst0_O[0]),
     .I1(magma_Bits_8_lshr_inst0_out[0]),
@@ -1403,70 +1011,70 @@ assign magma_Bit_and_inst92_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2e))
 assign magma_Bit_and_inst94_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h2f)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h2f);
 assign magma_Bit_and_inst96_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h30)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h30);
 assign magma_Bit_and_inst98_out = (1'b1 & (magma_UInt_6_mul_inst1_out <= 6'h31)) & ((6'((6'(magma_UInt_6_mul_inst1_out + 6'h08)) - 6'h01)) >= 6'h31);
-assign magma_Bits_8_lshr_inst0_out = write_data >> ConcatN_inst0_out;
-assign magma_Bits_8_lshr_inst1_out = write_data >> ConcatN_inst1_out;
-assign magma_Bits_8_lshr_inst10_out = write_data >> ConcatN_inst10_out;
-assign magma_Bits_8_lshr_inst11_out = write_data >> ConcatN_inst11_out;
-assign magma_Bits_8_lshr_inst12_out = write_data >> ConcatN_inst12_out;
-assign magma_Bits_8_lshr_inst13_out = write_data >> ConcatN_inst13_out;
-assign magma_Bits_8_lshr_inst14_out = write_data >> ConcatN_inst14_out;
-assign magma_Bits_8_lshr_inst15_out = write_data >> ConcatN_inst15_out;
-assign magma_Bits_8_lshr_inst16_out = write_data >> ConcatN_inst16_out;
-assign magma_Bits_8_lshr_inst17_out = write_data >> ConcatN_inst17_out;
-assign magma_Bits_8_lshr_inst18_out = write_data >> ConcatN_inst18_out;
-assign magma_Bits_8_lshr_inst19_out = write_data >> ConcatN_inst19_out;
-assign magma_Bits_8_lshr_inst2_out = write_data >> ConcatN_inst2_out;
-assign magma_Bits_8_lshr_inst20_out = write_data >> ConcatN_inst20_out;
-assign magma_Bits_8_lshr_inst21_out = write_data >> ConcatN_inst21_out;
-assign magma_Bits_8_lshr_inst22_out = write_data >> ConcatN_inst22_out;
-assign magma_Bits_8_lshr_inst23_out = write_data >> ConcatN_inst23_out;
-assign magma_Bits_8_lshr_inst24_out = write_data >> ConcatN_inst24_out;
-assign magma_Bits_8_lshr_inst25_out = write_data >> ConcatN_inst25_out;
-assign magma_Bits_8_lshr_inst26_out = write_data >> ConcatN_inst26_out;
-assign magma_Bits_8_lshr_inst27_out = write_data >> ConcatN_inst27_out;
-assign magma_Bits_8_lshr_inst28_out = write_data >> ConcatN_inst28_out;
-assign magma_Bits_8_lshr_inst29_out = write_data >> ConcatN_inst29_out;
-assign magma_Bits_8_lshr_inst3_out = write_data >> ConcatN_inst3_out;
-assign magma_Bits_8_lshr_inst30_out = write_data >> ConcatN_inst30_out;
-assign magma_Bits_8_lshr_inst31_out = write_data >> ConcatN_inst31_out;
-assign magma_Bits_8_lshr_inst32_out = write_data >> ConcatN_inst32_out;
-assign magma_Bits_8_lshr_inst33_out = write_data >> ConcatN_inst33_out;
-assign magma_Bits_8_lshr_inst34_out = write_data >> ConcatN_inst34_out;
-assign magma_Bits_8_lshr_inst35_out = write_data >> ConcatN_inst35_out;
-assign magma_Bits_8_lshr_inst36_out = write_data >> ConcatN_inst36_out;
-assign magma_Bits_8_lshr_inst37_out = write_data >> ConcatN_inst37_out;
-assign magma_Bits_8_lshr_inst38_out = write_data >> ConcatN_inst38_out;
-assign magma_Bits_8_lshr_inst39_out = write_data >> ConcatN_inst39_out;
-assign magma_Bits_8_lshr_inst4_out = write_data >> ConcatN_inst4_out;
-assign magma_Bits_8_lshr_inst40_out = write_data >> ConcatN_inst40_out;
-assign magma_Bits_8_lshr_inst41_out = write_data >> ConcatN_inst41_out;
-assign magma_Bits_8_lshr_inst42_out = write_data >> ConcatN_inst42_out;
-assign magma_Bits_8_lshr_inst43_out = write_data >> ConcatN_inst43_out;
-assign magma_Bits_8_lshr_inst44_out = write_data >> ConcatN_inst44_out;
-assign magma_Bits_8_lshr_inst45_out = write_data >> ConcatN_inst45_out;
-assign magma_Bits_8_lshr_inst46_out = write_data >> ConcatN_inst46_out;
-assign magma_Bits_8_lshr_inst47_out = write_data >> ConcatN_inst47_out;
-assign magma_Bits_8_lshr_inst48_out = write_data >> ConcatN_inst48_out;
-assign magma_Bits_8_lshr_inst49_out = write_data >> ConcatN_inst49_out;
-assign magma_Bits_8_lshr_inst5_out = write_data >> ConcatN_inst5_out;
-assign magma_Bits_8_lshr_inst50_out = write_data >> ConcatN_inst50_out;
-assign magma_Bits_8_lshr_inst51_out = write_data >> ConcatN_inst51_out;
-assign magma_Bits_8_lshr_inst52_out = write_data >> ConcatN_inst52_out;
-assign magma_Bits_8_lshr_inst53_out = write_data >> ConcatN_inst53_out;
-assign magma_Bits_8_lshr_inst54_out = write_data >> ConcatN_inst54_out;
-assign magma_Bits_8_lshr_inst55_out = write_data >> ConcatN_inst55_out;
-assign magma_Bits_8_lshr_inst56_out = write_data >> ConcatN_inst56_out;
-assign magma_Bits_8_lshr_inst57_out = write_data >> ConcatN_inst57_out;
-assign magma_Bits_8_lshr_inst58_out = write_data >> ConcatN_inst58_out;
-assign magma_Bits_8_lshr_inst59_out = write_data >> ConcatN_inst59_out;
-assign magma_Bits_8_lshr_inst6_out = write_data >> ConcatN_inst6_out;
-assign magma_Bits_8_lshr_inst60_out = write_data >> ConcatN_inst60_out;
-assign magma_Bits_8_lshr_inst61_out = write_data >> ConcatN_inst61_out;
-assign magma_Bits_8_lshr_inst62_out = write_data >> ConcatN_inst62_out;
-assign magma_Bits_8_lshr_inst63_out = write_data >> ConcatN_inst63_out;
-assign magma_Bits_8_lshr_inst7_out = write_data >> ConcatN_inst7_out;
-assign magma_Bits_8_lshr_inst8_out = write_data >> ConcatN_inst8_out;
-assign magma_Bits_8_lshr_inst9_out = write_data >> ConcatN_inst9_out;
+assign magma_Bits_8_lshr_inst0_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst0_out[2],magma_UInt_6_sub_inst0_out[1],magma_UInt_6_sub_inst0_out[0]});
+assign magma_Bits_8_lshr_inst1_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst2_out[2],magma_UInt_6_sub_inst2_out[1],magma_UInt_6_sub_inst2_out[0]});
+assign magma_Bits_8_lshr_inst10_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst20_out[2],magma_UInt_6_sub_inst20_out[1],magma_UInt_6_sub_inst20_out[0]});
+assign magma_Bits_8_lshr_inst11_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst22_out[2],magma_UInt_6_sub_inst22_out[1],magma_UInt_6_sub_inst22_out[0]});
+assign magma_Bits_8_lshr_inst12_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst24_out[2],magma_UInt_6_sub_inst24_out[1],magma_UInt_6_sub_inst24_out[0]});
+assign magma_Bits_8_lshr_inst13_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst26_out[2],magma_UInt_6_sub_inst26_out[1],magma_UInt_6_sub_inst26_out[0]});
+assign magma_Bits_8_lshr_inst14_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst28_out[2],magma_UInt_6_sub_inst28_out[1],magma_UInt_6_sub_inst28_out[0]});
+assign magma_Bits_8_lshr_inst15_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst30_out[2],magma_UInt_6_sub_inst30_out[1],magma_UInt_6_sub_inst30_out[0]});
+assign magma_Bits_8_lshr_inst16_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst32_out[2],magma_UInt_6_sub_inst32_out[1],magma_UInt_6_sub_inst32_out[0]});
+assign magma_Bits_8_lshr_inst17_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst34_out[2],magma_UInt_6_sub_inst34_out[1],magma_UInt_6_sub_inst34_out[0]});
+assign magma_Bits_8_lshr_inst18_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst36_out[2],magma_UInt_6_sub_inst36_out[1],magma_UInt_6_sub_inst36_out[0]});
+assign magma_Bits_8_lshr_inst19_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst38_out[2],magma_UInt_6_sub_inst38_out[1],magma_UInt_6_sub_inst38_out[0]});
+assign magma_Bits_8_lshr_inst2_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst4_out[2],magma_UInt_6_sub_inst4_out[1],magma_UInt_6_sub_inst4_out[0]});
+assign magma_Bits_8_lshr_inst20_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst40_out[2],magma_UInt_6_sub_inst40_out[1],magma_UInt_6_sub_inst40_out[0]});
+assign magma_Bits_8_lshr_inst21_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst42_out[2],magma_UInt_6_sub_inst42_out[1],magma_UInt_6_sub_inst42_out[0]});
+assign magma_Bits_8_lshr_inst22_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst44_out[2],magma_UInt_6_sub_inst44_out[1],magma_UInt_6_sub_inst44_out[0]});
+assign magma_Bits_8_lshr_inst23_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst46_out[2],magma_UInt_6_sub_inst46_out[1],magma_UInt_6_sub_inst46_out[0]});
+assign magma_Bits_8_lshr_inst24_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst48_out[2],magma_UInt_6_sub_inst48_out[1],magma_UInt_6_sub_inst48_out[0]});
+assign magma_Bits_8_lshr_inst25_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst50_out[2],magma_UInt_6_sub_inst50_out[1],magma_UInt_6_sub_inst50_out[0]});
+assign magma_Bits_8_lshr_inst26_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst52_out[2],magma_UInt_6_sub_inst52_out[1],magma_UInt_6_sub_inst52_out[0]});
+assign magma_Bits_8_lshr_inst27_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst54_out[2],magma_UInt_6_sub_inst54_out[1],magma_UInt_6_sub_inst54_out[0]});
+assign magma_Bits_8_lshr_inst28_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst56_out[2],magma_UInt_6_sub_inst56_out[1],magma_UInt_6_sub_inst56_out[0]});
+assign magma_Bits_8_lshr_inst29_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst58_out[2],magma_UInt_6_sub_inst58_out[1],magma_UInt_6_sub_inst58_out[0]});
+assign magma_Bits_8_lshr_inst3_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst6_out[2],magma_UInt_6_sub_inst6_out[1],magma_UInt_6_sub_inst6_out[0]});
+assign magma_Bits_8_lshr_inst30_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst60_out[2],magma_UInt_6_sub_inst60_out[1],magma_UInt_6_sub_inst60_out[0]});
+assign magma_Bits_8_lshr_inst31_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst62_out[2],magma_UInt_6_sub_inst62_out[1],magma_UInt_6_sub_inst62_out[0]});
+assign magma_Bits_8_lshr_inst32_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst64_out[2],magma_UInt_6_sub_inst64_out[1],magma_UInt_6_sub_inst64_out[0]});
+assign magma_Bits_8_lshr_inst33_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst66_out[2],magma_UInt_6_sub_inst66_out[1],magma_UInt_6_sub_inst66_out[0]});
+assign magma_Bits_8_lshr_inst34_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst68_out[2],magma_UInt_6_sub_inst68_out[1],magma_UInt_6_sub_inst68_out[0]});
+assign magma_Bits_8_lshr_inst35_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst70_out[2],magma_UInt_6_sub_inst70_out[1],magma_UInt_6_sub_inst70_out[0]});
+assign magma_Bits_8_lshr_inst36_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst72_out[2],magma_UInt_6_sub_inst72_out[1],magma_UInt_6_sub_inst72_out[0]});
+assign magma_Bits_8_lshr_inst37_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst74_out[2],magma_UInt_6_sub_inst74_out[1],magma_UInt_6_sub_inst74_out[0]});
+assign magma_Bits_8_lshr_inst38_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst76_out[2],magma_UInt_6_sub_inst76_out[1],magma_UInt_6_sub_inst76_out[0]});
+assign magma_Bits_8_lshr_inst39_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst78_out[2],magma_UInt_6_sub_inst78_out[1],magma_UInt_6_sub_inst78_out[0]});
+assign magma_Bits_8_lshr_inst4_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst8_out[2],magma_UInt_6_sub_inst8_out[1],magma_UInt_6_sub_inst8_out[0]});
+assign magma_Bits_8_lshr_inst40_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst80_out[2],magma_UInt_6_sub_inst80_out[1],magma_UInt_6_sub_inst80_out[0]});
+assign magma_Bits_8_lshr_inst41_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst82_out[2],magma_UInt_6_sub_inst82_out[1],magma_UInt_6_sub_inst82_out[0]});
+assign magma_Bits_8_lshr_inst42_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst84_out[2],magma_UInt_6_sub_inst84_out[1],magma_UInt_6_sub_inst84_out[0]});
+assign magma_Bits_8_lshr_inst43_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst86_out[2],magma_UInt_6_sub_inst86_out[1],magma_UInt_6_sub_inst86_out[0]});
+assign magma_Bits_8_lshr_inst44_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst88_out[2],magma_UInt_6_sub_inst88_out[1],magma_UInt_6_sub_inst88_out[0]});
+assign magma_Bits_8_lshr_inst45_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst90_out[2],magma_UInt_6_sub_inst90_out[1],magma_UInt_6_sub_inst90_out[0]});
+assign magma_Bits_8_lshr_inst46_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst92_out[2],magma_UInt_6_sub_inst92_out[1],magma_UInt_6_sub_inst92_out[0]});
+assign magma_Bits_8_lshr_inst47_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst94_out[2],magma_UInt_6_sub_inst94_out[1],magma_UInt_6_sub_inst94_out[0]});
+assign magma_Bits_8_lshr_inst48_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst96_out[2],magma_UInt_6_sub_inst96_out[1],magma_UInt_6_sub_inst96_out[0]});
+assign magma_Bits_8_lshr_inst49_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst98_out[2],magma_UInt_6_sub_inst98_out[1],magma_UInt_6_sub_inst98_out[0]});
+assign magma_Bits_8_lshr_inst5_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst10_out[2],magma_UInt_6_sub_inst10_out[1],magma_UInt_6_sub_inst10_out[0]});
+assign magma_Bits_8_lshr_inst50_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst100_out[2],magma_UInt_6_sub_inst100_out[1],magma_UInt_6_sub_inst100_out[0]});
+assign magma_Bits_8_lshr_inst51_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst102_out[2],magma_UInt_6_sub_inst102_out[1],magma_UInt_6_sub_inst102_out[0]});
+assign magma_Bits_8_lshr_inst52_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst104_out[2],magma_UInt_6_sub_inst104_out[1],magma_UInt_6_sub_inst104_out[0]});
+assign magma_Bits_8_lshr_inst53_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst106_out[2],magma_UInt_6_sub_inst106_out[1],magma_UInt_6_sub_inst106_out[0]});
+assign magma_Bits_8_lshr_inst54_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst108_out[2],magma_UInt_6_sub_inst108_out[1],magma_UInt_6_sub_inst108_out[0]});
+assign magma_Bits_8_lshr_inst55_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst110_out[2],magma_UInt_6_sub_inst110_out[1],magma_UInt_6_sub_inst110_out[0]});
+assign magma_Bits_8_lshr_inst56_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst112_out[2],magma_UInt_6_sub_inst112_out[1],magma_UInt_6_sub_inst112_out[0]});
+assign magma_Bits_8_lshr_inst57_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst114_out[2],magma_UInt_6_sub_inst114_out[1],magma_UInt_6_sub_inst114_out[0]});
+assign magma_Bits_8_lshr_inst58_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst116_out[2],magma_UInt_6_sub_inst116_out[1],magma_UInt_6_sub_inst116_out[0]});
+assign magma_Bits_8_lshr_inst59_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst118_out[2],magma_UInt_6_sub_inst118_out[1],magma_UInt_6_sub_inst118_out[0]});
+assign magma_Bits_8_lshr_inst6_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst12_out[2],magma_UInt_6_sub_inst12_out[1],magma_UInt_6_sub_inst12_out[0]});
+assign magma_Bits_8_lshr_inst60_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst120_out[2],magma_UInt_6_sub_inst120_out[1],magma_UInt_6_sub_inst120_out[0]});
+assign magma_Bits_8_lshr_inst61_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst122_out[2],magma_UInt_6_sub_inst122_out[1],magma_UInt_6_sub_inst122_out[0]});
+assign magma_Bits_8_lshr_inst62_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst124_out[2],magma_UInt_6_sub_inst124_out[1],magma_UInt_6_sub_inst124_out[0]});
+assign magma_Bits_8_lshr_inst63_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst126_out[2],magma_UInt_6_sub_inst126_out[1],magma_UInt_6_sub_inst126_out[0]});
+assign magma_Bits_8_lshr_inst7_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst14_out[2],magma_UInt_6_sub_inst14_out[1],magma_UInt_6_sub_inst14_out[0]});
+assign magma_Bits_8_lshr_inst8_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst16_out[2],magma_UInt_6_sub_inst16_out[1],magma_UInt_6_sub_inst16_out[0]});
+assign magma_Bits_8_lshr_inst9_out = write_data >> ({1'b0,1'b0,1'b0,1'b0,1'b0,magma_UInt_6_sub_inst18_out[2],magma_UInt_6_sub_inst18_out[1],magma_UInt_6_sub_inst18_out[0]});
 assign magma_UInt_6_mul_inst0_out = 6'(({1'b0,1'b0,1'b0,read_addr[2],read_addr[1],read_addr[0]}) * 6'h08);
 assign magma_UInt_6_mul_inst1_out = 6'(({1'b0,1'b0,1'b0,write_addr[2],write_addr[1],write_addr[0]}) * 6'h08);
 assign magma_UInt_6_sub_inst0_out = 6'(6'h00 - magma_UInt_6_mul_inst1_out);

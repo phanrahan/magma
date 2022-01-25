@@ -30,7 +30,7 @@ __all__ += ['bits', 'uint', 'sint']
 
 __all__ += ['tuple_', 'namedtuple']
 
-__all__ += ['concat', 'repeat', 'concat2']
+__all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
 __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
@@ -222,59 +222,6 @@ def concat(*arrays):
                 )
             ts.extend(a.ts)
     return array(ts)
-
-
-class ConcatN(Generator2):
-    def __init__(self, *ts):
-        child_T = ts[0].T
-        for T in ts[1:]:
-            if not (child_T is T.T or child_T.is_wireable(T.T)):
-                raise TypeError(f"Cannot concat {ts[0]} and {T}")
-        self.renamed_ports = {"O": "out"}
-        ports = {}
-        out_N = 0
-        Ns = []
-        for i, T in enumerate(ts):
-            ports[f"I{i}"] = In(T)
-            self.renamed_ports[f"I{i}"] = f"in{i}"
-            out_N += len(T)
-            Ns.append(len(T))
-        ports["O"] = Out(ts[0][out_N, child_T])
-        self.io = IO(**ports)
-        self.coreir_genargs = {"t_child": Out(child_T), "Ns": Ns}
-        self.coreir_name = "concatNArrT"
-        self.coreir_lib = "mantle"
-        # TODO(leonardt/array2): Unify combinational/stateful attribute
-        # NOTE(leonardt/array2): This attribute was added in Array2 performance
-        # hacking, it's no longer necessary for the core change, but could be
-        # still useful as a minor performance improvement (we can avoid
-        # traversal of ports when doing automatic clock wiring logic)
-        self.combinational = True
-
-        self.primitive = True
-        self.stateful = False
-
-        def simulate(self, value_store, state_store):
-            value = []
-            for key in ports.keys():
-                next_value = value_store.get_value(getattr(self, key))
-                if isinstance(next_value, int):
-                    next_value = ht.BitVector[len(ports[key])](next_value)
-                value.extend(next_value)
-            value_store.set_value(self.O, value)
-
-        self.simulate = simulate
-
-
-def concat2(*arrays):
-    # TODO(leonardt/array2): Do we still need a concat primitive? This was
-    # added for performance when using the tree approach, but now we might
-    # consider just reverting to the "array_create(ts)" approach we used before
-    return ConcatN(*(type(arr) for arr in arrays))()(*arrays)
-
-
-Array._array_old = staticmethod(array)
-Array._concat = staticmethod(concat2)
 
 
 def repeat(value, n):

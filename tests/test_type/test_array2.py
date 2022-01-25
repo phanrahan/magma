@@ -30,7 +30,7 @@ def test_array2_getitem_index(nested):
         if nested:
             T = m.Array[2, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
-        io.O @= m.concat2(io.I[1:], io.I[:1])
+        io.O @= m.concat(io.I[1:], io.I[:1])
 
     _check_compile("test_array2_getitem_index", Foo, nested)
 
@@ -42,7 +42,7 @@ def test_array2_getitem_slice(nested):
         if nested:
             T = m.Array[4, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
-        io.O @= m.concat2(io.I[2:], io.I[:2])
+        io.O @= m.concat(io.I[2:], io.I[:2])
 
     _check_compile("test_array2_getitem_slice", Foo, nested)
 
@@ -83,7 +83,7 @@ def test_array2_tuple():
                   O3=m.Out(T))
         io.O0 @= io.I
 
-        io.O1 @= m.concat2(io.I[2:], io.I[:2])
+        io.O1 @= m.concat(io.I[2:], io.I[:2])
 
         io.O2[0] @= io.I[1]
         io.O2[1] @= io.I[0]
@@ -126,8 +126,8 @@ def test_array2_getitem_slice_of_slice(nested):
         if nested:
             T = m.Array[4, T]
         io = m.IO(I=m.In(T), O=m.Out(T))
-        io.O @= m.concat2(io.I[1:][:2],
-                          io.I[:3][1:])
+        io.O @= m.concat(io.I[1:][:2],
+                         io.I[:3][1:])
 
     _check_compile("test_array2_getitem_slice_of_slice", Foo, nested)
 

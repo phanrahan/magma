@@ -1,31 +1,3 @@
-module mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 (
-    input in0_0__0,
-    input [1:0] in0_0__1,
-    input in0_1__0,
-    input [1:0] in0_1__1,
-    input in1_0__0,
-    input [1:0] in1_0__1,
-    input in1_1__0,
-    input [1:0] in1_1__1,
-    output out_0__0,
-    output [1:0] out_0__1,
-    output out_1__0,
-    output [1:0] out_1__1,
-    output out_2__0,
-    output [1:0] out_2__1,
-    output out_3__0,
-    output [1:0] out_3__1
-);
-assign out_0__0 = in0_0__0;
-assign out_0__1 = in0_0__1;
-assign out_1__0 = in0_1__0;
-assign out_1__1 = in0_1__1;
-assign out_2__0 = in1_0__0;
-assign out_2__1 = in1_0__1;
-assign out_3__0 = in1_1__0;
-assign out_3__1 = in1_1__1;
-endmodule
-
 module Foo (
     input I_0__0,
     input [1:0] I_0__1,
@@ -68,32 +40,6 @@ module Foo (
     output O3_3__0,
     output [1:0] O3_3__1
 );
-wire ConcatN_inst0_out_0__0;
-wire [1:0] ConcatN_inst0_out_0__1;
-wire ConcatN_inst0_out_1__0;
-wire [1:0] ConcatN_inst0_out_1__1;
-wire ConcatN_inst0_out_2__0;
-wire [1:0] ConcatN_inst0_out_2__1;
-wire ConcatN_inst0_out_3__0;
-wire [1:0] ConcatN_inst0_out_3__1;
-mantle_concatNArrT__Ns22__t_child_0BitIn_1BitIn2 ConcatN_inst0 (
-    .in0_0__0(I_2__0),
-    .in0_0__1(I_2__1),
-    .in0_1__0(I_3__0),
-    .in0_1__1(I_3__1),
-    .in1_0__0(I_0__0),
-    .in1_0__1(I_0__1),
-    .in1_1__0(I_1__0),
-    .in1_1__1(I_1__1),
-    .out_0__0(ConcatN_inst0_out_0__0),
-    .out_0__1(ConcatN_inst0_out_0__1),
-    .out_1__0(ConcatN_inst0_out_1__0),
-    .out_1__1(ConcatN_inst0_out_1__1),
-    .out_2__0(ConcatN_inst0_out_2__0),
-    .out_2__1(ConcatN_inst0_out_2__1),
-    .out_3__0(ConcatN_inst0_out_3__0),
-    .out_3__1(ConcatN_inst0_out_3__1)
-);
 assign O0_0__0 = I_0__0;
 assign O0_0__1 = I_0__1;
 assign O0_1__0 = I_1__0;
@@ -102,14 +48,14 @@ assign O0_2__0 = I_2__0;
 assign O0_2__1 = I_2__1;
 assign O0_3__0 = I_3__0;
 assign O0_3__1 = I_3__1;
-assign O1_0__0 = ConcatN_inst0_out_0__0;
-assign O1_0__1 = ConcatN_inst0_out_0__1;
-assign O1_1__0 = ConcatN_inst0_out_1__0;
-assign O1_1__1 = ConcatN_inst0_out_1__1;
-assign O1_2__0 = ConcatN_inst0_out_2__0;
-assign O1_2__1 = ConcatN_inst0_out_2__1;
-assign O1_3__0 = ConcatN_inst0_out_3__0;
-assign O1_3__1 = ConcatN_inst0_out_3__1;
+assign O1_0__0 = I_2__0;
+assign O1_0__1 = I_2__1;
+assign O1_1__0 = I_3__0;
+assign O1_1__1 = I_3__1;
+assign O1_2__0 = I_0__0;
+assign O1_2__1 = I_0__1;
+assign O1_3__0 = I_1__0;
+assign O1_3__1 = I_1__1;
 assign O2_0__0 = I_1__0;
 assign O2_0__1 = I_1__1;
 assign O2_1__0 = I_0__0;

@@ -161,10 +161,22 @@ def test_setitem_bfloat():
         io.O <= b
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
-ConcatN_inst0 = ConcatN()
-wire(TestCircuit.I[slice(0, 15, None)], ConcatN_inst0.in0)
-wire(BitVector[1](0), ConcatN_inst0.in1)
-wire(ConcatN_inst0.out, TestCircuit.O)
+wire(TestCircuit.I[0], TestCircuit.O[0])
+wire(TestCircuit.I[1], TestCircuit.O[1])
+wire(TestCircuit.I[2], TestCircuit.O[2])
+wire(TestCircuit.I[3], TestCircuit.O[3])
+wire(TestCircuit.I[4], TestCircuit.O[4])
+wire(TestCircuit.I[5], TestCircuit.O[5])
+wire(TestCircuit.I[6], TestCircuit.O[6])
+wire(TestCircuit.I[7], TestCircuit.O[7])
+wire(TestCircuit.I[8], TestCircuit.O[8])
+wire(TestCircuit.I[9], TestCircuit.O[9])
+wire(TestCircuit.I[10], TestCircuit.O[10])
+wire(TestCircuit.I[11], TestCircuit.O[11])
+wire(TestCircuit.I[12], TestCircuit.O[12])
+wire(TestCircuit.I[13], TestCircuit.O[13])
+wire(TestCircuit.I[14], TestCircuit.O[14])
+wire(GND, TestCircuit.O[15])
 EndCircuit()\
 """  # noqa
 
@@ -301,12 +313,13 @@ def test_zext(n):
         # Nasty precidence issue with <= operator means we need parens here
         io.O <= io.I.zext(3)
 
+    i_wires = '\n'.join(
+        f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
+    gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
-ConcatN_inst0 = ConcatN()
-wire(TestExt.I, ConcatN_inst0.in0)
-wire(BitVector[3](0), ConcatN_inst0.in1)
-wire(ConcatN_inst0.out, TestExt.O)
+{i_wires}
+{gnd_wires}
 EndCircuit()\
 """
     m.compile(f"build/TestBits{n}ext", TestExt, output="coreir-verilog")

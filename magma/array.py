@@ -866,9 +866,6 @@ class Array(Wireable, ArrayOld):
         """Monkey patched in magma/conversions.py"""
         raise NotImplementedError()
 
-    def concat(self, other):
-        return self._concat(self, other)
-
     def flatten(self):
         # TODO(leonardt/array2): Audit where this is used and optimize to avoid
         # where possible

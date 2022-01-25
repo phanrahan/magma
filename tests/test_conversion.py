@@ -45,7 +45,6 @@ def test_convert_extend(op):
         value = op(io.I, 32)
         assert len(value) == 32
         if op is m.sint:
-            assert isinstance(type(value.name.inst), m.conversions.ConcatN)
             # Check sext logic
-            for x in value.name.inst.I1.trace():
+            for x in value[5:]:
                 assert x is io.I[4]
