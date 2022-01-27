@@ -46,11 +46,11 @@ class ArrayMeta(ABCMeta, Kind):
 
         namespace['_info_'] = info[0], N, T
         type_ = super().__new__(cls, name, bases, namespace, **kwargs)
-        if (N ,T) == (None, None):
-            #class is abstract so t.abstract -> t
+        if (N, T) == (None, None):
+            # class is abstract so t.abstract -> t
             type_._info_ = type_, N, T
         elif info[0] is None:
-            #class inherited from concrete type so there is no abstract t
+            # class inherited from concrete type so there is no abstract t
             type_._info_ = None, N, T
 
         return type_
@@ -96,7 +96,7 @@ class ArrayMeta(ABCMeta, Kind):
         # index[0] (N) can be None (used internally for In(Array))
         if index[0] is not None:
             if isinstance(index[0], tuple):
-                if len(index[0]) == 0 :
+                if len(index[0]) == 0:
                     raise ValueError("Cannot create array with length 0 tuple "
                                      "for N")
                 if len(index[0]) > 1:
@@ -114,7 +114,6 @@ class ArrayMeta(ABCMeta, Kind):
                     f' {index[0]}'
                 )
 
-
         if cls.is_concrete:
             if index[0] == cls.N and index[1] is cls.T:
                 return cls
@@ -123,9 +122,7 @@ class ArrayMeta(ABCMeta, Kind):
 
         bases = []
         bases.extend(b[index] for b in cls.__bases__
-                     # Skip array for Array for performance
-                     if isinstance(b, mcs) and not (cls is Array and
-                                                    b is ArrayOld))
+                     if isinstance(b, mcs))
         # only add base classes if we're have a child type
         # (skipped in the case of In(Array))
         if not isinstance(index[1], Direction):
@@ -139,7 +136,8 @@ class ArrayMeta(ABCMeta, Kind):
             class_name = f'{index[1].name}({cls.__name__})'
         else:
             class_name = '{}[{}]'.format(cls.__name__, index)
-        type_ = mcs(class_name, bases, {"orig_name": orig_name}, info=(cls, ) + index)
+        type_ = mcs(class_name, bases, {"orig_name": orig_name},
+                    info=(cls, ) + index)
         type_.__module__ = cls.__module__
         mcs._class_cache[cls, index] = type_
         return type_
@@ -324,10 +322,16 @@ def _is_slice_child(child):
     return isinstance(child, Array) and child._is_slice()
 
 
-class ArrayOld(Type, metaclass=ArrayMeta):
+class Array(Type, Wireable, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
-        self.ts = _make_array(self, args)
+        Type.__init__(self, **kwargs)
+        Wireable.__init__(self)
+        self._ts = {}
+        self._slices = {}
+        self._slices_by_start_index = {}
+        if args:
+            for i, t in enumerate(_make_array(self, args)):
+                self._ts[i] = t
 
     @classmethod
     def is_oriented(cls, direction):
@@ -338,11 +342,6 @@ class ArrayOld(Type, metaclass=ArrayMeta):
     @classmethod
     def is_clock(cls):
         return False
-
-    @classmethod
-    @deprecated
-    def isoriented(cls, direction):
-        return cls.is_oriented(direction)
 
     @output_only("Cannot use == on an input")
     def __eq__(self, rhs):
@@ -355,12 +354,6 @@ class ArrayOld(Type, metaclass=ArrayMeta):
         return ~(self == rhs)
 
     __hash__ = Type.__hash__
-
-    def __repr__(self):
-        if self.name.anon():
-            t_strs = ', '.join(repr(t) for t in self.ts)
-            return f'array([{t_strs}])'
-        return super().__repr__()
 
     @property
     def T(self):
@@ -385,55 +378,16 @@ class ArrayOld(Type, metaclass=ArrayMeta):
                  key[-1] == slice(None, len(self)) or
                  key[-1] == slice(0, len(self))))
 
-    def __getitem__(self, key):
-        if isinstance(key, tuple):
-            # ND Array key
-            if len(key) == 1:
-                return self[key[0]]
-
-            if not isinstance(key[-1], slice):
-                return self[key[-1]][key[:-1]]
-            if not self._is_whole_slice(key):
-                # If it's not a slice of the whole array, first slice the
-                # current array (self), then replace with a slice of the whole
-                # array (this is how we determine that we're ready to traverse
-                # into the children)
-                this_key = key[-1]
-                result = self[this_key][key[:-1] + (slice(None), )]
-                return result
-            # Last index is selecting the whole array, recurse into the
-            # children and slice off the inner indices
-            inner_ts = [t[key[:-1]] for t in self.ts]
-            # Get the type from the children and return the final value
-            return type(self)[len(self), type(inner_ts[0])](inner_ts)
-        if isinstance(key, Type):
-            # indexed using a dynamic magma value, generate mux circuit
-            return self.dynamic_mux_select(key)
-        if isinstance(key, slice):
-            if not _is_valid_slice(self.N, key):
-                raise IndexError(f"array index out of range "
-                                 f"(type={type(self)}, key={key})")
-            _slice = [self[i] for i in range(*key.indices(len(self)))]
-            return type(self)[len(_slice), self.T](_slice)
-        else:
-            if isinstance(key, BitVector):
-                key = key.as_uint()
-
-            if not (-self.N <= key and key < self.N):
-                raise IndexError(f"{key}, {self.N}")
-
-            return self.ts[key]
-
     def __setitem__(self, key, val):
         old = self[key]
         error = False
         if old is val:
             # Early "exit" (avoid recursion in other branches)
             pass
-        elif isinstance(old, ArrayOld):
+        elif isinstance(old, Array):
             if len(old) != len(val):
                 error = True
-            elif issubclass(old.T, ArrayOld):
+            elif issubclass(old.T, Array):
                 # If array of array, check that we can do elementwise setitem
                 # (will return true if there's an error)
                 # We can't just do an `is` check on the children since those
@@ -463,11 +417,6 @@ class ArrayOld(Type, metaclass=ArrayMeta):
 
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
-
-    @classmethod
-    @lru_cache()
-    def is_oriented(cls, direction):
-        return cls.T.is_oriented(direction)
 
     def as_list(self):
         return [self[i] for i in range(len(self))]
@@ -502,32 +451,17 @@ class ArrayOld(Type, metaclass=ArrayMeta):
             )
             return
 
-    @debug_wire
-    def wire(i, o, debug_info):
-        o = magma_value(o)
-        i._check_wireable(o, debug_info)
-
-        for k in range(len(i)):
-            i[k].wire(o[k], debug_info)
-
-    def unwire(i, o):
-        for k in range(len(i)):
-            i[k].unwire(o[k])
-
-    def driven(self):
-        for t in self.ts:
-            if not t.driven():
-                return False
-        return True
-
     def driving(self):
-        return [t.driving() for t in self]
+        if self._ts:
+            return [t.driving() for t in self]
+        return Wireable.driving(self)
 
     def wired(self):
-        for t in self.ts:
-            if not t.wired():
-                return False
-        return True
+        if self._ts:
+            for t in self.ts:
+                if not t.wired():
+                    return False
+        return Wireable.wired(self)
 
     # test whether the values refer a whole array
     @staticmethod
@@ -546,7 +480,7 @@ class ArrayOld(Type, metaclass=ArrayMeta):
 
         for i in range(1, n):
             # elements must refer to the same array
-            if ts[i].name.array is not ts[i-1].name.array:
+            if ts[i].name.array is not ts[i - 1].name.array:
                 return False
 
         if n > 0 and n != ts[0].name.array.N:
@@ -561,38 +495,7 @@ class ArrayOld(Type, metaclass=ArrayMeta):
         return True
 
     def iswhole(self):
-        return ArrayOld._iswhole(self.ts)
-
-    def trace(self):
-        ts = [t.trace() for t in self.ts]
-
-        for t in ts:
-            if t is None:
-                return None
-
-        if ArrayOld._iswhole(ts):
-            return ts[0].name.array
-
-        return type(self).flip()(ts)
-
-    def value(self):
-        ts = [t.value() for t in self.ts]
-
-        for t in ts:
-            if t is None:
-                return None
-
-        if ArrayOld._iswhole(ts):
-            return ts[0].name.array
-
-        return type(self).flip()(ts)
-
-    def const(self):
-        for t in self.ts:
-            if not t.const():
-                return False
-
-        return True
+        return Array._iswhole(self.ts)
 
     @classmethod
     def unflatten(cls, value):
@@ -602,9 +505,6 @@ class ArrayOld(Type, metaclass=ArrayMeta):
         ts = [cls.T.unflatten(value[i:i + size_T])
               for i in range(0, size_T * cls.N, size_T)]
         return cls(ts)
-
-    def flatten(self):
-        return sum([t.flatten() for t in self.ts], [])
 
     def concat(self, other) -> 'AbstractBitVector':
         return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
@@ -620,54 +520,6 @@ class ArrayOld(Type, metaclass=ArrayMeta):
     @classmethod
     def is_mixed(cls):
         return cls.T.is_mixed()
-
-    def _yield_curr_slice_or_elem(self, value, start_idx, i):
-        # Helper function for connection_iter()
-        # Dispatches on whether the next elem yielded should be a slice or
-        # single element
-        if start_idx == i - 1:
-            yield self[start_idx], value[start_idx]
-        else:
-            first_elem = value[start_idx]
-            arr = first_elem.name.array
-            offset = first_elem.name.index
-            slice_value = arr[offset:offset + (i - start_idx)]
-            yield self[start_idx:i], slice_value
-
-    def connection_iter(self, only_slice_bits=False):
-        value = self.trace()
-        if value is None:
-            yield from ((t, t.trace()) for t in self)
-            return
-        start_idx = 0
-        for i in range(1, len(self)):
-            if (value[i].name.anon() or
-                    not _is_next_elem_in_slice(value[i], value[i - 1])):
-                yield from self._yield_curr_slice_or_elem(value, start_idx, i)
-                start_idx = i
-        if start_idx == 0:
-            # If we try to iterate and we find value is a slice, this means it
-            # cannot be sliced in the backend (i.e. not an array of bits), so
-            # here we iterate element by element instead
-            yield from zip(self, value)
-        else:
-            yield from self._yield_curr_slice_or_elem(value, start_idx,
-                                                      len(self))
-
-
-ArrayType = ArrayOld
-
-
-class Array(Wireable, ArrayOld):
-    def __init__(self, *args, **kwargs):
-        Type.__init__(self, **kwargs)
-        Wireable.__init__(self)
-        self._ts = {}
-        self._slices = {}
-        self._slices_by_start_index = {}
-        if args:
-            for i, t in enumerate(_make_array(self, args)):
-                self._ts[i] = t
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -701,6 +553,8 @@ class Array(Wireable, ArrayOld):
         return True
 
     def const(self):
+        if self._ts:
+            return all(t.const() for t in self)
         return False
 
     def _resolve_bulk_wire(self):
@@ -862,14 +716,9 @@ class Array(Wireable, ArrayOld):
                                         offset + key.stop))
         raise NotImplementedError(key, type(key))
 
-    def _concat(*args, **kwargs):
-        """Monkey patched in magma/conversions.py"""
-        raise NotImplementedError()
-
     def flatten(self):
         # TODO(leonardt/array2): Audit where this is used and optimize to avoid
         # where possible
-        # return sum([self._get_t(i).flatten() for i in range(self.N)], [])
         ts = []
         for child in self._children_iter():
             ts.extend(child.flatten())
@@ -977,3 +826,6 @@ class Array(Wireable, ArrayOld):
 
     def has_children(self):
         return True
+
+
+ArrayType = Array
