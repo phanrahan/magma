@@ -4,8 +4,8 @@ import dataclasses
 from typing import List, Mapping, Optional, Tuple
 import weakref
 
-from common import Stack, WithId, default_field, constant
-from printer_base import PrinterBase
+from magma.backend.mlir.common import Stack, WithId, default_field, constant
+from magma.backend.mlir.printer_base import PrinterBase
 
 
 OptionalWeakRef = Optional[weakref.ReferenceType]

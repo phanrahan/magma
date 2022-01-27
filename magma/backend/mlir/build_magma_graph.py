@@ -2,9 +2,9 @@ import dataclasses
 
 import magma as m
 
-from graph_lib import Graph
-from magma_common import ModuleLike, visit_value_by_direction, safe_root
-from magma_ops import (
+from magma.backend.mlir.graph_lib import Graph
+from magma.backend.mlir.magma_common import ModuleLike, visit_value_by_direction, safe_root
+from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
     MagmaBitConstantOp, MagmaBitsConstantOp)

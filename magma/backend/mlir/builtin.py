@@ -1,9 +1,9 @@
 import dataclasses
 
-from mlir import MlirDialect, begin_dialect, end_dialect
-from mlir import MlirOp, MlirRegion, MlirBlock
-from mlir import MlirType
-from printer_base import PrinterBase
+from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
+from magma.backend.mlir.mlir import MlirOp, MlirRegion, MlirBlock
+from magma.backend.mlir.mlir import MlirType
+from magma.backend.mlir.printer_base import PrinterBase
 
 
 builtin = MlirDialect("builtin")

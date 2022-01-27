@@ -6,23 +6,23 @@ import weakref
 
 import magma as m
 
-from build_magma_graph import build_magma_graph
-from builtin import builtin
-from comb import comb
-from common import wrap_with_not_implemented_error
-from graph_lib import Graph
-from hw import hw
-from magma_common import (
+from magma.backend.mlir.build_magma_graph import build_magma_graph
+from magma.backend.mlir.builtin import builtin
+from magma.backend.mlir.comb import comb
+from magma.backend.mlir.common import wrap_with_not_implemented_error
+from magma.backend.mlir.graph_lib import Graph
+from magma.backend.mlir.hw import hw
+from magma.backend.mlir.magma_common import (
     ModuleLike as MagmaModuleLike,
     ValueWrapper as MagmaValueWrapper,
     InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_by_direction as visit_magma_value_by_direction,
     visit_value_wrapper_by_direction as visit_magma_value_wrapper_by_direction)
-from mlir import MlirType, MlirValue, MlirSymbol, push_block
-from printer_base import PrinterBase
-from scoped_name_generator import ScopedNameGenerator
-from sv import sv
+from magma.backend.mlir.mlir import MlirType, MlirValue, MlirSymbol, push_block
+from magma.backend.mlir.printer_base import PrinterBase
+from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
+from magma.backend.mlir.sv import sv
 
 
 MlirValueList = List[MlirValue]

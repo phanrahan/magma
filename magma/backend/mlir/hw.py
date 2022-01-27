@@ -1,12 +1,12 @@
 import dataclasses
 from typing import ClassVar, List, Optional, Tuple
 
-from mlir import (
+from magma.backend.mlir.mlir import (
     MlirDialect, MlirOp,  MlirValue, MlirType, MlirSymbol, MlirAttribute,
     begin_dialect, end_dialect)
-from mlir_printer_utils import (
+from magma.backend.mlir.mlir_printer_utils import (
     print_names, print_types, print_signature, print_attr_dict)
-from printer_base import PrinterBase
+from magma.backend.mlir.printer_base import PrinterBase
 
 
 hw = MlirDialect("hw")

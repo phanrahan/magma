@@ -1,7 +1,7 @@
 from typing import Callable, List, Mapping, Union
 
-from mlir import MlirValue
-from printer_base import PrinterBase
+from magma.backend.mlir.mlir import MlirValue
+from magma.backend.mlir.printer_base import PrinterBase
 
 
 MlirValueList = List[MlirValue]

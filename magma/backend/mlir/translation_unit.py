@@ -3,10 +3,10 @@ import weakref
 
 import magma as m
 
-from builtin import builtin
-from hardware_module import HardwareModule
-from mlir import MlirSymbol, push_block
-from scoped_name_generator import ScopedNameGenerator
+from magma.backend.mlir.builtin import builtin
+from magma.backend.mlir.hardware_module import HardwareModule
+from magma.backend.mlir.mlir import MlirSymbol, push_block
+from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 
 
 class TranslationUnit:

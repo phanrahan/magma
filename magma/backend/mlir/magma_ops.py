@@ -2,7 +2,7 @@ from typing import Union
 
 import magma as m
 
-from magma_common import InstanceWrapper, value_or_type_to_string
+from magma.backend.mlir.magma_common import InstanceWrapper, value_or_type_to_string
 
 
 def MagmaArrayGetOp(T: m.ArrayMeta, index: str):

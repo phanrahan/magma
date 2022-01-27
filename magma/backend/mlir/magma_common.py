@@ -3,7 +3,7 @@ from typing import Any, Callable, Mapping, Union
 
 import magma as m
 
-from common import make_unique_name, replace_all
+from magma.backend.mlir.common import make_unique_name, replace_all
 
 
 ModuleLike = Union[m.DefineCircuitKind, m.Circuit]

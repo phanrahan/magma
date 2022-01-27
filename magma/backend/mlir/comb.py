@@ -1,11 +1,11 @@
 import dataclasses
 from typing import List
 
-from mlir import MlirDialect, begin_dialect, end_dialect
-from mlir_printer_utils import print_names, print_types
-from mlir import MlirOp
-from mlir import MlirValue
-from printer_base import PrinterBase
+from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
+from magma.backend.mlir.mlir_printer_utils import print_names, print_types
+from magma.backend.mlir.mlir import MlirOp
+from magma.backend.mlir.mlir import MlirValue
+from magma.backend.mlir.printer_base import PrinterBase
 
 
 comb = MlirDialect("comb")

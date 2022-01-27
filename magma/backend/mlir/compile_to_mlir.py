@@ -4,8 +4,8 @@ from typing import Optional
 
 import magma as m
 
-from printer_base import PrinterBase
-from translation_unit import TranslationUnit
+from magma.backend.mlir.printer_base import PrinterBase
+from magma.backend.mlir.translation_unit import TranslationUnit
 
 
 def compile_to_mlir(
