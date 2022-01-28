@@ -8,11 +8,11 @@ import sys
 from typing import Any, List, Optional
 
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
+from magma.backend.mlir.mlir_to_verilog import mlir_to_verilog
 from magma.circuit import DefineCircuitKind
 from magma.passes.clock import WireClockPass
 
 import examples
-from mlir_to_verilog import mlir_to_verilog
 
 
 _CMP_BUFSIZE = 8 * 1024
