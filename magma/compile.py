@@ -3,6 +3,7 @@ from pathlib import PurePath
 
 from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
+from magma.backend.mlir.mlir_compiler import MlirCompiler
 from magma.bind import BindPass
 from magma.compiler import Compiler
 from magma.compile_exception import MagmaCompileException
@@ -33,6 +34,8 @@ def _make_compiler(output, main, basename, opts):
     if output == "coreir-verilog":
         opts["output_verilog"] = True
         return CoreIRCompiler(main, basename, opts)
+    if output == "mlir":
+        return MlirCompiler(main, basename, opts)
     raise NotImplementedError(f"Backend '{output}' not supported")
 
 
