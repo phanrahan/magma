@@ -244,7 +244,7 @@ class ModuleVisitor:
         mlir_type = hw.InOutType(module.operands[0].type)
         wire = self._ctx.new_value(mlir_type)
         sym = self._ctx.parent.get_or_make_mapped_symbol(
-             inst, name=f"{self._ctx.name}.{inst.name}", force=True)
+            inst, name=f"{self._ctx.name}.{inst.name}", force=True)
         sv.WireOp(results=[wire], name=inst.name, sym=sym)
         sv.AssignOp(operands=[wire, module.operands[0]])
         sv.ReadInOutOp(operands=[wire], results=module.results)
@@ -270,7 +270,7 @@ class ModuleVisitor:
             return self.visit_coreir_reg(module)
         if defn.coreir_name in ("orr", "andr", "xorr"):
             return self.visit_coreir_reduce(module)
-        if defn.coreir_name ==  "wire":
+        if defn.coreir_name == "wire":
             return self.visit_coreir_wire(module)
         if defn.coreir_name == "wrap":
             return self.visit_coreir_wire(module)
@@ -601,7 +601,7 @@ class BindProcessor:
             hardware_module.compile()
             assert hardware_module.hw_module is not None
             self._ctx.parent.set_hardware_module(
-                 bind_module, hardware_module.hw_module)
+                bind_module, hardware_module.hw_module)
 
     def process(self):
         self._syms = []
@@ -614,9 +614,9 @@ class BindProcessor:
                 operands.append(self._ctx.get_mapped_value(arg))
             inst_name = f"{bind_module.name}_inst"
             sym = self._ctx.parent.get_or_make_mapped_symbol(
-                 (self._defn, bind_module),
-                 name=f"{self._defn.name}.{inst_name}",
-                 force=True)
+                (self._defn, bind_module),
+                name=f"{self._defn.name}.{inst_name}",
+                force=True)
             module = self._ctx.parent.get_hardware_module(bind_module)
             inst = hw.InstanceOp(
                 name=inst_name,
@@ -698,11 +698,11 @@ class HardwareModule:
     def _compile(self) -> hw.ModuleOpBase:
         if treat_as_primitive(self._magma_defn_or_decl):
             return
-    
+
         def new_values(fn, ports):
             namer = magma_value_or_type_to_string
             return [fn(port, name=namer(port), force=True) for port in ports]
-    
+
         i, o = [], []
         for port in self._magma_defn_or_decl.interface.ports.values():
             visit_magma_value_by_direction(port, i.append, o.append)

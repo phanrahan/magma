@@ -11,7 +11,7 @@ MlirValueOrMlirValueList = Union[MlirValue, MlirValueList]
 def get_name_fn(raw_names: bool) -> Callable[[MlirValue], str]:
     if raw_names:
         return lambda value: value.raw_name
-    return lambda value: value.name        
+    return lambda value: value.name
 
 
 def _maybe_wrap_value_or_value_list(

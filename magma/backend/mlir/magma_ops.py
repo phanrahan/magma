@@ -1,7 +1,8 @@
 from typing import Union
 
 from magma.array import ArrayMeta
-from magma.backend.mlir.magma_common import InstanceWrapper, value_or_type_to_string
+from magma.backend.mlir.magma_common import (
+    InstanceWrapper, value_or_type_to_string)
 from magma.bits import BitsMeta
 from magma.digital import DigitalMeta
 from magma.generator import Generator2

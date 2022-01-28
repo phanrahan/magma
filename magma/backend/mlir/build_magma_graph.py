@@ -2,7 +2,8 @@ import dataclasses
 
 from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
-from magma.backend.mlir.magma_common import ModuleLike, visit_value_by_direction, safe_root
+from magma.backend.mlir.magma_common import (
+    ModuleLike, visit_value_by_direction, safe_root)
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
@@ -97,7 +98,7 @@ def _visit_driver(
         raise NotImplementedError(driver, ref)
     if isinstance(ref, ArrayRef):
         if ref.array.is_mixed():
-            info=dict(src=driver, dst=value)
+            info = dict(src=driver, dst=value)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.array.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
@@ -114,7 +115,7 @@ def _visit_driver(
         return
     if isinstance(ref, TupleRef):
         if ref.tuple.is_mixed():
-            info=dict(src=driver, dst=value)
+            info = dict(src=driver, dst=value)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
