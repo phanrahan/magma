@@ -6,14 +6,17 @@ import sys
 from typing import List, Optional
 
 from magma.backend.mlir.common import try_call
+from magma.config import config, EnvConfig
 
 
-def get_circt_home() -> pathlib.Path:
-    circt_home = os.environ.get("CIRCT_HOME", "../circt/")
-    return pathlib.Path(circt_home).resolve()
+config._register(circt_home=EnvConfig("CIRCT_HOME", "./circt"))
 
 
-def make_opt_cmd(circt_home: pathlib.Path) -> List[str]:
+def _get_circt_home() -> pathlib.Path:
+    return pathlib.Path(config.circt_home).resolve()
+
+
+def _make_opt_cmd(circt_home: pathlib.Path) -> List[str]:
     opt = circt_home / "build/bin/circt-opt"
     return [
         f"{opt}", "--lower-seq-to-sv", "--canonicalize", "--hw-cleanup",
@@ -40,8 +43,8 @@ def _subprocess_run(args, stdin, stdout):
 
 
 def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
-    circt_home = get_circt_home()
-    opt_cmd = make_opt_cmd(circt_home)
+    circt_home = _get_circt_home()
+    opt_cmd = _make_opt_cmd(circt_home)
     _subprocess_run(opt_cmd, istream, ostream)
 
 
