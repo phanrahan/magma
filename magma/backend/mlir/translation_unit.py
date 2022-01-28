@@ -1,16 +1,17 @@
 from typing import Any
 import weakref
 
-import magma as m
-
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.mlir import MlirSymbol, push_block
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
+from magma.circuit import CircuitKind, DefineCircuitKind
+from magma.passes import dependencies
+from magma.t import Type
 
 
 class TranslationUnit:
-    def __init__(self, magma_top: m.DefineCircuitKind):
+    def __init__(self, magma_top: DefineCircuitKind):
         self._magma_top = magma_top
         self._mlir_module = builtin.ModuleOp()
         self._hardware_modules = {}
@@ -18,7 +19,7 @@ class TranslationUnit:
         self._symbol_name_generator = ScopedNameGenerator()
 
     @property
-    def magma_top(self) -> m.DefineCircuitKind:
+    def magma_top(self) -> DefineCircuitKind:
         return self._magma_top
 
     @property
@@ -26,16 +27,16 @@ class TranslationUnit:
         return self._mlir_module
 
     def new_hardware_module(
-            self, magma_defn_or_decl: m.circuit.CircuitKind) -> HardwareModule:
+            self, magma_defn_or_decl: CircuitKind) -> HardwareModule:
         return HardwareModule(magma_defn_or_decl, weakref.ref(self))
 
     def get_hardware_module(
-            self, magma_defn_or_decl: m.circuit.CircuitKind) -> HardwareModule:
+            self, magma_defn_or_decl: CircuitKind) -> HardwareModule:
         key = self._make_key(magma_defn_or_decl)
         return self._hardware_modules[key]
 
     def set_hardware_module(
-            self, magma_defn_or_decl: m.circuit.CircuitKind,
+            self, magma_defn_or_decl: CircuitKind,
             hardware_module: HardwareModule):
         key = self._make_key(magma_defn_or_decl)
         if key in self._hardware_modules:
@@ -43,11 +44,11 @@ class TranslationUnit:
         self._hardware_modules[key] = hardware_module
 
     def has_hardware_module(
-            self, magma_defn_or_decl: m.circuit.CircuitKind) -> bool:
+            self, magma_defn_or_decl: CircuitKind) -> bool:
         key = self._make_key(magma_defn_or_decl)
         return key in self._hardware_modules
 
-    def get_mapped_symbol(self, obj: m.Type) -> MlirSymbol:
+    def get_mapped_symbol(self, obj: Type) -> MlirSymbol:
         return self._symbol_map[obj]
 
     def get_or_make_mapped_symbol(self, obj: Any, **kwargs) -> MlirSymbol:
@@ -68,7 +69,7 @@ class TranslationUnit:
         return MlirSymbol(name)
 
     def compile(self):
-        deps = m.passes.dependencies(self._magma_top, include_self=True)
+        deps = dependencies(self._magma_top, include_self=True)
         with push_block(self._mlir_module):
             for dep in deps:
                 if self.has_hardware_module(dep):
@@ -79,5 +80,5 @@ class TranslationUnit:
                     self.set_hardware_module(dep, hardware_module)
 
     @staticmethod
-    def _make_key(magma_defn_or_decl: m.circuit.CircuitKind) -> str:
+    def _make_key(magma_defn_or_decl: CircuitKind) -> str:
         return magma_defn_or_decl.name

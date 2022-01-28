@@ -4,8 +4,7 @@ import functools
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
-import magma as m
-
+from magma.array import Array, ArrayMeta
 from magma.backend.mlir.build_magma_graph import build_magma_graph
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.comb import comb
@@ -23,12 +22,24 @@ from magma.backend.mlir.mlir import MlirType, MlirValue, MlirSymbol, push_block
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
+from magma.bit import Bit
+from magma.bits import Bits, BitsMeta
+from magma.bitutils import clog2
+from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
+from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
+from magma.digital import Digital, DigitalMeta
+from magma.is_definition import isdefinition
+from magma.is_primitive import isprimitive
+from magma.primitives.mux import Mux
+from magma.primitives.register import Register
+from magma.t import Kind, Type
+from magma.tuple import Product, ProductMeta
 
 
 MlirValueList = List[MlirValue]
 
 
-def _get_defn_or_decl_output_name(defn_or_decl: m.circuit.CircuitKind) -> str:
+def _get_defn_or_decl_output_name(defn_or_decl: CircuitKind) -> str:
     metadata = defn_or_decl.coreir_metadata
     try:
         return metadata["verilog_name"]
@@ -38,30 +49,30 @@ def _get_defn_or_decl_output_name(defn_or_decl: m.circuit.CircuitKind) -> str:
 
 
 @wrap_with_not_implemented_error
-def parse_reset_type(T: m.Kind) -> Tuple[str, str]:
-    if T is m.Reset:
+def parse_reset_type(T: Kind) -> Tuple[str, str]:
+    if T is Reset:
         return "syncreset", "posedge"
-    if T is m.ResetN:
+    if T is ResetN:
         return "syncreset", "negedge"
-    if T is m.AsyncReset:
+    if T is AsyncReset:
         return "asyncreset", "posedge"
-    if T is m.AsyncResetN:
+    if T is AsyncResetN:
         return "asyncreset", "negedge"
 
 
 @wrap_with_not_implemented_error
 @functools.lru_cache()
-def magma_type_to_mlir_type(type: m.Kind) -> MlirType:
+def magma_type_to_mlir_type(type: Kind) -> MlirType:
     type = type.undirected_t
-    if issubclass(type, m.Digital):
+    if issubclass(type, Digital):
         return builtin.IntegerType(1)
-    if issubclass(type, m.Bits):
+    if issubclass(type, Bits):
         return builtin.IntegerType(type.N)
-    if issubclass(type, m.Array):
-        if issubclass(type.T, m.Bit):
-            return magma_type_to_mlir_type(m.Bits[type.N])
+    if issubclass(type, Array):
+        if issubclass(type.T, Bit):
+            return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
-    if issubclass(type, m.Product):
+    if issubclass(type, Product):
         fields = {k: magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return hw.StructType(tuple(fields.items()))
@@ -140,18 +151,18 @@ class ModuleVisitor:
 
     @functools.lru_cache()
     def make_constant(
-            self, T: m.Kind, value: Optional[Any] = None) -> MlirValue:
+            self, T: Kind, value: Optional[Any] = None) -> MlirValue:
         result = self._ctx.new_value(T)
-        if isinstance(T, (m.DigitalMeta, m.BitsMeta)):
+        if isinstance(T, (DigitalMeta, BitsMeta)):
             value = value if value is not None else 0
             hw.ConstantOp(value=int(value), results=[result])
             return result
-        if isinstance(T, m.ArrayMeta):
+        if isinstance(T, ArrayMeta):
             value = value if value is not None else (None for _ in range(T.N))
             operands = [self.make_constant(T.T, v) for v in value]
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
-        if isinstance(T, m.ProductMeta):
+        if isinstance(T, ProductMeta):
             fields = T.field_dict.items()
             value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
@@ -302,7 +313,7 @@ class ModuleVisitor:
         defn = type(inst)
         assert defn.coreir_name == "lutN"
         init = defn.coreir_configargs["init"]
-        consts = [self.make_constant(m.Bit, b) for b in init]
+        consts = [self.make_constant(Bit, b) for b in init]
         mlir_type = hw.ArrayType((len(init),), builtin.IntegerType(1))
         array = self._ctx.new_value(mlir_type)
         hw.ArrayCreateOp(
@@ -347,8 +358,8 @@ class ModuleVisitor:
                 results=[concat])
             operands = [concat]
             size = 2
-        num_sel_bits = m.bitutils.clog2(size)
-        index = self.make_constant(m.Bits[num_sel_bits], index)
+        num_sel_bits = clog2(size)
+        index = self.make_constant(Bits[num_sel_bits], index)
         hw.ArrayGetOp(
             operands=(operands + [index]),
             results=module.results)
@@ -358,7 +369,7 @@ class ModuleVisitor:
     def visit_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert m.isprimitive(defn)
+        assert isprimitive(defn)
         if defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit":
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
@@ -368,7 +379,7 @@ class ModuleVisitor:
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert isinstance(defn, m.Mux)
+        assert isinstance(defn, Mux)
         # NOTE(rsetaluri): This is a round-about way to get the height while
         # magma.Mux does not store those parameters. That should be fixed in
         # magma/primitives/mux.py.
@@ -455,15 +466,15 @@ class ModuleVisitor:
     @wrap_with_not_implemented_error
     def visit_instance(self, module: ModuleWrapper) -> bool:
         inst = module.module
-        assert isinstance(inst, m.circuit.AnonymousCircuitType)
+        assert isinstance(inst, AnonymousCircuitType)
         defn = type(inst)
-        if isinstance(defn, m.Mux):
+        if isinstance(defn, Mux):
             return self.visit_magma_mux(module)
-        if isinstance(defn, m.Register):
+        if isinstance(defn, Register):
             return self.visit_magma_register(module)
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)
-        if m.isprimitive(defn):
+        if isprimitive(defn):
             return self.visit_primitive(module)
         module_type = self._ctx.parent.get_hardware_module(defn).hw_module
         metadata = getattr(inst, "coreir_metadata", {})
@@ -482,7 +493,7 @@ class ModuleVisitor:
         assert isinstance(inst_wrapper, MagmaInstanceWrapper)
         if inst_wrapper.name.startswith("magma_array_get_op_"):
             T = inst_wrapper.attrs["T"]
-            if isinstance(T, m.BitsMeta) or issubclass(T.T, m.Bit):
+            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
                 comb.ExtractOp(
                     operands=module.operands,
                     results=module.results,
@@ -491,7 +502,7 @@ class ModuleVisitor:
             return self.visit_array_get(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
             T = inst_wrapper.attrs["T"]
-            if isinstance(T, m.BitsMeta) or issubclass(T.T, m.Bit):
+            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
                 comb.ConcatOp(
                     operands=list(reversed(module.operands)),
                     results=module.results)
@@ -522,9 +533,9 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_module(self, module: ModuleWrapper) -> bool:
-        if isinstance(module.module, m.DefineCircuitKind):
+        if isinstance(module.module, DefineCircuitKind):
             return True
-        if isinstance(module.module, m.circuit.AnonymousCircuitType):
+        if isinstance(module.module, AnonymousCircuitType):
             return self.visit_instance(module)
         if isinstance(module.module, MagmaInstanceWrapper):
             return self.visit_instance_wrapper(module)
@@ -550,22 +561,22 @@ class ModuleVisitor:
             self.visit(inst)
 
 
-def treat_as_primitive(defn_or_decl: m.circuit.CircuitKind) -> bool:
+def treat_as_primitive(defn_or_decl: CircuitKind) -> bool:
     # NOTE(rsetaluri): This is a round-about way to mark new types as
     # primitives. These definitions should actually be marked as primitives.
-    if m.isprimitive(defn_or_decl):
+    if isprimitive(defn_or_decl):
         return True
-    if isinstance(defn_or_decl, m.Mux):
+    if isinstance(defn_or_decl, Mux):
         return True
-    if isinstance(defn_or_decl, m.Register):
+    if isinstance(defn_or_decl, Register):
         return True
     if getattr(defn_or_decl, "inline_verilog_strs", []):
         return True
     return False
 
 
-def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
-    if not m.isdefinition(defn_or_decl):
+def treat_as_definition(defn_or_decl: CircuitKind) -> bool:
+    if not isdefinition(defn_or_decl):
         return False
     if getattr(defn_or_decl, "verilog", ""):
         return False
@@ -575,7 +586,7 @@ def treat_as_definition(defn_or_decl: m.circuit.CircuitKind) -> bool:
 
 
 class BindProcessor:
-    def __init__(self, ctx, defn: m.circuit.CircuitKind):
+    def __init__(self, ctx, defn: CircuitKind):
         self._ctx = ctx
         self._defn = defn
 
@@ -625,7 +636,7 @@ class BindProcessor:
 
 class HardwareModule:
     def __init__(
-            self, magma_defn_or_decl: m.circuit.CircuitKind,
+            self, magma_defn_or_decl: CircuitKind,
             parent: weakref.ReferenceType):
         self._magma_defn_or_decl = magma_defn_or_decl
         self._parent = parent
@@ -634,7 +645,7 @@ class HardwareModule:
         self._value_map = {}
 
     @property
-    def magma_defn_or_decl(self) -> m.circuit.CircuitKind:
+    def magma_defn_or_decl(self) -> CircuitKind:
         return self._magma_defn_or_decl
 
     @property
@@ -649,10 +660,10 @@ class HardwareModule:
     def name(self) -> str:
         return self._magma_defn_or_decl.name
 
-    def get_mapped_value(self, port: m.Type) -> MlirValue:
+    def get_mapped_value(self, port: Type) -> MlirValue:
         return self._value_map[port]
 
-    def get_or_make_mapped_value(self, port: m.Type, **kwargs) -> MlirValue:
+    def get_or_make_mapped_value(self, port: Type, **kwargs) -> MlirValue:
         try:
             return self._value_map[port]
         except KeyError:
@@ -660,17 +671,17 @@ class HardwareModule:
         self._value_map[port] = value = self.new_value(port, **kwargs)
         return value
 
-    def set_mapped_value(self, port: m.Type, value: MlirValue):
+    def set_mapped_value(self, port: Type, value: MlirValue):
         if port in self._value_map:
             raise ValueError(f"Port {port} already mapped")
         self._value_map[port] = value
 
     def new_value(
-            self, value_or_type: Union[m.Type, m.Kind, MlirType],
+            self, value_or_type: Union[Type, Kind, MlirType],
             **kwargs) -> MlirValue:
-        if isinstance(value_or_type, m.Type):
+        if isinstance(value_or_type, Type):
             mlir_type = magma_type_to_mlir_type(type(value_or_type))
-        elif isinstance(value_or_type, m.Kind):
+        elif isinstance(value_or_type, Kind):
             mlir_type = magma_type_to_mlir_type(value_or_type)
         elif isinstance(value_or_type, MlirType):
             mlir_type = value_or_type

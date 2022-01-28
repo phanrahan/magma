@@ -3,8 +3,7 @@ from typing import List
 
 from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
 from magma.backend.mlir.mlir_printer_utils import print_names, print_types
-from magma.backend.mlir.mlir import MlirOp
-from magma.backend.mlir.mlir import MlirValue
+from magma.backend.mlir.mlir import MlirValue, MlirOp
 from magma.backend.mlir.printer_base import PrinterBase
 
 

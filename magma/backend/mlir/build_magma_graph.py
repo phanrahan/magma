@@ -1,17 +1,22 @@
 import dataclasses
 
-import magma as m
-
+from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import ModuleLike, visit_value_by_direction, safe_root
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaProductGetOp, MagmaProductCreateOp,
     MagmaBitConstantOp, MagmaBitsConstantOp)
+from magma.bits import Bits
+from magma.circuit import DefineCircuitKind
+from magma.digital import Digital
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
+from magma.t import Type
+from magma.tuple import Product
 
 
-def _const_digital_to_bool(digital: m.Digital) -> bool:
-    assert isinstance(digital, m.Digital)
+def _const_digital_to_bool(digital: Digital) -> bool:
+    assert isinstance(digital, Digital)
     assert digital.const()
     T = type(digital)
     if digital is T.GND:
@@ -47,30 +52,30 @@ class ModuleContext:
 
 
 def _visit_driver(
-        ctx: ModuleContext, value: m.Type, driver: m.Type, module: ModuleLike):
+        ctx: ModuleContext, value: Type, driver: Type, module: ModuleLike):
     if driver.const():
-        if isinstance(driver, m.Digital):
+        if isinstance(driver, Digital):
             as_bool = _const_digital_to_bool(driver)
             const = MagmaBitConstantOp(type(driver), as_bool)
             info = dict(src=const.O, dst=value)
             ctx.graph.add_edge(const, module, info=info)
             return
-        if isinstance(driver, m.Bits):
+        if isinstance(driver, Bits):
             const = MagmaBitsConstantOp(type(driver), int(driver))
             info = dict(src=const.O, dst=value)
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
-    if isinstance(ref, m.ref.InstRef):
+    if isinstance(ref, InstRef):
         info = dict(src=driver, dst=value)
         ctx.graph.add_edge(ref.inst, module, info=info)
         return
-    if isinstance(ref, m.ref.DefnRef):
+    if isinstance(ref, DefnRef):
         info = dict(src=driver, dst=value)
         ctx.graph.add_edge(ref.defn, module, info=info)
         return
-    if isinstance(ref, m.ref.AnonRef):
-        if isinstance(driver, m.Array):
+    if isinstance(ref, AnonRef):
+        if isinstance(driver, Array):
             T = type(driver)
             creator = MagmaArrayCreateOp(T)
             for i, element in enumerate(driver):
@@ -79,7 +84,7 @@ def _visit_driver(
             info = dict(src=creator.O, dst=value)
             ctx.graph.add_edge(creator, module, info=info)
             return
-        if isinstance(driver, m.Product):
+        if isinstance(driver, Product):
             T = type(driver)
             creator = MagmaProductCreateOp(T)
             for k, t in T.field_dict.items():
@@ -90,7 +95,7 @@ def _visit_driver(
             ctx.graph.add_edge(creator, module, info=info)
             return
         raise NotImplementedError(driver, ref)
-    if isinstance(ref, m.ref.ArrayRef):
+    if isinstance(ref, ArrayRef):
         if ref.array.is_mixed():
             info=dict(src=driver, dst=value)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.array.name))
@@ -107,7 +112,7 @@ def _visit_driver(
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
-    if isinstance(ref, m.ref.TupleRef):
+    if isinstance(ref, TupleRef):
         if ref.tuple.is_mixed():
             info=dict(src=driver, dst=value)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
@@ -127,7 +132,7 @@ def _visit_driver(
     raise NotImplementedError(driver, type(driver), ref, type(ref))
 
 
-def _visit_input(ctx: ModuleContext, value: m.Type, module: ModuleLike):
+def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
     driver = value.trace()
     assert driver is not None
     _visit_driver(ctx, value, driver, module)
@@ -142,7 +147,7 @@ def _visit_inputs(ctx: ModuleContext, module: ModuleLike):
         )
 
 
-def build_magma_graph(ckt: m.DefineCircuitKind) -> Graph:
+def build_magma_graph(ckt: DefineCircuitKind) -> Graph:
     ctx = ModuleContext(Graph())
     _visit_inputs(ctx, ckt)
     for inst in ckt.instances:
