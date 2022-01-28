@@ -10,10 +10,18 @@ from typing import Any, List, Optional
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
 from magma.backend.mlir.mlir_to_verilog import mlir_to_verilog
 from magma.circuit import DefineCircuitKind
+from magma.config import config, EnvConfig
 from magma.passes.clock import WireClockPass
 
 import examples
 
+
+config._register(
+    test_mlir_check_verilog=EnvConfig(
+        "TEST_MLIR_CHECK_VERILOG", False, bool))
+config._register(
+    test_mlir_write_output_files=EnvConfig(
+        "TEST_MLIR_WRITE_OUTPUT_FILES", False, bool))
 
 _CMP_BUFSIZE = 8 * 1024
 _MAGMA_EXAMPLES_TO_SKIP = (
@@ -21,11 +29,10 @@ _MAGMA_EXAMPLES_TO_SKIP = (
 )
 
 
-def _maybe_get_env(value: Any, key: str, default: Any) -> Any:
+def _maybe_get_config(value: Any, key: str) -> Any:
     if value is not None:
         return value
-    typ = type(default)
-    return typ(os.environ.get(key, default))
+    return getattr(config, key)
 
 
 def _compile_to_mlir(
@@ -93,14 +100,14 @@ def run_test_compile_to_mlir(
         check_verilog: Optional[bool] = None,
         write_output_files: Optional[bool] = None):
     golds_dir = f"{os.path.dirname(__file__)}/golds"
-    check_verilog = _maybe_get_env(check_verilog, "CHECK_VERILOG", 0)
-    write_output_files = _maybe_get_env(
-        write_output_files, "WRITE_OUTPUT_FILES", 0)
+    write_output_files = _maybe_get_config(
+        write_output_files, "test_mlir_write_output_files")
     WireClockPass(ckt).run()
     mlir_out = _compile_to_mlir(ckt, write_output_files)
     mlir_out.seek(0)
     with open(f"{golds_dir}/{ckt.name}.mlir", "rb") as mlir_gold:
         assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
+    check_verilog = _maybe_get_config(check_verilog, "test_mlir_check_verilog")
     if check_verilog:
         with open(f"{golds_dir}/{ckt.name}.v", "rb") as verilog_gold:
             mlir_out.seek(0)
