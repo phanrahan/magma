@@ -162,6 +162,10 @@ def get_local_examples() -> List[DefineCircuitKind]:
 @functools.lru_cache()
 def get_magma_examples(
         skips=_MAGMA_EXAMPLES_TO_SKIP) -> List[DefineCircuitKind]:
+    try:
+        import magma_examples
+    except Exception as e:
+        return []
     path = magma_examples.__path__
     py_filenames = glob.glob(f"{path._path[0]}/*.py")
     ckts = []
