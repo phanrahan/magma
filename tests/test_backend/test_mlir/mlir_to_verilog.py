@@ -5,7 +5,7 @@ import subprocess
 import sys
 from typing import List, Optional
 
-from common import try_call
+from magma.backend.mlir.common import try_call
 
 
 def get_circt_home() -> pathlib.Path:

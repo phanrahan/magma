@@ -4,15 +4,14 @@ import glob
 import importlib
 import io
 import os
-import pathlib
 import sys
 from typing import Any, List, Optional
 
-import magma as m
+from magma.backend.mlir.compile_to_mlir import compile_to_mlir
+from magma.circuit import DefineCircuitKind
+from magma.passes.clock import WireClockPass
 
-from compile_to_mlir import compile_to_mlir
 import examples
-import magma_examples
 from mlir_to_verilog import mlir_to_verilog
 
 
@@ -30,7 +29,7 @@ def _maybe_get_env(value: Any, key: str, default: Any) -> Any:
 
 
 def _compile_to_mlir(
-        ckt: m.DefineCircuitKind, write_output_files: bool) -> io.TextIOBase:
+        ckt: DefineCircuitKind, write_output_files: bool) -> io.TextIOBase:
     if not write_output_files:
         mlir_out = io.TextIOWrapper(io.BytesIO())
         compile_to_mlir(ckt, mlir_out)
@@ -43,7 +42,7 @@ def _compile_to_mlir(
 
 
 def _compile_to_verilog(
-        ckt: m.DefineCircuitKind,
+        ckt: DefineCircuitKind,
         mlir_out: io.RawIOBase,
         write_output_files: bool) -> io.RawIOBase:
     if not write_output_files:
@@ -90,19 +89,20 @@ def check_streams_equal(
 
 
 def run_test_compile_to_mlir(
-        ckt: m.DefineCircuitKind,
+        ckt: DefineCircuitKind,
         check_verilog: Optional[bool] = None,
         write_output_files: Optional[bool] = None):
+    golds_dir = f"{os.path.dirname(__file__)}/golds"
     check_verilog = _maybe_get_env(check_verilog, "CHECK_VERILOG", 0)
     write_output_files = _maybe_get_env(
         write_output_files, "WRITE_OUTPUT_FILES", 0)
-    m.passes.clock.WireClockPass(ckt).run()
+    WireClockPass(ckt).run()
     mlir_out = _compile_to_mlir(ckt, write_output_files)
     mlir_out.seek(0)
-    with open(f"golds/{ckt.name}.mlir", "rb") as mlir_gold:
+    with open(f"{golds_dir}/{ckt.name}.mlir", "rb") as mlir_gold:
         assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
     if check_verilog:
-        with open(f"golds/{ckt.name}.v", "rb") as verilog_gold:
+        with open(f"{golds_dir}/{ckt.name}.v", "rb") as verilog_gold:
             mlir_out.seek(0)
             verilog_out = _compile_to_verilog(
                 ckt, mlir_out.buffer, write_output_files)
@@ -113,7 +113,7 @@ def run_test_compile_to_mlir(
 
 
 @functools.lru_cache()
-def get_local_examples() -> List[m.DefineCircuitKind]:
+def get_local_examples() -> List[DefineCircuitKind]:
     return [
         examples.simple_comb,
         examples.simple_hierarchy,
@@ -161,7 +161,7 @@ def get_local_examples() -> List[m.DefineCircuitKind]:
 
 @functools.lru_cache()
 def get_magma_examples(
-        skips=_MAGMA_EXAMPLES_TO_SKIP) -> List[m.DefineCircuitKind]:
+        skips=_MAGMA_EXAMPLES_TO_SKIP) -> List[DefineCircuitKind]:
     path = magma_examples.__path__
     py_filenames = glob.glob(f"{path._path[0]}/*.py")
     ckts = []
@@ -172,6 +172,6 @@ def get_magma_examples(
         full_name = f"magma_examples.{py_module_name}"
         py_module = importlib.import_module(full_name)
         ckts += list(filter(
-            lambda v: isinstance(v, m.DefineCircuitKind),
+            lambda v: isinstance(v, DefineCircuitKind),
             (getattr(py_module, k) for k in dir(py_module))))
     return ckts
