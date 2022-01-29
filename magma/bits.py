@@ -80,71 +80,88 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             value = seq2int(value)
         else:
             value = int(value)
-        value = BitVector[cls.N](value)
+        value = cls.hwtypes_T[cls.N](value)
         return Out(cls)(const_value=value, name=ConstRef(repr(value)))
+
+    def _make_from_int_const(cls, arg):
+        if arg.bit_length() > cls.N:
+            raise ValueError(
+                f"Cannot construct {cls.orig_name}[{cls.N}] with "
+                f"integer {arg} (requires truncation)")
+        return cls._make_const(tuple(int2seq(arg, cls.N)))
+
+    def _make_from_bv_const(cls, arg):
+        if len(arg) != cls.N:
+            raise TypeError(
+                f"Cannot construct {cls.orig_name}[{cls.N}] with "
+                f"BitVector of length {len(arg)} (sizes must "
+                "match)")
+        return cls._make_const(tuple(arg.bits()))
+
+    def _make_from_bits(cls, arg, kwargs):
+        if arg.const():
+            return cls._make_const(tuple(int2seq(int(arg), cls.N)))
+        arg_len = len(arg)
+        if type(arg) is cls:
+            # Don't need to cast
+            return arg
+        if arg_len > cls.N:
+            raise TypeError(
+                "Will not do implicit truncation of bits length")
+
+        args = arg.ts
+        if arg_len < cls.N:
+            args = cls._extend(args)
+        return super().__call__(*args, **kwargs)
+
+    def _make_from_list(cls, arg, kwargs):
+        if len(arg) != len(cls):
+            raise TypeError(
+                f"List initializer for Bits[{len(cls)}] must be same "
+                f"length, not {len(arg)}"
+            )
+
+        def _const(x):
+            if isinstance(x, Type) and x.const():
+                return True
+            if isinstance(x, (bool, int, ht.Bit, BitVector)):
+                return True
+            return False
+        if all(_const(x) for x in arg):
+            return cls._make_const(seq2int(list(int(x) for x in arg)))
+        return super().__call__(arg, **kwargs)
+
+    def _make_from_wireable(cls, arg):
+        # Type conversion done with wiring to an anon value
+        result = cls.undirected_t()
+        result @= arg
+        return result
+
+    def _make_from_bit(cls, arg, kwargs):
+        if arg.const():
+            return cls._make_const(int(arg))
+        return super().__call__([arg], **kwargs)
+
+    def _call_with_one_arg(cls, arg, kwargs):
+        if isinstance(arg, int):
+            return cls._make_from_int_const(arg)
+        if isinstance(arg, BitVector):
+            return cls._make_from_bv_const(arg)
+        if isinstance(arg, Array) and issubclass(arg.T, Bit):
+            return cls._make_from_bits(arg, kwargs)
+        if isinstance(arg, Array):
+            return super().__call__(arg.ts, **kwargs)
+        if isinstance(arg, list):
+            return cls._make_from_list(arg, kwargs)
+        if type(arg).is_wireable(cls):
+            return cls._make_from_wireable(arg)
+        if isinstance(arg, Bit):
+            return cls._make_from_bit(arg, kwargs)
+        raise NotImplementedError(cls, arg, type(arg))
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
-            arg = magma_value(args[0])
-            if (isinstance(arg, list) and
-                    all(isinstance(x, int) for x in arg)):
-                return cls._make_const(tuple(arg))
-            if isinstance(arg, int):
-                if isinstance(arg, int) and arg.bit_length() > cls.N:
-                    raise ValueError(
-                        f"Cannot construct {cls.orig_name}[{cls.N}] with "
-                        f"integer {arg} (requires truncation)")
-                return cls._make_const(tuple(int2seq(arg, cls.N)))
-            if isinstance(arg, BitVector):
-                if isinstance(arg, BitVector) and len(arg) != cls.N:
-                    raise TypeError(
-                        f"Cannot construct {cls.orig_name}[{cls.N}] with "
-                        f"BitVector of length {len(arg)} (sizes must "
-                        "match)")
-                return cls._make_const(tuple(arg.bits()))
-            if isinstance(arg, Array) and issubclass(arg.T, Bit):
-                if arg.const():
-                    return cls._make_const(tuple(int2seq(int(arg), cls.N)))
-                arg_len = len(arg)
-                if type(arg) is cls:
-                    # Don't need to cast
-                    return arg
-                if arg_len > cls.N:
-                    raise TypeError(
-                        f"Will not do implicit truncation of bits length")
-
-                args = arg.ts
-                if arg_len < cls.N:
-                    args = cls._extend(args)
-                return super().__call__(*args, **kwargs)
-            if isinstance(arg, Array):
-                return super().__call__(arg.ts, **kwargs)
-            if isinstance(arg, list):
-                if len(arg) != len(cls):
-                    raise TypeError(
-                        f"List initializer for Bits[{len(cls)}] must be same "
-                        f"length, not {len(arg)}"
-                    )
-
-                def _const(x):
-                    if isinstance(x, Type) and x.const():
-                        return True
-                    if isinstance(x, (bool, int, ht.Bit, BitVector)):
-                        return True
-                    return False
-                if all(_const(x) for x in arg):
-                    return cls._make_const(seq2int(list(int(x) for x in arg)))
-                return super().__call__(*args, **kwargs)
-            if type(arg).is_wireable(cls):
-                # Type conversion done with wiring to an anon value
-                result = cls.undirected_t()
-                result @= arg
-                return result
-            if isinstance(arg, Bit):
-                if arg.const():
-                    return cls._make_const(int(arg))
-                return super().__call__([arg], **kwargs)
-            raise NotImplementedError(cls, arg, type(arg))
+            return cls._call_with_one_arg(magma_value(args[0]), kwargs)
         result = super().__call__(*args, **kwargs)
         return result
 
@@ -651,6 +668,7 @@ def make_Define(_name, port, direction):
             coreir_name = _name
             coreir_lib = "coreir"
             coreir_genargs = {"width": width}
+
             def simulate(self, value_store, state_store):
                 pass
             primitive = True
