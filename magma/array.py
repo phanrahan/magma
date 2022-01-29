@@ -306,18 +306,6 @@ def _make_array(array, args):
     return _make_array_no_args(array)
 
 
-def _is_next_elem_in_slice(next_, prev):
-    # Helper function for Array.connection_iter()
-    return (isinstance(next_.name, ArrayRef) and
-            # only support slice of bits in coreir
-            issubclass(next_.name.array.T, Digital) and
-            isinstance(prev.name, ArrayRef) and
-            # from same arrays
-            next_.name.array is prev.name.array and
-            # subsequent index
-            next_.name.index == prev.name.index + 1)
-
-
 def _is_slice_child(child):
     return isinstance(child, Array) and child._is_slice()
 
@@ -494,9 +482,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         return True
 
-    def iswhole(self):
-        return Array._iswhole(self.ts)
-
     @classmethod
     def unflatten(cls, value):
         size_T = cls.T.flat_length()
@@ -525,10 +510,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def wire(self, o, debug_info):
         o = magma_value(o)
         self._check_wireable(o, debug_info)
-        if isinstance(o, Array) and not isinstance(o, Array):
-            for i, o in zip(self, o):
-                i.wire(o)
-            return
         Wireable.wire(self, o, debug_info)
         if self._ts:
             # TODO(leonardt/array2): Optimize performance of this logic, needed
@@ -694,8 +675,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 raise IndexError(f"array index out of range "
                                  f"(type={type(self)}, key={key})")
             key = self._normalize_slice_key(key)
-        if self.is_inout():
-            raise NotImplementedError()
         # For nested references of slice objects, we compute the offset
         # from the original array to simplify bookkeeping as well as
         # reducing the size of the select in the backend

@@ -137,8 +137,6 @@ def drive_undriven_clocks_in_inst(
     for port in inst.interface.inputs(include_clocks=True):
         undrivens = itertools.chain(
             undrivens, get_undriven_clocks_in_value(port, clock_type))
-    if undrivens == []:
-        return
 
     try:
         undriven = next(undrivens)
