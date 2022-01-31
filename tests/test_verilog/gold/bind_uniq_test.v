@@ -145,24 +145,6 @@ bar_corebit_term corebit_term_inst11 (
 bar_corebit_term corebit_term_inst12 (
     .in(coreir_wrapInClock_inst0_out)
 );
-bar_corebit_term corebit_term_inst13 (
-    .in(ndarr[0][0])
-);
-bar_corebit_term corebit_term_inst14 (
-    .in(ndarr[0][1])
-);
-bar_corebit_term corebit_term_inst15 (
-    .in(ndarr[1][0])
-);
-bar_corebit_term corebit_term_inst16 (
-    .in(ndarr[1][1])
-);
-bar_corebit_term corebit_term_inst17 (
-    .in(ndarr[2][0])
-);
-bar_corebit_term corebit_term_inst18 (
-    .in(ndarr[2][1])
-);
 bar_corebit_term corebit_term_inst2 (
     .in(_magma_bind_wire_1)
 );
@@ -290,24 +272,6 @@ bar_corebit_term corebit_term_inst11 (
 );
 bar_corebit_term corebit_term_inst12 (
     .in(coreir_wrapInClock_inst0_out)
-);
-bar_corebit_term corebit_term_inst13 (
-    .in(ndarr[0][0])
-);
-bar_corebit_term corebit_term_inst14 (
-    .in(ndarr[0][1])
-);
-bar_corebit_term corebit_term_inst15 (
-    .in(ndarr[1][0])
-);
-bar_corebit_term corebit_term_inst16 (
-    .in(ndarr[1][1])
-);
-bar_corebit_term corebit_term_inst17 (
-    .in(ndarr[2][0])
-);
-bar_corebit_term corebit_term_inst18 (
-    .in(ndarr[2][1])
 );
 bar_corebit_term corebit_term_inst2 (
     .in(_magma_bind_wire_1)
@@ -540,26 +504,6 @@ bar_corebit_undriven corebit_undriven_inst8 (
 );
 bar_corebit_undriven corebit_undriven_inst9 (
     .out(corebit_undriven_inst9_out)
-);
-bar_coreir_term #(
-    .width(4)
-) term_inst0 (
-    .in(undriven_inst0_out)
-);
-bar_coreir_term #(
-    .width(4)
-) term_inst1 (
-    .in(undriven_inst1_out)
-);
-bar_coreir_term #(
-    .width(5)
-) term_inst2 (
-    .in(undriven_inst2_out)
-);
-bar_coreir_term #(
-    .width(5)
-) term_inst3 (
-    .in(undriven_inst3_out)
 );
 bar_coreir_undriven #(
     .width(4)

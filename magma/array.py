@@ -485,15 +485,13 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return
 
     def driving(self):
-        if self._ts:
+        if self._has_children():
             return [t.driving() for t in self]
         return Wireable.driving(self)
 
     def wired(self):
-        if self._ts:
-            for t in self.ts:
-                if not t.wired():
-                    return False
+        if self._has_children():
+            return all(t.wired() for t in self)
         return Wireable.wired(self)
 
     # test whether the values refer a whole array
@@ -555,21 +553,19 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def wire(self, o, debug_info):
         o = magma_value(o)
         self._check_wireable(o, debug_info)
-        Wireable.wire(self, o, debug_info)
-        if self._ts:
-            # TODO(leonardt/array2): Optimize performance of this logic, needed
-            # for converting Bit to Bits[1] and maintaining value mapping,
-            # perhaps we need a variant of Array2 that handles construction
-            # with existing values
+        if self._has_children():
+            # Ensure the children maintain consistency with the bulk wire
             for i in range(len(self)):
                 if self._get_t(i).value() is not o[i]:
                     self._get_t(i).wire(o[i])
+        else:
+            # Perform a bulk wire
+            Wireable.wire(self, o, debug_info)
 
     def unwire(self, o):
-        if self._ts:
+        if self._has_children():
             for k in range(len(self)):
                 self[k].unwire(o[k])
-            assert not Wireable.wired(self)
         else:
             Wireable.unwire(self, o)
 
@@ -579,7 +575,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return True
 
     def const(self):
-        if self._ts:
+        if self._has_children():
             return all(t.const() for t in self)
         return False
 
@@ -601,6 +597,28 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         else:
             return self.T(name=ArrayRef(self, index))
 
+    def _update_overlapping_slices(self, t, index):
+        # Update existing slices to have matching child references
+        for k, v in list(self._slices.items()):
+            if k[0] <= index < k[1]:
+                assert v._ts.get(index - k[0], t) is t
+                v._ts[index - k[0]] = t
+                for i in range(k[0], k[1]):
+                    # Only resolve each index once
+                    if i not in self._ts:
+                        self._get_t(i)
+                # Resolve driver
+                if v._wire.driven():
+                    value = v._wire.value()
+                    Wireable.unwire(v, value)
+                    for i in range(k[0], k[1]):
+                        self._ts[i] @= value[i - k[0]]
+                if k in self._slices:
+                    # Remove slice since we don't need to track it anymore
+                    # (handled by child logic)
+                    del self._slices[k]
+                    del self._slices_by_start_index[k[0]]
+
     def _get_t(self, index):
         if index not in self._ts:
             if self._is_slice():
@@ -608,29 +626,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 # level array
                 return self.name.array._get_t(self.name.index.start + index)
             self._ts[index] = t = self._make_t(index)
-            # Update existing slices to have matching child references
-            for k, v in list(self._slices.items()):
-                if k[0] <= index < k[1]:
-                    assert v._ts.get(index - k[0], t) is t
-                    v._ts[index - k[0]] = t
-                    # TODO(leonardt/array2): Can we compute the range of get_t
-                    # needed to avoided extra calls? At least this will just be
-                    # a dict lookup so not too expensive
-                    for i in range(k[0], k[1]):
-                        if i == index:
-                            continue
-                        self._get_t(i)
-                    # Resolve driver
-                    # TODO(leonardt/array2): I think we should only ever have 2
-                    # overlapping slices (the case when we create a new slice
-                    # and call _get_t to resolve them).  We should (a) validate
-                    # this assumption, and (b) optimize for this case (can we
-                    # exit early once we encounter the slices of interest?)
-                    if v._wire.driven():
-                        value = v._wire.value()
-                        Wireable.unwire(v, value)
-                        for i in range(k[0], k[1]):
-                            self._ts[i] @= value[i - k[0]]
+            self._update_overlapping_slices(t, index)
         self._resolve_bulk_wire()
         return self._ts[index]
 
@@ -657,16 +653,16 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _get_slice(self, slice_):
         key = (slice_.start, slice_.stop)
-        if key not in self._slices:
-            # TODO(leonardt/array2): Avoid duplicate logic with expanding for
-            # existing chilren
-            self._slices[key] = type(self)[slice_.stop - slice_.start, self.T](
+        slice_value = self._slices.get(key, None)
+        if slice_value is None:
+            slice_T = type(self)[slice_.stop - slice_.start, self.T]
+            self._slices[key] = slice_value = slice_T(
                 name=ArrayRef(self, slice_)
             )
-            self._slices_by_start_index[key[0]] = self._slices[key]
-            self._resolve_overlapping_indices(slice_, self._slices[key])
-        self._resolve_bulk_wire()
-        return self._slices[key]
+            self._slices_by_start_index[key[0]] = slice_value
+            self._resolve_overlapping_indices(slice_, slice_value)
+            self._resolve_bulk_wire()
+        return slice_value
 
     def _normalize_slice_key(self, key):
         # Normalize slice by mapping None to concrete int values
