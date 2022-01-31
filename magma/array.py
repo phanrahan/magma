@@ -172,23 +172,22 @@ class ArrayMeta(ABCMeta, Kind):
     def __len__(cls):
         return cls.N
 
-    def __str__(cls):
-        # handle In(Array)
+    def __repr__(cls):
+        # Emit In/Out/InOut(Array)
         if isinstance(cls.T, Direction):
             assert cls.N is None
             return f"{cls.T.name}(Array)"
+        # Class name logic provides Array[N, T], Bits[N], etc...
         return cls.__name__
-
-    def __repr__(cls):
-        return f"{cls.__name__}"
 
     @lru_cache()
     def qualify(cls, direction):
-        # Handle qualified, unsized/child e.g. In(Array) and In(Out(Array))
-        if cls.T is None or isinstance(cls.T, Direction):
-            return cls[None, direction]
         if cls.direction == direction:
+            # For performance, avoid requalifying if not necessary
             return cls
+        if cls.T is None or isinstance(cls.T, Direction):
+            # Handle qualified, unsized/child e.g. In(Array) and In(Out(Array))
+            return cls[None, direction]
         return cls[cls.N, cls.T.qualify(direction)]
 
     @lru_cache()
@@ -198,6 +197,10 @@ class ArrayMeta(ABCMeta, Kind):
     @property
     @lru_cache()
     def direction(cls):
+        if cls.T is None:
+            return None
+        if isinstance(cls.T, Direction):
+            return cls.T
         return cls.T.direction
 
     def __eq__(cls, rhs):
@@ -310,15 +313,38 @@ def _is_slice_child(child):
 
 
 class Array(Type, Wireable, metaclass=ArrayMeta):
+    """
+    Wireable class allows Array values to be "bulk wired" like a Digital value
+
+    The `self._ts` attribute contains a lazily constructed mapping from index
+    to child value.
+
+    The `self._slices` attribute contains a list of slice objects that
+    reference an array value.  Slices are lazily expanded in order to optimize
+    performance in the commons case.  Slices are expanded by constructing the
+    child objects and populating the corresponding entries in the `._ts`
+    dictionary of both the slice object the parent array object.
+
+    A large portion of the Array logic for the Wireable interface must dispatch
+    on `self._ts` and `self._slices` to see if the Array has been expanded
+    (requiring the logic to be implemented recursively over the children),
+    otherwise the logic will treat the Array as a "bulk wired" value.
+    """
     def __init__(self, *args, **kwargs):
+        # Pass name= kwarg to Type constructor
         Type.__init__(self, **kwargs)
         Wireable.__init__(self)
-        self._ts = {}
-        self._slices = {}
-        self._slices_by_start_index = {}
         if args:
-            for i, t in enumerate(_make_array(self, args)):
-                self._ts[i] = t
+            # If args is not empty, that means this array is being constructed
+            # with existing values, so populate the `_ts` dictionary eagerly
+            self._ts = {i: t for i, t in enumerate(_make_array(self, args))}
+        else:
+            self._ts = {}
+
+        self._slices = {}
+        # Store mapping from slice start index to object for faster lookup when
+        # checking overlapping indicies/slices
+        self._slices_by_start_index = {}
 
     @classmethod
     def is_oriented(cls, direction):
@@ -366,10 +392,30 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                  key[-1] == slice(0, len(self))))
 
     def __setitem__(self, key, val):
+        """
+        Validate when the user attempts to mutate the array.  This is done by
+        default by using the @= operator, so the simplest check is to validate
+        val is self[key] since this should return the same value except in one
+        case (the ndarray slicing logic will return a new array).
+
+        If it's not the same value, we can recursively check the array values
+        to verify they are the same.
+
+        *Technically* the user could "fake" these properties but the hope is
+        that if they satisfy the conditions and call __setitem__, then the
+        expected behavior should be the same (also it doesn't actually mutate
+        the array, so it's "safe" in that sense).
+
+        This does incur a performance cost, so it does raise the questions as
+        to whether it's really necessary, or if there's a simpler way to ensure
+        __setitem__ is only called with @= and not directly (maybe return a
+        private "setinel" object from the @ operator?).
+        """
         old = self[key]
         error = False
         if old is val:
-            # Early "exit" (avoid recursion in other branches)
+            # Early "exit" in the common case to avoid recursion in other
+            # branches
             pass
         elif isinstance(old, Array):
             if len(old) != len(val):
