@@ -121,8 +121,7 @@ class ArrayMeta(ABCMeta, Kind):
                 return cls.abstract_t[index]
 
         bases = []
-        bases.extend(b[index] for b in cls.__bases__
-                     if isinstance(b, mcs))
+        bases.extend(b[index] for b in cls.__bases__ if isinstance(b, mcs))
         # only add base classes if we're have a child type
         # (skipped in the case of In(Array))
         if not isinstance(index[1], Direction):
