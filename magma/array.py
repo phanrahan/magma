@@ -555,17 +555,19 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         self._check_wireable(o, debug_info)
         if self._has_children():
             # Ensure the children maintain consistency with the bulk wire
-            for i in range(len(self)):
-                if self._get_t(i).value() is not o[i]:
-                    self._get_t(i).wire(o[i])
+            for i, child in self._enumerate_children():
+                curr_value = child.value()
+                new_value = o[i]
+                if curr_value is not new_value:
+                    child.wire(new_value)
         else:
             # Perform a bulk wire
             Wireable.wire(self, o, debug_info)
 
     def unwire(self, o):
         if self._has_children():
-            for k in range(len(self)):
-                self[k].unwire(o[k])
+            for i, child in self._enumerate_children():
+                child.unwire(o[i])
         else:
             Wireable.unwire(self, o)
 
@@ -576,7 +578,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def const(self):
         if self._has_children():
-            return all(t.const() for t in self)
+            return all(child.const()
+                       for _, child in self._enumerate_children())
         return False
 
     def _resolve_bulk_wire(self):
@@ -613,9 +616,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                     Wireable.unwire(v, value)
                     for i in range(k[0], k[1]):
                         self._ts[i] @= value[i - k[0]]
+                # Remove slice since we don't need to track it anymore (handled
+                # by child logic)
                 if k in self._slices:
-                    # Remove slice since we don't need to track it anymore
-                    # (handled by child logic)
                     del self._slices[k]
                 if k[0] in self._slices_by_start_index:
                     del self._slices_by_start_index[k[0]]
@@ -741,7 +744,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # TODO(leonardt/array2): Audit where this is used and optimize to avoid
         # where possible
         ts = []
-        for child in self._children_iter():
+        for _, child in self._enumerate_children():
             ts.extend(child.flatten())
         return ts
 
@@ -757,7 +760,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _collect_children(self, func):
         ts = []
-        for child in self._children_iter():
+        for _, child in self._enumerate_children():
             result = func(child)
             if result is None:
                 return None
@@ -796,7 +799,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def driven(self):
         if self._has_children():
-            for child in self._children_iter():
+            for _, child in self._enumerate_children():
                 if child is None:
                     return False
                 if not child.driven():
@@ -808,11 +811,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return (isinstance(self.name, ArrayRef) and
                 isinstance(self.name.index, slice))
 
-    def _children_iter(self):
+    def _enumerate_children(self):
         i = 0
         while i < self.N:
             if i in self._ts:
-                yield self._ts[i]
+                yield i, self._ts[i]
                 i += 1
             elif i in self._slices_by_start_index:
                 # We only need to lookup one slice by start index because if
@@ -824,10 +827,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 # all this slice children should have been realized)
                 for j in range(slice_.start, slice_.stop):
                     assert j not in self._ts
-                yield value
+                yield slice_, value
                 i = slice_.stop
             else:
-                yield self[i]
+                yield i, self[i]
                 i += 1
 
     def connection_iter(self, only_slice_bits=False):
@@ -838,7 +841,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             # Anon whole driver, e.g. Bit to Bits[1]
             yield from zip(self, driver)
             return
-        for child in self._children_iter():
+        for _, child in self._enumerate_children():
             if (_is_slice_child(child) and only_slice_bits and
                     not issubclass(self.T, Bit)):
                 yield from zip(child, child.trace())
