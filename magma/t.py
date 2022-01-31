@@ -138,6 +138,11 @@ class Type(object):
         """
         return self.name.anon() and not self.is_output() and self.driven()
 
+    @abc.abstractmethod
+    def has_children(self):
+        # Returns true if it is a recursive type
+        raise NotImplementedError()
+
 
 class Kind(type):
     # Subclasses only need to implement one of these methods.

@@ -84,7 +84,7 @@ def _make_wire_str(driver, value, wired):
     if (value, driver) in wired:
         return ""
     wired.add((value, driver))
-    if getattr(type(driver), "N", False) and driver.name.anon():
+    if driver.has_children() and driver.name.anon():
         return "".join(_make_wire_str(d, v, wired)
                        for d, v in zip(driver, value))
     iname = value.name.qualifiedname()
