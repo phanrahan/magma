@@ -82,6 +82,11 @@ class _CompileGuardBuilder(CircuitBuilder):
         if isinstance(top_ref, InstRef):
             return top_ref.inst not in self._instances
         if isinstance(top_ref, AnonRef):
+            # TODO(rsetaluri): Implement valid anon. values.
+            # NOTE(leonardt/array2): This basic support is needed for Array2 ->
+            # Array, however since we plan to avoid these problems with the
+            # MLIR backend, I think this is sufficiente for known patterns
+            # working without support all possible patterns
             return self._is_external(value.driving())
         return False
 

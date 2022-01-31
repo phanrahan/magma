@@ -636,12 +636,6 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             return type(self)[len(result)](result)
         return super().__getitem__(index)
 
-    # @property
-    # def ts(self):
-    #     if self.const():
-    #         return [Bit(i) for i in self.bits()]
-    #     return super().ts
-
     def reduce_or(self):
         return reduce(operator.or_, self)
 

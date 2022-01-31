@@ -145,7 +145,10 @@ def _get_interface_type(cls, add_default_clock):
         return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
-        if add_default_clock and not getattr(cls, "combinational", False):
+        # Assume circuit is stateful, but if it's set stateful=False, then we
+        # don't need to add clock (useful for performance to avoid the
+        # traversal)
+        if add_default_clock and getattr(cls, "stateful", True):
             _maybe_add_default_clock(cls)
         return cls.io.make_interface()
     return None
@@ -201,11 +204,6 @@ def _get_intermediate_values(value):
                 operator.or_, (_get_intermediate_values(v) for v, _ in
                                conn_iter),
                 OrderedIdentitySet())
-        # flat = value.flatten()
-        # if len(flat) > 1:
-        #     return functools.reduce(
-        #         operator.or_, (_get_intermediate_values(f) for f in flat),
-        #         OrderedIdentitySet())
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)

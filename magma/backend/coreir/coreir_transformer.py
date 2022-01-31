@@ -397,16 +397,18 @@ class DefinitionTransformer(TransformerBase):
             return value
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
-        # if isinstance(value, Bits) and value.const():
-        #     return self._const_instance(value, len(value), module_defn)
         if isinstance(value, (Tuple, Array)) and value.anon():
+            # anon values are not bulk connected, so we recurse
             for sink, source in port.connection_iter(only_slice_bits=True):
                 self.connect(module_defn, sink, source)
             return None
-        if isinstance(value, Digital) and value.const():
-            return self._const_instance(value, None, module_defn)
-        if isinstance(value, Array) and value.const():
-            return self._const_instance(value, len(value), module_defn)
+        if value.const():
+            if isinstance(value, Digital):
+                n = None
+            else:
+                assert isinstance(value, Array)
+                n = len(value)
+            return self._const_instance(value, n, module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
@@ -415,13 +417,13 @@ class DefinitionTransformer(TransformerBase):
                 not issubclass(value.T, Digital)):
             # coreir does not support slice syntax for non-array of bits, so we
             # recursively connect here
-            offset = value.name.index.start
-            value_children = [value.T(name=ArrayRef(value.name.array, offset +
-                                                    i))
-                              for i in range(value.N)]
-            port_children = [port.T(name=ArrayRef(port, i))
-                             for i in range(port.N)]
-            for p, v in zip(port_children, value_children):
+            # offset = value.name.index.start
+            # value_children = [value.T(name=ArrayRef(value.name.array,
+            #                                         offset + i))
+            #                   for i in range(value.N)]
+            # port_children = [port.T(name=ArrayRef(port, i))
+            #                  for i in range(port.N)]
+            for p, v in zip(port, value):
                 self.connect(module_defn, p, v)
             return None
         return module_defn.select(magma_port_to_coreir_port(value))

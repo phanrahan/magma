@@ -549,17 +549,22 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def is_mixed(cls):
         return cls.T.is_mixed()
 
+    def _wire_children(self, o):
+        for i, child in self._enumerate_children():
+            curr_value = child.value()
+            new_value = o[i]
+            if curr_value is not new_value:
+                # Skip updating wire in the case that it's the same value
+                # (avoids an error message)
+                child.wire(new_value)
+
     @debug_wire
     def wire(self, o, debug_info):
         o = magma_value(o)
         self._check_wireable(o, debug_info)
         if self._has_children():
             # Ensure the children maintain consistency with the bulk wire
-            for i, child in self._enumerate_children():
-                curr_value = child.value()
-                new_value = o[i]
-                if curr_value is not new_value:
-                    child.wire(new_value)
+            self._wire_children(o)
         else:
             # Perform a bulk wire
             Wireable.wire(self, o, debug_info)
@@ -588,8 +593,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         constiuent children to maintain consistency
         """
         if self._wire.driven():
+            # Remove bulk wire since children will now track the wiring
             value = self._wire.value()
             Wireable.unwire(self, value)
+
+            # Update children
             for i in range(len(self)):
                 self._get_t(i).wire(value[i])
 
@@ -600,28 +608,40 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         else:
             return self.T(name=ArrayRef(self, index))
 
+    def _resolve_slice_children(self, start, stop):
+        for i in range(start, stop):
+            # Avoid resolving each index more than once
+            if i not in self._ts:
+                self._get_t(i)
+
+    def _resolve_slice_driver(self, start, stop, value):
+        # When we encounter an overlapping slice that is already bulk driven,
+        # we ensure the corresponding children to their current values
+        if value._wire.driven():
+            driver = value._wire.value()
+            Wireable.unwire(value, driver)
+            for i in range(start, stop):
+                self._ts[i] @= driver[i - start]
+
+    def _remove_slice(self, key):
+        # Remove slice since we don't need to track it anymore (handled
+        # by child logic) to optimize other slice iteration logic
+        # This avoids having to iterate over slices when we are just
+        # using their children instead
+        if key in self._slices:
+            del self._slices[key]
+        if key[0] in self._slices_by_start_index:
+            del self._slices_by_start_index[key[0]]
+
     def _update_overlapping_slices(self, t, index):
         # Update existing slices to have matching child references
         for k, v in list(self._slices.items()):
             if k[0] <= index < k[1]:
                 assert v._ts.get(index - k[0], t) is t
                 v._ts[index - k[0]] = t
-                for i in range(k[0], k[1]):
-                    # Only resolve each index once
-                    if i not in self._ts:
-                        self._get_t(i)
-                # Resolve driver
-                if v._wire.driven():
-                    value = v._wire.value()
-                    Wireable.unwire(v, value)
-                    for i in range(k[0], k[1]):
-                        self._ts[i] @= value[i - k[0]]
-                # Remove slice since we don't need to track it anymore (handled
-                # by child logic)
-                if k in self._slices:
-                    del self._slices[k]
-                if k[0] in self._slices_by_start_index:
-                    del self._slices_by_start_index[k[0]]
+                self._resolve_slice_children(k[0], k[1])
+                self._resolve_slice_driver(k[0], k[1], v)
+                self._remove_slice(k)
 
     def _get_t(self, index):
         if index not in self._ts:
@@ -684,65 +704,77 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             raise NotImplementedError("Variable slice step not implemented")
         return slice(start, stop, key.step)
 
-    def __getitem__(self, key):
-        if isinstance(key, Type):
-            # indexed using a dynamic magma value, generate mux circuit
-            return self.dynamic_mux_select(key)
-        if isinstance(key, tuple):
-            # ND Array key
-            if len(key) == 1:
-                return self[key[0]]
+    def _ndarray_getitem(self, key: tuple):
+        # tuple -> ND Array key
 
-            if not isinstance(key[-1], slice):
-                return self[key[-1]][key[:-1]]
-            if not self._is_whole_slice(key):
-                # If it's not a slice of the whole array, first slice the
-                # current array (self), then replace with a slice of the whole
-                # array (this is how we determine that we're ready to traverse
-                # into the children)
-                this_key = key[-1]
-                result = self[this_key][key[:-1] + (slice(None), )]
-                return result
-            # Last index is selecting the whole array, recurse into the
-            # children and slice off the inner indices
-            inner_ts = [t[key[:-1]] for t in self.ts]
-            # Get the type from the children and return the final value
-            return type(self)[len(self), type(inner_ts[0])](inner_ts)
-        if isinstance(key, int) and key > self.N - 1:
-            raise IndexError()
-        if isinstance(key, slice):
-            if key.step is not None:
-                # Use Python indexing logic
-                indices = [i for i in range(len(self))][key]
-                return type(self)[len(indices), self.T](
-                    [self[i] for i in indices])
-            if not _is_valid_slice(self.N, key):
-                raise IndexError(f"array index out of range "
-                                 f"(type={type(self)}, key={key})")
-            key = self._normalize_slice_key(key)
-        # For nested references of slice objects, we compute the offset
-        # from the original array to simplify bookkeeping as well as
-        # reducing the size of the select in the backend
+        if len(key) == 1:
+            return self[key[0]]
+        if not isinstance(key[-1], slice):
+            return self[key[-1]][key[:-1]]
+        if not self._is_whole_slice(key):
+            # If it's not a slice of the whole array, first slice the
+            # current array (self), then replace with a slice of the whole
+            # array (this is how we determine that we're ready to traverse
+            # into the children)
+            this_key = key[-1]
+            result = self[this_key][key[:-1] + (slice(None), )]
+            return result
+        # Last index is selecting the whole array, recurse into the
+        # children and slice off the inner indices
+        inner_ts = [t[key[:-1]] for t in self.ts]
+        # Get the type from the children and return the final value
+        return type(self)[len(self), type(inner_ts[0])](inner_ts)
+
+    def _variable_step_slice_getitem(self, key):
+        # Use Python indexing logic
+        indices = [i for i in range(len(self))][key]
+        return type(self)[len(indices), self.T](
+            [self[i] for i in indices])
+
+    def _get_arr_and_offset(self):
+        # For nested references of slice objects, we compute the offset from
+        # the original array to simplify bookkeeping as well as reducing the
+        # size of the select in the backend
         arr = self
         offset = 0
         if arr._is_slice():
             offset = arr.name.index.start
             arr = arr.name.array
+        return arr, offset
 
+    def _normalize_int_key(self, key):
         if isinstance(key, BitVector):
             key = int(key)
-        if isinstance(key, int):
-            if key < 0:
-                key += len(self)
-            return arr._get_t(offset + key)
+        if isinstance(key, int) and key < 0:
+            key += len(self)
+        return key
+
+    def __getitem__(self, key):
+        if isinstance(key, Type):
+            # indexed using a dynamic magma value, generate mux circuit
+            return self.dynamic_mux_select(key)
+        if isinstance(key, tuple):
+            return self._ndarray_getitem(key)
+        if isinstance(key, int) and key > self.N - 1:
+            raise IndexError()
+        if isinstance(key, slice):
+            if key.step is not None:
+                return self._variable_step_slice_getitem(key)
+            if not _is_valid_slice(self.N, key):
+                raise IndexError(f"array index out of range "
+                                 f"(type={type(self)}, key={key})")
+            key = self._normalize_slice_key(key)
+
+        arr, offset = self._get_arr_and_offset()
+
+        if isinstance(key, (int, BitVector)):
+            return arr._get_t(offset + self._normalize_int_key(key))
         if isinstance(key, slice):
             return arr._get_slice(slice(offset + key.start,
                                         offset + key.stop))
         raise NotImplementedError(key, type(key))
 
     def flatten(self):
-        # TODO(leonardt/array2): Audit where this is used and optimize to avoid
-        # where possible
         ts = []
         for _, child in self._enumerate_children():
             ts.extend(child.flatten())
@@ -759,21 +791,34 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return [elem for elem in self]
 
     def _collect_children(self, func):
+        """
+        Recursive traversal that is aware of slice objects (rather than normal
+        iter that always goes one index at a time)
+
+        `func` is called on the child
+            e.g. to fetch the value of the children, use lambda x: x.value()
+
+        Returns None if func(child) returns None
+            e.g. the value is None if any of the children have a value None
+        """
         ts = []
         for _, child in self._enumerate_children():
             result = func(child)
             if result is None:
                 return None
             if _is_slice_child(child) and child.name.array is self:
-                # TODO: Could we avoid calling .ts here?
                 ts.extend(result.ts)
             else:
                 ts.append(result)
+
+        # Pack whole array together for readability
         if Array._iswhole(ts):
             return ts[0].name.array
+
+        # Pack into Bits const if possible for readability
         if all(t.const() for t in ts):
-            # Pack into Bits const if possible
             return type(self).flip()(ts)
+
         return Array[self.N, self.T.flip()](ts)
 
     def _has_children(self):
@@ -784,16 +829,34 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return self._collect_children(lambda x: x.value())
         return super().value()
 
+    def _make_trace_child(self, skip_self):
+        def _trace_child(t):
+            """
+            This handles the case where certain children trace further than
+            others.
+
+            Suppose we have an intermediate trace Array([GND, GND, y]) where
+            y.value() is VCC.
+
+            Default trace logic for GND would return None since it's an output,
+            whereas old-style array logic would trace each child invidually (so
+            stopping at GND for the first two indices, and VCC for the final).
+
+            This trace function emulates the old-style logic in the case where
+            an Array is constructed with existing values (as in the above
+            example)
+            """
+            result = t.trace(skip_self)
+            if result is not None:
+                return result
+            if not skip_self and (t.is_output() or t.is_inout()):
+                return t
+            return None
+        return _trace_child
+
     def trace(self, skip_self=True):
         if self._has_children():
-            def _trace(t):
-                result = t.trace(skip_self)
-                if result is not None:
-                    return result
-                if not skip_self and (t.is_output() or t.is_inout()):
-                    return t
-                return None
-            result = self._collect_children(_trace)
+            result = self._collect_children(self._make_trace_child(skip_self))
             return result
         return super().trace()
 
@@ -823,13 +886,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 # and in self._ts
                 value = self._slices_by_start_index[i]
                 slice_ = value.name.index
-                # Make sure there's no overlapping children realized (otherwise
-                # all this slice children should have been realized)
-                for j in range(slice_.start, slice_.stop):
-                    assert j not in self._ts
                 yield slice_, value
                 i = slice_.stop
             else:
+                # Create the child using default getitem logic
                 yield i, self[i]
                 i += 1
 
