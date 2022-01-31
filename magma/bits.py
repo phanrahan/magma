@@ -493,10 +493,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         if r <= 0:
             raise ValueError()
 
-        result = type(self).unsized_t[r * self.size]()
-        for i in range(r):
-            result[i * self.size:(i + 1) * self.size] @= self
-        return result
+        return type(self).unsized_t[r * self.size](r * self.ts)
 
     def sext(self, other) -> 'AbstractBitVector':
         raise NotImplementedError()
