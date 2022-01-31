@@ -48,7 +48,7 @@ def wire(o, i, debug_info=None):
     # If o is an input.
     if not isinstance(o, _CONSTANTS) and o.is_input():
         # If i is not an input.
-        if not i.is_input() or isinstance(i, _CONSTANTS):
+        if isinstance(i, _CONSTANTS) or not i.is_input():
             # Flip i and o.
             i, o = o, i
 
