@@ -617,6 +617,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                     # Remove slice since we don't need to track it anymore
                     # (handled by child logic)
                     del self._slices[k]
+                if k[0] in self._slices_by_start_index:
                     del self._slices_by_start_index[k[0]]
 
     def _get_t(self, index):
