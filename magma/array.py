@@ -473,7 +473,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                               o, i, o),
                     debug_info=debug_info
                 )
-            return
+            return False
 
         if i.N != o.N:
             _logger.error(
@@ -482,7 +482,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                           f"the same length", o, i),
                 debug_info=debug_info
             )
-            return
+            return False
+        return True
 
     def driving(self):
         if self._has_elaborated_children():
@@ -561,7 +562,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     @debug_wire
     def wire(self, o, debug_info):
         o = magma_value(o)
-        self._check_wireable(o, debug_info)
+        if not self._check_wireable(o, debug_info):
+            return
         if self._has_elaborated_children():
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o)
