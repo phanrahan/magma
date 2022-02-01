@@ -153,11 +153,11 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             return super().__call__(arg.ts, **kwargs)
         if isinstance(arg, list):
             return cls._make_from_list(arg, kwargs)
-        if type(arg).is_wireable(cls):
+        if isinstance(arg, Type) and type(arg).is_wireable(cls):
             return cls._make_from_wireable(arg)
         if isinstance(arg, Bit):
             return cls._make_from_bit(arg, kwargs)
-        raise NotImplementedError(cls, arg, type(arg))
+        raise TypeError(cls, arg, type(arg))
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:

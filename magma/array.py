@@ -637,11 +637,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # Update existing slices to have matching child references
         for k, v in list(self._slices.items()):
             if k[0] <= index < k[1]:
+                self._remove_slice(k)
                 assert v._ts.get(index - k[0], t) is t
                 v._ts[index - k[0]] = t
                 self._resolve_slice_children(k[0], k[1])
                 self._resolve_slice_driver(k[0], k[1], v)
-                self._remove_slice(k)
 
     def _get_t(self, index):
         if index not in self._ts:
@@ -847,6 +847,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             example)
             """
             result = t.trace(skip_self)
+            print(t, result)
             if result is not None:
                 return result
             if not skip_self and (t.is_output() or t.is_inout()):
