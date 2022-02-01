@@ -4,10 +4,10 @@ import magma as m
 from magma.testing import check_files_equal
 
 
-def _check_compile(name, circ, nested=False):
+def _check_compile(name, circ, nested=False, inline=False):
     if nested:
         name += "_nested"
-    m.compile(f"build/{name}", circ)
+    m.compile(f"build/{name}", circ, inline=inline)
     assert check_files_equal(__file__, f"build/{name}.v", f"gold/{name}.v")
 
 
@@ -358,3 +358,20 @@ def test_array2_variable_step_slice():
         io.O @= io.I[1:4:2]
 
     _check_compile("test_array2_variable_step_slice", Foo, False)
+
+
+def test_array2_nested_bits_temporary():
+    class Foo(m.Circuit):
+        io = m.IO(write_pointer=m.In(m.Bits[8]), O=m.Out(m.Array[4, m.Bits[8]]))
+        reg = m.Register(m.Bits[8])()
+        reg.I @= io.write_pointer
+        pointer = m.Array[4, m.Bits[8]](name="pointer")
+        x = []
+        for i in range(4):
+            x.append(m.uint(reg.O) + i)
+        pointer @= m.array(x)
+        io.O @= pointer
+        for i in range(4):
+            x = pointer[i][-1] & m.bit(1)
+
+    _check_compile("test_array2_nested_bits_temporary", Foo, False, True)
