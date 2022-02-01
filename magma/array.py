@@ -618,7 +618,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _resolve_slice_driver(self, start, stop, value):
         # When we encounter an overlapping slice that is already bulk driven,
-        # we ensure the corresponding children are updated to their current values
+        # we ensure the corresponding children are updated to their current
+        # values
         if value._wire.driven():
             driver = value._wire.value()
             Wireable.unwire(value, driver)
