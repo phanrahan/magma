@@ -146,7 +146,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             return cls._make_const(int(arg))
         return super().__call__([arg], **kwargs)
 
-    def _call_with_one_arg(cls, arg, kwargs):
+    def _make_from_one_arg(cls, arg, kwargs):
         if isinstance(arg, int):
             return cls._make_from_int_const(arg)
         if isinstance(arg, BitVector):
@@ -165,7 +165,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
-            return cls._call_with_one_arg(magma_value(args[0]), kwargs)
+            return cls._make_from_one_arg(magma_value(args[0]), kwargs)
         result = super().__call__(*args, **kwargs)
         return result
 
