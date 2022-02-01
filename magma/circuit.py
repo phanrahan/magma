@@ -291,7 +291,7 @@ class CircuitKind(type):
             return super().__repr__()
 
         name = cls.__name__
-        args = cls.IO.get_arg_str()
+        args = cls.IO.args_to_str()
 
         if not isdefinition(cls):
             return f"{name} = DeclareCircuit(\"{name}\", {args})"
