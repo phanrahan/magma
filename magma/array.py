@@ -665,8 +665,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         start = slice_.start
         stop = slice_.stop
         for k, v in list(self._slices.items()):
-            if k == (slice_.start, slice_.stop):
-                continue
             if k[0] <= slice_.start < k[1] or k[0] <= slice_.stop < k[1]:
                 overlapping = True
         if overlapping:
@@ -846,7 +844,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             example)
             """
             result = t.trace(skip_self)
-            print(t, result)
             if result is not None:
                 return result
             if not skip_self and (t.is_output() or t.is_inout()):
