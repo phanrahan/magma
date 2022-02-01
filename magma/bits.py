@@ -75,7 +75,11 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
 
-    def _make_const(cls, value):
+    def _make_const(cls, value: tp.Union[tuple, int]):
+        """
+        value can be a tuple of bits or an object that supports the `int`
+        function
+        """
         if isinstance(value, tuple):
             value = seq2int(value)
         else:
@@ -83,14 +87,14 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         value = cls.hwtypes_T[cls.N](value)
         return Out(cls)(const_value=value, name=ConstRef(repr(value)))
 
-    def _make_from_int_const(cls, arg):
+    def _make_from_int_const(cls, arg: int):
         if arg.bit_length() > cls.N:
             raise ValueError(
                 f"Cannot construct {cls.orig_name}[{cls.N}] with "
                 f"integer {arg} (requires truncation)")
         return cls._make_const(tuple(int2seq(arg, cls.N)))
 
-    def _make_from_bv_const(cls, arg):
+    def _make_from_bv_const(cls, arg: BitVector):
         if len(arg) != cls.N:
             raise TypeError(
                 f"Cannot construct {cls.orig_name}[{cls.N}] with "
@@ -98,7 +102,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 "match)")
         return cls._make_const(tuple(arg.bits()))
 
-    def _make_from_bits(cls, arg, kwargs):
+    def _make_from_bits(cls, arg: 'Bits', kwargs):
         if arg.const():
             return cls._make_const(tuple(int2seq(int(arg), cls.N)))
         arg_len = len(arg)
@@ -114,7 +118,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             args = cls._extend(args)
         return super().__call__(*args, **kwargs)
 
-    def _make_from_list(cls, arg, kwargs):
+    def _make_from_list(cls, arg: tp.List, kwargs):
         if len(arg) != len(cls):
             raise TypeError(
                 f"List initializer for Bits[{len(cls)}] must be same "
@@ -131,18 +135,18 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             return cls._make_const(seq2int(list(int(x) for x in arg)))
         return super().__call__(arg, **kwargs)
 
-    def _make_from_wireable(cls, arg):
+    def _make_from_wireable(cls, arg: Type):
         # Type conversion done with wiring to an anon value
         result = cls.undirected_t()
         result @= arg
         return result
 
-    def _make_from_bit(cls, arg, kwargs):
+    def _make_from_bit(cls, arg: Bit, kwargs):
         if arg.const():
             return cls._make_const(int(arg))
         return super().__call__([arg], **kwargs)
 
-    def _call_with_one_arg(cls, arg, kwargs):
+    def _make_from_one_arg(cls, arg, kwargs):
         if isinstance(arg, int):
             return cls._make_from_int_const(arg)
         if isinstance(arg, BitVector):
@@ -161,7 +165,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
-            return cls._call_with_one_arg(magma_value(args[0]), kwargs)
+            return cls._make_from_one_arg(magma_value(args[0]), kwargs)
         result = super().__call__(*args, **kwargs)
         return result
 

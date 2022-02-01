@@ -473,7 +473,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                               o, i, o),
                     debug_info=debug_info
                 )
-            return
+            return False
 
         if i.N != o.N:
             _logger.error(
@@ -482,7 +482,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                           f"the same length", o, i),
                 debug_info=debug_info
             )
-            return
+            return False
+        return True
 
     def driving(self):
         if self._has_elaborated_children():
@@ -561,7 +562,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     @debug_wire
     def wire(self, o, debug_info):
         o = magma_value(o)
-        self._check_wireable(o, debug_info)
+        if not self._check_wireable(o, debug_info):
+            return
         if self._has_elaborated_children():
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o)
@@ -616,7 +618,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _resolve_slice_driver(self, start, stop, value):
         # When we encounter an overlapping slice that is already bulk driven,
-        # we ensure the corresponding children to their current values
+        # we ensure the corresponding children are updated to their current values
         if value._wire.driven():
             driver = value._wire.value()
             Wireable.unwire(value, driver)
@@ -628,10 +630,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # by child logic) to optimize other slice iteration logic
         # This avoids having to iterate over slices when we are just
         # using their children instead
-        if key in self._slices:
-            del self._slices[key]
-        if key[0] in self._slices_by_start_index:
-            del self._slices_by_start_index[key[0]]
+        del self._slices[key]
+        del self._slices_by_start_index[key[0]]
 
     def _update_overlapping_slices(self, t, index):
         # Update existing slices to have matching child references
@@ -680,11 +680,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         slice_value = self._slices.get(key, None)
         if slice_value is None:
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
-            self._slices[key] = slice_value = slice_T(
-                name=ArrayRef(self, slice_)
-            )
-            self._slices_by_start_index[key[0]] = slice_value
-            self._resolve_overlapping_indices(slice_, slice_value)
+            slice_value = slice_T(name=ArrayRef(self, slice_))
+            if not self._resolve_overlapping_indices(slice_, slice_value):
+                self._slices[key] = slice_value
+                self._slices_by_start_index[key[0]] = slice_value
             self._resolve_bulk_wire()
         return slice_value
 

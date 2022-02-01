@@ -9,7 +9,7 @@ from magma.tuple import Tuple
 from magma.wire import wire
 
 
-NAMED_TYPES = (AsyncReset, AsyncResetN, Clock)
+_NAMED_TYPES = (AsyncReset, AsyncResetN, Clock)
 
 
 class InsertWrapCasts(DefinitionPass):
@@ -43,8 +43,8 @@ class InsertWrapCasts(DefinitionPass):
             # via recursion in case the children are named types (since
             # .value() will return Array[N, T.flip()], the anon value may not
             # have the namedtypes in its type)
-            if (is_clock_or_nested_clock(type(port), NAMED_TYPES) or
-                    is_clock_or_nested_clock(type(value), NAMED_TYPES) or
+            if (is_clock_or_nested_clock(type(port), _NAMED_TYPES) or
+                    is_clock_or_nested_clock(type(value), _NAMED_TYPES) or
                     value.anon()):
                 for child, _ in port.connection_iter():
                     if not self.wrap_if_named_type(child, definition):
@@ -52,8 +52,8 @@ class InsertWrapCasts(DefinitionPass):
                 return True
             else:
                 return self.wrap_if_named_type(value, definition)
-        if not (isinstance(port, NAMED_TYPES) or
-                isinstance(value, NAMED_TYPES)):
+        if not (isinstance(port, _NAMED_TYPES) or
+                isinstance(value, _NAMED_TYPES)):
             return self.wrap_if_named_type(value, definition)
         undirected_t = type(port).qualify(Direction.Undirected)
         if issubclass(type(value), undirected_t):
