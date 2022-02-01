@@ -630,20 +630,18 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # by child logic) to optimize other slice iteration logic
         # This avoids having to iterate over slices when we are just
         # using their children instead
-        if key in self._slices:
-            del self._slices[key]
-        if key[0] in self._slices_by_start_index:
-            del self._slices_by_start_index[key[0]]
+        del self._slices[key]
+        del self._slices_by_start_index[key[0]]
 
     def _update_overlapping_slices(self, t, index):
         # Update existing slices to have matching child references
         for k, v in list(self._slices.items()):
             if k[0] <= index < k[1]:
+                self._remove_slice(k)
                 assert v._ts.get(index - k[0], t) is t
                 v._ts[index - k[0]] = t
                 self._resolve_slice_children(k[0], k[1])
                 self._resolve_slice_driver(k[0], k[1], v)
-                self._remove_slice(k)
 
     def _get_t(self, index):
         if index not in self._ts:
@@ -682,11 +680,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         slice_value = self._slices.get(key, None)
         if slice_value is None:
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
-            self._slices[key] = slice_value = slice_T(
-                name=ArrayRef(self, slice_)
-            )
-            self._slices_by_start_index[key[0]] = slice_value
-            self._resolve_overlapping_indices(slice_, slice_value)
+            slice_value = slice_T(name=ArrayRef(self, slice_))
+            if not self._resolve_overlapping_indices(slice_, slice_value):
+                self._slices[key] = slice_value
+                self._slices_by_start_index[key[0]] = slice_value
             self._resolve_bulk_wire()
         return slice_value
 
