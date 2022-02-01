@@ -102,7 +102,7 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
                 "match)")
         return cls._make_const(tuple(arg.bits()))
 
-    def _make_from_bits(cls, arg: Bits, kwargs):
+    def _make_from_bits(cls, arg: 'Bits', kwargs):
         if arg.const():
             return cls._make_const(tuple(int2seq(int(arg), cls.N)))
         arg_len = len(arg)

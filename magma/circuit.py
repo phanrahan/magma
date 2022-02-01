@@ -112,7 +112,7 @@ def _maybe_add_default_clock(cls):
     # Check all instances in @cls for an undriven clock port.
     inst_ports = itertools.chain(
         *(instance.interface.ports.values() for instance in cls.instances
-          if not getattr(instance, "combinational", False)))
+          if getattr(instance, "stateful", True)))
     for port in inst_ports:
         T = type(port)
         if is_clock_or_nested_clock(T, (Clock,)) and not port.driven():
