@@ -342,6 +342,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             self._ts = {}
 
         self._slices = {}
+        self._unresolved_slices = {}
         # Store mapping from slice start index to object for faster lookup when
         # checking overlapping indicies/slices
         self._slices_by_start_index = {}
@@ -610,11 +611,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         else:
             return self.T(name=ArrayRef(self, index))
 
-    def _resolve_slice_children(self, start, stop):
+    def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
-            # Avoid resolving each index more than once
-            if i not in self._ts:
-                self._get_t(i)
+            slice_value._ts[i - start] = self._get_t(i)
 
     def _resolve_slice_driver(self, start, stop, value):
         # When we encounter an overlapping slice that is already bulk driven,
@@ -630,18 +629,20 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # by child logic) to optimize other slice iteration logic
         # This avoids having to iterate over slices when we are just
         # using their children instead
-        del self._slices[key]
+        del self._unresolved_slices[key]
         del self._slices_by_start_index[key[0]]
 
     def _update_overlapping_slices(self, t, index):
         # Update existing slices to have matching child references
-        for k, v in list(self._slices.items()):
+        for k, v in list(self._unresolved_slices.items()):
             if k[0] <= index < k[1]:
                 self._remove_slice(k)
                 assert v._ts.get(index - k[0], t) is t
                 v._ts[index - k[0]] = t
-                self._resolve_slice_children(k[0], k[1])
+                self._resolve_slice_children(k[0], k[1], v)
                 self._resolve_slice_driver(k[0], k[1], v)
+                # TODO(leonardt/array2): I think there should only ever be one
+                # so we can break here
 
     def _get_t(self, index):
         if index not in self._ts:
@@ -651,7 +652,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 return self.name.array._get_t(self.name.index.start + index)
             self._ts[index] = t = self._make_t(index)
             self._update_overlapping_slices(t, index)
-        self._resolve_bulk_wire()
         return self._ts[index]
 
     def _resolve_overlapping_indices(self, slice_, value):
@@ -660,13 +660,21 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         of the children and realize them so slices are "expanded" and maintain
         consistency
         """
-        overlapping = any(i in self._ts
-                          for i in range(slice_.start, slice_.stop))
         start = slice_.start
         stop = slice_.stop
-        for k, v in list(self._slices.items()):
-            if k[0] <= slice_.start < k[1] or k[0] <= slice_.stop < k[1]:
-                overlapping = True
+
+        overlapping = any(i in self._ts for i in range(start, stop))
+
+        def range_overlapping(x, y):
+            return x[0] < y[1] and y[0] < x[1]
+
+        if not overlapping:
+            # As soon as we find an overlap we resolve the whole slice so no
+            # need to check twice since any other overlaps will be resolved
+            for k, v in list(self._unresolved_slices.items()):
+                if range_overlapping(k, (start, stop)):
+                    overlapping = True
+                    break
         if overlapping:
             for i in range(start, stop):
                 # _get_t to populate slice children and resolve any overlaps
@@ -679,10 +687,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if slice_value is None:
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
             slice_value = slice_T(name=ArrayRef(self, slice_))
+            self._slices[key] = slice_value
             if not self._resolve_overlapping_indices(slice_, slice_value):
-                self._slices[key] = slice_value
                 self._slices_by_start_index[key[0]] = slice_value
-            self._resolve_bulk_wire()
+                self._unresolved_slices[key] = slice_value
         return slice_value
 
     def _normalize_slice_key(self, key):
@@ -765,11 +773,14 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         arr, offset = self._get_arr_and_offset()
 
         if isinstance(key, (int, BitVector)):
-            return arr._get_t(offset + self._normalize_int_key(key))
-        if isinstance(key, slice):
-            return arr._get_slice(slice(offset + key.start,
-                                        offset + key.stop))
-        raise NotImplementedError(key, type(key))
+            result = arr._get_t(offset + self._normalize_int_key(key))
+        elif isinstance(key, slice):
+            result = arr._get_slice(slice(offset + key.start,
+                                          offset + key.stop))
+        else:
+            raise NotImplementedError(key, type(key))
+        self._resolve_bulk_wire()
+        return result
 
     def flatten(self):
         ts = []
