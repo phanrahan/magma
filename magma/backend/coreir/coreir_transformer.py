@@ -415,14 +415,6 @@ class DefinitionTransformer(TransformerBase):
         if (isinstance(value, Array) and isinstance(value.name, ArrayRef) and
                 isinstance(value.name.index, slice) and
                 not issubclass(value.T, Digital)):
-            # coreir does not support slice syntax for non-array of bits, so we
-            # recursively connect here
-            # offset = value.name.index.start
-            # value_children = [value.T(name=ArrayRef(value.name.array,
-            #                                         offset + i))
-            #                   for i in range(value.N)]
-            # port_children = [port.T(name=ArrayRef(port, i))
-            #                  for i in range(port.N)]
             for p, v in zip(port, value):
                 self.connect(module_defn, p, v)
             return None
