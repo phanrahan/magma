@@ -626,10 +626,16 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             self._ts[i] @= driver[i - start]
 
     def _remove_slice(self, key):
-        # Remove slice since we don't need to track it anymore (handled
-        # by child logic) to optimize other slice iteration logic
-        # This avoids having to iterate over slices when we are just
-        # using their children instead
+        """
+        Remove slice since we don't need to track it anymore (handled by child
+        logic) to optimize other slice iteration logic This avoids having to
+        iterate over slices when we are just using their children instead
+
+        This logic assumes that a slice is only resolved/removed once when an
+        overlapping getitem is encountered.  If this gets called more than
+        once, then we have an internal error (which would cause a keyerror
+        here) since we are trying to resolve/remove a slice more than once.
+        """
         del self._unresolved_slices[key]
         del self._slices_by_start_index[key[0]]
 
