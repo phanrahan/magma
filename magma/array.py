@@ -643,15 +643,16 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _update_overlapping_slices(self, t, index):
         # Update existing slices to have matching child references
-        for k, v in list(self._unresolved_slices.items()):
-            if k[0] <= index < k[1]:
-                self._remove_slice(k)
-                assert v._ts.get(index - k[0], t) is t
-                v._ts[index - k[0]] = t
-                self._resolve_slice_children(k[0], k[1], v)
-                self._resolve_slice_driver(k[0], k[1], v)
-                # TODO(leonardt/array2): I think there should only ever be one
-                # so we can break here
+        def _filter(item):
+            (start, stop), _ = item
+            return start <= index < stop()
+        overlaps = list(filter(_filter, self._unresolved_slices.items()))
+        for k, v in overlaps:
+            self._remove_slice(k)
+            assert v._ts.get(index - k[0], t) is t
+            v._ts[index - k[0]] = t
+            self._resolve_slice_children(k[0], k[1], v)
+            self._resolve_slice_driver(k[0], k[1], v)
 
     def _get_t(self, index):
         if index not in self._ts:
