@@ -152,8 +152,6 @@ def map_genarg(context, value):
         if value.is_input():
             return context.named_types[("coreir", "arstIn")]
         return context.named_types[("coreir", "arst")]
-    if isinstance(value, Kind):
-        return magma_type_to_coreir_type(context, value)
     return value
 
 
