@@ -645,7 +645,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # Update existing slices to have matching child references
         def _filter(item):
             (start, stop), _ = item
-            return start <= index < stop()
+            return start <= index < stop
         overlaps = list(filter(_filter, self._unresolved_slices.items()))
         for k, v in overlaps:
             self._remove_slice(k)
@@ -678,13 +678,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         def range_overlapping(x, y):
             return x[0] < y[1] and y[0] < x[1]
 
-        if not overlapping:
-            # As soon as we find an overlap we resolve the whole slice so no
-            # need to check twice since any other overlaps will be resolved
-            for k, v in list(self._unresolved_slices.items()):
-                if range_overlapping(k, (start, stop)):
-                    overlapping = True
-                    break
+        overlapping |= any(range_overlapping(k, (start, stop))
+                           for k, v in self._unresolved_slices.items())
         if overlapping:
             for i in range(start, stop):
                 # _get_t to populate slice children and resolve any overlaps
