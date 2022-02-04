@@ -19,7 +19,6 @@ from magma.interface import IO
 from magma.language_utils import primitive_to_python
 from magma.protocol_type import magma_type, MagmaProtocol
 from magma.operator_utils import output_only
-from magma.ref import ArrayRef
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
