@@ -874,14 +874,14 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return Wireable.trace(self)
 
     def driven(self):
-        if self._has_elaborated_children():
-            for _, child in self._enumerate_children():
-                if child is None:
-                    return False
-                if not child.driven():
-                    return False
-            return True
-        return Wireable.driven(self)
+        if not self._has_elaborated_children():
+            return Wireable.driven(self)
+        for _, child in self._enumerate_children():
+            if child is None:
+                return False
+            if not child.driven():
+                return False
+        return True
 
     def _is_slice(self):
         return (isinstance(self.name, ArrayRef) and
