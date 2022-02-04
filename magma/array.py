@@ -608,8 +608,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if issubclass(self.T, MagmaProtocol):
             return self.T._from_magma_value_(
                 self.T._to_magma_()(name=ArrayRef(self, index)))
-        else:
-            return self.T(name=ArrayRef(self, index))
+        return self.T(name=ArrayRef(self, index))
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
