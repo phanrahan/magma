@@ -455,3 +455,15 @@ def test_bits_promote():
         io.O @= Bits[6](io.I)
         assert int(io.O[4].trace()) == 0
         assert int(io.O[5].trace()) == 0
+
+
+def test_bits_coerce_typeerror():
+    class Dummy:
+        def __rand__(self, other):
+            return other
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]))
+        # Bits.__and__ should get a TypeError in _coerce so we then use
+        # Dummy.__rand__
+        assert (io.I & Dummy()) is io.I
