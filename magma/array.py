@@ -618,11 +618,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # When we encounter an overlapping slice that is already bulk driven,
         # we ensure the corresponding children are updated to their current
         # values
-        if value._wire.driven():
-            driver = value._wire.value()
-            Wireable.unwire(value, driver)
-            for i in range(start, stop):
-                self._ts[i] @= driver[i - start]
+        if not value._wire.driven():
+            return
+        driver = value._wire.value()
+        Wireable.unwire(value, driver)
+        for i in range(start, stop):
+            self._ts[i] @= driver[i - start]
 
     def _remove_slice(self, key):
         # Remove slice since we don't need to track it anymore (handled
