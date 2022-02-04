@@ -19,7 +19,7 @@ def linear(T, n=128, compile=False):
         m.compile("build/Foo", Foo)
 
 
-cProfile.run('linear(m.Array2, 128, False)', 'linearstats')
+cProfile.run('linear(m.Array, 128, False)', 'linearstats')
 
 p = pstats.Stats('linearstats')
 p = p.strip_dirs()

@@ -49,9 +49,9 @@ for n in ns:
     data["frontend_orig"][n] = no_compile
     data["backend_orig"][n] = with_compile - no_compile
 
-    no_compile = timeit.Timer(lambda: combined(m.Array2, n)).timeit(number=2)
+    no_compile = timeit.Timer(lambda: combined(m.Array, n)).timeit(number=2)
     with_compile = timeit.Timer(
-        lambda: combined(m.Array2, n, True)
+        lambda: combined(m.Array, n, True)
     ).timeit(number=2)
 
     data["frontend_new"][n] = no_compile
