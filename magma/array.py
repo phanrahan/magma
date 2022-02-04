@@ -594,14 +594,15 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
-        if self._wire.driven():
-            # Remove bulk wire since children will now track the wiring
-            value = self._wire.value()
-            Wireable.unwire(self, value)
+        if not self._wire.driven():
+            return
+        # Remove bulk wire since children will now track the wiring
+        value = self._wire.value()
+        Wireable.unwire(self, value)
 
-            # Update children
-            for i in range(len(self)):
-                self._get_t(i).wire(value[i])
+        # Update children
+        for i in range(len(self)):
+            self._get_t(i).wire(value[i])
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
