@@ -601,8 +601,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         Wireable.unwire(self, value)
 
         # Update children
-        for i in range(len(self)):
-            self._get_t(i).wire(value[i])
+        for i, child in self._enumerate_children():
+            child.wire(value[i])
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):

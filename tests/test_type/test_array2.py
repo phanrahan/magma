@@ -332,14 +332,8 @@ def test_array2_overlapping_override_bulk_wire_slice(nested, caplog):
 
     _check_compile("test_array2_overlapping_override_bulk_wire_slice", Foo,
                    nested)
-    assert (str(caplog.records[0].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[0], Old Output: Foo.I[0], "
-                                          "New Output: Foo.I[2]")
-    assert (str(caplog.records[1].msg) == "Wiring multiple outputs to same "
-                                          "wire, using last connection. Input: "
-                                          "Foo.O[1], Old Output: Foo.I[1], "
-                                          "New Output: Foo.I[3]")
+    error_msg = "Wiring multiple outputs to same wire, using last connection. Input: Foo.O[slice(0, 2, None)], Old Output: Foo.I[slice(0, 2, None)], New Output: Foo.I[slice(2, 4, None)]"  # noqa
+    assert str(caplog.records[0].msg) == error_msg
 
 
 @pytest.mark.parametrize('nested', [False, True])
