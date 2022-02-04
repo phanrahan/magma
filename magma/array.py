@@ -636,6 +636,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         once, then we have an internal error (which would cause a keyerror
         here) since we are trying to resolve/remove a slice more than once.
         """
+        assert key in self._unresolved_slices
+        assert key[0] in self._slices_by_start_index
         del self._unresolved_slices[key]
         del self._slices_by_start_index[key[0]]
 
