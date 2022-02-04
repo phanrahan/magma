@@ -871,7 +871,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if self._has_elaborated_children():
             result = self._collect_children(self._make_trace_child(skip_self))
             return result
-        return super().trace()
+        return Wireable.trace(self)
 
     def driven(self):
         if self._has_elaborated_children():
@@ -881,7 +881,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 if not child.driven():
                     return False
             return True
-        return super().driven()
+        return Wireable.driven(self)
 
     def _is_slice(self):
         return (isinstance(self.name, ArrayRef) and
