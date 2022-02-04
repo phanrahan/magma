@@ -413,12 +413,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         private "setinel" object from the @ operator?).
         """
         old = self[key]
-        error = False
         if old is val:
             # Early "exit" in the common case to avoid recursion in other
             # branches
-            pass
-        elif isinstance(old, Array):
+            return False
+        error = False
+        if isinstance(old, Array):
             if len(old) != len(val):
                 error = True
             elif issubclass(old.T, Array):
