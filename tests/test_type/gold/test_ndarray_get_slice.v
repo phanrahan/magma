@@ -9,13 +9,13 @@ module Mux4xArray2_Array3_Array2_Bit (
 reg [11:0] coreir_commonlib_mux4x12_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux4x12_inst0_out = {I0[1][2][1],I0[1][2][0],I0[1][1][1],I0[1][1][0],I0[1][0][1],I0[1][0][0],I0[0][2][1],I0[0][2][0],I0[0][1][1],I0[0][1][0],I0[0][0][1],I0[0][0][0]};
+    coreir_commonlib_mux4x12_inst0_out = {I0[1][2],I0[1][1],I0[1][0],I0[0][2],I0[0][1],I0[0][0]};
 end else if (S == 1) begin
-    coreir_commonlib_mux4x12_inst0_out = {I1[1][2][1],I1[1][2][0],I1[1][1][1],I1[1][1][0],I1[1][0][1],I1[1][0][0],I1[0][2][1],I1[0][2][0],I1[0][1][1],I1[0][1][0],I1[0][0][1],I1[0][0][0]};
+    coreir_commonlib_mux4x12_inst0_out = {I1[1][2],I1[1][1],I1[1][0],I1[0][2],I1[0][1],I1[0][0]};
 end else if (S == 2) begin
-    coreir_commonlib_mux4x12_inst0_out = {I2[1][2][1],I2[1][2][0],I2[1][1][1],I2[1][1][0],I2[1][0][1],I2[1][0][0],I2[0][2][1],I2[0][2][0],I2[0][1][1],I2[0][1][0],I2[0][0][1],I2[0][0][0]};
+    coreir_commonlib_mux4x12_inst0_out = {I2[1][2],I2[1][1],I2[1][0],I2[0][2],I2[0][1],I2[0][0]};
 end else begin
-    coreir_commonlib_mux4x12_inst0_out = {I3[1][2][1],I3[1][2][0],I3[1][1][1],I3[1][1][0],I3[1][0][1],I3[1][0][0],I3[0][2][1],I3[0][2][0],I3[0][1][1],I3[0][1][0],I3[0][0][1],I3[0][0][0]};
+    coreir_commonlib_mux4x12_inst0_out = {I3[1][2],I3[1][1],I3[1][0],I3[0][2],I3[0][1],I3[0][0]};
 end
 end
 

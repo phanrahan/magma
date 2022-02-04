@@ -15,7 +15,7 @@ Foo Foo_inst0 (
     .I(Foo_inst0_I),
     .O(Foo_inst0_O)
 );
-assign x = {Foo_inst0_O[4][4],Foo_inst0_O[4][3],Foo_inst0_O[4][2],Foo_inst0_O[4][1],Foo_inst0_O[4][0],Foo_inst0_O[3][4],Foo_inst0_O[3][3],Foo_inst0_O[3][2],Foo_inst0_O[3][1],Foo_inst0_O[3][0],Foo_inst0_O[2][4],Foo_inst0_O[2][3],Foo_inst0_O[2][2],Foo_inst0_O[2][1],Foo_inst0_O[2][0],Foo_inst0_O[1][4],Foo_inst0_O[1][3],Foo_inst0_O[1][2],Foo_inst0_O[1][1],Foo_inst0_O[1][0],Foo_inst0_O[0][4],Foo_inst0_O[0][3],Foo_inst0_O[0][2],Foo_inst0_O[0][1],Foo_inst0_O[0][0]};
+assign x = {Foo_inst0_O[4],Foo_inst0_O[3],Foo_inst0_O[2],Foo_inst0_O[1],Foo_inst0_O[0]};
 assign O[4] = {x[24],x[23],x[22],x[21],x[20]};
 assign O[3] = {x[19],x[18],x[17],x[16],x[15]};
 assign O[2] = {x[14],x[13],x[12],x[11],x[10]};

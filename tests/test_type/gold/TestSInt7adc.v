@@ -32,9 +32,9 @@ corebit_const #(
     .out(bit_const_0_None_out)
 );
 wire [7:0] magma_SInt_8_add_inst0_in0;
-assign magma_SInt_8_add_inst0_in0 = {I0[6],I0[6],I0[5],I0[4],I0[3],I0[2],I0[1],I0[0]};
+assign magma_SInt_8_add_inst0_in0 = {I0[6],I0};
 wire [7:0] magma_SInt_8_add_inst0_in1;
-assign magma_SInt_8_add_inst0_in1 = {I1[6],I1[6],I1[5],I1[4],I1[3],I1[2],I1[1],I1[0]};
+assign magma_SInt_8_add_inst0_in1 = {I1[6],I1};
 coreir_add #(
     .width(8)
 ) magma_SInt_8_add_inst0 (

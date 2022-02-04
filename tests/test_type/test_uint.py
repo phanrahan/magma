@@ -184,12 +184,18 @@ def test_adc(n):
         io.O <= result
         io.COUT <= carry
 
-    in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_UInt_{n + 1}_add_inst0.in0[{i}])"
-                          for i in range(n))
+    if n > 1:
+        in0_wires = f"wire(TestBinary.I0, magma_UInt_{n + 1}_add_inst0.in0[slice(0, {n}, None)])"
+    else:
+        in0_wires = "\n".join(f"wire(TestBinary.I0[{i}], magma_UInt_{n + 1}_add_inst0.in0[{i}])"
+                              for i in range(n))
     in0_wires += f"\nwire(GND, magma_UInt_{n + 1}_add_inst0.in0[{n}])"
 
-    in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_UInt_{n + 1}_add_inst0.in1[{i}])"
-                          for i in range(n))
+    if n > 1:
+        in1_wires = f"wire(TestBinary.I1, magma_UInt_{n + 1}_add_inst0.in1[slice(0, {n}, None)])"
+    else:
+        in1_wires = "\n".join(f"wire(TestBinary.I1[{i}], magma_UInt_{n + 1}_add_inst0.in1[{i}])"
+                              for i in range(n))
     in1_wires += f"\nwire(GND, magma_UInt_{n + 1}_add_inst0.in1[{n}])"
 
     carry_wires = "\n".join(

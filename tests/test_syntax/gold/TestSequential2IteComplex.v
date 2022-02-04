@@ -98,9 +98,9 @@ module Mux2xTuplea_TupleArray2__SequentialRegisterWrapperBit_b_Array2_Bit (
 reg [3:0] coreir_commonlib_mux2x4_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out = {I0_b[1],I0_b[0],I0_a__0[1],I0_a__0[0]};
+    coreir_commonlib_mux2x4_inst0_out = {I0_b,I0_a__0[1],I0_a__0[0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out = {I1_b[1],I1_b[0],I1_a__0[1],I1_a__0[0]};
+    coreir_commonlib_mux2x4_inst0_out = {I1_b,I1_a__0[1],I1_a__0[0]};
 end
 end
 

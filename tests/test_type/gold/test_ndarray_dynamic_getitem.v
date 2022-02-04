@@ -23,7 +23,7 @@ module Register (
 );
 wire [23:0] reg_P24_inst0_out;
 wire [23:0] reg_P24_inst0_in;
-assign reg_P24_inst0_in = {I[3][2][1],I[3][2][0],I[3][1][1],I[3][1][0],I[3][0][1],I[3][0][0],I[2][2][1],I[2][2][0],I[2][1][1],I[2][1][0],I[2][0][1],I[2][0][0],I[1][2][1],I[1][2][0],I[1][1][1],I[1][1][0],I[1][0][1],I[1][0][0],I[0][2][1],I[0][2][0],I[0][1][1],I[0][1][0],I[0][0][1],I[0][0][0]};
+assign reg_P24_inst0_in = {I[3][2],I[3][1],I[3][0],I[2][2],I[2][1],I[2][0],I[1][2],I[1][1],I[1][0],I[0][2],I[0][1],I[0][0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(24'h000000),
@@ -58,13 +58,13 @@ module Mux4xArray3_Array2_Bit (
 reg [5:0] coreir_commonlib_mux4x6_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux4x6_inst0_out = {I0[2][1],I0[2][0],I0[1][1],I0[1][0],I0[0][1],I0[0][0]};
+    coreir_commonlib_mux4x6_inst0_out = {I0[2],I0[1],I0[0]};
 end else if (S == 1) begin
-    coreir_commonlib_mux4x6_inst0_out = {I1[2][1],I1[2][0],I1[1][1],I1[1][0],I1[0][1],I1[0][0]};
+    coreir_commonlib_mux4x6_inst0_out = {I1[2],I1[1],I1[0]};
 end else if (S == 2) begin
-    coreir_commonlib_mux4x6_inst0_out = {I2[2][1],I2[2][0],I2[1][1],I2[1][0],I2[0][1],I2[0][0]};
+    coreir_commonlib_mux4x6_inst0_out = {I2[2],I2[1],I2[0]};
 end else begin
-    coreir_commonlib_mux4x6_inst0_out = {I3[2][1],I3[2][0],I3[1][1],I3[1][0],I3[0][1],I3[0][0]};
+    coreir_commonlib_mux4x6_inst0_out = {I3[2],I3[1],I3[0]};
 end
 end
 

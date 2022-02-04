@@ -313,12 +313,14 @@ def test_zext(n):
         # Nasty precidence issue with <= operator means we need parens here
         io.O <= io.I.zext(3)
 
-    i_wires = '\n'.join(
-        f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
+    if n > 1:
+        i_wire = f"wire(TestExt.I, TestExt.O[slice(0, {n}, None)])"
+    else:
+        i_wire = 'wire(TestExt.I[0], TestExt.O[0])'
     gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
-{i_wires}
+{i_wire}
 {gnd_wires}
 EndCircuit()\
 """
@@ -371,8 +373,13 @@ def test_repeat(n, x):
         io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n * x]))
         io.O <= io.I.repeat(x)
 
-    wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
-                      for j in range(x) for i in range(n))
+    if n == 1:
+        wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
+                          for j in range(x) for i in range(n))
+    else:
+        assert n == 3
+        wires = "\n".join(f"wire(TestRepeat.I, TestRepeat.O[slice({i * n}, {(i + 1) * n}, None)])"
+                          for i in range(x))
     assert repr(TestRepeat) == f"""\
 TestRepeat = DefineCircuit("TestRepeat", "I", In(Bits[{n}]), "O", Out(Bits[{n * x}]))
 {wires}

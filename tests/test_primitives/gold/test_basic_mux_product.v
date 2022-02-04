@@ -10,9 +10,9 @@ module Mux2xTupleX_Bits2_Y_Bits4 (
 reg [5:0] coreir_commonlib_mux2x6_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x6_inst0_out = {I0_Y[3],I0_Y[2],I0_Y[1],I0_Y[0],I0_X[1],I0_X[0]};
+    coreir_commonlib_mux2x6_inst0_out = {I0_Y,I0_X};
 end else begin
-    coreir_commonlib_mux2x6_inst0_out = {I1_Y[3],I1_Y[2],I1_Y[1],I1_Y[0],I1_X[1],I1_X[0]};
+    coreir_commonlib_mux2x6_inst0_out = {I1_Y,I1_X};
 end
 end
 

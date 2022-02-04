@@ -230,6 +230,18 @@ def _is_valid_slice(N, key):
             (stop is None or (stop <= N and stop > -N)))
 
 
+def _is_next_elem_in_slice(next_, prev):
+    # Helper function for Array.connection_iter()
+    return (isinstance(next_.name, ArrayRef) and
+            # only support slice of bits in coreir
+            issubclass(next_.name.array.T, Digital) and
+            isinstance(prev.name, ArrayRef) and
+            # from same arrays
+            next_.name.array is prev.name.array and
+            # subsequent index
+            next_.name.index == prev.name.index + 1)
+
+
 def _make_array_from_list(N, T, arg):
     if len(arg) != N:
         raise ValueError("Array list constructor can only be used "
@@ -906,6 +918,21 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 yield i, self[i]
                 i += 1
 
+    def _yield_curr_slice_or_elem(self, curr_slice_or_elem: list):
+        if not curr_slice_or_elem:
+            return
+        first_elem = curr_slice_or_elem[0]
+        if len(curr_slice_or_elem) == 1:
+            child = first_elem
+        else:
+            # Get slice reference
+            assert all(elem.name.array is first_elem.name.array
+                       for elem in curr_slice_or_elem)
+            child = first_elem.name.array[first_elem.name.index:
+                                          curr_slice_or_elem[-1].name.index + 1]
+        yield child, child.trace()
+        curr_slice_or_elem.clear()
+
     def connection_iter(self, only_slice_bits=False):
         if self._wire.driven():
             driver = self.trace()
@@ -914,12 +941,33 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             # Anon whole driver, e.g. Bit to Bits[1]
             yield from zip(self, driver)
             return
-        for _, child in self._enumerate_children():
-            if (_is_slice_child(child) and only_slice_bits and
-                    not issubclass(self.T, Bit)):
-                yield from zip(child, child.trace())
+        curr_slice_or_elem = []
+        for i, child in self._enumerate_children():
+            if _is_slice_child(child):
+                if curr_slice_or_elem:
+                    yield from self._yield_curr_slice_or_elem(
+                        curr_slice_or_elem)
+                if only_slice_bits and not issubclass(self.T, Bit):
+                    yield from zip(child, child.trace())
+                else:
+                    yield child, child.trace()
             else:
-                yield child, child.trace()
+                value = child.trace()
+                if (curr_slice_or_elem and
+                        (value is None or value.name.anon() or
+                         not _is_next_elem_in_slice(value,
+                                                    curr_slice_or_elem[-1].trace()))):
+                    yield from self._yield_curr_slice_or_elem(
+                        curr_slice_or_elem)
+                curr_slice_or_elem.append(child)
+        if curr_slice_or_elem:
+            if len(curr_slice_or_elem) == len(self):
+                # If we try to iterate and we find value is a slice, this means
+                # it cannot be sliced in the backend (i.e. not an array of
+                # bits), so here we iterate element by element instead
+                yield from zip(self, self.trace())
+            else:
+                yield from self._yield_curr_slice_or_elem(curr_slice_or_elem)
 
     def has_children(self):
         return True

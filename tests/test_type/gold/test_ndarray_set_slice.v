@@ -7,9 +7,9 @@ module Mux2xArray3_Array2_Bit (
 reg [5:0] coreir_commonlib_mux2x6_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x6_inst0_out = {I0[2][1],I0[2][0],I0[1][1],I0[1][0],I0[0][1],I0[0][0]};
+    coreir_commonlib_mux2x6_inst0_out = {I0[2],I0[1],I0[0]};
 end else begin
-    coreir_commonlib_mux2x6_inst0_out = {I1[2][1],I1[2][0],I1[1][1],I1[1][0],I1[0][1],I1[0][0]};
+    coreir_commonlib_mux2x6_inst0_out = {I1[2],I1[1],I1[0]};
 end
 end
 
@@ -215,18 +215,18 @@ Mux2xArray3_Array2_Bit Mux2xArray3_Array2_Bit_inst9 (
     .S(magma_Bit_and_inst6_out),
     .O(Mux2xArray3_Array2_Bit_inst9_O)
 );
-assign magma_Bit_and_inst0_out = 1'b1 & (({1'b0,x[1],x[0]}) <= 3'h0);
-assign magma_Bit_and_inst2_out = (1'b1 & (({1'b0,x[1],x[0]}) <= 3'h1)) & ((3'((3'(({1'b0,x[1],x[0]}) + 3'h2)) - 3'h1)) >= 3'h1);
-assign magma_Bit_and_inst4_out = (1'b1 & (({1'b0,x[1],x[0]}) <= 3'h2)) & ((3'((3'(({1'b0,x[1],x[0]}) + 3'h2)) - 3'h1)) >= 3'h2);
-assign magma_Bit_and_inst5_out = 1'b1 & ((3'((3'(({1'b0,x[1],x[0]}) + 3'h2)) - 3'h1)) >= 3'h3);
-assign magma_Bit_and_inst6_out = 1'b1 & ((3'((3'(({1'b0,x[1],x[0]}) + 3'h2)) - 3'h1)) >= 3'h4);
-assign magma_Bit_and_inst7_out = 1'b1 & ((3'((3'(({1'b0,x[1],x[0]}) + 3'h2)) - 3'h1)) >= 3'h5);
-assign magma_UInt_3_sub_inst0_out = 3'(3'h0 - ({1'b0,x[1],x[0]}));
-assign magma_UInt_3_sub_inst10_out = 3'(3'h5 - ({1'b0,x[1],x[0]}));
-assign magma_UInt_3_sub_inst2_out = 3'(3'h1 - ({1'b0,x[1],x[0]}));
-assign magma_UInt_3_sub_inst4_out = 3'(3'h2 - ({1'b0,x[1],x[0]}));
-assign magma_UInt_3_sub_inst6_out = 3'(3'h3 - ({1'b0,x[1],x[0]}));
-assign magma_UInt_3_sub_inst8_out = 3'(3'h4 - ({1'b0,x[1],x[0]}));
+assign magma_Bit_and_inst0_out = 1'b1 & (({1'b0,x}) <= 3'h0);
+assign magma_Bit_and_inst2_out = (1'b1 & (({1'b0,x}) <= 3'h1)) & ((3'((3'(({1'b0,x}) + 3'h2)) - 3'h1)) >= 3'h1);
+assign magma_Bit_and_inst4_out = (1'b1 & (({1'b0,x}) <= 3'h2)) & ((3'((3'(({1'b0,x}) + 3'h2)) - 3'h1)) >= 3'h2);
+assign magma_Bit_and_inst5_out = 1'b1 & ((3'((3'(({1'b0,x}) + 3'h2)) - 3'h1)) >= 3'h3);
+assign magma_Bit_and_inst6_out = 1'b1 & ((3'((3'(({1'b0,x}) + 3'h2)) - 3'h1)) >= 3'h4);
+assign magma_Bit_and_inst7_out = 1'b1 & ((3'((3'(({1'b0,x}) + 3'h2)) - 3'h1)) >= 3'h5);
+assign magma_UInt_3_sub_inst0_out = 3'(3'h0 - ({1'b0,x}));
+assign magma_UInt_3_sub_inst10_out = 3'(3'h5 - ({1'b0,x}));
+assign magma_UInt_3_sub_inst2_out = 3'(3'h1 - ({1'b0,x}));
+assign magma_UInt_3_sub_inst4_out = 3'(3'h2 - ({1'b0,x}));
+assign magma_UInt_3_sub_inst6_out = 3'(3'h3 - ({1'b0,x}));
+assign magma_UInt_3_sub_inst8_out = 3'(3'h4 - ({1'b0,x}));
 assign O[5][2] = Mux2xArray3_Array2_Bit_inst11_O[2];
 assign O[5][1] = Mux2xArray3_Array2_Bit_inst11_O[1];
 assign O[5][0] = Mux2xArray3_Array2_Bit_inst11_O[0];

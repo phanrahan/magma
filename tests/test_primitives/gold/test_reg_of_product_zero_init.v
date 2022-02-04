@@ -28,9 +28,9 @@ module Mux2xTuplex_Bits8_y_Bits4 (
 reg [11:0] coreir_commonlib_mux2x12_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x12_inst0_out = {I0_y[3],I0_y[2],I0_y[1],I0_y[0],I0_x[7],I0_x[6],I0_x[5],I0_x[4],I0_x[3],I0_x[2],I0_x[1],I0_x[0]};
+    coreir_commonlib_mux2x12_inst0_out = {I0_y,I0_x};
 end else begin
-    coreir_commonlib_mux2x12_inst0_out = {I1_y[3],I1_y[2],I1_y[1],I1_y[0],I1_x[7],I1_x[6],I1_x[5],I1_x[4],I1_x[3],I1_x[2],I1_x[1],I1_x[0]};
+    coreir_commonlib_mux2x12_inst0_out = {I1_y,I1_x};
 end
 end
 
@@ -59,7 +59,7 @@ Mux2xTuplex_Bits8_y_Bits4 Mux2xTuplex_Bits8_y_Bits4_inst0 (
     .S(RESET)
 );
 wire [11:0] reg_P12_inst0_in;
-assign reg_P12_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[3],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[2],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[1],Mux2xTuplex_Bits8_y_Bits4_inst0_O_y[0],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[7],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[6],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[5],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[4],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[3],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[2],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[1],Mux2xTuplex_Bits8_y_Bits4_inst0_O_x[0]};
+assign reg_P12_inst0_in = {Mux2xTuplex_Bits8_y_Bits4_inst0_O_y,Mux2xTuplex_Bits8_y_Bits4_inst0_O_x};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(12'h000),
