@@ -456,31 +456,30 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return [self[i] for i in range(len(self))]
 
     def _check_wireable(self, o, debug_info):
-        i = self
         if not isinstance(o, ArrayType):
             if isinstance(o, IntegerTypes):
                 _logger.error(
                     WiringLog(f"Cannot wire {o} (type={type(o)}) to {{}} "
-                              f"(type={type(i)}) because conversions from "
+                              f"(type={type(self)}) because conversions from "
                               f"IntegerTypes are only defined for Bits, not "
-                              f"general Arrays", i),
+                              f"general Arrays", self),
                     debug_info=debug_info
                 )
             else:
                 o_str = getattr(o, "debug_name", str(o))
                 _logger.error(
                     WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
-                              f"(type={type(i)}) because {{}} is not an Array",
-                              o, i, o),
+                              f"(type={type(self)}) because {{}} is not an "
+                              "Array", o, self, o),
                     debug_info=debug_info
                 )
             return False
 
-        if i.N != o.N:
+        if self.N != o.N:
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
-                          f"(type={type(i)}) because the arrays do not have "
-                          f"the same length", o, i),
+                          f"(type={type(self)}) because the arrays do not have "
+                          f"the same length", o, self),
                 debug_info=debug_info
             )
             return False
