@@ -253,6 +253,20 @@ def test_array2_overlapping_slice_slice2(nested, caplog):
 
 
 @pytest.mark.parametrize('nested', [False, True])
+def test_array2_overlapping_slice_slice3(nested, caplog):
+    class Foo(m.Circuit):
+        T = m.Array[4, m.Bit]
+        if nested:
+            T = m.Array[4, T]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        # Using overlapping slice with same start index should not infinitely
+        # recurse (covers old bug in remove slice logic)
+        io.O[0:3] @= io.I[1:]
+        io.O[1:3] @= io.I[1:3]
+        io.O[3] @= io.I[0]
+
+
+@pytest.mark.parametrize('nested', [False, True])
 def test_array2_overlapping_delayed_slice_index(nested, caplog):
     class Foo(m.Circuit):
         T = m.Array[4, m.Bit]
