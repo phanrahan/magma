@@ -237,6 +237,8 @@ def _is_next_index_in_same_array(next_, prev):
             isinstance(prev.name, ArrayRef) and
             # from same arrays
             next_.name.array is prev.name.array and
+            isinstance(next_.name.index, int) and
+            isinstance(prev.name.index, int) and
             # subsequent index
             next_.name.index == prev.name.index + 1)
 
@@ -257,14 +259,14 @@ def _yield_curr_slice_or_elem(curr_slice_or_elem: list):
     value(s) and either yields the current child or packs multiple values into
     a slice connection
     """
-    if not curr_slice_or_elem:
-        return
+    assert len(curr_slice_or_elem) > 0
     first_elem = curr_slice_or_elem[0]
     if len(curr_slice_or_elem) == 1:
         child = first_elem
     else:
+        print(curr_slice_or_elem)
         # Assumptions based on _is_not_next_elem_in_slice logic
-        assert all(elem.name.index is first_elem.name.index + i and
+        assert all(elem.name.index == first_elem.name.index + i and
                    elem.name.array is first_elem.name.array
                    for i, elem in enumerate(curr_slice_or_elem))
         # Get slice reference
@@ -967,7 +969,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
                 # yield the next slice
                 if only_slice_bits and not issubclass(self.T, Bit):
-                    yield from zip(child, child.trace())
+                    yield from ((t, t.trace()) for t in child)
                 else:
                     yield child, child.trace()
             else:
@@ -986,7 +988,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 # If we try to iterate and we find value is a slice, this means
                 # it cannot be sliced in the backend (i.e. not an array of
                 # bits), so here we iterate element by element instead
-                yield from zip(self, self.trace())
+                yield from ((t, t.trace()) for t in self)
             else:
                 yield from _yield_curr_slice_or_elem(curr_slice_or_elem)
 
