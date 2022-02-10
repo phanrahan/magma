@@ -15,11 +15,11 @@ Foo Foo_inst0 (
     .I(Foo_inst0_I),
     .O(Foo_inst0_O)
 );
-assign x = {Foo_inst0_O[4][4:0],Foo_inst0_O[3][4:0],Foo_inst0_O[2][4:0],Foo_inst0_O[1][4:0],Foo_inst0_O[0][4:0]};
-assign O[4] = x[24:20];
-assign O[3] = x[19:15];
-assign O[2] = x[14:10];
-assign O[1] = x[9:5];
-assign O[0] = x[4:0];
+assign x = {Foo_inst0_O[4],Foo_inst0_O[3],Foo_inst0_O[2],Foo_inst0_O[1],Foo_inst0_O[0]};
+assign O[4] = {x[24],x[23],x[22],x[21],x[20]};
+assign O[3] = {x[19],x[18],x[17],x[16],x[15]};
+assign O[2] = {x[14],x[13],x[12],x[11],x[10]};
+assign O[1] = {x[9],x[8],x[7],x[6],x[5]};
+assign O[0] = {x[4],x[3],x[2],x[1],x[0]};
 endmodule
 

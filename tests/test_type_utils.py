@@ -90,11 +90,11 @@ def test_type_visitor_basic():
     v.visit(T)
 
     assert v.string == \
-"""Array[10, Tuple(x=Array[5, Bits[10]],y=Array[10, Bit])]
-    Tuple(x=Array[5, Bits[10]],y=Array[10, Bit])
-        Array[5, Bits[10]]
+"""Array[(10, _Prod)]
+    Tuple(x=Array[(5, Bits[10])],y=Array[(10, Bit)])
+        Array[(5, Bits[10])]
             Bits[10]
-        Array[10, Bit]
+        Array[(10, Bit)]
             Bit
 """
 

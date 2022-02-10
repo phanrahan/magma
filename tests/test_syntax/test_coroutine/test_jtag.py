@@ -4,25 +4,26 @@ import sys
 
 import magma as m
 import fault
+from hwtypes import BitVector
 
 
 def test_jtag():
-    TEST_LOGIC_RESET = m.bits(15, 4)
-    RUN_TEST_IDLE = m.bits(12, 4)
-    SELECT_DR_SCAN = m.bits(7, 4)
-    CAPTURE_DR = m.bits(6, 4)
-    SHIFT_DR = m.bits(2, 4)
-    EXIT1_DR = m.bits(1, 4)
-    PAUSE_DR = m.bits(3, 4)
-    EXIT2_DR = m.bits(0, 4)
-    UPDATE_DR = m.bits(5, 4)
-    SELECT_IR_SCAN = m.bits(4, 4)
-    CAPTURE_IR = m.bits(14, 4)
-    SHIFT_IR = m.bits(10, 4)
-    EXIT1_IR = m.bits(9, 4)
-    PAUSE_IR = m.bits(11, 4)
-    EXIT2_IR = m.bits(8, 4)
-    UPDATE_IR = m.bits(13, 4)
+    TEST_LOGIC_RESET = BitVector[4](15)
+    RUN_TEST_IDLE = BitVector[4](12)
+    SELECT_DR_SCAN = BitVector[4](7)
+    CAPTURE_DR = BitVector[4](6)
+    SHIFT_DR = BitVector[4](2)
+    EXIT1_DR = BitVector[4](1)
+    PAUSE_DR = BitVector[4](3)
+    EXIT2_DR = BitVector[4](0)
+    UPDATE_DR = BitVector[4](5)
+    SELECT_IR_SCAN = BitVector[4](4)
+    CAPTURE_IR = BitVector[4](14)
+    SHIFT_IR = BitVector[4](10)
+    EXIT1_IR = BitVector[4](9)
+    PAUSE_IR = BitVector[4](11)
+    EXIT2_IR = BitVector[4](8)
+    UPDATE_IR = BitVector[4](13)
 
     @m.coroutine(manual_encoding=True, reset_type=m.AsyncReset)
     class JTAG:

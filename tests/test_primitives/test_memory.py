@@ -42,6 +42,7 @@ def test_memory_basic():
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -66,9 +67,9 @@ def test_memory_product():
         io.rdata @= Mem4xT.RDATA
         Mem4xT.WADDR @= io.waddr
         Mem4xT.WDATA @= io.wdata
+        Mem4xT.WE @= 1
 
-    m.compile("build/test_memory_product", test_memory_product)
-
+    m.compile("build/test_memory_product", test_memory_product, inline=True)
     assert check_files_equal(__file__, f"build/test_memory_product.v",
                              f"gold/test_memory_product.v")
     tester = fault.SynchronousTester(test_memory_product,
@@ -87,6 +88,7 @@ def test_memory_product():
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -103,21 +105,24 @@ def test_memory_product_init():
         {"X": 127, "Y": 0},
     ]
 
-    init_value = [
-        m.namedtuple(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8)) for d in test_data
-    ]
-
     class test_memory_product_init(m.Circuit):
+        init_value = [
+            m.namedtuple(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8))
+            for d in test_data
+        ]
+
         io = m.IO(
             raddr=m.In(m.Bits[2]),
             rdata=m.Out(T),
             clk=m.In(m.Clock),
         )
-        Mem4xT = m.Memory(len(test_data), T, read_only=True, init=tuple(init_value))()
+        Mem4xT = m.Memory(len(test_data), T, read_only=True,
+                          init=tuple(init_value))()
         Mem4xT.RADDR @= io.raddr
         io.rdata @= Mem4xT.RDATA
 
-    m.compile("build/test_memory_product_init", test_memory_product_init)
+    m.compile("build/test_memory_product_init", test_memory_product_init,
+              inline=True)
 
     assert check_files_equal(__file__, f"build/test_memory_product_init.v",
                              f"gold/test_memory_product_init.v")
@@ -129,6 +134,7 @@ def test_memory_product_init():
         tester.circuit.rdata.X.expect(test_data[i]["X"])
         tester.circuit.rdata.Y.expect(test_data[i]["Y"])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -153,8 +159,9 @@ def test_memory_arr():
         io.rdata @= Mem4xT.RDATA
         Mem4xT.WADDR @= io.waddr
         Mem4xT.WDATA @= io.wdata
+        Mem4xT.WE @= 1
 
-    m.compile("build/test_memory_arr", test_memory_arr)
+    m.compile("build/test_memory_arr", test_memory_arr, inline=True)
 
     assert check_files_equal(__file__, f"build/test_memory_arr.v",
                              f"gold/test_memory_arr.v")
@@ -175,6 +182,7 @@ def test_memory_arr():
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -247,6 +255,7 @@ def test_memory_read_latency(en):
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[2])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 
@@ -275,6 +284,7 @@ def test_memory_read_only():
         tester.advance_cycle()
         tester.circuit.rdata.expect(init[i])
     tester.compile_and_run("verilator", skip_compile=True,
+                           flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
 

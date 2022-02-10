@@ -9,6 +9,7 @@ from magma.ref import (ArrayRef, DefnRef, TupleRef, InstRef, NamedRef,
 from magma.tuple import Tuple
 from magma.protocol_type import magma_type, magma_value
 from magma.backend.util import make_relative
+from magma.t import Kind
 
 
 class CoreIRBackendError(RuntimeError):
@@ -31,7 +32,12 @@ def magma_name_to_coreir_select(name):
         return f"self.{name.name}"
     if isinstance(name, ArrayRef):
         array_name = magma_name_to_coreir_select(name.array.name)
-        return f"{array_name}.{name.index}"
+        if isinstance(name.index, int):
+            idx_str = name.index
+        else:
+            assert isinstance(name.index, slice)
+            idx_str = f"{name.index.start}:{name.index.stop}"
+        return f"{array_name}.{idx_str}"
     if isinstance(name, TupleRef):
         tuple_name = magma_name_to_coreir_select(name.tuple.name)
         key_name = _tuple_key_to_string(name.index)
@@ -171,7 +177,7 @@ def get_inst_args(inst):
 def constant_to_value(constant):
     assert constant.const()
     if isinstance(constant, Digital):
-        return 1 if constant is type(constant).VCC else 0
+        return int(constant)
     if isinstance(constant, Array):
         values = [constant_to_value(c) for c in constant]
         return BitVector[len(constant)](values)

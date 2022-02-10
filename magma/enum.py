@@ -1,4 +1,5 @@
 from magma.bits import BitsMeta, Bits
+from hwtypes import BitVector
 
 
 class EnumMeta(BitsMeta):
@@ -24,7 +25,7 @@ class EnumMeta(BitsMeta):
         type_ = cls[num_bits]
         type_._is_magma_enum = True
         for key, value in fields.items():
-            setattr(type_, key, Bits[num_bits](value))
+            setattr(type_, key, BitVector[num_bits](value))
         return type_
 
 

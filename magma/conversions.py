@@ -8,7 +8,6 @@ from .bit import Bit
 from .bits import Bits
 from .digital import DigitalMeta
 from .clock import Clock, Reset, AsyncReset, AsyncResetN, Enable
-from .array import Array
 from .bits import Bits, UInt, SInt
 from .bfloat import BFloat
 from .digital import Digital
@@ -16,7 +15,11 @@ from .tuple import Tuple, Product
 from .protocol_type import magma_type, magma_value
 from .bitutils import int2seq
 import hwtypes as ht
+from magma.array import Array
+from magma.circuit import coreir_port_mapping
 from magma.common import is_int
+from magma.generator import Generator2
+from magma.interface import IO
 
 
 __all__ = ['bit']
@@ -384,9 +387,13 @@ def replace(value, others: dict):
 
 
 def as_bits(value):
+    if isinstance(value, Bits):
+        return value
     return bits(value.flatten())
 
 
 def from_bits(cls, value):
+    if issubclass(cls, Bits):
+        return value
     ts = value.ts
     return cls.unflatten(ts)

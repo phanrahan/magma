@@ -1,5 +1,6 @@
 import abc
 import enum
+from functools import lru_cache
 from magma.common import deprecated
 from magma.compatibility import IntegerTypes, StringTypes
 from magma.ref import AnonRef, NamedRef, TempNamedRef, DefnRef, InstRef
@@ -54,14 +55,17 @@ class Type(object):
         raise NotImplementedError()
 
     @classmethod
+    @lru_cache()
     def is_input(cls):
         return cls.is_oriented(Direction.In)
 
     @classmethod
+    @lru_cache()
     def is_output(cls):
         return cls.is_oriented(Direction.Out)
 
     @classmethod
+    @lru_cache()
     def is_inout(cls):
         return cls.is_oriented(Direction.InOut)
 
@@ -134,6 +138,11 @@ class Type(object):
         """
         return self.name.anon() and not self.is_output() and self.driven()
 
+    @abc.abstractmethod
+    def has_children(self):
+        # Returns true if it is a recursive type
+        raise NotImplementedError()
+
 
 class Kind(type):
     # Subclasses only need to implement one of these methods.
@@ -169,10 +178,12 @@ class Kind(type):
         return cls is not cls.qualify(Direction.Undirected)
 
 
+@lru_cache()
 def In(T):
     return T.qualify(Direction.In)
 
 
+@lru_cache()
 def Out(T):
     return T.qualify(Direction.Out)
 

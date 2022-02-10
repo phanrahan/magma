@@ -15,7 +15,8 @@ def test_simple():
     v = m.declare_from_verilog(s)
     top = v[0]
     assert top.name == "top"
-    assert repr(top.IO) == "Interface(a, In(Bit), b, Out(Bit), c, InOut(Bit))"
+    assert repr(top.IO) == ('Interface("a", In(Bit), "b", Out(Bit), "c", '
+                            'InOut(Bit))')
 
 
 @pytest.mark.parametrize("target_type", [m.Clock, m.Reset, m.Bit])
@@ -26,7 +27,7 @@ def test_type_map_bit(target_type):
     type_map = {"a": m.In(target_type)}
     v = m.declare_from_verilog(s, type_map=type_map)
     top = v[0]
-    expected = (f"Interface(a, In({repr(target_type)}), b, Out(Bit), c, "
+    expected = (f'Interface("a", In({repr(target_type)}), "b", Out(Bit), "c", '
                 "InOut(Bit))")
     assert repr(top.IO) == expected
 
@@ -39,8 +40,8 @@ def test_type_map_bits(target_type):
     type_map = {"data": m.Out(target_type)}
     v = m.declare_from_verilog(s, type_map=type_map)
     top = v[0]
-    expected = (f"Interface(RX, In(Bit), CLK, In(Bit), data, "
-                f"Out({target_type}), valid, Out(Bit))")
+    expected = (f'Interface("RX", In(Bit), "CLK", In(Bit), "data", '
+                f'Out({target_type}), "valid", Out(Bit))')
     assert repr(top.IO) == expected
 
 

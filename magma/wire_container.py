@@ -96,6 +96,10 @@ class Wire:
             return self._driver.trace(skip_self=False)
         if not skip_self and (self._bit.is_output() or self._bit.is_inout()):
             return self._bit
+        if not skip_self and self._bit.has_children():
+            # Could be an Array driven non-bulk, so check if children can be
+            # traced
+            return self._bit.trace(skip_self=False)
         return None
 
     def value(self):
@@ -129,3 +133,33 @@ class Wire:
     @property
     def bit(self):
         return self._bit
+
+
+class Wireable:
+    def __init__(self):
+        self._wire = Wire(self)
+
+    def wired(self):
+        return self._wire.wired()
+
+    # return the input or output Bit connected to this Bit
+    def trace(self, skip_self=True):
+        return self._wire.trace(skip_self)
+
+    # return the output Bit connected to this input Bit
+    def value(self):
+        return self._wire.value()
+
+    def driven(self):
+        return self._wire.driven()
+
+    def driving(self):
+        return self._wire.driving()
+
+    def unwire(i, o):
+        i._wire.unwire(o._wire)
+
+    def wire(self, o, debug_info):
+        self._wire.connect(o._wire, debug_info)
+        self.debug_info = debug_info
+        o.debug_info = debug_info

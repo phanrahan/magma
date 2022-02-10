@@ -25,9 +25,9 @@ def test_insert_coreir_wires_basic(T):
     if T is m.Array[5, m.Bits[5]]:
         wires = ""
         for i in range(5):
-            for j in range(5):
-                wires += f"wire(_x[{i}][{j}], x.in[{i * 5 + j}])\n"
-                wires += f"wire(Main.I[{i}][{j}], _x[{i}][{j}])\n"
+            j = i * 5
+            wires += f"wire(_x[{i}], x.in[slice({i * 5}, {(i + 1) * 5}, None)])\n"
+            wires += f"wire(Main.I[{i}], _x[{i}])\n"
         for i in range(5):
             for j in range(5):
                 wires += f"wire(x.out[{i * 5 + j}], Main.O[{i}][{j}])\n"
@@ -37,9 +37,8 @@ def test_insert_coreir_wires_basic(T):
         offset = 0
         for i in range(len(T.fields)):
             if issubclass(T[i], m.Array):
-                for j in range(len(T[i])):
-                    wires += f"wire(_x[{i}][{j}], x.in[{i + offset + j}])\n"
-                    wires += f"wire(Main.I[{i}][{j}], _x[{i}][{j}])\n"
+                wires += f"wire(_x[{i}], x.in[slice({offset}, {len(T[i])}, None)])\n"
+                wires += f"wire(Main.I[{i}], _x[{i}])\n"
             else:
                 wires += f"wire(_x[{i}], x.in[{offset}])\n"
                 wires += f"wire(Main.I[{i}], _x[{i}])\n"

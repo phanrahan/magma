@@ -121,31 +121,33 @@ def test_construct():
     """
     Test `m.bits` interface
     """
-    a_1 = m.bits([1, 1])
-    print(type(a_1))
-    assert isinstance(a_1, m.BitsType)
+    class Foo(m.Circuit):
+        a_1 = m.bits([1, 1])
+        print(type(a_1))
+        assert isinstance(a_1, m.BitsType)
 
-    # test promote
-    assert isinstance(m.Bits[16](a_1), m.Bits)
-    assert repr(m.Bits[16](
-        a_1)) == "bits(3, 16)"
+        # test promote
+        assert isinstance(m.Bits[16](a_1), m.Bits)
+        assert repr(m.Bits[16](
+            a_1)) == "Bits[16](3)"
 
 
 def test_const():
     """
     Test constant constructor interface
     """
-    data = m.Bits[16]
-    zero = data(0)
 
     def check_equal(x, y):
-        return all(a is b for a, b in zip(x, y))
+        return int(x) == int(y)
 
-    assert check_equal(zero, m.bits(0, 16))
+    class Foo(m.Circuit):
+        data = m.Bits[16]
+        zero = data(0)
+        assert check_equal(zero, m.bits(0, 16))
 
-    assert check_equal(data(16), m.Bits[16].make_constant(16))
-    assert check_equal(m.Bits[4](0xe), m.Bits[16].make_constant(0xe, 4))
-    assert check_equal(m.Bits[4](0xe), m.Bits.make_constant(0xe, 4))
+        assert check_equal(data(16), m.Bits[16].make_constant(16))
+        assert check_equal(m.Bits[4](0xe), m.Bits[16].make_constant(0xe, 4))
+        assert check_equal(m.Bits[4](0xe), m.Bits.make_constant(0xe, 4))
 
 
 def test_setitem_bfloat():
@@ -157,7 +159,6 @@ def test_setitem_bfloat():
         a = io.I
         b = a[0:-1].concat(m.bits(0, 1))
         io.O <= b
-    print(repr(TestCircuit))
     assert repr(TestCircuit) == """\
 TestCircuit = DefineCircuit("TestCircuit", "I", In(BFloat[16]), "O", Out(BFloat[16]))
 wire(TestCircuit.I[0], TestCircuit.O[0])
@@ -247,8 +248,6 @@ def test_ite(n):
 
         io.O <= io.S.ite(io.I0, io.I1)
 
-    gnd_wires = '\n'.join(
-        f'wire(GND, magma_Bits_{n}_eq_inst0.in1[{i}])' for i in range(n))
     assert repr(TestITE) == f"""\
 TestITE = DefineCircuit("TestITE", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "S", In(Bits[{n}]), "O", Out(Bits[{n}]))
 magma_Bit_not_inst0 = magma_Bit_not()
@@ -256,7 +255,7 @@ magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
 magma_Bits_{n}_ite_Out_Bits_{n}_inst0 = magma_Bits_{n}_ite_Out_Bits_{n}()
 wire(magma_Bits_{n}_eq_inst0.out, magma_Bit_not_inst0.in)
 wire(TestITE.S, magma_Bits_{n}_eq_inst0.in0)
-{gnd_wires}
+wire(BitVector[{n}](0), magma_Bits_{n}_eq_inst0.in1)
 wire(TestITE.I0, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in0)
 wire(TestITE.I1, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.in1)
 wire(magma_Bit_not_inst0.out, magma_Bits_{n}_ite_Out_Bits_{n}_inst0.sel)
@@ -314,12 +313,14 @@ def test_zext(n):
         # Nasty precidence issue with <= operator means we need parens here
         io.O <= io.I.zext(3)
 
-    i_wires = '\n'.join(
-        f'wire(TestExt.I[{i}], TestExt.O[{i}])' for i in range(n))
+    if n > 1:
+        i_wire = f"wire(TestExt.I, TestExt.O[slice(0, {n}, None)])"
+    else:
+        i_wire = 'wire(TestExt.I[0], TestExt.O[0])'
     gnd_wires = '\n'.join(f'wire(GND, TestExt.O[{i + n}])' for i in range(3))
     assert repr(TestExt) == f"""\
 TestExt = DefineCircuit("TestExt", "I", In(Bits[{n}]), "O", Out(Bits[{n + 3}]))
-{i_wires}
+{i_wire}
 {gnd_wires}
 EndCircuit()\
 """
@@ -342,6 +343,7 @@ def test_bvcomp(n):
         # Nasty precidence issue with <= operator means we need parens here
         io.O <= io.I0.bvcomp(io.I1)
 
+    print(repr(TestBinary))
     assert repr(TestBinary) == f"""\
 TestBinary = DefineCircuit("TestBinary", "I0", In(Bits[{n}]), "I1", In(Bits[{n}]), "O", Out(Bits[1]))
 magma_Bits_{n}_eq_inst0 = magma_Bits_{n}_eq()
@@ -371,8 +373,13 @@ def test_repeat(n, x):
         io = m.IO(I=m.In(m.Bits[n]), O=m.Out(m.Bits[n * x]))
         io.O <= io.I.repeat(x)
 
-    wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
-                      for j in range(x) for i in range(n))
+    if n == 1:
+        wires = "\n".join(f"wire(TestRepeat.I[{i}], TestRepeat.O[{i + j * n}])"
+                          for j in range(x) for i in range(n))
+    else:
+        assert n == 3
+        wires = "\n".join(f"wire(TestRepeat.I, TestRepeat.O[slice({i * n}, {(i + 1) * n}, None)])"
+                          for i in range(x))
     assert repr(TestRepeat) == f"""\
 TestRepeat = DefineCircuit("TestRepeat", "I", In(Bits[{n}]), "O", Out(Bits[{n * x}]))
 {wires}
@@ -439,10 +446,31 @@ def test_rop_type_error(op, op_str):
 
 
 def test_python_bits_from_int_truncation_error():
-    with pytest.raises(ValueError) as e:
-        m.Bits[2](4)
-    assert str(e.value) == (
-        "Cannot construct Array[2, Bit] with integer 4 (requires truncation)")
-    with pytest.raises(ValueError) as e:
-        m.bits(4, 2)
-    assert str(e.value) == "Cannot convert 4 to a Bits of length 2"
+    class Foo(m.Circuit):
+        with pytest.raises(ValueError) as e:
+            m.Bits[2](4)
+        assert str(e.value) == (
+            "Cannot construct Bits[2] with integer 4 (requires truncation)")
+        with pytest.raises(ValueError) as e:
+            m.bits(4, 2)
+        assert str(e.value) == "Cannot convert 4 to a Bits of length 2"
+
+
+def test_bits_promote():
+    class TestBinary(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[3]), O=m.Out(m.Bits[6]))
+        io.O @= Bits[6](io.I)
+        assert int(io.O[4].trace()) == 0
+        assert int(io.O[5].trace()) == 0
+
+
+def test_bits_coerce_typeerror():
+    class Dummy:
+        def __rand__(self, other):
+            return other
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]))
+        # Bits.__and__ should get a TypeError in _coerce so we then use
+        # Dummy.__rand__
+        assert (io.I & Dummy()) is io.I

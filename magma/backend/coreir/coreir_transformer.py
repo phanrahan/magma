@@ -1,14 +1,10 @@
 from abc import ABC, abstractmethod
-from copy import copy
 import json
-import logging
-import os
 
 import coreir as pycoreir
 
 from magma.digital import Digital
 from magma.array import Array
-from magma.bits import Bits
 from magma.backend.check_wiring_context import check_wiring_context
 from magma.backend.coreir.coreir_utils import (
     attach_debug_info, check_magma_interface, constant_to_value, get_inst_args,
@@ -75,6 +71,7 @@ def _collect_drivers(value):
         # one, append the current slice to drivers (may introduce slices of
         # length 1)
         if not (
+            value[i].name.anon() or
             isinstance(value[i].name, ArrayRef) and
             issubclass(value[i].name.array.T, Digital) and
             isinstance(value[i - 1].name, ArrayRef) and
@@ -386,7 +383,8 @@ class DefinitionTransformer(TransformerBase):
     def connect_non_outputs(self, module_defn, port):
         # Recurse into non input types that may contain inout children.
         if isinstance(port, Tuple) and not port.is_input() or \
-           isinstance(port, Array) and not port.T.is_input():
+           (isinstance(port, Array) and not port.T.is_input() and
+                not port.T.is_output()):
             for elem in port:
                 self.connect_non_outputs(module_defn, elem)
         elif not port.is_output():
@@ -399,35 +397,27 @@ class DefinitionTransformer(TransformerBase):
             return value
         if isinstance(value, Slice):
             return module_defn.select(value.get_coreir_select())
-        if isinstance(value, Bits) and value.const():
-            return self._const_instance(value, len(value), module_defn)
-        if value.anon() and isinstance(value, Array):
-            drivers = _collect_drivers(value)
-            offset = 0
-            for d in drivers:
-                d = _unwrap(d)
-                if len(d) == 1:
-                    # _collect_drivers will introduce a slice of length 1 for
-                    # non-slices, so we index them here with 0 to unpack the
-                    # extra array dimension
-                    self.connect(module_defn, port[offset], d[0])
-                else:
-                    self.connect(module_defn,
-                                 Slice(port, offset, offset + len(d)),
-                                 Slice(d[0].name.array, d[0].name.index,
-                                       d[-1].name.index + 1))
-                offset += len(d)
-
-            return None
-        if isinstance(value, Tuple) and value.anon():
-            for p, v in zip(port, value):
-                self.connect(module_defn, p, v)
+        if isinstance(value, (Tuple, Array)) and value.anon():
+            # anon values are not bulk connected, so we recurse
+            for sink, source in port.connection_iter(only_slice_bits=True):
+                self.connect(module_defn, sink, source)
             return None
         if value.const():
-            return self._const_instance(value, None, module_defn)
+            if isinstance(value, Digital):
+                n = None
+            else:
+                assert isinstance(value, Array)
+                n = len(value)
+            return self._const_instance(value, n, module_defn)
         if isinstance(value.name, PortViewRef):
             return module_defn.select(
                 magma_name_to_coreir_select(value.name))
+        if (isinstance(value, Array) and isinstance(value.name, ArrayRef) and
+                isinstance(value.name.index, slice) and
+                not issubclass(value.T, Digital)):
+            for p, v in zip(port, value):
+                self.connect(module_defn, p, v)
+            return None
         return module_defn.select(magma_port_to_coreir_port(value))
 
     def connect(self, module_defn, port, value):

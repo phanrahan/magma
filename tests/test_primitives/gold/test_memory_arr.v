@@ -1,17 +1,3 @@
-module mantle_wire__typeBitIn5 (
-    output [4:0] in,
-    input [4:0] out
-);
-assign in = out;
-endmodule
-
-module mantle_wire__typeBit5 (
-    input [4:0] in,
-    output [4:0] out
-);
-assign out = in;
-endmodule
-
 module coreir_mem #(
     parameter has_init = 1'b0,
     parameter sync_read = 1'b0,
@@ -69,12 +55,8 @@ module Memory (
     input WE
 );
 wire [11:0] coreir_mem4x12_inst0_rdata;
-wire [4:0] self_RDATA_0_Y_in;
-wire [4:0] self_RDATA_1_Y_in;
-wire [4:0] self_WDATA_0_Y_out;
-wire [4:0] self_WDATA_1_Y_out;
 wire [11:0] coreir_mem4x12_inst0_wdata;
-assign coreir_mem4x12_inst0_wdata = {self_WDATA_1_Y_out[4:0],WDATA_1_X,self_WDATA_0_Y_out[4:0],WDATA_0_X};
+assign coreir_mem4x12_inst0_wdata = {WDATA_1_Y,WDATA_1_X,WDATA_0_Y,WDATA_0_X};
 coreir_mem #(
     .depth(4),
     .has_init(1'b0),
@@ -88,26 +70,10 @@ coreir_mem #(
     .rdata(coreir_mem4x12_inst0_rdata),
     .raddr(RADDR)
 );
-mantle_wire__typeBitIn5 self_RDATA_0_Y (
-    .in(self_RDATA_0_Y_in),
-    .out(coreir_mem4x12_inst0_rdata[5:1])
-);
-mantle_wire__typeBitIn5 self_RDATA_1_Y (
-    .in(self_RDATA_1_Y_in),
-    .out(coreir_mem4x12_inst0_rdata[11:7])
-);
-mantle_wire__typeBit5 self_WDATA_0_Y (
-    .in(WDATA_0_Y),
-    .out(self_WDATA_0_Y_out)
-);
-mantle_wire__typeBit5 self_WDATA_1_Y (
-    .in(WDATA_1_Y),
-    .out(self_WDATA_1_Y_out)
-);
 assign RDATA_0_X = coreir_mem4x12_inst0_rdata[0];
-assign RDATA_0_Y = self_RDATA_0_Y_in;
+assign RDATA_0_Y = {coreir_mem4x12_inst0_rdata[5],coreir_mem4x12_inst0_rdata[4],coreir_mem4x12_inst0_rdata[3],coreir_mem4x12_inst0_rdata[2],coreir_mem4x12_inst0_rdata[1]};
 assign RDATA_1_X = coreir_mem4x12_inst0_rdata[6];
-assign RDATA_1_Y = self_RDATA_1_Y_in;
+assign RDATA_1_Y = {coreir_mem4x12_inst0_rdata[11],coreir_mem4x12_inst0_rdata[10],coreir_mem4x12_inst0_rdata[9],coreir_mem4x12_inst0_rdata[8],coreir_mem4x12_inst0_rdata[7]};
 endmodule
 
 module test_memory_arr (
@@ -124,27 +90,19 @@ module test_memory_arr (
     input [4:0] wdata_1_Y,
     input wen
 );
-wire Memory_inst0_RDATA_0_X;
-wire [4:0] Memory_inst0_RDATA_0_Y;
-wire Memory_inst0_RDATA_1_X;
-wire [4:0] Memory_inst0_RDATA_1_Y;
 Memory Memory_inst0 (
     .CLK(clk),
     .RADDR(raddr),
-    .RDATA_0_X(Memory_inst0_RDATA_0_X),
-    .RDATA_0_Y(Memory_inst0_RDATA_0_Y),
-    .RDATA_1_X(Memory_inst0_RDATA_1_X),
-    .RDATA_1_Y(Memory_inst0_RDATA_1_Y),
+    .RDATA_0_X(rdata_0_X),
+    .RDATA_0_Y(rdata_0_Y),
+    .RDATA_1_X(rdata_1_X),
+    .RDATA_1_Y(rdata_1_Y),
     .WADDR(waddr),
     .WDATA_0_X(wdata_0_X),
     .WDATA_0_Y(wdata_0_Y),
     .WDATA_1_X(wdata_1_X),
     .WDATA_1_Y(wdata_1_Y),
-    .WE(wen)
+    .WE(1'b1)
 );
-assign rdata_0_X = Memory_inst0_RDATA_0_X;
-assign rdata_0_Y = Memory_inst0_RDATA_0_Y;
-assign rdata_1_X = Memory_inst0_RDATA_1_X;
-assign rdata_1_Y = Memory_inst0_RDATA_1_Y;
 endmodule
 

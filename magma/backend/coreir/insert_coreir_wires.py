@@ -5,13 +5,15 @@ from magma.digital import Digital
 from magma.generator import Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.wire import Wire
-from magma.ref import NamedRef, ArrayRef, PortViewRef
+from magma.ref import NamedRef, ArrayRef, PortViewRef, InstRef
 from magma.t import In, Out
 from magma.tuple import Tuple
 
 
 def _sanitize_name(name):
-    return name.replace("[", "_").replace("]", "")
+    return name.replace("[", "_").replace("]", "")\
+               .replace("(", "").replace(")", "")\
+               .replace(",", "").replace(" ", "_")
 
 
 class InsertCoreIRWires(DefinitionPass):
@@ -48,11 +50,12 @@ class InsertCoreIRWires(DefinitionPass):
 
         if is_bits:
             # Select the index off the parent bits wire
-            wire_input = wire_input[index]
             wire_output = wire_output[index]
-            driver = driver[index]
+            # NOTE(leonardt): We don't select off the input and instead wire up
+            # the entire bits (this avoids an "undriven" error when only one
+            # index of the bits is used)
 
-        if not isinstance(driver, Digital):
+        if not is_bits and not isinstance(driver, Digital):
             driver = as_bits(driver)
             wire_output = from_bits(T, wire_output)
 
@@ -74,7 +77,7 @@ class InsertCoreIRWires(DefinitionPass):
 
     def _insert_wire(self, value, definition):
         if value.is_mixed():  # mixed children
-            for child in value:
+            for child, _ in value.connection_iter():
                 if not child.is_output():
                     self._insert_wire(child, definition)
             return
@@ -89,14 +92,17 @@ class InsertCoreIRWires(DefinitionPass):
             value, driver = driver, driver.value()
 
         descend = (isinstance(driver, (Array, Tuple)) and
-                   not driver.iswhole())
+                   driver.anon())
         if descend:
-            for child in value:
+            for child, _ in value.connection_iter():
                 self._insert_wire(child, definition)
             return
 
         if (driver is None or driver.is_output() or driver.is_inout() or
                 driver.name.anon()):
+            return
+
+        if isinstance(driver.name.root(), InstRef):
             return
 
         if isinstance(driver.name, PortViewRef):

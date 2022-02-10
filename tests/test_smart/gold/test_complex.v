@@ -8,8 +8,8 @@ module _Test (
 );
 wire magma_SInt_12_sle_inst0_out;
 wire [11:0] magma_UInt_12_shl_inst0_out;
-assign magma_SInt_12_sle_inst0_out = ($signed({I1[8],I1[8],I1[8],I1[8:0]})) <= ($signed(I2));
-assign magma_UInt_12_shl_inst0_out = (12'((~ (12'(({1'b0,1'b0,1'b0,1'b0,1'b0,I0[6:0]}) + ({1'b0,1'b0,1'b0,I1[8:0]})))) + I2)) << ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,& I0});
+assign magma_SInt_12_sle_inst0_out = ($signed({I1[8],I1[8],I1[8],I1})) <= ($signed(I2));
+assign magma_UInt_12_shl_inst0_out = (12'((~ (12'(({1'b0,1'b0,1'b0,1'b0,1'b0,I0}) + ({1'b0,1'b0,1'b0,I1})))) + I2)) << ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,& I0});
 assign O = magma_UInt_12_shl_inst0_out[9:0];
 assign O2 = 7'(({magma_SInt_12_sle_inst0_out,magma_SInt_12_sle_inst0_out,magma_SInt_12_sle_inst0_out,magma_SInt_12_sle_inst0_out,magma_SInt_12_sle_inst0_out,magma_SInt_12_sle_inst0_out,magma_SInt_12_sle_inst0_out}) + I0);
 assign O3 = I0[0];

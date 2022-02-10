@@ -47,7 +47,7 @@ def test_array():
         assert False, "Should throw type error"
     except TypeError as e:
         assert str(
-            e) == "Calling set_value with I of type Array[2, Out(Bit)] only works with a list of values or a BitVector"
+            e) == "Calling set_value with I of type Array[(2, Out(Bit))] only works with a list of values or a BitVector"
 
 
 @pytest.mark.parametrize('T', [m.Bits, m.UInt])

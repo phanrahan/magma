@@ -125,7 +125,7 @@ class ValueStore:
             bit = bit.value()
 
         if bit.const():
-            return True if bit is type(bit).VCC else False
+            return bool(bit)
 
         return self.value_map[bit]
 
@@ -397,7 +397,7 @@ class PythonSimulator(CircuitSimulator):
         for name, port in circuit.interface.ports.items():
             if port.is_input():
                 val = self.get_value(getattr(circuit, name))
-                val = seq2int(val) if isinstance(val, list) else int(val) 
+                val = seq2int(val) if isinstance(val, list) else int(val)
                 outs.append(val)
 
         if len(outs) == 1:

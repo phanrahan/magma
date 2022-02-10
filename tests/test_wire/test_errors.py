@@ -168,7 +168,7 @@ def test_const_array_error(caplog):
         wire(buf.O, io.O)
 
     msg = """\
-\033[1mtests/test_wire/test_errors.py:167\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[1, In(Bit)])
+\033[1mtests/test_wire/test_errors.py:167\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[(1, In(Bit))])
 >>         wire(1, buf.I)"""
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)
@@ -189,7 +189,7 @@ def test_hanging_anon_error(caplog):
             assert str(e) == "Found unconnected port: _Foo.O\n_Foo.O: Unconnected"
 
         msg = """\
-\033[1mtests/test_wire/test_errors.py:180\033[0m: Output port _Foo.O not driven
+\033[1mtests/test_wire/test_errors.py:180\033[0m: Interface output port _Foo.O not driven
 >>         class _Foo(m.Circuit):"""
         assert caplog.records[0].msg == msg
         assert has_error(caplog, msg)

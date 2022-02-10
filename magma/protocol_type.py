@@ -29,9 +29,8 @@ class MagmaProtocolMeta(type):
         # To create an instance from a value.
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def _is_oriented_magma_(cls, direction):
-        raise NotImplementedError()
+        return cls._to_magma_().is_oriented(direction)
 
     def is_oriented(cls, direction):
         return cls._is_oriented_magma_(direction)
@@ -47,6 +46,10 @@ class MagmaProtocolMeta(type):
 
     def is_bindable(cls, rhs):
         return cls._to_magma_().is_bindable(rhs)
+
+    @property
+    def direction(cls) -> int:
+        return cls._to_magma_().direction
 
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):

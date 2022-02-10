@@ -1,4 +1,5 @@
 import itertools
+from functools import lru_cache
 from collections import OrderedDict
 from hwtypes.adt import (
     TupleMeta,
@@ -126,6 +127,15 @@ class TupleKind(TupleMeta, Kind):
             new_fields.append(T.flip())
         return cls.unbound_t[new_fields]
 
+    @property
+    @lru_cache()
+    def direction(cls):
+        directions = iter(t.direction for t in cls.fields)
+        first = next(directions)
+        if all(d == first for d in directions):
+            return first
+        return None
+
     def __call__(cls, *args, **kwargs):
         obj = cls.__new__(cls, *args)
         obj.__init__(*args, **kwargs)
@@ -133,7 +143,7 @@ class TupleKind(TupleMeta, Kind):
 
     @property
     def N(cls):
-        return len(cls)
+        return len(cls.fields)
 
     def __str__(cls):
         if not cls.is_bound:
@@ -261,6 +271,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
     @debug_wire
     def wire(i, o, debug_info):
+        o = magma_value(o)
         if not isinstance(o, Tuple):
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
@@ -338,11 +349,15 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def iswhole(self):
         return Tuple._iswhole(self.ts, self.keys())
 
-    def trace(self):
-        ts = [t.trace() for t in self.ts]
-
-        for t in ts:
-            if t is None:
+    def trace(self, skip_self=True):
+        ts = []
+        for t in self.ts:
+            result = t.trace(skip_self)
+            if result is not None:
+                ts.append(result)
+            elif not skip_self and (t.is_output() or t.is_inout()):
+                ts.append(t)
+            else:
                 return None
 
         if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
@@ -413,6 +428,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             inout |= field.is_inout()
             mixed |= field.is_mixed()
         return mixed or (input + output + inout) > 1
+
+    def connection_iter(self, only_slice_bits=False):
+        for elem in self:
+            yield elem, elem.trace()
+
+    def has_children(self):
+        return True
 
 
 def _add_properties(ns, fields):

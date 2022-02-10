@@ -4,7 +4,7 @@ from itertools import chain
 from .common import deprecated
 from .compatibility import IntegerTypes, StringTypes
 from .protocol_type import MagmaProtocolMeta
-from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, TempNamedRef
+from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
 from .t import Type, Kind, Direction
 
 
@@ -19,7 +19,7 @@ def _flatten(l):
 
 
 def _make_interface_name(decl):
-    return f"Interface({', '.join([str(d) for d in decl])})"
+    return f"Interface"
 
 
 def _is_valid_port(port):
@@ -52,7 +52,7 @@ def _make_ref(name, inst, defn):
         return InstRef(inst, name)
     if defn:
         return DefnRef(defn, name)
-    return TempNamedRef(name)
+    return NamedRef(name)
 
 
 def _make_port(typ, ref, flip):
@@ -84,12 +84,12 @@ def _make_wire_str(driver, value, wired):
     if (value, driver) in wired:
         return ""
     wired.add((value, driver))
-    if driver.iswhole():
-        iname = value.name.qualifiedname()
-        oname = driver.name.qualifiedname()
-        return f"wire({oname}, {iname})\n"
-    return "".join(_make_wire_str(d, v, wired)
-                   for d, v in zip(driver, value))
+    if driver.has_children() and driver.name.anon():
+        return "".join(_make_wire_str(d, v, wired)
+                       for d, v in zip(driver, value))
+    iname = value.name.qualifiedname()
+    oname = driver.name.qualifiedname()
+    return f"wire({oname}, {iname})\n"
 
 
 def _make_wires(value, wired):
@@ -111,12 +111,14 @@ def _make_wires(value, wired):
     if value.is_output():
         return ""
     if value.is_mixed():
-        return "".join(_make_wires(v, wired) for v in value)
+        return "".join(_make_wires(v, wired)
+                       for v, _ in value.connection_iter())
     driver = value.value()
     if driver is None:
         return ""
-    if not driver.iswhole():
-        return "".join(_make_wires(v, wired) for v in value)
+    if getattr(type(driver), "N", False) and driver.name.anon():
+        return "".join(_make_wires(v, wired)
+                       for v, _ in value.connection_iter())
     while driver is not None and driver.is_driven_anon_temporary():
         driver = driver.value()
     s = ""
@@ -143,10 +145,16 @@ class InterfaceKind(Kind):
     def __iter__(cls):
         return iter(cls.ports)
 
-    def __str__(cls):
+    def args_to_str(cls):
         args = [f"\"{arg}\"" if i % 2 == 0 else str(arg)
                 for i, arg in enumerate(cls._decl)]
         return ", ".join(args)
+
+    def __str__(cls):
+        return f"Interface({cls.args_to_str()})"
+
+    def __repr__(cls):
+        return str(cls)
 
     def __eq__(cls, rhs):
         return cls._decl == rhs._decl
@@ -423,10 +431,11 @@ class IO(IOInterface):
     def __init__(self, **kwargs):
         self._ports = {}
         self._decl = []
-        self._decl = _flatten(kwargs.items())
         self._bound = False
         for name, typ in kwargs.items():
             self.add(name, typ)
+            self._decl.append(name)
+            self._decl.append(typ)
 
     @property
     def ports(self):
@@ -476,7 +485,12 @@ class IO(IOInterface):
         ref = LazyDefnRef(name=name)
         port = _make_port(typ, ref, flip=True)
         self._ports[name] = port
-        setattr(self, name, port)
+
+    def __getattr__(self, key):
+        if key in self._ports:
+            return self._ports[key]
+        return super().__getattribute__(key)
+
 
 
 class SingletonInstanceIO(IO):

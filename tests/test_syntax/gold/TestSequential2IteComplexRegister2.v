@@ -25,7 +25,7 @@ module Register (
 );
 wire [3:0] reg_P4_inst0_out;
 wire [3:0] reg_P4_inst0_in;
-assign reg_P4_inst0_in = {I_b__0_c[1:0],I_a[0][1:0]};
+assign reg_P4_inst0_in = {I_b__0_c,I_a[0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(4'h0),
@@ -35,8 +35,8 @@ coreir_reg #(
     .in(reg_P4_inst0_in),
     .out(reg_P4_inst0_out)
 );
-assign O_a[0] = reg_P4_inst0_out[1:0];
-assign O_b__0_c = reg_P4_inst0_out[3:2];
+assign O_a[0] = {reg_P4_inst0_out[1],reg_P4_inst0_out[0]};
+assign O_b__0_c = {reg_P4_inst0_out[3],reg_P4_inst0_out[2]};
 endmodule
 
 module Mux2x_SequentialRegisterWrapperTuplea_Array1_Bits2_b_TupleTuplec_Array2_Bit (
@@ -48,17 +48,17 @@ module Mux2x_SequentialRegisterWrapperTuplea_Array1_Bits2_b_TupleTuplec_Array2_B
     output [1:0] O_b__0_c,
     input S
 );
-reg [3:0] coreir_commonlib_mux2x4_inst0_out_unq1;
+reg [3:0] coreir_commonlib_mux2x4_inst0_out;
 always @(*) begin
 if (S == 0) begin
-    coreir_commonlib_mux2x4_inst0_out_unq1 = {I0_b__0_c[1:0],I0_a[0][1:0]};
+    coreir_commonlib_mux2x4_inst0_out = {I0_b__0_c,I0_a[0]};
 end else begin
-    coreir_commonlib_mux2x4_inst0_out_unq1 = {I1_b__0_c[1:0],I1_a[0][1:0]};
+    coreir_commonlib_mux2x4_inst0_out = {I1_b__0_c,I1_a[0]};
 end
 end
 
-assign O_a[0] = coreir_commonlib_mux2x4_inst0_out_unq1[1:0];
-assign O_b__0_c = coreir_commonlib_mux2x4_inst0_out_unq1[3:2];
+assign O_a[0] = {coreir_commonlib_mux2x4_inst0_out[1],coreir_commonlib_mux2x4_inst0_out[0]};
+assign O_b__0_c = {coreir_commonlib_mux2x4_inst0_out[3],coreir_commonlib_mux2x4_inst0_out[2]};
 endmodule
 
 module Test (

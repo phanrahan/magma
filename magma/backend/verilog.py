@@ -70,6 +70,8 @@ def vname(t):
     if isinstance(t, Digital):
         if t is type(t).VCC: return "1'b1"
         if t is type(t).GND: return "1'b0"
+    if t.const():
+        return f"{len(t)}'d{int(t)}'"
 
     if isinstance(t, Array):
         # print(t.ts)

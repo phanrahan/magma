@@ -4,7 +4,7 @@ import fault as f
 
 def test_register():
     class Foo(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[4]), O=m.Out(m.Bits[4])) 
+        io = m.IO(I=m.In(m.Bits[4]), O=m.Out(m.Bits[4]))
         io += m.ClockIO(has_reset=True)
         io.O @= m.Register(
             m.Bits[4], reset_type=m.Reset

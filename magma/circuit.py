@@ -89,8 +89,12 @@ def _has_definition(cls, port=None):
         if not interface:
             return False
         return any(_has_definition(cls, p) for p in interface.ports.values())
-    flat = port.flatten()
-    return any(not f.is_output() and f.value() is not None for f in flat)
+    if port.is_output():
+        return False
+    if port.is_mixed():
+        # mixed direction
+        return any(_has_definition(cls, p) for p in port)
+    return port.driven()
 
 
 def _maybe_add_default_clock(cls):
@@ -107,7 +111,8 @@ def _maybe_add_default_clock(cls):
 
     # Check all instances in @cls for an undriven clock port.
     inst_ports = itertools.chain(
-        *(instance.interface.ports.values() for instance in cls.instances))
+        *(instance.interface.ports.values() for instance in cls.instances
+          if getattr(instance, "stateful", True)))
     for port in inst_ports:
         T = type(port)
         if is_clock_or_nested_clock(T, (Clock,)) and not port.driven():
@@ -140,7 +145,10 @@ def _get_interface_type(cls, add_default_clock):
         return make_interface(*cls.IO)
     if hasattr(cls, "io"):
         cls._syntax_style_ = _SyntaxStyle.NEW
-        if add_default_clock:
+        # Assume circuit is stateful, but if it's set stateful=False, then we
+        # don't need to add clock (useful for performance to avoid the
+        # traversal)
+        if add_default_clock and getattr(cls, "stateful", True):
             _maybe_add_default_clock(cls)
         return cls.io.make_interface()
     return None
@@ -189,15 +197,17 @@ def _get_intermediate_values(value):
     driver = value.value()
     if driver is None:
         return OrderedIdentitySet()
-    flat = value.flatten()
-    if len(flat) > 1 and driver.name.anon():
-        return functools.reduce(operator.or_,
-                                (_get_intermediate_values(f) for f in flat),
-                                OrderedIdentitySet())
+    if getattr(type(driver), "N", False) and driver.name.anon():
+        conn_iter = list(value.connection_iter())
+        if len(conn_iter) > 1:
+            return functools.reduce(
+                operator.or_, (_get_intermediate_values(v) for v, _ in
+                               conn_iter),
+                OrderedIdentitySet())
     values = OrderedIdentitySet()
     while driver is not None:
         values |= _add_intermediate_value(driver)
-        if not driver.is_input():
+        if not driver.driven():
             break
         value = driver
         driver = driver.value()
@@ -281,7 +291,7 @@ class CircuitKind(type):
             return super().__repr__()
 
         name = cls.__name__
-        args = str(cls.IO)
+        args = cls.IO.args_to_str()
 
         if not isdefinition(cls):
             return f"{name} = DeclareCircuit(\"{name}\", {args})"
@@ -420,7 +430,7 @@ class AnonymousCircuitType(object):
                 f"wired.")
             _logger.warning(msg, debug_info=debug_info)
         for i in range(min(ni, no)):
-            wire(outputs[i], inputs[i], debug_info)
+            inputs[i].wire(outputs[i], debug_info)
 
     def wire(self, output, debug_info):
         """Wire a single output to the circuit's inputs"""
@@ -668,13 +678,15 @@ class DefineCircuitKind(CircuitKind):
     def check_unconnected(self):
         for port in self.interface.inputs():
             if port.trace() is None:
-                msg = f"Output port {self.name}.{port.name} not driven"
+                msg = (f"Interface output port {self.name}.{port.name} not"
+                       " driven")
                 _logger.error(msg, debug_info=self.debug_info)
 
         for inst in self.instances:
             for port in inst.interface.inputs():
                 if port.trace() is None:
-                    msg = f"Input port {inst.name}.{port.name} not driven"
+                    msg = (f"Instance input port {inst.name}.{port.name} not"
+                           " driven")
                     _logger.error(msg, debug_info=inst.debug_info)
 
     @property

@@ -16,7 +16,7 @@ def test_const0():
         wire(0, buf.I)
         wire(buf.O, io.O)
 
-    compile("build/const0", main, output="verilog")
+    compile("build/const0", main)
     assert check_files_equal(__file__, "build/const0.v", "gold/const0.v")
 
 
@@ -33,7 +33,7 @@ def test_const1():
         wire(1, buf.I)
         wire(buf.O, io.O)
 
-    compile("build/const1", main, output="verilog")
+    compile("build/const1", main)
     assert check_files_equal(__file__, "build/const1.v", "gold/const1.v")
 
 
@@ -54,6 +54,6 @@ def test_const_bits(T, N):
         wire(1, buf.I)
         wire(buf.O, io.O)
 
-    compile(f"build/const_bits_{T.__name__}_{N}", main, output="verilog")
+    compile(f"build/const_bits_{T.__name__}_{N}", main)
     assert check_files_equal(__file__, f"build/const_bits_{T.__name__}_{N}.v",
                              f"gold/const_bits_{T.__name__}_{N}.v")

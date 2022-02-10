@@ -5,6 +5,7 @@ import weakref
 from .circuit import DefineCircuitKind, Circuit
 from . import cache_definition
 from magma.common import ParamDict
+from hwtypes import BitVector
 
 
 class GeneratorMeta(type):
@@ -57,6 +58,13 @@ def _make_key(cls, *args, **kwargs):
     _SECRET_KEY = "__magma_generator2_secret_key__"
     dct = {f"{_SECRET_KEY}{i}": v for i, v in enumerate(args)}
     dct.update(kwargs)
+    for k, v in dct.items():
+        if isinstance(v, BitVector):
+            # Custom hash for BitVector to avoid inconsistent size error in key
+            # comparison
+            # TODO(leonardt/array2): We could move this to the BV.__hash__ if
+            # this might be more generally useful as a pattern
+            dct[k] = (int(v), len(v))
     return (cls, ParamDict(dct))
 
 

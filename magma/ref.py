@@ -44,6 +44,20 @@ class AnonRef(Ref):
         return True
 
 
+class ConstRef(Ref):
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+    def qualifiedname(self, sep="."):
+        return self.name
+
+    def anon(self):
+        return False
+
+
 class NamedRef(Ref):
     def __init__(self, name, value=None):
         if not isinstance(name, (str, int)):

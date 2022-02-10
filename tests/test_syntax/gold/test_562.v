@@ -52,7 +52,7 @@ module A (
 );
 wire [0:0] Mux2xBits1_inst0_O;
 Mux2xBits1 Mux2xBits1_inst0 (
-    .I0(b[0]),
+    .I0(b[0:0]),
     .I1(a),
     .S(a),
     .O(Mux2xBits1_inst0_O)

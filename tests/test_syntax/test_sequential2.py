@@ -756,7 +756,8 @@ def test_gcd():
     tester.wait_on(tester.circuit.O1 == 1)
     tester.circuit.O0.expect(16)
     dir_ = os.path.join(os.path.dirname(__file__), "build")
-    tester.compile_and_run("verilator", skip_compile=True, directory=dir_)
+    tester.compile_and_run("verilator", skip_compile=True, directory=dir_,
+                           flags=["-Wno-unused"])
 
 
 @pytest.mark.parametrize('op', [operator.add, operator.sub, operator.mul,

@@ -124,9 +124,9 @@ def is_clock_or_nested_clock(p, types=ClockTypes):
     if issubclass(p, types):
         return True
     if issubclass(p, Array):
-        return is_clock_or_nested_clock(p.T)
+        return is_clock_or_nested_clock(p.T, types)
     if issubclass(p, Tuple):
         for item in p.types():
-            if is_clock_or_nested_clock(item):
+            if is_clock_or_nested_clock(item, types):
                 return True
     return False

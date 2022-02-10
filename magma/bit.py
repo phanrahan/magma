@@ -73,6 +73,8 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @bit_cast
     @output_only("Cannot use == on an input")
     def __eq__(self, other):
+        if self is other:
+            return True
         # CoreIR doesn't define an eq primitive for bits
         return ~(self ^ other)
 
@@ -108,18 +110,6 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # NOTE(rseatluri): self._mux is monkey patched in
         # magma/primitives/mux.py to avoid circular dependency.
         return self._mux([f_branch, t_branch], self)
-
-    def __bool__(self) -> bool:
-        if not self.const():
-            raise ValueError(
-                "Converting non-constant magma bit to bool not supported")
-        if self is type(self).VCC:
-            return True
-        assert self is type(self).GND
-        return False
-
-    def __int__(self) -> int:
-        return int(bool(self))
 
     @debug_wire
     def wire(self, o, debug_info):

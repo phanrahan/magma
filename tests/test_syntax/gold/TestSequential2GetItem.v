@@ -39,7 +39,7 @@ module Register (
 );
 wire [55:0] reg_P56_inst0_out;
 wire [55:0] reg_P56_inst0_in;
-assign reg_P56_inst0_in = {I[7][6:0],I[6][6:0],I[5][6:0],I[4][6:0],I[3][6:0],I[2][6:0],I[1][6:0],I[0][6:0]};
+assign reg_P56_inst0_in = {I[7],I[6],I[5],I[4],I[3],I[2],I[1],I[0]};
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(56'h00000000000000),
@@ -49,14 +49,14 @@ coreir_reg #(
     .in(reg_P56_inst0_in),
     .out(reg_P56_inst0_out)
 );
-assign O[7] = reg_P56_inst0_out[55:49];
-assign O[6] = reg_P56_inst0_out[48:42];
-assign O[5] = reg_P56_inst0_out[41:35];
-assign O[4] = reg_P56_inst0_out[34:28];
-assign O[3] = reg_P56_inst0_out[27:21];
-assign O[2] = reg_P56_inst0_out[20:14];
-assign O[1] = reg_P56_inst0_out[13:7];
-assign O[0] = reg_P56_inst0_out[6:0];
+assign O[7] = {reg_P56_inst0_out[55],reg_P56_inst0_out[54],reg_P56_inst0_out[53],reg_P56_inst0_out[52],reg_P56_inst0_out[51],reg_P56_inst0_out[50],reg_P56_inst0_out[49]};
+assign O[6] = {reg_P56_inst0_out[48],reg_P56_inst0_out[47],reg_P56_inst0_out[46],reg_P56_inst0_out[45],reg_P56_inst0_out[44],reg_P56_inst0_out[43],reg_P56_inst0_out[42]};
+assign O[5] = {reg_P56_inst0_out[41],reg_P56_inst0_out[40],reg_P56_inst0_out[39],reg_P56_inst0_out[38],reg_P56_inst0_out[37],reg_P56_inst0_out[36],reg_P56_inst0_out[35]};
+assign O[4] = {reg_P56_inst0_out[34],reg_P56_inst0_out[33],reg_P56_inst0_out[32],reg_P56_inst0_out[31],reg_P56_inst0_out[30],reg_P56_inst0_out[29],reg_P56_inst0_out[28]};
+assign O[3] = {reg_P56_inst0_out[27],reg_P56_inst0_out[26],reg_P56_inst0_out[25],reg_P56_inst0_out[24],reg_P56_inst0_out[23],reg_P56_inst0_out[22],reg_P56_inst0_out[21]};
+assign O[2] = {reg_P56_inst0_out[20],reg_P56_inst0_out[19],reg_P56_inst0_out[18],reg_P56_inst0_out[17],reg_P56_inst0_out[16],reg_P56_inst0_out[15],reg_P56_inst0_out[14]};
+assign O[1] = {reg_P56_inst0_out[13],reg_P56_inst0_out[12],reg_P56_inst0_out[11],reg_P56_inst0_out[10],reg_P56_inst0_out[9],reg_P56_inst0_out[8],reg_P56_inst0_out[7]};
+assign O[0] = {reg_P56_inst0_out[6],reg_P56_inst0_out[5],reg_P56_inst0_out[4],reg_P56_inst0_out[3],reg_P56_inst0_out[2],reg_P56_inst0_out[1],reg_P56_inst0_out[0]};
 endmodule
 
 module Mux8xBits7 (

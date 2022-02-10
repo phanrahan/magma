@@ -12,11 +12,11 @@ from hwtypes import BitVector
 from hwtypes import AbstractBitVector, AbstractBitVectorMeta, AbstractBit, \
     InconsistentSizeError
 from .compatibility import IntegerTypes
-from .ref import AnonRef
 from .bit import Bit
-from .array import Array, ArrayMeta
+from .array import ArrayMeta, Array
 from .t import Type, Direction, In, Out
-from magma.circuit import Circuit, coreir_port_mapping, IO
+from magma.circuit import Circuit, coreir_port_mapping
+from magma.bitutils import seq2int, int2seq
 from magma.family import get_family
 from magma.interface import IO
 from magma.language_utils import primitive_to_python
@@ -24,6 +24,8 @@ from magma.logging import root_logger
 from magma.generator import Generator2
 from magma.debug import debug_wire
 from magma.operator_utils import output_only
+from magma.protocol_type import magma_type, magma_value
+from magma.ref import ConstRef
 
 
 def _error_handler(fn):
@@ -47,6 +49,7 @@ def _check_size(val, T):
 
 
 def _coerce(T: tp.Type['Bits'], val: tp.Any) -> 'Bits':
+    T = magma_type(T)
     if isinstance(val, ht.BitVector):
         _check_size(val, T)
         val = val.bits()
@@ -72,13 +75,98 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
     def __new__(mcs, name, bases, namespace, info=(None, None, None), **kwargs):
         return ArrayMeta.__new__(mcs, name, bases, namespace, info, **kwargs)
 
+    def _make_const(cls, value: tp.Union[tuple, int]):
+        """
+        value can be a tuple of bits or an object that supports the `int`
+        function
+        """
+        if isinstance(value, tuple):
+            value = seq2int(value)
+        else:
+            value = int(value)
+        value = cls.hwtypes_T[cls.N](value)
+        return Out(cls)(const_value=value, name=ConstRef(repr(value)))
+
+    def _make_from_int_const(cls, arg: int):
+        if arg.bit_length() > cls.N:
+            raise ValueError(
+                f"Cannot construct {cls.orig_name}[{cls.N}] with "
+                f"integer {arg} (requires truncation)")
+        return cls._make_const(tuple(int2seq(arg, cls.N)))
+
+    def _make_from_bv_const(cls, arg: BitVector):
+        if len(arg) != cls.N:
+            raise TypeError(
+                f"Cannot construct {cls.orig_name}[{cls.N}] with "
+                f"BitVector of length {len(arg)} (sizes must "
+                "match)")
+        return cls._make_const(tuple(arg.bits()))
+
+    def _make_from_bits(cls, arg: 'Bits', kwargs):
+        if arg.const():
+            return cls._make_const(tuple(int2seq(int(arg), cls.N)))
+        arg_len = len(arg)
+        if type(arg) is cls:
+            # Don't need to cast
+            return arg
+        if arg_len > cls.N:
+            raise TypeError(
+                "Will not do implicit truncation of bits length")
+
+        args = arg.ts
+        if arg_len < cls.N:
+            args = cls._extend(args)
+        return super().__call__(*args, **kwargs)
+
+    def _make_from_list(cls, arg: tp.List, kwargs):
+        if len(arg) != len(cls):
+            raise TypeError(
+                f"List initializer for Bits[{len(cls)}] must be same "
+                f"length, not {len(arg)}"
+            )
+
+        def _const(x):
+            if isinstance(x, Type) and x.const():
+                return True
+            if isinstance(x, (bool, int, ht.Bit, BitVector)):
+                return True
+            return False
+        if all(_const(x) for x in arg):
+            return cls._make_const(seq2int(list(int(x) for x in arg)))
+        return super().__call__(arg, **kwargs)
+
+    def _make_from_wireable(cls, arg: Type):
+        # Type conversion done with wiring to an anon value
+        result = cls.undirected_t()
+        result @= arg
+        return result
+
+    def _make_from_bit(cls, arg: Bit, kwargs):
+        if arg.const():
+            return cls._make_const(int(arg))
+        return super().__call__([arg], **kwargs)
+
+    def _make_from_one_arg(cls, arg, kwargs):
+        if isinstance(arg, int):
+            return cls._make_from_int_const(arg)
+        if isinstance(arg, BitVector):
+            return cls._make_from_bv_const(arg)
+        if isinstance(arg, Array) and issubclass(arg.T, Bit):
+            return cls._make_from_bits(arg, kwargs)
+        if isinstance(arg, Array):
+            return super().__call__(arg.ts, **kwargs)
+        if isinstance(arg, list):
+            return cls._make_from_list(arg, kwargs)
+        if isinstance(arg, Type) and type(arg).is_wireable(cls):
+            return cls._make_from_wireable(arg)
+        if isinstance(arg, Bit):
+            return cls._make_from_bit(arg, kwargs)
+        raise TypeError(cls, arg, type(arg))
+
     def __call__(cls, *args, **kwargs):
+        if len(args) == 1:
+            return cls._make_from_one_arg(magma_value(args[0]), kwargs)
         result = super().__call__(*args, **kwargs)
-        if all(x.is_output() for x in result.ts) and not cls.is_output():
-            if cls.is_input() or cls.is_inout():
-                raise TypeError("Can't construct output with input/inout")
-            # Make it an output
-            return cls.qualify(Direction.Out)(*args, **kwargs)
         return result
 
     def __getitem__(cls, index):
@@ -121,36 +209,26 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__
     hwtypes_T = ht.BitVector
 
-    def __init__(self, *args, **kwargs):
-        if args and len(args) == 1 and isinstance(args[0], Array) and \
-                len(self) > 1 and len(args[0]) <= len(self):
-            self.ts = args[0].ts[:]
-            # zext for promoting width
-            for i in range(len(self) - len(args[0])):
-                self.ts.append(Bit(0))
-            Type.__init__(self, **kwargs)
-        else:
-            Array.__init__(self, *args, **kwargs)
+    @classmethod
+    def _extend(cls, args):
+        return args + [0 for _ in range(cls.N - len(args))]
+
+    def __init__(self, *args, const_value=None, **kwargs):
+        self._const_value = const_value
+        super().__init__(*args, **kwargs)
+
+    def const(self):
+        return self._const_value is not None
 
     def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
         if self.const():
-            return f'bits({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'bits([{}])'.format(', '.join(ts))
+            return f'{type(self).undirected_t}({int(self)})'
+        return super().__repr__()
 
     def bits(self):
         if not self.const():
             raise Exception("Not a constant")
-
-        def _convert(x):
-            if x is type(x).VCC:
-                return True
-            assert x is type(x).GND
-            return False
-
-        return [_convert(x) for x in self.ts]
+        return self._const_value.bits()
 
     def __int__(self):
         if not self.const():
@@ -331,11 +409,15 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     def bvult(self, other) -> AbstractBit:
         return type(self).undirected_t._declare_compare_op("ult")()(self, other)
 
-    @bits_cast
     def bvule(self, other) -> AbstractBit:
         # For wiring
         if self.is_input():
             return Type.__le__(self, other)
+        # We coerce after wiring for simplicity
+        try:
+            other = _coerce(type(self), other)
+        except TypeError:
+            return NotImplemented
         return type(self).undirected_t._declare_compare_op("ule")()(self, other)
 
     @bits_cast
@@ -547,6 +629,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
             if len(index) < len(self):
                 index = index.zext(len(self) - len(index))
             return (self >> index)[0]
+        if self.const():
+            if isinstance(index, int):
+                return Bit(self._const_value[index])
+            assert isinstance(index, slice)
+            result = self._const_value[index]
+            return type(self)[len(result)](result)
         return super().__getitem__(index)
 
     def reduce_or(self):
@@ -557,6 +645,12 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     def reduce_and(self):
         return reduce(operator.and_, self)
+
+    @property
+    def debug_name(self):
+        if self.const():
+            return repr(self)
+        return super().debug_name
 
 
 def make_Define(_name, port, direction):
@@ -569,6 +663,7 @@ def make_Define(_name, port, direction):
             coreir_name = _name
             coreir_lib = "coreir"
             coreir_genargs = {"width": width}
+
             def simulate(self, value_store, state_store):
                 pass
             primitive = True
@@ -605,14 +700,6 @@ class Int(Bits):
 class UInt(Int):
     hwtypes_T = ht.UIntVector
 
-    def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
-        if self.const():
-            return f'uint({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'uint([{}])'.format(', '.join(ts))
-
     @_error_handler
     def __floordiv__(self, other):
         return self.bvudiv(other)
@@ -645,16 +732,9 @@ class UInt(Int):
 class SInt(Int):
     hwtypes_T = ht.SIntVector
 
-    def __init__(self, *args, **kwargs):
-        if args and len(args) == 1 and isinstance(args[0], Array) and \
-                len(self) > 1 and len(args[0]) <= len(self):
-            self.ts = args[0].ts[:]
-            # zext for promoting width
-            for i in range(len(self) - len(args[0])):
-                self.ts.append(args[0].ts[-1])
-            Type.__init__(self, **kwargs)
-        else:
-            Array.__init__(self, *args, **kwargs)
+    @classmethod
+    def _extend(cls, args):
+        return args + [args[-1] for _ in range(cls.N - len(args))]
 
     @bits_cast
     def bvslt(self, other) -> AbstractBit:
@@ -745,14 +825,6 @@ class SInt(Int):
 
         T = type(self).unsized_t
         return self.concat(T[ext]([self[-1] for _ in range(ext)]))
-
-    def __repr__(self):
-        if not self.name.anon():
-            return super().__repr__()
-        if self.const():
-            return f'sint({int(self)}, {len(self)})'
-        ts = [repr(t) for t in self.ts]
-        return 'sint([{}])'.format(', '.join(ts))
 
     def __int__(self):
         if not self.const():

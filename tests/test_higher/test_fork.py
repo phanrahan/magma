@@ -13,6 +13,6 @@ def test_fork():
         or2 = Or2(name='or2')
         lut = m.fork(and2,or2)
 
-    assert str(_Top.and2.interface) == '"I0", In(Bit), "I1", In(Bit), "O", Out(Bit)'
-    assert str(_Top.or2.interface) == '"I0", In(Bit), "I1", In(Bit), "O", Out(Bit)'
+    assert str(_Top.and2.interface) == 'Interface("I0", In(Bit), "I1", In(Bit), "O", Out(Bit))'
+    assert str(_Top.or2.interface) == 'Interface("I0", In(Bit), "I1", In(Bit), "O", Out(Bit))'
     assert len(_Top.lut.interface) == 3

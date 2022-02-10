@@ -4,6 +4,7 @@ import sys
 
 import magma as m
 import fault
+from hwtypes import BitVector
 
 
 def test_sdram():
@@ -18,7 +19,7 @@ def test_sdram():
         (CLK_FREQUENCY * 1_000 * REFRESH_TIME) // REFRESH_COUNT
 
     # IDLE = "5'b00000"
-    IDLE = m.bits(0, 5)
+    IDLE = BitVector[5](0)
 
     # INIT_NOP1 = "5'b01000"
     # INIT_PRE1 = "5'b01001"
@@ -46,31 +47,31 @@ def test_sdram():
     # WRIT_CAS = "5'b11010"
     # WRIT_NOP2 = "5'b11011"
 
-    INIT_NOP1 = m.bits(0b01000, 5)
-    INIT_PRE1 = m.bits(0b01001, 5)
-    INIT_NOP1_1 = m.bits(0b00101, 5)
-    INIT_REF1 = m.bits(0b01010, 5)
-    INIT_NOP2 = m.bits(0b01011, 5)
-    INIT_REF2 = m.bits(0b01100, 5)
-    INIT_NOP3 = m.bits(0b01101, 5)
-    INIT_LOAD = m.bits(0b01110, 5)
-    INIT_NOP4 = m.bits(0b01111, 5)
-    
-    REF_PRE = m.bits(0b00001, 5)
-    REF_NOP1 = m.bits(0b00010, 5)
-    REF_REF = m.bits(0b00011, 5)
-    REF_NOP2 = m.bits(0b00100, 5)
-    
-    READ_ACT = m.bits(0b10000, 5)
-    READ_NOP1 = m.bits(0b10001, 5)
-    READ_CAS = m.bits(0b10010, 5)
-    READ_NOP2 = m.bits(0b10011, 5)
-    READ_READ = m.bits(0b10100, 5)
-    
-    WRIT_ACT = m.bits(0b11000, 5)
-    WRIT_NOP1 = m.bits(0b11001, 5)
-    WRIT_CAS = m.bits(0b11010, 5)
-    WRIT_NOP2 = m.bits(0b11011, 5)
+    INIT_NOP1 = BitVector[5](0b01000)
+    INIT_PRE1 = BitVector[5](0b01001)
+    INIT_NOP1_1 = BitVector[5](0b00101)
+    INIT_REF1 = BitVector[5](0b01010)
+    INIT_NOP2 = BitVector[5](0b01011)
+    INIT_REF2 = BitVector[5](0b01100)
+    INIT_NOP3 = BitVector[5](0b01101)
+    INIT_LOAD = BitVector[5](0b01110)
+    INIT_NOP4 = BitVector[5](0b01111)
+
+    REF_PRE = BitVector[5](0b00001)
+    REF_NOP1 = BitVector[5](0b00010)
+    REF_REF = BitVector[5](0b00011)
+    REF_NOP2 = BitVector[5](0b00100)
+
+    READ_ACT = BitVector[5](0b10000)
+    READ_NOP1 = BitVector[5](0b10001)
+    READ_CAS = BitVector[5](0b10010)
+    READ_NOP2 = BitVector[5](0b10011)
+    READ_READ = BitVector[5](0b10100)
+
+    WRIT_ACT = BitVector[5](0b11000)
+    WRIT_NOP1 = BitVector[5](0b11001)
+    WRIT_CAS = BitVector[5](0b11010)
+    WRIT_NOP2 = BitVector[5](0b11011)
 
     # CMD_PALL = "8'b10010001"
     # CMD_REF = "8'b10001000"
@@ -80,13 +81,13 @@ def test_sdram():
     # CMD_READ = "8'b10101xx1"
     # CMD_WRIT = "8'b10100xx1"
 
-    CMD_PALL = m.bits(0b10010001, 8)
-    CMD_REF = m.bits(0b10001000, 8)
-    CMD_NOP = m.bits(0b10111000, 8)
-    CMD_MRS = m.bits(0b10000000, 8)
-    CMD_BACT = m.bits(0b10011000, 8)
-    CMD_READ = m.bits(0b10101001, 8)
-    CMD_WRIT = m.bits(0b10100001, 8)
+    CMD_PALL = BitVector[8](0b10010001)
+    CMD_REF = BitVector[8](0b10001000)
+    CMD_NOP = BitVector[8](0b10111000)
+    CMD_MRS = BitVector[8](0b10000000)
+    CMD_BACT = BitVector[8](0b10011000)
+    CMD_READ = BitVector[8](0b10101001)
+    CMD_WRIT = BitVector[8](0b10100001)
 
     @m.coroutine(manual_encoding=True, reset_type=m.AsyncResetN)
     class SDRAMController:

@@ -1,6 +1,5 @@
 import abc
 import copy
-import enum
 import inspect
 import operator
 
@@ -10,7 +9,7 @@ from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 from magma.t import Direction
-from magma.type_utils import TypeTransformer, isuint, issint
+from magma.type_utils import TypeTransformer, issint
 from magma.value_utils import ValueVisitor, make_selector
 
 
@@ -542,13 +541,16 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
 
     @staticmethod
     def from_bits(value):
-        assert isinstance(value, Bits)
+        assert isinstance(value, Bits), type(value)
         signed = isinstance(value, SInt)
         return SmartBits[len(value), signed](value)
 
     def __str__(self):
         signed = type(self)._signed
         return f"SmartBits[{len(self)}, {signed}]({str(self._value)})"
+
+    def connection_iter(self):
+        yield from zip(self, self.trace())
 
 
 SmartBit = SmartBits[1]

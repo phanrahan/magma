@@ -11,7 +11,7 @@ from magma.protocol_type import MagmaProtocol, magma_type
 from magma.t import Type, In, Out, Direction
 from magma.tuple import Product, Tuple
 from magma.type_utils import type_to_sanitized_string
-from magma.conversions import tuple_
+from magma.conversions import tuple_, as_bits, from_bits
 
 
 class CoreIRCommonLibMuxN(Generator2):
@@ -19,8 +19,8 @@ class CoreIRCommonLibMuxN(Generator2):
         self.name = f"coreir_commonlib_mux{N}x{width}"
         FlatT = Array[width, Bit]
         MuxInT = Product.from_fields("anon", dict(data=Array[N, FlatT],
-                                                  sel=Array[clog2(N), Bit]))
-        self.io = IO(I=In(MuxInT), O=Out(Array[width, Bit]))
+                                                  sel=Bits[clog2(N)]))
+        self.io = IO(I=In(MuxInT), O=Out(Bits[width]))
         self.renamed_ports = coreir_port_mapping
         self.coreir_name = "muxn"
         self.coreir_lib = "commonlib"
@@ -49,25 +49,23 @@ class Mux(Generator2):
         N = magma_type(T).flat_length()
 
         ports = {f"I{i}": In(T) for i in range(height)}
-        T_S = Bit if height == 2 else Array[clog2(height), Bit]
+        T_S = Bit if height == 2 else Bits[clog2(height)]
         ports["S"] = In(T_S)
         ports["O"] = Out(T)
 
         self.io = io = IO(**ports)
 
         mux = CoreIRCommonLibMuxN(height, N)()
-        data = [Array[N, Bit](getattr(io, f"I{i}").flatten())
-                for i in range(height)]
-        mux.I.data @= Array[height, Array[N, Bit]](data)
+        data = [as_bits(getattr(io, f"I{i}")) for i in range(height)]
+        mux.I.data @= Array[height, Bits[N]](data)
         if height == 2:
             mux.I.sel[0] @= io.S
         else:
             mux.I.sel @= io.S
-        out_ts = mux.O.ts
         if issubclass(T, MagmaProtocol):
-            out = Out(T)._from_magma_value_(T._to_magma_().unflatten(out_ts))
+            out = Out(T)._from_magma_value_(from_bits(T._to_magma_(), mux.O))
         else:
-            out = T.unflatten(out_ts)
+            out = from_bits(T, mux.O)
         io.O @= out
 
 
