@@ -27,15 +27,20 @@ class InsertWrapCasts(DefinitionPass):
                 value_store.set_value(self.out, input_val)
         return Wrap
 
+    def _recurse(self, port, definition):
+        wrapped = False
+        for t in port:
+            wrapped |= self.wrap_if_named_type(t, definition)
+        return wrapped
+
     def wrap_if_named_type(self, port, definition):
+        if port.is_mixed():
+            return self._recurse(port, definition)
         if not port.driven():
             return False
         value = port.value()
         if isinstance(port, Tuple):
-            wrapped = False
-            for t in port:
-                wrapped |= self.wrap_if_named_type(t, definition)
-            return wrapped
+            return self._recurse(port, definition)
         if isinstance(port, Array):
             # Avoid recursion when possible (for Array2) by checking the nested
             # array type and only descending if necessary
