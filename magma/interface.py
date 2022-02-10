@@ -116,7 +116,7 @@ def _make_wires(value, wired):
     driver = value.value()
     if driver is None:
         return ""
-    if getattr(type(driver), "N", False) and driver.name.anon():
+    if driver.has_children() and driver.name.anon():
         return "".join(_make_wires(v, wired)
                        for v, _ in value.connection_iter())
     while driver is not None and driver.is_driven_anon_temporary():
