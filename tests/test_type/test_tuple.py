@@ -291,3 +291,22 @@ def test_anon_product():
     assert anon_product.z == product.z
     assert anon_product == product
     assert not anon_product is product
+
+
+def test_mixed_direction_wrap():
+    class ClocksT(m.Product):
+        clk0 = m.In(m.Clock)
+        clk1 = m.Out(m.Clock)
+
+    class Main(m.Circuit):
+        io = m.IO(clocks=ClocksT, count=m.Out(m.UInt[3]))
+        count = m.Register(m.UInt[3])()
+        count.CLK @= io.clocks.clk0
+        io.count @= count(count.O + 1)
+
+        tff = m.Register(m.Bit, has_enable=True)()
+        tff.CLK @= io.clocks.clk0
+        tff.CE @= m.enable(count.O == 3)
+        io.clocks.clk1 @= m.clock(tff(tff.O ^ 1))
+
+    m.compile('build/test_mixed_direction_wrap', Main)
