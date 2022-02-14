@@ -169,7 +169,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
     @debug_wire
     def wire(self, o, debug_info):
         # promote integer types to LOW/HIGH
-        if isinstance(o, (IntegerTypes, bool, ht.Bit)):
+        if isinstance(o, IntegerTypes):
             o = HIGH if o else LOW
 
         o = magma_value(o)

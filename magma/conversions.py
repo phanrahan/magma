@@ -36,7 +36,8 @@ __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
 
 def can_convert_to_bit(value):
-    return isinstance(magma_value(value), (Digital, Array, Tuple, IntegerTypes))
+    return isinstance(magma_value(value), (Digital, Array, Tuple, IntegerTypes,
+                                           ht.Bit))
 
 
 def can_convert_to_bit_type(value):
@@ -64,9 +65,9 @@ def convertbit(value, totype):
                 "bit can only be used on arrays and tuples of bits"
                 f"; not {type(value)}")
 
-    assert isinstance(value, (IntegerTypes, Digital))
+    assert isinstance(value, (IntegerTypes, Digital, ht.Bit))
 
-    if isinstance(value, IntegerTypes):
+    if isinstance(value, (IntegerTypes, ht.Bit)):
         # Just return VCC or GND here, otherwise we lose VCC/GND singleton
         # invariant
         return totype(1) if value else totype(0)
