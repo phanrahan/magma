@@ -880,63 +880,175 @@ Mux2xBit Mux2xBit_inst9 (
     .S(magma_Bit_and_inst18_out),
     .O(Mux2xBit_inst9_O)
 );
+wire [7:0] Mux56xBits8_inst0_I0;
+assign Mux56xBits8_inst0_I0 = {Register_inst0_O[7],Register_inst0_O[6],Register_inst0_O[5],Register_inst0_O[4],Register_inst0_O[3],Register_inst0_O[2],Register_inst0_O[1],Register_inst0_O[0]};
+wire [7:0] Mux56xBits8_inst0_I1;
+assign Mux56xBits8_inst0_I1 = {Register_inst0_O[8],Register_inst0_O[7],Register_inst0_O[6],Register_inst0_O[5],Register_inst0_O[4],Register_inst0_O[3],Register_inst0_O[2],Register_inst0_O[1]};
+wire [7:0] Mux56xBits8_inst0_I2;
+assign Mux56xBits8_inst0_I2 = {Register_inst0_O[9],Register_inst0_O[8],Register_inst0_O[7],Register_inst0_O[6],Register_inst0_O[5],Register_inst0_O[4],Register_inst0_O[3],Register_inst0_O[2]};
+wire [7:0] Mux56xBits8_inst0_I3;
+assign Mux56xBits8_inst0_I3 = {Register_inst0_O[10],Register_inst0_O[9],Register_inst0_O[8],Register_inst0_O[7],Register_inst0_O[6],Register_inst0_O[5],Register_inst0_O[4],Register_inst0_O[3]};
+wire [7:0] Mux56xBits8_inst0_I4;
+assign Mux56xBits8_inst0_I4 = {Register_inst0_O[11],Register_inst0_O[10],Register_inst0_O[9],Register_inst0_O[8],Register_inst0_O[7],Register_inst0_O[6],Register_inst0_O[5],Register_inst0_O[4]};
+wire [7:0] Mux56xBits8_inst0_I5;
+assign Mux56xBits8_inst0_I5 = {Register_inst0_O[12],Register_inst0_O[11],Register_inst0_O[10],Register_inst0_O[9],Register_inst0_O[8],Register_inst0_O[7],Register_inst0_O[6],Register_inst0_O[5]};
+wire [7:0] Mux56xBits8_inst0_I6;
+assign Mux56xBits8_inst0_I6 = {Register_inst0_O[13],Register_inst0_O[12],Register_inst0_O[11],Register_inst0_O[10],Register_inst0_O[9],Register_inst0_O[8],Register_inst0_O[7],Register_inst0_O[6]};
+wire [7:0] Mux56xBits8_inst0_I7;
+assign Mux56xBits8_inst0_I7 = {Register_inst0_O[14],Register_inst0_O[13],Register_inst0_O[12],Register_inst0_O[11],Register_inst0_O[10],Register_inst0_O[9],Register_inst0_O[8],Register_inst0_O[7]};
+wire [7:0] Mux56xBits8_inst0_I8;
+assign Mux56xBits8_inst0_I8 = {Register_inst0_O[15],Register_inst0_O[14],Register_inst0_O[13],Register_inst0_O[12],Register_inst0_O[11],Register_inst0_O[10],Register_inst0_O[9],Register_inst0_O[8]};
+wire [7:0] Mux56xBits8_inst0_I9;
+assign Mux56xBits8_inst0_I9 = {Register_inst0_O[16],Register_inst0_O[15],Register_inst0_O[14],Register_inst0_O[13],Register_inst0_O[12],Register_inst0_O[11],Register_inst0_O[10],Register_inst0_O[9]};
+wire [7:0] Mux56xBits8_inst0_I10;
+assign Mux56xBits8_inst0_I10 = {Register_inst0_O[17],Register_inst0_O[16],Register_inst0_O[15],Register_inst0_O[14],Register_inst0_O[13],Register_inst0_O[12],Register_inst0_O[11],Register_inst0_O[10]};
+wire [7:0] Mux56xBits8_inst0_I11;
+assign Mux56xBits8_inst0_I11 = {Register_inst0_O[18],Register_inst0_O[17],Register_inst0_O[16],Register_inst0_O[15],Register_inst0_O[14],Register_inst0_O[13],Register_inst0_O[12],Register_inst0_O[11]};
+wire [7:0] Mux56xBits8_inst0_I12;
+assign Mux56xBits8_inst0_I12 = {Register_inst0_O[19],Register_inst0_O[18],Register_inst0_O[17],Register_inst0_O[16],Register_inst0_O[15],Register_inst0_O[14],Register_inst0_O[13],Register_inst0_O[12]};
+wire [7:0] Mux56xBits8_inst0_I13;
+assign Mux56xBits8_inst0_I13 = {Register_inst0_O[20],Register_inst0_O[19],Register_inst0_O[18],Register_inst0_O[17],Register_inst0_O[16],Register_inst0_O[15],Register_inst0_O[14],Register_inst0_O[13]};
+wire [7:0] Mux56xBits8_inst0_I14;
+assign Mux56xBits8_inst0_I14 = {Register_inst0_O[21],Register_inst0_O[20],Register_inst0_O[19],Register_inst0_O[18],Register_inst0_O[17],Register_inst0_O[16],Register_inst0_O[15],Register_inst0_O[14]};
+wire [7:0] Mux56xBits8_inst0_I15;
+assign Mux56xBits8_inst0_I15 = {Register_inst0_O[22],Register_inst0_O[21],Register_inst0_O[20],Register_inst0_O[19],Register_inst0_O[18],Register_inst0_O[17],Register_inst0_O[16],Register_inst0_O[15]};
+wire [7:0] Mux56xBits8_inst0_I16;
+assign Mux56xBits8_inst0_I16 = {Register_inst0_O[23],Register_inst0_O[22],Register_inst0_O[21],Register_inst0_O[20],Register_inst0_O[19],Register_inst0_O[18],Register_inst0_O[17],Register_inst0_O[16]};
+wire [7:0] Mux56xBits8_inst0_I17;
+assign Mux56xBits8_inst0_I17 = {Register_inst0_O[24],Register_inst0_O[23],Register_inst0_O[22],Register_inst0_O[21],Register_inst0_O[20],Register_inst0_O[19],Register_inst0_O[18],Register_inst0_O[17]};
+wire [7:0] Mux56xBits8_inst0_I18;
+assign Mux56xBits8_inst0_I18 = {Register_inst0_O[25],Register_inst0_O[24],Register_inst0_O[23],Register_inst0_O[22],Register_inst0_O[21],Register_inst0_O[20],Register_inst0_O[19],Register_inst0_O[18]};
+wire [7:0] Mux56xBits8_inst0_I19;
+assign Mux56xBits8_inst0_I19 = {Register_inst0_O[26],Register_inst0_O[25],Register_inst0_O[24],Register_inst0_O[23],Register_inst0_O[22],Register_inst0_O[21],Register_inst0_O[20],Register_inst0_O[19]};
+wire [7:0] Mux56xBits8_inst0_I20;
+assign Mux56xBits8_inst0_I20 = {Register_inst0_O[27],Register_inst0_O[26],Register_inst0_O[25],Register_inst0_O[24],Register_inst0_O[23],Register_inst0_O[22],Register_inst0_O[21],Register_inst0_O[20]};
+wire [7:0] Mux56xBits8_inst0_I21;
+assign Mux56xBits8_inst0_I21 = {Register_inst0_O[28],Register_inst0_O[27],Register_inst0_O[26],Register_inst0_O[25],Register_inst0_O[24],Register_inst0_O[23],Register_inst0_O[22],Register_inst0_O[21]};
+wire [7:0] Mux56xBits8_inst0_I22;
+assign Mux56xBits8_inst0_I22 = {Register_inst0_O[29],Register_inst0_O[28],Register_inst0_O[27],Register_inst0_O[26],Register_inst0_O[25],Register_inst0_O[24],Register_inst0_O[23],Register_inst0_O[22]};
+wire [7:0] Mux56xBits8_inst0_I23;
+assign Mux56xBits8_inst0_I23 = {Register_inst0_O[30],Register_inst0_O[29],Register_inst0_O[28],Register_inst0_O[27],Register_inst0_O[26],Register_inst0_O[25],Register_inst0_O[24],Register_inst0_O[23]};
+wire [7:0] Mux56xBits8_inst0_I24;
+assign Mux56xBits8_inst0_I24 = {Register_inst0_O[31],Register_inst0_O[30],Register_inst0_O[29],Register_inst0_O[28],Register_inst0_O[27],Register_inst0_O[26],Register_inst0_O[25],Register_inst0_O[24]};
+wire [7:0] Mux56xBits8_inst0_I25;
+assign Mux56xBits8_inst0_I25 = {Register_inst0_O[32],Register_inst0_O[31],Register_inst0_O[30],Register_inst0_O[29],Register_inst0_O[28],Register_inst0_O[27],Register_inst0_O[26],Register_inst0_O[25]};
+wire [7:0] Mux56xBits8_inst0_I26;
+assign Mux56xBits8_inst0_I26 = {Register_inst0_O[33],Register_inst0_O[32],Register_inst0_O[31],Register_inst0_O[30],Register_inst0_O[29],Register_inst0_O[28],Register_inst0_O[27],Register_inst0_O[26]};
+wire [7:0] Mux56xBits8_inst0_I27;
+assign Mux56xBits8_inst0_I27 = {Register_inst0_O[34],Register_inst0_O[33],Register_inst0_O[32],Register_inst0_O[31],Register_inst0_O[30],Register_inst0_O[29],Register_inst0_O[28],Register_inst0_O[27]};
+wire [7:0] Mux56xBits8_inst0_I28;
+assign Mux56xBits8_inst0_I28 = {Register_inst0_O[35],Register_inst0_O[34],Register_inst0_O[33],Register_inst0_O[32],Register_inst0_O[31],Register_inst0_O[30],Register_inst0_O[29],Register_inst0_O[28]};
+wire [7:0] Mux56xBits8_inst0_I29;
+assign Mux56xBits8_inst0_I29 = {Register_inst0_O[36],Register_inst0_O[35],Register_inst0_O[34],Register_inst0_O[33],Register_inst0_O[32],Register_inst0_O[31],Register_inst0_O[30],Register_inst0_O[29]};
+wire [7:0] Mux56xBits8_inst0_I30;
+assign Mux56xBits8_inst0_I30 = {Register_inst0_O[37],Register_inst0_O[36],Register_inst0_O[35],Register_inst0_O[34],Register_inst0_O[33],Register_inst0_O[32],Register_inst0_O[31],Register_inst0_O[30]};
+wire [7:0] Mux56xBits8_inst0_I31;
+assign Mux56xBits8_inst0_I31 = {Register_inst0_O[38],Register_inst0_O[37],Register_inst0_O[36],Register_inst0_O[35],Register_inst0_O[34],Register_inst0_O[33],Register_inst0_O[32],Register_inst0_O[31]};
+wire [7:0] Mux56xBits8_inst0_I32;
+assign Mux56xBits8_inst0_I32 = {Register_inst0_O[39],Register_inst0_O[38],Register_inst0_O[37],Register_inst0_O[36],Register_inst0_O[35],Register_inst0_O[34],Register_inst0_O[33],Register_inst0_O[32]};
+wire [7:0] Mux56xBits8_inst0_I33;
+assign Mux56xBits8_inst0_I33 = {Register_inst0_O[40],Register_inst0_O[39],Register_inst0_O[38],Register_inst0_O[37],Register_inst0_O[36],Register_inst0_O[35],Register_inst0_O[34],Register_inst0_O[33]};
+wire [7:0] Mux56xBits8_inst0_I34;
+assign Mux56xBits8_inst0_I34 = {Register_inst0_O[41],Register_inst0_O[40],Register_inst0_O[39],Register_inst0_O[38],Register_inst0_O[37],Register_inst0_O[36],Register_inst0_O[35],Register_inst0_O[34]};
+wire [7:0] Mux56xBits8_inst0_I35;
+assign Mux56xBits8_inst0_I35 = {Register_inst0_O[42],Register_inst0_O[41],Register_inst0_O[40],Register_inst0_O[39],Register_inst0_O[38],Register_inst0_O[37],Register_inst0_O[36],Register_inst0_O[35]};
+wire [7:0] Mux56xBits8_inst0_I36;
+assign Mux56xBits8_inst0_I36 = {Register_inst0_O[43],Register_inst0_O[42],Register_inst0_O[41],Register_inst0_O[40],Register_inst0_O[39],Register_inst0_O[38],Register_inst0_O[37],Register_inst0_O[36]};
+wire [7:0] Mux56xBits8_inst0_I37;
+assign Mux56xBits8_inst0_I37 = {Register_inst0_O[44],Register_inst0_O[43],Register_inst0_O[42],Register_inst0_O[41],Register_inst0_O[40],Register_inst0_O[39],Register_inst0_O[38],Register_inst0_O[37]};
+wire [7:0] Mux56xBits8_inst0_I38;
+assign Mux56xBits8_inst0_I38 = {Register_inst0_O[45],Register_inst0_O[44],Register_inst0_O[43],Register_inst0_O[42],Register_inst0_O[41],Register_inst0_O[40],Register_inst0_O[39],Register_inst0_O[38]};
+wire [7:0] Mux56xBits8_inst0_I39;
+assign Mux56xBits8_inst0_I39 = {Register_inst0_O[46],Register_inst0_O[45],Register_inst0_O[44],Register_inst0_O[43],Register_inst0_O[42],Register_inst0_O[41],Register_inst0_O[40],Register_inst0_O[39]};
+wire [7:0] Mux56xBits8_inst0_I40;
+assign Mux56xBits8_inst0_I40 = {Register_inst0_O[47],Register_inst0_O[46],Register_inst0_O[45],Register_inst0_O[44],Register_inst0_O[43],Register_inst0_O[42],Register_inst0_O[41],Register_inst0_O[40]};
+wire [7:0] Mux56xBits8_inst0_I41;
+assign Mux56xBits8_inst0_I41 = {Register_inst0_O[48],Register_inst0_O[47],Register_inst0_O[46],Register_inst0_O[45],Register_inst0_O[44],Register_inst0_O[43],Register_inst0_O[42],Register_inst0_O[41]};
+wire [7:0] Mux56xBits8_inst0_I42;
+assign Mux56xBits8_inst0_I42 = {Register_inst0_O[49],Register_inst0_O[48],Register_inst0_O[47],Register_inst0_O[46],Register_inst0_O[45],Register_inst0_O[44],Register_inst0_O[43],Register_inst0_O[42]};
+wire [7:0] Mux56xBits8_inst0_I43;
+assign Mux56xBits8_inst0_I43 = {Register_inst0_O[50],Register_inst0_O[49],Register_inst0_O[48],Register_inst0_O[47],Register_inst0_O[46],Register_inst0_O[45],Register_inst0_O[44],Register_inst0_O[43]};
+wire [7:0] Mux56xBits8_inst0_I44;
+assign Mux56xBits8_inst0_I44 = {Register_inst0_O[51],Register_inst0_O[50],Register_inst0_O[49],Register_inst0_O[48],Register_inst0_O[47],Register_inst0_O[46],Register_inst0_O[45],Register_inst0_O[44]};
+wire [7:0] Mux56xBits8_inst0_I45;
+assign Mux56xBits8_inst0_I45 = {Register_inst0_O[52],Register_inst0_O[51],Register_inst0_O[50],Register_inst0_O[49],Register_inst0_O[48],Register_inst0_O[47],Register_inst0_O[46],Register_inst0_O[45]};
+wire [7:0] Mux56xBits8_inst0_I46;
+assign Mux56xBits8_inst0_I46 = {Register_inst0_O[53],Register_inst0_O[52],Register_inst0_O[51],Register_inst0_O[50],Register_inst0_O[49],Register_inst0_O[48],Register_inst0_O[47],Register_inst0_O[46]};
+wire [7:0] Mux56xBits8_inst0_I47;
+assign Mux56xBits8_inst0_I47 = {Register_inst0_O[54],Register_inst0_O[53],Register_inst0_O[52],Register_inst0_O[51],Register_inst0_O[50],Register_inst0_O[49],Register_inst0_O[48],Register_inst0_O[47]};
+wire [7:0] Mux56xBits8_inst0_I48;
+assign Mux56xBits8_inst0_I48 = {Register_inst0_O[55],Register_inst0_O[54],Register_inst0_O[53],Register_inst0_O[52],Register_inst0_O[51],Register_inst0_O[50],Register_inst0_O[49],Register_inst0_O[48]};
+wire [7:0] Mux56xBits8_inst0_I49;
+assign Mux56xBits8_inst0_I49 = {Register_inst0_O[56],Register_inst0_O[55],Register_inst0_O[54],Register_inst0_O[53],Register_inst0_O[52],Register_inst0_O[51],Register_inst0_O[50],Register_inst0_O[49]};
+wire [7:0] Mux56xBits8_inst0_I50;
+assign Mux56xBits8_inst0_I50 = {Register_inst0_O[57],Register_inst0_O[56],Register_inst0_O[55],Register_inst0_O[54],Register_inst0_O[53],Register_inst0_O[52],Register_inst0_O[51],Register_inst0_O[50]};
+wire [7:0] Mux56xBits8_inst0_I51;
+assign Mux56xBits8_inst0_I51 = {Register_inst0_O[58],Register_inst0_O[57],Register_inst0_O[56],Register_inst0_O[55],Register_inst0_O[54],Register_inst0_O[53],Register_inst0_O[52],Register_inst0_O[51]};
+wire [7:0] Mux56xBits8_inst0_I52;
+assign Mux56xBits8_inst0_I52 = {Register_inst0_O[59],Register_inst0_O[58],Register_inst0_O[57],Register_inst0_O[56],Register_inst0_O[55],Register_inst0_O[54],Register_inst0_O[53],Register_inst0_O[52]};
+wire [7:0] Mux56xBits8_inst0_I53;
+assign Mux56xBits8_inst0_I53 = {Register_inst0_O[60],Register_inst0_O[59],Register_inst0_O[58],Register_inst0_O[57],Register_inst0_O[56],Register_inst0_O[55],Register_inst0_O[54],Register_inst0_O[53]};
+wire [7:0] Mux56xBits8_inst0_I54;
+assign Mux56xBits8_inst0_I54 = {Register_inst0_O[61],Register_inst0_O[60],Register_inst0_O[59],Register_inst0_O[58],Register_inst0_O[57],Register_inst0_O[56],Register_inst0_O[55],Register_inst0_O[54]};
+wire [7:0] Mux56xBits8_inst0_I55;
+assign Mux56xBits8_inst0_I55 = {Register_inst0_O[62],Register_inst0_O[61],Register_inst0_O[60],Register_inst0_O[59],Register_inst0_O[58],Register_inst0_O[57],Register_inst0_O[56],Register_inst0_O[55]};
 Mux56xBits8 Mux56xBits8_inst0 (
-    .I0(Register_inst0_O[7:0]),
-    .I1(Register_inst0_O[8:1]),
-    .I2(Register_inst0_O[9:2]),
-    .I3(Register_inst0_O[10:3]),
-    .I4(Register_inst0_O[11:4]),
-    .I5(Register_inst0_O[12:5]),
-    .I6(Register_inst0_O[13:6]),
-    .I7(Register_inst0_O[14:7]),
-    .I8(Register_inst0_O[15:8]),
-    .I9(Register_inst0_O[16:9]),
-    .I10(Register_inst0_O[17:10]),
-    .I11(Register_inst0_O[18:11]),
-    .I12(Register_inst0_O[19:12]),
-    .I13(Register_inst0_O[20:13]),
-    .I14(Register_inst0_O[21:14]),
-    .I15(Register_inst0_O[22:15]),
-    .I16(Register_inst0_O[23:16]),
-    .I17(Register_inst0_O[24:17]),
-    .I18(Register_inst0_O[25:18]),
-    .I19(Register_inst0_O[26:19]),
-    .I20(Register_inst0_O[27:20]),
-    .I21(Register_inst0_O[28:21]),
-    .I22(Register_inst0_O[29:22]),
-    .I23(Register_inst0_O[30:23]),
-    .I24(Register_inst0_O[31:24]),
-    .I25(Register_inst0_O[32:25]),
-    .I26(Register_inst0_O[33:26]),
-    .I27(Register_inst0_O[34:27]),
-    .I28(Register_inst0_O[35:28]),
-    .I29(Register_inst0_O[36:29]),
-    .I30(Register_inst0_O[37:30]),
-    .I31(Register_inst0_O[38:31]),
-    .I32(Register_inst0_O[39:32]),
-    .I33(Register_inst0_O[40:33]),
-    .I34(Register_inst0_O[41:34]),
-    .I35(Register_inst0_O[42:35]),
-    .I36(Register_inst0_O[43:36]),
-    .I37(Register_inst0_O[44:37]),
-    .I38(Register_inst0_O[45:38]),
-    .I39(Register_inst0_O[46:39]),
-    .I40(Register_inst0_O[47:40]),
-    .I41(Register_inst0_O[48:41]),
-    .I42(Register_inst0_O[49:42]),
-    .I43(Register_inst0_O[50:43]),
-    .I44(Register_inst0_O[51:44]),
-    .I45(Register_inst0_O[52:45]),
-    .I46(Register_inst0_O[53:46]),
-    .I47(Register_inst0_O[54:47]),
-    .I48(Register_inst0_O[55:48]),
-    .I49(Register_inst0_O[56:49]),
-    .I50(Register_inst0_O[57:50]),
-    .I51(Register_inst0_O[58:51]),
-    .I52(Register_inst0_O[59:52]),
-    .I53(Register_inst0_O[60:53]),
-    .I54(Register_inst0_O[61:54]),
-    .I55(Register_inst0_O[62:55]),
+    .I0(Mux56xBits8_inst0_I0),
+    .I1(Mux56xBits8_inst0_I1),
+    .I2(Mux56xBits8_inst0_I2),
+    .I3(Mux56xBits8_inst0_I3),
+    .I4(Mux56xBits8_inst0_I4),
+    .I5(Mux56xBits8_inst0_I5),
+    .I6(Mux56xBits8_inst0_I6),
+    .I7(Mux56xBits8_inst0_I7),
+    .I8(Mux56xBits8_inst0_I8),
+    .I9(Mux56xBits8_inst0_I9),
+    .I10(Mux56xBits8_inst0_I10),
+    .I11(Mux56xBits8_inst0_I11),
+    .I12(Mux56xBits8_inst0_I12),
+    .I13(Mux56xBits8_inst0_I13),
+    .I14(Mux56xBits8_inst0_I14),
+    .I15(Mux56xBits8_inst0_I15),
+    .I16(Mux56xBits8_inst0_I16),
+    .I17(Mux56xBits8_inst0_I17),
+    .I18(Mux56xBits8_inst0_I18),
+    .I19(Mux56xBits8_inst0_I19),
+    .I20(Mux56xBits8_inst0_I20),
+    .I21(Mux56xBits8_inst0_I21),
+    .I22(Mux56xBits8_inst0_I22),
+    .I23(Mux56xBits8_inst0_I23),
+    .I24(Mux56xBits8_inst0_I24),
+    .I25(Mux56xBits8_inst0_I25),
+    .I26(Mux56xBits8_inst0_I26),
+    .I27(Mux56xBits8_inst0_I27),
+    .I28(Mux56xBits8_inst0_I28),
+    .I29(Mux56xBits8_inst0_I29),
+    .I30(Mux56xBits8_inst0_I30),
+    .I31(Mux56xBits8_inst0_I31),
+    .I32(Mux56xBits8_inst0_I32),
+    .I33(Mux56xBits8_inst0_I33),
+    .I34(Mux56xBits8_inst0_I34),
+    .I35(Mux56xBits8_inst0_I35),
+    .I36(Mux56xBits8_inst0_I36),
+    .I37(Mux56xBits8_inst0_I37),
+    .I38(Mux56xBits8_inst0_I38),
+    .I39(Mux56xBits8_inst0_I39),
+    .I40(Mux56xBits8_inst0_I40),
+    .I41(Mux56xBits8_inst0_I41),
+    .I42(Mux56xBits8_inst0_I42),
+    .I43(Mux56xBits8_inst0_I43),
+    .I44(Mux56xBits8_inst0_I44),
+    .I45(Mux56xBits8_inst0_I45),
+    .I46(Mux56xBits8_inst0_I46),
+    .I47(Mux56xBits8_inst0_I47),
+    .I48(Mux56xBits8_inst0_I48),
+    .I49(Mux56xBits8_inst0_I49),
+    .I50(Mux56xBits8_inst0_I50),
+    .I51(Mux56xBits8_inst0_I51),
+    .I52(Mux56xBits8_inst0_I52),
+    .I53(Mux56xBits8_inst0_I53),
+    .I54(Mux56xBits8_inst0_I54),
+    .I55(Mux56xBits8_inst0_I55),
     .S(magma_UInt_6_mul_inst0_out),
     .O(O)
 );
