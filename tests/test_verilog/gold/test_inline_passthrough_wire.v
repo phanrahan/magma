@@ -24,8 +24,8 @@ wire [1:0] _magma_inline_wire2;
 wire [1:0] _magma_inline_wire3;
 assign _magma_inline_wire0 = I_y[0];
 assign _magma_inline_wire1 = I_y[1];
-assign _magma_inline_wire2 = I_y[2:1];
-assign _magma_inline_wire3 = I_y[3:2];
+assign _magma_inline_wire2 = {I_y[2],I_y[1]};
+assign _magma_inline_wire3 = {I_y[3],I_y[2]};
 assign O_x = I_x;
 assign O_y = I_y;
 

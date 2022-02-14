@@ -332,7 +332,7 @@ def test_array2_overlapping_override_bulk_wire_slice(nested, caplog):
 
     _check_compile("test_array2_overlapping_override_bulk_wire_slice", Foo,
                    nested)
-    error_msg = "Wiring multiple outputs to same wire, using last connection. Input: Foo.O[slice(0, 2, None)], Old Output: Foo.I[slice(0, 2, None)], New Output: Foo.I[slice(2, 4, None)]"  # noqa
+    error_msg = "Wiring multiple outputs to same wire, using last connection. Input: Foo.O[0], Old Output: Foo.I[0], New Output: Foo.I[2]"  # noqa
     assert str(caplog.records[0].msg) == error_msg
 
 
@@ -383,3 +383,13 @@ def test_array2_nested_bits_temporary():
             x = pointer[i][-1] & m.bit(1)
 
     _check_compile("test_array2_nested_bits_temporary", Foo, False, True)
+
+
+def test_array2_wire_to_anon():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[10]))
+        x = m.concat(io.I, m.bits([0, 0]))
+        io.O @= x
+        for i, driving in enumerate(io.I.driving()):
+            assert len(driving) == 1
+            assert driving[0] is io.O[i]

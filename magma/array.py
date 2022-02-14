@@ -609,7 +609,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         o = magma_value(o)
         if not self._check_wireable(o, debug_info):
             return
-        if self._has_elaborated_children():
+        if self._has_elaborated_children() or o._has_elaborated_children():
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o)
         else:

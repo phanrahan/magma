@@ -118,11 +118,19 @@ module TestSlice (
     output [5:0] O
 );
 wire [5:0] Mux4xBits6_inst0_O;
+wire [5:0] Mux4xBits6_inst0_I0;
+assign Mux4xBits6_inst0_I0 = {I[5],I[4],I[3],I[2],I[1],I[0]};
+wire [5:0] Mux4xBits6_inst0_I1;
+assign Mux4xBits6_inst0_I1 = {I[6],I[5],I[4],I[3],I[2],I[1]};
+wire [5:0] Mux4xBits6_inst0_I2;
+assign Mux4xBits6_inst0_I2 = {I[7],I[6],I[5],I[4],I[3],I[2]};
+wire [5:0] Mux4xBits6_inst0_I3;
+assign Mux4xBits6_inst0_I3 = {I[8],I[7],I[6],I[5],I[4],I[3]};
 Mux4xBits6 Mux4xBits6_inst0 (
-    .I0(I[5:0]),
-    .I1(I[6:1]),
-    .I2(I[7:2]),
-    .I3(I[8:3]),
+    .I0(Mux4xBits6_inst0_I0),
+    .I1(Mux4xBits6_inst0_I1),
+    .I2(Mux4xBits6_inst0_I2),
+    .I3(Mux4xBits6_inst0_I3),
     .S(x),
     .O(Mux4xBits6_inst0_O)
 );
