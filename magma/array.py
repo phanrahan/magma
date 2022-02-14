@@ -264,7 +264,6 @@ def _yield_curr_slice_or_elem(curr_slice_or_elem: list):
     if len(curr_slice_or_elem) == 1:
         child = first_elem
     else:
-        print(curr_slice_or_elem)
         # Assumptions based on _is_not_next_elem_in_slice logic
         assert all(elem.name.index == first_elem.name.index + i and
                    elem.name.array is first_elem.name.array
