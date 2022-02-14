@@ -383,3 +383,13 @@ def test_array2_nested_bits_temporary():
             x = pointer[i][-1] & m.bit(1)
 
     _check_compile("test_array2_nested_bits_temporary", Foo, False, True)
+
+
+def test_array2_wire_to_anon():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[10]))
+        x = m.concat(io.I, m.bits([0, 0]))
+        io.O @= x
+        for i, driving in enumerate(io.I.driving()):
+            assert len(driving) == 1
+            assert driving[0] is io.O[i]
