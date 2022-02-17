@@ -125,7 +125,7 @@ Cannot wire Bits[1](1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))\
 Cannot wire Bits[3](2) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))\
 """
     assert caplog.messages[2] == """\
-Interface output port Foo.A not driven\
+Foo.A not driven\
 """
 
 
@@ -146,3 +146,23 @@ def test_product_width_mismatch2(caplog):
     assert caplog.messages[0] == """\
 Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))\
 """
+
+
+def test_unwired_mixed(caplog):
+    class T(m.Product):
+        x = m.Out(m.Bit)
+        y = m.In(m.Bit)
+
+    class Foo(m.Circuit):
+        io = m.IO(z=T, I=m.In(m.Bit))
+
+    class Bar(m.Circuit):
+        io = m.IO(z=T, I=m.In(m.Bit), O=m.Out(m.Bit))
+
+        foo = Foo()
+        foo.I @= io.I
+        io.O @= foo.z.x
+
+
+    assert caplog.messages[0] == "Bar.z.x not driven"
+    assert caplog.messages[1] == "Foo_inst0.z.y not driven"
