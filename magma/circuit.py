@@ -26,7 +26,7 @@ try:
 except ImportError:
     pass
 
-from magma.clock import is_clock_or_nested_clock, Clock
+from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
 from magma.definition_context import DefinitionContext
 from magma.logging import root_logger
 from magma.ref import TempNamedRef
@@ -675,19 +675,33 @@ class DefineCircuitKind(CircuitKind):
 
         return self
 
+    def _check_port_unconnected(self, port, debug_info):
+        if port.is_output():
+            return
+        if port.is_mixed():
+            for elem in port:
+                self._check_port_unconnected(elem, debug_info)
+            return
+        if port.trace() is None:
+            if isinstance(port, ClockTypes):
+                msg = "{} not driven, will attempt to automatically wire"
+                _logger.info(WiringLog(msg, port), debug_info=debug_info)
+            elif is_clock_or_nested_clock(type(port)):
+                # Must be nested, otherwise caught in previous case
+                for elem in port:
+                    self._check_port_unconnected(elem,
+                                                 debug_info)
+            else:
+                msg = "{} not driven"
+                _logger.error(WiringLog(msg, port), debug_info=debug_info)
+
     def check_unconnected(self):
-        for port in self.interface.inputs():
-            if port.trace() is None:
-                msg = (f"Interface output port {self.name}.{port.name} not"
-                       " driven")
-                _logger.error(msg, debug_info=self.debug_info)
+        for port in self.interface.ports.values():
+            self._check_port_unconnected(port, self.debug_info)
 
         for inst in self.instances:
-            for port in inst.interface.inputs():
-                if port.trace() is None:
-                    msg = (f"Instance input port {inst.name}.{port.name} not"
-                           " driven")
-                    _logger.error(msg, debug_info=inst.debug_info)
+            for port in inst.interface.ports.values():
+                self._check_port_unconnected(port, inst.debug_info)
 
     @property
     def is_definition(self):
