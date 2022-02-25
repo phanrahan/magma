@@ -22,6 +22,7 @@ def test_ignore_unused_undriven_basic():
 
 def test_ignore_unused_undriven_hierarchy():
     class Foo(m.Circuit):
+        _ignore_undriven_ = True
         io = m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit),
                   O0=m.Out(m.Bit), O1=m.Out(m.Bit))
 

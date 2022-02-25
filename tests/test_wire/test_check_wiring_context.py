@@ -51,6 +51,7 @@ def test_bad_temp2(caplog):
     class Foo(m.Circuit):
         io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
         z = m.Bits[8]()
+        z @= io.x
         io.y @= z
 
     class Bar(m.Circuit):
@@ -98,6 +99,7 @@ def test_bad_inst(caplog):
     class Bar(m.Circuit):
         io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
         foo = Foo()
+        foo.x @= io.x
         io.y @= foo.y
 
     class Baz(m.Circuit):
@@ -130,9 +132,10 @@ def test_bad_defn(caplog):
     class Foo(m.Circuit):
         io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]), z=m.Out(m.Bits[8]))
         io.z @= io.x
+        io.y @= io.x
 
     class Bar(m.Circuit):
-        io = m.IO(x=m.In(m.Bits[8]), y=m.Out(m.Bits[8]))
+        io = m.IO(x=m.In(m.Bits[8]))
         Foo.y @= io.x
 
     with pytest.raises(MagmaCompileException) as e:

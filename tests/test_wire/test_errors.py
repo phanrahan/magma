@@ -186,10 +186,14 @@ def test_hanging_anon_error(caplog):
             m.compile("Foo", _Foo, output="coreir")
             assert False, "Did not raise excpected exception"
         except Exception as e:
-            assert str(e) == "Found unconnected port: _Foo.O\n_Foo.O: Unconnected"
+            assert str(e) == "Found circuit with errors: _Foo"
 
         msg = """\
 \033[1mtests/test_wire/test_errors.py:180\033[0m: _Foo.O not driven
+
+Unconnected port info
+---------------------
+    _Foo.O: Unconnected
 >>         class _Foo(m.Circuit):"""
         assert caplog.records[0].msg == msg
         assert has_error(caplog, msg)

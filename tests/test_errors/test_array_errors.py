@@ -3,7 +3,7 @@ import pytest
 import magma as m
 
 
-def test_array_partial_unwired():
+def test_array_partial_unwired(caplog):
     class Foo(m.Circuit):
         io = m.IO(A=m.Out(m.Bits[2]), x=m.Out(m.Bit))
         io.A[0] @= 1
@@ -11,15 +11,18 @@ def test_array_partial_unwired():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]: Connected
-    Foo.A[1]: Unconnected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A[0]: Connected
+        Foo.A[1]: Unconnected\
 """
 
 
-def test_array_partial_unwired_nested():
+def test_array_partial_unwired_nested(caplog):
     class Foo(m.Circuit):
         io = m.IO(A=m.Out(m.Array[2, m.Bits[2]]), x=m.Out(m.Bit))
         io.A[0] @= 1
@@ -27,15 +30,18 @@ def test_array_partial_unwired_nested():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]: Connected
-    Foo.A[1]: Unconnected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A[0]: Connected
+        Foo.A[1]: Unconnected\
 """
 
 
-def test_array_partial_unwired_nested2():
+def test_array_partial_unwired_nested2(caplog):
     class Foo(m.Circuit):
         io = m.IO(A=m.Out(m.Array[2, m.Bits[2]]), x=m.Out(m.Bit))
         io.A[0] @= 1
@@ -44,13 +50,16 @@ def test_array_partial_unwired_nested2():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]: Connected
-    Foo.A[1]
-        Foo.A[1][0]: Connected
-        Foo.A[1][1]: Unconnected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A[0]: Connected
+        Foo.A[1]
+            Foo.A[1][0]: Connected
+            Foo.A[1][1]: Unconnected\
 """
 
 

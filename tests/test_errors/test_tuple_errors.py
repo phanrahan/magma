@@ -3,7 +3,7 @@ import pytest
 import magma as m
 
 
-def test_product_partial_unwired():
+def test_product_partial_unwired(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -15,15 +15,18 @@ def test_product_partial_unwired():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A.x: Connected
-    Foo.A.y: Unconnected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A.x: Connected
+        Foo.A.y: Unconnected\
 """
 
 
-def test_product_partial_nested_unwired():
+def test_product_partial_nested_unwired(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -39,15 +42,18 @@ def test_product_partial_nested_unwired():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A.x: Connected
-    Foo.A.y: Unconnected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A.x: Connected
+        Foo.A.y: Unconnected\
 """
 
 
-def test_product_partial_nested_unwired2():
+def test_product_partial_nested_unwired2(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -64,17 +70,20 @@ def test_product_partial_nested_unwired2():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A.x: Connected
-    Foo.A.y
-        Foo.A.y.x: Connected
-        Foo.A.y.y: Unconnected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A.x: Connected
+        Foo.A.y
+            Foo.A.y.x: Connected
+            Foo.A.y.y: Unconnected\
 """
 
 
-def test_product_arr():
+def test_product_arr(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -87,15 +96,18 @@ def test_product_arr():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]
-        Foo.A[0].x: Connected
-        Foo.A[0].y: Unconnected
-    Foo.A[1]
-        Foo.A[1].x: Unconnected
-        Foo.A[1].y: Connected\
+    assert caplog.messages[0] == """\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A
+        Foo.A[0]
+            Foo.A[0].x: Connected
+            Foo.A[0].y: Unconnected
+        Foo.A[1]
+            Foo.A[1].x: Unconnected
+            Foo.A[1].y: Connected\
 """
 
 
@@ -125,7 +137,11 @@ Cannot wire Bits[1](1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))\
 Cannot wire Bits[3](2) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))\
 """
     assert caplog.messages[2] == """\
-Foo.A not driven\
+Foo.A not driven
+
+Unconnected port info
+---------------------
+    Foo.A: Unconnected\
 """
 
 
@@ -164,5 +180,17 @@ def test_unwired_mixed(caplog):
         io.O @= foo.z.x
 
 
-    assert caplog.messages[0] == "Bar.z.x not driven"
-    assert caplog.messages[1] == "Foo_inst0.z.y not driven"
+    assert caplog.messages[0] == """\
+Bar.z.x not driven
+
+Unconnected port info
+---------------------
+    Bar.z.x: Unconnected\
+"""
+    assert caplog.messages[1] == """\
+Foo_inst0.z.y not driven
+
+Unconnected port info
+---------------------
+    Foo_inst0.z.y: Unconnected\
+"""
