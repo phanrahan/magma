@@ -48,7 +48,7 @@ def MagmaArrayCreateOp(T: ArrayMeta):
     assert isinstance(T, ArrayMeta)
     T = T.undirected_t
     name = f"magma_array_create_op_{value_or_type_to_string(T)}"
-    ports = dict(**{f"I{i}": In(T.T) for i in range(T.N)})
+    ports = {f"I{i}": In(T.T) for i in range(T.N)}
     ports.update(dict(O=Out(T)))
     attrs = dict(T=T)
     return InstanceWrapper(name, ports, attrs)
@@ -69,7 +69,7 @@ def MagmaTupleCreateOp(T: TupleMeta):
     T = T.undirected_t
     name = f"magma_tuple_create_op_{value_or_type_to_string(T)}"
     fields = T.field_dict
-    ports = dict(**{f"I{k}": In(t) for k, t in fields.items()})
+    ports = {f"I{k}": In(t) for k, t in fields.items()}
     ports.update(dict(O=Out(T)))
     return InstanceWrapper(name, ports, {})
 
