@@ -38,36 +38,32 @@ class ReadInOutOp(MlirOp):
 
 
 @dataclasses.dataclass
-class AssignOp(MlirOp):
+class AssignBaseOp(MlirOp):
     operands: List[MlirValue]
 
     def print_op(self, printer: PrinterBase):
-        printer.print(f"sv.assign ")
+        printer.print(f"sv.{self.op_name} ")
         print_names(self.operands, printer)
         printer.print(" : ")
         print_types(self.operands[1], printer)
 
 
 @dataclasses.dataclass
-class PAssignOp(MlirOp):
+class AssignOp(AssignBaseOp):
     operands: List[MlirValue]
-
-    def print_op(self, printer: PrinterBase):
-        printer.print(f"sv.passign ")
-        print_names(self.operands, printer)
-        printer.print(" : ")
-        print_types(self.operands[1], printer)
+    op_name = "assign"
 
 
 @dataclasses.dataclass
-class BPAssignOp(MlirOp):
+class PAssignOp(AssignBaseOp):
     operands: List[MlirValue]
+    op_name = "passign"
 
-    def print_op(self, printer: PrinterBase):
-        printer.print(f"sv.bpassign ")
-        print_names(self.operands, printer)
-        printer.print(" : ")
-        print_types(self.operands[1], printer)
+
+@dataclasses.dataclass
+class BPAssignOp(AssignBaseOp):
+    operands: List[MlirValue]
+    op_name = "bpassign"
 
 
 @dataclasses.dataclass
