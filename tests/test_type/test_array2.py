@@ -393,3 +393,16 @@ def test_array2_wire_to_anon():
         for i, driving in enumerate(io.I.driving()):
             assert len(driving) == 1
             assert driving[0] is io.O[i]
+
+
+def test_array2_value_return_type():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]))
+
+    class Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        foo = Foo()
+        foo.I[0] @= io.I
+        foo.I[1] @= io.I
+
+        assert isinstance(foo.I.value(), m.Bits)
