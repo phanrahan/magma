@@ -42,6 +42,12 @@ def _subprocess_run(args, stdin, stdout):
         stdout.write(proc.stdout.read())
 
 
+def _make_stream(filename, mode, default):
+    if filename is None:
+        return default, False
+    return open(filename, mode), True
+
+
 def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
     circt_home = _get_circt_home()
     opt_cmd = _make_opt_cmd(circt_home)
@@ -49,18 +55,8 @@ def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
 
 
 def main(infile: Optional[str] = None, outfile: Optional[str] = None):
-    if infile is None:
-        istream = sys.stdin
-        close_istream = False
-    else:
-        istream = open(infile, "r")
-        close_istream = True
-    if outfile is None:
-        ostream = sys.stdout
-        close_ostream = False
-    else:
-        ostream = open(outfile, "w")
-        close_ostream = True
+    istream, close_istream = _make_stream(infile, "r", sys.stdin)
+    ostream, close_ostream = _make_stream(outfile, "w", sys.stdout)
     ret = mlir_to_verilog(istream, ostream)
     assert ret is None
     if close_istream:
