@@ -33,7 +33,7 @@ from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.t import Kind, Type
-from magma.tuple import Product, ProductMeta
+from magma.tuple import TupleMeta, Tuple as m_Tuple
 
 
 MlirValueList = List[MlirValue]
@@ -72,8 +72,8 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
         if issubclass(type.T, Bit):
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
-    if issubclass(type, Product):
-        fields = {k: magma_type_to_mlir_type(t)
+    if issubclass(type, m_Tuple):
+        fields = {str(k): magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return hw.StructType(tuple(fields.items()))
 
@@ -162,7 +162,7 @@ class ModuleVisitor:
             operands = [self.make_constant(T.T, v) for v in value]
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
-        if isinstance(T, ProductMeta):
+        if isinstance(T, TupleMeta):
             fields = T.field_dict.items()
             value = value if value is not None else {k: None for k, _ in fields}
             operands = [self.make_constant(t, value[k]) for k, t in fields]
@@ -511,14 +511,14 @@ class ModuleVisitor:
                 operands=list(reversed(module.operands)),
                 results=module.results)
             return True
-        if inst_wrapper.name.startswith("magma_product_get_op"):
+        if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]
             hw.StructExtractOp(
                 field=index,
                 operands=module.operands,
                 results=module.results)
             return True
-        if inst_wrapper.name.startswith("magma_product_create_op"):
+        if inst_wrapper.name.startswith("magma_tuple_create_op"):
             hw.StructCreateOp(
                 operands=module.operands,
                 results=module.results)

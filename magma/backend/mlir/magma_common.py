@@ -6,7 +6,7 @@ from magma.backend.mlir.common import make_unique_name, replace_all
 from magma.circuit import Circuit, DefineCircuitKind
 from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
-from magma.tuple import Product, ProductMeta
+from magma.tuple import TupleMeta, Tuple as m_Tuple
 
 
 ModuleLike = Union[DefineCircuitKind, Circuit]
@@ -41,7 +41,7 @@ def visit_value_by_direction(
     if value.is_output():
         return output_visitor(value)
     if value.is_mixed():
-        if isinstance(value, Product):
+        if isinstance(value, m_Tuple):
             for field in value.values():
                 visit_value_by_direction(field, input_visitor, output_visitor)
             return
@@ -69,7 +69,7 @@ def visit_value_wrapper_by_direction(
     if T.is_output():
         return output_visitor(value_wrapper)
     if T.is_mixed():
-        if isinstance(T, ProductMeta):
+        if isinstance(T, TupleMeta):
             for key, TT in T.field_dict.items():
                 field = ValueWrapper(f"{value_wrapper.name}_{key}", TT)
                 visit_value_wrapper_by_direction(

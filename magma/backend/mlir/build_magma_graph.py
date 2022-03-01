@@ -6,14 +6,14 @@ from magma.backend.mlir.magma_common import (
     ModuleLike, visit_value_by_direction, safe_root)
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
-    MagmaProductGetOp, MagmaProductCreateOp,
+    MagmaTupleGetOp, MagmaTupleCreateOp,
     MagmaBitConstantOp, MagmaBitsConstantOp)
 from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.digital import Digital
 from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
 from magma.t import Type
-from magma.tuple import Product
+from magma.tuple import Tuple as m_Tuple
 
 
 def _const_digital_to_bool(digital: Digital) -> bool:
@@ -84,11 +84,10 @@ def _visit_driver(
             info = dict(src=creator.O, dst=value)
             ctx.graph.add_edge(creator, module, info=info)
             return
-        if isinstance(driver, Product):
+        if isinstance(driver, m_Tuple):
             T = type(driver)
-            creator = MagmaProductCreateOp(T)
-            for k, t in T.field_dict.items():
-                element = getattr(driver, k)
+            creator = MagmaTupleCreateOp(T)
+            for k, element in driver.items():
                 creator_input = getattr(creator, f"I{k}")
                 _visit_driver(ctx, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)
@@ -123,7 +122,7 @@ def _visit_driver(
             getter = ctx.getter_cache[cache_key]
         except KeyError:
             T = type(ref.tuple)
-            getter = MagmaProductGetOp(T, ref.index)
+            getter = MagmaTupleGetOp(T, ref.index)
             _visit_driver(ctx, getter.I, ref.tuple, getter)
             ctx.getter_cache[cache_key] = getter
         info = dict(src=getter.O, dst=value)

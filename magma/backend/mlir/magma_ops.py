@@ -8,7 +8,14 @@ from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.t import In, Out
-from magma.tuple import ProductMeta
+from magma.tuple import TupleMeta, ProductMeta
+
+
+def _get_tuple_field_type(T: TupleMeta, index: Union[int, str]):
+    if isinstance(T, ProductMeta):
+        return T.field_dict[index]
+    index = int(index)
+    return T.field_dict[index]
 
 
 def MagmaArrayGetOp(T: ArrayMeta, index: str):
@@ -47,20 +54,20 @@ def MagmaArrayCreateOp(T: ArrayMeta):
     return InstanceWrapper(name, ports, attrs)
 
 
-def MagmaProductGetOp(T: ProductMeta, index: Union[int, str]):
-    assert isinstance(T, ProductMeta)
+def MagmaTupleGetOp(T: TupleMeta, index: Union[int, str]):
+    assert isinstance(T, TupleMeta)
     T = T.undirected_t
-    name = f"magma_product_get_op_{value_or_type_to_string(T)}_{index}"
-    T_out = T.field_dict[index]
+    name = f"magma_tuple_get_op_{value_or_type_to_string(T)}_{index}"
+    T_out = _get_tuple_field_type(T, index)
     ports = dict(I=In(T), O=Out(T_out))
     attrs = dict(T=T, index=index)
     return InstanceWrapper(name, ports, attrs)
 
 
-def MagmaProductCreateOp(T: ProductMeta):
-    assert isinstance(T, ProductMeta)
+def MagmaTupleCreateOp(T: TupleMeta):
+    assert isinstance(T, TupleMeta)
     T = T.undirected_t
-    name = f"magma_product_create_op_{value_or_type_to_string(T)}"
+    name = f"magma_tuple_create_op_{value_or_type_to_string(T)}"
     fields = T.field_dict
     ports = dict(**{f"I{k}": In(t) for k, t in fields.items()})
     ports.update(dict(O=Out(T)))
