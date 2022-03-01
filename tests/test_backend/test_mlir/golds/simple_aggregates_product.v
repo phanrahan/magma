@@ -1,4 +1,4 @@
-module simple_aggregates_tuple(	// <stdin>:1:1
+module simple_aggregates_product(	// <stdin>:1:1
   input  struct packed {logic [7:0] x; logic [7:0] y; } a,
   output struct packed {logic [7:0] x; logic [7:0] y; } y);
 

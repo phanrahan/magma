@@ -17,7 +17,6 @@ from magma.tuple import Product
 
 
 def _const_digital_to_bool(digital: Digital) -> bool:
-    assert isinstance(digital, Digital)
     assert digital.const()
     T = type(digital)
     if digital is T.GND:

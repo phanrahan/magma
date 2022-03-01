@@ -58,7 +58,7 @@ class complex_aggregates_nested_array(m.Circuit):
         io.y[i][j][k] @= a0 | a1
 
 
-class simple_aggregates_tuple(m.Circuit):
+class simple_aggregates_product(m.Circuit):
     S = m.Bits[8]
     T = m.Product.from_fields("anon", dict(x=S, y=S))
     io = m.IO(a=m.In(T), y=m.Out(T))

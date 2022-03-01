@@ -128,7 +128,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_aggregates_array,
         examples.simple_aggregates_nested_array,
         examples.complex_aggregates_nested_array,
-        examples.simple_aggregates_tuple,
+        examples.simple_aggregates_product,
         examples.simple_constant,
         examples.aggregate_constant,
         examples.simple_mux_wrapper,
