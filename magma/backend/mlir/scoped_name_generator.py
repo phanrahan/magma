@@ -22,7 +22,6 @@ class ScopedNameGenerator(ScopedNameGeneratorBase):
         index = self._indices[name]
         self._indices[name] += 1
         if force:
-            if index != 0:
-                raise RuntimeError()
+            assert index == 0
             return name
         return name + str(index)
