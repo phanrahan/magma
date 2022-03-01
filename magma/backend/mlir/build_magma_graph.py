@@ -3,7 +3,7 @@ import dataclasses
 from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import (
-    ModuleLike, visit_value_by_direction, safe_root)
+    ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root)
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaTupleGetOp, MagmaTupleCreateOp,
@@ -139,7 +139,7 @@ def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
 
 def _visit_inputs(ctx: ModuleContext, module: ModuleLike):
     for port in module.interface.ports.values():
-        visit_value_by_direction(
+        visit_value_or_value_wrapper_by_direction(
             port,
             lambda p: _visit_input(ctx, p, module),
             lambda _: None

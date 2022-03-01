@@ -16,8 +16,8 @@ from magma.backend.mlir.magma_common import (
     ValueWrapper as MagmaValueWrapper,
     InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
-    visit_value_by_direction as visit_magma_value_by_direction,
-    visit_value_wrapper_by_direction as visit_magma_value_wrapper_by_direction)
+    visit_value_or_value_wrapper_by_direction as
+        visit_magma_value_or_value_wrapper_by_direction)
 from magma.backend.mlir.mlir import MlirType, MlirValue, MlirSymbol, push_block
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
@@ -79,12 +79,11 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
 
 
 def get_module_interface(
-        module: MagmaModuleLike,
-        ctx) -> Tuple[MlirValueList, MlirValueList]:
+        module: MagmaModuleLike, ctx) -> Tuple[MlirValueList, MlirValueList]:
     operands = []
     results = []
     for port in module.interface.ports.values():
-        visit_magma_value_by_direction(
+        visit_magma_value_or_value_wrapper_by_direction(
             port,
             lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
             lambda p: results.append(ctx.get_or_make_mapped_value(p))
@@ -126,19 +125,7 @@ class ModuleWrapper:
     results: MlirValueList
 
     @staticmethod
-    def make(
-            module: MagmaModuleLike,
-            ctx) -> 'ModuleWrapper':
-        if isinstance(module, MagmaInstanceWrapper):
-            operands = []
-            results = []
-            for port in module.ports.values():
-                visit_magma_value_wrapper_by_direction(
-                    port,
-                    lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
-                    lambda p: results.append(ctx.get_or_make_mapped_value(p))
-                )
-            return ModuleWrapper(module, operands, results)
+    def make(module: MagmaModuleLike, ctx) -> 'ModuleWrapper':
         operands, results = get_module_interface(module, ctx)
         return ModuleWrapper(module, operands, results)
 
@@ -705,7 +692,9 @@ class HardwareModule:
 
         i, o = [], []
         for port in self._magma_defn_or_decl.interface.ports.values():
-            visit_magma_value_by_direction(port, i.append, o.append)
+            visit_magma_value_or_value_wrapper_by_direction(
+                port, i.append, o.append
+            )
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
         defn_or_decl_output_name = _get_defn_or_decl_output_name(
