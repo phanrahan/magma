@@ -9,13 +9,8 @@ from magma.passes import DefinitionPass
 _logger = root_logger()
 
 
-class MultipleDefinitionException(Exception):
-    pass
-
-
 class UniquificationMode(Enum):
     WARN = auto()
-    ERROR = auto()
     UNIQUIFY = auto()
 
 
@@ -88,10 +83,7 @@ class UniquificationPass(DefinitionPass):
     def handle(duplicated, mode):
         if len(duplicated):
             msg = f"Multiple definitions: {[name for name, _ in duplicated]}"
-            if mode is UniquificationMode.ERROR:
-                error(msg)
-                raise MultipleDefinitionException([name for name, _ in duplicated])
-            elif mode is UniquificationMode.WARN:
+            if mode is UniquificationMode.WARN:
                 warning(msg)
 
 
@@ -113,8 +105,8 @@ def reset_names(original_names):
 
 
 # This pass runs uniquification according to @mode and returns a dictionary
-# mapping any renamed circuits to their original names. If @mode is ERROR or
-# WARN the returned dictionary should be empty.
+# mapping any renamed circuits to their original names. If @mode is WARN the
+# returned dictionary should be empty.
 def uniquification_pass(circuit, mode_or_str):
     mode = _get_mode(mode_or_str)
     pass_ = UniquificationPass(circuit, mode)
