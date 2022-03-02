@@ -679,7 +679,7 @@ class DefineCircuitKind(CircuitKind):
     def _check_recursive_port_unconnected(self, port, debug_info):
         error = False
         for elem in port:
-            error |= lambda elem: self._check_port_unconnected(elem, debug_info)
+            error |= self._check_port_unconnected(elem, debug_info)
         return error
 
     def _check_port_unconnected(self, port, debug_info):
