@@ -17,7 +17,8 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
-        visit_magma_value_or_value_wrapper_by_direction)
+    visit_magma_value_or_value_wrapper_by_direction
+)
 from magma.backend.mlir.mlir import MlirType, MlirValue, MlirSymbol, push_block
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
