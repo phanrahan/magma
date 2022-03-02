@@ -27,6 +27,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
+from magma.compile_exception import make_unconnected_error_str
 from magma.definition_context import DefinitionContext
 from magma.logging import root_logger
 from magma.ref import TempNamedRef
@@ -235,7 +236,7 @@ class CircuitKind(type):
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
         dct["compiled_bind_modules"] = {}
-        dct["_has_errors_"] = False
+        dct.setdefault("_has_errors_", False)
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -685,6 +686,10 @@ class DefineCircuitKind(CircuitKind):
     def _check_port_unconnected(self, port, debug_info):
         if port.is_output():
             return False
+        if port.is_inout() and port.wired():
+            # TODO(leonardt): trace of inout needs to be able to trace in both
+            # directions, for now we assume if it's wired() that's good enough
+            return False
         if port.is_mixed():
             return self._check_recursive_port_unconnected(port, debug_info)
         if port.trace() is None:
@@ -695,8 +700,10 @@ class DefineCircuitKind(CircuitKind):
             if is_clock_or_nested_clock(type(port)):
                 # Must be nested, otherwise caught in previous case
                 return self._check_recursive_port_unconnected(port, debug_info)
-            msg = "{} not driven"
-            _logger.error(WiringLog(msg, port), debug_info=debug_info)
+            msg = "{} not driven\n\nUnconnected port info\n---------------------\n    "
+            error_msg, format_args = make_unconnected_error_str(port)
+            msg += "\n    ".join(error_msg.splitlines())
+            _logger.error(WiringLog(msg, port, *format_args), debug_info=debug_info)
             return True
         return False
 
@@ -708,7 +715,7 @@ class DefineCircuitKind(CircuitKind):
         for inst in self.instances:
             for port in inst.interface.ports.values():
                 error |= self._check_port_unconnected(port, inst.debug_info)
-        self._has_errors_ = error
+        self._has_errors_ |= error
 
     @property
     def is_definition(self):

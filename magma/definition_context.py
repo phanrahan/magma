@@ -106,4 +106,4 @@ class DefinitionContext(FinalizableDelegator):
     def finalize(self, defn):
         super().finalize()
         logs = unstage_logger()
-        defn._has_errors_ |= any(log[1] is py_logging.ERROR for log in logs)
+        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
