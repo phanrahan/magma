@@ -2,16 +2,19 @@ from mako.template import Template
 from ..circuit import DeclareCircuit, DefineCircuit, EndDefine
 from ..common import deprecated
 from ..config import config, RuntimeConfig
-from .pyverilog_importer import PyverilogImporter
 from .verilog_importer import ImportMode
 
 
-# We register a runtime configuration for allowing dynamically setting the
-# verilog importer.
-config._register(verilog_importer=RuntimeConfig(PyverilogImporter({})))
-
-
 def _from_verilog(source, func, *, target_modules=None, type_map={}):
+    try:
+        config.verilog_importer
+    except KeyError:
+        from .pyverilog_importer import PyverilogImporter
+        # We register a runtime configuration for allowing dynamically setting the
+        # verilog importer.
+        # We do this on demand to avoid pyverilog resource warning when not in use
+        # https://github.com/PyHDI/Pyverilog/pull/99
+        config._register(verilog_importer=RuntimeConfig(PyverilogImporter({})))
     importer = config.verilog_importer
     importer.reset(type_map=type_map)
     mode = ImportMode.DECLARE if func is DeclareCircuit else ImportMode.DEFINE
