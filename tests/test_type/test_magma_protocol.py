@@ -35,3 +35,14 @@ def test_ite():
                 foo = i1
 
             return foo.non_standard_operation()
+
+
+def test_magma_protocol_connection_iter():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        # Since this is not bulk wired, this will trigger the
+        # connection_iter logic
+        for i in range(8):
+            io.O._val[i] @= io.I._val[7 - i]
+
+    m.compile("build/test_magma_protocol_connection_iter", Foo)
