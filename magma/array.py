@@ -877,7 +877,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if all(t.const() for t in ts):
             return type(self).flip()(ts)
 
-        return Array[self.N, self.T.flip()](ts)
+        return type(self)[self.N, self.T.flip()](ts)
 
     def _has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)
