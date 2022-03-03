@@ -418,6 +418,9 @@ class IOInterface(ABC):
         # __iadd__ is explicitly overriden to enforce that it is non-mutating.
         return self + other
 
+    def flip(self) -> "IOInterface":
+        raise NotImplementedError()
+
 
 class IO(IOInterface):
     """
