@@ -2,27 +2,28 @@ import functools
 import math
 from typing import List, Optional, Sequence, Tuple
 
+import hwtypes
+
 
 __all__  = ['seq2int', 'int2seq']
 __all__ += ['clog2', 'clog2safe']
 
 
-def _seq2int_reducer(i: int, it: Tuple[int, int]):
-    idx, li = it
-    return i if not li else i | 1 << idx
-
-
+# TODO(rsetaluri): We should deprecate this function and invoke the hwtypes
+# versions directly at the call sites.
 def seq2int(l: Sequence) -> int:
-    return functools.reduce(_seq2int_reducer, enumerate(l), 0)
+    return int(hwtypes.BitVector[len(l)](l))
 
 
+# TODO(rsetaluri): We should deprecate this function and invoke the hwtypes
+# versions directly at the call sites.
 def int2seq(i: int, n: Optional[int] = None) -> List[int]:
     bit_length = i.bit_length()
     if n is None:
         n = bit_length
     elif n < bit_length:
         raise ValueError("Insufficient number of bits")
-    return [1 if i & (1 << j) else 0 for j in range(n)]
+    return hwtypes.BitVector[n](i).bits()
 
 
 def clog2(x: int) -> int:
