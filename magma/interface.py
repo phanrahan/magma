@@ -263,6 +263,14 @@ class _InterfaceBase(Type):
         return any(port.is_clock()
                    for port in self.ports.values())
 
+    def flip(self):
+        return IO(**{
+            # Note: Since interface types are definition view, they are already
+            # "flipped"
+            name: type(port)
+            for name, port in self.ports.items()
+        })
+
 
 class Interface(_InterfaceBase):
     """Interface class"""
@@ -493,12 +501,6 @@ class IO(IOInterface):
         if key in self._ports:
             return self._ports[key]
         return super().__getattribute__(key)
-
-    def flip(self):
-        return IO(**{
-            name: T.flip()
-            for name, T in zip(self._decl[::2], self._decl[1::2])
-        })
 
 
 
