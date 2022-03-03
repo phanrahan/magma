@@ -1,5 +1,8 @@
+from typing import Sequence, Union
+
 import hwtypes as ht
 from hwtypes import BitVector, UIntVector, SIntVector
+
 from magma.array import Array
 from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
@@ -123,7 +126,7 @@ def _infer_mux_type(args):
 infer_mux_type = _infer_mux_type
 
 
-def mux(I: list, S, **kwargs):
+def mux(I: Union[Sequence, Array], S, **kwargs):
     """
     How type inference works on I:
         This operator will traverse the list of inputs I and use the first
