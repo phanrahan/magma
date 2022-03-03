@@ -495,8 +495,10 @@ class IO(IOInterface):
         return super().__getattribute__(key)
 
     def flip(self):
-        return IO(**{key: value.flip()
-                     for key, value in zip(self._decl[::2], self._decl[1::2])})
+        return IO(**{
+            name: T.flip()
+            for name, T in zip(self._decl[::2], self._decl[1::2])
+        })
 
 
 
