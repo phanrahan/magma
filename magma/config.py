@@ -68,10 +68,6 @@ class ConfigManager:
                 raise RuntimeError(f"Config with key '{key}' already exists")
             ConfigManager.__entries[key] = value
 
-    def _register_default(self, key, value):
-        # like setdefault, only adds key: value if key is not present
-        ConfigManager.__entries.setdefault(key, value)
-
     def __get(self, key):
         return ConfigManager.__entries[key].get()
 
