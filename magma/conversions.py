@@ -48,11 +48,11 @@ class _Concatter(Finalizable):
             return [value], Bits
         if isinstance(value, (bool, ht.Bit)):
             return [Bit(value)], Bits
-        if isinstance(value, SInt):
-            t = SInt if self._type is None else Bits
-            return value.ts, t
-        if isinstance(value, UInt):
-            t = UInt if self._type is None else Bits
+        if isinstance(value, (SInt, UInt)):
+            t = Bits
+            T = type(value)
+            if self._type is None or issubclass(self._type, T):
+                t = T
             return value.ts, t
         if isinstance(value, Bits):
             return value.ts, Bits

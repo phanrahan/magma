@@ -58,3 +58,19 @@ def test_convert_extend(op):
     if op is m.sint:  # check sext logic
         hi = o[5:]
         _assert_identical(hi, [x[4]] * len(hi))
+
+
+@pytest.mark.parametrize(
+    'Targs,Tout',
+    (
+        ((m.Bits[1], m.SInt[1]), m.Bits),
+        ((m.SInt[1], m.SInt[1]), m.SInt),
+        ((m.UInt[1], m.UInt[1]), m.UInt),
+        ((m.SInt[1], m.UInt[1]), m.Bits),
+        ((m.Bit, m.Bits[1]), m.Bits),
+    )
+)
+def test_concat_output_type(Targs, Tout):
+    args = (Targ() for Targ in Targs)
+    o = m.concat(*args)
+    assert isinstance(o, Tout)
