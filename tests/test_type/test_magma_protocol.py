@@ -35,3 +35,14 @@ def test_ite():
                 foo = i1
 
             return foo.non_standard_operation()
+
+
+def test_connection_iter():
+    I = T(m.Out(T.T)(name="I"))
+    O = T(m.In(T.T)(name="O"))
+    # Trigger the connection_iter logic by doing a non-bulk wiring.
+    for i in range(T.T.N):
+        O._val[i] @= I._val[T.T.N - 1 - i]
+    for idx, (o, i) in enumerate(O.connection_iter()):
+        assert o is O._val[idx]
+        assert i is I._val[T.T.N - 1 - idx]

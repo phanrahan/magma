@@ -157,4 +157,9 @@ def type_to_sanitized_string(T: Kind) -> str:
         replace("=", "_").\
         replace("[", "").\
         replace("]", "").\
-        replace(" ", "")
+        replace(" ", "").\
+        replace("<", "").\
+        replace(">", "").\
+        replace(".", "").\
+        replace("'", "").\
+        replace(":", "")
