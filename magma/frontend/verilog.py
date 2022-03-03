@@ -11,7 +11,8 @@ def _from_verilog(source, func, *, target_modules=None, type_map={}):
     # verilog importer.
     # We do this on demand to avoid pyverilog resource warning when not in use
     # https://github.com/PyHDI/Pyverilog/pull/99
-    config._register_default("verilog_importer", RuntimeConfig(PyverilogImporter({})))
+    config._register_default("verilog_importer",
+                             RuntimeConfig(PyverilogImporter({})))
     importer = config.verilog_importer
     importer.reset(type_map=type_map)
     mode = ImportMode.DECLARE if func is DeclareCircuit else ImportMode.DEFINE
