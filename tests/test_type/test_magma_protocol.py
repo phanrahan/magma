@@ -37,7 +37,7 @@ def test_ite():
             return foo.non_standard_operation()
 
 
-def test_magma_protocol_connection_iter():
+def test_connection_iter():
     I = T(m.Out(T.T)(name="I"))
     O = T(m.In(T.T)(name="O"))
     # Trigger the connection_iter logic by doing a non-bulk wiring.
