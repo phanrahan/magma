@@ -17,7 +17,7 @@ from .bitutils import int2seq
 import hwtypes as ht
 from magma.array import Array
 from magma.circuit import coreir_port_mapping
-from magma.common import is_int, Finalizable
+from magma.common import is_int, Finalizable, lca_of_types
 from magma.generator import Generator2
 from magma.interface import IO
 
@@ -39,7 +39,7 @@ __all__ += ['as_bits', 'from_bits']
 class _Concatter(Finalizable):
     def __init__(self):
         self._ts = []
-        self._type = None
+        self._types = []
 
     def _consume_impl(self, value):
         if isinstance(value, ht.BitVector):
@@ -48,28 +48,21 @@ class _Concatter(Finalizable):
             return [value], Bits
         if isinstance(value, (bool, ht.Bit)):
             return [Bit(value)], Bits
-        if isinstance(value, (SInt, UInt)):
-            t = Bits
-            T = type(value)
-            if self._type is None or issubclass(self._type, T):
-                t = T
-            return value.ts, t
-        if isinstance(value, Bits):
-            return value.ts, Bits
         if isinstance(value, Array) and isinstance(type(value).T, DigitalMeta):
-            return value.ts, Bits
+            return value.ts, type(value).abstract_t
         raise TypeError(
-            "concat expects values of type Array, BitVector, Bit, or "
-            f"bool, not {value} with type {type(value)}"
+            f"expected arguments of type of Array or its subtypes, instead got "
+            f"{value} with type {type(value)}"
         )
 
     def consume(self, value):
         new_ts, t = self._consume_impl(value)
         self._ts.extend(new_ts)
-        self._type = t
+        self._types.append(t)
 
     def finalize(self):
-        return convertbits(self._ts, None, self._type, checkbit=True)
+        T = lca_of_types(self._types)
+        return convertbits(self._ts, None, T, checkbit=True)
 
 
 def can_convert_to_bit(value):
