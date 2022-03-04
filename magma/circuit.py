@@ -700,10 +700,12 @@ class DefineCircuitKind(CircuitKind):
             if is_clock_or_nested_clock(type(port)):
                 # Must be nested, otherwise caught in previous case
                 return self._check_recursive_port_unconnected(port, debug_info)
-            msg = "{} not driven\n\nUnconnected port info\n---------------------\n    "
+            msg = "{} not driven\n\nUnconnected port info"
+            msg += "\n---------------------\n    "
             error_msg, format_args = make_unconnected_error_str(port)
             msg += "\n    ".join(error_msg.splitlines())
-            _logger.error(WiringLog(msg, port, *format_args), debug_info=debug_info)
+            _logger.error(WiringLog(msg, port, *format_args),
+                          debug_info=debug_info)
             return True
         return False
 
