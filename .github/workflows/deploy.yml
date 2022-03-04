@@ -9,6 +9,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    if: github.repository == 'leonardt/magma'
 
     steps:
     - uses: actions/checkout@v2
