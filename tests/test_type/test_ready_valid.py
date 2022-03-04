@@ -222,11 +222,8 @@ def test_qualify_ready_valid(qualifiers):
             T = T.flip()
             assert issubclass(T, m.ReadyValid[m.Bits[8]])
         else:
-            if q is m.In:
-                msg = "Cannot flip Monitor"
-            else:
-                msg = (
-                    "Cannot flip an undirected ReadyValid type")
+            msg = (
+                "Cannot flip an undirected ReadyValid type")
             with pytest.raises(TypeError) as e:
                 T.flip()
             assert str(e.value) == msg
