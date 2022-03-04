@@ -545,3 +545,6 @@ class SingletonInstanceIO(IO):
     def __add__(self, other):
         raise NotImplementedError(f"Addition operator disallowed on "
                                   f"{cls.__name__}")
+
+    def flip(self):
+        raise NotImplementedError()
