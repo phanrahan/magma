@@ -30,8 +30,9 @@ jobs:
         pycodestyle magma/
     - name: Smoke test package
       run: |
-        cd /tmp
+        pushd /tmp
         python -c "import magma"
+        popd
     - name: Install deploy packages
       shell: bash -l {0}
       run: |

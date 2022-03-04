@@ -32,8 +32,9 @@ jobs:
         pycodestyle magma/
     - name: Smoke test package
       run: |
-        cd /tmp
+        pushd /tmp
         python -c "import magma"
+        popd
     - name: Test with pytest
       run: |
         bash <(curl -s https://codecov.io/bash)
