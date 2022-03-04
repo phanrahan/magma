@@ -48,7 +48,7 @@ class _Concatter(Finalizable):
             return [value], Bits
         if isinstance(value, (bool, ht.Bit)):
             return [Bit(value)], Bits
-        if isinstance(value, Array) and isinstance(type(value).T, DigitalMeta):
+        if isinstance(value, Array):
             return value.ts, type(value).abstract_t
         raise TypeError(
             f"expected arguments of type of Array or its subtypes, instead got "
@@ -62,7 +62,8 @@ class _Concatter(Finalizable):
 
     def finalize(self):
         T = lca_of_types(self._types)
-        return convertbits(self._ts, None, T, checkbit=True)
+        checkbit = T is not Array
+        return convertbits(self._ts, None, T, checkbit=checkbit)
 
 
 def can_convert_to_bit(value):
