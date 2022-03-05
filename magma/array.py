@@ -1,5 +1,6 @@
 import weakref
 from functools import reduce, lru_cache
+import operator
 from abc import ABCMeta
 from hwtypes import BitVector
 from .common import deprecated
@@ -406,7 +407,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
             return False
-        return self.ts == rhs.ts
+        return reduce(operator.and_,
+                      (x == y for x, y in zip(self, rhs)))
 
     @output_only("Cannot use != on an input")
     def __ne__(self, rhs):

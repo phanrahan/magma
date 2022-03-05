@@ -212,3 +212,9 @@ def test_array_bv_index():
         io = m.IO(I=m.In(m.Bits[4]), O=m.Out(m.Bit))
         io.O @= io.I[BitVector[2](3)]
         assert io.O.value() is io.I[3]
+
+
+def test_array_equality():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Array[4, m.Bits[4]]), O=m.Out(m.Array[4, m.Bits[4]]))
+        io.O @= io.I
