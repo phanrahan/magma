@@ -234,10 +234,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         if not isinstance(rhs, type(self)):
             return NotImplemented
         else:
-            # NOTE: Use functool.reduce so import * doesn't clobber m.reduce
+            # NOTE: Use functools.reduce so import * doesn't clobber m.reduce
             # from bits
-            return functool.reduce(operator.and_,
-                                   (x == y for x, y in zip(self, rhs)))
+            return functools.reduce(operator.and_,
+                                    (x == y for x, y in zip(self, rhs)))
 
     @output_only("Cannot use != on an input")
     def __ne__(self, rhs):
