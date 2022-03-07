@@ -1,7 +1,7 @@
 import types
 from collections import OrderedDict
 from collections.abc import Sequence
-from ..bitutils import seq2int, fun2seq
+from ..bitutils import seq2int
 from ..bit import Bit, Digital
 from ..array import Array
 from ..compiler import make_compiler

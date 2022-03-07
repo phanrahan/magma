@@ -48,6 +48,8 @@ class ReadyValidKind(ProductKind):
     def qualify(cls, direction):
         if direction is Direction.In:
             return Monitor(cls)
+        if direction is Direction.Out:
+            return Driver(cls)
         if direction is Direction.Undirected:
             return Undirected(cls)
         raise TypeError(f"Cannot qualify ReadyValid with {direction}")
@@ -251,7 +253,7 @@ class ReadyValidMonitorKind(ReadyValidKind):
         return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
 
     def flip(cls):
-        raise TypeError("Cannot flip Monitor")
+        return Driver(cls)
 
     def __str__(cls):
         if not cls.is_bound:
@@ -260,6 +262,25 @@ class ReadyValidMonitorKind(ReadyValidKind):
 
 
 class ReadyValidMonitor(ReadyValid, metaclass=ReadyValidMonitorKind):
+    pass
+
+
+class ReadyValidDriverKind(ReadyValidKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {"valid": Out(Bit), "ready": Out(Bit)}
+        _maybe_add_data(cls, fields, T, Out)
+        return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
+
+    def flip(cls):
+        return Monitor(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Driver(ReadyValid[{cls.undirected_data_t}])"
+
+
+class ReadyValidDriver(ReadyValid, metaclass=ReadyValidDriverKind):
     pass
 
 
@@ -283,6 +304,10 @@ class DecoupledProducer(ReadyValidProducer, Decoupled):
 
 
 class DecoupledMonitor(ReadyValidMonitor, Decoupled):
+    pass
+
+
+class DecoupledDriver(ReadyValidDriver, Decoupled):
     pass
 
 
@@ -327,6 +352,10 @@ class IrrevocableMonitor(ReadyValidMonitor, Decoupled):
     pass
 
 
+class IrrevocableDriver(ReadyValidDriver, Decoupled):
+    pass
+
+
 def Consumer(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
@@ -361,6 +390,18 @@ def Monitor(T: ReadyValidKind):
     if issubclass(T, ReadyValid):
         return ReadyValidMonitor[undirected_T]
     raise TypeError(f"Monitor({T}) is unsupported")
+
+
+def Driver(T: ReadyValidKind):
+    if issubclass(T, ReadyValid):
+        undirected_T = T.undirected_data_t
+    if issubclass(T, Irrevocable):
+        return IrrevocableDriver[undirected_T]
+    if issubclass(T, Decoupled):
+        return DecoupledDriver[undirected_T]
+    if issubclass(T, ReadyValid):
+        return ReadyValidDriver[undirected_T]
+    raise TypeError(f"Driver({T}) is unsupported")
 
 
 def Undirected(T: ReadyValidKind):

@@ -1,7 +1,8 @@
 import abc
 import collections
 import collections.abc
-from functools import wraps, partial
+from functools import wraps, partial, reduce
+import operator
 from typing import Iterable
 import warnings
 
@@ -205,3 +206,10 @@ class FinalizableDelegator(Finalizable):
     def finalize(self):
         for child in self._children.values():
             child.finalize()
+
+
+def lca_of_types(classes):
+    # NOTE(rsetaluri): This implementation is inspired by:
+    #   https://stackoverflow.com/questions/58290137/how-to-find-most-recent-common-ancestor-base-type-of-several-types-in-python
+    return next(iter(reduce(
+        operator.and_, (collections.Counter(cls.mro()) for cls in classes))))

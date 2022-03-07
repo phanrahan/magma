@@ -65,12 +65,6 @@ inout respectively.
 * `m.sint(value, n=None)`: convert `value` to an `SInt` (same rules as
   `m.bits`, except will not convert `m.UInt` to `m.SInt`)
 
-# Math Helpers
-Contained in the module `magma.math`
-* `m.math.log2_ceil(x: int) -> int`: `log2(x)` rounded up
-* `m.math.log2_floor(x: int) -> int`: `log2(x)` rounded down
-* `m.math.is_pow2(x: int) -> bool`: `True` if `x` is a power of 2
-
 # Registers
 Retain state until updated:
 ```python

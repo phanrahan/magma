@@ -1,17 +1,32 @@
 from mako.template import Template
-from ..circuit import DeclareCircuit, DefineCircuit, EndDefine
-from ..common import deprecated
-from ..config import config, RuntimeConfig
-from .pyverilog_importer import PyverilogImporter
-from .verilog_importer import ImportMode
+
+from magma.circuit import DeclareCircuit, DefineCircuit, EndDefine
+from magma.common import deprecated
+from magma.config import config, RuntimeConfig
+from magma.frontend.dummy_verilog_importer import DummyVerilogImporter
+from magma.frontend.verilog_importer import ImportMode
 
 
+_pyverilog_importer_initialized = False
 # We register a runtime configuration for allowing dynamically setting the
-# verilog importer.
-config._register(verilog_importer=RuntimeConfig(PyverilogImporter({})))
+# verilog importer. By default, it is set to a dummy importer so that pyverilog
+# is only imported on demand.
+config._register(verilog_importer=RuntimeConfig(DummyVerilogImporter()))
+
+
+def _init_pyverilog_importer():
+    global _pyverilog_importer_initialized
+    if _pyverilog_importer_initialized:
+        return
+    if not isinstance(config.verilog_importer, DummyVerilogImporter):
+        return
+    from magma.frontend.pyverilog_importer import PyverilogImporter
+    config.verilog_importer = PyverilogImporter({})
+    _pyverilog_importer_initialized = True
 
 
 def _from_verilog(source, func, *, target_modules=None, type_map={}):
+    _init_pyverilog_importer()
     importer = config.verilog_importer
     importer.reset(type_map=type_map)
     mode = ImportMode.DECLARE if func is DeclareCircuit else ImportMode.DEFINE
