@@ -1,5 +1,6 @@
 import itertools
 from functools import lru_cache
+import functools
 import operator
 from collections import OrderedDict
 from hwtypes.adt import (
