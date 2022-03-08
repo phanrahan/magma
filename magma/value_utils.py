@@ -41,6 +41,13 @@ class ValueVisitor(WrappedVisitor):
         return _wrap_value(value)
 
 
+class ValueTransformer(ValueVisitor):
+    def generic_visit(self, value):
+        wrapped = _wrap_value(value)
+        args = (self.visit(child) for child in wrapped.children)
+        return type(value)(*args)
+
+
 @dataclasses.dataclass(frozen=True)
 class Selector:
     child: 'Selector'
