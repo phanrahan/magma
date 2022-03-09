@@ -98,18 +98,21 @@ def check_streams_equal(
 def run_test_compile_to_mlir(
         ckt: DefineCircuitKind,
         check_verilog: Optional[bool] = None,
-        write_output_files: Optional[bool] = None):
+        write_output_files: Optional[bool] = None,
+        gold_name: Optional[str] = None,
+        **kwargs):
     golds_dir = f"{os.path.dirname(__file__)}/golds"
     write_output_files = _maybe_get_config(
         write_output_files, "test_mlir_write_output_files")
     WireClockPass(ckt).run()
     mlir_out = _compile_to_mlir(ckt, write_output_files)
     mlir_out.seek(0)
-    with open(f"{golds_dir}/{ckt.name}.mlir", "rb") as mlir_gold:
+    gold_name = gold_name if gold_name is not None else ckt.name
+    with open(f"{golds_dir}/{gold_name}.mlir", "rb") as mlir_gold:
         assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
     check_verilog = _maybe_get_config(check_verilog, "test_mlir_check_verilog")
     if check_verilog:
-        with open(f"{golds_dir}/{ckt.name}.v", "rb") as verilog_gold:
+        with open(f"{golds_dir}/{gold_name}.v", "rb") as verilog_gold:
             mlir_out.seek(0)
             verilog_out = _compile_to_verilog(
                 ckt, mlir_out.buffer, write_output_files)
