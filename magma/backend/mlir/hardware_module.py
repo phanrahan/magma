@@ -9,6 +9,7 @@ from magma.backend.mlir.build_magma_graph import build_magma_graph
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.comb import comb
 from magma.backend.mlir.common import wrap_with_not_implemented_error
+from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.magma_common import (
@@ -625,9 +626,10 @@ class BindProcessor:
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: CircuitKind,
-            parent: weakref.ReferenceType):
+            parent: weakref.ReferenceType, opts: CompileToMlirOpts):
         self._magma_defn_or_decl = magma_defn_or_decl
         self._parent = parent
+        self._opts = opts
         self._hw_module = None
         self._name_gen = ScopedNameGenerator()
         self._value_map = {}
@@ -639,6 +641,10 @@ class HardwareModule:
     @property
     def parent(self):
         return self._parent()
+
+    @property
+    def opts(self) -> CompileToMlirOpts:
+        return self._opts
 
     @property
     def hw_module(self) -> hw.ModuleOpBase:
