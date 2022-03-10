@@ -122,7 +122,7 @@ def _visit_driver(
         ctx.graph.add_edge(getter, module, info=info)
         return
     if isinstance(ref, TupleRef):
-        if ref.tuple.is_mixed():
+        if ref.tuple.is_mixed() or ctx.opts.flatten_all_tuples:
             info = dict(src=driver, dst=value)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
             ctx.graph.add_edge(src_module, module, info=info)
