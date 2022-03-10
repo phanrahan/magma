@@ -37,6 +37,11 @@ def _get_inst_or_defn_or_die(ref):
     assert False
 
 
+@dataclasses.dataclass(frozen=True)
+class BuildMagmaGrahOpts:
+    flatten_all_tuples: bool = False
+
+
 class ModuleContext:
     def __init__(self, graph: Graph):
         self._graph = graph
