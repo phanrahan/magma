@@ -90,7 +90,8 @@ def get_module_interface(
         visit_magma_value_or_value_wrapper_by_direction(
             port,
             lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
-            lambda p: results.append(ctx.get_or_make_mapped_value(p))
+            lambda p: results.append(ctx.get_or_make_mapped_value(p)),
+            flatten_all_tuples=ctx.opts.flatten_all_tuples,
         )
     return operands, results
 
@@ -702,7 +703,8 @@ class HardwareModule:
         i, o = [], []
         for port in self._magma_defn_or_decl.interface.ports.values():
             visit_magma_value_or_value_wrapper_by_direction(
-                port, i.append, o.append
+                port, i.append, o.append,
+                flatten_all_tuples=self._opts.flatten_all_tuples,
             )
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
