@@ -32,6 +32,6 @@ def test_compile_to_mlir(ckt):
 def test_compile_to_mlir_flatten_all_tuples(ckt):
     kwargs = {
         "flatten_all_tuples": True,
-        "gold_name": f"{ckt.name}_flattened_tuples",
+        "gold_name": f"{ckt.name}_flatten_all_tuples",
     }
     run_test_compile_to_mlir(ckt, **kwargs)
