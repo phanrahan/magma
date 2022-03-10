@@ -312,7 +312,7 @@ class ModuleVisitor:
         defn = type(inst)
         assert defn.coreir_name == "lutN"
         init = defn.coreir_configargs["init"]
-        consts = [self.make_constant(Bit, b) for b in init]
+        consts = [self.make_constant(Bit, b) for b in reversed(init)]
         mlir_type = hw.ArrayType((len(init),), builtin.IntegerType(1))
         array = self._ctx.new_value(mlir_type)
         hw.ArrayCreateOp(
