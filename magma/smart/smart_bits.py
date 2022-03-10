@@ -10,7 +10,7 @@ from magma.debug import debug_wire
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 from magma.t import Direction
 from magma.type_utils import TypeTransformer, issint
-from magma.value_utils import ValueVisitor, make_selector
+from magma.value_utils import ValueTransformer, make_selector
 
 
 def _is_int(value):
@@ -575,26 +575,19 @@ class _SmartifyTypeTransformer(TypeTransformer):
         return SmartBits[len(T), signed]
 
 
-class _LeafCollector(ValueVisitor):
-    def __init__(self):
-        self.leaves = []
-
-    def visit_Digital(self, value):
-        self.leaves.append(value)
+class _InitializeSmartValueTransformer(ValueTransformer):
+    def __init__(self, value):
+        self._value = value
 
     def visit_Bits(self, value):
-        self.leaves.append(value)
+        sel = make_selector(value)
+        init = sel.select(self._value)
+        signed = issint(type(value))
+        return SmartBits[len(value), signed](init)
 
 
 def make_smart(value):
-    T = type(value)
-    Tsmart = _SmartifyTypeTransformer().visit(T)
+    Tsmart = _SmartifyTypeTransformer().visit(type(value))
     Tsmart = Tsmart.qualify(Direction.Undirected)
     smart_value = Tsmart()
-    leaf_collector = _LeafCollector()
-    leaf_collector.visit(value)
-    for leaf in leaf_collector.leaves:
-        selector = make_selector(leaf)
-        smart_leaf = selector.select(smart_value)
-        smart_leaf @= leaf
-    return smart_value
+    return _InitializeSmartValueTransformer(value).visit(smart_value)
