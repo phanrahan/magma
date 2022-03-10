@@ -312,7 +312,7 @@ class ModuleVisitor:
         defn = type(inst)
         assert defn.coreir_name == "lutN"
         init = defn.coreir_configargs["init"]
-        consts = [self.make_constant(Bit, b) for b in init]
+        consts = [self.make_constant(Bit, b) for b in reversed(init)]
         mlir_type = hw.ArrayType((len(init),), builtin.IntegerType(1))
         array = self._ctx.new_value(mlir_type)
         hw.ArrayCreateOp(
@@ -353,7 +353,7 @@ class ModuleVisitor:
             concat_type = hw.ArrayType((2,), operands[0].type.T)
             concat = self._ctx.new_value(concat_type)
             hw.ArrayConcatOp(
-                operands=[operands[0], other],
+                operands=[other, operands[0]],
                 results=[concat])
             operands = [concat]
             size = 2
