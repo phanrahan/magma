@@ -1,6 +1,6 @@
 import pytest
 
-from examples import simple_aggregates_product
+from examples import simple_aggregates_product, aggregate_mux_wrapper
 from test_utils import get_local_examples, run_test_compile_to_mlir
 
 
@@ -13,6 +13,7 @@ def test_compile_to_mlir(ckt):
     "ckt",
     [
         simple_aggregates_product,
+        aggregate_mux_wrapper,
     ]
 )
 def test_compile_to_mlir_flatten_all_tuples(ckt):
