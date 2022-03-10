@@ -369,6 +369,17 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
+
+        def make_mux(data, select, result):
+            mlir_type = hw.ArrayType((len(data),), data[0].type)
+            array = self._ctx.new_value(mlir_type)
+            hw.ArrayCreateOp(
+                operands=data,
+                results=[array])
+            hw.ArrayGetOp(
+                operands=[array, select],
+                results=[result])
+
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, Mux)
@@ -377,15 +388,18 @@ class ModuleVisitor:
         # magma/primitives/mux.py.
         height = len(list(filter(
             lambda p: "I" in p.name.name, defn.interface.outputs())))
-        T = type(defn.I0)
-        mlir_type = hw.ArrayType((height,), magma_type_to_mlir_type(T))
-        array = self._ctx.new_value(mlir_type)
-        hw.ArrayCreateOp(
-            operands=module.operands[:-1],
-            results=[array])
-        hw.ArrayGetOp(
-            operands=[array, module.operands[-1]],
-            results=module.results)
+        data, select = module.operands[:-1], module.operands[-1]
+        # NOTE(rsetaluri): This is a specialized code path for the case where
+        # all tuples are flattened.
+        if self._ctx.opts.flatten_all_tuples and len(data) != height:
+            assert len(data) % height == 0
+            stride = len(data) // height
+            assert len(module.results) == stride
+            for i in range(stride):
+                operands = data[i::stride]
+                make_mux(data[i::stride], select, module.results[i])
+            return True
+        make_mux(data, select, module.results[0])
         return True
 
     @wrap_with_not_implemented_error
