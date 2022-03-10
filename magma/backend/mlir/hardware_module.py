@@ -286,6 +286,13 @@ class ModuleVisitor:
         assert defn.coreir_name == "muxn"
         data = self._ctx.new_value(defn.I.data)
         sel = self._ctx.new_value(defn.I.sel)
+        # NOTE(rsetaluri): This is a specialized code path for the case where
+        # all tuples are flattened.
+        if self._ctx.opts.flatten_all_tuples:
+            hw.ArrayGetOp(
+                operands=module.operands.copy(),
+                results=module.results.copy())
+            return True
         hw.StructExtractOp(
             field="data",
             operands=module.operands.copy(),
