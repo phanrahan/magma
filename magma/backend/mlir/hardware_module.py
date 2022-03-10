@@ -353,7 +353,7 @@ class ModuleVisitor:
             concat_type = hw.ArrayType((2,), operands[0].type.T)
             concat = self._ctx.new_value(concat_type)
             hw.ArrayConcatOp(
-                operands=[operands[0], other],
+                operands=[other, operands[0]],
                 results=[concat])
             operands = [concat]
             size = 2
