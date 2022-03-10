@@ -43,13 +43,18 @@ class BuildMagmaGrahOpts:
 
 
 class ModuleContext:
-    def __init__(self, graph: Graph):
+    def __init__(self, graph: Graph, opts: BuildMagmaGrahOpts):
         self._graph = graph
+        self._opts = opts
         self._getter_cache = {}
 
     @property
     def graph(self) -> Graph:
         return self._graph
+
+    @property
+    def opts(self) -> BuildMagmaGrahOpts:
+        return self._opts
 
     @property
     def getter_cache(self):
@@ -151,8 +156,10 @@ def _visit_inputs(ctx: ModuleContext, module: ModuleLike):
         )
 
 
-def build_magma_graph(ckt: DefineCircuitKind) -> Graph:
-    ctx = ModuleContext(Graph())
+def build_magma_graph(
+        ckt: DefineCircuitKind,
+        opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
+    ctx = ModuleContext(Graph(), opts)
     _visit_inputs(ctx, ckt)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst)
