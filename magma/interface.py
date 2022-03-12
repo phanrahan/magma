@@ -133,11 +133,14 @@ def _make_wires(value, wired):
     return s
 
 
+def _dict_from_decl(decl):
+    return OrderedDict(zip(decl[::2], decl[1::2]))
+
+
 class InterfaceKind(Kind):
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        args = zip(cls._decl[::2], cls._decl[1::2])
-        cls.ports = OrderedDict(args)
+        cls.ports = _dict_from_decl(cls._decl)
 
     def items(cls):
         return cls.ports.items()
@@ -479,7 +482,7 @@ class IO(IOInterface):
         if self._ports.keys() & other._ports.keys():
             raise Exception("Adding IO with duplicate port names not allowed")
         decl = self._decl + other._decl
-        return IO(**dict(zip(decl[::2], decl[1::2])))
+        return IO(**_dict_from_decl(decl))
 
     def add(self, name, typ):
         if self._bound:
@@ -494,12 +497,11 @@ class IO(IOInterface):
             return self._ports[key]
         return super().__getattribute__(key)
 
-    def flip(self):
-        return IO(**{
-            name: T.flip()
-            for name, T in zip(self._decl[::2], self._decl[1::2])
-        })
+    def fields(self):
+        return _dict_from_decl(self._decl)
 
+    def flip(self):
+        return IO(**{name: T.flip() for name, T in self.fields().items()})
 
 
 class SingletonInstanceIO(IO):
