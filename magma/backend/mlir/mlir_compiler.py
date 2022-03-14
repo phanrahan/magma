@@ -4,7 +4,9 @@ from typing import Dict
 from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
 from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
+from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.circuit import DefineCircuitKind
+from magma.common import slice_opts
 from magma.compiler import Compiler
 from magma.passes.clock import wire_clocks
 from magma.passes.find_errors import find_errors_pass
@@ -24,7 +26,8 @@ class MlirCompiler(Compiler):
         find_errors_pass(self.main)
 
     def generate_code(self):
+        opts = slice_opts(self.opts, CompileToMlirOpts)
         self._run_passes()
         sout = io.StringIO()
-        compile_to_mlir(self.main, sout=sout)
+        compile_to_mlir(self.main, sout=sout, opts=opts)
         return sout.getvalue()

@@ -12,6 +12,7 @@ from magma.backend.mlir.compile_to_mlir import (
 )
 from magma.backend.mlir.mlir_to_verilog import mlir_to_verilog
 from magma.circuit import DefineCircuitKind
+from magma.common import slice_opts
 from magma.config import config, EnvConfig
 from magma.passes.clock import WireClockPass
 
@@ -29,17 +30,6 @@ _CMP_BUFSIZE = 8 * 1024
 _MAGMA_EXAMPLES_TO_SKIP = (
     "risc",
 )
-
-
-def _slice_opts(dct: Dict, cls: type):
-    kwargs = {}
-    for name, field in cls.__dataclass_fields__.items():
-        try:
-            value = dct.pop(name)
-        except KeyError:
-            continue
-        kwargs[name] = value
-    return cls(**kwargs)
 
 
 def _maybe_get_config(value: Any, key: str) -> Any:
@@ -120,7 +110,7 @@ def run_test_compile_to_mlir(
     write_output_files = _maybe_get_config(
         write_output_files, "test_mlir_write_output_files")
     WireClockPass(ckt).run()
-    opts = _slice_opts(kwargs, CompileToMlirOpts)
+    opts = slice_opts(kwargs, CompileToMlirOpts)
     mlir_out = _compile_to_mlir(ckt, write_output_files, opts)
     mlir_out.seek(0)
     gold_name = gold_name if gold_name is not None else ckt.name
