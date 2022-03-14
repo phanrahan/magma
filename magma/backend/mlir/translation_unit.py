@@ -2,6 +2,7 @@ from typing import Any
 import weakref
 
 from magma.backend.mlir.builtin import builtin
+from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.hardware_module import HardwareModule
 from magma.backend.mlir.mlir import MlirSymbol, push_block
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
@@ -11,8 +12,9 @@ from magma.t import Type
 
 
 class TranslationUnit:
-    def __init__(self, magma_top: DefineCircuitKind):
+    def __init__(self, magma_top: DefineCircuitKind, opts: CompileToMlirOpts):
         self._magma_top = magma_top
+        self._opts = opts
         self._mlir_module = builtin.ModuleOp()
         self._hardware_modules = {}
         self._symbol_map = {}
@@ -28,7 +30,7 @@ class TranslationUnit:
 
     def new_hardware_module(
             self, magma_defn_or_decl: CircuitKind) -> HardwareModule:
-        return HardwareModule(magma_defn_or_decl, weakref.ref(self))
+        return HardwareModule(magma_defn_or_decl, weakref.ref(self), self._opts)
 
     def get_hardware_module(
             self, magma_defn_or_decl: CircuitKind) -> HardwareModule:

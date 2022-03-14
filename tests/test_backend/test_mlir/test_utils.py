@@ -5,9 +5,11 @@ import importlib
 import io
 import os
 import sys
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from magma.backend.mlir.compile_to_mlir import compile_to_mlir
+from magma.backend.mlir.compile_to_mlir import (
+    compile_to_mlir, CompileToMlirOpts
+)
 from magma.backend.mlir.mlir_to_verilog import mlir_to_verilog
 from magma.circuit import DefineCircuitKind
 from magma.config import config, EnvConfig
@@ -29,6 +31,17 @@ _MAGMA_EXAMPLES_TO_SKIP = (
 )
 
 
+def _slice_opts(dct: Dict, cls: type):
+    kwargs = {}
+    for name, field in cls.__dataclass_fields__.items():
+        try:
+            value = dct.pop(name)
+        except KeyError:
+            continue
+        kwargs[name] = value
+    return cls(**kwargs)
+
+
 def _maybe_get_config(value: Any, key: str) -> Any:
     if value is not None:
         return value
@@ -36,14 +49,16 @@ def _maybe_get_config(value: Any, key: str) -> Any:
 
 
 def _compile_to_mlir(
-        ckt: DefineCircuitKind, write_output_files: bool) -> io.TextIOBase:
+        ckt: DefineCircuitKind,
+        write_output_files: bool,
+        opts: CompileToMlirOpts) -> io.TextIOBase:
     if not write_output_files:
         mlir_out = io.TextIOWrapper(io.BytesIO())
-        compile_to_mlir(ckt, mlir_out)
+        compile_to_mlir(ckt, mlir_out, opts)
         return mlir_out
     filename = f"{ckt.name}.mlir"
     with open(filename, "w") as mlir_out:
-        compile_to_mlir(ckt, mlir_out)
+        compile_to_mlir(ckt, mlir_out, opts)
     mlir_out = open(filename, "rb")
     return io.TextIOWrapper(mlir_out)
 
@@ -98,18 +113,22 @@ def check_streams_equal(
 def run_test_compile_to_mlir(
         ckt: DefineCircuitKind,
         check_verilog: Optional[bool] = None,
-        write_output_files: Optional[bool] = None):
+        write_output_files: Optional[bool] = None,
+        gold_name: Optional[str] = None,
+        **kwargs):
     golds_dir = f"{os.path.dirname(__file__)}/golds"
     write_output_files = _maybe_get_config(
         write_output_files, "test_mlir_write_output_files")
     WireClockPass(ckt).run()
-    mlir_out = _compile_to_mlir(ckt, write_output_files)
+    opts = _slice_opts(kwargs, CompileToMlirOpts)
+    mlir_out = _compile_to_mlir(ckt, write_output_files, opts)
     mlir_out.seek(0)
-    with open(f"{golds_dir}/{ckt.name}.mlir", "rb") as mlir_gold:
+    gold_name = gold_name if gold_name is not None else ckt.name
+    with open(f"{golds_dir}/{gold_name}.mlir", "rb") as mlir_gold:
         assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
     check_verilog = _maybe_get_config(check_verilog, "test_mlir_check_verilog")
     if check_verilog:
-        with open(f"{golds_dir}/{ckt.name}.v", "rb") as verilog_gold:
+        with open(f"{golds_dir}/{gold_name}.v", "rb") as verilog_gold:
             mlir_out.seek(0)
             verilog_out = _compile_to_verilog(
                 ckt, mlir_out.buffer, write_output_files)
