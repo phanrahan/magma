@@ -24,18 +24,22 @@ class simple_hierarchy(m.Circuit):
 
 class simple_aggregates_bits(m.Circuit):
     T = m.Bits[16]
-    io = m.IO(a=m.In(T), y=m.Out(T))
+    U = m.Bits[8]
+    io = m.IO(a=m.In(T), y=m.Out(T), z=m.Out(U))
     half = int(T.N / 2)
     io.y[:half] @= io.a[half:]
     io.y[half:] @= io.a[:half]
+    io.z @= io.a[:half]
 
 
 class simple_aggregates_array(m.Circuit):
     T = m.Array[8, m.Bits[16]]
-    io = m.IO(a=m.In(T), y=m.Out(T))
+    U = m.Array[4, m.Bits[16]]
+    io = m.IO(a=m.In(T), y=m.Out(T), z=m.Out(U))
     half = int(T.N / 2)
     io.y[:half] @= io.a[half:]
     io.y[half:] @= io.a[:half]
+    io.z @= io.a[:half]
 
 
 class simple_aggregates_nested_array(m.Circuit):
