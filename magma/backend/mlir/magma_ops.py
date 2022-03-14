@@ -18,7 +18,13 @@ def _get_tuple_field_type(T: TupleMeta, index: Union[int, str]):
     return T.field_dict[index]
 
 
-def MagmaArrayGetOp(T: ArrayMeta, index: str):
+def _resized_array(T: ArrayMeta, new_size: int):
+    if isinstance(T, BitsMeta):
+        return T.unsized_t[new_size]
+    return T[new_size, T.T]
+
+
+def MagmaArrayGetOp(T: ArrayMeta, index: int):
     assert isinstance(T, ArrayMeta)
     T = T.undirected_t
     name = f"magma_array_get_op_{value_or_type_to_string(T)}"
@@ -28,20 +34,15 @@ def MagmaArrayGetOp(T: ArrayMeta, index: str):
     return InstanceWrapper(name, ports, attrs)
 
 
-class MagmaArraySliceOp(Generator2):
-    def __init__(self, T: ArrayMeta, lo: int, hi: int):
-        assert isinstance(T, ArrayMeta)
-        T = T.undirected_t
-        type_string = value_or_type_to_string(T)
-        self.name = f"magma_array_slice_op_{type_string}_{lo}_{hi}"
-        self.primitive = True
-
-        T_out = T.unsized_t[hi - lo]
-        self.io = IO(I=In(T), O=Out(T_out))
-
-        self.T = T
-        self.lo = lo
-        self.hi = hi
+def MagmaArraySliceOp(T: ArrayMeta, lo: int, hi: int):
+    assert isinstance(T, ArrayMeta)
+    T = T.undirected_t
+    type_string = value_or_type_to_string(T)
+    name = f"magma_array_slice_op_{type_string}_{lo}_{hi}"
+    T_out = _resized_array(T, hi - lo)
+    ports = dict(I=In(T), O=Out(T_out))
+    attrs = dict(T=T, lo=lo, hi=hi)
+    return InstanceWrapper(name, ports, attrs)
 
 
 def MagmaArrayCreateOp(T: ArrayMeta):

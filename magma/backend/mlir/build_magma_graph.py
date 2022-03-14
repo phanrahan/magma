@@ -110,12 +110,20 @@ def _visit_driver(
             src_module = _get_inst_or_defn_or_die(safe_root(ref.array.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
-        cache_key = (ref.array, ref.index)
+        index = ref.index
+        if isinstance(index, slice):
+            assert index.step is None
+            assert index.start <= index.stop
+            index = index.start, index.stop
+            getter_cls, getter_args = MagmaArraySliceOp, index
+        else:
+            getter_cls, getter_args = MagmaArrayGetOp, (index,)
+        cache_key = (ref.array, index)
         try:
             getter = ctx.getter_cache[cache_key]
         except KeyError:
             T = type(ref.array)
-            getter = MagmaArrayGetOp(T, ref.index)
+            getter = getter_cls(T, *getter_args)
             _visit_driver(ctx, getter.I, ref.array, getter)
             ctx.getter_cache[cache_key] = getter
         info = dict(src=getter.O, dst=value)

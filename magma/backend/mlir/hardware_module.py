@@ -365,6 +365,20 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_array_slice(self, module: ModuleWrapper) -> bool:
+        inst_wrapper = module.module
+        T = inst_wrapper.attrs["T"]
+        size = T.N
+        operands = module.operands
+        lo = inst_wrapper.attrs["lo"]
+        num_sel_bits = clog2(size)
+        lo = self.make_constant(Bits[num_sel_bits], lo)
+        hw.ArraySliceOp(
+            operands=(operands + [lo]),
+            results=module.results)
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -513,6 +527,15 @@ class ModuleVisitor:
                     lo=inst_wrapper.attrs["index"])
                 return True
             return self.visit_array_get(module)
+        if inst_wrapper.name.startswith("magma_array_slice_op_"):
+            T = inst_wrapper.attrs["T"]
+            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
+                comb.ExtractOp(
+                    operands=module.operands,
+                    results=module.results,
+                    lo=inst_wrapper.attrs["lo"])
+                return True
+            return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
             T = inst_wrapper.attrs["T"]
             if isinstance(T, BitsMeta) or issubclass(T.T, Bit):

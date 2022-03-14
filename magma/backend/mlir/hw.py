@@ -150,6 +150,23 @@ class ArrayGetOp(MlirOp):
 
 
 @dataclasses.dataclass
+class ArraySliceOp(MlirOp):
+    operands: List[MlirValue]
+    results: List[MlirValue]
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(" = hw.array_slice ")
+        print_names(self.operands[0], printer)
+        printer.print(" at ")
+        print_names(self.operands[1], printer)
+        printer.print(" : (")
+        print_types(self.operands[0], printer)
+        printer.print(") -> ")
+        print_types(self.results[0], printer)
+
+
+@dataclasses.dataclass
 class ArrayCreateOp(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
