@@ -425,11 +425,27 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_magma_register(self, module: ModuleWrapper) -> bool:
+
+        def make_register(data, init, result):
+            reg = self._ctx.new_value(hw.InOutType(data.type))
+            sv.RegOp(name=inst.name, results=[reg])
+            always = sv.AlwaysFFOp(operands=always_operands, **attrs)
+            const = self.make_constant(type(defn.I), init)
+            with push_block(always.body_block):
+                ctx = contextlib.nullcontext()
+                if has_enable:
+                    ctx = push_block(sv.IfOp(operands=[enable]).then_block)
+                with ctx:
+                    sv.PAssignOp(operands=[reg, data])
+            if has_reset:
+                with push_block(always.reset_block):
+                    sv.PAssignOp(operands=[reg, const])
+            with push_block(sv.InitialOp()):
+                sv.BPAssignOp(operands=[reg, const])
+            sv.ReadInOutOp(operands=[reg], results=[result])
+
         inst = module.module
         defn = type(inst)
-        reg = self._ctx.new_value(
-            hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
-        sv.RegOp(name=inst.name, results=[reg])
         clock_edge = "posedge"
         has_reset = defn.reset_type is not None
         # NOTE(resetaluri): This is a hack until
@@ -449,20 +465,7 @@ class ModuleVisitor:
             always_operands.append(reset)
             reset_type, reset_edge = parse_reset_type(defn.reset_type)
             attrs.update(dict(reset_type=reset_type, reset_edge=reset_edge))
-        always = sv.AlwaysFFOp(operands=always_operands, **attrs)
-        const = self.make_constant(type(defn.I), defn.init)
-        with push_block(always.body_block):
-            ctx = contextlib.nullcontext()
-            if has_enable:
-                ctx = push_block(sv.IfOp(operands=[enable]).then_block)
-            with ctx:
-                sv.PAssignOp(operands=[reg, data])
-        if has_reset:
-            with push_block(always.reset_block):
-                sv.PAssignOp(operands=[reg, const])
-        with push_block(sv.InitialOp()):
-            sv.BPAssignOp(operands=[reg, const])
-        sv.ReadInOutOp(operands=[reg], results=module.results.copy())
+        make_register(data, defn.init, module.results[0])
         return True
 
     @wrap_with_not_implemented_error
