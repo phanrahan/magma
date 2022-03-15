@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from itertools import chain
 from .common import deprecated
 from .compatibility import IntegerTypes, StringTypes
@@ -133,11 +132,14 @@ def _make_wires(value, wired):
     return s
 
 
+def _dict_from_decl(decl):
+    return dict(zip(decl[::2], decl[1::2]))
+
+
 class InterfaceKind(Kind):
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        args = zip(cls._decl[::2], cls._decl[1::2])
-        cls.ports = OrderedDict(args)
+        cls.ports = _dict_from_decl(cls._decl)
 
     def items(cls):
         return cls.ports.items()
@@ -282,7 +284,7 @@ class Interface(_InterfaceBase):
 
         names, types = _parse_decl(decl)
         names = map(_map_name, names)
-        self.ports = OrderedDict(zip(names, types))
+        self.ports = dict(zip(names, types))
 
     def __str__(self):
         s = ", ".join(f"{k}: {v}" for k, v in self.ports.items())
@@ -344,7 +346,7 @@ class _DeclareSingletonInterface(_DeclareInterface):
             return
         assert defn is not None
         cls._io.bind(defn)  # bind IO to @defn
-        self.ports = OrderedDict(cls._io.ports.items())
+        self.ports = dict(cls._io.ports.items())
         _rename_ports(self.ports, renamed_ports)  # rename ports
         cls._initialized = True
 
@@ -362,7 +364,7 @@ class _DeclareSingletonInstanceInterface(_DeclareInterface):
                 super().__init__(renamed_ports, inst=inst, defn=defn)
                 return
             cls._io.bind(defn)  # bind IO to @defn
-            self.ports = OrderedDict(cls._io.ports.items())
+            self.ports = dict(cls._io.ports.items())
             _rename_ports(self.ports, renamed_ports)  # rename ports
             cls._initialized = True
             return
@@ -371,7 +373,7 @@ class _DeclareSingletonInstanceInterface(_DeclareInterface):
                 super().__init__(renamed_ports, inst=inst, defn=defn)
                 return
             cls._io.bind_inst(inst)  # bind IO to @inst
-            self.ports = OrderedDict(cls._io.inst_ports.items())
+            self.ports = dict(cls._io.inst_ports.items())
             _rename_ports(self.ports, renamed_ports)  # rename ports
             cls._initialized_inst = True
             return
@@ -417,6 +419,9 @@ class IOInterface(ABC):
     def __iadd__(self, other):
         # __iadd__ is explicitly overriden to enforce that it is non-mutating.
         return self + other
+
+    def flip(self) -> "IOInterface":
+        raise NotImplementedError()
 
 
 class IO(IOInterface):
@@ -476,7 +481,7 @@ class IO(IOInterface):
         if self._ports.keys() & other._ports.keys():
             raise Exception("Adding IO with duplicate port names not allowed")
         decl = self._decl + other._decl
-        return IO(**dict(zip(decl[::2], decl[1::2])))
+        return IO(**_dict_from_decl(decl))
 
     def add(self, name, typ):
         if self._bound:
@@ -491,6 +496,11 @@ class IO(IOInterface):
             return self._ports[key]
         return super().__getattribute__(key)
 
+    def fields(self):
+        return _dict_from_decl(self._decl)
+
+    def flip(self):
+        return IO(**{name: T.flip() for name, T in self.fields().items()})
 
 
 class SingletonInstanceIO(IO):
@@ -536,3 +546,6 @@ class SingletonInstanceIO(IO):
     def __add__(self, other):
         raise NotImplementedError(f"Addition operator disallowed on "
                                   f"{cls.__name__}")
+
+    def flip(self):
+        raise NotImplementedError()
