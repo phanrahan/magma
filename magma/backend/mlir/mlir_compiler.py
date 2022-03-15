@@ -5,6 +5,7 @@ from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
 from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
+from magma.backend.mlir.mlir_to_verilog import mlir_to_verilog
 from magma.circuit import DefineCircuitKind
 from magma.common import slice_opts
 from magma.compiler import Compiler
@@ -14,9 +15,14 @@ from magma.passes.find_errors import find_errors_pass
 
 class MlirCompiler(Compiler):
     def __init__(self, main: DefineCircuitKind, basename: str, opts: Dict):
+        self._compile_to_mlir_opts = slice_opts(opts, CompileToMlirOpts)
         super().__init__(main, basename, opts)
 
     def suffix(self):
+        if self.opts.get("output_verilog", False):
+            if self.opts.get("sv", False):
+                return "sv"
+            return "v"
         return "mlir"
 
     def _run_passes(self):
@@ -26,8 +32,14 @@ class MlirCompiler(Compiler):
         find_errors_pass(self.main)
 
     def generate_code(self):
-        opts = slice_opts(self.opts, CompileToMlirOpts)
         self._run_passes()
-        sout = io.StringIO()
-        compile_to_mlir(self.main, sout=sout, opts=opts)
-        return sout.getvalue()
+        mlir_out = io.TextIOWrapper(io.BytesIO())
+        compile_to_mlir(
+            self.main, sout=mlir_out, opts=self._compile_to_mlir_opts)
+        mlir_out.seek(0)
+        if not self.opts.get("output_verilog", False):
+            return mlir_out.read()
+        verilog_out = io.BytesIO()
+        mlir_to_verilog(mlir_out.buffer, verilog_out)
+        verilog_out.seek(0)
+        return io.TextIOWrapper(verilog_out).read()
