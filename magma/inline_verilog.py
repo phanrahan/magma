@@ -94,7 +94,9 @@ def _insert_temporary_wires(
                     f"{repr(orig_value)}")
 
         key = value
-        if isinstance(value, ClockTypes) and not value.driven():
+        is_undriven_clock = (isinstance(value, ClockTypes) and value.is_input()
+                             and not value.driven())
+        if is_undriven_clock:
             # Share wire for undriven clocks so we don't
             # generate a separate wire for the eventual
             # driver from the automatic clock wiring logic
