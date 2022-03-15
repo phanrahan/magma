@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from itertools import chain
 from .common import deprecated
 from .compatibility import IntegerTypes, StringTypes
@@ -134,7 +133,7 @@ def _make_wires(value, wired):
 
 
 def _dict_from_decl(decl):
-    return OrderedDict(zip(decl[::2], decl[1::2]))
+    return dict(zip(decl[::2], decl[1::2]))
 
 
 class InterfaceKind(Kind):
