@@ -284,7 +284,7 @@ class Interface(_InterfaceBase):
 
         names, types = _parse_decl(decl)
         names = map(_map_name, names)
-        self.ports = OrderedDict(zip(names, types))
+        self.ports = dict(zip(names, types))
 
     def __str__(self):
         s = ", ".join(f"{k}: {v}" for k, v in self.ports.items())
@@ -346,7 +346,7 @@ class _DeclareSingletonInterface(_DeclareInterface):
             return
         assert defn is not None
         cls._io.bind(defn)  # bind IO to @defn
-        self.ports = OrderedDict(cls._io.ports.items())
+        self.ports = dict(cls._io.ports.items())
         _rename_ports(self.ports, renamed_ports)  # rename ports
         cls._initialized = True
 
@@ -364,7 +364,7 @@ class _DeclareSingletonInstanceInterface(_DeclareInterface):
                 super().__init__(renamed_ports, inst=inst, defn=defn)
                 return
             cls._io.bind(defn)  # bind IO to @defn
-            self.ports = OrderedDict(cls._io.ports.items())
+            self.ports = dict(cls._io.ports.items())
             _rename_ports(self.ports, renamed_ports)  # rename ports
             cls._initialized = True
             return
@@ -373,7 +373,7 @@ class _DeclareSingletonInstanceInterface(_DeclareInterface):
                 super().__init__(renamed_ports, inst=inst, defn=defn)
                 return
             cls._io.bind_inst(inst)  # bind IO to @inst
-            self.ports = OrderedDict(cls._io.inst_ports.items())
+            self.ports = dict(cls._io.inst_ports.items())
             _rename_ports(self.ports, renamed_ports)  # rename ports
             cls._initialized_inst = True
             return
