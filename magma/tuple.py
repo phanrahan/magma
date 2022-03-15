@@ -191,27 +191,27 @@ class TupleKind(TupleMeta, Kind):
 class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
-        Type.__init__(self, **kwargs) # name=
+        Type.__init__(self, **kwargs)  # name=
 
-        self.ts = []
+        self.ts = {}
         if len(largs) > 0:
             assert len(largs) == len(self)
-            for k, t, T in zip(self.keys(), largs, self.types()):
+            for i, (k, t, T) in enumerate(zip(self.keys(),
+                                              largs,
+                                              self.types())):
                 if isinstance(t, (IntegerTypes, BitVector, Bit)):
                     t = T(t)
-                self.ts.append(t)
+                self.ts[i] = t
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
-        else:
-            for k, T in zip(self.keys(), self.types()):
-                ref = TupleRef(self, k)
-                if issubclass(T, MagmaProtocol):
-                    t = T._from_magma_value_(T._to_magma_()(name=ref))
-                else:
-                    t = T(name=ref)
-                self.ts.append(t)
-                if not isinstance(self, AnonProduct):
-                    setattr(self, k, t)
+
+    def __getattr__(self, key):
+        if not isinstance(self, AnonProduct) and key in self.keys():
+            # On demand setattr for lazy children
+            t = self[key]
+            setattr(self, key, t)
+            return t
+        return super().__getattr__(key)
 
     __hash__ = Type.__hash__
 
@@ -249,9 +249,16 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __repr__(self):
         if not self.name.anon():
             return super().__repr__()
-        ts = [repr(t) for t in self.ts]
+        ts = [repr(t) for t in self]
         kts = ['{}={}'.format(k, v) for k, v in zip(self.keys(), ts)]
         return 'tuple(dict({})'.format(', '.join(kts))
+
+    def _make_t(self, key):
+        T = self.types()[key]
+        ref = TupleRef(self, list(self.keys())[key])
+        if issubclass(T, MagmaProtocol):
+            return T._from_magma_value_(T._to_magma_()(name=ref))
+        return T(name=ref)
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -261,6 +268,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                 raise KeyError(key) from None
         if not isinstance(key, int):
             raise KeyError(key)
+        if key not in self.ts:
+            self.ts[key] = self._make_t(key)
         return self.ts[key]
 
     def __setitem__(self, key, val):
@@ -323,13 +332,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                          keep_wired_when_contexts=keep_wired_when_contexts)
 
     def driven(self):
-        for t in self.ts:
+        for t in self:
             if not t.driven():
                 return False
         return True
 
     def wired(self):
-        for t in self.ts:
+        for t in self:
             if not t.wired():
                 return False
         return True
@@ -366,11 +375,11 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return True
 
     def iswhole(self):
-        return Tuple._iswhole(self.ts, self.keys())
+        return Tuple._iswhole(list(self), self.keys())
 
     def trace(self, skip_self=True):
         ts = []
-        for t in self.ts:
+        for t in self:
             result = t.trace(skip_self)
             if result is not None:
                 ts.append(result)
@@ -385,7 +394,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return type(self).flip()(*ts)
 
     def value(self):
-        ts = [t.value() for t in self.ts]
+        ts = [t.value() for t in self]
 
         for t in ts:
             if t is None:
@@ -411,10 +420,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return cls(*values)
 
     def flatten(self):
-        return sum([t.flatten() for t in self.ts], [])
+        return sum([t.flatten() for t in self], [])
 
     def const(self):
-        for t in self.ts:
+        for t in self:
             if not t.const():
                 return False
 
@@ -425,10 +434,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return cls.fields
 
     def values(self):
-        return self.ts
+        return list(self)
 
     def items(self):
-        return zip(self.keys(), self.ts)
+        return zip(self.keys(), self)
 
     def undriven(self):
         for elem in self:
@@ -598,7 +607,7 @@ class AnonProduct(Tuple, metaclass=AnonProductKind):
         return cls.fields
 
     def value(self):
-        ts = [t.value() for t in self.ts]
+        ts = [t.value() for t in self]
 
         for t in ts:
             if t is None:
