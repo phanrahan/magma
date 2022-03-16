@@ -3,7 +3,9 @@ import pytest
 import magma as m
 from magma.primitives.mux import CoreIRCommonLibMuxN
 
-from examples import simple_aggregates_product, aggregate_mux_wrapper
+from examples import (
+    simple_aggregates_product, aggregate_mux_wrapper, complex_register_wrapper,
+)
 from test_utils import get_local_examples, run_test_compile_to_mlir
 
 
@@ -27,6 +29,7 @@ def test_compile_to_mlir(ckt):
         simple_aggregates_product,
         aggregate_mux_wrapper,
         _simple_coreir_common_lib_mux_n_wrapper,
+        complex_register_wrapper,
     ]
 )
 def test_compile_to_mlir_flatten_all_tuples(ckt):
