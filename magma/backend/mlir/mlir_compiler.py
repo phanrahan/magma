@@ -31,15 +31,13 @@ class MlirCompiler(Compiler):
         wire_clocks(self.main)
         find_errors_pass(self.main)
 
-    def generate_code(self):
+    def compile(self):
         self._run_passes()
-        mlir_out = io.TextIOWrapper(io.BytesIO())
-        compile_to_mlir(
-            self.main, sout=mlir_out, opts=self._compile_to_mlir_opts)
-        mlir_out.seek(0)
+        with open(f"{self.basename}.mlir", "w") as f:
+            compile_to_mlir(
+                self.main, sout=f, opts=self._compile_to_mlir_opts)
         if not self.opts.get("output_verilog", False):
-            return mlir_out.read()
-        verilog_out = io.BytesIO()
-        mlir_to_verilog(mlir_out.buffer, verilog_out)
-        verilog_out.seek(0)
-        return io.TextIOWrapper(verilog_out).read()
+            return
+        with open(f"{self.basename}.mlir", "rb") as fi:
+            with open(f"{self.basename}.{self.suffix()}", "wb") as fo:
+                mlir_to_verilog(fi, fo)
