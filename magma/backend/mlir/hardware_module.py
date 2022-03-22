@@ -38,6 +38,7 @@ from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
+from magma.value_utils import make_selector
 
 
 MlirValueList = List[MlirValue]
@@ -425,44 +426,75 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_magma_register(self, module: ModuleWrapper) -> bool:
+        # NOTE(rsetaluri): Refactoring this compilation into the make_register
+        # and get_data_and_init functions is necessary to support
+        # flatten_all_tuples=True. make_register works for arbitrary types of
+        # inputs, so we can either invoke it once for the top-level type or call
+        # it on all flattened parts. get_data_and_init associates the operands
+        # with init values (and magma type), so that flattened and unflattened
+        # tuples can be treated uniformly.
+
+        def make_register(T, data, init, result):
+            reg = self._ctx.new_value(hw.InOutType(data.type))
+            sv.RegOp(name=inst.name, results=[reg])
+            always = sv.AlwaysFFOp(operands=always_operands, **attrs)
+            const = self.make_constant(T, init)
+            with push_block(always.body_block):
+                ctx = contextlib.nullcontext()
+                if has_enable:
+                    ctx = push_block(sv.IfOp(operands=[enable]).then_block)
+                with ctx:
+                    sv.PAssignOp(operands=[reg, data])
+            if has_reset:
+                with push_block(always.reset_block):
+                    sv.PAssignOp(operands=[reg, const])
+            with push_block(sv.InitialOp()):
+                sv.BPAssignOp(operands=[reg, const])
+            sv.ReadInOutOp(operands=[reg], results=[result])
+
+        def get_data_and_init(operands, init):
+            T_out, data_out, init_out = [], [], []
+
+            def _visit_input(i):
+                T_out.append(type(i))
+                data_out.append(operands.pop(0))
+                init_out.append(make_selector(i).select(init))
+
+            visit_magma_value_or_value_wrapper_by_direction(
+                defn.I,
+                _visit_input,
+                _visit_input,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+            return T_out, data_out, init_out
+
         inst = module.module
         defn = type(inst)
-        reg = self._ctx.new_value(
-            hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
-        sv.RegOp(name=inst.name, results=[reg])
         clock_edge = "posedge"
         has_reset = defn.reset_type is not None
         # NOTE(resetaluri): This is a hack until
         # magma/primitives/register.py:Register is updated to store this
         # generator parameter directly.
         has_enable = "CE" in defn.interface.ports
-        data = module.operands[0]
+        operands = module.operands.copy()
+        T, data, init = get_data_and_init(operands, defn.init)
+        assert len(data) == len(init)
+        assert len(data) == len(T)
+        assert len(data) == len(module.results)
         if has_enable:
-            enable = module.operands[1]
-            clk = module.operands[2]
+            enable = operands[0]
+            clk = operands[1]
         else:
-            clk = module.operands[1]
+            clk = operands[0]
         always_operands = [clk]
         attrs = dict(clock_edge=clock_edge)
         if has_reset:
-            reset = module.operands[-1]
+            reset = operands[-1]
             always_operands.append(reset)
             reset_type, reset_edge = parse_reset_type(defn.reset_type)
             attrs.update(dict(reset_type=reset_type, reset_edge=reset_edge))
-        always = sv.AlwaysFFOp(operands=always_operands, **attrs)
-        const = self.make_constant(type(defn.I), defn.init)
-        with push_block(always.body_block):
-            ctx = contextlib.nullcontext()
-            if has_enable:
-                ctx = push_block(sv.IfOp(operands=[enable]).then_block)
-            with ctx:
-                sv.PAssignOp(operands=[reg, data])
-        if has_reset:
-            with push_block(always.reset_block):
-                sv.PAssignOp(operands=[reg, const])
-        with push_block(sv.InitialOp()):
-            sv.BPAssignOp(operands=[reg, const])
-        sv.ReadInOutOp(operands=[reg], results=module.results.copy())
+        for T_i, data_i, init_i, result_i in zip(T, data, init, module.results):
+            make_register(T_i, data_i, init_i, result_i)
         return True
 
     @wrap_with_not_implemented_error

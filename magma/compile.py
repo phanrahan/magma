@@ -36,6 +36,9 @@ def _make_compiler(output, main, basename, opts):
         return CoreIRCompiler(main, basename, opts)
     if output == "mlir":
         return MlirCompiler(main, basename, opts)
+    if output == "mlir-verilog":
+        opts["output_verilog"] = True
+        return MlirCompiler(main, basename, opts)
     raise NotImplementedError(f"Backend '{output}' not supported")
 
 

@@ -1,9 +1,10 @@
 import abc
 import collections
 import collections.abc
+import dataclasses
 from functools import wraps, partial, reduce
 import operator
-from typing import Iterable
+from typing import Dict, Iterable
 import warnings
 
 
@@ -213,3 +214,16 @@ def lca_of_types(classes):
     #   https://stackoverflow.com/questions/58290137/how-to-find-most-recent-common-ancestor-base-type-of-several-types-in-python
     return next(iter(reduce(
         operator.and_, (collections.Counter(cls.mro()) for cls in classes))))
+
+
+def slice_opts(dct: Dict, cls: type):
+    if not dataclasses.is_dataclass(cls):
+        raise TypeError("Expected dataclass")
+    kwargs = {}
+    for name, field in cls.__dataclass_fields__.items():
+        try:
+            value = dct.pop(name)
+        except KeyError:
+            continue
+        kwargs[name] = value
+    return cls(**kwargs)
