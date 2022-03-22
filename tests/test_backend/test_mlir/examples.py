@@ -405,6 +405,25 @@ m.passes.clock.WireClockPass(complex_bind).run()
 m.passes.clock.WireClockPass(complex_bind_asserts).run()
 
 
+class xmr_bind(m.Circuit):
+    T = m.Bits[16]
+    io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.Out(T), z=m.Out(T))
+    inst = simple_hierarchy(name="inst")
+    y, z = inst(io.a, io.b, io.c)
+    io.y @= y
+    io.z @= z
+
+
+class xmr_bind_asserts(m.Circuit):
+    T = m.Bits[16]
+    io = m.IO(a=m.In(T), b=m.In(T), c=m.In(T), y=m.In(T), z=m.In(T), a_inner=m.In(T))
+    m.inline_verilog("assert property ({a_inner} == 0);", a_inner=io.a_inner)
+
+
+ProcessInlineVerilogPass(xmr_bind_asserts).run()
+xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.simple_comb_inst0.a)
+
+
 class simple_compile_guard(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
     with m.compile_guard(
