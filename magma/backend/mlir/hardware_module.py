@@ -674,10 +674,14 @@ class BindProcessor:
     def process(self):
         self._syms = []
         for bind_module, (args, _) in self._defn.bind_modules.items():
-            operands = [
-                self._ctx.get_mapped_value(p)
-                for p in self._defn.interface.ports.values()
-            ]
+            operands = []
+            for port in self._defn.interface.ports.values():
+                visit_magma_value_or_value_wrapper_by_direction(
+                    port,
+                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
+                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
+                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+                )
             for arg in args:
                 operands.append(self._ctx.get_mapped_value(arg))
             inst_name = f"{bind_module.name}_inst"
