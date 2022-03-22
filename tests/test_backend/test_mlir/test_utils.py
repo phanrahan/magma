@@ -118,11 +118,11 @@ def run_test_compile_to_mlir(
         assert check_streams_equal(mlir_out.buffer, mlir_gold, "out", "gold")
     check_verilog = _maybe_get_config(check_verilog, "test_mlir_check_verilog")
     if check_verilog:
+        mlir_out.seek(0)
+        verilog_out = _compile_to_verilog(
+            ckt, mlir_out.buffer, write_output_files)
+        verilog_out.seek(0)
         with open(f"{golds_dir}/{gold_name}.v", "rb") as verilog_gold:
-            mlir_out.seek(0)
-            verilog_out = _compile_to_verilog(
-                ckt, mlir_out.buffer, write_output_files)
-            verilog_out.seek(0)
             assert check_streams_equal(verilog_out, verilog_gold, "out", "gold")
         verilog_out.close
     mlir_out.close()
