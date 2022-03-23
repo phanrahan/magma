@@ -54,7 +54,7 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
         return tuple(path)
 
     def get_hierarchical_coreir_select(self):
-        return ";".join(self.path()[:-1])
+        return ";".join(self.path()[:-1]) + ";"
 
     def root(self):
         curr = self.parent
