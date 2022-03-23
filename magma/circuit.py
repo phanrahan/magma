@@ -934,7 +934,8 @@ class DebugCircuitKind(DefineCircuitKind):
         set_debug_mode(True)
         # NOTE: Using super() here doesn't work:
         #   result = super().__prepare__(name, bases, **kwargs)
-        #   TypeError: super(type, obj): obj must be an instance or subtype of type
+        #   TypeError: super(type, obj): obj must be an instance or subtype of
+        #   type
 
         result = DefineCircuitKind.__prepare__(name, bases, **kwargs)
         peek_definition_context_stack().set_metadata("prev_debug_mode",
