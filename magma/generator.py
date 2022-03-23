@@ -2,7 +2,8 @@ from abc import abstractmethod, ABCMeta
 import collections
 import functools
 import weakref
-from .circuit import DefineCircuitKind, Circuit
+from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
+                      DebugCircuitKind)
 from . import cache_definition
 from magma.common import ParamDict
 from hwtypes import BitVector
@@ -71,14 +72,14 @@ def _make_key(cls, *args, **kwargs):
 def _make_type(cls, *args, **kwargs):
     dummy = type.__new__(cls, "", (), {})
     name = cls.__name__
-    bases = (Circuit,)
-    dct = DefineCircuitKind.__prepare__(name, bases)
+    bases = (cls._base_cls,)
+    dct = cls._base_kind.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
     # NOTE(leonardt): We need to override the Generator2 classmethod bind with
     # DefineCircuitKind.bind for generator instances (circuits).
-    dct["bind"] = classmethod(DefineCircuitKind.bind)
-    ckt = DefineCircuitKind.__new__(cls, name, bases, dct)
+    dct["bind"] = classmethod(cls._base_kind.bind)
+    ckt = cls._base_kind.__new__(cls, name, bases, dct)
     for gen in cls.bind_generators:
         gen.generate_bind(ckt, *args, **kwargs)
     return ckt
@@ -86,9 +87,11 @@ def _make_type(cls, *args, **kwargs):
 
 class _Generator2Meta(type):
     _cache = weakref.WeakValueDictionary()
+    _base_cls = Circuit
+    _base_kind = DefineCircuitKind
 
     def __new__(metacls, name, bases, dct):
-        bases = bases + (DefineCircuitKind,)
+        bases = bases + (metacls._base_kind,)
         assert dct.setdefault("bind_generators", []) == []
         return type.__new__(metacls, name, bases, dct)
 
@@ -117,11 +120,20 @@ class Generator2(metaclass=_Generator2Meta):
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
-        return DefineCircuitKind.__call__(cls, *args, **kwargs)
+        return type(cls).__base_kind.__call__(cls, *args, **kwargs)
 
     @classmethod
     def bind(cls, monitor):
         cls.bind_generators.append(monitor)
+
+
+class _DebugGeneratorMeta(_Generator2Meta):
+    _base_cls = DebugCircuit
+    _base_kind = DebugCircuitKind
+
+
+class DebugGenerator(Generator2, metaclass=_DebugGeneratorMeta):
+    pass
 
 
 def reset_generator_cache():

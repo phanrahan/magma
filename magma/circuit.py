@@ -14,7 +14,7 @@ from . import cache_definition
 from .common import deprecated, setattrs, Stack, OrderedIdentitySet
 from .interface import *
 from .wire import *
-from .config import get_debug_mode
+from .config import get_debug_mode, set_debug_mode
 from .debug import get_callee_frame_info, debug_info
 from .is_definition import isdefinition
 from .placer import Placer, StagedPlacer
@@ -39,7 +39,7 @@ __all__ = ['AnonymousCircuitType']
 __all__ += ['AnonymousCircuit']
 
 __all__ += ['CircuitType']
-__all__ += ['Circuit']
+__all__ += ['Circuit', 'DebugCircuit']
 __all__ += ['DeclareCircuit']
 __all__ += ['DefineCircuit', 'EndDefine', 'EndCircuit']
 __all__ += ['DefineCircuitKind']
@@ -926,3 +926,28 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         for k, v in self._inst_attrs.items():
             setattr(inst, k, v)
         return inst
+
+
+class DebugCircuitKind(DefineCircuitKind):
+    def __prepare__(name, bases, **kwargs):
+        prev_debug_mode = get_debug_mode()
+        set_debug_mode(True)
+        # NOTE: Using super() here doesn't work:
+        #   result = super().__prepare__(name, bases, **kwargs)
+        #   TypeError: super(type, obj): obj must be an instance or subtype of type
+
+        result = DefineCircuitKind.__prepare__(name, bases, **kwargs)
+        peek_definition_context_stack().set_metadata("prev_debug_mode",
+                                                     prev_debug_mode)
+        return result
+
+    def __new__(metacls, name, bases, dct):
+        set_debug_mode(
+            peek_definition_context_stack().get_metadata("prev_debug_mode")
+        )
+        result = DefineCircuitKind.__new__(metacls, name, bases, dct)
+        return result
+
+
+class DebugCircuit(Circuit, metaclass=DebugCircuitKind):
+    pass
