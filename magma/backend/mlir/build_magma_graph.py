@@ -1,9 +1,12 @@
 import dataclasses
+from typing import Any, Callable, Tuple
 
 from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import (
-    ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root)
+    ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root,
+    InstanceWrapper,
+)
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaTupleGetOp, MagmaTupleCreateOp,
@@ -37,9 +40,15 @@ def _get_inst_or_defn_or_die(ref):
     assert False
 
 
+@dataclasses.dataclass(frozen=True)
+class BuildMagmaGrahOpts:
+    flatten_all_tuples: bool = False
+
+
 class ModuleContext:
-    def __init__(self, graph: Graph):
+    def __init__(self, graph: Graph, opts: BuildMagmaGrahOpts):
         self._graph = graph
+        self._opts = opts
         self._getter_cache = {}
 
     @property
@@ -47,8 +56,24 @@ class ModuleContext:
         return self._graph
 
     @property
-    def getter_cache(self):
-        return self._getter_cache
+    def opts(self) -> BuildMagmaGrahOpts:
+        return self._opts
+
+    def get_or_make_getter(
+            self,
+            value: Type,
+            index: Any,
+            op_maker: Callable,
+            args: Tuple[Any]) -> InstanceWrapper:
+        key = (value, index)
+        try:
+            return self._getter_cache[key]
+        except KeyError:
+            pass
+        getter = op_maker(type(value), *args)
+        _visit_driver(self, getter.I, value, getter)
+        self._getter_cache[key] = getter
+        return getter
 
 
 def _visit_driver(
@@ -100,31 +125,27 @@ def _visit_driver(
             src_module = _get_inst_or_defn_or_die(safe_root(ref.array.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
-        cache_key = (ref.array, ref.index)
-        try:
-            getter = ctx.getter_cache[cache_key]
-        except KeyError:
-            T = type(ref.array)
-            getter = MagmaArrayGetOp(T, ref.index)
-            _visit_driver(ctx, getter.I, ref.array, getter)
-            ctx.getter_cache[cache_key] = getter
+        index = ref.index
+        if isinstance(index, slice):
+            assert index.step is None
+            assert index.start <= index.stop
+            index = index.start, index.stop
+            getter_cls, getter_args = MagmaArraySliceOp, index
+        else:
+            getter_cls, getter_args = MagmaArrayGetOp, (index,)
+        getter = ctx.get_or_make_getter(
+            ref.array, index, getter_cls, getter_args)
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
     if isinstance(ref, TupleRef):
-        if ref.tuple.is_mixed():
+        if ref.tuple.is_mixed() or ctx.opts.flatten_all_tuples:
             info = dict(src=driver, dst=value)
             src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
-        cache_key = (ref.tuple, ref.index)
-        try:
-            getter = ctx.getter_cache[cache_key]
-        except KeyError:
-            T = type(ref.tuple)
-            getter = MagmaTupleGetOp(T, ref.index)
-            _visit_driver(ctx, getter.I, ref.tuple, getter)
-            ctx.getter_cache[cache_key] = getter
+        getter = ctx.get_or_make_getter(
+            ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
@@ -137,18 +158,22 @@ def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
     _visit_driver(ctx, value, driver, module)
 
 
-def _visit_inputs(ctx: ModuleContext, module: ModuleLike):
+def _visit_inputs(
+        ctx: ModuleContext, module: ModuleLike, flatten_all_tuples: bool):
     for port in module.interface.ports.values():
         visit_value_or_value_wrapper_by_direction(
             port,
             lambda p: _visit_input(ctx, p, module),
-            lambda _: None
+            lambda _: None,
+            flatten_all_tuples=flatten_all_tuples,
         )
 
 
-def build_magma_graph(ckt: DefineCircuitKind) -> Graph:
-    ctx = ModuleContext(Graph())
-    _visit_inputs(ctx, ckt)
+def build_magma_graph(
+        ckt: DefineCircuitKind,
+        opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
+    ctx = ModuleContext(Graph(), opts)
+    _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
-        _visit_inputs(ctx, inst)
+        _visit_inputs(ctx, inst, opts.flatten_all_tuples)
     return ctx.graph

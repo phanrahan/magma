@@ -24,6 +24,14 @@ _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS = {
 }
 
 
+def contains_tuple(T: Kind):
+    if isinstance(T, TupleMeta):
+        return True
+    if isinstance(T, ArrayMeta):
+        return contains_tuple(T.T)
+    return False
+
+
 def value_or_type_to_string(value_or_type: Union[Type, Kind]):
     if isinstance(value_or_type, Type):
         s = value_or_type.name.qualifiedname("_")
@@ -67,18 +75,27 @@ ValueOrValueWrapper = Union[Type, ValueWrapper]
 def visit_value_or_value_wrapper_by_direction(
         value_or_value_wrapper: ValueOrValueWrapper,
         input_visitor: Callable[[Type], Any],
-        output_visitor: Callable[[Type], Any]):
+        output_visitor: Callable[[Type], Any],
+        **kwargs):
+
+    def descend(v):
+        if not isinstance(v, (m_Tuple, Array)):
+            raise TypeError(value)
+        for item in v:
+            visit_value_or_value_wrapper_by_direction(
+                item, input_visitor, output_visitor, **kwargs)
+
+    flatten_all_tuples = kwargs.get("flatten_all_tuples", False)
+
+    if flatten_all_tuples and contains_tuple(type(value_or_value_wrapper)):
+        return descend(value_or_value_wrapper)
     if value_or_value_wrapper.is_input():
         return input_visitor(value_or_value_wrapper)
     if value_or_value_wrapper.is_output():
         return output_visitor(value_or_value_wrapper)
     if value_or_value_wrapper.is_mixed():
-        if isinstance(value_or_value_wrapper, (m_Tuple, Array)):
-            for item in value_or_value_wrapper:
-                visit_value_or_value_wrapper_by_direction(
-                    item, input_visitor, output_visitor
-                )
-            return
+        return descend(value_or_value_wrapper)
+
     raise TypeError(value_or_value_wrapper)
 
 

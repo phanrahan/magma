@@ -246,4 +246,21 @@ class IfOp(MlirOp):
         raise NotImplementedError()
 
 
+@dataclasses.dataclass
+class XMROp(MlirOp):
+    results: List[MlirOp]
+    is_rooted: bool
+    path: List[str]
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(f" = sv.xmr ")
+        if self.is_rooted:
+            printer.print(f"isRooted ")
+        path = [f"\"{p}\"" for p in self.path]
+        path = f"{', '.join(path)}"
+        printer.print(f"{path} : ")
+        print_types(self.results, printer)
+
+
 end_dialect()

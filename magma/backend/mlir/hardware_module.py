@@ -5,10 +5,13 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
 from magma.array import Array, ArrayMeta
-from magma.backend.mlir.build_magma_graph import build_magma_graph
+from magma.backend.mlir.build_magma_graph import (
+    BuildMagmaGrahOpts, build_magma_graph
+)
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.comb import comb
 from magma.backend.mlir.common import wrap_with_not_implemented_error
+from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.magma_common import (
@@ -35,6 +38,8 @@ from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
+from magma.value_utils import make_selector
+from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
@@ -87,9 +92,43 @@ def get_module_interface(
         visit_magma_value_or_value_wrapper_by_direction(
             port,
             lambda p: operands.append(ctx.get_or_make_mapped_value(p)),
-            lambda p: results.append(ctx.get_or_make_mapped_value(p))
+            lambda p: results.append(ctx.get_or_make_mapped_value(p)),
+            flatten_all_tuples=ctx.opts.flatten_all_tuples,
         )
     return operands, results
+
+
+def make_mux(
+        ctx: 'HardwareModule',
+        data: List[MlirValue],
+        select: MlirValue,
+        result: MlirValue):
+    mlir_type = hw.ArrayType((len(data),), data[0].type)
+    array = ctx.new_value(mlir_type)
+    hw.ArrayCreateOp(
+        operands=data,
+        results=[array])
+    hw.ArrayGetOp(
+        operands=[array, select],
+        results=[result])
+
+
+def get_register_data_and_init(
+        ctx: 'HardwareModule', I: Type, operands: List[MlirValue], init: Type):
+    T_out, data_out, init_out = [], [], []
+
+    def _visit_input(i):
+        T_out.append(type(i))
+        data_out.append(operands.pop(0))
+        init_out.append(make_selector(i).select(init))
+
+    visit_magma_value_or_value_wrapper_by_direction(
+        I,
+        _visit_input,
+        _visit_input,
+        flatten_all_tuples=ctx.opts.flatten_all_tuples
+    )
+    return T_out, data_out, init_out
 
 
 def make_hw_instance_op(
@@ -117,6 +156,16 @@ def make_hw_instance_op(
             results=results,
             sym=sym)
     return op
+
+
+def resolve_xmr(ctx: 'HardwareModule', xmr: PortView):
+    assert isinstance(xmr, PortView)
+    mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
+    in_out = ctx.new_value(hw.InOutType(mlir_type))
+    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
+    value = ctx.new_value(mlir_type)
+    sv.ReadInOutOp(operands=[in_out], results=[value])
+    return value
 
 
 @dataclasses.dataclass(frozen=True)
@@ -282,6 +331,13 @@ class ModuleVisitor:
         assert defn.coreir_name == "muxn"
         data = self._ctx.new_value(defn.I.data)
         sel = self._ctx.new_value(defn.I.sel)
+        # NOTE(rsetaluri): This is a specialized code path for the case where
+        # all tuples are flattened.
+        if self._ctx.opts.flatten_all_tuples:
+            hw.ArrayGetOp(
+                operands=module.operands.copy(),
+                results=module.results.copy())
+            return True
         hw.StructExtractOp(
             field="data",
             operands=module.operands.copy(),
@@ -301,7 +357,7 @@ class ModuleVisitor:
         defn = type(inst)
         assert defn.coreir_name == "lutN"
         init = defn.coreir_configargs["init"]
-        consts = [self.make_constant(Bit, b) for b in init]
+        consts = [self.make_constant(Bit, b) for b in reversed(init)]
         mlir_type = hw.ArrayType((len(init),), builtin.IntegerType(1))
         array = self._ctx.new_value(mlir_type)
         hw.ArrayCreateOp(
@@ -342,7 +398,7 @@ class ModuleVisitor:
             concat_type = hw.ArrayType((2,), operands[0].type.T)
             concat = self._ctx.new_value(concat_type)
             hw.ArrayConcatOp(
-                operands=[operands[0], other],
+                operands=[other, operands[0]],
                 results=[concat])
             operands = [concat]
             size = 2
@@ -350,6 +406,20 @@ class ModuleVisitor:
         index = self.make_constant(Bits[num_sel_bits], index)
         hw.ArrayGetOp(
             operands=(operands + [index]),
+            results=module.results)
+        return True
+
+    @wrap_with_not_implemented_error
+    def visit_array_slice(self, module: ModuleWrapper) -> bool:
+        inst_wrapper = module.module
+        T = inst_wrapper.attrs["T"]
+        size = T.N
+        operands = module.operands
+        lo = inst_wrapper.attrs["lo"]
+        num_sel_bits = clog2(size)
+        lo = self.make_constant(Bits[num_sel_bits], lo)
+        hw.ArraySliceOp(
+            operands=(operands + [lo]),
             results=module.results)
         return True
 
@@ -373,57 +443,75 @@ class ModuleVisitor:
         # magma/primitives/mux.py.
         height = len(list(filter(
             lambda p: "I" in p.name.name, defn.interface.outputs())))
-        T = type(defn.I0)
-        mlir_type = hw.ArrayType((height,), magma_type_to_mlir_type(T))
-        array = self._ctx.new_value(mlir_type)
-        hw.ArrayCreateOp(
-            operands=module.operands[:-1],
-            results=[array])
-        hw.ArrayGetOp(
-            operands=[array, module.operands[-1]],
-            results=module.results)
+        data, select = module.operands[:-1], module.operands[-1]
+        # NOTE(rsetaluri): This is a specialized code path for the case where
+        # all tuples are flattened.
+        if self._ctx.opts.flatten_all_tuples and len(data) != height:
+            assert len(data) % height == 0
+            stride = len(data) // height
+            assert len(module.results) == stride
+            for i in range(stride):
+                make_mux(self._ctx, data[i::stride], select, module.results[i])
+            return True
+        make_mux(self._ctx, data, select, module.results[0])
         return True
 
     @wrap_with_not_implemented_error
     def visit_magma_register(self, module: ModuleWrapper) -> bool:
+        # NOTE(rsetaluri): Refactoring this compilation into the make_register
+        # and get_register_data_and_init functions is necessary to support
+        # flatten_all_tuples=True. make_register works for arbitrary types of
+        # inputs, so we can either invoke it once for the top-level type or call
+        # it on all flattened parts. get_register_data_and_init associates the
+        # operands with init values (and magma type), so that flattened and
+        # unflattened tuples can be treated uniformly.
+
+        def make_register(T, data, init, result):
+            reg = self._ctx.new_value(hw.InOutType(data.type))
+            sv.RegOp(name=inst.name, results=[reg])
+            always = sv.AlwaysFFOp(operands=always_operands, **attrs)
+            const = self.make_constant(T, init)
+            with push_block(always.body_block):
+                ctx = contextlib.nullcontext()
+                if has_enable:
+                    ctx = push_block(sv.IfOp(operands=[enable]).then_block)
+                with ctx:
+                    sv.PAssignOp(operands=[reg, data])
+            if has_reset:
+                with push_block(always.reset_block):
+                    sv.PAssignOp(operands=[reg, const])
+            with push_block(sv.InitialOp()):
+                sv.BPAssignOp(operands=[reg, const])
+            sv.ReadInOutOp(operands=[reg], results=[result])
+
         inst = module.module
         defn = type(inst)
-        reg = self._ctx.new_value(
-            hw.InOutType(magma_type_to_mlir_type(type(defn.O))))
-        sv.RegOp(name=inst.name, results=[reg])
         clock_edge = "posedge"
         has_reset = defn.reset_type is not None
         # NOTE(resetaluri): This is a hack until
         # magma/primitives/register.py:Register is updated to store this
         # generator parameter directly.
         has_enable = "CE" in defn.interface.ports
-        data = module.operands[0]
+        operands = module.operands.copy()
+        T, data, init = get_register_data_and_init(
+            self._ctx, defn.I, operands, defn.init)
+        assert len(data) == len(init)
+        assert len(data) == len(T)
+        assert len(data) == len(module.results)
         if has_enable:
-            enable = module.operands[1]
-            clk = module.operands[2]
+            enable = operands[0]
+            clk = operands[1]
         else:
-            clk = module.operands[1]
+            clk = operands[0]
         always_operands = [clk]
         attrs = dict(clock_edge=clock_edge)
         if has_reset:
-            reset = module.operands[-1]
+            reset = operands[-1]
             always_operands.append(reset)
             reset_type, reset_edge = parse_reset_type(defn.reset_type)
             attrs.update(dict(reset_type=reset_type, reset_edge=reset_edge))
-        always = sv.AlwaysFFOp(operands=always_operands, **attrs)
-        const = self.make_constant(type(defn.I), defn.init)
-        with push_block(always.body_block):
-            ctx = contextlib.nullcontext()
-            if has_enable:
-                ctx = push_block(sv.IfOp(operands=[enable]).then_block)
-            with ctx:
-                sv.PAssignOp(operands=[reg, data])
-        if has_reset:
-            with push_block(always.reset_block):
-                sv.PAssignOp(operands=[reg, const])
-        with push_block(sv.InitialOp()):
-            sv.BPAssignOp(operands=[reg, const])
-        sv.ReadInOutOp(operands=[reg], results=module.results.copy())
+        for T_i, data_i, init_i, result_i in zip(T, data, init, module.results):
+            make_register(T_i, data_i, init_i, result_i)
         return True
 
     @wrap_with_not_implemented_error
@@ -488,6 +576,15 @@ class ModuleVisitor:
                     lo=inst_wrapper.attrs["index"])
                 return True
             return self.visit_array_get(module)
+        if inst_wrapper.name.startswith("magma_array_slice_op_"):
+            T = inst_wrapper.attrs["T"]
+            if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
+                comb.ExtractOp(
+                    operands=module.operands,
+                    results=module.results,
+                    lo=inst_wrapper.attrs["lo"])
+                return True
+            return self.visit_array_slice(module)
         if inst_wrapper.name.startswith("magma_array_create_op"):
             T = inst_wrapper.attrs["T"]
             if isinstance(T, BitsMeta) or issubclass(T.T, Bit):
@@ -591,15 +688,25 @@ class BindProcessor:
             self._ctx.parent.set_hardware_module(
                 bind_module, hardware_module.hw_module)
 
+    @wrap_with_not_implemented_error
+    def _resolve_arg(self, arg) -> MlirValue:
+        if isinstance(arg, Type):
+            return self._ctx.get_mapped_value(arg)
+        if isinstance(arg, PortView):
+            return resolve_xmr(self._ctx, arg)
+
     def process(self):
         self._syms = []
         for bind_module, (args, _) in self._defn.bind_modules.items():
-            operands = [
-                self._ctx.get_mapped_value(p)
-                for p in self._defn.interface.ports.values()
-            ]
-            for arg in args:
-                operands.append(self._ctx.get_mapped_value(arg))
+            operands = []
+            for port in self._defn.interface.ports.values():
+                visit_magma_value_or_value_wrapper_by_direction(
+                    port,
+                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
+                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
+                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+                )
+            operands += list(map(self._resolve_arg, args))
             inst_name = f"{bind_module.name}_inst"
             sym = self._ctx.parent.get_or_make_mapped_symbol(
                 (self._defn, bind_module),
@@ -625,9 +732,10 @@ class BindProcessor:
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: CircuitKind,
-            parent: weakref.ReferenceType):
+            parent: weakref.ReferenceType, opts: CompileToMlirOpts):
         self._magma_defn_or_decl = magma_defn_or_decl
         self._parent = parent
+        self._opts = opts
         self._hw_module = None
         self._name_gen = ScopedNameGenerator()
         self._value_map = {}
@@ -639,6 +747,10 @@ class HardwareModule:
     @property
     def parent(self):
         return self._parent()
+
+    @property
+    def opts(self) -> CompileToMlirOpts:
+        return self._opts
 
     @property
     def hw_module(self) -> hw.ModuleOpBase:
@@ -694,7 +806,8 @@ class HardwareModule:
         i, o = [], []
         for port in self._magma_defn_or_decl.interface.ports.values():
             visit_magma_value_or_value_wrapper_by_direction(
-                port, i.append, o.append
+                port, i.append, o.append,
+                flatten_all_tuples=self._opts.flatten_all_tuples,
             )
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
@@ -714,7 +827,10 @@ class HardwareModule:
             name=name,
             operands=inputs,
             results=named_outputs)
-        graph = build_magma_graph(self._magma_defn_or_decl)
+        build_magma_graph_opts = BuildMagmaGrahOpts(
+            self._opts.flatten_all_tuples)
+        graph = build_magma_graph(
+            self._magma_defn_or_decl, build_magma_graph_opts)
         visitor = ModuleVisitor(graph, self)
         with push_block(op):
             visitor.visit(self._magma_defn_or_decl)

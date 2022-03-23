@@ -10,7 +10,7 @@ from magma.common import (
     only, IterableException, EmptyIterableException,
     NonSignletonIterableException)
 from magma.logging import root_logger
-from magma.passes.passes import DefinitionPass
+from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.wire import Wire
 from magma.t import Type, Kind
 from magma.tuple import Tuple
@@ -197,3 +197,6 @@ class WireClockPass(DefinitionPass):
             for instance in definition.instances:
                 drive_undriven_clock_types_in_inst(definition, instance)
                 drive_undriven_other_clock_types_in_inst(definition, instance)
+
+
+wire_clocks = pass_lambda(WireClockPass)

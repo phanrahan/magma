@@ -24,18 +24,22 @@ class simple_hierarchy(m.Circuit):
 
 class simple_aggregates_bits(m.Circuit):
     T = m.Bits[16]
-    io = m.IO(a=m.In(T), y=m.Out(T))
+    U = m.Bits[8]
+    io = m.IO(a=m.In(T), y=m.Out(T), z=m.Out(U))
     half = int(T.N / 2)
     io.y[:half] @= io.a[half:]
     io.y[half:] @= io.a[:half]
+    io.z @= io.a[:half]
 
 
 class simple_aggregates_array(m.Circuit):
     T = m.Array[8, m.Bits[16]]
-    io = m.IO(a=m.In(T), y=m.Out(T))
+    U = m.Array[4, m.Bits[16]]
+    io = m.IO(a=m.In(T), y=m.Out(T), z=m.Out(U))
     half = int(T.N / 2)
     io.y[:half] @= io.a[half:]
     io.y[half:] @= io.a[:half]
+    io.z @= io.a[:half]
 
 
 class simple_aggregates_nested_array(m.Circuit):
@@ -379,17 +383,19 @@ m.passes.clock.WireClockPass(simple_bind_asserts).run()
 
 
 class complex_bind(m.Circuit):
-    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
-    not_I = ~io.I
+    T = m.Product.from_fields("anon", dict(I=m.Bit))
+    io = m.IO(I=m.In(T), O=m.Out(m.Bit))
+    not_I = ~io.I.I
     io.O @= m.register(~not_I)
 
 
 class complex_bind_asserts(m.Circuit):
-    io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit)) + m.ClockIO() + m.IO(I0=m.In(m.Bit))
+    T = complex_bind.T
+    io = m.IO(I=m.In(T), O=m.In(m.Bit)) + m.ClockIO() + m.IO(I0=m.In(m.Bit))
     m.inline_verilog(
         "assert property (@(posedge CLK) {I} |-> ##1 {O});"
         "assert property ({I} |-> {I0};",
-        O=io.O, I=io.I, I0=io.I0
+        O=io.O, I=io.I.I, I0=io.I0
     )
 
 
@@ -397,6 +403,38 @@ ProcessInlineVerilogPass(complex_bind_asserts).run()
 complex_bind.bind(complex_bind_asserts, complex_bind.not_I)
 m.passes.clock.WireClockPass(complex_bind).run()
 m.passes.clock.WireClockPass(complex_bind_asserts).run()
+
+
+class xmr_bind_grandchild(m.Circuit):
+    T = m.Bits[16]
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    io.y @= io.a
+
+
+class xmr_bind_child(m.Circuit):
+    T = xmr_bind_grandchild.T
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    inst = xmr_bind_grandchild()
+    inst.a @= io.a
+    io.y @= inst.y
+
+
+class xmr_bind(m.Circuit):
+    T = xmr_bind_grandchild.T
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    inst = xmr_bind_child()
+    inst.a @= io.a
+    io.y @= inst.y
+
+
+class xmr_bind_asserts(m.Circuit):
+    T = xmr_bind.T
+    io = m.IO(a=m.In(T), y=m.In(T), other=m.In(T))
+    m.inline_verilog("assert property ({other} == 0);", other=io.other)
+
+
+ProcessInlineVerilogPass(xmr_bind_asserts).run()
+xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
 
 
 class simple_compile_guard(m.Circuit):
