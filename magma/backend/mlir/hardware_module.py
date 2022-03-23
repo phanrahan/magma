@@ -113,6 +113,24 @@ def make_mux(
         results=[result])
 
 
+def get_register_data_and_init(
+        ctx: 'HardwareModule', I: Type, operands: List[MlirValue], init: Type):
+    T_out, data_out, init_out = [], [], []
+
+    def _visit_input(i):
+        T_out.append(type(i))
+        data_out.append(operands.pop(0))
+        init_out.append(make_selector(i).select(init))
+
+    visit_magma_value_or_value_wrapper_by_direction(
+        I,
+        _visit_input,
+        _visit_input,
+        flatten_all_tuples=ctx.opts.flatten_all_tuples
+    )
+    return T_out, data_out, init_out
+
+
 def make_hw_instance_op(
         operands: MlirValueList,
         results: MlirValueList,
@@ -441,12 +459,12 @@ class ModuleVisitor:
     @wrap_with_not_implemented_error
     def visit_magma_register(self, module: ModuleWrapper) -> bool:
         # NOTE(rsetaluri): Refactoring this compilation into the make_register
-        # and get_data_and_init functions is necessary to support
+        # and get_register_data_and_init functions is necessary to support
         # flatten_all_tuples=True. make_register works for arbitrary types of
         # inputs, so we can either invoke it once for the top-level type or call
-        # it on all flattened parts. get_data_and_init associates the operands
-        # with init values (and magma type), so that flattened and unflattened
-        # tuples can be treated uniformly.
+        # it on all flattened parts. get_register_data_and_init associates the
+        # operands with init values (and magma type), so that flattened and
+        # unflattened tuples can be treated uniformly.
 
         def make_register(T, data, init, result):
             reg = self._ctx.new_value(hw.InOutType(data.type))
@@ -466,22 +484,6 @@ class ModuleVisitor:
                 sv.BPAssignOp(operands=[reg, const])
             sv.ReadInOutOp(operands=[reg], results=[result])
 
-        def get_data_and_init(operands, init):
-            T_out, data_out, init_out = [], [], []
-
-            def _visit_input(i):
-                T_out.append(type(i))
-                data_out.append(operands.pop(0))
-                init_out.append(make_selector(i).select(init))
-
-            visit_magma_value_or_value_wrapper_by_direction(
-                defn.I,
-                _visit_input,
-                _visit_input,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-            )
-            return T_out, data_out, init_out
-
         inst = module.module
         defn = type(inst)
         clock_edge = "posedge"
@@ -491,7 +493,8 @@ class ModuleVisitor:
         # generator parameter directly.
         has_enable = "CE" in defn.interface.ports
         operands = module.operands.copy()
-        T, data, init = get_data_and_init(operands, defn.init)
+        T, data, init = get_register_data_and_init(
+            self._ctx, defn.I, operands, defn.init)
         assert len(data) == len(init)
         assert len(data) == len(T)
         assert len(data) == len(module.results)
