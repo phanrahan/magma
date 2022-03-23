@@ -121,7 +121,7 @@ def get_undriven_clocks_in_value(
 
 
 def _drive_value_with_clock(value: Type, clk: Type):
-    _logger.info(f"Auto-wiring {repr(clk)} to {repr(value)}")
+    _logger.debug(f"Auto-wiring {repr(clk)} to {repr(value)}")
     value @= clk
 
 

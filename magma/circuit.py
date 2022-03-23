@@ -685,7 +685,7 @@ class DefineCircuitKind(CircuitKind):
         if port.trace() is None:
             if isinstance(port, ClockTypes):
                 msg = "{} not driven, will attempt to automatically wire"
-                _logger.info(WiringLog(msg, port), debug_info=debug_info)
+                _logger.debug(WiringLog(msg, port), debug_info=debug_info)
             elif is_clock_or_nested_clock(type(port)):
                 # Must be nested, otherwise caught in previous case
                 for elem in port:
