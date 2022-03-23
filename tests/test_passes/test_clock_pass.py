@@ -1,4 +1,5 @@
 import logging
+
 import magma as m
 from magma.passes.clock import drive_undriven_clock_types_in_inst
 from magma.testing.utils import has_debug, has_warning

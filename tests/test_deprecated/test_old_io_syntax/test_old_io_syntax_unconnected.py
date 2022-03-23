@@ -1,5 +1,5 @@
-import pytest
 import logging
+import pytest
 import magma as m
 from magma.testing import magma_debug_section
 from magma.testing.utils import has_error
