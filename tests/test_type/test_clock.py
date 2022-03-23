@@ -1,6 +1,7 @@
 import logging
-import tempfile
 import pytest
+import tempfile
+
 import magma as m
 from magma.testing import check_files_equal
 from magma import (IO, In, Out, Flip, Clock, Reset, reset, Enable, enable,
