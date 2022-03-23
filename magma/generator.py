@@ -120,7 +120,7 @@ class Generator2(metaclass=_Generator2Meta):
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
-        return type(cls).__base_kind.__call__(cls, *args, **kwargs)
+        return type(cls)._base_kind.__call__(cls, *args, **kwargs)
 
     @classmethod
     def bind(cls, monitor):
