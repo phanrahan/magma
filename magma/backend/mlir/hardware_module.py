@@ -39,6 +39,7 @@ from magma.primitives.register import Register
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
+from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
@@ -122,6 +123,16 @@ def make_hw_instance_op(
             results=results,
             sym=sym)
     return op
+
+
+def resolve_xmr(ctx: 'HardwareModule', xmr: PortView):
+    assert isinstance(xmr, PortView)
+    mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
+    in_out = ctx.new_value(hw.InOutType(mlir_type))
+    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
+    value = ctx.new_value(mlir_type)
+    sv.ReadInOutOp(operands=[in_out], results=[value])
+    return value
 
 
 @dataclasses.dataclass(frozen=True)
@@ -671,6 +682,13 @@ class BindProcessor:
             self._ctx.parent.set_hardware_module(
                 bind_module, hardware_module.hw_module)
 
+    @wrap_with_not_implemented_error
+    def _resolve_arg(self, arg) -> MlirValue:
+        if isinstance(arg, Type):
+            return self._ctx.get_mapped_value(arg)
+        if isinstance(arg, PortView):
+            return resolve_xmr(self._ctx, arg)
+
     def process(self):
         self._syms = []
         for bind_module, (args, _) in self._defn.bind_modules.items():
@@ -682,8 +700,7 @@ class BindProcessor:
                     lambda p: operands.append(self._ctx.get_mapped_value(p)),
                     flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
                 )
-            for arg in args:
-                operands.append(self._ctx.get_mapped_value(arg))
+            operands += list(map(self._resolve_arg, args))
             inst_name = f"{bind_module.name}_inst"
             sym = self._ctx.parent.get_or_make_mapped_symbol(
                 (self._defn, bind_module),
