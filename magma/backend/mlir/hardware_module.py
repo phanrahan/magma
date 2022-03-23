@@ -98,6 +98,21 @@ def get_module_interface(
     return operands, results
 
 
+def make_mux(
+        ctx: 'HardwareModule',
+        data: List[MlirValue],
+        select: MlirValue,
+        result: MlirValue):
+    mlir_type = hw.ArrayType((len(data),), data[0].type)
+    array = ctx.new_value(mlir_type)
+    hw.ArrayCreateOp(
+        operands=data,
+        results=[array])
+    hw.ArrayGetOp(
+        operands=[array, select],
+        results=[result])
+
+
 def make_hw_instance_op(
         operands: MlirValueList,
         results: MlirValueList,
@@ -402,17 +417,6 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
-
-        def make_mux(data, select, result):
-            mlir_type = hw.ArrayType((len(data),), data[0].type)
-            array = self._ctx.new_value(mlir_type)
-            hw.ArrayCreateOp(
-                operands=data,
-                results=[array])
-            hw.ArrayGetOp(
-                operands=[array, select],
-                results=[result])
-
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, Mux)
@@ -429,10 +433,9 @@ class ModuleVisitor:
             stride = len(data) // height
             assert len(module.results) == stride
             for i in range(stride):
-                operands = data[i::stride]
-                make_mux(data[i::stride], select, module.results[i])
+                make_mux(self._ctx, data[i::stride], select, module.results[i])
             return True
-        make_mux(data, select, module.results[0])
+        make_mux(self._ctx, data, select, module.results[0])
         return True
 
     @wrap_with_not_implemented_error
