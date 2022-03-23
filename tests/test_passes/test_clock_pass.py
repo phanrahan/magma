@@ -1,20 +1,23 @@
+import logging
+
 import magma as m
 from magma.passes.clock import drive_undriven_clock_types_in_inst
-from magma.testing.utils import has_info, has_warning
+from magma.testing.utils import has_debug, has_warning
 
 
 def test_drive_undriven_clock_types_succesful_logging(caplog):
     T = m.Bit
 
-    class Foo(m.Circuit):
-        io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO()
-        io.O @= m.register(io.I)
+    with caplog.at_level(logging.DEBUG, logger="magma"):
+        class Foo(m.Circuit):
+            io = m.IO(I=m.In(T), O=m.Out(T)) + m.ClockIO()
+            io.O @= m.register(io.I)
 
-    Foo_reg = Foo.instances[0]
-    drive_undriven_clock_types_in_inst(Foo, Foo_reg)
+        Foo_reg = Foo.instances[0]
+        drive_undriven_clock_types_in_inst(Foo, Foo_reg)
 
     msg = f"Auto-wiring {repr(Foo.CLK)} to {repr(Foo_reg.CLK)}"
-    assert has_info(caplog, msg)
+    assert has_debug(caplog, msg)
 
 
 def test_drive_undriven_clock_types_no_clock_logging(caplog):

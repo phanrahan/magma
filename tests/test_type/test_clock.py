@@ -1,5 +1,7 @@
-import tempfile
+import logging
 import pytest
+import tempfile
+
 import magma as m
 from magma.testing import check_files_equal
 from magma import (IO, In, Out, Flip, Clock, Reset, reset, Enable, enable,
@@ -450,17 +452,18 @@ def test_multiple_clock_drivers():
 
 
 def test_implicit_clock_tuple(caplog):
-    class Clocks(m.Product):
-        clk = m.Clock
-        reset = m.Reset
+    with caplog.at_level(logging.DEBUG, logger="magma"):
+        class Clocks(m.Product):
+            clk = m.Clock
+            reset = m.Reset
 
-    class Foo(m.Circuit):
-        io = m.IO(clocks=m.In(Clocks), I=m.In(m.Bit), O=m.Out(m.Bit))
+        class Foo(m.Circuit):
+            io = m.IO(clocks=m.In(Clocks), I=m.In(m.Bit), O=m.Out(m.Bit))
 
-    class Bar(m.Circuit):
-        io = m.IO(clocks=m.In(Clocks), I=m.In(m.Bit), O=m.Out(m.Bit))
+        class Bar(m.Circuit):
+            io = m.IO(clocks=m.In(Clocks), I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        io.O @= Foo()(I=io.I)
+            io.O @= Foo()(I=io.I)
 
 
     m.compile("build/Bar", Bar)
@@ -469,20 +472,21 @@ def test_implicit_clock_tuple(caplog):
 
 
 def test_implicit_clock_mixed(caplog):
-    class T(m.Product):
-        clk = m.In(m.Clock)
-        x = m.Out(m.Bit)
+    with caplog.at_level(logging.DEBUG, logger="magma"):
+        class T(m.Product):
+            clk = m.In(m.Clock)
+            x = m.Out(m.Bit)
 
-    class Foo(m.Circuit):
-        io = m.IO(y=T, I=m.In(m.Bit))
+        class Foo(m.Circuit):
+            io = m.IO(y=T, I=m.In(m.Bit))
 
-    class Bar(m.Circuit):
-        io = m.IO(y=T, I=m.In(m.Bit), O=m.Out(m.Bit))
+        class Bar(m.Circuit):
+            io = m.IO(y=T, I=m.In(m.Bit), O=m.Out(m.Bit))
 
-        foo = Foo()
-        foo.I @= io.I
-        io.O @= foo.y.x
-        io.y.x @= foo.y.x
+            foo = Foo()
+            foo.I @= io.I
+            io.O @= foo.y.x
+            io.y.x @= foo.y.x
 
 
     m.compile("build/Bar", Bar)

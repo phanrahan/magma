@@ -1,3 +1,4 @@
+import logging
 import pytest
 import magma as m
 from magma.testing import magma_debug_section
@@ -50,7 +51,7 @@ def _make_unconnected_autowired(typ):
 def test_unconnected_io(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_io()
-        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:8\x1b[0m: _Circuit.O not driven
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:9\x1b[0m: _Circuit.O not driven
 >>     class _Circuit(m.Circuit):"""
         assert has_error(caplog, expected)
 
@@ -58,14 +59,15 @@ def test_unconnected_io(caplog):
 def test_unconnected_instance(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_instance()
-        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:27\x1b[0m: _Circuit.buf.I not driven
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:28\x1b[0m: _Circuit.buf.I not driven
 >>         buf = _Buffer()"""
         assert has_error(caplog, expected)
 
 
 @pytest.mark.parametrize("typ", [m.Clock, m.Reset, m.AsyncReset])
 def test_unconnected_autowired(typ, caplog):
-    with magma_debug_section():
-        Circuit = _make_unconnected_autowired(typ)
-        msg = "_Circuit.buf.X not driven, will attempt to automatically wire"
-        assert any(msg in log.msg for log in caplog.records)
+    with caplog.at_level(logging.DEBUG, logger="magma"):
+        with magma_debug_section():
+            Circuit = _make_unconnected_autowired(typ)
+            msg = "_Circuit.buf.X not driven, will attempt to automatically wire"
+            assert any(msg in log.msg for log in caplog.records)
