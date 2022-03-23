@@ -1,9 +1,12 @@
 import dataclasses
+from typing import Any, Callable, Tuple
 
 from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import (
-    ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root)
+    ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root,
+    InstanceWrapper,
+)
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaTupleGetOp, MagmaTupleCreateOp,
@@ -56,9 +59,21 @@ class ModuleContext:
     def opts(self) -> BuildMagmaGrahOpts:
         return self._opts
 
-    @property
-    def getter_cache(self):
-        return self._getter_cache
+    def get_or_make_getter(
+            self,
+            value: Type,
+            index: Any,
+            op_maker: Callable,
+            args: Tuple[Any]) -> InstanceWrapper:
+        key = (value, index)
+        try:
+            return self._getter_cache[key]
+        except KeyError:
+            pass
+        getter = op_maker(type(value), *args)
+        _visit_driver(self, getter.I, value, getter)
+        self._getter_cache[key] = getter
+        return getter
 
 
 def _visit_driver(
@@ -118,14 +133,8 @@ def _visit_driver(
             getter_cls, getter_args = MagmaArraySliceOp, index
         else:
             getter_cls, getter_args = MagmaArrayGetOp, (index,)
-        cache_key = (ref.array, index)
-        try:
-            getter = ctx.getter_cache[cache_key]
-        except KeyError:
-            T = type(ref.array)
-            getter = getter_cls(T, *getter_args)
-            _visit_driver(ctx, getter.I, ref.array, getter)
-            ctx.getter_cache[cache_key] = getter
+        getter = ctx.get_or_make_getter(
+            ref.array, index, getter_cls, getter_args)
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
@@ -135,14 +144,8 @@ def _visit_driver(
             src_module = _get_inst_or_defn_or_die(safe_root(ref.tuple.name))
             ctx.graph.add_edge(src_module, module, info=info)
             return
-        cache_key = (ref.tuple, ref.index)
-        try:
-            getter = ctx.getter_cache[cache_key]
-        except KeyError:
-            T = type(ref.tuple)
-            getter = MagmaTupleGetOp(T, ref.index)
-            _visit_driver(ctx, getter.I, ref.tuple, getter)
-            ctx.getter_cache[cache_key] = getter
+        getter = ctx.get_or_make_getter(
+            ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
         return
