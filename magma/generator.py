@@ -3,7 +3,7 @@ import collections
 import functools
 import weakref
 from .circuit import (DefineCircuitKind, Circuit, DebugCircuit,
-                      DebugCircuitKind)
+                      DebugDefineCircuitKind)
 from . import cache_definition
 from magma.common import ParamDict
 from hwtypes import BitVector
@@ -72,14 +72,14 @@ def _make_key(cls, *args, **kwargs):
 def _make_type(cls, *args, **kwargs):
     dummy = type.__new__(cls, "", (), {})
     name = cls.__name__
-    bases = (cls._base_cls,)
-    dct = cls._base_kind.__prepare__(name, bases)
+    bases = (cls._base_cls_,)
+    dct = cls._base_metacls_.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
     # NOTE(leonardt): We need to override the Generator2 classmethod bind with
     # DefineCircuitKind.bind for generator instances (circuits).
-    dct["bind"] = classmethod(cls._base_kind.bind)
-    ckt = cls._base_kind.__new__(cls, name, bases, dct)
+    dct["bind"] = classmethod(cls._base_metacls_.bind)
+    ckt = cls._base_metacls_.__new__(cls, name, bases, dct)
     for gen in cls.bind_generators:
         gen.generate_bind(ckt, *args, **kwargs)
     return ckt
@@ -87,11 +87,11 @@ def _make_type(cls, *args, **kwargs):
 
 class _Generator2Meta(type):
     _cache = weakref.WeakValueDictionary()
-    _base_cls = Circuit
-    _base_kind = DefineCircuitKind
+    _base_cls_ = Circuit
+    _base_metacls_ = DefineCircuitKind
 
     def __new__(metacls, name, bases, dct):
-        bases = bases + (metacls._base_kind,)
+        bases = bases + (metacls._base_metacls_,)
         assert dct.setdefault("bind_generators", []) == []
         return type.__new__(metacls, name, bases, dct)
 
@@ -120,7 +120,7 @@ class Generator2(metaclass=_Generator2Meta):
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
-        return type(cls)._base_kind.__call__(cls, *args, **kwargs)
+        return type(cls)._base_metacls_.__call__(cls, *args, **kwargs)
 
     @classmethod
     def bind(cls, monitor):
@@ -128,11 +128,11 @@ class Generator2(metaclass=_Generator2Meta):
 
 
 class _DebugGeneratorMeta(_Generator2Meta):
-    _base_cls = DebugCircuit
-    _base_kind = DebugCircuitKind
+    _base_cls_ = DebugCircuit
+    _base_metacls_ = DebugDefineCircuitKind
 
 
-class DebugGenerator(Generator2, metaclass=_DebugGeneratorMeta):
+class DebugGenerator2(Generator2, metaclass=_DebugGeneratorMeta):
     pass
 
 
