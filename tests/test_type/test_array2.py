@@ -405,4 +405,6 @@ def test_mixed_direction_slice(caplog):
         io.O[:2] @= io.I[2:]
         io.O[2:] @= io.I[:2]
 
-    assert not caplog.records
+    assert not caplog.records, "Should not report an error"
+    _check_compile("test_array2_mixed_direction_slice", Foo, False,
+                   True)
