@@ -97,3 +97,9 @@ class InstView:
                 return InstView(self.instance_map[attr], self)
         except AttributeError:
             return object.__getattribute__(self, attr)
+
+    def path(self) -> Tuple[str]:
+        path = (self.inst.name,)
+        if self.parent is None:
+            return path
+        return self.parent.path() + path

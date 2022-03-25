@@ -215,7 +215,8 @@ def resolve_xmr(
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
     in_out = ctx.new_value(hw.InOutType(mlir_type))
-    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
+    path = xmr.parent.path() + (xmr._resolved_,)
+    sv.XMROp(is_rooted=False, path=path, results=[in_out])
     ret = None
     if value is None:
         value = ctx.new_value(mlir_type)

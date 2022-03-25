@@ -67,6 +67,32 @@ def test_xmr(backend):
 
     m.bind2(Top, TopXMRAsserts, Top.middle.bottom.O, Top.middle.bottom.I.x)
 
+    ############################################################################
+    from magma.primitives.wire import Wire
+
+    class Wire2(m.Generator2):
+        def __init__(self, T):
+            self.io = io = m.IO(I=m.In(T), O=m.Out(T))
+            I = m.as_bits(io.I)
+            O = Wire(m.Bits[len(I)])()(I)
+            io.O @= m.from_bits(T, O)
+
+    inst = Top.instances[-1]
+    args = [p.value() for p in list(inst.interface.ports.values())[len(Top.interface.ports):]]
+    from magma.ref import PortViewRef
+    for idx, arg in enumerate(args):
+        if not isinstance(arg.name, PortViewRef):
+            continue
+        xmr = arg.name.view
+        defn = xmr.parent.inst.defn
+        with defn.open():
+            value = xmr.port
+            if value.is_input():
+                value = value.value()
+            Wire2(type(value))(name=f"bind_value_{idx}")(value)
+        arg.name.view._resolved_ = "dasfdf"
+    ############################################################################
+
     basename = "test_bind2_xmr"
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
