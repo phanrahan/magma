@@ -1,3 +1,4 @@
+import abc
 import contextlib
 import dataclasses
 import functools
@@ -670,11 +671,25 @@ def treat_as_definition(defn_or_decl: CircuitKind) -> bool:
     return True
 
 
-class BindProcessor:
-    def __init__(self, ctx, defn: CircuitKind):
+class BindProcessorInterface(abc.ABC):
+    def __init__(self, ctx: 'HardwareModule', defn: CircuitKind):
         self._ctx = ctx
         self._defn = defn
 
+    @abc.abstractmethod
+    def preprocess(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def process(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def postprocess(self):
+        raise NotImplementedError()
+
+
+class NativeBindProcessor(BindProcessorInterface):
     def preprocess(self):
         for bind_module in self._defn.bind_modules:
             # TODO(rsetaluri): Here we should check if @bind_module has already
@@ -722,7 +737,7 @@ class BindProcessor:
             inst.attr_dict["doNotPrint"] = 1
             self._syms.append(sym)
 
-    def post_process(self):
+    def postprocess(self):
         defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
@@ -821,7 +836,7 @@ class HardwareModule:
                 name=name,
                 operands=inputs,
                 results=named_outputs)
-        bind_processor = BindProcessor(self, self._magma_defn_or_decl)
+        bind_processor = NativeBindProcessor(self, self._magma_defn_or_decl)
         bind_processor.preprocess()
         op = hw.ModuleOp(
             name=name,
@@ -838,5 +853,5 @@ class HardwareModule:
             output_values = new_values(self.get_or_make_mapped_value, i)
             if named_outputs:
                 hw.OutputOp(operands=output_values)
-        bind_processor.post_process()
+        bind_processor.postprocess()
         return op
