@@ -761,6 +761,12 @@ class CoreIRBindProcessor(BindProcessorInterface):
         return
 
 
+def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
+    if ctx.opts.use_native_bind_processor:
+        return NativeBindProcessor(ctx, defn)
+    return CoreIRBindProcessor(ctx, defn)
+
+
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: CircuitKind,
@@ -853,7 +859,7 @@ class HardwareModule:
                 name=name,
                 operands=inputs,
                 results=named_outputs)
-        bind_processor = CoreIRBindProcessor(self, self._magma_defn_or_decl)
+        bind_processor = _make_bind_processor(self, self._magma_defn_or_decl)
         bind_processor.preprocess()
         op = hw.ModuleOp(
             name=name,

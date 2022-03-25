@@ -21,7 +21,10 @@ class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
 
 @pytest.mark.parametrize("ckt", get_local_examples())
 def test_compile_to_mlir(ckt):
-    run_test_compile_to_mlir(ckt)
+    kwargs = {
+        "use_native_bind_processor": True,
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)
 
 
 @pytest.mark.parametrize(
@@ -37,6 +40,7 @@ def test_compile_to_mlir(ckt):
 def test_compile_to_mlir_flatten_all_tuples(ckt):
     kwargs = {
         "flatten_all_tuples": True,
+        "use_native_bind_processor": True,
         "gold_name": f"{ckt.name}_flatten_all_tuples",
     }
     run_test_compile_to_mlir(ckt, **kwargs)

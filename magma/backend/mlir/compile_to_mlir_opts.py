@@ -6,3 +6,4 @@ from typing import Optional
 class CompileToMlirOpts:
     flatten_all_tuples: bool = False
     basename: Optional[str] = None
+    use_native_bind_processor: bool = False
