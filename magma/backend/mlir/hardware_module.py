@@ -30,6 +30,7 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
+from magma.bind2 import is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
@@ -177,7 +178,9 @@ def make_hw_instance_op(
         module: hw.ModuleOp,
         parameters: Mapping[str, Any] = dict(),
         sym: Optional[MlirSymbol] = None,
-        compile_guard: Optional[Mapping] = None) -> hw.InstanceOp:
+        compile_guard: Optional[Mapping] = None,
+        attrs: Optional[Mapping] = None,
+) -> hw.InstanceOp:
     if compile_guard is not None:
         if_def = sv.IfDefOp(compile_guard["condition_str"])
         block = (
@@ -199,6 +202,8 @@ def make_hw_instance_op(
             results=results,
             parameters=parameters,
             sym=sym)
+    if attrs is not None:
+        op.attr_dict.update(attrs)
     return op
 
 
@@ -659,13 +664,22 @@ class ModuleVisitor:
             inst.kwargs
         )
         compile_guard = metadata.get("compile_guard", None)
+        sym = None
+        attrs = {}
+        if is_bound_instance(inst):
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                inst, name=inst.name, force=True
+            )
+            attrs["doNotPrint"] = 1
         make_hw_instance_op(
             name=inst.name,
             module=module_type,
             operands=module.operands,
             results=module.results,
+            sym=sym,
             parameters=parameters,
-            compile_guard=compile_guard)
+            compile_guard=compile_guard,
+            attrs=attrs)
         return True
 
     @wrap_with_not_implemented_error
@@ -850,6 +864,11 @@ class NativeBindProcessor(BindProcessorInterface):
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
+        bound_instances = list(filter(is_bound_instance, self._defn.instances))
+        for bound_instance in bound_instances:
+            inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
+            ref = hw.InnerRefAttr(defn_sym, inst_sym)
+            sv.BindOp(instance=ref)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):
