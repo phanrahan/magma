@@ -4,7 +4,7 @@ import collections.abc
 import dataclasses
 from functools import wraps, partial, reduce
 import operator
-from typing import Any, Callable, Dict, Iterable
+from typing import Any, Callable, Dict, Iterable, List
 import warnings
 
 
@@ -24,6 +24,9 @@ class Stack:
 
     def __bool__(self) -> bool:
         return bool(self._stack)
+
+    def raw(self) -> List:
+        return self._stack
 
 
 class _Ref(object):

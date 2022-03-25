@@ -27,6 +27,7 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
+from magma.compile_guard2 import get_compile_guard2s
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -383,6 +384,7 @@ class AnonymousCircuitType(object):
         self.used = False
         self.is_instance = True
         self.debug_info = kwargs.get("debug_info", None)
+        self._compile_guard2s_ = get_compile_guard2s().copy()
 
     def set_debug_info(self, debug_info):
         self.debug_info = debug_info

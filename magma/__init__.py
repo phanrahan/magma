@@ -117,6 +117,7 @@ from magma.stubify import (
     no_override_driven_zero_stubbifier
 )
 from magma.compile import MagmaCompileException
+from magma.compile_guard2 import compile_guard2
 from magma.linking import link_module, link_default_module, clear_link_info
 import magma.math
 from magma.value_utils import fill
