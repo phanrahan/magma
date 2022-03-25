@@ -43,6 +43,7 @@ from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
+from magma.primitives.wire import MagmaWire
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -215,7 +216,7 @@ def resolve_xmr(
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
     in_out = ctx.new_value(hw.InOutType(mlir_type))
-    path = xmr.parent.path() + (xmr._resolved_,)
+    path = xmr.parent.path()[:-1] + (xmr._resolved_,)
     sv.XMROp(is_rooted=False, path=path, results=[in_out])
     ret = None
     if value is None:
@@ -661,6 +662,15 @@ class ModuleVisitor:
             return self.visit_magma_mux(module)
         if isinstance(defn, Register) and not elaborate_magma_registers:
             return self.visit_magma_register(module)
+        if isinstance(defn, MagmaWire):
+            mlir_type = hw.InOutType(module.operands[0].type)
+            wire = self._ctx.new_value(mlir_type)
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                inst, name=f"{self._ctx.name}.{inst.name}", force=True)
+            sv.WireOp(results=[wire], name=inst.name, sym=sym)
+            sv.AssignOp(operands=[wire, module.operands[0]])
+            sv.ReadInOutOp(operands=[wire], results=module.results)
+            return True
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)
         if isprimitive(defn):

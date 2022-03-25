@@ -45,3 +45,9 @@ class Wire(Generator2):
         self.io = IO(I=In(T), O=Out(T))
         self.name = f"Wire{T}"
         self.io.O @= convertbit(Wire(Bit)()(bit(self.io.I)), T)
+
+
+class MagmaWire(Generator2):
+    def __init__(self, T):
+        self.io = IO(I=In(T), O=Out(T))
+        self.primitive = True
