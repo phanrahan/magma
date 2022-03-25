@@ -755,6 +755,7 @@ class CoreIRBindProcessor(BindProcessorInterface):
             filename = path / f"{name}.sv"
             with open(filename, "w") as f:
                 f.write(content)
+            self._ctx.parent.add_bind_file(filename.name)
 
     def postprocess(self):
         return
