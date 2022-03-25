@@ -254,3 +254,16 @@ def replace_all(s: str, replacement_map: Dict[str, str]) -> str:
     for old, new in replacement_map.items():
         s = s.replace(old, new)
     return s
+
+
+class SimpleCounter:
+    def __init__(self, init: int = 0):
+        self._value = init
+
+    def value(self) -> int:
+        return self._value
+
+    def next(self) -> int:
+        value = self._value
+        self._value += 1
+        return value
