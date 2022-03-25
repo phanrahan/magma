@@ -42,8 +42,14 @@ def _get_inst_or_defn_or_die(ref):
     assert False
 
 
-def _is_xmr(ref):
-    return isinstance(ref, PortViewRef)
+def _get_xmr(ref):
+    if isinstance(ref, PortViewRef):
+        return ref.view
+    if isinstance(ref, TupleRef):
+        return _get_xmr(ref.tuple.name)
+    if isinstance(ref, ArrayRef):
+        return _get_xmr(ref.array.name)
+    return None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -97,9 +103,10 @@ def _visit_driver(
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
-    if _is_xmr(ref):
-        T = type(ref.view)._to_magma_()
-        op = MagmaXMROp(T, ref.view)
+    xmr = _get_xmr(ref)
+    if xmr is not None:
+        T = type(xmr)._to_magma_()
+        op = MagmaXMROp(T, xmr)
         info = dict(src=op.O, dst=value)
         ctx.graph.add_edge(op, module, info=info)
         return
