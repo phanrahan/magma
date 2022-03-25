@@ -1,4 +1,5 @@
 from magma.circuit import DefineCircuitKind, CircuitKind
+from magma.view import PortView
 
 
 _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
@@ -6,7 +7,10 @@ _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
 
 def _wire_bind_arg(param, arg):
     assert param.is_input()
-    if arg.is_output():
+    if isinstance(arg, PortView):
+        param @= arg
+        return
+    elif arg.is_output():
         param @= arg
     elif arg.is_input():
         param @= arg.value()

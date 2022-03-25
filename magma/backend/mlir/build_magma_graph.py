@@ -10,11 +10,13 @@ from magma.backend.mlir.magma_common import (
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaTupleGetOp, MagmaTupleCreateOp,
-    MagmaBitConstantOp, MagmaBitsConstantOp)
+    MagmaBitConstantOp, MagmaBitsConstantOp,
+    MagmaXMROp,
+)
 from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.digital import Digital
-from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, PortViewRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
 
@@ -148,6 +150,12 @@ def _visit_driver(
             ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
+        return
+    if isinstance(ref, PortViewRef):
+        T = type(ref.view)._to_magma_()
+        op = MagmaXMROp(T, ref.view)
+        info = dict(src=op.O, dst=value)
+        ctx.graph.add_edge(op, module, info=info)
         return
     raise NotImplementedError(driver, type(driver), ref, type(ref))
 

@@ -207,14 +207,21 @@ def make_hw_instance_op(
     return op
 
 
-def resolve_xmr(ctx: 'HardwareModule', xmr: PortView):
+def resolve_xmr(
+        ctx: 'HardwareModule',
+        xmr: PortView,
+        value: Optional[MlirValue] = None
+) -> Optional[MlirValue]:
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
     in_out = ctx.new_value(hw.InOutType(mlir_type))
     sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
-    value = ctx.new_value(mlir_type)
+    ret = None
+    if value is None:
+        value = ctx.new_value(mlir_type)
+        ret = value
     sv.ReadInOutOp(operands=[in_out], results=[value])
-    return value
+    return ret
 
 
 @dataclasses.dataclass(frozen=True)
@@ -733,6 +740,10 @@ class ModuleVisitor:
         if is_const:
             value = inst_wrapper.attrs["value"]
             hw.ConstantOp(value=int(value), results=module.results)
+            return True
+        if inst_wrapper.name.startswith("magma_xmr_op"):
+            xmr = inst_wrapper.attrs["xmr"]
+            resolve_xmr(self._ctx, xmr, module.results[0])
             return True
 
     @wrap_with_not_implemented_error

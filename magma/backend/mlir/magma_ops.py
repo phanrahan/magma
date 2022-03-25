@@ -7,8 +7,9 @@ from magma.bits import BitsMeta
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
-from magma.t import In, Out
+from magma.t import Kind, In, Out
 from magma.tuple import TupleMeta, ProductMeta
+from magma.view import PortView
 
 
 def _get_tuple_field_type(T: TupleMeta, index: Union[int, str]):
@@ -90,4 +91,12 @@ def MagmaBitsConstantOp(T: BitsMeta, value: int):
     name = f"magma_bits_constant_op_{value_or_type_to_string(T)}"
     ports = dict(O=Out(T))
     attrs = dict(value=value)
+    return InstanceWrapper(name, ports, attrs)
+
+
+def MagmaXMROp(T: Kind, xmr: PortView):
+    T = T.undirected_t
+    name = f"magma_xmr_op_{value_or_type_to_string(T)}"
+    ports = dict(O=Out(T))
+    attrs = dict(xmr=xmr)
     return InstanceWrapper(name, ports, attrs)
