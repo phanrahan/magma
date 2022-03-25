@@ -4,7 +4,7 @@ module corebit_term (
 
 endmodule
 
-module TopBasicAsserts_coreir-verilog (
+module TopBasicAsserts_mlir (
     input I,
     input O,
     input other
@@ -21,7 +21,7 @@ corebit_term corebit_term_inst2 (
 endmodule
 
 
-bind Top TopBasicAsserts_coreir-verilog TopBasicAsserts_coreir-verilog_inst (
+bind Top TopBasicAsserts_mlir TopBasicAsserts_mlir_inst (
     .I(I),
     .O(O),
     .other(_magma_bind_wire_0)

@@ -2,6 +2,7 @@ import abc
 import contextlib
 import dataclasses
 import functools
+import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
@@ -744,6 +745,21 @@ class NativeBindProcessor(BindProcessorInterface):
             sv.BindOp(instance=instance)
 
 
+class CoreIRBindProcessor(BindProcessorInterface):
+    def preprocess(self):
+        return
+
+    def process(self):
+        for name, content in self._defn.compiled_bind_modules.items():
+            path = pathlib.Path(self._ctx.opts.basename).parent
+            filename = path / f"{name}.sv"
+            with open(filename, "w") as f:
+                f.write(content)
+
+    def postprocess(self):
+        return
+
+
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: CircuitKind,
@@ -836,7 +852,7 @@ class HardwareModule:
                 name=name,
                 operands=inputs,
                 results=named_outputs)
-        bind_processor = NativeBindProcessor(self, self._magma_defn_or_decl)
+        bind_processor = CoreIRBindProcessor(self, self._magma_defn_or_decl)
         bind_processor.preprocess()
         op = hw.ModuleOp(
             name=name,
