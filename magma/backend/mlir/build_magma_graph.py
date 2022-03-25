@@ -42,6 +42,10 @@ def _get_inst_or_defn_or_die(ref):
     assert False
 
 
+def _is_xmr(ref):
+    return isinstance(ref, PortViewRef)
+
+
 @dataclasses.dataclass(frozen=True)
 class BuildMagmaGrahOpts:
     flatten_all_tuples: bool = False
@@ -93,6 +97,12 @@ def _visit_driver(
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
+    if _is_xmr(ref):
+        T = type(ref.view)._to_magma_()
+        op = MagmaXMROp(T, ref.view)
+        info = dict(src=op.O, dst=value)
+        ctx.graph.add_edge(op, module, info=info)
+        return
     if isinstance(ref, InstRef):
         info = dict(src=driver, dst=value)
         ctx.graph.add_edge(ref.inst, module, info=info)
@@ -150,12 +160,6 @@ def _visit_driver(
             ref.tuple, ref.index, MagmaTupleGetOp, (ref.index,))
         info = dict(src=getter.O, dst=value)
         ctx.graph.add_edge(getter, module, info=info)
-        return
-    if isinstance(ref, PortViewRef):
-        T = type(ref.view)._to_magma_()
-        op = MagmaXMROp(T, ref.view)
-        info = dict(src=op.O, dst=value)
-        ctx.graph.add_edge(op, module, info=info)
         return
     raise NotImplementedError(driver, type(driver), ref, type(ref))
 
