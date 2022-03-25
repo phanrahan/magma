@@ -756,11 +756,25 @@ class ModuleVisitor:
             T = inst_wrapper.attrs["T"]
             mlir_type = magma_type_to_mlir_type(T)
             in_out = self._ctx.new_value(hw.InOutType(mlir_type))
-            #xmr = inst_wrapper.attrs["xmr"]
-            #path = xmr.parent.path()[:-1] + (xmr._resolved_,)
-            path = ("x", "y")
-            sv.XMROp(is_rooted=False, path=path, results=[in_out])
-            sv.ReadInOutOp(operands=[in_out], results=module.results.copy())
+            xmr = inst_wrapper.attrs["xmr"]
+            parent = inst_wrapper.attrs["parent"]
+            defn = parent.inst.defn
+            ctx = self._ctx.parent.get_hardware_module(defn)
+            assert ctx.parent is self._ctx.parent
+            with push_block(ctx.hw_module):
+                wire = ctx.new_value(mlir_type)
+                sym = ctx.parent.get_or_make_mapped_symbol(xmr, name="adfdf")
+                #    inst, name=f"{self._ctx.name}.{inst.name}", force=True)
+                sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
+                print ("@", ctx.get_mapped_value(xmr))
+                print ("@", xmr, type(xmr))                
+                # raise Exception(type(xmr), xmr)
+                # value = ctx.get_mapped_value(driver.port)
+                # sv.AssignOp(operands=[wire, module.operands[0]])            
+            # sym = self._ctx.parent.get_or_make_mapped_symbol(xmr, name="bind_value_")
+            # path = inst_wrapper.attrs["parent"].path() + (sym.raw_name,)
+            # sv.XMROp(is_rooted=False, path=path, results=[in_out])
+            # sv.ReadInOutOp(operands=[in_out], results=module.results.copy())
             return True
 
     @wrap_with_not_implemented_error
