@@ -98,5 +98,5 @@ def MagmaXMROp(T: Kind, xmr: PortView):
     T = T.undirected_t
     name = f"magma_xmr_op_{value_or_type_to_string(T)}"
     ports = dict(O=Out(T))
-    attrs = dict(xmr=xmr)
+    attrs = dict(T=T, xmr=xmr)
     return InstanceWrapper(name, ports, attrs)

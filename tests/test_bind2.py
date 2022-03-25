@@ -37,8 +37,14 @@ def test_basic(backend):
     _assert_compilation(Top, basename, suffix, opts)
 
 
-@pytest.mark.parametrize("backend", ("mlir",))
-def test_xmr(backend):
+@pytest.mark.parametrize(
+    "backend,flatten_all_tuples",
+    (
+        ("mlir", True),
+        ("mlir", False),
+    )
+)
+def test_xmr(backend, flatten_all_tuples):
 
     class T(m.Product):
         x = m.Bit
@@ -87,9 +93,12 @@ def test_xmr(backend):
     ############################################################################
 
     basename = "test_bind2_xmr"
+    if flatten_all_tuples:
+        basename += "_flatten_all_tuples"
     suffix = "mlir" if backend == "mlir" else "v"
     opts = {
         "output": backend,
         "use_native_bind_processor": True,
+        "flatten_all_tuples": flatten_all_tuples,
     }
     _assert_compilation(Top, basename, suffix, opts)

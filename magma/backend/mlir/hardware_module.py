@@ -753,8 +753,14 @@ class ModuleVisitor:
             hw.ConstantOp(value=int(value), results=module.results)
             return True
         if inst_wrapper.name.startswith("magma_xmr_op"):
-            xmr = inst_wrapper.attrs["xmr"]
-            resolve_xmr(self._ctx, xmr, module.results[0])
+            T = inst_wrapper.attrs["T"]
+            mlir_type = magma_type_to_mlir_type(T)
+            in_out = self._ctx.new_value(hw.InOutType(mlir_type))
+            #xmr = inst_wrapper.attrs["xmr"]
+            #path = xmr.parent.path()[:-1] + (xmr._resolved_,)
+            path = ("x", "y")
+            sv.XMROp(is_rooted=False, path=path, results=[in_out])
+            sv.ReadInOutOp(operands=[in_out], results=module.results.copy())
             return True
 
     @wrap_with_not_implemented_error

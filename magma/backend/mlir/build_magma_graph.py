@@ -105,8 +105,9 @@ def _visit_driver(
     ref = driver.name
     xmr = _get_xmr(ref)
     if xmr is not None:
-        T = type(xmr)._to_magma_()
+        T = type(driver)
         op = MagmaXMROp(T, xmr)
+        print ("@", op)
         info = dict(src=op.O, dst=value)
         ctx.graph.add_edge(op, module, info=info)
         return
