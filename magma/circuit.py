@@ -194,6 +194,16 @@ def _get_intermediate_values(value):
         return functools.reduce(operator.or_,
                                 (_get_intermediate_values(v) for v in value),
                                 OrderedIdentitySet())
+    if value.has_elaborated_children():
+        conn_iter = list(value.connection_iter())
+        if len(conn_iter) > 1:
+            return functools.reduce(
+                operator.or_, (_get_intermediate_values(v) for v, _ in
+                               conn_iter),
+                OrderedIdentitySet())
+        if len(conn_iter) == 0:
+            # Unconnected, don't emit wire
+            return
     driver = value.value()
     if driver is None:
         return OrderedIdentitySet()
@@ -682,6 +692,9 @@ class DefineCircuitKind(CircuitKind):
             for elem in port:
                 self._check_port_unconnected(elem, debug_info)
             return
+        if port.has_elaborated_children():
+            for _, child in port.enumerate_children():
+                return self._check_port_unconnected(child, debug_info)
         if port.trace() is None:
             if isinstance(port, ClockTypes):
                 msg = "{} not driven, will attempt to automatically wire"

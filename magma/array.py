@@ -533,12 +533,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return True
 
     def driving(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return [t.driving() for t in self]
         return Wireable.driving(self)
 
     def wired(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return all(t.wired() for t in self)
         return Wireable.wired(self)
 
@@ -598,7 +598,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return cls.T.is_mixed()
 
     def _wire_children(self, o):
-        for i, child in self._enumerate_children():
+        for i, child in self.enumerate_children():
             curr_value = child.value()
             new_value = o[i]
             if curr_value is not new_value:
@@ -611,8 +611,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         o = magma_value(o)
         if not self._check_wireable(o, debug_info):
             return
-        if (self._has_elaborated_children() or
-                o._has_elaborated_children() or
+        if (self.has_elaborated_children() or
+                o.has_elaborated_children() or
                 self.T.is_mixed()):
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o)
@@ -621,21 +621,21 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             Wireable.wire(self, o, debug_info)
 
     def unwire(self, o):
-        if self._has_elaborated_children():
-            for i, child in self._enumerate_children():
+        if self.has_elaborated_children():
+            for i, child in self.enumerate_children():
                 child.unwire(o[i])
         else:
             Wireable.unwire(self, o)
 
     def iswhole(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return Array._iswhole(self._collect_children(lambda x: x))
         return True
 
     def const(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return all(child.const()
-                       for _, child in self._enumerate_children())
+                       for _, child in self.enumerate_children())
         return False
 
     def _resolve_driven_bulk_wire(self):
@@ -644,7 +644,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         Wireable.unwire(self, value)
 
         # Update children
-        for i, child in self._enumerate_children():
+        for i, child in self.enumerate_children():
             child.wire(value[i])
 
     def _resolve_driving_bulk_wire(self):
@@ -658,7 +658,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         for drivee in driving:
             # Update children
-            for i, child in self._enumerate_children():
+            for i, child in self.enumerate_children():
                 drivee[i].wire(child)
 
     def _resolve_bulk_wire(self):
@@ -858,7 +858,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def flatten(self):
         ts = []
-        for _, child in self._enumerate_children():
+        for _, child in self.enumerate_children():
             ts.extend(child.flatten())
         return ts
 
@@ -884,7 +884,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             e.g. the value is None if any of the children have a value None
         """
         ts = []
-        for _, child in self._enumerate_children():
+        for _, child in self.enumerate_children():
             result = func(child)
             if result is None:
                 return None
@@ -903,11 +903,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         return type(self)[self.N, self.T.flip()](ts)
 
-    def _has_elaborated_children(self):
+    def has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)
 
     def value(self):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             return self._collect_children(lambda x: x.value())
         return super().value()
 
@@ -937,15 +937,15 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return _trace_child
 
     def trace(self, skip_self=True):
-        if self._has_elaborated_children():
+        if self.has_elaborated_children():
             result = self._collect_children(self._make_trace_child(skip_self))
             return result
         return Wireable.trace(self)
 
     def driven(self):
-        if not self._has_elaborated_children():
+        if not self.has_elaborated_children():
             return Wireable.driven(self)
-        for _, child in self._enumerate_children():
+        for _, child in self.enumerate_children():
             if child is None:
                 return False
             if not child.driven():
@@ -956,7 +956,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return (isinstance(self.name, ArrayRef) and
                 isinstance(self.name.index, slice))
 
-    def _enumerate_children(self):
+    def enumerate_children(self):
         i = 0
         while i < self.N:
             if i in self._ts:
@@ -984,7 +984,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             yield from zip(self, driver)
             return
         curr_slice_or_elem = []
-        for i, child in self._enumerate_children():
+        for i, child in self.enumerate_children():
             if _is_slice_child(child):
                 if curr_slice_or_elem:
                     # If there's a current list of values, yield them first

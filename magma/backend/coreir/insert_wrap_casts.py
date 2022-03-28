@@ -38,25 +38,17 @@ class InsertWrapCasts(DefinitionPass):
             return self._recurse(port, definition)
         if not port.driven():
             return False
-        value = port.value()
         if isinstance(port, Tuple):
             return self._recurse(port, definition)
         if isinstance(port, Array):
-            # Avoid recursion when possible (for Array2) by checking the nested
-            # array type and only descending if necessary
-            # Note(leonardt): If value is anon, we need to check the children
-            # via recursion in case the children are named types (since
-            # .value() will return Array[N, T.flip()], the anon value may not
-            # have the namedtypes in its type)
-            if (is_clock_or_nested_clock(type(port), _NAMED_TYPES) or
-                    is_clock_or_nested_clock(type(value), _NAMED_TYPES) or
-                    value.anon()):
+            if port.has_elaborated_children():
                 for child, _ in port.connection_iter():
                     if not self.wrap_if_named_type(child, definition):
                         return False
                 return True
             else:
-                return self.wrap_if_named_type(value, definition)
+                return self.wrap_if_named_type(port.value(), definition)
+        value = port.value()
         if not (isinstance(port, _NAMED_TYPES) or
                 isinstance(value, _NAMED_TYPES)):
             return self.wrap_if_named_type(value, definition)
