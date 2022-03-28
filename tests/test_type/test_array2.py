@@ -402,3 +402,13 @@ def test_array2_unwire():
     t = T(name="t")
     s[:] @= t[0]
     s.unwire(s.value())
+
+
+def test_array2_unwire2():
+    S = m.Bits[32]
+    T = m.Array[2, m.Bits[16]]
+    s = S(name="s")
+    t = T(name="t")
+    s[:16] @= t[0]
+    s[16:] @= t[1]
+    s.unwire(s.value())
