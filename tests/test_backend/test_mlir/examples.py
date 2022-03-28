@@ -460,6 +460,30 @@ class simple_compile_guard(m.Circuit):
 m.passes.clock.WireClockPass(simple_compile_guard).run()
 
 
+class simple_compile_guard2(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
+    with m.compile_guard2("COND1", cond_type="defined"):
+        out = m.Register(m.Bit)()(io.I)
+    with m.compile_guard2("COND2", cond_type="undefined"):
+        out = m.Register(m.Bit)()(io.I)
+    io.O @= io.I
+
+
+m.passes.clock.WireClockPass(simple_compile_guard2).run()
+
+
+class complex_compile_guard2(m.Circuit):
+    T = m.Product.from_fields("anon", dict(x=m.In(m.Bits[8]), y=m.Out(m.Bit)))
+    io = m.IO(I=T, O=T.flip()) + m.ClockIO()
+    with m.compile_guard2("COND1", cond_type="defined"):
+        out = m.concat(io.I.x[4:], io.I.x[:4])
+        out = m.Register(m.Bits[8])()(out)
+        out = m.Register(m.Bit)()(out[0])
+    io.O @= io.I
+
+m.passes.clock.WireClockPass(complex_compile_guard2).run()
+
+
 class simple_custom_verilog_name(m.Circuit):
     coreir_metadata = {"verilog_name": "simple_custom_verilog_name_custom_name"}
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
