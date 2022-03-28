@@ -180,9 +180,7 @@ def make_hw_instance_op(
         module: hw.ModuleOp,
         parameters: Mapping[str, Any] = dict(),
         sym: Optional[MlirSymbol] = None,
-        compile_guard: Optional[Mapping] = None,
-        attrs: Optional[Mapping] = None,
-) -> hw.InstanceOp:
+        compile_guard: Optional[Mapping] = None) -> hw.InstanceOp:
     if compile_guard is not None:
         if_def = sv.IfDefOp(compile_guard["condition_str"])
         block = (
@@ -204,27 +202,17 @@ def make_hw_instance_op(
             results=results,
             parameters=parameters,
             sym=sym)
-    if attrs is not None:
-        op.attr_dict.update(attrs)
     return op
 
 
-def resolve_xmr(
-        ctx: 'HardwareModule',
-        xmr: PortView,
-        value: Optional[MlirValue] = None
-) -> Optional[MlirValue]:
+def resolve_xmr(ctx: 'HardwareModule', xmr: PortView):
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
     in_out = ctx.new_value(hw.InOutType(mlir_type))
-    path = xmr.parent.path()[:-1] + (xmr._resolved_,)
-    sv.XMROp(is_rooted=False, path=path, results=[in_out])
-    ret = None
-    if value is None:
-        value = ctx.new_value(mlir_type)
-        ret = value
+    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
+    value = ctx.new_value(mlir_type)
     sv.ReadInOutOp(operands=[in_out], results=[value])
-    return ret
+    return value
 
 
 @dataclasses.dataclass(frozen=True)
@@ -663,15 +651,6 @@ class ModuleVisitor:
             return self.visit_magma_mux(module)
         if isinstance(defn, Register) and not elaborate_magma_registers:
             return self.visit_magma_register(module)
-        if isinstance(defn, MagmaWire):
-            mlir_type = hw.InOutType(module.operands[0].type)
-            wire = self._ctx.new_value(mlir_type)
-            sym = self._ctx.parent.get_or_make_mapped_symbol(
-                inst, name=f"{self._ctx.name}.{inst.name}", force=True)
-            sv.WireOp(results=[wire], name=inst.name, sym=sym)
-            sv.AssignOp(operands=[wire, module.operands[0]])
-            sv.ReadInOutOp(operands=[wire], results=module.results)
-            return True
         if isinstance(defn, XMRSink):
             tmp = []
 
@@ -726,13 +705,6 @@ class ModuleVisitor:
             inst.kwargs
         )
         compile_guard = metadata.get("compile_guard", None)
-        sym = None
-        attrs = {}
-        if is_bound_instance(inst):
-            sym = self._ctx.parent.get_or_make_mapped_symbol(
-                inst, name=inst.name, force=True
-            )
-            attrs["doNotPrint"] = 1
         make_hw_instance_op(
             name=inst.name,
             module=module_type,

@@ -10,9 +10,7 @@ from magma.backend.mlir.magma_common import (
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaTupleGetOp, MagmaTupleCreateOp,
-    MagmaBitConstantOp, MagmaBitsConstantOp,
-    MagmaXMROp,
-)
+    MagmaBitConstantOp, MagmaBitsConstantOp)
 from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.digital import Digital
@@ -40,16 +38,6 @@ def _get_inst_or_defn_or_die(ref):
     except AttributeError:
         pass
     assert False
-
-
-def _get_xmr_ref(ref):
-    if isinstance(ref, PortViewRef):
-        return ref
-    if isinstance(ref, TupleRef):
-        return _get_xmr_ref(ref.tuple.name)
-    if isinstance(ref, ArrayRef):
-        return _get_xmr_ref(ref.array.name)
-    return None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -103,15 +91,6 @@ def _visit_driver(
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
-    xmr_ref = _get_xmr_ref(ref)
-    if xmr_ref is not None:
-        return
-        raise Exception()
-        T = type(driver)
-        op = MagmaXMROp(T, driver, xmr_ref.view.parent)
-        info = dict(src=op.O, dst=value)
-        ctx.graph.add_edge(op, module, info=info)
-        return
     if isinstance(ref, InstRef):
         info = dict(src=driver, dst=value)
         ctx.graph.add_edge(ref.inst, module, info=info)
