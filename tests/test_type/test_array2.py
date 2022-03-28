@@ -426,6 +426,6 @@ def test_array2_unwire3():
     s[1] @= t[1][1]
     s[2] @= t[0][0]
     s[3] @= t[1][0]
-    expected = [t[0][1], t[1][1] , t[0][0] , t[1][0]]
+    expected = [t[0][1], t[1][1], t[0][0], t[1][0]]
     assert all(map(lambda x: x[0] is x[1], zip(s.value(), expected)))
     s.unwire(s.value())
