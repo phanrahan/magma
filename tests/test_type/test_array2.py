@@ -429,3 +429,18 @@ def test_array2_unwire3():
     expected = [t[0][1], t[1][1], t[0][0], t[1][0]]
     assert all(map(lambda x: x[0] is x[1], zip(s.value(), expected)))
     s.unwire(s.value())
+
+
+def test_mixed_direction_slice(caplog):
+    class T(m.Product):
+        x = m.In(m.Bit)
+        y = m.Out(m.Bit)
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.Array[4, T], O=m.Array[4, m.Flip(T)])
+        io.O[:2] @= io.I[2:]
+        io.O[2:] @= io.I[:2]
+
+    assert not caplog.records, "Should not report an error"
+    _check_compile("test_array2_mixed_direction_slice", Foo, False,
+                   True)
