@@ -433,11 +433,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _is_whole_slice(self, key):
         # check if it's any of `x[:], x[0:], x[:len(x)], x[0:len(x)]`
-        return (isinstance(key[-1], slice) and
-                (key[-1] == slice(None) or
-                 key[-1] == slice(0, None) or
-                 key[-1] == slice(None, len(self)) or
-                 key[-1] == slice(0, len(self))))
+        return (isinstance(key, slice) and
+                (key == slice(None) or
+                 key == slice(0, None) or
+                 key == slice(None, len(self)) or
+                 key == slice(0, len(self))))
 
     def __setitem__(self, key, val):
         """
@@ -768,7 +768,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return self[key[0]]
         if not isinstance(key[-1], slice):
             return self[key[-1]][key[:-1]]
-        if not self._is_whole_slice(key):
+        if not self._is_whole_slice(key[-1]):
             # If it's not a slice of the whole array, first slice the
             # current array (self), then replace with a slice of the whole
             # array (this is how we determine that we're ready to traverse
@@ -815,6 +815,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if isinstance(key, int) and key > self.N - 1:
             raise IndexError()
         if isinstance(key, slice):
+            if self._is_whole_slice(key):
+                return self
             if key.step is not None:
                 return self._variable_step_slice_getitem(key)
             if not _is_valid_slice(self.N, key):
