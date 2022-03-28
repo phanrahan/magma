@@ -44,6 +44,7 @@ from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.primitives.wire import MagmaWire
+from magma.primitives.xmr import XMRSink, XMRSource
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -670,6 +671,49 @@ class ModuleVisitor:
             sv.WireOp(results=[wire], name=inst.name, sym=sym)
             sv.AssignOp(operands=[wire, module.operands[0]])
             sv.ReadInOutOp(operands=[wire], results=module.results)
+            return True
+        if isinstance(defn, XMRSink):
+            tmp = []
+
+            def _v(p):
+                idx = len(tmp)
+                mlir_type = hw.InOutType(magma_type_to_mlir_type(type(p)))
+                wire = self._ctx.new_value(mlir_type)
+                key = (defn.value, idx)
+                print ("@", key)
+                sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
+                sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
+                sv.AssignOp(operands=[wire, module.operands[idx]])
+                tmp.append(None)
+            
+            visit_magma_value_or_value_wrapper_by_direction(
+                defn.I,
+                _v,
+                _v,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
+                
+            return True
+        if isinstance(defn, XMRSource):
+            tmp = []
+
+            def _v(p):
+                idx = len(tmp)
+                mlir_type = magma_type_to_mlir_type(type(p))
+                in_out = self._ctx.new_value(hw.InOutType(mlir_type))
+                key = (defn.value, idx)
+                print ("@", key)
+                sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
+                path = defn.value.parent.path() + (sym.raw_name,)
+                sv.XMROp(is_rooted=False, path=path, results=[in_out])
+                sv.ReadInOutOp(operands=[in_out], results=[module.results[idx]])
+                tmp.append(None)
+
+            visit_magma_value_or_value_wrapper_by_direction(
+                defn.O,
+                _v,
+                _v,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
+                
             return True
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)

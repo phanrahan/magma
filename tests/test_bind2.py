@@ -74,22 +74,22 @@ def test_xmr(backend, flatten_all_tuples):
     m.bind2(Top, TopXMRAsserts, Top.middle.bottom.O, Top.middle.bottom.I.x)
 
     ############################################################################
-    from magma.primitives.wire import MagmaWire
-    inst = Top.instances[-1]
-    args = [p.value() for p in list(inst.interface.ports.values())[len(Top.interface.ports):]]
-    from magma.ref import PortViewRef
-    for idx, arg in enumerate(args):
-        if not isinstance(arg.name, PortViewRef):
-            continue
-        xmr = arg.name.view
-        defn = xmr.parent.inst.defn
-        name = f"bind_value_{idx}"
-        with defn.open():
-            value = xmr.port
-            if value.is_input():
-                value = value.value()
-            MagmaWire(type(value))(name=name)(value)
-        arg.name.view._resolved_ = name
+    # from magma.primitives.wire import MagmaWire
+    # inst = Top.instances[-1]
+    # args = [p.value() for p in list(inst.interface.ports.values())[len(Top.interface.ports):]]
+    # from magma.ref import PortViewRef
+    # for idx, arg in enumerate(args):
+    #     if not isinstance(arg.name, PortViewRef):
+    #         continue
+    #     xmr = arg.name.view
+    #     defn = xmr.parent.inst.defn
+    #     name = f"bind_value_{idx}"
+    #     with defn.open():
+    #         value = xmr.port
+    #         if value.is_input():
+    #             value = value.value()
+    #         MagmaWire(type(value))(name=name)(value)
+    #     arg.name.view._resolved_ = name
     ############################################################################
 
     basename = "test_bind2_xmr"

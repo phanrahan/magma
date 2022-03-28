@@ -105,6 +105,8 @@ def _visit_driver(
     ref = driver.name
     xmr_ref = _get_xmr_ref(ref)
     if xmr_ref is not None:
+        return
+        raise Exception()
         T = type(driver)
         op = MagmaXMROp(T, driver, xmr_ref.view.parent)
         info = dict(src=op.O, dst=value)
