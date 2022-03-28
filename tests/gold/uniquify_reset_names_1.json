@@ -35,7 +35,7 @@
         },
         "connections":[
           ["self.I.0:1","Foo_inst0.I"],
-          ["self.O.0:1","Foo_inst0.O"],
+          ["self.O.0","Foo_inst0.O.0"],
           ["self.I.1:3","Foo_inst1.I"],
           ["self.O.1:3","Foo_inst1.O"]
         ]

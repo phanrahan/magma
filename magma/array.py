@@ -646,10 +646,15 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             child.wire(value[i])
 
     def _resolve_driving_bulk_wire(self):
-        for drivee in self._wire.driving():
+        driving = self._wire.driving()
+        # NOTE: we need to remove drivees before doing the recursive wiring of
+        # the children or else we'll trigger _resolve_bulk_wire when iterating
+        # over the children
+        for drivee in driving:
             # Remove bulk wire since children will now track the wiring
             Wireable.unwire(drivee, self)
 
+        for drivee in driving:
             # Update children
             for i, child in self._enumerate_children():
                 drivee[i].wire(child)

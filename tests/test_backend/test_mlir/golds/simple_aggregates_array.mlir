@@ -16,6 +16,6 @@ hw.module @simple_aggregates_array(%a: !hw.array<8xi16>) -> (y: !hw.array<8xi16>
     %15 = hw.constant 3 : i3
     %14 = hw.array_get %a[%15] : !hw.array<8xi16>
     %16 = hw.array_create %14, %12, %10, %8, %6, %4, %2, %0 : i16
-    %17 = hw.array_slice %a at %9 : (!hw.array<8xi16>) -> !hw.array<4xi16>
+    %17 = hw.array_create %14, %12, %10, %8 : i16
     hw.output %16, %17 : !hw.array<8xi16>, !hw.array<4xi16>
 }
