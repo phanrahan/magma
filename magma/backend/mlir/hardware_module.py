@@ -42,7 +42,6 @@ from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
-from magma.primitives.wire import MagmaWire
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
