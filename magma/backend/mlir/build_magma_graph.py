@@ -14,7 +14,7 @@ from magma.backend.mlir.magma_ops import (
 from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.digital import Digital
-from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, PortViewRef
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
 

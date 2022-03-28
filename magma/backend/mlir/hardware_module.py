@@ -30,7 +30,6 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
-from magma.bind2 import is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
@@ -768,30 +767,6 @@ class ModuleVisitor:
             value = inst_wrapper.attrs["value"]
             hw.ConstantOp(value=int(value), results=module.results)
             return True
-        if inst_wrapper.name.startswith("magma_xmr_op"):
-            T = inst_wrapper.attrs["T"]
-            mlir_type = magma_type_to_mlir_type(T)
-            in_out = self._ctx.new_value(hw.InOutType(mlir_type))
-            xmr = inst_wrapper.attrs["xmr"]
-            parent = inst_wrapper.attrs["parent"]
-            defn = parent.inst.defn
-            ctx = self._ctx.parent.get_hardware_module(defn)
-            assert ctx.parent is self._ctx.parent
-            with push_block(ctx.hw_module):
-                wire = ctx.new_value(mlir_type)
-                sym = ctx.parent.get_or_make_mapped_symbol(xmr, name="adfdf")
-                #    inst, name=f"{self._ctx.name}.{inst.name}", force=True)
-                sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
-                print ("@", ctx.get_mapped_value(xmr))
-                print ("@", xmr, type(xmr))                
-                # raise Exception(type(xmr), xmr)
-                # value = ctx.get_mapped_value(driver.port)
-                # sv.AssignOp(operands=[wire, module.operands[0]])            
-            # sym = self._ctx.parent.get_or_make_mapped_symbol(xmr, name="bind_value_")
-            # path = inst_wrapper.attrs["parent"].path() + (sym.raw_name,)
-            # sv.XMROp(is_rooted=False, path=path, results=[in_out])
-            # sv.ReadInOutOp(operands=[in_out], results=module.results.copy())
-            return True
 
     @wrap_with_not_implemented_error
     def visit_module(self, module: ModuleWrapper) -> bool:
@@ -922,11 +897,6 @@ class NativeBindProcessor(BindProcessorInterface):
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
-        bound_instances = list(filter(is_bound_instance, self._defn.instances))
-        for bound_instance in bound_instances:
-            inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
-            ref = hw.InnerRefAttr(defn_sym, inst_sym)
-            sv.BindOp(instance=ref)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):
