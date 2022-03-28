@@ -36,7 +36,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.common import filter_by_key, SimpleCounter
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
@@ -624,23 +624,21 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, XMRSink)
-        tmp = []
+        idx = SimpleCounter()
 
-        def _v(p):
-            idx = len(tmp)
-            mlir_type = hw.InOutType(magma_type_to_mlir_type(type(p)))
+        def _visit(value):
+            mlir_type = hw.InOutType(magma_type_to_mlir_type(type(value)))
             wire = self._ctx.new_value(mlir_type)
-            key = (defn.value, idx)
+            key = (defn.value, idx.value())
             sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
             sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
-            sv.AssignOp(operands=[wire, module.operands[idx]])
-            tmp.append(None)
+            sv.AssignOp(operands=[wire, module.operands[idx.value()]])
+            idx.next()
 
         visit_magma_value_or_value_wrapper_by_direction(
-            defn.I,
-            _v,
-            _v,
-            flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
+            defn.I, _visit, _visit,
+            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+        )
 
         return True
 
