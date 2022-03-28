@@ -393,3 +393,12 @@ def test_array2_wire_to_anon():
         for i, driving in enumerate(io.I.driving()):
             assert len(driving) == 1
             assert driving[0] is io.O[i]
+
+
+def test_array2_unwire():
+    S = m.Bits[32]
+    T = m.Array[1, S]
+    s = S(name="s")
+    t = T(name="t")
+    s[:] @= t[0]
+    s.unwire(s.value())
