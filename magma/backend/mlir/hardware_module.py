@@ -30,6 +30,7 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
+from magma.bind2 import is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
@@ -178,7 +179,9 @@ def make_hw_instance_op(
         module: hw.ModuleOp,
         parameters: Mapping[str, Any] = dict(),
         sym: Optional[MlirSymbol] = None,
-        compile_guard: Optional[Mapping] = None) -> hw.InstanceOp:
+        compile_guard: Optional[Mapping] = None,
+        attrs: Optional[Mapping] = None,
+) -> hw.InstanceOp:
     if compile_guard is not None:
         if_def = sv.IfDefOp(compile_guard["condition_str"])
         block = (
@@ -200,6 +203,8 @@ def make_hw_instance_op(
             results=results,
             parameters=parameters,
             sym=sym)
+    if attrs is not None:
+        op.attr_dict.update(attrs)
     return op
 
 
@@ -615,6 +620,57 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_magma_xmr_sink(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, XMRSink)
+        tmp = []
+
+        def _v(p):
+            idx = len(tmp)
+            mlir_type = hw.InOutType(magma_type_to_mlir_type(type(p)))
+            wire = self._ctx.new_value(mlir_type)
+            key = (defn.value, idx)
+            sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
+            sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
+            sv.AssignOp(operands=[wire, module.operands[idx]])
+            tmp.append(None)
+
+        visit_magma_value_or_value_wrapper_by_direction(
+            defn.I,
+            _v,
+            _v,
+            flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
+
+        return True
+
+    @wrap_with_not_implemented_error
+    def visit_magma_xmr_source(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, XMRSource)
+        tmp = []
+
+        def _v(p):
+            idx = len(tmp)
+            mlir_type = magma_type_to_mlir_type(type(p))
+            in_out = self._ctx.new_value(hw.InOutType(mlir_type))
+            key = (defn.value, idx)
+            sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
+            path = defn.value.parent.path() + (sym.raw_name,)
+            sv.XMROp(is_rooted=False, path=path, results=[in_out])
+            sv.ReadInOutOp(operands=[in_out], results=[module.results[idx]])
+            tmp.append(None)
+
+        visit_magma_value_or_value_wrapper_by_direction(
+            defn.O,
+            _v,
+            _v,
+            flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
+
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_inline_verilog(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -650,48 +706,9 @@ class ModuleVisitor:
         if isinstance(defn, Register) and not elaborate_magma_registers:
             return self.visit_magma_register(module)
         if isinstance(defn, XMRSink):
-            tmp = []
-
-            def _v(p):
-                idx = len(tmp)
-                mlir_type = hw.InOutType(magma_type_to_mlir_type(type(p)))
-                wire = self._ctx.new_value(mlir_type)
-                key = (defn.value, idx)
-                print ("@", key)
-                sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
-                sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
-                sv.AssignOp(operands=[wire, module.operands[idx]])
-                tmp.append(None)
-            
-            visit_magma_value_or_value_wrapper_by_direction(
-                defn.I,
-                _v,
-                _v,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
-                
-            return True
+            return self.visit_magma_xmr_sink(module)
         if isinstance(defn, XMRSource):
-            tmp = []
-
-            def _v(p):
-                idx = len(tmp)
-                mlir_type = magma_type_to_mlir_type(type(p))
-                in_out = self._ctx.new_value(hw.InOutType(mlir_type))
-                key = (defn.value, idx)
-                print ("@", key)
-                sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
-                path = defn.value.parent.path() + (sym.raw_name,)
-                sv.XMROp(is_rooted=False, path=path, results=[in_out])
-                sv.ReadInOutOp(operands=[in_out], results=[module.results[idx]])
-                tmp.append(None)
-
-            visit_magma_value_or_value_wrapper_by_direction(
-                defn.O,
-                _v,
-                _v,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
-                
-            return True
+            return self.visit_magma_xmr_source(module)
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)
         if isprimitive(defn):
@@ -703,6 +720,13 @@ class ModuleVisitor:
             inst.kwargs
         )
         compile_guard = metadata.get("compile_guard", None)
+        sym = None
+        attrs = {}
+        if is_bound_instance(inst):
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                inst, name=inst.name, force=True
+            )
+            attrs["doNotPrint"] = 1
         make_hw_instance_op(
             name=inst.name,
             module=module_type,
@@ -896,6 +920,11 @@ class NativeBindProcessor(BindProcessorInterface):
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
+        bound_instances = list(filter(is_bound_instance, self._defn.instances))
+        for bound_instance in bound_instances:
+            inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
+            ref = hw.InnerRefAttr(defn_sym, inst_sym)
+            sv.BindOp(instance=ref)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):
