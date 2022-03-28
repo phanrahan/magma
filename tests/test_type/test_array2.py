@@ -401,6 +401,7 @@ def test_array2_unwire():
     s = S(name="s")
     t = T(name="t")
     s[:] @= t[0]
+    assert s.value() is t[0]
     s.unwire(s.value())
 
 
@@ -411,6 +412,8 @@ def test_array2_unwire2():
     t = T(name="t")
     s[:16] @= t[0]
     s[16:] @= t[1]
+    assert all(map(lambda x: x[0] is x[1], zip(s.value(),
+                                               t.flatten())))
     s.unwire(s.value())
 
 
@@ -423,4 +426,6 @@ def test_array2_unwire3():
     s[1] @= t[1][1]
     s[2] @= t[0][0]
     s[3] @= t[1][0]
+    expected = [t[0][1] , t[1][1] , t[0][0] , t[1][0]]
+    assert all(map(lambda x: x[0] is x[1], zip(s.value(), expected)))
     s.unwire(s.value())
