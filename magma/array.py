@@ -636,27 +636,33 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                        for _, child in self._enumerate_children())
         return False
 
+    def _resolve_driven_bulk_wire(self):
+        # Remove bulk wire since children will now track the wiring
+        value = self._wire.value()
+        Wireable.unwire(self, value)
+
+        # Update children
+        for i, child in self._enumerate_children():
+            child.wire(value[i])
+
+    def _resolve_driving_bulk_wire(self):
+        for drivee in self._wire.driving():
+            # Remove bulk wire since children will now track the wiring
+            Wireable.unwire(drivee, self)
+
+            # Update children
+            for i, child in self._enumerate_children():
+                drivee[i].wire(child)
+
     def _resolve_bulk_wire(self):
         """
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
         if self._wire.driven():
-            # Remove bulk wire since children will now track the wiring
-            value = self._wire.value()
-            Wireable.unwire(self, value)
-
-            # Update children
-            for i, child in self._enumerate_children():
-                child.wire(value[i])
+            self._resolve_driven_bulk_wire()
         if self._wire.driving():
-            # Remove bulk wire since children will now track the wiring
-            for drivee in self._wire.driving():
-                Wireable.unwire(drivee, self)
-
-                # Update children
-                for i, child in self._enumerate_children():
-                    drivee[i].wire(child)
+            self._resolve_driving_bulk_wire()
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
