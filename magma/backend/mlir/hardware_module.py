@@ -639,7 +639,6 @@ class ModuleVisitor:
             defn.I, _visit, _visit,
             flatten_all_tuples=self._ctx.opts.flatten_all_tuples
         )
-
         return True
 
     @wrap_with_not_implemented_error
@@ -647,25 +646,24 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, XMRSource)
-        tmp = []
+        idx = SimpleCounter()
 
-        def _v(p):
-            idx = len(tmp)
-            mlir_type = magma_type_to_mlir_type(type(p))
+        def _visit(value):
+            mlir_type = magma_type_to_mlir_type(type(value))
             in_out = self._ctx.new_value(hw.InOutType(mlir_type))
-            key = (defn.value, idx)
+            key = (defn.value, idx.value())
             sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
             path = defn.value.parent.path() + (sym.raw_name,)
             sv.XMROp(is_rooted=False, path=path, results=[in_out])
-            sv.ReadInOutOp(operands=[in_out], results=[module.results[idx]])
-            tmp.append(None)
+            sv.ReadInOutOp(
+                operands=[in_out],
+                results=[module.results[idx.value()]])
+            idx.next()
 
         visit_magma_value_or_value_wrapper_by_direction(
-            defn.O,
-            _v,
-            _v,
-            flatten_all_tuples=self._ctx.opts.flatten_all_tuples)
-
+            defn.O, _visit, _visit,
+            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+        )
         return True
 
     @wrap_with_not_implemented_error
