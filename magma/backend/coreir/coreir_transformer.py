@@ -388,11 +388,7 @@ class DefinitionTransformer(TransformerBase):
             for elem in port:
                 self.connect_non_outputs(module_defn, elem)
         elif not port.is_output():
-            if port.has_elaborated_children():
-                for child, value in port.connection_iter():
-                    self.connect(module_defn, child, value)
-            else:
-                self.connect(module_defn, port, port.trace())
+            self.connect(module_defn, port, port.trace())
 
     def get_source(self, port, value, module_defn):
         port = _unwrap(port)

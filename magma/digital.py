@@ -244,9 +244,6 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
     def has_children(self):
         return False
 
-    def has_elaborated_children(self):
-        return False
-
 
 VCC = Digital.VCC
 GND = Digital.GND

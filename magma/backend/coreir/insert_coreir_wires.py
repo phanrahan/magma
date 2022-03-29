@@ -86,15 +86,17 @@ class InsertCoreIRWires(DefinitionPass):
         self.seen.add(value)
         if not value.driven():
             return  # undriven value, skip wire insertion
-
-        if value.has_elaborated_children():
-            for child, _ in value.connection_iter():
-                self._insert_wire(child, definition)
-            return
         driver = value.value()
 
         while driver is not None and driver.is_driven_anon_temporary():
             value, driver = driver, driver.value()
+
+        descend = (isinstance(driver, (Array, Tuple)) and
+                   driver.anon())
+        if descend:
+            for child, _ in value.connection_iter():
+                self._insert_wire(child, definition)
+            return
 
         if (driver is None or driver.is_output() or driver.is_inout() or
                 driver.name.anon()):
