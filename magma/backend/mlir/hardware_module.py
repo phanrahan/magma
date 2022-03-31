@@ -596,11 +596,6 @@ class ModuleVisitor:
                 operands=list(reversed(module.operands)),
                 results=module.results)
             return True
-        if inst_wrapper.name.startswith("magma_array_concat_op"):
-            hw.ArrayConcatOp(
-                operands=list(reversed(module.operands)),
-                results=module.results)
-            return True
         if inst_wrapper.name.startswith("magma_tuple_get_op"):
             index = inst_wrapper.attrs["index"]
             hw.StructExtractOp(
