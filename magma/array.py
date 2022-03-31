@@ -433,11 +433,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _is_whole_slice(self, key):
         # check if it's any of `x[:], x[0:], x[:len(x)], x[0:len(x)]`
-        return (isinstance(key[-1], slice) and
-                (key[-1] == slice(None) or
-                 key[-1] == slice(0, None) or
-                 key[-1] == slice(None, len(self)) or
-                 key[-1] == slice(0, len(self))))
+        return (isinstance(key, slice) and
+                (key == slice(None) or
+                 key == slice(0, None) or
+                 key == slice(None, len(self)) or
+                 key == slice(0, len(self))))
 
     def __setitem__(self, key, val):
         """
@@ -638,13 +638,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                        for _, child in self._enumerate_children())
         return False
 
-    def _resolve_bulk_wire(self):
-        """
-        If a child reference is made, we "expand" a bulk wire into the
-        constiuent children to maintain consistency
-        """
-        if not self._wire.driven():
-            return
+    def _resolve_driven_bulk_wire(self):
         # Remove bulk wire since children will now track the wiring
         value = self._wire.value()
         Wireable.unwire(self, value)
@@ -652,6 +646,30 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # Update children
         for i, child in self._enumerate_children():
             child.wire(value[i])
+
+    def _resolve_driving_bulk_wire(self):
+        driving = self._wire.driving()
+        # NOTE: we need to remove drivees before doing the recursive wiring of
+        # the children or else we'll trigger _resolve_bulk_wire when iterating
+        # over the children
+        for drivee in driving:
+            # Remove bulk wire since children will now track the wiring
+            Wireable.unwire(drivee, self)
+
+        for drivee in driving:
+            # Update children
+            for i, child in self._enumerate_children():
+                drivee[i].wire(child)
+
+    def _resolve_bulk_wire(self):
+        """
+        If a child reference is made, we "expand" a bulk wire into the
+        constiuent children to maintain consistency
+        """
+        if self._wire.driven():
+            self._resolve_driven_bulk_wire()
+        if self._wire.driving():
+            self._resolve_driving_bulk_wire()
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
@@ -661,7 +679,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
-            slice_value._ts[i - start] = self._get_t(i)
+            if slice_value._ts:
+                self._ts[i] = slice_value[i - start]
+            else:
+                slice_value._ts[i - start] = self[i]
 
     def _resolve_slice_driver(self, start, stop, value):
         # When we encounter an overlapping slice that is already bulk driven,
@@ -690,27 +711,36 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         del self._unresolved_slices[key]
         del self._slices_by_start_index[key[0]]
 
-    def _update_overlapping_slices(self, t, index):
+    def _check_slice_overlap(self, index):
         # Update existing slices to have matching child references
         def _filter(item):
             (start, stop), _ = item
             return start <= index < stop
         overlaps = list(filter(_filter, self._unresolved_slices.items()))
-        for k, v in overlaps:
-            self._remove_slice(k)
-            assert v._ts.get(index - k[0], t) is t
-            v._ts[index - k[0]] = t
-            self._resolve_slice_children(k[0], k[1], v)
-            self._resolve_slice_driver(k[0], k[1], v)
+        if not len(overlaps):
+            return False
+        # Because overlapping slices are expanded, we only ever expect one
+        # slice to overlap a _get_t index
+        assert len(overlaps) == 1
+        key, value = overlaps[0]
+        self._remove_slice(key)
+        if value._ts:
+            self._ts[index] = value[index - key[0]]
+        else:
+            value._ts[index - key[0]] = self._ts[index] = self._make_t(index)
+        self._resolve_slice_children(key[0], key[1], value)
+        self._resolve_slice_driver(key[0], key[1], value)
+        return True
 
     def _get_t(self, index):
         if index not in self._ts:
             if self._is_slice():
                 # Maintain consistency by always fetching child object from top
                 # level array
-                return self.name.array._get_t(self.name.index.start + index)
-            self._ts[index] = t = self._make_t(index)
-            self._update_overlapping_slices(t, index)
+                self._ts[index] = self.name.array._get_t(self.name.index.start
+                                                         + index)
+            elif not self._check_slice_overlap(index):
+                self._ts[index] = self._make_t(index)
         return self._ts[index]
 
     def _resolve_overlapping_indices(self, slice_, value):
@@ -770,7 +800,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             return self[key[0]]
         if not isinstance(key[-1], slice):
             return self[key[-1]][key[:-1]]
-        if not self._is_whole_slice(key):
+        if not self._is_whole_slice(key[-1]):
             # If it's not a slice of the whole array, first slice the
             # current array (self), then replace with a slice of the whole
             # array (this is how we determine that we're ready to traverse
@@ -817,6 +847,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if isinstance(key, int) and key > self.N - 1:
             raise IndexError()
         if isinstance(key, slice):
+            if self._is_whole_slice(key):
+                return self
             if key.step is not None:
                 return self._variable_step_slice_getitem(key)
             if not _is_valid_slice(self.N, key):
@@ -863,25 +895,29 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         Returns None if func(child) returns None
             e.g. the value is None if any of the children have a value None
         """
-        ts = []
-        for _, child in self._enumerate_children():
+        T = type(self).flip()()
+        for i, child in self._enumerate_children():
             result = func(child)
             if result is None:
                 return None
             if _is_slice_child(child) and child.name.array is self:
-                ts.extend(result.ts)
+                key = (i.start, i.stop)
+                T._slices[key] = result
+                T._slices_by_start_index[key[0]] = result
+                T._unresolved_slices[key] = result
             else:
-                ts.append(result)
+                T._ts[i] = result
 
-        # Pack whole array together for readability
-        if Array._iswhole(ts):
-            return ts[0].name.array
+        if len(T._ts) == self.N:
+            if Array._iswhole(T.ts):
+                # Pack whole array together for readability
+                return T.ts[0].name.array
 
-        # Pack into Bits const if possible for readability
-        if all(t.const() for t in ts):
-            return type(self).flip()(ts)
+            if all(t.const() for t in T.ts):
+                # Pack into Bits const if possible for readability
+                return type(self).flip()(T.ts)
 
-        return type(self)[self.N, self.T.flip()](ts)
+        return T
 
     def _has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)

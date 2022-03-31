@@ -395,6 +395,42 @@ def test_array2_wire_to_anon():
             assert driving[0] is io.O[i]
 
 
+def test_array2_unwire():
+    S = m.Bits[32]
+    T = m.Array[1, S]
+    s = S(name="s")
+    t = T(name="t")
+    s[:] @= t[0]
+    assert s.value() is t[0]
+    s.unwire(s.value())
+
+
+def test_array2_unwire2():
+    S = m.Bits[32]
+    T = m.Array[2, m.Bits[16]]
+    s = S(name="s")
+    t = T(name="t")
+    s[:16] @= t[0]
+    s[16:] @= t[1]
+    assert all(map(lambda x: x[0] is x[1], zip(s.value(),
+                                               t.flatten())))
+    s.unwire(s.value())
+
+
+def test_array2_unwire3():
+    S = m.Bits[4]
+    T = m.Array[2, m.Bits[2]]
+    s = S(name="s")
+    t = T(name="t")
+    s[0] @= t[0][1]
+    s[1] @= t[1][1]
+    s[2] @= t[0][0]
+    s[3] @= t[1][0]
+    expected = [t[0][1], t[1][1], t[0][0], t[1][0]]
+    assert all(map(lambda x: x[0] is x[1], zip(s.value(), expected)))
+    s.unwire(s.value())
+
+
 def test_mixed_direction_slice(caplog):
     class T(m.Product):
         x = m.In(m.Bit)
