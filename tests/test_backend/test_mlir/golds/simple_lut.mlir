@@ -17,7 +17,7 @@ hw.module @LUT(%I: i2) -> (O: i8) {
     %14 = hw.array_get %15[%I] : !hw.array<4xi1>
     %17 = hw.array_create %1, %1, %1, %1 : i1
     %16 = hw.array_get %17[%I] : !hw.array<4xi1>
-    %18 = comb.concat %16, %14, %12, %10, %8, %6, %4, %0 : i1, i1, i1, i1, i1, i1, i1, i1
+    %18 = hw.array_concat %16, %14, %12, %10, %8, %6, %4, %0 : i1, i1, i1, i1, i1, i1, i1, i1
     hw.output %18 : i8
 }
 hw.module @simple_lut(%a: i2) -> (y: i8) {

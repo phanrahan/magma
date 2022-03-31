@@ -1,13 +1,13 @@
-from typing import Union
+from typing import Union, List
 
-from magma.array import ArrayMeta
+from magma.array import ArrayMeta, Array
 from magma.backend.mlir.magma_common import (
     InstanceWrapper, value_or_type_to_string)
 from magma.bits import BitsMeta
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
-from magma.t import In, Out
+from magma.t import In, Out, Type
 from magma.tuple import TupleMeta, ProductMeta
 
 
@@ -53,6 +53,20 @@ def MagmaArrayCreateOp(T: ArrayMeta):
     ports.update(dict(O=Out(T)))
     attrs = dict(T=T)
     return InstanceWrapper(name, ports, attrs)
+
+
+def MagmaArrayConcatOp(Ts: List[ArrayMeta]):
+    out_N = 0
+    for T in Ts:
+        assert isinstance(T, ArrayMeta)
+        assert issubclass(Ts[0].T, T.T), "Expect same child type"
+        out_N += T.N
+    child_T = Ts[0].T
+    t_strs = [value_or_type_to_string(T.undirected_t) for T in Ts]
+    name = f"magma_array_concat_op_{t_strs}"
+    ports = {f"I{i}": In(Ts[i]) for i in range(len(Ts))}
+    ports.update(dict(O=Out(Array[out_N, child_T])))
+    return InstanceWrapper(name, ports, {})
 
 
 def MagmaTupleGetOp(T: TupleMeta, index: Union[int, str]):

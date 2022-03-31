@@ -19,7 +19,7 @@ hw.module @complex_aggregates_nested_array(%a: !hw.array<2x!hw.array<3xi4>>) -> 
     %17 = comb.extract %2 from 3 : (i4) -> i1
     %18 = comb.extract %7 from 0 : (i4) -> i1
     %19 = comb.or %17, %18 : i1
-    %20 = comb.concat %19, %16, %13, %10 : i1, i1, i1, i1
+    %20 = hw.array_concat %19, %16, %13, %10 : i1, i1, i1, i1
     %22 = hw.constant 1 : i2
     %21 = hw.array_get %0[%22] : !hw.array<3xi4>
     %23 = comb.extract %21 from 0 : (i4) -> i1
@@ -35,7 +35,7 @@ hw.module @complex_aggregates_nested_array(%a: !hw.array<2x!hw.array<3xi4>>) -> 
     %33 = comb.extract %21 from 3 : (i4) -> i1
     %34 = comb.extract %24 from 0 : (i4) -> i1
     %35 = comb.or %33, %34 : i1
-    %36 = comb.concat %35, %32, %29, %26 : i1, i1, i1, i1
+    %36 = hw.array_concat %35, %32, %29, %26 : i1, i1, i1, i1
     %37 = hw.array_get %0[%8] : !hw.array<3xi4>
     %38 = comb.extract %37 from 0 : (i4) -> i1
     %39 = hw.array_get %5[%3] : !hw.array<3xi4>
@@ -50,24 +50,24 @@ hw.module @complex_aggregates_nested_array(%a: !hw.array<2x!hw.array<3xi4>>) -> 
     %48 = comb.extract %37 from 3 : (i4) -> i1
     %49 = comb.extract %39 from 0 : (i4) -> i1
     %50 = comb.or %48, %49 : i1
-    %51 = comb.concat %50, %47, %44, %41 : i1, i1, i1, i1
-    %52 = hw.array_create %51, %36, %20 : i4
+    %51 = hw.array_concat %50, %47, %44, %41 : i1, i1, i1, i1
+    %52 = hw.array_concat %51, %36, %20 : i4, i4, i4
     %53 = comb.or %49, %48 : i1
     %54 = comb.or %46, %45 : i1
     %55 = comb.or %43, %42 : i1
     %56 = comb.or %40, %38 : i1
-    %57 = comb.concat %56, %55, %54, %53 : i1, i1, i1, i1
+    %57 = hw.array_concat %56, %55, %54, %53 : i1, i1, i1, i1
     %58 = comb.or %34, %33 : i1
     %59 = comb.or %31, %30 : i1
     %60 = comb.or %28, %27 : i1
     %61 = comb.or %25, %23 : i1
-    %62 = comb.concat %61, %60, %59, %58 : i1, i1, i1, i1
+    %62 = hw.array_concat %61, %60, %59, %58 : i1, i1, i1, i1
     %63 = comb.or %18, %17 : i1
     %64 = comb.or %15, %14 : i1
     %65 = comb.or %12, %11 : i1
     %66 = comb.or %9, %4 : i1
-    %67 = comb.concat %66, %65, %64, %63 : i1, i1, i1, i1
-    %68 = hw.array_create %67, %62, %57 : i4
-    %69 = hw.array_create %68, %52 : !hw.array<3xi4>
+    %67 = hw.array_concat %66, %65, %64, %63 : i1, i1, i1, i1
+    %68 = hw.array_concat %67, %62, %57 : i4, i4, i4
+    %69 = hw.array_concat %68, %52 : !hw.array<3xi4>, !hw.array<3xi4>
     hw.output %69 : !hw.array<2x!hw.array<3xi4>>
 }
