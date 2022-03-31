@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.ref import PortViewRef
 from magma.t import Out
@@ -43,13 +45,16 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
             return object.__getattribute__(self, key)
         return PortView[type(attr)](attr, self.parent)
 
-    def get_hierarchical_coreir_select(self):
+    def path(self) -> Tuple[str]:
+        path = (self.port.name.name,)
         curr = self.parent
-        hierarchical_path = curr.inst.name + ";"
-        while isinstance(curr.parent, InstView):
-            hierarchical_path = curr.parent.inst.name + ";" + hierarchical_path
+        while isinstance(curr, InstView):
+            path = (curr.inst.name,) + path
             curr = curr.parent
-        return hierarchical_path
+        return path
+
+    def get_hierarchical_coreir_select(self):
+        return ";".join(self.path()[:-1]) + ";"
 
     def root(self):
         curr = self.parent

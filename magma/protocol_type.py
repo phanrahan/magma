@@ -115,6 +115,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         self.wire(other)
         return self
 
+    def connection_iter(self):
+        return self._get_magma_value_().connection_iter()
+
 
 def magma_type(T):
     if issubclass(T, MagmaProtocol):

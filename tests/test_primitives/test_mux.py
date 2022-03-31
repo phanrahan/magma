@@ -338,3 +338,15 @@ def test_mux_protocol():
     assert isinstance(Mux.I0, m.Out(T))
     assert isinstance(Mux.I1, m.Out(T))
     assert isinstance(Mux.O, m.In(T))
+
+
+@pytest.mark.parametrize("n,use_bit", ((2, True), (2, False), (8, True),))
+def test_mux_operator_const_select(n, use_bit):
+    T = m.Bits[8]
+    sel_bits = m.bitutils.clog2(n)
+    T_sel = m.Bit if (sel_bits == 1 and use_bit) else m.Bits[sel_bits]
+
+    class _(m.Circuit):
+        vec = [T() for _ in range(n)]
+        sel = T_sel(0) if sel_bits == 1 else T_sel(0)
+        m.mux(vec, sel)

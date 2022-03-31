@@ -393,3 +393,18 @@ def test_array2_wire_to_anon():
         for i, driving in enumerate(io.I.driving()):
             assert len(driving) == 1
             assert driving[0] is io.O[i]
+
+
+def test_mixed_direction_slice(caplog):
+    class T(m.Product):
+        x = m.In(m.Bit)
+        y = m.Out(m.Bit)
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.Array[4, T], O=m.Array[4, m.Flip(T)])
+        io.O[:2] @= io.I[2:]
+        io.O[2:] @= io.I[:2]
+
+    assert not caplog.records, "Should not report an error"
+    _check_compile("test_array2_mixed_direction_slice", Foo, False,
+                   True)

@@ -65,6 +65,10 @@ def has_log(caplog, level=None, msg=None):
     return any(gen)
 
 
+def has_debug(caplog, msg=None):
+    return has_log(caplog, "DEBUG", msg)
+
+
 def has_info(caplog, msg=None):
     return has_log(caplog, "INFO", msg)
 

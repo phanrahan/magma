@@ -310,6 +310,6 @@ def test_make_smart():
     assert type(smart.y[0])._signed == False
 
     # Value checks.
-    assert smart.x._get_magma_value_().value() is value.x
+    assert smart.x._get_magma_value_() is value.x
     for i in range(10):
-        assert smart.y[i]._get_magma_value_().value() is value.y[i]
+        assert smart.y[i]._get_magma_value_() is value.y[i]

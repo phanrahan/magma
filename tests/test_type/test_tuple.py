@@ -310,3 +310,11 @@ def test_mixed_direction_wrap():
         io.clocks.clk1 @= m.clock(tff(tff.O ^ 1))
 
     m.compile('build/test_mixed_direction_wrap', Main)
+
+
+def test_recursive_eq():
+    class Foo(m.Circuit):
+        io = m.IO(I0=m.In(m.Tuple[m.Bit, m.Bits[4]]),
+                  I1=m.In(m.Tuple[m.Bit, m.Bits[4]]),
+                  O=m.Out(m.Tuple[m.Bit, m.Bits[4]]))
+        io.O @= io.I0 == io.I1

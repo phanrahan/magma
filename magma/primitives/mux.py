@@ -1,10 +1,14 @@
+from typing import Sequence, Union
+
 import hwtypes as ht
 from hwtypes import BitVector, UIntVector, SIntVector
+
 from magma.array import Array
 from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
 from magma.bitutils import clog2, seq2int
 from magma.circuit import coreir_port_mapping
+from magma.common import is_int
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.protocol_type import MagmaProtocol, magma_type
@@ -123,7 +127,7 @@ def _infer_mux_type(args):
 infer_mux_type = _infer_mux_type
 
 
-def mux(I: list, S, **kwargs):
+def mux(I: Union[Sequence, Array], S, **kwargs):
     """
     How type inference works on I:
         This operator will traverse the list of inputs I and use the first
@@ -139,10 +143,8 @@ def mux(I: list, S, **kwargs):
         then, if you run into this problem, use `Mux(T)` where `T` can coerce
         all arguments.
     """
-    if isinstance(S, Type) and S.const():
-        S = seq2int(S.bits())
-    if isinstance(S, int):
-        return I[S]
+    if is_int(S):
+        return I[int(S)]
     T, I = _infer_mux_type(I)
     inst = Mux(len(I), T)(**kwargs)
     if len(I) == 2 and isinstance(S, Bits[1]):

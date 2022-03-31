@@ -25,11 +25,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov pytest-pycodestyle fault
         pip install kratos  # test optional dependency
-        pip install -e .
+        python setup.py install
     - name: Test with pytest
       run: |
         py.test --cov magma -v --cov-report term-missing tests
         pycodestyle magma/
+    - name: Smoke test package
+      run: |
+        pushd /tmp
+        python -c "import magma"
+        popd
     - name: Test with pytest
       run: |
         bash <(curl -s https://codecov.io/bash)

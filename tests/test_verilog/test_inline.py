@@ -288,7 +288,7 @@ def test_inline_passthrough_wire():
         T = m.AnonProduct[dict(x=m.Bit, y=m.Bits[4])]
         io = m.IO(I=m.In(T), O=m.Out(T))
         io.O @= io.I
-        
+
         m.inline_verilog("""
     assert {io.I.y[0]} == {io.I.y[1]}
 """)
@@ -299,3 +299,17 @@ def test_inline_passthrough_wire():
     assert m.testing.check_files_equal(
         __file__, f"build/test_inline_passthrough_wire.v",
         f"gold/test_inline_passthrough_wire.v")
+
+
+def test_inline_verilog_clock_output():
+    class Foo(m.Circuit):
+        io = m.IO(x=m.In(m.Clock), y=m.In(m.Clock))
+        m.inline_verilog("""
+Foo bar (.x({io.x}, .y{io.y}))
+""")
+
+    m.compile("build/test_inline_verilog_clock_output", Foo,
+              inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/test_inline_verilog_clock_output.v",
+        f"gold/test_inline_verilog_clock_output.v")

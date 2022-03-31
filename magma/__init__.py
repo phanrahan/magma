@@ -79,7 +79,7 @@ from hwtypes.bit_vector_abc import TypeFamily
 from magma.family import get_family
 _Family_ = get_family()
 
-from .generator import Generator, Generator2
+from .generator import Generator, Generator2, DebugGenerator2
 from .monitor import MonitorIO, MonitorGenerator, make_monitor_ports
 from .inline_verilog import inline_verilog
 from .display import display, posedge, negedge, File, time
@@ -104,3 +104,4 @@ from magma.set_name import set_name
 from magma.circuit_utils import circuit_stub, stubify, CircuitStub
 from magma.compile import MagmaCompileException
 from magma.linking import link_module, link_default_module, clear_link_info
+import magma.math

@@ -1,5 +1,6 @@
 import weakref
 from functools import reduce, lru_cache
+import operator
 from abc import ABCMeta
 from hwtypes import BitVector
 from .common import deprecated
@@ -406,7 +407,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def __eq__(self, rhs):
         if not isinstance(rhs, ArrayType):
             return False
-        return self.ts == rhs.ts
+        return reduce(operator.and_,
+                      (x == y for x, y in zip(self, rhs)))
 
     @output_only("Cannot use != on an input")
     def __ne__(self, rhs):
@@ -609,7 +611,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         o = magma_value(o)
         if not self._check_wireable(o, debug_info):
             return
-        if self._has_elaborated_children() or o._has_elaborated_children():
+        if (self._has_elaborated_children() or
+                o._has_elaborated_children() or
+                self.T.is_mixed()):
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o)
         else:
@@ -877,7 +881,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if all(t.const() for t in ts):
             return type(self).flip()(ts)
 
-        return Array[self.N, self.T.flip()](ts)
+        return type(self)[self.N, self.T.flip()](ts)
 
     def _has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)

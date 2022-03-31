@@ -17,7 +17,7 @@ from .bitutils import int2seq
 import hwtypes as ht
 from magma.array import Array
 from magma.circuit import coreir_port_mapping
-from magma.common import is_int
+from magma.common import is_int, Finalizable, lca_of_types
 from magma.generator import Generator2
 from magma.interface import IO
 
@@ -34,6 +34,37 @@ __all__ += ['concat', 'repeat']
 __all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
 __all__ += ['replace']
 __all__ += ['as_bits', 'from_bits']
+
+
+class _Concatter(Finalizable):
+    def __init__(self):
+        self._ts = []
+        self._types = []
+
+    def _consume_impl(self, value):
+        if isinstance(value, ht.BitVector):
+            return value.bits(), Bits
+        if isinstance(magma_value(value), Bit):
+            return [value], Bits
+        if isinstance(value, (bool, ht.Bit)):
+            return [Bit(value)], Bits
+        if isinstance(value, Array):
+            return value.ts, type(value).abstract_t
+        raise TypeError(
+            f"expected arguments of type of Array or its subtypes, instead got "
+            f"{value} with type {type(value)}"
+        )
+
+    def consume(self, value):
+        new_ts, t = self._consume_impl(value)
+        self._ts.extend(new_ts)
+        self._types.append(t)
+
+    def finalize(self):
+        T = lca_of_types(self._types)
+        checkbit = T is not Array
+        return convertbits(self._ts, None, T, checkbit=checkbit)
+
 
 def can_convert_to_bit(value):
     return isinstance(magma_value(value), (Digital, Array, Tuple, IntegerTypes))
@@ -205,23 +236,11 @@ def bfloat(value, n=None):
     return convertbits(value, n, BFloat, True)
 
 
-def concat(*arrays):
-    ts = []
-    for a in arrays:
-        if isinstance(a, ht.BitVector):
-            ts.extend(a.bits())
-        elif isinstance(magma_value(a), Bit):
-            ts.extend([a])
-        elif isinstance(a, (bool, ht.Bit)):
-            ts.extend([Bit(a)])
-        else:
-            if not isinstance(a, Array):
-                raise TypeError(
-                    "concat expects values of type Array, BitVector, Bit, or "
-                    f"bool, not {a} with type {type(a)}"
-                )
-            ts.extend(a.ts)
-    return array(ts)
+def concat(*args):
+    concatter = _Concatter()
+    for arg in args:
+        concatter.consume(arg)
+    return concatter.finalize()
 
 
 def repeat(value, n):

@@ -1,5 +1,7 @@
 import itertools
 from functools import lru_cache
+import functools
+import operator
 from collections import OrderedDict
 from hwtypes.adt import (
     TupleMeta,
@@ -232,7 +234,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         if not isinstance(rhs, type(self)):
             return NotImplemented
         else:
-            return self.ts == rhs.ts
+            # NOTE: Use functools.reduce so import * doesn't clobber m.reduce
+            # from bits
+            return functools.reduce(operator.and_,
+                                    (x == y for x, y in zip(self, rhs)))
 
     @output_only("Cannot use != on an input")
     def __ne__(self, rhs):
