@@ -8,7 +8,7 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper,
 )
 from magma.backend.mlir.magma_ops import (
-    MagmaArrayGetOp, MagmaArraySliceOp,
+    MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
     MagmaTupleGetOp, MagmaTupleCreateOp,
     MagmaBitConstantOp, MagmaBitsConstantOp, MagmaArrayConcatOp)
 from magma.bits import Bits
@@ -76,6 +76,13 @@ class ModuleContext:
         return getter
 
 
+def _lift_to_array(ctx, module, value, T):
+    creator = MagmaArrayCreateOp(Array[1, T])
+    info = dict(src=creator.O, dst=value)
+    ctx.graph.add_edge(creator, module, info=info)
+    return creator.I0
+
+
 def _visit_driver(
         ctx: ModuleContext, value: Type, driver: Type, module: ModuleLike,
         dst=None):
@@ -115,8 +122,15 @@ def _visit_driver(
             creator = MagmaArrayConcatOp(Ts)
             for i, (child, child_value) in enumerate(conns):
                 creator_input = getattr(creator, f"I{i}")
-                _visit_driver(ctx, child, child_value, creator,
-                              creator_input)
+                if isinstance(child.name.index, int):
+                    # Insert lifter from T -> Array[1, T]
+                    lifter = MagmaArrayCreateOp(Array[1, type(child)])
+                    info = dict(src=lifter.O, dst=creator_input)
+                    ctx.graph.add_edge(lifter, creator, info=info)
+                    _visit_driver(ctx, child, child_value, lifter, lifter.I0)
+                else:
+                    _visit_driver(ctx, child, child_value, creator,
+                                  creator_input)
             info = dict(src=creator.O, dst=dst)
             ctx.graph.add_edge(creator, module, info=info)
             return
