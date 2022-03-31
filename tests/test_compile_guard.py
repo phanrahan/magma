@@ -217,6 +217,7 @@ def test_contained_inline_verilog():
             reg = m.Register(m.Bit)(name="reg")
             reg.I @= reg.O | io.I
             m.inline_verilog("assert {io.I};")
+            m.inline_verilog("assert ~{reg.O};")
 
     basename = "test_compile_guard_contained_inline_verilog"
     m.compile(f"build/{basename}", Top)

@@ -61,11 +61,16 @@ module DebugModule (
     input port_1
 );
 wire _magma_inline_wire0_out;
+wire _magma_inline_wire1_out;
 wire magma_Bit_or_inst0_out;
 wire reg_O;
 corebit_wire _magma_inline_wire0 (
     .in(port_1),
     .out(_magma_inline_wire0_out)
+);
+corebit_wire _magma_inline_wire1 (
+    .in(\reg _O),
+    .out(_magma_inline_wire1_out)
 );
 corebit_or magma_Bit_or_inst0 (
     .in0(\reg _O),
@@ -78,6 +83,7 @@ Register reg (
     .CLK(CLK)
 );
 assert _magma_inline_wire0_out;
+assert ~_magma_inline_wire1_out;
 endmodule
 
 module Top (
