@@ -37,7 +37,7 @@ def process_inline_comb_fn(defn, fn):
     collector = ClsReferenceCollector()
     collector.visit(tree)
     values = []
-    for ref in collector.references:
+    for ref in sorted(collector.references):
         values.append(functools.reduce(lambda x, y: getattr(x, y), ref, defn))
 
     import magma as m  # TODO(leonardt): Can we avoid this circular ref?
