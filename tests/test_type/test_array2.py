@@ -444,3 +444,18 @@ def test_mixed_direction_slice(caplog):
     assert not caplog.records, "Should not report an error"
     _check_compile("test_array2_mixed_direction_slice", Foo, False,
                    True)
+
+
+def test_slice_instref(caplog):
+    class Bar(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, m.Bit]), O=m.Out(m.Array[2, m.Bit]))
+
+    class Foo(m.Circuit):
+        T = m.Array[4, m.Bit]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        bar = Bar()
+        bar.I @= io.I[2:]
+        io.O[2:] @= bar.O
+        io.O[:2] @= bar.O
+        assert list(io.O.trace().connection_iter()) == [(bar.O, None), (bar.O,
+                                                                        None)]
