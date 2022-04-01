@@ -864,7 +864,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             result = arr._get_slice(slice(offset + key.start,
                                           offset + key.stop))
         else:
-            raise NotImplementedError(key, type(key))
+            return super().__getitem__(key)
         self._resolve_bulk_wire()
         return result
 
