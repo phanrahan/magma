@@ -457,5 +457,5 @@ def test_slice_instref(caplog):
         bar.I @= io.I[2:]
         io.O[2:] @= bar.O
         io.O[:2] @= bar.O
-        assert list(io.O.trace().connection_iter()) == [(bar.O, None), (bar.O,
-                                                                        None)]
+        assert list(io.O.trace().connection_iter()) == [
+            (bar.O, None), (bar.O, None)]
