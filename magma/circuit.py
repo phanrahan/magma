@@ -33,6 +33,7 @@ from magma.ref import TempNamedRef
 from magma.t import In
 from magma.view import PortView
 from magma.wire_container import WiringLog
+from magma.syntax.inline_combinational2 import process_inline_comb_fn
 
 
 __all__ = ['AnonymousCircuitType']
@@ -253,6 +254,9 @@ class CircuitKind(type):
 
         cls._syntax_style_ = _SyntaxStyle.NONE
         cls._renamed_ports_ = dct["renamed_ports"]
+        for key, value in dct.items():
+            if getattr(value, "_magma_inline_combinational_", False):
+                process_inline_comb_fn(cls, value)
         try:
             context = _definition_context_stack.pop()
         except IndexError:  # no staged placer
