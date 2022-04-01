@@ -10,3 +10,6 @@ def magma_test():
     clear_cachedFunctions()
     magma.frontend.coreir_.ResetCoreIR()
     magma.generator.reset_generator_cache()
+    # Need to clear the log stack in case there's an error thrown in the middle
+    # and the unstage logic is not reached
+    magma.logging._staged_log_stack.clear()

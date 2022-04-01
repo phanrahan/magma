@@ -16,8 +16,7 @@ config._register(
 )
 
 
-_staged_logging = False
-_staged_logs = []
+_staged_log_stack = []
 
 
 def _make_bold(string):
@@ -96,30 +95,34 @@ class _MagmaLogger(logging.Logger):
         fn(self, msg, *args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.DEBUG, msg, args, kwargs))
+        global _staged_log_stack
+        if _staged_log_stack:
+            _staged_log_stack[-1].append((self, logging.DEBUG, msg, args,
+                                          kwargs))
             return
         _MagmaLogger.__with_preamble(super().debug, msg, *args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.INFO, msg, args, kwargs))
+        global _staged_log_stack
+        if _staged_log_stack:
+            _staged_log_stack[-1].append((self, logging.INFO, msg, args,
+                                          kwargs))
             return
         _MagmaLogger.__with_preamble(super().info, msg, *args, **kwargs)
 
     def warning(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.WARNING, msg, args, kwargs))
+        global _staged_log_stack
+        if _staged_log_stack:
+            _staged_log_stack[-1].append((self, logging.WARNING, msg, args,
+                                          kwargs))
             return
         _MagmaLogger.__with_preamble(super().warning, msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.ERROR, msg, args, kwargs))
+        global _staged_log_stack
+        if _staged_log_stack:
+            _staged_log_stack[-1].append((self, logging.ERROR, msg, args,
+                                          kwargs))
             return
         _MagmaLogger.__with_preamble(super().error, msg, *args, **kwargs)
 
@@ -137,11 +140,10 @@ _root_logger.setLevel(config.log_level)
 
 
 def flush():
-    global _staged_logs
-    curr_logs = _staged_logs.copy()
+    global _staged_log_stack
+    curr_logs = _staged_log_stack.pop()
     for logger, level, obj, args, kwargs in curr_logs:
         logger.log(level, obj, *args, **kwargs)
-    _staged_logs = []
     return curr_logs
 
 
@@ -150,11 +152,9 @@ def root_logger():
 
 
 def stage_logger():
-    global _staged_logging
-    _staged_logging = True
+    global _staged_log_stack
+    _staged_log_stack.append([])
 
 
 def unstage_logger():
-    global _staged_logging
-    _staged_logging = False
     return flush()
