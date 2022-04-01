@@ -5,7 +5,7 @@ import functools
 from magma.ast_utils import get_ast
 
 
-class SelfReferenceCollector(ast.NodeVisitor):
+class ClsReferenceCollector(ast.NodeVisitor):
     def __init__(self):
         self.references = set()
 
@@ -17,12 +17,12 @@ class SelfReferenceCollector(ast.NodeVisitor):
     def _get_attrs(self, node):
         if isinstance(node, ast.Attribute):
             return self._get_attrs(node.value) + (node.attr, )
-        assert isinstance(node, ast.Name) and node.id == "self"
+        assert isinstance(node, ast.Name) and node.id == "cls"
         return tuple()
 
     def visit_Attribute(self, node):
         leaf = self._get_leaf(node.value)
-        if not (isinstance(leaf, ast.Name) and leaf.id == "self"):
+        if not (isinstance(leaf, ast.Name) and leaf.id == "cls"):
             return
         self.references.add(self._get_attrs(node))
 
@@ -34,7 +34,7 @@ def inline_combinational2(fn):
 
 def process_inline_comb_fn(defn, fn):
     tree = get_ast(fn)
-    collector = SelfReferenceCollector()
+    collector = ClsReferenceCollector()
     collector.visit(tree)
     values = []
     for ref in collector.references:

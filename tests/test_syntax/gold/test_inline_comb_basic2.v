@@ -34,11 +34,11 @@ corebit_undriven corebit_undriven_inst0 (
 );
 assign v0 = corebit_undriven_inst0_out;
 // @m.inline_combinational2
-// def logic(self):
-//     if self.io.I:
-//         self.io.O @= 0
+// def logic(cls):
+//     if cls.io.I:
+//         cls.io.O @= 0
 //     else:
-//         self.io.O @= 1
+//         cls.io.O @= 1
 endmodule
 
 module Foo (
