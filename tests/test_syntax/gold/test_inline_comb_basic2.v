@@ -19,8 +19,8 @@ module corebit_const #(
 endmodule
 
 module InlineCombWrapper (
-    output v0,
-    input v1
+    input v0,
+    output v1
 );
 wire bit_const_0_None_out;
 wire corebit_undriven_inst0_out;
@@ -32,7 +32,7 @@ corebit_const #(
 corebit_undriven corebit_undriven_inst0 (
     .out(corebit_undriven_inst0_out)
 );
-assign v0 = corebit_undriven_inst0_out;
+assign v1 = corebit_undriven_inst0_out;
 // @m.inline_combinational2
 // def logic(cls):
 //     if cls.io.I:
@@ -45,11 +45,11 @@ module Foo (
     input I,
     output O
 );
-wire InlineCombWrapper_inst0_v0;
+wire InlineCombWrapper_inst0_v1;
 InlineCombWrapper InlineCombWrapper_inst0 (
-    .v0(InlineCombWrapper_inst0_v0),
-    .v1(I)
+    .v0(I),
+    .v1(InlineCombWrapper_inst0_v1)
 );
-assign O = InlineCombWrapper_inst0_v0;
+assign O = InlineCombWrapper_inst0_v1;
 endmodule
 
