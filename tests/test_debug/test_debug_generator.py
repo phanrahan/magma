@@ -11,7 +11,7 @@ def test_debug_generator_basic():
             x @= ~self.io.I
             self.io.O @= x.reduce_xor()
 
-    m.compile("build/test_debug_generator_basic", Foo(4))
+    m.compile("build/test_debug_generator_basic", Foo(4), inline=True)
     assert check_files_equal(__file__,
                              "build/test_debug_generator_basic.v",
                              "gold/test_debug_generator_basic.v")
