@@ -1,6 +1,5 @@
 import inspect
 import collections
-import magma
 from magma.config import get_debug_mode
 
 
