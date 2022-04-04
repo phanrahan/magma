@@ -1,6 +1,5 @@
 import inspect
 import collections
-import magma
 from magma.config import get_debug_mode
 
 
@@ -33,4 +32,3 @@ def debug_wire(fn):
             debug_info = get_callee_frame_info()
         return fn(i, o, debug_info)
     return wire
-
