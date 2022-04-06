@@ -772,9 +772,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
             slice_value = slice_T(name=ArrayRef(self, slice_))
             self._slices[key] = slice_value
-            if not self._resolve_overlapping_indices(slice_, slice_value):
-                self._slices_by_start_index[key[0]] = (slice_, slice_value)
-                self._unresolved_slices[key] = slice_value
+            if self._resolve_overlapping_indices(slice_, slice_value):
+                return slice_value
+            self._slices_by_start_index[key[0]] = (slice_, slice_value)
+            self._unresolved_slices[key] = slice_value
         return slice_value
 
     def _normalize_slice_key(self, key):
