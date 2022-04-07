@@ -15,6 +15,9 @@ from magma.passes.find_errors import find_errors_pass
 
 class MlirCompiler(Compiler):
     def __init__(self, main: DefineCircuitKind, basename: str, opts: Dict):
+        # TODO(rsetaluri): Make this a better error.
+        assert "basename" not in opts
+        opts["basename"] = basename
         self._compile_to_mlir_opts = slice_opts(opts, CompileToMlirOpts)
         super().__init__(main, basename, opts)
 

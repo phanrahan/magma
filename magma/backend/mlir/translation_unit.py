@@ -19,6 +19,7 @@ class TranslationUnit:
         self._hardware_modules = {}
         self._symbol_map = {}
         self._symbol_name_generator = ScopedNameGenerator()
+        self._bind_files = []
 
     @property
     def magma_top(self) -> DefineCircuitKind:
@@ -70,6 +71,9 @@ class TranslationUnit:
         name = self._symbol_name_generator(**kwargs)
         return MlirSymbol(name)
 
+    def add_bind_file(self, filename: str):
+        self._bind_files.append(filename)
+
     def compile(self):
         deps = dependencies(self._magma_top, include_self=True)
         with push_block(self._mlir_module):
@@ -80,7 +84,16 @@ class TranslationUnit:
                 hardware_module.compile()
                 if hardware_module.hw_module:
                     self.set_hardware_module(dep, hardware_module)
+        self._write_listings_file()
 
     @staticmethod
     def _make_key(magma_defn_or_decl: CircuitKind) -> str:
         return magma_defn_or_decl.name
+
+    def _write_listings_file(self):
+        if not self._bind_files:
+            return
+        filename = self._opts.basename + "_bind_files.list"
+        with open(filename, "w") as f:
+            listing = "\n".join(self._bind_files)
+            f.write(listing)
