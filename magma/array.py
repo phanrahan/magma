@@ -389,8 +389,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         self._slices = {}
         self._unresolved_slices = {}
-        # Store mapping from slice start index to object for faster lookup when
-        # checking overlapping indicies/slices
+        # Store mapping from slice start index to slice key and object for
+        # faster lookup when checking overlapping indicies/slices
         self._slices_by_start_index = {}
 
     @classmethod
@@ -772,9 +772,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
             slice_value = slice_T(name=ArrayRef(self, slice_))
             self._slices[key] = slice_value
-            if not self._resolve_overlapping_indices(slice_, slice_value):
-                self._slices_by_start_index[key[0]] = slice_value
-                self._unresolved_slices[key] = slice_value
+            if self._resolve_overlapping_indices(slice_, slice_value):
+                return slice_value
+            self._slices_by_start_index[key[0]] = (slice_, slice_value)
+            self._unresolved_slices[key] = slice_value
         return slice_value
 
     def _normalize_slice_key(self, key):
@@ -903,7 +904,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             if _is_slice_child(child) and child.name.array is self:
                 key = (i.start, i.stop)
                 T._slices[key] = result
-                T._slices_by_start_index[key[0]] = result
+                T._slices_by_start_index[key[0]] = (i, result)
                 T._unresolved_slices[key] = result
             else:
                 T._ts[i] = result
@@ -982,8 +983,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 # We only need to lookup one slice by start index because if
                 # multiple slices overlap, they're children will be realized
                 # and in self._ts
-                value = self._slices_by_start_index[i]
-                slice_ = value.name.index
+                slice_, value = self._slices_by_start_index[i]
                 yield slice_, value
                 i = slice_.stop
             else:
