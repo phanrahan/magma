@@ -92,24 +92,3 @@ def test_no_cache():
     my_gen_other = _MyGen()
     assert my_gen is not my_gen_other
     assert repr(my_gen) == repr(my_gen_other)
-
-
-def test_nested_generator_wiring_log(caplog):
-    class Bar(m.Generator2):
-        def __init__(self):
-            self.io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
-            self.io.O @= self.io.I
-
-    class Foo(m.Generator2):
-        def __init__(self):
-            self.io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
-            Bar()
-            self.io.O @= self.io.I
-            self.io.O @= self.io.I
-
-    Foo()
-
-    expected = """\
-Wiring multiple outputs to same wire, using last connection. Input: Foo.O, Old Output: Foo.I, New Output: Foo.I\
-"""
-    assert caplog.records[0].message == expected
