@@ -4,7 +4,7 @@ import weakref
 
 from magma.common import Finalizable, FinalizableDelegator
 from magma.logging import stage_logger, unstage_logger
-from magma.placer import PlacerBase, StagedPlacer
+from magma.placer import PlacerBase
 
 
 _VERILOG_FILE_OPEN = """
@@ -79,15 +79,8 @@ class DefinitionContext(FinalizableDelegator):
         self._builders = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
-
-        # The _staged_logger attribute is used to track whether we need to
-        # unstage the logger later.  We track using an attribute because
-        # place_instances is called before finalize (which resolves the
-        # StagedPlacer).  We can't call the unstage code inside place_instances
-        # because the interface of the circuit is not setup yet, so we instead
-        # wait until finalize after the interface has been setup
-        self._staged_logger = isinstance(placer, StagedPlacer)
-        if self._staged_logger:
+        self._is_staged = self._placer.is_staged()
+        if self._is_staged:
             stage_logger()
 
     @property
@@ -114,11 +107,6 @@ class DefinitionContext(FinalizableDelegator):
 
     def finalize(self, defn):
         super().finalize()
-        if self._staged_logger:
+        if self._is_staged:
             logs = unstage_logger()
             defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
-            # In the old style syntax, the StagedPlacer will actually be
-            # finalized, then the regular placer will be used for the
-            # definition method invocation, so we only want to unstage the
-            # logger once when we finalize the original StagedPlacer
-            self._staged_logger = False

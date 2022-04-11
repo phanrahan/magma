@@ -47,6 +47,10 @@ class PlacerBase(ABC):
     def instances(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def is_staged(self) -> bool:
+        raise NotImplementedError()
+
 
 def _setup_view(inst):
     inst_view = InstView(inst)
@@ -135,6 +139,9 @@ class Placer:
             inst.stack = inspect.stack()
         _setup_view(inst)
 
+    def is_staged(self) -> bool:
+        return False
+
     def finalize(self, defn):
         if self._finalized:
             raise Exception("Can only call finalize on a placer once")
@@ -160,6 +167,9 @@ class StagedPlacer(ABC):
         self._instances.append(inst)
         inst.defn = LazyCircuit
         _setup_view(inst)
+
+    def is_staged(self) -> bool:
+        return True
 
     def finalize(self, defn):
         if self._finalized:
