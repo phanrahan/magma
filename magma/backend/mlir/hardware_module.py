@@ -47,13 +47,19 @@ from magma.view import PortView
 MlirValueList = List[MlirValue]
 
 
-def _get_defn_or_decl_output_name(defn_or_decl: CircuitKind) -> str:
+def _get_defn_or_decl_output_name(
+        ctx: 'HardwareModule', defn_or_decl: CircuitKind) -> str:
     metadata = defn_or_decl.coreir_metadata
     try:
         return metadata["verilog_name"]
     except KeyError:
         pass
-    return defn_or_decl.name
+    name = defn_or_decl.name
+    if ctx.opts.user_namespace is not None:
+        name = ctx.opts.user_namespace + f"_{name}"
+    if ctx.opts.verilog_prefix is not None:
+        name = ctx.opts.verilog_prefix + f"{name}"
+    return name
 
 
 @wrap_with_not_implemented_error
@@ -850,7 +856,7 @@ class HardwareModule:
         inputs = new_values(self.get_or_make_mapped_value, o)
         named_outputs = new_values(self.new_value, i)
         defn_or_decl_output_name = _get_defn_or_decl_output_name(
-            self._magma_defn_or_decl)
+            self, self._magma_defn_or_decl)
         name = self.parent.get_or_make_mapped_symbol(
             self._magma_defn_or_decl,
             name=defn_or_decl_output_name, force=True)
