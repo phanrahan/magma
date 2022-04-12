@@ -1,6 +1,7 @@
 import dataclasses
 
 from magma.backend.mlir.mlir import MlirDialect, begin_dialect, end_dialect
+from magma.backend.mlir.mlir import MlirAttribute
 from magma.backend.mlir.mlir import MlirOp, MlirRegion, MlirBlock
 from magma.backend.mlir.mlir import MlirType
 from magma.backend.mlir.printer_base import PrinterBase
@@ -16,6 +17,14 @@ class IntegerType(MlirType):
 
     def emit(self) -> str:
         return f"i{self.n}"
+
+
+@dataclasses.dataclass(frozen=True)
+class IntegerAttr(MlirAttribute):
+    value: int
+
+    def emit(self) -> str:
+        return str(self.value)
 
 
 @dataclasses.dataclass

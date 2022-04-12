@@ -4,7 +4,7 @@ import collections.abc
 import dataclasses
 from functools import wraps, partial, reduce
 import operator
-from typing import Dict, Iterable
+from typing import Any, Callable, Dict, Iterable
 import warnings
 
 
@@ -227,3 +227,7 @@ def slice_opts(dct: Dict, cls: type):
             continue
         kwargs[name] = value
     return cls(**kwargs)
+
+
+def filter_by_key(function: Callable[[Any], bool], dct: Dict):
+    return {k: v for k, v in dct.items() if function(k)}
