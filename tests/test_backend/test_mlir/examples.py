@@ -455,3 +455,16 @@ class simple_custom_verilog_name(m.Circuit):
     coreir_metadata = {"verilog_name": "simple_custom_verilog_name_custom_name"}
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     io.O @= io.I
+
+
+class simple_module_params(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    io.O @= io.I
+
+    coreir_config_param_types = {"width": int, "height": int}
+
+
+class simple_module_params_instance(m.Circuit):
+    io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
+    inst = simple_module_params(width=10, height=20)
+    io.O @= inst(io.I)

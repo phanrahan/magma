@@ -1,6 +1,7 @@
 import dataclasses
-from typing import ClassVar, List, Optional, Tuple
+from typing import Any, ClassVar, List, Mapping, Optional, Tuple
 
+from magma.backend.mlir.common import default_field
 from magma.backend.mlir.mlir import (
     MlirDialect, MlirOp, MlirValue, MlirType, MlirSymbol, MlirAttribute,
     begin_dialect, end_dialect)
@@ -49,14 +50,33 @@ class InnerRefAttr(MlirAttribute):
         return f"#hw.innerNameRef<{self.module.name}::{self.name.name}>"
 
 
+@dataclasses.dataclass(frozen=True)
+class ParamDeclAttr(MlirAttribute):
+    name: str
+    type: MlirType
+    value: Optional[MlirAttribute] = None
+
+    def emit(self) -> str:
+        s = f"{self.name}: {self.type.emit()}"
+        if self.value is None:
+            return s
+        return f"{s} = {self.value.emit()}"
+
+
 @dataclasses.dataclass
 class ModuleOpBase(MlirOp):
     operands: List[MlirValue]
     results: List[MlirValue]
     name: MlirSymbol
+    parameters: List[ParamDeclAttr] = default_field(list)
 
     def print_op(self, printer: PrinterBase):
-        printer.print(f"hw.{self.op_name} {self.name.name}(")
+        printer.print(f"hw.{self.op_name} {self.name.name}")
+        if self.parameters:
+            printer.print("<")
+            printer.print(", ".join(param.emit() for param in self.parameters))
+            printer.print(">")
+        printer.print("(")
         print_signature(self.operands, printer)
         printer.print(") -> (")
         print_signature(self.results, printer, raw_names=True)
@@ -107,6 +127,7 @@ class InstanceOp(MlirOp):
     results: List[MlirValue]
     name: str
     module: ModuleOpBase
+    parameters: List[ParamDeclAttr] = default_field(list)
     sym: Optional[MlirSymbol] = None
 
     def print_op(self, printer: PrinterBase):
@@ -116,7 +137,12 @@ class InstanceOp(MlirOp):
         printer.print(f"hw.instance \"{self.name}\" ")
         if self.sym is not None:
             printer.print(f"sym {self.sym.name} ")
-        printer.print(f"{self.module.name.name}(")
+        printer.print(f"{self.module.name.name}")
+        if self.parameters:
+            printer.print("<")
+            printer.print(", ".join(param.emit() for param in self.parameters))
+            printer.print(">")
+        printer.print("(")
         operands = [
             f"{m_operand.raw_name}: {operand.name}: {operand.type.emit()}"
             for operand, m_operand in zip(self.operands, self.module.operands)

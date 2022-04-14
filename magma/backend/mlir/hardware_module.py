@@ -24,7 +24,9 @@ from magma.backend.mlir.magma_common import (
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction
 )
-from magma.backend.mlir.mlir import MlirType, MlirValue, MlirSymbol, push_block
+from magma.backend.mlir.mlir import (
+    MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
+)
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
@@ -33,6 +35,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
+from magma.common import filter_by_key
 from magma.digital import Digital, DigitalMeta
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
@@ -92,6 +95,22 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
         return hw.StructType(tuple(fields.items()))
 
 
+@wrap_with_not_implemented_error
+@functools.lru_cache()
+def python_type_to_mlir_type(type_: type) -> MlirType:
+    # NOTE(rsetaluri): We only support integer attribtue types right now. All
+    # integer parameter types are assumed to be int32's.
+    if type_ is int:
+        return builtin.IntegerType(32)
+
+
+@wrap_with_not_implemented_error
+def python_value_to_mlir_attribtue(value: Any) -> MlirAttribute:
+    # NOTE(rsetaluri): We only support integer attribute types right now.
+    if isinstance(value, int):
+        return builtin.IntegerAttr(value)
+
+
 def get_module_interface(
         module: MagmaModuleLike, ctx) -> Tuple[MlirValueList, MlirValueList]:
     operands = []
@@ -139,11 +158,18 @@ def get_register_data_and_init(
     return T_out, data_out, init_out
 
 
+def make_hw_param_decl(name: str, value: Any):
+    type_ = python_type_to_mlir_type(type(value))
+    value = python_value_to_mlir_attribtue(value)
+    return hw.ParamDeclAttr(name, type_, value)
+
+
 def make_hw_instance_op(
         operands: MlirValueList,
         results: MlirValueList,
         name: str,
         module: hw.ModuleOp,
+        parameters: Mapping[str, Any] = dict(),
         sym: Optional[MlirSymbol] = None,
         compile_guard: Optional[Mapping] = None) -> hw.InstanceOp:
     if compile_guard is not None:
@@ -156,12 +182,16 @@ def make_hw_instance_op(
         ctx = push_block(block)
     else:
         ctx = contextlib.nullcontext()
+    parameters = [
+        make_hw_param_decl(name, value) for name, value in parameters.items()
+    ]
     with ctx:
         op = hw.InstanceOp(
             name=name,
             module=module,
             operands=operands,
             results=results,
+            parameters=parameters,
             sym=sym)
     return op
 
@@ -562,12 +592,17 @@ class ModuleVisitor:
             return self.visit_primitive(module)
         module_type = self._ctx.parent.get_hardware_module(defn).hw_module
         metadata = getattr(inst, "coreir_metadata", {})
+        parameters = filter_by_key(
+            lambda key: key not in ["name", "locl"],
+            inst.kwargs
+        )
         compile_guard = metadata.get("compile_guard", None)
         make_hw_instance_op(
             name=inst.name,
             module=module_type,
             operands=module.operands,
             results=module.results,
+            parameters=parameters,
             compile_guard=compile_guard)
         return True
 
@@ -838,6 +873,7 @@ class HardwareModule:
 
     def compile(self):
         self._hw_module = self._compile()
+        self._add_module_parameters(self._hw_module)
 
     def _compile(self) -> hw.ModuleOpBase:
         if treat_as_primitive(self._magma_defn_or_decl):
@@ -884,3 +920,18 @@ class HardwareModule:
                 hw.OutputOp(operands=output_values)
         bind_processor.postprocess()
         return op
+
+    def _add_module_parameters(
+            self, maybe_hw_module: Optional[hw.ModuleOpBase]):
+        if maybe_hw_module is None:
+            return
+        hw_module = maybe_hw_module
+        defn_or_decl = self._magma_defn_or_decl
+        try:
+            param_types = defn_or_decl.coreir_config_param_types
+        except AttributeError:
+            return
+        for name, type in param_types.items():
+            type = python_type_to_mlir_type(type)
+            param = hw.ParamDeclAttr(name, type)
+            hw_module.parameters.append(param)
