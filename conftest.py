@@ -10,3 +10,4 @@ def magma_test():
     clear_cachedFunctions()
     magma.frontend.coreir_.ResetCoreIR()
     magma.generator.reset_generator_cache()
+    magma.logging.flush_all()  # flush all staged logs

@@ -8,7 +8,7 @@ class _MyMux(m.Generator2):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        sel_bits = m.math.log2_ceil(height)
+        sel_bits = m.bitutils.clog2(height)
         self.name = f"MyMux{width}x{height}"
         args = {f"I{i}": m.In(m.Bits[width]) for i in range(height)}
         args["O"] = m.Out(m.Bits[width])

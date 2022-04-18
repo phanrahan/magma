@@ -1,11 +1,14 @@
 import colorlog
+import contextlib
 import inspect
 import io
 import logging
 import sys
 import traceback
-from .backend.util import make_relative
-from .config import config, EnvConfig
+
+from magma.backend.util import make_relative
+from magma.common import Stack
+from magma.config import config, EnvConfig
 
 
 config._register(
@@ -16,8 +19,7 @@ config._register(
 )
 
 
-_staged_logging = False
-_staged_logs = []
+_staged_logs_stack = Stack()
 
 
 def _make_bold(string):
@@ -71,6 +73,11 @@ def _get_additional_kwarg(kwargs, key):
         return None
 
 
+def get_staged_logs_stack() -> Stack:
+    global _staged_logs_stack
+    return _staged_logs_stack
+
+
 class _MagmaLogger(logging.Logger):
     """
     Derivative of logging.Logger class, with two additional keyword args:
@@ -79,8 +86,42 @@ class _MagmaLogger(logging.Logger):
     * 'include_traceback': If True, a traceback is printed along with the
        message.
     """
-    @staticmethod
-    def __with_preamble(fn, msg, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._raw = False
+
+    @property
+    def raw(self) -> bool:
+        return self._raw
+
+    @raw.setter
+    def raw(self, raw: bool):
+        self._raw = raw
+
+    @contextlib.contextmanager
+    def as_raw(self):
+        prev_raw = self.raw
+        self.raw = True
+        try:
+            yield self
+        finally:
+            self.raw = prev_raw
+
+    def _log(self, level, msg, args, **kwargs):
+        if not self.raw and self._staged_log(level, msg, args, **kwargs):
+            return
+        self._raw_log(level, msg, args, **kwargs)
+
+    def _staged_log(self, level, msg, args, **kwargs) -> bool:
+        staged_logs_stack = get_staged_logs_stack()
+        try:
+            staged_logs = staged_logs_stack.peek()
+        except IndexError:
+            return False
+        staged_logs.append((self, level, msg, args, kwargs))
+        return True
+
+    def _raw_log(self, level, msg, args, **kwargs):
         debug_info = _get_additional_kwarg(kwargs, "debug_info")
         if debug_info:
             msg = _attach_debug_info(msg, debug_info)
@@ -88,40 +129,7 @@ class _MagmaLogger(logging.Logger):
         if include_traceback or config.include_traceback:
             msg = _attach_traceback(
                 msg, _frame_selector, config.traceback_limit)
-        fn(msg, *args, **kwargs)
-
-    def log(self, level, msg, *args, **kwargs):
-        key = logging.getLevelName(level).lower()
-        fn = getattr(_MagmaLogger, key)
-        fn(self, msg, *args, **kwargs)
-
-    def debug(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.DEBUG, msg, args, kwargs))
-            return
-        _MagmaLogger.__with_preamble(super().debug, msg, *args, **kwargs)
-
-    def info(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.INFO, msg, args, kwargs))
-            return
-        _MagmaLogger.__with_preamble(super().info, msg, *args, **kwargs)
-
-    def warning(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.WARNING, msg, args, kwargs))
-            return
-        _MagmaLogger.__with_preamble(super().warning, msg, *args, **kwargs)
-
-    def error(self, msg, *args, **kwargs):
-        global _staged_logging
-        if _staged_logging:
-            _staged_logs.append((self, logging.ERROR, msg, args, kwargs))
-            return
-        _MagmaLogger.__with_preamble(super().error, msg, *args, **kwargs)
+        super()._log(level, msg, args, **kwargs)
 
 
 # Set logging class to _MagmaLogger to override logging behavior. Also, setup
@@ -136,25 +144,32 @@ _root_logger.addHandler(_handler)
 _root_logger.setLevel(config.log_level)
 
 
-def flush():
-    global _staged_logs
-    curr_logs = _staged_logs.copy()
-    for logger, level, obj, args, kwargs in curr_logs:
-        logger.log(level, obj, *args, **kwargs)
-    _staged_logs = []
-    return curr_logs
-
-
 def root_logger():
     return logging.getLogger("magma")
 
 
 def stage_logger():
-    global _staged_logging
-    _staged_logging = True
+    get_staged_logs_stack().push([])
+
+
+def _flush(staged_logs):
+    for logger, level, obj, args, kwargs in staged_logs:
+        with logger.as_raw():
+            logger.log(level, obj, *args, **kwargs)
+
+
+def flush():
+    staged_logs = get_staged_logs_stack().pop()
+    _flush(staged_logs)
+    return staged_logs
 
 
 def unstage_logger():
-    global _staged_logging
-    _staged_logging = False
     return flush()
+
+
+def flush_all():
+    staged_logs_stack = get_staged_logs_stack()
+    while staged_logs_stack:
+        staged_logs = staged_logs_stack.pop()
+        _flush(staged_logs)

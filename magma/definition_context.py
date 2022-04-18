@@ -3,7 +3,7 @@ from typing import Any, Mapping
 import weakref
 
 from magma.common import Finalizable, FinalizableDelegator
-from magma.logging import root_logger, stage_logger, unstage_logger
+from magma.logging import stage_logger, unstage_logger
 from magma.placer import PlacerBase
 
 
@@ -79,7 +79,9 @@ class DefinitionContext(FinalizableDelegator):
         self._builders = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
-        stage_logger()
+        self._is_staged = self._placer.is_staged()
+        if self._is_staged:
+            stage_logger()
 
     @property
     def placer(self) -> PlacerBase:
@@ -105,5 +107,7 @@ class DefinitionContext(FinalizableDelegator):
 
     def finalize(self, defn):
         super().finalize()
-        logs = unstage_logger()
-        defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
+        if self._is_staged:
+            logs = unstage_logger()
+            defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
+            self._is_staged = False

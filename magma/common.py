@@ -22,6 +22,9 @@ class Stack:
     def peek(self):
         return self._stack[-1]
 
+    def __bool__(self) -> bool:
+        return bool(self._stack)
+
 
 class _Ref(object):
     def __init__(self, value):
