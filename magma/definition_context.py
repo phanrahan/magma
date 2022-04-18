@@ -110,3 +110,4 @@ class DefinitionContext(FinalizableDelegator):
         if self._is_staged:
             logs = unstage_logger()
             defn._has_errors_ = any(log[1] is py_logging.ERROR for log in logs)
+            self._is_staged = False
