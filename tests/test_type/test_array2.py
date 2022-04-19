@@ -458,3 +458,8 @@ def test_slice_instref(caplog):
         io.O[2:] @= bar.O
         io.O[:2] @= bar.O
         assert io.O.value().driven() is False
+        for i, elem in enumerate(io.O.value()):
+            assert isinstance(elem.name, m.ref.ArrayRef)
+            assert elem.name.index == i % 2
+            assert isinstance(elem.name.array.name, m.ref.InstRef)
+            assert elem.name.array.name.inst is bar
