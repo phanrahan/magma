@@ -7,13 +7,13 @@ from ..bit import Bit
 from ..bits import Bits
 from ..circuit import Circuit
 from ..interface import IO
-from ..math import log2_ceil
 from ..passes.tsort import tsort
 from ..t import In, Out, InOut
 from .verilog_importer import (ImportMode, MultipleModuleDeclarationError,
                                MultiplePortDeclarationError, VerilogImporter,
                                VerilogImportError)
 from .verilog_utils import int_const_str_to_int
+from magma.bitutils import clog2
 
 
 class PyverilogImportError(VerilogImportError):
@@ -49,7 +49,7 @@ def _evaluate_node(node, params):
         syscall = node.syscall
         if syscall == "clog2":
             operand = _evaluate_node(node.children()[0], params)
-            return log2_ceil(operand)
+            return clog2(operand)
         raise PyverilogImportError(
             f"Unsupported verilog system call: {syscall}")
     raise PyverilogImportError(f"Unsupported expression: {type(node)}")
