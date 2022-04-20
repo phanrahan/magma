@@ -679,10 +679,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
-            if slice_value._ts:
+            if (not isinstance(slice_value.name, ArrayRef) or
+                    slice_value.name.array is not self):
                 self._ts[i] = slice_value[i - start]
             else:
-                slice_value._ts[i - start] = self[i]
+                slice_value._ts[i - start] = self._get_t(i)
 
     def _resolve_slice_driver(self, start, stop, value):
         # When we encounter an overlapping slice that is already bulk driven,
@@ -724,10 +725,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         assert len(overlaps) == 1
         key, value = overlaps[0]
         self._remove_slice(key)
-        if value._ts:
-            self._ts[index] = value[index - key[0]]
-        else:
-            value._ts[index - key[0]] = self._ts[index] = self._make_t(index)
         self._resolve_slice_children(key[0], key[1], value)
         self._resolve_slice_driver(key[0], key[1], value)
         return True
