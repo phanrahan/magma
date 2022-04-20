@@ -1,3 +1,4 @@
+import abc
 import colorlog
 import contextlib
 import inspect
@@ -173,3 +174,25 @@ def flush_all():
     while staged_logs_stack:
         staged_logs = staged_logs_stack.pop()
         _flush(staged_logs)
+
+
+@contextlib.contextmanager
+def staged_logs():
+    stage_logger()
+    staged_logs = get_staged_logs_stack().peek()
+    try:
+        yield staged_logs
+    finally:
+        unstage_logger()
+
+
+class StagedLogRecord(abc.ABC):
+    def __init__(self, tpl: str):
+        self._tpl = tpl
+
+    @abc.abstractmethod
+    def args(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        return self._tpl.format(*self.args())

@@ -1,22 +1,28 @@
-from magma.logging import root_logger
+from magma.logging import root_logger, StagedLogRecord
 
 
 _logger = root_logger()
 
 
-class WiringLog:
-    def __init__(self, tpl, *bits):
-        self.tpl = tpl
-        self.bits = bits
+class WiringLogRecord(StagedLogRecord):
+    def __init__(self, tpl: str, *values):
+        super().__init__(tpl)
+        self._values = values
 
-    def get_debug_name(self, bit):
-        if isinstance(bit, int):
-            return bit
-        return bit.debug_name
+    @staticmethod
+    def _get_debug_name(value):
+        if isinstance(value, int):
+            return value
+        return value.debug_name
 
-    def __str__(self):
-        bits = [self.get_debug_name(bit) for bit in self.bits]
-        return self.tpl.format(*bits)
+    def args(self):
+        return [
+            WiringLogRecord._get_debug_name(value) for value in self._values
+        ]
+
+
+# TODO(rsetaluri): Remove this alias.
+WiringLog = WiringLogRecord
 
 
 class Wire:
