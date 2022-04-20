@@ -51,7 +51,7 @@ def _make_unconnected_autowired(typ):
 def test_unconnected_io(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_io()
-        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:8\x1b[0m: _Circuit.O not driven
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:9\x1b[0m: _Circuit.O not driven
 
 Unconnected port info
 ---------------------
@@ -65,7 +65,7 @@ Unconnected port info
 def test_unconnected_instance(caplog):
     with magma_debug_section():
         Circuit = _make_unconnected_instance()
-        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:27\x1b[0m: _Circuit.buf.I not driven
+        expected = """\x1b[1mtests/test_circuit/test_unconnected.py:28\x1b[0m: _Circuit.buf.I not driven
 
 Unconnected port info
 ---------------------

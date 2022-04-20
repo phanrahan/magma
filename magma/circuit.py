@@ -27,8 +27,8 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.compile_exception import make_unconnected_error_str
 from magma.definition_context import DefinitionContext
+from magma.find_unconnected_ports import check_unconnected
 from magma.logging import root_logger
 from magma.ref import TempNamedRef
 from magma.t import In
@@ -673,53 +673,9 @@ class DefineCircuitKind(CircuitKind):
         run_unconnected_check = run_unconnected_check and not \
             dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
-            self.check_unconnected()
+            check_unconnected(self)
 
         return self
-
-    def _check_recursive_port_unconnected(self, port, debug_info):
-        error = False
-        for elem in port:
-            error |= self._check_port_unconnected(elem, debug_info)
-        return error
-
-    def _check_port_unconnected(self, port, debug_info):
-        if port.is_output():
-            return False
-        if port.is_inout() and port.wired():
-            # TODO(leonardt): trace of inout needs to be able to trace in both
-            # directions, for now we assume if it's wired() that's good enough
-            return False
-        if port.is_mixed():
-            return self._check_recursive_port_unconnected(port, debug_info)
-        if port.trace() is None:
-            if isinstance(port, ClockTypes):
-                msg = "{} not driven, will attempt to automatically wire"
-                _logger.debug(WiringLog(msg, port), debug_info=debug_info)
-            elif is_clock_or_nested_clock(type(port)):
-                _logger.info(WiringLog(msg, port), debug_info=debug_info)
-                return False
-            if is_clock_or_nested_clock(type(port)):
-                # Must be nested, otherwise caught in previous case
-                return self._check_recursive_port_unconnected(port, debug_info)
-            msg = "{} not driven\n\nUnconnected port info"
-            msg += "\n---------------------\n    "
-            error_msg, format_args = make_unconnected_error_str(port)
-            msg += "\n    ".join(error_msg.splitlines())
-            _logger.error(WiringLog(msg, port, *format_args),
-                          debug_info=debug_info)
-            return True
-        return False
-
-    def check_unconnected(self):
-        error = False
-        for port in self.interface.ports.values():
-            error |= self._check_port_unconnected(port, self.debug_info)
-
-        for inst in self.instances:
-            for port in inst.interface.ports.values():
-                error |= self._check_port_unconnected(port, inst.debug_info)
-        self._has_errors_ |= error
 
     @property
     def is_definition(self):
@@ -777,7 +733,7 @@ def EndDefine():
     except IndexError:
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
-    placer._defn.check_unconnected()
+    check_unconnected(placer._defn)
     debug_info = get_callee_frame_info()
     placer._defn.end_circuit_filename = debug_info[0]
     placer._defn.end_circuit_lineno = debug_info[1]
