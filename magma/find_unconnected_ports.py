@@ -77,4 +77,3 @@ def check_unconnected(ckt):
         msg += "\n    ".join(error_msg.splitlines())
         _logger.error(WiringLog(msg, port, *format_args),
                       debug_info=debug_info)
-        ckt._has_errors_ = True

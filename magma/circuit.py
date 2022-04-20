@@ -226,7 +226,6 @@ class CircuitKind(type):
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
         dct["compiled_bind_modules"] = {}
-        dct.setdefault("_has_errors_", False)
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -680,6 +679,10 @@ class DefineCircuitKind(CircuitKind):
     @property
     def instances(self):
         return self._context_.placer.instances()
+
+    @property
+    def logs(self):
+        return self._context_.logs
 
     def place(cls, inst):
         """Place a circuit instance in this definition"""

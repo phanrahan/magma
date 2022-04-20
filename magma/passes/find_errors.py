@@ -1,17 +1,16 @@
 import enum
+import logging as py_logging
 
-from magma.passes.passes import CircuitPass, pass_lambda
+from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.compile_exception import MagmaCompileException
 
 
-_HAS_ERROR_KEY = "_has_errors_"
-
-
 def _has_errors(ckt):
-    return getattr(ckt, _HAS_ERROR_KEY, False)
+    levels = (level for level, _, _, _ in ckt.logs)
+    return any(level >= py_logging.ERROR for level in levels)
 
 
-class FindErrorsPass(CircuitPass):
+class FindErrorsPass(DefinitionPass):
 
     class ErrorReportingMode(enum.Enum):
         FIRST = enum.auto()

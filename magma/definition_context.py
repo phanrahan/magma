@@ -1,6 +1,6 @@
 import contextlib
 import logging as py_logging
-from typing import Any, Mapping
+from typing import Any, List, Mapping
 import weakref
 
 from magma.common import Stack, Finalizable, FinalizableDelegator
@@ -101,6 +101,10 @@ class DefinitionContext(FinalizableDelegator):
 
     def add_builder(self, builder):
         self._builders.append(builder)
+
+    @property
+    def logs(self) -> List:
+        return self._logs.copy()
 
     def add_log(self, log):
         self._logs.append(log)
