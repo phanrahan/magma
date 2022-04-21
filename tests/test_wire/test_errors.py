@@ -1,7 +1,11 @@
 import magma as m
 
 from magma import *
-from magma.testing.utils import has_error, has_warning, magma_debug_section
+from magma.common import wrap_with_context_manager
+from magma.logging import logging_level
+from magma.testing.utils import (
+    has_error, has_warning, has_debug, magma_debug_section
+)
 
 
 def test_input_as_output(caplog):
@@ -16,7 +20,7 @@ def test_input_as_output(caplog):
         buf = Buf()
         wire(io.O, buf.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:17\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (In(Bit))
+\033[1mtests/test_wire/test_errors.py:21\033[0m: Cannot wire main.O (In(Bit)) to main.buf.I (In(Bit))
 >>         wire(io.O, buf.I)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -34,7 +38,7 @@ def test_output_as_input(caplog):
         a = A()
         wire(io.I, a.O)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:35\033[0m: Cannot wire main.I (Out(Bit)) to main.a.O (Out(Bit))
+\033[1mtests/test_wire/test_errors.py:39\033[0m: Cannot wire main.I (Out(Bit)) to main.a.O (Out(Bit))
 >>         wire(io.I, a.O)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -53,7 +57,7 @@ def test_multiple_outputs_to_input_warning(caplog):
         wire(io.I[0], a.I)
         wire(io.I[1], a.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:54\033[0m: Wiring multiple outputs to same wire, using last connection. Input: main.a.I, Old Output: main.I[0], New Output: main.I[1]
+\033[1mtests/test_wire/test_errors.py:58\033[0m: Wiring multiple outputs to same wire, using last connection. Input: main.a.I, Old Output: main.I[0], New Output: main.I[1]
 >>         wire(io.I[1], a.I)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -71,7 +75,7 @@ def test_multiple_outputs_circuit(caplog):
         a = A()
         wire(a, io.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:72\033[0m: Can only wire circuits with one output; circuit `main.a` has outputs ['O', 'U']
+\033[1mtests/test_wire/test_errors.py:76\033[0m: Can only wire circuits with one output; circuit `main.a` has outputs ['O', 'U']
 >>         wire(a, io.I)"""
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -92,7 +96,7 @@ def test_mismatch_outputs_circuit(caplog):
         main = Main()
         a(main)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:93\033[0m: Number of inputs is not equal to the number of outputs, expected 2 inputs, got 1. Only 1 will be wired.
+\033[1mtests/test_wire/test_errors.py:97\033[0m: Number of inputs is not equal to the number of outputs, expected 2 inputs, got 1. Only 1 will be wired.
 >>         a(main)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -110,7 +114,7 @@ def test_no_inputs_circuit(caplog):
         a = A()
         wire(io.I, a)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:111\033[0m: Wiring an output to a circuit with no input arguments, skipping
+\033[1mtests/test_wire/test_errors.py:115\033[0m: Wiring an output to a circuit with no input arguments, skipping
 >>         wire(io.I, a)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -128,7 +132,7 @@ def test_multiple_inputs_circuit(caplog):
         a = A()
         wire(io.I, a)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:129\033[0m: Wiring an output to a circuit with more than one input argument, using the first input main.a.I
+\033[1mtests/test_wire/test_errors.py:133\033[0m: Wiring an output to a circuit with more than one input argument, using the first input main.a.I
 >>         wire(io.I, a)"""
     assert has_warning(caplog, msg)
     magma.config.set_debug_mode(False)
@@ -146,7 +150,7 @@ def test_no_key(caplog):
         a = A()
         a(K=io.I)
     msg = """\
-\033[1mtests/test_wire/test_errors.py:147\033[0m: Instance main.a does not have input K
+\033[1mtests/test_wire/test_errors.py:151\033[0m: Instance main.a does not have input K
 >>         a(K=io.I)"""
 
     assert has_warning(caplog, msg)
@@ -168,13 +172,14 @@ def test_const_array_error(caplog):
         wire(buf.O, io.O)
 
     msg = """\
-\033[1mtests/test_wire/test_errors.py:167\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[(1, In(Bit))])
+\033[1mtests/test_wire/test_errors.py:171\033[0m: Cannot wire 1 (<class 'int'>) to main.buf.I (Array[(1, In(Bit))])
 >>         wire(1, buf.I)"""
     assert caplog.records[0].msg == msg
     assert has_error(caplog, msg)
     magma.config.set_debug_mode(False)
 
 
+@wrap_with_context_manager(logging_level("DEBUG"))
 def test_hanging_anon_error(caplog):
     with magma_debug_section():
         class _Foo(m.Circuit):
@@ -189,14 +194,13 @@ def test_hanging_anon_error(caplog):
             assert str(e) == "Found circuit with errors: _Foo"
 
         msg = """\
-\033[1mtests/test_wire/test_errors.py:180\033[0m: _Foo.O not driven
-
-Unconnected port info
----------------------
-    _Foo.O: Unconnected
+\033[1mtests/test_wire/test_errors.py:185\033[0m: _Foo.O not driven
 >>         class _Foo(m.Circuit):"""
-        assert caplog.records[0].msg == msg
+        assert caplog.records[0].message == msg
         assert has_error(caplog, msg)
+        msg = "_Foo.O: Unconnected"
+        assert caplog.records[1].message == msg
+        assert has_debug(caplog, msg)
 
 
 def test_wire_tuple_to_clock():

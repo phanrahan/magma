@@ -1,5 +1,7 @@
 import magma as m
-from magma.testing.utils import has_warning, has_error
+from magma.common import wrap_with_context_manager
+from magma.logging import logging_level
+from magma.testing.utils import has_warning, has_error, has_debug
 
 
 def _check_foo_interface(Foo):
@@ -64,6 +66,7 @@ def test_new_style_not_isdefinition():
     assert not m.isdefinition(_Foo)
 
 
+@wrap_with_context_manager(logging_level("DEBUG"))
 def test_new_style_unconnected(caplog):
     class _Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bits[2]), x=m.Out(m.Bit))
@@ -72,13 +75,10 @@ def test_new_style_unconnected(caplog):
         io.x @= 0
 
     assert m.isdefinition(_Foo)
-    assert has_error(caplog, """_Foo.O not driven
-
-Unconnected port info
----------------------
-    _Foo.O
-        _Foo.O[0]: Connected
-        _Foo.O[1]: Unconnected""")
+    assert has_error(caplog, "_Foo.O not driven")
+    assert has_debug(caplog, "_Foo.O")
+    assert has_debug(caplog, "    _Foo.O[0]: Connected")
+    assert has_debug(caplog, "    _Foo.O[1]: Unconnected")
 
 
 def test_new_style_with_definition_method(caplog):
@@ -111,6 +111,7 @@ def test_defn_wiring_error(caplog):
                      "Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[1]))")
 
 
+@wrap_with_context_manager(logging_level("DEBUG"))
 def test_inst_wiring_error(caplog):
     class _Bar(m.Circuit):
         io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[1]))
@@ -128,16 +129,10 @@ def test_inst_wiring_error(caplog):
     assert has_error(
         caplog,
         "Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))")
-    assert has_error(caplog, """_Foo.O not driven
-
-Unconnected port info
----------------------
-    _Foo.O: Unconnected""")
-    assert has_error(caplog, """_Foo._Bar_inst0.I not driven
-
-Unconnected port info
----------------------
-    _Foo._Bar_inst0.I: Unconnected""")
+    assert has_error(caplog, "_Foo.O not driven")
+    assert has_debug(caplog, "_Foo.O: Unconnected")
+    assert has_error(caplog, "_Foo._Bar_inst0.I not driven")
+    assert has_debug(caplog, "_Foo._Bar_inst0.I: Unconnected")
 
 
 def test_nested_definition():

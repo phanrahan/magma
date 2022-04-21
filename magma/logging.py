@@ -158,6 +158,32 @@ def root_logger():
     return logging.getLogger("magma")
 
 
+# NOTE(rsetaluri): For some reason the following code which uses
+# contextlib.contextmanager results in the context manager being entered into
+# twice. It may be cached somewhere in the pipeline.
+#
+#    @contextlib.contextmanager
+#    def logging_level(level):
+#        root = root_logger()
+#        prev_level = root.level
+#        root.setLevel(level)
+#        try:
+#            yield
+#        finally:
+#            root.setLevel(prev_level)
+class logging_level:
+    def __init__(self, level):
+        self.level = level
+        self.root = root_logger()
+
+    def __enter__(self):
+        self.prev_level = self.root.level
+        self.root.setLevel(self.level)
+
+    def __exit__(self, *_):
+        self.root.setLevel(self.prev_level)
+
+
 def stage_logger():
     get_staged_logs_stack().push([])
 

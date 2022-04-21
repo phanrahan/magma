@@ -1,4 +1,6 @@
 import dataclasses
+import functools
+import itertools
 from typing import Optional
 
 from magma.clock import is_clock_or_nested_clock, ClockTypes
@@ -66,14 +68,69 @@ def find_unconnected_ports_of_circuit(ckt):
         )
 
 
+@dataclasses.dataclass
+class UnconnectedPortDiagnostic:
+    value: Type
+    connected: Optional[bool]
+    depth: int
+
+    def make_wiring_log(self) -> str:
+        tab = " " * (4 * self.depth)
+        connected_str = ""
+        if self.connected is True:
+            connected_str = ": Connected"
+        elif self.connected is False:
+            connected_str = ": Unconnected"
+        tpl = f"{tab}{{}}{connected_str}"
+        return WiringLog(tpl, self.value)
+
+
+# NOTE(rsetaluri): The value visitor class for constructing the unconnected port
+# diagnostic info requires inheriting from ValueVisitor (defined in
+# magma/value_utils.py). This would result in a cyclical import dependency. To
+# hack around this issue, the value visitor class is created in a factory which
+# should only run once, and use the cached result for future invocations. Note
+# that we set @maxsize to 1 for the lru cache.
+@functools.lru_cache(maxsize=1)
+def _make_unconnected_port_diagnostic_visitor_cls():
+    from magma.value_utils import ValueVisitor
+
+    class _Visitor(ValueVisitor):
+        def __init__(self):
+            self._depth = 0
+
+        def visit(self, node):
+            yield from super().visit(node)
+
+        def generic_visit(self, value):
+            if value.trace() is not None:
+                yield UnconnectedPortDiagnostic(value, True, self._depth)
+                return
+            wrapped = self.wrap(value)
+            results = []
+            has_connected = False
+            self._depth += 1
+            for child in wrapped.children:
+                for diagnostic in self.visit(child):
+                    has_connected = has_connected or diagnostic.connected
+                    results.append(diagnostic)
+            self._depth -= 1
+            if not has_connected:
+                yield UnconnectedPortDiagnostic(value, False, self._depth)
+                return
+            yield UnconnectedPortDiagnostic(value, None, self._depth)
+            yield from iter(results)
+
+    return _Visitor
+
+
 def check_unconnected(ckt):
-    unconnected_ports = find_unconnected_ports_of_circuit(ckt)
-    for unconnected_port in unconnected_ports:
-        port = unconnected_port.port
-        debug_info = unconnected_port.debug_info
-        msg = "{} not driven\n\nUnconnected port info"
-        msg += "\n---------------------\n    "
-        error_msg, format_args = make_unconnected_error_str(port)
-        msg += "\n    ".join(error_msg.splitlines())
-        _logger.error(WiringLog(msg, port, *format_args),
-                      debug_info=debug_info)
+    infos = find_unconnected_ports_of_circuit(ckt)
+    for info in infos:
+        port = info.port
+        debug_info = info.debug_info
+        _logger.error(WiringLog("{} not driven", port), debug_info=debug_info)
+        visitor = _make_unconnected_port_diagnostic_visitor_cls()()
+        diagnostics = visitor.visit(port)
+        for diagnostic in diagnostics:
+            _logger.debug(diagnostic.make_wiring_log())
