@@ -19,6 +19,16 @@ class WiringLog:
         return self.tpl.format(*bits)
 
 
+def stage_multiple_drivers_log(value, curr_driver, new_driver, debug_info):
+    _logger.warning(
+        WiringLog(
+            ("Wiring multiple outputs to same wire, using last "
+             "connection. Input: {}, Old Output: {}, New Output: {}"),
+            value, curr_driver, new_driver),
+        debug_info=debug_info
+    )
+
+
 class Wire:
     """
     Wire implements wiring.
@@ -49,13 +59,8 @@ class Wire:
         output, or both should be inouts
         """
         if self._driver is not None:
-            _logger.warning(
-                WiringLog(
-                    ("Wiring multiple outputs to same wire, using last "
-                     "connection. Input: {}, Old Output: {}, New Output: {}"),
-                    self._bit, self._driver._bit, other._bit),
-                debug_info=debug_info
-            )
+            stage_multiple_drivers_log(self._bit, self._driver._bit,
+                                       other._bit, debug_info)
         if self._bit.is_output():
             _logger.error(
                 WiringLog("Using `{}` (an output) as an input", self._bit),

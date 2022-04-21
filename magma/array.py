@@ -15,7 +15,8 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog, Wire, Wireable
+from magma.wire_container import (WiringLog, Wire, Wireable,
+                                  stage_multiple_drivers_log)
 from magma.protocol_type import MagmaProtocol
 
 
@@ -597,14 +598,23 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def is_mixed(cls):
         return cls.T.is_mixed()
 
-    def _wire_children(self, o):
+    def _wire_children(self, o, debug_info):
         for i, child in self._enumerate_children():
             curr_value = child.value()
             new_value = o[i]
-            if curr_value is not new_value:
+            if curr_value is new_value:
                 # Skip updating wire in the case that it's the same value
                 # (avoids an error message)
-                child.wire(new_value)
+                continue
+            if curr_value is not None:
+                # Remove wire so we don't run into trouble with the
+                # _resolve_driven_bulk_wires logic (this can cause an
+                # unwanted update of drivees from the old driver if it's
+                # indexed)
+                child.unwire(curr_value)
+                stage_multiple_drivers_log(child, curr_value, new_value,
+                                           debug_info)
+            child.wire(new_value, debug_info)
 
     @debug_wire
     def wire(self, o, debug_info):
@@ -615,7 +625,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 o._has_elaborated_children() or
                 self.T.is_mixed()):
             # Ensure the children maintain consistency with the bulk wire
-            self._wire_children(o)
+            self._wire_children(o, debug_info)
         else:
             # Perform a bulk wire
             Wireable.wire(self, o, debug_info)

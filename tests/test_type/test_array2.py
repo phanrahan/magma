@@ -463,3 +463,24 @@ def test_slice_instref(caplog):
             assert elem.name.index == i % 2
             assert isinstance(elem.name.array.name, m.ref.InstRef)
             assert elem.name.array.name.inst is bar
+
+
+def test_array2_2d_tuple():
+    class X(m.Product):
+        a = m.Array[4, m.Bits[4]]
+
+    class Y(m.Product):
+        c = m.Array[2, X]
+
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(Y), O=m.Out(Y))
+        io.O @= io.I
+
+        temp = Y()
+
+        for i in range(4):
+            temp.c[0].a[3 - i] @= io.I.c[1].a[i]
+            temp.c[1].a[i] @= io.I.c[0].a[3 - i]
+        io.O @= temp
+
+    _check_compile("test_array2_2d_tuple", Foo, False)
