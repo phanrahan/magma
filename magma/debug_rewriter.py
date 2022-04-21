@@ -22,7 +22,7 @@ class DebugTransformer(ast.NodeTransformer):
             ast.Attribute(ast.Attribute(ast.Name("m", ast.Load()),
                                         "debug_rewriter",
                                         ast.Load()),
-                          "set_name",
+                          "set_debug_info",
                           ast.Load()),
             [node.value, ast.Str(node.targets[0].id), ast.Str(self.filename),
              ast.Num(node.lineno)],
@@ -48,7 +48,7 @@ def debug(fn):
     return namespace[fn.__name__]
 
 
-def set_name(value, name, filename, lineno):
+def set_debug_info(value, name, filename, lineno):
     if not isinstance(value, Type):
         return
     if not isinstance(value.name, AnonRef):
