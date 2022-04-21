@@ -25,7 +25,7 @@ class DebugTransformer(ast.NodeTransformer):
                           "set_debug_info",
                           ast.Load()),
             [node.value, ast.Str(node.targets[0].id), ast.Str(self.filename),
-             ast.Num(node.lineno)],
+             ast.Num(node.lineno), ast.Num(node.col_offset)],
             [],
             lineno=node.lineno,
             col_offset=node.col_offset
@@ -48,7 +48,7 @@ def debug(fn):
     return namespace[fn.__name__]
 
 
-def set_debug_info(value, name, filename, lineno):
+def set_debug_info(value, name, filename, lineno, col_offset):
     if not isinstance(value, Type):
         return
     if not isinstance(value.name, AnonRef):
@@ -56,4 +56,5 @@ def set_debug_info(value, name, filename, lineno):
     value.name = NamedRef(name)
     value.filename = filename
     value.lineno = lineno
+    value.col_offset = col_offset
     return value
