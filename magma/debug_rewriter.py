@@ -28,14 +28,8 @@ class DebugTransformer(ast.NodeTransformer):
         return node
 
 
-def get_filename(fn):
-    frame = inspect.stack()[1]
-    module = inspect.getmodule(frame[0])
-    return module.__file__
-
-
 def debug(fn):
-    filename = get_filename(fn)
+    filename = inspect.getfile(fn)
     tree = get_ast(fn)
     assert len(tree.body[0].decorator_list) == 1
     tree.body[0].decorator_list = []
@@ -43,7 +37,6 @@ def debug(fn):
     # TODO(leonardt): gen_free_name for magma ref
     tree.body.insert(0, ast.parse("import magma as m").body[0])
     return compile_function_to_file(tree, fn.__name__)
-    return fn
 
 
 def set_name(value, name, filename, lineno):
