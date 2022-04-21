@@ -19,12 +19,18 @@ class DebugTransformer(ast.NodeTransformer):
         if not isinstance(node.targets[0], ast.Name):
             return node
         node.value = ast.Call(
-            ast.Attribute(ast.Attribute(ast.Name("m"), "debug_rewriter",
-                                        ast.Load()), "set_name", ast.Load()),
+            ast.Attribute(ast.Attribute(ast.Name("m", ast.Load()),
+                                        "debug_rewriter",
+                                        ast.Load()),
+                          "set_name",
+                          ast.Load()),
             [node.value, ast.Str(node.targets[0].id), ast.Str(self.filename),
              ast.Num(node.lineno)],
-            []
+            [],
+            lineno=node.lineno,
+            col_offset=node.col_offset
         )
+        node = ast.fix_missing_locations(node)
         return node
 
 
@@ -36,6 +42,10 @@ def debug(fn):
     tree = DebugTransformer(filename).visit(tree)
     # TODO(leonardt): gen_free_name for magma ref
     tree.body.insert(0, ast.parse("import magma as m").body[0])
+
+    namespace = {}
+    exec(compile(tree, filename, 'exec'), namespace)
+    return namespace[fn.__name__]
     return compile_function_to_file(tree, fn.__name__)
 
 
