@@ -607,14 +607,13 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                     # Skip updating wire in the case that it's the same value
                     # (avoids an error message)
                     continue
-                if curr_value is not None:
-                    # Remove wire so we don't run into trouble with the
-                    # _resolve_driven_bulk_wires logic (this can cause an
-                    # unwanted update of drivees from the old driver if it's
-                    # indexed)
-                    child.unwire(curr_value)
-                    stage_multiple_drivers_log(child, curr_value, new_value,
-                                               debug_info)
+                # Remove wire so we don't run into trouble with the
+                # _resolve_driven_bulk_wires logic (this can cause an
+                # unwanted update of drivees from the old driver if it's
+                # indexed)
+                child.unwire(curr_value)
+                stage_multiple_drivers_log(child, curr_value, new_value,
+                                           debug_info)
             child.wire(new_value, debug_info)
 
     @debug_wire
