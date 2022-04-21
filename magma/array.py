@@ -15,7 +15,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog, Wire, Wireable,
+from magma.wire_container import WiringLog, Wire, Wireable
 from magma.protocol_type import MagmaProtocol
 
 
