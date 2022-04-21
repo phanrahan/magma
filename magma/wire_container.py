@@ -49,11 +49,13 @@ class Wire:
         output, or both should be inouts
         """
         if self._driver is not None:
+            old_driver = self._driver
+            self.unwire(old_driver)
             _logger.warning(
                 WiringLog(
                     ("Wiring multiple outputs to same wire, using last "
                      "connection. Input: {}, Old Output: {}, New Output: {}"),
-                    self._bit, self._driver._bit, other._bit),
+                    self._bit, old_driver._bit, other._bit),
                 debug_info=debug_info
             )
         if self._bit.is_output():
