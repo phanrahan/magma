@@ -484,3 +484,14 @@ def test_array2_2d_tuple():
         io.O @= temp
 
     _check_compile("test_array2_2d_tuple", Foo, False)
+
+
+def test_array2_wire_bits_temp():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[4]), O=m.Out(m.Bits[4]))
+
+        tmp = m.Bits[4]()
+        for i in range(4):
+            io.O[i] @= tmp[i] ^ io.I[i]
+
+        tmp @= io.I
