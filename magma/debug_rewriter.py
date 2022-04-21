@@ -30,7 +30,6 @@ class DebugTransformer(ast.NodeTransformer):
             lineno=node.lineno,
             col_offset=node.col_offset
         )
-        node = ast.fix_missing_locations(node)
         return node
 
 
@@ -42,11 +41,11 @@ def debug(fn):
     tree = DebugTransformer(filename).visit(tree)
     # TODO(leonardt): gen_free_name for magma ref
     tree.body.insert(0, ast.parse("import magma as m").body[0])
+    tree = ast.fix_missing_locations(tree)
 
     namespace = {}
     exec(compile(tree, filename, 'exec'), namespace)
     return namespace[fn.__name__]
-    return compile_function_to_file(tree, fn.__name__)
 
 
 def set_name(value, name, filename, lineno):
