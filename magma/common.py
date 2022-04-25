@@ -234,3 +234,17 @@ def slice_opts(dct: Dict, cls: type):
 
 def filter_by_key(function: Callable[[Any], bool], dct: Dict):
     return {k: v for k, v in dct.items() if function(k)}
+
+
+def wrap_with_context_manager(ctx_mgr):
+
+    def decorator(fn):
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            with ctx_mgr:
+                return fn(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

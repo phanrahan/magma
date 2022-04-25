@@ -1,9 +1,12 @@
 import pytest
 
 import magma as m
+from magma.common import wrap_with_context_manager
+from magma.logging import logging_level
 
 
-def test_product_partial_unwired():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_product_partial_unwired(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -15,15 +18,14 @@ def test_product_partial_unwired():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A.x: Connected
-    Foo.A.y: Unconnected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A.x: Connected"
+    assert caplog.messages[3] == "    Foo.A.y: Unconnected"
 
 
-def test_product_partial_nested_unwired():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_product_partial_nested_unwired(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -39,15 +41,14 @@ def test_product_partial_nested_unwired():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A.x: Connected
-    Foo.A.y: Unconnected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A.x: Connected"
+    assert caplog.messages[3] == "    Foo.A.y: Unconnected"
 
 
-def test_product_partial_nested_unwired2():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_product_partial_nested_unwired2(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -64,17 +65,16 @@ def test_product_partial_nested_unwired2():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A.x: Connected
-    Foo.A.y
-        Foo.A.y.x: Connected
-        Foo.A.y.y: Unconnected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A.x: Connected"
+    assert caplog.messages[3] == "    Foo.A.y"
+    assert caplog.messages[4] == "        Foo.A.y.x: Connected"
+    assert caplog.messages[5] == "        Foo.A.y.y: Unconnected"
 
 
-def test_product_arr():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_product_arr(caplog):
     class T(m.Product):
         x = m.Bit
         y = m.Bit
@@ -87,18 +87,17 @@ def test_product_arr():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]
-        Foo.A[0].x: Connected
-        Foo.A[0].y: Unconnected
-    Foo.A[1]
-        Foo.A[1].x: Unconnected
-        Foo.A[1].y: Connected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A[0]"
+    assert caplog.messages[3] == "        Foo.A[0].x: Connected"
+    assert caplog.messages[4] == "        Foo.A[0].y: Unconnected"
+    assert caplog.messages[5] == "    Foo.A[1]"
+    assert caplog.messages[6] == "        Foo.A[1].x: Unconnected"
+    assert caplog.messages[7] == "        Foo.A[1].y: Connected"
 
 
+@wrap_with_context_manager(logging_level("DEBUG"))
 def test_product_width_mismatch(caplog):
     class T(m.Product):
         x = m.Bits[2]
@@ -115,18 +114,16 @@ def test_product_width_mismatch(caplog):
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    print(str(e.value))
-    assert str(e.value) == "Found circuit with errors: Foo"
 
+    assert str(e.value) == "Found circuit with errors: Foo"
     assert caplog.messages[0] == """\
 Cannot wire Bits[1](1) (Out(Bits[1])) to Foo.A.x (In(Bits[2]))\
 """
     assert caplog.messages[1] == """\
 Cannot wire Bits[3](2) (Out(Bits[3])) to Foo.A.y (In(Bits[4]))\
 """
-    assert caplog.messages[2] == """\
-Foo.A not driven\
-"""
+    assert caplog.messages[2] == "Foo.A not driven"
+    assert caplog.messages[3] == "Foo.A: Unconnected"
 
 
 def test_product_width_mismatch2(caplog):
@@ -148,6 +145,7 @@ Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))\
 """
 
 
+@wrap_with_context_manager(logging_level("DEBUG"))
 def test_unwired_mixed(caplog):
     class T(m.Product):
         x = m.Out(m.Bit)
@@ -165,4 +163,7 @@ def test_unwired_mixed(caplog):
 
 
     assert caplog.messages[0] == "Bar.z.x not driven"
-    assert caplog.messages[1] == "Foo_inst0.z.y not driven"
+    assert caplog.messages[1] == "Bar.z.x: Unconnected"
+
+    assert caplog.messages[2] == "Foo_inst0.z.y not driven"
+    assert caplog.messages[3] == "Foo_inst0.z.y: Unconnected"

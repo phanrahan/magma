@@ -7,9 +7,9 @@ from ast_tools.stack import _SKIP_FRAME_DEBUG_STMT, get_symbol_table
 
 from magma.array import Array
 from magma.bit import Bit
-from magma.circuit import Circuit, peek_definition_context_stack
+from magma.circuit import Circuit
 from magma.clock import ClockTypes
-from magma.definition_context import DefinitionContext
+from magma.definition_context import DefinitionContext, get_definition_context
 from magma.digital import Digital
 from magma.interface import IO
 from magma.passes.passes import CircuitPass
@@ -254,7 +254,7 @@ def inline_verilog_impl(
         format_args: Mapping[str, ValueLike],
         symbol_table: Mapping,
         inline_wire_prefix: str):
-    context = peek_definition_context_stack()
+    context = get_definition_context()
     _process_inline_verilog(
         context, format_str, format_args, symbol_table, inline_wire_prefix)
 

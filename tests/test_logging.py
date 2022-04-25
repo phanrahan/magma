@@ -1,6 +1,8 @@
 import magma as m
 
-from magma.logging import root_logger, stage_logger, unstage_logger
+from magma.logging import (
+    root_logger, stage_logger, unstage_logger, staged_logs
+)
 from magma.testing.utils import has_info
 
 
@@ -49,4 +51,19 @@ def test_nested_staging(caplog):
     logger.info(msg)
     msg.name = "bar"
     unstage_logger()
+    assert caplog.records[-1].message == "bar"
+
+
+def test_staged_logs_context_manager(caplog):
+    msg = _NamedObject("foo")
+    logger = root_logger()
+
+    # Check that the staged_logs() context manager appropriately stages logs,
+    # *and* the target returned from staged_logs() is the list of staged logs
+    # itself.
+    with staged_logs() as logs:
+        logger.info(msg)
+        msg.name = "bar"
+    assert len(logs) == 1
+    assert logs[0][2] is msg
     assert caplog.records[-1].message == "bar"

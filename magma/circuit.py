@@ -11,7 +11,7 @@ import os
 
 import six
 from . import cache_definition
-from .common import deprecated, setattrs, Stack, OrderedIdentitySet
+from .common import deprecated, setattrs, OrderedIdentitySet
 from .interface import *
 from .wire import *
 from .config import get_debug_mode, set_debug_mode
@@ -27,8 +27,15 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.definition_context import DefinitionContext
-from magma.logging import root_logger
+from magma.definition_context import (
+    DefinitionContext,
+    definition_context_manager,
+    push_definition_context,
+    pop_definition_context,
+    get_definition_context,
+)
+from magma.find_unconnected_ports import find_and_log_unconnected_ports
+from magma.logging import root_logger, capture_logs
 from magma.ref import TempNamedRef
 from magma.t import In
 from magma.view import PortView
@@ -58,27 +65,6 @@ class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
     OLD = enum.auto()
     NEW = enum.auto()
-
-
-_definition_context_stack = Stack()
-
-
-def peek_definition_context_stack() -> DefinitionContext:
-    return _definition_context_stack.peek()
-
-
-class _DefinitionContextManager:
-    def __init__(self, context: DefinitionContext):
-        self._context = context
-
-    def __enter__(self):
-        _definition_context_stack.push(self._context)
-
-    def __exit__(self, typ, value, traceback):
-        _definition_context_stack.pop()
-
-
-DefinitionContextManager = _DefinitionContextManager
 
 
 def _has_definition(cls, port=None):
@@ -216,8 +202,8 @@ def _get_intermediate_values(value):
 
 class CircuitKind(type):
     def __prepare__(name, bases, **kwargs):
-        context = DefinitionContext(StagedPlacer(name))
-        _definition_context_stack.push(context)
+        ctx = DefinitionContext(StagedPlacer(name))
+        push_definition_context(ctx, use_staged_logger=True)
         return type.__prepare__(name, bases, **kwargs)
 
     """Metaclass for creating circuits."""
@@ -253,8 +239,12 @@ class CircuitKind(type):
 
         cls._syntax_style_ = _SyntaxStyle.NONE
         cls._renamed_ports_ = dct["renamed_ports"]
+        # NOTE(rsetaluri): We first peek the definition context
+        # (get_definition_context()) so that we can finalize it before popping
+        # it. This is necessary because we want the unstaging of the logger to
+        # happen (inside of pop) after finalization.
         try:
-            context = _definition_context_stack.pop()
+            context = get_definition_context()
         except IndexError:  # no staged placer
             cls._context_ = DefinitionContext(Placer(cls))
         else:
@@ -265,6 +255,7 @@ class CircuitKind(type):
             cls._context_.place_instances(cls)
             _setup_interface(cls)
             cls._context_.finalize(cls)
+            pop_definition_context(use_staged_logger=True)
 
         return cls
 
@@ -362,7 +353,7 @@ class CircuitKind(type):
     def inline_verilog(cls, inline_str, **kwargs):
         # NOTE(rsetaluri): This is a hack to avoid a circular import.
         from magma.inline_verilog import inline_verilog as m_inline_verilog
-        with _DefinitionContextManager(cls._context_):
+        with definition_context_manager(cls._context_):
             m_inline_verilog(inline_str, **kwargs)
 
 
@@ -530,7 +521,7 @@ class AnonymousCircuitType(object):
 
     @classmethod
     def open(cls):
-        return _DefinitionContextManager(cls._context_)
+        return definition_context_manager(cls._context_)
 
 
 def AnonymousCircuit(*decl):
@@ -549,7 +540,7 @@ class CircuitType(AnonymousCircuitType):
     def __init__(self, *largs, **kwargs):
         super(CircuitType, self).__init__(*largs, **kwargs)
         try:
-            context = _definition_context_stack.peek()
+            context = get_definition_context()
             context.placer.place(self)
         except IndexError:  # instances must happen inside a definition context
             raise Exception("Can not instance a circuit outside a definition")
@@ -656,7 +647,7 @@ class DefineCircuitKind(CircuitKind):
                 # instances because old style IO syntax doesn't support the
                 # automatic clock lifting anyways
                 _setup_interface(self)
-                with _DefinitionContextManager(self._context_):
+                with definition_context_manager(self._context_):
                     self.definition()
                 self._context_.place_instances(self)
                 self._context_.finalize(self)
@@ -671,37 +662,10 @@ class DefineCircuitKind(CircuitKind):
         run_unconnected_check = run_unconnected_check and not \
             dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
-            self.check_unconnected()
+            with capture_logs(self._context_):
+                find_and_log_unconnected_ports(self)
 
         return self
-
-    def _check_port_unconnected(self, port, debug_info):
-        if port.is_output():
-            return
-        if port.is_mixed():
-            for elem in port:
-                self._check_port_unconnected(elem, debug_info)
-            return
-        if port.trace() is None:
-            if isinstance(port, ClockTypes):
-                msg = "{} not driven, will attempt to automatically wire"
-                _logger.debug(WiringLog(msg, port), debug_info=debug_info)
-            elif is_clock_or_nested_clock(type(port)):
-                # Must be nested, otherwise caught in previous case
-                for elem in port:
-                    self._check_port_unconnected(elem,
-                                                 debug_info)
-            else:
-                msg = "{} not driven"
-                _logger.error(WiringLog(msg, port), debug_info=debug_info)
-
-    def check_unconnected(self):
-        for port in self.interface.ports.values():
-            self._check_port_unconnected(port, self.debug_info)
-
-        for inst in self.instances:
-            for port in inst.interface.ports.values():
-                self._check_port_unconnected(port, inst.debug_info)
 
     @property
     def is_definition(self):
@@ -710,6 +674,10 @@ class DefineCircuitKind(CircuitKind):
     @property
     def instances(self):
         return self._context_.placer.instances()
+
+    @property
+    def logs(self):
+        return self._context_.logs
 
     def place(cls, inst):
         """Place a circuit instance in this definition"""
@@ -749,20 +717,24 @@ def DefineCircuit(name, *decl, **args):
                     renamed_ports=args.get('renamed_ports', {}),
                     kratos=args.get("kratos", None)))
     defn = metacls(name, bases, dct)
-    _definition_context_stack.push(defn._context_)
+    push_definition_context(defn._context_)
     return defn
 
 
 def EndDefine():
+    # NOTE(rsetaluri): We first peek the definition context
+    # (get_definition_context()) so that we avoid pushing on a log capturer for
+    # the find_and_log_unconnected_ports() call.
     try:
-        context = _definition_context_stack.pop()
+        context = get_definition_context()
     except IndexError:
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
-    placer._defn.check_unconnected()
+    find_and_log_unconnected_ports(placer._defn)
     debug_info = get_callee_frame_info()
     placer._defn.end_circuit_filename = debug_info[0]
     placer._defn.end_circuit_lineno = debug_info[1]
+    pop_definition_context()
 
 
 EndCircuit = EndDefine
@@ -832,7 +804,7 @@ def builder_method(func):
 
     @wraps(func)
     def _wrapped(this, *args, **kwargs):
-        with _DefinitionContextManager(this.context):
+        with definition_context_manager(this.context):
             result = func(this, *args, **kwargs)
         return result
 
@@ -848,7 +820,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         # builder will not be automatically finalized, and (b) instantation
         # might fail.
         try:
-            context = _definition_context_stack.peek()
+            context = get_definition_context()
         except IndexError:
             pass
         else:
@@ -885,7 +857,7 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._inst_attrs[key] = value
 
     def _open(self):
-        return _DefinitionContextManager(self._context)
+        return definition_context_manager(self._context)
 
     def _finalize(self):
         pass
@@ -937,12 +909,12 @@ class DebugDefineCircuitKind(DefineCircuitKind):
         #   TypeError: super(type, obj): obj must be an instance or subtype of
         #   type
         cls = DefineCircuitKind.__prepare__(name, bases, **kwargs)
-        ctx = peek_definition_context_stack()
+        ctx = get_definition_context()
         ctx.set_metadata("prev_debug_mode", prev_debug_mode)
         return cls
 
     def __new__(metacls, name, bases, dct):
-        ctx = peek_definition_context_stack()
+        ctx = get_definition_context()
         set_debug_mode(ctx.get_metadata("prev_debug_mode"))
         return DefineCircuitKind.__new__(metacls, name, bases, dct)
 

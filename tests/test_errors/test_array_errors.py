@@ -1,9 +1,13 @@
 import pytest
 
 import magma as m
+from magma.common import wrap_with_context_manager
+from magma.logging import logging_level
 
 
-def test_array_partial_unwired():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_array_partial_unwired(caplog):
+
     class Foo(m.Circuit):
         io = m.IO(A=m.Out(m.Bits[2]), x=m.Out(m.Bit))
         io.A[0] @= 1
@@ -11,15 +15,14 @@ def test_array_partial_unwired():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]: Connected
-    Foo.A[1]: Unconnected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A[0]: Connected"
+    assert caplog.messages[3] == "    Foo.A[1]: Unconnected"
 
 
-def test_array_partial_unwired_nested():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_array_partial_unwired_nested(caplog):
     class Foo(m.Circuit):
         io = m.IO(A=m.Out(m.Array[2, m.Bits[2]]), x=m.Out(m.Bit))
         io.A[0] @= 1
@@ -27,15 +30,14 @@ def test_array_partial_unwired_nested():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]: Connected
-    Foo.A[1]: Unconnected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A[0]: Connected"
+    assert caplog.messages[3] == "    Foo.A[1]: Unconnected"
 
 
-def test_array_partial_unwired_nested2():
+@wrap_with_context_manager(logging_level("DEBUG"))
+def test_array_partial_unwired_nested2(caplog):
     class Foo(m.Circuit):
         io = m.IO(A=m.Out(m.Array[2, m.Bits[2]]), x=m.Out(m.Bit))
         io.A[0] @= 1
@@ -44,14 +46,12 @@ def test_array_partial_unwired_nested2():
 
     with pytest.raises(Exception) as e:
         m.compile("build/Foo", Foo)
-    assert str(e.value) == """\
-Found unconnected port: Foo.A
-Foo.A
-    Foo.A[0]: Connected
-    Foo.A[1]
-        Foo.A[1][0]: Connected
-        Foo.A[1][1]: Unconnected\
-"""
+    assert caplog.messages[0] == "Foo.A not driven"
+    assert caplog.messages[1] == "Foo.A"
+    assert caplog.messages[2] == "    Foo.A[0]: Connected"
+    assert caplog.messages[3] == "    Foo.A[1]"
+    assert caplog.messages[4] == "        Foo.A[1][0]: Connected"
+    assert caplog.messages[5] == "        Foo.A[1][1]: Unconnected"
 
 
 @pytest.mark.parametrize("_slice", [slice(1, 4), slice(3, 4), slice(-1, -4),
