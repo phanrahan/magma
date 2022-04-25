@@ -183,6 +183,10 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
             return
         Wireable.wire(self, o, debug_info)
 
+    @debug_wire
+    def unwire(self, o=None, debug_info=None):
+        return Wireable.unwire(self, o, debug_info)
+
     def iswhole(self):
         return True
 

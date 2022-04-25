@@ -28,7 +28,7 @@ def debug_wire(fn):
     """
     # TODO: We could check that fn has the correct interface
     #       wire(i, o, debug_info)
-    def wire(i, o, debug_info=None):
+    def wire(i, o=None, debug_info=None):
         if get_debug_mode() and debug_info is None:
             debug_info = get_callee_frame_info()
         return fn(i, o, debug_info)
