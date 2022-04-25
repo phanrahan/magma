@@ -61,11 +61,6 @@ circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 _logger = root_logger()
 
 
-# TODO(rsetaluri): Remove these aliases.
-peek_definition_context_stack = get_definition_context
-DefinitionContextManager = lambda ctx: definition_context_manager(ctx)
-
-
 class _SyntaxStyle(enum.Enum):
     NONE = enum.auto()
     OLD = enum.auto()
