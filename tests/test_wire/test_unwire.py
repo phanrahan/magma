@@ -34,7 +34,6 @@ def test_unwire_undriven(T, func, caplog):
     func(x, y)
     m.config.set_debug_mode(False)
 
-
     def make_expected(value_str):
         return f"""\
 \033[1mtests/test_wire/test_unwire.py:13\033[0m: Unwire called on undriven value {value_str}, ignoring
