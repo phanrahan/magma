@@ -34,7 +34,7 @@ from magma.definition_context import (
     pop_definition_context,
     get_definition_context,
 )
-from magma.find_unconnected_ports import check_unconnected
+from magma.find_unconnected_ports import find_and_log_unconnected_ports
 from magma.logging import root_logger, capture_logs
 from magma.ref import TempNamedRef
 from magma.t import In
@@ -668,7 +668,7 @@ class DefineCircuitKind(CircuitKind):
             dct.get("_ignore_undriven_", False)
         if run_unconnected_check:
             with capture_logs(self._context_):
-                check_unconnected(self)
+                find_and_log_unconnected_ports(self)
 
         return self
 
@@ -729,13 +729,13 @@ def DefineCircuit(name, *decl, **args):
 def EndDefine():
     # NOTE(rsetaluri): We first peek the definition context
     # (get_definition_context()) so that we avoid pushing on a log capturer for
-    # the check_unconnected() call.
+    # the find_and_log_unconnected_ports() call.
     try:
         context = get_definition_context()
     except IndexError:
         raise Exception("EndDefine not matched to DefineCircuit")
     placer = context.placer
-    check_unconnected(placer._defn)
+    find_and_log_unconnected_ports(placer._defn)
     debug_info = get_callee_frame_info()
     placer._defn.end_circuit_filename = debug_info[0]
     placer._defn.end_circuit_lineno = debug_info[1]

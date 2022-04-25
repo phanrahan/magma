@@ -124,7 +124,7 @@ def _make_unconnected_port_diagnostic_visitor_cls():
     return _Visitor
 
 
-def check_unconnected(ckt):
+def find_and_log_unconnected_ports(ckt):
     infos = find_unconnected_ports_of_circuit(ckt)
     for info in infos:
         port = info.port
