@@ -39,7 +39,11 @@ class Wire:
     def anon(self):
         return self._bit.anon()
 
-    def unwire(self, other):
+    def unwire(self, other=None):
+        if other is None:
+            if self._driver is None:
+                raise RuntimeError("Cannot unwire undriven value")
+            other = self._driver
         other._driving.remove(self)
         self._driver = None
 
@@ -158,8 +162,10 @@ class Wireable:
     def driving(self):
         return self._wire.driving()
 
-    def unwire(i, o):
-        i._wire.unwire(o._wire)
+    def unwire(i, o=None):
+        if o is not None:
+            o = o._wire
+        i._wire.unwire(o)
 
     def wire(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)

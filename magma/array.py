@@ -620,10 +620,13 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             # Perform a bulk wire
             Wireable.wire(self, o, debug_info)
 
-    def unwire(self, o):
+    def unwire(self, o=None):
         if self._has_elaborated_children():
             for i, child in self._enumerate_children():
-                child.unwire(o[i])
+                if o is not None:
+                    child.unwire(o[i])
+                else:
+                    child.unwire()
         else:
             Wireable.unwire(self, o)
 

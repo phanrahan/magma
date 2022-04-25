@@ -301,8 +301,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             o_elem = magma_value(o_elem)
             wire(o_elem, i_elem, debug_info)
 
-    def unwire(i, o):
-        for i_elem, o_elem in zip(i, o):
+    def unwire(self, o=None):
+        if o is None:
+            for elem in self:
+                elem.unwire()
+            return
+
+        for i_elem, o_elem in zip(self, o):
             if o_elem.is_input():
                 o_elem.unwire(i_elem)
             else:
