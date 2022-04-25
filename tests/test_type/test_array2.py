@@ -483,6 +483,20 @@ def test_array2_2d_tuple():
             temp.c[1].a[i] @= io.I.c[0].a[3 - i]
         io.O @= temp
 
+    expected = """\
+Foo = DefineCircuit("Foo", "I", Tuple(c=Array[(2, X)]), "O", Tuple(c=Array[(2, X)]))
+wire(Foo.I.c[1].a[3], Foo.O.c[0].a[0])
+wire(Foo.I.c[1].a[2], Foo.O.c[0].a[1])
+wire(Foo.I.c[1].a[1], Foo.O.c[0].a[2])
+wire(Foo.I.c[1].a[0], Foo.O.c[0].a[3])
+wire(Foo.I.c[0].a[3], Foo.O.c[1].a[0])
+wire(Foo.I.c[0].a[2], Foo.O.c[1].a[1])
+wire(Foo.I.c[0].a[1], Foo.O.c[1].a[2])
+wire(Foo.I.c[0].a[0], Foo.O.c[1].a[3])
+EndCircuit()\
+"""
+    assert repr(Foo) == expected, repr(Foo)
+
     _check_compile("test_array2_2d_tuple", Foo, False)
 
 

@@ -873,7 +873,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return ts
 
     def __repr__(self):
-        if self.name.anon():
+        if self.name.anon() and self._has_elaborated_children():
             t_strs = ', '.join(repr(t) for t in self.ts)
             return f'array([{t_strs}])'
         return Type.__repr__(self)
