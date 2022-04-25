@@ -302,16 +302,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             wire(o_elem, i_elem, debug_info)
 
     def unwire(self, o=None):
-        if o is None:
-            for elem in self:
-                elem.unwire()
-            return
-
-        for i_elem, o_elem in zip(self, o):
-            if o_elem.is_input():
-                o_elem.unwire(i_elem)
+        for k, t in self.items():
+            if o is None:
+                t.unwire()
+            elif o[k].is_input():
+                o[k].unwire(t)
             else:
-                i_elem.unwire(o_elem)
+                t.unwire(o[k])
 
     def driven(self):
         for t in self.ts:
