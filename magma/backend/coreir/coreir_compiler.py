@@ -8,7 +8,7 @@ from magma.frontend import coreir_ as coreir_frontend
 from magma.is_definition import isdefinition
 from magma.logging import root_logger
 from magma.passes import InstanceGraphPass
-from magma.passes.find_errors import find_errors_pass
+from magma.passes.raise_logs_as_exceptions import raise_logs_as_exceptions_pass
 from magma.symbol_table import SymbolTable
 from magma.symbol_table_utils import MasterSymbolTable
 
@@ -83,7 +83,7 @@ class CoreIRCompiler(Compiler):
         result["symbol_table"] = symbol_table = SymbolTable()
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
-        find_errors_pass(self.main)
+        raise_logs_as_exceptions_pass(self.main)
         backend = self.backend
         opts = _make_opts(backend, self.opts)
         opts["symbol_table"] = symbol_table
