@@ -34,14 +34,15 @@ def test_unwire_undriven(T, func, caplog):
     func(x, y)
     m.config.set_debug_mode(False)
 
-    def make_expected(value_str):
+    def make_expcted_log(value_str):
         return f"""\
 \033[1mtests/test_wire/test_unwire.py:13\033[0m: Unwire called on undriven value {value_str}, ignoring
 >>     lambda x, y: x.unwire(), lambda x, y: m.unwire(x)\
 """  # noqa
+
     if T is Ts[2]:
         # Tuple recurses
         for i in range(len(T)):
-            assert has_warning(caplog, make_expected(f"Foo[{i}]"))
+            assert has_warning(caplog, make_expcted_log(f"Foo[{i}]"))
     else:
-        assert has_warning(caplog, make_expected("Foo"))
+        assert has_warning(caplog, make_expcted_log("Foo"))
