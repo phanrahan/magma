@@ -623,10 +623,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def unwire(self, o=None):
         if self._has_elaborated_children():
             for i, child in self._enumerate_children():
-                if o is not None:
-                    child.unwire(o[i])
-                else:
-                    child.unwire()
+                o_i = None if o is None else o[i]
+                child.unwire(o_i)
         else:
             Wireable.unwire(self, o)
 
