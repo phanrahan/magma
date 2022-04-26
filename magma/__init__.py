@@ -32,7 +32,6 @@ from .bfloat import BFloat
 from .tuple import *
 from .clock import *
 from .clock_io import ClockIO
-from .conversions import *
 from .interface import *
 from .ref import LazyDefnRef, LazyInstRef
 
@@ -91,6 +90,17 @@ from .syntax.combinational2 import combinational2
 from .syntax.inline_combinational import inline_combinational
 from .syntax.coroutine import coroutine
 
+from magma.conversions import (
+    bit,
+    clock, reset, enable, asyncreset, asyncresetn,
+    array,
+    bits, uint, sint,
+    tuple_, namedtuple, product,
+    concat, repeat,
+    sext, zext, sext_to, sext_by, zext_to, zext_by,
+    replace,
+    as_bits, from_bits
+)
 from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
                               Register, get_slice, set_slice, slice,
                               Memory, set_index, register, Wire)
