@@ -1,9 +1,18 @@
 import pytest
+from typing import Dict
+
 import magma as m
 from magma.testing.utils import has_error
 
 
-def _io_similar(lhs, rhs):
+def _assert_io_fields(io: m.IO, fields: Dict[str, m.Kind]):
+    """Asserts that @io has ordered fields in @fields."""
+    for ((name0, T0), (name1, T1)) in zip(io.fields().items(), fields.items()):
+        assert name0 == name1
+        assert T0 == T1
+
+
+def _io_similar(lhs: m.IO, rhs: m.IO) -> bool:
     """
     Returns True if @lhs and @rhs have the same signature, false otherwise. Note
     that this does not check the identity of the underlying ports, just their
@@ -105,3 +114,19 @@ def test_io_class_add_intersecting_io(caplog):
     assert pytest_e.type is Exception
     assert pytest_e.value.args == ("Adding IO with duplicate port names not "
                                    "allowed",)
+    
+
+def test_io_class_flip():
+    A = m.Product.from_fields("anon", dict(x=m.In(m.Bit), y=m.Out(m.Bit)))
+    B = m.In(m.Bits[8])
+    io = m.IO(a=A, b=B)
+    flipped = io.flip()
+    # Check flipped io.
+    _assert_io_fields(flipped, {"a": A.flip(), "b": B.flip()})
+    # Check that flip(flip) = id.
+    _assert_io_fields(flipped.flip(), io.fields())
+
+
+def test_io_class_getitem():
+    io = m.IO(a=m.In(m.Bit))
+    assert io.a is io["a"]
