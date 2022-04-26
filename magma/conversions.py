@@ -17,23 +17,9 @@ from .bitutils import int2seq
 import hwtypes as ht
 from magma.array import Array
 from magma.circuit import coreir_port_mapping
-from magma.common import is_int, Finalizable, lca_of_types
+from magma.common import is_int, Finalizable, lca_of_types, deprecated
 from magma.generator import Generator2
 from magma.interface import IO
-
-
-__all__ = ['bit']
-__all__ += ['clock', 'reset', 'enable', 'asyncreset', 'asyncresetn']
-
-__all__ += ['array']
-__all__ += ['bits', 'uint', 'sint']
-
-__all__ += ['tuple_', 'namedtuple']
-
-__all__ += ['concat', 'repeat']
-__all__ += ['sext', 'zext', 'sext_to', 'sext_by', 'zext_to', 'zext_by']
-__all__ += ['replace']
-__all__ += ['as_bits', 'from_bits']
 
 
 class _Concatter(Finalizable):
@@ -372,7 +358,7 @@ def _tuple(value, n=None, t=Tuple):
     assert t == Product
     return t.from_fields("anon", decl)(*args)
 
-
+@deprecated(msg="namedtuple() is deprecated, use product() instead")
 def namedtuple(**kwargs):
     return _tuple(kwargs, t=Product)
 
