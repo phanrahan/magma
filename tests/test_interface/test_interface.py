@@ -115,6 +115,7 @@ def test_io_class_add_intersecting_io(caplog):
     assert pytest_e.value.args == ("Adding IO with duplicate port names not "
                                    "allowed",)
     
+
 def test_io_class_flip():
     A = m.Product.from_fields("anon", dict(x=m.In(m.Bit), y=m.Out(m.Bit)))
     B = m.In(m.Bits[8])
@@ -124,3 +125,8 @@ def test_io_class_flip():
     _assert_io_fields(flipped, {"a": A.flip(), "b": B.flip()})
     # Check that flip(flip) = id.
     _assert_io_fields(flipped.flip(), io.fields())
+
+
+def test_io_class_getitem():
+    io = m.IO(a=m.In(m.Bit))
+    assert io.a is io["a"]
