@@ -1,15 +1,13 @@
 import dataclasses
-from typing import Any, Callable, Iterable, Mapping, Union
+from typing import Any, Callable, Iterable, List, Mapping, Union
 
 from magma.array import Array, ArrayMeta
 from magma.backend.mlir.common import make_unique_name, replace_all
-from magma.circuit import Circuit, DefineCircuitKind
+from magma.circuit import AnonymousCircuitType, Circuit, DefineCircuitKind
+from magma.compile_guard2 import CompileGuard2
 from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
-
-
-ModuleLike = Union[DefineCircuitKind, Circuit]
 
 
 _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS = {
@@ -114,6 +112,7 @@ class InstanceWrapper:
         ports = {name: ValueWrapper(name, T) for name, T in ports.items()}
         self._interface = InstanceWrapper._Interface(ports)
         self._attrs = attrs
+        self._metadata = {}
         for name, value in ports.items():
             setattr(self, name, value)
 
@@ -132,6 +131,13 @@ class InstanceWrapper:
     def attrs(self) -> Mapping[str, Any]:
         return self._attrs.copy()
 
+    @property
+    def metadata(self) -> Mapping[str, Any]:
+        return self._metadata
+
+
+ModuleLike = Union[DefineCircuitKind, Circuit, InstanceWrapper]
+
 
 def safe_root(ref: Ref) -> Ref:
     """Returns the root ref of @ref."""
@@ -145,3 +151,13 @@ def safe_root(ref: Ref) -> Ref:
     if parent is ref:
         return ref
     return safe_root(parent)
+
+
+def get_compile_guard2s_of_module(module: ModuleLike) -> List[CompileGuard2]:
+    if isinstance(module, DefineCircuitKind):
+        return []
+    if isinstance(module, AnonymousCircuitType):
+        return module._compile_guard2s_
+    if isinstance(module, InstanceWrapper):
+        return module.metadata.get("compile_guard2s", [])
+    raise TypeError(module)

@@ -5,7 +5,7 @@ from magma.array import Array
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.magma_common import (
     ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root,
-    InstanceWrapper,
+    InstanceWrapper, get_compile_guard2s_of_module,
 )
 from magma.backend.mlir.magma_ops import (
     MagmaArrayGetOp, MagmaArraySliceOp, MagmaArrayCreateOp,
@@ -13,6 +13,7 @@ from magma.backend.mlir.magma_ops import (
     MagmaBitConstantOp, MagmaBitsConstantOp)
 from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
+from magma.common import Stack
 from magma.digital import Digital
 from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
 from magma.t import Type
@@ -169,6 +170,36 @@ def _visit_inputs(
         )
 
 
+def _postprocess_compile_guard2s(graph: Graph):
+    for node in graph.nodes:
+        guards = get_compile_guard2s_of_module(node)
+        if not guards:
+            continue
+        for succ in graph.successors(node):
+            if not isinstance(succ, InstanceWrapper):
+                continue
+            grandchildren = []
+            working_set = Stack()
+            working_set.push(succ)
+            while working_set:
+                child = working_set.pop()
+                for grandchild in graph.successors(child):
+                    if isinstance(grandchild, InstanceWrapper):
+                        working_set.push(grandchild)
+                        continue
+                    grandchildren.append(grandchild)
+            grandchildren_guards = (
+                set(get_compile_guard2s_of_module(grandchild))
+                for grandchild in grandchildren
+            )
+            consistent = all(
+                set(guards).issubset(grandchild_guards)
+                for grandchild_guards in grandchildren_guards
+            )
+            assert "compile_guard2s" not in succ.metadata
+            succ.metadata["compile_guard2s"] = guards
+
+
 def build_magma_graph(
         ckt: DefineCircuitKind,
         opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
@@ -176,4 +207,5 @@ def build_magma_graph(
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
+    _postprocess_compile_guard2s(ctx.graph)
     return ctx.graph
