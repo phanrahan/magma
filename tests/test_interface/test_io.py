@@ -1,9 +1,9 @@
 import pytest
+
 import magma as m
-from magma.testing.utils import has_error
 
 
-def _io_similar(lhs, rhs):
+def _io_similar(lhs: m.IO, rhs: m.IO) -> bool:
     """
     Returns True if @lhs and @rhs have the same signature, false otherwise. Note
     that this does not check the identity of the underlying ports, just their
@@ -22,15 +22,7 @@ def _io_similar(lhs, rhs):
     return all(ldecl[i] is rdecl[i] for i in range(1, size, 2))
 
 
-def test_1():
-    I0 = m.make_interface("a", m.In(m.Bit), "b", m.Out(m.Bits[2]))
-    assert str(I0) == 'Interface("a", In(Bit), "b", Out(Bits[2]))'
-
-    i0 = I0()
-    assert str(i0) == 'Interface("a", In(Bit), "b", Out(Bits[2]))'
-
-
-def test_io_class_basic():
+def test_basic():
     expected_names = ["y", "x"]
     expected_types = [m.In(m.Bit), m.Out(m.Bits[8])]
     io = m.IO(y=m.In(m.Bit), x=m.Out(m.Bits[8]))
@@ -43,7 +35,7 @@ def test_io_class_basic():
         assert isinstance(port.name, m.DefnRef)
 
 
-def test_io_class_bind(caplog):
+def test_bind(caplog):
     io = m.IO(y=m.In(m.Bit), x=m.Out(m.Bits[8]))
 
     class _Foo(m.Circuit):
@@ -62,7 +54,7 @@ def test_io_class_bind(caplog):
     assert pytest_e.value.args == ("Can not bind IO multiple times",)
 
 
-def test_io_class_add():
+def test_add():
     x = m.IO(x=m.In(m.Bit))
     y = m.IO(y=m.In(m.Bit))
     z = x + y
@@ -73,17 +65,19 @@ def test_io_class_add():
     assert _io_similar(y, m.IO(y=m.In(m.Bit)))
 
 
-def test_io_class_add_non_io():
+def test_add_non_io():
     x = m.IO(x=m.In(m.Bit))
     with pytest.raises(TypeError) as pytest_e:
         z = x + 0  # try adding another type to IO
         assert False
     assert pytest_e.type is TypeError
-    assert (pytest_e.value.args ==
-            ("unsupported operand type(s) for +: 'IO' and 'int'",))
+    assert (
+        pytest_e.value.args ==
+        ("unsupported operand type(s) for +: 'IO' and 'int'",)
+    )
 
 
-def test_io_class_add_bound_io(caplog):
+def test_add_bound_io(caplog):
 
     class _Foo(m.Circuit):
         io = m.IO(x=m.In(m.Bit))
@@ -96,12 +90,29 @@ def test_io_class_add_bound_io(caplog):
     assert pytest_e.value.args == ("Adding bound IO not allowed",)
 
 
-def test_io_class_add_intersecting_io(caplog):
+def test_add_intersecting_io(caplog):
     x = m.IO(x=m.In(m.Bit))
     x_again = m.IO(x=m.In(m.Bit))
     with pytest.raises(Exception) as pytest_e:
         z = x + x_again
         assert False
     assert pytest_e.type is Exception
-    assert pytest_e.value.args == ("Adding IO with duplicate port names not "
-                                   "allowed",)
+    assert pytest_e.value.args == (
+        "Adding IO with duplicate port names not allowed",
+    )
+
+
+def test_flip():
+    A = m.Product.from_fields("anon", dict(x=m.In(m.Bit), y=m.Out(m.Bit)))
+    B = m.In(m.Bits[8])
+    io = m.IO(a=A, b=B)
+    flipped = io.flip()
+    # Check flipped io.
+    assert flipped.fields() == {"a": A.flip(), "b": B.flip()}
+    # Check that flip(flip) = id.
+    assert flipped.flip().fields() == io.fields()
+
+
+def test_getitem():
+    io = m.IO(a=m.In(m.Bit))
+    assert io.a is io["a"]

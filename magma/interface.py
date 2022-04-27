@@ -439,8 +439,7 @@ class IO(IOInterface):
         self._bound = False
         for name, typ in kwargs.items():
             self.add(name, typ)
-            self._decl.append(name)
-            self._decl.append(typ)
+            self._decl.extend((name, typ))
 
     @property
     def ports(self):
@@ -491,9 +490,17 @@ class IO(IOInterface):
         port = _make_port(typ, ref, flip=True)
         self._ports[name] = port
 
-    def __getattr__(self, key):
-        if key in self._ports:
-            return self._ports[key]
+    def _get(self, key: str):
+        return self._ports[key]
+
+    def __getitem__(self, key: str):
+        return self._get(key)
+
+    def __getattr__(self, key: str):
+        try:
+            return self._get(key)
+        except KeyError:
+            pass
         return super().__getattribute__(key)
 
     def fields(self):
