@@ -1,10 +1,12 @@
 import enum
 import functools
-from typing import Optional
+from typing import Iterable
 
 from magma.circuit import CircuitKind, CircuitType, DefineCircuitKind
 from magma.conversions import as_bits
+from magma.interface import IOInterface
 from magma.value_utils import ValueVisitor
+from magma.t import Type
 
 
 class StubType(enum.Enum):
@@ -50,26 +52,34 @@ class _StubifyVisitor(ValueVisitor):
         self._handle_value(value, leaf=True)
 
 
-def _stubify_impl(ckt: CircuitKind, stub_type: StubType):
+def _stubify_impl(ports: Iterable[Type], stub_type: StubType) -> bool:
     modified = False
-    for port in ckt.interface.ports.values():
+    for port in ports:
         visitor = _StubifyVisitor(stub_type)
         visitor.visit(port)
-        modified |= visitor.modified
-    if modified:
-        # NOTE(rsetaluri): This is a hack because we don't have good handling of
-        # isdefinition when the circuit is modified. We should be doing that
-        # more principled-ly. See https://github.com/phanrahan/magma/issues/929.
-        ckt._is_definition = True
+        modified = modified or visitor.modified
+    return modified
 
 
 def _stub_open(cls):
     raise NotImplementedError("Can not call open() on a circuit stub")
 
 
-def stubify(ckt: CircuitKind, stub_type: StubType = StubType.ZERO):
+@functools.singledispatch
+def stubify(obj, stub_type: StubType = StubType.ZERO):
+    raise NotImplementedError()
+
+
+@stubify.register
+def _(obj: CircuitKind, stub_type: StubType = StubType.ZERO):
+    ckt = obj
     with ckt.open():
-        _stubify_impl(ckt, stub_type)
+        modified = _stubify_impl(ckt.interface.ports.values(), stub_type)
+    if modified:
+        # NOTE(rsetaluri): This is a hack because we don't have good handling of
+        # isdefinition when the circuit is modified. We should be doing that
+        # more principled-ly. See https://github.com/phanrahan/magma/issues/929.
+        ckt._is_definition = True
     # Set ckt.open to be a function which raises a NotImplementedError. Note
     # that we *can't* do this in the class itself, since we need to call open()
     # to tie the outputs first (in stubify()). Afterwards, we can override the
@@ -77,7 +87,13 @@ def stubify(ckt: CircuitKind, stub_type: StubType = StubType.ZERO):
     setattr(ckt, "open", classmethod(_stub_open))
 
 
-def circuit_stub(cls=None, *, stub_type: Optional[StubType] = StubType.ZERO):
+@stubify.register
+def _(obj: IOInterface, stub_type: StubType = StubType.ZERO):
+    io = obj
+    _ = _stubify_impl(io.ports.values(), stub_type)
+
+
+def circuit_stub(cls=None, *, stub_type: StubType = StubType.ZERO):
     """
     Inspired by https://pybit.es/decorator-optional-argument.html.
 

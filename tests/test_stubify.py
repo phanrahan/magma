@@ -19,10 +19,11 @@ def _make_io():
     )
 
 
-def _run_test(cls, out_name, gold_name):
+def _run_test(cls, out_name, gold_name, skip_open_check=False):
     # Check that open doesn't work.
-    with pytest.raises(NotImplementedError):
-        cls.open()
+    if not skip_open_check:
+        with pytest.raises(NotImplementedError):
+            cls.open()
 
     assert m.isdefinition(cls)
     m.compile(f"build/{out_name}", cls, output="coreir")
@@ -54,3 +55,12 @@ def test_subclass():
         io = _make_io()
 
     _run_test(_Foo, "test_stubify_subclass", "test_stubify")
+
+
+def test_io():
+
+    class _Foo(m.Circuit):
+        io = _make_io()
+        m.stubify(io)
+
+    _run_test(_Foo, "test_stubify_io", "test_stubify", skip_open_check=True)
