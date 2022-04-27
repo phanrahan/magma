@@ -9,7 +9,7 @@ class _MixedTuple(m.Product):
     y = m.Out(m.Bit)
 
 
-def test_circuit_stub_basic():
+def test_basic():
 
     @m.circuit_stub
     class _Foo(m.Circuit):
@@ -24,13 +24,13 @@ def test_circuit_stub_basic():
         _Foo.open()
 
     assert m.isdefinition(_Foo)
-    out_name = "test_circuit_stub_basic"
+    out_name = "test_stubify_basic"
     m.compile(f"build/{out_name}", _Foo, output="coreir")
     assert check_files_equal(
         __file__, f"build/{out_name}.json", f"gold/{out_name}.json")
 
 
-def test_circuit_stub_subclass():
+def test_subclass():
 
     class _Foo(m.CircuitStub):
         io = m.IO(I=m.In(m.Bit),
@@ -44,9 +44,9 @@ def test_circuit_stub_subclass():
         _Foo.open()
 
     assert m.isdefinition(_Foo)
-    out_name = "test_circuit_stub_subclass"
+    out_name = "test_stubify_subclass"
     m.compile(f"build/{out_name}", _Foo, output="coreir")
     assert check_files_equal(
         __file__,
         f"build/{out_name}.json",
-        f"gold/test_circuit_stub_basic.json")
+        f"gold/test_stubify_basic.json")
