@@ -1,6 +1,5 @@
-import enum
 import functools
-from typing import Iterable
+from typing import Callable, Iterable
 
 from magma.circuit import CircuitKind, CircuitType, DefineCircuitKind
 from magma.conversions import as_bits
@@ -9,53 +8,44 @@ from magma.value_utils import ValueVisitor
 from magma.t import Type
 
 
-class StubType(enum.Enum):
-    ZERO = enum.auto()
+Stubbifier = Callable[[Type], bool]
+
+
+def zero_stubbifier(value: Type) -> bool:
+    if value.is_output():
+        value.unused()
+        return True
+    if value.is_input():
+        bits = as_bits(value)
+        bits @= 0
+        return True
+    return False
 
 
 class _StubifyVisitor(ValueVisitor):
-    def __init__(self, stub_type: StubType):
-        self._stub_type = stub_type
+    def __init__(self, stubbifier: Stubbifier):
+        self._stubbifier = stubbifier
         self._modified = False
 
     @property
     def modified(self):
         return self._modified
 
-    def _drive_output(self, value):
-        if self._stub_type == StubType.ZERO:
-            bits = as_bits(value)
-            bits @= 0
-            return
-        raise NotImplementedError(self._stub_type)
-
-    def _handle_value(self, value, leaf=False):
-        if value.is_output():
+    def generic_visit(self, value: Type):
+        modified = self._stubbifier(value)
+        if modified:
             self._modified = True
-            value.unused()
-            return
-        if value.is_input():
-            self._modified = True
-            self._drive_output(value)
-            return
-        if leaf:
             return
         super().generic_visit(value)
 
-    def generic_visit(self, value):
-        self._handle_value(value, leaf=False)
 
-    def visit_Bits(self, value):
-        self._handle_value(value, leaf=True)
-
-    def visit_Digital(self, value):
-        self._handle_value(value, leaf=True)
-
-
-def _stubify_impl(ports: Iterable[Type], stub_type: StubType) -> bool:
+def _stubify_impl(
+        ports: Iterable[Type],
+        stubbifier: Stubbifier = zero_stubbifier
+) -> bool:
     modified = False
     for port in ports:
-        visitor = _StubifyVisitor(stub_type)
+        visitor = _StubifyVisitor(stubbifier)
         visitor.visit(port)
         modified = modified or visitor.modified
     return modified
@@ -66,15 +56,15 @@ def _stub_open(cls):
 
 
 @functools.singledispatch
-def stubify(obj, stub_type: StubType = StubType.ZERO):
+def stubify(obj, stubbifier: Stubbifier = zero_stubbifier):
     raise NotImplementedError()
 
 
 @stubify.register
-def _(obj: CircuitKind, stub_type: StubType = StubType.ZERO):
+def _(obj: CircuitKind, stubbifier: Stubbifier = zero_stubbifier):
     ckt = obj
     with ckt.open():
-        modified = _stubify_impl(ckt.interface.ports.values(), stub_type)
+        modified = _stubify_impl(ckt.interface.ports.values(), stubbifier)
     if modified:
         # NOTE(rsetaluri): This is a hack because we don't have good handling of
         # isdefinition when the circuit is modified. We should be doing that
@@ -88,22 +78,22 @@ def _(obj: CircuitKind, stub_type: StubType = StubType.ZERO):
 
 
 @stubify.register
-def _(obj: IOInterface, stub_type: StubType = StubType.ZERO):
+def _(obj: IOInterface, stubbifier: Stubbifier = zero_stubbifier):
     io = obj
-    _ = _stubify_impl(io.ports.values(), stub_type)
+    _ = _stubify_impl(io.ports.values(), stubbifier)
 
 
-def circuit_stub(cls=None, *, stub_type: StubType = StubType.ZERO):
+def circuit_stub(cls=None, *, stubbifier: Stubbifier = zero_stubbifier):
     """
     Inspired by https://pybit.es/decorator-optional-argument.html.
 
-    Stub-ifys a circuit, based on optional parameter @stub_type. Default
+    Stub-ifys a circuit, based on optional parameter @stubbifier. Default
     behavior is driving all outputs to zero. All inputs will be marked as unused
     automatically as well.
     """
     if cls is None:
-        return partial(circuit_stub, stub_type=stub_type)
-    stubify(cls, stub_type)
+        return partial(circuit_stub, stubbifier=stubbifier)
+    stubify(cls, stubbifier)
     return cls
 
 
@@ -113,7 +103,7 @@ class _CircuitStubMeta(DefineCircuitKind):
         # Only call stubify() on user circuits (i.e. do not call on CircuitStub
         # base class).
         if not dct.get("_circuit_base_", False):
-            stubify(cls, stub_type=StubType.ZERO)
+            stubify(cls, stubbifier=zero_stubbifier)
         return cls
 
 
