@@ -22,10 +22,11 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
-    visit_magma_value_or_value_wrapper_by_direction
+    visit_magma_value_or_value_wrapper_by_direction,
+    get_compile_guard2s_of_module as get_compile_guard2s_of_magma_module,
 )
 from magma.backend.mlir.mlir import (
-    MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
+    MlirBlock, MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
 )
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
@@ -35,7 +36,8 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.compile_guard2 import CompileGuard2
+from magma.common import filter_by_key, nest_context_managers
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
@@ -731,14 +733,36 @@ class ModuleVisitor:
             hw.ConstantOp(value=int(value), results=module.results)
             return True
 
+    def _get_or_make_compile_guard2_block(
+            self, guard: CompileGuard2
+    ) -> MlirBlock:
+        try:
+            return self._ctx._compile_guard2_blocks[guard]
+        except KeyError:
+            pass
+        if_def = sv.IfDefOp(guard.cond)
+        block = if_def.then_block if guard.cond_type else if_def.else_block
+        return self._ctx._compile_guard2_blocks.setdefault(guard, block)
+
+    def _make_compile_guard2_context_manager(
+            self, magma_module: MagmaModuleLike
+    ) -> contextlib.AbstractContextManager:
+        blocks = (
+            self._get_or_make_compile_guard2_block(guard)
+            for guard in get_compile_guard2s_of_magma_module(magma_module)
+        )
+        return nest_context_managers(*(push_block(block) for block in blocks))
+
     @wrap_with_not_implemented_error
     def visit_module(self, module: ModuleWrapper) -> bool:
         if isinstance(module.module, DefineCircuitKind):
             return True
         if isinstance(module.module, AnonymousCircuitType):
-            return self.visit_instance(module)
+            with self._make_compile_guard2_context_manager(module.module):
+                return self.visit_instance(module)
         if isinstance(module.module, MagmaInstanceWrapper):
-            return self.visit_instance_wrapper(module)
+            with self._make_compile_guard2_context_manager(module.module):
+                return self.visit_instance_wrapper(module)
 
     def visit(self, module: MagmaModuleLike):
         if module in self._visited:
@@ -894,6 +918,7 @@ class HardwareModule:
         self._hw_module = None
         self._name_gen = ScopedNameGenerator()
         self._value_map = {}
+        self._compile_guard2_blocks = {}
 
     @property
     def magma_defn_or_decl(self) -> CircuitKind:
@@ -914,6 +939,10 @@ class HardwareModule:
     @property
     def name(self) -> str:
         return self._magma_defn_or_decl.name
+
+    @property
+    def compile_guard2_blocks(self) -> Mapping:
+        return self._compile_guard2_blocks
 
     def get_mapped_value(self, port: Type) -> MlirValue:
         return self._value_map[port]
