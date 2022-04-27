@@ -67,7 +67,7 @@ def _stub_open(cls):
     raise NotImplementedError("Can not call open() on a circuit stub")
 
 
-def stubify(ckt: CircuitKind, stub_type: StubType):
+def stubify(ckt: CircuitKind, stub_type: StubType = StubType.ZERO):
     with ckt.open():
         _stubify_impl(ckt, stub_type)
     # Set ckt.open to be a function which raises a NotImplementedError. Note
