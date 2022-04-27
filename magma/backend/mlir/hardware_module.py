@@ -230,8 +230,7 @@ class ModuleVisitor:
         self._ctx = ctx
         self._visited = set()
 
-    @functools.lru_cache()
-    def make_constant(
+    def _make_constant_impl(
             self, T: Kind, value: Optional[Any] = None) -> MlirValue:
         result = self._ctx.new_value(T)
         if isinstance(T, (DigitalMeta, BitsMeta)):
@@ -240,16 +239,27 @@ class ModuleVisitor:
             return result
         if isinstance(T, ArrayMeta):
             value = value if value is not None else (None for _ in range(T.N))
-            operands = [self.make_constant(T.T, v) for v in value]
+            operands = [self._make_constant_impl(T.T, v) for v in value]
             hw.ArrayCreateOp(operands=operands, results=[result])
             return result
         if isinstance(T, TupleMeta):
             fields = T.field_dict.items()
             value = value if value is not None else {k: None for k, _ in fields}
-            operands = [self.make_constant(t, value[k]) for k, t in fields]
+            operands = [self._make_constant_impl(t, value[k]) for k, t in fields]
             hw.StructCreateOp(operands=operands, results=[result])
             return result
         raise TypeError(T)
+
+    @functools.lru_cache()
+    def make_constant(self, T: Kind, value: Optional[Any] = None) -> MlirValue:
+        # NOTE(rsetaluri): We enforce that all constants are instantiated
+        # (i.e. hw.const op's) at the top (hw.module) level. This is needed for
+        # compile_guard2 support, since we don't necessarily have the full
+        # context for constants *and* we would like to cache them. Note that if
+        # we did not desire to cache constants we would not need to do this, and
+        # create all constants fresh and on the fly.
+        with push_block(self._ctx.hw_module):
+            return self._make_constant_impl(T, value)
 
     @wrap_with_not_implemented_error
     def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
@@ -973,6 +983,11 @@ class HardwareModule:
             name=name,
             operands=inputs,
             results=named_outputs)
+        # NOTE(rsetaluri): See the comment in ModuleVisitor.make_constant for
+        # more information on why we need to save this here. When we override in
+        # HardwareModule.compile, it shouldn't have any effect in the definition
+        # case.
+        self._hw_module = op
         build_magma_graph_opts = BuildMagmaGrahOpts(
             self._opts.flatten_all_tuples)
         graph = build_magma_graph(
