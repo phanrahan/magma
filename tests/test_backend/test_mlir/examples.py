@@ -478,8 +478,13 @@ class complex_compile_guard2(m.Circuit):
     with m.compile_guard2("COND1", cond_type="defined"):
         out = m.concat(io.I.x[4:], io.I.x[:4])
         out = m.Register(m.Bits[8])()(out)
+        with m.compile_guard2("COND2", cond_type="undefined"):
+            m.Register(m.Bits[2])()(out[5:7])
+        with m.compile_guard2("COND3", cond_type="undefined"):
+            m.Register(m.Bits[6])()(out[2:8])
         out = m.Register(m.Bit)()(out[0])
     io.O @= io.I
+
 
 m.passes.clock.WireClockPass(complex_compile_guard2).run()
 
