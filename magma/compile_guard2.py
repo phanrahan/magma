@@ -1,15 +1,7 @@
 import enum
 from typing import List
 
-from magma.common import Stack
-
-
-_compile_guard2_stack = Stack()
-
-
-def get_compile_guard2s() -> List['CompileGuard2']:
-    global _compile_guard2_stack
-    return _compile_guard2_stack.raw()
+from magma.definition_context import get_definition_context
 
 
 class CondType(enum.Enum):
@@ -29,6 +21,7 @@ class CompileGuard2:
         """
         self._cond = cond
         self._cond_type = CondType[cond_type]
+        self._ctx = None
 
     @property
     def cond(self) -> str:
@@ -39,12 +32,13 @@ class CompileGuard2:
         return self._cond_type
 
     def __enter__(self):
-        global _compile_guard2_stack
-        _compile_guard2_stack.push(self)
+        if self._ctx is not None:
+            raise RuntimeError("Can not reuse compile_guard2")
+        self._ctx = get_definition_context()
+        self._ctx.compile_guard2_stack.push(self)
 
     def __exit__(self, typ, value, traceback):
-        global _compile_guard2_stack
-        head = _compile_guard2_stack.pop()
+        head = self._ctx.compile_guard2_stack.pop()
         assert head is self
 
 

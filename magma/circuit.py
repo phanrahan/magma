@@ -27,7 +27,6 @@ except ImportError:
     pass
 
 from magma.clock import is_clock_or_nested_clock, Clock, ClockTypes
-from magma.compile_guard2 import get_compile_guard2s
 from magma.definition_context import (
     DefinitionContext,
     definition_context_manager,
@@ -384,7 +383,6 @@ class AnonymousCircuitType(object):
         self.used = False
         self.is_instance = True
         self.debug_info = kwargs.get("debug_info", None)
-        self._compile_guard2s_ = get_compile_guard2s().copy()
 
     def set_debug_info(self, debug_info):
         self.debug_info = debug_info
@@ -543,9 +541,11 @@ class CircuitType(AnonymousCircuitType):
         super(CircuitType, self).__init__(*largs, **kwargs)
         try:
             context = get_definition_context()
-            context.placer.place(self)
         except IndexError:  # instances must happen inside a definition context
             raise Exception("Can not instance a circuit outside a definition")
+        else:
+            self._compile_guard2s_ = context.compile_guard2_stack.raw().copy()
+            context.placer.place(self)
 
     def __repr__(self):
         args = []

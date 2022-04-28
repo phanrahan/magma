@@ -90,6 +90,7 @@ class DefinitionContext(FinalizableDelegator):
         super().__init__()
         self._placer = placer
         self._builders = []
+        self._compile_guard2_stack = Stack()
         self._logs = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
@@ -100,6 +101,10 @@ class DefinitionContext(FinalizableDelegator):
 
     def add_builder(self, builder):
         self._builders.append(builder)
+
+    @property
+    def compile_guard2_stack(self) -> Stack:
+        return self._compile_guard2_stack
 
     @property
     def logs(self) -> List:
