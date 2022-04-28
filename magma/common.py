@@ -25,6 +25,12 @@ class Stack:
     def __bool__(self) -> bool:
         return bool(self._stack)
 
+    def __iter__(self):
+        return iter(self._stack)
+
+    def clear(self):
+        self._stack.clear()
+
 
 class _Ref(object):
     def __init__(self, value):

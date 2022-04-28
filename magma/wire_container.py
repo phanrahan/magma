@@ -1,4 +1,5 @@
 from magma.logging import root_logger, StagedLogRecord
+from magma.when import WHEN_COND_STACK
 
 
 _logger = root_logger()
@@ -168,6 +169,9 @@ class Wireable:
         i._wire.unwire(o._wire)
 
     def wire(self, o, debug_info):
-        self._wire.connect(o._wire, debug_info)
-        self.debug_info = debug_info
-        o.debug_info = debug_info
+        if WHEN_COND_STACK:
+            WHEN_COND_STACK.peek().add_assignment(self, o, debug_info)
+        else:
+            self._wire.connect(o._wire, debug_info)
+            self.debug_info = debug_info
+            o.debug_info = debug_info
