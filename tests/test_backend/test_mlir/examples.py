@@ -473,16 +473,22 @@ m.passes.clock.WireClockPass(simple_compile_guard2).run()
 
 
 class complex_compile_guard2(m.Circuit):
-    T = m.Product.from_fields("anon", dict(x=m.In(m.Bits[8]), y=m.Out(m.Bit)))
+    # This test needs to check that the following work:
+    # (1) Using sub-fields of complex types inside compile_guard2.
+    # (2) Using a result from an outer compile_guard2 inside of a nested
+    #     compile_guard2.
+    # (3) Using multiple "type operations" (e.g. array/tuple get/create) inside
+    #     of a compile_guard2, i.e. between instances of one (or children)
+    #     compile_guard2s.
+    S = m.Product.from_fields("anon", dict(a=m.Bits[4], b=m.Bits[4]))
+    T = m.Product.from_fields("anon", dict(x=m.In(S), y=m.Out(m.Bit)))
     io = m.IO(I=T, O=T.flip()) + m.ClockIO()
-    with m.compile_guard2("COND1", cond_type="defined"):
-        out = m.concat(io.I.x[4:], io.I.x[:4])
-        out = m.Register(m.Bits[8])()(out)
-        with m.compile_guard2("COND2", cond_type="undefined"):
-            m.Register(m.Bits[2])()(out[5:7])
-        with m.compile_guard2("COND3", cond_type="undefined"):
-            m.Register(m.Bits[6])()(out[2:8])
-        out = m.Register(m.Bit)()(out[0])
+    with m.compile_guard2("COND1"):
+        u = m.register(S(io.I.x.b, io.I.x.a))
+        with m.compile_guard2("COND2"):
+            m.register(S(u.b, u.a))
+        with m.compile_guard2("COND3"):
+            m.register(u.a[1:3])
     io.O @= io.I
 
 
