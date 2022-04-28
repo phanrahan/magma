@@ -26,7 +26,8 @@ from magma.backend.mlir.magma_common import (
     get_compile_guard2s_of_module as get_compile_guard2s_of_magma_module,
 )
 from magma.backend.mlir.mlir import (
-    MlirBlock, MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
+    MlirBlock, MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block,
+    get_block_stack,
 )
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
@@ -37,7 +38,7 @@ from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.compile_guard2 import CompileGuard2
-from magma.common import filter_by_key, nest_context_managers
+from magma.common import filter_by_key
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
@@ -741,17 +742,26 @@ class ModuleVisitor:
         except KeyError:
             pass
         if_def = sv.IfDefOp(guard.cond)
-        block = if_def.then_block if guard.cond_type else if_def.else_block
+        block = (
+            if_def.then_block
+            if guard.cond_type.name == "defined"
+            else if_def.else_block
+        )
         return self._ctx._compile_guard2_blocks.setdefault(guard, block)
 
+    @contextlib.contextmanager
     def _make_compile_guard2_context_manager(
-            self, magma_module: MagmaModuleLike
-    ) -> contextlib.AbstractContextManager:
-        blocks = (
-            self._get_or_make_compile_guard2_block(guard)
-            for guard in get_compile_guard2s_of_magma_module(magma_module)
-        )
-        return nest_context_managers(*(push_block(block) for block in blocks))
+            self, magma_module: MagmaModuleLike):
+        block_stack = get_block_stack()
+        guards = get_compile_guard2s_of_magma_module(magma_module)
+        for guard in guards:
+            block = self._get_or_make_compile_guard2_block(guard)
+            block_stack.push(block)
+        try:
+            yield
+        finally:
+            for _ in range(len(guards)):
+                block_stack.pop()
 
     @wrap_with_not_implemented_error
     def visit_module(self, module: ModuleWrapper) -> bool:

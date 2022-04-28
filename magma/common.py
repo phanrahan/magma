@@ -252,11 +252,3 @@ def wrap_with_context_manager(ctx_mgr):
         return wrapper
 
     return decorator
-
-
-@contextlib.contextmanager
-def nest_context_managers(
-        *ctx_mgrs: List[contextlib.AbstractContextManager]
-) -> contextlib.AbstractContextManager:
-    with contextlib.ExitStack() as stack:
-        yield [stack.enter_context(ctx_mgr) for ctx_mgr in ctx_mgrs]

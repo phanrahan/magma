@@ -196,8 +196,8 @@ def _postprocess_compile_guard2s(graph: Graph):
                 set(guards).issubset(grandchild_guards)
                 for grandchild_guards in grandchildren_guards
             )
-            assert "compile_guard2s" not in succ.metadata
-            succ.metadata["compile_guard2s"] = guards
+            if succ.metadata.setdefault("compile_guard2s", guards) != guards:
+                raise Exception()
 
 
 def build_magma_graph(
