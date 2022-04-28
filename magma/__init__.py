@@ -115,3 +115,11 @@ from magma.stubify import circuit_stub, stubify, CircuitStub
 from magma.compile import MagmaCompileException
 from magma.linking import link_module, link_default_module, clear_link_info
 import magma.math
+
+################################################################################
+# BEGIN ALIASES
+################################################################################
+Reg = Register
+################################################################################
+# END ALIASES
+################################################################################
