@@ -11,8 +11,10 @@ from magma.backend.coreir.coreir_utils import (
     get_module_of_inst, magma_interface_to_coreir_module_type,
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
-from magma.compile_exception import UnconnectedPortException
-from magma.inline_verilog_expression import InlineVerilogExpression
+from magma.compile_exception import (
+    UnconnectedPortException,
+    UnsupportedOpException
+)
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.linking import (
@@ -253,6 +255,12 @@ class InstanceTransformer(LeafTransformer):
         _logger.debug(
             f"Compiling instance {(self.inst.name, type(self.inst).name)}"
         )
+        if self.inst._compile_guard2s_:
+            msg = (
+                f"compile_guard2 (found in {self.defn.name}) not supported by "
+                f"CoreIR backend"
+            )
+            raise UnsupportedOpException(msg)
         defn = type(self.inst)
         if hasattr(self.inst, "namespace"):
             lib = self.backend.get_lib(self.inst.namespace)

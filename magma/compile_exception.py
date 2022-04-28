@@ -34,3 +34,7 @@ class UnconnectedPortException(MagmaCompileException):
         error_str, format_args = make_unconnected_error_str(port)
         msg += error_str.format(*(arg.debug_name for arg in format_args))
         super().__init__(msg)
+
+
+class UnsupportedOpException(MagmaCompileException):
+    pass

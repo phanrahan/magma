@@ -1,4 +1,7 @@
+import pytest
+
 import magma as m
+from magma.compile_exception import UnsupportedOpException
 
 
 def test_basic():
@@ -36,3 +39,14 @@ def test_nested_circuit_definition():
             assert inst._compile_guard2s_[0].cond == "X"
             assert len(type(inst).instances[0]._compile_guard2s_) == 1
             assert type(inst).instances[0]._compile_guard2s_[0].cond == "Y"
+
+
+def test_coreir_backend_exception():
+
+    class _Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bit))
+        with m.compile_guard2("X"):
+            m.register(io.I)
+
+    with pytest.raises(UnsupportedOpException):
+        m.compile("", _Foo, output="coreir")
