@@ -147,6 +147,9 @@ class TupleKind(TupleMeta, Kind):
     def N(cls):
         return len(cls.fields)
 
+    def __len__(cls):
+        return cls.N
+
     def __str__(cls):
         if not cls.is_bound:
             return cls.__name__
@@ -301,12 +304,15 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             o_elem = magma_value(o_elem)
             wire(o_elem, i_elem, debug_info)
 
-    def unwire(i, o):
-        for i_elem, o_elem in zip(i, o):
-            if o_elem.is_input():
-                o_elem.unwire(i_elem)
+    @debug_wire
+    def unwire(self, o=None, debug_info=None):
+        for k, t in self.items():
+            if o is None:
+                t.unwire(debug_info=debug_info)
+            elif o[k].is_input():
+                o[k].unwire(t, debug_info=debug_info)
             else:
-                i_elem.unwire(o_elem)
+                t.unwire(o[k], debug_info=debug_info)
 
     def driven(self):
         for t in self.ts:

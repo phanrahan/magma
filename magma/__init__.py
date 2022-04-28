@@ -18,7 +18,7 @@ def cache_definition(fn):
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 
 # wires
-from .wire import wire
+from .wire import wire, unwire
 
 # types
 from .t import *
