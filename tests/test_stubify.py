@@ -1,7 +1,6 @@
 import pytest
 
 import magma as m
-from magma.testing import check_files_equal
 
 
 class _MixedTuple(m.Product):
@@ -19,16 +18,21 @@ def _make_io():
     )
 
 
-def _run_test(cls, out_name, gold_name, skip_open_check=False):
-    # Check that open doesn't work.
-    if not skip_open_check:
-        with pytest.raises(NotImplementedError):
-            cls.open()
+def _get_inputs(obj):
+    yield obj.O
+    yield obj.mixed.y
+    yield from obj.O3
 
-    assert m.isdefinition(cls)
-    m.compile(f"build/{out_name}", cls, output="coreir")
-    assert check_files_equal(
-        __file__, f"build/{out_name}.json", f"gold/{gold_name}.json")
+
+def _get_outputs(obj):
+    yield obj.I
+    yield from obj.I0
+    yield obj.mixed.x
+
+
+def _check_open_not_implemented(cls):
+    with pytest.raises(NotImplementedError):
+        cls.open()
 
 
 def test_stubify_ckt():
@@ -37,7 +41,11 @@ def test_stubify_ckt():
         io = _make_io()
 
     m.stubify(_Foo)
-    _run_test(_Foo, "test_stubify_stubify_ckt", "test_stubify")
+
+    assert m.isdefinition(_Foo)
+    _check_open_not_implemented(_Foo)
+    drivers = (port.trace() for port in _get_inputs(_Foo))
+    assert all(driver.const() and int(driver) == 0 for driver in drivers)
 
 
 def test_decorator():
@@ -46,7 +54,10 @@ def test_decorator():
     class _Foo(m.Circuit):
         io = _make_io()
 
-    _run_test(_Foo, "test_stubify_decorator", "test_stubify")
+    assert m.isdefinition(_Foo)
+    _check_open_not_implemented(_Foo)
+    drivers = (port.trace() for port in _get_inputs(_Foo))
+    assert all(driver.const() and int(driver) == 0 for driver in drivers)
 
 
 def test_subclass():
@@ -54,7 +65,10 @@ def test_subclass():
     class _Foo(m.CircuitStub):
         io = _make_io()
 
-    _run_test(_Foo, "test_stubify_subclass", "test_stubify")
+    assert m.isdefinition(_Foo)
+    _check_open_not_implemented(_Foo)
+    drivers = (port.trace() for port in _get_inputs(_Foo))
+    assert all(driver.const() and int(driver) == 0 for driver in drivers)
 
 
 def test_io():
@@ -63,4 +77,6 @@ def test_io():
         io = _make_io()
         m.stubify(io)
 
-    _run_test(_Foo, "test_stubify_io", "test_stubify", skip_open_check=True)
+    assert m.isdefinition(_Foo)
+    drivers = (port.trace() for port in _get_inputs(_Foo))
+    assert all(driver.const() and int(driver) == 0 for driver in drivers)
