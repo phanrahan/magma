@@ -175,29 +175,23 @@ def _postprocess_compile_guard2s(graph: Graph):
         guards = get_compile_guard2s_of_module(node)
         if not guards:
             continue
+        ancestors_to_guard = []
         for succ in graph.successors(node):
             if not isinstance(succ, InstanceWrapper):
                 continue
-            grandchildren = []
+            ancestors_to_guard.append(succ)
             working_set = Stack()
             working_set.push(succ)
             while working_set:
-                child = working_set.pop()
-                for grandchild in graph.successors(child):
-                    if isinstance(grandchild, InstanceWrapper):
-                        working_set.push(grandchild)
+                curr = working_set.pop()
+                for ancestor in graph.successors(curr):
+                    if not isinstance(ancestor, InstanceWrapper):
                         continue
-                    grandchildren.append(grandchild)
-            grandchildren_guards = (
-                set(get_compile_guard2s_of_module(grandchild))
-                for grandchild in grandchildren
-            )
-            consistent = all(
-                set(guards).issubset(grandchild_guards)
-                for grandchild_guards in grandchildren_guards
-            )
-            if succ.metadata.setdefault("compile_guard2s", guards) != guards:
-                raise Exception()
+                    working_set.push(ancestor)
+                    ancestors_to_guard.append(ancestor)
+        for ancestor in ancestors_to_guard:
+            new_guards = ancestor.metadata.setdefault("compile_guard2s", guards)
+            assert new_guards == guards
 
 
 def build_magma_graph(
