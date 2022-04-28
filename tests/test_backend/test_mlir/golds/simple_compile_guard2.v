@@ -10,14 +10,14 @@ module simple_compile_guard2(	// <stdin>:1:1
     initial	// <stdin>:7:9
       Register_inst0 = 1'h0;	// <stdin>:8:13, :12:10
   `endif
-  `ifdef COND2	// <stdin>:13:5
-    reg Register_inst1;	// <stdin>:14:14
+  `ifndef COND2	// <stdin>:13:5
+    reg Register_inst1;	// <stdin>:15:14
 
-    always_ff @(posedge CLK)	// <stdin>:15:9
-      Register_inst1 <= I;	// <stdin>:16:13
-    initial	// <stdin>:18:9
-      Register_inst1 = 1'h0;	// <stdin>:12:10, :19:13
+    always_ff @(posedge CLK)	// <stdin>:16:9
+      Register_inst1 <= I;	// <stdin>:17:13
+    initial	// <stdin>:19:9
+      Register_inst1 = 1'h0;	// <stdin>:12:10, :20:13
   `endif
-  assign O = I;	// <stdin>:23:5
+  assign O = I;	// <stdin>:24:5
 endmodule
 

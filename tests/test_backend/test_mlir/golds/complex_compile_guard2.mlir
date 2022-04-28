@@ -15,7 +15,6 @@ hw.module @complex_compile_guard2(%I_x: !hw.struct<a: i4, b: i4>, %O_y: i1, %CLK
         %9 = hw.struct_extract %3["a"] : !hw.struct<a: i4, b: i4>
         %10 = hw.struct_create (%8, %9) : !hw.struct<a: i4, b: i4>
         sv.ifdef "COND2" {
-        } else {
             %12 = sv.reg {name = "Register_inst1"} : !hw.inout<!hw.struct<a: i4, b: i4>>
             sv.alwaysff(posedge %CLK) {
                 sv.passign %12, %10 : !hw.struct<a: i4, b: i4>
@@ -29,7 +28,6 @@ hw.module @complex_compile_guard2(%I_x: !hw.struct<a: i4, b: i4>, %O_y: i1, %CLK
         %14 = comb.extract %9 from 2 : (i4) -> i1
         %15 = comb.concat %14, %13 : i1, i1
         sv.ifdef "COND3" {
-        } else {
             %17 = sv.reg {name = "Register_inst2"} : !hw.inout<i2>
             sv.alwaysff(posedge %CLK) {
                 sv.passign %17, %15 : i2
