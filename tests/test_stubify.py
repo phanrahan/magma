@@ -80,3 +80,22 @@ def test_io():
     assert m.isdefinition(_Foo)
     drivers = (port.trace() for port in _get_inputs(_Foo))
     assert all(driver.const() and int(driver) == 0 for driver in drivers)
+
+
+def test_instance():
+
+    class _Foo(m.Circuit):
+        io = _make_io()
+        # NOTE(rsetaluri): This stubbification is not the one we care about. It
+        # is just here to facilitate stubbing the instance of this circuit
+        # below.
+        m.stubify(io)
+
+    class _(m.Circuit):
+        io = m.IO()
+        inst = _Foo()
+        m.stubify(inst.interface)
+        # NOTE(rsetaluri): We have to use map() here because of quirks with
+        # doing list comprehension inside of class bodies.
+        drivers = map(lambda p: p.trace(), _get_outputs(inst))
+        assert all(map(lambda d: d.const() and int(d) == 0, drivers))

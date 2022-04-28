@@ -3,7 +3,6 @@ from typing import Callable, Iterable
 
 from magma.circuit import CircuitKind, CircuitType, DefineCircuitKind
 from magma.conversions import as_bits
-from magma.interface import IOInterface
 from magma.value_utils import ValueVisitor
 from magma.t import Type
 
@@ -56,8 +55,8 @@ def _stub_open(cls):
 
 
 @functools.singledispatch
-def stubify(obj, stubbifier: Stubbifier = zero_stubbifier):
-    raise NotImplementedError()
+def stubify(interface, stubbifier: Stubbifier = zero_stubbifier):
+    _ = _stubify_impl(interface.ports.values(), stubbifier)
 
 
 @stubify.register
@@ -75,12 +74,6 @@ def _(obj: CircuitKind, stubbifier: Stubbifier = zero_stubbifier):
     # to tie the outputs first (in stubify()). Afterwards, we can override the
     # method.
     setattr(ckt, "open", classmethod(_stub_open))
-
-
-@stubify.register
-def _(obj: IOInterface, stubbifier: Stubbifier = zero_stubbifier):
-    io = obj
-    _ = _stubify_impl(io.ports.values(), stubbifier)
 
 
 def circuit_stub(cls=None, *, stubbifier: Stubbifier = zero_stubbifier):
