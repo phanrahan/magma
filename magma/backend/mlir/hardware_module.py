@@ -248,7 +248,9 @@ class ModuleVisitor:
         if isinstance(T, TupleMeta):
             fields = T.field_dict.items()
             value = value if value is not None else {k: None for k, _ in fields}
-            operands = [self._make_constant_impl(t, value[k]) for k, t in fields]
+            operands = [
+                self._make_constant_impl(t, value[k]) for k, t in fields
+            ]
             hw.StructCreateOp(operands=operands, results=[result])
             return result
         raise TypeError(T)
