@@ -255,7 +255,7 @@ class InstanceTransformer(LeafTransformer):
         _logger.debug(
             f"Compiling instance {(self.inst.name, type(self.inst).name)}"
         )
-        if self.inst._compile_guard2s_:
+        if self.inst.compile_guard2s:
             msg = (
                 f"compile_guard2 (found in {self.defn.name}) not supported by "
                 f"CoreIR backend"

@@ -157,7 +157,7 @@ def get_compile_guard2s_of_module(module: ModuleLike) -> List[CompileGuard2]:
     if isinstance(module, DefineCircuitKind):
         return []
     if isinstance(module, AnonymousCircuitType):
-        return module._compile_guard2s_
+        return module.compile_guard2s
     if isinstance(module, InstanceWrapper):
         return module.metadata.get("compile_guard2s", [])
     raise TypeError(module)

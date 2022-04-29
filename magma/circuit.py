@@ -455,6 +455,13 @@ class AnonymousCircuitType(object):
             defn_str = str(self.defn.name)
         return f"{defn_str}.{self.name}"
 
+    @property
+    def compile_guard2s(self):
+        try:
+            return self._compile_guard2s
+        except AttributeError:
+            return list()
+
     def __call__(input, *outputs, **kw):
         debug_info = None
         if get_debug_mode():
@@ -544,7 +551,7 @@ class CircuitType(AnonymousCircuitType):
         except IndexError:  # instances must happen inside a definition context
             raise Exception("Can not instance a circuit outside a definition")
         else:
-            self._compile_guard2s_ = context.compile_guard2_stack.raw().copy()
+            self._compile_guard2s = context.compile_guard2_stack.raw().copy()
             context.placer.place(self)
 
     def __repr__(self):

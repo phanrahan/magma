@@ -11,10 +11,10 @@ def test_basic():
             with m.compile_guard2("Y", "undefined"):
                 inst = m.Register(m.Bit)()
 
-        assert inst._compile_guard2s_[0].cond == "X"
-        assert inst._compile_guard2s_[0].cond_type.name == "defined"
-        assert inst._compile_guard2s_[1].cond == "Y"
-        assert inst._compile_guard2s_[1].cond_type.name == "undefined"
+        assert inst.compile_guard2s[0].cond == "X"
+        assert inst.compile_guard2s[0].cond_type.name == "defined"
+        assert inst.compile_guard2s[1].cond == "Y"
+        assert inst.compile_guard2s[1].cond_type.name == "undefined"
 
 
 def test_nested_circuit_definition():
@@ -35,10 +35,10 @@ def test_nested_circuit_definition():
 
             # Check that the compile_guard2 invokations in this circuit and _Gen
             # stay isolated.
-            assert len(inst._compile_guard2s_) == 1
-            assert inst._compile_guard2s_[0].cond == "X"
-            assert len(type(inst).instances[0]._compile_guard2s_) == 1
-            assert type(inst).instances[0]._compile_guard2s_[0].cond == "Y"
+            assert len(inst.compile_guard2s) == 1
+            assert inst.compile_guard2s[0].cond == "X"
+            assert len(type(inst).instances[0].compile_guard2s) == 1
+            assert type(inst).instances[0].compile_guard2s[0].cond == "Y"
 
 
 def test_coreir_backend_exception():
