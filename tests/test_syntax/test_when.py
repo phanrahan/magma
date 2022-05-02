@@ -45,3 +45,18 @@ def test_when_override():
     assert check_files_equal(__file__,
                              "build/test_when_override.v",
                              "gold/test_when_override.v")
+
+
+def test_when_else():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S) as cond:
+            io.O @= io.I[0]
+        with cond.otherwise() as cond:
+            io.O @= io.I[1]
+
+    m.compile("build/test_when_else", Foo, inline=True)
+    assert check_files_equal(__file__,
+                             "build/test_when_else.v",
+                             "gold/test_when_else.v")
