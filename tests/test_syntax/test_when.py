@@ -60,3 +60,20 @@ def test_when_else():
     assert check_files_equal(__file__,
                              "build/test_when_else.v",
                              "gold/test_when_else.v")
+
+
+def test_when_elsewhen():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[3]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]) as cond:
+            io.O @= io.I[0]
+        with cond.elsewhen(io.S[1]) as cond:
+            io.O @= io.I[1]
+        with cond.otherwise() as cond:
+            io.O @= io.I[2]
+
+    m.compile("build/test_when_elsewhen", Foo, inline=True)
+    assert check_files_equal(__file__,
+                             "build/test_when_elsewhen.v",
+                             "gold/test_when_elsewhen.v")
