@@ -8,7 +8,7 @@ import weakref
 
 from magma.array import Array, ArrayMeta
 from magma.backend.mlir.build_magma_graph import (
-    BuildMagmaGrahOpts, build_magma_graph
+    BuildMagmaGrahOpts, build_magma_graph, write_debug_magma_graph
 )
 from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.comb import comb
@@ -1033,6 +1033,8 @@ class HardwareModule:
             self._opts.flatten_all_tuples)
         graph = build_magma_graph(
             self._magma_defn_or_decl, build_magma_graph_opts)
+        if self._opts.debug_magma_graph:
+            write_debug_magma_graph(graph, f"{self._magma_defn_or_decl.name}_graph.dot")
         visitor = ModuleVisitor(graph, self)
         with push_block(op):
             visitor.visit(self._magma_defn_or_decl)

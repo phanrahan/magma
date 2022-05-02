@@ -486,7 +486,9 @@ class complex_compile_guard2(m.Circuit):
     with m.compile_guard2("COND1"):
         u = m.register(S(io.I.x.b, io.I.x.a))
         with m.compile_guard2("COND2"):
-            m.register(S(u.b, u.a))
+            v = m.register(S(u.b, u.a))
+            with m.compile_guard2("COND2A"):
+                m.register(m.concat(v.a, u.b))
         with m.compile_guard2("COND3"):
             m.register(u.a[1:3])
     io.O @= io.I

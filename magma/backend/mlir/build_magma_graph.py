@@ -2,7 +2,7 @@ import dataclasses
 from typing import Any, Callable, Tuple
 
 from magma.array import Array
-from magma.backend.mlir.graph_lib import Graph
+from magma.backend.mlir.graph_lib import Graph, write_to_dot
 from magma.backend.mlir.magma_common import (
     ModuleLike, visit_value_or_value_wrapper_by_direction, safe_root,
     InstanceWrapper, get_compile_guard2s_of_module,
@@ -67,10 +67,10 @@ class ModuleContext:
             op_maker: Callable,
             args: Tuple[Any]) -> InstanceWrapper:
         key = (value, index)
-        try:
-            return self._getter_cache[key]
-        except KeyError:
-            pass
+        # try:
+        #     return self._getter_cache[key]
+        # except KeyError:
+        #     pass
         getter = op_maker(type(value), *args)
         _visit_driver(self, getter.I, value, getter)
         self._getter_cache[key] = getter
@@ -191,7 +191,42 @@ def _postprocess_compile_guard2s(graph: Graph):
                     ancestors_to_guard.append(ancestor)
         for ancestor in ancestors_to_guard:
             new_guards = ancestor.metadata.setdefault("compile_guard2s", guards)
-            assert new_guards == guards
+            #assert new_guards == guards
+
+
+def write_debug_magma_graph(graph: Graph, filename: str):
+    from magma.circuit import DefineCircuitKind, Circuit
+    from magma.t import Type
+    from magma.backend.mlir.magma_common import InstanceWrapper, ValueWrapper
+
+    debug_graph = Graph()
+
+    def make_str(node):
+        if isinstance(node, DefineCircuitKind):
+            return node.name
+        if isinstance(node, Circuit):
+            return node.name
+        if isinstance(node, Type):
+            return repr(node)
+        if isinstance(node, InstanceWrapper):
+            return node.name + str(id(node))
+        if isinstance(node, ValueWrapper):
+            return node.name + str(node.id)
+        return str(node)
+
+    debug_graph.add_nodes_from(map(make_str, graph.nodes()))
+    for src, dst, data in graph.edges(data=True):
+        src, dst = map(make_str, (src, dst))
+        label = str(data)
+        if "info" in data:
+            info = data["info"]
+            label = f"{make_str(info['src'])} -> {make_str(info['dst'])}"
+            #label = str({k: make_str(v) for k, v in info.items()})
+            if "CLK" in label:
+                continue
+        debug_graph.add_edge(src, dst, label=label, key=label)
+
+    write_to_dot(debug_graph, filename)
 
 
 def build_magma_graph(
