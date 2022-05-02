@@ -150,6 +150,7 @@ class DefinitionContext(FinalizableDelegator):
                     cond &= next_
                 args.append(cond)
 
+            # TODO(when): Reconstruct original if statement structure
             class ConditionalDriver(m.Circuit):
                 io = m.IO(**ports)
                 io += m.IO(O=m.Out(type(value)))
