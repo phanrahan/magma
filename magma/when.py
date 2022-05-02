@@ -32,8 +32,5 @@ class WhenCtx:
     def cond(self):
         return self._cond
 
-    def add_assignment(self, input, output, debug_info):
-        self._assignments.append((input, output, debug_info))
-
 
 when = WhenCtx

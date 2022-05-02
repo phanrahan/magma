@@ -93,6 +93,7 @@ class DefinitionContext(FinalizableDelegator):
         self._logs = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
+        self._conditional_values = []
 
     @property
     def placer(self) -> PlacerBase:
@@ -127,7 +128,46 @@ class DefinitionContext(FinalizableDelegator):
             self._placer.place(inst)
 
     def finalize(self, defn):
+        for value in self._conditional_values:
+            # TODO(when): Avoid circular import
+            import magma as m
+
+            if None in value._conditional_drivers:
+                default = value._conditional_drivers[None]
+                del value._conditional_drivers[None]
+                value._conditional_drivers[None] = default
+            ports = {}
+            args = []
+            items = value._conditional_drivers.items()
+            for i, (conds, driver) in enumerate(items):
+                ports[f"I{i}"] = m.In(type(driver))
+                args.append(driver)
+                if conds is None:
+                    continue
+                ports[f"C{i}"] = m.In(m.Bit)
+                cond = conds[0]
+                for next_ in conds[1:]:
+                    cond &= next_
+                args.append(cond)
+
+            class ConditionalDriver(m.Circuit):
+                io = m.IO(**ports)
+                io += m.IO(O=m.Out(type(value)))
+                verilog = "always @(*) begin\n"
+                for i, cond in enumerate(value._conditional_drivers):
+                    if cond is None:
+                        verilog += f"    else assign O = I{i};\n"
+                    elif i > 0:
+                        verilog += f"    else if (C{i}) assign O = I{i};\n"
+                    else:
+                        verilog += f"    if (C{i}) assign O = I{i};\n"
+                verilog += "end"
+
+            value @= ConditionalDriver()(*args)
         super().finalize()
+
+    def add_conditional_value(self, value):
+        self._conditional_values.append(value)
 
 
 def push_definition_context(

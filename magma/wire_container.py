@@ -147,6 +147,7 @@ class Wire:
 class Wireable:
     def __init__(self):
         self._wire = Wire(self)
+        self._conditional_drivers = {}
 
     def wired(self):
         return self._wire.wired()
@@ -170,7 +171,16 @@ class Wireable:
 
     def wire(self, o, debug_info):
         if WHEN_COND_STACK:
-            WHEN_COND_STACK.peek().add_assignment(self, o, debug_info)
+            # TODO(when): Circular import
+            from magma.definition_context import get_definition_context
+            get_definition_context().add_conditional_value(self)
+            if self.driven():
+                value = self.value()
+                self._conditional_drivers[None] = value
+                self.unwire(value)
+            key = tuple(c.cond for c in WHEN_COND_STACK)
+            # TODO(when): Add debug_info
+            self._conditional_drivers[key] = o
         else:
             self._wire.connect(o._wire, debug_info)
             self.debug_info = debug_info
