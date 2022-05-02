@@ -15,12 +15,6 @@ class WhenCtx:
 
     def __exit__(self, exc_type, exc_value, traceback):
         WHEN_COND_STACK.pop()
-        for input, output, debug_info in self._assignments:
-            value = self._cond.ite(output, input.value())
-            if WHEN_COND_STACK:
-                WHEN_COND_STACK.peek().add_assignment(input, value, debug_info)
-            else:
-                input @= value
 
     def elsewhen(self, cond):
         raise NotImplementedError()

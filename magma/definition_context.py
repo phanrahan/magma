@@ -93,7 +93,7 @@ class DefinitionContext(FinalizableDelegator):
         self._logs = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
-        self._conditional_values = []
+        self._conditional_values = set()
 
     @property
     def placer(self) -> PlacerBase:
@@ -164,11 +164,15 @@ class DefinitionContext(FinalizableDelegator):
                         verilog += f"    if (C{i}) assign O = I{i};\n"
                 verilog += "end"
 
+            value._conditional_drivers = {}
             value @= ConditionalDriver()(*args)
         super().finalize()
 
     def add_conditional_value(self, value):
-        self._conditional_values.append(value)
+        self._conditional_values.add(value)
+
+    def remove_conditional_value(self, value):
+        self._conditional_values.remove(value)
 
 
 def push_definition_context(

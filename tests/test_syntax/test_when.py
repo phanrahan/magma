@@ -29,3 +29,18 @@ def test_when_nested_with_default():
     assert check_files_equal(__file__,
                              "build/test_when_nested_with_default.v",
                              "gold/test_when_nested_with_default.v")
+
+
+def test_when_override():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        io.O @= io.I[1]
+        with m.when(io.S) as cond:
+            io.O @= io.I[0]
+        io.O @= io.I[1]
+
+    m.compile("build/test_when_override", Foo, inline=True)
+    assert check_files_equal(__file__,
+                             "build/test_when_override.v",
+                             "gold/test_when_override.v")
