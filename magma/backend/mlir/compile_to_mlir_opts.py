@@ -10,3 +10,4 @@ class CompileToMlirOpts:
     verilog_prefix: Optional[str] = None
     user_namespace: Optional[str] = None
     disable_initial_blocks: bool = False
+    elaborate_magma_registers: bool = False

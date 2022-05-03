@@ -69,3 +69,18 @@ def test_compile_to_mlir_disable_initial_blocks(ckt):
         "gold_name": f"{ckt.name}_disable_initial_blocks",
     }
     run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "ckt",
+    [
+        simple_register_wrapper,
+        complex_register_wrapper,
+    ]
+)
+def test_compile_to_mlir_elaborate_magma_registers(ckt):
+    kwargs = {
+        "elaborate_magma_registers": True,
+        "gold_name": f"{ckt.name}_elaborate_magma_registers"
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)

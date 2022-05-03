@@ -584,9 +584,10 @@ class ModuleVisitor:
         inst = module.module
         assert isinstance(inst, AnonymousCircuitType)
         defn = type(inst)
+        elaborate_magma_registers = self._ctx.opts.elaborate_magma_registers
         if isinstance(defn, Mux):
             return self.visit_magma_mux(module)
-        if isinstance(defn, Register):
+        if isinstance(defn, Register) and not elaborate_magma_registers:
             return self.visit_magma_register(module)
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)
@@ -691,14 +692,18 @@ class ModuleVisitor:
             self.visit(inst)
 
 
-def treat_as_primitive(defn_or_decl: CircuitKind) -> bool:
+def treat_as_primitive(
+        defn_or_decl: CircuitKind,
+        ctx: 'HardwareModule'
+) -> bool:
     # NOTE(rsetaluri): This is a round-about way to mark new types as
     # primitives. These definitions should actually be marked as primitives.
+    elaborate_magma_registers = ctx.opts.elaborate_magma_registers
     if isprimitive(defn_or_decl):
         return True
     if isinstance(defn_or_decl, Mux):
         return True
-    if isinstance(defn_or_decl, Register):
+    if isinstance(defn_or_decl, Register) and not elaborate_magma_registers:
         return True
     if getattr(defn_or_decl, "inline_verilog_strs", []):
         return True
@@ -878,7 +883,7 @@ class HardwareModule:
         self._add_module_parameters(self._hw_module)
 
     def _compile(self) -> hw.ModuleOpBase:
-        if treat_as_primitive(self._magma_defn_or_decl):
+        if treat_as_primitive(self._magma_defn_or_decl, self):
             return
 
         def new_values(fn, ports):
