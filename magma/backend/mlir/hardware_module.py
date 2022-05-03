@@ -284,8 +284,9 @@ class ModuleVisitor:
             always.operands.append(module.operands[1])
             with push_block(always.reset_block):
                 sv.PAssignOp(operands=[reg, const])
-        with push_block(sv.InitialOp()):
-            sv.BPAssignOp(operands=[reg, const])
+        if not self._ctx.opts.disable_initial_blocks:
+            with push_block(sv.InitialOp()):
+                sv.BPAssignOp(operands=[reg, const])
         sv.ReadInOutOp(operands=[reg], results=module.results.copy())
         return True
 
@@ -518,8 +519,9 @@ class ModuleVisitor:
             if has_reset:
                 with push_block(always.reset_block):
                     sv.PAssignOp(operands=[reg, const])
-            with push_block(sv.InitialOp()):
-                sv.BPAssignOp(operands=[reg, const])
+            if not self._ctx.opts.disable_initial_blocks:
+                with push_block(sv.InitialOp()):
+                    sv.BPAssignOp(operands=[reg, const])
             sv.ReadInOutOp(operands=[reg], results=[result])
 
         inst = module.module

@@ -9,3 +9,4 @@ class CompileToMlirOpts:
     use_native_bind_processor: bool = False
     verilog_prefix: Optional[str] = None
     user_namespace: Optional[str] = None
+    disable_initial_blocks: bool = False

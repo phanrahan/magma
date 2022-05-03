@@ -6,6 +6,7 @@ from magma.primitives.mux import CoreIRCommonLibMuxN
 from examples import (
     simple_aggregates_product, aggregate_mux_wrapper, complex_register_wrapper,
     complex_bind, simple_comb,
+    simple_register_wrapper,
 )
 from test_utils import get_local_examples, run_test_compile_to_mlir
 
@@ -51,5 +52,20 @@ def test_compile_to_mlir_verilog_prefix(ckt):
     kwargs = {
         "verilog_prefix": "proj_",
         "gold_name": f"{ckt.name}_verilog_prefix",
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "ckt",
+    [
+        simple_register_wrapper,
+        complex_register_wrapper,
+    ]
+)
+def test_compile_to_mlir_disable_initial_blocks(ckt):
+    kwargs = {
+        "disable_initial_blocks": True,
+        "gold_name": f"{ckt.name}_disable_initial_blocks",
     }
     run_test_compile_to_mlir(ckt, **kwargs)
