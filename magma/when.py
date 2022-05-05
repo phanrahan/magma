@@ -31,7 +31,6 @@ class WhenCtx:
         WHEN_COND_STACK.push(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        print("Foo")
         global _PREV_WHEN_COND
         _PREV_WHEN_COND = WHEN_COND_STACK.pop()
 
