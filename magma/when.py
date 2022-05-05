@@ -59,22 +59,21 @@ def _check_prev_when_cond(name):
     return prev_cond
 
 
-def elsewhen(cond):
-    prev_cond = _check_prev_when_cond('elsewhen')
-
+def _make_inv_cond_and_next_conds(prev_cond):
     inv_cond = ~prev_cond._base_cond
     for prev in prev_cond._prev_conds:
         inv_cond &= ~prev
-    return WhenCtx(inv_cond & cond, cond,
-                   prev_cond._prev_conds + [prev_cond._base_cond])
+    next_conds = prev_cond._prev_conds + [prev_cond._base_cond]
+    return inv_cond, next_conds
+
+
+def elsewhen(cond):
+    prev_cond = _check_prev_when_cond('elsewhen')
+    inv_cond, next_conds = _make_inv_cond_and_next_conds(prev_cond)
+    return WhenCtx(inv_cond & cond, cond, next_conds)
 
 
 def otherwise():
     prev_cond = _check_prev_when_cond('otherwise')
-
-    inv_cond = ~prev_cond._base_cond
-    for prev in prev_cond._prev_conds:
-        inv_cond &= ~prev
-    return WhenCtx(inv_cond, True,
-                   prev_cond._prev_conds + [prev_cond._base_cond],
-                   is_otherwise=True)
+    inv_cond, next_conds = _make_inv_cond_and_next_conds(prev_cond)
+    return WhenCtx(inv_cond, True, next_conds, is_otherwise=True)
