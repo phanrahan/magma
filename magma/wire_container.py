@@ -182,6 +182,7 @@ class Wireable:
 
     def wire(self, o, debug_info):
         from magma.definition_context import get_definition_context
+        print(bool(WHEN_COND_STACK))
         if WHEN_COND_STACK:
             # TODO(when): Circular import
             get_definition_context().add_conditional_value(self)

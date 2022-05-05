@@ -10,6 +10,7 @@ def test_when_with_default():
 
         io.O @= io.I[1]
         with m.when(io.S):
+            print("Bar")
             io.O @= io.I[0]
 
     m.compile("build/test_when_with_default", Foo, inline=True)

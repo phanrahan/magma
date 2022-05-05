@@ -7,7 +7,7 @@ _PREV_WHEN_COND = None
 
 def reset_context():
     global WHEN_COND_STACK, _PREV_WHEN_COND
-    WHEN_COND_STACK = Stack()
+    WHEN_COND_STACK.clear()
     _PREV_WHEN_COND = None
 
 
@@ -29,9 +29,9 @@ class WhenCtx:
 
     def __enter__(self):
         WHEN_COND_STACK.push(self)
-        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        print("Foo")
         global _PREV_WHEN_COND
         _PREV_WHEN_COND = WHEN_COND_STACK.pop()
 
