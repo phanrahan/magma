@@ -2,6 +2,7 @@ from magma.common import Stack
 
 
 WHEN_COND_STACK = Stack()
+_PREV_WHEN_COND = None
 
 
 class WhenCtx:
@@ -20,21 +21,8 @@ class WhenCtx:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        WHEN_COND_STACK.pop()
-
-    def elsewhen(self, cond):
-        inv_cond = ~self._base_cond
-        for prev in self._prev_conds:
-            inv_cond &= ~prev
-        return WhenCtx(inv_cond & cond, cond, self._prev_conds +
-                       [self._base_cond])
-
-    def otherwise(self):
-        inv_cond = ~self._base_cond
-        for prev in self._prev_conds:
-            inv_cond &= ~prev
-        # TODO(when): Enforce this context isn't used again
-        return WhenCtx(inv_cond, True, self._prev_conds + [self._base_cond])
+        global _PREV_WHEN_COND
+        _PREV_WHEN_COND = WHEN_COND_STACK.pop()
 
     @property
     def cond(self):
@@ -42,3 +30,22 @@ class WhenCtx:
 
 
 when = WhenCtx
+
+
+def elsewhen(cond):
+    global _PREV_WHEN_COND
+    inv_cond = ~_PREV_WHEN_COND._base_cond
+    for prev in _PREV_WHEN_COND._prev_conds:
+        inv_cond &= ~prev
+    return WhenCtx(inv_cond & cond, cond,
+                   _PREV_WHEN_COND._prev_conds + [_PREV_WHEN_COND._base_cond])
+
+
+def otherwise():
+    global _PREV_WHEN_COND
+    inv_cond = ~_PREV_WHEN_COND._base_cond
+    for prev in _PREV_WHEN_COND._prev_conds:
+        inv_cond &= ~prev
+    # TODO(when): Enforce this context isn't used again
+    return WhenCtx(inv_cond, True,
+                   _PREV_WHEN_COND._prev_conds + [_PREV_WHEN_COND._base_cond])

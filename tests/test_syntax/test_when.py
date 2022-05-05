@@ -7,7 +7,7 @@ def test_when_with_default():
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
         io.O @= io.I[1]
-        with m.when(io.S) as cond:
+        with m.when(io.S):
             io.O @= io.I[0]
 
     m.compile("build/test_when_with_default", Foo, inline=True)
@@ -36,7 +36,7 @@ def test_when_override():
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
         io.O @= io.I[1]
-        with m.when(io.S) as cond:
+        with m.when(io.S):
             io.O @= io.I[0]
         io.O @= io.I[1]
 
@@ -51,9 +51,9 @@ def test_when_else():
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
-        with m.when(io.S) as cond:
+        with m.when(io.S):
             io.O @= io.I[0]
-        with cond.otherwise() as cond:
+        with m.otherwise():
             io.O @= io.I[1]
 
     m.compile("build/test_when_else", Foo, inline=True)
@@ -66,11 +66,11 @@ def test_when_elsewhen():
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bits[3]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
-        with m.when(io.S[0]) as cond:
+        with m.when(io.S[0]):
             io.O @= io.I[0]
-        with cond.elsewhen(io.S[1]) as cond:
+        with m.elsewhen(io.S[1]):
             io.O @= io.I[1]
-        with cond.otherwise() as cond:
+        with m.otherwise():
             io.O @= io.I[2]
 
     m.compile("build/test_when_elsewhen", Foo, inline=True)
