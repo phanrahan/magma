@@ -123,9 +123,9 @@ def enable(value):
 
 
 def convertbits(value, n, totype, checkbit):
+    # NOTE: We don't do `isinstance` here because we want an upcast to cause a
+    # conversion
     if type(value) is totype:
-        # NOTE: We don't do `isinstance` here because we want an
-        # upcast to cause a conversion
         if n is not None and n != len(value):
             raise ValueError("converting a value should not change the size, use concat, zext, or sext instead.")
         return value
