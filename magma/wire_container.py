@@ -46,7 +46,16 @@ class Wire:
     def anon(self):
         return self._bit.anon()
 
-    def unwire(self, other):
+    def unwire(self, other=None, debug_info=None):
+        if other is None:
+            if self._driver is None:
+                _logger.warning(
+                    WiringLog("Unwire called on undriven value {}, ignoring",
+                              self._bit),
+                    debug_info=debug_info
+                )
+                return
+            other = self._driver
         other._driving.remove(self)
         self._driver = None
 
@@ -166,8 +175,10 @@ class Wireable:
     def driving(self):
         return self._wire.driving()
 
-    def unwire(i, o):
-        i._wire.unwire(o._wire)
+    def unwire(i, o=None, debug_info=None):
+        if o is not None:
+            o = o._wire
+        i._wire.unwire(o, debug_info)
 
     def wire(self, o, debug_info):
         from magma.definition_context import get_definition_context

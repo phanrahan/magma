@@ -63,3 +63,8 @@ def wire(o, i, debug_info=None):
 
     # Wire(o, Type).
     i.wire(o, debug_info)
+
+
+@debug_wire
+def unwire(input, output=None, debug_info=None):
+    input.unwire(output, debug_info)

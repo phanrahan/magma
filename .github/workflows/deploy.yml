@@ -1,4 +1,4 @@
-name: Deploy
+name: Linux Deploy
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - v*
 
 jobs:
-  build:
+  deploy:
 
     runs-on: ubuntu-latest
     if: github.repository == 'leonardt/magma'

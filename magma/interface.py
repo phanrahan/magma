@@ -159,6 +159,8 @@ class InterfaceKind(Kind):
         return str(cls)
 
     def __eq__(cls, rhs):
+        if not isinstance(rhs, InterfaceKind):
+            return False
         return cls._decl == rhs._decl
 
     def __ne__(cls, rhs):
