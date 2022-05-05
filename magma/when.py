@@ -12,7 +12,8 @@ def reset_context():
 
 
 class WhenCtx:
-    def __init__(self, cond, base_cond=None, prev_conds=None):
+    def __init__(self, cond, base_cond=None, prev_conds=None,
+                 is_otherwise=False):
         self._cond = cond
         self._assignments = []
         if base_cond is None:
@@ -27,12 +28,18 @@ class WhenCtx:
         # chain
         _PREV_WHEN_COND = None
 
+        self._is_otherwise = is_otherwise
+
     def __enter__(self):
         WHEN_COND_STACK.push(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        global _PREV_WHEN_COND
-        _PREV_WHEN_COND = WHEN_COND_STACK.pop()
+        WHEN_COND_STACK.pop()
+        if not self._is_otherwise:
+            global _PREV_WHEN_COND
+            _PREV_WHEN_COND = self
+        else:
+            assert _PREV_WHEN_COND is None
 
     @property
     def cond(self):
@@ -46,26 +53,29 @@ def _check_prev_when_cond(name):
     global _PREV_WHEN_COND
     if _PREV_WHEN_COND is None:
         raise SyntaxError(f"Cannot use {name} without a previous when")
+    prev_cond = _PREV_WHEN_COND
+    # Remove it so it can't be used in nesting
+    _PREV_WHEN_COND = None
+    return prev_cond
 
 
 def elsewhen(cond):
-    _check_prev_when_cond('elsewhen')
+    prev_cond = _check_prev_when_cond('elsewhen')
 
-    global _PREV_WHEN_COND
-    inv_cond = ~_PREV_WHEN_COND._base_cond
-    for prev in _PREV_WHEN_COND._prev_conds:
+    inv_cond = ~prev_cond._base_cond
+    for prev in prev_cond._prev_conds:
         inv_cond &= ~prev
     return WhenCtx(inv_cond & cond, cond,
-                   _PREV_WHEN_COND._prev_conds + [_PREV_WHEN_COND._base_cond])
+                   prev_cond._prev_conds + [prev_cond._base_cond])
 
 
 def otherwise():
-    _check_prev_when_cond('otherwise')
+    prev_cond = _check_prev_when_cond('otherwise')
 
-    global _PREV_WHEN_COND
-    inv_cond = ~_PREV_WHEN_COND._base_cond
-    for prev in _PREV_WHEN_COND._prev_conds:
+    inv_cond = ~prev_cond._base_cond
+    for prev in prev_cond._prev_conds:
         inv_cond &= ~prev
     # TODO(when): Enforce this context isn't used again
     return WhenCtx(inv_cond, True,
-                   _PREV_WHEN_COND._prev_conds + [_PREV_WHEN_COND._base_cond])
+                   prev_cond._prev_conds + [prev_cond._base_cond],
+                   is_otherwise=True)
