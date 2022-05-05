@@ -75,7 +75,6 @@ def otherwise():
     inv_cond = ~prev_cond._base_cond
     for prev in prev_cond._prev_conds:
         inv_cond &= ~prev
-    # TODO(when): Enforce this context isn't used again
     return WhenCtx(inv_cond, True,
                    prev_cond._prev_conds + [prev_cond._base_cond],
                    is_otherwise=True)
