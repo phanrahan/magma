@@ -7,7 +7,7 @@ module _Test (
 );
 wire [11:0] magma_UInt_12_add_inst0_out;
 assign magma_UInt_12_add_inst0_out = 12'(({1'b0,1'b0,1'b0,1'b0,I0}) + I1);
-assign O1 = magma_UInt_12_add_inst0_out[7:0];
+assign O1 = {magma_UInt_12_add_inst0_out[7],magma_UInt_12_add_inst0_out[6],magma_UInt_12_add_inst0_out[5],magma_UInt_12_add_inst0_out[4],magma_UInt_12_add_inst0_out[3],magma_UInt_12_add_inst0_out[2],magma_UInt_12_add_inst0_out[1],magma_UInt_12_add_inst0_out[0]};
 assign O2 = 12'(({1'b0,1'b0,1'b0,1'b0,I0}) + I1);
 assign O3 = 16'(({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,I0}) + ({1'b0,1'b0,1'b0,1'b0,I1}));
 endmodule

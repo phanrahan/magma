@@ -378,14 +378,16 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     """
     def __init__(self, *args, **kwargs):
         # Pass name= kwarg to Type constructor
-        Type.__init__(self, **kwargs)
         Wireable.__init__(self)
         if args:
             # If args is not empty, that means this array is being constructed
             # with existing values, so populate the `_ts` dictionary eagerly
             self._ts = {i: t for i, t in enumerate(_make_array(self, args))}
+            # if "name" not in kwargs and Array._iswhole(self._ts):
+            #     kwargs['name'] = self._ts[0].name.array.name
         else:
             self._ts = {}
+        Type.__init__(self, **kwargs)
 
         self._slices = {}
         self._unresolved_slices = {}
