@@ -143,6 +143,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.aggregate_constant,
         examples.simple_mux_wrapper,
         examples.aggregate_mux_wrapper,
+        examples.non_power_of_two_mux_wrapper,
         examples.simple_register_wrapper,
         examples.complex_register_wrapper,
         examples.counter,

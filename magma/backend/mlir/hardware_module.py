@@ -130,6 +130,11 @@ def make_mux(
         data: List[MlirValue],
         select: MlirValue,
         result: MlirValue):
+    if ctx.opts.extend_non_power_of_two_muxes:
+        closest_power_of_two_size = 2 ** clog2(len(data))
+        if closest_power_of_two_size != len(data):
+            extension = [data[0]] * (closest_power_of_two_size - len(data))
+            data = extension + data
     mlir_type = hw.ArrayType((len(data),), data[0].type)
     array = ctx.new_value(mlir_type)
     hw.ArrayCreateOp(
