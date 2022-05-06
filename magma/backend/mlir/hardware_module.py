@@ -490,8 +490,13 @@ class ModuleVisitor:
             stride = len(data) // height
             assert len(module.results) == stride
             for i in range(stride):
-                make_mux(self._ctx, data[i::stride], select, module.results[i])
+                inputs = list(reversed(data[i::stride]))
+                make_mux(self._ctx, inputs, select, module.results[i])
             return True
+        # NOTE(rsetaluri): Reversing data needs to be done *after* we check for
+        # tuple flattening. Otherwise the tuple field ordering gets reversed as
+        # well.
+        data = list(reversed(data))
         make_mux(self._ctx, data, select, module.results[0])
         return True
 

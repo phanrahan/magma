@@ -9,7 +9,7 @@ hw.module @Register(%I: !hw.struct<x: i8, y: i1>, %CE: i1, %CLK: i1, %ASYNCRESET
     %9 = comb.concat %7, %6, %5, %4, %3, %2, %1, %8 : i1, i1, i1, i1, i1, i1, i1, i1
     %10 = comb.extract %0 from 8 : (i9) -> i1
     %11 = hw.struct_create (%9, %10) : !hw.struct<x: i8, y: i1>
-    %13 = hw.array_create %11, %I : !hw.struct<x: i8, y: i1>
+    %13 = hw.array_create %I, %11 : !hw.struct<x: i8, y: i1>
     %12 = hw.array_get %13[%CE] : !hw.array<2x!hw.struct<x: i8, y: i1>>
     %14 = hw.struct_extract %12["x"] : !hw.struct<x: i8, y: i1>
     %15 = comb.extract %14 from 0 : (i8) -> i1
