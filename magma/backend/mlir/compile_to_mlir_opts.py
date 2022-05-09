@@ -11,3 +11,4 @@ class CompileToMlirOpts:
     user_namespace: Optional[str] = None
     disable_initial_blocks: bool = False
     elaborate_magma_registers: bool = False
+    extend_non_power_of_two_muxes: bool = False

@@ -1,11 +1,16 @@
+import itertools
 import pytest
 
 import magma as m
 from magma.primitives.mux import CoreIRCommonLibMuxN
 
 from examples import (
-    simple_aggregates_product, aggregate_mux_wrapper, complex_register_wrapper,
-    complex_bind, simple_comb,
+    simple_aggregates_product,
+    aggregate_mux_wrapper,
+    non_power_of_two_mux_wrapper,
+    complex_register_wrapper,
+    complex_bind,
+    simple_comb,
     simple_register_wrapper,
 )
 from test_utils import get_local_examples, run_test_compile_to_mlir
@@ -82,5 +87,25 @@ def test_compile_to_mlir_elaborate_magma_registers(ckt):
     kwargs = {
         "elaborate_magma_registers": True,
         "gold_name": f"{ckt.name}_elaborate_magma_registers"
+    }
+    run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "ckt,flatten_all_tuples",
+    itertools.product(
+        [aggregate_mux_wrapper, non_power_of_two_mux_wrapper],
+        (True, False),
+    )
+)
+def test_compile_to_mlir_extend_non_power_of_two_muxes(
+        ckt, flatten_all_tuples: bool):
+    gold_name = f"{ckt.name}_extend_non_power_of_two_muxes"
+    if flatten_all_tuples:
+        gold_name += "_flatten_all_tuples"
+    kwargs = {
+        "extend_non_power_of_two_muxes": True,
+        "flatten_all_tuples": flatten_all_tuples,
+        "gold_name": gold_name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)

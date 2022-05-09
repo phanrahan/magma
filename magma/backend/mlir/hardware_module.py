@@ -130,6 +130,11 @@ def make_mux(
         data: List[MlirValue],
         select: MlirValue,
         result: MlirValue):
+    if ctx.opts.extend_non_power_of_two_muxes:
+        closest_power_of_two_size = 2 ** clog2(len(data))
+        if closest_power_of_two_size != len(data):
+            extension = [data[0]] * (closest_power_of_two_size - len(data))
+            data = extension + data
     mlir_type = hw.ArrayType((len(data),), data[0].type)
     array = ctx.new_value(mlir_type)
     hw.ArrayCreateOp(
@@ -490,8 +495,13 @@ class ModuleVisitor:
             stride = len(data) // height
             assert len(module.results) == stride
             for i in range(stride):
-                make_mux(self._ctx, data[i::stride], select, module.results[i])
+                inputs = list(reversed(data[i::stride]))
+                make_mux(self._ctx, inputs, select, module.results[i])
             return True
+        # NOTE(rsetaluri): Reversing data needs to be done *after* we check for
+        # tuple flattening. Otherwise the tuple field ordering gets reversed as
+        # well.
+        data = list(reversed(data))
         make_mux(self._ctx, data, select, module.results[0])
         return True
 
