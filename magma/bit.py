@@ -3,7 +3,6 @@ Definition of magma's Bit type
 * Subtype of the Digital type
 * Implementation of hwtypes.AbstractBit
 """
-import keyword
 import typing as tp
 import functools
 import hwtypes as ht
@@ -15,10 +14,13 @@ from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 from magma.compatibility import IntegerTypes
 from magma.debug import debug_wire
 from magma.family import get_family
-from magma.interface import IO
-from magma.language_utils import primitive_to_python
-from magma.protocol_type import magma_type, MagmaProtocol
+from magma.logging import root_logger
+from magma.protocol_type import magma_value
 from magma.operator_utils import output_only
+from magma.wire_container import WiringLog
+
+
+_logger = root_logger()
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
@@ -38,7 +40,15 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
 _IMPLICITLY_COERCED_ITE_TYPES = (int, ht.BitVector, ht.Bit)
 
 
-class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
+class BitMeta(DigitalMeta):
+    def is_wireable(cls, rhs):
+        import magma as m
+        if issubclass(rhs, m.Array) and len(rhs) == 1:
+            return cls.is_wireable(rhs.T)
+        return super().is_wireable(rhs)
+
+
+class Bit(Digital, AbstractBit, metaclass=BitMeta):
     __hash__ = Digital.__hash__
 
     @staticmethod
@@ -113,9 +123,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @debug_wire
     def wire(self, o, debug_info):
+        o = magma_value(o)
         # Cast to Bit here so we don't get a Digital instead
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = Bit(o)
+        import magma as m
+        if isinstance(o, m.Array) and len(o) == 1:
+            o = o[0]
         return super().wire(o, debug_info)
 
 

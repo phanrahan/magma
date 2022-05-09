@@ -200,8 +200,11 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             return True
         if issubclass(cls, UInt) and issubclass(rhs, SInt):
             return False
-        elif issubclass(cls, SInt) and issubclass(rhs, UInt):
+        if issubclass(cls, SInt) and issubclass(rhs, UInt):
             return False
+        if len(cls) == 1 and issubclass(rhs, Bit):
+            # TODO(leonardt): Should we make this work for general Array[1, T]?
+            return True
         return super().is_wireable(rhs)
 
 
@@ -247,6 +250,10 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                     f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
             from .conversions import bits
             other = bits(other, len(self))
+        if isinstance(other, Bit) and len(self) == 1:
+            # TODO(leonardt): Should we make this work for general Array[1, T]?
+            from .conversions import bits
+            other = bits(other, 1)
         super().wire(other, debug_info)
 
     @classmethod
