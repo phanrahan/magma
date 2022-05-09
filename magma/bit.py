@@ -35,15 +35,7 @@ def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
 _IMPLICITLY_COERCED_ITE_TYPES = (int, ht.BitVector, ht.Bit)
 
 
-class BitMeta(DigitalMeta):
-    def is_wireable(cls, rhs):
-        import magma as m
-        if issubclass(rhs, m.Array) and len(rhs) == 1:
-            return cls.is_wireable(rhs.T)
-        return super().is_wireable(rhs)
-
-
-class Bit(Digital, AbstractBit, metaclass=BitMeta):
+class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     __hash__ = Digital.__hash__
 
     @staticmethod
@@ -126,6 +118,13 @@ class Bit(Digital, AbstractBit, metaclass=BitMeta):
         if isinstance(o, m.Array) and len(o) == 1:
             o = o[0]
         return super().wire(o, debug_info)
+
+    @classmethod
+    def is_wireable(cls, rhs):
+        import magma as m
+        if issubclass(rhs, m.Array) and len(rhs) == 1:
+            return cls.is_wireable(rhs.T)
+        return DigitalMeta.is_wireable(cls, rhs)
 
 
 BitIn = Bit[Direction.In]
