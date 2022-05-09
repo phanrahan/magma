@@ -14,13 +14,8 @@ from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 from magma.compatibility import IntegerTypes
 from magma.debug import debug_wire
 from magma.family import get_family
-from magma.logging import root_logger
 from magma.protocol_type import magma_value
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog
-
-
-_logger = root_logger()
 
 
 def bit_cast(fn: tp.Callable[['Bit', 'Bit'], 'Bit']) -> \
