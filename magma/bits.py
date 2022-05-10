@@ -203,7 +203,6 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
         if issubclass(cls, SInt) and issubclass(rhs, UInt):
             return False
         if len(cls) == 1 and issubclass(rhs, Bit):
-            # TODO(leonardt): Should we make this work for general Array[1, T]?
             return True
         return super().is_wireable(rhs)
 
@@ -240,6 +239,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
 
     @debug_wire
     def wire(self, other, debug_info):
+        from .conversions import bits
         if isinstance(other, (IntegerTypes, BitVector)):
             N = (other.bit_length()
                  if isinstance(other, IntegerTypes)
@@ -248,11 +248,8 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                 raise ValueError(
                     f"Cannot convert integer {other} "
                     f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
-            from .conversions import bits
             other = bits(other, len(self))
         if isinstance(other, Bit) and len(self) == 1:
-            # TODO(leonardt): Should we make this work for general Array[1, T]?
-            from .conversions import bits
             other = bits(other, 1)
         super().wire(other, debug_info)
 
