@@ -121,7 +121,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
     @classmethod
     def is_wireable(cls, rhs):
         if rhs.is_bits_1():
-            return cls.is_wireable(rhs.T)
+            return True
         return DigitalMeta.is_wireable(cls, rhs)
 
 
