@@ -114,15 +114,13 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         # Cast to Bit here so we don't get a Digital instead
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = Bit(o)
-        import magma as m
-        if isinstance(o, m.Array) and len(o) == 1:
+        if type(o).is_bits_1():
             o = o[0]
         return super().wire(o, debug_info)
 
     @classmethod
     def is_wireable(cls, rhs):
-        import magma as m
-        if issubclass(rhs, m.Array) and len(rhs) == 1:
+        if rhs.is_bits_1():
             return cls.is_wireable(rhs.T)
         return DigitalMeta.is_wireable(cls, rhs)
 

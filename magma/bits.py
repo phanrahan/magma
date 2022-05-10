@@ -206,6 +206,9 @@ class BitsMeta(AbstractBitVectorMeta, ArrayMeta):
             return True
         return super().is_wireable(rhs)
 
+    def is_bits_1(cls):
+        return len(cls) == 1
+
 
 class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
     __hash__ = Array.__hash__
