@@ -10,16 +10,11 @@ always @(*) begin
     if (C0) begin
         O0 = C0I0;
     end else begin
-    if (C1) begin
-        O0 = C1I0;
-    end else begin
-    O0 = C2I0;
-    end
-    end
-    if (C1) begin
-        O0 = C1I0;
-    end else begin
-    O0 = C2I0;
+        if (C1) begin
+            O0 = C1I0;
+        end else begin
+            O0 = C2I0;
+        end
     end
 end
 endmodule

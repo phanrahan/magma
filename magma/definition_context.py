@@ -181,7 +181,6 @@ class DefinitionContext(FinalizableDelegator):
                 else:
                     stmt = IfStatement(input_reverse_map[cond.cond])
                     when_cond_map[cond] = stmt
-                    body.add_statement(stmt)
                     when_cond_map[cond.prev_cond].false_stmts.append(stmt)
                     stmts = stmt.true_stmts
                 for input, output in cond.conditional_wires:
@@ -276,7 +275,7 @@ class IfStatement:
         s += _codegen_stmts(self.true_stmts, tab="    ")
         if self.false_stmts:
             s += "end else begin\n"
-            s += _codegen_stmts(self.false_stmts)
+            s += _codegen_stmts(self.false_stmts, tab="    ")
         s += "end"
         return s
 

@@ -8,7 +8,7 @@ always @(*) begin
     if (C0) begin
         O0 = C0I0;
     end else begin
-    O0 = C1I0;
+        O0 = C1I0;
     end
 end
 endmodule
