@@ -7,7 +7,7 @@ import typing as tp
 import functools
 import hwtypes as ht
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
-from .t import Direction
+from .t import Direction, Type
 from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 
@@ -120,7 +120,7 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @classmethod
     def is_wireable(cls, rhs):
-        if rhs.is_bits_1():
+        if issubclass(rhs, Type) and rhs.is_bits_1():
             return True
         return DigitalMeta.is_wireable(cls, rhs)
 
