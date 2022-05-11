@@ -171,17 +171,22 @@ class DefinitionContext(FinalizableDelegator):
                         input_reverse_map[value._conditional_drivers[None]]
                     ))
             for cond in self._when_conds:
-                if cond.prev_cond is None:
-                    stmt = IfStatement(input_reverse_map[cond.cond])
-                    body.add_statement(stmt)
-                    when_cond_map[cond] = stmt
-                    stmts = stmt.true_stmts
-                elif cond.cond is None:
+                if cond.cond is None:
                     stmts = when_cond_map[cond.prev_cond].false_stmts
-                else:
+                elif cond.prev_cond is not None:
                     stmt = IfStatement(input_reverse_map[cond.cond])
                     when_cond_map[cond] = stmt
                     when_cond_map[cond.prev_cond].false_stmts.append(stmt)
+                    stmts = stmt.true_stmts
+                elif cond.parent is not None:
+                    stmt = IfStatement(input_reverse_map[cond.cond])
+                    when_cond_map[cond] = stmt
+                    when_cond_map[cond.parent].false_stmts.append(stmt)
+                    stmts = stmt.true_stmts
+                else:
+                    stmt = IfStatement(input_reverse_map[cond.cond])
+                    body.add_statement(stmt)
+                    when_cond_map[cond] = stmt
                     stmts = stmt.true_stmts
                 for input, output in cond.conditional_wires:
                     if input not in output_reverse_map:
