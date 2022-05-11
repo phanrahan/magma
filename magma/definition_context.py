@@ -130,7 +130,7 @@ class DefinitionContext(FinalizableDelegator):
 
     def finalize(self, defn):
         if not self._when_conds:
-            return
+            return super().finalize()
         # TODO(when): Avoid circular import
         import magma as m
         input_ports = {}
