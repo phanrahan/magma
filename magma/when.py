@@ -5,6 +5,15 @@ WHEN_COND_STACK = Stack()
 _PREV_WHEN_COND = None
 
 
+def push_when_cond_stack(stack):
+    global WHEN_COND_STACK
+    WHEN_COND_STACK.push(stack)
+
+
+def pop_when_cond_stack():
+    return WHEN_COND_STACK.pop()
+
+
 def reset_context():
     global WHEN_COND_STACK, _PREV_WHEN_COND
     WHEN_COND_STACK.clear()
@@ -14,7 +23,7 @@ def reset_context():
 class WhenCtx:
     def __init__(self, cond, prev_cond=None):
         self._cond = cond
-        self._parent = WHEN_COND_STACK.safe_peek()
+        self._parent = WHEN_COND_STACK.peek().safe_peek()
         if self._parent is not None:
             self.parent.add_child(self)
         self._prev_cond = prev_cond
@@ -29,13 +38,13 @@ class WhenCtx:
         self._conditional_wires = {}
 
     def __enter__(self):
-        WHEN_COND_STACK.push(self)
+        WHEN_COND_STACK.peek().push(self)
         # TODO(when): Circular import
         from magma.definition_context import get_definition_context
         get_definition_context().add_when_cond(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        WHEN_COND_STACK.pop()
+        WHEN_COND_STACK.peek().pop()
         if not self._is_otherwise:
             global _PREV_WHEN_COND
             _PREV_WHEN_COND = self

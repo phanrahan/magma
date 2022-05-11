@@ -11,7 +11,8 @@ from magma.logging import (
     pop_log_capturer,
 )
 from magma.placer import PlacerBase
-from magma.when import finalize_when_conds
+from magma.when import (finalize_when_conds, push_when_cond_stack,
+                        pop_when_cond_stack)
 
 
 _VERILOG_FILE_OPEN = """
@@ -95,6 +96,7 @@ class DefinitionContext(FinalizableDelegator):
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
         self._conditional_values = set()
+        self._when_cond_stack = Stack()
         self._when_conds = []
 
     @property
@@ -148,6 +150,10 @@ class DefinitionContext(FinalizableDelegator):
     def add_when_cond(self, cond):
         self._when_conds.append(cond)
 
+    @property
+    def when_cond_stack(self):
+        return self._when_cond_stack
+
 
 def push_definition_context(
         ctx: DefinitionContext, use_staged_logger: bool = False):
@@ -155,6 +161,7 @@ def push_definition_context(
     if use_staged_logger:
         stage_logger()
     _get_definition_context_stack().push(ctx)
+    push_when_cond_stack(ctx.when_cond_stack)
 
 
 def pop_definition_context(
@@ -162,7 +169,9 @@ def pop_definition_context(
     if use_staged_logger:
         unstage_logger()
     pop_log_capturer()
-    return _get_definition_context_stack().pop()
+    ctx = _get_definition_context_stack().pop()
+    assert pop_when_cond_stack() == ctx.when_cond_stack
+    return ctx
 
 
 def get_definition_context() -> DefinitionContext:

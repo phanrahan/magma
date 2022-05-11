@@ -189,8 +189,8 @@ class Wireable:
             self._conditional_drivers[None] = value
             self.unwire(value)
         # TODO(when): Add debug_info
-        self._conditional_drivers[tuple(WHEN_COND_STACK)] = o
-        WHEN_COND_STACK.peek().add_conditional_wire(self, o)
+        self._conditional_drivers[tuple(WHEN_COND_STACK.peek())] = o
+        WHEN_COND_STACK.peek().peek().add_conditional_wire(self, o)
 
     def _unconditional_wire(self, o, debug_info):
         if self._conditional_drivers:
