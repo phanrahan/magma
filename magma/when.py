@@ -15,7 +15,10 @@ class WhenCtx:
     def __init__(self, cond, prev_cond=None):
         self._cond = cond
         self._parent = WHEN_COND_STACK.safe_peek()
+        if self._parent is not None:
+            self.parent.add_child(self)
         self._prev_cond = prev_cond
+        self._children = []
 
         global _PREV_WHEN_COND
         # Reset when to avoid a nested `elsewhen` or `otherwise` continuing a
@@ -23,7 +26,7 @@ class WhenCtx:
         _PREV_WHEN_COND = None
 
         self._is_otherwise = cond is None
-        self._conditional_wires = []
+        self._conditional_wires = {}
 
     def __enter__(self):
         WHEN_COND_STACK.push(self)
@@ -56,7 +59,17 @@ class WhenCtx:
         return self._conditional_wires
 
     def add_conditional_wire(self, input, output):
-        self._conditional_wires.append((input, output))
+        self._conditional_wires[input] = output
+
+    def remove_conditional_wire(self, input):
+        del self._conditional_wires[input]
+
+    def has_conditional_wires(self):
+        return (bool(self._conditional_wires) or
+                any(child.has_conditional_wires() for child in self._children))
+
+    def add_child(self, child):
+        return self._children.append(child)
 
 
 when = WhenCtx

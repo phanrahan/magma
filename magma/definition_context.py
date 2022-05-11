@@ -129,19 +129,21 @@ class DefinitionContext(FinalizableDelegator):
             self._placer.place(inst)
 
     def finalize(self, defn):
-        if not self._when_conds:
+        when_conds = [x for x in self._when_conds
+                      if x.has_conditional_wires()]
+        if not when_conds:
             return super().finalize()
         # TODO(when): Avoid circular import
         import magma as m
         input_ports = {}
         input_drivers = {}
         input_reverse_map = {}
-        for i, cond in enumerate(self._when_conds):
+        for i, cond in enumerate(when_conds):
             if cond.cond is not None:
                 input_ports[f"C{i}"] = m.In(type(cond.cond))
                 input_drivers[f"C{i}"] = cond.cond
                 input_reverse_map[cond.cond] = f"C{i}"
-            for j, (_, output) in enumerate(cond.conditional_wires):
+            for j, output in enumerate(cond.conditional_wires.values()):
                 input_ports[f"C{i}I{j}"] = m.In(type(output))
                 input_drivers[f"C{i}I{j}"] = output
                 input_reverse_map[output] = f"C{i}I{j}"
@@ -170,7 +172,7 @@ class DefinitionContext(FinalizableDelegator):
                         output_reverse_map[value],
                         input_reverse_map[value._conditional_drivers[None]]
                     ))
-            for cond in self._when_conds:
+            for cond in when_conds:
                 if cond.cond is None:
                     stmts = when_cond_map[cond.prev_cond].false_stmts
                 elif cond.prev_cond is not None:
@@ -188,10 +190,7 @@ class DefinitionContext(FinalizableDelegator):
                     body.add_statement(stmt)
                     when_cond_map[cond] = stmt
                     stmts = stmt.true_stmts
-                for input, output in cond.conditional_wires:
-                    if input not in output_reverse_map:
-                        # Overridden
-                        continue
+                for input, output in cond.conditional_wires.items():
                     output_port = output_reverse_map[input]
                     input_port = input_reverse_map[output]
                     stmts.append(Assign(output_port, input_port))
@@ -211,6 +210,9 @@ class DefinitionContext(FinalizableDelegator):
 
     def remove_conditional_value(self, value):
         self._conditional_values.remove(value)
+        for cond in self._when_conds:
+            if value in cond.conditional_wires:
+                cond.remove_conditional_wire(value)
 
     def add_when_cond(self, cond):
         self._when_conds.append(cond)
