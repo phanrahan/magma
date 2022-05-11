@@ -181,7 +181,7 @@ class DefinitionContext(FinalizableDelegator):
                 elif cond.parent is not None:
                     stmt = IfStatement(input_reverse_map[cond.cond])
                     when_cond_map[cond] = stmt
-                    when_cond_map[cond.parent].false_stmts.append(stmt)
+                    when_cond_map[cond.parent].true_stmts.append(stmt)
                     stmts = stmt.true_stmts
                 else:
                     stmt = IfStatement(input_reverse_map[cond.cond])

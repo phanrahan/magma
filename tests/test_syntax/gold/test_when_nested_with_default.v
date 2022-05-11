@@ -8,7 +8,6 @@ module ConditionalDrivers (
 always @(*) begin
     O0 = O0None;
     if (C0) begin
-    end else begin
         if (C1) begin
             O0 = C1I0;
         end
