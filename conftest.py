@@ -2,11 +2,12 @@ import pytest
 from magma import clear_cachedFunctions
 import magma
 from magma.when import reset_context
+import magma.config
 
 
 @pytest.fixture(autouse=True)
 def magma_test():
-    import magma.config
+    # TODO: We should provide a top-level "reset_magma" API for testing
     magma.config.set_compile_dir('callee_file_dir')
     clear_cachedFunctions()
     magma.frontend.coreir_.ResetCoreIR()
