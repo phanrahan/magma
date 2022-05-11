@@ -10,6 +10,7 @@ import warnings
 
 class Stack:
     """Lightweight wrapper over builtin lists to provide a stack interface"""
+
     def __init__(self):
         self._stack = []
 
@@ -21,6 +22,11 @@ class Stack:
 
     def peek(self):
         return self._stack[-1]
+
+    def safe_peek(self):
+        if not self:
+            return None
+        return self.peek()
 
     def __bool__(self) -> bool:
         return bool(self._stack)

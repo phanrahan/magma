@@ -180,26 +180,34 @@ class Wireable:
             o = o._wire
         i._wire.unwire(o, debug_info)
 
-    def wire(self, o, debug_info):
+    def _conditional_wire(self, o, debug_info):
+        # TODO(when): Circular import
         from magma.definition_context import get_definition_context
-        if WHEN_COND_STACK:
+        get_definition_context().add_conditional_value(self)
+        if self.driven():
+            value = self.value()
+            self._conditional_drivers[None] = value
+            self.unwire(value)
+        # TODO(when): Add debug_info
+        self._conditional_drivers[tuple(WHEN_COND_STACK)] = o
+        WHEN_COND_STACK.peek().add_conditional_wire(self, o)
+
+    def _unconditional_wire(self, o, debug_info):
+        if self._conditional_drivers:
             # TODO(when): Circular import
-            get_definition_context().add_conditional_value(self)
-            if self.driven():
-                value = self.value()
-                self._conditional_drivers[None] = value
-                self.unwire(value)
-            key = tuple(c.cond for c in WHEN_COND_STACK)
-            # TODO(when): Add debug_info
-            self._conditional_drivers[key] = o
+            from magma.definition_context import get_definition_context
+            # If we drive a value outside of a when, but it already has
+            # conditional drivers, we clear them because we now have a
+            # "new" driver
+            # TODO(when): Add warning here
+            self._conditional_drivers = {}
+            get_definition_context().remove_conditional_value(self)
+        self._wire.connect(o._wire, debug_info)
+        self.debug_info = debug_info
+        o.debug_info = debug_info
+
+    def wire(self, o, debug_info):
+        if WHEN_COND_STACK:
+            self._conditional_wire(o, debug_info)
         else:
-            if self._conditional_drivers:
-                # If we drive a value outside of a when, but it already has
-                # conditional drivers, we clear them because we now have a
-                # "new" driver
-                # TODO(when): Add warning here
-                self._conditional_drivers = {}
-                get_definition_context().remove_conditional_value(self)
-            self._wire.connect(o._wire, debug_info)
-            self.debug_info = debug_info
-            o.debug_info = debug_info
+            self._unconditional_wire(o, debug_info)

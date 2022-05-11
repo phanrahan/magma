@@ -94,6 +94,7 @@ class DefinitionContext(FinalizableDelegator):
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
         self._conditional_values = set()
+        self._when_conds = []
 
     @property
     def placer(self) -> PlacerBase:
@@ -128,44 +129,77 @@ class DefinitionContext(FinalizableDelegator):
             self._placer.place(inst)
 
     def finalize(self, defn):
-        for value in self._conditional_values:
-            # TODO(when): Avoid circular import
-            import magma as m
+        if not self._when_conds:
+            return
+        # TODO(when): Avoid circular import
+        import magma as m
+        input_ports = {}
+        input_drivers = {}
+        input_reverse_map = {}
+        for i, cond in enumerate(self._when_conds):
+            if cond.cond is not None:
+                input_ports[f"C{i}"] = m.In(type(cond.cond))
+                input_drivers[f"C{i}"] = cond.cond
+                input_reverse_map[cond.cond] = f"C{i}"
+            for j, (_, output) in enumerate(cond.conditional_wires):
+                input_ports[f"C{i}I{j}"] = m.In(type(output))
+                input_drivers[f"C{i}I{j}"] = output
+                input_reverse_map[output] = f"C{i}I{j}"
 
+        output_ports = {}
+        output_sinks = {}
+        output_reverse_map = {}
+        for i, value in enumerate(self._conditional_values):
+            output_ports[f"O{i}"] = m.Out(type(value))
+            output_sinks[f"O{i}"] = value
+            output_reverse_map[value] = f"O{i}"
             if None in value._conditional_drivers:
-                default = value._conditional_drivers[None]
-                del value._conditional_drivers[None]
-                value._conditional_drivers[None] = default
-            ports = {}
-            args = []
-            items = value._conditional_drivers.items()
-            for i, (conds, driver) in enumerate(items):
-                ports[f"I{i}"] = m.In(type(driver))
-                args.append(driver)
-                if conds is None:
-                    continue
-                ports[f"C{i}"] = m.In(m.Bit)
-                cond = conds[0]
-                for next_ in conds[1:]:
-                    cond &= next_
-                args.append(cond)
+                driver = value._conditional_drivers[None]
+                input_ports[f"O{i}None"] = m.In(type(driver))
+                input_drivers[f"O{i}None"] = driver
+                input_reverse_map[driver] = f"O{i}None"
 
-            # TODO(when): Reconstruct original if statement structure
-            class ConditionalDriver(m.Circuit):
-                io = m.IO(**ports)
-                io += m.IO(O=m.Out(type(value)))
-                verilog = "always @(*) begin\n"
-                for i, cond in enumerate(value._conditional_drivers):
-                    if cond is None:
-                        verilog += f"    else assign O = I{i};\n"
-                    elif i > 0:
-                        verilog += f"    else if (C{i}) assign O = I{i};\n"
-                    else:
-                        verilog += f"    if (C{i}) assign O = I{i};\n"
-                verilog += "end"
+        class ConditionalDrivers(m.Circuit):
+            io = m.IO(**input_ports) + m.IO(**output_ports)
 
-            value._conditional_drivers = {}
-            value @= ConditionalDriver()(*args)
+            when_cond_map = {}
+            body = Body()
+            for i, value in enumerate(self._conditional_values):
+                if None in value._conditional_drivers:
+                    body.add_statement(Assign(
+                        output_reverse_map[value],
+                        input_reverse_map[value._conditional_drivers[None]]
+                    ))
+            for cond in self._when_conds:
+                if cond.prev_cond is None:
+                    stmt = IfStatement(input_reverse_map[cond.cond])
+                    body.add_statement(stmt)
+                    when_cond_map[cond] = stmt
+                    stmts = stmt.true_stmts
+                elif cond.cond is None:
+                    stmts = when_cond_map[cond.prev_cond].false_stmts
+                else:
+                    stmt = IfStatement(input_reverse_map[cond.cond])
+                    when_cond_map[cond] = stmt
+                    body.add_statement(stmt)
+                    when_cond_map[cond.prev_cond].false_stmts.append(stmt)
+                    stmts = stmt.true_stmts
+                for input, output in cond.conditional_wires:
+                    if input not in output_reverse_map:
+                        # Overridden
+                        continue
+                    output_port = output_reverse_map[input]
+                    input_port = input_reverse_map[output]
+                    stmts.append(Assign(output_port, input_port))
+            verilog = "always @(*) begin\n"
+            verilog += body.codegen()
+            verilog += "end"
+
+        inst = ConditionalDrivers()
+        for key, value in input_drivers.items():
+            getattr(inst, key).wire(value)
+        for key, value in output_sinks.items():
+            value.wire(getattr(inst, key))
         super().finalize()
 
     def add_conditional_value(self, value):
@@ -173,6 +207,9 @@ class DefinitionContext(FinalizableDelegator):
 
     def remove_conditional_value(self, value):
         self._conditional_values.remove(value)
+
+    def add_when_cond(self, cond):
+        self._when_conds.append(cond)
 
 
 def push_definition_context(
@@ -206,3 +243,48 @@ def definition_context_manager(
             unstage_logger()
         popped_ctx = pop_definition_context(use_staged_logger)
         assert popped_ctx is ctx
+
+
+def _codegen_stmts(stmts, tab=""):
+    s = ""
+    for stmt in stmts:
+        s += f"{tab}"
+        s += f"\n{tab}".join(stmt.codegen().splitlines())
+        s += "\n"
+    return s
+
+
+class Body:
+    def __init__(self):
+        self._statements = []
+
+    def add_statement(self, stmt):
+        self._statements.append(stmt)
+
+    def codegen(self):
+        return _codegen_stmts(self._statements, tab="    ")
+
+
+class IfStatement:
+    def __init__(self, cond):
+        self._cond = cond
+        self.true_stmts = []
+        self.false_stmts = []
+
+    def codegen(self):
+        s = f"if ({self._cond}) begin\n"
+        s += _codegen_stmts(self.true_stmts, tab="    ")
+        if self.false_stmts:
+            s += "end else begin\n"
+            s += _codegen_stmts(self.false_stmts)
+        s += "end"
+        return s
+
+
+class Assign:
+    def __init__(self, input, output):
+        self._input = input
+        self._output = output
+
+    def codegen(self):
+        return f"{self._input} = {self._output};"

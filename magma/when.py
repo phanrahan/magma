@@ -12,26 +12,24 @@ def reset_context():
 
 
 class WhenCtx:
-    def __init__(self, cond, base_cond=None, prev_conds=None,
-                 is_otherwise=False):
+    def __init__(self, cond, prev_cond=None):
         self._cond = cond
-        self._assignments = []
-        if base_cond is None:
-            base_cond = cond
-        self._base_cond = base_cond
-        if prev_conds is None:
-            prev_conds = []
-        self._prev_conds = prev_conds
+        self._parent = WHEN_COND_STACK.safe_peek()
+        self._prev_cond = prev_cond
 
         global _PREV_WHEN_COND
         # Reset when to avoid a nested `elsewhen` or `otherwise` continuing a
         # chain
         _PREV_WHEN_COND = None
 
-        self._is_otherwise = is_otherwise
+        self._is_otherwise = cond is None
+        self._conditional_wires = []
 
     def __enter__(self):
         WHEN_COND_STACK.push(self)
+        # TODO(when): Circular import
+        from magma.definition_context import get_definition_context
+        get_definition_context().add_when_cond(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
         WHEN_COND_STACK.pop()
@@ -42,8 +40,23 @@ class WhenCtx:
             assert _PREV_WHEN_COND is None
 
     @property
+    def parent(self):
+        return self._parent
+
+    @property
     def cond(self):
         return self._cond
+
+    @property
+    def prev_cond(self):
+        return self._prev_cond
+
+    @property
+    def conditional_wires(self):
+        return self._conditional_wires
+
+    def add_conditional_wire(self, input, output):
+        self._conditional_wires.append((input, output))
 
 
 when = WhenCtx
@@ -59,21 +72,9 @@ def _check_prev_when_cond(name):
     return prev_cond
 
 
-def _make_inv_cond_and_next_conds(prev_cond):
-    inv_cond = ~prev_cond._base_cond
-    for prev in prev_cond._prev_conds:
-        inv_cond &= ~prev
-    next_conds = prev_cond._prev_conds + [prev_cond._base_cond]
-    return inv_cond, next_conds
-
-
 def elsewhen(cond):
-    prev_cond = _check_prev_when_cond('elsewhen')
-    inv_cond, next_conds = _make_inv_cond_and_next_conds(prev_cond)
-    return WhenCtx(inv_cond & cond, cond, next_conds)
+    return WhenCtx(cond, _check_prev_when_cond('elsewhen'))
 
 
 def otherwise():
-    prev_cond = _check_prev_when_cond('otherwise')
-    inv_cond, next_conds = _make_inv_cond_and_next_conds(prev_cond)
-    return WhenCtx(inv_cond, True, next_conds, is_otherwise=True)
+    return WhenCtx(None, _check_prev_when_cond('otherwise'))

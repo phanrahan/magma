@@ -1,13 +1,15 @@
-module ConditionalDriver (
-    input I0,
+module ConditionalDrivers (
     input C0,
-    input I1,
-    input C1,
-    output O
+    input C0I0,
+    input C1I0,
+    output O0
 );
 always @(*) begin
-    if (C0) assign O = I0;
-    else if (C1) assign O = I1;
+    if (C0) begin
+        O0 = C0I0;
+    end else begin
+    O0 = C1I0;
+    end
 end
 endmodule
 
@@ -16,14 +18,11 @@ module Foo (
     input S,
     output O
 );
-wire magma_Bit_not_inst0_out;
-ConditionalDriver ConditionalDriver_inst0 (
-    .I0(I[0]),
+ConditionalDrivers ConditionalDrivers_inst0 (
     .C0(S),
-    .I1(I[1]),
-    .C1(magma_Bit_not_inst0_out),
-    .O(O)
+    .C0I0(I[0]),
+    .C1I0(I[1]),
+    .O0(O)
 );
-assign magma_Bit_not_inst0_out = ~ S;
 endmodule
 

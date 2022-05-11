@@ -1,12 +1,14 @@
-module ConditionalDriver (
-    input I0,
+module ConditionalDrivers (
     input C0,
-    input I1,
-    output O
+    input C0I0,
+    input O0None,
+    output O0
 );
 always @(*) begin
-    if (C0) assign O = I0;
-    else assign O = I1;
+    O0 = O0None;
+    if (C0) begin
+        O0 = C0I0;
+    end
 end
 endmodule
 
@@ -15,11 +17,11 @@ module Foo (
     input S,
     output O
 );
-ConditionalDriver ConditionalDriver_inst0 (
-    .I0(I[0]),
+ConditionalDrivers ConditionalDrivers_inst0 (
     .C0(S),
-    .I1(I[1]),
-    .O(O)
+    .C0I0(I[0]),
+    .O0None(I[1]),
+    .O0(O)
 );
 endmodule
 
