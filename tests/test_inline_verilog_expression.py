@@ -1,4 +1,7 @@
+import pytest
+
 import magma as m
+import magma.testing
 
 
 class _RegWrapper(m.Circuit):
@@ -25,3 +28,11 @@ wire(RegWrapper.I, _magma_inline_wire0.in)
 wire(InlineVerilogExpression_a489b4461c0192fc_inst0.O, RegWrapper.O)
 EndCircuit()"""
     assert repr(_RegWrapper) == expected
+
+
+@pytest.mark.parametrize("output", ("coreir-verilog",))
+def test_compilation(output):
+    basename = f"{_RegWrapper.name}_{output}"
+    m.compile(f"build/{basename}", _RegWrapper, output=output, inline=True)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v")
