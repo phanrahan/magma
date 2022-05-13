@@ -30,9 +30,13 @@ EndCircuit()"""
     assert repr(_RegWrapper) == expected
 
 
-@pytest.mark.parametrize("output", ("coreir-verilog",))
+@pytest.mark.parametrize("output", ("coreir-verilog", "mlir",))
 def test_compilation(output):
     basename = f"{_RegWrapper.name}_{output}"
     m.compile(f"build/{basename}", _RegWrapper, output=output, inline=True)
+    if output == "mlir":
+        suffix = "mlir"
+    else:
+        suffix = "v"
     assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.v", f"gold/{basename}.v")
+        __file__, f"build/{basename}.{suffix}", f"gold/{basename}.{suffix}")
