@@ -182,9 +182,6 @@ class Wireable:
         i._wire.unwire(o, debug_info)
 
     def _conditional_wire(self, o, debug_info):
-        # TODO(when): Circular import
-        from magma.definition_context import get_definition_context
-        get_definition_context().add_conditional_value(self)
         if self.driven():
             value = self.value()
             self._conditional_drivers[None] = value
@@ -195,14 +192,15 @@ class Wireable:
 
     def _unconditional_wire(self, o, debug_info):
         if self._conditional_drivers:
-            # TODO(when): Circular import
-            from magma.definition_context import get_definition_context
             # If we drive a value outside of a when, but it already has
             # conditional drivers, we clear them because we now have a
             # "new" driver
             # TODO(when): Add warning here
+            for cond in self._conditional_drivers:
+                if cond is None:
+                    continue
+                cond[-1].remove_conditional_wire(self)
             self._conditional_drivers = {}
-            get_definition_context().remove_conditional_value(self)
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info

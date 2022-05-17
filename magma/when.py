@@ -118,10 +118,15 @@ def finalize_when_conds(context, when_conds):
             input_drivers[f"C{i}I{j}"] = output
             input_reverse_map[output] = f"C{i}I{j}"
 
+    conditional_values = set()
+    for cond in context.when_conds:
+        for key in cond.conditional_wires.keys():
+            conditional_values.add(key)
+
     output_ports = {}
     output_sinks = {}
     output_reverse_map = {}
-    for i, value in enumerate(context._conditional_values):
+    for i, value in enumerate(conditional_values):
         output_ports[f"O{i}"] = m.Out(type(value))
         output_sinks[f"O{i}"] = value
         output_reverse_map[value] = f"O{i}"
@@ -136,7 +141,7 @@ def finalize_when_conds(context, when_conds):
 
         when_cond_map = {}
         body = Body()
-        for i, value in enumerate(context._conditional_values):
+        for i, value in enumerate(conditional_values):
             if None in value._conditional_drivers:
                 body.add_statement(Assign(
                     output_reverse_map[value],

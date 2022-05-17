@@ -147,6 +147,10 @@ class DefinitionContext(FinalizableDelegator):
             if value in cond.conditional_wires:
                 cond.remove_conditional_wire(value)
 
+    @property
+    def when_conds(self):
+        return self._when_conds
+
     def add_when_cond(self, cond):
         self._when_conds.append(cond)
 
