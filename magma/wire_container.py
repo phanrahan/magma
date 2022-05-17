@@ -207,7 +207,7 @@ class Wireable:
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
-        if WHEN_COND_STACK:
+        if WHEN_COND_STACK.peek():
             self._conditional_wire(o, debug_info)
         else:
             self._unconditional_wire(o, debug_info)
