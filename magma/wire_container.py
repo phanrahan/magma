@@ -32,6 +32,7 @@ class Wire:
 
     Each wire is represented by a bit.
     """
+
     def __init__(self, bit):
         self._bit = bit
         self._driving = []
