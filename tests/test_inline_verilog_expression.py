@@ -76,13 +76,13 @@ EndCircuit()"""
     assert p.repr_str == expected
 
 
-@pytest.mark.parametrize("output", ("coreir-verilog", "mlir",))
-def test_compilation(output):
-    basename = f"test_inline_veriog_expression_compilation_{output}"
-    m.compile(f"build/{basename}", _Top, output=output, inline=True)
-    if output == "mlir":
-        suffix = "mlir"
-    else:
-        suffix = "v"
+def test_compilation_coreir():
+    with pytest.raises(NotImplementedError) as e:
+        m.compile("", _Top, output="coreir")
+
+
+def test_compilation_mlir():
+    basename = f"test_inline_veriog_expression_compilation_mlir"
+    m.compile(f"build/{basename}", _Top, output="mlir")
     assert m.testing.check_files_equal(
-        __file__, f"build/{basename}.{suffix}", f"gold/{basename}.{suffix}")
+        __file__, f"build/{basename}.mlir", f"gold/{basename}.mlir")
