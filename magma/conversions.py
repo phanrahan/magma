@@ -61,8 +61,10 @@ def can_convert_to_bit_type(value):
 
 
 def convertbit(value, totype):
+    # NOTE: We don't do `isinstance` here because we want an upcast to cause a
+    # conversion
     value = magma_value(value)
-    if isinstance(value, totype):
+    if type(value) is totype:
         return value
 
     if not can_convert_to_bit(value):
