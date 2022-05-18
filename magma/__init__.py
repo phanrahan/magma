@@ -110,6 +110,7 @@ from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
                          is_producer, is_consumer)
 import magma.smart
 from magma.compile_guard import compile_guard, compile_guard_select
+from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.set_name import set_name
 from magma.stubify import circuit_stub, stubify, CircuitStub
 from magma.compile import MagmaCompileException

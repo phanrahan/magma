@@ -37,6 +37,7 @@ from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.common import filter_by_key
 from magma.digital import Digital, DigitalMeta
+from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
@@ -476,6 +477,15 @@ class ModuleVisitor:
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)
+        if isinstance(defn, InlineVerilogExpression):
+            assert len(module.operands) == 0
+            assert len(module.results) > 0
+            sv.VerbatimExprOp(
+                operands=list(),
+                results=module.results,
+                expr=defn.expr,
+            )
+            return True
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
