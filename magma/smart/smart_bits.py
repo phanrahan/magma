@@ -497,7 +497,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
         super().__init__(self)
         if value is None:
             value = type(self)._to_magma_()()
-        self._value = bits(value)
+        self._value = value
 
     def typed_value(self):
         if type(self)._signed:
