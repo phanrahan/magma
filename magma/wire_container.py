@@ -197,7 +197,12 @@ class Wireable:
             # If we drive a value outside of a when, but it already has
             # conditional drivers, we clear them because we now have a
             # "new" driver
-            # TODO(when): Add warning here
+            _logger.warning(
+                WiringLog("Wiring a previously conditionally wired value ({}), "
+                          "existing conditional drivers will be discarded",
+                          self),
+                debug_info=debug_info
+            )
             for cond in self._conditional_drivers:
                 if cond is None:
                     continue

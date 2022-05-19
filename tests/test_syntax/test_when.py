@@ -34,7 +34,7 @@ def test_when_nested_with_default():
                              "gold/test_when_nested_with_default.v")
 
 
-def test_when_override():
+def test_when_override(caplog):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
@@ -48,6 +48,10 @@ def test_when_override():
     assert check_files_equal(__file__,
                              "build/test_when_override.v",
                              "gold/test_when_override.v")
+
+    expected = ("Wiring a previously conditionally wired value (Foo.O), "
+                "existing conditional drivers will be discarded")
+    assert str(caplog.records[0].msg) == expected
 
 
 def test_when_else():
