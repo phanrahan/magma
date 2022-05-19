@@ -1,8 +1,8 @@
 module ConditionalDrivers (
     input C0,
     input C0I0,
-    input O0None,
-    output O0
+    output O0,
+    input O0None
 );
 always @(*) begin
     O0 = O0None;
@@ -20,8 +20,8 @@ module Foo (
 ConditionalDrivers ConditionalDrivers_inst0 (
     .C0(S),
     .C0I0(I[0]),
-    .O0None(I[1]),
-    .O0(O)
+    .O0(O),
+    .O0None(I[1])
 );
 endmodule
 

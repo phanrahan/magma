@@ -11,8 +11,9 @@ from magma.logging import (
     pop_log_capturer,
 )
 from magma.placer import PlacerBase
-from magma.when import (finalize_when_conds, push_when_cond_stack,
-                        pop_when_cond_stack, WhenCondStack)
+from magma.when import (push_when_cond_stack, pop_when_cond_stack,
+                        WhenCondStack)
+from magma.when_finalize import finalize_when_conds
 
 
 _VERILOG_FILE_OPEN = """
