@@ -9,35 +9,41 @@ def _build_port_maps(when_conds, conditional_values):
 
     * port_wire_map: map from port name to value used to wire up instance
 
+    * port_debug_map: map from port name to debug info for original wiring
+
     * reverse_map: map from value to port name used to lookup port
                    name string for a value in the generated verilog
     """
     io_ports = {}
     port_wire_map = {}
+    port_debug_map = {}
     reverse_map = {}
 
-    def add_port(port_name, value, dir):
+    def add_port(port_name, value, dir, debug_info):
         io_ports[port_name] = dir(type(value))
         port_wire_map[port_name] = value
+        port_debug_map[port_name] = debug_info
         reverse_map[value] = port_name
 
     for i, cond in enumerate(when_conds):
         if cond.cond is not None:
             # Add an input for the condition
-            add_port(f"C{i}", cond.cond, In)
-        for j, output in enumerate(cond.conditional_wires.values()):
+            add_port(f"C{i}", cond.cond, In, None)
+        for j, (input, output) in enumerate(cond.conditional_wires.items()):
             # Add an input for the conditional drivers
-            add_port(f"C{i}I{j}", output, In)
+            add_port(f"C{i}I{j}", output, In,
+                     cond.get_debug_info(input, output))
 
     for i, value in enumerate(conditional_values):
         # Add output for conditionally driven value
-        add_port(f"O{i}", value, Out)
+        add_port(f"O{i}", value, Out, None)
         if None in value._conditional_drivers:
             # Add input for default driver
             driver = value._conditional_drivers[None]
-            add_port(f"O{i}None", driver, In)
+            add_port(f"O{i}None", driver, In,
+                     cond.get_debug_info(value, driver))
 
-    return (io_ports, port_wire_map, reverse_map)
+    return (io_ports, port_wire_map, port_debug_map, reverse_map)
 
 
 def _get_conditional_values(context):
@@ -70,8 +76,8 @@ def _make_if(cond, when_cond_map):
 def finalize_when_conds(context, when_conds):
     conditional_values = _get_conditional_values(context)
 
-    io_ports, port_wire_map, reverse_map = _build_port_maps(when_conds,
-                                                            conditional_values)
+    io_ports, port_wire_map, port_debug_map, reverse_map = \
+        _build_port_maps(when_conds, conditional_values)
 
     # TODO: Circular import, but if we do this directly as an MLIR translation,
     # we could avoid having to create an instance here
@@ -109,9 +115,9 @@ def finalize_when_conds(context, when_conds):
     inst = ConditionalDriversImpl()
     for key, value in port_wire_map.items():
         if value.is_output():
-            getattr(inst, key).wire(value)
+            getattr(inst, key).wire(value, port_debug_map[key])
         elif value.is_input():
-            value.wire(getattr(inst, key))
+            value.wire(getattr(inst, key), port_debug_map[key])
         else:
             raise NotImplementedError(type(value))
 
