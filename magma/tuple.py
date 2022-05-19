@@ -1,4 +1,3 @@
-import itertools
 from functools import lru_cache
 import functools
 import operator
@@ -6,7 +5,6 @@ from collections import OrderedDict
 from hwtypes.adt import (
     TupleMeta,
     Tuple as Tuple_,
-    AnonymousProduct,
     AnonymousProductMeta,
     Product,
     ProductMeta,
@@ -15,14 +13,14 @@ from hwtypes import BitVector, Bit
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
-from .ref import AnonRef, TupleRef
+from .ref import TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
-from magma.wire_container import WiringLog
+from magma.wire_container import WiringLog, Wireable
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
 from magma.operator_utils import output_only
@@ -188,10 +186,11 @@ class TupleKind(TupleMeta, Kind):
     __hash__ = TupleMeta.__hash__
 
 
-class Tuple(Type, Tuple_, metaclass=TupleKind):
+class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs)  # name=
+        Wireable.__init__(self)
 
         self.ts = {}
         if len(largs) > 0:
@@ -211,7 +210,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             t = self[key]
             setattr(self, key, t)
             return t
-        return super().__getattr__(key)
+        return object.__getattribute__(self, key)
 
     __hash__ = Type.__hash__
 
@@ -260,6 +259,42 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             return T._from_magma_value_(T._to_magma_()(name=ref))
         return T(name=ref)
 
+    def _has_elaborated_children(self):
+        return self.ts
+
+    def _resolve_driven_bulk_wire(self):
+        # Remove bulk wire since children will now track the wiring
+        value = self._wire.value()
+        Wireable.unwire(self, value)
+
+        # Update children
+        for i, child in self.items():
+            child.wire(value[i])
+
+    def _resolve_driving_bulk_wire(self):
+        driving = self._wire.driving()
+        # NOTE: we need to remove drivees before doing the recursive wiring of
+        # the children or else we'll trigger _resolve_bulk_wire when iterating
+        # over the children
+        for drivee in driving:
+            # Remove bulk wire since children will now track the wiring
+            Wireable.unwire(drivee, self)
+
+        for drivee in driving:
+            # Update children
+            for i, child in self.items():
+                drivee[i].wire(child)
+
+    def _resolve_bulk_wire(self):
+        """
+        If a child reference is made, we "expand" a bulk wire into the
+        constiuent children to maintain consistency
+        """
+        if self._wire.driven():
+            self._resolve_driven_bulk_wire()
+        if self._wire.driving():
+            self._resolve_driving_bulk_wire()
+
     def __getitem__(self, key):
         if isinstance(key, str):
             try:
@@ -270,6 +305,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             raise KeyError(key)
         if key not in self.ts:
             self.ts[key] = self._make_t(key)
+            self._resolve_bulk_wire()
         return self.ts[key]
 
     def __setitem__(self, key, val):
@@ -290,36 +326,42 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
-
     @debug_wire
-    def wire(i, o, debug_info):
+    def wire(self, o, debug_info):
         o = magma_value(o)
         if not isinstance(o, Tuple):
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
-                          f"(type={type(i)}) because {{}} is not a Tuple",
-                          o, i, o),
+                          f"(type={type(self)}) because {{}} is not a Tuple",
+                          o, self, o),
                 debug_info=debug_info
             )
             return
 
-        if i.keys() != o.keys():
+        if self.keys() != o.keys():
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}, "
-                          f"keys={list(i.keys())}) to {{}} (type={type(i)}, "
+                          f"keys={list(self.keys())}) to {{}} (type={type(self)}, "
                           f"keys={list(o.keys())}) because the tuples do not "
-                          f"have the same keys", o, i),
+                          f"have the same keys", o, self),
                 debug_info=debug_info
             )
             return
-
-        for i_elem, o_elem in zip(i, o):
-            i_elem = magma_value(i_elem)
-            o_elem = magma_value(o_elem)
-            wire(o_elem, i_elem, debug_info)
+        if (self.is_mixed() or
+                self._has_elaborated_children() or
+                o._has_elaborated_children()):
+            for self_elem, o_elem in zip(self, o):
+                self_elem = magma_value(self_elem)
+                o_elem = magma_value(o_elem)
+                wire(o_elem, self_elem, debug_info)
+        else:
+            Wireable.wire(self, o, debug_info)
 
     @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
+        if not self._has_elaborated_children():
+            return Wireable.unwire(self, o, debug_info)
+
         for k, t in self.items():
             if o is None:
                 t.unwire(debug_info=debug_info,
@@ -332,16 +374,14 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
                          keep_wired_when_contexts=keep_wired_when_contexts)
 
     def driven(self):
-        for t in self:
-            if not t.driven():
-                return False
-        return True
+        if not self._has_elaborated_children():
+            return Wireable.driven(self)
+        return all(t.driven() for t in self)
 
     def wired(self):
-        for t in self:
-            if not t.wired():
-                return False
-        return True
+        if self._has_elaborated_children():
+            return all(t.wired() for t in self)
+        return Wireable.wired(self)
 
     # test whether the values refer a whole tuple
     @staticmethod
@@ -349,18 +389,16 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
 
         for i in range(len(ts)):
             if ts[i].anon():
-                #print('not an inst or defn')
                 return False
 
         for i in range(len(ts)):
             # elements must be an tuple reference
             if not isinstance(ts[i].name, TupleRef):
-                #print('not an tuple ref')
                 return False
 
-        for i in range(1,len(ts)):
+        for i in range(1, len(ts)):
             # elements must refer to the same tuple
-            if ts[i].name.tuple is not ts[i-1].name.tuple:
+            if ts[i].name.tuple is not ts[i - 1].name.tuple:
                 return False
 
         for i in range(len(ts)):
@@ -378,6 +416,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return Tuple._iswhole(list(self), self.keys())
 
     def trace(self, skip_self=True):
+        if not self._has_elaborated_children():
+            return Wireable.trace(self)
         ts = []
         for t in self:
             result = t.trace(skip_self)
@@ -394,6 +434,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return type(self).flip()(*ts)
 
     def value(self):
+        if not self._has_elaborated_children():
+            return Wireable.value(self)
         ts = [t.value() for t in self]
 
         for t in ts:
@@ -406,7 +448,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return type(self).flip()(*ts)
 
     def driving(self):
-        return {k: t.driving() for k, t in self.items()}
+        if self._has_elaborated_children():
+            return {k: t.driving() for k, t in self.items()}
+        return Wireable.driving(self)
 
     @classmethod
     def unflatten(cls, value):
@@ -601,22 +645,6 @@ class AnonProduct(Tuple, metaclass=AnonProductKind):
     @classmethod
     def keys(cls):
         return cls.field_dict.keys()
-
-    @classmethod
-    def types(cls):
-        return cls.fields
-
-    def value(self):
-        ts = [t.value() for t in self]
-
-        for t in ts:
-            if t is None:
-                return None
-
-        if len(ts) == len(self) and Tuple._iswhole(ts, self.keys()):
-            return ts[0].name.tuple
-
-        return type(self).flip()(*ts)
 
 
 class ProductKind(ProductMeta, AnonProductKind, Kind):

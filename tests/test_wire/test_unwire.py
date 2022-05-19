@@ -40,10 +40,4 @@ def test_unwire_undriven(T, func, caplog):
 >>     lambda x, y: x.unwire(), lambda x, y: m.unwire(x)\
 """  # noqa
 
-    if T is Ts[2]:
-        # Tuple recurses by default
-        # TODO: Update this when we finish Tuple2
-        for i in range(len(T)):
-            assert has_warning(caplog, make_expcted_log(f"Foo[{i}]"))
-    else:
-        assert has_warning(caplog, make_expcted_log("Foo"))
+    assert has_warning(caplog, make_expcted_log("Foo"))
