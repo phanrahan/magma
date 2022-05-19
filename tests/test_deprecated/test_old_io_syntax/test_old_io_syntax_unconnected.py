@@ -5,7 +5,7 @@ import magma as m
 from magma.common import wrap_with_context_manager
 from magma.logging import logging_level
 from magma.testing import magma_debug_section
-from magma.testing.utils import has_error, has_debug
+from magma.testing.utils import has_error
 
 
 def _make_unconnected_io():
@@ -67,9 +67,9 @@ def test_unconnected_io(caplog):
         expected = """\x1b[1mtests/test_deprecated/test_old_io_syntax/test_old_io_syntax_unconnected.py:12\x1b[0m: _Circuit.O not driven
 >>     class _Circuit(m.Circuit):"""
         assert has_error(caplog, expected)
-        assert has_debug(caplog, "_Circuit.O")
-        assert has_debug(caplog, "    _Circuit.O[0]: Connected")
-        assert has_debug(caplog, "    _Circuit.O[1]: Unconnected")
+        assert has_error(caplog, "_Circuit.O")
+        assert has_error(caplog, "    _Circuit.O[0]: Connected")
+        assert has_error(caplog, "    _Circuit.O[1]: Unconnected")
 
 
 @wrap_with_context_manager(logging_level("DEBUG"))
@@ -79,7 +79,7 @@ def test_unconnected_instance(caplog):
         expected = """\x1b[1mtests/test_deprecated/test_old_io_syntax/test_old_io_syntax_unconnected.py:36\x1b[0m: _Circuit.buf.I not driven
 >>             buf = _Buffer()"""
         assert has_error(caplog, expected)
-        assert has_debug(caplog, "_Circuit.buf.I: Unconnected")
+        assert has_error(caplog, "_Circuit.buf.I: Unconnected")
 
 
 @pytest.mark.parametrize("typ", [m.Clock, m.Reset, m.AsyncReset])
