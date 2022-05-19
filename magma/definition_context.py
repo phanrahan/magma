@@ -138,15 +138,6 @@ class DefinitionContext(FinalizableDelegator):
             finalize_when_conds(self, when_conds)
         return super().finalize()
 
-    def add_conditional_value(self, value):
-        self._conditional_values.add(value)
-
-    def remove_conditional_value(self, value):
-        self._conditional_values.remove(value)
-        for cond in self._when_conds:
-            if value in cond.conditional_wires:
-                cond.remove_conditional_wire(value)
-
     @property
     def when_conds(self):
         return self._when_conds
