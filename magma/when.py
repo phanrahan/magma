@@ -1,50 +1,79 @@
 from magma.common import Stack
 
 
-WHEN_COND_STACK = Stack()
+class WhenCondStack(Stack):
+    def __init__(self, defn):
+        super().__init__()
+        self._defn = defn
+
+    def push(self, value):
+        super().push(value)
+        self._defn.add_when_cond(value)
+
+
+# Contains a stack of WhenCondStacks.  Each active definition has its own when
+# cond stack (allows for multiple, active nested definitions).  Each when cond
+# stack contains the current active when conditions (allows for nested
+# conditions)
+_DEFN_STACK = Stack()
+
+# Used to store the previous when condition for elsewhen/otherwise logic
 _PREV_WHEN_COND = None
 
 
 def push_when_cond_stack(stack):
-    global WHEN_COND_STACK
-    WHEN_COND_STACK.push(stack)
+    global _DEFN_STACK
+    _DEFN_STACK.push(stack)
 
 
 def pop_when_cond_stack():
-    return WHEN_COND_STACK.pop()
+    return _DEFN_STACK.pop()
+
+
+def peek_when_cond_stack():
+    return _DEFN_STACK.peek()
 
 
 def reset_context():
-    global WHEN_COND_STACK, _PREV_WHEN_COND
-    WHEN_COND_STACK.clear()
+    """
+    Note, this needs to be called by tests that may raise an exception (to
+    reset the global when condition state)
+    """
+    global _DEFN_STACK, _PREV_WHEN_COND
+    _DEFN_STACK.clear()
     _PREV_WHEN_COND = None
 
 
 class WhenCtx:
     def __init__(self, cond, prev_cond=None):
         self._cond = cond
-        self._parent = WHEN_COND_STACK.peek().safe_peek()
-        if self._parent is not None:
-            self.parent.add_child(self)
-        self._prev_cond = prev_cond
+        # Get the current definition when cond stack
+        self.when_cond_stack = _DEFN_STACK.peek()
+
         self._children = []
 
+        # If there's an active when condition, store a parent pointer
+        self._parent = self.when_cond_stack.safe_peek()
+        if self._parent is not None:
+            # Parents have references to their children
+            self.parent.add_child(self)
+
+        # Used for reference chain to previous when/elsewhen statements
+        self._prev_cond = prev_cond
+
         global _PREV_WHEN_COND
-        # Reset when to avoid a nested `elsewhen` or `otherwise` continuing a
-        # chain
+        # Reset activate prev cond to avoid a nested `elsewhen` or `otherwise`
+        # continuing a chain
         _PREV_WHEN_COND = None
 
         self._is_otherwise = cond is None
         self._conditional_wires = {}
 
     def __enter__(self):
-        WHEN_COND_STACK.peek().push(self)
-        # TODO(when): Circular import
-        from magma.definition_context import get_definition_context
-        get_definition_context().add_when_cond(self)
+        self.when_cond_stack.push(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        WHEN_COND_STACK.peek().pop()
+        self.when_cond_stack.pop()
         if not self._is_otherwise:
             global _PREV_WHEN_COND
             _PREV_WHEN_COND = self

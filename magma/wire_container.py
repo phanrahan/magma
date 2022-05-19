@@ -1,5 +1,5 @@
 from magma.logging import root_logger, StagedLogRecord
-from magma.when import WHEN_COND_STACK
+from magma.when import peek_when_cond_stack
 
 
 _logger = root_logger()
@@ -187,8 +187,9 @@ class Wireable:
             self._conditional_drivers[None] = value
             self.unwire(value)
         # TODO(when): Add debug_info
-        self._conditional_drivers[tuple(WHEN_COND_STACK.peek())] = o
-        WHEN_COND_STACK.peek().peek().add_conditional_wire(self, o)
+        when_cond_stack = peek_when_cond_stack()
+        self._conditional_drivers[tuple(when_cond_stack)] = o
+        when_cond_stack.peek().add_conditional_wire(self, o)
 
     def _unconditional_wire(self, o, debug_info):
         if self._conditional_drivers:
@@ -206,7 +207,7 @@ class Wireable:
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
-        if WHEN_COND_STACK.peek():
+        if peek_when_cond_stack():
             self._conditional_wire(o, debug_info)
         else:
             self._unconditional_wire(o, debug_info)

@@ -12,7 +12,7 @@ from magma.logging import (
 )
 from magma.placer import PlacerBase
 from magma.when import (finalize_when_conds, push_when_cond_stack,
-                        pop_when_cond_stack)
+                        pop_when_cond_stack, WhenCondStack)
 
 
 _VERILOG_FILE_OPEN = """
@@ -96,7 +96,7 @@ class DefinitionContext(FinalizableDelegator):
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
         self._conditional_values = set()
-        self._when_cond_stack = Stack()
+        self._when_cond_stack = WhenCondStack(self)
         self._when_conds = []
 
     @property
