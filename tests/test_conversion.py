@@ -79,3 +79,8 @@ def test_concat_output_type(Targs, Tout):
 @pytest.mark.parametrize('T', [m.UInt[4], m.SInt[4]])
 def test_bits_upcast(T):
     assert type(m.bits(T())) is m.Bits[4]
+
+
+def test_bit_upcast():
+    x = m.Enable()
+    assert type(m.bit(x)) is m.Bit

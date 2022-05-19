@@ -380,8 +380,3 @@ EndCircuit()\
 def test_errors(op):
     with pytest.raises(ValueError):
         op(m.Bit(name="b"))
-
-
-def test_bit_upcast():
-    x = m.Enable()
-    assert type(m.bit(x)) is m.Bit
