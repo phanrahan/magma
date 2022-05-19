@@ -207,6 +207,8 @@ class Wireable:
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
+        # NOTE: We use safe peek here because there are existing wiring tests
+        # that don't happen inside a circuit context
         if safe_peek_defn_when_cond_stack():
             self._conditional_wire(o, debug_info)
         else:
