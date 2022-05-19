@@ -30,6 +30,10 @@ def pop_defn_when_cond_stack():
     return _DEFN_STACK.pop()
 
 
+def peek_defn_when_cond_stack():
+    return _DEFN_STACK.peek()
+
+
 def safe_peek_defn_when_cond_stack():
     return _DEFN_STACK.safe_peek()
 

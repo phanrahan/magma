@@ -1,5 +1,6 @@
 from magma.logging import root_logger, StagedLogRecord
-from magma.when import safe_peek_defn_when_cond_stack
+from magma.when import (safe_peek_defn_when_cond_stack,
+                        peek_defn_when_cond_stack)
 
 
 _logger = root_logger()
