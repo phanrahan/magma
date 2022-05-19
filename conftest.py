@@ -1,6 +1,5 @@
 import pytest
 from magma import clear_cachedFunctions
-import magma
 from magma.when import reset_context
 import magma.config
 

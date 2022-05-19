@@ -21,17 +21,17 @@ _DEFN_STACK = Stack()
 _PREV_WHEN_COND = None
 
 
-def push_when_cond_stack(stack):
+def push_defn_when_cond_stack(stack):
     global _DEFN_STACK
     _DEFN_STACK.push(stack)
 
 
-def pop_when_cond_stack():
+def pop_defn_when_cond_stack():
     return _DEFN_STACK.pop()
 
 
-def peek_when_cond_stack():
-    return _DEFN_STACK.peek()
+def safe_peek_defn_when_cond_stack():
+    return _DEFN_STACK.safe_peek()
 
 
 def reset_context():
@@ -40,6 +40,8 @@ def reset_context():
     reset the global when condition state)
     """
     global _DEFN_STACK, _PREV_WHEN_COND
+    for stack in _DEFN_STACK:
+        stack.clear()
     _DEFN_STACK.clear()
     _PREV_WHEN_COND = None
 

@@ -11,7 +11,7 @@ from magma.logging import (
     pop_log_capturer,
 )
 from magma.placer import PlacerBase
-from magma.when import (push_when_cond_stack, pop_when_cond_stack,
+from magma.when import (push_defn_when_cond_stack, pop_defn_when_cond_stack,
                         WhenCondStack)
 from magma.when_finalize import finalize_when_conds
 
@@ -157,7 +157,7 @@ def push_definition_context(
     if use_staged_logger:
         stage_logger()
     _get_definition_context_stack().push(ctx)
-    push_when_cond_stack(ctx.when_cond_stack)
+    push_defn_when_cond_stack(ctx.when_cond_stack)
 
 
 def pop_definition_context(
@@ -166,7 +166,7 @@ def pop_definition_context(
         unstage_logger()
     pop_log_capturer()
     ctx = _get_definition_context_stack().pop()
-    assert pop_when_cond_stack() == ctx.when_cond_stack
+    assert pop_defn_when_cond_stack() == ctx.when_cond_stack
     return ctx
 
 
