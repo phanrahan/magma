@@ -43,7 +43,6 @@ def test_when_override(caplog):
             io.O @= io.I[0]
         io.O @= io.I[1]
 
-    # TODO(when): Check warning
     m.compile("build/test_when_override", Foo, inline=True)
     assert check_files_equal(__file__,
                              "build/test_when_override.v",
