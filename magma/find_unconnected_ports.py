@@ -131,6 +131,6 @@ def find_and_log_unconnected_ports(ckt):
         debug_info = info.debug_info
         _logger.error(WiringLog("{} not driven", port), debug_info=debug_info)
         visitor = _make_unconnected_port_diagnostic_visitor_cls()()
-        diagnostics = visitor.visit(port)
+        diagnostics = list(visitor.visit(port))
         for diagnostic in diagnostics:
-            _logger.debug(diagnostic.make_wiring_log())
+            _logger.error(diagnostic.make_wiring_log())
