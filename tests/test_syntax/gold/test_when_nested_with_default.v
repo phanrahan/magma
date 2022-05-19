@@ -1,4 +1,4 @@
-module ConditionalDrivers (
+module ConditionalDriversImpl (
     input C0,
     input C1,
     input C1I0,
@@ -20,7 +20,7 @@ module Foo (
     input [1:0] S,
     output O
 );
-ConditionalDrivers ConditionalDrivers_inst0 (
+ConditionalDriversImpl ConditionalDriversImpl_inst0 (
     .C0(S[0]),
     .C1(S[1]),
     .C1I0(I[0]),
