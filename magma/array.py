@@ -632,6 +632,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
             # Perform a bulk wire
             WireableWithChildren.wire(self, o, debug_info)
 
+    @wireable_with_children_wrapper
     @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
@@ -1020,21 +1021,16 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
             return None
         return _trace_child
 
+    @wireable_with_children_wrapper
     def trace(self, skip_self=True):
-        if self._has_elaborated_children():
-            result = self._collect_children(self._make_trace_child(skip_self))
-            return result
-        return WireableWithChildren.trace(self)
+        return self._collect_children(self._make_trace_child(skip_self))
 
+    @wireable_with_children_wrapper
     def driven(self):
-        if not self._has_elaborated_children():
-            return WireableWithChildren.driven(self)
-        for _, child in self._enumerate_children():
-            if child is None:
-                return False
-            if not child.driven():
-                return False
-        return True
+        return all(
+            child is not None and child.driven()
+            for _, child in self._enumerate_children()
+        )
 
     def _is_slice(self):
         return (isinstance(self.name, ArrayRef) and
