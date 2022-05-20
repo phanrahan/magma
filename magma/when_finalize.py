@@ -51,7 +51,7 @@ def _get_conditional_values(context):
     for cond in context.when_conds:
         for key in cond.conditional_wires.keys():
             conditional_values.add(key)
-    return list(sorted(conditional_values))
+    return list(sorted(conditional_values, key=lambda x: str(x.name)))
 
 
 def _emit_default_drivers(conditional_values, body, reverse_map):
