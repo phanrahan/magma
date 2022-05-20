@@ -20,7 +20,8 @@ from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
-from magma.wire_container import WiringLog, Wireable
+from magma.wire_container import (WiringLog, WireableWithChildren,
+                                  wireable_with_children_wrapper)
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
 from magma.operator_utils import output_only
@@ -186,11 +187,11 @@ class TupleKind(TupleMeta, Kind):
     __hash__ = TupleMeta.__hash__
 
 
-class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
+class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs)  # name=
-        Wireable.__init__(self)
+        WireableWithChildren.__init__(self)
 
         self.ts = {}
         if len(largs) > 0:
@@ -260,40 +261,10 @@ class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
         return T(name=ref)
 
     def _has_elaborated_children(self):
-        return self.ts
+        return bool(self.ts)
 
-    def _resolve_driven_bulk_wire(self):
-        # Remove bulk wire since children will now track the wiring
-        value = self._wire.value()
-        Wireable.unwire(self, value)
-
-        # Update children
-        for i, child in self.items():
-            child.wire(value[i])
-
-    def _resolve_driving_bulk_wire(self):
-        driving = self._wire.driving()
-        # NOTE: we need to remove drivees before doing the recursive wiring of
-        # the children or else we'll trigger _resolve_bulk_wire when iterating
-        # over the children
-        for drivee in driving:
-            # Remove bulk wire since children will now track the wiring
-            Wireable.unwire(drivee, self)
-
-        for drivee in driving:
-            # Update children
-            for i, child in self.items():
-                drivee[i].wire(child)
-
-    def _resolve_bulk_wire(self):
-        """
-        If a child reference is made, we "expand" a bulk wire into the
-        constiuent children to maintain consistency
-        """
-        if self._wire.driven():
-            self._resolve_driven_bulk_wire()
-        if self._wire.driving():
-            self._resolve_driving_bulk_wire()
+    def _enumerate_children(self):
+        return self.items()
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -355,8 +326,9 @@ class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
                 o_elem = magma_value(o_elem)
                 wire(o_elem, self_elem, debug_info)
         else:
-            Wireable.wire(self, o, debug_info)
+            WireableWithChildren.wire(self, o, debug_info)
 
+    @wireable_with_children_wrapper
     @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
@@ -373,15 +345,13 @@ class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
                 t.unwire(o[k], debug_info=debug_info,
                          keep_wired_when_contexts=keep_wired_when_contexts)
 
+    @wireable_with_children_wrapper
     def driven(self):
-        if not self._has_elaborated_children():
-            return Wireable.driven(self)
         return all(t.driven() for t in self)
 
+    @wireable_with_children_wrapper
     def wired(self):
-        if self._has_elaborated_children():
-            return all(t.wired() for t in self)
-        return Wireable.wired(self)
+        return all(t.wired() for t in self)
 
     # test whether the values refer a whole tuple
     @staticmethod
@@ -415,9 +385,8 @@ class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
     def iswhole(self):
         return Tuple._iswhole(list(self), self.keys())
 
+    @wireable_with_children_wrapper
     def trace(self, skip_self=True):
-        if not self._has_elaborated_children():
-            return Wireable.trace(self)
         ts = []
         for t in self:
             result = t.trace(skip_self)
@@ -433,9 +402,8 @@ class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    @wireable_with_children_wrapper
     def value(self):
-        if not self._has_elaborated_children():
-            return Wireable.value(self)
         ts = [t.value() for t in self]
 
         for t in ts:
@@ -447,10 +415,9 @@ class Tuple(Type, Tuple_, Wireable, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
+    @wireable_with_children_wrapper
     def driving(self):
-        if self._has_elaborated_children():
-            return {k: t.driving() for k, t in self.items()}
-        return Wireable.driving(self)
+        return {k: t.driving() for k, t in self.items()}
 
     @classmethod
     def unflatten(cls, value):

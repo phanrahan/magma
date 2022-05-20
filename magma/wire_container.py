@@ -236,3 +236,53 @@ class Wireable:
     def rewire(self, o, debug_info=None):
         self.unwire(debug_info=debug_info)
         self.wire(o, debug_info=debug_info)
+
+
+class WireableWithChildren(Wireable):
+    def _has_elaborated_children(self):
+        raise NotImplementedError()
+
+    def _enumerate_children(self):
+        raise NotImplementedError()
+
+    def _resolve_driven_bulk_wire(self):
+        # Remove bulk wire since children will now track the wiring
+        value = self._wire.value()
+        Wireable.unwire(self, value)
+
+        # Update children
+        for i, child in self._enumerate_children():
+            child.wire(value[i])
+
+    def _resolve_driving_bulk_wire(self):
+        driving = self._wire.driving()
+        # NOTE: we need to remove drivees before doing the recursive wiring of
+        # the children or else we'll trigger _resolve_bulk_wire when iterating
+        # over the children
+        for drivee in driving:
+            # Remove bulk wire since children will now track the wiring
+            Wireable.unwire(drivee, self)
+
+        for drivee in driving:
+            # Update children
+            for i, child in self._enumerate_children():
+                drivee[i].wire(child)
+
+    def _resolve_bulk_wire(self):
+        """
+        If a child reference is made, we "expand" a bulk wire into the
+        constiuent children to maintain consistency
+        """
+        if self._wire.driven():
+            self._resolve_driven_bulk_wire()
+        if self._wire.driving():
+            self._resolve_driving_bulk_wire()
+
+
+def wireable_with_children_wrapper(fn):
+    def wrapper(self, *args, **kwargs):
+        if self._has_elaborated_children():
+            return fn(self, *args, **kwargs)
+        wireable_fn = getattr(WireableWithChildren, fn.__name__)
+        return wireable_fn(self, *args, **kwargs)
+    return wrapper
