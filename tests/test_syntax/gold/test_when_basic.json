@@ -1,0 +1,46 @@
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Mux2xBit_inst0":{
+            "modref":"global.Mux2xBit"
+          }
+        },
+        "connections":[
+          ["self.I.1","Mux2xBit_inst0.I0"],
+          ["self.I.0","Mux2xBit_inst0.I1"],
+          ["self.O","Mux2xBit_inst0.O"],
+          ["self.S","Mux2xBit_inst0.S"]
+        ]
+      },
+      "Mux2xBit":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["S","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux2x1_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",2], "width":["Int",1]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux2x1_inst0.in.data.0.0"],
+          ["self.I1","coreir_commonlib_mux2x1_inst0.in.data.1.0"],
+          ["self.S","coreir_commonlib_mux2x1_inst0.in.sel.0"],
+          ["self.O","coreir_commonlib_mux2x1_inst0.out.0"]
+        ]
+      }
+    }
+  }
+}
+}

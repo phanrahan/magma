@@ -10,7 +10,6 @@ def test_when_with_default():
 
         io.O @= io.I[1]
         with m.when(io.S):
-            print("Bar")
             io.O @= io.I[0]
 
     m.compile("build/test_when_with_default", Foo, inline=True)
@@ -134,3 +133,21 @@ def test_when_bad_otherwise(fn, name):
             with fn(io.S[1]):
                 io.O @= io.I[1]
         _check_err(e.value, name)
+
+
+def test_when_multiple_drivers():
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]),
+                  O0=m.Out(m.Bit), O1=m.Out(m.Bit))
+
+        io.O0 @= io.I[1]
+        io.O1 @= io.I[0]
+        with m.when(io.S[0]) as c0:
+            with m.when(io.S[1]) as c1:
+                io.O0 @= io.I[0]
+                io.O1 @= io.I[1]
+
+    m.compile("build/test_when_multiple_drivers", Foo, inline=True)
+    assert check_files_equal(__file__,
+                             "build/test_when_multiple_drivers.v",
+                             "gold/test_when_multiple_drivers.v")
