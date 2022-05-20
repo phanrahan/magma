@@ -145,6 +145,29 @@ Cannot wire Foo.A.x (Out(Bits[4])) to Foo.A.y (In(Bits[2]))\
 """
 
 
+def test_product_width_mismatch3(caplog):
+    class T(m.Product):
+        x = m.In(m.Bits[4])
+        y = m.Out(m.Bits[2])
+
+    class Foo(m.Circuit):
+        io = m.IO(A=T, B=T, C=m.Out(m.Bit))
+        io.A.y[0] @= io.A.x[0]  # Partially wired
+        io.B.y @= io.A.x[2:]
+        io.C @= 0
+
+    with pytest.raises(Exception) as e:
+        m.compile("build/Foo", Foo)
+    assert str(e.value) == "Found circuit with errors: Foo"
+    expected = """\
+Foo.A.y not driven
+Foo.A.y
+    Foo.A.y[0]: Connected
+    Foo.A.y[1]: Unconnected\
+"""
+    assert "\n".join(caplog.messages) == expected
+
+
 @wrap_with_context_manager(logging_level("DEBUG"))
 def test_unwired_mixed(caplog):
     class T(m.Product):

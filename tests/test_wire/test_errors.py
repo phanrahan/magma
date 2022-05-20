@@ -4,7 +4,7 @@ from magma import *
 from magma.common import wrap_with_context_manager
 from magma.logging import logging_level
 from magma.testing.utils import (
-    has_error, has_warning, has_debug, magma_debug_section
+    has_error, has_warning, magma_debug_section
 )
 
 
@@ -200,7 +200,7 @@ def test_hanging_anon_error(caplog):
         assert has_error(caplog, msg)
         msg = "_Foo.O: Unconnected"
         assert caplog.records[1].message == msg
-        assert has_debug(caplog, msg)
+        assert has_error(caplog, msg)
 
 
 def test_wire_tuple_to_clock():
