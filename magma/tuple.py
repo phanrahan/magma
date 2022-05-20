@@ -328,8 +328,8 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         else:
             WireableWithChildren.wire(self, o, debug_info)
 
-    @wireable_with_children_wrapper
     @debug_unwire
+    @wireable_with_children_wrapper
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
             return Wireable.unwire(self, o, debug_info)
