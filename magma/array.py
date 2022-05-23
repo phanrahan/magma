@@ -991,10 +991,9 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
     def _has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)
 
+    @wireable_with_children_wrapper
     def value(self):
-        if self._has_elaborated_children():
-            return self._collect_children(lambda x: x.value())
-        return super().value()
+        return self._collect_children(lambda x: x.value())
 
     def _make_trace_child(self, skip_self):
         def _trace_child(t):

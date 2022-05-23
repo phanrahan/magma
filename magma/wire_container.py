@@ -127,9 +127,9 @@ class Wire:
             return self._driver.trace(skip_self=False)
         if not skip_self and (self._bit.is_output() or self._bit.is_inout()):
             return self._bit
-        if not skip_self and self._bit.has_children():
-            # Could be an Array driven non-bulk, so check if children can be
-            # traced
+        if (not skip_self and self._bit.has_children() and
+                self._bit.driven()):
+            # Driven non-bulk, so trace children
             return self._bit.trace(skip_self=False)
         return None
 
