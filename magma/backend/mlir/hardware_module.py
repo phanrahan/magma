@@ -361,7 +361,9 @@ class ModuleVisitor:
         if defn.coreir_name == "undriven":
             mlir_type = hw.InOutType(module.results[0].type)
             wire = self._ctx.new_value(mlir_type)
-            sv.WireOp(results=[wire])
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                inst, name=f"{self._ctx.name}.{inst.name}", force=True)
+            sv.WireOp(results=[wire], sym=sym)
             sv.ReadInOutOp(operands=[wire], results=module.results)
             return True
         op_name = defn.coreir_name
