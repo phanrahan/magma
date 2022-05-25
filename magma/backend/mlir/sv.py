@@ -127,7 +127,7 @@ class InitialOp(MlirOp):
 @dataclasses.dataclass
 class WireOp(MlirOp):
     results: List[MlirValue]
-    name: str
+    name: Optional[str] = None
     sym: Optional[MlirSymbol] = None
 
     def print_op(self, printer: PrinterBase):
@@ -135,7 +135,9 @@ class WireOp(MlirOp):
         printer.print(" = sv.wire ")
         if self.sym is not None:
             printer.print(f"sym {self.sym.name} ")
-        printer.print(f"{{name=\"{self.name}\"}} : ")
+        if self.name is not None:
+            printer.print(f"{{name=\"{self.name}\"}} ")
+        printer.print(": ")
         print_types(self.results, printer)
 
 
