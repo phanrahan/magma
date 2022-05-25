@@ -358,6 +358,12 @@ class ModuleVisitor:
             return self.visit_coreir_wire(module)
         if defn.coreir_name == "term":
             return True
+        if defn.coreir_name == "undriven":
+            mlir_type = hw.InOutType(module.results[0].type)
+            wire = self._ctx.new_value(mlir_type)
+            sv.WireOp(results=[wire])
+            sv.ReadInOutOp(operands=[wire], results=module.results)
+            return True
         op_name = defn.coreir_name
         if op_name == "ashr":
             op_name = "shrs"
