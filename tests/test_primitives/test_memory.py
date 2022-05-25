@@ -22,7 +22,8 @@ def test_memory_basic():
         )
         Mem4x5 = m.Memory(4, m.Bits[5])()
         io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] @= io.wdata
+        with m.when(io.wen):
+            Mem4x5[io.waddr] @= io.wdata
 
     m.compile("build/test_memory_basic", test_memory_basic)
 

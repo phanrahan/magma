@@ -5,14 +5,17 @@ module ConditionalDriversImpl (
     output O0,
     input O0None
 );
+reg  O0_reg;
 always @(*) begin
-    O0 = O0None;
+    O0_reg = O0None;
     if (C0) begin
         if (C1) begin
-            O0 = C1I0;
+            O0_reg = C1I0;
         end
     end
 end
+assign O0 = O0_reg;
+
 endmodule
 
 module Foo (

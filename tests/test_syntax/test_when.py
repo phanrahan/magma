@@ -151,3 +151,25 @@ def test_when_multiple_drivers():
     assert check_files_equal(__file__,
                              "build/test_when_multiple_drivers.v",
                              "gold/test_when_multiple_drivers.v")
+
+
+def test_when_memory():
+    class Foo(m.Circuit):
+        io = m.IO(
+            data0=m.In(m.Bits[8]), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
+            data1=m.In(m.Bits[8]), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
+            out=m.Out(m.Bits[8])
+        )
+
+        mem = m.Memory(32, m.Bits[8])()
+        with m.when(io.en0):
+            mem[io.addr0] @= io.data0
+            io.out @= mem[io.addr0]
+        with m.elsewhen(io.en1):
+            mem[io.addr1] @= io.data1
+            io.out @= mem[io.addr1]
+
+    m.compile("build/test_when_memory", Foo, inline=True)
+    assert check_files_equal(__file__,
+                             "build/test_when_memory.v",
+                             "gold/test_when_memory.v")

@@ -40,6 +40,14 @@ module coreir_mem #(
 
 endmodule
 
+module corebit_const #(
+    parameter value = 1
+) (
+    output out
+);
+  assign out = value;
+endmodule
+
 module Memory (
     input [1:0] RADDR,
     output [4:0] RDATA,
@@ -65,6 +73,34 @@ coreir_mem #(
 assign RDATA = coreir_mem4x5_inst0_rdata;
 endmodule
 
+module ConditionalDriversImpl (
+    input C0,
+    input [1:0] C0I0,
+    input [4:0] C0I1,
+    input C0I2,
+    output [1:0] O0,
+    output [4:0] O1,
+    output O2
+);
+reg [1:0] O0_reg;
+reg [4:0] O1_reg;
+reg  O2_reg;
+always @(*) begin
+    O0_reg = 0;
+    O1_reg = 0;
+    O2_reg = 0;
+    if (C0) begin
+        O0_reg = C0I0;
+        O1_reg = C0I1;
+        O2_reg = C0I2;
+    end
+end
+assign O0 = O0_reg;
+assign O1 = O1_reg;
+assign O2 = O2_reg;
+
+endmodule
+
 module test_memory_basic (
     input [1:0] raddr,
     output [4:0] rdata,
@@ -73,14 +109,32 @@ module test_memory_basic (
     input clk,
     input wen
 );
+wire [1:0] ConditionalDriversImpl_inst0_O0;
+wire [4:0] ConditionalDriversImpl_inst0_O1;
+wire ConditionalDriversImpl_inst0_O2;
 wire [4:0] Memory_inst0_RDATA;
+wire bit_const_1_None_out;
+ConditionalDriversImpl ConditionalDriversImpl_inst0 (
+    .C0(wen),
+    .C0I0(waddr),
+    .C0I1(wdata),
+    .C0I2(bit_const_1_None_out),
+    .O0(ConditionalDriversImpl_inst0_O0),
+    .O1(ConditionalDriversImpl_inst0_O1),
+    .O2(ConditionalDriversImpl_inst0_O2)
+);
 Memory Memory_inst0 (
     .RADDR(raddr),
     .RDATA(Memory_inst0_RDATA),
     .CLK(clk),
-    .WADDR(waddr),
-    .WDATA(wdata),
-    .WE(wen)
+    .WADDR(ConditionalDriversImpl_inst0_O0),
+    .WDATA(ConditionalDriversImpl_inst0_O1),
+    .WE(ConditionalDriversImpl_inst0_O2)
+);
+corebit_const #(
+    .value(1'b1)
+) bit_const_1_None (
+    .out(bit_const_1_None_out)
 );
 assign rdata = Memory_inst0_RDATA;
 endmodule

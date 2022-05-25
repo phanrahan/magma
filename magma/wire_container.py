@@ -182,6 +182,9 @@ class Wireable:
             o = o._wire
         i._wire.unwire(o, debug_info)
 
+    def clear_conditional_drivers(self):
+        self._conditional_drivers = {}
+
     def _conditional_wire(self, o, debug_info):
         when_cond_stack = peek_defn_when_cond_stack()
         if self.driven():

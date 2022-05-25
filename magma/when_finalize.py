@@ -1,5 +1,8 @@
 from magma.t import In, Out
 from magma.interface import IO
+from magma.ref import InstRef
+from magma.bit import Bit
+from magma.array import Array
 
 
 def _build_port_maps(when_conds, conditional_values):
@@ -23,6 +26,10 @@ def _build_port_maps(when_conds, conditional_values):
         io_ports[port_name] = dir(type(value))
         port_wire_map[port_name] = value
         port_debug_map[port_name] = debug_info
+        if dir is Out:
+            # Assign to reg then wire up at end for verilog assign
+            # semantics
+            port_name += "_reg"
         reverse_map[value] = port_name
 
     for i, cond in enumerate(when_conds):
@@ -64,6 +71,12 @@ def _emit_default_drivers(conditional_values, body, reverse_map):
                 reverse_map[value],
                 reverse_map[value._conditional_drivers[None]]
             ))
+        elif (isinstance(value.name, InstRef) and
+              value.name.inst._is_magma_memory_):
+            # Default values for memory ports are 0 (e.g. for
+            # conditional reads/writes)
+            body.add_statement(Assign(reverse_map[value], "0"))
+
 
 
 def _make_if(cond, when_cond_map):
@@ -108,9 +121,32 @@ def finalize_when_conds(context, when_conds):
                     body.add_statement(stmt)
             for input, output in cond.conditional_wires.items():
                 stmts.append(Assign(reverse_map[input], reverse_map[output]))
-        verilog = "always @(*) begin\n"
+        verilog = ""
+        # TODO(leonardt): We need to emit a reg declaration so we can assign in
+        # a behavioral block, then wire up at the end.
+        # For now, we only support Bit/Bits, since otherwise we need to have
+        # CoreIR manage the verilog serialization.  Rather than "re-implement"
+        # that here or add it to CoreIR, we should wait for MLIR
+        for i, value in enumerate(conditional_values):
+            width_str = ""
+            if isinstance(value, Bit):
+                pass
+            elif (isinstance(value, Array) and
+                  issubclass(value.T, Bit)):
+                width_str = f"[{len(value) - 1}:0]"
+            else:
+                raise NotImplementedError(value)
+
+            verilog += f"reg {width_str} O{i}_reg;\n"
+        verilog += "always @(*) begin\n"
         verilog += body.codegen()
-        verilog += "end"
+        verilog += "end\n"
+        for i, value in enumerate(conditional_values):
+            verilog += f"assign O{i} = O{i}_reg;\n"
+
+    for value in conditional_values:
+        # Clear to avoid warning in final wiring
+        value.clear_conditional_drivers()
 
     inst = ConditionalDriversImpl()
     for key, value in port_wire_map.items():

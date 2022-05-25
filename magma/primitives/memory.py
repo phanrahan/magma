@@ -105,21 +105,12 @@ class StagedMemoryPort(MagmaProtocol, metaclass=StagedMemoryPortMeta):
         self.addr = addr
 
     def __imatmul__(self, data):
-        if self.memory.WADDR.driven() or self.memory.WDATA.driven():
-            _logger.warning(
-                "Wiring __getitem__ result from a Memory instance with WADDR"
-                " or WDATA already driven, will overwrite previous values"
-            )
         self.memory.WADDR @= self.addr
         self.memory.WDATA @= data
+        self.memory.WE @= 1
         return self
 
     def _get_magma_value_(self):
-        if self.memory.RADDR.driven():
-            _logger.warning(
-                "Reading __getitem__ result from a Memory instance with RADDR"
-                " already driven, will overwrite previous value"
-            )
         self.memory.RADDR @= self.addr
         return self.memory.RDATA
 
@@ -202,3 +193,5 @@ class Memory(Generator2):
                 self.WADDR @= addr
                 self.WE @= when
             self.write = write
+
+        self._is_magma_memory_ = True
