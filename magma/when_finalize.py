@@ -78,12 +78,61 @@ def _emit_default_drivers(conditional_values, body, reverse_map):
             body.add_statement(Assign(reverse_map[value], "0"))
 
 
+def _construct_ifs(body, when_conds, when_cond_map, reverse_map):
+    for cond in when_conds:
+        if cond.cond is None:
+            # Else case, we append to previous false_stmts
+            stmts = when_cond_map[cond.prev_cond].false_stmts
+        else:
+            stmt = IfStatement(reverse_map[cond.cond])
+            when_cond_map[cond] = stmt
+            stmts = stmt.true_stmts
+            if cond.prev_cond is not None:
+                # elif, we append if statement inside previous false_stmts
+                when_cond_map[cond.prev_cond].false_stmts.append(stmt)
+            elif cond.parent is not None:
+                # nested, we insert inside parents true_stmts
+                when_cond_map[cond.parent].true_stmts.append(stmt)
+            else:
+                # we insert into top level
+                body.add_statement(stmt)
+        for input, output in cond.conditional_wires.items():
+            stmts.append(Assign(reverse_map[input], reverse_map[output]))
+
 
 def _make_if(cond, when_cond_map):
     stmt = IfStatement(cond)
     when_cond_map[cond] = stmt
     when_cond_map[cond.prev_cond].false_stmts.append(stmt)
     return stmt
+
+
+def _declare_regs(conditional_values):
+    # TODO(leonardt): We need to emit a reg declaration so we can assign in
+    # a behavioral block, then wire up at the end.
+    # For now, we only support Bit/Bits, since otherwise we need to have
+    # CoreIR manage the verilog serialization.  Rather than "re-implement"
+    # that here or add it to CoreIR, we should wait for MLIR
+    verilog = ""
+    for i, value in enumerate(conditional_values):
+        width_str = ""
+        if isinstance(value, Bit):
+            pass
+        elif (isinstance(value, Array) and
+              issubclass(value.T, Bit)):
+            width_str = f"[{len(value) - 1}:0]"
+        else:
+            raise NotImplementedError(value)
+
+        verilog += f"reg {width_str} O{i}_reg;\n"
+    return verilog
+
+
+def _wire_regs(conditional_values):
+    verilog = ""
+    for i in range(len(conditional_values)):
+        verilog += f"assign O{i} = O{i}_reg;\n"
+    return verilog
 
 
 def finalize_when_conds(context, when_conds):
@@ -102,47 +151,13 @@ def finalize_when_conds(context, when_conds):
         when_cond_map = {}
         body = Body()
         _emit_default_drivers(conditional_values, body, reverse_map)
-        for cond in when_conds:
-            if cond.cond is None:
-                # Else case, we append to previous false_stmts
-                stmts = when_cond_map[cond.prev_cond].false_stmts
-            else:
-                stmt = IfStatement(reverse_map[cond.cond])
-                when_cond_map[cond] = stmt
-                stmts = stmt.true_stmts
-                if cond.prev_cond is not None:
-                    # elif, we append if statement inside previous false_stmts
-                    when_cond_map[cond.prev_cond].false_stmts.append(stmt)
-                elif cond.parent is not None:
-                    # nested, we insert inside parents true_stmts
-                    when_cond_map[cond.parent].true_stmts.append(stmt)
-                else:
-                    # we insert into top level
-                    body.add_statement(stmt)
-            for input, output in cond.conditional_wires.items():
-                stmts.append(Assign(reverse_map[input], reverse_map[output]))
+        _construct_ifs(body, when_conds, when_cond_map, reverse_map)
         verilog = ""
-        # TODO(leonardt): We need to emit a reg declaration so we can assign in
-        # a behavioral block, then wire up at the end.
-        # For now, we only support Bit/Bits, since otherwise we need to have
-        # CoreIR manage the verilog serialization.  Rather than "re-implement"
-        # that here or add it to CoreIR, we should wait for MLIR
-        for i, value in enumerate(conditional_values):
-            width_str = ""
-            if isinstance(value, Bit):
-                pass
-            elif (isinstance(value, Array) and
-                  issubclass(value.T, Bit)):
-                width_str = f"[{len(value) - 1}:0]"
-            else:
-                raise NotImplementedError(value)
-
-            verilog += f"reg {width_str} O{i}_reg;\n"
+        verilog += _declare_regs(conditional_values)
         verilog += "always @(*) begin\n"
         verilog += body.codegen()
         verilog += "end\n"
-        for i, value in enumerate(conditional_values):
-            verilog += f"assign O{i} = O{i}_reg;\n"
+        verilog += _wire_regs(conditional_values)
 
     for value in conditional_values:
         # Clear to avoid warning in final wiring
