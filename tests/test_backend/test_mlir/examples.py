@@ -477,3 +477,14 @@ class simple_module_params_instance(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     inst = simple_module_params(width=10, height=20)
     io.O @= inst(io.I)
+
+
+class simple_undriven(m.Circuit):
+    io = m.IO(O=m.Out(m.Bit))
+    io.O.undriven()
+
+
+class complex_undriven(m.Circuit):
+    T = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    io = m.IO(O=m.Out(T))
+    io.O.undriven()
