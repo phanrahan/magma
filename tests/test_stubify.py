@@ -40,7 +40,7 @@ def test_stubify_ckt():
     class _Foo(m.Circuit):
         io = _make_io()
 
-    m.stubify(_Foo)
+    m.stubify(_Foo, stubbifier=m.zero_stubbifier)
 
     assert m.isdefinition(_Foo)
     _check_open_not_implemented(_Foo)
@@ -50,7 +50,7 @@ def test_stubify_ckt():
 
 def test_decorator():
 
-    @m.circuit_stub
+    @m.circuit_stub(stubbifier=m.zero_stubbifier)
     class _Foo(m.Circuit):
         io = _make_io()
 
@@ -75,7 +75,7 @@ def test_io():
 
     class _Foo(m.Circuit):
         io = _make_io()
-        m.stubify(io)
+        m.stubify(io, stubbifier=m.zero_stubbifier)
 
     assert m.isdefinition(_Foo)
     drivers = (port.trace() for port in _get_inputs(_Foo))
@@ -94,7 +94,7 @@ def test_instance():
     class _(m.Circuit):
         io = m.IO()
         inst = _Foo()
-        m.stubify(inst.interface)
+        m.stubify(inst.interface, stubbifier=m.zero_stubbifier)
         # NOTE(rsetaluri): We have to use map() here because of quirks with
         # doing list comprehension inside of class bodies.
         drivers = map(lambda p: p.trace(), _get_outputs(inst))

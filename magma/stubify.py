@@ -85,7 +85,7 @@ def circuit_stub(cls=None, *, stubbifier: Stubbifier = zero_stubbifier):
     automatically as well.
     """
     if cls is None:
-        return partial(circuit_stub, stubbifier=stubbifier)
+        return functools.partial(circuit_stub, stubbifier=stubbifier)
     stubify(cls, stubbifier)
     return cls
 
