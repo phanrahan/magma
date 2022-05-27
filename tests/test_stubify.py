@@ -1,6 +1,7 @@
 import pytest
 
 import magma as m
+from magma.testing.utils import has_warning
 
 
 class _MixedTuple(m.Product):
@@ -99,3 +100,23 @@ def test_instance():
         # doing list comprehension inside of class bodies.
         drivers = map(lambda p: p.trace(), _get_outputs(inst))
         assert all(map(lambda d: d.const() and int(d) == 0, drivers))
+
+
+@pytest.mark.parametrize(
+    "stubbifier",
+    (
+        m.zero_stubbifier,
+        m.no_override_driven_zero_stubbifier
+    )
+)
+def test_partially_driven(caplog, stubbifier):
+
+    class _Foo(m.Circuit):
+        io = m.IO(O=m.Out(m.Bits[2]))
+        io.O @= 1
+        m.stubify(io, stubbifier=stubbifier)
+
+    expected_warning = (stubbifier is m.zero_stubbifier)
+
+    if expected_warning:
+        assert has_warning(caplog)

@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 from typing import Callable, Iterable
 
@@ -7,18 +8,39 @@ from magma.value_utils import ValueVisitor
 from magma.t import Type
 
 
-Stubbifier = Callable[[Type], bool]
+@dataclasses.dataclass(frozen=True)
+class _StubbifierResult:
+    modified: bool
+    descend: bool
 
 
-def zero_stubbifier(value: Type) -> bool:
+Stubbifier = Callable[[Type], _StubbifierResult]
+
+
+def zero_stubbifier(value: Type) -> _StubbifierResult:
     if value.is_output():
         value.unused()
-        return True
+        return _StubbifierResult(modified=True, descend=False)
     if value.is_input():
         bits = as_bits(value)
         bits @= 0
-        return True
-    return False
+        return _StubbifierResult(modified=True, descend=False)
+    return _StubbifierResult(modified=False, descend=True)
+
+
+class NoOverrideDrivenStubbifierFactory:
+    def __init__(self, stubbifier: Stubbifier):
+        self._stubbifier = stubbifier
+
+    def __call__(self, value: Type) -> bool:
+        if value.value() is not None:
+            return _StubbifierResult(modified=False, descend=False)
+        return self._stubbifier(value)
+
+
+no_override_driven_zero_stubbifier = (
+    NoOverrideDrivenStubbifierFactory(zero_stubbifier)
+)
 
 
 class _StubifyVisitor(ValueVisitor):
@@ -31,9 +53,10 @@ class _StubifyVisitor(ValueVisitor):
         return self._modified
 
     def generic_visit(self, value: Type):
-        modified = self._stubbifier(value)
-        if modified:
+        result = self._stubbifier(value)
+        if result.modified:
             self._modified = True
+        if not result.descend:
             return
         super().generic_visit(value)
 
