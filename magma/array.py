@@ -598,7 +598,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return cls.T.is_mixed()
 
     def _wire_children(self, o, debug_info):
-        print(list(self._enumerate_children()))
         for i, child in self._enumerate_children():
             child.wire(o[i], debug_info)
 
