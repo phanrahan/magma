@@ -3,6 +3,7 @@ from magma.interface import IO
 from magma.ref import InstRef
 from magma.bit import Bit
 from magma.array import Array
+from magma.tuple import Product, Tuple
 
 
 def _build_port_maps(when_conds, conditional_values):
@@ -107,6 +108,29 @@ def _make_if(cond, when_cond_map):
     return stmt
 
 
+def _make_reg_decls(name, value):
+    width_str = ""
+    if isinstance(value, Bit):
+        pass
+    elif (isinstance(value, Array) and
+          issubclass(value.T, Bit)):
+        width_str = f"[{len(value) - 1}:0]"
+    elif isinstance(value, Tuple):
+        decls = []
+        for key, value in value.items():
+            if not isinstance(value, Product):
+                key = f"_{key}"
+            decls += _make_reg_decls(f"{name}_{key}", value)
+        return decls
+    else:
+        decls = []
+        for i, elem in enumerate(value):
+            decls += _make_reg_decls(f"{name}_{i}", elem)
+        return decls
+
+    return [f"reg {width_str} {name}_reg;\n"]
+
+
 def _declare_regs(conditional_values):
     # TODO(leonardt): We need to emit a reg declaration so we can assign in
     # a behavioral block, then wire up at the end.
@@ -115,16 +139,7 @@ def _declare_regs(conditional_values):
     # that here or add it to CoreIR, we should wait for MLIR
     verilog = ""
     for i, value in enumerate(conditional_values):
-        width_str = ""
-        if isinstance(value, Bit):
-            pass
-        elif (isinstance(value, Array) and
-              issubclass(value.T, Bit)):
-            width_str = f"[{len(value) - 1}:0]"
-        else:
-            raise NotImplementedError(value)
-
-        verilog += f"reg {width_str} O{i}_reg;\n"
+        verilog += "".join(_make_reg_decls(f"O{i}", value))
     return verilog
 
 

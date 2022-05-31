@@ -173,3 +173,28 @@ def test_when_memory():
     assert check_files_equal(__file__,
                              "build/test_when_memory.v",
                              "gold/test_when_memory.v")
+
+
+@pytest.mark.parametrize('T', [m.Array[2, m.Tuple[m.Bit, m.Bits[2]]],
+                               m.Tuple[m.Bits[2], m.Bit]])
+def test_when_nested(T):
+    class Foo(m.Circuit):
+        io = m.IO(I=m.In(m.Array[2, T]),
+                  S=m.In(m.Bit),
+                  O=m.Out(T))
+
+        io.O @= io.I[1]
+        with m.when(io.S):
+            io.O @= io.I[0]
+
+    T_str = str(T)\
+        .replace('(', '')\
+        .replace(')', '')\
+        .replace('[', '')\
+        .replace(']', '')\
+        .replace(',', '')\
+        .replace(' ', '')
+    m.compile(f"build/test_when_nested_{T_str}", Foo, inline=True)
+    assert check_files_equal(__file__,
+                             f"build/test_when_nested_{T_str}.v",
+                             f"gold/test_when_nested_{T_str}.v")
