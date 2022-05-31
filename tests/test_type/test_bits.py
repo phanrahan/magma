@@ -474,3 +474,11 @@ def test_bits_coerce_typeerror():
         # Bits.__and__ should get a TypeError in _coerce so we then use
         # Dummy.__rand__
         assert (io.I & Dummy()) is io.I
+
+
+def test_bits_rewire_warning(caplog):
+    x = m.Bit(name="x")
+    x @= 0
+    x = m.as_bits(x)
+    x @= 0
+    assert len(caplog.messages)

@@ -598,13 +598,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return cls.T.is_mixed()
 
     def _wire_children(self, o, debug_info):
+        print(list(self._enumerate_children()))
         for i, child in self._enumerate_children():
-            new_value = o[i]
-            if child.value() is new_value:
-                # Skip updating wire in the case that it's the same value
-                # (avoids an error message)
-                continue
-            child.wire(new_value, debug_info)
+            child.wire(o[i], debug_info)
 
     @debug_wire
     def wire(self, o, debug_info):
