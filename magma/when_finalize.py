@@ -59,6 +59,9 @@ def _get_conditional_values(context):
 
 
 def _emit_assign(stmts, target, value, T, is_final_wire=False):
+    # TODO(when): Handle complex types by unpacking the assignments into
+    # leaf elements, in MLIR we can hopefully let the compiler handle this
+    # downstream
     if issubclass(T, Tuple):
         for key, child_T in T.field_dict.items():
             if not issubclass(T, Product):
