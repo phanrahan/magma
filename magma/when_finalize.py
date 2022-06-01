@@ -58,37 +58,35 @@ def _get_conditional_values(context):
     return list(sorted(conditional_values, key=lambda x: str(x.name)))
 
 
-def _emit_assign(stmts, target, value, T, wire=False):
-    if issubclass(T, Bit):
-        pass
-    elif (issubclass(T, Array) and
-          issubclass(T.T, Bit)):
-        pass
-    elif issubclass(T, Tuple):
+def _emit_assign(stmts, target, value, T, is_final_wire=False):
+    if issubclass(T, Tuple):
         for key, child_T in T.field_dict.items():
             if not issubclass(T, Product):
                 key = f"_{key}"
-            _emit_assign(stmts,
-                         target + f"_{key}",
-                         value + f"_{key}" if value is not None else None,
-                         child_T,
-                         wire)
+                child_value = value
+                if value is not None:
+                    child_value = value + f"_{key}"
+            _emit_assign(stmts, target + f"_{key}", child_value, child_T,
+                         is_final_wire)
         return
-    elif issubclass(T, Array):
+    elif issubclass(T, Array) and not issubclass(T.T, Bit):
         for i in range(len(T)):
-            _emit_assign(stmts,
-                         target + f"_{i}",
-                         value + f"_{i}" if value is not None else None,
-                         T.T,
-                         wire)
+            child_value = value
+            if value is not None:
+                child_value = value + f"_{i}"
+            _emit_assign(stmts, target + f"_{i}", child_value, T.T,
+                         is_final_wire)
         return
     if value is None:
+        # Default memory values (zero)
         value = "0"
-    if wire:
+    if is_final_wire:
+        # Wiring up _reg to output in assign statement
         value += "_reg"
     else:
+        # Assign to _reg temporary for inside always block
         target += "_reg"
-    stmts.append(Assign(target, value, wire))
+    stmts.append(Assign(target, value, is_final_wire))
 
 
 def _emit_default_drivers(conditional_values, body, reverse_map):
@@ -178,7 +176,7 @@ def _wire_regs(conditional_values):
     body = Body(tab="")
     for i, value in enumerate(conditional_values):
         _emit_assign(body._statements, f"O{i}", f"O{i}", type(value),
-                     wire=True)
+                     is_final_wire=True)
     return body.codegen()
 
 
