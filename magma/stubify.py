@@ -63,7 +63,7 @@ class _StubifyVisitor(ValueVisitor):
 
 def _stubify_impl(
         ports: Iterable[Type],
-        stubbifier: Stubbifier = zero_stubbifier
+        stubbifier: Stubbifier = no_override_driven_zero_stubbifier
 ) -> bool:
     modified = False
     for port in ports:
@@ -78,12 +78,18 @@ def _stub_open(cls):
 
 
 @functools.singledispatch
-def stubify(interface, stubbifier: Stubbifier = zero_stubbifier):
+def stubify(
+        interface,
+        stubbifier: Stubbifier = no_override_driven_zero_stubbifier
+):
     _ = _stubify_impl(interface.ports.values(), stubbifier)
 
 
 @stubify.register
-def _(obj: CircuitKind, stubbifier: Stubbifier = zero_stubbifier):
+def _(
+        obj: CircuitKind,
+        stubbifier: Stubbifier = no_override_driven_zero_stubbifier
+):
     ckt = obj
     with ckt.open():
         modified = _stubify_impl(ckt.interface.ports.values(), stubbifier)
@@ -99,7 +105,11 @@ def _(obj: CircuitKind, stubbifier: Stubbifier = zero_stubbifier):
     setattr(ckt, "open", classmethod(_stub_open))
 
 
-def circuit_stub(cls=None, *, stubbifier: Stubbifier = zero_stubbifier):
+def circuit_stub(
+        cls=None,
+        *,
+        stubbifier: Stubbifier = no_override_driven_zero_stubbifier
+):
     """
     Inspired by https://pybit.es/decorator-optional-argument.html.
 
@@ -119,7 +129,7 @@ class _CircuitStubMeta(DefineCircuitKind):
         # Only call stubify() on user circuits (i.e. do not call on CircuitStub
         # base class).
         if not dct.get("_circuit_base_", False):
-            stubify(cls, stubbifier=zero_stubbifier)
+            stubify(cls, stubbifier=no_override_driven_zero_stubbifier)
         return cls
 
 
