@@ -27,10 +27,6 @@ def _build_port_maps(when_conds, conditional_values):
         io_ports[port_name] = dir(type(value))
         port_wire_map[port_name] = value
         port_debug_map[port_name] = debug_info
-        if dir is Out:
-            # Assign to reg then wire up at end for verilog assign
-            # semantics
-            port_name += "_reg"
         reverse_map[value] = port_name
 
     for i, cond in enumerate(when_conds):
@@ -62,21 +58,55 @@ def _get_conditional_values(context):
     return list(sorted(conditional_values, key=lambda x: str(x.name)))
 
 
+def _emit_assign(stmts, target, value, T, wire=False):
+    if issubclass(T, Bit):
+        pass
+    elif (issubclass(T, Array) and
+          issubclass(T.T, Bit)):
+        pass
+    elif issubclass(T, Tuple):
+        for key, child_T in T.field_dict.items():
+            if not issubclass(T, Product):
+                key = f"_{key}"
+            _emit_assign(stmts,
+                         target + f"_{key}",
+                         value + f"_{key}" if value is not None else None,
+                         child_T,
+                         wire)
+        return
+    elif issubclass(T, Array):
+        for i in range(len(T)):
+            _emit_assign(stmts,
+                         target + f"_{i}",
+                         value + f"_{i}" if value is not None else None,
+                         T.T,
+                         wire)
+        return
+    if value is None:
+        value = "0"
+    if wire:
+        value += "_reg"
+    else:
+        target += "_reg"
+    stmts.append(Assign(target, value, wire))
+
+
 def _emit_default_drivers(conditional_values, body, reverse_map):
     """
     Emit default assignments (i.e. values driven before a when statement)
     """
     for i, value in enumerate(conditional_values):
         if None in value._conditional_drivers:
-            body.add_statement(Assign(
+            _emit_assign(
+                body._statements,
                 reverse_map[value],
-                reverse_map[value._conditional_drivers[None]]
-            ))
+                reverse_map[value._conditional_drivers[None]],
+                type(value)
+            )
         elif (isinstance(value.name, InstRef) and
               value.name.inst._is_magma_memory_):
-            # Default values for memory ports are 0 (e.g. for
-            # conditional reads/writes)
-            body.add_statement(Assign(reverse_map[value], "0"))
+            _emit_assign(body._statements, reverse_map[value], None,
+                         type(value))
 
 
 def _construct_ifs(body, when_conds, when_cond_map, reverse_map):
@@ -98,7 +128,8 @@ def _construct_ifs(body, when_conds, when_cond_map, reverse_map):
                 # we insert into top level
                 body.add_statement(stmt)
         for input, output in cond.conditional_wires.items():
-            stmts.append(Assign(reverse_map[input], reverse_map[output]))
+            _emit_assign(stmts, reverse_map[input], reverse_map[output],
+                         type(input))
 
 
 def _make_if(cond, when_cond_map):
@@ -144,10 +175,11 @@ def _declare_regs(conditional_values):
 
 
 def _wire_regs(conditional_values):
-    verilog = ""
-    for i in range(len(conditional_values)):
-        verilog += f"assign O{i} = O{i}_reg;\n"
-    return verilog
+    body = Body(tab="")
+    for i, value in enumerate(conditional_values):
+        _emit_assign(body._statements, f"O{i}", f"O{i}", type(value),
+                     wire=True)
+    return body.codegen()
 
 
 def finalize_when_conds(context, when_conds):
@@ -198,14 +230,15 @@ def _codegen_stmts(stmts, tab=""):
 
 
 class Body:
-    def __init__(self):
+    def __init__(self, tab="    "):
         self._statements = []
+        self._tab = tab
 
     def add_statement(self, stmt):
         self._statements.append(stmt)
 
     def codegen(self):
-        return _codegen_stmts(self._statements, tab="    ")
+        return _codegen_stmts(self._statements, tab=self._tab)
 
 
 class IfStatement:
@@ -225,9 +258,13 @@ class IfStatement:
 
 
 class Assign:
-    def __init__(self, input, output):
+    def __init__(self, input, output, wire):
         self._input = input
         self._output = output
+        self._wire = wire
 
     def codegen(self):
-        return f"{self._input} = {self._output};"
+        s = f"{self._input} = {self._output};"
+        if self._wire:
+            s = "assign " + s
+        return s
