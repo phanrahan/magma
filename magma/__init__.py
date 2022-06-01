@@ -112,7 +112,10 @@ import magma.smart
 from magma.compile_guard import compile_guard, compile_guard_select
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.set_name import set_name
-from magma.stubify import circuit_stub, stubify, CircuitStub
+from magma.stubify import (
+    circuit_stub, stubify, CircuitStub, zero_stubbifier,
+    no_override_driven_zero_stubbifier
+)
 from magma.compile import MagmaCompileException
 from magma.linking import link_module, link_default_module, clear_link_info
 import magma.math
