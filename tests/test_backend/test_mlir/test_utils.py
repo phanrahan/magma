@@ -143,6 +143,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.aggregate_constant,
         examples.simple_mux_wrapper,
         examples.aggregate_mux_wrapper,
+        examples.non_power_of_two_mux_wrapper,
         examples.simple_register_wrapper,
         examples.complex_register_wrapper,
         examples.counter,
@@ -175,6 +176,8 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_compile_guard,
         examples.simple_custom_verilog_name,
         examples.simple_module_params_instance,
+        examples.simple_undriven,
+        examples.complex_undriven,
     ]
 
 

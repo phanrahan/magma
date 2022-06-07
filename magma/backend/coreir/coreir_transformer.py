@@ -12,6 +12,7 @@ from magma.backend.coreir.coreir_utils import (
     magma_port_to_coreir_port, make_cparams, map_genarg,
     magma_name_to_coreir_select, Slice)
 from magma.compile_exception import UnconnectedPortException
+from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.interface import InterfaceKind
 from magma.is_definition import isdefinition
 from magma.linking import (
@@ -487,8 +488,11 @@ class DeclarationTransformer(LeafTransformer):
                 self.decl.name, magma_name, coreir_name)
 
     def _run_self_impl(self):
-        self.decl = self.decl
         _logger.debug(f"Compiling declaration {self.decl}")
+        if isinstance(self.decl, InlineVerilogExpression):
+            raise NotImplementedError(
+                "Can not compile InlineVerilogExpression generator to CoreIR"
+            )
         if self.decl.coreir_lib is not None:
             self.backend.include_lib_or_libs(self.decl.coreir_lib)
         # These libraries are already available by default in coreir, so we

@@ -127,7 +127,7 @@ class InitialOp(MlirOp):
 @dataclasses.dataclass
 class WireOp(MlirOp):
     results: List[MlirValue]
-    name: str
+    name: Optional[str] = None
     sym: Optional[MlirSymbol] = None
 
     def print_op(self, printer: PrinterBase):
@@ -135,8 +135,20 @@ class WireOp(MlirOp):
         printer.print(" = sv.wire ")
         if self.sym is not None:
             printer.print(f"sym {self.sym.name} ")
-        printer.print(f"{{name=\"{self.name}\"}} : ")
+        if self.name is not None:
+            printer.print(f"{{name=\"{self.name}\"}} ")
+        printer.print(": ")
         print_types(self.results, printer)
+
+
+def _esacpe_string(string: str):
+    # NOTE(rsetaluri): This is a hack to "double-escape" escape characters like
+    # `\n`, `\t`.
+    return (
+        repr(string)[1:-1]
+        .replace("\"", "\\\"")
+        .replace("\\\'", "'")
+    )
 
 
 @dataclasses.dataclass
@@ -145,17 +157,32 @@ class VerbatimOp(MlirOp):
     string: str
 
     def print_op(self, printer: PrinterBase):
-        # NOTE(rsetaluri): This is a hack to "double-escape" escape characters
-        # like `\n`, `\t`.
-        string = repr(self.string)[1:-1]
-        string = string.replace("\"", "\\\"")
-        string = string.replace("\\\'", "'")
+        string = _esacpe_string(self.string)
         printer.print(f"sv.verbatim \"{string}\"")
         if self.operands:
             printer.print(" (")
             print_names(self.operands, printer)
             printer.print(") : ")
             print_types(self.operands, printer)
+
+
+@dataclasses.dataclass
+class VerbatimExprOp(MlirOp):
+    operands: List[MlirOp]
+    results: List[MlirOp]
+    expr: str
+
+    def print_op(self, printer: PrinterBase):
+        expr = _esacpe_string(self.expr)
+        print_names(self.results, printer)
+        printer.print(f" = sv.verbatim.expr \"{expr}\"")
+        printer.print(" (")
+        print_names(self.operands, printer)
+        printer.print(") : (")
+        print_types(self.operands, printer)
+        printer.print(") -> (")
+        print_types(self.results, printer)
+        printer.print(")")
 
 
 @dataclasses.dataclass

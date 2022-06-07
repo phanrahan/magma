@@ -133,4 +133,4 @@ def find_and_log_unconnected_ports(ckt):
         visitor = _make_unconnected_port_diagnostic_visitor_cls()()
         diagnostics = visitor.visit(port)
         for diagnostic in diagnostics:
-            _logger.debug(diagnostic.make_wiring_log())
+            _logger.error(diagnostic.make_wiring_log())

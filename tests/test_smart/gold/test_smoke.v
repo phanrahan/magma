@@ -49,15 +49,15 @@ assign port0 = {port1[9],port1[8],port1[7],port1[6],port1[5],port1[4],port1[3],p
 assign port2 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port3};
 assign port4 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port5[0]};
 assign port6 = port7[0];
-assign port8 = magma_UInt_16_add_inst0_out[11:0];
-assign port11 = magma_UInt_10_add_inst0_out[0:0];
+assign port8 = {magma_UInt_16_add_inst0_out[11],magma_UInt_16_add_inst0_out[10],magma_UInt_16_add_inst0_out[9],magma_UInt_16_add_inst0_out[8],magma_UInt_16_add_inst0_out[7],magma_UInt_16_add_inst0_out[6],magma_UInt_16_add_inst0_out[5],magma_UInt_16_add_inst0_out[4],magma_UInt_16_add_inst0_out[3],magma_UInt_16_add_inst0_out[2],magma_UInt_16_add_inst0_out[1],magma_UInt_16_add_inst0_out[0]};
+assign port11 = magma_UInt_10_add_inst0_out[0];
 assign port14 = ~ ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port15});
 assign port16 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port17}) <= port18};
 assign port19 = {1'b0,1'b0,1'b0,& port20};
-assign port21 = magma_UInt_16_shl_inst0_out[9:0];
+assign port21 = {magma_UInt_16_shl_inst0_out[9],magma_UInt_16_shl_inst0_out[8],magma_UInt_16_shl_inst0_out[7],magma_UInt_16_shl_inst0_out[6],magma_UInt_16_shl_inst0_out[5],magma_UInt_16_shl_inst0_out[4],magma_UInt_16_shl_inst0_out[3],magma_UInt_16_shl_inst0_out[2],magma_UInt_16_shl_inst0_out[1],magma_UInt_16_shl_inst0_out[0]};
 assign port24 = port26 << ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port25});
 assign port27 = port28 << ({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,port29[0]});
-assign port30 = magma_UInt_10_shl_inst1_out[0:0];
+assign port30 = magma_UInt_10_shl_inst1_out[0];
 assign port33 = {1'b0,1'b0,1'b0,1'b0,1'b0,port36[0],port35,port34};
 endmodule
 

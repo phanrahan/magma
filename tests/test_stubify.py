@@ -1,6 +1,7 @@
 import pytest
 
 import magma as m
+from magma.testing.utils import has_warning
 
 
 class _MixedTuple(m.Product):
@@ -40,7 +41,7 @@ def test_stubify_ckt():
     class _Foo(m.Circuit):
         io = _make_io()
 
-    m.stubify(_Foo)
+    m.stubify(_Foo, stubbifier=m.zero_stubbifier)
 
     assert m.isdefinition(_Foo)
     _check_open_not_implemented(_Foo)
@@ -50,7 +51,7 @@ def test_stubify_ckt():
 
 def test_decorator():
 
-    @m.circuit_stub
+    @m.circuit_stub(stubbifier=m.zero_stubbifier)
     class _Foo(m.Circuit):
         io = _make_io()
 
@@ -75,7 +76,7 @@ def test_io():
 
     class _Foo(m.Circuit):
         io = _make_io()
-        m.stubify(io)
+        m.stubify(io, stubbifier=m.zero_stubbifier)
 
     assert m.isdefinition(_Foo)
     drivers = (port.trace() for port in _get_inputs(_Foo))
@@ -94,8 +95,28 @@ def test_instance():
     class _(m.Circuit):
         io = m.IO()
         inst = _Foo()
-        m.stubify(inst.interface)
+        m.stubify(inst.interface, stubbifier=m.zero_stubbifier)
         # NOTE(rsetaluri): We have to use map() here because of quirks with
         # doing list comprehension inside of class bodies.
         drivers = map(lambda p: p.trace(), _get_outputs(inst))
         assert all(map(lambda d: d.const() and int(d) == 0, drivers))
+
+
+@pytest.mark.parametrize(
+    "stubbifier",
+    (
+        m.zero_stubbifier,
+        m.no_override_driven_zero_stubbifier
+    )
+)
+def test_partially_driven(caplog, stubbifier):
+
+    class _Foo(m.Circuit):
+        io = m.IO(O=m.Out(m.Bits[2]))
+        io.O @= 1
+        m.stubify(io, stubbifier=stubbifier)
+
+    expected_warning = (stubbifier is m.zero_stubbifier)
+
+    if expected_warning:
+        assert has_warning(caplog)

@@ -37,6 +37,7 @@ from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.common import filter_by_key
 from magma.digital import Digital, DigitalMeta
+from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
@@ -130,6 +131,11 @@ def make_mux(
         data: List[MlirValue],
         select: MlirValue,
         result: MlirValue):
+    if ctx.opts.extend_non_power_of_two_muxes:
+        closest_power_of_two_size = 2 ** clog2(len(data))
+        if closest_power_of_two_size != len(data):
+            extension = [data[0]] * (closest_power_of_two_size - len(data))
+            data = extension + data
     mlir_type = hw.ArrayType((len(data),), data[0].type)
     array = ctx.new_value(mlir_type)
     hw.ArrayCreateOp(
@@ -352,6 +358,14 @@ class ModuleVisitor:
             return self.visit_coreir_wire(module)
         if defn.coreir_name == "term":
             return True
+        if defn.coreir_name == "undriven":
+            mlir_type = hw.InOutType(module.results[0].type)
+            wire = self._ctx.new_value(mlir_type)
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                inst, name=f"{self._ctx.name}.{inst.name}", force=True)
+            sv.WireOp(results=[wire], sym=sym)
+            sv.ReadInOutOp(operands=[wire], results=module.results)
+            return True
         op_name = defn.coreir_name
         if op_name == "ashr":
             op_name = "shrs"
@@ -471,6 +485,15 @@ class ModuleVisitor:
             return self.visit_coreir_primitive(module)
         if defn.coreir_lib == "commonlib":
             return self.visit_commonlib_primitive(module)
+        if isinstance(defn, InlineVerilogExpression):
+            assert len(module.operands) == 0
+            assert len(module.results) > 0
+            sv.VerbatimExprOp(
+                operands=list(),
+                results=module.results,
+                expr=defn.expr,
+            )
+            return True
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
@@ -490,8 +513,13 @@ class ModuleVisitor:
             stride = len(data) // height
             assert len(module.results) == stride
             for i in range(stride):
-                make_mux(self._ctx, data[i::stride], select, module.results[i])
+                inputs = list(reversed(data[i::stride]))
+                make_mux(self._ctx, inputs, select, module.results[i])
             return True
+        # NOTE(rsetaluri): Reversing data needs to be done *after* we check for
+        # tuple flattening. Otherwise the tuple field ordering gets reversed as
+        # well.
+        data = list(reversed(data))
         make_mux(self._ctx, data, select, module.results[0])
         return True
 

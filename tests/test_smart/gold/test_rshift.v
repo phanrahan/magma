@@ -7,7 +7,7 @@ module _Test (
 );
 wire [7:0] magma_UInt_8_lshr_inst0_out;
 assign magma_UInt_8_lshr_inst0_out = I0 >> ({1'b0,1'b0,1'b0,1'b0,I1});
-assign O1 = magma_UInt_8_lshr_inst0_out[3:0];
+assign O1 = {magma_UInt_8_lshr_inst0_out[3],magma_UInt_8_lshr_inst0_out[2],magma_UInt_8_lshr_inst0_out[1],magma_UInt_8_lshr_inst0_out[0]};
 assign O2 = I0 >> ({1'b0,1'b0,1'b0,1'b0,I1});
 assign O3 = {1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,I0 >> ({1'b0,1'b0,1'b0,1'b0,I1})};
 endmodule

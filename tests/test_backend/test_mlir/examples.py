@@ -103,6 +103,15 @@ class aggregate_mux_wrapper(m.Circuit):
     io.y @= m.mux([io.a, not_a], io.s)
 
 
+class non_power_of_two_mux_wrapper(m.Circuit):
+    T = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    io = m.IO(a=m.In(T), s=m.In(m.Bits[4]), y=m.Out(T))
+    not_a = T(*map(lambda x: ~x, io.a))
+    inputs = [io.a, not_a]
+    inputs += [not_a] * 10
+    io.y @= m.mux(inputs, io.s)
+
+
 class simple_register_wrapper(m.Circuit):
     T = m.Bits[8]
     io = m.IO(a=m.In(T), y=m.Out(T))
@@ -468,3 +477,14 @@ class simple_module_params_instance(m.Circuit):
     io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
     inst = simple_module_params(width=10, height=20)
     io.O @= inst(io.I)
+
+
+class simple_undriven(m.Circuit):
+    io = m.IO(O=m.Out(m.Bit))
+    io.O.undriven()
+
+
+class complex_undriven(m.Circuit):
+    T = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
+    io = m.IO(O=m.Out(T))
+    io.O.undriven()
