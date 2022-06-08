@@ -60,7 +60,7 @@ def can_convert_to_bit_type(value):
     return issubclass(magma_type(value), (Digital, Array, Tuple))
 
 
-def convertbit(value, totype, name):
+def convertbit(value, totype, name=None):
     # NOTE: We don't do `isinstance` here because we want an upcast to cause a
     # conversion
     value = magma_value(value)
@@ -127,7 +127,7 @@ def enable(value, name=None):
     return convertbit(value, Enable, name=name)
 
 
-def convertbits(value, n, totype, checkbit, name):
+def convertbits(value, n, totype, checkbit, name=None):
     # NOTE: We don't do `isinstance` here because we want an upcast to cause a
     # conversion
     if type(value) is totype:
