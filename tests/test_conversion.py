@@ -84,3 +84,13 @@ def test_bits_upcast(T):
 def test_bit_upcast():
     x = m.Enable()
     assert type(m.bit(x)) is m.Bit
+
+
+def test_name():
+    x = m.Bit(name="x")
+    y = m.clock(x, name="y")
+    assert str(y) == 'y'
+
+    x = m.Bits[4](name="x")
+    y = m.uint(x, name="y")
+    assert str(y) == 'y'
