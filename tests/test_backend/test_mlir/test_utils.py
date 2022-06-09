@@ -178,6 +178,7 @@ def get_local_examples() -> List[DefineCircuitKind]:
         examples.simple_module_params_instance,
         examples.simple_undriven,
         examples.complex_undriven,
+        examples.simple_memory_wrapper,
     ]
 
 

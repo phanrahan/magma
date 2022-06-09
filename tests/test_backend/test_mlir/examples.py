@@ -488,3 +488,28 @@ class complex_undriven(m.Circuit):
     T = m.Product.from_fields("anon", dict(x=m.Bits[8], y=m.Bit))
     io = m.IO(O=m.Out(T))
     io.O.undriven()
+
+
+class simple_memory_wrapper(m.Circuit):
+    T = m.Bits[12]
+    height = 128
+    addr_type = m.Bits[m.bitutils.clog2(128)]
+    io = m.IO(
+        RADDR=m.In(addr_type),
+        RDATA=m.Out(T),
+        CLK=m.In(m.Clock),
+        WADDR=m.In(addr_type),
+        WDATA=m.In(T),
+        WE=m.In(m.Enable),
+    )
+    mem = m.Memory(height=height, T=T)()
+    io.RDATA @= mem(
+        RADDR=io.RADDR,
+        RDATA=io.RDATA,
+        WADDR=io.WADDR,
+        WDATA=io.WDATA,
+        WE=io.WE,
+    )
+
+
+m.passes.clock.WireClockPass(simple_memory_wrapper).run()
