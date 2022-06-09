@@ -205,10 +205,10 @@ def convertbits(value, n, totype, checkbit, name=None):
 
     value = totype[len(Ts), T](ts, name=name)
     if n is not None and len(value) < n:
-        # TODO: The extended value isn't named, but perhaps we'd like to move
+        # TODO(leonardt): The extended value isn't named, but perhaps we'd like to move
         # to an explicit convert + extend rather than doing them in a single
         # operation? If so, then we could provide the same name interface for
-        # the extension operators
+        # the extension operators.
         value = value.ext_to(n)
     return value
 
