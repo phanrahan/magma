@@ -86,11 +86,17 @@ def test_bit_upcast():
     assert type(m.bit(x)) is m.Bit
 
 
-def test_name():
-    x = m.Bit(name="x")
-    y = m.clock(x, name="y")
+@pytest.mark.parametrize(
+    'T,conversion,expected_T',
+    [
+        (m.Bit, m.clock, m.Clock),
+        (m.Bits[4], m.uint, m.UInt),
+        (m.UInt[4], m.bits, m.Bits),
+        (m.Reset, m.bit, m.Bit)
+    ]
+)
+def test_name(T, conversion, expected_T):
+    x = T(name="x")
+    y = conversion(x, name="y")
     assert str(y) == 'y'
-
-    x = m.Bits[4](name="x")
-    y = m.uint(x, name="y")
-    assert str(y) == 'y'
+    assert isinstance(y, expected_T)
