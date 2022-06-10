@@ -10,13 +10,17 @@ from magma.backend.mlir.mlir_to_verilog import (
 from magma.testing.utils import with_config
 
 
+_with_nonexistent_circt_home = with_config(
+    "circt_home", "/this_isnt_a_real_directory/"
+)
+
+
 def _skip_if_circt_opt_binary_does_not_exist():
     if not circt_opt_binary_exists():
         pytest.skip("no circt-opt binary found")
 
 
-@with_config("circt_home", "/this_cant_be_a_real_directory/")
-def test_no_binary():
+def test_no_binary(_with_nonexistent_circt_home):
     istream = io.TextIOWrapper(io.BytesIO())
     ostream = io.TextIOWrapper(io.BytesIO())
 

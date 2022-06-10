@@ -5,6 +5,7 @@ import difflib
 import filecmp
 import functools
 import os
+import pytest
 import sys
 from typing import Optional
 
@@ -128,19 +129,12 @@ class SimpleMagmaProtocol(MagmaProtocol, metaclass=SimpleMagmaProtocolMeta):
         return SimpleMagmaProtocol(v0 | v1 | bits(self._val[0], len(self.T)))
 
 
-
 def with_config(key, value):
 
-    def deco(fn):
+    def fixture():
+        prev_value = getattr(config, key)
+        setattr(config, key, value)
+        yield
+        setattr(config, key, prev_value)
 
-        @functools.wraps(fn)
-        def wrapper(*args, **kwargs):
-            prev_value = getattr(config, key)
-            setattr(config, key, value)
-            ret = fn(*args, **kwargs)
-            setattr(config, key, prev_value)
-            return ret
-
-        return wrapper
-
-    return deco
+    return pytest.fixture(fixture)
