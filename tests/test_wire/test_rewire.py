@@ -27,8 +27,10 @@ def test_rewire_error(caplog, _setup_and_teardown):
     x @= 0
     x @= 1
     assert has_error(caplog)
-    # Check that it makes the circuit def have an error
 
+    # NOTE(leonardt): We additionally check that compiling a circuit with a
+    # rewiring error causes an exception (just a double-check since this
+    # functionality is independent of the type of error logged).
     class Foo(m.Circuit):
         io = m.IO(O=m.Out(m.Bit))
         io.O @= 0
