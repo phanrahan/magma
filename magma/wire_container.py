@@ -1,10 +1,11 @@
-import logging
+import logging as py_logging
+
 from magma.config import config, EnvConfig
 from magma.logging import root_logger, StagedLogRecord
 
 
 config._register(
-    rewire_log_level=EnvConfig("MAGMA_REWIRE_LOG_LEVEL", "WARN")
+    rewire_log_level=EnvConfig("MAGMA_REWIRE_LOG_LEVEL", "WARNING")
 )
 
 
@@ -74,7 +75,7 @@ class Wire:
             old_driver = self._driver
             self.unwire(old_driver)
             _logger.log(
-                getattr(logging, config.rewire_log_level),
+                py_logging.getLevelName(config.rewire_log_level),
                 WiringLog(
                     ("Wiring multiple outputs to same wire, using last "
                      "connection. Input: {}, Old Output: {}, New Output: {}"),
