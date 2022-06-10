@@ -103,3 +103,20 @@ def _make_selector_impl(value, child):
 
 def make_selector(value):
     return _make_selector_impl(value, None)
+
+
+class _FillVisitor(ValueVisitor):
+    def __init__(self, fill_value: bool):
+        self._fill_value = fill_value
+
+    def visit_Digital(self, value):
+        value @= self._fill_value
+
+    def visit_Bits(self, value):
+        size = len(value)
+        fill_value = 0 if not self._fill_value else (1 << size) - 1
+        value @= fill_value
+
+
+def fill(value, fill_value: bool):
+    _FillVisitor(fill_value).visit(value)
