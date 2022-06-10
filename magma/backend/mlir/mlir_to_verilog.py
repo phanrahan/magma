@@ -5,11 +5,16 @@ import subprocess
 import sys
 from typing import List, Optional
 
+from magma.backend.mlir.mlir_compiler_exception import MlirCompilerException
 from magma.backend.mlir.common import try_call
 from magma.config import config, EnvConfig
 
 
 config._register(circt_home=EnvConfig("CIRCT_HOME", "./circt"))
+
+
+class MlirToVerilogException(MlirCompilerException):
+    pass
 
 
 def _circt_home() -> pathlib.Path:
@@ -75,7 +80,12 @@ def circt_opt_binary_exists() -> bool:
 def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
     circt_home = _circt_home()
     cmd = _circt_opt_cmd(circt_home)
-    _run_subprocess(cmd, istream, ostream)
+    returncode = _run_subprocess(cmd, istream, ostream)
+    if returncode != 0:
+        cmd_str = " ".join(cmd)
+        raise MlirToVerilogException(
+            f"Error running {cmd_str}, got returncode {returncode}"
+        )
 
 
 def main(infile: Optional[str] = None, outfile: Optional[str] = None):

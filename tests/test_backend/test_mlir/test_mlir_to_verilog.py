@@ -5,6 +5,7 @@ import magma as m
 from magma.backend.mlir.mlir_to_verilog import (
     mlir_to_verilog,
     circt_opt_binary_exists,
+    MlirToVerilogException,
 )
 from magma.testing.utils import with_config
 
@@ -44,3 +45,15 @@ def test_module():
 
     ostream.seek(0)
     assert ostream.read() == ""
+
+
+def test_bad_input():
+    _skip_if_circt_opt_binary_does_not_exist()
+
+    istream = io.TextIOWrapper(io.BytesIO())
+    istream.write("blahblahblah")
+    istream.seek(0)
+    ostream = io.TextIOWrapper(io.BytesIO())
+
+    with pytest.raises(MlirToVerilogException):
+        mlir_to_verilog(istream.buffer, ostream.buffer)
