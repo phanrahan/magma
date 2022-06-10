@@ -28,7 +28,7 @@ def _circt_opt_cmd(circt_home: pathlib.Path) -> List[str]:
     ]
 
 
-def _run_subprocess(args, stdin, stdout):
+def _run_subprocess(args, stdin, stdout) -> int:
     stdin_pipe = (
         try_call(lambda: stdin.fileno(), io.UnsupportedOperation) is None
     )
@@ -44,12 +44,32 @@ def _run_subprocess(args, stdin, stdout):
     proc.wait()
     if stdout_pipe:
         stdout.write(proc.stdout.read())
+    return proc.returncode
 
 
 def _make_stream(filename, mode, default):
     if filename is None:
         return default, False
     return open(filename, mode), True
+
+
+def circt_opt_binary_exists() -> bool:
+    circt_home = _circt_home()
+    circt_opt_binary = _circt_opt_binary(circt_home)
+    # NOTE(rsetaluri): We could simply check for the existence of the file in
+    # the filesystem, but instead we actually run the binary and (a) check that
+    # it exists (by catching FileNotFoundError), and (b) that it is executable
+    # with a basic '--help' interface. Also, temporary buffers are passed for
+    # stdin/stdout since we do not care to access them.
+    try:
+        returncode = _run_subprocess(
+            [circt_opt_binary, "--help"],
+            stdin=io.BytesIO(),
+            stdout=io.BytesIO(),
+        )
+    except FileNotFoundError:
+        return False
+    return returncode == 0
 
 
 def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
