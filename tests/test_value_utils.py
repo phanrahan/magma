@@ -1,6 +1,13 @@
+import pytest
+
 import magma as m
-from magma.value_utils import (ValueVisitor, ArraySelector, TupleSelector,
-                               make_selector)
+from magma.value_utils import (
+    ValueVisitor,
+    ArraySelector,
+    TupleSelector,
+    make_selector,
+    fill,
+)
 
 
 class _Prod(m.Product):
@@ -67,3 +74,26 @@ def test_selector():
 
     assert str(selector) == "[0].x[0]"
     assert selector.select(_Foo.I) is _Foo.I[0].x[0]
+
+
+@pytest.mark.parametrize("fill_value", (True, False))
+def test_fill(fill_value):
+    S = m.AnonProduct[{"x": m.Bits[8], "y": m.Bit}]
+    T = m.AnonProduct[{"s": S, "u": m.Array[4, m.Bits[6]]}]
+
+    t = T()
+    fill(t, fill_value)
+
+    value = t.value()
+    assert value is not None
+
+    assert value.s.const()
+    assert value.s.x.const()
+    assert value.s.y.const()
+    assert int(value.s.x) == (0 if not fill_value else 255)
+    assert int(value.s.y) == (0 if not fill_value else 1)
+
+    assert value.u.const()
+    for u_i in value.u:
+        assert u_i.const()
+        assert int(u_i) == (0 if not fill_value else 63)
