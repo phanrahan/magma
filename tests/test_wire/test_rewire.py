@@ -21,6 +21,7 @@ def _setup_and_teardown():
     m.config.config.rewire_log_level = prev
 
 
+# TODO(leonardt): use magma.testing.utils.with_config once #1090 is merged
 def test_rewire_error(caplog, _setup_and_teardown):
     x = m.Bit(name="x")
     x @= 0
