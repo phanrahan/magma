@@ -1,0 +1,2 @@
+class MlirCompilerException(Exception):
+    pass
