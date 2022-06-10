@@ -1,5 +1,6 @@
 import io
 import pytest
+from typing import Optional
 
 import magma as m
 from magma.backend.mlir.mlir_to_verilog import (
@@ -20,44 +21,34 @@ def _skip_if_circt_opt_binary_does_not_exist():
         pytest.skip("no circt-opt binary found")
 
 
-def test_no_binary(_with_nonexistent_circt_home):
+def _run_test(input_: Optional[str] = None):
     istream = io.TextIOWrapper(io.BytesIO())
     ostream = io.TextIOWrapper(io.BytesIO())
+    if input_ is not None:
+        istream.write(input_)
+        istream.seek(0)
+    mlir_to_verilog(istream.buffer, ostream.buffer)
+    return istream, ostream
 
+
+def test_no_binary(_with_nonexistent_circt_home):
     with pytest.raises(FileNotFoundError):
-        mlir_to_verilog(istream.buffer, ostream.buffer)
+        _run_test()
 
 
 def test_basic():
     _skip_if_circt_opt_binary_does_not_exist()
-
-    istream = io.TextIOWrapper(io.BytesIO())
-    ostream = io.TextIOWrapper(io.BytesIO())
-
-    mlir_to_verilog(istream.buffer, ostream.buffer)
+    _, __ = _run_test()
 
 
 def test_module():
     _skip_if_circt_opt_binary_does_not_exist()
-
-    istream = io.TextIOWrapper(io.BytesIO())
-    istream.write("module {}\n")
-    istream.seek(0)
-    ostream = io.TextIOWrapper(io.BytesIO())
-
-    mlir_to_verilog(istream.buffer, ostream.buffer)
-
+    _, ostream = _run_test("module {}\n")
     ostream.seek(0)
     assert ostream.read() == ""
 
 
 def test_bad_input():
     _skip_if_circt_opt_binary_does_not_exist()
-
-    istream = io.TextIOWrapper(io.BytesIO())
-    istream.write("blahblahblah")
-    istream.seek(0)
-    ostream = io.TextIOWrapper(io.BytesIO())
-
     with pytest.raises(MlirToVerilogException):
-        mlir_to_verilog(istream.buffer, ostream.buffer)
+        _run_test("blahblahblah")
