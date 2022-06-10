@@ -3,11 +3,12 @@ Infrastructure for writing magma tests
 """
 import difflib
 import filecmp
+import functools
 import os
 import sys
 from typing import Optional
 
-from magma.config import get_debug_mode, set_debug_mode
+from magma.config import get_debug_mode, set_debug_mode, config
 from magma.conversions import bits
 from magma.protocol_type import MagmaProtocolMeta, MagmaProtocol
 from magma.t import Type, Direction
@@ -125,3 +126,21 @@ class SimpleMagmaProtocol(MagmaProtocol, metaclass=SimpleMagmaProtocolMeta):
         v0 = self._val << 2
         v1 = bits(self._val[0], len(self.T)) << 1
         return SimpleMagmaProtocol(v0 | v1 | bits(self._val[0], len(self.T)))
+
+
+
+def with_config(key, value):
+
+    def deco(fn):
+
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            prev_value = getattr(config, key)
+            setattr(config, key, value)
+            ret = fn(*args, **kwargs)
+            setattr(config, key, prev_value)
+            return ret
+
+        return wrapper
+
+    return deco
