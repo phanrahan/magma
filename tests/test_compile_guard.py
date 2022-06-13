@@ -92,6 +92,22 @@ def test_nested_type():
         f"gold/test_compile_guard_nested_type.json")
 
 
+@pytest.mark.parametrize("driven", (False, True))
+def test_anon_driver(driven: bool):
+
+    def make_top():
+        class _Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit))
+            x = m.Bit(name="x")
+            if driven:
+                x @= io.I
+            with m.compile_guard("COND", defn_name="A"):
+                m.register(x)
+
+    with pytest.raises(NotImplementedError):
+        make_top()
+
+
 @pytest.mark.skip(reason="nested compile guard context not yet implemented")
 def test_nested_context():
 
