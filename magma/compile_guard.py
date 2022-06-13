@@ -12,20 +12,10 @@ from magma.generator import Generator2
 from magma.inline_verilog import inline_verilog
 from magma.interface import IO
 from magma.primitives.mux import infer_mux_type
-from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
+from magma.ref import AnonRef, DefnRef, InstRef
 from magma.t import Kind, In, Out
 from magma.type_utils import type_to_sanitized_string
 from magma.value_utils import make_selector
-
-
-def _get_top_ref(ref):
-    if isinstance(ref, TupleRef):
-        # TODO(rsetaluri): Fix port name collision.
-        return _get_top_ref(ref.tuple.name)
-    if isinstance(ref, ArrayRef):
-        # TODO(rsetaluri): Fix port name collision.
-        return _get_top_ref(ref.array.name)
-    return ref
 
 
 @dataclasses.dataclass(frozen=True)
@@ -78,12 +68,12 @@ class _CompileGuardBuilder(CircuitBuilder):
             self._process_output(port)
 
     def _is_external(self, value):
-        top_ref = _get_top_ref(value.name)
-        if isinstance(top_ref, DefnRef):
+        root_ref = value.name.root()
+        if isinstance(root_ref, DefnRef):
             return True
-        if isinstance(top_ref, InstRef):
-            return top_ref.inst not in self._instances
-        if isinstance(top_ref, AnonRef):
+        if isinstance(root_ref, InstRef):
+            return root_ref.inst not in self._instances
+        if isinstance(root_ref, AnonRef):
             # TODO(rsetaluri): Implement valid anon. values.
             # NOTE(leonardt/array2): This basic support is needed for Array2 ->
             # Array, however since we plan to avoid these problems with the
@@ -122,7 +112,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         if self._is_external(value):
             self._rewire_input(port, value)
             return
-        ref = _get_top_ref(ref)
+        ref = ref.root()
         if isinstance(ref, InstRef):
             # Internal instance driver is okay
             assert not self._is_external(value)
