@@ -12,7 +12,7 @@ from magma.generator import Generator2
 from magma.inline_verilog import inline_verilog
 from magma.interface import IO
 from magma.primitives.mux import infer_mux_type
-from magma.ref import AnonRef, DefnRef, InstRef
+from magma.ref import InstRef, get_ref_defn, get_ref_inst
 from magma.t import Kind, In, Out
 from magma.type_utils import type_to_sanitized_string
 from magma.value_utils import make_selector
@@ -68,19 +68,15 @@ class _CompileGuardBuilder(CircuitBuilder):
             self._process_output(port)
 
     def _is_external(self, value):
-        root_ref = value.name.root()
-        if isinstance(root_ref, DefnRef):
+        defn = get_ref_defn(value.name)
+        if defn is not None:
             return True
-        if isinstance(root_ref, InstRef):
-            return root_ref.inst not in self._instances
-        if isinstance(root_ref, AnonRef):
-            # TODO(rsetaluri): Implement valid anon. values.
-            # NOTE(leonardt/array2): This basic support is needed for Array2 ->
-            # Array, however since we plan to avoid these problems with the
-            # MLIR backend, I think this is sufficiente for known patterns
-            # working without support all possible patterns
-            return self._is_external(value.driving())
-        return False
+        inst = get_ref_inst(value.name)
+        if inst is not None:
+            return inst not in self._instances
+        # TODO(rsetaluri): Support this case.
+        assert not value.name.bound()
+        raise NotImplementedError()
 
     def _process_output(self, port):
         drivees = port.driving()
@@ -113,7 +109,8 @@ class _CompileGuardBuilder(CircuitBuilder):
             self._rewire_input(port, value)
             return
         ref = ref.root()
-        if isinstance(ref, InstRef):
+        inst = get_ref_inst(ref)
+        if inst is not None:
             # Internal instance driver is okay
             assert not self._is_external(value)
             return

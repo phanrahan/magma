@@ -20,6 +20,14 @@ class Ref:
     def anon(self):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def named(self) -> bool:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def bound(self) -> bool:
+        raise NotImplementedError()
+
     def parent(self):
         return self
 
@@ -43,6 +51,12 @@ class AnonRef(Ref):
     def anon(self):
         return True
 
+    def named(self) -> bool:
+        return False
+
+    def bound(self) -> bool:
+        return False
+
 
 class ConstRef(Ref):
     def __init__(self, name):
@@ -55,6 +69,12 @@ class ConstRef(Ref):
         return self.name
 
     def anon(self):
+        return False
+
+    def named(self) -> bool:
+        return False
+
+    def bound(self) -> bool:
         return False
 
 
@@ -77,9 +97,13 @@ class NamedRef(Ref):
     def value(self):
         return self._value if self._value is None else self._value()
 
+    def named(self) -> bool:
+        return True
+
 
 class TempNamedRef(NamedRef):
-    pass
+    def bound(self) -> bool:
+        return False
 
 
 class InstRef(NamedRef):
@@ -101,6 +125,9 @@ class InstRef(NamedRef):
             if sep == ".":
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
+
+    def bound(self) -> bool:
+        return True
 
 
 class LazyInstRef(InstRef):
@@ -134,6 +161,9 @@ class DefnRef(NamedRef):
         if sep == ".":
             return self.defn.__name__ + sep + self.name
         return self.name
+
+    def bound(self) -> bool:
+        return True
 
 
 class LazyCircuit:
@@ -177,6 +207,12 @@ class ArrayRef(Ref):
     def parent(self):
         return self.array.name
 
+    def named(self) -> bool:
+        return self.parent().named()
+
+    def bound(self) -> bool:
+        return self.parent().bound()
+
 
 class TupleRef(Ref):
     def __init__(self, tuple, index):
@@ -200,6 +236,12 @@ class TupleRef(Ref):
 
     def parent(self):
         return self.tuple.name
+
+    def named(self) -> bool:
+        return self.parent().named()
+
+    def bound(self) -> bool:
+        return self.parent().bound()
 
 
 class PortViewRef(Ref):
