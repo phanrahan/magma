@@ -240,6 +240,22 @@ def test_drive_outputs():
         f"gold/test_compile_guard_drive_output.json")
 
 
+def test_anon_drivee():
+
+    def make_top():
+        class _Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit))
+            O = m.Bit()
+
+            with m.compile_guard("COND"):
+                O @= m.register(io.I)
+
+        return _Top
+
+    with pytest.raises(NotImplementedError):
+        _ = make_top()
+
+
 def test_compile_guard_select_basic():
     class _Top(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit)) + m.ClockIO()
