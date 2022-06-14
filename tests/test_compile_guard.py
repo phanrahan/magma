@@ -92,20 +92,67 @@ def test_nested_type():
         f"gold/test_compile_guard_nested_type.json")
 
 
-@pytest.mark.parametrize("driven", (False, True))
-def test_anon_driver(driven: bool):
+def test_anon_driver_driven():
 
     def make_top():
+
         class _Top(m.Circuit):
             io = m.IO(I=m.In(m.Bit))
-            x = m.Bit(name="x")
-            if driven:
-                x @= io.I
+            x = m.Bit()
+            x @= io.I
             with m.compile_guard("COND", defn_name="A"):
                 m.register(x)
 
-    with pytest.raises(NotImplementedError):
-        make_top()
+        return _Top
+
+    Top = make_top()
+    basename = "test_compile_guard_anon_driver_driven"
+    m.compile(f"build/{basename}", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v"
+    )
+
+
+def test_anon_driver_undriven():
+
+    def make_top():
+
+        class _Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit))
+            x = m.Bit()
+            with m.compile_guard("COND", defn_name="A"):
+                m.register(x)
+
+        return _Top
+
+    Top = make_top()
+    basename = "test_compile_guard_anon_driver_undriven"
+    with pytest.raises(m.MagmaCompileException):
+        m.compile(f"build/{basename}", Top)
+
+
+def test_anon_driver_nested_type():
+
+    def make_top():
+
+        class _Top(m.Circuit):
+            io = m.IO(I=m.In(m.Bit))
+            T = m.Array[10, m.AnonProduct[{"x": m.Bits[10]}]]
+            x = T()
+            for x_i in x:
+                for x_i_j in x_i.x:
+                    x_i_j @= io.I
+            with m.compile_guard("COND", defn_name="A"):
+                m.register(x)
+
+        return _Top
+
+    Top = make_top()
+    basename = "test_compile_guard_anon_driver_nested_type"
+    m.compile(f"build/{basename}", Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.v", f"gold/{basename}.v"
+    )
 
 
 @pytest.mark.skip(reason="nested compile guard context not yet implemented")

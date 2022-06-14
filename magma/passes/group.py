@@ -37,6 +37,10 @@ class _GrouperBase(abc.ABC):
         self._run = True
 
     def _is_external(self, value: Type) -> Optional[bool]:
+        """
+        Returns whether @value is external to this group, or None if
+        undecidable.
+        """
         defn = get_ref_defn(value.name)
         if defn is not None:
             return True
