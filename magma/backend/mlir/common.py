@@ -35,12 +35,6 @@ class WithId:
     id: str = dataclasses.field(default_factory=make_unique_name, init=False)
 
 
-def replace_all(s: str, replacements: Dict[str, str]) -> str:
-    for old, new in replacements.items():
-        s = s.replace(old, new)
-    return s
-
-
 def constant(value: Any):
     return lambda: value
 
