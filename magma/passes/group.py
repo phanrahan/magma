@@ -70,7 +70,11 @@ class _GrouperBase(abc.ABC):
                 if is_external:
                     yield (port, drivee)
                 continue
-            raise NotImplementedError()
+            assert not drivee.name.bound()
+            raise NotImplementedError(
+                f"{port}: driving annonymous value from compile guard not "
+                f"supported"
+            )
 
     def _run_on_port(self, port: Type):
         if port.is_input():
