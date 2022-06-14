@@ -7,6 +7,7 @@ import hwtypes as ht
 from magma.array import Array
 from magma.bit import Bit
 from magma.bits import Bits, UInt, SInt
+from magma.common import replace_all
 from magma.digital import Digital
 from magma.protocol_type import MagmaProtocol
 from magma.t import Kind
@@ -149,17 +150,23 @@ def to_hwtypes(T: Kind):
     raise NotImplementedError(T)
 
 
+_TYPE_STR_SANITIZATION_MAP = {
+    "(": "",
+    ")": "",
+    ",": "_",
+    "=": "_",
+    "[": "",
+    "]": "",
+    " ": "",
+    "<": "",
+    ">": "",
+    ".": "",
+    "'": "",
+    ":": "",
+    "{": "",
+    "}": "",
+}
+
+
 def type_to_sanitized_string(T: Kind) -> str:
-    return str(T).\
-        replace("(", "").\
-        replace(")", "").\
-        replace(",", "_").\
-        replace("=", "_").\
-        replace("[", "").\
-        replace("]", "").\
-        replace(" ", "").\
-        replace("<", "").\
-        replace(">", "").\
-        replace(".", "").\
-        replace("'", "").\
-        replace(":", "")
+    return replace_all(str(T), _TYPE_STR_SANITIZATION_MAP)
