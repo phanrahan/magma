@@ -3,7 +3,8 @@ from typing import Optional
 from magma.bits import Bits
 from magma.bitutils import clog2
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
-from magma.t import Type, Direction, Kind
+from magma.t import Type, Direction, Kind, magma_value
+from magma.tuple import AnonProduct
 from magma.conversions import from_bits
 from magma.when import when
 
@@ -28,14 +29,24 @@ class SumMeta(MagmaProtocolMeta):
     def __new__(mcs, name, bases, namespace):
         N = 0
         Ts = {}
+        qual = None  # TODO: Inouts, validate
         for key, value in namespace.items():
             if isinstance(value, Kind):
                 N = max(N, value.flat_length())
                 Ts[key] = value
+                if value.is_input():
+                    assert qual is None or Direction.In
+                    qual = Direction.In
+                elif value.is_output():
+                    assert qual is None or Direction.Out
+                    qual = Direction.Out
         if N > 0:
-            tag_T = clog2(len(Ts))
+            tag_T = Bits[clog2(len(Ts))]
             val_T = Bits[N]
-            namespace['_magma_T_'] = m.AnonProduct[dict(tag=tag_T, val=val_T)]
+            if qual is not None:
+                tag_T = tag_T.qualify(qual)
+                val_T = val_T.qualify(qual)
+            namespace['_magma_T_'] = AnonProduct[dict(tag=tag_T, val=val_T)]
             namespace['_magma_Ts_'] = Ts
 
         return type.__new__(mcs, name, bases, namespace)
@@ -50,6 +61,16 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
             setattr(self, key,
                     from_bits(T, val.val[:T.flat_length()]))
 
+    def _get_magma_value_(self):
+        return self._val
+
+    @property
+    def debug_name(self):
+        # TODO: Add better protocol support for debug_name
+        return self._val.debug_name
+
 
 def match(value, field):
-    return when(value.tag == list(type(value)._magma_Ts_.keys()).index(field))
+    # TODO: Use name instead of type in match
+    return when(magma_value(value).tag ==
+                list(type(value)._magma_Ts_.values()).index(field))

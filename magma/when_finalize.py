@@ -218,7 +218,10 @@ def finalize_when_conds(context, when_conds):
         elif value.is_input():
             value.wire(getattr(inst, key), port_debug_map[key])
         else:
-            raise NotImplementedError(type(value))
+            import magma as m
+            # TODO: Support intermediate undirected
+            m.wire(value, getattr(inst, key))
+            # raise NotImplementedError(type(value))
 
 
 def _codegen_stmts(stmts, tab=""):
