@@ -31,7 +31,11 @@ class _Grouper(GrouperBase):
         self._builder = builder
         self._port_index = 0
 
-    def _visit_input_connection(self, driver: Type, drivee: Type):
+    def _visit_input_connection(self, _: Type, drivee: Type):
+        # NOTE(rsetaluri): Since the driver might be traced (i.e. not an
+        # immediate driver), we disregard it and grab the immediate driver
+        # (value() vs. trace()).
+        driver = drivee.value()
         new_port_name = self._new_port_name()
         T = type(driver).undirected_t
         self._builder._add_port(new_port_name, In(T))
