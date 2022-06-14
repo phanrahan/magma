@@ -11,12 +11,16 @@ from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.inline_verilog import inline_verilog
 from magma.interface import IO
+from magma.logging import root_logger
 from magma.passes.group import GrouperBase, InstanceCollection
 from magma.primitives.mux import infer_mux_type
 from magma.ref import InstRef, get_ref_defn, get_ref_inst
 from magma.t import Kind, Type, In, Out
 from magma.type_utils import type_to_sanitized_string
 from magma.value_utils import make_selector
+
+
+_logger = root_logger().getChild("compile_guard")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -30,6 +34,7 @@ class _Grouper(GrouperBase):
         super().__init__(instances)
         self._builder = builder
         self._port_index = 0
+        self._clock_types = set()
 
     def _visit_input_connection(self, _: Type, drivee: Type):
         # NOTE(rsetaluri): Since the driver might be traced (i.e. not an
@@ -59,11 +64,17 @@ class _Grouper(GrouperBase):
         drivee @= new_driver
 
     def _visit_undriven_port(self, port: Type):
-        # TODO(rsetaluri): Alert (raise or log) in this case; undriven port.
+        # For undriven clock types, we simply lift the port *but do not connect
+        # it* since we expect auto-wiring to do this for us (in fact, this is
+        # why the port is undriven in the first place). For non-clock types, we
+        # simply log a debug message and allow the downstream circuit pipeline
+        # to handle the undriven port.
         if not isinstance(port, ClockTypes):
+            _logger.debug(f"found undriven port: {port}")
             return
         T = type(port).undirected_t
-        # TODO(rsetaluri): Ensure that we don't add multiple clock types.
+        if T in self._clock_types:
+            return  # only add at most one port for each clock type
         name = str(port.name)
         self._builder._add_port(name, In(T))
 
