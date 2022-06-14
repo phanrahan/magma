@@ -11,9 +11,10 @@ from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.inline_verilog import inline_verilog
 from magma.interface import IO
+from magma.passes.group import GrouperBase, InstanceCollection
 from magma.primitives.mux import infer_mux_type
 from magma.ref import InstRef, get_ref_defn, get_ref_inst
-from magma.t import Kind, In, Out
+from magma.t import Kind, Type, In, Out
 from magma.type_utils import type_to_sanitized_string
 from magma.value_utils import make_selector
 
@@ -22,6 +23,31 @@ from magma.value_utils import make_selector
 class _CompileGuardState:
     ckt: CircuitBuilder
     ctx_mgr: contextlib.AbstractContextManager
+
+
+class _Grouper(GrouperBase):
+    def __init__(self, instances: InstanceCollection, builder: CircuitBuilder):
+        super().__init__(instances)
+        self._builder = builder
+        self._port_index = 0
+
+    def _visit_input_connection(self, driver: Type, drivee: Type):
+        new_port_name = self._new_port_name()
+        T = type(driver).undirected_t
+        self._builder._add_port(new_port_name, In(T))
+        new_port = self._builder._port(new_port_name)
+        drivee.unwire(driver)
+        drivee @= new_port
+        external = getattr(self._builder, new_port_name)
+        external @= driver
+
+    def _visit_output_connection(self, driver: Type, drivee: Type):
+        raise NotImplementedError()
+
+    def _new_port_name(self):
+        name = f"port_{self._port_index}"
+        self._port_index += 1
+        return name
 
 
 class _CompileGuardBuilder(CircuitBuilder):
@@ -35,98 +61,14 @@ class _CompileGuardBuilder(CircuitBuilder):
             "coreir_metadata",
             {"compile_guard": {"condition_str": cond, "type": type}}
         )
-        self._port_index = 0
         self._pre_finalized = False
-
-    def _new_port_name(self):
-        name = f"port_{self._port_index}"
-        self._port_index += 1
-        return name
-
-    def _rewire_input(self, port, value):
-        new_port_name = self._new_port_name()
-        T = type(value).undirected_t
-        self._add_port(new_port_name, In(T))
-        new_port = self._port(new_port_name)
-        port.unwire(value)
-        port @= new_port
-        external = getattr(self, new_port_name)
-        external @= value
 
     def pre_finalize(self):
         if self._pre_finalized:
             raise Exception("Can not call pre_finalize multiple times")
-        for inst in self._instances:
-            self._process_instance(inst)
+        grouper = _Grouper(self._instances, self)
+        grouper.run()
         self._pre_finalized = True
-
-    def _process_instance(self, inst):
-        # TODO(rseatluri,leonardt): Handle mixed types and in-outs.
-        for port in inst.interface.inputs(include_clocks=True):
-            self._process_input(port)
-        for port in inst.interface.outputs():
-            self._process_output(port)
-
-    def _is_external(self, value):
-        defn = get_ref_defn(value.name)
-        if defn is not None:
-            return True
-        inst = get_ref_inst(value.name)
-        if inst is not None:
-            return inst not in self._instances
-        # TODO(rsetaluri): Support this case.
-        assert not value.name.bound()
-        raise NotImplementedError()
-
-    def _process_output(self, port):
-        drivees = port.driving()
-        external_drivees = list(filter(self._is_external, drivees))
-        if not external_drivees:
-            return
-        new_port_name = self._new_port_name()
-        T = type(port).undirected_t
-        self._add_port(new_port_name, Out(T))
-        new_port = self._port(new_port_name)
-        new_port @= port
-        external = getattr(self, new_port_name)
-        for drivee in external_drivees:
-            old_driver = drivee.value()
-            drivee.unwire(old_driver)
-            selector = make_selector(old_driver)
-            new_driver = selector.select(external)
-            drivee @= new_driver
-
-    def _process_input(self, port, ref=None, kwargs=None):
-        value = port.value()
-        if ref is None:
-            if value is None:
-                self._process_undriven(port)
-                return
-            ref = value.name
-        if value.const():
-            return
-        if self._is_external(value):
-            self._rewire_input(port, value)
-            return
-        ref = ref.root()
-        inst = get_ref_inst(ref)
-        if inst is not None:
-            # Internal instance driver is okay
-            assert not self._is_external(value)
-            return
-        # TODO(rsetaluri): Do the rest of these.
-        raise NotImplementedError(ref, type(ref))
-
-    def _process_undriven(self, port):
-        # TODO(rsetaluri): Add other system types
-        if not isinstance(port, Clock):
-            return
-        T = type(port).undirected_t
-        if T in self._system_types_added:
-            return
-        name = str(port.name)
-        self._add_port(name, In(T))
-        self._system_types_added.add(T)
 
 
 class _CompileGuard:
