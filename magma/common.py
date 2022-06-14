@@ -260,3 +260,9 @@ def wrap_with_context_manager(ctx_mgr):
         return wrapper
 
     return decorator
+
+
+def replace_all(s: str, replacement_map: Dict[str, str]) -> str:
+    for old, new in replacement_map.items():
+        s = s.replace(old, new)
+    return s
