@@ -3,7 +3,7 @@ import dataclasses
 from typing import Optional, Tuple
 
 from magma.bits import BitsMeta
-from magma.clock import Clock
+from magma.clock import ClockTypes
 from magma.circuit import Circuit, CircuitBuilder
 from magma.conversions import as_bits
 from magma.definition_context import definition_context_manager
@@ -43,6 +43,15 @@ class _Grouper(GrouperBase):
 
     def _visit_output_connection(self, driver: Type, drivee: Type):
         raise NotImplementedError()
+
+    def _visit_undriven_port(self, port: Type):
+        # TODO(rsetaluri): Alert (raise or log) in this case; undriven port.
+        if not isinstance(port, ClockTypes):
+            return
+        T = type(port).undirected_t
+        # TODO(rsetaluri): Ensure that we don't add multiple clock types.
+        name = str(port.name)
+        self._builder._add_port(name, In(T))
 
     def _new_port_name(self):
         name = f"port_{self._port_index}"

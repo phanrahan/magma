@@ -26,6 +26,10 @@ class _GrouperBase(abc.ABC):
     def _visit_output_connection(self, driver: Type, drivee: Type):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def _visit_undriven_port(self, port: Type):
+        raise NotImplementedError()
+
     def run(self):
         if self._run:
             raise RuntimeError("Can run grouper at most once")
@@ -45,6 +49,7 @@ class _GrouperBase(abc.ABC):
     def _run_on_input(self, port: Type) -> Iterable[Connection]:
         driver = port.trace()
         if driver is None:
+            self._visit_undriven_port(port)
             return
         if driver.const():
             return
