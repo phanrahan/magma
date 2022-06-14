@@ -42,7 +42,17 @@ class _Grouper(GrouperBase):
         external @= driver
 
     def _visit_output_connection(self, driver: Type, drivee: Type):
-        raise NotImplementedError()
+        new_port_name = self._new_port_name()
+        T = type(driver).undirected_t
+        self._builder._add_port(new_port_name, Out(T))
+        new_port = self._builder._port(new_port_name)
+        new_port @= driver
+        external = getattr(self._builder, new_port_name)
+        old_driver = drivee.value()
+        drivee.unwire(old_driver)
+        selector = make_selector(old_driver)
+        new_driver = selector.select(external)
+        drivee @= new_driver
 
     def _visit_undriven_port(self, port: Type):
         # TODO(rsetaluri): Alert (raise or log) in this case; undriven port.

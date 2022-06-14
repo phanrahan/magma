@@ -64,7 +64,13 @@ class _GrouperBase(abc.ABC):
             yield from self._run_on_input(elt)
 
     def _run_on_output(self, port: Type) -> Iterable[Connection]:
-        return []
+        for drivee in port.driving():
+            is_external = self._is_external(drivee)
+            if is_external is not None:
+                if is_external:
+                    yield (port, drivee)
+                continue
+            raise NotImplementedError()
 
     def _run_on_port(self, port: Type):
         if port.is_input():
