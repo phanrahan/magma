@@ -1,5 +1,4 @@
 import contextlib
-import dataclasses
 from typing import Optional, Tuple
 
 from magma.bits import BitsMeta
@@ -23,12 +22,6 @@ from magma.value_utils import make_selector
 _logger = root_logger().getChild("compile_guard")
 
 
-@dataclasses.dataclass(frozen=True)
-class _CompileGuardState:
-    ckt: CircuitBuilder
-    ctx_mgr: contextlib.AbstractContextManager
-
-
 class _Grouper(GrouperBase):
     def __init__(self, instances: InstanceCollection, builder: CircuitBuilder):
         super().__init__(instances)
@@ -41,22 +34,16 @@ class _Grouper(GrouperBase):
         # immediate driver), we disregard it and grab the immediate driver
         # (value() vs. trace()).
         driver = drivee.value()
-        new_port_name = self._new_port_name()
-        T = type(driver).undirected_t
-        self._builder._add_port(new_port_name, In(T))
-        new_port = self._builder._port(new_port_name)
+        new_port = self._builder.add_port(In(type(driver)))
         drivee.unwire(driver)
         drivee @= new_port
-        external = getattr(self._builder, new_port_name)
+        external = getattr(self._builder, new_port.name.name)
         external @= driver
 
     def _visit_output_connection(self, driver: Type, drivee: Type):
-        new_port_name = self._new_port_name()
-        T = type(driver).undirected_t
-        self._builder._add_port(new_port_name, Out(T))
-        new_port = self._builder._port(new_port_name)
+        new_port = self._builder.add_port(Out(type(driver)))
         new_port @= driver
-        external = getattr(self._builder, new_port_name)
+        external = getattr(self._builder, new_port.name.name)
         old_driver = drivee.value()
         drivee.unwire(old_driver)
         selector = make_selector(old_driver)
@@ -76,15 +63,18 @@ class _Grouper(GrouperBase):
         if T in self._clock_types:
             return  # only add at most one port for each clock type
         name = str(port.name)
-        self._builder._add_port(name, In(T))
-
-    def _new_port_name(self):
-        name = f"port_{self._port_index}"
-        self._port_index += 1
-        return name
+        _ = self._builder.add_port(In(T), name=name)
 
 
 class _CompileGuardBuilder(CircuitBuilder):
+    __default_defn_name_counter = 0
+
+    @staticmethod
+    def make_default_defn_name() -> str:
+        counter = _CompileGuardBuilder.__default_defn_name_counter
+        _CompileGuardBuilder.__default_defn_name_counter += 1
+        return f"CompileGuardCircuit_{counter}"
+
     def __init__(self, name, cond, type):
         super().__init__(name)
         self._cond = cond
@@ -95,59 +85,51 @@ class _CompileGuardBuilder(CircuitBuilder):
             "coreir_metadata",
             {"compile_guard": {"condition_str": cond, "type": type}}
         )
-        self._pre_finalized = False
+        self._num_ports = 0
 
-    def pre_finalize(self):
-        if self._pre_finalized:
-            raise Exception("Can not call pre_finalize multiple times")
-        grouper = _Grouper(self._instances, self)
-        grouper.run()
-        self._pre_finalized = True
+    def add_port(self, T: Kind, name: Optional[str] = None) -> Type:
+        if name is None:
+            name = self._new_port_name()
+        return self._add_port(name, T)
 
+    def instances(self) -> InstanceCollection:
+        return self._instances.copy()
 
-class _CompileGuard:
-    __index = 0
+    def open(self):
+        return self._open()
 
-    def __init__(self, cond: str,
-                 defn_name: Optional[str],
-                 inst_name: Optional[str],
-                 type: Optional[str] = "defined"):
-        self._cond = cond
-        self._defn_name = defn_name
-        self._inst_name = inst_name
-        self._state = None
-        self._type = type
-
-    @staticmethod
-    def _new_name():
-        index = _CompileGuard.__index
-        _CompileGuard.__index += 1
-        return f"CompileGuardCircuit_{index}"
-
-    def __enter__(self):
-        if self._state is not None:
-            raise Exception("Can not enter compile guard multiple times")
-        assert self._state is None
-        if self._defn_name is None:
-            self._defn_name = _CompileGuard._new_name()
-        if self._state is None:
-            ckt = _CompileGuardBuilder(self._defn_name, self._cond, self._type)
-            if self._inst_name is None:
-                ckt.set_instance_name(self._inst_name)
-            ctx_mgr = definition_context_manager(ckt._context)
-            self._state = _CompileGuardState(ckt, ctx_mgr)
-        self._state.ctx_mgr.__enter__()
-
-    def __exit__(self, typ, value, traceback):
-        self._state.ctx_mgr.__exit__(typ, value, traceback)
-        self._state.ckt.pre_finalize()
+    def _new_port_name(self):
+        name = f"port_{self._num_ports}"
+        self._num_ports += 1
+        return name
 
 
-def compile_guard(cond: str,
-                  defn_name: Optional[str] = None,
-                  inst_name: Optional[str] = None,
-                  type: Optional[str] = "defined"):
-    return _CompileGuard(cond, defn_name, inst_name, type)
+def _make_builder(
+        cond: str,
+        defn_name: Optional[str],
+        inst_name: Optional[str],
+        type: str
+) -> _CompileGuardBuilder:
+    if defn_name is None:
+        defn_name = _CompileGuardBuilder.make_default_defn_name()
+    builder = _CompileGuardBuilder(defn_name, cond, type)
+    if inst_name is not None:
+        builder.set_instance_name(inst_name)
+    return builder
+
+
+@contextlib.contextmanager
+def compile_guard(
+        cond: str,
+        defn_name: Optional[str] = None,
+        inst_name: Optional[str] = None,
+        type: Optional[str] = "defined"
+):
+    builder = _make_builder(cond, defn_name, inst_name, type)
+    with builder.open() as f:
+        yield f
+    grouper = _Grouper(builder.instances(), builder)
+    grouper.run()
 
 
 def _is_simple_type(T: Kind) -> bool:
