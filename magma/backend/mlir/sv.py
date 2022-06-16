@@ -290,4 +290,19 @@ class XMROp(MlirOp):
         print_types(self.results, printer)
 
 
+@dataclasses.dataclass
+class ArrayIndexInOutOp(MlirOp):
+    operands: List[MlirOp]
+    results: List[MlirOp]
+
+    def print_op(self, printer: PrinterBase):
+        print_names(self.results, printer)
+        printer.print(f" = sv.array_index_inout ")
+        print_names(self.operands[0], printer)
+        printer.print("[")
+        print_names(self.operands[1], printer)
+        printer.print("] : ")
+        print_types(self.operands, printer)
+
+
 end_dialect()

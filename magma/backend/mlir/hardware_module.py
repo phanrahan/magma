@@ -252,6 +252,35 @@ class ModuleVisitor:
         raise TypeError(T)
 
     @wrap_with_not_implemented_error
+    def visit_coreir_mem(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert defn.coreir_name == "mem"
+        # TODO(rsetaluri): Add support for initialization.
+        if defn.coreir_genargs["has_init"]:
+            raise NotImplementedError("coreir.mem init not supported")
+        width = defn.coreir_genargs["width"]
+        depth = defn.coreir_genargs["depth"]
+        raddr, waddr, wdata, clk, wen = module.operands
+        rdata = module.results[0]
+        elt_type = hw.InOutType(builtin.IntegerType(width))
+        reg_type = hw.InOutType(hw.ArrayType((depth,), elt_type.T))
+        reg = self._ctx.new_value(reg_type)
+        sv.RegOp(name=inst.name, results=[reg])
+        # Register read logic.
+        read = self._ctx.new_value(elt_type)
+        sv.ArrayIndexInOutOp(operands=[reg, raddr], results=[read])
+        sv.ReadInOutOp(operands=[read], results=[rdata])
+        # Register write logic.
+        write = self._ctx.new_value(elt_type)
+        sv.ArrayIndexInOutOp(operands=[reg, waddr], results=[write])
+        always = sv.AlwaysFFOp(operands=[clk], clock_edge="posedge").body_block
+        with push_block(always):
+            with push_block(sv.IfOp(operands=[wen]).then_block):
+                sv.PAssignOp(operands=[write, wdata])
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_coreir_not(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -337,6 +366,8 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert (defn.coreir_lib == "coreir" or defn.coreir_lib == "corebit")
+        if defn.coreir_name == "mem":
+            return self.visit_coreir_mem(module)
         if defn.coreir_name == "not":
             return self.visit_coreir_not(module)
         if defn.coreir_name in (

@@ -60,7 +60,7 @@ def can_convert_to_bit_type(value):
     return issubclass(magma_type(value), (Digital, Array, Tuple))
 
 
-def convertbit(value, totype):
+def convertbit(value, totype, name=None):
     # NOTE: We don't do `isinstance` here because we want an upcast to cause a
     # conversion
     value = magma_value(value)
@@ -90,41 +90,44 @@ def convertbit(value, totype):
         # invariant
         return totype(1) if value else totype(0)
 
+    if name is None:
+        name = value.name
+
     if value.is_input():
-        b = In(totype)(name=value.name)
+        b = In(totype)(name=name)
     elif value.is_output():
-        b = Out(totype)(name=value.name)
+        b = Out(totype)(name=name)
     else:
-        b = totype()
+        b = totype(name=name)
     b._wire = value._wire
     return b
 
 
-def bit(value):
-    return convertbit(value, Bit)
+def bit(value, name=None):
+    return convertbit(value, Bit, name=name)
 
 
-def clock(value):
-    return convertbit(value, Clock)
+def clock(value, name=None):
+    return convertbit(value, Clock, name=name)
 
 
-def reset(value):
-    return convertbit(value, Reset)
+def reset(value, name=None):
+    return convertbit(value, Reset, name=name)
 
 
-def asyncreset(value):
-    return convertbit(value, AsyncReset)
+def asyncreset(value, name=None):
+    return convertbit(value, AsyncReset, name=name)
 
 
-def asyncresetn(value):
-    return convertbit(value, AsyncResetN)
+def asyncresetn(value, name=None):
+    return convertbit(value, AsyncResetN, name=name)
 
 
-def enable(value):
-    return convertbit(value, Enable)
+def enable(value, name=None):
+    return convertbit(value, Enable, name=name)
 
 
-def convertbits(value, n, totype, checkbit):
+def convertbits(value, n, totype, checkbit, name=None):
     # NOTE: We don't do `isinstance` here because we want an upcast to cause a
     # conversion
     if type(value) is totype:
@@ -200,30 +203,34 @@ def convertbits(value, n, totype, checkbit):
             Direction.InOut: InOut
         }[T.direction](Bit)
 
-    value = totype[len(Ts), T](ts)
+    value = totype[len(Ts), T](ts, name=name)
     if n is not None and len(value) < n:
+        # TODO(leonardt): The extended value isn't named, but perhaps we'd like to move
+        # to an explicit convert + extend rather than doing them in a single
+        # operation? If so, then we could provide the same name interface for
+        # the extension operators.
         value = value.ext_to(n)
     return value
 
 
-def array(value, n=None):
-    return convertbits(value, n, Array, False)
+def array(value, n=None, name=None):
+    return convertbits(value, n, Array, False, name=name)
 
 
-def bits(value, n=None):
-    return convertbits(value, n, Bits, True)
+def bits(value, n=None, name=None):
+    return convertbits(value, n, Bits, True, name=name)
 
 
-def uint(value, n=None):
-    return convertbits(value, n, UInt, True)
+def uint(value, n=None, name=None):
+    return convertbits(value, n, UInt, True, name=name)
 
 
-def sint(value, n=None):
-    return convertbits(value, n, SInt, True)
+def sint(value, n=None, name=None):
+    return convertbits(value, n, SInt, True, name=name)
 
 
-def bfloat(value, n=None):
-    return convertbits(value, n, BFloat, True)
+def bfloat(value, n=None, name=None):
+    return convertbits(value, n, BFloat, True, name=name)
 
 
 def concat(*args):

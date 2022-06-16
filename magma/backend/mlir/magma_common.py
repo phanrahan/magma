@@ -2,8 +2,9 @@ import dataclasses
 from typing import Any, Callable, Iterable, Mapping, Union
 
 from magma.array import Array, ArrayMeta
-from magma.backend.mlir.common import make_unique_name, replace_all
+from magma.backend.mlir.common import make_unique_name
 from magma.circuit import Circuit, DefineCircuitKind
+from magma.common import replace_all
 from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
