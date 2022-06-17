@@ -240,6 +240,28 @@ def test_drive_outputs():
         f"gold/test_compile_guard_drive_output.json")
 
 
+def test_drive_complex_outputs():
+
+    class _Top(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[8]), O=m.Out(m.Bits[8]))
+
+        with m.compile_guard("COND"):
+            T = m.AnonProduct[{"x": m.Bits[4], "y": m.Bits[4]}]
+            reg = m.Register(T)()
+            reg.I.x @= io.I[:4]
+            reg.I.y @= io.I[4:]
+            io.O[:4] @= reg.O.x
+            io.O[4:] @= reg.O.y
+
+    return
+
+    basename = "test_compile_guard_drive_complex_outputs"
+    m.compile(f"build/{basename}", _Top)
+    assert m.testing.check_files_equal(
+        __file__, f"build/{basename}.json", f"gold/{basename}.json"
+    )
+
+
 def test_anon_drivee():
 
     def make_top():

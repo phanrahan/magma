@@ -7,10 +7,22 @@ from magma.circuit import Circuit
 from magma.ref import get_ref_defn, get_ref_inst
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
+from magma.type_utils import isdigital, isarray, istuple
 
 
 InstanceCollection = List[Circuit]
 Connection = Tuple[Type, Type]
+
+
+def _get_driving(value: Type) -> Iterable[Connection]:
+    T = type(value)
+    if isdigital(T):
+        yield from ((value, drivee) for drivee in value.driving())
+        return
+    if not (isarray(T) or istuple(T)):
+        raise TypeError(value)
+    for elt in value:
+        yield from _get_driving(elt)
 
 
 class _GrouperBase(abc.ABC):
@@ -68,11 +80,11 @@ class _GrouperBase(abc.ABC):
             yield from self._run_on_input(elt)
 
     def _run_on_output(self, port: Type) -> Iterable[Connection]:
-        for drivee in port.driving():
+        for driver, drivee in _get_driving(port):
             is_external = self._is_external(drivee)
             if is_external is not None:
                 if is_external:
-                    yield (port, drivee)
+                    yield (driver, drivee)
                 continue
             assert not drivee.name.bound()
             raise NotImplementedError(
@@ -90,6 +102,7 @@ class _GrouperBase(abc.ABC):
         else:  # mixed type or InOut
             if not isinstance(port, (m_Tuple, Array)):
                 raise TypeError(value)
+
             for elt in port:
                 self._run_on_port(elt)
 

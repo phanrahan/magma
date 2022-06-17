@@ -16,7 +16,6 @@ from magma.primitives.mux import infer_mux_type
 from magma.ref import InstRef, get_ref_defn, get_ref_inst
 from magma.t import Kind, Type, In, Out
 from magma.type_utils import type_to_sanitized_string
-from magma.value_utils import make_selector
 
 
 _logger = root_logger().getChild("compile_guard")
@@ -46,8 +45,7 @@ class _Grouper(GrouperBase):
         external = getattr(self._builder, new_port.name.name)
         old_driver = drivee.value()
         drivee.unwire(old_driver)
-        selector = make_selector(old_driver)
-        new_driver = selector.select(external)
+        new_driver = external
         drivee @= new_driver
 
     def _visit_undriven_port(self, port: Type):
