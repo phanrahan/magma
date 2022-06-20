@@ -42,6 +42,7 @@ from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
+from magma.ref import get_ref_inst, get_ref_defn
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -814,6 +815,24 @@ class NativeBindProcessor(BindProcessorInterface):
     @wrap_with_not_implemented_error
     def _resolve_arg(self, arg) -> MlirValue:
         if isinstance(arg, Type):
+            # NOTE(rsetaluri): We check that @arg is either a port or named
+            # (temporary) value. If it is a named temporary, then we use the
+            # name directly in an XMR op (we additionally assume that it is at
+            # the same level of hierarchy).
+            if (
+                    get_ref_inst(arg.name) is None and
+                    get_ref_defn(arg.name) is None
+            ):
+                if arg.name.anon():
+                    raise TypeError("{arg}: anon bind arguments not supported")
+                wire = self._ctx.new_value(
+                    hw.InOutType(magma_type_to_mlir_type(type(arg)))
+                )
+                name = arg.name.name[1:]
+                sv.XMROp(is_rooted=False, path=(name,), results=[wire])
+                value = self._ctx.new_value(wire.type.T)
+                sv.ReadInOutOp(operands=[wire], results=[value])
+                return value
             return self._ctx.get_mapped_value(arg)
         if isinstance(arg, PortView):
             return resolve_xmr(self._ctx, arg)

@@ -432,18 +432,28 @@ class xmr_bind(m.Circuit):
     T = xmr_bind_grandchild.T
     io = m.IO(a=m.In(T), y=m.Out(T))
     inst = xmr_bind_child()
+    my_value = T(name="my_value")
+    my_value @= io.a
     inst.a @= io.a
     io.y @= inst.y
 
 
 class xmr_bind_asserts(m.Circuit):
     T = xmr_bind.T
-    io = m.IO(a=m.In(T), y=m.In(T), other=m.In(T))
-    m.inline_verilog("assert property ({other} == 0);", other=io.other)
+    io = m.IO(a=m.In(T), y=m.In(T), other=m.In(T), that=m.In(T))
+    m.inline_verilog(
+        "assert property ({other} == 0 && {that} == 0);",
+        other=io.other,
+        that=io.that,
+    )
 
 
 ProcessInlineVerilogPass(xmr_bind_asserts).run()
-xmr_bind.bind(xmr_bind_asserts, xmr_bind.inst.xmr_bind_grandchild_inst0.y)
+xmr_bind.bind(
+    xmr_bind_asserts,
+    xmr_bind.inst.xmr_bind_grandchild_inst0.y,
+    xmr_bind.my_value,
+)
 
 
 class simple_compile_guard(m.Circuit):
