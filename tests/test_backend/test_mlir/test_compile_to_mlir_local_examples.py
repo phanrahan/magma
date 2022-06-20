@@ -29,6 +29,7 @@ class _simple_coreir_common_lib_mux_n_wrapper(m.Circuit):
 def test_compile_to_mlir(ckt):
     kwargs = {
         "use_native_bind_processor": True,
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
 
@@ -48,6 +49,7 @@ def test_compile_to_mlir_flatten_all_tuples(ckt):
         "flatten_all_tuples": True,
         "use_native_bind_processor": True,
         "gold_name": f"{ckt.name}_flatten_all_tuples",
+        "basename": ckt.name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
 

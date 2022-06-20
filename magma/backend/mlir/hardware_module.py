@@ -850,6 +850,8 @@ class NativeBindProcessor(BindProcessorInterface):
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
+        if self._syms:
+            self._ctx.parent.add_bind_file(f"{self._ctx.opts.basename}.sv")
 
 
 class CoreIRBindProcessor(BindProcessorInterface):
