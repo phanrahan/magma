@@ -70,6 +70,8 @@ class _NativeBindProcessor(_BindProcessorInterface):
             # the same level of hierarchy).
             ref = arg.name
             if _is_bound(ref):
+                if ref.root() is not ref:
+                    raise TypeError(arg)
                 return self._ctx.get_mapped_value(arg)
             if ref.anon():
                 raise TypeError(f"{arg}: anon bind arguments not supported")
