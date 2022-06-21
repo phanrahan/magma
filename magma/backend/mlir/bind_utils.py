@@ -19,6 +19,19 @@ def _is_bound(ref: Ref) -> bool:
     return get_ref_inst(ref) is not None or get_ref_defn(ref) is not None
 
 
+def _get_non_root_qualified_name(ctx: 'HardwareModule', ref: Ref) -> str:
+    parts = ref.qualifiedname("^").split("^")
+    defn = get_ref_defn(ref)
+    if defn is not None:
+        sep = "_" if ctx.opts.flatten_all_tuples else "."
+        return sep.join(parts)
+    inst = get_ref_inst(ref)
+    assert inst is not None
+    if ctx.opts.flatten_all_tuples:
+        return f"{parts[0]}.{'_'.join(parts[1:])}"
+    return ".".join(parts)
+
+
 def _resolve_xmr(ctx: 'HardwareModule', xmr: PortView) -> MlirValue:
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
@@ -72,7 +85,7 @@ class _NativeBindProcessor(_BindProcessorInterface):
             ref = arg.name
             if _is_bound(ref):
                 if ref.root() is not ref:
-                    name = ref.qualifiedname("^").replace("^", ".")
+                    name = _get_non_root_qualified_name(self._ctx, ref)
                     arg = T(name=name)
                     arg = PortView[T](arg, None)
                     return _resolve_xmr(self._ctx, arg)
