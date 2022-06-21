@@ -46,12 +46,11 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
         return PortView[type(attr)](attr, self.parent)
 
     def path(self) -> Tuple[str]:
-        path = (self.port.name.name,)
-        curr = self.parent
-        while isinstance(curr, InstView):
-            path = (curr.inst.name,) + path
-            curr = curr.parent
-        return path
+        name = self.port.name.qualifiedname(sep="^")
+        path = tuple(name.split("^"))
+        if self.parent is None:
+            return path
+        return self.parent.path() + path
 
     def get_hierarchical_coreir_select(self):
         return ";".join(self.path()[:-1]) + ";"
@@ -87,6 +86,11 @@ class InstView:
             self.instance_map = {instance.name: instance for instance in
                                  self.circuit.instances}
         self.parent = parent
+
+    def path(self) -> Tuple['InstView']:
+        if self.parent is None:
+            return (self.inst.name,)
+        return self.parent.path() + (self.inst.name,)
 
     def __getattr__(self, attr):
         try:

@@ -1,4 +1,5 @@
 import abc
+import pathlib
 
 from magma.backend.mlir.common import wrap_with_not_implemented_error
 from magma.backend.mlir.hw import hw
@@ -36,7 +37,13 @@ def _resolve_xmr(ctx: 'HardwareModule', xmr: PortView) -> MlirValue:
     assert isinstance(xmr, PortView)
     mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
     in_out = ctx.new_value(hw.InOutType(mlir_type))
-    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
+    if ctx.opts.flatten_all_tuples:
+        name = xmr.port.name.qualifiedname("_")
+        path = list() if xmr.parent is None else list(xmr.parent.path())
+        path = path + [name]
+    else:
+        path = list(xmr.path())
+    sv.XMROp(is_rooted=False, path=path, results=[in_out])
     value = ctx.new_value(mlir_type)
     sv.ReadInOutOp(operands=[in_out], results=[value])
     return value
