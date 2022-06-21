@@ -39,7 +39,7 @@ module xmr_bind(	// <stdin>:17:1
     .y (xmr_bind_child_inst0_y)
   );
   assign xmr_bind_asserts_inst_other = xmr_bind_child_inst0.xmr_bind_grandchild_inst0.y;	// <stdin>:19:10, :20:10, :23:5
-  assign xmr_bind_asserts_inst_that = y_value;	// <stdin>:21:10, :22:10, :23:5
+  assign xmr_bind_asserts_inst_that = my_value;	// <stdin>:21:10, :22:10, :23:5
   /* This instance is elsewhere emitted as a bind statement.
     xmr_bind_asserts xmr_bind_asserts_inst (	// <stdin>:23:5
       .a     (a),

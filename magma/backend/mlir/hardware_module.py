@@ -1,4 +1,3 @@
-import abc
 import contextlib
 import dataclasses
 import functools
@@ -6,7 +5,8 @@ import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
-from magma.array import Array, ArrayMeta
+from magma.array import ArrayMeta
+from magma.backend.mlir.bind_utils import make_bind_processor
 from magma.backend.mlir.build_magma_graph import (
     BuildMagmaGrahOpts, build_magma_graph
 )
@@ -30,23 +30,26 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
+from magma.backend.mlir.utils import (
+    magma_type_to_mlir_type,
+    python_type_to_mlir_type,
+    python_value_to_mlir_attribtue,
+)
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.common import filter_by_key
-from magma.digital import Digital, DigitalMeta
+from magma.digital import DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
-from magma.ref import get_ref_inst, get_ref_defn
 from magma.t import Kind, Type
-from magma.tuple import TupleMeta, Tuple as m_Tuple
+from magma.tuple import TupleMeta
 from magma.value_utils import make_selector
-from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
@@ -77,40 +80,6 @@ def parse_reset_type(T: Kind) -> Tuple[str, str]:
         return "asyncreset", "posedge"
     if T is AsyncResetN:
         return "asyncreset", "negedge"
-
-
-@wrap_with_not_implemented_error
-@functools.lru_cache()
-def magma_type_to_mlir_type(type: Kind) -> MlirType:
-    type = type.undirected_t
-    if issubclass(type, Digital):
-        return builtin.IntegerType(1)
-    if issubclass(type, Bits):
-        return builtin.IntegerType(type.N)
-    if issubclass(type, Array):
-        if issubclass(type.T, Bit):
-            return magma_type_to_mlir_type(Bits[type.N])
-        return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
-    if issubclass(type, m_Tuple):
-        fields = {str(k): magma_type_to_mlir_type(t)
-                  for k, t in type.field_dict.items()}
-        return hw.StructType(tuple(fields.items()))
-
-
-@wrap_with_not_implemented_error
-@functools.lru_cache()
-def python_type_to_mlir_type(type_: type) -> MlirType:
-    # NOTE(rsetaluri): We only support integer attribtue types right now. All
-    # integer parameter types are assumed to be int32's.
-    if type_ is int:
-        return builtin.IntegerType(32)
-
-
-@wrap_with_not_implemented_error
-def python_value_to_mlir_attribtue(value: Any) -> MlirAttribute:
-    # NOTE(rsetaluri): We only support integer attribute types right now.
-    if isinstance(value, int):
-        return builtin.IntegerAttr(value)
 
 
 def get_module_interface(
@@ -201,16 +170,6 @@ def make_hw_instance_op(
             parameters=parameters,
             sym=sym)
     return op
-
-
-def resolve_xmr(ctx: 'HardwareModule', xmr: PortView):
-    assert isinstance(xmr, PortView)
-    mlir_type = magma_type_to_mlir_type(type(xmr)._to_magma_())
-    in_out = ctx.new_value(hw.InOutType(mlir_type))
-    sv.XMROp(is_rooted=False, path=list(xmr.path()), results=[in_out])
-    value = ctx.new_value(mlir_type)
-    sv.ReadInOutOp(operands=[in_out], results=[value])
-    return value
 
 
 @dataclasses.dataclass(frozen=True)
@@ -780,121 +739,6 @@ def treat_as_definition(defn_or_decl: CircuitKind) -> bool:
     return True
 
 
-class BindProcessorInterface(abc.ABC):
-    def __init__(self, ctx: 'HardwareModule', defn: CircuitKind):
-        self._ctx = ctx
-        self._defn = defn
-
-    @abc.abstractmethod
-    def preprocess(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def process(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def postprocess(self):
-        raise NotImplementedError()
-
-
-class NativeBindProcessor(BindProcessorInterface):
-    def preprocess(self):
-        for bind_module in self._defn.bind_modules:
-            # TODO(rsetaluri): Here we should check if @bind_module has already
-            # been compiled, in the case that the bound module is either used
-            # multiple times or is also a "normal" module that was compiled
-            # elsewhere. Currently, the `set_hardware_module` call will raise an
-            # error if @bind_module has been compiled already.
-            hardware_module = self._ctx.parent.new_hardware_module(bind_module)
-            hardware_module.compile()
-            assert hardware_module.hw_module is not None
-            self._ctx.parent.set_hardware_module(
-                bind_module, hardware_module.hw_module)
-
-    @wrap_with_not_implemented_error
-    def _resolve_arg(self, arg) -> MlirValue:
-        if isinstance(arg, Type):
-            # NOTE(rsetaluri): We check that @arg is either a port or named
-            # (temporary) value. If it is a named temporary, then we use the
-            # name directly in an XMR op (we additionally assume that it is at
-            # the same level of hierarchy).
-            if (
-                    get_ref_inst(arg.name) is None and
-                    get_ref_defn(arg.name) is None
-            ):
-                if arg.name.anon():
-                    raise TypeError("{arg}: anon bind arguments not supported")
-                wire = self._ctx.new_value(
-                    hw.InOutType(magma_type_to_mlir_type(type(arg)))
-                )
-                name = arg.name.name[1:]
-                sv.XMROp(is_rooted=False, path=(name,), results=[wire])
-                value = self._ctx.new_value(wire.type.T)
-                sv.ReadInOutOp(operands=[wire], results=[value])
-                return value
-            return self._ctx.get_mapped_value(arg)
-        if isinstance(arg, PortView):
-            return resolve_xmr(self._ctx, arg)
-
-    def process(self):
-        self._syms = []
-        for bind_module, (args, _) in self._defn.bind_modules.items():
-            operands = []
-            for port in self._defn.interface.ports.values():
-                visit_magma_value_or_value_wrapper_by_direction(
-                    port,
-                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
-                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
-                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
-                )
-            operands += list(map(self._resolve_arg, args))
-            inst_name = f"{bind_module.name}_inst"
-            sym = self._ctx.parent.get_or_make_mapped_symbol(
-                (self._defn, bind_module),
-                name=f"{self._defn.name}.{inst_name}",
-                force=True)
-            module = self._ctx.parent.get_hardware_module(bind_module)
-            inst = hw.InstanceOp(
-                name=inst_name,
-                module=module,
-                operands=operands,
-                results=[],
-                sym=sym)
-            inst.attr_dict["doNotPrint"] = 1
-            self._syms.append(sym)
-
-    def postprocess(self):
-        defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
-        for sym in self._syms:
-            instance = hw.InnerRefAttr(defn_sym, sym)
-            sv.BindOp(instance=instance)
-        if self._syms:
-            self._ctx.parent.add_bind_file(f"{self._ctx.opts.basename}.sv")
-
-
-class CoreIRBindProcessor(BindProcessorInterface):
-    def preprocess(self):
-        return
-
-    def process(self):
-        for name, content in self._defn.compiled_bind_modules.items():
-            path = pathlib.Path(self._ctx.opts.basename).parent
-            filename = path / f"{name}.sv"
-            with open(filename, "w") as f:
-                f.write(content)
-            self._ctx.parent.add_bind_file(filename.name)
-
-    def postprocess(self):
-        return
-
-
-def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
-    if ctx.opts.use_native_bind_processor:
-        return NativeBindProcessor(ctx, defn)
-    return CoreIRBindProcessor(ctx, defn)
-
-
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: CircuitKind,
@@ -988,7 +832,7 @@ class HardwareModule:
                 name=name,
                 operands=inputs,
                 results=named_outputs)
-        bind_processor = _make_bind_processor(self, self._magma_defn_or_decl)
+        bind_processor = make_bind_processor(self, self._magma_defn_or_decl)
         bind_processor.preprocess()
         op = hw.ModuleOp(
             name=name,
