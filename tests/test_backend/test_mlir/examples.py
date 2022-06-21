@@ -391,16 +391,25 @@ m.passes.clock.WireClockPass(simple_bind).run()
 m.passes.clock.WireClockPass(simple_bind_asserts).run()
 
 
+class complex_bind_child(m.Circuit):
+    T = m.Product.from_fields("anon", dict(I=m.Bit))
+    io = m.IO(I=m.In(T), O=m.Out(T))
+    io.O @= io.I
+
+
 class complex_bind(m.Circuit):
     T = m.Product.from_fields("anon", dict(I=m.Bit))
     io = m.IO(I=m.In(T), O=m.Out(m.Bit))
     not_I = ~io.I.I
+    child = complex_bind_child()
+    child(io.I)
     io.O @= m.register(~not_I)
 
 
 class complex_bind_asserts(m.Circuit):
     T = complex_bind.T
-    io = m.IO(I=m.In(T), O=m.In(m.Bit)) + m.ClockIO() + m.IO(I0=m.In(m.Bit))
+    io = m.IO(I=m.In(T), O=m.In(m.Bit)) + m.ClockIO()
+    io += m.IO(I0=m.In(m.Bit), I1=m.In(m.Bit), I2=m.In(m.Bit))
     m.inline_verilog(
         "assert property (@(posedge CLK) {I} |-> ##1 {O});"
         "assert property ({I} |-> {I0};",
@@ -409,7 +418,12 @@ class complex_bind_asserts(m.Circuit):
 
 
 ProcessInlineVerilogPass(complex_bind_asserts).run()
-complex_bind.bind(complex_bind_asserts, complex_bind.not_I)
+complex_bind.bind(
+    complex_bind_asserts,
+    complex_bind.not_I,
+    complex_bind.I.I,
+    complex_bind.child.O.I,
+)
 m.passes.clock.WireClockPass(complex_bind).run()
 m.passes.clock.WireClockPass(complex_bind_asserts).run()
 

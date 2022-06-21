@@ -68,14 +68,18 @@ class _NativeBindProcessor(_BindProcessorInterface):
             # (temporary) value. If it is a named temporary, then we use the
             # name directly in an XMR op (we additionally assume that it is at
             # the same level of hierarchy).
+            T = type(arg).undirected_t
             ref = arg.name
             if _is_bound(ref):
                 if ref.root() is not ref:
-                    raise TypeError(arg)
+                    name = ref.qualifiedname("^").replace("^", ".")
+                    arg = T(name=name)
+                    arg = PortView[T](arg, None)
+                    return _resolve_xmr(self._ctx, arg)
                 return self._ctx.get_mapped_value(arg)
             if ref.anon():
                 raise TypeError(f"{arg}: anon bind arguments not supported")
-            port_view = PortView[type(arg).undirected_t](arg, None)
+            port_view = PortView[T](arg, None)
             return _resolve_xmr(self._ctx, port_view)
         if isinstance(arg, PortView):
             return _resolve_xmr(self._ctx, arg)
