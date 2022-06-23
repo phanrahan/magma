@@ -18,7 +18,8 @@ class MlirCompiler(Compiler):
         # TODO(rsetaluri): Make this a better error.
         assert "basename" not in opts
         opts["basename"] = basename
-        self._compile_to_mlir_opts = slice_opts(opts, CompileToMlirOpts)
+        self._compile_to_mlir_opts = slice_opts(
+            opts, CompileToMlirOpts, keep=True)
         super().__init__(main, basename, opts)
 
     def suffix(self):

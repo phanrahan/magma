@@ -219,13 +219,14 @@ def lca_of_types(classes):
         operator.and_, (collections.Counter(cls.mro()) for cls in classes))))
 
 
-def slice_opts(dct: Dict, cls: type):
+def slice_opts(dct: Dict, cls: type, keep: bool = False):
+    get_opt = dct.get if keep else dct.pop
     if not dataclasses.is_dataclass(cls):
         raise TypeError("Expected dataclass")
     kwargs = {}
     for name, field in cls.__dataclass_fields__.items():
         try:
-            value = dct.pop(name)
+            value = get_opt(name)
         except KeyError:
             continue
         kwargs[name] = value
