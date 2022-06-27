@@ -79,12 +79,17 @@ def visit_value_or_value_wrapper_by_direction(
         output_visitor: Callable[[Type], Any],
         **kwargs):
 
+    pre_descend = kwargs.get("pre_descend", lambda _: None)
+    post_descend = kwargs.get("post_descend", lambda _: None)
+
     def descend(v):
         if not isinstance(v, (m_Tuple, Array)):
             raise TypeError(value)
+        pre_descend(v)
         for item in v:
             visit_value_or_value_wrapper_by_direction(
                 item, input_visitor, output_visitor, **kwargs)
+        post_descend(v)
 
     flatten_all_tuples = kwargs.get("flatten_all_tuples", False)
 
