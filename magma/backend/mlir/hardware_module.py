@@ -30,6 +30,7 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
+from magma.backend.mlir.xmr_utils import get_xmr_paths
 from magma.bind2 import is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
@@ -624,21 +625,16 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, XMRSink)
-        idx = SimpleCounter()
-
-        def _visit(value):
-            mlir_type = hw.InOutType(magma_type_to_mlir_type(type(value)))
-            wire = self._ctx.new_value(mlir_type)
-            key = (defn.value, idx.value())
-            sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
-            sv.WireOp(results=[wire], name=sym.raw_name, sym=sym)
-            sv.AssignOp(operands=[wire, module.operands[idx.value()]])
-            idx.next()
-
-        visit_magma_value_or_value_wrapper_by_direction(
-            defn.I, _visit, _visit,
-            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-        )
+        xmr = defn.value
+        try:
+            self._ctx.parent.xmr_paths[xmr]
+        except KeyError:
+            pass
+        else:
+            return True
+        paths = get_xmr_paths(self._ctx, xmr)
+        assert len(paths) == len(module.operands)
+        self._ctx.parent.xmr_paths[xmr] = paths
         return True
 
     @wrap_with_not_implemented_error
@@ -646,24 +642,15 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         assert isinstance(defn, XMRSource)
-        idx = SimpleCounter()
-
-        def _visit(value):
-            mlir_type = magma_type_to_mlir_type(type(value))
-            in_out = self._ctx.new_value(hw.InOutType(mlir_type))
-            key = (defn.value, idx.value())
-            sym = self._ctx.parent.get_or_make_mapped_symbol(key, name="bind_")
-            path = defn.value.parent.path() + (sym.raw_name,)
+        xmr = defn.value
+        paths = self._ctx.parent.xmr_paths[xmr]
+        assert len(paths) == len(module.results)
+        base = defn.value.parent.path()
+        for result, path in zip(module.results, paths):
+            in_out = self._ctx.new_value(hw.InOutType(result.type))
+            path = base + path
             sv.XMROp(is_rooted=False, path=path, results=[in_out])
-            sv.ReadInOutOp(
-                operands=[in_out],
-                results=[module.results[idx.value()]])
-            idx.next()
-
-        visit_magma_value_or_value_wrapper_by_direction(
-            defn.O, _visit, _visit,
-            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-        )
+            sv.ReadInOutOp(operands=[in_out], results=[result])
         return True
 
     @wrap_with_not_implemented_error

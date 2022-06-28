@@ -3,11 +3,7 @@ hw.module @Bottom(%I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>)
 }
 hw.module @Middle(%I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>) {
     %0 = hw.instance "bottom" @Bottom(I: %I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>)
-    %1 = sv.wire sym @bind_0 {name="bind_0"} : !hw.inout<!hw.struct<x: i1, y: i1>>
-    sv.assign %1, %0 : !hw.struct<x: i1, y: i1>
-    %2 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: i1>
-    %3 = sv.wire sym @bind_1 {name="bind_1"} : !hw.inout<i1>
-    sv.assign %3, %2 : i1
+    %1 = hw.struct_extract %I["x"] : !hw.struct<x: i1, y: i1>
     hw.output %0 : !hw.struct<x: i1, y: i1>
 }
 hw.module @TopXMRAsserts_mlir(%I: !hw.struct<x: i1, y: i1>, %O: !hw.struct<x: i1, y: i1>, %a: !hw.struct<x: i1, y: i1>, %b: i1) -> () {
@@ -20,9 +16,9 @@ hw.module @TopXMRAsserts_mlir(%I: !hw.struct<x: i1, y: i1>, %O: !hw.struct<x: i1
 }
 hw.module @Top(%I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>) {
     %0 = hw.instance "middle" @Middle(I: %I: !hw.struct<x: i1, y: i1>) -> (O: !hw.struct<x: i1, y: i1>)
-    %2 = sv.xmr "middle", "bottom", "bind_0" : !hw.inout<!hw.struct<x: i1, y: i1>>
+    %2 = sv.xmr "middle", "bottom", "O" : !hw.inout<!hw.struct<x: i1, y: i1>>
     %1 = sv.read_inout %2 : !hw.inout<!hw.struct<x: i1, y: i1>>
-    %4 = sv.xmr "middle", "bottom", "bind_1" : !hw.inout<i1>
+    %4 = sv.xmr "middle", "bottom", "I", "x" : !hw.inout<i1>
     %3 = sv.read_inout %4 : !hw.inout<i1>
     hw.instance "TopXMRAsserts_mlir_inst0" sym @TopXMRAsserts_mlir_inst0 @TopXMRAsserts_mlir(I: %I: !hw.struct<x: i1, y: i1>, O: %0: !hw.struct<x: i1, y: i1>, a: %1: !hw.struct<x: i1, y: i1>, b: %3: i1) -> () {doNotPrint = 1}
     hw.output %0 : !hw.struct<x: i1, y: i1>
