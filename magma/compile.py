@@ -50,6 +50,21 @@ def _get_basename(basename):
     return basename
 
 
+def _partial_kw(fn, **specialized_kwargs):
+
+    def func(*args, **kwargs):
+        return fn(*args, **kwargs, **specialized_kwargs)
+
+    return func
+
+
+def _make_bind_compile_fn(output: str):
+    output_is_mlir = (output == "mlir" or output == "mlir-verilog")
+    if not output_is_mlir:
+        return compile
+    return _partial_kw(compile, use_packed_arrays=True)
+
+
 def compile(basename, main, output="coreir-verilog", **kwargs):
     if not isdefinition(main):
         raise MagmaCompileException(
@@ -68,7 +83,10 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     ProcessInlineVerilogPass(main).run()
 
     # Bind after uniquification so the bind logic works on unique modules.
-    BindPass(main, compile, opts.get("user_namespace"),
+    # NOTE(rsetaluri): This is a hack to use packed arrays when the compilation
+    # goes through MLIR.
+    compile_fn = _make_bind_compile_fn(output)
+    BindPass(main, compile_fn, opts.get("user_namespace"),
              opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):

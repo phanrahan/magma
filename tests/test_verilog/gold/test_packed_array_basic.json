@@ -1,0 +1,17 @@
+{"top":"global._Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "_Foo":{
+        "type":["Record",[
+          ["I",["Array",10,["Array",12,["Array",32,"BitIn"]]]],
+          ["O",["Array",32,"Bit"]]
+        ]],
+        "connections":[
+          ["self.O","self.I.4.7"]
+        ]
+      }
+    }
+  }
+}
+}
