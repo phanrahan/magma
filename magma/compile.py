@@ -4,7 +4,6 @@ from pathlib import PurePath
 from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
-from magma.bind import BindPass
 from magma.compiler import Compiler
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
@@ -66,10 +65,6 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     # Steps to process inline verilog generation. Required to be run after
     # uniquification.
     ProcessInlineVerilogPass(main).run()
-
-    # Bind after uniquification so the bind logic works on unique modules.
-    BindPass(main, compile, opts.get("user_namespace"),
-             opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):
         DriveUndrivenPass(main).run()

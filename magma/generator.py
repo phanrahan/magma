@@ -11,7 +11,6 @@ from hwtypes import BitVector
 
 class GeneratorMeta(type):
     def __new__(mcs, name, bases, attrs):
-        attrs["bind_generators"] = []
         cls = super().__new__(mcs, name, bases, attrs)
         old_generate = cls.generate
 
@@ -19,12 +18,9 @@ class GeneratorMeta(type):
             result = old_generate(*args, **kwargs)
             if hasattr(result, "circuit_definition"):
                 result = result.circuit_definition
-            for gen in cls.bind_generators:
-                gen.generate_bind(result, *args, **kwargs)
             return result
 
         cls.generate = generate_wrapper
-        # Cache after bind logic so we don't run it twice on a cached entry
         if cls.cache:
             cls.generate = cache_definition(cls.generate)
         return cls
@@ -50,10 +46,6 @@ class Generator(metaclass=GeneratorMeta):
     def generate(*args, **kwargs):
         raise NotImplementedError()
 
-    @classmethod
-    def bind(cls, monitor):
-        cls.bind_generators.append(monitor)
-
 
 def _make_key(cls, *args, **kwargs):
     _SECRET_KEY = "__magma_generator2_secret_key__"
@@ -76,12 +68,7 @@ def _make_type(cls, *args, **kwargs):
     dct = cls._base_metacls_.__prepare__(name, bases)
     cls.__init__(dummy, *args, **kwargs)
     dct.update(dict(dummy.__dict__))
-    # NOTE(leonardt): We need to override the Generator2 classmethod bind with
-    # DefineCircuitKind.bind for generator instances (circuits).
-    dct["bind"] = classmethod(cls._base_metacls_.bind)
     ckt = cls._base_metacls_.__new__(cls, name, bases, dct)
-    for gen in cls.bind_generators:
-        gen.generate_bind(ckt, *args, **kwargs)
     return ckt
 
 
@@ -92,7 +79,6 @@ class _Generator2Meta(type):
 
     def __new__(metacls, name, bases, dct):
         bases = bases + (metacls._base_metacls_,)
-        assert dct.setdefault("bind_generators", []) == []
         return type.__new__(metacls, name, bases, dct)
 
     def __call__(cls, *args, **kwargs):
@@ -121,10 +107,6 @@ class Generator2(metaclass=_Generator2Meta):
 
     def __call__(cls, *args, **kwargs):
         return type(cls)._base_metacls_.__call__(cls, *args, **kwargs)
-
-    @classmethod
-    def bind(cls, monitor):
-        cls.bind_generators.append(monitor)
 
 
 class _DebugGeneratorMeta(_Generator2Meta):

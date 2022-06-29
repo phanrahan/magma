@@ -51,8 +51,6 @@ class UniquificationPass(DefinitionPass):
         type(ckt).rename(ckt, new_name)
 
     def __call__(self, definition):
-        for module in definition.bind_modules:
-            self._run(module)
         name = definition.name
         key = _hash(definition)
 
