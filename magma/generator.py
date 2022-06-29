@@ -80,12 +80,10 @@ def _make_type(cls, *args, **kwargs):
     # DefineCircuitKind.bind for generator instances (circuits).
     dct["bind"] = classmethod(cls._base_metacls_.bind)
     ckt = cls._base_metacls_.__new__(cls, name, bases, dct)
+    ckt._args_ = args
+    ckt._kwargs_ = kwargs
     for gen in cls.bind_generators:
         gen.generate_bind(ckt, *args, **kwargs)
-    from magma.bind2 import get_bound_generator_info, bind2
-    for bind_generator in (get_bound_generator_info(cls) or list()):
-        bind_module = bind_generator(*args, **kwargs)
-        bind2(ckt, bind_module, *bind_module.bind2_arguments(ckt))
     return ckt
 
 
