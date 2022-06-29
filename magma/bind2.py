@@ -1,11 +1,11 @@
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from magma.circuit import DefineCircuitKind, CircuitKind
 from magma.generator import Generator2Kind, Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.view import PortView
-from magma.t import Type
+from magma.t import Type, In
 
 
 _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
@@ -65,10 +65,18 @@ class BindGenerators(DefinitionPass):
         bind_generators = get_bound_generator_info(gen) or list()
         for bind_generator in bind_generators:
             bind_module = bind_generator(*defn._args_, **defn._kwargs_)
-            bind2(defn, bind_module, *bind_module.bind2_arguments(defn))
+            get_args = getattr(bind_module, "bind2_arguments", lambda _: ())
+            bind2(defn, bind_module, *get_args(defn))
 
 
 bind_generators = pass_lambda(BindGenerators)
+
+
+def make_bind_ports(defn_or_decl: CircuitKind) -> Dict[str, Type]:
+    return {
+        name: In(type(port))
+        for name, port in defn_or_decl.interface.ports.items()
+    }
 
 
 def _bind_generator_impl(dut: Generator2Kind, bind_module: Generator2Kind):
