@@ -3,6 +3,7 @@ import functools
 from typing import Callable, Iterable
 
 from magma.circuit import CircuitKind, CircuitType, DefineCircuitKind
+from magma.clock import ClockTypes
 from magma.conversions import as_bits
 from magma.value_utils import ValueVisitor
 from magma.t import Type
@@ -18,6 +19,8 @@ Stubbifier = Callable[[Type], _StubbifierResult]
 
 
 def zero_stubbifier(value: Type) -> _StubbifierResult:
+    if isinstance(value, ClockTypes):
+        return _StubbifierResult(modified=False, descend=False)
     if value.is_output():
         value.unused()
         return _StubbifierResult(modified=True, descend=False)

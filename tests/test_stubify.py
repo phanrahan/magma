@@ -120,3 +120,16 @@ def test_partially_driven(caplog, stubbifier):
 
     if expected_warning:
         assert has_warning(caplog)
+
+
+def test_clocks():
+
+    class _Foo(m.Circuit):
+        io = m.IO()
+        reg = m.Register(m.Bit)()
+        m.stubify(reg.interface)
+
+    assert _Foo.reg.I.driven()
+    driver = _Foo.reg.I.trace()
+    assert driver.const() and int(driver) == 0
+    assert not _Foo.reg.CLK.driven()
