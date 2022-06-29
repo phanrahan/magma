@@ -219,6 +219,8 @@ class CircuitKind(type):
         dct.setdefault("inline_verilog_strs", [])
         dct.setdefault("coreir_metadata", {})
         dct["inline_verilog_generated"] = False
+        dct["bind_modules"] = {}
+        dct["compiled_bind_modules"] = {}
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -681,8 +683,8 @@ class DefineCircuitKind(CircuitKind):
         """Place a circuit instance in this definition"""
         cls._context_.placer.place(inst)
 
-    def bind(*_, **__):
-        raise NotImplementedError()
+    def bind(cls, monitor, *args, compile_guard=None):
+        cls.bind_modules[monitor] = (args, compile_guard)
 
 
 @six.add_metaclass(DefineCircuitKind)

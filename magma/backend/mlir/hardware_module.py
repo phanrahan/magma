@@ -852,19 +852,63 @@ class BindProcessorInterface(abc.ABC):
 
 class NativeBindProcessor(BindProcessorInterface):
     def preprocess(self):
-        return
+        for bind_module in self._defn.bind_modules:
+            # TODO(rsetaluri): Here we should check if @bind_module has already
+            # been compiled, in the case that the bound module is either used
+            # multiple times or is also a "normal" module that was compiled
+            # elsewhere. Currently, the `set_hardware_module` call will raise an
+            # error if @bind_module has been compiled already.
+            hardware_module = self._ctx.parent.new_hardware_module(bind_module)
+            hardware_module.compile()
+            assert hardware_module.hw_module is not None
+            self._ctx.parent.set_hardware_module(
+                bind_module, hardware_module.hw_module)
+
+    @wrap_with_not_implemented_error
+    def _resolve_arg(self, arg) -> MlirValue:
+        if isinstance(arg, Type):
+            return self._ctx.get_mapped_value(arg)
+        if isinstance(arg, PortView):
+            return resolve_xmr(self._ctx, arg)
 
     def process(self):
-        return
+        self._syms = []
+        for bind_module, (args, _) in self._defn.bind_modules.items():
+            operands = []
+            for port in self._defn.interface.ports.values():
+                visit_magma_value_or_value_wrapper_by_direction(
+                    port,
+                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
+                    lambda p: operands.append(self._ctx.get_mapped_value(p)),
+                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+                )
+            operands += list(map(self._resolve_arg, args))
+            inst_name = f"{bind_module.name}_inst"
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                (self._defn, bind_module),
+                name=f"{self._defn.name}.{inst_name}",
+                force=True)
+            module = self._ctx.parent.get_hardware_module(bind_module)
+            inst = hw.InstanceOp(
+                name=inst_name,
+                module=module,
+                operands=operands,
+                results=[],
+                sym=sym)
+            inst.attr_dict["doNotPrint"] = 1
+            self._syms.append(sym)
 
     def postprocess(self):
         defn_sym = self._ctx.parent.get_mapped_symbol(self._defn)
+        for sym in self._syms:
+            instance = hw.InnerRefAttr(defn_sym, sym)
+            sv.BindOp(instance=instance)
         bound_instances = list(filter(is_bound_instance, self._defn.instances))
         for bound_instance in bound_instances:
             inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
             ref = hw.InnerRefAttr(defn_sym, inst_sym)
             sv.BindOp(instance=ref)
-        if bound_instances:
+        if self._syms or bound_instances:
             bind_filename = f"{self._ctx.opts.basename}.sv"
             self._ctx.parent.add_bind_file(bind_filename)
 

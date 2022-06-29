@@ -325,6 +325,8 @@ class DefinitionTransformer(TransformerBase):
                 {"str": inline_verilog,
                  "connect_references": connect_references}
             ))
+        for name, module in self.defn.compiled_bind_modules.items():
+            self.backend.bind_module(name, module)
 
         self.coreir_module.definition = self.get_coreir_defn()
 

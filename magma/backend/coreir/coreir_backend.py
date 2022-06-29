@@ -57,6 +57,9 @@ class CoreIRBackend:
             ret = self._lib_cache[lib] = self.context.get_lib(lib)
             return ret
 
+    def bind_module(self, name, module):
+        self._bound_modules[name] = module
+
     def bound_modules(self):
         return self._bound_modules.copy()
 
