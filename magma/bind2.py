@@ -7,6 +7,7 @@ from magma.view import PortView
 
 
 _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
+_BOUND_GENERATOR_INFO_KEY = "_bound_generator_info_"
 
 DutType = Union[DefineCircuitKind, Generator2Kind]
 BindModuleType = Union[CircuitKind, Generator2Kind]
@@ -45,8 +46,21 @@ def is_bound_instance(inst) -> bool:
     return get_bound_instance_info(inst) is not None
 
 
+def get_bound_generator_info(inst):
+    return getattr(inst, _BOUND_GENERATOR_INFO_KEY, None)
+
+
+def is_bound_generator(inst) -> bool:
+    return get_bound_generator_info(inst) is not None
+
+
 def bind2_generator(dut: Generator2Kind, bind_module: Generator2Kind):
-    raise NotImplementedError()
+    try:
+        info = getattr(dut, _BOUND_GENERATOR_INFO_KEY)
+    except AttributeError:
+        info = list()
+        setattr(dut, _BOUND_GENERATOR_INFO_KEY, info)
+    info.append(bind_module)
 
 
 def bind2(
