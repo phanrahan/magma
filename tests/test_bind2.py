@@ -103,7 +103,7 @@ def test_generator():
         def bind2_arguments(self, dut):
             return (m.bits(dut.I)[0],)
 
-    m.bind2_generator(Logic, LogicAsserts)
+    m.bind2(Logic, LogicAsserts)
 
     class Top(m.Circuit):
         T = m.Bits[2]

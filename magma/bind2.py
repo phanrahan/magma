@@ -1,10 +1,11 @@
-from typing import Union
+from typing import List, Optional, Union
 
 from magma.circuit import DefineCircuitKind, CircuitKind
 from magma.generator import Generator2Kind, Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.view import PortView
+from magma.t import Type
 
 
 _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
@@ -12,6 +13,7 @@ _BOUND_GENERATOR_INFO_KEY = "_bound_generator_info_"
 
 DutType = Union[DefineCircuitKind, Generator2Kind]
 BindModuleType = Union[CircuitKind, Generator2Kind]
+ArgumentType = Union[Type, PortView]
 
 
 def _wire_value_or_driver(param, arg):
@@ -69,7 +71,7 @@ class BindGenerators(DefinitionPass):
 bind_generators = pass_lambda(BindGenerators)
 
 
-def bind2_generator(dut: Generator2Kind, bind_module: Generator2Kind):
+def _bind_generator_impl(dut: Generator2Kind, bind_module: Generator2Kind):
     try:
         info = getattr(dut, _BOUND_GENERATOR_INFO_KEY)
     except AttributeError:
@@ -78,15 +80,43 @@ def bind2_generator(dut: Generator2Kind, bind_module: Generator2Kind):
     info.append(bind_module)
 
 
-def bind2(
+def _bind_impl(
         dut: DefineCircuitKind,
         bind_module: CircuitKind,
-        *args,
-        compile_guard=None):
-    arguments = list(dut.interface.ports.values()) + list(args)
+        args: List[ArgumentType],
+        compile_guard: str,
+):
+    arguments = list(dut.interface.ports.values()) + args
     with dut.open():
         inst = bind_module()
         for param, arg in zip(inst.interface.ports.values(), arguments):
             _wire_bind_arg(param, arg)
         info = {"args": args, "compile_guard": compile_guard}
         setattr(inst, _BOUND_INSTANCE_INFO_KEY, info)
+
+
+def bind2(
+        dut: DutType,
+        bind_module: BindModuleType,
+        *args,
+        compile_guard: Optional[str] = None,
+):
+    args = list(args)
+    are_generators = (
+        isinstance(dut, Generator2Kind) and
+        isinstance(bind_module, Generator2Kind)
+    )
+    if are_generators:
+        if args:
+            raise ValueError(
+                "Expected no arguments for binding generators. "
+                "Implement bind_arguments() instead."
+            )
+        return _bind_generator_impl(dut, bind_module)
+    are_modules = (
+        isinstance(dut, DefineCircuitKind) and
+        isinstance(dut, CircuitKind)
+    )
+    if are_modules:
+        return _bind_impl(dut, bind_module, args, compile_guard)
+    raise TypeError(dut, bind_module)
