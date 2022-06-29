@@ -83,3 +83,30 @@ def test_xmr(backend, flatten_all_tuples):
         "flatten_all_tuples": flatten_all_tuples,
     }
     _assert_compilation(Top, basename, suffix, opts)
+
+
+def test_generator():
+
+    class Logic(m.Generator2):
+        def __init__(self, width=None):
+            T = m.Bit if width is None else m.Bits[width]
+            self.io = io = m.IO(I=m.In(T), O=m.Out(T))
+            io.O @= ~io.I
+
+    class LogicAsserts(m.Generator2):
+        def __init__(self, width):
+            T = m.Bits[width]
+            self.io = io = m.IO(I=m.In(T), O=m.In(T), other=m.In(m.Bit))
+
+        def bind2_arguments(self, dut):
+            return dut.I
+
+    class Top(m.Circuit):
+        T = m.Bits[2]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        I = m.bits(list(map(lambda x: Logic()()(x), io.I)))
+        io.O @= Logic(2)()(I)
+
+    m.bind2_generator(Logic, LogicAsserts)
+
+    m.compile("/Users/rajsekhar/dev/magma-master/Top", Top, output="mlir-verilog")

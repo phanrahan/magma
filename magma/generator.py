@@ -115,6 +115,9 @@ class _Generator2Meta(type):
         return this
 
 
+Generator2Kind = _Generator2Meta
+
+
 class Generator2(metaclass=_Generator2Meta):
     def __new__(metacls, name, bases, dct):
         return type.__new__(metacls, name, bases, dct)

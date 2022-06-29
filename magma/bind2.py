@@ -1,9 +1,15 @@
+from typing import Union
+
 from magma.circuit import DefineCircuitKind, CircuitKind
+from magma.generator import Generator2Kind
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.view import PortView
 
 
 _BOUND_INSTANCE_INFO_KEY = "_bound_instance_info_"
+
+DutType = Union[DefineCircuitKind, Generator2Kind]
+BindModuleType = Union[CircuitKind, Generator2Kind]
 
 
 def _wire_value_or_driver(param, arg):
@@ -37,6 +43,10 @@ def get_bound_instance_info(inst):
 
 def is_bound_instance(inst) -> bool:
     return get_bound_instance_info(inst) is not None
+
+
+def bind2_generator(dut: Generator2Kind, bind_module: Generator2Kind):
+    raise NotImplementedError()
 
 
 def bind2(
