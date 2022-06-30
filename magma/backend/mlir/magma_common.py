@@ -90,7 +90,7 @@ def value_or_value_wrapper_to_tree(
     def _pre_descend(v):
         tree.add_node(v, index=index.next())
         if state:
-            tree.add_node(state.peek(), v)
+            tree.add_edge(state.peek(), v)
         state.push(v)
 
     def _post_descend(v):

@@ -1,6 +1,7 @@
 from magma.backend.mlir.magma_common import (
     value_or_value_wrapper_to_tree as magma_value_or_value_wrapper_to_tree
 )
+from magma.ref import TupleRef, ArrayRef
 
 
 def _get_path(tree, node):
@@ -31,6 +32,27 @@ def _get_leaf_descendants(tree, node, include_self=False):
         yield node
 
 
+def _find(lst, elt):
+    for lst_elt in lst:
+        if lst_elt is elt:
+            return elt
+    return None
+
+
+def _ascend_to_leaf(value, leaves):
+    leaf = _find(leaves, value)
+    if leaf is not None:
+        return [leaf]
+    ref = value.name
+    if isinstance(ref, TupleRef):
+        path = _ascend_to_leaf(ref.tuple, leaves)
+        return path + [f".{ref.index}"]
+    if isinstance(ref, ArrayRef):
+        path = _ascend_to_leaf(ref.array, leaves)
+        return path + [f"[{ref.index}]"]
+    raise TypeError(ref, value)
+
+
 def _advance(it):
     next(it)
     return it
@@ -56,13 +78,8 @@ def get_xmr_paths(ctx, xmr):
             for leaf in leaves
         ]
     # (2)
-    for leaf in _get_leaf_descendants(tree, root, include_self=True):
-        subtree = magma_value_or_value_wrapper_to_tree(
-            leaf, flatten_all_tuples=True)
-        if not subtree.has_node(xmr.port):
-            continue
-        path = (_path_to_string(_get_path(tree, leaf), "_"),)
-        path = path + tuple(
-            v.name.index for v in _advance(iter(_get_path(subtree, xmr.port)))
-        )
-        return [path]
+    leaves = list(_get_leaf_descendants(tree, root, include_self=True))
+    leaf, *path = _ascend_to_leaf(xmr.port, leaves)
+    path = _path_to_string(_get_path(tree, leaf), "_") + "".join(path)
+    print ("@", xmr.port, path)
+    return [(path,)]
