@@ -64,9 +64,9 @@ class BindGenerators(DefinitionPass):
         gen = type(defn)
         bind_generators = get_bound_generator_info(gen) or list()
         for bind_generator in bind_generators:
-            bind_module = bind_generator(*defn._args_, **defn._kwargs_)
-            get_args = getattr(bind_module, "bind2_arguments", lambda _: ())
-            bind2(defn, bind_module, *get_args(defn))
+            bind_module = bind_generator(defn, *defn._args_, **defn._kwargs_)
+            bind_args = getattr(bind_module, "bind2_args", list())
+            bind2(defn, bind_module, *bind_args)
 
 
 bind_generators = pass_lambda(BindGenerators)

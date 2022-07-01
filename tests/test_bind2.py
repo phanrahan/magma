@@ -94,14 +94,12 @@ def test_generator():
             io.O @= ~io.I
 
     class LogicAsserts(m.Generator2):
-        def __init__(self, width=None):
+        def __init__(self, dut, width=None):
             T = m.Bit if width is None else m.Bits[width]
             self.width = width
             self.io = io = m.IO(I=m.In(T), O=m.In(T), other=m.In(m.Bit))
             m.inline_verilog("{I} {O} {other}", I=io.I, O=io.O, other=io.other)
-
-        def bind2_arguments(self, dut):
-            return (m.bits(dut.I)[0],)
+            self.bind2_args = [m.bits(dut.I)[0]]
 
     m.bind2(Logic, LogicAsserts)
 
