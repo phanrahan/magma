@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Union
 
-from magma.circuit import DefineCircuitKind, CircuitKind
+from magma.circuit import DefineCircuitKind, CircuitKind, CircuitType
 from magma.generator import Generator2Kind, Generator2
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.xmr import XMRSink, XMRSource
@@ -41,20 +41,25 @@ def _wire_bind_arg(param, arg):
     _wire_value_or_driver(param, arg)
 
 
-def get_bound_instance_info(inst):
+def set_bound_instance_info(inst: CircuitType, info: Dict):
+    setattr(inst, _BOUND_INSTANCE_INFO_KEY, info)
+
+
+def get_bound_instance_info(inst: CircuitType) -> Dict:
     return getattr(inst, _BOUND_INSTANCE_INFO_KEY, None)
 
 
-def is_bound_instance(inst) -> bool:
+def is_bound_instance(inst: CircuitType) -> bool:
     return get_bound_instance_info(inst) is not None
 
 
-def get_bound_generator_info(inst):
-    return getattr(inst, _BOUND_GENERATOR_INFO_KEY, None)
-
-
-def is_bound_generator(inst) -> bool:
-    return get_bound_generator_info(inst) is not None
+def get_bound_generator_info(inst: CircuitType) -> List[Generator2Kind]:
+    try:
+        info = getattr(inst, _BOUND_GENERATOR_INFO_KEY)
+    except AttributeError:
+        info = list()
+        setattr(inst, _BOUND_GENERATOR_INFO_KEY, info)
+    return info
 
 
 class BindGenerators(DefinitionPass):
@@ -62,8 +67,7 @@ class BindGenerators(DefinitionPass):
         if not isinstance(defn, Generator2):
             return
         gen = type(defn)
-        bind_generators = get_bound_generator_info(gen) or list()
-        for bind_generator in bind_generators:
+        for bind_generator in get_bound_generator_info(gen):
             bind_module = bind_generator(defn, *defn._args_, **defn._kwargs_)
             bind_args = getattr(bind_module, "bind2_args", list())
             bind2(defn, bind_module, *bind_args)
@@ -80,11 +84,7 @@ def make_bind_ports(defn_or_decl: CircuitKind) -> Dict[str, Type]:
 
 
 def _bind_generator_impl(dut: Generator2Kind, bind_module: Generator2Kind):
-    try:
-        info = getattr(dut, _BOUND_GENERATOR_INFO_KEY)
-    except AttributeError:
-        info = list()
-        setattr(dut, _BOUND_GENERATOR_INFO_KEY, info)
+    info = get_bound_generator_info(dut)
     info.append(bind_module)
 
 
@@ -100,7 +100,7 @@ def _bind_impl(
         for param, arg in zip(inst.interface.ports.values(), arguments):
             _wire_bind_arg(param, arg)
         info = {"args": args, "compile_guard": compile_guard}
-        setattr(inst, _BOUND_INSTANCE_INFO_KEY, info)
+        set_bound_instance_info(inst, info)
 
 
 def bind2(
