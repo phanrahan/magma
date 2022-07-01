@@ -37,7 +37,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key, SimpleCounter
+from magma.common import filter_by_key
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
