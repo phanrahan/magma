@@ -81,5 +81,4 @@ def get_xmr_paths(ctx, xmr):
     leaves = list(_get_leaf_descendants(tree, root, include_self=True))
     leaf, *path = _ascend_to_leaf(xmr.port, leaves)
     path = _path_to_string(_get_path(tree, leaf), "_") + "".join(path)
-    print ("@", xmr.port, path)
     return [(path,)]
