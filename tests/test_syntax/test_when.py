@@ -12,7 +12,8 @@ def test_when_with_default():
         with m.when(io.S):
             io.O @= io.I[0]
 
-    m.compile("build/test_when_with_default", Foo, inline=True)
+    m.compile("build/test_when_with_default", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_with_default.v",
                              "gold/test_when_with_default.v")
@@ -27,7 +28,8 @@ def test_when_nested_with_default():
             with m.when(io.S[1]) as c1:
                 io.O @= io.I[0]
 
-    m.compile("build/test_when_nested_with_default", Foo, inline=True)
+    m.compile("build/test_when_nested_with_default", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_nested_with_default.v",
                              "gold/test_when_nested_with_default.v")
@@ -42,7 +44,8 @@ def test_when_override(caplog):
             io.O @= io.I[0]
         io.O @= io.I[1]
 
-    m.compile("build/test_when_override", Foo, inline=True)
+    m.compile("build/test_when_override", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_override.v",
                              "gold/test_when_override.v")
@@ -61,7 +64,7 @@ def test_when_else():
         with m.otherwise():
             io.O @= io.I[1]
 
-    m.compile("build/test_when_else", Foo, inline=True)
+    m.compile("build/test_when_else", Foo, inline=True, output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_else.v",
                              "gold/test_when_else.v")
@@ -78,7 +81,8 @@ def test_when_elsewhen():
         with m.otherwise():
             io.O @= io.I[2]
 
-    m.compile("build/test_when_elsewhen", Foo, inline=True)
+    m.compile("build/test_when_elsewhen", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_elsewhen.v",
                              "gold/test_when_elsewhen.v")
@@ -147,7 +151,8 @@ def test_when_multiple_drivers():
                 io.O0 @= io.I[0]
                 io.O1 @= io.I[1]
 
-    m.compile("build/test_when_multiple_drivers", Foo, inline=True)
+    m.compile("build/test_when_multiple_drivers", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_multiple_drivers.v",
                              "gold/test_when_multiple_drivers.v")
@@ -169,7 +174,8 @@ def test_when_memory():
             mem[io.addr1] @= io.data1
             io.out @= mem[io.addr1]
 
-    m.compile("build/test_when_memory", Foo, inline=True)
+    m.compile("build/test_when_memory", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              "build/test_when_memory.v",
                              "gold/test_when_memory.v")
@@ -194,7 +200,8 @@ def test_when_nested(T):
         .replace(']', '')\
         .replace(',', '')\
         .replace(' ', '')
-    m.compile(f"build/test_when_nested_{T_str}", Foo, inline=True)
+    m.compile(f"build/test_when_nested_{T_str}", Foo, inline=True,
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              f"build/test_when_nested_{T_str}.v",
                              f"gold/test_when_nested_{T_str}.v")
