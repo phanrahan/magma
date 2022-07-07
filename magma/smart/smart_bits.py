@@ -340,24 +340,24 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         super().__init__(op, loperand, roperand)
 
     def resolve(self, context):
+        import pdb; pdb.set_trace()
         loperand, roperand = self._args
         loperand.resolve(context)
         self_context = Context(None, self)
         roperand.resolve(self_context)
-        to_width = max(arg._width_ for arg in self._args)
+        self._width_ = max(arg._width_ for arg in self._args)
         self._signed_ = all(arg._signed_ for arg in self._args)
-        args = (_extend_if_needed(arg, to_width, self._signed_)
-                for arg in self._args)
-        self._update(*args)
-        self._width_ = to_width
+        lopreand = _extend_if_needed(loperand, self._width_, self._signed_)
+        self._update(loperand, roperand)
 
     def eval(self):
-        args = self._eval_args()
-        if self._signed_:
-            args = (sint(arg) for arg in args)
-        else:
-            args = (uint(arg) for arg in args)
-        return self.op(*args)
+        cons = sint if self._signed_ else uint
+        loperand, roperand = map(cons, self._eval_args())
+        diff = len(loperand) - len(roperand)
+        assert diff >= 0
+        if diff > 0:
+            roperand = roperand.ext(diff)
+        return self.op(loperand, roperand)
 
 
 class _SmartConcatOpExpr(_SmartOpExpr):
@@ -441,11 +441,11 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
         return str(self._bits)
 
     def resolve(self, context):
-        self._width_ = len(self._bits)
+        self._width_ = context.max_width()
         self._signed_ = type(self._bits)._signed
 
     def eval(self):
-        return self._bits.typed_value()
+        return self._bits.force_width(self._width_).typed_value()
 
 
 class _SmartBitsMeta(_SmartExprMeta):
@@ -566,7 +566,9 @@ SmartBit = SmartBits[1]
 
 def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     rhs = copy.deepcopy(rhs)
+    print ("!", list(map(str, rhs._args)))
     rhs.resolve(Context(lhs, rhs))
+    print ("@", list(map(str, rhs._args)))
     res = rhs.eval()
     return SmartBits.from_bits(res), rhs
 
