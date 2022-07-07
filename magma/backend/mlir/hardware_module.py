@@ -40,6 +40,12 @@ from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
 from magma.is_primitive import isprimitive
+from magma.linking import (
+    has_any_linked_modules,
+    get_linked_modules,
+    has_default_linked_module,
+    get_default_linked_module,
+)
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.t import Kind, Type
@@ -874,6 +880,50 @@ def _make_bind_processor(ctx: 'HardwareModule', defn: CircuitKind):
     return CoreIRBindProcessor(ctx, defn)
 
 
+def _visit_linked_module(
+        ctx: 'HardwareModule', decl: CircuitKind, op: hw.ModuleOp):
+    # In order to emit a linked module, we perform the following steps:
+    #   (1) Declare a wire for each output of the module.
+    #   (2) For each linked module, first enter an `ifdef block.
+    #       (a) Instantiate the linked target.
+    #       (b) Assign the wires with the outputs of the instance.
+    #       (c) Enter the `else of the `ifdef block.
+    #   (3) If we have a default link target, perform (2a-b).
+    module = ModuleWrapper.make(decl, ctx)
+    wires = {
+        output: ctx.new_value(hw.InOutType(output.type))
+        for output in module.operands
+    }
+
+    def _process_target(defn):
+        hw_module = ctx.parent.get_hardware_module(defn).hw_module
+        results = [ctx.new_value(output.type) for output in module.operands]
+        make_hw_instance_op(
+            name=f"{defn.name}_inst",
+            module=hw_module,
+            operands=module.results,
+            results=results,
+        )
+        for result, wire in zip(results, wires.values()):
+            sv.AssignOp(operands=[wire, result])
+
+    with push_block(op):
+        for output, wire in wires.items():
+            sv.WireOp(results=[wire])
+            sv.ReadInOutOp(operands=[wire], results=[output])
+        with contextlib.ExitStack() as stack:
+            for key, linked_module in get_linked_modules(decl).items():
+                if_def = sv.IfDefOp(key)
+                stack.enter_context(push_block(if_def.then_block))
+                _process_target(linked_module)
+                stack.enter_context(push_block(if_def.else_block))
+            if has_default_linked_module(decl):
+                default_linked_module = get_default_linked_module(decl)
+                _process_target(default_linked_module)
+        hw.OutputOp(operands=module.operands)
+    return op
+
+
 class HardwareModule:
     def __init__(
             self, magma_defn_or_decl: CircuitKind,
@@ -962,6 +1012,13 @@ class HardwareModule:
         name = self.parent.get_or_make_mapped_symbol(
             self._magma_defn_or_decl,
             name=defn_or_decl_output_name, force=True)
+        if has_any_linked_modules(self._magma_defn_or_decl):
+            op = hw.ModuleOp(
+                name=name,
+                operands=inputs,
+                results=named_outputs,
+            )
+            return _visit_linked_module(self, self._magma_defn_or_decl, op)
         if not treat_as_definition(self._magma_defn_or_decl):
             return hw.ModuleExternOp(
                 name=name,

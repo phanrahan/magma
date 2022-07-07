@@ -52,6 +52,8 @@ def _make_verilog_cmd(deps, basename, opts):
         cmd += " --verilog-prefix-extern"
     if opts.get("generate_symbols", False):
         cmd += f" --symbols {basename}_symbol_table.json"
+    if opts.get("use_packed_arrays", False):
+        cmd += " --use-packed-arrays"
     return cmd
 
 
@@ -139,6 +141,8 @@ class CoreIRCompiler(Compiler):
             disable_width_cast=self.opts.get("disable_width_cast", False),
         )
         if self.opts.get("verilog_prefix", False):
+            raise NotImplementedError()
+        if self.opts.get("use_packed_arrays", False):
             raise NotImplementedError()
         ret = self.backend.context.compile_to_verilog(top, filename, **opts)
         if not ret:
