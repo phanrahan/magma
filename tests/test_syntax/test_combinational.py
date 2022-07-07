@@ -124,7 +124,7 @@ def test_return_magma_named_tuple(target):
 
     @m.circuit.combinational
     def return_magma_named_tuple(I: m.Bits[2]) -> O:
-        return m.namedtuple(x=I[0], y=I[1])
+        return m.product(x=I[0], y=I[1])
     compile_and_check("return_magma_named_tuple",
                       return_magma_named_tuple.circuit_definition, target)
 
@@ -132,7 +132,7 @@ def test_return_magma_named_tuple(target):
 def test_return_anon_product(target):
     @m.circuit.combinational
     def return_anon_product(I: m.Bits[2]) -> m.AnonProduct[dict(x=m.Bit, y=m.Bit)]:
-        return m.namedtuple(x=I[0], y=I[1])
+        return m.product(x=I[0], y=I[1])
     compile_and_check("return_anon_product", return_anon_product.circuit_definition, target)
 
 

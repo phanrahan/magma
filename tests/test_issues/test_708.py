@@ -13,14 +13,14 @@ def test_708(inline):
     @m.sequential2()
     class Test:
         def __init__(self):
-            self.a: A = m.namedtuple(x=m.uint(0, 8))
+            self.a: A = m.product(x=m.uint(0, 8))
 
         def __call__(self, c: m.Bit) -> m.AnonProduct[dict(a=A)]:
             if c:
                 a = m.replace(self.a, dict(x=self.a.x + 1))
             else:
                 a = self.a
-            return m.namedtuple(a=a)
+            return m.product(a=a)
 
     name = f"test_708_inline_{inline}"
     path = f"build/{name}"

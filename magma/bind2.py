@@ -18,9 +18,7 @@ ArgumentType = Union[Type, PortView]
 
 def _wire_value_or_driver(param, arg):
     assert param.is_input()
-    if arg.is_output():
-        param @= arg
-    elif arg.is_input():
+    if arg.is_input():
         param @= arg.value()
     elif arg.is_mixed():
         for param_i, arg_i in zip(param, arg):
