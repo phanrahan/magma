@@ -575,6 +575,42 @@ class ModuleVisitor:
                   value.name.inst._is_magma_memory_):
                 self._emit_assign(regs[i], None, type(value))
 
+    def _construct_ifs(self, regs, module):
+        inst = module.module
+        defn = type(inst)
+        when_conds = defn.when_conds
+        when_cond_map = {}
+        reverse_map = defn.reverse_map
+        for cond in when_conds:
+            if cond.cond is None:
+                # Else case, we append to previous false_stmts
+                stmts = when_cond_map[cond.prev_cond].else_block
+            else:
+                idx = inst.interface.inputs_by_name().index(
+                    reverse_map[cond.cond])
+                if cond.prev_cond is not None:
+                    # elif, we append if statement inside previous false_stmts
+                    with push_block(when_cond_map[cond.prev_cond].else_block):
+                        stmt = sv.IfOp(operands=[module.operands[idx]])
+                        when_cond_map[cond] = stmt
+                        stmts = stmt.then_block
+                elif cond.parent is not None:
+                    # nested, we insert inside parents true_stmts
+                    with push_block(when_cond_map[cond.parent].then_block):
+                        stmt = sv.IfOp(operands=[module.operands[idx]])
+                        when_cond_map[cond] = stmt
+                        stmts = stmt.then_block
+                else:
+                    # we insert into top level
+                    stmt = sv.IfOp(operands=[module.operands[idx]])
+                    when_cond_map[cond] = stmt
+                    stmts = stmt.then_block
+            with push_block(stmts):
+                for input, output in cond.conditional_wires.items():
+                    target_idx = inst.interface.outputs_by_name().index(reverse_map[input])
+                    value_idx = inst.interface.inputs_by_name().index(reverse_map[output])
+                    sv.BPAssignOp(operands=[regs[target_idx], module.operands[value_idx]])
+
     @wrap_with_not_implemented_error
     def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -588,6 +624,7 @@ class ModuleVisitor:
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(regs, module)
+            self._construct_ifs(regs, module)
         for i, value in enumerate(defn.conditional_values):
             sv.ReadInOutOp(operands=[regs[i]], results=[module.results[i]])
         return True

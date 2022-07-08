@@ -188,8 +188,11 @@ def finalize_when_conds(context, when_conds):
     # we could avoid having to create an instance here
     from magma.circuit import Circuit
 
+    _when_conds = when_conds
+
     class ConditionalDriversImpl(Circuit):
         conditional_values = _get_conditional_values(context)
+        when_conds = _when_conds
 
         io_ports, port_wire_map, port_debug_map, reverse_map = \
             _build_port_maps(when_conds, conditional_values)

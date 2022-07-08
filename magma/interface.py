@@ -220,13 +220,20 @@ class _InterfaceBase(Type):
     def inputs_by_name(self, include_clocks=False):
         inputs = []
         for name, port in self.ports.items():
-            if self.is_input(port):
+            if self.is_input(port, include_clocks):
                 inputs.append(name)
         return inputs
 
     def outputs(self):
         """Return all the argument output ports."""
         return list(filter(lambda port: port.is_output(), self.ports.values()))
+
+    def outputs_by_name(self):
+        outputs = []
+        for name, port in self.ports.items():
+            if port.is_output():
+                outputs.append(name)
+        return outputs
 
     def args(self):
         """Return all the arguments as name, port."""
