@@ -533,32 +533,6 @@ class ModuleVisitor:
             )
             return True
 
-    def _emit_assign(self, target, value, T):
-        # TODO(when): Handle complex types by unpacking the assignments into
-        # leaf elements, in MLIR we can hopefully let the compiler handle this
-        # downstream
-        if issubclass(T, Tuple):
-            for key, child_T in T.field_dict.items():
-                if not issubclass(T, Product):
-                    key = f"_{key}"
-                    child_value = value
-                    if value is not None:
-                        child_value = value + f"_{key}"
-                self._emit_assign(target + f"_{key}", child_value,
-                                  child_T)
-            return
-        elif issubclass(T, Array) and not issubclass(T.T, Bit):
-            for i in range(len(T)):
-                child_value = value
-                if value is not None:
-                    child_value = value + f"_{i}"
-                self._emit_assign(target + f"_{i}", child_value, T.T)
-            return
-        if value is None:
-            # Default memory values (zero)
-            value = "0"
-        sv.BPAssignOp(operands=[target, value])
-
     def _emit_default_drivers(self, regs, module):
         """
         Emit default assignments (i.e. values driven before a when statement)
@@ -573,7 +547,8 @@ class ModuleVisitor:
                 sv.BPAssignOp(operands=[regs[i], module.operands[idx]])
             elif (isinstance(value.name, InstRef) and
                   value.name.inst._is_magma_memory_):
-                self._emit_assign(regs[i], None, type(value))
+                zero = self.make_constant(type(value), 0)
+                sv.BPAssignOp(operands=[regs[i], zero])
 
     def _construct_ifs(self, regs, module):
         inst = module.module
@@ -1119,6 +1094,9 @@ class HardwareModule:
             )
             return _visit_linked_module(self, self._magma_defn_or_decl, op)
         if not treat_as_definition(self._magma_defn_or_decl):
+            if self._magma_defn_or_decl._is_conditional_driver_:
+                # Emitted inline
+                return
             return hw.ModuleExternOp(
                 name=name,
                 operands=inputs,
