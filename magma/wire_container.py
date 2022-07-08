@@ -192,6 +192,9 @@ class Wireable:
         i._wire.unwire(o, debug_info)
 
     def clear_conditional_drivers(self):
+        # Store for use in MLIR backend, TODO(when): maybe we can avoid this by
+        # resolving things during finalize?
+        self._finalized_conditional_drivers_ = self._conditional_drivers
         self._conditional_drivers = {}
 
     def _conditional_wire(self, o, debug_info):

@@ -48,8 +48,9 @@ from magma.linking import (
 )
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
+from magma.ref import InstRef
 from magma.t import Kind, Type
-from magma.tuple import TupleMeta, Tuple as m_Tuple
+from magma.tuple import TupleMeta, Tuple as m_Tuple, Product
 from magma.value_utils import make_selector
 from magma.view import PortView
 
@@ -532,6 +533,65 @@ class ModuleVisitor:
             )
             return True
 
+    def _emit_assign(self, target, value, T):
+        # TODO(when): Handle complex types by unpacking the assignments into
+        # leaf elements, in MLIR we can hopefully let the compiler handle this
+        # downstream
+        if issubclass(T, Tuple):
+            for key, child_T in T.field_dict.items():
+                if not issubclass(T, Product):
+                    key = f"_{key}"
+                    child_value = value
+                    if value is not None:
+                        child_value = value + f"_{key}"
+                self._emit_assign(target + f"_{key}", child_value,
+                                  child_T)
+            return
+        elif issubclass(T, Array) and not issubclass(T.T, Bit):
+            for i in range(len(T)):
+                child_value = value
+                if value is not None:
+                    child_value = value + f"_{i}"
+                self._emit_assign(target + f"_{i}", child_value, T.T)
+            return
+        if value is None:
+            # Default memory values (zero)
+            value = "0"
+        sv.BPAssignOp(operands=[target, value])
+
+    def _emit_default_drivers(self, regs, module):
+        """
+        Emit default assignments (i.e. values driven before a when statement)
+        """
+        inst = module.module
+        defn = type(inst)
+        for i, value in enumerate(defn.conditional_values):
+            if None in value._finalized_conditional_drivers_:
+                default_value = defn.reverse_map[
+                    value._finalized_conditional_drivers_[None]]
+                idx = inst.interface.inputs_by_name().index(default_value)
+                sv.BPAssignOp(operands=[regs[i], module.operands[idx]])
+            elif (isinstance(value.name, InstRef) and
+                  value.name.inst._is_magma_memory_):
+                self._emit_assign(regs[i], None, type(value))
+
+    @wrap_with_not_implemented_error
+    def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        regs = []
+        for i, value in enumerate(defn.conditional_values):
+            reg = self._ctx.new_value(
+                hw.InOutType(magma_type_to_mlir_type(type(value))))
+            sv.RegOp(name=f"O{i}_reg", results=[reg])
+            regs.append(reg)
+        always = sv.AlwaysCombOp()
+        with push_block(always.body_block):
+            self._emit_default_drivers(regs, module)
+        for i, value in enumerate(defn.conditional_values):
+            sv.ReadInOutOp(operands=[regs[i]], results=[module.results[i]])
+        return True
+
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
         inst = module.module
@@ -658,6 +718,8 @@ class ModuleVisitor:
             return self.visit_inline_verilog(module)
         if isprimitive(defn):
             return self.visit_primitive(module)
+        if getattr(defn, "_is_conditional_driver_", False):
+            return self.visit_conditional_driver(module)
         module_type = self._ctx.parent.get_hardware_module(defn).hw_module
         metadata = getattr(inst, "coreir_metadata", {})
         parameters = filter_by_key(

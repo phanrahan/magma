@@ -184,40 +184,45 @@ def _wire_regs(conditional_values):
 
 
 def finalize_when_conds(context, when_conds):
-    conditional_values = _get_conditional_values(context)
-
-    io_ports, port_wire_map, port_debug_map, reverse_map = \
-        _build_port_maps(when_conds, conditional_values)
-
     # TODO: Circular import, but if we do this directly as an MLIR translation,
     # we could avoid having to create an instance here
     from magma.circuit import Circuit
 
     class ConditionalDriversImpl(Circuit):
+        conditional_values = _get_conditional_values(context)
+
+        io_ports, port_wire_map, port_debug_map, reverse_map = \
+            _build_port_maps(when_conds, conditional_values)
+
         io = IO(**io_ports)
 
-        when_cond_map = {}
-        body = Body()
-        _emit_default_drivers(conditional_values, body, reverse_map)
-        _construct_ifs(body, when_conds, when_cond_map, reverse_map)
-        verilog = ""
-        verilog += _declare_regs(conditional_values)
-        verilog += "always @(*) begin\n"
-        verilog += body.codegen()
-        verilog += "end\n"
-        verilog += _wire_regs(conditional_values)
+        # when_cond_map = {}
+        # body = Body()
+        # _emit_default_drivers(conditional_values, body, reverse_map)
+        # _construct_ifs(body, when_conds, when_cond_map, reverse_map)
+        # verilog = ""
+        # verilog += _declare_regs(conditional_values)
+        # verilog += "always @(*) begin\n"
+        # verilog += body.codegen()
+        # verilog += "end\n"
+        # verilog += _wire_regs(conditional_values)
 
-    for value in conditional_values:
+        _is_conditional_driver_ = True
+
+    for value in ConditionalDriversImpl.conditional_values:
         # Clear to avoid warning in final wiring
         value.clear_conditional_drivers()
 
     inst = ConditionalDriversImpl()
-    for key, value in port_wire_map.items():
+    for key, value in ConditionalDriversImpl.port_wire_map.items():
+        inst_port = getattr(inst, key)
+        debug_info = ConditionalDriversImpl.port_debug_map[key]
         if value.is_output():
-            getattr(inst, key).wire(value, port_debug_map[key])
+            inst_port.wire(value, debug_info)
         elif value.is_input():
-            value.wire(getattr(inst, key), port_debug_map[key])
+            value.wire(inst_port, debug_info)
         else:
+            # TODO(when): inout we could use either wire?
             raise NotImplementedError(type(value))
 
 

@@ -113,6 +113,27 @@ class AlwaysFFOp(MlirOp):
 
 
 @dataclasses.dataclass
+class AlwaysCombOp(MlirOp):
+    def __post_init__(self):
+        self._body_block = self.new_region().new_block()
+
+    @property
+    def body_block(self) -> MlirBlock:
+        return self._body_block
+
+    def print(self, printer: PrinterBase):
+        printer.print("sv.alwayscomb {")
+        printer.flush()
+        printer.push()
+        self.body_block.print(printer)
+        printer.pop()
+        printer.print_line("}")
+
+    def print_op(self, printer: PrinterBase):
+        raise NotImplementedError()
+
+
+@dataclasses.dataclass
 class InitialOp(MlirOp):
     def __post_init__(self):
         self._block = self.new_region().new_block()
