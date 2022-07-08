@@ -98,7 +98,13 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
     if issubclass(type, m_Tuple):
-        fields = {str(k): magma_type_to_mlir_type(t)
+        def to_str(k):
+            try:
+                int(k)
+                return f"_{k}"
+            except ValueError:
+                return str(k)
+        fields = {to_str(k): magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return hw.StructType(tuple(fields.items()))
 
