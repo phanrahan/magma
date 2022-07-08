@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 import weakref
 
 from magma.backend.mlir.builtin import builtin
@@ -20,6 +20,7 @@ class TranslationUnit:
         self._symbol_map = {}
         self._symbol_name_generator = ScopedNameGenerator()
         self._bind_files = []
+        self._xmr_paths = {}
 
     @property
     def magma_top(self) -> DefineCircuitKind:
@@ -28,6 +29,10 @@ class TranslationUnit:
     @property
     def mlir_module(self) -> builtin.ModuleOp:
         return self._mlir_module
+
+    @property
+    def xmr_paths(self) -> Dict:
+        return self._xmr_paths
 
     def new_hardware_module(
             self, magma_defn_or_decl: CircuitKind) -> HardwareModule:

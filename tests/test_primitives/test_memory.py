@@ -107,7 +107,7 @@ def test_memory_product_init():
 
     class test_memory_product_init(m.Circuit):
         init_value = [
-            m.namedtuple(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8))
+            m.product(X=m.sint(d["X"], 8), Y=m.sint(d["Y"], 8))
             for d in test_data
         ]
 

@@ -30,6 +30,8 @@ from magma.backend.mlir.mlir import (
 from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
+from magma.backend.mlir.xmr_utils import get_xmr_paths
+from magma.bind2 import is_bound_instance
 from magma.bit import Bit
 from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
@@ -48,6 +50,7 @@ from magma.linking import (
 )
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
+from magma.primitives.xmr import XMRSink, XMRSource
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -183,7 +186,9 @@ def make_hw_instance_op(
         module: hw.ModuleOp,
         parameters: Mapping[str, Any] = dict(),
         sym: Optional[MlirSymbol] = None,
-        compile_guard: Optional[Mapping] = None) -> hw.InstanceOp:
+        compile_guard: Optional[Mapping] = None,
+        attrs: Optional[Mapping] = None,
+) -> hw.InstanceOp:
     if compile_guard is not None:
         if_def = sv.IfDefOp(compile_guard["condition_str"])
         block = (
@@ -205,6 +210,8 @@ def make_hw_instance_op(
             results=results,
             parameters=parameters,
             sym=sym)
+    if attrs is not None:
+        op.attr_dict.update(attrs)
     return op
 
 
@@ -620,6 +627,39 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_magma_xmr_sink(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, XMRSink)
+        xmr = defn.value
+        try:
+            self._ctx.parent.xmr_paths[xmr]
+        except KeyError:
+            pass
+        else:
+            return True
+        paths = get_xmr_paths(self._ctx, xmr)
+        assert len(paths) == len(module.operands)
+        self._ctx.parent.xmr_paths[xmr] = paths
+        return True
+
+    @wrap_with_not_implemented_error
+    def visit_magma_xmr_source(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, XMRSource)
+        xmr = defn.value
+        paths = self._ctx.parent.xmr_paths[xmr]
+        assert len(paths) == len(module.results)
+        base = defn.value.parent.path()
+        for result, path in zip(module.results, paths):
+            in_out = self._ctx.new_value(hw.InOutType(result.type))
+            path = base + path
+            sv.XMROp(is_rooted=False, path=path, results=[in_out])
+            sv.ReadInOutOp(operands=[in_out], results=[result])
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_inline_verilog(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -654,6 +694,10 @@ class ModuleVisitor:
             return self.visit_magma_mux(module)
         if isinstance(defn, Register) and not elaborate_magma_registers:
             return self.visit_magma_register(module)
+        if isinstance(defn, XMRSink):
+            return self.visit_magma_xmr_sink(module)
+        if isinstance(defn, XMRSource):
+            return self.visit_magma_xmr_source(module)
         if getattr(defn, "inline_verilog_strs", []):
             return self.visit_inline_verilog(module)
         if isprimitive(defn):
@@ -665,13 +709,22 @@ class ModuleVisitor:
             inst.kwargs
         )
         compile_guard = metadata.get("compile_guard", None)
+        sym = None
+        attrs = {}
+        if is_bound_instance(inst):
+            sym = self._ctx.parent.get_or_make_mapped_symbol(
+                inst, name=f"{inst.defn.name}.{inst.name}", force=True
+            )
+            attrs["doNotPrint"] = 1
         make_hw_instance_op(
             name=inst.name,
             module=module_type,
             operands=module.operands,
             results=module.results,
+            sym=sym,
             parameters=parameters,
-            compile_guard=compile_guard)
+            compile_guard=compile_guard,
+            attrs=attrs)
         return True
 
     @wrap_with_not_implemented_error
@@ -856,6 +909,14 @@ class NativeBindProcessor(BindProcessorInterface):
         for sym in self._syms:
             instance = hw.InnerRefAttr(defn_sym, sym)
             sv.BindOp(instance=instance)
+        bound_instances = list(filter(is_bound_instance, self._defn.instances))
+        for bound_instance in bound_instances:
+            inst_sym = self._ctx.parent.get_mapped_symbol(bound_instance)
+            ref = hw.InnerRefAttr(defn_sym, inst_sym)
+            sv.BindOp(instance=ref)
+        if self._syms or bound_instances:
+            bind_filename = f"{self._ctx.opts.basename}.sv"
+            self._ctx.parent.add_bind_file(bind_filename)
 
 
 class CoreIRBindProcessor(BindProcessorInterface):

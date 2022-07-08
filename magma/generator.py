@@ -80,6 +80,8 @@ def _make_type(cls, *args, **kwargs):
     # DefineCircuitKind.bind for generator instances (circuits).
     dct["bind"] = classmethod(cls._base_metacls_.bind)
     ckt = cls._base_metacls_.__new__(cls, name, bases, dct)
+    ckt._args_ = args
+    ckt._kwargs_ = kwargs
     for gen in cls.bind_generators:
         gen.generate_bind(ckt, *args, **kwargs)
     return ckt
@@ -113,6 +115,9 @@ class _Generator2Meta(type):
         this = _make_type(cls, *args, **kwargs)
         _Generator2Meta._cache[key] = this
         return this
+
+
+Generator2Kind = _Generator2Meta
 
 
 class Generator2(metaclass=_Generator2Meta):

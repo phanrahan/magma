@@ -3,8 +3,9 @@ from typing import Any, Callable, Iterable, Mapping, Union
 
 from magma.array import Array, ArrayMeta
 from magma.backend.mlir.common import make_unique_name
+from magma.backend.mlir.graph_lib import Graph
 from magma.circuit import Circuit, DefineCircuitKind
-from magma.common import replace_all
+from magma.common import replace_all, Stack, SimpleCounter
 from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
@@ -73,18 +74,57 @@ class ValueWrapper:
 ValueOrValueWrapper = Union[Type, ValueWrapper]
 
 
+def value_or_value_wrapper_to_tree(
+        value_or_value_wrapper: ValueOrValueWrapper,
+        flatten_all_tuples: bool = False) -> Graph:
+    tree = Graph()
+    state = Stack()
+    index = SimpleCounter()
+
+    def _visit_leaf(v):
+        tree.add_node(v, index=index.next())
+        if not state:
+            return
+        tree.add_edge(state.peek(), v)
+
+    def _pre_descend(v):
+        tree.add_node(v, index=index.next())
+        if state:
+            tree.add_edge(state.peek(), v)
+        state.push(v)
+
+    def _post_descend(v):
+        assert state.pop() is v
+
+    visit_value_or_value_wrapper_by_direction(
+        value_or_value_wrapper,
+        _visit_leaf,
+        _visit_leaf,
+        flatten_all_tuples=flatten_all_tuples,
+        pre_descend=_pre_descend,
+        post_descend=_post_descend,
+    )
+
+    return tree
+
+
 def visit_value_or_value_wrapper_by_direction(
         value_or_value_wrapper: ValueOrValueWrapper,
         input_visitor: Callable[[Type], Any],
         output_visitor: Callable[[Type], Any],
         **kwargs):
 
+    pre_descend = kwargs.get("pre_descend", lambda _: None)
+    post_descend = kwargs.get("post_descend", lambda _: None)
+
     def descend(v):
         if not isinstance(v, (m_Tuple, Array)):
             raise TypeError(value)
+        pre_descend(v)
         for item in v:
             visit_value_or_value_wrapper_by_direction(
                 item, input_visitor, output_visitor, **kwargs)
+        post_descend(v)
 
     flatten_all_tuples = kwargs.get("flatten_all_tuples", False)
 

@@ -267,9 +267,9 @@ def test_sequential2_product():
     class Test:
         def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
             if sel:
-                return m.namedtuple(a=m.bit(0))
+                return m.product(a=m.bit(0))
             else:
-                return m.namedtuple(a=m.bit(1))
+                return m.product(a=m.bit(1))
 
     m.compile("build/TestSequential2Product", Test, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2Product.v",
@@ -498,9 +498,9 @@ def test_sequential2_ite_product():
         def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
             self.v = sel
             if sel:
-                return m.namedtuple(a=self.v.prev())
+                return m.product(a=self.v.prev())
             else:
-                return m.namedtuple(a=self.v.prev())
+                return m.product(a=self.v.prev())
 
     m.compile("build/TestSequential2IteProduct", Test, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2IteProduct.v",
@@ -516,9 +516,9 @@ def test_sequential2_ite_product2():
         def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
             self.v = sel
             if sel:
-                return m.namedtuple(a=m.bit(0))
+                return m.product(a=m.bit(0))
             else:
-                return m.namedtuple(a=self.v.prev())
+                return m.product(a=self.v.prev())
 
     m.compile("build/TestSequential2IteProduct2", Test, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2IteProduct2.v",
@@ -536,9 +536,9 @@ def test_sequential2_ite_product_error_type():
             def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
                 self.v = sel
                 if sel:
-                    return m.namedtuple(a=m.bits(0, 2))
+                    return m.product(a=m.bits(0, 2))
                 else:
-                    return m.namedtuple(a=self.v.prev())
+                    return m.product(a=self.v.prev())
 
 
 def test_sequential2_ite_product_error_keys():
@@ -552,9 +552,9 @@ def test_sequential2_ite_product_error_keys():
             def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bit)]:
                 self.v = sel
                 if sel:
-                    return m.namedtuple(a=m.bit(0))
+                    return m.product(a=m.bit(0))
                 else:
-                    return m.namedtuple(b=self.v.prev())
+                    return m.product(b=self.v.prev())
 
 
 def test_sequential2_ite_nested():
@@ -569,10 +569,10 @@ def test_sequential2_ite_nested():
         ]:
             self.v = sel
             if sel:
-                return m.namedtuple(a=m.namedtuple(b=m.bit(0)),
+                return m.product(a=m.product(b=m.bit(0)),
                                     c=m.tuple_(m.bit(0)))
             else:
-                return m.namedtuple(a=m.namedtuple(b=self.v.prev()),
+                return m.product(a=m.product(b=self.v.prev()),
                                     c=m.tuple_(self.v.prev()))
 
     m.compile("build/TestSequential2IteNested", Test, inline=True)
@@ -589,9 +589,9 @@ def test_sequential2_ite_bits():
         def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bits[8])]:
             self.v = self.v
             if sel:
-                return m.namedtuple(a=self.v.prev())
+                return m.product(a=self.v.prev())
             else:
-                return m.namedtuple(a=self.v.prev())
+                return m.product(a=self.v.prev())
 
     m.compile("build/TestSequential2IteBits", Test, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2IteBits.v",
@@ -607,9 +607,9 @@ def test_sequential2_ite_bits2():
         def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bits[8])]:
             self.v = self.v
             if sel:
-                return m.namedtuple(a=m.bits(0, 8))
+                return m.product(a=m.bits(0, 8))
             else:
-                return m.namedtuple(a=self.v.prev())
+                return m.product(a=self.v.prev())
 
     m.compile("build/TestSequential2IteBits2", Test, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2IteBits2.v",
@@ -625,11 +625,11 @@ def test_sequential2_ite_bits3():
         def __call__(self, sel: m.Bit) -> m.AnonProduct[dict(a=m.Bits[8])]:
             self.v = self.v
             if sel:
-                return m.namedtuple(a=m.concat(m.bits(0, 4),
+                return m.product(a=m.concat(m.bits(0, 4),
                                                m.repeat(self.v.prev(), 3),
                                                self.v.prev()))
             else:
-                return m.namedtuple(a=m.bits(self.v.prev(), 8))
+                return m.product(a=m.bits(self.v.prev(), 8))
 
     m.compile("build/TestSequential2IteBits3", Test, inline=True)
     assert check_files_equal(__file__, f"build/TestSequential2IteBits3.v",
@@ -650,12 +650,12 @@ def test_sequential2_ite_complex():
             self.a = self.a
             self.b = self.b
             if sel:
-                return m.namedtuple(
+                return m.product(
                            a=m.tuple_([self.b.prev()]),
                            b=m.array([self.a.prev(), self.a.prev()]),
                        )
             else:
-                return m.namedtuple(
+                return m.product(
                            a=m.tuple_([m.array([self.a.prev(), self.a.prev()])]),
                            b=m.array(self.b.prev()),
                        )
@@ -675,9 +675,9 @@ def test_sequential2_ite_complex_register():
         def __init__(self):
             self.a = m.Register(
                 T=T,
-                init=m.namedtuple(
+                init=m.product(
                     a=m.array([m.bits(0, 2)]),
-                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0), m.bit(0)]))]),
+                    b=m.tuple_([m.product(c=m.array([m.bit(0), m.bit(0)]))]),
                 ),
             )()
 
@@ -703,18 +703,18 @@ def test_sequential2_ite_complex_register2():
         def __init__(self):
             self.a = m.Register(
                 T=T,
-                init=m.namedtuple(
+                init=m.product(
                     a=m.array([m.bits(0, 2)]),
-                    b=m.tuple_([m.namedtuple(c=m.array([m.bit(0), m.bit(0)]))]),
+                    b=m.tuple_([m.product(c=m.array([m.bit(0), m.bit(0)]))]),
                 ),
             )()
 
         def __call__(self, sel: m.Bit) -> T:
             self.a = self.a
             if sel:
-                return m.namedtuple(
+                return m.product(
                     a=m.array([self.a.b[0].c]),
-                    b=m.tuple_([m.namedtuple(
+                    b=m.tuple_([m.product(
                         c=m.array([m.bit(0), m.bit(self.a.a[0][1:2])]))]
                     ),
                 )
