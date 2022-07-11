@@ -57,15 +57,15 @@ class ValueWrapper:
         return self.T.is_mixed()
 
     def __iter__(self) -> Iterable['ValueWrapper']:
-        if isinstance(T, TupleMeta):
+        if isinstance(self.T, TupleMeta):
             return (
-                ValueWrapper(f"{value_wrapper.name}_{key}", TT)
+                ValueWrapper(f"{self.name}_{key}", TT)
                 for key, TT in self.T.field_dict.items()
             )
-        if isinstance(T, ArrayMeta):
+        if isinstance(self.T, ArrayMeta):
             return (
-                ValueWrapper(f"{value_wrapper.name}[{key}]", self.T.T)
-                for index in range(T.N)
+                ValueWrapper(f"{self.name}[{index}]", self.T.T)
+                for index in range(self.T.N)
             )
         raise NotImplementedError(f"{self} is not iterable")
 
@@ -81,7 +81,7 @@ def visit_value_or_value_wrapper_by_direction(
 
     def descend(v):
         if not isinstance(v, (m_Tuple, Array)):
-            raise TypeError(value)
+            raise TypeError(v)
         for item in v:
             visit_value_or_value_wrapper_by_direction(
                 item, input_visitor, output_visitor, **kwargs)
