@@ -369,7 +369,7 @@ def test_when_nested(T):
             io.O @= io.I[0]
 
     m.compile(f"build/test_when_nested_{T_str}", test_when_nested,
-              output="mlir-verilog", flatten_all_tuples=True)
+              output="mlir-verilog")
     assert check_files_equal(__file__,
                              f"build/test_when_nested_{T_str}.v",
                              f"gold/test_when_nested_{T_str}.v")
