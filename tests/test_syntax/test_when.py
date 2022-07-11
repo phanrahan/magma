@@ -373,3 +373,5 @@ def test_when_nested(T):
     assert check_files_equal(__file__,
                              f"build/test_when_nested_{T_str}.v",
                              f"gold/test_when_nested_{T_str}.v")
+
+    # TODO: fault support for mlir nested types
