@@ -76,6 +76,9 @@ def finalize_when_conds(context, when_conds):
 
         _is_conditional_driver_ = True
 
+        # NOTE(leonardt): port_wire_map, port_debug_map, reverse_map,
+        # conditional_values, when_conds are used downstream by the compiler
+
     for value in ConditionalDriversImpl.conditional_values:
         # Clear to avoid warning in final wiring
         value.clear_conditional_drivers()
