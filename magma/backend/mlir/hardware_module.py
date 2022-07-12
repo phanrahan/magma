@@ -14,6 +14,7 @@ from magma.backend.mlir.builtin import builtin
 from magma.backend.mlir.comb import comb
 from magma.backend.mlir.common import wrap_with_not_implemented_error
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
+from magma.backend.mlir.errors import MlirCompilerInternalError
 from magma.backend.mlir.graph_lib import Graph
 from magma.backend.mlir.hw import hw
 from magma.backend.mlir.magma_common import (
@@ -238,6 +239,13 @@ class ModuleWrapper:
 
 
 class ModuleVisitor:
+
+    class VisitError(RuntimeError):
+        pass
+
+    class RevisitedModuleError(VisitError):
+        pass
+
     def __init__(self, graph: Graph, ctx):
         self._graph = graph
         self._ctx = ctx
@@ -789,20 +797,25 @@ class ModuleVisitor:
         if isinstance(module.module, MagmaInstanceWrapper):
             return self.visit_instance_wrapper(module)
 
-    def visit(self, module: MagmaModuleLike):
-        if module in self._visited:
-            raise RuntimeError(f"Can not re-visit module")
-        self._visited.add(module)
-        for predecessor in self._graph.predecessors(module):
+    def _process_magma_module(self, magma_module: MagmaModuleLike):
+        if not self._graph.has_node(magma_module):
+            return
+        for predecessor in self._graph.predecessors(magma_module):
             if predecessor in self._visited:
                 continue
             self.visit(predecessor)
-        for src, _, data in self._graph.in_edges(module, data=True):
+        for src, _, data in self._graph.in_edges(magma_module, data=True):
             info = data["info"]
             src_port, dst_port = info["src"], info["dst"]
             src_value = self._ctx.get_or_make_mapped_value(src_port)
             self._ctx.set_mapped_value(dst_port, src_value)
-        assert self.visit_module(ModuleWrapper.make(module, self._ctx))
+
+    def visit(self, module: MagmaModuleLike):
+        if module in self._visited:
+            raise ModuleVisitor.RevisitedModuleError(module)
+        self._visited.add(module)
+        self._process_magma_module(module)
+        self.visit_module(ModuleWrapper.make(module, self._ctx))
         instances = getattr(module, "instances", [])
         for inst in instances:
             if inst in self._visited:
@@ -1097,7 +1110,10 @@ class HardwareModule:
             self._magma_defn_or_decl, build_magma_graph_opts)
         visitor = ModuleVisitor(graph, self)
         with push_block(op):
-            visitor.visit(self._magma_defn_or_decl)
+            try:
+                visitor.visit(self._magma_defn_or_decl)
+            except ModuleVisitor.VisitError:
+                raise MlirCompilerInternalError(visitor)
             bind_processor.process()
             output_values = new_values(self.get_or_make_mapped_value, i)
             if named_outputs:
