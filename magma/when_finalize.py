@@ -59,13 +59,15 @@ def _get_conditional_values(context):
 
 
 def finalize_when_conds(context, when_conds):
-    # TODO: Circular import, but if we do this directly as an MLIR translation,
-    # we could avoid having to create an instance here
-    from magma.circuit import Circuit
+    # TODO(leonardt): Circular import, but if we do this directly as an MLIR
+    # translation, we could avoid having to create an instance here
+    # Another option would be to use the builder pattern to populate the
+    # conditional driver info as a we go
+    import magma as m
 
     _when_conds = when_conds
 
-    class ConditionalDriversImpl(Circuit):
+    class ConditionalDriversImpl(m.Circuit):
         """
         NOTE(leonardt): port_wire_map, port_debug_map, reverse_map,
         conditional_values, when_conds are used downstream by the compiler to
@@ -96,10 +98,4 @@ def finalize_when_conds(context, when_conds):
     for key, value in ConditionalDriversImpl.port_wire_map.items():
         inst_port = getattr(inst, key)
         debug_info = ConditionalDriversImpl.port_debug_map[key]
-        if value.is_output():
-            inst_port.wire(value, debug_info)
-        elif value.is_input():
-            value.wire(inst_port, debug_info)
-        else:
-            # TODO(when): inout we could use either wire?
-            raise NotImplementedError(type(value))
+        m.wire(inst_port, value, debug_info)
