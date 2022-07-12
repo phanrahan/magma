@@ -12,8 +12,8 @@ from magma.config import get_compile_dir
 from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
 from magma.passes.clock import WireClockPass
-from magma.passes.drive_undriven import DriveUndrivenPass
-from magma.passes.terminate_unused import TerminateUnusedPass
+from magma.passes.drive_undriven import drive_undriven
+from magma.passes.terminate_unused import terminate_unused
 from magma.uniquification import (uniquification_pass, UniquificationMode,
                                   reset_names)
 
@@ -93,9 +93,9 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
              opts.get("verilog_prefix")).run()
 
     if opts.get("drive_undriven", False):
-        DriveUndrivenPass(main).run()
+        drive_undriven(main)
     if opts.get("terminate_unused", False):
-        TerminateUnusedPass(main).run()
+        terminate_unused(main)
 
     result = compiler.compile()
     result = {} if result is None else result

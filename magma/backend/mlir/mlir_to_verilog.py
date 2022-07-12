@@ -5,15 +5,15 @@ import subprocess
 import sys
 from typing import List, Optional
 
-from magma.backend.mlir.mlir_compiler_exception import MlirCompilerException
 from magma.backend.mlir.common import try_call
+from magma.backend.mlir.errors import MlirCompilerError
 from magma.config import config, EnvConfig
 
 
 config._register(circt_home=EnvConfig("CIRCT_HOME", "./circt"))
 
 
-class MlirToVerilogException(MlirCompilerException):
+class MlirToVerilogError(MlirCompilerError):
     pass
 
 
@@ -83,7 +83,7 @@ def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
     returncode = _run_subprocess(cmd, istream, ostream)
     if returncode != 0:
         cmd_str = " ".join(cmd)
-        raise MlirToVerilogException(
+        raise MlirToVerilogError(
             f"Error running {cmd_str}, got returncode {returncode}"
         )
 

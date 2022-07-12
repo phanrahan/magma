@@ -2,6 +2,7 @@ import itertools
 
 import magma as m
 from magma.inline_verilog import ProcessInlineVerilogPass
+from magma.passes.drive_undriven import drive_undriven
 
 
 class simple_comb(m.Circuit):
@@ -513,3 +514,12 @@ class simple_memory_wrapper(m.Circuit):
 
 
 m.passes.clock.WireClockPass(simple_memory_wrapper).run()
+
+
+class simple_undriven_instances(m.Circuit):
+    io = m.IO()
+    simple_comb()
+    simple_comb()
+
+
+drive_undriven(simple_undriven_instances)

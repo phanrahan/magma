@@ -6,7 +6,7 @@ import magma as m
 from magma.backend.mlir.mlir_to_verilog import (
     mlir_to_verilog,
     circt_opt_binary_exists,
-    MlirToVerilogException,
+    MlirToVerilogError,
 )
 from magma.testing.utils import with_config
 
@@ -50,5 +50,5 @@ def test_module():
 
 def test_bad_input():
     _skip_if_circt_opt_binary_does_not_exist()
-    with pytest.raises(MlirToVerilogException):
+    with pytest.raises(MlirToVerilogError):
         _run_test("blahblahblah")
