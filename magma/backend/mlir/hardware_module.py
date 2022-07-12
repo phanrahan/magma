@@ -1161,7 +1161,8 @@ class HardwareModule:
             )
             return _visit_linked_module(self, self._magma_defn_or_decl, op)
         if not treat_as_definition(self._magma_defn_or_decl):
-            if self._magma_defn_or_decl._is_conditional_driver_:
+            if getattr(self._magma_defn_or_decl, '_is_conditional_driver_',
+                       False):
                 # Emitted inline
                 return
             return hw.ModuleExternOp(
