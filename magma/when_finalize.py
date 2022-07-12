@@ -78,6 +78,14 @@ def finalize_when_conds(context, when_conds):
 
         # NOTE(leonardt): port_wire_map, port_debug_map, reverse_map,
         # conditional_values, when_conds are used downstream by the compiler
+        # to reconstruct the original when statement structure
+        #
+        # We collect this information now then drive the value with an instance
+        # so it provides the invariant that all valid inputs are driven
+        #
+        # The backend will indentify these instances using
+        # _is_conditional_driver_ and emit inline systme verilog code instead
+        # of an instance
 
     for value in ConditionalDriversImpl.conditional_values:
         # Clear to avoid warning in final wiring
