@@ -5,6 +5,7 @@ from magma.backend import verilog, blif, firrtl, dot
 from magma.backend.coreir.coreir_compiler import CoreIRCompiler
 from magma.backend.mlir.mlir_compiler import MlirCompiler
 from magma.bind import BindPass
+from magma.bind2 import bind_generators
 from magma.compiler import Compiler
 from magma.compile_exception import MagmaCompileException
 from magma.config import get_compile_dir
@@ -74,6 +75,8 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     basename = _get_basename(basename)
     opts = kwargs.copy()
     compiler = _make_compiler(output, main, basename, opts)
+
+    bind_generators(main)
 
     # Default behavior is to perform uniquification, but can be overriden.
     original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))

@@ -5,6 +5,7 @@ from .compatibility import IntegerTypes, StringTypes
 from .protocol_type import MagmaProtocolMeta
 from .ref import InstRef, DefnRef, LazyDefnRef, LazyInstRef, NamedRef
 from .t import Type, Kind, Direction
+import weakref
 
 
 __all__  = ['make_interface']
@@ -340,6 +341,8 @@ class _DeclareInterface(_InterfaceBase):
         args = zip(names, zip(types, refs))
         flip = defn is not None
         self.ports = {n: _make_port(t, r, flip) for n, (t, r) in args}
+        for port in self.ports.values():
+            port.name._value = weakref.ref(port)
         _rename_ports(self.ports, renamed_ports)
 
 

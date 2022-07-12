@@ -54,7 +54,9 @@ class PortView(MagmaProtocol, metaclass=PortViewMeta):
         return path
 
     def get_hierarchical_coreir_select(self):
-        return ";".join(self.path()[:-1]) + ";"
+        if self.parent is None:
+            return ";"
+        return ";".join(self.parent.path()) + ";"
 
     def root(self):
         curr = self.parent
@@ -97,3 +99,9 @@ class InstView:
                 return InstView(self.instance_map[attr], self)
         except AttributeError:
             return object.__getattribute__(self, attr)
+
+    def path(self) -> Tuple[str]:
+        path = (self.inst.name,)
+        if self.parent is None:
+            return path
+        return self.parent.path() + path

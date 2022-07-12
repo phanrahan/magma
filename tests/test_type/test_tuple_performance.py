@@ -25,7 +25,7 @@ class Top:
         self.V7 = m.Register(m.UInt[32])()
 
     def __call__(self, I: BigTuple, SEL: m.Bit) -> BigTuple:
-        t = m.namedtuple(
+        t = m.product(
             V1=self.V1,
             V2=self.V2,
             V3=self.V3,
