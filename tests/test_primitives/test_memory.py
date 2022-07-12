@@ -25,10 +25,10 @@ def test_memory_basic():
         with m.when(io.wen):
             Mem4x5[io.waddr] @= io.wdata
 
-    m.compile("build/test_memory_basic", test_memory_basic)
+    m.compile("build/test_memory_basic", test_memory_basic, output="mlir-verilog")
 
-    assert check_files_equal(__file__, f"build/test_memory_basic.v",
-                             f"gold/test_memory_basic.v")
+    assert check_files_equal(__file__, "build/test_memory_basic.v",
+                             "gold/test_memory_basic.v")
     tester = fault.SynchronousTester(test_memory_basic, test_memory_basic.clk)
     expected = []
     for i in range(4):
