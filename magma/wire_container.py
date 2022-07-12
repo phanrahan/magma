@@ -197,34 +197,52 @@ class Wireable:
         self._finalized_conditional_drivers_ = self._conditional_drivers
         self._conditional_drivers = {}
 
+    def _set_default_conditional_driver(self, when_cond_stack):
+        """
+        For the case when a driven value is conditionally driven in a
+        subsequent when statement, e.g.
+
+        x @= y  # default driver
+        m.when(z):
+            x @= w
+
+        The special case condition `None` is used to identify the default
+        driver in `self._conditional_drivers`
+        """
+        value = self.value()
+        self._conditional_drivers[None] = value
+        self.unwire(value)
+        when_cond_stack.peek().add_conditional_wire(self, value,
+                                                    self.debug_info)
+        self.debug_info = None
+
     def _conditional_wire(self, o, debug_info):
         when_cond_stack = peek_defn_when_cond_stack()
         if self.driven():
-            value = self.value()
-            self._conditional_drivers[None] = value
-            self.unwire(value)
-            when_cond_stack.peek().add_conditional_wire(self, value,
-                                                        self.debug_info)
-            self.debug_info = None
+            self._set_default_conditional_driver(when_cond_stack)
         self._conditional_drivers[tuple(when_cond_stack)] = o
         when_cond_stack.peek().add_conditional_wire(self, o, debug_info)
 
+    def _override_conditionally_driven(self, debug_info):
+        """
+        If we drive a value outside of a when, but it already has conditional
+        drivers, we clear them because we now have a "new" driver
+        """
+        _logger.warning(
+            WiringLog("Wiring a previously conditionally wired value ({}), "
+                      "existing conditional drivers will be discarded",
+                      self),
+            debug_info=debug_info
+        )
+        for cond in self._conditional_drivers:
+            if cond is None:
+                continue
+            cond[-1].remove_conditional_wire(self)
+        self._conditional_drivers = {}
+
     def _unconditional_wire(self, o, debug_info):
         if self._conditional_drivers:
-            # If we drive a value outside of a when, but it already has
-            # conditional drivers, we clear them because we now have a
-            # "new" driver
-            _logger.warning(
-                WiringLog("Wiring a previously conditionally wired value ({}), "
-                          "existing conditional drivers will be discarded",
-                          self),
-                debug_info=debug_info
-            )
-            for cond in self._conditional_drivers:
-                if cond is None:
-                    continue
-                cond[-1].remove_conditional_wire(self)
-            self._conditional_drivers = {}
+            self._override_conditionally_driven(debug_info)
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
