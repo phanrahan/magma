@@ -1,10 +1,27 @@
+import shutil
 import os
+
 import pytest
 
 import magma as m
 from magma.testing import check_files_equal
 
 import fault as f
+
+
+def _check_gold(filename):
+    try:
+        return check_files_equal(__file__,
+                                 f"build/{filename}",
+                                 f"gold/{filename}")
+    except FileNotFoundError:
+        return False
+
+
+def _update_gold(filename):
+    file_path = os.path.dirname(__file__)
+    return shutil.copy(f"{file_path}/build/{filename}",
+                       f"{file_path}/gold/{filename}")
 
 
 def test_when_with_default():
@@ -16,10 +33,10 @@ def test_when_with_default():
             io.O @= io.I[0]
 
     m.compile("build/test_when_with_default", test_when_with_default,
-              output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_with_default.v",
-                             "gold/test_when_with_default.v")
+              output="mlir")
+
+    if _check_gold("test_when_with_default.mlir"):
+        return
 
     tester = f.Tester(test_when_with_default)
     tester.poke(test_when_with_default.I, 0b10)
@@ -35,8 +52,8 @@ def test_when_with_default():
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           skip_compile=True)
+                                                  "build"))
+    _update_gold("test_when_with_default.mlir")
 
 
 def test_when_nested_with_default():
@@ -49,10 +66,10 @@ def test_when_nested_with_default():
                 io.O @= io.I[0]
 
     m.compile("build/test_when_nested_with_default",
-              test_when_nested_with_default, output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_nested_with_default.v",
-                             "gold/test_when_nested_with_default.v")
+              test_when_nested_with_default, output="mlir")
+
+    if _check_gold("test_when_nested_with_default.mlir"):
+        return
 
     tester = f.Tester(test_when_nested_with_default)
     tester.poke(test_when_nested_with_default.I, 0b10)
@@ -74,8 +91,9 @@ def test_when_nested_with_default():
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           skip_compile=True)
+                                                  "build"))
+
+    _update_gold("test_when_nested_with_default.mlir")
 
 
 def test_when_override(caplog):
@@ -89,10 +107,10 @@ def test_when_override(caplog):
         io.I[0].unused()
 
     m.compile("build/test_when_override", test_when_override,
-              output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_override.v",
-                             "gold/test_when_override.v")
+              output="mlir")
+
+    if _check_gold("test_when_override.mlir"):
+        return
 
     expected = ("Wiring a previously conditionally wired value "
                 "(test_when_override.O), existing conditional drivers will be "
@@ -114,7 +132,9 @@ def test_when_override(caplog):
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"),
-                           skip_compile=True, flags=['-Wno-UNUSED'])
+                           flags=['-Wno-UNUSED'])
+
+    _update_gold("test_when_override.mlir")
 
 
 def test_when_else():
@@ -126,10 +146,10 @@ def test_when_else():
         with m.otherwise():
             io.O @= io.I[1]
 
-    m.compile("build/test_when_else", test_when_else, output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_else.v",
-                             "gold/test_when_else.v")
+    m.compile("build/test_when_else", test_when_else, output="mlir")
+
+    if _check_gold("test_when_else.mlir"):
+        return
 
     tester = f.Tester(test_when_else)
     tester.poke(test_when_else.I, 0b10)
@@ -145,8 +165,9 @@ def test_when_else():
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           skip_compile=True)
+                                                  "build"))
+
+    _update_gold("test_when_else.mlir")
 
 
 def test_when_elsewhen():
@@ -161,10 +182,10 @@ def test_when_elsewhen():
             io.O @= io.I[2]
 
     m.compile("build/test_when_elsewhen", test_when_elsewhen,
-              output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_elsewhen.v",
-                             "gold/test_when_elsewhen.v")
+              output="mlir")
+
+    if _check_gold("test_when_elsewhen.mlir"):
+        return
 
     tester = f.Tester(test_when_elsewhen)
     tester.poke(test_when_elsewhen.I, 0b010)
@@ -187,8 +208,9 @@ def test_when_elsewhen():
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           skip_compile=True)
+                                                  "build"))
+
+    _update_gold("test_when_elsewhen.mlir")
 
 
 def _check_err(value, name):
@@ -255,10 +277,10 @@ def test_when_multiple_drivers():
                 io.O1 @= io.I[1]
 
     m.compile("build/test_when_multiple_drivers", test_when_multiple_drivers,
-              output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_multiple_drivers.v",
-                             "gold/test_when_multiple_drivers.v")
+              output="mlir")
+
+    if _check_gold("test_when_multiple_drivers.mlir"):
+        return
 
     tester = f.Tester(test_when_multiple_drivers)
     tester.poke(test_when_multiple_drivers.I, 0b10)
@@ -285,8 +307,9 @@ def test_when_multiple_drivers():
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           skip_compile=True)
+                                                  "build"))
+
+    _update_gold("test_when_multiple_drivers.mlir")
 
 
 def test_when_memory():
@@ -308,10 +331,10 @@ def test_when_memory():
             io.out @= 0xFF
 
     m.compile("build/test_when_memory", test_when_memory,
-              output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             "build/test_when_memory.v",
-                             "gold/test_when_memory.v")
+              output="mlir")
+
+    if _check_gold("test_when_memory.mlir"):
+        return
 
     tester = f.SynchronousTester(test_when_memory)
     tester.advance_cycle()
@@ -342,8 +365,9 @@ def test_when_memory():
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"),
-                           skip_compile=True)
+                                                  "build"))
+
+    _update_gold("test_when_memory.mlir")
 
 
 @pytest.mark.parametrize('T', [m.Array[2, m.Tuple[m.Bit, m.Bits[2]]],
@@ -369,9 +393,10 @@ def test_when_nested(T):
             io.O @= io.I[0]
 
     m.compile(f"build/test_when_nested_{T_str}", test_when_nested,
-              output="mlir-verilog")
-    assert check_files_equal(__file__,
-                             f"build/test_when_nested_{T_str}.v",
-                             f"gold/test_when_nested_{T_str}.v")
+              output="mlir")
+
+    if _check_gold(f"test_when_nested_{T_str}.mlir"):
+        return
 
     # TODO: fault support for mlir nested types
+    _update_gold(f"test_when_nested_{T_str}.mlir")
