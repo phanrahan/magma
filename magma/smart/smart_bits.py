@@ -3,7 +3,7 @@ import copy
 import dataclasses
 import inspect
 import operator
-from typing import Optional
+from typing import List, Optional
 
 from magma.bits import Bits, BitsMeta, SInt, reduce
 from magma.conversions import uint, bits, sint
@@ -81,12 +81,17 @@ class _SmartExprMeta(MagmaProtocolMeta):
 
 
 class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
+    @property
     @abc.abstractmethod
-    def resolve(self, context):
+    def args(self) -> List['_SmartExpr']:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def eval(self):
+    def resolve(self, context: Context, resolutions: Resolutions):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def eval(self) -> Bits:
         raise NotImplementedError()
 
     # Binary arithmetic operators.
