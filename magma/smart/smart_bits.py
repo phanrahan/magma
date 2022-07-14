@@ -347,7 +347,7 @@ class _SmartShiftOpExpr(_SmartOpExpr):
         roperand.resolve(self_context)
         self._width_ = max(arg._width_ for arg in self._args)
         self._signed_ = all(arg._signed_ for arg in self._args)
-        lopreand = _extend_if_needed(loperand, self._width_, self._signed_)
+        #lopreand = _extend_if_needed(loperand, self._width_, self._signed_)
         self._update(loperand, roperand)
 
     def eval(self):
@@ -417,8 +417,8 @@ class _SmartSignedOpExpr(_SmartOpExpr):
 
     def eval(self):
         args = self._eval_args()
-        fn = sint if self._signed_ else uint
-        return fn(args[0])
+        cons = sint if self._signed_ else uint
+        return cons(args[0])
 
 
 def signed(expr):
@@ -569,6 +569,7 @@ def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
     print ("!", list(map(str, rhs._args)))
     rhs.resolve(Context(lhs, rhs))
     print ("@", list(map(str, rhs._args)))
+    print ("@", str(rhs))
     res = rhs.eval()
     return SmartBits.from_bits(res), rhs
 
