@@ -268,3 +268,20 @@ class SimpleCounter:
         value = self._value
         self._value += 1
         return value
+
+
+class MroVisitor(abc.ABC):
+    def visit(self, node: Any, *args, **kwargs):
+        method = None
+        for cls in node.__class__.__mro__:
+            name = f"visit_{cls.__name__}"
+            method = getattr(self, name, None)
+            if method is not None:
+                break
+        if method is None:
+            method = self.generic_visit
+        return method(node, *args, **kwargs)
+
+    @abc.abstractmethod
+    def generic_visit(self, node: Any, *args, **kwargs):
+        raise NotImplementedError()

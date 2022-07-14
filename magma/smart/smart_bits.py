@@ -4,6 +4,7 @@ import inspect
 import operator
 
 from magma.bits import Bits, BitsMeta, SInt, reduce
+from magma.common import MroVisitor
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
@@ -54,14 +55,6 @@ class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     @property
     @abc.abstractmethod
     def args(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def resolve(self, context):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def eval(self):
         raise NotImplementedError()
 
     # Binary arithmetic operators.
@@ -188,19 +181,12 @@ class SmartOp(SmartExpr, metaclass=SmartExprMeta):
     def _update(self, *args):
         self._args = args
 
-    def _resolve_args(self, context):
-        for arg in self._args:
-            arg.resolve(context)
-
-    def _eval_args(self):
-        return [arg.eval() for arg in self._args]
-
     def __str__(self):
         if inspect.isbuiltin(self._op):
             op_str = self._op.__name__
         else:
             op_str = str(self._op)
-        args = ", ".join(str(arg) for arg in self._args)
+        args = ", ".join(str(arg) for arg in self.args)
         return f"{op_str}({args})"
 
 
@@ -224,17 +210,9 @@ class SmartExtendOp(SmartOp):
         super().__init__(extend, operand)
         self._resolved = resolved
 
-    def resolve(self, context):
-        if self._resolved:
-            return
-        context = Context(None, self)
-        self._resolve_args(context)
-        self._width_ = self._args[0]._width_ + self.op._width
-        self._signed_ = self.op._signed
-
-    def eval(self):
-        args = self._eval_args()
-        return self.op(*args)
+    @property
+    def resolved(self):
+        return self._resolved
 
 
 def _extend_if_needed(expr, to_width, signed):
@@ -275,38 +253,10 @@ class SmartReductionOp(SmartOp):
         reduction = SmartReductionOp._ReductionOp(op)
         super().__init__(reduction, operand)
 
-    def resolve(self, context):
-        context = Context(None, self)
-        self._resolve_args(context)
-        self._width_ = 1
-        self._signed_ = all(arg._signed_ for arg in self._args)
-
-    def eval(self):
-        args = self._eval_args()
-        fn = sint if self._signed_ else uint
-        return fn(self.op(*args))
-
 
 class SmartNAryContextualOp(SmartOp):
     def __init__(self, op, *args):
         super().__init__(op, *args)
-
-    def resolve(self, context):
-        self._resolve_args(context)
-        self._signed_ = all(arg._signed_ for arg in self._args)
-        to_width = context.max_width()
-        args = (_extend_if_needed(arg, to_width, self._signed_)
-                for arg in self._args)
-        self._update(*args)
-        self._width_ = to_width
-
-    def eval(self):
-        args = self._eval_args()
-        if self._signed_:
-            args = (sint(arg) for arg in args)
-        else:
-            args = (uint(arg) for arg in args)
-        return self.op(*args)
 
 
 class SmartBinaryOp(SmartNAryContextualOp):
@@ -323,48 +273,10 @@ class SmartComparisonOp(SmartOp):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
-    def resolve(self, context):
-        context = Context(None, self)
-        self._resolve_args(context)
-        signed_args = all(arg._signed_ for arg in self._args)
-        to_width = max(arg._width_ for arg in self._args)
-        args = (_extend_if_needed(arg, to_width, signed_args)
-                for arg in self._args)
-        self._update(*args)
-        self._width_ = 1
-        self._signed_ = False
-
-    def eval(self):
-        args = self._eval_args()
-        signed_args = all(arg._signed_ for arg in self._args)
-        fn = sint if signed_args else uint
-        args = (fn(arg) for arg in args)
-        return uint(self.op(*args))
-
 
 class SmartShiftOp(SmartOp):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
-
-    def resolve(self, context):
-        loperand, roperand = self._args
-        loperand.resolve(context)
-        self_context = Context(None, self)
-        roperand.resolve(self_context)
-        to_width = max(arg._width_ for arg in self._args)
-        self._signed_ = all(arg._signed_ for arg in self._args)
-        args = (_extend_if_needed(arg, to_width, self._signed_)
-                for arg in self._args)
-        self._update(*args)
-        self._width_ = to_width
-
-    def eval(self):
-        args = self._eval_args()
-        if self._signed_:
-            args = (sint(arg) for arg in args)
-        else:
-            args = (uint(arg) for arg in args)
-        return self.op(*args)
 
 
 class SmartConcatOp(SmartOp):
@@ -379,18 +291,6 @@ class SmartConcatOp(SmartOp):
     def __init__(self, *args):
         concat = SmartConcatOp._ConcatOp()
         super().__init__(concat, *args)
-
-    def resolve(self, context):
-        for arg in self._args:
-            context = Context(None, arg)
-            arg.resolve(context)
-        self._width_ = sum(arg._width_ for arg in self._args)
-        self._signed_ = False
-
-    def eval(self):
-        args = self._eval_args()
-        args = [uint(arg) for arg in args]
-        return uint(self.op(*args))
 
 
 def concat(*args):
@@ -417,16 +317,6 @@ class SmartSignedOp(SmartOp):
         signed = SmartSignedOp._SignedOp(signed)
         super().__init__(signed, operand)
 
-    def resolve(self, context):
-        self._resolve_args(context)
-        self._width_ = self._args[0]._width_
-        self._signed_ = self._op.signed
-
-    def eval(self):
-        args = self._eval_args()
-        fn = sint if self._signed_ else uint
-        return fn(args[0])
-
 
 def signed(expr):
     return SmartSignedOp(True, expr)
@@ -450,13 +340,6 @@ class SmartBitsExpr(SmartExpr, metaclass=SmartExprMeta):
 
     def __str__(self):
         return str(self._bits)
-
-    def resolve(self, context):
-        self._width_ = len(self._bits)
-        self._signed_ = type(self._bits)._signed
-
-    def eval(self):
-        return self._bits.typed_value()
 
 
 class SmartBitsMeta(SmartExprMeta):
@@ -575,10 +458,124 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
 SmartBit = SmartBits[1]
 
 
+class _SmartExprVisitor(MroVisitor):
+    def visit(self, expr: SmartExpr, *args, **kwargs):
+        return super().visit(expr, *args, **kwargs)
+
+    def generic_visit(self, expr: SmartExpr, *args, **kwargs):
+        return [self.visit(arg, *args, **kwargs) for arg in expr.args]
+
+
+class _Resolver(_SmartExprVisitor):
+    def visit_SmartExtendOp(self, expr: SmartExtendOp, context: Context):
+        if expr.resolved:
+            return
+        self.generic_visit(expr, Context(None, expr))
+        expr._width_ = expr.args[0]._width_ + expr.op._width
+        expr._signed_ = expr.op._signed
+
+    def visit_SmartReductionOp(self, expr: SmartReductionOp, context: Context):
+        self.generic_visit(expr, Context(None, expr))
+        expr._width_ = 1
+        expr._signed_ = all(arg._signed_ for arg in expr.args)
+
+    def visit_SmartNAryContextualOp(self, expr: SmartNAryContextualOp, context: Context):
+        self.generic_visit(expr, context)
+        expr._signed_ = all(arg._signed_ for arg in expr.args)
+        to_width = context.max_width()
+        args = (_extend_if_needed(arg, to_width, expr._signed_)
+                for arg in expr.args)
+        expr._update(*args)
+        expr._width_ = to_width
+
+    def visit_SmartComparisonOp(self, expr: SmartComparisonOp, context: Context):
+        self.generic_visit(expr, Context(None, expr))
+        signed_args = all(arg._signed_ for arg in expr.args)
+        to_width = max(arg._width_ for arg in expr.args)
+        args = (_extend_if_needed(arg, to_width, signed_args)
+                for arg in expr.args)
+        expr._update(*args)
+        expr._width_ = 1
+        expr._signed_ = False
+
+    def visit_SmartShiftOp(self, expr: SmartShiftOp, context: Context):
+        loperand, roperand = expr.args
+        self.visit(loperand, context)
+        self.visit(roperand, Context(None, expr))
+        to_width = max(arg._width_ for arg in expr.args)
+        expr._signed_ = all(arg._signed_ for arg in expr.args)
+        args = (_extend_if_needed(arg, to_width, expr._signed_)
+                for arg in expr.args)
+        expr._update(*args)
+        expr._width_ = to_width
+
+    def visit_SmartConcatOp(self, expr: SmartConcatOp, context: Context):
+        for arg in expr.args:
+            self.visit(arg, Context(None, arg))
+        expr._width_ = sum(arg._width_ for arg in expr.args)
+        expr._signed_ = False
+
+    def visit_SmartSignedOp(self, expr: SmartSignedOp, context: Context):
+        self.generic_visit(expr, context)
+        expr._width_ = expr.args[0]._width_
+        expr._signed_ = expr._op.signed
+
+    def visit_SmartBitsExpr(self, expr: SmartBitsExpr, context: Context):
+        expr._width_ = len(expr._bits)
+        expr._signed_ = type(expr._bits)._signed
+
+
+class _Evaluator(_SmartExprVisitor):
+    def visit_SmartExtendOp(self, expr: SmartExtendOp) -> Bits:
+        args = self.generic_visit(expr)
+        return expr.op(*args)
+
+    def visit_SmartReductionOp(self, expr: SmartReductionOp) -> Bits:
+        args = self.generic_visit(expr)
+        fn = sint if expr._signed_ else uint
+        return fn(expr.op(*args))
+
+    def visit_SmartNAryContextualOp(self, expr: SmartNAryContextualOp) -> Bits:
+        args = self.generic_visit(expr)
+        if expr._signed_:
+            args = (sint(arg) for arg in args)
+        else:
+            args = (uint(arg) for arg in args)
+        return expr.op(*args)
+
+    def visit_SmartComparisonOp(self, expr: SmartComparisonOp) -> Bits:
+        args = self.generic_visit(expr)
+        signed_args = all(arg._signed_ for arg in expr.args)
+        fn = sint if signed_args else uint
+        args = (fn(arg) for arg in args)
+        return uint(expr.op(*args))
+
+    def visit_SmartShiftOp(self, expr: SmartShiftOp) -> Bits:
+        args = self.generic_visit(expr)
+        if expr._signed_:
+            args = (sint(arg) for arg in args)
+        else:
+            args = (uint(arg) for arg in args)
+        return expr.op(*args)
+
+    def visit_SmartConcatOp(self, expr: SmartConcatOp) -> Bits:
+        args = self.generic_visit(expr)
+        args = [uint(arg) for arg in args]
+        return uint(expr.op(*args))
+
+    def visit_SmartSignedOp(self, expr: SmartSignedOp) -> Bits:
+        args = self.generic_visit(expr)
+        fn = sint if expr._signed_ else uint
+        return fn(args[0])
+
+    def visit_SmartBitsExpr(self, expr: SmartBitsExpr) -> Bits:
+        return expr._bits.typed_value()
+
+
 def _eval(lhs: SmartBits, rhs: SmartExpr) -> (SmartBits, SmartExpr):
     rhs = copy.deepcopy(rhs)
-    rhs.resolve(Context(lhs, rhs))
-    res = rhs.eval()
+    _Resolver().visit(rhs, Context(lhs, rhs))
+    res = _Evaluator().visit(rhs)
     return SmartBits.from_bits(res), rhs
 
 
