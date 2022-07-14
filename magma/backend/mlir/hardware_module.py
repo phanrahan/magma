@@ -63,11 +63,11 @@ MlirValueList = List[MlirValue]
 
 def _get_defn_or_decl_output_name(
         ctx: 'HardwareModule', defn_or_decl: CircuitKind) -> str:
-    metadata = defn_or_decl.coreir_metadata
-    try:
-        return metadata["verilog_name"]
-    except KeyError:
-        pass
+    # metadata = defn_or_decl.coreir_metadata
+    # try:
+    #     return metadata["verilog_name"]
+    # except KeyError:
+    #     pass
     name = defn_or_decl.name
     if ctx.opts.user_namespace is not None:
         name = ctx.opts.user_namespace + f"_{name}"
@@ -1063,6 +1063,9 @@ class HardwareModule:
 
     def compile(self):
         self._hw_module = self._compile()
+        verilog_name = self._magma_defn_or_decl.coreir_metadata.get("verilog_name", None)
+        if verilog_name is not None:
+            self._hw_module.attr_dict["verilogName"] = f'"{verilog_name}"'
         self._add_module_parameters(self._hw_module)
 
     def _compile(self) -> hw.ModuleOpBase:

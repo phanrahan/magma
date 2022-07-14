@@ -81,6 +81,9 @@ class ModuleOpBase(MlirOp):
         printer.print(") -> (")
         print_signature(self.results, printer, raw_names=True)
         printer.print(")")
+        if self.attr_dict:
+            printer.print(" attributes ")
+            print_attr_dict(self.attr_dict, printer)
 
 
 @dataclasses.dataclass
