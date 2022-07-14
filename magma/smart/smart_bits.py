@@ -3,7 +3,7 @@ import copy
 import dataclasses
 import inspect
 import operator
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 from magma.bits import Bits, BitsMeta, SInt, reduce
 from magma.conversions import uint, bits, sint
@@ -91,126 +91,118 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def eval(self, resolutions: Resolutions) -> Bits:
+    def eval(self) -> Bits:
         raise NotImplementedError()
-
-    # Convenience functions on top of resolve() and eval().
-    def _resolve_args(self, context: Context, resolutions: Resolutions):
-        for arg in self.args:
-            arg.resolve(context)
-
-    def _eval_args(self) -> List[Bits]:
-        return [arg.eval() for arg in self.args]
 
     # Binary arithmetic operators.
     def __add__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.add, self, other)
+        return _SmartBinaryOpExpr(operator.add, self, other)
 
     def __sub__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.sub, self, other)
+        return _SmartBinaryOpExpr(operator.sub, self, other)
 
     def __mul__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.mul, self, other)
+        return _SmartBinaryOpExpr(operator.mul, self, other)
 
     def __floordiv__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.floordiv, self, other)
+        return _SmartBinaryOpExpr(operator.floordiv, self, other)
 
     def __truediv__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.truediv, self, other)
+        return _SmartBinaryOpExpr(operator.truediv, self, other)
 
     def __mod__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.mod, self, other)
+        return _SmartBinaryOpExpr(operator.mod, self, other)
 
     # Binary logic operators.
     def __and__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.and_, self, other)
+        return _SmartBinaryOpExpr(operator.and_, self, other)
 
     def __or__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.or_, self, other)
+        return _SmartBinaryOpExpr(operator.or_, self, other)
 
     def __xor__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.xor_, self, other)
+        return _SmartBinaryOpExpr(operator.xor_, self, other)
 
     # Comparison operators.
     def __eq__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.eq, self, other)
+        return _SmartComparisonOpExpr(operator.eq, self, other)
 
     def __ne__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.ne, self, other)
+        return _SmartComparisonOpExpr(operator.ne, self, other)
 
     def __ge__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.ge, self, other)
+        return _SmartComparisonOpExpr(operator.ge, self, other)
 
     def __gt__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.gt, self, other)
+        return _SmartComparisonOpExpr(operator.gt, self, other)
 
     def __le__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.le, self, other)
+        return _SmartComparisonOpExpr(operator.le, self, other)
 
     def __lt__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.lt, self, other)
+        return _SmartComparisonOpExpr(operator.lt, self, other)
 
     # Shift operators.
     def __lshift__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartShiftOp(operator.lshift, self, other)
+        return _SmartShiftOpExpr(operator.lshift, self, other)
 
     def __rshift__(self, other: '_SmartExpr'):
         if not isinstance(other, _SmartExpr):
             return NotImplemented
-        return _SmartShiftOp(operator.rshift, self, other)
+        return _SmartShiftOpExpr(operator.rshift, self, other)
 
     # Unary operators.
     def __invert__(self):
-        return _SmartUnaryOp(operator.invert, self)
+        return _SmartUnaryOpExpr(operator.invert, self)
 
     def __neg__(self):
-        return _SmartUnaryOp(operator.neg, self)
+        return _SmartUnaryOpExpr(operator.neg, self)
 
     # Reduction operators.
     def reduce(self, op):
-        return _SmartReductionOp(op, self)
+        return _SmartReductionOpExpr(op, self)
 
     # Extension operators.
     def zext(self, width):
-        return _SmartExtendOp(width, False, self, resolved=False)
+        return _SmartExtendOpExpr(width, False, self, resolved=False)
 
     def sext(self, width):
-        return _SmartExtendOp(width, True, self, resolved=False)
+        return _SmartExtendOpExpr(width, True, self, resolved=False)
 
 
-class _SmartOp(_SmartExpr, metaclass=_SmartExprMeta):
+class _SmartOpExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, op, *args):
         self._op = op
         self._args = args
@@ -223,94 +215,123 @@ class _SmartOp(_SmartExpr, metaclass=_SmartExprMeta):
     def op(self):
         return self._op
 
+    def _update(self, *args):
+        self._args = args
+
+    def _resolve_args(self, context):
+        for arg in self._args:
+            arg.resolve(context)
+
+    def _eval_args(self):
+        return [arg.eval() for arg in self._args]
+
     def __str__(self):
-        op = self.op.__name__ if inspect.isbuiltin(self.op) else str(self.op)
-        args = ", ".join(str(arg) for arg in self.args)
-        return f"{op}({args})"
+        if inspect.isbuiltin(self._op):
+            op_str = self._op.__name__
+        else:
+            op_str = str(self._op)
+        args = ", ".join(str(arg) for arg in self._args)
+        return f"{op_str}({args})"
 
 
-class _SmartExtendOp(_SmartOp):
+class _SmartExtendOpExpr(_SmartOpExpr):
 
-    @dataclasses.dataclass(frozen=True)
     class _ExtendOp:
-        width: int
-        signed: bool
+        def __init__(self, width, signed):
+            self._width = width
+            self._signed = signed
 
-        def __call__(self, arg):
+        def __call__(self, operand):
             if self._signed:
-                return sint(arg).sext(self.width)
-            return uint(arg).zext(self.width)
+                return sint(operand).sext(self._width)
+            return uint(operand).zext(self._width)
 
         def __str__(self):
-            name = "Sext" if self.signed else "Zext"
-            return f"{name}[{self.width}]"
+            return f"Extend[width={self._width}, signed={self._signed}]"
 
-    def __init__(self, width: int, signed: bool, arg: _SmartExpr):
-        op = _SmartExtendOp._ExtendOp(width, signed)
-        super().__init__(op, arg)
+    def __init__(self, width, signed, operand, resolved=True):
+        extend = _SmartExtendOpExpr._ExtendOp(width, signed)
+        super().__init__(extend, operand)
+        self._resolved = resolved
 
-    def resolve(self, context: Context, resolutions: Resolutions):
+    def resolve(self, context):
+        if self._resolved:
+            return
         context = Context(None, self)
-        self._resolve_args(context, resolutions)
-        resolution = resolutions.get(self.args[0])
-        width = resolution.width + self.op.width
-        resolutions.set(self, width, resolution.signed)
+        self._resolve_args(context)
+        self._width_ = self._args[0]._width_ + self.op._width
+        self._signed_ = self.op._signed
 
-    def eval(self, resolutions: Resolutions):
-        arg = self.args[0].eval(resolutions)
-        return self.op(arg)
+    def eval(self):
+        args = self._eval_args()
+        return self.op(*args)
 
 
-class _SmartReductionOp(_SmartOp):
-    _OP_TO_NAME = {
-        operator.and_: "And",
-        operator.or_: "Or",
-        operator.xor: "Xor",
-    }
+def _extend_if_needed(expr, to_width, signed):
+    diff = expr._width_ - to_width
+    assert diff <= 0
+    if diff == 0:
+        return expr
+    expr = _SmartExtendOpExpr(-diff, signed, expr)
+    expr._width_ = to_width
+    expr._signed_ = signed
+    return expr
 
-    @dataclasses.dataclass(frozen=True)
+
+class _SmartReductionOpExpr(_SmartOpExpr):
+
     class _ReductionOp:
-        op: Callable
+        _OP_TO_NAME = {
+            operator.and_: "And",
+            operator.or_: "Or",
+            operator.xor: "Xor",
+        }
 
-        def __post_init__(self):
-            if self.op not in _SmartReductionOp._OP_TO_NAME:
-                raise ValueError(f"Reduction operator {self.op} not supported")
+        def __init__(self, op):
+            cls = _SmartReductionOpExpr._ReductionOp
+            if op not in cls._OP_TO_NAME:
+                raise ValueError(f"Reduction operator {op} not supported")
+            self._op = op
 
-        def __call__(self, arg):
-            return reduce(self.op, arg)
+        def __call__(self, operand):
+            return reduce(self._op, operand)
 
         def __str__(self):
-            name = _SmartReductionOp._OP_TO_NAME[self.op]
-            return f"{name}Reduce"
+            cls = _SmartReductionOpExpr._ReductionOp
+            op_name = cls._OP_TO_NAME[self._op]
+            return f"{op_name}Reduce"
 
-    def __init__(self, op: Callable, arg: _SmartExpr):
-        op = _SmartReductionOp._ReductionOp(op)
-        super().__init__(op, arg)
+    def __init__(self, op, operand):
+        reduction = _SmartReductionOpExpr._ReductionOp(op)
+        super().__init__(reduction, operand)
 
-    def resolve(self, context: Context, resolutions: Resolutions):
+    def resolve(self, context):
         context = Context(None, self)
-        self._resolve_args(context, resolutions)
-        resolution = resolutions.get(self.args[0])
-        resolutions.set(self, 1, resolution.signed)
+        self._resolve_args(context)
+        self._width_ = 1
+        self._signed_ = all(arg._signed_ for arg in self._args)
 
-    def eval(self, resolutions: Resolutions):
-        resolution = resolutions.get(self)
-        cons = sint if resolution.signed else uint
-        arg = self.args[0].eval(resolutions)
-        return cons(self.op(arg))
+    def eval(self):
+        args = self._eval_args()
+        fn = sint if self._signed_ else uint
+        return fn(self.op(*args))
 
 
-class _SmartNAryContextualOp(_SmartOp):
-    def resolve(self, context: Context, resolutions: Resolutions):
-        self._resolve_args(context, resolutions)
-        resolutions = list(map(resolutions.get, self.args))
-        width = context.max_width()
-        signed = all(resolution.signed for resolution in resolutions)
-        resolutions.set(self, width, signed)
+class _SmartNAryContextualOpExr(_SmartOpExpr):
+    def __init__(self, op, *args):
+        super().__init__(op, *args)
 
-    def eval(self, resolutions: Resolutions):
-        args = self._eval_args(resolutions)
-        resolution = resolutions.get(self)
+    def resolve(self, context):
+        self._resolve_args(context)
+        self._signed_ = all(arg._signed_ for arg in self._args)
+        to_width = context.max_width()
+        args = (_extend_if_needed(arg, to_width, self._signed_)
+                for arg in self._args)
+        self._update(*args)
+        self._width_ = to_width
+
+    def eval(self):
+        args = self._eval_args()
         if self._signed_:
             args = (sint(arg) for arg in args)
         else:
@@ -318,17 +339,17 @@ class _SmartNAryContextualOp(_SmartOp):
         return self.op(*args)
 
 
-class _SmartBinaryOp(_SmartNAryContextualOp):
+class _SmartBinaryOpExpr(_SmartNAryContextualOpExr):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
 
-class _SmartUnaryOp(_SmartNAryContextualOp):
+class _SmartUnaryOpExpr(_SmartNAryContextualOpExr):
     def __init__(self, op, operand):
         super().__init__(op, operand)
 
 
-class _SmartComparisonOp(_SmartOp):
+class _SmartComparisonOpExpr(_SmartOpExpr):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
@@ -351,7 +372,7 @@ class _SmartComparisonOp(_SmartOp):
         return uint(self.op(*args))
 
 
-class _SmartShiftOp(_SmartOp):
+class _SmartShiftOpExpr(_SmartOpExpr):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
@@ -376,7 +397,7 @@ class _SmartShiftOp(_SmartOp):
         return self.op(*args)
 
 
-class _SmartConcatOp(_SmartOp):
+class _SmartConcatOpExpr(_SmartOpExpr):
 
     class _ConcatOp:
         def __call__(self, *args):
@@ -386,7 +407,7 @@ class _SmartConcatOp(_SmartOp):
             return "Concat"
 
     def __init__(self, *args):
-        concat = _SmartConcatOp._ConcatOp()
+        concat = _SmartConcatOpExpr._ConcatOp()
         super().__init__(concat, *args)
 
     def resolve(self, context):
@@ -406,10 +427,10 @@ def concat(*args):
     if not all(isinstance(arg, _SmartExpr) for arg in args):
         types = ", ".join(str(type(arg)) for arg in args)
         raise NotImplementedError(f"Concat not supported for {types}")
-    return _SmartConcatOp(*args)
+    return _SmartConcatOpExpr(*args)
 
 
-class _SmartSignedOp(_SmartOp):
+class _SmartSignedOpExpr(_SmartOpExpr):
 
     class _SignedOp:
         def __init__(self, signed):
@@ -423,7 +444,7 @@ class _SmartSignedOp(_SmartOp):
             return "Signed" if self._signed else "Unsigned"
 
     def __init__(self, signed, operand):
-        signed = _SmartSignedOp._SignedOp(signed)
+        signed = _SmartSignedOpExpr._SignedOp(signed)
         super().__init__(signed, operand)
 
     def resolve(self, context):
@@ -438,11 +459,11 @@ class _SmartSignedOp(_SmartOp):
 
 
 def signed(expr):
-    return _SmartSignedOp(True, expr)
+    return _SmartSignedOpExpr(True, expr)
 
 
 def unsigned(expr):
-    return _SmartSignedOp(False, expr)
+    return _SmartSignedOpExpr(False, expr)
 
 
 class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
