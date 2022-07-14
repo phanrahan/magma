@@ -6,6 +6,7 @@ import operator
 from typing import Dict
 
 from magma.bits import Bits, BitsMeta, SInt, reduce
+from magma.common import MroVisitor
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
@@ -766,6 +767,15 @@ def _evaluate_assignment(lhs: SmartBits, rhs: _SmartExpr) -> SmartBits:
     rhs.propagate_size(lhs, None, sizes)
     result = rhs.eval2(sizes, types)
     return SmartBits.from_bits(result)
+
+
+class _SmartExprVisitor(MroVisitor):
+    def visit(self, expr: _SmartExpr):
+        super().visit(expr)
+
+    def generic_visit(self, expr: _SmartExpr):
+        for arg in expr.args:
+            self.visit(arg)
 
 
 def eval(expr: _SmartExpr, width: int, signed: bool = False):
