@@ -1,7 +1,9 @@
 import abc
 import copy
+import dataclasses
 import inspect
 import operator
+from typing import Optional
 
 from magma.bits import Bits, BitsMeta, SInt, reduce
 from magma.conversions import uint, bits, sint
@@ -21,27 +23,57 @@ def _is_int(value):
     return True
 
 
+@dataclasses.dataclass(frozen=True)
 class Context:
-    def __init__(self, assignee, root):
-        self.assignee = assignee
-        self.root = root
+    assignee: '_SmartBitsExpr'
+    root: '_SmartExpr'
+
+    @staticmethod
+    def _max_width(node):
+        if hasattr(node, "_width_"):
+            return node._width_
+        if isinstance(node, _SmartBitsExpr):
+            return len(node.bits)
+        return max(Context._max_width(arg) for arg in node.args)
 
     def max_width(self):
-
-        def _visit(node):
-            if hasattr(node, "_width_"):
-                return node._width_
-            if isinstance(node, _SmartBitsExpr):
-                return len(node.bits)
-            return max(_visit(arg) for arg in node.args)
-
-        max_width = _visit(self.root)
+        max_width = Context._max_width(self.root)
         if self.assignee is not None:
             max_width = max(max_width, len(self.assignee.bits))
         return max_width
 
     def __str__(self):
         return f"Context(lhs={repr(self.assignee)}, rhs={repr(self.root)})"
+
+
+@dataclasses.dataclass
+class Resolution:
+    width: Optional[int] = None
+    signed: Optional[bool] = None
+
+
+class Resolutions:
+    def __init__(self):
+        self._resolutions = {}
+
+    def _get_or_set(self, key):
+        return self._resolutions.setdefault(key, Resolution())
+
+    def set(self, key, width: int, signed: bool):
+        resolution = self._get_or_set(key)
+        resolution.width = width
+        resolution.signed = signed
+
+    def set_width(self, key, width: int):
+        resolution = self._get_or_set(key)
+        resolution.width = width
+
+    def set_signed(self, key, signed: bool):
+        resolution = self._get_or_set(key)
+        resolution.signed = signed
+
+    def get(self, key) -> Resolution:
+        return self._resolutions[key]
 
 
 class _SmartExprMeta(MagmaProtocolMeta):
