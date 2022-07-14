@@ -449,6 +449,14 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
 
 
 class _SmartBitsMeta(_SmartExprMeta):
+    def __eq__(cls, other):
+        return (
+            isinstance(other, _SmartExprMeta) and
+            cls._to_magma_() == other._to_magma_()
+        )
+
+    __hash__ = type.__hash__
+
     def __getitem__(cls, key):
         if issubclass(cls, SmartBits) and (hasattr(cls, "_T") or
                                            hasattr(cls, "_signed")):

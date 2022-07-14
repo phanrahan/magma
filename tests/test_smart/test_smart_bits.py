@@ -289,6 +289,15 @@ def test_unsigned_add():
     return _Test
 
 
+def test_type():
+    assert SmartBits[32] == SmartBits[32]
+    assert SmartBits[32] == SmartBits[32].qualify(m.Direction.Undirected)
+    assert SmartBits[32] != SmartBits[33]
+    # NOTE(rsetaluri): We noticed a bug where, due to equality not being defined
+    # on SmartBitsMeta, constructing Products containing SmartBit's failed
+    # (subclass check resulted in non-terminating recursion).
+
+
 def test_make_smart():
 
     class _T(m.Product):
