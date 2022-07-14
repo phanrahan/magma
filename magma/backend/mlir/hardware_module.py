@@ -557,7 +557,55 @@ class ModuleVisitor:
                 default_value = defn.reverse_map[
                     value._finalized_conditional_drivers_[None]]
                 idx = inst.interface.inputs_by_name().index(default_value)
-                sv.BPAssignOp(operands=[regs[i], module.operands[idx]])
+
+                def _visit_output(x):
+                    assert False, "Expected only inputs"
+
+                offset = 0
+
+                def _visit_input(x):
+                    nonlocal offset
+                    offset += 1
+
+                for j, value in enumerate(inst.interface.inputs()):
+                    if j == idx:
+                        break
+                    visit_magma_value_or_value_wrapper_by_direction(
+                        value,
+                        _visit_input,
+                        _visit_output,
+                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                    )
+
+                reg_offset = 0
+
+                def _visit_input(x):
+                    nonlocal reg_offset
+                    reg_offset += 1
+
+                for j, value in enumerate(defn.conditional_values):
+                    if j == i:
+                        break
+                    visit_magma_value_or_value_wrapper_by_direction(
+                        value,
+                        _visit_input,
+                        _visit_output,
+                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                    )
+
+                def _visit_input(x):
+                    nonlocal offset, reg_offset
+                    sv.BPAssignOp(operands=[regs[reg_offset],
+                                            module.operands[offset]]),
+                    offset += 1
+                    reg_offset += 1
+
+                visit_magma_value_or_value_wrapper_by_direction(
+                    value,
+                    _visit_input,
+                    _visit_output,
+                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                )
             elif (isinstance(value.name, InstRef) and
                   value.name.inst._is_magma_memory_):
                 zero = self.make_constant(type(value), 0)
@@ -597,7 +645,54 @@ class ModuleVisitor:
                 for input, output in cond.conditional_wires.items():
                     target_idx = inst.interface.outputs_by_name().index(reverse_map[input])
                     value_idx = inst.interface.inputs_by_name().index(reverse_map[output])
-                    sv.BPAssignOp(operands=[regs[target_idx], module.operands[value_idx]])
+
+                    def _visit_output(x):
+                        assert False, "Expected only inputs"
+
+                    target_offset = 0
+
+                    def _visit_input(x):
+                        nonlocal target_offset
+                        target_offset += 1
+
+                    for name in inst.interface.outputs_by_name():
+                        if name == reverse_map[input]:
+                            break
+                        visit_magma_value_or_value_wrapper_by_direction(
+                            getattr(inst, name),
+                            _visit_input,
+                            _visit_output,
+                            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                        )
+
+                    value_offset = 0
+
+                    def _visit_input(x):
+                        nonlocal value_offset
+                        value_offset += 1
+
+                    for name in inst.interface.inputs_by_name():
+                        if name == reverse_map[output]:
+                            break
+                        visit_magma_value_or_value_wrapper_by_direction(
+                            getattr(inst, name),
+                            _visit_input,
+                            _visit_output,
+                            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                        )
+
+                    def _visit_input(x):
+                        nonlocal target_offset, value_offset
+                        sv.BPAssignOp(operands=[regs[target_offset], module.operands[value_offset]])
+                        target_offset += 1
+                        value_offset += 1
+
+                    visit_magma_value_or_value_wrapper_by_direction(
+                        input,
+                        _visit_input,
+                        _visit_output,
+                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                    )
 
     @wrap_with_not_implemented_error
     def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
@@ -605,16 +700,78 @@ class ModuleVisitor:
         defn = type(inst)
         regs = []
         for i, value in enumerate(defn.conditional_values):
-            reg = self._ctx.new_value(
-                hw.InOutType(magma_type_to_mlir_type(type(value))))
-            sv.RegOp(name=f"O{i}_reg", results=[reg])
-            regs.append(reg)
+
+            def _visit_output(x):
+                assert False, "Expected only inputs"
+
+            offset = 0
+
+            def _visit_input(x):
+                nonlocal offset
+                reg = self._ctx.new_value(
+                    hw.InOutType(magma_type_to_mlir_type(type(x))))
+                sv.RegOp(name=f"O_{i}_{offset}_reg", results=[reg])
+                regs.append(reg)
+                offset += 1
+
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                _visit_input,
+                _visit_output,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(regs, module)
             self._construct_ifs(regs, module)
         for i, value in enumerate(defn.conditional_values):
-            sv.ReadInOutOp(operands=[regs[i]], results=[module.results[i]])
+            def _visit_output(x):
+                assert False, "Expected only inputs"
+
+            offset = 0
+
+            def _visit_input(x):
+                nonlocal offset
+                offset += 1
+
+            for j, value in enumerate(defn.interface.inputs()):
+                if j == i:
+                    break
+                visit_magma_value_or_value_wrapper_by_direction(
+                    value,
+                    _visit_input,
+                    _visit_output,
+                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                )
+
+            reg_offset = 0
+
+            def _visit_input(x):
+                nonlocal reg_offset
+                reg_offset += 1
+
+            for j, value in enumerate(defn.conditional_values):
+                if j == i:
+                    break
+                visit_magma_value_or_value_wrapper_by_direction(
+                    value,
+                    _visit_input,
+                    _visit_output,
+                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                )
+
+            def _visit_input(x):
+                nonlocal offset, reg_offset
+                sv.ReadInOutOp(operands=[regs[reg_offset]], results=[module.results[offset]])
+                offset += 1
+                reg_offset += 1
+
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                _visit_input,
+                _visit_output,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
         return True
 
     @wrap_with_not_implemented_error
