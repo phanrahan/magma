@@ -62,7 +62,13 @@ def MagmaTupleGetOp(T: TupleMeta, index: Union[int, str]):
     T_out = _get_tuple_field_type(T, index)
     ports = dict(I=In(T), O=Out(T_out))
 
-    attrs = dict(T=T, index=index)
+    def to_str(k):
+        try:
+            int(k)
+            return f"_{k}"
+        except ValueError:
+            return str(k)
+    attrs = dict(T=T, index=to_str(index))
     return InstanceWrapper(name, ports, attrs)
 
 
