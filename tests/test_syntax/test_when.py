@@ -402,8 +402,8 @@ def test_when_nested(T, x):
     m.compile(f"build/test_when_nested_{T_str}", test_when_nested,
               output="mlir", flatten_all_tuples=True)
 
-    # if _check_gold(f"test_when_nested_{T_str}.mlir"):
-    #     return
+    if _check_gold(f"test_when_nested_{T_str}.mlir"):
+        return
 
     tester = f.Tester(test_when_nested)
     tester.poke(test_when_nested.I, x)
