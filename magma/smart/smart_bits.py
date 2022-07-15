@@ -1,5 +1,4 @@
 import abc
-import copy
 import dataclasses
 import enum
 import inspect
@@ -696,9 +695,6 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def _get_magma_value_(self):
         return self.untyped_value()
 
-    def __deepcopy__(self, memo):
-        return type(self)(self._value)
-
     @debug_wire
     def wire(self, other, debug_info):
         if isinstance(other, Bits):
@@ -716,7 +712,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
     def force_width(self, width):
         diff = len(self) - width
         if diff == 0:
-            return copy.deepcopy(self)
+            return self
         value = self.typed_value()
         value = value.ext(-diff) if diff < 0 else value[:-diff]
         return SmartBits.from_bits(value)
@@ -782,6 +778,15 @@ class Resolution:
     signed: Optional[bool] = None
 
 
+def _ext_to_if_needed(value: Bits, n: int):
+    # TOOD(rsetaluri): Fix builtin extension methods to perform this check.
+    if len(value) > n:
+        raise TypeError(value)
+    if len(value) == n:
+        return value
+    return value.ext_to(n)
+
+
 class _SmartExprResolver(_SmartExprVisitor):
     def __init__(self):
         super().__init__()
@@ -835,7 +840,7 @@ class _SmartExprEvaluator(_SmartExprVisitor):
         args = list(map(self.visit, expr.args))
         resolution = self._resolutions[expr]
         cons = sint if resolution.signed else uint
-        args = (cons(arg).ext_to(resolution.width) for arg in args)
+        args = (_ext_to_if_needed(cons(arg), resolution.width) for arg in args)
         return expr.op(*args)
 
     def visit__SmartSignedOp(self, expr: _SmartSignedOp) -> Bits:
