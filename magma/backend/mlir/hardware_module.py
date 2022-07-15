@@ -27,7 +27,6 @@ from magma.backend.mlir.magma_common import (
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
 )
-from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
 from magma.backend.mlir.xmr_utils import get_xmr_paths
@@ -53,7 +52,7 @@ from magma.primitives.register import Register
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.ref import InstRef
 from magma.t import Kind, Type
-from magma.tuple import TupleMeta, Tuple as m_Tuple, Product
+from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
 from magma.view import PortView
 

@@ -4,7 +4,7 @@ hw.module @test_when_elsewhen(%I: i3, %S: i2) -> (O: i1) {
     %2 = comb.extract %S from 1 : (i2) -> i1
     %3 = comb.extract %I from 1 : (i3) -> i1
     %4 = comb.extract %I from 2 : (i3) -> i1
-    %6 = sv.reg {name = "O0_reg"} : !hw.inout<i1>
+    %6 = sv.reg {name = "O_0_0_reg"} : !hw.inout<i1>
     sv.alwayscomb {
         sv.if %0 {
             sv.bpassign %6, %1 : i1
