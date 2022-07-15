@@ -105,13 +105,7 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
     if issubclass(type, m_Tuple):
-        def to_str(k):
-            try:
-                int(k)
-                return f"_{k}"
-            except ValueError:
-                return str(k)
-        fields = {to_str(k): magma_type_to_mlir_type(t)
+        fields = {str(k): magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return hw.StructType(tuple(fields.items()))
 
@@ -691,6 +685,7 @@ class ModuleVisitor:
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
             self._construct_ifs(val_to_reg_map, module)
+
         for i, value in enumerate(defn.conditional_values):
             offset = 0
 
@@ -976,7 +971,7 @@ class ModuleVisitor:
 
     def visit(self, module: MagmaModuleLike):
         if module in self._visited:
-            raise RuntimeError(f"Can not re-visit module")
+            raise RuntimeError("Can not re-visit module")
         self._visited.add(module)
         for predecessor in self._graph.predecessors(module):
             if predecessor in self._visited:
