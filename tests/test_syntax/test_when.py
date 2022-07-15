@@ -376,7 +376,7 @@ def test_when_memory():
         (m.Array[2, m.Tuple[m.Bit, m.Bits[2]]],
          [[(0, 1), (1, 0)], [(1, 0), (0, 1)]]),
         (m.Tuple[m.Bits[2], m.Bit],
-         [])
+         [(0b10, 0b1), (0b01, 0b0)])
     ]
 )
 def test_when_nested(T, x):
@@ -409,14 +409,13 @@ def test_when_nested(T, x):
     tester.poke(test_when_nested.I, x)
     tester.poke(test_when_nested.S, 0)
     tester.eval()
-    tester.expect(test_when_nested.O, x[0])
+    tester.expect(test_when_nested.O, x[1])
     tester.poke(test_when_nested.S, 1)
     tester.eval()
-    tester.expect(test_when_nested.O, x[1])
+    tester.expect(test_when_nested.O, x[0])
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"),
                            magma_opts={"flatten_all_tuples": True})
-    # TODO: fault support for mlir nested types
     _update_gold(f"test_when_nested_{T_str}.mlir")

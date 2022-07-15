@@ -6,7 +6,7 @@ from magma.backend.mlir.common import make_unique_name
 from magma.backend.mlir.graph_lib import Graph
 from magma.circuit import Circuit, DefineCircuitKind
 from magma.common import replace_all, Stack, SimpleCounter
-from magma.ref import Ref, ArrayRef, TupleRef
+from magma.ref import Ref, ArrayRef, TupleRef, DefnRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 
@@ -34,9 +34,26 @@ def contains_tuple(T: Kind):
     return False
 
 
+def mlir_name(name):
+    if isinstance(name, ArrayRef):
+        array_name = mlir_name(name.array.name)
+        return f"{array_name}_{name.index}"
+    if isinstance(name, TupleRef):
+        tuple_name = mlir_name(name.tuple.name)
+        index = name.index
+        try:
+            int(index)
+            # python/coreir don't allow pure integer names
+            index = f"_{index}"
+        except ValueError:
+            pass
+        return f"{tuple_name}_{index}"
+    return name.qualifiedname("_")
+
+
 def value_or_type_to_string(value_or_type: Union[Type, Kind]):
     if isinstance(value_or_type, Type):
-        s = value_or_type.name.qualifiedname("_")
+        s = mlir_name(value_or_type.name)
     else:
         s = str(value_or_type)
     return replace_all(s, _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS)
