@@ -591,7 +591,7 @@ class ModuleVisitor:
                 )
             elif (isinstance(value.name, InstRef) and
                   value.name.inst._is_magma_memory_):
-                # TODO: test nested memory
+                # TODO(when): nested type default value for memory
                 zero = self.make_constant(type(value), 0)
                 sv.BPAssignOp(operands=[val_to_reg_map[value], zero])
 
