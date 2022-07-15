@@ -821,6 +821,10 @@ class _SmartExprResolver(_SmartExprVisitor):
         signed = all(resolution.signed for resolution in resolutions)
         self.set(expr, width, signed)
 
+    def visit__SmartComparisonOp(self, expr: _SmartComparisonOp, context: Context):
+        self.generic_visit(expr, context)
+        self.set(expr, 1, False)
+
     def visit__SmartSignedOp(self, expr: _SmartSignedOp, context: Context):
         self.generic_visit(expr, context)
         resolution = self.get(expr.args[0])
@@ -842,6 +846,17 @@ class _SmartExprEvaluator(_SmartExprVisitor):
         cons = sint if resolution.signed else uint
         args = (_ext_to_if_needed(cons(arg), resolution.width) for arg in args)
         return expr.op(*args)
+
+    def visit__SmartComparisonOp(self, expr: _SmartComparisonOp) -> Bits:
+        args = list(map(self.visit, expr.args))
+        all_args_signed = all(
+            self._resolutions[arg].signed for arg in expr.args
+        )
+        cons = sint if all_args_signed else uint
+        args = map(cons, args)
+        args = list(args)
+        print ("@", expr.op(*args))
+        return uint(expr.op(*args))
 
     def visit__SmartSignedOp(self, expr: _SmartSignedOp) -> Bits:
         arg = self.visit(expr.args[0])
