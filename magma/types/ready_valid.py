@@ -390,6 +390,8 @@ def Consumer(T: ReadyValidKind):
         return IrrevocableConsumer[undirected_T]
     if issubclass(T, Decoupled):
         return DecoupledConsumer[undirected_T]
+    if issubclass(T, CreditValid):
+        return CreditValidConsumer[undirected_T]
     if issubclass(T, ReadyValid):
         return ReadyValidConsumer[undirected_T]
     raise TypeError(f"Consumer({T}) is unsupported")
