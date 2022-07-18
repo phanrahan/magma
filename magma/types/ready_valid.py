@@ -402,6 +402,8 @@ def Producer(T: ReadyValidKind):
         return IrrevocableProducer[undirected_T]
     if issubclass(T, Decoupled):
         return DecoupledProducer[undirected_T]
+    if issubclass(T, CreditValid):
+        return CreditValidProducer[undirected_T]
     if issubclass(T, ReadyValid):
         return ReadyValidProducer[undirected_T]
     raise TypeError(f"Consumer({T}) is unsupported")
@@ -414,6 +416,8 @@ def Monitor(T: ReadyValidKind):
         return IrrevocableMonitor[undirected_T]
     if issubclass(T, Decoupled):
         return DecoupledMonitor[undirected_T]
+    if issubclass(T, CreditValid):
+        return CreditValidMonitor[undirected_T]
     if issubclass(T, ReadyValid):
         return ReadyValidMonitor[undirected_T]
     raise TypeError(f"Monitor({T}) is unsupported")
@@ -426,6 +430,8 @@ def Driver(T: ReadyValidKind):
         return IrrevocableDriver[undirected_T]
     if issubclass(T, Decoupled):
         return DecoupledDriver[undirected_T]
+    if issubclass(T, CreditValid):
+        return CreditValidDriver[undirected_T]
     if issubclass(T, ReadyValid):
         return ReadyValidDriver[undirected_T]
     raise TypeError(f"Driver({T}) is unsupported")
@@ -438,6 +444,8 @@ def Undirected(T: ReadyValidKind):
         return Irrevocable[undirected_T]
     if issubclass(T, Decoupled):
         return Decoupled[undirected_T]
+    if issubclass(T, CreditValid):
+        return CreditValid[undirected_T]
     if issubclass(T, ReadyValid):
         return ReadyValid[undirected_T]
     raise TypeError(f"Undirected({T}) is unsupported")
