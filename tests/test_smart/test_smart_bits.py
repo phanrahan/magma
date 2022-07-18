@@ -1,14 +1,27 @@
 from functools import wraps, partial
 import operator
 import pytest
+
 import magma as m
 from magma.smart import SmartBit, SmartBits, concat, signed, make_smart
 from magma.testing import check_files_equal
 
 
-def _run_test(func=None, *, skip_check=False):
+def _run_repr_test(func):
+
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        test_ckt, gold_ckt = func(*args, **kwargs)
+        test_lines = repr(test_ckt).split("\n")[1:]
+        gold_lines = repr(gold_ckt).split("\n")[1:]
+        assert test_lines == gold_lines
+
+    return _wrapper
+
+
+def _run_compilation_test(func=None, *, skip_check=False):
     if func is None:
-        return partial(_run_test, skip_check=skip_check)
+        return partial(_run_compilation_test, skip_check=skip_check)
 
     @wraps(func)
     def _wrapper(*args, **kwargs):
@@ -23,12 +36,13 @@ def _run_test(func=None, *, skip_check=False):
     return _wrapper
 
 
-@_run_test
+@_run_repr_test
 def test_binop():
     # Ops can be add, sub, mul, div, mod, and, or, xor.
     op = operator.add
 
     class _Test(m.Circuit):
+        name = "test_binop"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             I1=m.In(SmartBits[12]),
@@ -40,15 +54,30 @@ def test_binop():
         io.O2 @= val
         io.O3 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_binop"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[12]),
+            O1=m.Out(m.UInt[8]),
+            O2=m.Out(m.UInt[12]),
+            O3=m.Out(m.UInt[16]))
+        O1 = m.UInt[8]()
+        O1 @= op(m.zext_to(io.I0, 12), io.I1)[:8]
+        io.O1 @= O1
+        io.O2 @= op(m.zext_to(io.I0, 12), io.I1)
+        io.O3 @= op(m.zext_to(io.I0, 16), m.zext_to(io.I1, 16))
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_repr_test
 def test_comparison():
     # Ops can be eq, ne, ge, gt, le, lt.
-    op = operator.eq
+    op = operator.gt
 
     class _Test(m.Circuit):
+        name = "test_comparison"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             I1=m.In(SmartBits[12]),
@@ -58,13 +87,24 @@ def test_comparison():
         io.O1 @= val
         io.O2 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_comparison"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[12]),
+            O1=m.Out(m.UInt[1]),
+            O2=m.Out(m.UInt[16]))
+        io.O1 @= m.bits(op(m.zext_to(io.I0, 12), io.I1))
+        io.O2 @= m.zext_to(m.bits(op(m.zext_to(io.I0, 12), m.zext_to(io.I1, 12))), 16)
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_repr_test
 def test_lshift():
 
     class _Test(m.Circuit):
+        name = "test_lshift"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             I1=m.In(SmartBits[4]),
@@ -74,13 +114,26 @@ def test_lshift():
         io.O1 @= val
         io.O2 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_lshift"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[4]),
+            O1=m.Out(m.UInt[8]),
+            O2=m.Out(m.UInt[16]))
+        io.O1 @= io.I0 << m.zext_to(io.I1, 8)
+        O2 = m.UInt[16]()
+        O2 @= m.zext_to(io.I0 << m.zext_to(io.I1, 8), 16)
+        io.O2 @= O2
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_repr_test
 def test_rshift():
 
     class _Test(m.Circuit):
+        name = "test_rshift"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             I1=m.In(SmartBits[4]),
@@ -92,13 +145,30 @@ def test_rshift():
         io.O2 @= val
         io.O3 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_rshift"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[4]),
+            O1=m.Out(m.UInt[4]),
+            O2=m.Out(m.UInt[8]),
+            O3=m.Out(m.UInt[16]))
+        O1 = m.UInt[4]()
+        O1 @= (io.I0 >> m.zext_to(io.I1, 8))[:4]
+        io.O1 @= O1
+        io.O2 @= m.zext_to(io.I0 >> m.zext_to(io.I1, 8), 8)
+        O3 = m.UInt[16]()
+        O3 @= m.zext_to(io.I0 >> m.zext_to(io.I1, 8), 16)
+        io.O3 @= O3
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_repr_test
 def test_concat():
 
     class _Test(m.Circuit):
+        name = "test_concat"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             I1=m.In(SmartBits[4]),
@@ -109,15 +179,31 @@ def test_concat():
         io.O1 @= val
         io.O2 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_concat"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            I1=m.In(m.UInt[4]),
+            I2=m.In(m.UInt[10]),
+            O1=m.Out(m.UInt[4]),
+            O2=m.Out(m.UInt[16]))
+        O1 = m.UInt[4]()
+        O1 @= m.concat(io.I0 + m.zext_to(io.I1, 8), io.I2)[:4]
+        io.O1 @= O1
+        O2 = m.UInt[16]()
+        O2 @= m.concat(io.I0 + m.zext_to(io.I1, 8), io.I2)[:16]
+        io.O2 @= O2
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_repr_test
 def test_unary():
     # Ops can be invert, neg.
     op = operator.invert
 
     class _Test(m.Circuit):
+        name = "test_unary"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             O1=m.Out(SmartBits[4]),
@@ -126,15 +212,27 @@ def test_unary():
         io.O1 @= val
         io.O2 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_unary"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            O1=m.Out(m.UInt[4]),
+            O2=m.Out(m.UInt[16]))
+        O1 = m.UInt[4]()
+        O1 @= op(io.I0)[:4]
+        io.O1 @= O1
+        io.O2 @= op(m.zext_to(io.I0, 16))
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_repr_test
 def test_reduction():
     # Ops can be and, or, xor.
     op = operator.and_
 
     class _Test(m.Circuit):
+        name = "test_reduction"
         io = m.IO(
             I0=m.In(SmartBits[8]),
             O1=m.Out(SmartBits[1]),
@@ -143,10 +241,19 @@ def test_reduction():
         io.O1 @= val
         io.O2 @= val
 
-    return _Test
+    class _Gold(m.Circuit):
+        name = "test_reduction"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            O1=m.Out(m.UInt[1]),
+            O2=m.Out(m.UInt[16]))
+        io.O1 @= m.bits(m.reduce(op, io.I0))
+        io.O2 @= m.zext_to(m.bits(m.reduce(op, io.I0)), 16)
+
+    return _Test, _Gold
 
 
-@_run_test
+@_run_compilation_test
 def test_smoke():
 
     # NOTE(rsetaluri): We use a CircuitBuilder here just so we can dynamically
@@ -229,7 +336,7 @@ def test_smoke():
     return type(_TestTop.instances[0])
 
 
-@_run_test
+@_run_compilation_test
 def test_complex():
 
     class _Test(m.Circuit):
@@ -276,7 +383,7 @@ def test_type_constructors():
                     "SmartBits[n][m] not allowed",)
 
 
-@_run_test(skip_check=True)
+@_run_compilation_test(skip_check=True)
 def test_unsigned_add():
     class _Test(m.Circuit):
         io = m.IO(
