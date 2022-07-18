@@ -37,8 +37,11 @@ def _maybe_add_data(cls, fields, T, qualifier):
 
 
 class ReadyValidKind(ProductKind):
+    _field_names_ = {"valid": "valid", "ready": "ready"}
+
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {"valid": Bit, "ready": Bit}
+        fields = {cls._field_names_["valid"]: Bit,
+                  cls._field_names_["ready"]: Bit}
         _maybe_add_data(cls, fields, T, lambda x: x)
         return type(f"{cls}[{T}]", (cls, ), fields)
 
@@ -98,7 +101,8 @@ def _no_deq_error(self, value, when=True):
 
 class ReadyValidProducerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {"valid": Out(Bit), "ready": In(Bit)}
+        fields = {cls._field_names_["valid"]: Out(Bit),
+                  cls._field_names_["ready"]: In(Bit)}
         _maybe_add_data(cls, fields, T, Out)
         t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
         if T is None:
@@ -174,7 +178,8 @@ def _no_enq_error(self, value, when=True):
 
 class ReadyValidConsumerKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {"valid": In(Bit), "ready": Out(Bit)}
+        fields = {cls._field_names_["valid"]: In(Bit),
+                  cls._field_names_["ready"]: Out(Bit)}
         _maybe_add_data(cls, fields, T, In)
         t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
         if T is None:
@@ -248,7 +253,8 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
 
 class ReadyValidMonitorKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {"valid": In(Bit), "ready": In(Bit)}
+        fields = {cls._field_names_["valid"]: In(Bit),
+                  cls._field_names_["ready"]: In(Bit)}
         _maybe_add_data(cls, fields, T, In)
         return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
 
@@ -267,7 +273,8 @@ class ReadyValidMonitor(ReadyValid, metaclass=ReadyValidMonitorKind):
 
 class ReadyValidDriverKind(ReadyValidKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {"valid": Out(Bit), "ready": Out(Bit)}
+        fields = {cls._field_names_["valid"]: Out(Bit),
+                  cls._field_names_["ready"]: Out(Bit)}
         _maybe_add_data(cls, fields, T, Out)
         return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
 
@@ -348,11 +355,31 @@ class IrrevocableProducer(ReadyValidProducer, Irrevocable):
     pass
 
 
-class IrrevocableMonitor(ReadyValidMonitor, Decoupled):
+class IrrevocableMonitor(ReadyValidMonitor, Irrevocable):
     pass
 
 
-class IrrevocableDriver(ReadyValidDriver, Decoupled):
+class IrrevocableDriver(ReadyValidDriver, Irrevocable):
+    pass
+
+
+class CreditValid(ReadyValid):
+    _field_names_ = {"valid": "valid", "ready": "credit"}
+
+
+class CreditValidConsumer(ReadyValidConsumer, CreditValid):
+    pass
+
+
+class CreditValidProducer(ReadyValidProducer, CreditValid):
+    pass
+
+
+class CreditValidMonitor(ReadyValidMonitor, CreditValid):
+    pass
+
+
+class CreditValidDriver(ReadyValidDriver, CreditValid):
     pass
 
 

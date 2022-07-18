@@ -227,3 +227,9 @@ def test_qualify_ready_valid(qualifiers):
             with pytest.raises(TypeError) as e:
                 T.flip()
             assert str(e.value) == msg
+
+
+def test_credit_valid():
+    x = m.CreditValid[m.Bits[8]]
+    assert hasattr(x, "credit")
+    assert m.Producer(x) is m.Consumer(x).flip()
