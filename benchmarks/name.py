@@ -1,13 +1,20 @@
 """
-Lenny's results:
-    no_name 0.5316979909999999
-    with_name 1.0124146129999998
+Benchmark for compilation of named temporary values.
+
+Results tracked in benchmarks/name.csv.
 """
 import magma as m
-import timeit
+
+from benchmarks.benchmark_utils import (
+    get_platform,
+    get_processor_info,
+    get_git_commit,
+    get_average_time,
+)
 
 
-def name_bench(name=False):
+def name_bench(name: bool = False):
+
     class Foo(m.Circuit):
         T = m.Array[8, m.Tuple[m.Bit, m.Bits[8]]]
         io = m.IO(I=m.In(T), O=m.Out(T))
@@ -18,11 +25,27 @@ def name_bench(name=False):
             x = io.I
         io.O @= x
 
-    m.compile("build/Foo", Foo, output="mlir-verilog",
-              flatten_all_tuples=True)
+    opts = {
+        "flatten_all_tuples": True,
+    }
+    m.compile("benchmarks/build/Foo", Foo, output="mlir-verilog", **opts)
 
 
-no_name = timeit.Timer(lambda: name_bench()).timeit(number=10)
-with_name = timeit.Timer(lambda: name_bench(True)).timeit(number=10)
-print("no_name", no_name)
-print("with_name", with_name)
+def _main() -> int:
+    NUM_RUNS = 100
+    no_name = get_average_time(lambda: name_bench(), NUM_RUNS)
+    with_name = get_average_time(lambda: name_bench(name=True), NUM_RUNS)
+    data = {
+        "no_name": no_name,
+        "with_name": with_name,
+        "commit": get_git_commit(),
+        "platform": get_platform(),
+        "cpu": get_processor_info(),
+    }
+    print (",".join(data.keys()))
+    print (",".join(map(str, data.values())))
+    return 0
+
+
+if __name__ == "__main__":
+    exit(_main())
