@@ -13,7 +13,6 @@ from magma.logging import (
 from magma.placer import PlacerBase
 from magma.when import (push_defn_when_cond_stack, pop_defn_when_cond_stack,
                         WhenCondStack)
-from magma.when_finalize import finalize_when_conds
 
 
 _VERILOG_FILE_OPEN = """
@@ -99,6 +98,7 @@ class DefinitionContext(FinalizableDelegator):
         self._conditional_values = set()
         self._when_cond_stack = WhenCondStack(self)
         self._when_conds = []
+        self._conditional_driver = None
 
     @property
     def placer(self) -> PlacerBase:
@@ -133,10 +133,6 @@ class DefinitionContext(FinalizableDelegator):
             self._placer.place(inst)
 
     def finalize(self, defn):
-        when_conds = [x for x in self._when_conds
-                      if x.has_conditional_wires()]
-        if when_conds:
-            finalize_when_conds(self, when_conds)
         return super().finalize()
 
     @property
@@ -150,6 +146,14 @@ class DefinitionContext(FinalizableDelegator):
     def when_cond_stack(self):
         return self._when_cond_stack
 
+    def _make_conditional_driver(self):
+        """Monkey patched in magma.primitives.conditional_driver.py"""
+        raise NotImplementedError()
+
+    def get_conditional_driver(self):
+        if self._conditional_driver is None:
+            self._conditional_driver = self._make_conditional_driver()
+        return self._conditional_driver
 
 def push_definition_context(
         ctx: DefinitionContext, use_staged_logger: bool = False):

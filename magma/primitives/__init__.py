@@ -1,3 +1,5 @@
+from magma.primitives.conditional_driver import ConditionalDriver
+
 from magma.primitives.lut import LUT
 from magma.primitives.memory import Memory
 from magma.primitives.mux import Mux, mux, dict_lookup, list_lookup

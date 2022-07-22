@@ -824,9 +824,10 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         try:
             context = get_definition_context()
         except IndexError:
-            pass
+            self._parent_context = None
         else:
             context.add_builder(self)
+            self._parent_context = context
         self._name = name
         self._io = SingletonInstanceIO()
         self._finalized = False

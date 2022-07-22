@@ -2,6 +2,7 @@ import abc
 import contextlib
 import dataclasses
 import functools
+import networkx as nx
 import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
@@ -556,9 +557,9 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
         for i, value in enumerate(defn.conditional_values):
-            if None in value._finalized_conditional_drivers_:
+            if None in defn.conditional_drivers[value]:
                 default_value = defn.reverse_map[
-                    value._finalized_conditional_drivers_[None]]
+                    defn.conditional_drivers[value][None]]
                 idx = inst.interface.inputs_by_name().index(default_value)
 
                 offset = 0
@@ -685,6 +686,8 @@ class ModuleVisitor:
     def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
+        if not defn.conditional_values:
+            return True
         val_to_reg_map = self._make_regs(defn.conditional_values)
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
@@ -977,10 +980,16 @@ class ModuleVisitor:
         if module in self._visited:
             raise RuntimeError(f"Can not re-visit module")
         self._visited.add(module)
-        for predecessor in self._graph.predecessors(module):
-            if predecessor in self._visited:
-                continue
-            self.visit(predecessor)
+        try:
+            predecessors = self._graph.predecessors(module)
+        except nx.exception.NetworkXError:
+            # TODO: Unconnected conditional driver inst, should we just remove it?
+            pass
+        else:
+            for predecessor in predecessors:
+                if predecessor in self._visited:
+                    continue
+                self.visit(predecessor)
         for src, _, data in self._graph.in_edges(module, data=True):
             info = data["info"]
             src_port, dst_port = info["src"], info["dst"]

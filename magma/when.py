@@ -10,6 +10,10 @@ class WhenCondStack(Stack):
         super().push(value)
         self._defn.add_when_cond(value)
 
+    @property
+    def defn(self):
+        return self._defn
+
 
 # Contains a stack of WhenCondStacks.  Each active definition has its own when
 # cond stack (allows for multiple, active nested definitions).  Each when cond
