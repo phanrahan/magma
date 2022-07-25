@@ -42,7 +42,7 @@ def safe_peek_defn_when_cond_stack():
     return _DEFN_STACK.safe_peek()
 
 
-def reset_context():
+def reset_when_context():
     """
     Note, this needs to be called by tests that may raise an exception (to
     reset the global when condition state)
