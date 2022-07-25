@@ -54,8 +54,18 @@ def reset_context():
     _PREV_WHEN_COND = None
 
 
+class _OtherwiseCond:
+    """
+    Internal class used to for otherwise statements without conditions
+    """
+    is_otherwise_cond = True
+
+
 class WhenCtx:
     def __init__(self, cond, prev_cond=None):
+        if not (isinstance(cond, _OtherwiseCond) or cond.is_bit()):
+            raise TypeError("m.when expected Bit value")
+
         self._cond = cond
         # Get the current definition when cond stack
         self.when_cond_stack = _DEFN_STACK.peek()
@@ -76,7 +86,7 @@ class WhenCtx:
         # continuing a chain
         _PREV_WHEN_COND = None
 
-        self._is_otherwise = cond is None
+        self._is_otherwise = isinstance(cond, _OtherwiseCond)
         self._conditional_wires = {}
         self._debug_infos = {}
 
@@ -146,4 +156,4 @@ def elsewhen(cond):
 
 
 def otherwise():
-    return WhenCtx(None, _check_prev_when_cond('otherwise'))
+    return WhenCtx(_OtherwiseCond(), _check_prev_when_cond('otherwise'))

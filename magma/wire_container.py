@@ -203,7 +203,7 @@ class Wireable:
                     self, default_value, None, self.debug_info)
                 self.unwire(default_value)
                 self.debug_info = None
-            self._unconditional_wire(driver, debug_info)
+            self.unconditional_wire(driver, debug_info)
         when_cond_stack = peek_defn_when_cond_stack()
         self._conditional_driver.add_conditional_driver(
             self,
@@ -211,7 +211,7 @@ class Wireable:
             tuple(when_cond_stack),
             debug_info)
 
-    def _unconditional_wire(self, o, debug_info):
+    def unconditional_wire(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
@@ -222,7 +222,7 @@ class Wireable:
         if safe_peek_defn_when_cond_stack():
             self._conditional_wire(o, debug_info)
         else:
-            self._unconditional_wire(o, debug_info)
+            self.unconditional_wire(o, debug_info)
             if self._conditional_driver is not None:
                 self._conditional_driver.remove(self)
                 self._conditional_driver = None

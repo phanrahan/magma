@@ -1,8 +1,8 @@
 hw.module @test_when_nested_Array2TupleBitBits2Bit(%I_0_0__0: i1, %I_0_0__1: i2, %I_0_1__0: i1, %I_0_1__1: i2, %I_1_0__0: i1, %I_1_0__1: i2, %I_1_1__0: i1, %I_1_1__1: i2, %S: i1) -> (O_0__0: i1, O_0__1: i2, O_1__0: i1, O_1__1: i2) {
-    %4 = sv.reg {name = "O_0_0_reg"} : !hw.inout<i1>
-    %5 = sv.reg {name = "O_0_1_reg"} : !hw.inout<i2>
-    %6 = sv.reg {name = "O_0_2_reg"} : !hw.inout<i1>
-    %7 = sv.reg {name = "O_0_3_reg"} : !hw.inout<i2>
+    %4 = sv.reg {name = "O_0_reg"} : !hw.inout<i1>
+    %5 = sv.reg {name = "O_1_reg"} : !hw.inout<i2>
+    %6 = sv.reg {name = "O_2_reg"} : !hw.inout<i1>
+    %7 = sv.reg {name = "O_3_reg"} : !hw.inout<i2>
     sv.alwayscomb {
         sv.bpassign %4, %I_1_0__0 : i1
         sv.bpassign %5, %I_1_0__1 : i2

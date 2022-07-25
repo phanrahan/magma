@@ -143,6 +143,9 @@ class Type(object):
         # Returns true if it is a recursive type
         raise NotImplementedError()
 
+    def is_bit(self):
+        return False
+
 
 class Kind(type):
     # Subclasses only need to implement one of these methods.

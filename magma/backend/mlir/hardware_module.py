@@ -603,27 +603,39 @@ class ModuleVisitor:
         when_cond_map = {}
         reverse_map = defn.reverse_map
         for cond in when_conds:
-            if cond.cond is None:
+            if getattr(cond.cond, 'is_otherwise_cond', False):
                 # Else case, we append to previous false_stmts
                 stmts = when_cond_map[cond.prev_cond].else_block
             else:
-                idx = inst.interface.inputs_by_name().index(
-                    reverse_map[cond.cond])
+                cond_offset = 0
+
+                def _visit_input(x):
+                    nonlocal cond_offset
+                    cond_offset += 1
+                for name in inst.interface.inputs_by_name():
+                    if name == reverse_map[cond.cond]:
+                        break
+                    visit_magma_value_or_value_wrapper_by_direction(
+                        getattr(inst, name),
+                        _visit_input,
+                        _assert_no_outputs,
+                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                    )
                 if cond.prev_cond is not None:
                     # elif, we append if statement inside previous false_stmts
                     with push_block(when_cond_map[cond.prev_cond].else_block):
-                        stmt = sv.IfOp(operands=[module.operands[idx]])
+                        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
                         when_cond_map[cond] = stmt
                         stmts = stmt.then_block
                 elif cond.parent is not None:
                     # nested, we insert inside parents true_stmts
                     with push_block(when_cond_map[cond.parent].then_block):
-                        stmt = sv.IfOp(operands=[module.operands[idx]])
+                        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
                         when_cond_map[cond] = stmt
                         stmts = stmt.then_block
                 else:
                     # we insert into top level
-                    stmt = sv.IfOp(operands=[module.operands[idx]])
+                    stmt = sv.IfOp(operands=[module.operands[cond_offset]])
                     when_cond_map[cond] = stmt
                     stmts = stmt.then_block
             with push_block(stmts):
@@ -663,6 +675,7 @@ class ModuleVisitor:
     def _make_regs(self, conditional_values):
         val_to_reg_map = {}
         for i, value in enumerate(conditional_values):
+            name = str(value.name)
 
             offset = 0
 
@@ -670,7 +683,7 @@ class ModuleVisitor:
                 nonlocal offset
                 reg = self._ctx.new_value(
                     hw.InOutType(magma_type_to_mlir_type(type(x))))
-                sv.RegOp(name=f"O_{i}_{offset}_reg", results=[reg])
+                sv.RegOp(name=f"{name}_{offset}_reg", results=[reg])
                 val_to_reg_map[x] = reg
                 offset += 1
 

@@ -118,6 +118,9 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
             o = Bit(o)
         return super().wire(o, debug_info)
 
+    def is_bit(self):
+        return True
+
 
 BitIn = Bit[Direction.In]
 BitOut = Bit[Direction.Out]

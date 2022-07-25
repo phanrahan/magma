@@ -95,9 +95,7 @@ class DefinitionContext(FinalizableDelegator):
         self._logs = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
-        self._conditional_values = set()
         self._when_cond_stack = WhenCondStack(self)
-        self._when_conds = []
         self._conditional_driver = None
 
     @property
@@ -133,14 +131,10 @@ class DefinitionContext(FinalizableDelegator):
             self._placer.place(inst)
 
     def finalize(self, defn):
-        return super().finalize()
-
-    @property
-    def when_conds(self):
-        return self._when_conds
+        super().finalize()
 
     def add_when_cond(self, cond):
-        self._when_conds.append(cond)
+        self.get_conditional_driver().add_when_cond(cond)
 
     @property
     def when_cond_stack(self):
