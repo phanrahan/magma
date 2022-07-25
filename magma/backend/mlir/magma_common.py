@@ -34,19 +34,21 @@ def contains_tuple(T: Kind):
     return False
 
 
+def tuple_key_to_str(k):
+    try:
+        int(k)
+        return f"_{k}"
+    except ValueError:
+        return str(k)
+
+
 def mlir_name(name):
     if isinstance(name, ArrayRef):
         array_name = mlir_name(name.array.name)
         return f"{array_name}_{name.index}"
     if isinstance(name, TupleRef):
         tuple_name = mlir_name(name.tuple.name)
-        index = name.index
-        try:
-            int(index)
-            # python/coreir don't allow pure integer names
-            index = f"_{index}"
-        except ValueError:
-            pass
+        index = tuple_key_to_str(name.index)
         return f"{tuple_name}_{index}"
     return name.qualifiedname("_")
 

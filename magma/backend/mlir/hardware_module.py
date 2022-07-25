@@ -23,7 +23,8 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
-    visit_magma_value_or_value_wrapper_by_direction
+    visit_magma_value_or_value_wrapper_by_direction,
+    tuple_key_to_str
 )
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
@@ -105,13 +106,7 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
     if issubclass(type, m_Tuple):
-        def to_str(k):
-            try:
-                int(k)
-                return f"_{k}"
-            except ValueError:
-                return str(k)
-        fields = {to_str(k): magma_type_to_mlir_type(t)
+        fields = {tuple_key_to_str(k): magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return hw.StructType(tuple(fields.items()))
 
