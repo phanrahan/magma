@@ -134,6 +134,10 @@ class DefinitionContext(FinalizableDelegator):
         super().finalize()
 
     def add_when_cond(self, cond):
+        """
+        Called when a WhenCtx object is created to associate it with its
+        enclosing definition
+        """
         self.get_conditional_driver().add_when_cond(cond)
 
     @property

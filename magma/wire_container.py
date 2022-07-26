@@ -41,6 +41,7 @@ class Wire:
 
     Each wire is represented by a bit.
     """
+
     def __init__(self, bit):
         self._bit = bit
         self._driving = []
@@ -193,7 +194,8 @@ class Wireable:
     def _conditional_wire(self, o, debug_info):
         if not self._conditional_driver:
             when_cond_stack = peek_defn_when_cond_stack()
-            self._conditional_driver = when_cond_stack.defn.get_conditional_driver()
+            self._conditional_driver = \
+                when_cond_stack.defn.get_conditional_driver()
             driver = self._conditional_driver.make_conditional_output(self)
             if self.driven():
                 default_value = self.value()

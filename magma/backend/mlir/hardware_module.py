@@ -585,10 +585,10 @@ class ModuleVisitor:
         defn = type(inst)
 
         for i, value in enumerate(defn.conditional_values):
-            if None in defn.conditional_drivers[value]:
+            if None in defn.conditionally_driven_info[value]:
                 # Normal default value logic
-                default_value_name = defn.reverse_map[
-                    defn.conditional_drivers[value][None]]
+                default_value_name = defn.value_to_port_name_map[
+                    defn.conditionally_driven_info[value][None]]
                 offset = self._compute_flattened_operand_offset(
                     inst, default_value_name)
 
@@ -630,7 +630,7 @@ class ModuleVisitor:
 
         cond_offset = self._compute_flattened_operand_offset(
             inst,
-            defn.reverse_map[cond.cond])
+            defn.value_to_port_name_map[cond.cond])
 
         stmt = sv.IfOp(operands=[module.operands[cond_offset]])
         when_cond_map[cond] = stmt
@@ -691,7 +691,7 @@ class ModuleVisitor:
                 for target, value in cond.conditional_wires.items():
                     value_offset = self._compute_flattened_operand_offset(
                         inst,
-                        defn.reverse_map[value])
+                        defn.value_to_port_name_map[value])
 
                     visit_magma_value_or_value_wrapper_by_direction(
                         target,

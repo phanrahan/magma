@@ -88,7 +88,6 @@ class WhenCtx:
 
         self._is_otherwise = isinstance(cond, _OtherwiseCond)
         self._conditional_wires = {}
-        self._debug_infos = {}
 
     def __enter__(self):
         self.when_cond_stack.push(self)
@@ -121,10 +120,8 @@ class WhenCtx:
 
     def add_conditional_wire(self, input, output, debug_info):
         self._conditional_wires[input] = output
-        self._debug_infos[input, output] = debug_info
 
     def remove_conditional_wire(self, input):
-        del self._debug_infos[input, self._conditional_wires[input]]
         del self._conditional_wires[input]
 
     def has_conditional_wires(self):
@@ -133,9 +130,6 @@ class WhenCtx:
 
     def add_child(self, child):
         return self._children.append(child)
-
-    def get_debug_info(self, input, output):
-        return self._debug_infos[input, output]
 
 
 when = WhenCtx
