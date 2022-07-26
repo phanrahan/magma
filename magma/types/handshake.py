@@ -37,11 +37,11 @@ def _maybe_add_data(cls, fields, T, qualifier):
 
 
 class HandShakeKind(ProductKind):
-    _field_names_ = {"valid": "valid", "ready": "ready"}
+    _field_names_ = None  # Must be defined by implementation
 
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {cls._field_names_["valid"]: Bit,
-                  cls._field_names_["ready"]: Bit}
+        fields = {cls._field_names_["handshake_output"]: Bit,
+                  cls._field_names_["handshake_input"]: Bit}
         _maybe_add_data(cls, fields, T, lambda x: x)
         return type(f"{cls}[{T}]", (cls, ), fields)
 
@@ -66,7 +66,88 @@ class HandShakeKind(ProductKind):
         return data.undirected_t
 
 
-class ReadyValid(Product, metaclass=HandShakeKind):
+class HandShake(Product, metaclass=HandShakeKind):
+    def fired(self):
+        """
+        Returns a bit that is high when ready and valid are both high
+        """
+        raise NotImplementedError
+
+
+class HandShakeProducerKind(HandShakeKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {cls._field_names_["handshake_output"]: Out(Bit),
+                  cls._field_names_["handshake_input"]: In(Bit)}
+        _maybe_add_data(cls, fields, T, Out)
+        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
+        if T is None:
+            # Remove deq/no_deq methods if no data.
+            t.deq = _deq_error
+            t.no_deq = _no_deq_error
+        return t
+
+    def flip(cls):
+        return Consumer(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Producer({cls.__name__})"
+
+
+class HandShakeConsumerKind(HandShakeKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {cls._field_names_["handshake_output"]: In(Bit),
+                  cls._field_names_["handshake_input"]: Out(Bit)}
+        _maybe_add_data(cls, fields, T, In)
+        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
+        if T is None:
+            t.enq = _enq_error
+            t.no_enq = _no_enq_error
+        return t
+
+    def flip(cls):
+        return Producer(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Consumer({cls.__name__})"
+
+
+class HandShakeMonitorKind(HandShakeKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {cls._field_names_["handshake_output"]: In(Bit),
+                  cls._field_names_["handshake_input"]: In(Bit)}
+        _maybe_add_data(cls, fields, T, In)
+        return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
+
+    def flip(cls):
+        return Driver(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Monitor({cls.__name__})"
+
+
+class HandShakeDriverKind(HandShakeKind):
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        fields = {cls._field_names_["handshake_output"]: Out(Bit),
+                  cls._field_names_["handshake_input"]: Out(Bit)}
+        _maybe_add_data(cls, fields, T, Out)
+        return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
+
+    def flip(cls):
+        return Monitor(cls)
+
+    def __str__(cls):
+        if not cls.is_bound:
+            return cls.__name__
+        return f"Driver({cls.__name__})"
+
+
+class ReadyValid(HandShake):
     """
     An I/O Bundle containing 'valid' and 'ready' signals that handshake
     the transfer of data stored in the 'data' subfield.
@@ -83,12 +164,26 @@ class ReadyValid(Product, metaclass=HandShakeKind):
     The actual semantics of ready/valid are enforced via the use of concrete
     subclasses.
     """
+    _field_names_ = {"handshake_output": "valid", "handshake_input": "ready"}
 
+
+class _ProducerFiredMixin:
     def fired(self):
-        """
-        Returns a bit that is high when ready and valid are both high
-        """
-        raise NotImplementedError
+        if not self.ready.driven():
+            raise ReadyValidException(
+                "Cannot invoke fired on producer when ready isn't driven"
+            )
+        return self.ready.value() & self.valid
+
+
+class _ConsumerFiredMixin:
+    def fired(self):
+        if not self.valid.driven():
+            raise ReadyValidException(
+                "Cannot invoke fired on consumer when valid isn't driven"
+            )
+
+        return self.ready & self.valid.value()
 
 
 def _deq_error(self, value, when=True):
@@ -99,38 +194,12 @@ def _no_deq_error(self, value, when=True):
     raise Exception(f"{type(self)} does not support no_deq")
 
 
-class ReadyValidProducerKind(HandShakeKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {cls._field_names_["valid"]: Out(Bit),
-                  cls._field_names_["ready"]: In(Bit)}
-        _maybe_add_data(cls, fields, T, Out)
-        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
-        if T is None:
-            # Remove deq/no_deq methods if no data.
-            t.deq = _deq_error
-            t.no_deq = _no_deq_error
-        return t
-
-    def flip(cls):
-        return Consumer(cls)
-
-    def __str__(cls):
-        if not cls.is_bound:
-            return cls.__name__
-        return f"Producer(ReadyValid[{cls.undirected_data_t}])"
+class ReadyValidProducerKind(HandShakeProducerKind):
+    pass
 
 
-class ReadyValidProducer(ReadyValid, metaclass=ReadyValidProducerKind):
-    def fired(self):
-        """
-        Returns a bit that is high when ready and valid are both high
-        """
-        if not self.ready.driven():
-            raise ReadyValidException(
-                "Cannot invoke fired on producer when ready isn't driven"
-            )
-        return self.ready.value() & self.valid
-
+class ReadyValidProducer(_ProducerFiredMixin, ReadyValid,
+                         metaclass=ReadyValidProducerKind):
     def deq(self, when=True):
         """
         Assert ready on this port and return associated data when `when` is
@@ -176,35 +245,12 @@ def _no_enq_error(self, value, when=True):
     raise Exception(f"{type(self)} does not support no_enq")
 
 
-class ReadyValidConsumerKind(HandShakeKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {cls._field_names_["valid"]: In(Bit),
-                  cls._field_names_["ready"]: Out(Bit)}
-        _maybe_add_data(cls, fields, T, In)
-        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
-        if T is None:
-            t.enq = _enq_error
-            t.no_enq = _no_enq_error
-        return t
-
-    def flip(cls):
-        return Producer(cls)
-
-    def __str__(cls):
-        if not cls.is_bound:
-            return cls.__name__
-        return f"Consumer(ReadyValid[{cls.undirected_data_t}])"
+class ReadyValidConsumerKind(HandShakeConsumerKind):
+    pass
 
 
-class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
-    def fired(self):
-        if not self.valid.driven():
-            raise ReadyValidException(
-                "Cannot invoke fired on consumer when valid isn't driven"
-            )
-
-        return self.ready & self.valid.value()
-
+class ReadyValidConsumer(_ConsumerFiredMixin, ReadyValid,
+                         metaclass=ReadyValidConsumerKind):
     def enq(self, value, when=True):
         """
         Produces the data `value` when `when` is high
@@ -251,40 +297,16 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
             self.data @= 0
 
 
-class ReadyValidMonitorKind(HandShakeKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {cls._field_names_["valid"]: In(Bit),
-                  cls._field_names_["ready"]: In(Bit)}
-        _maybe_add_data(cls, fields, T, In)
-        return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
-
-    def flip(cls):
-        return Driver(cls)
-
-    def __str__(cls):
-        if not cls.is_bound:
-            return cls.__name__
-        return f"Monitor(ReadyValid[{cls.undirected_data_t}])"
+class ReadyValidMonitorKind(HandShakeMonitorKind):
+    pass
 
 
 class ReadyValidMonitor(ReadyValid, metaclass=ReadyValidMonitorKind):
     pass
 
 
-class ReadyValidDriverKind(HandShakeKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        fields = {cls._field_names_["valid"]: Out(Bit),
-                  cls._field_names_["ready"]: Out(Bit)}
-        _maybe_add_data(cls, fields, T, Out)
-        return type(f"{cls}[{T}]", (cls, ReadyValid[T]), fields)
-
-    def flip(cls):
-        return Monitor(cls)
-
-    def __str__(cls):
-        if not cls.is_bound:
-            return cls.__name__
-        return f"Driver(ReadyValid[{cls.undirected_data_t}])"
+class ReadyValidDriverKind(HandShakeDriverKind):
+    pass
 
 
 class ReadyValidDriver(ReadyValid, metaclass=ReadyValidDriverKind):
@@ -363,28 +385,30 @@ class IrrevocableDriver(ReadyValidDriver, Irrevocable):
     pass
 
 
-class CreditValid(ReadyValid):
-    _field_names_ = {"valid": "valid", "ready": "credit"}
+class CreditValid(HandShake):
+    _field_names_ = {"handshake_output": "valid", "handshake_input": "credit"}
 
 
-class CreditValidConsumer(ReadyValidConsumer, CreditValid):
+class CreditValidConsumer(_ConsumerFiredMixin, CreditValid,
+                          metaclass=HandShakeConsumerKind):
     pass
 
 
-class CreditValidProducer(ReadyValidProducer, CreditValid):
+class CreditValidProducer(_ProducerFiredMixin, CreditValid,
+                          metaclass=HandShakeProducerKind):
     pass
 
 
-class CreditValidMonitor(ReadyValidMonitor, CreditValid):
+class CreditValidMonitor(CreditValid, metaclass=HandShakeMonitorKind):
     pass
 
 
-class CreditValidDriver(ReadyValidDriver, CreditValid):
+class CreditValidDriver(CreditValid, metaclass=HandShakeDriverKind):
     pass
 
 
 def Consumer(T: HandShakeKind):
-    if issubclass(T, ReadyValid):
+    if issubclass(T, HandShake):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return IrrevocableConsumer[undirected_T]
@@ -398,7 +422,7 @@ def Consumer(T: HandShakeKind):
 
 
 def Producer(T: HandShakeKind):
-    if issubclass(T, ReadyValid):
+    if issubclass(T, HandShake):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return IrrevocableProducer[undirected_T]
@@ -412,7 +436,7 @@ def Producer(T: HandShakeKind):
 
 
 def Monitor(T: HandShakeKind):
-    if issubclass(T, ReadyValid):
+    if issubclass(T, HandShake):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return IrrevocableMonitor[undirected_T]
@@ -426,7 +450,7 @@ def Monitor(T: HandShakeKind):
 
 
 def Driver(T: HandShakeKind):
-    if issubclass(T, ReadyValid):
+    if issubclass(T, HandShake):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return IrrevocableDriver[undirected_T]
@@ -440,7 +464,7 @@ def Driver(T: HandShakeKind):
 
 
 def Undirected(T: HandShakeKind):
-    if issubclass(T, ReadyValid):
+    if issubclass(T, HandShake):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
         return Irrevocable[undirected_T]
