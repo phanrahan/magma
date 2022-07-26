@@ -167,6 +167,8 @@ class Wire:
 class Wireable:
     def __init__(self):
         self._wire = Wire(self)
+        # If this value is conditionally driven, this will not be None
+        # (assigned inside _conditional_wire)
         self._conditional_driver = None
 
     def wired(self):
@@ -193,17 +195,27 @@ class Wireable:
 
     def _conditional_wire(self, o, debug_info):
         if not self._conditional_driver:
+            # Get a reference to the ConditionalDriver instance for this defn
+            # context
             when_cond_stack = peek_defn_when_cond_stack()
             self._conditional_driver = \
                 when_cond_stack.defn.get_conditional_driver()
+
+            # Create an output port for this value
             driver = self._conditional_driver.make_conditional_output(self)
+
+            # If we're already driven, add current driver as a default value
             if self.driven():
                 default_value = self.value()
                 self._conditional_driver.add_conditional_driver(
                     self, default_value, None, self.debug_info)
                 self.unwire(default_value)
                 self.debug_info = None
+
+            # Unconditionaly wire the driver output (to avoid recursive
+            # conditional logic)
             self.unconditional_wire(driver, debug_info)
+
         when_cond_stack = peek_defn_when_cond_stack()
         self._conditional_driver.add_conditional_driver(
             self,
