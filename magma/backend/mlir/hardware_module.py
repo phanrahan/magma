@@ -572,11 +572,21 @@ class ModuleVisitor:
     def _emit_default_drivers(self, val_to_reg_map, module):
         """
         Emit default assignments (i.e. values driven before a when statement)
+
+        E.g
+            x @= 1
+            m.when(y):
+                x @= 2
+
+        We use the special case condition `None` to indicate a default value (1
+        in the previous example)
         """
         inst = module.module
         defn = type(inst)
+
         for i, value in enumerate(defn.conditional_values):
             if None in defn.conditional_drivers[value]:
+                # Normal default value logic
                 default_value_name = defn.reverse_map[
                     defn.conditional_drivers[value][None]]
                 offset = self._compute_flattened_operand_offset(
@@ -587,29 +597,45 @@ class ModuleVisitor:
                     sv.BPAssignOp(operands=[val_to_reg_map[x],
                                             module.operands[offset]]),
                     offset += 1
+            elif (isinstance(value.name.root(), InstRef) and
+                  value.name.root().inst._is_magma_memory_):
+                # Magma memories have a special implicit default value of 0
+                # used to implement conditional write behavior
+                #
+                # TODO(when): We could do the same for registers with an
+                # enable?
+                def _visit_input(x):
+                    zero = self.make_constant(type(x), 0)
+                    sv.BPAssignOp(operands=[val_to_reg_map[x], zero])
+            else:
+                # No default value, skip
+                continue
 
-                visit_magma_value_or_value_wrapper_by_direction(
-                    value,
-                    _visit_input,
-                    _assert_not_visited,
-                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                )
-            elif (isinstance(value.name, InstRef) and
-                  value.name.inst._is_magma_memory_):
-                # TODO(when): nested type default value for memory
-                zero = self.make_constant(type(value), 0)
-                sv.BPAssignOp(operands=[val_to_reg_map[value], zero])
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                _visit_input,
+                _assert_not_visited,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
 
     def _make_if(self, cond, module, when_cond_map):
+        """
+        Construct an `if` statement based on the value `cond` and update
+        `when_cond_map` to store the mapping from original `when` statement
+
+        Returns a reference to `then_block` used to populate the assignments
+        """
         inst = module.module
         defn = type(inst)
+
         cond_offset = self._compute_flattened_operand_offset(
             inst,
             defn.reverse_map[cond.cond])
+
         stmt = sv.IfOp(operands=[module.operands[cond_offset]])
         when_cond_map[cond] = stmt
-        stmts = stmt.then_block
-        return stmts
+
+        return stmt.then_block
 
     def _construct_ifs(self, val_to_reg_map, module):
         """

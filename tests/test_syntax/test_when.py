@@ -5,6 +5,7 @@ import pytest
 
 import magma as m
 from magma.testing import check_files_equal
+from magma.type_utils import type_to_sanitized_string
 
 import fault as f
 
@@ -312,15 +313,22 @@ def test_when_multiple_drivers():
     _update_gold("test_when_multiple_drivers.mlir")
 
 
-def test_when_memory():
+@pytest.mark.parametrize('T, bits_to_fault_value', [
+    (m.Bits[8], lambda x: x),
+    (m.Tuple[m.Bit, m.Bits[7]], lambda x: (bool(x[7]), int(x[:7])))
+])
+def test_when_memory(T, bits_to_fault_value):
+    T_str = type_to_sanitized_string(T)
+
     class test_when_memory(m.Circuit):
+        name = f"test_when_memory_{T_str}"
         io = m.IO(
-            data0=m.In(m.Bits[8]), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
-            data1=m.In(m.Bits[8]), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
-            out=m.Out(m.Bits[8])
+            data0=m.In(T), addr0=m.In(m.Bits[5]), en0=m.In(m.Bit),
+            data1=m.In(T), addr1=m.In(m.Bits[5]), en1=m.In(m.Bit),
+            out=m.Out(T)
         ) + m.ClockIO()
 
-        mem = m.Memory(32, m.Bits[8])()
+        mem = m.Memory(32, T)()
         with m.when(io.en0):
             mem[io.addr0] @= io.data0
             io.out @= mem[io.addr1]
@@ -328,24 +336,24 @@ def test_when_memory():
             mem[io.addr1] @= io.data1
             io.out @= mem[io.addr0]
         with m.otherwise():
-            io.out @= 0xFF
+            io.out @= m.from_bits(T, m.Bits[8](0xFF))
 
-    m.compile("build/test_when_memory", test_when_memory,
-              output="mlir")
+    m.compile(f"build/test_when_memory_{T_str}", test_when_memory,
+              output="mlir", flatten_all_tuples=True)
 
-    if _check_gold("test_when_memory.mlir"):
+    if _check_gold("test_when_memory_{T_str}.mlir"):
         return
 
     tester = f.SynchronousTester(test_when_memory)
     tester.advance_cycle()
-    tester.expect(test_when_memory.out, 0xFF)
+    tester.expect(test_when_memory.out, bits_to_fault_value(m.Bits[8](0xFF)))
 
     tester.advance_cycle()
 
-    tester.poke(test_when_memory.data0, 0xDE)
+    tester.poke(test_when_memory.data0, bits_to_fault_value(m.Bits[8](0xDE)))
     tester.poke(test_when_memory.addr0, 0xAD)
 
-    tester.poke(test_when_memory.data1, 0xBE)
+    tester.poke(test_when_memory.data1, bits_to_fault_value(m.Bits[8](0xBE)))
     tester.poke(test_when_memory.addr1, 0xEF)
     tester.poke(test_when_memory.en0, 1)
     tester.advance_cycle()
@@ -355,19 +363,21 @@ def test_when_memory():
     tester.poke(test_when_memory.en1, 1)
     tester.advance_cycle()
 
-    tester.expect(test_when_memory.out, 0xDE)
+    tester.expect(test_when_memory.out, bits_to_fault_value(m.Bits[8](0xDE)))
     tester.poke(test_when_memory.en0, 1)
     tester.poke(test_when_memory.en1, 0)
     tester.poke(test_when_memory.addr1, 0xAD)
     tester.advance_cycle()
 
-    tester.expect(test_when_memory.out, 0xDE)
+    tester.expect(test_when_memory.out, bits_to_fault_value(m.Bits[8](0xDE)))
 
     tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            directory=os.path.join(os.path.dirname(__file__),
-                                                  "build"))
+                                                  "build"),
+                           magma_opts={"flatten_all_tuples": True},
+                           flags=['-Wno-UNUSED'])
 
-    _update_gold("test_when_memory.mlir")
+    _update_gold(f"test_when_memory_{T_str}.mlir")
 
 
 @pytest.mark.parametrize(
@@ -380,14 +390,7 @@ def test_when_memory():
     ]
 )
 def test_when_nested(T, x):
-
-    T_str = str(T)\
-        .replace('(', '')\
-        .replace(')', '')\
-        .replace('[', '')\
-        .replace(']', '')\
-        .replace(',', '')\
-        .replace(' ', '')
+    T_str = type_to_sanitized_string(T)
 
     class test_when_nested(m.Circuit):
         name = f"test_when_nested_{T_str}"
