@@ -1025,20 +1025,24 @@ class ModuleVisitor:
         if isinstance(module.module, MagmaInstanceWrapper):
             return self.visit_instance_wrapper(module)
 
-    def visit(self, module: MagmaModuleLike):
-        if module in self._visited:
-            raise RuntimeError(f"Can not re-visit module")
-        self._visited.add(module)
+    def _visit_predecessors(self, module):
         try:
             predecessors = self._graph.predecessors(module)
         except nx.exception.NetworkXError:
-            # TODO: Unconnected conditional driver inst, should we just remove it?
+            # TODO(when): Unconnected conditional driver inst, should we just
+            # remove it earlier?
             pass
         else:
             for predecessor in predecessors:
                 if predecessor in self._visited:
                     continue
                 self.visit(predecessor)
+
+    def visit(self, module: MagmaModuleLike):
+        if module in self._visited:
+            raise RuntimeError("Can not re-visit module")
+        self._visited.add(module)
+        self._visit_predecessors(module)
         for src, _, data in self._graph.in_edges(module, data=True):
             info = data["info"]
             src_port, dst_port = info["src"], info["dst"]
