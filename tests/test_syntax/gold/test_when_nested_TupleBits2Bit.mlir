@@ -1,6 +1,6 @@
 hw.module @test_when_nested_TupleBits2Bit(%I_0__0: i2, %I_0__1: i1, %I_1__0: i2, %I_1__1: i1, %S: i1) -> (O__0: i2, O__1: i1) {
-    %2 = sv.reg {name = "test_when_nested_TupleBits2Bit.O[0]_0_reg"} : !hw.inout<i2>
-    %3 = sv.reg {name = "test_when_nested_TupleBits2Bit.O[1]_0_reg"} : !hw.inout<i1>
+    %2 = sv.reg {name = "test_when_nested_TupleBits2Bit.O[0]_reg"} : !hw.inout<i2>
+    %3 = sv.reg {name = "test_when_nested_TupleBits2Bit.O[1]_reg"} : !hw.inout<i1>
     sv.alwayscomb {
         sv.bpassign %2, %I_1__0 : i2
         sv.bpassign %3, %I_1__1 : i1

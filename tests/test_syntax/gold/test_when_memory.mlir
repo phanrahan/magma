@@ -14,11 +14,11 @@ hw.module @test_when_memory(%data0: i8, %addr0: i5, %en0: i1, %data1: i8, %addr1
     %0 = hw.constant 1 : i1
     %5 = hw.instance "Memory_inst0" @Memory(RADDR: %1: i5, CLK: %CLK: i1, WADDR: %2: i5, WDATA: %3: i8, WE: %4: i1) -> (RDATA: i8)
     %6 = hw.constant 255 : i8
-    %8 = sv.reg {name = "WADDR_0_reg"} : !hw.inout<i5>
-    %9 = sv.reg {name = "WDATA_0_reg"} : !hw.inout<i8>
-    %10 = sv.reg {name = "WE_0_reg"} : !hw.inout<i1>
-    %11 = sv.reg {name = "RADDR_0_reg"} : !hw.inout<i5>
-    %12 = sv.reg {name = "out_0_reg"} : !hw.inout<i8>
+    %8 = sv.reg {name = "WADDR_reg"} : !hw.inout<i5>
+    %9 = sv.reg {name = "WDATA_reg"} : !hw.inout<i8>
+    %10 = sv.reg {name = "WE_reg"} : !hw.inout<i1>
+    %11 = sv.reg {name = "RADDR_reg"} : !hw.inout<i5>
+    %12 = sv.reg {name = "out_reg"} : !hw.inout<i8>
     sv.alwayscomb {
         %13 = hw.constant 0 : i5
         sv.bpassign %8, %13 : i5

@@ -62,8 +62,8 @@ from magma.view import PortView
 MlirValueList = List[MlirValue]
 
 
-def _assert_no_outputs(x):
-    assert False, "Expected only inputs"
+def _assert_not_visited(x):
+    assert False, "Did not expect this visitor to be used"
 
 
 def _get_defn_or_decl_output_name(
@@ -545,6 +545,30 @@ class ModuleVisitor:
             )
             return True
 
+    def _compute_flattened_operand_offset(self, inst, target_name):
+        """
+        Computer the correct offset index for the port named `target_name`
+        after tuples have been flattened
+        """
+        offset = 0
+
+        def _visit(x):
+            nonlocal offset
+            offset += 1
+
+        for name, value in zip(inst.interface.inputs_by_name(),
+                               inst.interface.inputs(),):
+            if name == target_name:
+                break
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                _visit,
+                _assert_not_visited,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+
+        return offset
+
     def _emit_default_drivers(self, val_to_reg_map, module):
         """
         Emit default assignments (i.e. values driven before a when statement)
@@ -553,25 +577,10 @@ class ModuleVisitor:
         defn = type(inst)
         for i, value in enumerate(defn.conditional_values):
             if None in defn.conditional_drivers[value]:
-                default_value = defn.reverse_map[
+                default_value_name = defn.reverse_map[
                     defn.conditional_drivers[value][None]]
-                idx = inst.interface.inputs_by_name().index(default_value)
-
-                offset = 0
-
-                def _visit_input(x):
-                    nonlocal offset
-                    offset += 1
-
-                for j, input in enumerate(inst.interface.inputs()):
-                    if j == idx:
-                        break
-                    visit_magma_value_or_value_wrapper_by_direction(
-                        input,
-                        _visit_input,
-                        _assert_no_outputs,
-                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                    )
+                offset = self._compute_flattened_operand_offset(
+                    inst, default_value_name)
 
                 def _visit_input(x):
                     nonlocal offset
@@ -582,7 +591,7 @@ class ModuleVisitor:
                 visit_magma_value_or_value_wrapper_by_direction(
                     value,
                     _visit_input,
-                    _assert_no_outputs,
+                    _assert_not_visited,
                     flatten_all_tuples=self._ctx.opts.flatten_all_tuples
                 )
             elif (isinstance(value.name, InstRef) and
@@ -591,68 +600,43 @@ class ModuleVisitor:
                 zero = self.make_constant(type(value), 0)
                 sv.BPAssignOp(operands=[val_to_reg_map[value], zero])
 
+    def _make_if(self, cond, module, when_cond_map):
+        inst = module.module
+        defn = type(inst)
+        cond_offset = self._compute_flattened_operand_offset(
+            inst,
+            defn.reverse_map[cond.cond])
+        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
+        when_cond_map[cond] = stmt
+        stmts = stmt.then_block
+        return stmts
+
     def _construct_ifs(self, val_to_reg_map, module):
         inst = module.module
         defn = type(inst)
         when_conds = defn.when_conds
         when_cond_map = {}
-        reverse_map = defn.reverse_map
         for cond in when_conds:
             if getattr(cond.cond, 'is_otherwise_cond', False):
                 # Else case, we append to previous false_stmts
                 stmts = when_cond_map[cond.prev_cond].else_block
             else:
-                cond_offset = 0
-
-                def _visit_input(x):
-                    nonlocal cond_offset
-                    cond_offset += 1
-                for name in inst.interface.inputs_by_name():
-                    if name == reverse_map[cond.cond]:
-                        break
-                    visit_magma_value_or_value_wrapper_by_direction(
-                        getattr(inst, name),
-                        _visit_input,
-                        _assert_no_outputs,
-                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                    )
                 if cond.prev_cond is not None:
                     # elif, we append if statement inside previous false_stmts
                     with push_block(when_cond_map[cond.prev_cond].else_block):
-                        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
-                        when_cond_map[cond] = stmt
-                        stmts = stmt.then_block
+                        stmts = self._make_if(cond, module, when_cond_map)
                 elif cond.parent is not None:
                     # nested, we insert inside parents true_stmts
                     with push_block(when_cond_map[cond.parent].then_block):
-                        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
-                        when_cond_map[cond] = stmt
-                        stmts = stmt.then_block
+                        stmts = self._make_if(cond, module, when_cond_map)
                 else:
                     # we insert into top level
-                    stmt = sv.IfOp(operands=[module.operands[cond_offset]])
-                    when_cond_map[cond] = stmt
-                    stmts = stmt.then_block
+                    stmts = self._make_if(cond, module, when_cond_map)
             with push_block(stmts):
                 for input, output in cond.conditional_wires.items():
-                    target_idx = inst.interface.outputs_by_name().index(reverse_map[input])
-                    value_idx = inst.interface.inputs_by_name().index(reverse_map[output])
-
-                    value_offset = 0
-
-                    def _visit_input(x):
-                        nonlocal value_offset
-                        value_offset += 1
-
-                    for name in inst.interface.inputs_by_name():
-                        if name == reverse_map[output]:
-                            break
-                        visit_magma_value_or_value_wrapper_by_direction(
-                            getattr(inst, name),
-                            _visit_input,
-                            _assert_no_outputs,
-                            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                        )
+                    value_offset = self._compute_flattened_operand_offset(
+                        inst,
+                        defn.reverse_map[output])
 
                     def _visit_input(x):
                         nonlocal value_offset
@@ -663,29 +647,37 @@ class ModuleVisitor:
                     visit_magma_value_or_value_wrapper_by_direction(
                         input,
                         _visit_input,
-                        _assert_no_outputs,
+                        _assert_not_visited,
                         flatten_all_tuples=self._ctx.opts.flatten_all_tuples
                     )
 
     def _make_regs(self, conditional_values):
+        """
+        For outputs to be procedurally assigned insigned an always block, we
+        emit an intermediate register value which is used as a target inside
+        the always block and wired up using an assign statement outside the
+        always block
+
+        `val_to_reg_map` tracks the mapping of magma value to target register
+        so we can easily lookup the assign target when generating the
+        procedural assignments
+        """
         val_to_reg_map = {}
+
         for i, value in enumerate(conditional_values):
-            name = str(value.name)
-
-            offset = 0
-
             def _visit_input(x):
-                nonlocal offset
+                # Create reg value
                 reg = self._ctx.new_value(
                     hw.InOutType(magma_type_to_mlir_type(type(x))))
-                sv.RegOp(name=f"{name}_{offset}_reg", results=[reg])
+                # Emit decl
+                sv.RegOp(name=f"{x.name}_reg", results=[reg])
+                # Update map
                 val_to_reg_map[x] = reg
-                offset += 1
 
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 _visit_input,
-                _assert_no_outputs,
+                _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
         return val_to_reg_map
@@ -696,28 +688,16 @@ class ModuleVisitor:
         defn = type(inst)
         if not defn.conditional_values:
             return True
+
         val_to_reg_map = self._make_regs(defn.conditional_values)
+
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
             self._construct_ifs(val_to_reg_map, module)
+
+        offset = 0
         for i, value in enumerate(defn.conditional_values):
-            offset = 0
-
-            def _visit_input(x):
-                nonlocal offset
-                offset += 1
-
-            for j, input in enumerate(defn.interface.inputs()):
-                if j == i:
-                    break
-                visit_magma_value_or_value_wrapper_by_direction(
-                    input,
-                    _visit_input,
-                    _assert_no_outputs,
-                    flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                )
-
             def _visit_input(x):
                 nonlocal offset
                 sv.ReadInOutOp(operands=[val_to_reg_map[x]],
@@ -727,7 +707,7 @@ class ModuleVisitor:
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 _visit_input,
-                _assert_no_outputs,
+                _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
         return True

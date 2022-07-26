@@ -3,7 +3,7 @@ hw.module @test_when_nested_with_default(%I: i2, %S: i2) -> (O: i1) {
     %1 = comb.extract %S from 0 : (i2) -> i1
     %2 = comb.extract %S from 1 : (i2) -> i1
     %3 = comb.extract %I from 0 : (i2) -> i1
-    %5 = sv.reg {name = "O_0_reg"} : !hw.inout<i1>
+    %5 = sv.reg {name = "O_reg"} : !hw.inout<i1>
     sv.alwayscomb {
         sv.bpassign %5, %0 : i1
         sv.if %1 {
