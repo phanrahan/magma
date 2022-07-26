@@ -49,6 +49,13 @@ class _SmartExprMeta(MagmaProtocolMeta):
 
 
 class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
+    __hash__ = object.__hash__
+
+    @property
+    @abc.abstractmethod
+    def args(self):
+        raise NotImplementedError()
+
     @abc.abstractmethod
     def resolve(self, context):
         raise NotImplementedError()
@@ -432,6 +439,10 @@ def unsigned(expr):
 class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
     def __init__(self, bits):
         self._bits = bits
+
+    @property
+    def args(self):
+        return []
 
     @property
     def bits(self):
