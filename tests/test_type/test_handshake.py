@@ -223,7 +223,7 @@ def test_qualify_ready_valid(qualifiers):
             assert issubclass(T, m.ReadyValid[m.Bits[8]])
         else:
             msg = (
-                "Cannot flip an undirected ReadyValid type")
+                f"Cannot flip {T.__name__} (undirected)")
             with pytest.raises(TypeError) as e:
                 T.flip()
             assert str(e.value) == msg

@@ -36,7 +36,7 @@ def _maybe_add_data(cls, fields, T, qualifier):
     fields["data"] = qualifier(T)
 
 
-class ReadyValidKind(ProductKind):
+class HandShakeKind(ProductKind):
     _field_names_ = {"valid": "valid", "ready": "ready"}
 
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
@@ -46,7 +46,7 @@ class ReadyValidKind(ProductKind):
         return type(f"{cls}[{T}]", (cls, ), fields)
 
     def flip(cls):
-        raise TypeError("Cannot flip an undirected ReadyValid type")
+        raise TypeError(f"Cannot flip {cls.__name__} (undirected)")
 
     def qualify(cls, direction):
         if direction is Direction.In:
@@ -55,7 +55,7 @@ class ReadyValidKind(ProductKind):
             return Driver(cls)
         if direction is Direction.Undirected:
             return Undirected(cls)
-        raise TypeError(f"Cannot qualify ReadyValid with {direction}")
+        raise TypeError(f"Cannot qualify {cls.__name__} with {direction}")
 
     @property
     def undirected_data_t(cls):
@@ -66,7 +66,7 @@ class ReadyValidKind(ProductKind):
         return data.undirected_t
 
 
-class ReadyValid(Product, metaclass=ReadyValidKind):
+class ReadyValid(Product, metaclass=HandShakeKind):
     """
     An I/O Bundle containing 'valid' and 'ready' signals that handshake
     the transfer of data stored in the 'data' subfield.
@@ -99,7 +99,7 @@ def _no_deq_error(self, value, when=True):
     raise Exception(f"{type(self)} does not support no_deq")
 
 
-class ReadyValidProducerKind(ReadyValidKind):
+class ReadyValidProducerKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {cls._field_names_["valid"]: Out(Bit),
                   cls._field_names_["ready"]: In(Bit)}
@@ -176,7 +176,7 @@ def _no_enq_error(self, value, when=True):
     raise Exception(f"{type(self)} does not support no_enq")
 
 
-class ReadyValidConsumerKind(ReadyValidKind):
+class ReadyValidConsumerKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {cls._field_names_["valid"]: In(Bit),
                   cls._field_names_["ready"]: Out(Bit)}
@@ -251,7 +251,7 @@ class ReadyValidConsumer(ReadyValid, metaclass=ReadyValidConsumerKind):
             self.data @= 0
 
 
-class ReadyValidMonitorKind(ReadyValidKind):
+class ReadyValidMonitorKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {cls._field_names_["valid"]: In(Bit),
                   cls._field_names_["ready"]: In(Bit)}
@@ -271,7 +271,7 @@ class ReadyValidMonitor(ReadyValid, metaclass=ReadyValidMonitorKind):
     pass
 
 
-class ReadyValidDriverKind(ReadyValidKind):
+class ReadyValidDriverKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         fields = {cls._field_names_["valid"]: Out(Bit),
                   cls._field_names_["ready"]: Out(Bit)}
@@ -383,7 +383,7 @@ class CreditValidDriver(ReadyValidDriver, CreditValid):
     pass
 
 
-def Consumer(T: ReadyValidKind):
+def Consumer(T: HandShakeKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
@@ -397,7 +397,7 @@ def Consumer(T: ReadyValidKind):
     raise TypeError(f"Consumer({T}) is unsupported")
 
 
-def Producer(T: ReadyValidKind):
+def Producer(T: HandShakeKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
@@ -411,7 +411,7 @@ def Producer(T: ReadyValidKind):
     raise TypeError(f"Consumer({T}) is unsupported")
 
 
-def Monitor(T: ReadyValidKind):
+def Monitor(T: HandShakeKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
@@ -425,7 +425,7 @@ def Monitor(T: ReadyValidKind):
     raise TypeError(f"Monitor({T}) is unsupported")
 
 
-def Driver(T: ReadyValidKind):
+def Driver(T: HandShakeKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
@@ -439,7 +439,7 @@ def Driver(T: ReadyValidKind):
     raise TypeError(f"Driver({T}) is unsupported")
 
 
-def Undirected(T: ReadyValidKind):
+def Undirected(T: HandShakeKind):
     if issubclass(T, ReadyValid):
         undirected_T = T.undirected_data_t
     if issubclass(T, Irrevocable):
