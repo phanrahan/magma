@@ -618,10 +618,10 @@ class ModuleVisitor:
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
 
-    def _make_if(self, cond, module, when_cond_map):
+    def _make_if(self, when, module, when_map):
         """
-        Construct an `if` statement based on the value `cond` and update
-        `when_cond_map` to store the mapping from original `when` statement
+        Construct an `if` statement based on the value `when.cond` and update
+        `when_map` to store the mapping from original `when` statement
 
         Returns a reference to `then_block` used to populate the assignments
         """
@@ -630,10 +630,10 @@ class ModuleVisitor:
 
         cond_offset = self._compute_flattened_operand_offset(
             inst,
-            defn.value_to_port_name_map[cond.cond])
+            defn.value_to_port_name_map[when.cond])
 
         stmt = sv.IfOp(operands=[module.operands[cond_offset]])
-        when_cond_map[cond] = stmt
+        when_map[when] = stmt
 
         return stmt.then_block
 
@@ -647,38 +647,38 @@ class ModuleVisitor:
 
         when_conds = defn.when_conds
 
-        # Mapping from magma when cond object to if statement object (so we
-        # only emit one if statement per when cond)
-        when_cond_map = {}
+        # Mapping from magma when object to if statement object (so we only
+        # emit one if statement per when cond)
+        when_map = {}
 
-        for cond in when_conds:
+        for when in when_conds:
             # Construct the if statement object, ensuring it has the
             # appropriate relationship to otherse (e.g. the case of
             # elsewhen/otherwise)
-            if getattr(cond.cond, 'is_otherwise_cond', False):
+            if getattr(when.cond, 'is_otherwise_cond', False):
                 # Else case, we append to previous false_stmts
-                stmts = when_cond_map[cond.prev_cond].else_block
+                stmts = when_map[when.prev_cond].else_block
             else:
-                if cond.prev_cond is not None:
+                if when.prev_cond is not None:
                     # elif, we append if statement inside previous false_stmts
                     #
                     # We fetch the previous false_statment using the prev_cond
-                    # pointer as an index into when_cond_map.  Since
+                    # pointer as an index into when_map.  Since
                     # `when_conds` are emitted in the order they are
                     # constructed, we can assume the prev_cond has already been
                     # visited
-                    with push_block(when_cond_map[cond.prev_cond].else_block):
-                        stmts = self._make_if(cond, module, when_cond_map)
-                elif cond.parent is not None:
+                    with push_block(when_map[when.prev_cond].else_block):
+                        stmts = self._make_if(when, module, when_map)
+                elif when.parent is not None:
                     # nested, we insert inside parents true_stmts
                     #
                     # Same lookup logic as previous case except we use the
                     # parent pointer
-                    with push_block(when_cond_map[cond.parent].then_block):
-                        stmts = self._make_if(cond, module, when_cond_map)
+                    with push_block(when_map[when.parent].then_block):
+                        stmts = self._make_if(when, module, when_map)
                 else:
                     # we insert into top level
-                    stmts = self._make_if(cond, module, when_cond_map)
+                    stmts = self._make_if(when, module, when_map)
 
             # Now emit the assignments contained within the if statement
             def _create_conditional_assignment(x):
@@ -688,7 +688,7 @@ class ModuleVisitor:
                 value_offset += 1
 
             with push_block(stmts):
-                for target, value in cond.conditional_wires.items():
+                for target, value in when.conditional_wires.items():
                     value_offset = self._compute_flattened_operand_offset(
                         inst,
                         defn.value_to_port_name_map[value])
