@@ -87,6 +87,9 @@ class WhenCtx:
         _PREV_WHEN_COND = None
 
         self._is_otherwise = isinstance(cond, _OtherwiseCond)
+
+        # Tracks mapping from target: value for values driven inside this
+        # context
         self._conditional_wires = {}
 
     def __enter__(self):
