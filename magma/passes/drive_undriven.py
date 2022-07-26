@@ -1,9 +1,11 @@
-from .passes import EditDefinitionPass
-from ..is_definition import isdefinition
 from magma.array import Array
 from magma.clock import is_clock_or_nested_clock
+from magma.is_definition import isdefinition
 from magma.passes.clock import (
-    drive_all_undriven_clocks_in_value, get_all_output_clocks_in_defn)
+    drive_all_undriven_clocks_in_value,
+    get_all_output_clocks_in_defn,
+)
+from magma.passes.passes import EditDefinitionPass, pass_lambda
 from magma.tuple import Tuple
 
 
@@ -47,3 +49,6 @@ class DriveUndrivenPass(EditDefinitionPass):
             return
         for inst in circuit.instances:
             _drive_undriven(inst.interface, clocks)
+
+
+drive_undriven = pass_lambda(DriveUndrivenPass)

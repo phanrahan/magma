@@ -1,5 +1,5 @@
-from .passes import EditDefinitionPass
-from ..is_definition import isdefinition
+from magma.is_definition import isdefinition
+from magma.passes.passes import EditDefinitionPass, pass_lambda
 
 
 def _terminate_if_unwired_output(port):
@@ -28,3 +28,6 @@ class TerminateUnusedPass(EditDefinitionPass):
             return
         for inst in circuit.instances:
             _terminate_unused(inst.interface)
+
+
+terminate_unused = pass_lambda(TerminateUnusedPass)
