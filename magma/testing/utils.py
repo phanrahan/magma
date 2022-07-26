@@ -3,10 +3,11 @@ Infrastructure for writing magma tests
 """
 import difflib
 import filecmp
-import functools
 import os
 import pytest
+import shutil
 import sys
+
 from typing import Optional
 
 from magma.config import get_debug_mode, set_debug_mode, config
@@ -138,3 +139,18 @@ def with_config(key, value):
         setattr(config, key, prev_value)
 
     return pytest.fixture(fixture)
+
+
+def check_gold(callee_file, filename):
+    try:
+        return check_files_equal(callee_file,
+                                 f"build/{filename}",
+                                 f"gold/{filename}")
+    except FileNotFoundError:
+        return False
+
+
+def update_gold(callee_file, filename):
+    file_path = os.path.dirname(callee_file)
+    return shutil.copy(f"{file_path}/build/{filename}",
+                       f"{file_path}/gold/{filename}")

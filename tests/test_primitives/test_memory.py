@@ -7,6 +7,7 @@ from hwtypes import BitVector, Bit
 
 import magma as m
 from magma.testing import check_files_equal
+from magma.testing.utils import check_gold, update_gold
 
 
 def test_memory_basic():
@@ -25,10 +26,11 @@ def test_memory_basic():
         with m.when(io.wen):
             Mem4x5[io.waddr] @= io.wdata
 
-    m.compile("build/test_memory_basic", test_memory_basic, output="mlir-verilog")
+    m.compile("build/test_memory_basic", test_memory_basic, output="mlir")
 
-    assert check_files_equal(__file__, "build/test_memory_basic.v",
-                             "gold/test_memory_basic.v")
+    if check_gold(__file__, "test_memory_basic.mlir"):
+        return
+
     tester = fault.SynchronousTester(test_memory_basic, test_memory_basic.clk)
     expected = []
     for i in range(4):
@@ -42,10 +44,11 @@ def test_memory_basic():
         tester.circuit.raddr = i
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
-    tester.compile_and_run("verilator", skip_compile=True,
+    tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+    update_gold(__file__, "test_memory_basic.mlir")
 
 
 def test_memory_product():
