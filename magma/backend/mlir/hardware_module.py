@@ -1032,6 +1032,9 @@ class ModuleVisitor:
             # TODO(when): Unconnected conditional driver inst, should we just
             # remove it earlier?
             if not getattr(module.module, '_is_conditional_driver_'):
+                # For now, to avoid other errors, we only catch the conditional
+                # driver case, but we could allow other unconnected instances
+                # by removing this check
                 raise e
         else:
             for predecessor in predecessors:
