@@ -2,7 +2,7 @@ import pytest
 
 import magma as m
 from magma.testing import check_files_equal
-from magma.types.ready_valid import ReadyValidException
+from magma.types.handshake import ReadyValidException
 
 
 @pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
@@ -38,8 +38,8 @@ def test_ready_valid_tuple(T):
         io.O @= io.I
 
     m.compile("build/TestReadyValidTuple", TestReadyValidTuple)
-    assert check_files_equal(__file__, f"build/TestReadyValidTuple.v",
-                             f"gold/TestReadyValidTuple.v")
+    assert check_files_equal(__file__, "build/TestReadyValidTuple.v",
+                             "gold/TestReadyValidTuple.v")
 
 
 @pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
@@ -57,8 +57,8 @@ def test_ready_valid_when(T):
         io.O.enq(data, when=io.I.valid)
 
     m.compile("build/TestReadyValidWhen", TestReadyValidWhen, inline=True)
-    assert check_files_equal(__file__, f"build/TestReadyValidWhen.v",
-                             f"gold/TestReadyValidWhen.v")
+    assert check_files_equal(__file__, "build/TestReadyValidWhen.v",
+                             "gold/TestReadyValidWhen.v")
 
 
 @pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
@@ -73,8 +73,8 @@ def test_ready_valid_no_enq_when(T):
 
     m.compile("build/TestReadyValidNoEnqWhen", TestReadyValidNoEnqWhen,
               inline=True)
-    assert check_files_equal(__file__, f"build/TestReadyValidNoEnqWhen.v",
-                             f"gold/TestReadyValidNoEnqWhen.v")
+    assert check_files_equal(__file__, "build/TestReadyValidNoEnqWhen.v",
+                             "gold/TestReadyValidNoEnqWhen.v")
 
 
 @pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
@@ -90,8 +90,8 @@ def test_ready_valid_no_deq_when(T):
 
     m.compile("build/TestReadyValidNoDeqWhen", TestReadyValidNoDeqWhen,
               inline=True)
-    assert check_files_equal(__file__, f"build/TestReadyValidNoDeqWhen.v",
-                             f"gold/TestReadyValidNoDeqWhen.v")
+    assert check_files_equal(__file__, "build/TestReadyValidNoDeqWhen.v",
+                             "gold/TestReadyValidNoDeqWhen.v")
 
 
 @pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
