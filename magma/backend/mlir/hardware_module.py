@@ -592,7 +592,7 @@ class ModuleVisitor:
                 offset = self._compute_flattened_operand_offset(
                     inst, default_value_name)
 
-                def _visit_input(x):
+                def _emit_default_value(x):
                     nonlocal offset
                     sv.BPAssignOp(operands=[val_to_reg_map[x],
                                             module.operands[offset]]),
@@ -604,7 +604,7 @@ class ModuleVisitor:
                 #
                 # TODO(when): We could do the same for registers with an
                 # enable?
-                def _visit_input(x):
+                def _emit_default_value(x):
                     zero = self.make_constant(type(x), 0)
                     sv.BPAssignOp(operands=[val_to_reg_map[x], zero])
             else:
@@ -613,7 +613,7 @@ class ModuleVisitor:
 
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                _visit_input,
+                _emit_default_value,
                 _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
@@ -681,21 +681,21 @@ class ModuleVisitor:
                     stmts = self._make_if(cond, module, when_cond_map)
 
             # Now emit the assignments contained within the if statement
+            def _create_conditional_assignment(x):
+                nonlocal value_offset
+                sv.BPAssignOp(operands=[val_to_reg_map[x],
+                                        module.operands[value_offset]])
+                value_offset += 1
+
             with push_block(stmts):
                 for target, value in cond.conditional_wires.items():
                     value_offset = self._compute_flattened_operand_offset(
                         inst,
                         defn.reverse_map[value])
 
-                    def _visit_input(x):
-                        nonlocal value_offset
-                        sv.BPAssignOp(operands=[val_to_reg_map[x],
-                                                module.operands[value_offset]])
-                        value_offset += 1
-
                     visit_magma_value_or_value_wrapper_by_direction(
                         target,
-                        _visit_input,
+                        _create_conditional_assignment,
                         _assert_not_visited,
                         flatten_all_tuples=self._ctx.opts.flatten_all_tuples
                     )
@@ -713,19 +713,19 @@ class ModuleVisitor:
         """
         val_to_reg_map = {}
 
-        for i, value in enumerate(conditional_values):
-            def _visit_input(x):
-                # Create reg value
-                reg = self._ctx.new_value(
-                    hw.InOutType(magma_type_to_mlir_type(type(x))))
-                # Emit decl
-                sv.RegOp(name=f"{x.name}_reg", results=[reg])
-                # Update map
-                val_to_reg_map[x] = reg
+        def _create_register(x):
+            # Create reg value
+            reg = self._ctx.new_value(
+                hw.InOutType(magma_type_to_mlir_type(type(x))))
+            # Emit decl
+            sv.RegOp(name=f"{x.name}_reg", results=[reg])
+            # Update map
+            val_to_reg_map[x] = reg
 
+        for i, value in enumerate(conditional_values):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                _visit_input,
+                _create_register,
                 _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
@@ -756,16 +756,17 @@ class ModuleVisitor:
 
         # Emit final wiring of registers to outputs
         offset = 0
-        for i, value in enumerate(defn.conditional_values):
-            def _visit_input(x):
-                nonlocal offset
-                sv.ReadInOutOp(operands=[val_to_reg_map[x]],
-                               results=[module.results[offset]])
-                offset += 1
 
+        def _assign_register_to_output(x):
+            nonlocal offset
+            sv.ReadInOutOp(operands=[val_to_reg_map[x]],
+                           results=[module.results[offset]])
+            offset += 1
+
+        for i, value in enumerate(defn.conditional_values):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                _visit_input,
+                _assign_register_to_output,
                 _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )

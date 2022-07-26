@@ -341,7 +341,7 @@ def test_when_memory(T, bits_to_fault_value):
     m.compile(f"build/test_when_memory_{T_str}", test_when_memory,
               output="mlir", flatten_all_tuples=True)
 
-    if _check_gold("test_when_memory_{T_str}.mlir"):
+    if _check_gold(f"test_when_memory_{T_str}.mlir"):
         return
 
     tester = f.SynchronousTester(test_when_memory)
