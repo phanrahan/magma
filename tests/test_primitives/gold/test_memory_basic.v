@@ -24,26 +24,26 @@ module test_memory_basic(	// <stdin>:13:1
                wen,
   output [4:0] rdata);
 
-  reg [1:0] O0_reg;	// <stdin>:15:10
-  reg [4:0] O1_reg;	// <stdin>:16:10
-  reg       O2_reg;	// <stdin>:17:10
+  reg [1:0] WADDR_reg;	// <stdin>:15:10
+  reg [4:0] WDATA_reg;	// <stdin>:16:10
+  reg       WE_reg;	// <stdin>:17:10
 
   always_comb begin	// <stdin>:18:5
-    O0_reg = 2'h0;	// <stdin>:19:14, :20:9
-    O1_reg = 5'h0;	// <stdin>:21:14, :22:9
-    O2_reg = 1'h0;	// <stdin>:23:14, :24:9
+    WADDR_reg = 2'h0;	// <stdin>:19:14, :20:9
+    WDATA_reg = 5'h0;	// <stdin>:21:14, :22:9
+    WE_reg = 1'h0;	// <stdin>:23:14, :24:9
     if (wen) begin	// <stdin>:25:9
-      O0_reg = waddr;	// <stdin>:26:13
-      O1_reg = wdata;	// <stdin>:27:13
-      O2_reg = 1'h1;	// <stdin>:14:10, :28:13
+      WADDR_reg = waddr;	// <stdin>:26:13
+      WDATA_reg = wdata;	// <stdin>:27:13
+      WE_reg = 1'h1;	// <stdin>:14:10, :28:13
     end
   end // always_comb
   Memory Memory_inst0 (	// <stdin>:34:11
     .RADDR (raddr),
     .CLK   (clk),
-    .WADDR (O0_reg),	// <stdin>:31:10
-    .WDATA (O1_reg),	// <stdin>:32:10
-    .WE    (O2_reg),	// <stdin>:33:10
+    .WADDR (WADDR_reg),	// <stdin>:31:10
+    .WDATA (WDATA_reg),	// <stdin>:32:10
+    .WE    (WE_reg),	// <stdin>:33:10
     .RDATA (rdata)
   );
 endmodule
