@@ -1028,10 +1028,11 @@ class ModuleVisitor:
     def _visit_predecessors(self, module):
         try:
             predecessors = self._graph.predecessors(module)
-        except nx.exception.NetworkXError:
+        except nx.exception.NetworkXError as e:
             # TODO(when): Unconnected conditional driver inst, should we just
             # remove it earlier?
-            pass
+            if not getattr(module.module, '_is_conditional_driver_'):
+                raise e
         else:
             for predecessor in predecessors:
                 if predecessor in self._visited:
