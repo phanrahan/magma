@@ -612,31 +612,54 @@ class ModuleVisitor:
         return stmts
 
     def _construct_ifs(self, val_to_reg_map, module):
+        """
+        The main logic for converting the special `ConditionalDriver` primitive
+        instance into `if` statements that preserve the original structure
+        """
         inst = module.module
         defn = type(inst)
+
         when_conds = defn.when_conds
+
+        # Mapping from magma when cond object to if statement object (so we
+        # only emit one if statement per when cond)
         when_cond_map = {}
+
         for cond in when_conds:
+            # Construct the if statement object, ensuring it has the
+            # appropriate relationship to otherse (e.g. the case of
+            # elsewhen/otherwise)
             if getattr(cond.cond, 'is_otherwise_cond', False):
                 # Else case, we append to previous false_stmts
                 stmts = when_cond_map[cond.prev_cond].else_block
             else:
                 if cond.prev_cond is not None:
                     # elif, we append if statement inside previous false_stmts
+                    #
+                    # We fetch the previous false_statment using the prev_cond
+                    # pointer as an index into when_cond_map.  Since
+                    # `when_conds` are emitted in the order they are
+                    # constructed, we can assume the prev_cond has already been
+                    # visited
                     with push_block(when_cond_map[cond.prev_cond].else_block):
                         stmts = self._make_if(cond, module, when_cond_map)
                 elif cond.parent is not None:
                     # nested, we insert inside parents true_stmts
+                    #
+                    # Same lookup logic as previous case except we use the
+                    # parent pointer
                     with push_block(when_cond_map[cond.parent].then_block):
                         stmts = self._make_if(cond, module, when_cond_map)
                 else:
                     # we insert into top level
                     stmts = self._make_if(cond, module, when_cond_map)
+
+            # Now emit the assignments contained within the if statement
             with push_block(stmts):
-                for input, output in cond.conditional_wires.items():
+                for target, value in cond.conditional_wires.items():
                     value_offset = self._compute_flattened_operand_offset(
                         inst,
-                        defn.reverse_map[output])
+                        defn.reverse_map[value])
 
                     def _visit_input(x):
                         nonlocal value_offset
@@ -645,7 +668,7 @@ class ModuleVisitor:
                         value_offset += 1
 
                     visit_magma_value_or_value_wrapper_by_direction(
-                        input,
+                        target,
                         _visit_input,
                         _assert_not_visited,
                         flatten_all_tuples=self._ctx.opts.flatten_all_tuples
