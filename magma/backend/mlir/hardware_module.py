@@ -733,18 +733,28 @@ class ModuleVisitor:
 
     @wrap_with_not_implemented_error
     def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
+        """
+        Emit special `ConditionalDriver` primitive instance as inline if
+        statements inside an always block
+        """
         inst = module.module
         defn = type(inst)
         if not defn.conditional_values:
+            # Skip if no conditional values assigned inside (can happen if a
+            # when statement is overriden by a subsequent unconditional wiring
+            # statement)
             return True
 
+        # Declare registers
         val_to_reg_map = self._make_regs(defn.conditional_values)
 
+        # Emit always block
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
             self._construct_ifs(val_to_reg_map, module)
 
+        # Emit final wiring of registers to outputs
         offset = 0
         for i, value in enumerate(defn.conditional_values):
             def _visit_input(x):
@@ -759,6 +769,7 @@ class ModuleVisitor:
                 _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
+
         return True
 
     @wrap_with_not_implemented_error
