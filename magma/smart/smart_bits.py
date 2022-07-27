@@ -1,7 +1,9 @@
 import abc
 import copy
+import enum
 import inspect
 import operator
+from typing import Dict
 
 from magma.bits import Bits, BitsMeta, SInt, reduce
 from magma.conversions import uint, bits, sint
@@ -19,6 +21,19 @@ def _is_int(value):
     except (ValueError, TypeError):
         return False
     return True
+
+
+class Type(enum.Enum):
+    UNSIGNED = enum.auto()
+    SIGNED = enum.auto()
+
+    @staticmethod
+    def make(signed: bool) -> 'Type':
+        return Type.SIGNED if signed else Type.UNSIGNED
+
+    @property
+    def signed(self) -> bool:
+        return self is Type.SIGNED
 
 
 class Context:
@@ -62,6 +77,22 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
 
     @abc.abstractmethod
     def eval(self):
+        raise NotImplementedError()
+
+    #@abc.abstractmethod
+    def result_size(self, *sizes) -> int:
+        raise NotImplementedError()
+
+    #@abc.abstractmethod
+    def result_type(self, *types) -> Type:
+        raise NotImplementedError()
+
+    #@abc.abstractmethod
+    def propagate_size(self, lhs, expr, sizes):
+        raise NotImplementedError()
+
+    #@abc.abstractmethod
+    def eval2(self, sizes, types) -> Bits:
         raise NotImplementedError()
 
     # Binary arithmetic operators.
@@ -286,6 +317,22 @@ class _SmartReductionOp(_SmartOp):
         fn = sint if self._signed_ else uint
         return fn(self.op(*args))
 
+    def result_size(self, *sizes) -> int:
+        return 1
+
+    def result_type(self, *types) -> Type:
+        return Type.make(False)
+
+    def propagate_size(self, lhs, expr, sizes):
+        self.args[0].propagate_size(None, None, sizes)
+
+    def eval2(self, sizes, types):
+        args = (arg.eval2(sizes, types) for arg in self.args)
+        args = list(args)
+        print ("@", args, list(map(type, args)))
+        cons = sint if types[self].signed else uint
+        return cons(self.op(*args))
+
 
 class _SmartNAryContextualOp(_SmartOp):
     def __init__(self, op, *args):
@@ -306,6 +353,34 @@ class _SmartNAryContextualOp(_SmartOp):
             args = (sint(arg) for arg in args)
         else:
             args = (uint(arg) for arg in args)
+        return self.op(*args)
+
+    def result_size(self, *sizes) -> int:
+        return max(sizes)
+
+    def result_type(self, *types) -> Type:
+        return Type.make(all(type.signed for type in types))
+
+    def propagate_size(self, lhs, expr, sizes):
+        size = sizes[self]
+        if lhs is not None:
+            size = max(len(lhs), size)
+        if expr is not None:
+            size = max(sizes[expr], size)
+        sizes[self] = size
+        for arg in self.args:
+            arg.propagate_size(lhs, self, sizes)
+
+    def eval2(self, sizes, types):
+        args = (arg.eval2(sizes, types) for arg in self.args)
+        args = (
+            (
+                arg.ext(sizes[self] - len(arg))
+                if sizes[self] > len(arg)
+                else arg
+            )
+            for arg in args
+        )
         return self.op(*args)
 
 
@@ -341,6 +416,22 @@ class _SmartComparisonOp(_SmartOp):
         args = (fn(arg) for arg in args)
         return uint(self.op(*args))
 
+    def result_size(self, *sizes) -> int:
+        return 1
+
+    def result_type(self, *types) -> Type:
+        return Type.make(False)
+
+    def propagate_size(self, lhs, expr, sizes):
+        sizes[self] = max(sizes[arg] for arg in self.args)
+        for arg in self.args:
+            arg.propagate_size(None, self, sizes)
+
+    def eval2(self, sizes, types):
+        args = (arg.eval2(sizes, types) for arg in self.args)
+        args = list(args)
+        return bits(self.op(*args))
+
 
 class _SmartShiftOp(_SmartOp):
     def __init__(self, op, loperand, roperand):
@@ -365,6 +456,28 @@ class _SmartShiftOp(_SmartOp):
         else:
             args = (uint(arg) for arg in args)
         return self.op(*args)
+
+    def result_size(self, *sizes) -> int:
+        return sizes[0]
+
+    def result_type(self, *types) -> Type:
+        return Type.make(all(type.signed for type in types))
+
+    def propagate_size(self, lhs, expr, sizes):
+        size = max(sizes[arg] for arg in self.args)
+        if lhs is not None:
+            size = max(size, len(lhs))
+        sizes[self] = size
+        self.args[0].propagate_size(lhs, self, sizes)
+        self.args[1].propagate_size(None, self, sizes)
+
+    def eval2(self, sizes, types):
+        larg, rarg = (arg.eval2(sizes, types) for arg in self.args)
+        diff = len(larg) - len(rarg)
+        assert diff >= 0
+        if diff > 0:
+            rarg = rarg.ext(diff)
+        return self.op(larg, rarg)
 
 
 class _SmartConcatOp(_SmartOp):
@@ -391,6 +504,20 @@ class _SmartConcatOp(_SmartOp):
         args = self._eval_args()
         args = [uint(arg) for arg in args]
         return uint(self.op(*args))
+
+    def result_size(self, *sizes) -> int:
+        return sum(sizes)
+
+    def result_type(self, *types) -> Type:
+        return Type.make(False)
+
+    def propagate_size(self, lhs, expr, sizes):
+        for arg in self.args:
+            arg.propagate_size(None, None, sizes)
+
+    def eval2(self, sizes, types):
+        args = (arg.eval2(sizes, types) for arg in self.args)
+        return self.op(*args)
 
 
 def concat(*args):
@@ -427,6 +554,19 @@ class _SmartSignedOp(_SmartOp):
         fn = sint if self._signed_ else uint
         return fn(args[0])
 
+    def result_size(self, *sizes) -> int:
+        return sizes[0]
+
+    def result_type(self, *types) -> Type:
+        return Type.make(self._op.signed)
+
+    def propagate_size(self, lhs, expr, sizes):
+        self.args[0].propagate_size(lhs, expr, sizes)
+
+    def eval2(self, sizes, types):
+        cons = sint if self._op.signed else uint
+        return cons(self.args[0].eval2(sizes, types))
+
 
 def signed(expr):
     return _SmartSignedOp(True, expr)
@@ -457,6 +597,28 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
 
     def eval(self):
         return self._bits.typed_value()
+
+    def result_size(self) -> int:
+        return len(self._bits)
+
+    def result_type(self) -> Type:
+        return Type.make(type(self._bits)._signed)
+
+    def propagate_size(self, lhs, expr, sizes):
+        size = sizes[self]
+        if lhs is not None:
+            size = max(len(lhs), size)
+        if expr is not None:
+            size = max(sizes[expr], size)
+        sizes[self] = size
+
+    def eval2(self, sizes, types):
+        diff = sizes[self] - len(self)
+        assert diff >= 0
+        evaluation = self._bits.typed_value()
+        if diff > 0:
+            evaluation = evaluation.ext(diff)
+        return evaluation
 
 
 class _SmartBitsMeta(_SmartExprMeta):
@@ -542,10 +704,9 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
             return
         if not isinstance(other, _SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
-        evaluated, resolved = _eval(self, other)
-        evaluated = evaluated.force_width(len(self))
-        MagmaProtocol.wire(self, evaluated)
-        self._smart_expr_ = resolved  # attach debug info
+        result = _evaluate_assignment(self, other)
+        result = result.force_width(len(self))
+        MagmaProtocol.wire(self, result)
 
     def __len__(self):
         return len(type(self)._T)
@@ -575,11 +736,36 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
 SmartBit = SmartBits[1]
 
 
-def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
-    rhs = copy.deepcopy(rhs)
-    rhs.resolve(Context(lhs, rhs))
-    res = rhs.eval()
-    return SmartBits.from_bits(res), rhs
+def _result_types(expr: _SmartExpr, types: Dict[_SmartExpr, int]):
+    for arg in expr.args:
+        _result_types(arg, types)
+    types[expr] = expr.result_type(*(types[arg] for arg in expr.args))
+
+
+def result_types(expr: _SmartExpr) -> Dict[_SmartExpr, int]:
+    types = {}
+    _result_types(expr, types)
+    return types
+
+
+def _result_sizes(expr: _SmartExpr, sizes: Dict[_SmartExpr, int]):
+    for arg in expr.args:
+        _result_sizes(arg, sizes)
+    sizes[expr] = expr.result_size(*(sizes[arg] for arg in expr.args))
+
+
+def result_sizes(expr: _SmartExpr) -> Dict[_SmartExpr, int]:
+    sizes = {}
+    _result_sizes(expr, sizes)
+    return sizes
+
+
+def _evaluate_assignment(lhs: SmartBits, rhs: _SmartExpr) -> SmartBits:
+    sizes = result_sizes(rhs)
+    types = result_types(rhs)
+    rhs.propagate_size(lhs, None, sizes)
+    result = rhs.eval2(sizes, types)
+    return SmartBits.from_bits(result)
 
 
 def eval(expr: _SmartExpr, width: int, signed: bool = False):
