@@ -13,6 +13,7 @@ def test_ready_valid_simple(T):
             O=m.Producer(T[m.Bits[5]]),
             fired=m.Out(m.Bit)
         )
+        print(T, T[m.Bits[5]], type(io.I))
         assert isinstance(io.I, T)
         assert isinstance(io.I, T[m.Bits[5]])
         # Flipped because defn view
