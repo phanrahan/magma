@@ -271,9 +271,12 @@ class SimpleCounter:
 
 
 class MroVisitor(abc.ABC):
+    def _get_cls(self, node: Any) -> type:
+        return node.__class__
+
     def visit(self, node: Any, *args, **kwargs):
         method = None
-        for cls in node.__class__.__mro__:
+        for cls in self._get_cls(node).__mro__:
             name = f"visit_{cls.__name__}"
             method = getattr(self, name, None)
             if method is not None:
