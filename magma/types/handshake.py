@@ -53,24 +53,20 @@ def _no_deq_error(self, value, when=True):
 
 
 class HandShakeKind(ProductKind):
-    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        if cls.is_bound:
-            if T is None:
-                assert not hasattr(cls, "data")
-            else:
-                assert T is cls.data
-            return cls
-        assert cls._field_names_ is not None, "Undefined field name impl"
-        fields = {cls._field_names_["handshake_output"]: Bit,
-                  cls._field_names_["handshake_input"]: Bit}
-        _maybe_add_data(cls, fields, T, lambda x: x)
+    def _make_class(cls, T, fields, bases):
         name = f"{cls}[{T}]"
         ns = {}
         ns['__module__'] = cls.__module__
         name = f'{cls}[{T}]'
         ns['__qualname__'] = name
-        return cls._cache_handler(True, fields, name, (cls, ), ns)
-        return type(f"{cls}[{T}]", (cls, ), fields)
+        return cls._cache_handler(True, fields, name, bases, ns)
+
+    def __getitem__(cls, T: Union[Type, MagmaProtocol]):
+        assert cls._field_names_ is not None, "Undefined field name impl"
+        fields = {cls._field_names_["handshake_output"]: Bit,
+                  cls._field_names_["handshake_input"]: Bit}
+        _maybe_add_data(cls, fields, T, lambda x: x)
+        return cls._make_class(T, fields, (cls, ))
 
     def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
         result = super().__new__(mcs, name, bases, namespace, fields, **kwargs)
@@ -140,21 +136,10 @@ class HandShake(Product, metaclass=HandShakeKind):
 
 class HandShakeProducerKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        if cls.is_bound:
-            if T is None:
-                assert not hasattr(cls, "data")
-            else:
-                assert T is cls.data
-            return cls
         fields = {cls._field_names_["handshake_output"]: Out(Bit),
                   cls._field_names_["handshake_input"]: In(Bit)}
         _maybe_add_data(cls, fields, T, Out)
-        t = type(f"{cls}[{T}]", (cls, cls.base_T[T],), fields)
-        ns = {}
-        ns['__module__'] = cls.__module__
-        name = f'{cls}[{T}]'
-        ns['__qualname__'] = name
-        t = cls._cache_handler(True, fields, name, (cls, cls.base_T[T]), ns)
+        t = cls._make_class(T, fields, (cls, cls.base_T[T]))
         if T is None:
             # Remove deq/no_deq methods if no data.
             t.deq = _deq_error
@@ -167,21 +152,10 @@ class HandShakeProducerKind(HandShakeKind):
 
 class HandShakeConsumerKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        if cls.is_bound:
-            if T is None:
-                assert not hasattr(cls, "data")
-            else:
-                assert T is cls.data
-            return cls
         fields = {cls._field_names_["handshake_output"]: In(Bit),
                   cls._field_names_["handshake_input"]: Out(Bit)}
         _maybe_add_data(cls, fields, T, In)
-        t = type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T],), fields)
-        ns = {}
-        ns['__module__'] = cls.__module__
-        name = f'{cls}[{T}]'
-        ns['__qualname__'] = name
-        t = cls._cache_handler(True, fields, name, (cls, cls.base_T[T]), ns)
+        t = cls._make_class(T, fields, (cls, cls.base_T[T]))
         if T is None:
             t.enq = _enq_error
             t.no_enq = _no_enq_error
@@ -293,21 +267,10 @@ class HandShakeProducer(HandShake, metaclass=HandShakeProducerKind):
 
 class HandShakeMonitorKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        if cls.is_bound:
-            if T is None:
-                assert not hasattr(cls, "data")
-            else:
-                assert T is cls.data
-            return cls
         fields = {cls._field_names_["handshake_output"]: In(Bit),
                   cls._field_names_["handshake_input"]: In(Bit)}
         _maybe_add_data(cls, fields, T, In)
-        ns = {}
-        ns['__module__'] = cls.__module__
-        name = f'{cls}[{T}]'
-        ns['__qualname__'] = name
-        return cls._cache_handler(True, fields, name, (cls, cls.base_T[T]), ns)
-        return type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T]), fields)
+        return cls._make_class(T, fields, (cls, cls.base_T[T]))
 
     def flip(cls):
         return Driver(cls)
@@ -319,21 +282,10 @@ class HandShakeMonitor(HandShake, metaclass=HandShakeMonitorKind):
 
 class HandShakeDriverKind(HandShakeKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
-        if cls.is_bound:
-            if T is None:
-                assert not hasattr(cls, "data")
-            else:
-                assert T is cls.data
-            return cls
         fields = {cls._field_names_["handshake_output"]: Out(Bit),
                   cls._field_names_["handshake_input"]: Out(Bit)}
         _maybe_add_data(cls, fields, T, Out)
-        ns = {}
-        ns['__module__'] = cls.__module__
-        name = f'{cls}[{T}]'
-        ns['__qualname__'] = name
-        return cls._cache_handler(True, fields, name, (cls, cls.base_T[T]), ns)
-        return type(f"{cls}[{T}]", (cls, cls.__bases__[-1][T]), fields)
+        return cls._make_class(T, fields, (cls, cls.base_T[T]))
 
     def flip(cls):
         return Monitor(cls)
