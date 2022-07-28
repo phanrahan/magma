@@ -31,7 +31,7 @@ class Context:
         def _visit(node):
             if hasattr(node, "_width_"):
                 return node._width_
-            if isinstance(node, _SmartBitsExpr):
+            if isinstance(node, SmartBitsExpr):
                 return len(node.bits)
             return max(_visit(arg) for arg in node.args)
 
@@ -44,11 +44,11 @@ class Context:
         return f"Context(lhs={repr(self.assignee)}, rhs={repr(self.root)})"
 
 
-class _SmartExprMeta(MagmaProtocolMeta):
+class SmartExprMeta(MagmaProtocolMeta):
     pass
 
 
-class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
+class SmartExpr(MagmaProtocol, metaclass=SmartExprMeta):
     __hash__ = object.__hash__
 
     @property
@@ -65,114 +65,114 @@ class _SmartExpr(MagmaProtocol, metaclass=_SmartExprMeta):
         raise NotImplementedError()
 
     # Binary arithmetic operators.
-    def __add__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __add__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.add, self, other)
+        return SmartBinaryOp(operator.add, self, other)
 
-    def __sub__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __sub__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.sub, self, other)
+        return SmartBinaryOp(operator.sub, self, other)
 
-    def __mul__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __mul__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.mul, self, other)
+        return SmartBinaryOp(operator.mul, self, other)
 
-    def __floordiv__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __floordiv__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.floordiv, self, other)
+        return SmartBinaryOp(operator.floordiv, self, other)
 
-    def __truediv__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __truediv__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.truediv, self, other)
+        return SmartBinaryOp(operator.truediv, self, other)
 
-    def __mod__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __mod__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.mod, self, other)
+        return SmartBinaryOp(operator.mod, self, other)
 
     # Binary logic operators.
-    def __and__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __and__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.and_, self, other)
+        return SmartBinaryOp(operator.and_, self, other)
 
-    def __or__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __or__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.or_, self, other)
+        return SmartBinaryOp(operator.or_, self, other)
 
-    def __xor__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __xor__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartBinaryOp(operator.xor_, self, other)
+        return SmartBinaryOp(operator.xor_, self, other)
 
     # Comparison operators.
-    def __eq__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __eq__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.eq, self, other)
+        return SmartComparisonOp(operator.eq, self, other)
 
-    def __ne__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __ne__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.ne, self, other)
+        return SmartComparisonOp(operator.ne, self, other)
 
-    def __ge__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __ge__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.ge, self, other)
+        return SmartComparisonOp(operator.ge, self, other)
 
-    def __gt__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __gt__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.gt, self, other)
+        return SmartComparisonOp(operator.gt, self, other)
 
-    def __le__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __le__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.le, self, other)
+        return SmartComparisonOp(operator.le, self, other)
 
-    def __lt__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __lt__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartComparisonOp(operator.lt, self, other)
+        return SmartComparisonOp(operator.lt, self, other)
 
     # Shift operators.
-    def __lshift__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __lshift__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartShiftOp(operator.lshift, self, other)
+        return SmartShiftOp(operator.lshift, self, other)
 
-    def __rshift__(self, other: '_SmartExpr'):
-        if not isinstance(other, _SmartExpr):
+    def __rshift__(self, other: 'SmartExpr'):
+        if not isinstance(other, SmartExpr):
             return NotImplemented
-        return _SmartShiftOp(operator.rshift, self, other)
+        return SmartShiftOp(operator.rshift, self, other)
 
     # Unary operators.
     def __invert__(self):
-        return _SmartUnaryOp(operator.invert, self)
+        return SmartUnaryOp(operator.invert, self)
 
     def __neg__(self):
-        return _SmartUnaryOp(operator.neg, self)
+        return SmartUnaryOp(operator.neg, self)
 
     # Reduction operators.
     def reduce(self, op):
-        return _SmartReductionOp(op, self)
+        return SmartReductionOp(op, self)
 
     # Extension operators.
     def zext(self, width):
-        return _SmartExtendOp(width, False, self, resolved=False)
+        return SmartExtendOp(width, False, self, resolved=False)
 
     def sext(self, width):
-        return _SmartExtendOp(width, True, self, resolved=False)
+        return SmartExtendOp(width, True, self, resolved=False)
 
 
-class _SmartOp(_SmartExpr, metaclass=_SmartExprMeta):
+class SmartOp(SmartExpr, metaclass=SmartExprMeta):
     def __init__(self, op, *args):
         self._op = op
         self._args = args
@@ -204,7 +204,7 @@ class _SmartOp(_SmartExpr, metaclass=_SmartExprMeta):
         return f"{op_str}({args})"
 
 
-class _SmartExtendOp(_SmartOp):
+class SmartExtendOp(SmartOp):
 
     class _ExtendOp:
         def __init__(self, width, signed):
@@ -220,7 +220,7 @@ class _SmartExtendOp(_SmartOp):
             return f"Extend[width={self._width}, signed={self._signed}]"
 
     def __init__(self, width, signed, operand, resolved=True):
-        extend = _SmartExtendOp._ExtendOp(width, signed)
+        extend = SmartExtendOp._ExtendOp(width, signed)
         super().__init__(extend, operand)
         self._resolved = resolved
 
@@ -242,13 +242,13 @@ def _extend_if_needed(expr, to_width, signed):
     assert diff <= 0
     if diff == 0:
         return expr
-    expr = _SmartExtendOp(-diff, signed, expr)
+    expr = SmartExtendOp(-diff, signed, expr)
     expr._width_ = to_width
     expr._signed_ = signed
     return expr
 
 
-class _SmartReductionOp(_SmartOp):
+class SmartReductionOp(SmartOp):
 
     class _ReductionOp:
         _OP_TO_NAME = {
@@ -258,7 +258,7 @@ class _SmartReductionOp(_SmartOp):
         }
 
         def __init__(self, op):
-            cls = _SmartReductionOp._ReductionOp
+            cls = SmartReductionOp._ReductionOp
             if op not in cls._OP_TO_NAME:
                 raise ValueError(f"Reduction operator {op} not supported")
             self._op = op
@@ -267,12 +267,12 @@ class _SmartReductionOp(_SmartOp):
             return reduce(self._op, operand)
 
         def __str__(self):
-            cls = _SmartReductionOp._ReductionOp
+            cls = SmartReductionOp._ReductionOp
             op_name = cls._OP_TO_NAME[self._op]
             return f"{op_name}Reduce"
 
     def __init__(self, op, operand):
-        reduction = _SmartReductionOp._ReductionOp(op)
+        reduction = SmartReductionOp._ReductionOp(op)
         super().__init__(reduction, operand)
 
     def resolve(self, context):
@@ -287,7 +287,7 @@ class _SmartReductionOp(_SmartOp):
         return fn(self.op(*args))
 
 
-class _SmartNAryContextualOp(_SmartOp):
+class SmartNAryContextualOp(SmartOp):
     def __init__(self, op, *args):
         super().__init__(op, *args)
 
@@ -309,17 +309,17 @@ class _SmartNAryContextualOp(_SmartOp):
         return self.op(*args)
 
 
-class _SmartBinaryOp(_SmartNAryContextualOp):
+class SmartBinaryOp(SmartNAryContextualOp):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
 
-class _SmartUnaryOp(_SmartNAryContextualOp):
+class SmartUnaryOp(SmartNAryContextualOp):
     def __init__(self, op, operand):
         super().__init__(op, operand)
 
 
-class _SmartComparisonOp(_SmartOp):
+class SmartComparisonOp(SmartOp):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
@@ -342,7 +342,7 @@ class _SmartComparisonOp(_SmartOp):
         return uint(self.op(*args))
 
 
-class _SmartShiftOp(_SmartOp):
+class SmartShiftOp(SmartOp):
     def __init__(self, op, loperand, roperand):
         super().__init__(op, loperand, roperand)
 
@@ -367,7 +367,7 @@ class _SmartShiftOp(_SmartOp):
         return self.op(*args)
 
 
-class _SmartConcatOp(_SmartOp):
+class SmartConcatOp(SmartOp):
 
     class _ConcatOp:
         def __call__(self, *args):
@@ -377,7 +377,7 @@ class _SmartConcatOp(_SmartOp):
             return "Concat"
 
     def __init__(self, *args):
-        concat = _SmartConcatOp._ConcatOp()
+        concat = SmartConcatOp._ConcatOp()
         super().__init__(concat, *args)
 
     def resolve(self, context):
@@ -394,13 +394,13 @@ class _SmartConcatOp(_SmartOp):
 
 
 def concat(*args):
-    if not all(isinstance(arg, _SmartExpr) for arg in args):
+    if not all(isinstance(arg, SmartExpr) for arg in args):
         types = ", ".join(str(type(arg)) for arg in args)
         raise NotImplementedError(f"Concat not supported for {types}")
-    return _SmartConcatOp(*args)
+    return SmartConcatOp(*args)
 
 
-class _SmartSignedOp(_SmartOp):
+class SmartSignedOp(SmartOp):
 
     class _SignedOp:
         def __init__(self, signed):
@@ -414,7 +414,7 @@ class _SmartSignedOp(_SmartOp):
             return "Signed" if self._signed else "Unsigned"
 
     def __init__(self, signed, operand):
-        signed = _SmartSignedOp._SignedOp(signed)
+        signed = SmartSignedOp._SignedOp(signed)
         super().__init__(signed, operand)
 
     def resolve(self, context):
@@ -429,14 +429,14 @@ class _SmartSignedOp(_SmartOp):
 
 
 def signed(expr):
-    return _SmartSignedOp(True, expr)
+    return SmartSignedOp(True, expr)
 
 
 def unsigned(expr):
-    return _SmartSignedOp(False, expr)
+    return SmartSignedOp(False, expr)
 
 
-class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
+class SmartBitsExpr(SmartExpr, metaclass=SmartExprMeta):
     def __init__(self, bits):
         self._bits = bits
 
@@ -459,10 +459,10 @@ class _SmartBitsExpr(_SmartExpr, metaclass=_SmartExprMeta):
         return self._bits.typed_value()
 
 
-class _SmartBitsMeta(_SmartExprMeta):
+class SmartBitsMeta(SmartExprMeta):
     def __eq__(cls, other):
         return (
-            isinstance(other, _SmartExprMeta) and
+            isinstance(other, SmartExprMeta) and
             cls._to_magma_() == other._to_magma_()
         )
 
@@ -511,7 +511,7 @@ class _SmartBitsMeta(_SmartExprMeta):
         return f"SmartBits[{len(cls._T)}, {cls._signed}]"
 
 
-class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
+class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
     def __init__(self, value=None):
         super().__init__(self)
         if value is None:
@@ -540,7 +540,7 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
         if isinstance(other, Bits):
             super().wire(other, debug_info)
             return
-        if not isinstance(other, _SmartExpr):
+        if not isinstance(other, SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
         evaluated, resolved = _eval(self, other)
         evaluated = evaluated.force_width(len(self))
@@ -575,20 +575,20 @@ class SmartBits(_SmartBitsExpr, metaclass=_SmartBitsMeta):
 SmartBit = SmartBits[1]
 
 
-def _eval(lhs: SmartBits, rhs: _SmartExpr) -> (SmartBits, _SmartExpr):
+def _eval(lhs: SmartBits, rhs: SmartExpr) -> (SmartBits, SmartExpr):
     rhs = copy.deepcopy(rhs)
     rhs.resolve(Context(lhs, rhs))
     res = rhs.eval()
     return SmartBits.from_bits(res), rhs
 
 
-def eval(expr: _SmartExpr, width: int, signed: bool = False):
+def eval(expr: SmartExpr, width: int, signed: bool = False):
     lhs = SmartBits[width, signed]()
     lhs @= expr
     return lhs
 
 
-class _SmartifyTypeTransformer(TypeTransformer):
+class SmartifyTypeTransformer(TypeTransformer):
     def visit_Bits(self, T):
         signed = issint(T)
         return SmartBits[len(T), signed]
@@ -606,7 +606,7 @@ class _InitializeSmartValueTransformer(ValueTransformer):
 
 
 def make_smart(value):
-    Tsmart = _SmartifyTypeTransformer().visit(type(value))
+    Tsmart = SmartifyTypeTransformer().visit(type(value))
     Tsmart = Tsmart.qualify(Direction.Undirected)
     smart_value = Tsmart()
     return _InitializeSmartValueTransformer(value).visit(smart_value)
