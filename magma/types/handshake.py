@@ -58,6 +58,15 @@ class HandShakeKind(ProductKind):
                    "data": lambda x: x}
 
     def _make_fields(cls, T):
+        """
+        Each HandShake implementation should define a dict of _field_names_ for
+        the signals (e.g. "ready" and "valid").  For consistency, we define the
+        output/input names in terms of a Producer (i.e. ReadyValid outputs a
+        valid and inputs a ready)
+
+        Each implementation should define a dict of _qualifiers_ used to
+        qualify the ports for producer, consumer, etc...
+        """
         fields = {
             cls._field_names_["handshake_output"]:
                 cls._qualifers_["output"](Bit),
@@ -70,34 +79,54 @@ class HandShakeKind(ProductKind):
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         assert cls._field_names_ is not None, "Undefined field name impl"
         fields = cls._make_fields(T)
+
         bases = (cls, )
         if hasattr(cls, "Base_T"):
+            # Qualified variants include the unqualified type as a base class
+            # e.g. Producer(ReadyValid[Bits[8]]) will be a subtype of
+            #      ReadyValid[Bits[8]]
             bases += (cls.Base_T[T], )
         name = f"{cls}[{T}]"
+
+        # Populate namespace for proper cache behavior (based on
+        # hwtypes.adt_meta logic)
         ns = {}
         ns['__module__'] = cls.__module__
         name = f'{cls}[{T}]'
         ns['__qualname__'] = name
+
+        # _cache_handler implemented in hwtypes.adt_meta
         return cls._cache_handler(True, fields, name, bases, ns)
 
     def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
         result = super().__new__(mcs, name, bases, namespace, fields, **kwargs)
+
         if not result._field_names_:
-            # Skip for base abstract class
+            # Skip for base class (variants already exist and pointer is not
+            # needed)
             return result
+
         variants = (HandShakeMonitor, HandShakeDriver, HandShakeConsumer,
                     HandShakeProducer)
         if issubclass(result, variants):
             # These don't need variants
             return result
 
-        # metaprogram variants
+        # metaprogram variants for base type (e.g. for ReadyValid[Bits[8]],
+        # create Producer(ReadyValid[Bits[8]]))
         for variant in variants:
+            # Strip "HandShake" prefix for string name
             suffix = f"{variant.__name__}"[len("HandShake"):]
+
+            # Make variant type with appropriate base classes
             variant_T = type(f"{suffix}({result.__name__})",
                              (variant, result), {})
+
+            # Store pointer to variant (used by qualifiers)
             setattr(result, f"{suffix}_T", variant_T)
+            # Store pointer to base type
             variant_T.Base_T = result
+
         return result
 
     def flip(cls):
