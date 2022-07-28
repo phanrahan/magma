@@ -360,38 +360,38 @@ class CreditValid(HandShake):
 
 
 def Consumer(T: HandShakeKind):
-    if issubclass(T, HandShake):
-        undirected_T = T.undirected_data_t
-        return T.consumer_T[undirected_T]
-    raise TypeError(f"Consumer({T}) is unsupported")
+    if not issubclass(T, HandShake):
+        raise TypeError(f"Consumer({T}) is unsupported")
+    undirected_T = T.undirected_data_t
+    return T.consumer_T[undirected_T]
 
 
 def Producer(T: HandShakeKind):
-    if issubclass(T, HandShake):
-        undirected_T = T.undirected_data_t
-        return T.producer_T[undirected_T]
-    raise TypeError(f"Producer({T}) is unsupported")
+    if not issubclass(T, HandShake):
+        raise TypeError(f"Producer({T}) is unsupported")
+    undirected_T = T.undirected_data_t
+    return T.producer_T[undirected_T]
 
 
 def Monitor(T: HandShakeKind):
-    if issubclass(T, HandShake):
-        undirected_T = T.undirected_data_t
-        return T.monitor_T[undirected_T]
-    raise TypeError(f"Monitor({T}) is unsupported")
+    if not issubclass(T, HandShake):
+        raise TypeError(f"Monitor({T}) is unsupported")
+    undirected_T = T.undirected_data_t
+    return T.monitor_T[undirected_T]
 
 
 def Driver(T: HandShakeKind):
-    if issubclass(T, HandShake):
-        undirected_T = T.undirected_data_t
-        return T.driver_T[undirected_T]
-    raise TypeError(f"Driver({T}) is unsupported")
+    if not issubclass(T, HandShake):
+        raise TypeError(f"Driver({T}) is unsupported")
+    undirected_T = T.undirected_data_t
+    return T.driver_T[undirected_T]
 
 
 def Undirected(T: HandShakeKind):
-    if issubclass(T, HandShake):
-        undirected_T = T.undirected_data_t
-        return T.base_T[undirected_T]
-    raise TypeError(f"Undirected({T}) is unsupported")
+    if not issubclass(T, HandShake):
+        raise TypeError(f"Undirected({T}) is unsupported")
+    undirected_T = T.undirected_data_t
+    return T.base_T[undirected_T]
 
 
 def is_producer(T):
