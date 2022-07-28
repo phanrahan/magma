@@ -13,7 +13,6 @@ def test_ready_valid_simple(T):
             O=m.Producer(T[m.Bits[5]]),
             fired=m.Out(m.Bit)
         )
-        print(T, T[m.Bits[5]], type(io.I))
         assert isinstance(io.I, T)
         assert isinstance(io.I, T[m.Bits[5]])
         # Flipped because defn view
@@ -25,8 +24,8 @@ def test_ready_valid_simple(T):
         io.fired @= io.I.fired() & io.O.fired()
 
     m.compile("build/TestReadyValidSimple", TestReadyValidSimple, inline=True)
-    assert check_files_equal(__file__, f"build/TestReadyValidSimple.v",
-                             f"gold/TestReadyValidSimple.v")
+    assert check_files_equal(__file__, "build/TestReadyValidSimple.v",
+                             "gold/TestReadyValidSimple.v")
 
 
 @pytest.mark.parametrize('T', [m.ReadyValid, m.Decoupled, m.Irrevocable])
