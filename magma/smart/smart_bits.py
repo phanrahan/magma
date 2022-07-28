@@ -1,6 +1,5 @@
 import abc
 import copy
-import dataclasses
 import enum
 import inspect
 import operator
@@ -771,81 +770,12 @@ def _evaluate_assignment(lhs: SmartBits, rhs: _SmartExpr) -> SmartBits:
 
 
 class _SmartExprVisitor(MroVisitor):
-    def generic_visit(self, expr: _SmartExpr, *args, **kwargs):
+    def visit(self, expr: _SmartExpr):
+        super().visit(expr)
+
+    def generic_visit(self, expr: _SmartExpr):
         for arg in expr.args:
-            self.visit(arg, *args, **kwargs)
-
-
-@dataclasses.dataclass
-class Resolution:
-    width: Optional[int] = None
-    signed: Optional[bool] = None
-
-
-class _SmartExprResolver(_SmartExprVisitor):
-    def __init__(self):
-        super().__init__()
-        self._resolutions = {}
-
-    def _get_or_set(self, key):
-        return self._resolutions.setdefault(key, Resolution())
-
-    def set(self, key, width: int, signed: bool):
-        resolution = self._get_or_set(key)
-        resolution.width = width
-        resolution.signed = signed
-
-    def set_width(self, key, width: int):
-        resolution = self._get_or_set(key)
-        resolution.width = width
-
-    def set_signed(self, key, signed: bool):
-        resolution = self._get_or_set(key)
-        resolution.signed = signed
-
-    def get(self, key) -> Resolution:
-        return self._resolutions[key]
-
-    def resolutions(self) -> Dict[_SmartExpr, Resolution]:
-        return self._resolutions.copy()
-
-    def visit__SmartNAryContextualOp(self, expr: _SmartNAryContextualOp, context: Context):
-        self.generic_visit(expr, context)
-        resolutions = list(map(self.get, expr.args))
-        width = context.max_width()
-        signed = all(resolution.signed for resolution in resolutions)
-        self.set(expr, width, signed)
-
-    def visit__SmartSignedOp(self, expr: _SmartSignedOp, context: Context):
-        self.generic_visit(expr, context)
-        resolution = self.get(expr.args[0])
-        self.set(expr, resolution.width, expr.op.signed)
-
-    def visit__SmartBitsExpr(self, expr: _SmartBitsExpr, context: Context):
-        bits = expr.bits
-        self.set(expr, len(bits), type(bits)._signed)
-
-
-class _SmartExprEvaluator(_SmartExprVisitor):
-    def __init__(self, resolutions: Dict[_SmartExpr, Resolution]):
-        super().__init__()
-        self._resolutions = resolutions
-
-    def visit__SmartNAryContextualOp(self, expr: _SmartNAryContextualOp) -> Bits:
-        args = list(map(self.visit, expr.args))
-        resolution = self._resolutions[expr]
-        cons = sint if resolution.signed else uint
-        args = (cons(arg).ext_to(resolution.width) for arg in args)
-        return expr.op(*args)
-
-    def visit__SmartSignedOp(self, expr: _SmartSignedOp) -> Bits:
-        arg = self.visit(expr.args[0])
-        signed = self._resolutions[expr].signed
-        cons = sint if signed else uint
-        return cons(arg)
-
-    def visit__SmartBitsExpr(self, expr: _SmartBitsExpr) -> Bits:
-        return expr.bits.typed_value()
+            self.visit(arg)
 
 
 def eval(expr: _SmartExpr, width: int, signed: bool = False):
