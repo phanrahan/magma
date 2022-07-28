@@ -53,12 +53,9 @@ def _no_deq_error(self, value, when=True):
 
 
 class HandShakeKind(ProductKind):
-    _qualifers_ = {
-        # Undirected
-        "output": lambda x: x,
-        "input": lambda x: x,
-        "data": lambda x: x
-    }
+    # Undirected
+    _qualifers_ = {"output": lambda x: x, "input": lambda x: x,
+                   "data": lambda x: x}
 
     def _make_fields(cls, T):
         fields = {
