@@ -70,13 +70,12 @@ class HandShakeKind(ProductKind):
         _maybe_add_data(cls, fields, T, cls._qualifers_["data"])
         return fields
 
-    def _get_bases(cls, T):
-        return (cls, )
-
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         assert cls._field_names_ is not None, "Undefined field name impl"
         fields = cls._make_fields(T)
-        bases = cls._get_bases(T)
+        bases = (cls, )
+        if hasattr(cls, "Base_T"):
+            bases += (cls.Base_T[T], )
         name = f"{cls}[{T}]"
         ns = {}
         ns['__module__'] = cls.__module__
@@ -89,31 +88,19 @@ class HandShakeKind(ProductKind):
         if not result._field_names_:
             # Skip for base abstract class
             return result
-        if issubclass(result, (
-            HandShakeMonitor,
-            HandShakeDriver,
-            HandShakeConsumer,
-            HandShakeProducer
-        )):
+        variants = (HandShakeMonitor, HandShakeDriver, HandShakeConsumer,
+                    HandShakeProducer)
+        if issubclass(result, variants):
+            # These don't need variants
             return result
 
         # metaprogram variants
-        result.producer_T = type(f"Producer({result.__name__})",
-                                 (HandShakeProducer, result),
-                                 {})
-        result.producer_T.base_T = result
-        result.consumer_T = type(f"Consumer({result.__name__})",
-                                 (HandShakeConsumer, result),
-                                 {})
-        result.consumer_T.base_T = result
-        result.monitor_T = type(f"Monitor({result.__name__})",
-                                (HandShakeMonitor, result),
-                                {})
-        result.monitor_T.base_T = result
-        result.driver_T = type(f"Driver({result.__name__})",
-                               (HandShakeDriver, result),
-                               {})
-        result.driver_T.base_T = result
+        for variant in variants:
+            suffix = f"{variant.__name__}"[len("HandShake"):]
+            variant_T = type(f"{suffix}({result.__name__})",
+                             (variant, result), {})
+            setattr(result, f"{suffix}_T", variant_T)
+            variant_T.Base_T = result
         return result
 
     def flip(cls):
@@ -153,9 +140,6 @@ class HandShake(Product, metaclass=HandShakeKind):
 class HandShakeProducerKind(HandShakeKind):
     _qualifers_ = {"output": Out, "input": In, "data": Out}
 
-    def _get_bases(cls, T):
-        return (cls, cls.base_T[T])
-
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         t = super().__getitem__(T)
         if T is None:
@@ -170,9 +154,6 @@ class HandShakeProducerKind(HandShakeKind):
 
 class HandShakeConsumerKind(HandShakeKind):
     _qualifers_ = {"output": In, "input": Out, "data": In}
-
-    def _get_bases(cls, T):
-        return (cls, cls.base_T[T])
 
     def __getitem__(cls, T: Union[Type, MagmaProtocol]):
         t = super().__getitem__(T)
@@ -288,9 +269,6 @@ class HandShakeProducer(HandShake, metaclass=HandShakeProducerKind):
 class HandShakeMonitorKind(HandShakeKind):
     _qualifers_ = {"output": In, "input": In, "data": In}
 
-    def _get_bases(cls, T):
-        return (cls, cls.base_T[T])
-
     def flip(cls):
         return Driver(cls)
 
@@ -301,9 +279,6 @@ class HandShakeMonitor(HandShake, metaclass=HandShakeMonitorKind):
 
 class HandShakeDriverKind(HandShakeKind):
     _qualifers_ = {"output": Out, "input": Out, "data": Out}
-
-    def _get_bases(cls, T):
-        return (cls, cls.base_T[T])
 
     def flip(cls):
         return Monitor(cls)
@@ -344,7 +319,7 @@ class Decoupled(ReadyValid):
     pass
 
 
-class EnqIO(Decoupled.producer_T):
+class EnqIO(Decoupled.Producer_T):
     """
     Alias for Producer(Decoupled[T])
 
@@ -353,7 +328,7 @@ class EnqIO(Decoupled.producer_T):
     pass
 
 
-class DeqIO(Decoupled.consumer_T):
+class DeqIO(Decoupled.Consumer_T):
     """
     Alias for Consumer(Decoupled[T])
 
@@ -381,35 +356,35 @@ def Consumer(T: HandShakeKind):
     if not issubclass(T, HandShake):
         raise TypeError(f"Consumer({T}) is unsupported")
     undirected_T = T.undirected_data_t
-    return T.consumer_T[undirected_T]
+    return T.Consumer_T[undirected_T]
 
 
 def Producer(T: HandShakeKind):
     if not issubclass(T, HandShake):
         raise TypeError(f"Producer({T}) is unsupported")
     undirected_T = T.undirected_data_t
-    return T.producer_T[undirected_T]
+    return T.Producer_T[undirected_T]
 
 
 def Monitor(T: HandShakeKind):
     if not issubclass(T, HandShake):
         raise TypeError(f"Monitor({T}) is unsupported")
     undirected_T = T.undirected_data_t
-    return T.monitor_T[undirected_T]
+    return T.Monitor_T[undirected_T]
 
 
 def Driver(T: HandShakeKind):
     if not issubclass(T, HandShake):
         raise TypeError(f"Driver({T}) is unsupported")
     undirected_T = T.undirected_data_t
-    return T.driver_T[undirected_T]
+    return T.Driver_T[undirected_T]
 
 
 def Undirected(T: HandShakeKind):
     if not issubclass(T, HandShake):
         raise TypeError(f"Undirected({T}) is unsupported")
     undirected_T = T.undirected_data_t
-    return T.base_T[undirected_T]
+    return T.Base_T[undirected_T]
 
 
 def is_producer(T):
