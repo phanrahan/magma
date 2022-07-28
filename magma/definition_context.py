@@ -153,6 +153,7 @@ class DefinitionContext(FinalizableDelegator):
             self._conditional_driver = self._make_conditional_driver()
         return self._conditional_driver
 
+
 def push_definition_context(
         ctx: DefinitionContext, use_staged_logger: bool = False):
     push_log_capturer(ctx)
