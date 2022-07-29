@@ -122,7 +122,7 @@ class HandShakeKind(ProductKind):
         name = f'{cls}[{T}]'
         ns['__qualname__'] = name
 
-        # _cache_handler implemented in hwtypes.adt_meta
+        # _cache_handler is implemented in hwtypes.adt_meta.
         return cls._cache_handler(True, fields, name, bases, ns)
 
     def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
