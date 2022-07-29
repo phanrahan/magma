@@ -193,7 +193,6 @@ class Wireable:
         self.debug_info = debug_info
         o.debug_info = debug_info
 
-
     @debug_wire
     def rewire(self, o, debug_info=None):
         self.unwire(debug_info=debug_info)
