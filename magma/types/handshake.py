@@ -89,7 +89,7 @@ class HandShakeKind(ProductKind):
         Each HandShake implementation should define a dict of _field_names_ for
         the signals (e.g. "ready" and "valid").  For consistency, we define the
         output/input names in terms of a Producer (i.e. ReadyValid outputs a
-        valid and inputs a ready)
+        valid and inputs a ready).
 
         Each implementation should define a dict of _qualifiers_ used to
         qualify the ports for producer, consumer, etc...
