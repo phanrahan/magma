@@ -75,7 +75,7 @@ class _GrouperBase(abc.ABC):
                 yield (driver, port)
             return
         if not isinstance(port, (m_Tuple, Array)):
-            raise TypeError(value)
+            raise TypeError(port)
         for elt in port:
             yield from self._run_on_input(elt)
 
@@ -86,7 +86,6 @@ class _GrouperBase(abc.ABC):
                 if is_external:
                     yield (driver, drivee)
                 continue
-            assert not drivee.name.bound()
             raise NotImplementedError(
                 f"{port}: driving annonymous value from compile guard not "
                 f"supported"
