@@ -107,7 +107,7 @@ from magma.primitives import (LUT, Mux, mux, dict_lookup, list_lookup,
 
 from magma.types import (BitPattern, Valid, ReadyValid, Consumer, Producer,
                          Decoupled, EnqIO, DeqIO, Irrevocable, Monitor,
-                         is_producer, is_consumer)
+                         is_producer, is_consumer, CreditValid)
 import magma.smart
 from magma.compile_guard import compile_guard, compile_guard_select
 from magma.inline_verilog_expression import InlineVerilogExpression
