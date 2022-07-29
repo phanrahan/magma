@@ -67,6 +67,8 @@ class _CompileGuardBuilder(CircuitBuilder):
         return f"CompileGuardCircuit_{counter}"
 
     def __init__(self, name, cond, type):
+        if name is None:
+            name = _CompileGuardBuilder.make_default_defn_name()
         super().__init__(name)
         self._cond = cond
         self._system_types_added = set()
@@ -99,8 +101,6 @@ def _make_builder(
         inst_name: Optional[str],
         type: str
 ) -> _CompileGuardBuilder:
-    if defn_name is None:
-        defn_name = _CompileGuardBuilder.make_default_defn_name()
     builder = _CompileGuardBuilder(defn_name, cond, type)
     if inst_name is not None:
         builder.set_instance_name(inst_name)
