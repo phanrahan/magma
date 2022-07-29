@@ -1,19 +1,16 @@
 import contextlib
+import itertools
 from typing import Optional, Tuple
 
 from magma.bits import BitsMeta
 from magma.clock import ClockTypes
-from magma.circuit import Circuit, CircuitBuilder
-from magma.conversions import as_bits
-from magma.definition_context import definition_context_manager
+from magma.circuit import CircuitBuilder
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
-from magma.inline_verilog import inline_verilog
 from magma.interface import IO
 from magma.logging import root_logger
 from magma.passes.group import GrouperBase, InstanceCollection
 from magma.primitives.mux import infer_mux_type
-from magma.ref import InstRef, get_ref_defn, get_ref_inst
 from magma.t import Kind, Type, In, Out
 from magma.type_utils import type_to_sanitized_string
 
@@ -62,12 +59,11 @@ class _Grouper(GrouperBase):
 
 
 class _CompileGuardBuilder(CircuitBuilder):
-    __default_defn_name_counter = 0
+    __default_defn_name_counter = itertools.count()
 
     @staticmethod
     def make_default_defn_name() -> str:
-        counter = _CompileGuardBuilder.__default_defn_name_counter
-        _CompileGuardBuilder.__default_defn_name_counter += 1
+        counter = next(_CompileGuardBuilder.__default_defn_name_counter)
         return f"CompileGuardCircuit_{counter}"
 
     def __init__(self, name, cond, type):
