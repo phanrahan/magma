@@ -2,6 +2,7 @@ import logging as py_logging
 
 from magma.config import config, EnvConfig
 from magma.logging import root_logger, StagedLogRecord
+from magma.debug import debug_wire
 
 
 config._register(
@@ -191,3 +192,8 @@ class Wireable:
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
+
+    @debug_wire
+    def rewire(self, o, debug_info=None):
+        self.unwire(debug_info=debug_info)
+        self.wire(o, debug_info=debug_info)

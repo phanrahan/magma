@@ -8,7 +8,7 @@ from magma.clock import (
     is_clock_or_nested_clock)
 from magma.common import (
     only, IterableException, EmptyIterableException,
-    NonSignletonIterableException)
+    NonSingletonIterableException)
 from magma.logging import root_logger
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.primitives.wire import Wire
@@ -150,10 +150,11 @@ def drive_undriven_clocks_in_inst(
             f"Found no clocks in {defn.name}; skipping auto-wiring "
             f"{clock_type}")
         return
-    except NonSignletonIterableException:
+    except NonSingletonIterableException as e:
         _logger.warning(
             f"Found multiple clocks in {defn.name}; skipping auto-wiring "
-            f"{clock_type}")
+            f"{clock_type} ({', '.join(map(repr, e.args[0]))})"
+        )
         return
     # Restore undrivens after popping off the first element.
     undrivens = itertools.chain([undriven], undrivens)

@@ -170,7 +170,7 @@ class EmptyIterableException(IterableException):
     pass
 
 
-class NonSignletonIterableException(IterableException):
+class NonSingletonIterableException(IterableException):
     pass
 
 
@@ -186,7 +186,7 @@ def only(lst: Iterable):
         return value
     else:
         elements = [value, new_value] + list(it)
-        raise NonSignletonIterableException(elements)
+        raise NonSingletonIterableException(elements)
 
 
 class Finalizable(abc.ABC):

@@ -48,7 +48,10 @@ def test_drive_undriven_clock_types_multiple_clocks_logging(caplog):
     Foo_reg = Foo.instances[0]
     drive_undriven_clock_types_in_inst(Foo, Foo_reg)
 
-    msg = f"Found multiple clocks in {Foo.name}; skipping auto-wiring {m.Clock}"
+    msg = (
+        f"Found multiple clocks in {Foo.name}; skipping auto-wiring {m.Clock} "
+        f"(Foo.C0, Foo.C1)"
+    )
     assert has_warning(caplog, msg)
 
 
