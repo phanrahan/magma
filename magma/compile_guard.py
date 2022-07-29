@@ -55,7 +55,7 @@ class _Grouper(GrouperBase):
             return  # only add at most one port for each clock type
         self._clock_types.add(T)
         name = str(port.name)
-        _ = self._builder.add_port(In(T), name=name)
+       self._builder.add_port(In(T), name=name)
 
 
 class _CompileGuardBuilder(CircuitBuilder):
