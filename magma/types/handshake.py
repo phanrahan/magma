@@ -36,20 +36,44 @@ def _maybe_add_data(cls, fields, T, qualifier):
     fields["data"] = qualifier(T)
 
 
+class HandShakeError(Exception):
+    pass
+
+
+class EnqError(HandShakeError):
+    def __init__(self, cls):
+        super().__init__(f"{cls} does not support enq")
+
+
+class NoEnqError(HandShakeError):
+    def __init__(self, cls):
+        super().__init__(f"{cls} does not support no_enq")
+
+
+class DeqError(HandShakeError):
+    def __init__(self, cls):
+        super().__init__(f"{cls} does not support deq")
+
+
+class NoDeqError(HandShakeError):
+    def __init__(self, cls):
+        super().__init__(f"{cls} does not support no_deq")
+
+
 def _enq_error(self, value, when=True):
-    raise Exception(f"{type(self)} does not support enq")
+    raise EnqError(type(self))
 
 
 def _no_enq_error(self, value, when=True):
-    raise Exception(f"{type(self)} does not support no_enq")
+    raise NoEnqError(type(self))
 
 
 def _deq_error(self, value, when=True):
-    raise Exception(f"{type(self)} does not support deq")
+    raise DeqError(type(self))
 
 
 def _no_deq_error(self, value, when=True):
-    raise Exception(f"{type(self)} does not support no_deq")
+    raise NoDeqError(type(self))
 
 
 class HandShakeKind(ProductKind):
