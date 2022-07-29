@@ -109,9 +109,9 @@ class HandShakeKind(ProductKind):
 
         bases = (cls, )
         if hasattr(cls, "Base_T"):
-            # Qualified variants include the unqualified type as a base class
-            # e.g. Producer(ReadyValid[Bits[8]]) will be a subtype of
-            #      ReadyValid[Bits[8]]
+            # Qualified variants include the unqualified type as a base class.  
+            # e.g. Producer(ReadyValid[Bits[8]]) will be a subtype of           
+            # ReadyValid[Bits[8]].
             bases += (cls.Base_T[T], )
         name = f"{cls}[{T}]"
 
