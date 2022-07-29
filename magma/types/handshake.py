@@ -82,7 +82,7 @@ class HandShakeKind(ProductKind):
         "output": lambda x: x,
         "input": lambda x: x,
         "data": lambda x: x
-     }
+    }
 
     def _make_fields(cls, T):
         """
@@ -109,8 +109,8 @@ class HandShakeKind(ProductKind):
 
         bases = (cls, )
         if hasattr(cls, "Base_T"):
-            # Qualified variants include the unqualified type as a base class.  
-            # e.g. Producer(ReadyValid[Bits[8]]) will be a subtype of           
+            # Qualified variants include the unqualified type as a base class.
+            # e.g. Producer(ReadyValid[Bits[8]]) will be a subtype of
             # ReadyValid[Bits[8]].
             bases += (cls.Base_T[T], )
         name = f"{cls}[{T}]"
@@ -130,28 +130,27 @@ class HandShakeKind(ProductKind):
 
         if not result._field_names_:
             # Skip for base class (variants already exist and pointer is not
-            # needed)
+            # needed).
             return result
 
         variants = (HandShakeMonitor, HandShakeDriver, HandShakeConsumer,
                     HandShakeProducer)
         if issubclass(result, variants):
-            # These don't need variants
-            return result
+            return result  # these don't need variants
 
-        # metaprogram variants for base type (e.g. for ReadyValid[Bits[8]],
-        # create Producer(ReadyValid[Bits[8]]))
+        # Metaprogram variants for base type (e.g. for ReadyValid[Bits[8]],
+        # create Producer(ReadyValid[Bits[8]])).
         for variant in variants:
-            # Strip "HandShake" prefix for string name
+            # Strip "HandShake" prefix for string name.
             suffix = f"{variant.__name__}"[len("HandShake"):]
 
-            # Make variant type with appropriate base classes
+            # Make variant type with appropriate base classes.
             variant_T = type(f"{suffix}({result.__name__})",
                              (variant, result), {})
 
-            # Store pointer to variant (used by qualifiers)
+            # Store pointer to variant (used by qualifiers).
             setattr(result, f"{suffix}_T", variant_T)
-            # Store pointer to base type
+            # Store pointer to base type.
             variant_T.Base_T = result
 
         return result
@@ -181,11 +180,11 @@ class HandShakeKind(ProductKind):
 
 
 class HandShake(Product, metaclass=HandShakeKind):
-    _field_names_ = None  # Must be defined by implementation
+    _field_names_ = None  # must be defined by implementation
 
     def fired(self):
         """
-        Returns a bit that is high when ready and valid are both high
+        Returns a bit that is high when ready and valid are both high.
         """
         raise NotImplementedError
 
@@ -230,7 +229,7 @@ class HandShakeConsumer(HandShake, metaclass=HandShakeConsumerKind):
 
     def enq(self, value, when=True):
         """
-        Produces the data `value` when `when` is high
+        Produces the data `value` when `when` is high.
 
         Uses "last connect semantics", which allows multiple `enq` methods to
         be invoked with different conditions with precedence given to the later
@@ -255,7 +254,7 @@ class HandShakeConsumer(HandShake, metaclass=HandShakeConsumerKind):
     def no_enq(self, when=True):
         """
         Indicates no enqueue occurs.  Valid is set to false, and bits are
-        connected to 0 (TODO: Should be an unitialized wire (Don't Care))
+        connected to 0. (TODO: Should be an unitialized wire (Don't Care))
         """
         if when is not True:
             if not (self.valid.driven() and self.data.driven()):
@@ -285,7 +284,7 @@ class HandShakeProducer(HandShake, metaclass=HandShakeProducerKind):
     def deq(self, when=True):
         """
         Assert ready on this port and return associated data when `when` is
-        high
+        high.
 
         This is typically used when valid has been asserted on the producer
         side.
@@ -304,7 +303,7 @@ class HandShakeProducer(HandShake, metaclass=HandShakeProducerKind):
 
     def no_deq(self, when=True):
         """
-        Indicates no dequeue occurs, ready is set to False
+        Indicates no dequeue occurs, ready is set to False.
         """
         if when is not True:
             if not self.ready.driven():
@@ -374,18 +373,18 @@ class Decoupled(ReadyValid):
 
 class EnqIO(Decoupled.Producer_T):
     """
-    Alias for Producer(Decoupled[T])
+    Alias for Producer(Decoupled[T]).
 
-    drives (outputs) `valid` and `data`, inputs `ready`
+    drives (outputs) `valid` and `data`, inputs `ready`.
     """
     pass
 
 
 class DeqIO(Decoupled.Consumer_T):
     """
-    Alias for Consumer(Decoupled[T])
+    Alias for Consumer(Decoupled[T]).
 
-    drives (outputs) `ready`, inputs `valid` and `data`
+    drives (outputs) `ready`, inputs `valid` and `data`.
     """
     pass
 
@@ -394,7 +393,7 @@ class Irrevocable(ReadyValid):
     """
     Promises not to change the value of `data` after a cycle where `valid` is
     high and `ready` is low.  Additionally, once `valid` is raised, it will
-    never be lowered until after `ready` has also been raised
+    never be lowered until after `ready` has also been raised.
     """
     # TODO: Add upconvert logic from Decoupled producer to Irrevocable (can use
     # Irrevocable where a Decoupled is expected). Cannot be used on consumer.
