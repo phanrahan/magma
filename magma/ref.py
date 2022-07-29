@@ -190,22 +190,15 @@ class LazyDefnRef(DefnRef):
         self._defn = defn
 
 
-class ArrayRef(Ref):
-    def __init__(self, array, index):
-        self.array = array
-        self.index = index
+class RecursiveRef(Ref):
+    def __init__(self, parent):
+        self._parent = parent
 
     def __str__(self):
         return self.qualifiedname()
 
-    def qualifiedname(self, sep="."):
-        return f"{self.array.name.qualifiedname(sep=sep)}[{self.index}]"
-
-    def anon(self):
-        return self.array.name.anon()
-
-    def parent(self):
-        return self.array.name
+    def anon(self) -> bool:
+        return self.parent().anon()
 
     def named(self) -> bool:
         return self.parent().named()
@@ -213,35 +206,34 @@ class ArrayRef(Ref):
     def bound(self) -> bool:
         return self.parent().bound()
 
+    def parent(self):
+        return self._parent.name
 
-class TupleRef(Ref):
-    def __init__(self, tuple, index):
-        self.tuple = tuple
+
+class ArrayRef(RecursiveRef):
+    def __init__(self, array, index):
+        super().__init__(array)
+        self.array = array
         self.index = index
 
-    def __str__(self):
-        return self.qualifiedname()
+    def qualifiedname(self, sep="."):
+        return f"{self.parent().qualifiedname(sep=sep)}[{self.index}]"
+
+
+class TupleRef(RecursiveRef):
+    def __init__(self, tuple, index):
+        super().__init__(tuple)
+        self.tuple = tuple
+        self.index = index
 
     def qualifiedname(self, sep="."):
         try:
             int(self.index)
-            return (self.tuple.name.qualifiedname(sep=sep) +
+            return (self.parent().qualifiedname(sep=sep) +
                     "[" + str(self.index) + "]")
         except ValueError:
-            return (self.tuple.name.qualifiedname(sep=sep) +
+            return (self.parent().qualifiedname(sep=sep) +
                     sep + str(self.index))
-
-    def anon(self):
-        return self.tuple.name.anon()
-
-    def parent(self):
-        return self.tuple.name
-
-    def named(self) -> bool:
-        return self.parent().named()
-
-    def bound(self) -> bool:
-        return self.parent().bound()
 
 
 class PortViewRef(Ref):
