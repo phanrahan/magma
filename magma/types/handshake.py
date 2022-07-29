@@ -77,9 +77,12 @@ def _no_deq_error(self, value, when=True):
 
 
 class HandShakeKind(ProductKind):
-    # Undirected
-    _qualifers_ = {"output": lambda x: x, "input": lambda x: x,
-                   "data": lambda x: x}
+    """Undirected handshake type."""
+    _qualifers_ = {
+        "output": lambda x: x,
+        "input": lambda x: x,
+        "data": lambda x: x
+     }
 
     def _make_fields(cls, T):
         """
