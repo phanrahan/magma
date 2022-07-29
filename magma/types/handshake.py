@@ -434,6 +434,8 @@ def Driver(T: HandShakeKind):
 def Undirected(T: HandShakeKind):
     if not issubclass(T, HandShake):
         raise TypeError(f"Undirected({T}) is unsupported")
+    if not hasattr(T, 'Base_T'):
+        return T  # already undirected
     undirected_T = T.undirected_data_t
     return T.Base_T[undirected_T]
 

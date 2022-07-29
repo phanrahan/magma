@@ -188,6 +188,9 @@ def test_flip_ready_valid():
 
 
 def test_ready_valid_none():
+    assert (m.ReadyValid[None].qualify(m.Direction.Undirected) is
+            m.ReadyValid[None])
+
     class Foo(m.Circuit):
         io = m.IO(producer_handshake=m.Producer(m.ReadyValid[None]),
                   consumer_handshake=m.Consumer(m.ReadyValid[None]))
