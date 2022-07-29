@@ -126,17 +126,17 @@ class HandShakeKind(ProductKind):
         return cls._cache_handler(True, fields, name, bases, ns)
 
     def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
-        result = super().__new__(mcs, name, bases, namespace, fields, **kwargs)
+        cls = super().__new__(mcs, name, bases, namespace, fields, **kwargs)
 
-        if not result._field_names_:
+        if not cls._field_names_:
             # Skip for base class (variants already exist and pointer is not
             # needed).
-            return result
+            return cls
 
         variants = (HandShakeMonitor, HandShakeDriver, HandShakeConsumer,
                     HandShakeProducer)
-        if issubclass(result, variants):
-            return result  # these don't need variants
+        if issubclass(cls, variants):
+            return cls  # these don't need variants
 
         # Metaprogram variants for base type (e.g. for ReadyValid[Bits[8]],
         # create Producer(ReadyValid[Bits[8]])).
@@ -145,15 +145,14 @@ class HandShakeKind(ProductKind):
             suffix = f"{variant.__name__}"[len("HandShake"):]
 
             # Make variant type with appropriate base classes.
-            variant_T = type(f"{suffix}({result.__name__})",
-                             (variant, result), {})
+            variant_T = type(f"{suffix}({cls.__name__})",
+                             (variant, cls), {})
 
             # Store pointer to variant (used by qualifiers).
-            setattr(result, f"{suffix}_T", variant_T)
-            # Store pointer to base type.
-            variant_T.Base_T = result
+            setattr(cls, f"{suffix}_T", variant_T)
+            variant_T.Base_T = cls  # store pointer to base type
 
-        return result
+        return cls
 
     def flip(cls):
         raise TypeError(f"Cannot flip {cls.__name__} (undirected)")
