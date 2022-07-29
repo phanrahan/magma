@@ -115,8 +115,8 @@ class HandShakeKind(ProductKind):
             bases += (cls.Base_T[T], )
         name = f"{cls}[{T}]"
 
-        # Populate namespace for proper cache behavior (based on
-        # hwtypes.adt_meta logic)
+        # Populates namespace for proper cache behavior (based on
+        # hwtypes.adt_meta logic).
         ns = {}
         ns['__module__'] = cls.__module__
         name = f'{cls}[{T}]'
