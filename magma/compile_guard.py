@@ -34,8 +34,7 @@ class _Grouper(GrouperBase):
         # (value() vs. trace()).
         driver = drivee.value()
         new_port = self._builder.add_port(In(type(driver)))
-        drivee.unwire(driver)
-        drivee @= new_port
+        drivee.rewire(new_port)
         external = getattr(self._builder, new_port.name.name)
         external @= driver
 
@@ -43,10 +42,7 @@ class _Grouper(GrouperBase):
         new_port = self._builder.add_port(Out(type(driver)))
         new_port @= driver
         external = getattr(self._builder, new_port.name.name)
-        old_driver = drivee.value()
-        drivee.unwire(old_driver)
-        new_driver = external
-        drivee @= new_driver
+        drivee.rewire(external)
 
     def _visit_undriven_port(self, port: Type):
         # For undriven clock types, we simply lift the port *but do not connect
