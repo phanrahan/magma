@@ -55,7 +55,7 @@ class _Grouper(GrouperBase):
             return  # only add at most one port for each clock type
         self._clock_types.add(T)
         name = str(port.name)
-       self._builder.add_port(In(T), name=name)
+        self._builder.add_port(In(T), name=name)
 
 
 class _CompileGuardBuilder(CircuitBuilder):
@@ -76,7 +76,7 @@ class _CompileGuardBuilder(CircuitBuilder):
             "coreir_metadata",
             {"compile_guard": {"condition_str": cond, "type": type}}
         )
-        self._num_ports = 0
+        self._num_ports = itertools.count()
 
     def add_port(self, T: Kind, name: Optional[str] = None) -> Type:
         if name is None:
@@ -90,9 +90,7 @@ class _CompileGuardBuilder(CircuitBuilder):
         return self._open()
 
     def _new_port_name(self):
-        name = f"port_{self._num_ports}"
-        self._num_ports += 1
-        return name
+        return f"port_{next(self._num_ports)}"
 
 
 def _make_builder(
