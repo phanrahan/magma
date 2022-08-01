@@ -1,8 +1,8 @@
 import logging as py_logging
 
 from magma.config import config, EnvConfig
-from magma.logging import root_logger, StagedLogRecord
 from magma.debug import debug_wire
+from magma.logging import root_logger, StagedLogRecord
 
 
 config._register(

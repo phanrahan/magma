@@ -62,13 +62,13 @@ class _CompileGuardBuilder(CircuitBuilder):
     __default_defn_name_counter = itertools.count()
 
     @staticmethod
-    def make_default_defn_name() -> str:
+    def _make_default_defn_name() -> str:
         counter = next(_CompileGuardBuilder.__default_defn_name_counter)
         return f"CompileGuardCircuit_{counter}"
 
-    def __init__(self, name, cond, type):
+    def __init__(self, name: Optional[str], cond: str, type: str):
         if name is None:
-            name = _CompileGuardBuilder.make_default_defn_name()
+            name = _CompileGuardBuilder._make_default_defn_name()
         super().__init__(name)
         self._cond = cond
         self._system_types_added = set()
@@ -91,7 +91,7 @@ class _CompileGuardBuilder(CircuitBuilder):
     def open(self):
         return self._open()
 
-    def _new_port_name(self):
+    def _new_port_name(self) -> str:
         return f"port_{next(self._num_ports)}"
 
 
