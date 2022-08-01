@@ -190,7 +190,7 @@ class LazyDefnRef(DefnRef):
         self._defn = defn
 
 
-class RecursiveRef(Ref):
+class DerivedRef(Ref):
     def __init__(self, parent):
         self._parent = parent
 
@@ -210,7 +210,7 @@ class RecursiveRef(Ref):
         return self._parent.name
 
 
-class ArrayRef(RecursiveRef):
+class ArrayRef(DerivedRef):
     def __init__(self, array, index):
         super().__init__(array)
         self.array = array
@@ -220,7 +220,7 @@ class ArrayRef(RecursiveRef):
         return f"{self.parent().qualifiedname(sep=sep)}[{self.index}]"
 
 
-class TupleRef(RecursiveRef):
+class TupleRef(DerivedRef):
     def __init__(self, tuple, index):
         super().__init__(tuple)
         self.tuple = tuple
