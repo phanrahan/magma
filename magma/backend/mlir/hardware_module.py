@@ -1037,7 +1037,6 @@ class ModuleVisitor:
         if not self._graph.has_node(magma_module):
             return
         for predecessor in self._graph.predecessors(magma_module):
-            print(predecessor)
             if predecessor in self._visited:
                 continue
             self.visit(predecessor)
