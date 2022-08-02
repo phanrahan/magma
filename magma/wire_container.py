@@ -1,6 +1,7 @@
 import logging as py_logging
 
 from magma.config import config, EnvConfig
+from magma.debug import debug_wire
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import (safe_peek_defn_when_cond_stack,
                         peek_defn_when_cond_stack)
@@ -238,3 +239,8 @@ class Wireable:
             if self._conditional_driver is not None:
                 self._conditional_driver.remove(self)
                 self._conditional_driver = None
+
+    @debug_wire
+    def rewire(self, o, debug_info=None):
+        self.unwire(debug_info=debug_info)
+        self.wire(o, debug_info=debug_info)

@@ -20,6 +20,14 @@ class Ref:
     def anon(self):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def named(self) -> bool:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def bound(self) -> bool:
+        raise NotImplementedError()
+
     def parent(self):
         return self
 
@@ -43,6 +51,12 @@ class AnonRef(Ref):
     def anon(self):
         return True
 
+    def named(self) -> bool:
+        return False
+
+    def bound(self) -> bool:
+        return False
+
 
 class ConstRef(Ref):
     def __init__(self, name):
@@ -55,6 +69,12 @@ class ConstRef(Ref):
         return self.name
 
     def anon(self):
+        return False
+
+    def named(self) -> bool:
+        return False
+
+    def bound(self) -> bool:
         return False
 
 
@@ -77,9 +97,13 @@ class NamedRef(Ref):
     def value(self):
         return self._value if self._value is None else self._value()
 
+    def named(self) -> bool:
+        return True
+
 
 class TempNamedRef(NamedRef):
-    pass
+    def bound(self) -> bool:
+        return False
 
 
 class InstRef(NamedRef):
@@ -101,6 +125,9 @@ class InstRef(NamedRef):
             if sep == ".":
                 return f"{self.inst.name}[{self.name}]"
         return self.inst.name + sep + str(name)
+
+    def bound(self) -> bool:
+        return True
 
 
 class LazyInstRef(InstRef):
@@ -135,6 +162,9 @@ class DefnRef(NamedRef):
             return self.defn.__name__ + sep + self.name
         return self.name
 
+    def bound(self) -> bool:
+        return True
+
 
 class LazyCircuit:
     name = ""
@@ -160,46 +190,50 @@ class LazyDefnRef(DefnRef):
         self._defn = defn
 
 
-class ArrayRef(Ref):
+class DerivedRef(Ref):
+    def __init__(self, parent):
+        self._parent = parent
+
+    def __str__(self):
+        return self.qualifiedname()
+
+    def anon(self) -> bool:
+        return self.parent().anon()
+
+    def named(self) -> bool:
+        return self.parent().named()
+
+    def bound(self) -> bool:
+        return self.parent().bound()
+
+    def parent(self):
+        return self._parent.name
+
+
+class ArrayRef(DerivedRef):
     def __init__(self, array, index):
+        super().__init__(array)
         self.array = array
         self.index = index
 
-    def __str__(self):
-        return self.qualifiedname()
-
     def qualifiedname(self, sep="."):
-        return f"{self.array.name.qualifiedname(sep=sep)}[{self.index}]"
-
-    def anon(self):
-        return self.array.name.anon()
-
-    def parent(self):
-        return self.array.name
+        return f"{self.parent().qualifiedname(sep=sep)}[{self.index}]"
 
 
-class TupleRef(Ref):
+class TupleRef(DerivedRef):
     def __init__(self, tuple, index):
+        super().__init__(tuple)
         self.tuple = tuple
         self.index = index
-
-    def __str__(self):
-        return self.qualifiedname()
 
     def qualifiedname(self, sep="."):
         try:
             int(self.index)
-            return (self.tuple.name.qualifiedname(sep=sep) +
+            return (self.parent().qualifiedname(sep=sep) +
                     "[" + str(self.index) + "]")
         except ValueError:
-            return (self.tuple.name.qualifiedname(sep=sep) +
+            return (self.parent().qualifiedname(sep=sep) +
                     sep + str(self.index))
-
-    def anon(self):
-        return self.tuple.name.anon()
-
-    def parent(self):
-        return self.tuple.name
 
 
 class PortViewRef(Ref):

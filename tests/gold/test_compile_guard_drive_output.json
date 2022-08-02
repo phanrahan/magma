@@ -4,8 +4,8 @@
     "modules":{
       "CompileGuardCircuit_1":{
         "type":["Record",[
-          ["CLK",["Named","coreir.clkIn"]],
           ["port_0","Bit"],
+          ["CLK",["Named","coreir.clkIn"]],
           ["port_1","BitIn"]
         ]],
         "instances":{

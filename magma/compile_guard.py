@@ -1,41 +1,74 @@
 import contextlib
-import dataclasses
+import itertools
 from typing import Optional, Tuple
 
 from magma.bits import BitsMeta
-from magma.clock import Clock
-from magma.circuit import Circuit, CircuitBuilder
-from magma.conversions import as_bits
-from magma.definition_context import definition_context_manager
+from magma.clock import ClockTypes
+from magma.circuit import CircuitBuilder
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
-from magma.inline_verilog import inline_verilog
 from magma.interface import IO
+from magma.logging import root_logger
+from magma.passes.group import GrouperBase, InstanceCollection
 from magma.primitives.mux import infer_mux_type
-from magma.ref import AnonRef, ArrayRef, DefnRef, InstRef, TupleRef
-from magma.t import Kind, In, Out
+from magma.t import Kind, Type, In, Out
 from magma.type_utils import type_to_sanitized_string
-from magma.value_utils import make_selector
 
 
-def _get_top_ref(ref):
-    if isinstance(ref, TupleRef):
-        # TODO(rsetaluri): Fix port name collision.
-        return _get_top_ref(ref.tuple.name)
-    if isinstance(ref, ArrayRef):
-        # TODO(rsetaluri): Fix port name collision.
-        return _get_top_ref(ref.array.name)
-    return ref
+_logger = root_logger().getChild("compile_guard")
 
 
-@dataclasses.dataclass(frozen=True)
-class _CompileGuardState:
-    ckt: CircuitBuilder
-    ctx_mgr: contextlib.AbstractContextManager
+class _Grouper(GrouperBase):
+    def __init__(self, instances: InstanceCollection, builder: CircuitBuilder):
+        super().__init__(instances)
+        self._builder = builder
+        self._port_index = 0
+        self._clock_types = set()
+
+    def _visit_input_connection(self, _: Type, drivee: Type):
+        # NOTE(rsetaluri): Since the driver might be traced (i.e. not an
+        # immediate driver), we disregard it and grab the immediate driver
+        # (value() vs. trace()).
+        driver = drivee.value()
+        new_port = self._builder.add_port(In(type(driver)))
+        drivee.rewire(new_port)
+        external = getattr(self._builder, new_port.name.name)
+        external @= driver
+
+    def _visit_output_connection(self, driver: Type, drivee: Type):
+        new_port = self._builder.add_port(Out(type(driver)))
+        new_port @= driver
+        external = getattr(self._builder, new_port.name.name)
+        drivee.rewire(external)
+
+    def _visit_undriven_port(self, port: Type):
+        # For undriven clock types, we simply lift the port *but do not connect
+        # it* since we expect auto-wiring to do this for us (in fact, this is
+        # why the port is undriven in the first place). For non-clock types, we
+        # simply log a debug message and allow the downstream circuit pipeline
+        # to handle the undriven port.
+        if not isinstance(port, ClockTypes):
+            _logger.debug(f"found undriven port: {port}")
+            return
+        T = type(port).undirected_t
+        if T in self._clock_types:
+            return  # only add at most one port for each clock type
+        self._clock_types.add(T)
+        name = str(port.name)
+        self._builder.add_port(In(T), name=name)
 
 
 class _CompileGuardBuilder(CircuitBuilder):
-    def __init__(self, name, cond, type):
+    __default_defn_name_counter = itertools.count()
+
+    @staticmethod
+    def _make_default_defn_name() -> str:
+        counter = next(_CompileGuardBuilder.__default_defn_name_counter)
+        return f"CompileGuardCircuit_{counter}"
+
+    def __init__(self, name: Optional[str], cond: str, type: str):
+        if name is None:
+            name = _CompileGuardBuilder._make_default_defn_name()
         super().__init__(name)
         self._cond = cond
         self._system_types_added = set()
@@ -45,146 +78,47 @@ class _CompileGuardBuilder(CircuitBuilder):
             "coreir_metadata",
             {"compile_guard": {"condition_str": cond, "type": type}}
         )
-        self._port_index = 0
-        self._pre_finalized = False
+        self._num_ports = itertools.count()
 
-    def _new_port_name(self):
-        name = f"port_{self._port_index}"
-        self._port_index += 1
-        return name
+    def add_port(self, T: Kind, name: Optional[str] = None) -> Type:
+        if name is None:
+            name = self._new_port_name()
+        return self._add_port(name, T)
 
-    def _rewire_input(self, port, value):
-        new_port_name = self._new_port_name()
-        T = type(value).undirected_t
-        self._add_port(new_port_name, In(T))
-        new_port = self._port(new_port_name)
-        port.unwire(value)
-        port @= new_port
-        external = getattr(self, new_port_name)
-        external @= value
+    def instances(self) -> InstanceCollection:
+        return self._instances.copy()
 
-    def pre_finalize(self):
-        if self._pre_finalized:
-            raise Exception("Can not call pre_finalize multiple times")
-        for inst in self._instances:
-            self._process_instance(inst)
-        self._pre_finalized = True
+    def open(self):
+        return self._open()
 
-    def _process_instance(self, inst):
-        # TODO(rseatluri,leonardt): Handle mixed types and in-outs.
-        for port in inst.interface.inputs(include_clocks=True):
-            self._process_input(port)
-        for port in inst.interface.outputs():
-            self._process_output(port)
-
-    def _is_external(self, value):
-        top_ref = _get_top_ref(value.name)
-        if isinstance(top_ref, DefnRef):
-            return True
-        if isinstance(top_ref, InstRef):
-            return top_ref.inst not in self._instances
-        if isinstance(top_ref, AnonRef):
-            # TODO(rsetaluri): Implement valid anon. values.
-            # NOTE(leonardt/array2): This basic support is needed for Array2 ->
-            # Array, however since we plan to avoid these problems with the
-            # MLIR backend, I think this is sufficiente for known patterns
-            # working without support all possible patterns
-            return self._is_external(value.driving())
-        return False
-
-    def _process_output(self, port):
-        drivees = port.driving()
-        external_drivees = list(filter(self._is_external, drivees))
-        if not external_drivees:
-            return
-        new_port_name = self._new_port_name()
-        T = type(port).undirected_t
-        self._add_port(new_port_name, Out(T))
-        new_port = self._port(new_port_name)
-        new_port @= port
-        external = getattr(self, new_port_name)
-        for drivee in external_drivees:
-            old_driver = drivee.value()
-            drivee.unwire(old_driver)
-            selector = make_selector(old_driver)
-            new_driver = selector.select(external)
-            drivee @= new_driver
-
-    def _process_input(self, port, ref=None, kwargs=None):
-        value = port.value()
-        if ref is None:
-            if value is None:
-                self._process_undriven(port)
-                return
-            ref = value.name
-        if value.const():
-            return
-        if self._is_external(value):
-            self._rewire_input(port, value)
-            return
-        ref = _get_top_ref(ref)
-        if isinstance(ref, InstRef):
-            # Internal instance driver is okay
-            assert not self._is_external(value)
-            return
-        # TODO(rsetaluri): Do the rest of these.
-        raise NotImplementedError(ref, type(ref))
-
-    def _process_undriven(self, port):
-        # TODO(rsetaluri): Add other system types
-        if not isinstance(port, Clock):
-            return
-        T = type(port).undirected_t
-        if T in self._system_types_added:
-            return
-        name = str(port.name)
-        self._add_port(name, In(T))
-        self._system_types_added.add(T)
+    def _new_port_name(self) -> str:
+        return f"port_{next(self._num_ports)}"
 
 
-class _CompileGuard:
-    __index = 0
-
-    def __init__(self, cond: str,
-                 defn_name: Optional[str],
-                 inst_name: Optional[str],
-                 type: Optional[str] = "defined"):
-        self._cond = cond
-        self._defn_name = defn_name
-        self._inst_name = inst_name
-        self._state = None
-        self._type = type
-
-    @staticmethod
-    def _new_name():
-        index = _CompileGuard.__index
-        _CompileGuard.__index += 1
-        return f"CompileGuardCircuit_{index}"
-
-    def __enter__(self):
-        if self._state is not None:
-            raise Exception("Can not enter compile guard multiple times")
-        assert self._state is None
-        if self._defn_name is None:
-            self._defn_name = _CompileGuard._new_name()
-        if self._state is None:
-            ckt = _CompileGuardBuilder(self._defn_name, self._cond, self._type)
-            if self._inst_name is None:
-                ckt.set_instance_name(self._inst_name)
-            ctx_mgr = definition_context_manager(ckt._context)
-            self._state = _CompileGuardState(ckt, ctx_mgr)
-        self._state.ctx_mgr.__enter__()
-
-    def __exit__(self, typ, value, traceback):
-        self._state.ctx_mgr.__exit__(typ, value, traceback)
-        self._state.ckt.pre_finalize()
+def _make_builder(
+        cond: str,
+        defn_name: Optional[str],
+        inst_name: Optional[str],
+        type: str
+) -> _CompileGuardBuilder:
+    builder = _CompileGuardBuilder(defn_name, cond, type)
+    if inst_name is not None:
+        builder.set_instance_name(inst_name)
+    return builder
 
 
-def compile_guard(cond: str,
-                  defn_name: Optional[str] = None,
-                  inst_name: Optional[str] = None,
-                  type: Optional[str] = "defined"):
-    return _CompileGuard(cond, defn_name, inst_name, type)
+@contextlib.contextmanager
+def compile_guard(
+        cond: str,
+        defn_name: Optional[str] = None,
+        inst_name: Optional[str] = None,
+        type: Optional[str] = "defined"
+):
+    builder = _make_builder(cond, defn_name, inst_name, type)
+    with builder.open() as f:
+        yield f
+    grouper = _Grouper(builder.instances(), builder)
+    grouper.run()
 
 
 def _is_simple_type(T: Kind) -> bool:
