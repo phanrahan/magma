@@ -405,3 +405,43 @@ def test_when_nested(T, x):
                                                   "build"),
                            magma_opts={"flatten_all_tuples": True})
     update_gold(__file__, f"test_when_nested_{T_str}.mlir")
+
+
+def test_when_register_default():
+    class test_when_register_default(m.Circuit):
+        io = m.IO(I=m.In(m.Bit), E=m.In(m.Bit), O=m.Out(m.Bit))
+
+        reg = m.Register(m.Bit)()
+
+        with m.when(io.E):
+            reg.I @= io.I
+
+        io.O @= reg.O
+
+    m.compile("build/test_when_register_default", test_when_register_default,
+              output="mlir")
+
+    if check_gold(__file__, "test_when_register_default.mlir"):
+        return
+
+    tester = f.SynchronousTester(test_when_register_default)
+    tester.poke(test_when_register_default.I, 1)
+    tester.poke(test_when_register_default.E, 0)
+    tester.advance_cycle()
+    tester.expect(test_when_register_default.O, 0)
+    tester.advance_cycle()
+    tester.poke(test_when_register_default.E, 1)
+    tester.advance_cycle()
+    tester.poke(test_when_register_default.I, 0)
+    tester.poke(test_when_register_default.E, 0)
+    tester.expect(test_when_register_default.O, 1)
+    tester.advance_cycle()
+    tester.expect(test_when_register_default.O, 1)
+    tester.poke(test_when_register_default.E, 1)
+    tester.advance_cycle()
+    tester.expect(test_when_register_default.O, 0)
+
+    tester.compile_and_run("verilator", magma_output="mlir-verilog",
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+    update_gold(__file__, "test_when_register_default.mlir")

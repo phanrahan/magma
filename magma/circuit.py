@@ -222,6 +222,7 @@ class CircuitKind(type):
         dct["bind_modules"] = {}
         dct["compiled_bind_modules"] = {}
         dct.setdefault("_is_magma_memory_", False)
+        dct.setdefault("_is_magma_register_", False)
         dct.setdefault("_is_conditional_driver_", False)
 
         # If in debug_mode is active and debug_info is not supplied, attach

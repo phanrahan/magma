@@ -4,6 +4,7 @@ from magma.config import config, EnvConfig
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import (safe_peek_defn_when_cond_stack,
                         peek_defn_when_cond_stack)
+from magma.ref import InstRef
 
 
 config._register(
@@ -211,6 +212,12 @@ class Wireable:
                     self, default_value, None, self.debug_info)
                 self.unwire(default_value)
                 self.debug_info = None
+            elif (isinstance(self.name.root(), InstRef) and
+                  self.name.root().inst._is_magma_register_):
+                # Registers have special default behavior of the previous value
+                # (allows implicit conditional updates).
+                self._conditional_driver.add_conditional_driver(
+                    self, self.name.root().inst.O, None, debug_info)
 
             # Unconditionaly wire the driver output (to avoid recursive
             # conditional logic)

@@ -42,7 +42,7 @@ class ConditionalDriver(CircuitBuilder):
         return list(self._conditionally_driven_info.keys())
 
     def make_conditional_output(self, value):
-        name = str(value.name)
+        name = f"x{len(self._value_to_port_name_map)}"
         self._value_to_port_name_map[value] = name
         self._conditionally_driven_info[value] = {}
         self._add_port(name, Out(type(value)))
@@ -73,7 +73,7 @@ class ConditionalDriver(CircuitBuilder):
                 # Already added, skip
                 continue
 
-            cond_name = str(cond_value.name)
+            cond_name = f"x{len(self._value_to_port_name_map)}"
             self._add_port(cond_name, In(type(cond_value)))
             getattr(self, cond_name).unconditional_wire(cond_value, debug_info)
             self._value_to_port_name_map[cond_value] = cond_name
@@ -102,7 +102,7 @@ class ConditionalDriver(CircuitBuilder):
 
         # Add port for the driving value if it does not exist
         if value not in self._value_to_port_name_map:
-            value_name = str(value.name)
+            value_name = f"x{len(self._value_to_port_name_map)}"
             self._add_port(value_name, In(type(value)))
             getattr(self, value_name).unconditional_wire(value, debug_info)
             self._value_to_port_name_map[value] = value_name
