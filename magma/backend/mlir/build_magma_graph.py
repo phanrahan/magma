@@ -13,6 +13,7 @@ from magma.backend.mlir.magma_ops import (
     MagmaBitConstantOp, MagmaBitsConstantOp)
 from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
+from magma.compile_exception import UnconnectedPortException
 from magma.digital import Digital
 from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
 from magma.t import Type
@@ -154,7 +155,8 @@ def _visit_driver(
 
 def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
     driver = value.trace()
-    assert driver is not None
+    if driver is None:
+        raise UnconnectedPortException(value)
     _visit_driver(ctx, value, driver, module)
 
 
