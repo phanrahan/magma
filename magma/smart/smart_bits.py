@@ -3,7 +3,7 @@ import copy
 import inspect
 import operator
 
-from magma.bits import Bits, BitsMeta, SInt, reduce
+from magma.bits import Bits, BitsMeta, SInt, reduce as bits_reduce
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
 from magma.debug import debug_wire
@@ -264,7 +264,7 @@ class SmartReductionOp(SmartOp):
             self._op = op
 
         def __call__(self, operand):
-            return reduce(self._op, operand)
+            return bits(bits_reduce(self._op, operand))
 
         def __str__(self):
             cls = SmartReductionOp._ReductionOp
@@ -320,7 +320,19 @@ class SmartUnaryOp(SmartNAryContextualOp):
 
 
 class SmartComparisonOp(SmartOp):
+
+    class _ComparisonOpWrapper:
+        def __init__(self, op):
+            self._op = op
+
+        def __call__(self, *args) -> Bits:
+            return bits(self._op(*args))
+
+        def __str__(self) -> str:
+            return self._op.__name__
+
     def __init__(self, op, loperand, roperand):
+        op = SmartComparisonOp._ComparisonOpWrapper(op)
         super().__init__(op, loperand, roperand)
 
     def resolve(self, context):
@@ -409,6 +421,10 @@ class SmartSignedOp(SmartOp):
         @property
         def signed(self):
             return self._signed
+
+        def __call__(self, arg) -> Bits:
+            cons = sint if self.signed else uint
+            return cons(arg)
 
         def __str__(self):
             return "Signed" if self._signed else "Unsigned"
@@ -576,10 +592,9 @@ SmartBit = SmartBits[1]
 
 
 def _eval(lhs: SmartBits, rhs: SmartExpr) -> (SmartBits, SmartExpr):
-    rhs = copy.deepcopy(rhs)
-    rhs.resolve(Context(lhs, rhs))
-    res = rhs.eval()
-    return SmartBits.from_bits(res), rhs
+    from magma.smart.eval import evaluate_assignment
+    result = evaluate_assignment(lhs, rhs)
+    return SmartBits.from_bits(result), None
 
 
 def eval(expr: SmartExpr, width: int, signed: bool = False):
