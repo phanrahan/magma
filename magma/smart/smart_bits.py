@@ -480,26 +480,30 @@ class _SmartExprNodeVisitor(MroVisitor):
 
 
 class _Resolver(_SmartExprNodeVisitor):
+    def __init__(self, sizes, types):
+        self.sizes = sizes
+        self.types = types
+
     def visit_SmartExtendOp(self, node: SmartExtendOp, context: Context):
         if node.expr.resolved:
             return
         self.generic_visit(node, Context(None, expr))
-        node.expr._width_ = node.expr.args[0]._width_ + node.expr.op._width
-        node.expr._signed_ = node.expr.op._signed
+        self.sizes[node] = node.expr.args[0]._width_ + node.expr.op._width
+        self.types[node] = node.expr.op._signed
 
     def visit_SmartReductionOp(self, node: SmartReductionOp, context: Context):
         self.generic_visit(node, Context(None, node.expr))
-        node.expr._width_ = 1
-        node.expr._signed_ = all(arg._signed_ for arg in node.expr.args)
+        self.sizes[node] = 1
+        self.types[node] = all(arg._signed_ for arg in node.expr.args)
 
     def visit_SmartNAryContextualOp(self, node: SmartNAryContextualOp, context: Context):
         self.generic_visit(node, context)
-        node.expr._signed_ = all(arg._signed_ for arg in node.expr.args)
+        self.types[node] = all(arg._signed_ for arg in node.expr.args)
         to_width = context.max_width()
         args = (_extend_if_needed(arg, to_width, node.expr._signed_)
                 for arg in node.expr.args)
         node.expr._update(*args)
-        node.expr._width_ = to_width
+        self.sizes[node] = to_width
 
     def visit_SmartComparisonOp(self, node: SmartComparisonOp, context: Context):
         self.generic_visit(node, Context(None, node.expr))
@@ -508,49 +512,60 @@ class _Resolver(_SmartExprNodeVisitor):
         args = (_extend_if_needed(arg, to_width, signed_args)
                 for arg in node.expr.args)
         node.expr._update(*args)
-        node.expr._width_ = 1
-        node.expr._signed_ = False
+        self.sizes[node] = 1
+        self.types[node] = False
 
     def visit_SmartShiftOp(self, node: SmartShiftOp, context: Context):
         loperand, roperand = node.children
         self.visit(loperand, context)
         self.visit(roperand, Context(None, node.expr))
         to_width = max(arg._width_ for arg in node.expr.args)
-        node.expr._signed_ = all(arg._signed_ for arg in node.expr.args)
+        self.types[node] = all(arg._signed_ for arg in node.expr.args)
         args = (_extend_if_needed(arg, to_width, node.expr._signed_)
                 for arg in node.expr.args)
         node.expr._update(*args)
-        node.expr._width_ = to_width
+        self.sizes[node] = to_width
 
     def visit_SmartConcatOp(self, node: SmartConcatOp, context: Context):
+<<<<<<< HEAD
         for child in node.children:
             self.visit(child, Context(None, child.expr))
         node.expr._width_ = sum(arg._width_ for arg in node.expr.args)
         node.expr._signed_ = False
+=======
+        for arg in node.expr.args:
+            self.visit(arg, Context(None, arg))
+        self.sizes[node] = sum(arg._width_ for arg in node.expr.args)
+        self.types[node] = False
+>>>>>>> faf88000 (WIP -- no longer working)
 
     def visit_SmartSignedOp(self, node: SmartSignedOp, context: Context):
         self.generic_visit(node, context)
-        node.expr._width_ = node.expr.args[0]._width_
-        node.expr._signed_ = node.expr._op.signed
+        self.sizes[node] = node.expr.args[0]._width_
+        self.types[node] = node.expr._op.signed
 
     def visit_SmartBitsExpr(self, node: SmartBitsExpr, context: Context):
-        node.expr._width_ = len(node.expr._bits)
-        node.expr._signed_ = type(node.expr._bits)._signed
+        self.sizes[node] = len(node.expr._bits)
+        self.types[node] = type(node.expr._bits)._signed
 
 
 class _Evaluator(_SmartExprNodeVisitor):
+    def __init__(self, sizes, types):
+        self.sizes = sizes
+        self.types = types
+
     def visit_SmartExtendOp(self, node: SmartExtendOp) -> Bits:
         args = self.generic_visit(node)
         return node.expr.op(*args)
 
     def visit_SmartReductionOp(self, node: SmartReductionOp) -> Bits:
         args = self.generic_visit(node)
-        fn = sint if node.expr._signed_ else uint
+        fn = sint if self.types[node] else uint
         return fn(node.expr.op(*args))
 
     def visit_SmartNAryContextualOp(self, node: SmartNAryContextualOp) -> Bits:
         args = self.generic_visit(node)
-        if node.expr._signed_:
+        if self.types[node]:
             args = (sint(arg) for arg in args)
         else:
             args = (uint(arg) for arg in args)
@@ -565,7 +580,7 @@ class _Evaluator(_SmartExprNodeVisitor):
 
     def visit_SmartShiftOp(self, node: SmartShiftOp) -> Bits:
         args = self.generic_visit(node)
-        if node.expr._signed_:
+        if self.types[node]:
             args = (sint(arg) for arg in args)
         else:
             args = (uint(arg) for arg in args)
@@ -578,7 +593,7 @@ class _Evaluator(_SmartExprNodeVisitor):
 
     def visit_SmartSignedOp(self, node: SmartSignedOp) -> Bits:
         args = self.generic_visit(node)
-        fn = sint if node.expr._signed_ else uint
+        fn = sint if self.types[node] else uint
         return fn(args[0])
 
     def visit_SmartBitsExpr(self, node: SmartBitsExpr) -> Bits:
@@ -587,13 +602,15 @@ class _Evaluator(_SmartExprNodeVisitor):
 
 def _eval(lhs: SmartBits, rhs: SmartExpr) -> (SmartBits, SmartExpr):
     rhs = copy.deepcopy(rhs)
+    sizes = {}
+    types = {}
     root = _SmartExprNode.make_tree(rhs)
-    _Resolver().visit(root, Context(lhs, rhs))
     # NOTE(rsetaluri): We need to re-construct the tree since args of expr's
     # might have changed during resolution (e.g. through insertion of extension
     # nodes).
+    _Resolver(sizes, types).visit(root, Context(lhs, rhs))
     root = _SmartExprNode.make_tree(rhs)
-    res = _Evaluator().visit(root)
+    res = _Evaluator(sizes, types).visit(root)
     return SmartBits.from_bits(res), rhs
 
 
