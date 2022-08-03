@@ -217,15 +217,15 @@ class SmartExtendOp(SmartOp):
         return self._resolved
 
 
-def _extend_if_needed(expr, to_width, signed):
-    diff = expr._width_ - to_width
+def _extend_if_needed(node, to_width, signed, sizes, types):
+    diff = sizes[node] - to_width
     assert diff <= 0
     if diff == 0:
-        return expr
-    expr = SmartExtendOp(-diff, signed, expr)
-    expr._width_ = to_width
-    expr._signed_ = signed
-    return expr
+        return node
+    node = SmartExtendOp(-diff, signed, node)
+    sizes[node] = to_width
+    types[node] = signed
+    return node
 
 
 class SmartReductionOp(SmartOp):
@@ -470,6 +470,9 @@ class _SmartExprNode:
         children = tuple(_SmartExprNode.make_tree(arg) for arg in expr.args)
         return _SmartExprNode(expr, children)
 
+    def update(self, chlidren: Tuple['_SmartExprNode']):
+        self.children[:] = children[:]
+
 
 class _SmartExprNodeVisitor(MroVisitor):
     def _get_cls(self, node: _SmartExprNode) -> type:
@@ -484,69 +487,90 @@ class _Resolver(_SmartExprNodeVisitor):
         self.sizes = sizes
         self.types = types
 
-    def visit_SmartExtendOp(self, node: SmartExtendOp, context: Context):
+    def _maybe_extend(self, node: _SmartExprNode, child: _SmartExprNode) -> _SmartExprNode:
+        diff = self.sizes[node] - to_width
+        assert diff <= 0
+        if diff == 0:
+            return node
+        node = SmartExtendOp(-diff, signed, node)
+        self.sizes[node] = to_width
+        self.types[node] = signed
+        return node
+
+    def visit_SmartExtendOp(self, node: _SmartExprNode, context: Context) -> _SmartExprNode:
         if node.expr.resolved:
-            return
-        self.generic_visit(node, Context(None, expr))
-        self.sizes[node] = node.expr.args[0]._width_ + node.expr.op._width
+            return node
+        children = self.generic_visit(node, Context(None, expr))
+        self.sizes[node] = self.sizes[node.children[0]] + node.expr.op._width
         self.types[node] = node.expr.op._signed
+        node.update(children)
+        return node
 
-    def visit_SmartReductionOp(self, node: SmartReductionOp, context: Context):
-        self.generic_visit(node, Context(None, node.expr))
+    def visit_SmartReductionOp(self, node: _SmartExprNode, context: Context) -> _SmartExprNode:
+        children = self.generic_visit(node, Context(None, node.expr))
         self.sizes[node] = 1
-        self.types[node] = all(arg._signed_ for arg in node.expr.args)
+        self.types[node] = all(self.types[child] for child in children)
+        node.update(children)
+        return node
 
-    def visit_SmartNAryContextualOp(self, node: SmartNAryContextualOp, context: Context):
-        self.generic_visit(node, context)
-        self.types[node] = all(arg._signed_ for arg in node.expr.args)
-        to_width = context.max_width()
-        args = (_extend_if_needed(arg, to_width, node.expr._signed_)
-                for arg in node.expr.args)
-        node.expr._update(*args)
-        self.sizes[node] = to_width
+    def visit_SmartNAryContextualOp(self, node: _SmartExprNode, context: Context) -> _SmartExprNode:
+        children = self.generic_visit(node, context)
+        self.sizes[node] = context.max_width()
+        self.types[node] = all(self.types[child] for child in node.children)
+        children = (
+            _extend_if_needed(node, self.sizes[node], self.types[node])
+            for child in children
+        )
+        node.update(children)
+        return node
 
-    def visit_SmartComparisonOp(self, node: SmartComparisonOp, context: Context):
-        self.generic_visit(node, Context(None, node.expr))
-        signed_args = all(arg._signed_ for arg in node.expr.args)
-        to_width = max(arg._width_ for arg in node.expr.args)
-        args = (_extend_if_needed(arg, to_width, signed_args)
-                for arg in node.expr.args)
-        node.expr._update(*args)
-        self.sizes[node] = 1
+    def visit_SmartComparisonOp(self, node: _SmartExprNode, context: Context) -> _SmartExprNode:
+        children = self.generic_visit(node, Context(None, node.expr))
+        signed_args = all(self.types[child] for child in node.children)
+        self.sizes[node] = max(self.sizes[child] for child in children)
         self.types[node] = False
+        children = (
+            _extend_if_needed(node, self.sizes[node], self.types[node])
+            for child in children
+        )
+        node.update(children)
+        return node
 
-    def visit_SmartShiftOp(self, node: SmartShiftOp, context: Context):
-        loperand, roperand = node.children
-        self.visit(loperand, context)
-        self.visit(roperand, Context(None, node.expr))
-        to_width = max(arg._width_ for arg in node.expr.args)
-        self.types[node] = all(arg._signed_ for arg in node.expr.args)
-        args = (_extend_if_needed(arg, to_width, node.expr._signed_)
-                for arg in node.expr.args)
-        node.expr._update(*args)
-        self.sizes[node] = to_width
+    def visit_SmartShiftOp(self, node: _SmartExprNode, context: Context) -> _SmartExprNode:
+        children = [
+            self.visit(node.children[0], context),
+            self.visit(node.children[1], Context(None, node.expr)),
+        ]
+        self.sizes[node] = max(self.sizes[child] for child in children)
+        self.types[node] = all(self.types[child] for child in children)
+        children = (
+            _extend_if_needed(node, self.sizes[node], self.types[node])
+            for child in children
+        )
+        node.update(children)
+        return node
 
     def visit_SmartConcatOp(self, node: SmartConcatOp, context: Context):
-<<<<<<< HEAD
-        for child in node.children:
+        children = [
             self.visit(child, Context(None, child.expr))
-        node.expr._width_ = sum(arg._width_ for arg in node.expr.args)
-        node.expr._signed_ = False
-=======
-        for arg in node.expr.args:
-            self.visit(arg, Context(None, arg))
-        self.sizes[node] = sum(arg._width_ for arg in node.expr.args)
+            for child in node.children
+        ]
+        self.sizes[node] = sum(self.sizes[child] for child in children)
         self.types[node] = False
->>>>>>> faf88000 (WIP -- no longer working)
+        node.update(children)
+        return node
 
     def visit_SmartSignedOp(self, node: SmartSignedOp, context: Context):
-        self.generic_visit(node, context)
-        self.sizes[node] = node.expr.args[0]._width_
+        children = self.generic_visit(node, context)
+        self.sizes[node] = self.sizes[node.children[0]]
         self.types[node] = node.expr._op.signed
+        node.update(children)
+        return node
 
     def visit_SmartBitsExpr(self, node: SmartBitsExpr, context: Context):
         self.sizes[node] = len(node.expr._bits)
         self.types[node] = type(node.expr._bits)._signed
+        return node
 
 
 class _Evaluator(_SmartExprNodeVisitor):
