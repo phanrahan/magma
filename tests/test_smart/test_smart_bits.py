@@ -253,6 +253,28 @@ def test_reduction():
     return _Test, _Gold
 
 
+@_run_repr_test
+def test_slice():
+
+    class _Test(m.Circuit):
+        name = "test_slice"
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            O0=m.Out(SmartBits[12]),
+        )
+        io.O0 @= io.I0[2:6]
+
+    class _Gold(m.Circuit):
+        name = "test_slice"
+        io = m.IO(
+            I0=m.In(m.UInt[8]),
+            O0=m.Out(m.UInt[12]),
+        )
+        io.O0 @= m.zext_to(io.I0[2:6], 12)
+
+    return _Test, _Gold
+
+
 @_run_compilation_test
 def test_smoke():
 
