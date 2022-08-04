@@ -356,31 +356,23 @@ def test_complex():
         io.O2 @= y
         io.O3 @= io.I0
 
-    EXPECTED = ("lshift(add(invert(add(Extend[width=5, "
-                "signed=False](SmartBits[7, False](I0)), Extend[width=3, "
-                "signed=False](SmartBits[9, True](I1)))), SmartBits[12, "
-                "True](I2)), Extend[width=11, "
-                "signed=False](AndReduce(SmartBits[7, False](I0))))")
-    #assert str(_Test.io.O._smart_expr_) == EXPECTED
-
     return _Test
 
 
 def test_type_constructors():
     T1 = SmartBits[8]
-    assert T1._T is m.Bits[8]
-    assert T1._signed == False
+    assert T1._T_ is m.Bits[8]
+    assert T1._signed_ == False
 
     T2 = SmartBits[12, True]
-    assert T2._T is m.Bits[12]
-    assert T2._signed == True
+    assert T2._T_ is m.Bits[12]
+    assert T2._signed_ == True
 
     with pytest.raises(TypeError) as pytest_e:
         T3 = SmartBits[8][12]
         assert False
     args = pytest_e.value.args
-    assert args == ("Can not doubly qualify SmartBits, i.e. "
-                    "SmartBits[n][m] not allowed",)
+    assert args == ("Can not doubly qualify SmartBits",)
 
 
 @_run_compilation_test(skip_check=True)
@@ -419,11 +411,11 @@ def test_make_smart():
     assert isinstance(smart, m.Tuple)
     assert set(type(smart).field_dict.keys()) == {"x", "y"}
     assert isinstance(smart.x, SmartBits)
-    assert len(smart.x) == 8 and type(smart.x)._signed == False
+    assert len(smart.x) == 8 and type(smart.x)._signed_ == False
     assert isinstance(smart.y, m.Array)
     assert isinstance(smart.y[0], SmartBits)
     assert len(smart.y[0]) == 16
-    assert type(smart.y[0])._signed == False
+    assert type(smart.y[0])._signed_ == False
 
     # Value checks.
     assert smart.x._get_magma_value_() is value.x

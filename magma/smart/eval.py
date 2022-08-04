@@ -145,7 +145,7 @@ class _PartitionGraph(_Visitor):
 
 def _max_width(partition: _Partition) -> int:
     leaves = filter(lambda n: len(n.children) == 0, partition.nodes)
-    widths = (len(leaf.expr._bits) for leaf in leaves)
+    widths = (len(leaf.expr.bits) for leaf in leaves)
     return partition.context.max_width(*widths)
 
 
@@ -155,7 +155,7 @@ class _ResultWidthDeterminator(_Visitor):
         self._widths = widths
 
     def visit_SmartBitsExpr(self, node: _Node):
-        self._widths[node] = len(node.expr._bits)
+        self._widths[node] = len(node.expr.bits)
 
     def visit_SmartNAryContextualOp(self, node: _Node):
         super().generic_visit(node)
@@ -197,7 +197,7 @@ class _ResultSignednessDeterminator(_Visitor):
         self._signednesses[node] = False
 
     def visit_SmartBitsExpr(self, node: _Node):
-        self._signednesses[node] = node.expr._signed
+        self._signednesses[node] = issigned(node.expr.bits)
 
     def visit_SmartReductionOp(self, node: _Node):
         super().generic_visit(node)
@@ -288,7 +288,7 @@ class _ShiftOperandWidthMatcher(_PushDownExtensions):
 
 class _Evaluator(_Visitor):
     def visit_SmartBitsExpr(self, node: _Node) -> Bits:
-        return node.expr._bits.typed_value()
+        return node.expr.bits.typed_value()
 
     def visit_SmartOp(self, node: _Node) -> Bits:
         operands = self.generic_visit(node)
