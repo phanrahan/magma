@@ -359,6 +359,9 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
             value = type(self)._to_magma_()()
         self._value = value
 
+    def __len__(self):
+        return len(type(self)._T_)
+
     def typed_value(self):
         if type(self)._signed_:
             return sint(self._value)
@@ -376,25 +379,16 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
     @debug_wire
     def wire(self, other, debug_info):
         if isinstance(other, Bits):
-            super().wire(other, debug_info)
+            MagmaProtocol.wire(self, other, debug_info)
             return
         if not isinstance(other, SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
-        evaluated, resolved = _eval(self, other)
-        evaluated = evaluated.force_width(len(self))
-        MagmaProtocol.wire(self, evaluated)
-        self._smart_expr_ = resolved  # attach debug info
-
-    def __len__(self):
-        return len(type(self)._T_)
-
-    def force_width(self, width):
-        diff = len(self) - width
-        if diff == 0:
-            return self
-        value = self.typed_value()
-        value = value.ext(-diff) if diff < 0 else value[:-diff]
-        return SmartBits.from_bits(value)
+        # NOTE(rsetaluri): We delay the import of the evaluation method to avoid
+        # a circular import, since the evaluation depends on the implementation
+        # of SmartBits.
+        from magma.smart.eval import evaluate_assignment
+        other = evaluate_assignment(self, other)
+        MagmaProtocol.wire(self, other, debug_info)
 
     @staticmethod
     def from_bits(value):
@@ -410,27 +404,12 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
         yield from zip(self, self.trace())
 
 
+SmartBit = SmartBits[1]
+
+
 def issigned(value_or_type: Union[SmartBits, SmartBitsMeta]) -> bool:
     if isinstance(value_or_type, SmartBits):
         return type(value_or_type)._signed_
     if isinstance(value_or_type, SmartBitsMeta):
         return value_or_type._signed_
     raise TypeError(value_or_type)
-
-
-SmartBit = SmartBits[1]
-
-
-def _eval(lhs: SmartBits, rhs: SmartExpr) -> (SmartBits, SmartExpr):
-    # NOTE(rsetaluri): We delay the import of the evaluation method to avoid a
-    # circular import, since the evaluation depends on the implementation of
-    # SmartBits.
-    from magma.smart.eval import evaluate_assignment
-    result = evaluate_assignment(lhs, rhs)
-    return SmartBits.from_bits(result), None
-
-
-def eval(expr: SmartExpr, width: int, signed: bool = False):
-    lhs = SmartBits[width, signed]()
-    lhs @= expr
-    return lhs

@@ -325,11 +325,23 @@ def _evaluate(root: _Node) -> Bits:
     return _Evaluator().visit(root)
 
 
-def evaluate_assignment(lhs: SmartBits, rhs: _Node) -> Bits:
+def _force_width(value: SmartBits, width: int) -> SmartBits:
+    diff = len(value) - width
+    if diff == 0:
+        return value
+    value = value.typed_value()
+    if diff > 0:
+        value = value[:-diff]
+    else:
+        value = value.ext(-diff)
+    return SmartBits.from_bits(value)
+
+
+def evaluate_assignment(lhs: SmartBits, rhs: SmartExpr) -> SmartBits:
     root = make_tree(rhs)
     widths = _determine_result_widths(lhs, root)
     signednesses = _determine_result_signednesses(root)
     root = _insert_signednesses(root, widths, signednesses)
     root = _push_down_extensions(root, widths, signednesses)
-    res = _evaluate(root)
-    return res
+    result = SmartBits.from_bits(_evaluate(root))
+    return _force_width(result, len(lhs))
