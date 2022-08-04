@@ -376,6 +376,10 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
     def _get_magma_value_(self):
         return self.untyped_value()
 
+    # Slice operators.
+    def __getitem__(self, key_or_slice) -> 'SmartBits':
+        return SmartBits.from_bits(self._value[key_or_slice])
+
     @debug_wire
     def wire(self, other, debug_info):
         if isinstance(other, Bits):
