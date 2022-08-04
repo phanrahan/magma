@@ -95,8 +95,8 @@ class _Partition:
 
 class _PartitionSet:
     def __init__(self):
-        self._partitions : Dict[_Context, _Partition] = {}
-        self._context_lookup : Dict[_Node, _Context] = {}
+        self._partitions = {}  # Dict[_Context, _Partition]
+        self._context_lookup = {}  # Dict[_Node, _Context]
 
     def add(self, context: _Context, node: _Node):
         partition = self._partitions.setdefault(context, _Partition(context))
@@ -209,7 +209,11 @@ class _ResultSignednessDeterminator(_Visitor):
 
 
 class _SignednessInserter(_Transformer):
-    def __init__(self, widths: Dict[_Node, int], signednesses: Dict[_Node, bool]):
+    def __init__(
+            self,
+            widths: Dict[_Node, int],
+            signednesses: Dict[_Node, bool],
+    ):
         self._widths = widths
         self._signednesses = signednesses
 
@@ -310,12 +314,20 @@ def _determine_result_signednesses(root: _Node) -> Dict[_Node, bool]:
     return signednesses
 
 
-def _insert_signednesses(root: _Node, widths: Dict[_Node, int], signednesses: Dict[_Node, bool]) -> _Node:
+def _insert_signednesses(
+        root: _Node,
+        widths: Dict[_Node, int],
+        signednesses: Dict[_Node, bool],
+) -> _Node:
     root = _SignednessInserter(widths, signednesses).visit(root)
     return root
 
 
-def _push_down_extensions(root: _Node, widths: Dict[_Node, int], signednesses: Dict[_Node, int]) -> _Node:
+def _push_down_extensions(
+        root: _Node,
+        widths: Dict[_Node, int],
+        signednesses: Dict[_Node, int],
+) -> _Node:
     root = _PushDownExtensions(widths, signednesses).visit(root)
     root = _ShiftOperandWidthMatcher(widths, signednesses).visit(root)
     return root
