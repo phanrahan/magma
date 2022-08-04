@@ -135,6 +135,10 @@ class _PartitionGraph(_Visitor):
         self.visit(node.children[0], context)
         self.visit(node.children[1], _Context(None, node.children[1]))
 
+    def visit_SmartExtendOp(self, node: _Node, context: _Context):
+        for child in node.children:
+            self.visit(child, _Context(None, child))
+
     def visit_SmartConcatOp(self, node: _Node, context: _Context):
         for child in node.children:
             self.visit(child, _Context(None, child))
@@ -182,6 +186,10 @@ class _ResultWidthDeterminator(_Visitor):
         super().generic_visit(node)
         self._widths[node] = self._widths[node.children[0]]
 
+    def visit_SmartExtendOp(self, node: _Node):
+        super().generic_visit(node)
+        self._widths[node] = self._widths[node.children[0]]
+
 
 class _ResultSignednessDeterminator(_Visitor):
     def __init__(self, signednesses: Dict[_Node, bool]):
@@ -206,6 +214,10 @@ class _ResultSignednessDeterminator(_Visitor):
     def visit_SmartSignedOp(self, node: _Node):
         super().generic_visit(node)
         self._signednesses[node] = node.expr.op.signed
+
+    def visit_SmartExtendOp(self, node: _Node):
+        super().generic_visit(node)
+        self._signednesses[node] = self._signednesses[node.children[0]]
 
 
 class _SignednessInserter(_Transformer):
