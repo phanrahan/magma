@@ -448,18 +448,93 @@ def test_when_register_default():
     update_gold(__file__, "test_when_register_default.mlir")
 
 
-def test_when_latch_error():
-    class test_when_latch_error(m.Circuit):
+def test_when_latch_error_simple():
+    class test_when_latch_error_simple(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
 
         with m.when(io.S):
             io.O @= io.I[0]
 
     with pytest.raises(LatchError) as e:
-        m.compile("build/test_when_latch_error", test_when_latch_error,
+        m.compile("build/test_when_latch_error_simple",
+                  test_when_latch_error_simple,
                   output="mlir")
 
-    expected = ("Error while compiling test_when_latch_error(I: In(Bits[2]), "
-                "S: In(Bit), O: Out(Bit)), detected latches: "
-                "[test_when_latch_error.O]")
+    expected = ("Error while compiling test_when_latch_error_simple("
+                "I: In(Bits[2]), S: In(Bit), O: Out(Bit)),"
+                " detected potential latches: [test_when_latch_error_simple.O]")
     assert str(e.value) == expected
+
+
+def test_when_latch_error_elsewhen():
+    class test_when_latch_error_elsewhen(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0]
+        with m.elsewhen(io.S ^ 1):
+            io.O @= 1
+
+    with pytest.raises(LatchError) as e:
+        m.compile("build/test_when_latch_error_elsewhen",
+                  test_when_latch_error_elsewhen,
+                  output="mlir")
+
+    expected = ("Error while compiling test_when_latch_error_elsewhen("
+                "I: In(Bits[2]), S: In(Bit), O: Out(Bit)),"
+                " detected potential latches: "
+                "[test_when_latch_error_elsewhen.O]")
+    assert str(e.value) == expected
+
+
+def test_when_latch_error_nested():
+    class test_when_latch_error_nested(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+
+    with pytest.raises(LatchError) as e:
+        m.compile("build/test_when_latch_error_nested",
+                  test_when_latch_error_nested,
+                  output="mlir")
+
+    expected = ("Error while compiling test_when_latch_error_nested("
+                "I: In(Bits[2]), S: In(Bits[2]), O: Out(Bit)),"
+                " detected potential latches: "
+                "[test_when_latch_error_nested.O]")
+    assert str(e.value) == expected
+
+
+def test_when_latch_no_error_nested():
+    class test_when_latch_no_error_nested(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            io.O @= io.I[1]
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+        with m.otherwise():
+            io.O @= 1
+
+    m.compile("build/test_when_latch_no_error_nested",
+              test_when_latch_no_error_nested,
+              output="mlir")
+
+
+def test_when_latch_no_error_nested2():
+    class test_when_latch_no_error_nested2(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+            with m.otherwise():
+                io.O @= io.I[1]
+        with m.otherwise():
+            io.O @= 1
+
+    m.compile("build/test_when_latch_no_error_nested",
+              test_when_latch_no_error_nested2,
+              output="mlir")

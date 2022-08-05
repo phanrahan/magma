@@ -10,7 +10,7 @@ class LatchError(Exception):
         latches_str = ", ".join(latch.debug_name for latch in latches)
         defn_str = str(ctx.magma_defn_or_decl)
         msg = (f"Error while compiling {defn_str}, "
-               f"detected latches: [{latches_str}]")
+               f"detected potential latches: [{latches_str}]")
         super().__init__(msg)
 
 
