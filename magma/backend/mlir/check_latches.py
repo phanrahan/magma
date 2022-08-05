@@ -1,8 +1,8 @@
-from typing import Dict
+from typing import Dict, List
 
 from magma.t import Type
 from magma.backend.mlir.sv import sv
-from magma.backend.mlir.mlir import MlirValue
+from magma.backend.mlir.mlir import MlirValue, MlirOp
 
 
 class LatchError(Exception):
@@ -14,27 +14,51 @@ class LatchError(Exception):
         super().__init__(msg)
 
 
-def _get_latches_and_assigned_values(operations):
-    assigned_values = set()
+def _get_latches_and_assigned_values(operations: List[MlirOp]):
+    """
+    latches: A list of values that are potential latches (not assigned in all
+             branches).
+    assigned_values: A list of values that are assigned inside `operations`.
+
+    Note: this is a conservative check that requires values are assigned in
+    every case.  For example, there may be an unreachable case where a value is
+    not assigned, but that requires symbolic evaluation to discover.  In
+    general, symbolic evaluation is difficult, but may be viable in the
+    hardware domain where we may have less issues with path explosion,
+    aliasing, arrays, etc...
+    """
     latches = set()
+    assigned_values = set()
+
     for op in operations:
         if isinstance(op, sv.BPAssignOp):
-            assigned_values.add(op.operands[0])
+            assigned_values.add(op.operands[0])  # update assigned values
         elif isinstance(op, sv.IfOp):
+            # Recursively check if then block
             then_latches, then_assigned_values = \
                 _get_latches_and_assigned_values(op._then_block.operations)
+            # Different logic depending on whether there's an else.
             if op._else_block is not None:
                 else_latches, else_assigned_values = \
                     _get_latches_and_assigned_values(op._else_block.operations)
+                # Latches are propagated upwards if they aren't assigned inside
+                # this block (i.e. have a default value).
                 latches.update(then_latches.difference(assigned_values))
                 latches.update(else_latches.difference(assigned_values))
+                # Add latches for values assigned in one branch buat not the
+                # other.
                 latches.update(
                     then_assigned_values.symmetric_difference(
                         else_assigned_values).difference(assigned_values))
+                # Update assigned values with those assigned in both branches
                 assigned_values.update(
                     then_assigned_values.union(else_assigned_values))
             else:
+                # If no else, we simply add latches for any latches inside
+                # then_latches without a default value
                 latches.update(then_latches.difference(assigned_values))
+                # Also add latches for anything assigned in then that do not
+                # have a default value
                 latches.update(
                     then_assigned_values.difference(
                         assigned_values))
