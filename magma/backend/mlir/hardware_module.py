@@ -12,6 +12,7 @@ from magma.backend.mlir.build_magma_graph import (
     BuildMagmaGrahOpts, build_magma_graph
 )
 from magma.backend.mlir.builtin import builtin
+from magma.backend.mlir.check_latches import check_latches
 from magma.backend.mlir.comb import comb
 from magma.backend.mlir.common import wrap_with_not_implemented_error
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
@@ -718,8 +719,11 @@ class ModuleVisitor:
         `val_to_reg_map` tracks the mapping of magma value to target register
         so we can easily lookup the assign target when generating the
         procedural assignments
+
+        `reg_to_val_map` provides the opposite mapping for error reporting
         """
         val_to_reg_map = {}
+        reg_to_val_map = {}
 
         def _create_register(x):
             # Create reg value
@@ -729,6 +733,7 @@ class ModuleVisitor:
             sv.RegOp(name=f"{x.name}_reg", results=[reg])
             # Update map
             val_to_reg_map[x] = reg
+            reg_to_val_map[reg] = x
 
         for i, value in enumerate(conditional_values):
             visit_magma_value_or_value_wrapper_by_direction(
@@ -737,7 +742,7 @@ class ModuleVisitor:
                 _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
-        return val_to_reg_map
+        return val_to_reg_map, reg_to_val_map
 
     @wrap_with_not_implemented_error
     def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
@@ -754,13 +759,16 @@ class ModuleVisitor:
             return True
 
         # Declare registers
-        val_to_reg_map = self._make_regs(defn.conditional_values)
+        val_to_reg_map, reg_to_val_map = self._make_regs(
+            defn.conditional_values)
 
         # Emit always block
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
             self._construct_ifs(val_to_reg_map, module)
+
+        check_latches(always, reg_to_val_map, self._ctx)
 
         # Emit final wiring of registers to outputs
         offset = 0

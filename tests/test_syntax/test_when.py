@@ -4,6 +4,7 @@ import pytest
 import magma as m
 from magma.testing.utils import check_gold, update_gold
 from magma.type_utils import type_to_sanitized_string
+from magma.backend.mlir.check_latches import LatchError
 
 import fault as f
 
@@ -445,3 +446,20 @@ def test_when_register_default():
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
     update_gold(__file__, "test_when_register_default.mlir")
+
+
+def test_when_latch_error():
+    class test_when_latch_error(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0]
+
+    with pytest.raises(LatchError) as e:
+        m.compile("build/test_when_latch_error", test_when_latch_error,
+                  output="mlir")
+
+    expected = ("Error while compiling test_when_latch_error(I: In(Bits[2]), "
+                "S: In(Bit), O: Out(Bit)), detected latches: "
+                "[test_when_latch_error.O]")
+    assert str(e.value) == expected
