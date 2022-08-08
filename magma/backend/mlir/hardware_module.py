@@ -2,7 +2,7 @@ import abc
 import contextlib
 import dataclasses
 import functools
-import networkx as nx
+import itertools
 import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
@@ -39,7 +39,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.common import filter_by_key, sort_by_value
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
@@ -52,8 +52,8 @@ from magma.linking import (
 )
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
+from magma.primitives.when import When
 from magma.primitives.xmr import XMRSink, XMRSource
-from magma.ref import InstRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -535,6 +535,75 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_when(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert isinstance(defn, When)
+
+        value_to_index = {}
+
+        def _visit(value, counter):
+            value_to_index[value] = next(counter)
+
+        counter = itertools.count(len(defn.info.conditions))
+        for value in sort_by_value(defn.info.outputs):
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                _assert_not_visited,
+                lambda v: _visit(value, counter),
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+        counter = itertools.count()
+        for value in sort_by_value(defn.info.inputs):
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                lambda v: _visit(value, counter),
+                _assert_not_visited,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+
+        wires = [
+            self._ctx.new_value(hw.InOutType(result.type))
+            for result in module.results
+        ]
+        for result, wire in zip(module.results, wires):
+            sv.RegOp(results=[wire])
+            sv.ReadInOutOp(operands=[wire], results=[result])
+
+        def _make_assignments(assignments):
+            for drivee, driver in assignments:
+                operand = module.operands[value_to_index[driver]]
+                wire = wires[value_to_index[drivee]]
+                sv.BPAssignOp(operands=[wire, operand])
+
+        def _process_when_block(block):
+            if block.condition is None:
+                _make_assignments(block.conditional_wires())
+                return
+            cond_idx = defn.info.conditions[block.condition]
+            cond = module.operands[cond_idx]
+            if_op = sv.IfOp(operands=[cond])
+            with push_block(if_op.then_block):
+                _make_assignments(block.conditional_wires())
+                for child in block.children():
+                    _process_when_block(child)
+            curr_sibling = if_op
+            with contextlib.ExitStack() as stack:
+                sibling_blocks = list(block.elsewhen_blocks())
+                if block.otherwise_block is not None:
+                    sibling_blocks.append(block.otherwise_block)
+                for sibling_block in sibling_blocks:
+                    stack.enter_context(push_block(curr_sibling.else_block))
+                    curr_sibling = _process_when_block(sibling_block)
+            return if_op
+
+        with push_block(sv.AlwaysCombOp().body_block):
+            _make_assignments(defn.info.default_drivers.items())
+            _process_when_block(defn.block)
+
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -552,234 +621,8 @@ class ModuleVisitor:
                 expr=defn.expr,
             )
             return True
-
-    def _compute_flattened_operand_offset(self, inst, target_name):
-        """
-        Computer the correct offset index for the port named `target_name`
-        after tuples have been flattened
-        """
-        offset = 0
-
-        def _visit(x):
-            nonlocal offset
-            offset += 1
-
-        for name, value in zip(inst.interface.inputs_by_name(),
-                               inst.interface.inputs(),):
-            if name == target_name:
-                break
-            visit_magma_value_or_value_wrapper_by_direction(
-                value,
-                _visit,
-                _assert_not_visited,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-            )
-
-        return offset
-
-    def _emit_default_drivers(self, val_to_reg_map, module):
-        """
-        Emit default assignments (i.e. values driven before a when statement)
-
-        E.g
-            x @= 1
-            m.when(y):
-                x @= 2
-
-        We use the special case condition `None` to indicate a default value (1
-        in the previous example)
-        """
-        inst = module.module
-        defn = type(inst)
-
-        for i, value in enumerate(defn.conditional_values):
-            if None in defn.conditionally_driven_info[value]:
-                # Normal default value logic
-                default_value_name = defn.value_to_port_name_map[
-                    defn.conditionally_driven_info[value][None]]
-                offset = self._compute_flattened_operand_offset(
-                    inst, default_value_name)
-
-                def _emit_default_value(x):
-                    nonlocal offset
-                    sv.BPAssignOp(operands=[val_to_reg_map[x],
-                                            module.operands[offset]]),
-                    offset += 1
-            elif (isinstance(value.name.root(), InstRef) and
-                  value.name.root().inst._is_magma_memory_):
-                # Magma memories have a special implicit default value of 0
-                # used to implement conditional write behavior
-                #
-                # TODO(when): We could do the same for registers with an
-                # enable?
-                def _emit_default_value(x):
-                    zero = self.make_constant(type(x), 0)
-                    sv.BPAssignOp(operands=[val_to_reg_map[x], zero])
-            else:
-                # No default value, skip
-                continue
-
-            visit_magma_value_or_value_wrapper_by_direction(
-                value,
-                _emit_default_value,
-                _assert_not_visited,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-            )
-
-    def _make_if(self, when, module, when_map):
-        """
-        Construct an `if` statement based on the value `when.cond` and update
-        `when_map` to store the mapping from original `when` statement
-
-        Returns a reference to `then_block` used to populate the assignments
-        """
-        inst = module.module
-        defn = type(inst)
-
-        cond_offset = self._compute_flattened_operand_offset(
-            inst,
-            defn.value_to_port_name_map[when.cond])
-
-        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
-        when_map[when] = stmt
-
-        return stmt.then_block
-
-    def _construct_ifs(self, val_to_reg_map, module):
-        """
-        The main logic for converting the special `ConditionalDriver` primitive
-        instance into `if` statements that preserve the original structure
-        """
-        inst = module.module
-        defn = type(inst)
-
-        when_conds = defn.when_conds
-
-        # Mapping from magma when object to if statement object (so we only
-        # emit one if statement per when cond)
-        when_map = {}
-
-        for when in when_conds:
-            # Construct the if statement object, ensuring it has the
-            # appropriate relationship to otherse (e.g. the case of
-            # elsewhen/otherwise)
-            if getattr(when.cond, 'is_otherwise_cond', False):
-                # Else case, we append to previous false_stmts
-                stmts = when_map[when.prev_cond].else_block
-            else:
-                if when.prev_cond is not None:
-                    # elif, we append if statement inside previous false_stmts
-                    #
-                    # We fetch the previous false_statment using the prev_cond
-                    # pointer as an index into when_map.  Since
-                    # `when_conds` are emitted in the order they are
-                    # constructed, we can assume the prev_cond has already been
-                    # visited
-                    with push_block(when_map[when.prev_cond].else_block):
-                        stmts = self._make_if(when, module, when_map)
-                elif when.parent is not None:
-                    # nested, we insert inside parents true_stmts
-                    #
-                    # Same lookup logic as previous case except we use the
-                    # parent pointer
-                    with push_block(when_map[when.parent].then_block):
-                        stmts = self._make_if(when, module, when_map)
-                else:
-                    # we insert into top level
-                    stmts = self._make_if(when, module, when_map)
-
-            # Now emit the assignments contained within the if statement
-            def _create_conditional_assignment(x):
-                nonlocal value_offset
-                sv.BPAssignOp(operands=[val_to_reg_map[x],
-                                        module.operands[value_offset]])
-                value_offset += 1
-
-            with push_block(stmts):
-                for target, value in when.conditional_wires.items():
-                    value_offset = self._compute_flattened_operand_offset(
-                        inst,
-                        defn.value_to_port_name_map[value])
-
-                    visit_magma_value_or_value_wrapper_by_direction(
-                        target,
-                        _create_conditional_assignment,
-                        _assert_not_visited,
-                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                    )
-
-    def _make_regs(self, conditional_values):
-        """
-        For outputs to be procedurally assigned insigned an always block, we
-        emit an intermediate register value which is used as a target inside
-        the always block and wired up using an assign statement outside the
-        always block
-
-        `val_to_reg_map` tracks the mapping of magma value to target register
-        so we can easily lookup the assign target when generating the
-        procedural assignments
-        """
-        val_to_reg_map = {}
-
-        def _create_register(x):
-            # Create reg value
-            reg = self._ctx.new_value(
-                hw.InOutType(magma_type_to_mlir_type(type(x))))
-            # Emit decl
-            sv.RegOp(name=f"{x.name}_reg", results=[reg])
-            # Update map
-            val_to_reg_map[x] = reg
-
-        for i, value in enumerate(conditional_values):
-            visit_magma_value_or_value_wrapper_by_direction(
-                value,
-                _create_register,
-                _assert_not_visited,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-            )
-        return val_to_reg_map
-
-    @wrap_with_not_implemented_error
-    def visit_conditional_driver(self, module: ModuleWrapper) -> bool:
-        """
-        Emit special `ConditionalDriver` primitive instance as inline if
-        statements inside an always block
-        """
-        inst = module.module
-        defn = type(inst)
-        if not defn.conditional_values:
-            # Skip if no conditional values assigned inside (can happen if a
-            # when statement is overriden by a subsequent unconditional wiring
-            # statement)
-            return True
-
-        # Declare registers
-        val_to_reg_map = self._make_regs(defn.conditional_values)
-
-        # Emit always block
-        always = sv.AlwaysCombOp()
-        with push_block(always.body_block):
-            self._emit_default_drivers(val_to_reg_map, module)
-            self._construct_ifs(val_to_reg_map, module)
-
-        # Emit final wiring of registers to outputs
-        offset = 0
-
-        def _assign_register_to_output(x):
-            nonlocal offset
-            sv.ReadInOutOp(operands=[val_to_reg_map[x]],
-                           results=[module.results[offset]])
-            offset += 1
-
-        for i, value in enumerate(defn.conditional_values):
-            visit_magma_value_or_value_wrapper_by_direction(
-                value,
-                _assign_register_to_output,
-                _assert_not_visited,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-            )
-
-        return True
+        if isinstance(defn, When):
+            return self.visit_when(module)
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:
