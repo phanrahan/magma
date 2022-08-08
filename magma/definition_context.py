@@ -11,8 +11,6 @@ from magma.logging import (
     pop_log_capturer,
 )
 from magma.placer import PlacerBase
-from magma.when import (push_defn_when_cond_stack, pop_defn_when_cond_stack,
-                        WhenCondStack)
 
 
 _VERILOG_FILE_OPEN = """
@@ -79,6 +77,20 @@ class VerilogDisplayManager(Finalizable):
             _inline_verilog(self.context, string, {}, {})
 
 
+class _WhenManager(Finalizable):
+    def __init__(self):
+        self._open_blocks = []
+
+    def add_open_block(self, block):
+        self._open_blocks.append(block)
+
+    def finalize(self):
+        # TODO(rsetaluri): Figure out circular import.
+        from magma.when import finalize as finalize_when_block
+        for block in self._open_blocks:
+            finalize_when_block(block)
+
+
 _definition_context_stack = Stack()
 
 
@@ -95,8 +107,7 @@ class DefinitionContext(FinalizableDelegator):
         self._logs = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
-        self._when_cond_stack = WhenCondStack(self)
-        self._conditional_driver = None
+        self.add_child("when", _WhenManager())
 
     @property
     def placer(self) -> PlacerBase:
@@ -133,26 +144,6 @@ class DefinitionContext(FinalizableDelegator):
     def finalize(self, defn):
         super().finalize()
 
-    def add_when_cond(self, cond):
-        """
-        Called when a WhenCtx object is created to associate it with its
-        enclosing definition
-        """
-        self.get_conditional_driver().add_when_cond(cond)
-
-    @property
-    def when_cond_stack(self):
-        return self._when_cond_stack
-
-    def _make_conditional_driver(self):
-        """Monkey patched in magma.primitives.conditional_driver.py"""
-        raise NotImplementedError()
-
-    def get_conditional_driver(self):
-        if self._conditional_driver is None:
-            self._conditional_driver = self._make_conditional_driver()
-        return self._conditional_driver
-
 
 def push_definition_context(
         ctx: DefinitionContext, use_staged_logger: bool = False):
@@ -160,7 +151,6 @@ def push_definition_context(
     if use_staged_logger:
         stage_logger()
     _get_definition_context_stack().push(ctx)
-    push_defn_when_cond_stack(ctx.when_cond_stack)
 
 
 def pop_definition_context(
@@ -168,9 +158,7 @@ def pop_definition_context(
     if use_staged_logger:
         unstage_logger()
     pop_log_capturer()
-    ctx = _get_definition_context_stack().pop()
-    assert pop_defn_when_cond_stack() == ctx.when_cond_stack
-    return ctx
+    return _get_definition_context_stack().pop()
 
 
 def get_definition_context() -> DefinitionContext:

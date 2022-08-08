@@ -3,8 +3,7 @@ import logging as py_logging
 from magma.config import config, EnvConfig
 from magma.debug import debug_wire
 from magma.logging import root_logger, StagedLogRecord
-from magma.when import (safe_peek_defn_when_cond_stack,
-                        peek_defn_when_cond_stack)
+from magma.when import get_curr_block as get_curr_when_block
 
 
 config._register(
@@ -168,9 +167,6 @@ class Wire:
 class Wireable:
     def __init__(self):
         self._wire = Wire(self)
-        # If this value is conditionally driven, this will not be None
-        # (assigned inside _conditional_wire)
-        self._conditional_driver = None
 
     def wired(self):
         return self._wire.wired()
@@ -194,51 +190,17 @@ class Wireable:
             o = o._wire
         i._wire.unwire(o, debug_info)
 
-    def _conditional_wire(self, o, debug_info):
-        if not self._conditional_driver:
-            # Get a reference to the ConditionalDriver instance for this defn
-            # context
-            when_cond_stack = peek_defn_when_cond_stack()
-            self._conditional_driver = \
-                when_cond_stack.defn.get_conditional_driver()
-
-            # Create an output port for this value
-            driver = self._conditional_driver.make_conditional_output(self)
-
-            # If we're already driven, add current driver as a default value
-            if self.driven():
-                default_value = self.value()
-                self._conditional_driver.add_conditional_driver(
-                    self, default_value, None, self.debug_info)
-                self.unwire(default_value)
-                self.debug_info = None
-
-            # Unconditionaly wire the driver output (to avoid recursive
-            # conditional logic)
-            self.unconditional_wire(driver, debug_info)
-
-        when_cond_stack = peek_defn_when_cond_stack()
-        self._conditional_driver.add_conditional_driver(
-            self,
-            o,
-            tuple(when_cond_stack),
-            debug_info)
-
-    def unconditional_wire(self, o, debug_info):
+    def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
 
     def wire(self, o, debug_info):
-        # NOTE: We use safe peek here because there are existing wiring tests
-        # that don't happen inside a circuit context
-        if safe_peek_defn_when_cond_stack():
-            self._conditional_wire(o, debug_info)
-        else:
-            self.unconditional_wire(o, debug_info)
-            if self._conditional_driver is not None:
-                self._conditional_driver.remove(self)
-                self._conditional_driver = None
+        curr_when_block = get_curr_when_block()
+        if curr_when_block is None:
+            self._wire_impl(o, debug_info)
+            return
+        curr_when_block.add_conditional_wire(self, o)
 
     @debug_wire
     def rewire(self, o, debug_info=None):

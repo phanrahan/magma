@@ -1,156 +1,219 @@
-from magma.common import Stack
+import abc
+import contextlib
+import dataclasses
+from typing import Any, Iterable, List, Optional, Tuple
 
 
-class WhenCondStack(Stack):
-    def __init__(self, defn):
-        super().__init__()
-        self._defn = defn
+class _BlockBase(contextlib.AbstractContextManager):
+    def __init__(self, parent: Optional['_WhenBlock']):
+        self._parent = parent
+        self._children = list()
+        self._conditional_wires = list()
 
-    def push(self, value):
-        super().push(value)
-        self._defn.add_when_cond(value)
+    def spawn(self, info: '_WhenBlockInfo') -> '_WhenBlock':
+        child = _WhenBlock(self, info)
+        self._children.append(child)
+        return child
+
+    def add_conditional_wire(self, i, o):
+        self._conditional_wires.append((i, o))
+
+    @abc.abstractmethod
+    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def new_otherwise_block(self):
+        raise NotImplementedError()
 
     @property
-    def defn(self):
-        return self._defn
+    @abc.abstractmethod
+    def condition(self) -> Optional:
+        raise NotImplementedError()
 
+    @abc.abstractmethod
+    def elsewhen_blocks(self) -> Iterable['_BlockBase']:
+        raise NotImplementedError()
 
-# Contains a stack of WhenCondStacks.  Each active definition has its own when
-# cond stack (allows for multiple, active nested definitions).  Each when cond
-# stack contains the current active when conditions (allows for nested
-# conditions)
-_DEFN_STACK = Stack()
+    @property
+    @abc.abstractmethod
+    def otherwise_block(self) -> Optional['_BlockBase']:
+        raise NotImplementedError()
 
-# Used to store the previous when condition for elsewhen/otherwise logic
-_PREV_WHEN_COND = None
+    def conditional_wires(self) -> Iterable[Tuple]:
+        yield from self._conditional_wires
 
-
-def push_defn_when_cond_stack(stack):
-    global _DEFN_STACK
-    _DEFN_STACK.push(stack)
-
-
-def pop_defn_when_cond_stack():
-    return _DEFN_STACK.pop()
-
-
-def peek_defn_when_cond_stack():
-    return _DEFN_STACK.peek()
-
-
-def safe_peek_defn_when_cond_stack():
-    return _DEFN_STACK.safe_peek()
-
-
-def reset_when_context():
-    """
-    Note, this needs to be called by tests that may raise an exception (to
-    reset the global when condition state)
-    """
-    global _DEFN_STACK, _PREV_WHEN_COND
-    for stack in _DEFN_STACK:
-        stack.clear()
-    _DEFN_STACK.clear()
-    _PREV_WHEN_COND = None
-
-
-class _OtherwiseCond:
-    """
-    Internal class used to for otherwise statements without conditions
-    """
-    is_otherwise_cond = True
-
-
-class WhenCtx:
-    def __init__(self, cond, prev_cond=None):
-        if not (isinstance(cond, _OtherwiseCond) or cond.is_bit()):
-            raise TypeError("m.when expected Bit value")
-
-        self._cond = cond
-        # Get the current definition when cond stack
-        self.when_cond_stack = _DEFN_STACK.peek()
-
-        self._children = []
-
-        # If there's an active when condition, store a parent pointer
-        self._parent = self.when_cond_stack.safe_peek()
-        if self._parent is not None:
-            # Parents have references to their children
-            self.parent.add_child(self)
-
-        # Used for reference chain to previous when/elsewhen statements
-        self._prev_cond = prev_cond
-
-        global _PREV_WHEN_COND
-        # Reset activate prev cond to avoid a nested `elsewhen` or `otherwise`
-        # continuing a chain
-        _PREV_WHEN_COND = None
-
-        self._is_otherwise = isinstance(cond, _OtherwiseCond)
-
-        # Tracks mapping from target: value for values driven inside this
-        # context
-        self._conditional_wires = {}
+    def children(self) -> Iterable['_BlockBase']:
+        yield from self._children
 
     def __enter__(self):
-        self.when_cond_stack.push(self)
+        _set_curr_block(self)
+        return self
+
+
+BlockBase = _BlockBase
+
+
+@dataclasses.dataclass
+class _WhenBlockInfo:
+    condition: Any  # TODO(rsetaluri): Should actually be bit
+
+
+@dataclasses.dataclass
+class _ElseWhenBlockInfo(_WhenBlockInfo):
+    pass
+
+
+class _WhenBlock(_BlockBase):
+    def __init__(self, parent: Optional[_BlockBase], info: _WhenBlockInfo):
+        super().__init__(parent)
+        self._info = info
+        self._elsewhens = list()
+        self._otherwise = None
+
+    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+        block = _ElseWhenBlock(self, info)
+        self._elsewhens.append(block)
+        return block
+
+    def new_otherwise_block(self):
+        if self._otherwise is not None:
+            raise RuntimeError()
+        block = _OtherwiseBlock(self)
+        self._otherwise = block
+        return block
+
+    @property
+    def condition(self) -> Any:
+        return self._info.condition
+
+    def elsewhen_blocks(self) -> Iterable['_BlockBase']:
+        yield from self._elsewhens
+
+    @property
+    def otherwise_block(self) -> Optional['_BlockBase']:
+        return self._otherwise
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.when_cond_stack.pop()
-        if not self._is_otherwise:
-            # Only populate _PREV_WHEN_COND when not an otherwise (otherwise we
-            # "close" the chain)
-            global _PREV_WHEN_COND
-            _PREV_WHEN_COND = self
-        else:
-            assert _PREV_WHEN_COND is None
+        _set_curr_block(self._parent)
+        _set_prev_block(self)
+
+
+class _ElseWhenBlock(_BlockBase):
+    def __init__(self, parent: Optional[_BlockBase], info: _ElseWhenBlockInfo):
+        super().__init__(parent)
+        self._info = info
+
+    def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
+        return self._parent.new_elsewhen_block()
+
+    def new_otherwise_block(self):
+        return self._parent.new_otherwise_block()
 
     @property
-    def parent(self):
-        return self._parent
+    def condition(self) -> Any:
+        return self._info.condition
+
+    def elsewhen_blocks(self) -> Iterable['_BlockBase']:
+        yield from ()
 
     @property
-    def cond(self):
-        return self._cond
+    def otherwise_block(self) -> None:
+        return None
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        _set_curr_block(self._parent._parent)
+        _set_prev_block(self)
+
+
+class _OtherwiseBlock(_BlockBase):
+    def new_elsewhen_block(self, _):
+        raise RuntimeError()
+
+    def new_otherwise_block(self):
+        raise RuntimeError()
 
     @property
-    def prev_cond(self):
-        return self._prev_cond
+    def condition(self) -> None:
+        return None
+
+    def elsewhen_blocks(self) -> Iterable['_BlockBase']:
+        yield from ()
 
     @property
-    def conditional_wires(self):
-        return self._conditional_wires
+    def otherwise_block(self) -> None:
+        return None
 
-    def add_conditional_wire(self, input, output, debug_info):
-        self._conditional_wires[input] = output
-
-    def remove_conditional_wire(self, input):
-        del self._conditional_wires[input]
-
-    def has_conditional_wires(self):
-        return (bool(self._conditional_wires) or
-                any(child.has_conditional_wires() for child in self._children))
-
-    def add_child(self, child):
-        return self._children.append(child)
+    def __exit__(self, exc_type, exc_value, traceback):
+        _set_curr_block(self._parent._parent)
+        _set_prev_block(self)
 
 
-when = WhenCtx
+_curr_block = None
+_prev_block = None
 
 
-def _check_prev_when_cond(name):
-    global _PREV_WHEN_COND
-    if _PREV_WHEN_COND is None:
-        raise SyntaxError(f"Cannot use {name} without a previous when")
-    prev_cond = _PREV_WHEN_COND
-    # Remove it so it can't be used in nesting
-    _PREV_WHEN_COND = None
-    return prev_cond
+def _get_curr_block() -> Optional[_BlockBase]:
+    global _curr_block
+    return _curr_block
+
+
+def _set_curr_block(curr_block: Optional[_BlockBase]):
+    global _curr_block
+    _curr_block = curr_block
+
+
+def _reset_curr_block():
+    _set_curr_block(None)
+
+
+def _get_prev_block() -> Optional[_BlockBase]:
+    global _prev_block
+    return _prev_block
+
+
+def _set_prev_block(prev_block: Optional[_BlockBase]):
+    global _prev_block
+    _prev_block = prev_block
+
+
+def _reset_prev_block():
+    _set_prev_block(None)
+
+
+get_curr_block = _get_curr_block
+
+
+def when(cond):
+    # TODO(rsetaluri): Figure out circular import.
+    from magma.definition_context import get_definition_context
+    info = _WhenBlockInfo(cond)
+    curr_block = _get_curr_block()
+    if curr_block is None:
+        block = _WhenBlock(None, info)
+        get_definition_context().get_child("when").add_open_block(block)
+        return block
+    return curr_block.spawn(info)
 
 
 def elsewhen(cond):
-    return WhenCtx(cond, _check_prev_when_cond('elsewhen'))
+    info = _ElseWhenBlockInfo(cond)
+    prev_block = _get_prev_block()
+    if prev_block is None:
+        raise RuntimeError()
+    return prev_block.new_elsewhen_block(info)
 
 
 def otherwise():
-    return WhenCtx(_OtherwiseCond(), _check_prev_when_cond('otherwise'))
+    prev_block = _get_prev_block()
+    if prev_block is None:
+        raise RuntimeError()
+    return prev_block.new_otherwise_block()
+
+
+def finalize(block: _WhenBlock):
+    # TODO(rsetaluri): Figure out circular import.
+    from magma.primitives.when import When
+    defn = When(block)
+    inst = defn()
+    defn.wire_instance(inst)
