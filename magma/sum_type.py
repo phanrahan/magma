@@ -16,13 +16,11 @@ class SumMeta(MagmaProtocolMeta):
     def _qualify_magma_(cls, direction: Direction):
         dct = {k: v.qualify(direction)
                for k, v in cls._magma_Ts_.items()}
-        dct["_magma_qualifier_"] = lambda x: x.qualify(direction)
         return type(cls)(cls.__name__, (cls, ), dct)
 
     def _flip_magma_(cls):
         dct = {k: v.flip()
                for k, v in cls._magma_Ts_.items()}
-        dct["_magma_qualifier_"] = lambda x: x.flip()
         return type(cls)(cls.__name__, (cls, ), dct)
 
     def _from_magma_value_(cls, val: Type):
@@ -31,22 +29,27 @@ class SumMeta(MagmaProtocolMeta):
     def __new__(mcs, name, bases, namespace):
         data_len = 0
         Ts = {}
+        # TODO: How to handle mixed direction type?
+        is_input, is_output = True, True
         for key, value in namespace.items():
             if isinstance(value, Kind):
                 data_len = max(data_len, value.flat_length())
                 Ts[key] = value
+                is_input &= value.is_input()
+                is_output &= value.is_output()
         if len(Ts):
             assert data_len > 0, "Expected non zero length data"
 
             tag_len = clog2(len(Ts))
-            namespace['_magma_T_'] = AnonProduct[
+            T = AnonProduct[
                 {"tag": Bits[tag_len], "data": Bits[data_len]}
             ]
+            if is_input:
+                T = T.qualify(Direction.In)
+            elif is_output:
+                T = T.qualify(Direction.Out)
+            namespace['_magma_T_'] = T
             namespace['_magma_Ts_'] = Ts
-            if "_magma_qualifier_" in namespace:
-                namespace["_magma_T_"] = namespace["_magma_qualifier_"](
-                    namespace["_magma_T_"])
-                print(namespace["_magma_T_"])
 
         return type.__new__(mcs, name, bases, namespace)
 
@@ -56,17 +59,9 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         if val is None:
             val = self._magma_T_()
         self._val = val
-        self._ts = {}
         self._tag_map = {}
-        self._T_map = {}
         for key, T in self._magma_Ts_.items():
-            self._tag_map[T.undirected_t] = len(self._ts)
-            if self._val.is_input():
-                self._ts[key] = t = T()
-                val.data[:T.flat_length()] @= as_bits(t)
-            else:
-                self._ts[key] = from_bits(T, val.data[:T.flat_length()])
-            self._T_map[T.undirected_t] = self._ts[key]
+            self._tag_map[T.undirected_t] = len(self._tag_map)
         self._match_active = False
         self._active_case = None
 
@@ -80,8 +75,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
 
     def activate_case(self, T):
         assert self._active_case is None, "Expected deactivated case"
-        # TODO: validate T in self._ts
-        if T.undirected_t not in self._T_map:
+        if T.undirected_t not in self._tag_map:
             raise TypeError(f"Unexpected case type {T}")
         self._active_case = T
 
@@ -92,7 +86,8 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
 
     def _get_magma_value_(self):
         if self._active_case:
-            return self._T_map[self._active_case.undirected_t]
+            T = self._active_case.undirected_t
+            return from_bits(T, self._val.data[:T.flat_length()])
         return self._val
 
     def check_tag(self, T):
@@ -108,7 +103,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         T = type(other).undirected_t
         # TODO: validate T
         self._val.tag @= self._tag_map[T]
-        self._T_map[type(other).undirected_t] @= other
+        self._val.data[:T.flat_length()] @= as_bits(other)
 
 
 class MatchContext:
