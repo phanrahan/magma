@@ -597,12 +597,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def is_mixed(cls):
         return cls.T.is_mixed()
 
-    def _wire_children(self, o, debug_info):
+    def _wire_children(self, o, debug_info, check_cond):
         for i, child in self._enumerate_children():
-            child.wire(o[i], debug_info)
+            child.wire(o[i], debug_info, check_cond)
 
     @debug_wire
-    def wire(self, o, debug_info):
+    def wire(self, o, debug_info, check_cond=False):
         o = magma_value(o)
         if not self._check_wireable(o, debug_info):
             return
@@ -610,10 +610,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 o._has_elaborated_children() or
                 self.T.is_mixed()):
             # Ensure the children maintain consistency with the bulk wire
-            self._wire_children(o, debug_info)
+            self._wire_children(o, debug_info, check_cond)
         else:
             # Perform a bulk wire
-            Wireable.wire(self, o, debug_info)
+            Wireable.wire(self, o, debug_info, check_cond)
 
     @debug_wire
     def unwire(self, o=None, debug_info=None):

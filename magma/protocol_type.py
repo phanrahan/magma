@@ -101,10 +101,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
         return self._get_magma_value_().name
 
     @debug_wire
-    def wire(self, other, debug_info):
+    def wire(self, other, debug_info, check_cond):
         if isinstance(other, MagmaProtocol):
             other = other._get_magma_value_()
-        self._get_magma_value_().wire(other, debug_info)
+        self._get_magma_value_().wire(other, debug_info, check_cond)
 
     def unwire(self, other):
         if isinstance(other, MagmaProtocol):

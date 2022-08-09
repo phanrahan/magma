@@ -167,7 +167,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
         return self.wire(output, get_callee_frame_info())
 
     @debug_wire
-    def wire(self, o, debug_info):
+    def wire(self, o, debug_info, check_cond=False):
         # promote integer types to LOW/HIGH
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = HIGH if o else LOW
@@ -181,7 +181,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
                 debug_info=debug_info
             )
             return
-        Wireable.wire(self, o, debug_info)
+        Wireable.wire(self, o, debug_info, check_cond)
 
     @debug_wire
     def unwire(self, o=None, debug_info=None):

@@ -112,7 +112,7 @@ class Type(object):
         if self.is_output():
             raise TypeError(f"Cannot use @= to assign to output: {self} "
                             f"(trying to assign {other})")
-        wire(other, self)
+        wire(other, self, check_cond=True)
         return self
 
     @abc.abstractmethod

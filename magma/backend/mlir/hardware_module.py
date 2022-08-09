@@ -8,6 +8,7 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
 
 from magma.array import Array, ArrayMeta
+from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta, magma_type
 from magma.backend.mlir.build_magma_graph import (
     BuildMagmaGrahOpts, build_magma_graph
 )
@@ -97,8 +98,8 @@ def parse_reset_type(T: Kind) -> Tuple[str, str]:
 
 @wrap_with_not_implemented_error
 @functools.lru_cache()
-def magma_type_to_mlir_type(type: Kind) -> MlirType:
-    type = type.undirected_t
+def magma_type_to_mlir_type(type: Union[Kind, MagmaProtocolMeta]) -> MlirType:
+    type = magma_type(type).undirected_t
     if issubclass(type, Digital):
         return builtin.IntegerType(1)
     if issubclass(type, Bits):
@@ -1292,9 +1293,9 @@ class HardwareModule:
     def new_value(
             self, value_or_type: Union[Type, Kind, MlirType],
             **kwargs) -> MlirValue:
-        if isinstance(value_or_type, Type):
+        if isinstance(value_or_type, (Type, MagmaProtocol)):
             mlir_type = magma_type_to_mlir_type(type(value_or_type))
-        elif isinstance(value_or_type, Kind):
+        elif isinstance(value_or_type, (Kind, MagmaProtocolMeta)):
             mlir_type = magma_type_to_mlir_type(value_or_type)
         elif isinstance(value_or_type, MlirType):
             mlir_type = value_or_type

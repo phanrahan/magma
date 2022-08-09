@@ -5,8 +5,8 @@ from magma.bitutils import clog2
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.t import Type, Direction, Kind
 from magma.tuple import AnonProduct
-from magma.conversions import from_bits, as_bits
-from magma.when import WhenCtx
+from magma.conversions import from_bits, as_bits, zext_to
+from magma.when import WhenCtx, _OtherwiseCond, _check_prev_when_cond
 
 
 class SumMeta(MagmaProtocolMeta):
@@ -64,6 +64,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
             self._tag_map[T.undirected_t] = len(self._tag_map)
         self._match_active = False
         self._active_case = None
+        self._activated_cases = []
 
     @property
     def match_active(self):
@@ -75,9 +76,12 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
 
     def activate_case(self, T):
         assert self._active_case is None, "Expected deactivated case"
+        if T in self._activated_cases:
+            raise TypeError("Cannot call case twice")
         if T.undirected_t not in self._tag_map:
             raise TypeError(f"Unexpected case type {T}")
         self._active_case = T
+        self._activated_cases.append(T)
 
     def deactivate_case(self):
         last_T = self._active_case
@@ -103,7 +107,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         T = type(other).undirected_t
         # TODO: validate T
         self._val.tag @= self._tag_map[T]
-        self._val.data[:T.flat_length()] @= as_bits(other)
+        self._val.data @= zext_to(as_bits(other), len(self._val.data))
 
 
 class MatchContext:
@@ -127,7 +131,12 @@ class CaseContext(WhenCtx):
     def __init__(self, value, T):
         self._value = value
         self._T = T
-        super().__init__(value.check_tag(T))
+        if len(self._value._activated_cases) == len(self._value._tag_map) - 1:
+            # Use otherwise to avoid latch detect
+            super().__init__(_OtherwiseCond(),
+                             _check_prev_when_cond('otherwise'))
+        else:
+            super().__init__(value.check_tag(T))
 
     def __enter__(self):
         self._value.activate_case(self._T)

@@ -276,9 +276,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
-
     @debug_wire
-    def wire(i, o, debug_info):
+    def wire(i, o, debug_info, check_cond):
         o = magma_value(o)
         if not isinstance(o, Tuple):
             _logger.error(
@@ -302,7 +301,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         for i_elem, o_elem in zip(i, o):
             i_elem = magma_value(i_elem)
             o_elem = magma_value(o_elem)
-            wire(o_elem, i_elem, debug_info)
+            wire(o_elem, i_elem, debug_info, check_cond)
 
     @debug_wire
     def unwire(self, o=None, debug_info=None):

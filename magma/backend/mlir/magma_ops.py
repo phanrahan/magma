@@ -8,11 +8,11 @@ from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.t import In, Out
-from magma.tuple import TupleMeta, ProductMeta
+from magma.tuple import TupleMeta, AnonProductKind
 
 
 def _get_tuple_field_type(T: TupleMeta, index: Union[int, str]):
-    if isinstance(T, ProductMeta):
+    if isinstance(T, AnonProductKind):
         return T.field_dict[index]
     index = int(index)
     return T.field_dict[index]

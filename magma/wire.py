@@ -16,7 +16,7 @@ _CONSTANTS = (IntegerTypes, BitVector, Bit)
 
 
 @debug_wire
-def wire(o, i, debug_info=None):
+def wire(o, i, debug_info=None, check_cond=False):
     o = magma_value(o)
     i = magma_value(i)
 
@@ -62,7 +62,7 @@ def wire(o, i, debug_info=None):
         return
 
     # Wire(o, Type).
-    i.wire(o, debug_info)
+    i.wire(o, debug_info, check_cond=check_cond)
 
 
 @debug_wire

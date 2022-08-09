@@ -35,8 +35,8 @@ def _error_handler(fn):
             return fn(*args, **kwargs)
         except InconsistentSizeError as e:
             raise e from None
-        except TypeError:
-            return NotImplemented
+        # except TypeError:
+        #     return NotImplemented
     return _wrapper
 
 
@@ -236,7 +236,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
         return BitVector[len(self)](self.bits()).as_uint()
 
     @debug_wire
-    def wire(self, other, debug_info):
+    def wire(self, other, debug_info, check_cond):
         if isinstance(other, (IntegerTypes, BitVector)):
             N = (other.bit_length()
                  if isinstance(other, IntegerTypes)
@@ -247,7 +247,7 @@ class Bits(Array, AbstractBitVector, metaclass=BitsMeta):
                     f"(bit_length={other.bit_length()}) to Bits ({len(self)})")
             from .conversions import bits
             other = bits(other, len(self))
-        super().wire(other, debug_info)
+        super().wire(other, debug_info, check_cond)
 
     @classmethod
     def make_constant(cls, value, num_bits: tp.Optional[int] = None) -> \
