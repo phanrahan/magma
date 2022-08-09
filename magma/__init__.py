@@ -131,4 +131,4 @@ Reg = Register
 # END ALIASES
 ################################################################################
 
-from magma.sum_type import Sum, match
+from magma.sum_type import Sum, match, case

@@ -118,6 +118,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def connection_iter(self):
         return self._get_magma_value_().connection_iter()
 
+    @property
+    def debug_name(self):
+        return self._get_magma_value_().debug_name
+
 
 def magma_type(T):
     if issubclass(T, MagmaProtocol):
