@@ -2,7 +2,6 @@ import abc
 import contextlib
 import dataclasses
 import functools
-import networkx as nx
 import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
