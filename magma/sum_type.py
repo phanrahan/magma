@@ -110,7 +110,10 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         return ~self._get_magma_value_()
 
     def __xor__(self, other):
-        return ~self._get_magma_value_() ^ other
+        return self._get_magma_value_() ^ other
+
+    def __and__(self, other):
+        return self._get_magma_value_() & other
 
     # TODO: define all operators (can we metaprogram delegator to
     # self._get_magma_value_()?)
