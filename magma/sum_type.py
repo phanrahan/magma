@@ -31,6 +31,7 @@ class SumMeta(MagmaProtocolMeta):
         Ts = {}
         # TODO: How to handle mixed direction type?
         is_input, is_output = True, True
+
         for key, value in namespace.items():
             if isinstance(value, Kind):
                 data_len = max(data_len, value.flat_length())
@@ -59,12 +60,15 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         if val is None:
             val = self._magma_T_()
         self._val = val
-        self._tag_map = {}
-        for key, T in self._magma_Ts_.items():
+
+        self._tag_map = {}  # map from T to int id value
+        for T in self._magma_Ts_.values():
+            # For now, tags map to index in _magma_Ts_ order
             self._tag_map[T.undirected_t] = len(self._tag_map)
-        self._match_active = False
-        self._active_case = None
-        self._activated_cases = []
+
+        self._match_active = False  # must be True to use case
+        self._active_case = None  # tracks current case type
+        self._activated_cases = []  # tracks prev activated cases
 
     @property
     def match_active(self):
@@ -75,11 +79,13 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         self._match_active = value
 
     def activate_case(self, T):
-        assert self._active_case is None, "Expected deactivated case"
+        if self._active_case is not None:
+            raise TypeError("Cannot have more than one active case")
         if T in self._activated_cases:
-            raise TypeError("Cannot call case twice")
+            raise TypeError(f"Cannot call case({T}) twice")
         if T.undirected_t not in self._tag_map:
             raise TypeError(f"Unexpected case type {T}")
+
         self._active_case = T
         self._activated_cases.append(T)
 
@@ -90,11 +96,13 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
 
     def _get_magma_value_(self):
         if self._active_case:
+            # Interpret base on active case T
             T = self._active_case.undirected_t
             return from_bits(T, self._val.data[:T.flat_length()])
         return self._val
 
     def check_tag(self, T):
+        # Used for when condition in a specific case
         return self._val.tag == self._tag_map[T]
 
     def __invert__(self):
@@ -103,14 +111,23 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
     def __xor__(self, other):
         return ~self._get_magma_value_() ^ other
 
+    # TODO: define all operators (can we metaprogram delegator to
+    # self._get_magma_value_()?)
+
     def wire(self, other):
         T = type(other).undirected_t
-        # TODO: validate T
+        if T not in self._tag_map:
+            raise TypeError(f"Cannot wire {other} to {self}")
         self._val.tag @= self._tag_map[T]
         self._val.data @= zext_to(as_bits(other), len(self._val.data))
 
 
 class MatchContext:
+    """
+    Marks a value of type Sum to be inside an active match context, enabling
+    the use of case statements.
+    """
+
     def __init__(self, value):
         self._value = value
 
@@ -123,12 +140,19 @@ class MatchContext:
         self._value.match_active = False
 
 
-def match(value):
-    return MatchContext(value)
+match = MatchContext
 
 
 class CaseContext(WhenCtx):
+    """
+    Reinterprets a value of type Sum as a specific variant indicated by the
+    case statement argument and resets the value when the context is exited
+    """
+
     def __init__(self, value, T):
+        if not value.match_active:
+            raise TypeError(f"Using case({value}, {T}) requires an enclosing "
+                            "match statement")
         self._value = value
         self._T = T
         if len(self._value._activated_cases) == len(self._value._tag_map) - 1:
@@ -148,8 +172,4 @@ class CaseContext(WhenCtx):
         return super().__exit__(exc_type, exc_value, exc_tb)
 
 
-def case(value, T):
-    if not value.match_active:
-        raise TypeError(f"Using case({value}, {T}) requires an enclosing match"
-                        " statement")
-    return CaseContext(value, T)
+case = CaseContext
