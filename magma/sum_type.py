@@ -2,6 +2,7 @@ from typing import Optional
 
 from magma.bits import Bits
 from magma.bitutils import clog2
+from magma.common import Stack
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.t import Type, Direction, Kind
 from magma.tuple import AnonProduct
@@ -122,6 +123,13 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         self._val.data @= zext_to(as_bits(other), len(self._val.data))
 
 
+_MATCH_STACK = Stack()
+
+
+def reset_match_context():
+    _MATCH_STACK.clear()
+
+
 class MatchContext:
     """
     Marks a value of type Sum to be inside an active match context, enabling
@@ -130,6 +138,11 @@ class MatchContext:
 
     def __init__(self, value):
         self._value = value
+        _MATCH_STACK.push(self)
+
+    @property
+    def value(self):
+        return self._value
 
     def __enter__(self):
         self._value.match_active = True
@@ -137,6 +150,7 @@ class MatchContext:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         assert self._value.match_active, "Should not have been deactivated"
+        assert _MATCH_STACK.pop() is self
         self._value.match_active = False
 
 
@@ -149,10 +163,13 @@ class CaseContext(WhenCtx):
     case statement argument and resets the value when the context is exited
     """
 
-    def __init__(self, value, T):
-        if not value.match_active:
-            raise TypeError(f"Using case({value}, {T}) requires an enclosing "
-                            "match statement")
+    def __init__(self, T):
+        try:
+            value = _MATCH_STACK.peek().value
+        except IndexError:
+            raise TypeError("Case used outside of match statement")
+        assert value.match_active
+
         self._value = value
         self._T = T
         if len(self._value._activated_cases) == len(self._value._tag_map) - 1:
