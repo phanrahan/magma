@@ -16,11 +16,14 @@ begin_dialect(sv)
 @dataclasses.dataclass
 class RegOp(MlirOp):
     results: List[MlirValue]
-    name: str
+    name: Optional[str] = None
 
     def print_op(self, printer: PrinterBase):
         print_names(self.results, printer)
-        printer.print(f" = sv.reg {{name = \"{self.name}\"}} : ")
+        printer.print(f" = sv.reg ")
+        if self.name is not None:
+            printer.print(f"{{name = \"{self.name}\"}} ")
+        printer.print(": ")
         print_types(self.results, printer)
 
 
