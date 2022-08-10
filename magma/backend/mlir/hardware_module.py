@@ -543,6 +543,7 @@ class ModuleVisitor:
         value_to_index = {}
 
         def _visit(value, counter):
+            assert value not in value_to_index
             value_to_index[value] = next(counter)
 
         counter = itertools.count(len(defn.info.conditions))
@@ -550,14 +551,14 @@ class ModuleVisitor:
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 _assert_not_visited,
-                lambda v: _visit(value, counter),
+                lambda v: _visit(v, counter),
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
         counter = itertools.count()
         for value in sort_by_value(defn.info.inputs):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                lambda v: _visit(value, counter),
+                lambda v: _visit(v, counter),
                 _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
@@ -570,11 +571,21 @@ class ModuleVisitor:
             sv.RegOp(results=[wire])
             sv.ReadInOutOp(operands=[wire], results=[result])
 
+        def _collect_visited(value):
+            fields = []
+            visit_magma_value_or_value_wrapper_by_direction(
+                value, fields.append, fields.append,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+            return fields
+
         def _make_assignments(assignments):
             for drivee, driver in assignments:
-                operand = module.operands[value_to_index[driver]]
-                wire = wires[value_to_index[drivee]]
-                sv.BPAssignOp(operands=[wire, operand])
+                elts = zip(*map(_collect_visited, (drivee, driver)))
+                for drivee_elt, driver_elt in elts:
+                    operand = module.operands[value_to_index[driver_elt]]
+                    wire = wires[value_to_index[drivee_elt]]
+                    sv.BPAssignOp(operands=[wire, operand])
 
         def _process_when_block(block):
             if block.condition is None:
