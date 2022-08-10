@@ -4,6 +4,25 @@ import dataclasses
 from typing import Any, Iterable, List, Optional, Tuple
 
 
+class WhenSyntaxError(SyntaxError):
+    pass
+
+
+class NoPrecedingWhenError(WhenSyntaxError):
+    def __init__(self, type):
+        super().__init__(f"Cannot use {type} without a previous when")
+
+
+class ElsewhenWithoutPrecedingWhenError(NoPrecedingWhenError):
+    def __init__(self):
+        super().__init__("elsewhen")
+
+
+class OtherwiseWithoutPrecedingWhenError(NoPrecedingWhenError):
+    def __init__(self):
+        super().__init__("otherwise")
+
+
 class _BlockBase(contextlib.AbstractContextManager):
     def __init__(self, parent: Optional['_WhenBlock']):
         self._parent = parent
@@ -78,7 +97,7 @@ class _WhenBlock(_BlockBase):
 
     def new_otherwise_block(self):
         if self._otherwise is not None:
-            raise RuntimeError()
+            raise WhenSyntaxError()
         block = _OtherwiseBlock(self)
         self._otherwise = block
         return block
@@ -93,6 +112,12 @@ class _WhenBlock(_BlockBase):
     @property
     def otherwise_block(self) -> Optional['_BlockBase']:
         return self._otherwise
+
+    def __enter__(self):
+        this = _BlockBase.__enter__(self)
+        assert this is self
+        _set_prev_block(None)
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         _set_curr_block(self._parent)
@@ -128,10 +153,10 @@ class _ElseWhenBlock(_BlockBase):
 
 class _OtherwiseBlock(_BlockBase):
     def new_elsewhen_block(self, _):
-        raise RuntimeError()
+        raise ElsewhenWithoutPrecedingWhenError()
 
     def new_otherwise_block(self):
-        raise RuntimeError()
+        raise OtherwiseWithoutPrecedingWhenError()
 
     @property
     def condition(self) -> None:
@@ -184,6 +209,14 @@ def _reset_prev_block():
 get_curr_block = _get_curr_block
 
 
+def _reset_context():
+    _reset_curr_block()
+    _reset_prev_block()
+
+
+reset_context = _reset_context
+
+
 def when(cond):
     # TODO(rsetaluri): Figure out circular import.
     from magma.definition_context import get_definition_context
@@ -200,14 +233,14 @@ def elsewhen(cond):
     info = _ElseWhenBlockInfo(cond)
     prev_block = _get_prev_block()
     if prev_block is None:
-        raise RuntimeError()
+        raise ElsewhenWithoutPrecedingWhenError()
     return prev_block.new_elsewhen_block(info)
 
 
 def otherwise():
     prev_block = _get_prev_block()
     if prev_block is None:
-        raise RuntimeError()
+        raise OtherwiseWithoutPrecedingWhenError()
     return prev_block.new_otherwise_block()
 
 
