@@ -80,6 +80,7 @@ def test_when_nested_with_default():
     update_gold(__file__, "test_when_nested_with_default.mlir")
 
 
+@pytest.mark.skip("TODO(rsetaluri)")
 def test_when_override(caplog):
     class test_when_override(m.Circuit):
         io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
