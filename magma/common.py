@@ -280,3 +280,7 @@ class SimpleCounter:
         value = self._value
         self._value += 1
         return value
+
+
+def sort_by_value(dct: Dict[Any, Any]) -> Iterable[Any]:
+    return sorted(dct.keys(), key=lambda k: dct[k])
