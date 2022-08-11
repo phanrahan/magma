@@ -174,11 +174,13 @@ class Wireable:
         self._conditional_driver = None
         if isinstance(self.name, ArrayRef):
             # NOTE: Add tuple2 support when merged
-            self._enclosing_when_cond_stack = self.name.array._enclosing_when_cond_stack
+            self._enclosing_when_cond_stack = \
+                self.name.array._enclosing_when_cond_stack
         else:
             self._enclosing_when_cond_stack = safe_peek_defn_when_cond_stack()
             if self._enclosing_when_cond_stack is not None:
-                self._enclosing_when_cond_stack = list(self._enclosing_when_cond_stack)
+                self._enclosing_when_cond_stack = \
+                    list(self._enclosing_when_cond_stack)
 
     def wired(self):
         return self._wire.wired()
