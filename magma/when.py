@@ -23,6 +23,13 @@ class OtherwiseWithoutPrecedingWhenError(NoPrecedingWhenError):
         super().__init__("otherwise")
 
 
+@dataclasses.dataclass(frozen=True)
+class ConditionalWire:
+    drivee: Any
+    driver: Any
+    default: Optional = None
+
+
 class _BlockBase(contextlib.AbstractContextManager):
     def __init__(self, parent: Optional['_WhenBlock']):
         self._parent = parent
@@ -35,7 +42,11 @@ class _BlockBase(contextlib.AbstractContextManager):
         return child
 
     def add_conditional_wire(self, i, o):
-        self._conditional_wires.append((i, o))
+        driver = None
+        if i.driven():
+            driver = i.value()
+            i.unwire(driver)
+        self._conditional_wires.append(ConditionalWire(i, o, driver))
 
     @abc.abstractmethod
     def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
@@ -59,7 +70,7 @@ class _BlockBase(contextlib.AbstractContextManager):
     def otherwise_block(self) -> Optional['_BlockBase']:
         raise NotImplementedError()
 
-    def conditional_wires(self) -> Iterable[Tuple]:
+    def conditional_wires(self) -> ConditionalWire:
         yield from self._conditional_wires
 
     def children(self) -> Iterable['_BlockBase']:
