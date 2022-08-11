@@ -49,11 +49,8 @@ def _construct_block_info(block: WhenBlock, info: _BlockInfo):
     for conditional_wire in block.conditional_wires():
         info.add_input(conditional_wire.drivee)
         info.add_output(conditional_wire.driver)
-        if conditional_wire.default is not None:
-            info.add_default_driver(
-                conditional_wire.drivee,
-                conditional_wire.default
-            )
+    for wire in block.default_drivers():
+        info.add_default_driver(wire.drivee, wire.driver)
 
 
 class When(Generator2):
