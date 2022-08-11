@@ -54,6 +54,8 @@ def _construct_block_info(block: WhenBlock, info: _BlockInfo):
 
 
 class When(Generator2):
+    _cache_ = False
+
     def __init__(self, block: WhenBlock):
         self._block = block
 

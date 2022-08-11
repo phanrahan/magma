@@ -14,6 +14,7 @@ from magma.is_definition import isdefinition
 from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import drive_undriven
 from magma.passes.terminate_unused import terminate_unused
+from magma.primitives.memory import add_when_default_drivers_to_memory
 from magma.uniquification import (uniquification_pass, UniquificationMode,
                                   reset_names)
 
@@ -77,6 +78,7 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     compiler = _make_compiler(output, main, basename, opts)
 
     bind_generators(main)
+    add_when_default_drivers_to_memory(main)
 
     # Default behavior is to perform uniquification, but can be overriden.
     original_names = uniquification_pass(main, opts.get("uniquify", "UNIQUIFY"))

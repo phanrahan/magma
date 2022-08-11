@@ -9,9 +9,12 @@ from magma.conversions import from_bits, as_bits, enable, uint
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.logging import root_logger
+from magma.passes import DefinitionPass, pass_lambda
 from magma.primitives.register import Register
+from magma.primitives.when import When
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.t import In, Out, Kind, Type
+from magma.when import finalize as finalize_when_block
 
 
 _logger = root_logger()
@@ -195,3 +198,53 @@ class Memory(Generator2):
             self.write = write
 
         self._is_magma_memory_ = True
+
+
+def _get_memory_port_drivee(value: Type) -> Optional[Type]:
+    drivee = value.value()
+    assert drivee is not None
+    root_ref = drivee.name.root()
+    try:
+        drivee_inst = root_ref.inst
+    except AttributeError:
+        return None
+    if not isinstance(type(drivee_inst), Memory):
+        return None
+    if root_ref.name not in ("WDATA", "WADDR", "WE", "RADDR"):
+        return None
+    return drivee
+
+
+def _add_default_drivers_to_memory_ports(containing_defn, when_inst):
+    assert isinstance(type(when_inst), When)
+    modified = False
+    for port in when_inst.interface.outputs():
+        drivee = _get_memory_port_drivee(port)
+        if drivee is None:
+            continue
+        modified = True
+        T = type(drivee).undirected_t
+        zero = from_bits(T, Bits[T.flat_length()](0))
+        type(when_inst).block.add_default_driver(drivee, zero)
+    if not modified:
+        return
+    with containing_defn.open():
+        for port in when_inst.interface.outputs():
+            port.value().unwire(port)
+        for port in when_inst.interface.inputs():
+            port.unwire(port.value())
+        containing_defn._context_.placer._instances.remove(when_inst)
+        finalize_when_block(type(when_inst).block)
+
+
+class AddWhenDefaultDriversToMemory(DefinitionPass):
+    def __call__(self, defn):
+        if not any(isinstance(type(inst), Memory) for inst in defn.instances):
+            return
+        for inst in defn.instances:
+            if not isinstance(type(inst), When):
+                continue
+            _add_default_drivers_to_memory_ports(defn, inst)
+
+
+add_when_default_drivers_to_memory = pass_lambda(AddWhenDefaultDriversToMemory)
