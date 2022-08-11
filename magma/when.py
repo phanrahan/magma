@@ -28,7 +28,6 @@ class OtherwiseWithoutPrecedingWhenError(NoPrecedingWhenError):
 class ConditionalWire:
     drivee: Any
     driver: Any
-    default: Optional = None
 
 
 class _BlockBase(contextlib.AbstractContextManager):
@@ -36,6 +35,7 @@ class _BlockBase(contextlib.AbstractContextManager):
         self._parent = parent
         self._children = list()
         self._conditional_wires = list()
+        self._default_drivers = dict()
 
     def spawn(self, info: '_WhenBlockInfo') -> '_WhenBlock':
         child = _WhenBlock(self, info)
@@ -43,11 +43,16 @@ class _BlockBase(contextlib.AbstractContextManager):
         return child
 
     def add_conditional_wire(self, i, o):
-        driver = None
+        self._conditional_wires.append(ConditionalWire(i, o))
         if i.driven():
             driver = i.value()
             i.unwire(driver)
-        self._conditional_wires.append(ConditionalWire(i, o, driver))
+            self.root.add_default_driver(i, driver)
+
+    @property
+    @abc.abstractmethod
+    def root(self) -> '_WhenBlock':
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
@@ -71,8 +76,22 @@ class _BlockBase(contextlib.AbstractContextManager):
     def otherwise_block(self) -> Optional['_BlockBase']:
         raise NotImplementedError()
 
-    def conditional_wires(self) -> ConditionalWire:
+    def conditional_wires(self) -> Iterable[ConditionalWire]:
         yield from self._conditional_wires
+
+    def default_drivers(self) -> Iterable[ConditionalWire]:
+        return (
+            ConditionalWire(k, v)
+            for k, v in self._default_drivers.items()
+        )
+
+    def get_default_driver(self, drivee) -> Any:
+        return self._default_drivers[drivee]
+
+    def add_default_driver(self, drivee, driver):
+        if self.root is not self:
+            raise RuntimeError("Can only add default driver to root")
+        self._default_drivers[drivee] = driver
 
     def children(self) -> Iterable['_BlockBase']:
         yield from self._children
@@ -130,6 +149,12 @@ class _WhenBlock(_BlockBase):
         return block
 
     @property
+    def root(self) -> '_WhenBlock':
+        if self._parent is None:
+            return self
+        return self._parent.root
+
+    @property
     def condition(self) -> Any:
         return self._info.condition
 
@@ -163,6 +188,10 @@ class _ElseWhenBlock(_BlockBase):
         return self._parent.new_otherwise_block()
 
     @property
+    def root(self) -> _WhenBlock:
+        return self._parent.root
+
+    @property
     def condition(self) -> Any:
         return self._info.condition
 
@@ -184,6 +213,10 @@ class _OtherwiseBlock(_BlockBase):
 
     def new_otherwise_block(self):
         raise OtherwiseWithoutPrecedingWhenError()
+
+    @property
+    def root(self) -> _WhenBlock:
+        return self._parent.root
 
     @property
     def condition(self) -> None:
