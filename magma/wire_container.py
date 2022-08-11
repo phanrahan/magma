@@ -5,7 +5,7 @@ from magma.debug import debug_wire
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import (safe_peek_defn_when_cond_stack,
                         peek_defn_when_cond_stack)
-from magma.ref import InstRef
+from magma.ref import InstRef, ArrayRef
 
 
 config._register(
@@ -172,6 +172,13 @@ class Wireable:
         # If this value is conditionally driven, this will not be None
         # (assigned inside _conditional_wire)
         self._conditional_driver = None
+        if isinstance(self.name, ArrayRef):
+            # NOTE: Add tuple2 support when merged
+            self._enclosing_when_cond_stack = self.name.array._enclosing_when_cond_stack
+        else:
+            self._enclosing_when_cond_stack = safe_peek_defn_when_cond_stack()
+            if self._enclosing_when_cond_stack is not None:
+                self._enclosing_when_cond_stack = list(self._enclosing_when_cond_stack)
 
     def wired(self):
         return self._wire.wired()
@@ -239,7 +246,12 @@ class Wireable:
     def wire(self, o, debug_info):
         # NOTE: We use safe peek here because there are existing wiring tests
         # that don't happen inside a circuit context
-        if safe_peek_defn_when_cond_stack():
+        active_cond_stack = safe_peek_defn_when_cond_stack()
+        # TODO: deal with external references in enclosing stack
+        if (active_cond_stack is not None and
+                active_cond_stack.safe_peek() is not None and
+                self._enclosing_when_cond_stack is not None and
+                list(active_cond_stack) != self._enclosing_when_cond_stack):
             self._conditional_wire(o, debug_info)
         else:
             self.unconditional_wire(o, debug_info)

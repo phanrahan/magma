@@ -538,3 +538,39 @@ def test_when_latch_no_error_nested2():
     m.compile("build/test_when_latch_no_error_nested",
               test_when_latch_no_error_nested2,
               output="mlir")
+
+
+def test_when_mixed_wiring():
+    class test_when_mixed_wiring(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0] & 1
+        with m.otherwise():
+            io.O @= io.I[1] ^ 1
+
+    m.compile("build/test_when_mixed_wiring", test_when_mixed_wiring,
+              output="mlir")
+
+    if check_gold(__file__, "test_when_mixed_wiring.mlir"):
+        return
+
+    tester = f.Tester(test_when_mixed_wiring)
+    tester.poke(test_when_mixed_wiring.I, 0b10)
+    tester.poke(test_when_mixed_wiring.S, 0)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring.O, 0)
+    tester.poke(test_when_mixed_wiring.S, 1)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring.O, 0)
+    tester.poke(test_when_mixed_wiring.I, 0b11)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring.O, 1)
+    tester.poke(test_when_mixed_wiring.S, 0)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring.O, 0)
+
+    tester.compile_and_run("verilator", magma_output="mlir-verilog",
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+    update_gold(__file__, "test_when_mixed_wiring.mlir")
