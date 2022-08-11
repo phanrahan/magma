@@ -1,6 +1,7 @@
 import abc
 import contextlib
 import dataclasses
+import itertools
 from typing import Any, Iterable, List, Optional, Tuple
 
 
@@ -82,6 +83,21 @@ class _BlockBase(contextlib.AbstractContextManager):
 
 
 BlockBase = _BlockBase
+
+
+def get_all_blocks(
+        block: _BlockBase,
+        include_self: bool = True,
+) -> Iterable[_BlockBase]:
+    if include_self:
+        yield block
+    sub_blocks = itertools.chain(
+        block.children(),
+        block.elsewhen_blocks(),
+        () if block.otherwise_block is None else (block.otherwise_block,),
+    )
+    for sub_block in sub_blocks:
+        yield from get_all_blocks(sub_block)
 
 
 @dataclasses.dataclass
