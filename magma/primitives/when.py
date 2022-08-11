@@ -43,13 +43,14 @@ class _BlockInfo:
 
 def _construct_block_info(block: WhenBlock, info: _BlockInfo):
     info.add_condition(block.condition)
-    for i, o in block.conditional_wires():
-        info.add_input(i)
-        if i.driven():
-            driver = i.value()
-            info.add_default_driver(i, driver)
-            i.unwire(driver)
-        info.add_output(o)
+    for conditional_wire in block.conditional_wires():
+        info.add_input(conditional_wire.drivee)
+        info.add_output(conditional_wire.driver)
+        if conditional_wire.default is not None:
+            info.add_default_driver(
+                conditional_wire.drivee,
+                conditional_wire.default
+            )
     for child in block.children():
         _construct_block_info(child, info)
     for elsewhen_block in block.elsewhen_blocks():

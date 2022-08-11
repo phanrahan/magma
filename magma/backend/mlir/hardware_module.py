@@ -579,8 +579,8 @@ class ModuleVisitor:
             )
             return fields
 
-        def _make_assignments(assignments):
-            for drivee, driver in assignments:
+        def _make_assignments(connections):
+            for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
                     operand = module.operands[value_to_index[driver_elt]]
@@ -588,14 +588,18 @@ class ModuleVisitor:
                     sv.BPAssignOp(operands=[wire, operand])
 
         def _process_when_block(block):
+            connections = (
+                (conditional_wire.drivee, conditional_wire.driver)
+                for conditional_wire in block.conditional_wires()
+            )
             if block.condition is None:
-                _make_assignments(block.conditional_wires())
+                _make_assignments(connections)
                 return
             cond_idx = defn.info.conditions[block.condition]
             cond = module.operands[cond_idx]
             if_op = sv.IfOp(operands=[cond])
             with push_block(if_op.then_block):
-                _make_assignments(block.conditional_wires())
+                _make_assignments(connections)
                 for child in block.children():
                     _process_when_block(child)
             curr_sibling = if_op
