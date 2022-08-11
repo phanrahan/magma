@@ -6,7 +6,10 @@ from magma.digital import Digital
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.t import Type
-from magma.when import BlockBase as WhenBlock
+from magma.when import (
+    BlockBase as WhenBlock,
+    get_all_blocks as get_all_when_blocks,
+)
 from magma.wire import wire
 
 
@@ -51,12 +54,6 @@ def _construct_block_info(block: WhenBlock, info: _BlockInfo):
                 conditional_wire.drivee,
                 conditional_wire.default
             )
-    for child in block.children():
-        _construct_block_info(child, info)
-    for elsewhen_block in block.elsewhen_blocks():
-        _construct_block_info(elsewhen_block, info)
-    if block.otherwise_block is not None:
-        _construct_block_info(block.otherwise_block, info)
 
 
 class When(Generator2):
@@ -64,7 +61,8 @@ class When(Generator2):
         self._block = block
 
         self._info = info = _BlockInfo()
-        _construct_block_info(block, info)
+        for block in get_all_when_blocks(block):
+            _construct_block_info(block, info)
 
         ports = {}
         self._wire_map = wire_map = {}
@@ -80,7 +78,7 @@ class When(Generator2):
 
         self.io = io = IO(**ports)
 
-        self.name = f"When_{id(block)}"
+        self.name = f"When_{id(self._block)}"
         self.primitive = True
 
     @property
