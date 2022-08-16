@@ -29,16 +29,40 @@ hw.module @test_when_memory_Bits8(%data0: i8, %addr0: i5, %en0: i1, %data1: i8, 
         sv.bpassign %11, %13 : i5
         sv.if %en0 {
             sv.bpassign %8, %addr0 : i5
-            sv.bpassign %9, %data0 : i8
-            sv.bpassign %10, %0 : i1
-            sv.bpassign %11, %addr1 : i5
-            sv.bpassign %12, %5 : i8
         } else {
             sv.if %en1 {
                 sv.bpassign %8, %addr1 : i5
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %9, %data0 : i8
+        } else {
+            sv.if %en1 {
                 sv.bpassign %9, %data1 : i8
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %10, %0 : i1
+        } else {
+            sv.if %en1 {
                 sv.bpassign %10, %0 : i1
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %11, %addr1 : i5
+        } else {
+            sv.if %en1 {
                 sv.bpassign %11, %addr0 : i5
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %12, %5 : i8
+        } else {
+            sv.if %en1 {
                 sv.bpassign %12, %5 : i8
             } else {
                 sv.bpassign %12, %6 : i8

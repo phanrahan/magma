@@ -647,7 +647,7 @@ class ModuleVisitor:
 
         return stmt.then_block
 
-    def _construct_ifs(self, val_to_reg_map, module):
+    def _construct_ifs(self, conditional_values, val_to_reg_map, module):
         """
         The main logic for converting the special `ConditionalDriver` primitive
         instance into `if` statements that preserve the original structure
@@ -659,56 +659,62 @@ class ModuleVisitor:
 
         # Mapping from magma when object to if statement object (so we only
         # emit one if statement per when cond)
-        when_map = {}
         cond_to_when_map = {}
 
-        for when in when_conds:
-            # Construct the if statement object, ensuring it has the
-            # appropriate relationship to otherse (e.g. the case of
-            # elsewhen/otherwise)
-            if getattr(when.cond, 'is_otherwise_cond', False):
-                # Else case, we append to previous false_stmts
-                stmts = when_map[when.prev_cond].else_block
-            else:
-                if when.prev_cond is not None:
-                    # elif, we append if statement inside previous false_stmts
-                    #
-                    # We fetch the previous false_statment using the prev_cond
-                    # pointer as an index into when_map.  Since
-                    # `when_conds` are emitted in the order they are
-                    # constructed, we can assume the prev_cond has already been
-                    # visited
-                    with push_block(when_map[when.prev_cond].else_block):
-                        stmts = self._make_if(when, module, when_map, cond_to_when_map)
-                elif when.parent is not None:
-                    # nested, we insert inside parents true_stmts
-                    #
-                    # Same lookup logic as previous case except we use the
-                    # parent pointer
-                    with push_block(when_map[when.parent].then_block):
-                        stmts = self._make_if(when, module, when_map, cond_to_when_map)
+        for value in conditional_values:
+            when_map = {}
+            for when in when_conds:
+                if when in value._enclosing_when_cond_stack:
+                    continue
+                # Construct the if statement object, ensuring it has the
+                # appropriate relationship to otherse (e.g. the case of
+                # elsewhen/otherwise)
+                if getattr(when.cond, 'is_otherwise_cond', False):
+                    if when.prev_cond not in when_map:
+                        continue
+                    # Else case, we append to previous false_stmts
+                    stmts = when_map[when.prev_cond].else_block
                 else:
-                    # we insert into top level
-                    stmts = self._make_if(when, module, when_map, cond_to_when_map)
+                    if when.prev_cond is not None:
+                        # elif, we append if statement inside previous false_stmts
+                        #
+                        # We fetch the previous false_statment using the prev_cond
+                        # pointer as an index into when_map.  Since
+                        # `when_conds` are emitted in the order they are
+                        # constructed, we can assume the prev_cond has already been
+                        # visited
+                        with push_block(when_map[when.prev_cond].else_block):
+                            stmts = self._make_if(when, module, when_map, cond_to_when_map)
+                    elif when.parent is not None and when.parent in when_map:
+                        # nested, we insert inside parents true_stmts
+                        #
+                        # Same lookup logic as previous case except we use the
+                        # parent pointer
+                        with push_block(when_map[when.parent].then_block):
+                            stmts = self._make_if(when, module, when_map, cond_to_when_map)
+                    else:
+                        # we insert into top level
+                        stmts = self._make_if(when, module, when_map, cond_to_when_map)
 
-            # Now emit the assignments contained within the if statement
-            def _create_conditional_assignment(x):
-                nonlocal value_offset
-                sv.BPAssignOp(operands=[val_to_reg_map[x],
-                                        module.operands[value_offset]])
-                value_offset += 1
+                # Now emit the assignments contained within the if statement
+                def _create_conditional_assignment(x):
+                    nonlocal value_offset
+                    sv.BPAssignOp(operands=[val_to_reg_map[x],
+                                            module.operands[value_offset]])
+                    value_offset += 1
 
-            with push_block(stmts):
-                for target, value in when.conditional_wires.items():
-                    value_offset = self._compute_flattened_operand_offset(
-                        inst,
-                        defn.input_value_to_port_name_map[value])
+                with push_block(stmts):
+                    for target, _value in when.conditional_wires.items():
+                        if target is value:
+                            value_offset = self._compute_flattened_operand_offset(
+                                inst,
+                                defn.input_value_to_port_name_map[_value])
 
-                    visit_magma_value_or_value_wrapper(
-                        target,
-                        _create_conditional_assignment,
-                        flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                    )
+                            visit_magma_value_or_value_wrapper(
+                                target,
+                                _create_conditional_assignment,
+                                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                            )
         return cond_to_when_map
 
     def _make_regs(self, conditional_values):
@@ -767,7 +773,8 @@ class ModuleVisitor:
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
-            cond_to_when_map = self._construct_ifs(val_to_reg_map, module)
+            cond_to_when_map = self._construct_ifs(defn.conditional_values,
+                                                   val_to_reg_map, module)
 
         check_latches(always, reg_to_val_map, cond_to_when_map, self._ctx)
 

@@ -6,6 +6,8 @@ hw.module @test_when_nested_TupleBits2_Bit(%I_0__0: i2, %I_0__1: i1, %I_1__0: i2
         sv.bpassign %3, %I_1__1 : i1
         sv.if %S {
             sv.bpassign %2, %I_0__0 : i2
+        }
+        sv.if %S {
             sv.bpassign %3, %I_0__1 : i1
         }
     }

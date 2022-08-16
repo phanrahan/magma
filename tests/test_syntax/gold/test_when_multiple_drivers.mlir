@@ -11,6 +11,10 @@ hw.module @test_when_multiple_drivers(%I: i2, %S: i2) -> (O0: i1, O1: i1) {
         sv.if %1 {
             sv.if %2 {
                 sv.bpassign %6, %3 : i1
+            }
+        }
+        sv.if %1 {
+            sv.if %2 {
                 sv.bpassign %7, %0 : i1
             }
         }

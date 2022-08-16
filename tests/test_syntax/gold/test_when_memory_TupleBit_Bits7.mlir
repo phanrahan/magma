@@ -50,23 +50,59 @@ hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0:
         sv.bpassign %15, %18 : i5
         sv.if %en0 {
             sv.bpassign %11, %addr0 : i5
-            sv.bpassign %12, %data0__0 : i1
-            sv.bpassign %13, %data0__1 : i7
-            sv.bpassign %14, %0 : i1
-            sv.bpassign %15, %addr1 : i5
-            sv.bpassign %16, %6 : i1
-            sv.bpassign %17, %7 : i7
         } else {
             sv.if %en1 {
                 sv.bpassign %11, %addr1 : i5
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %12, %data0__0 : i1
+        } else {
+            sv.if %en1 {
                 sv.bpassign %12, %data1__0 : i1
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %13, %data0__1 : i7
+        } else {
+            sv.if %en1 {
                 sv.bpassign %13, %data1__1 : i7
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %14, %0 : i1
+        } else {
+            sv.if %en1 {
                 sv.bpassign %14, %0 : i1
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %15, %addr1 : i5
+        } else {
+            sv.if %en1 {
                 sv.bpassign %15, %addr0 : i5
+            } else {
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %16, %6 : i1
+        } else {
+            sv.if %en1 {
                 sv.bpassign %16, %6 : i1
-                sv.bpassign %17, %7 : i7
             } else {
                 sv.bpassign %16, %0 : i1
+            }
+        }
+        sv.if %en0 {
+            sv.bpassign %17, %7 : i7
+        } else {
+            sv.if %en1 {
+                sv.bpassign %17, %7 : i7
+            } else {
                 sv.bpassign %17, %8 : i7
             }
         }
