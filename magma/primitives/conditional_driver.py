@@ -6,25 +6,25 @@ from magma.definition_context import DefinitionContext
 class ConditionalDriver(CircuitBuilder):
     def __init__(self, context):
         """
-        `_conditionally_driven_info`: mapping from values to a dictionary
-                                      containing a mapping from conditions to
-                                      conditional_driver
+        `_conditionally_driven_info`:
+            mapping from values to a dictionary containing a mapping from
+            conditions to conditional_driver
 
-                                      i.e. Dict[Type, Dict[Type, Type]]
+            i.e. Dict[Type, Dict[Type, Type]]
 
-                                      i.e. for each "conditionally driven
-                                      value", we store a mapping from a
-                                      "condition" to a "conditional driver for
-                                      that condition"
+            i.e. for each "conditionally driven value", we store a mapping from
+            a "condition" to a "conditional driver for that condition"
 
-        `_when_conds`: List of when objects that have assignments handled by
-                       this instance (added in definition_context.py indirectly
-                       by a WhenCtx object when it is created)
+        `_when_conds`:
+            List of when objects that have assignments handled by this instance
+            (added in definition_context.py indirectly by a WhenCtx object when
+            it is created)
 
         # TODO: Update doc for output.input split
-        `_output_value_to_port_name_map`: Mapping from value to port name used by the
-                                   backend during code generation to lookup the
-                                   appropriate instance port for a given value
+        `_output_value_to_port_name_map`:
+            Mapping from value to port name used by the backend during code
+            generation to lookup the appropriate instance port for a given
+            value
         """
         super().__init__("_magma_conditional_driver_" + str(id(context)))
         self._conditionally_driven_info = {}
@@ -123,8 +123,10 @@ class ConditionalDriver(CircuitBuilder):
         self._dct['_is_conditional_driver_'] = True
         self._dct['conditional_values'] = self.conditional_values
         self._dct['conditionally_driven_info'] = self._conditionally_driven_info
-        self._dct['input_value_to_port_name_map'] = self._input_value_to_port_name_map
-        self._dct['output_value_to_port_name_map'] = self._output_value_to_port_name_map
+        self._dct['input_value_to_port_name_map'] = \
+            self._input_value_to_port_name_map
+        self._dct['output_value_to_port_name_map'] = \
+            self._output_value_to_port_name_map
         self._dct['when_conds'] = self.when_conds
 
 

@@ -36,11 +36,13 @@ def _get_latches_and_assigned_values(operations: List[MlirOp], reg_to_val_map):
         elif isinstance(op, sv.IfOp):
             # Recursively check if then block
             then_latches, then_assigned_values = \
-                _get_latches_and_assigned_values(op._then_block.operations, reg_to_val_map)
+                _get_latches_and_assigned_values(op._then_block.operations,
+                                                 reg_to_val_map)
             # Different logic depending on whether there's an else.
             if op._else_block is not None:
                 else_latches, else_assigned_values = \
-                    _get_latches_and_assigned_values(op._else_block.operations, reg_to_val_map)
+                    _get_latches_and_assigned_values(op._else_block.operations,
+                                                     reg_to_val_map)
                 # Latches are propagated upwards if they aren't assigned inside
                 # this block (i.e. have a default value).
                 latches.update(then_latches.difference(assigned_values))

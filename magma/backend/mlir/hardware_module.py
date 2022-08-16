@@ -671,13 +671,14 @@ class ModuleVisitor:
                     stmts = when_map[when.prev_cond].else_block
                 else:
                     if when.prev_cond is not None:
-                        # elif, we append if statement inside previous false_stmts
+                        # elif, we append if statement inside previous
+                        # false_stmts.
                         #
-                        # We fetch the previous false_statment using the prev_cond
-                        # pointer as an index into when_map.  Since
+                        # We fetch the previous false_statment using the
+                        # prev_cond pointer as an index into when_map.  Since
                         # `when_conds` are emitted in the order they are
-                        # constructed, we can assume the prev_cond has already been
-                        # visited
+                        # constructed, we can assume the prev_cond has already
+                        # been visited
                         with push_block(when_map[when.prev_cond].else_block):
                             stmts = self._make_if(when, module, when_map)
                     elif when.parent is not None and when.parent in when_map:
