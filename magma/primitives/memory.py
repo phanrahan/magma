@@ -11,10 +11,9 @@ from magma.interface import IO
 from magma.logging import root_logger
 from magma.passes import DefinitionPass, pass_lambda
 from magma.primitives.register import Register
-from magma.primitives.when import When
+from magma.primitives.when import iswhen
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.t import In, Out, Kind, Type
-from magma.when import finalize as finalize_when_block
 
 
 _logger = root_logger()

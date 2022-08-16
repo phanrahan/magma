@@ -44,10 +44,13 @@ class _BlockBase(contextlib.AbstractContextManager):
 
     def add_conditional_wire(self, i, o):
         self._conditional_wires.append(ConditionalWire(i, o))
-        if i.driven():
+        builder = self.root.builder
+        if i.driven() and i not in builder.output_to_index:
             driver = i.value()
             i.unwire(driver)
             self.root.add_default_driver(i, driver)
+        self.root.builder.add_drivee(i)
+        self.root.builder.add_driver(o)
 
     @property
     @abc.abstractmethod
@@ -92,11 +95,13 @@ class _BlockBase(contextlib.AbstractContextManager):
         if self.root is not self:
             raise RuntimeError("Can only add default driver to root")
         self._default_drivers[drivee] = driver
+        self.root.builder.add_default_driver(drivee, driver)
 
     def children(self) -> Iterable['_BlockBase']:
         yield from self._children
 
     def __enter__(self):
+        self.root.builder.add_condition(self.condition)
         _set_curr_block(self)
         return self
 
@@ -135,6 +140,10 @@ class _WhenBlock(_BlockBase):
         self._info = info
         self._elsewhens = list()
         self._otherwise = None
+        self._builder = None
+        if self._parent is None:
+            from magma.primitives.when import WhenBuilder
+            self._builder = WhenBuilder(self)
 
     def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
         block = _ElseWhenBlock(self, info)
@@ -147,6 +156,12 @@ class _WhenBlock(_BlockBase):
         block = _OtherwiseBlock(self)
         self._otherwise = block
         return block
+
+    @property
+    def builder(self) -> Any:
+        if self._builder is None:
+            raise AttributeError()
+        return self._builder
 
     @property
     def root(self) -> '_WhenBlock':
@@ -238,6 +253,14 @@ _curr_block = None
 _prev_block = None
 
 
+@contextlib.contextmanager
+def no_when():
+    block = _get_curr_block()
+    _set_curr_block(None)
+    yield
+    _set_curr_block(block)
+
+
 def _get_curr_block() -> Optional[_BlockBase]:
     global _curr_block
     return _curr_block
@@ -278,14 +301,10 @@ reset_context = _reset_context
 
 
 def when(cond):
-    # TODO(rsetaluri): Figure out circular import.
-    from magma.definition_context import get_definition_context
     info = _WhenBlockInfo(cond)
     curr_block = _get_curr_block()
     if curr_block is None:
-        block = _WhenBlock(None, info)
-        get_definition_context().get_child("when").add_open_block(block)
-        return block
+        return _WhenBlock(None, info)
     return curr_block.spawn(info)
 
 
@@ -302,11 +321,3 @@ def otherwise():
     if prev_block is None:
         raise OtherwiseWithoutPrecedingWhenError()
     return prev_block.new_otherwise_block()
-
-
-def finalize(block: _WhenBlock):
-    # TODO(rsetaluri): Figure out circular import.
-    from magma.primitives.when import When
-    defn = When(block)
-    inst = defn()
-    defn.wire_instance(inst)
