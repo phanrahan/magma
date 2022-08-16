@@ -698,18 +698,18 @@ class ModuleVisitor:
                                             module.operands[value_offset]])
                     value_offset += 1
 
-                with push_block(stmts):
-                    for target, _value in when.conditional_wires.items():
-                        if target is value:
-                            value_offset = self._compute_flattened_operand_offset(
-                                inst,
-                                defn.input_value_to_port_name_map[_value])
+                if value in when.conditional_wires:
+                    with push_block(stmts):
+                        value_offset = self._compute_flattened_operand_offset(
+                            inst,
+                            defn.input_value_to_port_name_map[
+                                when.conditional_wires[value]])
 
-                            visit_magma_value_or_value_wrapper(
-                                target,
-                                _create_conditional_assignment,
-                                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
-                            )
+                        visit_magma_value_or_value_wrapper(
+                            value,
+                            _create_conditional_assignment,
+                            flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                        )
 
     def _make_regs(self, conditional_values):
         """
