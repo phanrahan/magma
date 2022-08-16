@@ -653,21 +653,20 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
 
-        when_conds = defn.when_conds
-
         for value in conditional_values:
             # Mapping from magma when object to if statement object (so we only
             # emit one if statement per when cond)
             when_map = {}
+            if value._enclosing_when_cond_stack:
+                when_conds = value._enclosing_when_cond_stack[-1].children
+            else:
+                when_conds = defn.when_conds
+
             for when in when_conds:
-                if when in value._enclosing_when_cond_stack:
-                    continue
                 # Construct the if statement object, ensuring it has the
                 # appropriate relationship to otherse (e.g. the case of
                 # elsewhen/otherwise)
                 if getattr(when.cond, 'is_otherwise_cond', False):
-                    if when.prev_cond not in when_map:
-                        continue
                     # Else case, we append to previous false_stmts
                     stmts = when_map[when.prev_cond].else_block
                 else:
@@ -733,7 +732,11 @@ class ModuleVisitor:
             reg = self._ctx.new_value(
                 hw.InOutType(magma_type_to_mlir_type(type(x))))
             # Emit decl
-            sv.RegOp(name=f"{x.name}_reg", results=[reg])
+            if not x.name.anon():
+                name = f"{x.name}_reg"
+            else:
+                name = f"anon_{len(val_to_reg_map)}_reg"
+            sv.RegOp(name=name, results=[reg])
             # Update map
             val_to_reg_map[x] = reg
             reg_to_val_map[reg] = x

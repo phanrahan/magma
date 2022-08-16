@@ -134,6 +134,10 @@ class WhenCtx:
     def add_child(self, child):
         return self._children.append(child)
 
+    @property
+    def children(self):
+        return self._children
+
 
 when = WhenCtx
 

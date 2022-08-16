@@ -8,7 +8,7 @@ hw.module @test_when_mixed_wiring_2(%I: i2, %S: i2) -> (O: i1) {
     %6 = hw.constant 1 : i1
     %7 = comb.xor %5, %6 : i1
     %8 = hw.constant 1 : i1
-    %11 = sv.reg {name = "AnonymousValue_140525425816288_reg"} : !hw.inout<i1>
+    %11 = sv.reg {name = "anon_0_reg"} : !hw.inout<i1>
     %12 = sv.reg {name = "O_reg"} : !hw.inout<i1>
     sv.alwayscomb {
         sv.if %1 {
