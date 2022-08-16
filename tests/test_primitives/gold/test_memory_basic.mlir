@@ -12,25 +12,25 @@ hw.module @Memory(%RADDR: i2, %CLK: i1, %WADDR: i2, %WDATA: i5, %WE: i1) -> (RDA
 }
 hw.module @test_memory_basic(%raddr: i2, %waddr: i2, %wdata: i5, %clk: i1, %wen: i1) -> (rdata: i5) {
     %0 = hw.constant 1 : i1
-    %4 = sv.reg {name = "WADDR_reg"} : !hw.inout<i2>
-    %5 = sv.reg {name = "WDATA_reg"} : !hw.inout<i5>
-    %6 = sv.reg {name = "WE_reg"} : !hw.inout<i1>
+    %1 = hw.constant 0 : i2
+    %2 = hw.constant 0 : i5
+    %3 = hw.constant 0 : i1
+    %7 = sv.reg : !hw.inout<i2>
+    %4 = sv.read_inout %7 : !hw.inout<i2>
+    %8 = sv.reg : !hw.inout<i5>
+    %5 = sv.read_inout %8 : !hw.inout<i5>
+    %9 = sv.reg : !hw.inout<i1>
+    %6 = sv.read_inout %9 : !hw.inout<i1>
     sv.alwayscomb {
-        %7 = hw.constant 0 : i2
-        sv.bpassign %4, %7 : i2
-        %8 = hw.constant 0 : i5
-        sv.bpassign %5, %8 : i5
-        %9 = hw.constant 0 : i1
-        sv.bpassign %6, %9 : i1
+        sv.bpassign %7, %1 : i2
+        sv.bpassign %8, %2 : i5
+        sv.bpassign %9, %3 : i1
         sv.if %wen {
-            sv.bpassign %4, %waddr : i2
-            sv.bpassign %5, %wdata : i5
-            sv.bpassign %6, %0 : i1
+            sv.bpassign %7, %waddr : i2
+            sv.bpassign %8, %wdata : i5
+            sv.bpassign %9, %0 : i1
         }
     }
-    %1 = sv.read_inout %4 : !hw.inout<i2>
-    %2 = sv.read_inout %5 : !hw.inout<i5>
-    %3 = sv.read_inout %6 : !hw.inout<i1>
-    %10 = hw.instance "Memory_inst0" @Memory(RADDR: %raddr: i2, CLK: %clk: i1, WADDR: %1: i2, WDATA: %2: i5, WE: %3: i1) -> (RDATA: i5)
+    %10 = hw.instance "Memory_inst0" @Memory(RADDR: %raddr: i2, CLK: %clk: i1, WADDR: %4: i2, WDATA: %5: i5, WE: %6: i1) -> (RDATA: i5)
     hw.output %10 : i5
 }
