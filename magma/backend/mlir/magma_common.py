@@ -159,6 +159,30 @@ def visit_value_or_value_wrapper_by_direction(
     raise TypeError(value_or_value_wrapper)
 
 
+def visit_value_or_value_wrapper(
+        value_or_value_wrapper: ValueOrValueWrapper,
+        visitor: Callable[[Type], Any],
+        **kwargs):
+
+    pre_descend = kwargs.get("pre_descend", lambda _: None)
+    post_descend = kwargs.get("post_descend", lambda _: None)
+
+    def descend(v):
+        if not isinstance(v, (m_Tuple, Array)):
+            raise TypeError(v)
+        pre_descend(v)
+        for item in v:
+            visit_value_or_value_wrapper(
+                item, visitor, **kwargs)
+        post_descend(v)
+
+    flatten_all_tuples = kwargs.get("flatten_all_tuples", False)
+
+    if flatten_all_tuples and contains_tuple(type(value_or_value_wrapper)):
+        return descend(value_or_value_wrapper)
+    return visitor(value_or_value_wrapper)
+
+
 class InstanceWrapper:
 
     @dataclasses.dataclass(frozen=True)

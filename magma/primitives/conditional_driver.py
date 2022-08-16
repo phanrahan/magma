@@ -21,14 +21,16 @@ class ConditionalDriver(CircuitBuilder):
                        this instance (added in definition_context.py indirectly
                        by a WhenCtx object when it is created)
 
-        `_value_to_port_name_map`: Mapping from value to port name used by the
+        # TODO: Update doc for output.input split
+        `_output_value_to_port_name_map`: Mapping from value to port name used by the
                                    backend during code generation to lookup the
                                    appropriate instance port for a given value
         """
         super().__init__("_magma_conditional_driver_" + str(id(context)))
         self._conditionally_driven_info = {}
         self._when_conds = []
-        self._value_to_port_name_map = {}
+        self._output_value_to_port_name_map = {}
+        self._input_value_to_port_name_map = {}
 
     def add_when_cond(self, cond):
         self._when_conds.append(cond)
@@ -42,8 +44,8 @@ class ConditionalDriver(CircuitBuilder):
         return list(self._conditionally_driven_info.keys())
 
     def make_conditional_output(self, value):
-        name = f"x{len(self._value_to_port_name_map)}"
-        self._value_to_port_name_map[value] = name
+        name = f"O{len(self._output_value_to_port_name_map)}"
+        self._output_value_to_port_name_map[value] = name
         self._conditionally_driven_info[value] = {}
         self._add_port(name, Out(type(value)))
         return getattr(self, name)
@@ -69,14 +71,14 @@ class ConditionalDriver(CircuitBuilder):
             if getattr(cond_value, 'is_otherwise_cond', False):
                 # No condition, skip
                 continue
-            if cond_value in self._value_to_port_name_map:
+            if cond_value in self._input_value_to_port_name_map:
                 # Already added, skip
                 continue
 
-            cond_name = f"x{len(self._value_to_port_name_map)}"
+            cond_name = f"I{len(self._input_value_to_port_name_map)}"
             self._add_port(cond_name, In(type(cond_value)))
             getattr(self, cond_name).unconditional_wire(cond_value, debug_info)
-            self._value_to_port_name_map[cond_value] = cond_name
+            self._input_value_to_port_name_map[cond_value] = cond_name
 
     def add_conditional_driver(self, target, value, when_tuple, debug_info):
         """
@@ -101,11 +103,11 @@ class ConditionalDriver(CircuitBuilder):
             self._add_missing_conds(when_tuple, debug_info)
 
         # Add port for the driving value if it does not exist
-        if value not in self._value_to_port_name_map:
-            value_name = f"x{len(self._value_to_port_name_map)}"
+        if value not in self._input_value_to_port_name_map:
+            value_name = f"I{len(self._input_value_to_port_name_map)}"
             self._add_port(value_name, In(type(value)))
             getattr(self, value_name).unconditional_wire(value, debug_info)
-            self._value_to_port_name_map[value] = value_name
+            self._input_value_to_port_name_map[value] = value_name
 
         if when_tuple is not None:
             # We track conditional wires added/removed from conditions so we
@@ -121,7 +123,8 @@ class ConditionalDriver(CircuitBuilder):
         self._dct['_is_conditional_driver_'] = True
         self._dct['conditional_values'] = self.conditional_values
         self._dct['conditionally_driven_info'] = self._conditionally_driven_info
-        self._dct['value_to_port_name_map'] = self._value_to_port_name_map
+        self._dct['input_value_to_port_name_map'] = self._input_value_to_port_name_map
+        self._dct['output_value_to_port_name_map'] = self._output_value_to_port_name_map
         self._dct['when_conds'] = self.when_conds
 
 

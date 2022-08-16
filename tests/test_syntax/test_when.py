@@ -574,3 +574,44 @@ def test_when_mixed_wiring():
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
     update_gold(__file__, "test_when_mixed_wiring.mlir")
+
+
+def test_when_mixed_wiring_2():
+    class test_when_mixed_wiring_2(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            x = m.Bit()
+            with m.when(io.S[1]):
+                x @= io.I[0] & 1
+            with m.otherwise():
+                x @= io.I[1] ^ 1
+            io.O @= x
+        with m.otherwise():
+            io.O @= 0b11
+
+    m.compile("build/test_when_mixed_wiring_2", test_when_mixed_wiring_2,
+              output="mlir")
+
+    if check_gold(__file__, "test_when_mixed_wiring_2.mlir"):
+        return
+
+    tester = f.Tester(test_when_mixed_wiring_2)
+    tester.poke(test_when_mixed_wiring_2.I, 0b10)
+    tester.poke(test_when_mixed_wiring_2.S, 0)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring_2.O, 1)
+    tester.poke(test_when_mixed_wiring_2.S, 0b11)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring_2.O, 0)
+    tester.poke(test_when_mixed_wiring_2.I, 0b11)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring_2.O, 1)
+    tester.poke(test_when_mixed_wiring_2.S, 0b01)
+    tester.eval()
+    tester.expect(test_when_mixed_wiring_2.O, 0)
+
+    tester.compile_and_run("verilator", magma_output="mlir-verilog",
+                           directory=os.path.join(os.path.dirname(__file__),
+                                                  "build"))
+    update_gold(__file__, "test_when_mixed_wiring_2.mlir")

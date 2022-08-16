@@ -26,6 +26,8 @@ from magma.backend.mlir.magma_common import (
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction,
+    visit_value_or_value_wrapper as
+    visit_magma_value_or_value_wrapper,
     tuple_key_to_str
 )
 from magma.backend.mlir.mlir import (
@@ -62,10 +64,6 @@ from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
-
-
-def _assert_not_visited(x):
-    assert False, "Did not expect this visitor to be used"
 
 
 def _get_defn_or_decl_output_name(
@@ -569,12 +567,13 @@ class ModuleVisitor:
                                inst.interface.inputs(),):
             if name == target_name:
                 break
-            visit_magma_value_or_value_wrapper_by_direction(
+            visit_magma_value_or_value_wrapper(
                 value,
                 _visit,
-                _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
+        else:
+            assert False, f"Could not find {target_name}"
 
         return offset
 
@@ -596,7 +595,7 @@ class ModuleVisitor:
         for i, value in enumerate(defn.conditional_values):
             if None in defn.conditionally_driven_info[value]:
                 # Normal default value logic
-                default_value_name = defn.value_to_port_name_map[
+                default_value_name = defn.input_value_to_port_name_map[
                     defn.conditionally_driven_info[value][None]]
                 offset = self._compute_flattened_operand_offset(
                     inst, default_value_name)
@@ -620,14 +619,13 @@ class ModuleVisitor:
                 # No default value, skip
                 continue
 
-            visit_magma_value_or_value_wrapper_by_direction(
+            visit_magma_value_or_value_wrapper(
                 value,
                 _emit_default_value,
-                _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
 
-    def _make_if(self, when, module, when_map):
+    def _make_if(self, when, module, when_map, cond_to_when_map):
         """
         Construct an `if` statement based on the value `when.cond` and update
         `when_map` to store the mapping from original `when` statement
@@ -637,11 +635,14 @@ class ModuleVisitor:
         inst = module.module
         defn = type(inst)
 
+        cond_port_name = defn.input_value_to_port_name_map[when.cond]
         cond_offset = self._compute_flattened_operand_offset(
             inst,
-            defn.value_to_port_name_map[when.cond])
+            cond_port_name)
 
-        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
+        cond = module.operands[cond_offset]
+        cond_to_when_map[cond] = when
+        stmt = sv.IfOp(operands=[cond])
         when_map[when] = stmt
 
         return stmt.then_block
@@ -659,6 +660,7 @@ class ModuleVisitor:
         # Mapping from magma when object to if statement object (so we only
         # emit one if statement per when cond)
         when_map = {}
+        cond_to_when_map = {}
 
         for when in when_conds:
             # Construct the if statement object, ensuring it has the
@@ -677,17 +679,17 @@ class ModuleVisitor:
                     # constructed, we can assume the prev_cond has already been
                     # visited
                     with push_block(when_map[when.prev_cond].else_block):
-                        stmts = self._make_if(when, module, when_map)
+                        stmts = self._make_if(when, module, when_map, cond_to_when_map)
                 elif when.parent is not None:
                     # nested, we insert inside parents true_stmts
                     #
                     # Same lookup logic as previous case except we use the
                     # parent pointer
                     with push_block(when_map[when.parent].then_block):
-                        stmts = self._make_if(when, module, when_map)
+                        stmts = self._make_if(when, module, when_map, cond_to_when_map)
                 else:
                     # we insert into top level
-                    stmts = self._make_if(when, module, when_map)
+                    stmts = self._make_if(when, module, when_map, cond_to_when_map)
 
             # Now emit the assignments contained within the if statement
             def _create_conditional_assignment(x):
@@ -700,14 +702,14 @@ class ModuleVisitor:
                 for target, value in when.conditional_wires.items():
                     value_offset = self._compute_flattened_operand_offset(
                         inst,
-                        defn.value_to_port_name_map[value])
+                        defn.input_value_to_port_name_map[value])
 
-                    visit_magma_value_or_value_wrapper_by_direction(
+                    visit_magma_value_or_value_wrapper(
                         target,
                         _create_conditional_assignment,
-                        _assert_not_visited,
                         flatten_all_tuples=self._ctx.opts.flatten_all_tuples
                     )
+        return cond_to_when_map
 
     def _make_regs(self, conditional_values):
         """
@@ -736,10 +738,9 @@ class ModuleVisitor:
             reg_to_val_map[reg] = x
 
         for i, value in enumerate(conditional_values):
-            visit_magma_value_or_value_wrapper_by_direction(
+            visit_magma_value_or_value_wrapper(
                 value,
                 _create_register,
-                _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
         return val_to_reg_map, reg_to_val_map
@@ -766,9 +767,9 @@ class ModuleVisitor:
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
-            self._construct_ifs(val_to_reg_map, module)
+            cond_to_when_map = self._construct_ifs(val_to_reg_map, module)
 
-        check_latches(always, reg_to_val_map, self._ctx)
+        check_latches(always, reg_to_val_map, cond_to_when_map, self._ctx)
 
         # Emit final wiring of registers to outputs
         offset = 0
@@ -780,10 +781,9 @@ class ModuleVisitor:
             offset += 1
 
         for i, value in enumerate(defn.conditional_values):
-            visit_magma_value_or_value_wrapper_by_direction(
+            visit_magma_value_or_value_wrapper(
                 value,
                 _assign_register_to_output,
-                _assert_not_visited,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
 
