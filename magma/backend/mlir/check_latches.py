@@ -14,8 +14,7 @@ class LatchError(Exception):
         super().__init__(msg)
 
 
-def _get_latches_and_assigned_values(operations: List[MlirOp], reg_to_val_map,
-                                     cond_to_when_map):
+def _get_latches_and_assigned_values(operations: List[MlirOp], reg_to_val_map):
     """
     latches: A list of values that are potential latches (not assigned in all
              branches).
@@ -37,11 +36,11 @@ def _get_latches_and_assigned_values(operations: List[MlirOp], reg_to_val_map,
         elif isinstance(op, sv.IfOp):
             # Recursively check if then block
             then_latches, then_assigned_values = \
-                _get_latches_and_assigned_values(op._then_block.operations, reg_to_val_map, cond_to_when_map)
+                _get_latches_and_assigned_values(op._then_block.operations, reg_to_val_map)
             # Different logic depending on whether there's an else.
             if op._else_block is not None:
                 else_latches, else_assigned_values = \
-                    _get_latches_and_assigned_values(op._else_block.operations, reg_to_val_map, cond_to_when_map)
+                    _get_latches_and_assigned_values(op._else_block.operations, reg_to_val_map)
                 # Latches are propagated upwards if they aren't assigned inside
                 # this block (i.e. have a default value).
                 latches.update(then_latches.difference(assigned_values))
@@ -63,24 +62,14 @@ def _get_latches_and_assigned_values(operations: List[MlirOp], reg_to_val_map,
                 latches.update(
                     then_assigned_values.difference(
                         assigned_values))
-            when = cond_to_when_map[op.operands[0]]
-
-            def f(latch):
-                val = reg_to_val_map[latch]
-                if val._enclosing_when_cond_stack and (val._enclosing_when_cond_stack[-1] == when):
-                    return False
-                return True
-            latches = set(filter(f, latches))
     return latches, assigned_values
 
 
 def check_latches(always: sv.AlwaysCombOp,
                   reg_to_val_map: Dict[MlirValue, Type],
-                  cond_to_when_map,
                   ctx):
     latches, _ = _get_latches_and_assigned_values(always.body_block.operations,
-                                                  reg_to_val_map,
-                                                  cond_to_when_map)
+                                                  reg_to_val_map)
     if latches:
         values = [reg_to_val_map[latch] for latch in latches]
         raise LatchError(values, ctx)

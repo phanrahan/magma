@@ -625,7 +625,7 @@ class ModuleVisitor:
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
 
-    def _make_if(self, when, module, when_map, cond_to_when_map):
+    def _make_if(self, when, module, when_map):
         """
         Construct an `if` statement based on the value `when.cond` and update
         `when_map` to store the mapping from original `when` statement
@@ -640,9 +640,7 @@ class ModuleVisitor:
             inst,
             cond_port_name)
 
-        cond = module.operands[cond_offset]
-        cond_to_when_map[cond] = when
-        stmt = sv.IfOp(operands=[cond])
+        stmt = sv.IfOp(operands=[module.operands[cond_offset]])
         when_map[when] = stmt
 
         return stmt.then_block
@@ -657,11 +655,9 @@ class ModuleVisitor:
 
         when_conds = defn.when_conds
 
-        # Mapping from magma when object to if statement object (so we only
-        # emit one if statement per when cond)
-        cond_to_when_map = {}
-
         for value in conditional_values:
+            # Mapping from magma when object to if statement object (so we only
+            # emit one if statement per when cond)
             when_map = {}
             for when in when_conds:
                 if when in value._enclosing_when_cond_stack:
@@ -684,17 +680,17 @@ class ModuleVisitor:
                         # constructed, we can assume the prev_cond has already been
                         # visited
                         with push_block(when_map[when.prev_cond].else_block):
-                            stmts = self._make_if(when, module, when_map, cond_to_when_map)
+                            stmts = self._make_if(when, module, when_map)
                     elif when.parent is not None and when.parent in when_map:
                         # nested, we insert inside parents true_stmts
                         #
                         # Same lookup logic as previous case except we use the
                         # parent pointer
                         with push_block(when_map[when.parent].then_block):
-                            stmts = self._make_if(when, module, when_map, cond_to_when_map)
+                            stmts = self._make_if(when, module, when_map)
                     else:
                         # we insert into top level
-                        stmts = self._make_if(when, module, when_map, cond_to_when_map)
+                        stmts = self._make_if(when, module, when_map)
 
                 # Now emit the assignments contained within the if statement
                 def _create_conditional_assignment(x):
@@ -715,7 +711,6 @@ class ModuleVisitor:
                                 _create_conditional_assignment,
                                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
                             )
-        return cond_to_when_map
 
     def _make_regs(self, conditional_values):
         """
@@ -773,10 +768,10 @@ class ModuleVisitor:
         always = sv.AlwaysCombOp()
         with push_block(always.body_block):
             self._emit_default_drivers(val_to_reg_map, module)
-            cond_to_when_map = self._construct_ifs(defn.conditional_values,
-                                                   val_to_reg_map, module)
+            self._construct_ifs(defn.conditional_values, val_to_reg_map,
+                                module)
 
-        check_latches(always, reg_to_val_map, cond_to_when_map, self._ctx)
+        check_latches(always, reg_to_val_map, self._ctx)
 
         # Emit final wiring of registers to outputs
         offset = 0
