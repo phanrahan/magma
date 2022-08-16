@@ -1,11 +1,11 @@
 import os
-
 import pytest
 
 import fault
 from hwtypes import BitVector, Bit
 
 import magma as m
+from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 from magma.testing import check_files_equal
 from magma.testing.utils import check_gold, update_gold
 
@@ -29,6 +29,9 @@ def test_memory_basic():
     m.compile("build/test_memory_basic", test_memory_basic, output="mlir")
 
     if check_gold(__file__, "test_memory_basic.mlir"):
+        return
+
+    if not circt_opt_binary_exists():
         return
 
     tester = fault.SynchronousTester(test_memory_basic, test_memory_basic.clk)
