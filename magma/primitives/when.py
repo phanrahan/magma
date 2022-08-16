@@ -1,93 +1,112 @@
-import dataclasses
-from typing import Dict, Optional, Set
+import abc
+import itertools
+from typing import Dict, Iterable, Optional, Set, Tuple, Union
 
-from magma.circuit import Circuit
+from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.digital import Digital
-from magma.generator import Generator2
-from magma.interface import IO
 from magma.t import Type
 from magma.when import (
     BlockBase as WhenBlock,
     get_all_blocks as get_all_when_blocks,
+    no_when,
 )
 from magma.wire import wire
 
 
-def _empty_dict_field():
-    return dataclasses.field(default_factory=dict, init=False)
+_ISWHEN_KEY = "_iswhen_"
 
 
-@dataclasses.dataclass
-class _BlockInfo:
-    inputs: Dict[Type, int] = _empty_dict_field()
-    outputs: Dict[Type, int] = _empty_dict_field()
-    conditions: Dict[Type, int] = _empty_dict_field()
-    default_drivers: Dict[Type, Type] = _empty_dict_field()
+def iswhen(inst_or_defn: Union[Circuit, CircuitType]) -> bool:
+    if isinstance(inst_or_defn, Circuit):
+        return getattr(type(inst_or_defn), _ISWHEN_KEY, False)
+    return getattr(inst_or_defn, _ISWHEN_KEY, False)
 
-    @staticmethod
-    def _generic_add(dct: Dict[Type, int], value: Optional[Type]):
-        if value is None:
+
+class WhenBuilder(CircuitBuilder):
+    def __init__(self, block: WhenBlock):
+        super().__init__(name=f"When_{id(block)}")
+        self._block = block
+        self._condition_counter = itertools.count()
+        self._driver_counter = itertools.count()
+        self._drivee_counter = itertools.count()
+        self._input_counter = itertools.count()
+        self._output_counter = itertools.count()
+        self._input_to_index = {}
+        self._output_to_index = {}
+        self._default_drivers = {}
+        self._set_definition_attr("primitive", True)
+        self._set_definition_attr(_ISWHEN_KEY, True)
+        self._set_definition_attr("_builder_", self)
+
+    @property
+    def default_drivers(self) -> Dict[Type, Type]:
+        return self._default_drivers.copy()
+
+    @property
+    def input_to_index(self) -> Dict[Type, int]:
+        return self._input_to_index.copy()
+
+    @property
+    def output_to_index(self) -> Dict[Type, int]:
+        return self._output_to_index.copy()
+
+    def _generic_add(
+            self,
+            value,
+            value_to_index,
+            index_counter,
+            name_counter,
+            name_prefix
+    ):
+        if value is None or value in value_to_index:
             return
-        dct.setdefault(value, len(dct))
+        value_to_index[value] = next(index_counter)
+        port_name = f"{name_prefix}{next(name_counter)}"
+        self._add_port(port_name, type(value).flip())
+        with no_when():
+            wire(getattr(self, port_name), value)
 
-    def add_input(self, value: Type):
-        _BlockInfo._generic_add(self.inputs, value)
+    def add_drivee(self, value: Type):
+        self._generic_add(
+            value,
+            self._output_to_index,
+            self._output_counter,
+            self._drivee_counter,
+            "O"
+        )
 
-    def add_output(self, value: Type):
-        _BlockInfo._generic_add(self.outputs, value)
+    def add_driver(self, value: Type):
+        self._generic_add(
+            value,
+            self._input_to_index,
+            self._input_counter,
+            self._driver_counter,
+            "I"
+        )
 
     def add_condition(self, condition: Optional[Digital]):
-        _BlockInfo._generic_add(self.conditions, condition)
+        self._generic_add(
+            condition,
+            self._input_to_index,
+            self._input_counter,
+            self._condition_counter,
+            "S"
+        )
 
     def add_default_driver(self, drivee: Type, driver: Type):
-        self.add_output(driver)
-        self.default_drivers[drivee] = driver
+        self.add_driver(driver)
+        self.add_drivee(drivee)
+        self._default_drivers[drivee] = driver
 
-
-def _construct_block_info(block: WhenBlock, info: _BlockInfo):
-    info.add_condition(block.condition)
-    for conditional_wire in block.conditional_wires():
-        info.add_input(conditional_wire.drivee)
-        info.add_output(conditional_wire.driver)
-    for wire in block.default_drivers():
-        info.add_default_driver(wire.drivee, wire.driver)
-
-
-class When(Generator2):
-    _cache_ = False
-
-    def __init__(self, block: WhenBlock):
-        self._block = block
-
-        self._info = info = _BlockInfo()
-        for block in get_all_when_blocks(block):
-            _construct_block_info(block, info)
-
-        ports = {}
-        self._wire_map = wire_map = {}
-        for value, i in info.conditions.items():
-            ports.update({f"S{i}": type(value).flip()})
-            wire_map[value] = f"S{i}"
-        for i, value in enumerate(info.outputs):
-            ports.update({f"I{i}": type(value).flip()})
-            wire_map[value] = f"I{i}"
-        for i, value in enumerate(info.inputs):
-            ports.update({f"O{i}": type(value).flip()})
-            wire_map[value] = f"O{i}"
-
-        self.io = io = IO(**ports)
-
-        self.name = f"When_{id(self._block)}"
-        self.primitive = True
+    def consume_block(self, block: WhenBlock):
+        raise NotImplementedError()
+        self.add_condition(block.condition)
+        for conditional_wire in block.conditional_wires():
+            self.add_drivee(conditional_wire.drivee)
+            self.add_driver(conditional_wire.driver)
+        for wire in block.default_drivers():
+            self.add_default_driver(wire.drivee, wire.driver)
 
     @property
     def block(self) -> WhenBlock:
         return self._block
-
-    @property
-    def info(self) -> _BlockInfo:
-        return self._info
-
-    def wire_instance(self, inst):
-        for value, port_name in self._wire_map.items():
-            wire(value, getattr(inst, port_name))

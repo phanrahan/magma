@@ -52,7 +52,7 @@ from magma.linking import (
 )
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
-from magma.primitives.when import When
+from magma.primitives.when import iswhen
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
@@ -538,7 +538,9 @@ class ModuleVisitor:
     def visit_when(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
-        assert isinstance(defn, When)
+        assert iswhen(defn)
+
+        builder = defn._builder_
 
         value_to_index = {}
 
@@ -546,8 +548,8 @@ class ModuleVisitor:
             assert value not in value_to_index
             value_to_index[value] = next(counter)
 
-        counter = itertools.count(len(defn.info.conditions))
-        for value in sort_by_value(defn.info.outputs):
+        counter = itertools.count()
+        for value in sort_by_value(builder.input_to_index):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 _assert_not_visited,
@@ -555,7 +557,7 @@ class ModuleVisitor:
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
         counter = itertools.count()
-        for value in sort_by_value(defn.info.inputs):
+        for value in sort_by_value(builder.output_to_index):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 lambda v: _visit(v, counter),
@@ -595,8 +597,7 @@ class ModuleVisitor:
             if block.condition is None:
                 _make_assignments(connections)
                 return
-            cond_idx = defn.info.conditions[block.condition]
-            cond = module.operands[cond_idx]
+            cond = module.operands[value_to_index[block.condition]]
             if_op = sv.IfOp(operands=[cond])
             with push_block(if_op.then_block):
                 _make_assignments(connections)
@@ -613,8 +614,8 @@ class ModuleVisitor:
             return if_op
 
         with push_block(sv.AlwaysCombOp().body_block):
-            _make_assignments(defn.info.default_drivers.items())
-            _process_when_block(defn.block)
+            _make_assignments(builder.default_drivers.items())
+            _process_when_block(builder.block)
 
         return True
 
@@ -636,7 +637,7 @@ class ModuleVisitor:
                 expr=defn.expr,
             )
             return True
-        if isinstance(defn, When):
+        if iswhen(defn):
             return self.visit_when(module)
 
     @wrap_with_not_implemented_error

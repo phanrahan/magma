@@ -77,20 +77,6 @@ class VerilogDisplayManager(Finalizable):
             _inline_verilog(self.context, string, {}, {})
 
 
-class _WhenManager(Finalizable):
-    def __init__(self):
-        self._open_blocks = []
-
-    def add_open_block(self, block):
-        self._open_blocks.append(block)
-
-    def finalize(self):
-        # TODO(rsetaluri): Figure out circular import.
-        from magma.when import finalize as finalize_when_block
-        for block in self._open_blocks:
-            finalize_when_block(block)
-
-
 _definition_context_stack = Stack()
 
 
@@ -107,7 +93,6 @@ class DefinitionContext(FinalizableDelegator):
         self._logs = []
         self._metadata = {}
         self.add_child("display", VerilogDisplayManager(weakref.ref(self)))
-        self.add_child("when", _WhenManager())
 
     @property
     def placer(self) -> PlacerBase:
