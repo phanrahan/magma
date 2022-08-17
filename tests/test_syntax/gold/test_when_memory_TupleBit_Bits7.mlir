@@ -30,11 +30,11 @@ hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA__0: i1, %WDATA__1: i7
 hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0: i5, %en0: i1, %data1__0: i1, %data1__1: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out__0: i1, out__1: i7) {
     %0 = hw.constant 1 : i1
     %6, %7 = hw.instance "Memory_inst0" @Memory(RADDR: %1: i5, CLK: %CLK: i1, WADDR: %2: i5, WDATA__0: %3: i1, WDATA__1: %4: i7, WE: %5: i1) -> (RDATA__0: i1, RDATA__1: i7)
-    %8 = hw.constant 0 : i5
-    %9 = hw.constant 0 : i1
-    %10 = hw.constant 0 : i7
-    %11 = hw.constant 0 : i5
-    %12 = hw.constant 127 : i7
+    %8 = hw.constant 127 : i7
+    %9 = hw.constant 0 : i5
+    %10 = hw.constant 0 : i1
+    %11 = hw.constant 0 : i7
+    %12 = hw.constant 0 : i5
     %15 = sv.reg : !hw.inout<i5>
     %2 = sv.read_inout %15 : !hw.inout<i5>
     %16 = sv.reg : !hw.inout<i1>
@@ -50,11 +50,11 @@ hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0:
     %21 = sv.reg : !hw.inout<i7>
     %14 = sv.read_inout %21 : !hw.inout<i7>
     sv.alwayscomb {
-        sv.bpassign %15, %8 : i5
-        sv.bpassign %16, %9 : i1
-        sv.bpassign %17, %10 : i7
-        sv.bpassign %18, %9 : i1
-        sv.bpassign %19, %11 : i5
+        sv.bpassign %15, %9 : i5
+        sv.bpassign %16, %10 : i1
+        sv.bpassign %17, %11 : i7
+        sv.bpassign %18, %10 : i1
+        sv.bpassign %19, %12 : i5
         sv.if %en0 {
             sv.bpassign %15, %addr0 : i5
             sv.bpassign %16, %data0__0 : i1
@@ -74,7 +74,7 @@ hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0:
                 sv.bpassign %21, %7 : i7
             } else {
                 sv.bpassign %20, %0 : i1
-                sv.bpassign %21, %12 : i7
+                sv.bpassign %21, %8 : i7
             }
         }
     }
