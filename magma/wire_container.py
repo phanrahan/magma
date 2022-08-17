@@ -75,6 +75,8 @@ class Wire:
         output, or both should be inouts
         """
         if self._driver is not None:
+            # TODO(rsetaluri): Issue a different warning in the case of the old
+            # driver being a "conditional" driver (i.e. from a when context).
             old_driver = self._driver
             self.unwire(old_driver)
             _logger.log(
