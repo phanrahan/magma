@@ -6,7 +6,7 @@ from magma.backend.mlir.common import make_unique_name
 from magma.backend.mlir.graph_lib import Graph
 from magma.circuit import Circuit, DefineCircuitKind
 from magma.common import replace_all, Stack, SimpleCounter
-from magma.ref import Ref, ArrayRef, TupleRef, DefnRef
+from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 
@@ -34,28 +34,9 @@ def contains_tuple(T: Kind):
     return False
 
 
-def tuple_key_to_str(k):
-    try:
-        int(k)
-        return f"_{k}"
-    except ValueError:
-        return str(k)
-
-
-def mlir_name(name):
-    if isinstance(name, ArrayRef):
-        array_name = mlir_name(name.array.name)
-        return f"{array_name}_{name.index}"
-    if isinstance(name, TupleRef):
-        tuple_name = mlir_name(name.tuple.name)
-        index = tuple_key_to_str(name.index)
-        return f"{tuple_name}_{index}"
-    return name.qualifiedname("_")
-
-
 def value_or_type_to_string(value_or_type: Union[Type, Kind]):
     if isinstance(value_or_type, Type):
-        s = mlir_name(value_or_type.name)
+        s = value_or_type.name.qualifiedname("_")
     else:
         s = str(value_or_type)
     return replace_all(s, _VALUE_OR_TYPE_TO_STRING_REPLACEMENTS)
@@ -77,15 +58,15 @@ class ValueWrapper:
         return self.T.is_mixed()
 
     def __iter__(self) -> Iterable['ValueWrapper']:
-        if isinstance(self.T, TupleMeta):
+        if isinstance(T, TupleMeta):
             return (
-                ValueWrapper(f"{self.name}_{key}", TT)
+                ValueWrapper(f"{value_wrapper.name}_{key}", TT)
                 for key, TT in self.T.field_dict.items()
             )
-        if isinstance(self.T, ArrayMeta):
+        if isinstance(T, ArrayMeta):
             return (
-                ValueWrapper(f"{self.name}[{index}]", self.T.T)
-                for index in range(self.T.N)
+                ValueWrapper(f"{value_wrapper.name}[{key}]", self.T.T)
+                for index in range(T.N)
             )
         raise NotImplementedError(f"{self} is not iterable")
 
@@ -138,7 +119,7 @@ def visit_value_or_value_wrapper_by_direction(
 
     def descend(v):
         if not isinstance(v, (m_Tuple, Array)):
-            raise TypeError(v)
+            raise TypeError(value)
         pre_descend(v)
         for item in v:
             visit_value_or_value_wrapper_by_direction(

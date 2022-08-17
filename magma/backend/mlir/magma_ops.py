@@ -2,7 +2,7 @@ from typing import Union
 
 from magma.array import ArrayMeta
 from magma.backend.mlir.magma_common import (
-    InstanceWrapper, value_or_type_to_string, tuple_key_to_str)
+    InstanceWrapper, value_or_type_to_string)
 from magma.bits import BitsMeta
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
@@ -61,7 +61,7 @@ def MagmaTupleGetOp(T: TupleMeta, index: Union[int, str]):
     name = f"magma_tuple_get_op_{value_or_type_to_string(T)}_{index}"
     T_out = _get_tuple_field_type(T, index)
     ports = dict(I=In(T), O=Out(T_out))
-    attrs = dict(T=T, index=tuple_key_to_str(index))
+    attrs = dict(T=T, index=index)
     return InstanceWrapper(name, ports, attrs)
 
 

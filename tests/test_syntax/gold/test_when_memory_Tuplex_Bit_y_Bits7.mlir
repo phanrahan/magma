@@ -1,12 +1,12 @@
-hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA__0: i1, %WDATA__1: i7, %WE: i1) -> (RDATA__0: i1, RDATA__1: i7) {
-    %0 = comb.extract %WDATA__1 from 0 : (i7) -> i1
-    %1 = comb.extract %WDATA__1 from 1 : (i7) -> i1
-    %2 = comb.extract %WDATA__1 from 2 : (i7) -> i1
-    %3 = comb.extract %WDATA__1 from 3 : (i7) -> i1
-    %4 = comb.extract %WDATA__1 from 4 : (i7) -> i1
-    %5 = comb.extract %WDATA__1 from 5 : (i7) -> i1
-    %6 = comb.extract %WDATA__1 from 6 : (i7) -> i1
-    %7 = comb.concat %6, %5, %4, %3, %2, %1, %0, %WDATA__0 : i1, i1, i1, i1, i1, i1, i1, i1
+hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA_x: i1, %WDATA_y: i7, %WE: i1) -> (RDATA_x: i1, RDATA_y: i7) {
+    %0 = comb.extract %WDATA_y from 0 : (i7) -> i1
+    %1 = comb.extract %WDATA_y from 1 : (i7) -> i1
+    %2 = comb.extract %WDATA_y from 2 : (i7) -> i1
+    %3 = comb.extract %WDATA_y from 3 : (i7) -> i1
+    %4 = comb.extract %WDATA_y from 4 : (i7) -> i1
+    %5 = comb.extract %WDATA_y from 5 : (i7) -> i1
+    %6 = comb.extract %WDATA_y from 6 : (i7) -> i1
+    %7 = comb.concat %6, %5, %4, %3, %2, %1, %0, %WDATA_x : i1, i1, i1, i1, i1, i1, i1, i1
     %9 = sv.reg {name = "coreir_mem32x8_inst0"} : !hw.inout<!hw.array<32xi8>>
     %10 = sv.array_index_inout %9[%RADDR] : !hw.inout<!hw.array<32xi8>>, i5
     %8 = sv.read_inout %10 : !hw.inout<i8>
@@ -27,9 +27,9 @@ hw.module @Memory(%RADDR: i5, %CLK: i1, %WADDR: i5, %WDATA__0: i1, %WDATA__1: i7
     %20 = comb.concat %19, %18, %17, %16, %15, %14, %13 : i1, i1, i1, i1, i1, i1, i1
     hw.output %12, %20 : i1, i7
 }
-hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0: i5, %en0: i1, %data1__0: i1, %data1__1: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out__0: i1, out__1: i7) {
+hw.module @test_when_memory_Tuplex_Bit_y_Bits7(%data0_x: i1, %data0_y: i7, %addr0: i5, %en0: i1, %data1_x: i1, %data1_y: i7, %addr1: i5, %en1: i1, %CLK: i1) -> (out_x: i1, out_y: i7) {
     %0 = hw.constant 1 : i1
-    %6, %7 = hw.instance "Memory_inst0" @Memory(RADDR: %1: i5, CLK: %CLK: i1, WADDR: %2: i5, WDATA__0: %3: i1, WDATA__1: %4: i7, WE: %5: i1) -> (RDATA__0: i1, RDATA__1: i7)
+    %6, %7 = hw.instance "Memory_inst0" @Memory(RADDR: %1: i5, CLK: %CLK: i1, WADDR: %2: i5, WDATA_x: %3: i1, WDATA_y: %4: i7, WE: %5: i1) -> (RDATA_x: i1, RDATA_y: i7)
     %8 = hw.constant 127 : i7
     %9 = hw.constant 0 : i5
     %10 = hw.constant 0 : i1
@@ -57,8 +57,8 @@ hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0:
         sv.bpassign %19, %12 : i5
         sv.if %en0 {
             sv.bpassign %15, %addr0 : i5
-            sv.bpassign %16, %data0__0 : i1
-            sv.bpassign %17, %data0__1 : i7
+            sv.bpassign %16, %data0_x : i1
+            sv.bpassign %17, %data0_y : i7
             sv.bpassign %18, %0 : i1
             sv.bpassign %19, %addr1 : i5
             sv.bpassign %20, %6 : i1
@@ -66,8 +66,8 @@ hw.module @test_when_memory_TupleBit_Bits7(%data0__0: i1, %data0__1: i7, %addr0:
         } else {
             sv.if %en1 {
                 sv.bpassign %15, %addr1 : i5
-                sv.bpassign %16, %data1__0 : i1
-                sv.bpassign %17, %data1__1 : i7
+                sv.bpassign %16, %data1_x : i1
+                sv.bpassign %17, %data1_y : i7
                 sv.bpassign %18, %0 : i1
                 sv.bpassign %19, %addr0 : i5
                 sv.bpassign %20, %6 : i1

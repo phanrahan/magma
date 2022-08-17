@@ -293,7 +293,10 @@ def test_when_multiple_drivers():
 
 @pytest.mark.parametrize('T, bits_to_fault_value', [
     (m.Bits[8], lambda x: x),
-    (m.Tuple[m.Bit, m.Bits[7]], lambda x: (bool(x[7]), int(x[:7])))
+    (
+        m.AnonProduct[{"x": m.Bit, "y": m.Bits[7]}],
+        lambda x: (bool(x[7]), int(x[:7])),
+    )
 ])
 def test_when_memory(T, bits_to_fault_value):
     T_str = type_to_sanitized_string(T)
@@ -361,9 +364,9 @@ def test_when_memory(T, bits_to_fault_value):
 @pytest.mark.parametrize(
     'T, x',
     [
-        (m.Array[2, m.Tuple[m.Bit, m.Bits[2]]],
+        (m.Array[2, m.AnonProduct[{"x": m.Bit, "y": m.Bits[2]}]],
          [[(0, 1), (1, 0)], [(1, 0), (0, 1)]]),
-        (m.Tuple[m.Bits[2], m.Bit],
+        (m.AnonProduct[{"x": m.Bits[2], "y": m.Bit}],
          [(0b10, 0b1), (0b01, 0b0)])
     ]
 )
