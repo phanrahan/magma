@@ -221,8 +221,6 @@ class CircuitKind(type):
         dct["inline_verilog_generated"] = False
         dct["bind_modules"] = {}
         dct["compiled_bind_modules"] = {}
-        dct.setdefault("_is_magma_memory_", False)
-        dct.setdefault("_is_conditional_driver_", False)
 
         # If in debug_mode is active and debug_info is not supplied, attach
         # callee stack info.
@@ -824,10 +822,9 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         try:
             context = get_definition_context()
         except IndexError:
-            self._parent_context = None
+            pass
         else:
             context.add_builder(self)
-            self._parent_context = context
         self._name = name
         self._io = SingletonInstanceIO()
         self._finalized = False

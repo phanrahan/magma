@@ -126,11 +126,11 @@ class WhenBuilder(CircuitBuilder):
         self._default_drivers[drivee] = driver
 
     def _finalize(self):
-         # NOTE(rsetaluri): This should ideally be done in a pass after circuit
-         # creation. However, it is quite unwieldy, so we opt to do it in this
-         # builder's finalization, although it is a bit "hacky". Ideally, this
-         # builder should be completely agnostic of anything it is connected to,
-         # and a global (post-processing) pass should be used instead.
+        # NOTE(rsetaluri): This should ideally be done in a pass after circuit
+        # creation. However, it is quite unwieldy, so we opt to do it in this
+        # builder's finalization, although it is a bit "hacky". Ideally, this
+        # builder should be completely agnostic of anything it is connected to,
+        # and a global (post-processing) pass should be used instead.
         _add_default_drivers_to_memory_ports(self)
 
     @property

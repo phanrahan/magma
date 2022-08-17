@@ -25,7 +25,6 @@ from magma.backend.mlir.magma_common import (
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
     visit_magma_value_or_value_wrapper_by_direction,
-    tuple_key_to_str
 )
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
@@ -63,8 +62,8 @@ from magma.view import PortView
 MlirValueList = List[MlirValue]
 
 
-def _assert_not_visited(x):
-    assert False, "Did not expect this visitor to be used"
+def _assert_false(*args, **kwargs):
+    assert False
 
 
 def _get_defn_or_decl_output_name(
@@ -107,7 +106,7 @@ def magma_type_to_mlir_type(type: Kind) -> MlirType:
             return magma_type_to_mlir_type(Bits[type.N])
         return hw.ArrayType((type.N,), magma_type_to_mlir_type(type.T))
     if issubclass(type, m_Tuple):
-        fields = {tuple_key_to_str(k): magma_type_to_mlir_type(t)
+        fields = {str(k): magma_type_to_mlir_type(t)
                   for k, t in type.field_dict.items()}
         return hw.StructType(tuple(fields.items()))
 
@@ -552,7 +551,7 @@ class ModuleVisitor:
         for value in sort_by_value(builder.input_to_index):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                _assert_not_visited,
+                _assert_false,
                 lambda v: _visit(v, counter),
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
@@ -561,7 +560,7 @@ class ModuleVisitor:
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 lambda v: _visit(v, counter),
-                _assert_not_visited,
+                _assert_false,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples
             )
 
@@ -803,8 +802,6 @@ class ModuleVisitor:
             return self.visit_inline_verilog(module)
         if isprimitive(defn):
             return self.visit_primitive(module)
-        if getattr(defn, "_is_conditional_driver_", False):
-            return self.visit_conditional_driver(module)
         module_type = self._ctx.parent.get_hardware_module(defn).hw_module
         metadata = getattr(inst, "coreir_metadata", {})
         parameters = filter_by_key(
@@ -1189,10 +1186,6 @@ class HardwareModule:
             )
             return _visit_linked_module(self, self._magma_defn_or_decl, op)
         if not treat_as_definition(self._magma_defn_or_decl):
-            if getattr(self._magma_defn_or_decl, '_is_conditional_driver_',
-                       False):
-                # Emitted inline
-                return
             return hw.ModuleExternOp(
                 name=name,
                 operands=inputs,

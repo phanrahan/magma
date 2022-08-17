@@ -9,9 +9,7 @@ from magma.conversions import from_bits, as_bits, enable, uint
 from magma.generator import Generator2
 from magma.interface import IO
 from magma.logging import root_logger
-from magma.passes import DefinitionPass, pass_lambda
 from magma.primitives.register import Register
-from magma.primitives.when import iswhen
 from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta
 from magma.t import In, Out, Kind, Type
 
@@ -195,5 +193,3 @@ class Memory(Generator2):
                 self.WADDR @= addr
                 self.WE @= when
             self.write = write
-
-        self._is_magma_memory_ = True
