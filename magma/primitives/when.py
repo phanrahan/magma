@@ -2,7 +2,9 @@ import abc
 import itertools
 from typing import Dict, Iterable, Optional, Set, Tuple, Union
 
+from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
+from magma.conversions import from_bits
 from magma.digital import Digital
 from magma.t import Type
 from magma.when import (
@@ -20,6 +22,31 @@ def iswhen(inst_or_defn: Union[Circuit, CircuitType]) -> bool:
     if isinstance(inst_or_defn, Circuit):
         return getattr(type(inst_or_defn), _ISWHEN_KEY, False)
     return getattr(inst_or_defn, _ISWHEN_KEY, False)
+
+
+def _get_memory_port(value: Type) -> Optional[Type]:
+    # NOTE(rsetaluri): Memory results in a circular import.
+    from magma.primitives.memory import Memory
+    root_ref = value.name.root()
+    try:
+        value_inst = root_ref.inst
+    except AttributeError:
+        return None
+    if not isinstance(type(value_inst), Memory):
+        return None
+    if root_ref.name not in ("WDATA", "WADDR", "WE", "RADDR"):
+        return None
+    return value
+
+
+def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder'):
+    for port in builder.output_to_index:
+        port = _get_memory_port(port)
+        if port is None:
+            continue
+        T = type(port).undirected_t
+        zero = from_bits(T, Bits[T.flat_length()](0))
+        builder.block.add_default_driver(port, zero)
 
 
 class WhenBuilder(CircuitBuilder):
@@ -98,14 +125,13 @@ class WhenBuilder(CircuitBuilder):
         self.add_drivee(drivee)
         self._default_drivers[drivee] = driver
 
-    def consume_block(self, block: WhenBlock):
-        raise NotImplementedError()
-        self.add_condition(block.condition)
-        for conditional_wire in block.conditional_wires():
-            self.add_drivee(conditional_wire.drivee)
-            self.add_driver(conditional_wire.driver)
-        for wire in block.default_drivers():
-            self.add_default_driver(wire.drivee, wire.driver)
+    def _finalize(self):
+         # NOTE(rsetaluri): This should ideally be done in a pass after circuit
+         # creation. However, it is quite unwieldy, so we opt to do it in this
+         # builder's finalization, although it is a bit "hacky". Ideally, this
+         # builder should be completely agnostic of anything it is connected to,
+         # and a global (post-processing) pass should be used instead.
+        _add_default_drivers_to_memory_ports(self)
 
     @property
     def block(self) -> WhenBlock:
