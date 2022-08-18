@@ -27,6 +27,10 @@ def iswhen(inst_or_defn: Union[Circuit, CircuitType]) -> bool:
     return getattr(inst_or_defn, _ISWHEN_KEY, False)
 
 
+class InferredLatchError(Exception):
+    pass
+
+
 # NOTE(rsetaluri): This is needed because importing magma.primitives.Memory
 # results in a circular import.
 @functools.lru_cache(maxsize=1)
