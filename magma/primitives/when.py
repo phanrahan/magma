@@ -12,6 +12,7 @@ from magma.when import (
     get_all_blocks as get_all_when_blocks,
     no_when,
 )
+from magma.value_utils import make_selector
 from magma.wire import wire
 
 
@@ -47,6 +48,30 @@ def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder'):
         T = type(port).undirected_t
         zero = from_bits(T, Bits[T.flat_length()](0))
         builder.block.add_default_driver(port, zero)
+
+
+def _get_corresponding_register_output(value: Type) -> Optional[Type]:
+    # NOTE(rsetaluri): Register results in a circular import.
+    from magma.primitives.register import Register
+    root_ref = value.name.root()
+    try:
+        value_inst = root_ref.inst
+    except AttributeError:
+        return None
+    if not isinstance(type(value_inst), Register):
+        return None
+    sel = make_selector(value)
+    return sel.select(value_inst.O)
+
+
+def _add_default_drivers_to_register_inputs(builder: 'WhenBuilder'):
+    for drivee in builder.output_to_index:
+        if drivee in builder.default_drivers:
+            continue
+        O = _get_corresponding_register_output(drivee)
+        if O is None:
+            continue
+        builder.block.add_default_driver(drivee, O)
 
 
 class WhenBuilder(CircuitBuilder):
@@ -136,6 +161,7 @@ class WhenBuilder(CircuitBuilder):
         # builder should be completely agnostic of anything it is connected to,
         # and a global (post-processing) pass should be used instead.
         _add_default_drivers_to_memory_ports(self)
+        _add_default_drivers_to_register_inputs(self)
 
     @property
     def block(self) -> WhenBlock:
