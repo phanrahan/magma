@@ -1,4 +1,5 @@
 import abc
+import functools
 import itertools
 from typing import Dict, Iterable, Optional, Set, Tuple, Union
 
@@ -6,6 +7,7 @@ from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.conversions import from_bits
 from magma.digital import Digital
+from magma.primitives.register import Register
 from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
@@ -25,34 +27,40 @@ def iswhen(inst_or_defn: Union[Circuit, CircuitType]) -> bool:
     return getattr(inst_or_defn, _ISWHEN_KEY, False)
 
 
-def _get_memory_port(value: Type) -> Optional[Type]:
-    # NOTE(rsetaluri): Memory results in a circular import.
+# NOTE(rsetaluri): This is needed because importing magma.primitives.Memory
+# results in a circular import.
+@functools.lru_cache(maxsize=1)
+def _Memory():
     from magma.primitives.memory import Memory
+    return Memory
+
+
+def _is_memory_port(value: Type) -> bool:
+    Memory = _Memory()
     root_ref = value.name.root()
     try:
         value_inst = root_ref.inst
     except AttributeError:
-        return None
+        return False
     if not isinstance(type(value_inst), Memory):
-        return None
+        return False
     if root_ref.name not in ("WDATA", "WADDR", "WE", "RADDR"):
-        return None
-    return value
+        return False
+    return True
 
 
 def _add_default_drivers_to_memory_ports(builder: 'WhenBuilder'):
-    for port in builder.output_to_index:
-        port = _get_memory_port(port)
-        if port is None:
+    for drivee in builder.output_to_index:
+        if drivee in builder.default_drivers:
             continue
-        T = type(port).undirected_t
+        if not _is_memory_port(drivee):
+            continue
+        T = type(drivee).undirected_t
         zero = from_bits(T, Bits[T.flat_length()](0))
-        builder.block.add_default_driver(port, zero)
+        builder.block.add_default_driver(drivee, zero)
 
 
 def _get_corresponding_register_output(value: Type) -> Optional[Type]:
-    # NOTE(rsetaluri): Register results in a circular import.
-    from magma.primitives.register import Register
     root_ref = value.name.root()
     try:
         value_inst = root_ref.inst
@@ -155,7 +163,7 @@ class WhenBuilder(CircuitBuilder):
         self._default_drivers[drivee] = driver
 
     def _finalize(self):
-        # NOTE(rsetaluri): This should ideally be done in a pass after circuit
+        # NOTE(rsetaluri): These passes should ideally be done after circuit
         # creation. However, it is quite unwieldy, so we opt to do it in this
         # builder's finalization, although it is a bit "hacky". Ideally, this
         # builder should be completely agnostic of anything it is connected to,
