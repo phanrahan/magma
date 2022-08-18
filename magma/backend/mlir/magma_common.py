@@ -116,6 +116,7 @@ def visit_value_or_value_wrapper_by_direction(
 
     pre_descend = kwargs.get("pre_descend", lambda _: None)
     post_descend = kwargs.get("post_descend", lambda _: None)
+    inout_visitor = kwargs.get("inout_visitor", None)
 
     def descend(v):
         if not isinstance(v, (m_Tuple, Array)):
@@ -136,6 +137,8 @@ def visit_value_or_value_wrapper_by_direction(
         return output_visitor(value_or_value_wrapper)
     if value_or_value_wrapper.is_mixed():
         return descend(value_or_value_wrapper)
+    if inout_visitor is not None:
+        return inout_visitor(value_or_value_wrapper)
 
     raise TypeError(value_or_value_wrapper)
 
