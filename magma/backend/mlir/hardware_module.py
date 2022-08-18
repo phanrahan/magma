@@ -553,7 +553,8 @@ class ModuleVisitor:
                 value,
                 _assert_false,
                 lambda v: _visit(v, counter),
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+                inout_visitor=lambda v: _visit(v, counter),
             )
         counter = itertools.count()
         for value in sort_by_value(builder.output_to_index):
@@ -561,7 +562,8 @@ class ModuleVisitor:
                 value,
                 lambda v: _visit(v, counter),
                 _assert_false,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+                inout_visitor=lambda v: _visit(v, counter),
             )
 
         wires = [
@@ -576,7 +578,8 @@ class ModuleVisitor:
             fields = []
             visit_magma_value_or_value_wrapper_by_direction(
                 value, fields.append, fields.append,
-                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
+                inout_visitor=fields.append,
             )
             return fields
 
