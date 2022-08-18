@@ -403,3 +403,21 @@ def test_when_nested(T, x):
                                                   "build"),
                            magma_opts={"flatten_all_tuples": True})
     update_gold(__file__, f"test_when_nested_{T_str}.mlir")
+
+
+def test_non_port():
+
+    class _Test(m.Circuit):
+        name = "test_non_port"
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        x = m.Bit()
+        with m.when(io.S):
+            x @= io.I[0]
+        with m.otherwise():
+            x @= io.I[1]
+        io.O @= x
+
+    basename = "test_when_non_port"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
