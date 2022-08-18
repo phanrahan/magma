@@ -541,9 +541,10 @@ class ModuleVisitor:
 
         builder = defn._builder_
 
-        value_to_index = {}
+        input_to_index = {}
+        output_to_index = {}
 
-        def _visit(value, counter):
+        def _visit(value, counter, value_to_index):
             assert value not in value_to_index
             value_to_index[value] = next(counter)
 
@@ -552,18 +553,18 @@ class ModuleVisitor:
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
                 _assert_false,
-                lambda v: _visit(v, counter),
+                lambda v: _visit(v, counter, input_to_index),
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
-                inout_visitor=lambda v: _visit(v, counter),
+                inout_visitor=lambda v: _visit(v, counter, input_to_index),
             )
         counter = itertools.count()
         for value in sort_by_value(builder.output_to_index):
             visit_magma_value_or_value_wrapper_by_direction(
                 value,
-                lambda v: _visit(v, counter),
+                lambda v: _visit(v, counter, output_to_index),
                 _assert_false,
                 flatten_all_tuples=self._ctx.opts.flatten_all_tuples,
-                inout_visitor=lambda v: _visit(v, counter),
+                inout_visitor=lambda v: _visit(v, counter, output_to_index),
             )
 
         wires = [
@@ -587,8 +588,8 @@ class ModuleVisitor:
             for drivee, driver in connections:
                 elts = zip(*map(_collect_visited, (drivee, driver)))
                 for drivee_elt, driver_elt in elts:
-                    operand = module.operands[value_to_index[driver_elt]]
-                    wire = wires[value_to_index[drivee_elt]]
+                    operand = module.operands[input_to_index[driver_elt]]
+                    wire = wires[output_to_index[drivee_elt]]
                     sv.BPAssignOp(operands=[wire, operand])
 
         def _process_when_block(block):
@@ -599,7 +600,7 @@ class ModuleVisitor:
             if block.condition is None:
                 _make_assignments(connections)
                 return
-            cond = module.operands[value_to_index[block.condition]]
+            cond = module.operands[input_to_index[block.condition]]
             if_op = sv.IfOp(operands=[cond])
             with push_block(if_op.then_block):
                 _make_assignments(connections)
