@@ -3,6 +3,7 @@ import logging as py_logging
 from magma.config import config, EnvConfig
 from magma.debug import debug_wire
 from magma.logging import root_logger, StagedLogRecord
+from magma.when import get_curr_block as get_curr_when_block
 
 
 config._register(
@@ -40,6 +41,7 @@ class Wire:
 
     Each wire is represented by a bit.
     """
+
     def __init__(self, bit):
         self._bit = bit
         self._driving = []
@@ -73,6 +75,8 @@ class Wire:
         output, or both should be inouts
         """
         if self._driver is not None:
+            # TODO(rsetaluri): Issue a different warning in the case of the old
+            # driver being a "conditional" driver (i.e. from a when context).
             old_driver = self._driver
             self.unwire(old_driver)
             _logger.log(
@@ -188,10 +192,17 @@ class Wireable:
             o = o._wire
         i._wire.unwire(o, debug_info)
 
-    def wire(self, o, debug_info):
+    def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
         self.debug_info = debug_info
         o.debug_info = debug_info
+
+    def wire(self, o, debug_info):
+        curr_when_block = get_curr_when_block()
+        if curr_when_block is None:
+            self._wire_impl(o, debug_info)
+            return
+        curr_when_block.add_conditional_wire(self, o)
 
     @debug_wire
     def rewire(self, o, debug_info=None):

@@ -1,12 +1,13 @@
 import os
-
 import pytest
 
 import fault
 from hwtypes import BitVector, Bit
 
 import magma as m
+from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 from magma.testing import check_files_equal
+from magma.testing.utils import check_gold, update_gold
 
 
 def test_memory_basic():
@@ -22,12 +23,17 @@ def test_memory_basic():
         )
         Mem4x5 = m.Memory(4, m.Bits[5])()
         io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] @= io.wdata
+        with m.when(io.wen):
+            Mem4x5[io.waddr] @= io.wdata
 
-    m.compile("build/test_memory_basic", test_memory_basic)
+    m.compile("build/test_memory_basic", test_memory_basic, output="mlir")
 
-    assert check_files_equal(__file__, f"build/test_memory_basic.v",
-                             f"gold/test_memory_basic.v")
+    if check_gold(__file__, "test_memory_basic.mlir"):
+        return
+
+    if not circt_opt_binary_exists():
+        return
+
     tester = fault.SynchronousTester(test_memory_basic, test_memory_basic.clk)
     expected = []
     for i in range(4):
@@ -41,10 +47,11 @@ def test_memory_basic():
         tester.circuit.raddr = i
         tester.advance_cycle()
         tester.circuit.rdata.expect(expected[i])
-    tester.compile_and_run("verilator", skip_compile=True,
+    tester.compile_and_run("verilator", magma_output="mlir-verilog",
                            flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
+    update_gold(__file__, "test_memory_basic.mlir")
 
 
 def test_memory_product():
@@ -287,25 +294,3 @@ def test_memory_read_only():
                            flags=["-Wno-unused"],
                            directory=os.path.join(os.path.dirname(__file__),
                                                   "build"))
-
-
-def test_memory_warning(caplog):
-    class test_memory_basic(m.Circuit):
-        io = m.IO(
-            raddr=m.In(m.Bits[2]),
-            rdata=m.Out(m.Bits[5]),
-            waddr=m.In(m.Bits[2]),
-            wdata=m.In(m.Bits[5]),
-            clk=m.In(m.Clock),
-            wen=m.In(m.Enable)
-
-        )
-        Mem4x5 = m.Memory(4, m.Bits[5])()
-        io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] @= io.wdata
-
-        io.rdata @= Mem4x5[io.raddr]
-        Mem4x5[io.waddr] @= io.wdata
-
-    assert "Reading __getitem__ result from a Memory instance with RADDR already driven, will overwrite previous value" in caplog.messages  # noqa
-    assert "Wiring __getitem__ result from a Memory instance with WADDR or WDATA already driven, will overwrite previous values" in caplog.messages  # noqa
