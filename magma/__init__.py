@@ -119,6 +119,7 @@ from magma.stubify import (
 from magma.compile import MagmaCompileException
 from magma.linking import link_module, link_default_module, clear_link_info
 import magma.math
+from magma.when import when, elsewhen, otherwise
 from magma.value_utils import fill
 from magma.bind2 import bind2, make_bind_ports
 

@@ -2,6 +2,7 @@ import abc
 import contextlib
 import dataclasses
 import functools
+import itertools
 import pathlib
 from typing import Any, List, Mapping, Optional, Tuple, Union
 import weakref
@@ -23,12 +24,11 @@ from magma.backend.mlir.magma_common import (
     InstanceWrapper as MagmaInstanceWrapper,
     value_or_type_to_string as magma_value_or_type_to_string,
     visit_value_or_value_wrapper_by_direction as
-    visit_magma_value_or_value_wrapper_by_direction
+    visit_magma_value_or_value_wrapper_by_direction,
 )
 from magma.backend.mlir.mlir import (
     MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
 )
-from magma.backend.mlir.printer_base import PrinterBase
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
 from magma.backend.mlir.xmr_utils import get_xmr_paths
@@ -38,7 +38,7 @@ from magma.bits import Bits, BitsMeta
 from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
-from magma.common import filter_by_key
+from magma.common import filter_by_key, sort_by_value
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
@@ -51,6 +51,7 @@ from magma.linking import (
 )
 from magma.primitives.mux import Mux
 from magma.primitives.register import Register
+from magma.primitives.when import iswhen
 from magma.primitives.xmr import XMRSink, XMRSource
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
@@ -59,6 +60,10 @@ from magma.view import PortView
 
 
 MlirValueList = List[MlirValue]
+
+
+def _assert_false(*args, **kwargs):
+    assert False
 
 
 def _get_defn_or_decl_output_name(
@@ -529,6 +534,91 @@ class ModuleVisitor:
         return True
 
     @wrap_with_not_implemented_error
+    def visit_when(self, module: ModuleWrapper) -> bool:
+        inst = module.module
+        defn = type(inst)
+        assert iswhen(defn)
+
+        builder = defn._builder_
+
+        value_to_index = {}
+
+        def _visit(value, counter):
+            assert value not in value_to_index
+            value_to_index[value] = next(counter)
+
+        counter = itertools.count()
+        for value in sort_by_value(builder.input_to_index):
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                _assert_false,
+                lambda v: _visit(v, counter),
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+        counter = itertools.count()
+        for value in sort_by_value(builder.output_to_index):
+            visit_magma_value_or_value_wrapper_by_direction(
+                value,
+                lambda v: _visit(v, counter),
+                _assert_false,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+
+        wires = [
+            self._ctx.new_value(hw.InOutType(result.type))
+            for result in module.results
+        ]
+        for result, wire in zip(module.results, wires):
+            sv.RegOp(results=[wire])
+            sv.ReadInOutOp(operands=[wire], results=[result])
+
+        def _collect_visited(value):
+            fields = []
+            visit_magma_value_or_value_wrapper_by_direction(
+                value, fields.append, fields.append,
+                flatten_all_tuples=self._ctx.opts.flatten_all_tuples
+            )
+            return fields
+
+        def _make_assignments(connections):
+            for drivee, driver in connections:
+                elts = zip(*map(_collect_visited, (drivee, driver)))
+                for drivee_elt, driver_elt in elts:
+                    operand = module.operands[value_to_index[driver_elt]]
+                    wire = wires[value_to_index[drivee_elt]]
+                    sv.BPAssignOp(operands=[wire, operand])
+
+        def _process_when_block(block):
+            connections = (
+                (conditional_wire.drivee, conditional_wire.driver)
+                for conditional_wire in block.conditional_wires()
+            )
+            if block.condition is None:
+                _make_assignments(connections)
+                return
+            cond = module.operands[value_to_index[block.condition]]
+            if_op = sv.IfOp(operands=[cond])
+            with push_block(if_op.then_block):
+                _make_assignments(connections)
+                for child in block.children():
+                    _process_when_block(child)
+            curr_sibling = if_op
+            with contextlib.ExitStack() as stack:
+                sibling_blocks = list(block.elsewhen_blocks())
+                if block.otherwise_block is not None:
+                    sibling_blocks.append(block.otherwise_block)
+                for sibling_block in sibling_blocks:
+                    stack.enter_context(push_block(curr_sibling.else_block))
+                    curr_sibling = _process_when_block(sibling_block)
+            return if_op
+
+        with push_block(sv.AlwaysCombOp().body_block):
+            _make_assignments(builder.default_drivers.items())
+            _process_when_block(builder.block)
+
+        return True
+
+    @wrap_with_not_implemented_error
     def visit_primitive(self, module: ModuleWrapper) -> bool:
         inst = module.module
         defn = type(inst)
@@ -546,6 +636,8 @@ class ModuleVisitor:
                 expr=defn.expr,
             )
             return True
+        if iswhen(defn):
+            return self.visit_when(module)
 
     @wrap_with_not_implemented_error
     def visit_magma_mux(self, module: ModuleWrapper) -> bool:

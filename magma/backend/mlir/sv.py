@@ -16,11 +16,14 @@ begin_dialect(sv)
 @dataclasses.dataclass
 class RegOp(MlirOp):
     results: List[MlirValue]
-    name: str
+    name: Optional[str] = None
 
     def print_op(self, printer: PrinterBase):
         print_names(self.results, printer)
-        printer.print(f" = sv.reg {{name = \"{self.name}\"}} : ")
+        printer.print(f" = sv.reg ")
+        if self.name is not None:
+            printer.print(f"{{name = \"{self.name}\"}} ")
+        printer.print(": ")
         print_types(self.results, printer)
 
 
@@ -105,6 +108,27 @@ class AlwaysFFOp(MlirOp):
         printer.flush()
         printer.push()
         self.reset_block.print(printer)
+        printer.pop()
+        printer.print_line("}")
+
+    def print_op(self, printer: PrinterBase):
+        raise NotImplementedError()
+
+
+@dataclasses.dataclass
+class AlwaysCombOp(MlirOp):
+    def __post_init__(self):
+        self._body_block = self.new_region().new_block()
+
+    @property
+    def body_block(self) -> MlirBlock:
+        return self._body_block
+
+    def print(self, printer: PrinterBase):
+        printer.print("sv.alwayscomb {")
+        printer.flush()
+        printer.push()
+        self.body_block.print(printer)
         printer.pop()
         printer.print_line("}")
 
