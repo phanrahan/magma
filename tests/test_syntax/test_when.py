@@ -446,3 +446,40 @@ def test_recursive_non_port():
     basename = "test_when_recursive_non_port"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_internal_instantiation():
+
+    class _Test(m.Circuit):
+        name = "test_internal_instantiation"
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0] & 1
+        with m.otherwise():
+            io.O @= io.I[1] ^ 1
+
+    basename = "test_when_internal_instantiation"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_internal_instantiation_complex():
+
+    class _Test(m.Circuit):
+        name = "test_internal_instantiation_complex"
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            x = m.Bit(name="x")
+            with m.when(io.S[1]):
+                x @= io.I[0] & 1
+            with m.otherwise():
+                x @= io.I[1] ^ 1
+            io.O @= x
+        with m.otherwise():
+            io.O @= 0b11
+
+    basename = "test_when_internal_instantiation_complex"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
