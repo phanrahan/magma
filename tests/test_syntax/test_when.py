@@ -483,3 +483,21 @@ def test_internal_instantiation_complex():
     basename = "test_when_internal_instantiation_complex"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_when_register_default():
+
+    class _Test(m.Circuit):
+        name = "test_register_default"
+        io = m.IO(I=m.In(m.Bit), E=m.In(m.Bit), O=m.Out(m.Bit))
+
+        reg = m.Register(m.Bit)()
+
+        with m.when(io.E):
+            reg.I @= io.I
+
+        io.O @= reg.O
+
+    basename = "test_when_register_default"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
