@@ -169,6 +169,7 @@ class Wire:
 class Wireable:
     def __init__(self):
         self._wire = Wire(self)
+        self._when_context = get_curr_when_block()
 
     def wired(self):
         return self._wire.wired()
@@ -199,7 +200,11 @@ class Wireable:
 
     def wire(self, o, debug_info):
         curr_when_block = get_curr_when_block()
-        if curr_when_block is None:
+        is_conditional = (
+            curr_when_block is not None
+            and curr_when_block is not self._when_context
+        )
+        if not is_conditional:
             self._wire_impl(o, debug_info)
             return
         curr_when_block.add_conditional_wire(self, o)
