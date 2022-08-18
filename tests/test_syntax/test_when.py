@@ -1,11 +1,30 @@
+import functools
 import os
 import pytest
 
+import fault as f
+
 import magma as m
+from magma.primitives.when import InferredLatchError
 from magma.testing.utils import check_gold, update_gold
 from magma.type_utils import type_to_sanitized_string
 
-import fault as f
+
+@functools.lru_cache(maxsize=None)
+def _expects_error(error_type, process_error=None):
+
+    def _decorator(fn):
+
+        @functools.wraps(fn)
+        def _wrapper(*args, **kwargs):
+            with pytest.raises(error_type) as e:
+                fn(*args, **kwargs)
+            if process_error is not None:
+                process_error(e)
+
+        return _wrapper
+
+    return _decorator
 
 
 def test_when_with_default():
@@ -501,3 +520,63 @@ def test_when_register_default():
     basename = "test_when_register_default"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+@_expects_error(InferredLatchError)
+def test_latch_error_simple():
+
+    class _Test(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0]
+
+
+@_expects_error(InferredLatchError)
+def test_latch_error_elsewhen():
+
+    class _Test(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bit), O=m.Out(m.Bit))
+
+        with m.when(io.S):
+            io.O @= io.I[0]
+        with m.elsewhen(io.S ^ 1):
+            io.O @= 1
+
+
+@_expects_error(InferredLatchError)
+def test_latch_error_nested():
+
+    class _Test(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+
+
+def test_latch_no_error_nested():
+
+    class _Test(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            io.O @= io.I[1]
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+        with m.otherwise():
+            io.O @= 1
+
+
+def test_latch_no_error_nested2():
+
+    class _Test(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            with m.when(io.S[1]):
+                io.O @= io.I[0]
+            with m.otherwise():
+                io.O @= io.I[1]
+        with m.otherwise():
+            io.O @= 1
