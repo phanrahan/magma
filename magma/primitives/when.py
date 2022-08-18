@@ -6,7 +6,7 @@ from magma.bits import Bits
 from magma.circuit import Circuit, CircuitType, CircuitBuilder
 from magma.conversions import from_bits
 from magma.digital import Digital
-from magma.t import Type
+from magma.t import Type, In, Out
 from magma.when import (
     BlockBase as WhenBlock,
     get_all_blocks as get_all_when_blocks,
@@ -83,13 +83,14 @@ class WhenBuilder(CircuitBuilder):
             value_to_index,
             index_counter,
             name_counter,
-            name_prefix
+            name_prefix,
+            type_qualifier,
     ):
         if value is None or value in value_to_index:
             return
         value_to_index[value] = next(index_counter)
         port_name = f"{name_prefix}{next(name_counter)}"
-        self._add_port(port_name, type(value).flip())
+        self._add_port(port_name, type_qualifier(type(value).undirected_t))
         with no_when():
             wire(getattr(self, port_name), value)
 
@@ -99,7 +100,8 @@ class WhenBuilder(CircuitBuilder):
             self._output_to_index,
             self._output_counter,
             self._drivee_counter,
-            "O"
+            "O",
+            Out,
         )
 
     def add_driver(self, value: Type):
@@ -108,7 +110,8 @@ class WhenBuilder(CircuitBuilder):
             self._input_to_index,
             self._input_counter,
             self._driver_counter,
-            "I"
+            "I",
+            In,
         )
 
     def add_condition(self, condition: Optional[Digital]):
@@ -117,7 +120,8 @@ class WhenBuilder(CircuitBuilder):
             self._input_to_index,
             self._input_counter,
             self._condition_counter,
-            "S"
+            "S",
+            In,
         )
 
     def add_default_driver(self, drivee: Type, driver: Type):
