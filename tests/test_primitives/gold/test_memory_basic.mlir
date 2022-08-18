@@ -24,7 +24,11 @@ hw.module @test_memory_basic(%raddr: i2, %waddr: i2, %wdata: i5, %clk: i1, %wen:
         sv.bpassign %6, %9 : i1
         sv.if %wen {
             sv.bpassign %4, %waddr : i2
+        }
+        sv.if %wen {
             sv.bpassign %5, %wdata : i5
+        }
+        sv.if %wen {
             sv.bpassign %6, %0 : i1
         }
     }
