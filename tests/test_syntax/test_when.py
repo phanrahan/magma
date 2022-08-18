@@ -421,3 +421,28 @@ def test_non_port():
     basename = "test_when_non_port"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_recursive_non_port():
+
+    class _Test(m.Circuit):
+        name = "test_recursive_non_port"
+        io = m.IO(
+            I=m.In(m.Bits[2]),
+            S=m.In(m.Bit),
+            O0=m.Out(m.Bit),
+            O1=m.Out(m.Bit),
+        )
+
+        x = m.Bit()
+        with m.when(io.S):
+            x @= io.I[0]
+            io.O1 @= x
+        with m.otherwise():
+            x @= io.I[1]
+            io.O1 @= x
+        io.O0 @= x
+
+    basename = "test_when_recursive_non_port"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
