@@ -13,6 +13,7 @@ from magma.when import (
     BlockBase as WhenBlock,
     get_all_blocks as get_all_when_blocks,
     no_when,
+    find_inferred_latches,
 )
 from magma.value_utils import make_selector
 from magma.wire import wire
@@ -174,6 +175,10 @@ class WhenBuilder(CircuitBuilder):
         # and a global (post-processing) pass should be used instead.
         _add_default_drivers_to_memory_ports(self)
         _add_default_drivers_to_register_inputs(self)
+        # Detect latches which would be inferred from the context of the when block.
+        latches = find_inferred_latches(self.block)
+        if latches:
+            raise InferredLatchError(latches)
 
     @property
     def block(self) -> WhenBlock:

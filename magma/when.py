@@ -2,7 +2,7 @@ import abc
 import contextlib
 import dataclasses
 import itertools
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import Any, Iterable, Optional, Set, Tuple, Union
 
 
 class WhenSyntaxError(SyntaxError):
@@ -298,6 +298,110 @@ def _reset_context():
 
 
 reset_context = _reset_context
+
+
+def _get_else_block(block: _BlockBase) -> Optional[_BlockBase]:
+    if isinstance(block, _OtherwiseBlock):
+        return None
+    if isinstance(block, _ElseWhenBlock):
+        # TODO(rsetaluri): We could augment _ElseWhenBlock to keep track of its
+        # index in the parent block, or alternatively keep an explicit pointer
+        # to the next else/otherwise block in each _ElseWhenBlock.
+        parent_elsewhen_blocks = list(block._parent.elsewhen_blocks())
+        index = parent_elsewhen_blocks.index(block) + 1
+        if index == len(parent_elsewhen_blocks):
+            return block._parent.otherwise_block
+        return parent_elsewhen_blocks[index]
+    if isinstance(block, _WhenBlock):
+        try:
+            else_block = next(block.elsewhen_blocks())
+        except StopIteration:
+            pass
+        else:
+            return else_block
+        return block.otherwise_block
+
+
+_Op = Union[ConditionalWire, _BlockBase]
+
+
+def _get_then_ops(block: _BlockBase) -> Iterable[_Op]:
+    yield from block.conditional_wires()
+    yield from block.children()
+
+
+def _get_else_ops(block: _BlockBase) -> Iterable[_Op]:
+    if isinstance(block, _OtherwiseBlock):
+        return _get_then_ops(block)
+    if isinstance(block, _ElseWhenBlock):
+        return (block,)
+    raise TypeError(block)
+
+
+def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
+    """Compute the assigned values and latches implied by a block.
+
+    Note: this is a conservative check that requires values are assigned in
+    every case.  For example, there may be an unreachable case where a value is
+    not assigned, but that requires symbolic evaluation to discover.  In
+    general, symbolic evaluation is difficult, but may be viable in the
+    hardware domain where we may have less issues with path explosion,
+    aliasing, arrays, etc...
+
+    Parameters
+    ----------
+    ops : Iterable[_Op]
+        A sequence of ops (assignment or if-then-else block)
+
+    Returns
+    -------
+    Set[Type]
+        The values assigned in this block by any operation.
+
+    Set[Type]
+        The latches implied by this block, i.e. values which are not assigned in
+        all branches.
+    """
+    assignees, latches = set(), set()
+    for op in ops:
+        if isinstance(op, ConditionalWire):
+            assignees.add(op.drivee)
+            continue
+        if isinstance(op, _BlockBase):
+            then_ops = _get_then_ops(op)
+            then_assignees, then_latches = _get_assignees_and_latches(
+                then_ops
+            )
+            else_block = _get_else_block(op)
+            if else_block is None:
+                latches.update(then_latches.difference(assignees))
+                latches.update(then_assignees.difference(assignees))
+                continue
+            else_ops = _get_else_ops(else_block)
+            else_assignees, else_latches = _get_assignees_and_latches(
+                else_ops
+            )
+            latches.update(then_latches.difference(assignees))
+            latches.update(else_latches.difference(assignees))
+            latches.update(
+                (
+                    then_assignees
+                    .symmetric_difference(else_assignees)
+                    .difference(assignees)
+                )
+            )
+            assignees.update(then_assignees.union(else_assignees))
+            continue
+        raise TypeError(op)
+    return assignees, latches
+
+
+def find_inferred_latches(block: _BlockBase) -> Set:
+    if not (isinstance(block, _WhenBlock) and block.root is block):
+        raise TypeError("Can only find inferred latches on root when block")
+    ops = tuple(block.default_drivers()) + (block,)
+    _, latches = _get_assignees_and_latches(ops)
+    return latches
 
 
 def when(cond):
