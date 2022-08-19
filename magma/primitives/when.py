@@ -175,7 +175,8 @@ class WhenBuilder(CircuitBuilder):
         # and a global (post-processing) pass should be used instead.
         _add_default_drivers_to_memory_ports(self)
         _add_default_drivers_to_register_inputs(self)
-        # Detect latches which would be inferred from the context of the when block.
+        # Detect latches which would be inferred from the context of the when
+        # block.
         latches = find_inferred_latches(self.block)
         if latches:
             raise InferredLatchError(latches)
