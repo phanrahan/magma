@@ -223,6 +223,8 @@ def test_when_bad_syntax(fn, name):
     class Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bits[3]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
 
+        io.O @= 0
+
         with pytest.raises(SyntaxError) as e:
             # This should not have a _PREV_WHEN_COND to use
             with fn(io.S[1]):
@@ -498,6 +500,7 @@ def test_internal_instantiation_complex():
             io.O @= x
         with m.otherwise():
             io.O @= 0b11
+            x @= 0
 
     basename = "test_when_internal_instantiation_complex"
     m.compile(f"build/{basename}", _Test, output="mlir")
