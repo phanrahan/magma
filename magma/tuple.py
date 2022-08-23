@@ -205,6 +205,8 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
 
+        self._keys_list = list(self.keys())
+
     def __getattr__(self, key):
         if not isinstance(self, AnonProduct) and key in self.keys():
             # On demand setattr for lazy children
@@ -253,9 +255,9 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         kts = ['{}={}'.format(k, v) for k, v in zip(self.keys(), ts)]
         return 'tuple(dict({})'.format(', '.join(kts))
 
-    def _make_t(self, key):
-        T = self.types()[key]
-        ref = TupleRef(self, list(self.keys())[key])
+    def _make_t(self, idx):
+        T = self.types()[idx]
+        ref = TupleRef(self, self._keys_list()[idx])
         if issubclass(T, MagmaProtocol):
             return T._from_magma_value_(T._to_magma_()(name=ref))
         return T(name=ref)
