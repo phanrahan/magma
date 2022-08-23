@@ -197,7 +197,7 @@ class _ElseWhenBlock(_BlockBase):
         self._info = info
 
     def new_elsewhen_block(self, info: '_ElseWhenBlockInfo'):
-        return self._parent.new_elsewhen_block()
+        return self._parent.new_elsewhen_block(info)
 
     def new_otherwise_block(self):
         return self._parent.new_otherwise_block()
