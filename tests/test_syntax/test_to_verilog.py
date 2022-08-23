@@ -10,8 +10,6 @@ import pytest
 pytest.skip("Kratos failure", allow_module_level=True)
 
 
-pytest.skip("error in kratos")
-
 class SimpleALU(m.Circuit):
     io = m.IO(a=m.In(m.UInt[16]), b=m.In(m.UInt[16]),
               c=m.Out(m.UInt[16]), config_=m.In(m.Bits[2]))
