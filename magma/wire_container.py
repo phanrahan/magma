@@ -256,9 +256,9 @@ class WireableWithChildren(Wireable):
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
-        # NOTE: we need to remove drivees before doing the recursive wiring of
-        # the children or else we'll trigger _resolve_bulk_wire when iterating
-        # over the children
+        # NOTE(leonardt): we need to remove drivees before doing the recursive
+        # wiring of the children or else we'll trigger _resolve_bulk_wire when
+        # iterating over the children
         for drivee in driving:
             # Remove bulk wire since children will now track the wiring
             Wireable.unwire(drivee, self)
