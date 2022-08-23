@@ -29,7 +29,7 @@ class MagmaProtocolMeta(type):
         # To create an instance from a value.
         raise NotImplementedError()
 
-    def _from_magma_ref(cls, ref: 'Ref'):
+    def _from_magma_ref_(cls, ref: 'Ref'):
         return cls._from_magma_value_(cls._to_magma_()(name=ref))
 
     def _is_oriented_magma_(cls, direction):
