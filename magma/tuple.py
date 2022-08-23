@@ -440,11 +440,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         return sum([t.flatten() for t in self], [])
 
     def const(self):
-        for t in self:
-            if not t.const():
-                return False
-
-        return True
+        return all(t.const() for t in self)
 
     @classmethod
     def types(cls):
