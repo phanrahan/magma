@@ -194,7 +194,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         WireableWithChildren.__init__(self)
 
         self._ts = {}
-        if len(largs) > 0:
+        if largs:
             assert len(largs) == len(self)
             for i, (k, t, T) in enumerate(zip(self.keys(),
                                               largs,
