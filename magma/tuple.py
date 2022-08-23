@@ -190,7 +190,7 @@ class TupleKind(TupleMeta, Kind):
 class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
-        Type.__init__(self, **kwargs)  # name=
+        Type.__init__(self, **kwargs)
         WireableWithChildren.__init__(self)
 
         self.ts = {}
