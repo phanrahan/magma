@@ -2,32 +2,20 @@ import weakref
 from functools import reduce, lru_cache
 import operator
 from abc import ABCMeta
-<<<<<<< HEAD
 from hwtypes import BitVector, AbstractBitVector
-=======
-from hwtypes import BitVector
->>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)
 from .ref import ArrayRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import Bit
 from .bitutils import int2seq
-<<<<<<< HEAD
 from .debug import debug_wire, get_callee_frame_info, debug_unwire
-=======
-from .debug import debug_wire, get_callee_frame_info
->>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-<<<<<<< HEAD
-from magma.wire_container import WiringLog, Wireable
-=======
 from magma.wire_container import (WiringLog, WireableWithChildren,
                                   wireable_with_children_wrapper)
->>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)
 from magma.protocol_type import MagmaProtocol
 from magma.when import no_when, temp_when
 
@@ -735,12 +723,17 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
 >>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
+<<<<<<< HEAD
             value = self.T._to_magma_()(name=ArrayRef(self, index))
             value.set_enclosing_when_context(self._enclosing_when_context)
             return self.T._from_magma_value_(value)
         value = self.T(name=ArrayRef(self, index))
         value.set_enclosing_when_context(self._enclosing_when_context)
         return value
+=======
+            return self.T._from_magma_ref_(ArrayRef(self, index))
+        return self.T(name=ArrayRef(self, index))
+>>>>>>> 9165165c (Use from ref in array)
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
