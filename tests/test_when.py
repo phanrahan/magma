@@ -583,3 +583,23 @@ def test_latch_no_error_nested2():
                 io.O @= io.I[1]
         with m.otherwise():
             io.O @= 1
+
+
+def test_when_double_elsewhen():
+
+    class _Test(m.Circuit):
+        name = "test_when_double_elsewhen"
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]), O=m.Out(m.Bit))
+
+        with m.when(io.S[0]):
+            io.O @= io.I[0]
+        with m.elsewhen(io.S[1]):
+            io.O @= io.I[1]
+        with m.elsewhen(io.S.reduce_and()):
+            io.O @= 1
+        with m.otherwise():
+            io.O @= 3
+
+    basename = "test_when_double_elsewhen"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
