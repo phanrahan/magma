@@ -259,7 +259,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         T = self.types()[idx]
         ref = TupleRef(self, self._keys_list[idx])
         if issubclass(T, MagmaProtocol):
-            return T._from_magma_value_(T._to_magma_()(name=ref))
+            return T._from_magma_ref_(ref)
         return T(name=ref)
 
     def _has_elaborated_children(self):
