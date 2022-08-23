@@ -14,7 +14,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import (WiringLog, WireableWithChildren,
+from magma.wire_container import (WiringLog, AggregateWireable,
                                   aggregate_wireable_method)
 from magma.protocol_type import MagmaProtocol
 from magma.when import no_when, temp_when
@@ -358,9 +358,9 @@ def _is_slice_child(child):
     return isinstance(child, Array) and child._is_slice()
 
 
-class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
+class Array(Type, AggregateWireable, metaclass=ArrayMeta):
     """
-    WireableWithChildren class allows Array values to be "bulk wired" like a
+    AggregateWireable class allows Array values to be "bulk wired" like a
     Digital value
 
     The `self._ts` attribute contains a lazily constructed mapping from index
@@ -372,7 +372,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
     child objects and populating the corresponding entries in the `._ts`
     dictionary of both the slice object the parent array object.
 
-    A large portion of the Array logic for the WireableWithChildren interface
+    A large portion of the Array logic for the AggregateWireable interface
     must dispatch on `self._ts` and `self._slices` to see if the Array has been
     expanded (requiring the logic to be implemented recursively over the
     children), otherwise the logic will treat the Array as a "bulk wired"
@@ -382,7 +382,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
     def __init__(self, *args, **kwargs):
         # Pass name= kwarg to Type constructor
         Type.__init__(self, **kwargs)
-        WireableWithChildren.__init__(self)
+        AggregateWireable.__init__(self)
         if args:
             # If args is not empty, that means this array is being constructed
             # with existing values, so populate the `_ts` dictionary eagerly
@@ -618,7 +618,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
             self._wire_children(o, debug_info)
         else:
             # Perform a bulk wire
-            WireableWithChildren.wire(self, o, debug_info)
+            AggregateWireable.wire(self, o, debug_info)
 
     @debug_unwire
     @aggregate_wireable_method
@@ -754,7 +754,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
         if not value._wire.driven():
             return
         driver = value._wire.value()
-        WireableWithChildren.unwire(value, driver)
+        AggregateWireable.unwire(value, driver)
         for i in range(start, stop):
             self._ts[i] @= driver[i - start]
 >>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)

@@ -20,7 +20,7 @@ from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
-from magma.wire_container import (WiringLog, WireableWithChildren,
+from magma.wire_container import (WiringLog, AggregateWireable,
                                   aggregate_wireable_method)
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
@@ -187,11 +187,11 @@ class TupleKind(TupleMeta, Kind):
     __hash__ = TupleMeta.__hash__
 
 
-class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
+class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def __init__(self, *largs, **kwargs):
 
         Type.__init__(self, **kwargs)
-        WireableWithChildren.__init__(self)
+        AggregateWireable.__init__(self)
 
         self._ts = {}
         if largs:
@@ -332,7 +332,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
                 o_elem = magma_value(o_elem)
                 wire(o_elem, self_elem, debug_info)
         else:
-            WireableWithChildren.wire(self, o, debug_info)
+            AggregateWireable.wire(self, o, debug_info)
 
     @debug_unwire
     @aggregate_wireable_method
