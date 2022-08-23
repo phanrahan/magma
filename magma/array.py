@@ -15,7 +15,7 @@ from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
 from magma.wire_container import (WiringLog, WireableWithChildren,
-                                  wireable_with_children_wrapper)
+                                  aggregate_wireable_method)
 from magma.protocol_type import MagmaProtocol
 from magma.when import no_when, temp_when
 
@@ -534,11 +534,11 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
             return False
         return True
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def driving(self):
         return [t.driving() for t in self]
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def wired(self):
         return all(t.wired() for t in self)
 
@@ -621,7 +621,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
             WireableWithChildren.wire(self, o, debug_info)
 
     @debug_unwire
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
             return WireableWithChildren.unwire(self, o, debug_info)
@@ -984,7 +984,7 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
     def _has_elaborated_children(self):
         return bool(self._ts) or bool(self._slices)
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def value(self):
         return self._collect_children(lambda x: x.value())
 
@@ -1013,11 +1013,11 @@ class Array(Type, WireableWithChildren, metaclass=ArrayMeta):
             return None
         return _trace_child
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def trace(self, skip_self=True):
         return self._collect_children(self._make_trace_child(skip_self))
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def driven(self):
         return all(
             child is not None and child.driven()

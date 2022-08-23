@@ -1,3 +1,4 @@
+import functools
 import logging as py_logging
 
 from magma.config import config, EnvConfig
@@ -279,10 +280,13 @@ class WireableWithChildren(Wireable):
             self._resolve_driving_bulk_wire()
 
 
-def wireable_with_children_wrapper(fn):
+def aggregate_wireable_method(fn):
+
+    @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
         if self._has_elaborated_children():
             return fn(self, *args, **kwargs)
         wireable_fn = getattr(WireableWithChildren, fn.__name__)
         return wireable_fn(self, *args, **kwargs)
+
     return wrapper

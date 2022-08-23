@@ -21,7 +21,7 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.wire_container import (WiringLog, WireableWithChildren,
-                                  wireable_with_children_wrapper)
+                                  aggregate_wireable_method)
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
 from magma.operator_utils import output_only
@@ -335,7 +335,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
             WireableWithChildren.wire(self, o, debug_info)
 
     @debug_unwire
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
             return Wireable.unwire(self, o, debug_info)
@@ -351,11 +351,11 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
                 t.unwire(o[k], debug_info=debug_info,
                          keep_wired_when_contexts=keep_wired_when_contexts)
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def driven(self):
         return all(t.driven() for t in self)
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def wired(self):
         return all(t.wired() for t in self)
 
@@ -391,7 +391,43 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
     def iswhole(self):
         return Tuple._iswhole(list(self), self.keys())
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
+    def wired(self):
+        return all(t.wired() for t in self)
+
+    # test whether the values refer a whole tuple
+    @staticmethod
+    def _iswhole(ts, keys):
+
+        for i in range(len(ts)):
+            if ts[i].anon():
+                return False
+
+        for i in range(len(ts)):
+            # elements must be an tuple reference
+            if not isinstance(ts[i].name, TupleRef):
+                return False
+
+        for i in range(1, len(ts)):
+            # elements must refer to the same tuple
+            if ts[i].name.tuple is not ts[i - 1].name.tuple:
+                return False
+
+        for i in range(len(ts)):
+            # elements should be numbered consecutively
+            if ts[i].name.index != list(keys)[i]:
+                return False
+
+        if len(ts) != len(ts[0].name.tuple):
+            # elements should refer to a whole tuple
+            return False
+
+        return True
+
+    def iswhole(self):
+        return Tuple._iswhole(list(self), self.keys())
+
+    @aggregate_wireable_method
     def trace(self, skip_self=True):
         ts = []
         for t in self:
@@ -408,7 +444,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def value(self):
         ts = [t.value() for t in self]
 
@@ -421,7 +457,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
 
         return type(self).flip()(*ts)
 
-    @wireable_with_children_wrapper
+    @aggregate_wireable_method
     def driving(self):
         return {k: t.driving() for k, t in self.items()}
 
