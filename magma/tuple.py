@@ -193,7 +193,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         Type.__init__(self, **kwargs)
         WireableWithChildren.__init__(self)
 
-        self.ts = {}
+        self._ts = {}
         if len(largs) > 0:
             assert len(largs) == len(self)
             for i, (k, t, T) in enumerate(zip(self.keys(),
@@ -201,7 +201,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
                                               self.types())):
                 if isinstance(t, (IntegerTypes, BitVector, Bit)):
                     t = T(t)
-                self.ts[i] = t
+                self._ts[i] = t
                 if not isinstance(self, AnonProduct):
                     setattr(self, k, t)
 
@@ -261,7 +261,7 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
         return T(name=ref)
 
     def _has_elaborated_children(self):
-        return bool(self.ts)
+        return bool(self._ts)
 
     def _enumerate_children(self):
         return self.items()
@@ -274,10 +274,14 @@ class Tuple(Type, Tuple_, WireableWithChildren, metaclass=TupleKind):
                 raise KeyError(key) from None
         if not isinstance(key, int):
             raise KeyError(key)
-        if key not in self.ts:
-            self.ts[key] = self._make_t(key)
+        if key not in self._ts:
+            self._ts[key] = self._make_t(key)
             self._resolve_bulk_wire()
-        return self.ts[key]
+        return self._ts[key]
+
+    @property
+    def ts(self):
+        return [self[k] for k in self.keys()]
 
     def __setitem__(self, key, val):
         old = self[key]
