@@ -1,3 +1,4 @@
+import abc
 import functools
 import logging as py_logging
 
@@ -241,9 +242,11 @@ class Wireable:
 
 
 class AggregateWireable(Wireable):
+    @abc.abstractmethod
     def _has_elaborated_children(self):
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def _enumerate_children(self):
         raise NotImplementedError()
 
