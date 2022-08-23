@@ -6,7 +6,7 @@ import kratos.debug
 import os
 import pytest
 
-pytest.skip("Kratos failure")
+pytest.skip(allow_module_level=True, "Kratos failure")
 
 
 class SimpleALU(m.Circuit):
