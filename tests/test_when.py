@@ -603,3 +603,25 @@ def test_when_double_elsewhen():
     basename = "test_when_double_elsewhen"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_when_lazy_array(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Bits[2]))
+
+        x = m.Bits[2](name="x")
+
+        with m.when(io.S):
+            x[0] @= 0
+            x[1] @= 1
+        with m.otherwise():
+            x[0] @= 1
+            x[1] @= 0
+
+        io.O @= x
+
+    basename = "test_when_lazy_array"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
