@@ -97,11 +97,13 @@ tests/build
 parser.out
 parsetab.py
 
+# Temporary files
 .magma
 .pytest_cache
 build/
 tests/test_verilog/build/
 .ast_tools
+.check-equiv
 
 .ignore
 .vim
