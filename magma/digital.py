@@ -3,7 +3,7 @@ import weakref
 from abc import ABCMeta
 import hwtypes as ht
 from .t import Kind, Direction, Type, In, Out
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
@@ -167,7 +167,7 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
         return self.wire(output, get_callee_frame_info())
 
     @debug_wire
-    def wire(self, o, debug_info):
+    def wire(self, o, debug_info, check_when_context=True):
         # promote integer types to LOW/HIGH
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = HIGH if o else LOW
@@ -181,9 +181,9 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
                 debug_info=debug_info
             )
             return
-        Wireable.wire(self, o, debug_info)
+        Wireable.wire(self, o, debug_info, check_when_context)
 
-    @debug_wire
+    @debug_unwire
     def unwire(self, o=None, debug_info=None):
         return Wireable.unwire(self, o, debug_info)
 

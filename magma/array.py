@@ -10,7 +10,7 @@ from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import Bit
 from .bitutils import int2seq, seq2int
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -597,12 +597,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def is_mixed(cls):
         return cls.T.is_mixed()
 
-    def _wire_children(self, o, debug_info):
+    def _wire_children(self, o, debug_info, check_when_context):
         for i, child in self._enumerate_children():
-            child.wire(o[i], debug_info)
+            child.wire(o[i], debug_info, check_when_context)
 
     @debug_wire
-    def wire(self, o, debug_info):
+    def wire(self, o, debug_info, check_when_context=True):
         o = magma_value(o)
         if not self._check_wireable(o, debug_info):
             return
@@ -610,12 +610,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 o._has_elaborated_children() or
                 self.T.is_mixed()):
             # Ensure the children maintain consistency with the bulk wire
-            self._wire_children(o, debug_info)
+            self._wire_children(o, debug_info, check_when_context)
         else:
             # Perform a bulk wire
-            Wireable.wire(self, o, debug_info)
+            Wireable.wire(self, o, debug_info, check_when_context)
 
-    @debug_wire
+    @debug_unwire
     def unwire(self, o=None, debug_info=None):
         if self._has_elaborated_children():
             for i, child in self._enumerate_children():
@@ -642,7 +642,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         # Update children
         for i, child in self._enumerate_children():
-            child.wire(value[i])
+            child.wire(value[i], check_when_context=False)
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
@@ -656,7 +656,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         for drivee in driving:
             # Update children
             for i, child in self._enumerate_children():
-                drivee[i].wire(child)
+                drivee[i].wire(child, check_when_context=False)
 
     def _resolve_bulk_wire(self):
         """

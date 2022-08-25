@@ -381,9 +381,10 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
         return SmartBits.from_bits(self._value[key_or_slice])
 
     @debug_wire
-    def wire(self, other, debug_info):
+    def wire(self, other, debug_info, check_when_context=True):
         if isinstance(other, Bits):
-            MagmaProtocol.wire(self, other, debug_info)
+            MagmaProtocol.wire(self, other, debug_info,
+                               check_when_context)
             return
         if not isinstance(other, SmartExpr):
             raise ValueError(f"Can not wire {type(self)} to {type(other)}")
@@ -392,7 +393,8 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
         # of SmartBits.
         from magma.smart.eval import evaluate_assignment
         other = evaluate_assignment(self, other)
-        MagmaProtocol.wire(self, other, debug_info)
+        MagmaProtocol.wire(self, other, debug_info,
+                           check_when_context)
 
     @staticmethod
     def from_bits(value):

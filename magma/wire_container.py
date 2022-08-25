@@ -204,9 +204,10 @@ class Wireable:
         self.debug_info = debug_info
         o.debug_info = debug_info
 
-    def wire(self, o, debug_info):
+    def wire(self, o, debug_info, check_when_context):
         curr_when_block = get_curr_when_block()
         is_conditional = (
+            check_when_context and
             curr_when_block is not None
             and curr_when_block is not self._when_context
         )

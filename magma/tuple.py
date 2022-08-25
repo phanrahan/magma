@@ -15,10 +15,9 @@ from hwtypes import BitVector, Bit
 from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
-from .ref import AnonRef, TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -26,6 +25,7 @@ from magma.wire_container import WiringLog
 from magma.wire import wire
 from magma.protocol_type import MagmaProtocol
 from magma.operator_utils import output_only
+from magma.ref import DerivedRef, TupleRef
 
 
 _logger = root_logger()
@@ -276,9 +276,8 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def __call__(self, o):
         return self.wire(o, get_callee_frame_info())
 
-
     @debug_wire
-    def wire(i, o, debug_info):
+    def wire(i, o, debug_info, check_when_context=True):
         o = magma_value(o)
         if not isinstance(o, Tuple):
             _logger.error(
@@ -302,9 +301,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         for i_elem, o_elem in zip(i, o):
             i_elem = magma_value(i_elem)
             o_elem = magma_value(o_elem)
-            wire(o_elem, i_elem, debug_info)
+            wire(o_elem, i_elem, debug_info, check_when_context)
 
-    @debug_wire
+    @debug_unwire
     def unwire(self, o=None, debug_info=None):
         for k, t in self.items():
             if o is None:

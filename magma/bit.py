@@ -112,11 +112,11 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
         return self._mux([f_branch, t_branch], self)
 
     @debug_wire
-    def wire(self, o, debug_info):
+    def wire(self, o, debug_info, check_when_context=True):
         # Cast to Bit here so we don't get a Digital instead
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = Bit(o)
-        return super().wire(o, debug_info)
+        return super().wire(o, debug_info, check_when_context)
 
 
 BitIn = Bit[Direction.In]

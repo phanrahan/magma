@@ -28,9 +28,20 @@ def debug_wire(fn):
     """
     # TODO: We could check that fn has the correct interface
     #       wire(i, o, debug_info)
+    def wire(i, o=None, debug_info=None, check_when_context=True):
+        if get_debug_mode() and debug_info is None:
+            debug_info = get_callee_frame_info()
+        return fn(i, o, debug_info, check_when_context)
+    return wire
+
+
+def debug_unwire(fn):
+    """
+    Automatically populates the `debug_info` argument for a unwire call if it's
+    not already passed as an argument
+    """
     def wire(i, o=None, debug_info=None):
         if get_debug_mode() and debug_info is None:
             debug_info = get_callee_frame_info()
         return fn(i, o, debug_info)
     return wire
-
