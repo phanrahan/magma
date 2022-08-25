@@ -428,6 +428,15 @@ class ModuleVisitor:
             op_name = "shrs"
         if op_name == "lshr":
             op_name = "shru"
+        if op_name == "neg":
+            T = type(module.module.I)
+            comb.BaseOp(
+                op_name="sub",
+                operands=[
+                    self.make_constant(T, 0)
+                ] + module.operands,
+                results=module.results)
+            return True
         comb.BaseOp(
             op_name=op_name,
             operands=module.operands,
