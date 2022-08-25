@@ -1,7 +1,7 @@
 import logging as py_logging
 
 from magma.config import config, EnvConfig
-from magma.debug import debug_wire
+from magma.debug import debug_rewire
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import get_curr_block as get_curr_when_block
 from magma.ref import ArrayRef
@@ -216,7 +216,7 @@ class Wireable:
             return
         curr_when_block.add_conditional_wire(self, o)
 
-    @debug_wire
+    @debug_rewire
     def rewire(self, o, debug_info=None):
         self.unwire(debug_info=debug_info)
         self.wire(o, debug_info=debug_info)

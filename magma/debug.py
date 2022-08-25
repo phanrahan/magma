@@ -45,3 +45,6 @@ def debug_unwire(fn):
             debug_info = get_callee_frame_info()
         return fn(i, o, debug_info)
     return wire
+
+
+debug_rewire = debug_unwire
