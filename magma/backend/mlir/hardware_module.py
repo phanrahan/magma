@@ -423,6 +423,13 @@ class ModuleVisitor:
             sv.WireOp(results=[wire], sym=sym)
             sv.ReadInOutOp(operands=[wire], results=module.results)
             return True
+        if defn.coreir_name == "neg":
+            zero = self.make_constant(type(inst.I), 0)
+            comb.BaseOp(
+                op_name="sub",
+                operands=[zero, module.operands[0]],
+                results=module.results)
+            return True
         op_name = defn.coreir_name
         if op_name == "ashr":
             op_name = "shrs"

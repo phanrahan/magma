@@ -523,3 +523,9 @@ class simple_undriven_instances(m.Circuit):
 
 
 drive_undriven(simple_undriven_instances)
+
+
+class simple_neg(m.Circuit):
+    T = m.UInt[8]
+    io = m.IO(a=m.In(T), y=m.Out(T))
+    io.y @= -io.a
