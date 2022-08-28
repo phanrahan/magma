@@ -359,7 +359,6 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def wired(self):
         return all(t.wired() for t in self)
 
-    # test whether the values refer a whole tuple
     @staticmethod
     def _iswhole(ts, keys):
 
