@@ -14,10 +14,13 @@ from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import (WiringLog, AggregateWireable,
-                                  aggregate_wireable_method)
 from magma.protocol_type import MagmaProtocol
 from magma.when import no_when, temp_when
+from magma.wire_container import (
+    WiringLog,
+    AggregateWireable,
+    aggregate_wireable_method
+)
 
 
 _logger = root_logger()
