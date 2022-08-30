@@ -679,3 +679,28 @@ def test_when_lazy_array_slice(caplog):
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_nested(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_nested"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, m.Tuple[m.Bit, m.Bit]]))
+
+        x = m.Array[2, m.Tuple[m.Bit, m.Bit]](name="x")
+
+        with m.when(io.S):
+            x[0][0] @= 0
+            x[0][1] @= 1
+            x[1][0] @= 0
+            x[1][1] @= 1
+        with m.otherwise():
+            x[0][0] @= 1
+            x[0][1] @= 0
+            x[1][0] @= 1
+            x[1][1] @= 0
+
+        io.O @= x
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
