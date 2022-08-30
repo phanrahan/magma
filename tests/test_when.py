@@ -704,26 +704,3 @@ def test_when_lazy_array_nested(caplog):
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
-
-
-def test_when_lazy_array_protocol(caplog):
-
-    T = SimpleMagmaProtocol[m.Bit]
-
-    class _Test(m.Circuit):
-        name = "test_when_lazy_array_nested"
-        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, T]))
-
-        x = m.Array[2, T](name="x")
-
-        with m.when(io.S):
-            x[0] @= 0
-            x[1] @= 0
-        with m.otherwise():
-            x[0] @= 1
-            x[1] @= 1
-
-        io.O @= x
-
-    m.compile(f"build/{_Test.name}", _Test, output="mlir")
-    assert check_gold(__file__, f"{_Test.name}.mlir")
