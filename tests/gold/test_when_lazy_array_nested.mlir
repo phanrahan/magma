@@ -10,11 +10,11 @@ hw.module @test_when_lazy_array_nested(%S: i1) -> (O: !hw.array<2x!hw.struct<0: 
     %9 = sv.reg : !hw.inout<i1>
     %5 = sv.read_inout %9 : !hw.inout<i1>
     sv.alwayscomb {
-        sv.bpassign %6, %0 : i1
-        sv.bpassign %7, %1 : i1
-        sv.bpassign %8, %0 : i1
-        sv.bpassign %9, %1 : i1
         sv.if %S {
+            sv.bpassign %6, %0 : i1
+            sv.bpassign %7, %1 : i1
+            sv.bpassign %8, %0 : i1
+            sv.bpassign %9, %1 : i1
         } else {
             sv.bpassign %6, %1 : i1
             sv.bpassign %7, %0 : i1

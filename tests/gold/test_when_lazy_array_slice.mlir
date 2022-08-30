@@ -8,11 +8,11 @@ hw.module @test_when_lazy_array_slice(%S: i1) -> (O: i4) {
     %7 = sv.reg : !hw.inout<i2>
     %5 = sv.read_inout %7 : !hw.inout<i2>
     sv.alwayscomb {
-        sv.bpassign %6, %0 : i2
-        sv.bpassign %7, %2 : i2
         sv.if %S {
+            sv.bpassign %6, %0 : i2
+            sv.bpassign %7, %1 : i2
         } else {
-            sv.bpassign %6, %1 : i2
+            sv.bpassign %6, %2 : i2
             sv.bpassign %7, %3 : i2
         }
     }
