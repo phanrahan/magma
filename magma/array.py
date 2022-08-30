@@ -680,9 +680,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
-            return self.T._from_magma_value_(
+            result = self.T._from_magma_value_(
                 self.T._to_magma_()(name=ArrayRef(self, index)))
-        return self.T(name=ArrayRef(self, index))
+        else:
+            result = self.T(name=ArrayRef(self, index))
+        result.set_when_context(self._when_context)
+        return result
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
@@ -775,6 +778,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if slice_value is None:
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
             slice_value = slice_T(name=ArrayRef(self, slice_))
+            slice_value.set_when_context(self._when_context)
             self._slices[key] = slice_value
             if self._resolve_overlapping_indices(slice_, slice_value):
                 return slice_value
@@ -1037,6 +1041,14 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def has_children(self):
         return True
+
+    def set_when_context(self, ctx):
+        # This code assumes set_when_context is called when a child of a lazy
+        # value is created, so it should not have any children elaborated yet
+        # (and any future elaborations will inherit this context).
+        assert not self._ts
+        assert not self._slices
+        super().set_when_context(ctx)
 
 
 ArrayType = Array

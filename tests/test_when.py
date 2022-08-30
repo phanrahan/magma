@@ -658,3 +658,24 @@ def test_when_lazy_array(caplog):
     basename = "test_when_lazy_array"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_when_lazy_array_slice(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        x = m.Bits[4](name="x")
+
+        with m.when(io.S):
+            x[:2] @= 0
+            x[2:] @= 1
+        with m.otherwise():
+            x[:2] @= 1
+            x[2:] @= 0
+
+        io.O @= x
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")

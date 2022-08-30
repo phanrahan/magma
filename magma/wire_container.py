@@ -170,12 +170,10 @@ class Wire:
 class Wireable:
     def __init__(self):
         self._wire = Wire(self)
-        if isinstance(self.name, ArrayRef):
-            # Lazily constructed children should inherit the parent value's
-            # context, TODO(leonardt): update for Tuple2 when merged
-            self._when_context = self.name.array._when_context
-        else:
-            self._when_context = get_curr_when_block()
+        self._when_context = get_curr_when_block()
+
+    def set_when_context(self, ctx):
+        self._when_context = ctx
 
     def wired(self):
         return self._wire.wired()
