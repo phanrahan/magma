@@ -23,7 +23,7 @@ class MlirToVerilogError(MlirCompilerError):
 
 @dataclasses.dataclass
 class MlirToVerilogOpts:
-    pass
+    location_info_style: str = "plain"
 
 
 def _circt_home() -> pathlib.Path:
@@ -49,7 +49,11 @@ def _circt_opt_cmd(
     extra_opts = [
         "-o=/dev/null",
     ]
-    return [bin_] + passes + extra_opts
+    lowering_opts = [
+        f"locationInfoStyle={opts.location_info_style}",
+    ]
+    lowering_opts = [f"--lowering-options={','.join(lowering_opts)}"]
+    return [bin_] + passes + extra_opts + lowering_opts
 
 
 def _run_subprocess(args, stdin, stdout) -> int:

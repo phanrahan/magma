@@ -7,6 +7,7 @@ from magma.backend.mlir.mlir_to_verilog import (
     mlir_to_verilog,
     circt_opt_binary_exists,
     MlirToVerilogError,
+    MlirToVerilogOpts,
 )
 from magma.testing.utils import with_config
 
@@ -21,13 +22,14 @@ def _skip_if_circt_opt_binary_does_not_exist():
         pytest.skip("no circt-opt binary found")
 
 
-def _run_test(input_: Optional[str] = None):
+def _run_test(input_: Optional[str] = None, **kwargs):
     istream = io.TextIOWrapper(io.BytesIO())
     ostream = io.TextIOWrapper(io.BytesIO())
     if input_ is not None:
         istream.write(input_)
         istream.seek(0)
-    mlir_to_verilog(istream.buffer, ostream.buffer)
+    opts = MlirToVerilogOpts(**kwargs)
+    mlir_to_verilog(istream.buffer, ostream.buffer, opts)
     return istream, ostream
 
 
@@ -56,3 +58,21 @@ def test_bad_input():
     _skip_if_circt_opt_binary_does_not_exist()
     with pytest.raises(MlirToVerilogError):
         _run_test("blahblahblah")
+
+
+@pytest.mark.parametrize("style", ("plain", "wrapInAtSquareBracket", "none"))
+def test_location_info_style(style):
+    _skip_if_circt_opt_binary_does_not_exist()
+    opts = {
+        "location_info_style": style,
+    }
+    _, ostream = _run_test("hw.module @M() -> () {}\n", **opts)
+    ostream.seek(0)
+    ostream.readline()  # skip header
+    line = ostream.readline().rstrip()
+    expected = "module M();"
+    if style == "plain":
+        expected += "	// <stdin>:1:1"
+    elif style == "wrapInAtSquareBracket":
+        expected += "	// @[<stdin>:1:1]"
+    assert line == expected
