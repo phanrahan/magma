@@ -86,14 +86,3 @@ def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
         raise MlirToVerilogError(
             f"Error running {cmd_str}, got returncode {returncode}"
         )
-
-
-def main(infile: Optional[str] = None, outfile: Optional[str] = None):
-    istream, close_istream = _make_stream(infile, "r", sys.stdin)
-    ostream, close_ostream = _make_stream(outfile, "w", sys.stdout)
-    ret = mlir_to_verilog(istream, ostream)
-    assert ret is None
-    if close_istream:
-        istream.close()
-    if close_ostream:
-        ostream.close()
