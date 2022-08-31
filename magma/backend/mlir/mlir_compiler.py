@@ -5,7 +5,10 @@ from magma.backend.coreir.insert_coreir_wires import insert_coreir_wires
 from magma.backend.coreir.insert_wrap_casts import insert_wrap_casts
 from magma.backend.mlir.compile_to_mlir import compile_to_mlir
 from magma.backend.mlir.compile_to_mlir_opts import CompileToMlirOpts
-from magma.backend.mlir.mlir_to_verilog import mlir_to_verilog
+from magma.backend.mlir.mlir_to_verilog import (
+    MlirToVerilogOpts,
+    mlir_to_verilog,
+)
 from magma.circuit import DefineCircuitKind
 from magma.common import slice_opts
 from magma.compiler import Compiler
@@ -19,7 +22,11 @@ class MlirCompiler(Compiler):
         assert "basename" not in opts
         opts["basename"] = basename
         self._compile_to_mlir_opts = slice_opts(
-            opts, CompileToMlirOpts, keep=True)
+            opts, CompileToMlirOpts, keep=True
+        )
+        self._mlir_to_verilog_opts = slice_opts(
+            opts, MlirToVerilogOpts, keep=True
+        )
         super().__init__(main, basename, opts)
 
     def suffix(self):

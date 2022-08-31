@@ -1,3 +1,4 @@
+import dataclasses
 import io
 import os
 import pathlib
@@ -8,12 +9,20 @@ from typing import List, Optional
 from magma.backend.mlir.common import try_call
 from magma.backend.mlir.errors import MlirCompilerError
 from magma.config import config, EnvConfig
+from magma.logging import root_logger
 
 
 config._register(circt_home=EnvConfig("CIRCT_HOME", "./circt"))
 
+_logger = root_logger().getChild("mlir_backend")
+
 
 class MlirToVerilogError(MlirCompilerError):
+    pass
+
+
+@dataclasses.dataclass
+class MlirToVerilogOpts:
     pass
 
 
@@ -25,12 +34,22 @@ def _circt_opt_binary(circt_home: pathlib.Path) -> pathlib.Path:
     return circt_home / "build/bin/circt-opt"
 
 
-def _circt_opt_cmd(circt_home: pathlib.Path) -> List[str]:
-    opt = _circt_opt_binary(circt_home)
-    return [
-        f"{opt}", "--lower-seq-to-sv", "--canonicalize", "--hw-cleanup",
-        "--prettify-verilog", "--export-verilog", "-o=/dev/null",
+def _circt_opt_cmd(
+        circt_home: pathlib.Path,
+        opts: MlirToVerilogOpts,
+) -> List[str]:
+    bin_ = f"{_circt_opt_binary(circt_home)}"
+    passes = [
+        "--lower-seq-to-sv",
+        "--canonicalize",
+        "--hw-cleanup",
+        "--prettify-verilog",
+        "--export-verilog",
     ]
+    extra_opts = [
+        "-o=/dev/null",
+    ]
+    return [bin_] + passes + extra_opts
 
 
 def _run_subprocess(args, stdin, stdout) -> int:
@@ -77,9 +96,14 @@ def circt_opt_binary_exists() -> bool:
     return returncode == 0
 
 
-def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
+def mlir_to_verilog(
+        istream: io.RawIOBase,
+        ostream: io.RawIOBase = sys.stdout,
+        opts: MlirToVerilogOpts = MlirToVerilogOpts(),
+):
     circt_home = _circt_home()
-    cmd = _circt_opt_cmd(circt_home)
+    cmd = _circt_opt_cmd(circt_home, opts)
+    _logger.info(f"Running cmd: {' '.join(cmd)}")
     returncode = _run_subprocess(cmd, istream, ostream)
     if returncode != 0:
         cmd_str = " ".join(cmd)
