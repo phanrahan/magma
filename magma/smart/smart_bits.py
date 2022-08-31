@@ -417,3 +417,9 @@ def issigned(value_or_type: Union[SmartBits, SmartBitsMeta]) -> bool:
     if isinstance(value_or_type, SmartBitsMeta):
         return value_or_type._signed_
     raise TypeError(value_or_type)
+
+
+def eval(expr: SmartExpr, width: int, signed: bool = False):
+    lhs = SmartBits[width, signed]()
+    lhs @= expr
+    return lhs
