@@ -109,7 +109,7 @@ def get_undriven_clocks_in_value(
         for elem in value:
             yield from get_undriven_clocks_in_value(elem, clock_type)
         return
-    if isinstance(value, Array):
+    if isinstance(value, Array) and is_clock_or_nested_clock(value.T):
         yield from _get_undriven_clocks_in_array(value, clock_type)
         return
     if isinstance(value, clock_type) and value.trace() is None:

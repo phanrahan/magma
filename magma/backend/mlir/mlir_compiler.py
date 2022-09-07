@@ -14,6 +14,7 @@ from magma.common import slice_opts
 from magma.compiler import Compiler
 from magma.passes.clock import wire_clocks
 from magma.passes.raise_logs_as_exceptions import raise_logs_as_exceptions_pass
+from magma.passes.finalize_whens import finalize_whens
 
 
 class MlirCompiler(Compiler):
@@ -40,6 +41,7 @@ class MlirCompiler(Compiler):
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         wire_clocks(self.main)
+        finalize_whens(self.main)
         raise_logs_as_exceptions_pass(self.main)
 
     def compile(self):

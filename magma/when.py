@@ -52,6 +52,10 @@ class _BlockBase(contextlib.AbstractContextManager):
         self.root.builder.add_drivee(i)
         self.root.builder.add_driver(o)
 
+    def remove_conditional_wire(self, i, o):
+        self._conditional_wires = list(filter(lambda x: x.drivee is i,
+                                              self._conditional_wires))
+
     @property
     @abc.abstractmethod
     def root(self) -> '_WhenBlock':

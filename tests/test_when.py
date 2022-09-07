@@ -727,3 +727,16 @@ def test_when_lazy_array_protocol(caplog):
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_resolve(caplog):
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_resolve"
+        io = m.IO(I=m.In(m.SInt[2]), S=m.In(m.Bit), O=m.Out(m.SInt[2]))
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O @= m.sint(m.uint(io.I) >> 1)
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")

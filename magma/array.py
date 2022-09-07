@@ -651,11 +651,17 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def _resolve_driven_bulk_wire(self):
         # Remove bulk wire since children will now track the wiring
         value = self._wire.value()
+        wired_block = self._wired_when_context
         Wireable.unwire(self, value)
 
+        if wired_block:
+            curr_block = get_curr_block()
+            set_curr_block(wired_block)
         # Update children
         for i, child in self._enumerate_children():
             child.wire(value[i])
+        if wired_block:
+            set_curr_block(curr_block)
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
@@ -663,13 +669,17 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # the children or else we'll trigger _resolve_bulk_wire when iterating
         # over the children
         for drivee in driving:
+            wired_block = drivee._wired_when_context
             # Remove bulk wire since children will now track the wiring
             Wireable.unwire(drivee, self)
-
-        for drivee in driving:
+            if wired_block:
+                curr_block = get_curr_block()
+                set_curr_block(wired_block)
             # Update children
             for i, child in self._enumerate_children():
                 drivee[i].wire(child)
+            if wired_block:
+                set_curr_block(curr_block)
 
     def _resolve_bulk_wire(self):
         """
@@ -692,10 +702,12 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
             value = self.T._to_magma_()(name=ArrayRef(self, index))
-            value.set_when_context(self._when_context)
+            value.set_enclosing_when_context(
+                self._enclosing_when_context)
             return self.T._from_magma_value_(value)
         value = self.T(name=ArrayRef(self, index))
-        value.set_when_context(self._when_context)
+        value.set_enclosing_when_context(
+            self._enclosing_when_context)
         return value
 
     def _resolve_slice_children(self, start, stop, slice_value):
@@ -789,7 +801,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if slice_value is None:
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
             slice_value = slice_T(name=ArrayRef(self, slice_))
-            slice_value.set_when_context(self._when_context)
+            slice_value.set_enclosing_when_context(self._enclosing_when_context)
             self._slices[key] = slice_value
             if self._resolve_overlapping_indices(slice_, slice_value):
                 return slice_value

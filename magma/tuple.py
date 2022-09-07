@@ -447,9 +447,9 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def has_children(self):
         return True
 
-    def set_when_context(self, ctx):
+    def set_enclosing_when_context(self, ctx):
         for value in self:
-            value.set_when_context(ctx)
+            value.set_enclosing_when_context(ctx)
 
 
 def _add_properties(ns, fields):
