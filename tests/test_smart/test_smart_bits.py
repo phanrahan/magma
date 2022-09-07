@@ -3,7 +3,14 @@ import operator
 import pytest
 
 import magma as m
-from magma.smart import SmartBit, SmartBits, concat, signed, make_smart
+from magma.smart import (
+    SmartBit,
+    SmartBits,
+    concat,
+    signed,
+    make_smart,
+    eval as smart_eval,
+)
 from magma.testing import check_files_equal
 
 
@@ -443,3 +450,31 @@ def test_make_smart():
     assert smart.x._get_magma_value_() is value.x
     for i in range(10):
         assert smart.y[i]._get_magma_value_() is value.y[i]
+
+
+@_run_repr_test
+def test_eval():
+
+    class _Test(m.Circuit):
+        name = "test_eval"
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[12]),
+            O0=m.Out(SmartBits[16])
+        )
+        O0 = SmartBits[16]()
+        O0 @= io.I0 + io.I1
+        io.O0 @= O0
+
+    class _Gold(m.Circuit):
+        name = "test_eval"
+        io = m.IO(
+            I0=m.In(SmartBits[8]),
+            I1=m.In(SmartBits[12]),
+            O0=m.Out(SmartBits[16])
+        )
+        O0 = SmartBits[16]()
+        O0 @= smart_eval(io.I0 + io.I1, 16)
+        io.O0 @= O0
+
+    return _Test, _Gold

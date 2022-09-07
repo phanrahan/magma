@@ -4,7 +4,14 @@ from typing import Any, Dict, Iterable, List, Optional, Set
 
 from magma.bits import Bits
 from magma.common import MroVisitor, Stack
-from magma.smart.smart_bits import *
+from magma.smart.smart_bits import (
+    SmartExprMeta,
+    SmartExpr,
+    SmartBits,
+    issigned,
+    SmartSignedOp,
+    SmartExtendOp,
+)
 
 
 @dataclasses.dataclass(frozen=True)
