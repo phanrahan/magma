@@ -4,7 +4,6 @@ from magma.config import config, EnvConfig
 from magma.debug import debug_wire
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import get_curr_block as get_curr_when_block
-from magma.ref import ArrayRef
 
 
 config._register(
