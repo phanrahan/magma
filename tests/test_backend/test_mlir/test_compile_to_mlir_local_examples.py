@@ -3,6 +3,7 @@ import pytest
 
 import magma as m
 from magma.primitives.mux import CoreIRCommonLibMuxN
+from magma.uniquification import uniquification_pass, reset_names
 
 from examples import (
     simple_aggregates_product,
@@ -31,6 +32,11 @@ def test_compile_to_mlir(ckt):
         "use_native_bind_processor": True,
         "basename": ckt.name,
     }
+    # NOTE(rsetaluri): This is a hack to skip the Tuple[] to verilog test since
+    # MLIR does not allow leading integers in names (e.g. `!hw.struct<0:
+    # ...>`). We should ultimately fix this by changing the IR code generation.
+    if ckt.name == "simple_aggregates_tuple":
+        kwargs["check_verilog"] = False
     run_test_compile_to_mlir(ckt, **kwargs)
 
 
@@ -93,7 +99,9 @@ def test_compile_to_mlir_elaborate_magma_registers(ckt):
         "gold_name": f"{ckt.name}_elaborate_magma_registers",
         "basename": ckt.name,
     }
+    names = uniquification_pass(ckt, "UNIQUIFY")
     run_test_compile_to_mlir(ckt, **kwargs)
+    reset_names(names)
 
 
 @pytest.mark.parametrize(

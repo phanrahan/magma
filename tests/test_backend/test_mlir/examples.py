@@ -529,3 +529,9 @@ class simple_neg(m.Circuit):
     T = m.UInt[8]
     io = m.IO(a=m.In(T), y=m.Out(T))
     io.y @= -io.a
+
+
+class simple_array_slice(m.Circuit):
+    T = m.Bits[8]
+    io = m.IO(a=m.In(m.Array[12, T]), y=m.Out(m.Array[4, T]))
+    io.y @= io.a[:4]
