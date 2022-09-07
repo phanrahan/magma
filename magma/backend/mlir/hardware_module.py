@@ -606,6 +606,8 @@ class ModuleVisitor:
             )
             if block.condition is None:
                 _make_assignments(connections)
+                for child in block.children():
+                    _process_when_block(child)
                 return
             cond = module.operands[input_to_index[block.condition]]
             if_op = sv.IfOp(operands=[cond])
