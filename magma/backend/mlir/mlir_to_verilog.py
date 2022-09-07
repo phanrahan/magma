@@ -1,3 +1,4 @@
+import dataclasses
 import io
 import os
 import pathlib
@@ -8,13 +9,21 @@ from typing import List, Optional
 from magma.backend.mlir.common import try_call
 from magma.backend.mlir.errors import MlirCompilerError
 from magma.config import config, EnvConfig
+from magma.logging import root_logger
 
 
 config._register(circt_home=EnvConfig("CIRCT_HOME", "./circt"))
 
+_logger = root_logger().getChild("mlir_backend")
+
 
 class MlirToVerilogError(MlirCompilerError):
     pass
+
+
+@dataclasses.dataclass
+class MlirToVerilogOpts:
+    location_info_style: str = "plain"
 
 
 def _circt_home() -> pathlib.Path:
@@ -25,12 +34,26 @@ def _circt_opt_binary(circt_home: pathlib.Path) -> pathlib.Path:
     return circt_home / "build/bin/circt-opt"
 
 
-def _circt_opt_cmd(circt_home: pathlib.Path) -> List[str]:
-    opt = _circt_opt_binary(circt_home)
-    return [
-        f"{opt}", "--lower-seq-to-sv", "--canonicalize", "--hw-cleanup",
-        "--prettify-verilog", "--export-verilog", "-o=/dev/null",
+def _circt_opt_cmd(
+        circt_home: pathlib.Path,
+        opts: MlirToVerilogOpts,
+) -> List[str]:
+    bin_ = f"{_circt_opt_binary(circt_home)}"
+    passes = [
+        "--lower-seq-to-sv",
+        "--canonicalize",
+        "--hw-cleanup",
+        "--prettify-verilog",
+        "--export-verilog",
     ]
+    extra_opts = [
+        "-o=/dev/null",
+    ]
+    lowering_opts = [
+        f"locationInfoStyle={opts.location_info_style}",
+    ]
+    lowering_opts = [f"--lowering-options={','.join(lowering_opts)}"]
+    return [bin_] + passes + extra_opts + lowering_opts
 
 
 def _run_subprocess(args, stdin, stdout) -> int:
@@ -77,23 +100,17 @@ def circt_opt_binary_exists() -> bool:
     return returncode == 0
 
 
-def mlir_to_verilog(istream: io.RawIOBase, ostream: io.RawIOBase = sys.stdout):
+def mlir_to_verilog(
+        istream: io.RawIOBase,
+        ostream: io.RawIOBase = sys.stdout,
+        opts: MlirToVerilogOpts = MlirToVerilogOpts(),
+):
     circt_home = _circt_home()
-    cmd = _circt_opt_cmd(circt_home)
+    cmd = _circt_opt_cmd(circt_home, opts)
+    _logger.info(f"Running cmd: {' '.join(cmd)}")
     returncode = _run_subprocess(cmd, istream, ostream)
     if returncode != 0:
         cmd_str = " ".join(cmd)
         raise MlirToVerilogError(
             f"Error running {cmd_str}, got returncode {returncode}"
         )
-
-
-def main(infile: Optional[str] = None, outfile: Optional[str] = None):
-    istream, close_istream = _make_stream(infile, "r", sys.stdin)
-    ostream, close_ostream = _make_stream(outfile, "w", sys.stdout)
-    ret = mlir_to_verilog(istream, ostream)
-    assert ret is None
-    if close_istream:
-        istream.close()
-    if close_ostream:
-        ostream.close()
