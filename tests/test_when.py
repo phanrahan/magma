@@ -603,3 +603,23 @@ def test_when_double_elsewhen():
     basename = "test_when_double_elsewhen"
     m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_when_nested_otherwise():
+    class test_when_nested_otherwise(m.Circuit):
+        io = m.IO(I=m.In(m.Bits[2]), S=m.In(m.Bits[2]),
+                  O=m.Out(m.Bits[2]))
+
+        with m.when(io.S.reduce_and()):
+            io.O @= io.I
+        with m.otherwise():
+            with m.when(io.S[1]):
+                io.O @= ~io.I
+            with m.otherwise():
+                io.O @= io.I
+
+    m.compile("build/test_when_nested_otherwise",
+              test_when_nested_otherwise, output="mlir",
+              flatten_all_tuples=True)
+
+    assert check_gold(__file__, "test_when_nested_otherwise.mlir")
