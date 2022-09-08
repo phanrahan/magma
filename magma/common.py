@@ -220,7 +220,7 @@ def lca_of_types(classes):
 
 
 def slice_opts(dct: Dict, cls: type, keep: bool = False):
-    get_opt = dct.get if keep else dct.pop
+    get_opt = dct.__getitem__ if keep else dct.pop
     if not dataclasses.is_dataclass(cls):
         raise TypeError("Expected dataclass")
     kwargs = {}
