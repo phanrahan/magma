@@ -51,4 +51,4 @@ class MlirCompiler(Compiler):
             return
         with open(f"{self.basename}.mlir", "rb") as fi:
             with open(f"{self.basename}.{self.suffix()}", "wb") as fo:
-                mlir_to_verilog(fi, fo)
+                mlir_to_verilog(fi, fo, opts=self._mlir_to_verilog_opts)
