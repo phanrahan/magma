@@ -17,6 +17,7 @@ from .protocol_type import magma_type, magma_value
 from magma.operator_utils import output_only
 from magma.wire_container import WiringLog, Wire, Wireable
 from magma.protocol_type import MagmaProtocol
+from magma.when import get_curr_block as get_curr_when_block
 
 
 _logger = root_logger()
@@ -606,9 +607,15 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         o = magma_value(o)
         if not self._check_wireable(o, debug_info):
             return
-        if (self._has_elaborated_children() or
-                o._has_elaborated_children() or
-                self.T.is_mixed()):
+        if (
+            self._has_elaborated_children() or
+            o._has_elaborated_children() or
+            self.T.is_mixed() or
+            # TODO(leonardt): temporary fix for when issue with bulk wire
+            # resolution, if we have a conditional wire let the children handle
+            # it for now
+            get_curr_when_block()
+        ):
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o, debug_info)
         else:
