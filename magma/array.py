@@ -676,11 +676,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
-        # TODO(leonardt): Because of
+        # NOTE(leonardt): Because of
         # https://github.com/phanrahan/magma/pull/1131, we can assume that bulk
         # wire resolution happens either when there is no when or before
         # entering a when context, so if it happens as part of a when entrance,
-        # we should resolve in the no when context first
+        # we should resolve in the no when context first.
         curr_when = get_curr_when_block()
         set_curr_when_block(None)
         if self._wire.driven():
