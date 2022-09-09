@@ -602,12 +602,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         for i, child in self._enumerate_children():
             child.wire(o[i], debug_info)
 
-    @debug_wire
-    def wire(self, o, debug_info):
-        o = magma_value(o)
-        if not self._check_wireable(o, debug_info):
-            return
-        if (
+    def _should_wire_children(self, o):
+        return (
             self._has_elaborated_children() or
             o._has_elaborated_children() or
             self.T.is_mixed() or
@@ -615,7 +611,14 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             # resolution, if we have a conditional wire let the children handle
             # it for now
             get_curr_when_block()
-        ):
+        )
+
+    @debug_wire
+    def wire(self, o, debug_info):
+        o = magma_value(o)
+        if not self._check_wireable(o, debug_info):
+            return
+        if self._should_wire_children(o):
             # Ensure the children maintain consistency with the bulk wire
             self._wire_children(o, debug_info)
         else:
