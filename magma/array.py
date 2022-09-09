@@ -17,7 +17,10 @@ from .protocol_type import magma_type, magma_value
 from magma.operator_utils import output_only
 from magma.wire_container import WiringLog, Wire, Wireable
 from magma.protocol_type import MagmaProtocol
-from magma.when import get_curr_block as get_curr_when_block
+from magma.when import (
+    get_curr_block as get_curr_when_block,
+    set_curr_block as set_curr_when_block
+)
 
 
 _logger = root_logger()
@@ -673,10 +676,18 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
+        # TODO(leonardt): Because of
+        # https://github.com/phanrahan/magma/pull/1131, we can assume that bulk
+        # wire resolution happens either when there is no when or before
+        # entering a when context, so if it happens as part of a when entrance,
+        # we should resolve in the no when context first
+        curr_when = get_curr_when_block()
+        set_curr_when_block(None)
         if self._wire.driven():
             self._resolve_driven_bulk_wire()
         if self._wire.driving():
             self._resolve_driving_bulk_wire()
+        set_curr_when_block(curr_when)
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
