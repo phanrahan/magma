@@ -171,6 +171,9 @@ class Wireable:
         self._wire = Wire(self)
         self._when_context = get_curr_when_block()
 
+    def set_when_context(self, ctx):
+        self._when_context = ctx
+
     def wired(self):
         return self._wire.wired()
 

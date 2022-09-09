@@ -6,7 +6,7 @@ import fault as f
 
 import magma as m
 from magma.primitives.when import InferredLatchError
-from magma.testing.utils import check_gold, update_gold
+from magma.testing.utils import check_gold, update_gold, SimpleMagmaProtocol
 from magma.type_utils import type_to_sanitized_string
 
 
@@ -633,6 +633,97 @@ def test_when_lazy_array_resolve(caplog):
             io.O @= io.I
         with m.otherwise():
             io.O @= m.sint(m.uint(io.I) >> 1)
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Bits[2]))
+
+        x = m.Bits[2](name="x")
+
+        with m.when(io.S):
+            x[0] @= 0
+            x[1] @= 1
+        with m.otherwise():
+            x[0] @= 1
+            x[1] @= 0
+
+        io.O @= x
+
+    basename = "test_when_lazy_array"
+    m.compile(f"build/{basename}", _Test, output="mlir")
+    assert check_gold(__file__, f"{basename}.mlir")
+
+
+def test_when_lazy_array_slice(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        x = m.Bits[4](name="x")
+
+        with m.when(io.S):
+            x[:2] @= 0
+            x[2:] @= 1
+        with m.otherwise():
+            x[:2] @= 1
+            x[2:] @= 0
+
+        io.O @= x
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_nested(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_nested"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, m.Tuple[m.Bit, m.Bit]]))
+
+        x = m.Array[2, m.Tuple[m.Bit, m.Bit]](name="x")
+
+        with m.when(io.S):
+            x[0][0] @= 0
+            x[0][1] @= 1
+            x[1][0] @= 0
+            x[1][1] @= 1
+        with m.otherwise():
+            x[0][0] @= 1
+            x[0][1] @= 0
+            x[1][0] @= 1
+            x[1][1] @= 0
+
+        io.O @= x
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_protocol(caplog):
+
+    T = SimpleMagmaProtocol[m.Bit]
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_protocol"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Array[2, T]))
+
+        x = m.Array[2, T](name="x")
+
+        with m.when(io.S):
+            x[0] @= 0
+            x[1] @= 0
+        with m.otherwise():
+            x[0] @= 1
+            x[1] @= 1
+
+        io.O @= x
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")

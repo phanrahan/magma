@@ -290,6 +290,7 @@ def _reset_prev_block():
 
 
 get_curr_block = _get_curr_block
+set_curr_block = _set_curr_block
 
 
 def _reset_context():

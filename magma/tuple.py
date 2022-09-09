@@ -447,6 +447,10 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
     def has_children(self):
         return True
 
+    def set_when_context(self, ctx):
+        for value in self:
+            value.set_when_context(ctx)
+
 
 def _add_properties(ns, fields):
     def _make_prop(field_type, idx):

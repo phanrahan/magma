@@ -17,7 +17,10 @@ from .protocol_type import magma_type, magma_value
 from magma.operator_utils import output_only
 from magma.wire_container import WiringLog, Wire, Wireable
 from magma.protocol_type import MagmaProtocol
-from magma.when import get_curr_block as get_curr_when_block
+from magma.when import (
+    get_curr_block as get_curr_when_block,
+    set_curr_block as set_curr_when_block
+)
 
 
 _logger = root_logger()
@@ -673,16 +676,27 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
+        # NOTE(leonardt): Because of
+        # https://github.com/phanrahan/magma/pull/1131, we can assume that bulk
+        # wire resolution happens either when there is no when or before
+        # entering a when context, so if it happens as part of a when entrance,
+        # we should resolve in the no when context first.
+        curr_when = get_curr_when_block()
+        set_curr_when_block(None)
         if self._wire.driven():
             self._resolve_driven_bulk_wire()
         if self._wire.driving():
             self._resolve_driving_bulk_wire()
+        set_curr_when_block(curr_when)
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
-            return self.T._from_magma_value_(
-                self.T._to_magma_()(name=ArrayRef(self, index)))
-        return self.T(name=ArrayRef(self, index))
+            value = self.T._to_magma_()(name=ArrayRef(self, index))
+            value.set_when_context(self._when_context)
+            return self.T._from_magma_value_(value)
+        value = self.T(name=ArrayRef(self, index))
+        value.set_when_context(self._when_context)
+        return value
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
@@ -775,6 +789,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if slice_value is None:
             slice_T = type(self)[slice_.stop - slice_.start, self.T]
             slice_value = slice_T(name=ArrayRef(self, slice_))
+            slice_value.set_when_context(self._when_context)
             self._slices[key] = slice_value
             if self._resolve_overlapping_indices(slice_, slice_value):
                 return slice_value
@@ -1037,6 +1052,14 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
     def has_children(self):
         return True
+
+    def set_when_context(self, ctx):
+        # This code assumes set_when_context is called when a child of a lazy
+        # value is created, so it should not have any children elaborated yet
+        # (and any future elaborations will inherit this context).
+        assert not self._ts
+        assert not self._slices
+        super().set_when_context(ctx)
 
 
 ArrayType = Array

@@ -51,6 +51,16 @@ class MagmaProtocolMeta(type):
     def direction(cls) -> int:
         return cls._to_magma_().direction
 
+    def flat_length(cls):
+        return cls._to_magma_().flat_length()
+
+    def unflatten(cls, ts):
+        return cls._from_magma_value_(cls._to_magma_().unflatten(ts))
+
+    @property
+    def undirected_t(cls):
+        return cls._to_magma_().undirected_t
+
 
 class MagmaProtocol(metaclass=MagmaProtocolMeta):
     @abc.abstractmethod
@@ -84,8 +94,8 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def value(self):
         return self._get_magma_value_().value()
 
-    def trace(self):
-        return self._get_magma_value_().trace()
+    def trace(self, skip_self=True):
+        return self._get_magma_value_().trace(skip_self)
 
     def driven(self):
         return self._get_magma_value_().driven()
@@ -106,10 +116,10 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
             other = other._get_magma_value_()
         self._get_magma_value_().wire(other, debug_info)
 
-    def unwire(self, other):
+    def unwire(self, other, debug_info=None):
         if isinstance(other, MagmaProtocol):
             other = other._get_magma_value_()
-        self._get_magma_value_().unwire(other)
+        self._get_magma_value_().unwire(other, debug_info)
 
     def __imatmul__(self, other):
         self.wire(other)
@@ -117,6 +127,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
 
     def connection_iter(self):
         return self._get_magma_value_().connection_iter()
+
+    def const(self):
+        return self._get_magma_value_().const()
 
 
 def magma_type(T):
