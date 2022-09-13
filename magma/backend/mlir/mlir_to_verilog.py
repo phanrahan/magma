@@ -103,7 +103,7 @@ def mlir_to_verilog(
 ):
     circt_home = _circt_home()
     cmd = _circt_opt_cmd(circt_home, opts)
-    _logger.info(f"Running cmd: {' '.join(cmd)}")
+    _logger.debug(f"Running cmd: {' '.join(cmd)}")
     returncode = _run_subprocess(cmd, istream, ostream)
     if returncode != 0:
         cmd_str = " ".join(cmd)
