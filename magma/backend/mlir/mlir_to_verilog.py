@@ -49,11 +49,7 @@ def _circt_opt_cmd(
     extra_opts = [
         "-o=/dev/null",
     ]
-    lowering_opts = [
-        f"locationInfoStyle={opts.location_info_style}",
-    ]
-    lowering_opts = [f"--lowering-options={','.join(lowering_opts)}"]
-    return [bin_] + passes + extra_opts + lowering_opts
+    return [bin_] + passes + extra_opts
 
 
 def _run_subprocess(args, stdin, stdout) -> int:
