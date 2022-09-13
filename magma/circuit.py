@@ -8,6 +8,7 @@ import functools
 import operator
 from collections import namedtuple
 import os
+from typing import Callable, Dict, List
 
 import six
 from . import cache_definition
@@ -55,6 +56,7 @@ __all__ += ['CopyInstance']
 __all__ += ['circuit_type_method']
 __all__ += ['circuit_generator']
 __all__ += ['CircuitBuilder', 'builder_method']
+__all__ += ['register_instance_callback', 'get_instance_callback']
 
 circuit_type_method = namedtuple('circuit_type_method', ['name', 'definition'])
 
@@ -921,3 +923,28 @@ class DebugDefineCircuitKind(DefineCircuitKind):
 
 class DebugCircuit(Circuit, metaclass=DebugDefineCircuitKind):
     pass
+
+
+InstanceCallback = Callable[[List[CircuitType], Dict], None]
+
+
+def register_instance_callback(
+        instance: CircuitType,
+        callback: InstanceCallback,
+):
+    if hasattr(instance, "_callback_"):
+        raise AttributeError(
+            f"Instance {instance} already has callback registered"
+        )
+    instance._callback_ = callback
+
+
+def get_instance_callback(instance: CircuitType) -> InstanceCallback:
+    try:
+        return instance._callback_
+    except AttributeError:
+        msg = (
+            f"Instance {instance} has no callback registered. Did you call "
+            f"m.register_instance_callback()?"
+        )
+        raise AttributeError(msg) from None
