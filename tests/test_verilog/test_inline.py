@@ -2,6 +2,7 @@ import pytest
 
 import magma as m
 import magma.testing
+from magma.backend.mlir.mlir_to_verilog import circt_opt_binary_exists
 from magma.inline_verilog import InlineVerilogError
 
 
@@ -313,3 +314,27 @@ Foo bar (.x({io.x}, .y{io.y}))
     assert m.testing.check_files_equal(
         __file__, f"build/test_inline_verilog_clock_output.v",
         f"gold/test_inline_verilog_clock_output.v")
+
+
+@pytest.mark.skipif(
+    not circt_opt_binary_exists(),
+    reason="circt-opt binary can not be found",
+)
+def test_wire_insertion_bad_verilog():
+    # See #1133 (https://github.com/phanrahan/magma/issues/1133).
+
+    class _Test(m.Circuit):
+        name = "test_wire_insertion_bad_verilog"
+        io = m.IO(I=m.In(m.Bits[32]), O=m.Out(m.Bit))
+        m.inline_verilog("`ifdef LOGGING_ON")
+        m.inline_verilog("$display(\"%x\", {io.I[0]});")
+        m.inline_verilog("`endif LOGGING_ON")
+        io.O @= io.I[0]
+
+    basename = "test_inline_wire_insertion_bad_verilog"
+    m.compile(f"build/{basename}", _Test, output="mlir-verilog")
+    assert m.testing.check_files_equal(
+        __file__,
+        f"build/{basename}.v",
+        f"gold/{basename}.v",
+    )
