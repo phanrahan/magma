@@ -113,6 +113,6 @@ def test_set_slice_width_one():
         io.O @= m.set_slice(O, io.I, start=0, width=1)
 
     m.compile("build/TestSetSliceWidthOne", TestSetSliceWidthOne,
-              output="mlir-verilog")
+              output="mlir")
     assert check_files_equal(__file__, "build/TestSetSliceWidthOne.mlir",
                              "gold/TestSetSliceWidthOne.mlir")
