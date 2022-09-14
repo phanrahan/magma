@@ -677,7 +677,7 @@ def test_when_lazy_array_slice(caplog):
 
         io.O @= x
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 

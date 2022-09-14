@@ -609,11 +609,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return (
             self._has_elaborated_children() or
             o._has_elaborated_children() or
-            self.T.is_mixed() or
-            # TODO(leonardt): This is a temporary fix for when with bulk wire
-            # resolution. The workaround is if we have a conditional wire, we
-            # just let the children handle it.
-            get_curr_when_block()
+            self.T.is_mixed()
         )
 
     @debug_wire
