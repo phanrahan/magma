@@ -3,7 +3,7 @@ from magma.device import Device
 
 fpga = 'xc3s250e.xdlrc'
 if len(sys.argv) == 2:
-    fpga = sys.argv[1]
+   fpga = sys.argv[1]
 
 device = Device(fpga)
 
@@ -44,7 +44,7 @@ for yy in range(miny, maxy+1):
         else:
             line += '.'
     print(line)
-        
+
 
 
 

@@ -114,3 +114,17 @@ def test_ndarray_get_slice():
     m.compile("build/test_ndarray_get_slice", Main, inline=True)
     assert check_files_equal(__file__, f"build/test_ndarray_get_slice.v",
                              f"gold/test_ndarray_get_slice.v")
+
+
+def test_ndarray_get_slice():
+    class Main(m.Circuit):
+        io = m.IO(
+            I=m.In(m.Array[(2, 3, 6), m.Bit]),
+            x=m.In(m.UInt[2]),
+            O=m.Out(m.Array[(2, 3, 2), m.Bit])
+        )
+        io.O @= m.get_slice(io.I, start=io.x, width=2)
+
+    m.compile("build/test_ndarray_get_slice", Main, inline=True)
+    assert check_files_equal(__file__, f"build/test_ndarray_get_slice.v",
+                             f"gold/test_ndarray_get_slice.v")
