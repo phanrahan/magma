@@ -1,3 +1,5 @@
+import pytest
+
 import magma as m
 from magma import *
 
@@ -318,3 +320,15 @@ def test_recursive_eq():
                   I1=m.In(m.Tuple[m.Bit, m.Bits[4]]),
                   O=m.Out(m.Tuple[m.Bit, m.Bits[4]]))
         io.O @= io.I0 == io.I1
+
+
+def test_bad_key():
+    class Foo(m.Circuit):
+        T = m.Tuple[m.Bit, m.Bit]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        with pytest.raises(KeyError):
+            io.I["bar"]
+        with pytest.raises(KeyError):
+            io.I[None]
+        with pytest.raises(KeyError):
+            io.I[object()]

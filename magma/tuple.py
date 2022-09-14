@@ -254,8 +254,13 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
         return 'tuple(dict({})'.format(', '.join(kts))
 
     def __getitem__(self, key):
-        if key in self.keys():
-            key = list(self.keys()).index(key)
+        if isinstance(key, str):
+            try:
+                key = list(self.keys()).index(key)
+            except ValueError:
+                raise KeyError(f"Invalid key: {key}")
+        if not isinstance(key, int):
+            raise KeyError(f"Invalid key: {key}")
         return self.ts[key]
 
     def __setitem__(self, key, val):
