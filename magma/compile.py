@@ -13,9 +13,13 @@ from magma.inline_verilog import ProcessInlineVerilogPass
 from magma.is_definition import isdefinition
 from magma.passes.clock import WireClockPass
 from magma.passes.drive_undriven import drive_undriven
+from magma.passes.instance_callback_pass import instance_callback_pass
 from magma.passes.terminate_unused import terminate_unused
-from magma.uniquification import (uniquification_pass, UniquificationMode,
-                                  reset_names)
+from magma.uniquification import (
+    UniquificationMode,
+    uniquification_pass,
+    reset_names,
+)
 
 
 __all__ = ["compile"]
@@ -97,11 +101,15 @@ def compile(basename, main, output="coreir-verilog", **kwargs):
     if opts.get("terminate_unused", False):
         terminate_unused(main)
 
+    instance_callback_pass_data = instance_callback_pass(main)
+
     result = compiler.compile()
     result = {} if result is None else result
 
     if hasattr(main, "fpga"):
         main.fpga.constraints(basename)
+
+    result["instance_callback_pass_data"] = instance_callback_pass_data
 
     reset_names(original_names)
 
