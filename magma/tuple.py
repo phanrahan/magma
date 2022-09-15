@@ -260,7 +260,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             except ValueError:
                 raise KeyError(key) from None
         if not isinstance(key, int):
-            raise KeyError(f"Invalid key: {key}")
+            raise KeyError(key)
         return self.ts[key]
 
     def __setitem__(self, key, val):
