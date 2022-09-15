@@ -105,12 +105,13 @@ def test_set_slice_width_one():
     class TestSetSliceWidthOne(m.Circuit):
         io = m.IO(
             I=m.In(m.Bits[1]),
-            O=m.Out(m.Bits[1])
+            x=m.In(m.UInt[2]),
+            O=m.Out(m.Bits[12])
         )
 
         # default value
-        O = m.Bits[1](1)
-        io.O @= m.set_slice(O, io.I, start=0, width=1)
+        O = m.Bits[12](0xFFF)
+        io.O @= m.set_slice(O, io.I, start=io.x, width=1)
 
     m.compile("build/TestSetSliceWidthOne", TestSetSliceWidthOne,
               output="mlir")

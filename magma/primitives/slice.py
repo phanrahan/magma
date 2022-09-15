@@ -51,20 +51,6 @@ def set_slice(target: Bits, value: Bits, start: Union[UInt, int], width: int):
     """
     if not isinstance(start, (UInt, int)):
         raise TypeError("start should be a UInt or int")
-    if len(target) == 1:
-        if start != 0:
-            raise ValueError(
-                "Start must equal 0 for set_slice with value of length 1")
-        if width != 1:
-            raise ValueError(
-                "Width must equal 1 for set_slice with value of length 1")
-        if not (
-            isinstance(value, type(target)) or
-            isinstance(target, type(value))
-        ):
-            raise ValueError(
-                "Incompatible types found for target and value")
-        return value
     if isinstance(start, int):
         start = uint(start)
 
@@ -80,8 +66,13 @@ def set_slice(target: Bits, value: Bits, start: Union[UInt, int], width: int):
             in_slice_range &= start <= i
         if i > 0:
             in_slice_range &= i <= (start + width - 1)
-        value_idx = (uint(i, clog2(len(target))) - start)[:clog2(len(value))]
-        if len(value_idx) == 1:
-            value_idx = value_idx[0]
-        output[i] @= in_slice_range.ite(value[value_idx], target[i])
+        if width == 1:
+            curr_value = value[0]
+        else:
+            value_idx = uint(i, clog2(len(target))) - start
+            value_idx = value_idx[:clog2(len(value))]
+            if len(value_idx) == 1:
+                value_idx = value_idx[0]
+            curr_value = value[value_idx]
+        output[i] @= in_slice_range.ite(curr_value, target[i])
     return output
