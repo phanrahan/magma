@@ -322,8 +322,9 @@ def test_recursive_eq():
         io.O @= io.I0 == io.I1
 
 
-def test_bad_key():
-    class Foo(m.Circuit):
+def test_key_error():
+
+    class _(m.Circuit):
         T = m.Tuple[m.Bit, m.Bit]
         io = m.IO(I=m.In(T), O=m.Out(T))
         with pytest.raises(KeyError):
