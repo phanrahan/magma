@@ -170,7 +170,7 @@ class Wireable:
     def __init__(self):
         self._wire = Wire(self)
         self._enclosing_when_context = get_curr_when_block()
-        self._wired_when_context = None
+        self._wired_when_contexts = []
 
     def set_enclosing_when_context(self, ctx):
         self._enclosing_when_context = ctx
@@ -196,9 +196,10 @@ class Wireable:
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
-        if self._wired_when_context:
-            self._wired_when_context.remove_conditional_wire(self)
-        self._wired_when_context = None
+        if self._wired_when_contexts:
+            for ctx in self._wired_when_contexts:
+                ctx.remove_conditional_wire(self)
+        self._wired_when_contexts = []
 
     def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
@@ -215,7 +216,7 @@ class Wireable:
             self._wire_impl(o, debug_info)
             return
         curr_when_block.add_conditional_wire(self, o)
-        self._wired_when_context = curr_when_block
+        self._wired_when_contexts.append(curr_when_block)
 
     @debug_wire
     def rewire(self, o, debug_info=None):

@@ -53,10 +53,13 @@ class _BlockBase(contextlib.AbstractContextManager):
         )
 
     def remove_conditional_wire(self, i):
+        if self._parent is None:
+            # Only remove from builder once
+            # TODO: We could have the root when handle removing from children
+            self._builder.remove_drivee(i)
         self._conditional_wires = list(
             filter(lambda x: x.drivee is not i, self._conditional_wires)
         )
-        self.root.builder.remove_drivee(i)
 
     def add_conditional_wire(self, i, o):
         self._conditional_wires.append(ConditionalWire(i, o))
@@ -381,9 +384,7 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
         all branches.
     """
     assignees, latches = set(), set()
-    print("===")
     for op in ops:
-        print(op)
         if isinstance(op, ConditionalWire):
             assignees.add(op.drivee)
             continue
@@ -413,8 +414,6 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
             assignees.update(then_assignees.union(else_assignees))
             continue
         raise TypeError(op)
-    print(assignees, latches)
-    print("===")
     return assignees, latches
 
 

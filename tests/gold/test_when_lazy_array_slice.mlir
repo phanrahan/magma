@@ -3,26 +3,32 @@ hw.module @test_when_lazy_array_slice(%S: i1) -> (O: i4) {
     %1 = hw.constant 1 : i2
     %2 = hw.constant 1 : i2
     %3 = hw.constant 0 : i2
-    %6 = sv.reg : !hw.inout<i2>
-    %4 = sv.read_inout %6 : !hw.inout<i2>
-    %7 = sv.reg : !hw.inout<i2>
-    %5 = sv.read_inout %7 : !hw.inout<i2>
+    %4 = hw.constant 0 : i1
+    %5 = hw.constant 1 : i1
+    %10 = sv.reg : !hw.inout<i1>
+    %6 = sv.read_inout %10 : !hw.inout<i1>
+    %11 = sv.reg : !hw.inout<i1>
+    %7 = sv.read_inout %11 : !hw.inout<i1>
+    %12 = sv.reg : !hw.inout<i1>
+    %8 = sv.read_inout %12 : !hw.inout<i1>
+    %13 = sv.reg : !hw.inout<i1>
+    %9 = sv.read_inout %13 : !hw.inout<i1>
     sv.alwayscomb {
         sv.if %S {
-            sv.bpassign %6, %0 : i2
-            sv.bpassign %7, %1 : i2
+            sv.bpassign %10, %4 : i1
+            sv.bpassign %11, %4 : i1
+            sv.bpassign %12, %5 : i1
+            sv.bpassign %13, %4 : i1
         } else {
-            sv.bpassign %6, %2 : i2
-            sv.bpassign %7, %3 : i2
+            sv.bpassign %10, %5 : i1
+            sv.bpassign %11, %4 : i1
+            sv.bpassign %12, %4 : i1
+            sv.bpassign %13, %4 : i1
         }
     }
-    %8 = comb.extract %4 from 0 : (i2) -> i1
-    %9 = comb.extract %4 from 1 : (i2) -> i1
-    %10 = comb.extract %5 from 0 : (i2) -> i1
-    %11 = comb.extract %5 from 1 : (i2) -> i1
-    %12 = comb.concat %11, %10, %9, %8 : i1, i1, i1, i1
-    %14 = sv.wire sym @test_when_lazy_array_slice.x {name="x"} : !hw.inout<i4>
-    sv.assign %14, %12 : i4
-    %13 = sv.read_inout %14 : !hw.inout<i4>
-    hw.output %13 : i4
+    %14 = comb.concat %9, %8, %7, %6 : i1, i1, i1, i1
+    %16 = sv.wire sym @test_when_lazy_array_slice.x {name="x"} : !hw.inout<i4>
+    sv.assign %16, %14 : i4
+    %15 = sv.read_inout %16 : !hw.inout<i4>
+    hw.output %15 : i4
 }

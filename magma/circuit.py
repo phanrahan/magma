@@ -842,6 +842,10 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
         self._io.remove(name)
         delattr(self, name)
 
+    def _rename_port(self, old, new):
+        self._io.rename(old, new)
+        setattr(self, new, self._io.inst_ports[new])
+
     def _add_port(self, name, typ):
         self._io.add(name, typ)
         setattr(self, name, self._io.inst_ports[name])

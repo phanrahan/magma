@@ -647,27 +647,34 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def _resolve_driven_bulk_wire(self):
         # Remove bulk wire since children will now track the wiring
         value = self._wire.value()
-        wired_when_context = self._wired_when_context
+        wired_when_contexts = self._wired_when_contexts
         curr_when_context = get_curr_when_block()
-        if wired_when_context:
-            conditional_wires = wired_when_context.get_conditional_wires_for_drivee(self)
-        Wireable.unwire(self, value)
+        # if wired_when_contexts:
+        #     conditional_wires = wired_when_context.get_conditional_wires_for_drivee(self)
 
-        default_driver = None
-        if self in wired_when_context._default_drivers:
-            default_driver = wired_when_context._default_drivers[self]
-            del wired_when_context._default_drivers[self]
+        default_drivers = []
+        conditional_wires = []
+        for ctx in wired_when_contexts:
+            conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
+            if self in ctx._default_drivers:
+                default_drivers.append(ctx._default_drivers[self])
+                del ctx._default_drivers[self]
+            else:
+                default_drivers.append(None)
+        Wireable.unwire(self, value)
         # Update children
         for i, child in self._enumerate_children():
-            if wired_when_context:
-                if default_driver:
-                    child.wire(default_driver[i])
-                set_curr_when_block(wired_when_context)
-                for wire in conditional_wires:
-                    child.wire(wire.driver[i])
-                set_curr_when_block(curr_when_context)
+            if wired_when_contexts:
+                for ctx, wires, default_driver in zip(wired_when_contexts, conditional_wires, default_drivers):
+                    if default_driver:
+                        set_curr_when_block(None)
+                        child.wire(default_driver[i])
+                    set_curr_when_block(ctx)
+                    for wire in wires:
+                        child.wire(wire.driver[i])
                 continue
             child.wire(value[i])
+        set_curr_when_block(curr_when_context)
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
@@ -677,24 +684,29 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # over the children
         for drivee in driving:
             # Remove bulk wire since children will now track the wiring
-            wired_when_context = drivee._wired_when_context
-            if wired_when_context:
-                conditional_wires = wired_when_context.get_conditional_wires_for_driver(self)
-                default_drivers = []
-                for key, value in wired_when_context._default_drivers.items().copy():
-                    if value is self:
-                        default_drivers.append(key)
-                        del default_drivers[key]
+            wired_when_contexts = drivee._wired_when_contexts
+            conditional_wires = []
+            default_drivers = []
+            if wired_when_contexts:
+                for ctx in wired_when_contexts:
+                    conditional_wires.append(wired_when_context.get_conditional_wires_for_driver(self))
+                    drivers = []
+                    for key, value in ctx._default_drivers.items().copy():
+                        if value is self:
+                            drivers.append(key)
+                            del ctx._default_drivers[key]
+                    default_drivers.append(drivers)
             Wireable.unwire(drivee, self)
             # Update children
             for i, child in self._enumerate_children():
-                if wired_when_context:
-                    for value in default_drivers:
-                        value[i].wire(child)
-                    set_curr_when_block(wired_when_context)
-                    for wire in conditional_wires:
-                        wire.drivee[i].wire(child)
-                    set_curr_when_block(curr_when_context)
+                if wired_when_contexts:
+                    for ctx, wires, defaults in zip(wired_when_contexts, conditional_wires, default_drivers):
+                        set_curr_when_block(None)
+                        for value in defaults:
+                            value[i].wire(child)
+                        set_curr_when_block(ctx)
+                        for wire in wires:
+                            wire.drivee[i].wire(child)
                     continue
                 drivee[i].wire(child)
                 # from magma.when import ConditionalWire
@@ -703,7 +715,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 #         getattr(wired_when_context.root.builder, f"I{idx}")[0]
                     # for wire in conditional_wires:
                     #     wired_when_context._conditional_wires.append(ConditionalWire(wire.drivee[i], child))
-        # set_curr_when_block(curr_when_context)
+        set_curr_when_block(curr_when_context)
 
     def _resolve_bulk_wire(self):
         """
@@ -747,9 +759,32 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if not value._wire.driven():
             return
         driver = value._wire.value()
+        wired_when_contexts = value._wired_when_contexts
+        curr_when_context = get_curr_when_block()
+        conditional_wires = []
+        default_drivers = []
+        if wired_when_contexts:
+            for ctx in wired_when_contexts:
+                conditional_wires.append(ctx.get_conditional_wires_for_drivee(value))
+                default_driver = None
+                if self in ctx._default_drivers:
+                    default_driver = ctx._default_drivers[self]
+                    del ctx._default_drivers[self]
+                default_drivers.append(default_driver)
         Wireable.unwire(value, driver)
+
         for i in range(start, stop):
+            if wired_when_contexts:
+                for ctx, wires, default_driver in zip(wired_when_contexts, conditional_wires, default_drivers):
+                    set_curr_when_block(None)
+                    if default_driver:
+                        self._ts[i].wire(default_driver[i - start])
+                    set_curr_when_block(ctx)
+                    for wire in wires:
+                        self._ts[i].wire(wire.driver[i - start])
+                continue
             self._ts[i] @= driver[i - start]
+        set_curr_when_block(curr_when_context)
 
     def _remove_slice(self, key):
         """

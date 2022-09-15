@@ -492,6 +492,13 @@ class IO(IOInterface):
             raise RuntimeError("Can not remove from a bound IO")
         del self._ports[name]
 
+    def rename(self, old, new):
+        if self._bound:
+            raise RuntimeError("Can not rename in a bound IO")
+        self._ports[new] = self._ports[old]
+        self.remove(old)
+        self._ports[new].name.name = new
+
     def add(self, name, typ):
         if self._bound:
             raise RuntimeError("Can not add to a bound IO")
@@ -559,6 +566,11 @@ class SingletonInstanceIO(IO):
         inst_ref = LazyInstRef(name=name)
         inst_port = _make_port(typ, inst_ref, flip=False)
         self._inst_ports[name] = inst_port
+
+    def rename(self, old, new):
+        self._inst_ports[new] = self._inst_ports[old]
+        self._inst_ports[new].name.name = new
+        super().rename(old, new)
 
     def remove(self, name):
         super().remove(name)

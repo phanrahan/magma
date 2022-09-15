@@ -150,7 +150,9 @@ class WhenBuilder(CircuitBuilder):
         for key, value in self._output_to_index.items():
             if value > idx:
                 self._output_to_index[key] -= 1
+                self._rename_port(f"O{value}", f"O{value - 1}")
         self._output_counter = itertools.count(len(self._output_to_index))
+        self._drivee_counter = itertools.count(len(self._output_to_index))
 
     def add_driver(self, value: Type):
         self._generic_add(
