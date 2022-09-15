@@ -534,6 +534,8 @@ def test_latch_error_simple():
         with m.when(io.S):
             io.O @= io.I[0]
 
+    m.compile("build/_Test", _Test, output="mlir")
+
 
 @_expects_error(InferredLatchError)
 def test_latch_error_elsewhen():
@@ -546,6 +548,8 @@ def test_latch_error_elsewhen():
         with m.elsewhen(io.S ^ 1):
             io.O @= 1
 
+    m.compile("build/_Test", _Test, output="mlir")
+
 
 @_expects_error(InferredLatchError)
 def test_latch_error_nested():
@@ -556,6 +560,8 @@ def test_latch_error_nested():
         with m.when(io.S[0]):
             with m.when(io.S[1]):
                 io.O @= io.I[0]
+
+    m.compile("build/_Test", _Test, output="mlir")
 
 
 def test_latch_no_error_nested():
@@ -570,6 +576,8 @@ def test_latch_no_error_nested():
         with m.otherwise():
             io.O @= 1
 
+    m.compile("build/_Test", _Test, output="mlir")
+
 
 def test_latch_no_error_nested2():
 
@@ -583,6 +591,8 @@ def test_latch_no_error_nested2():
                 io.O @= io.I[1]
         with m.otherwise():
             io.O @= 1
+
+    m.compile("build/_Test", _Test, output="mlir")
 
 
 def test_when_double_elsewhen():
