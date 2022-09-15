@@ -258,7 +258,7 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             try:
                 key = list(self.keys()).index(key)
             except ValueError:
-                raise KeyError(f"Invalid key: {key}")
+                raise KeyError(key) from None
         if not isinstance(key, int):
             raise KeyError(f"Invalid key: {key}")
         return self.ts[key]
