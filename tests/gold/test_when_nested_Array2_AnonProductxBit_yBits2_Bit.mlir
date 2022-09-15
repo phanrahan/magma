@@ -12,6 +12,10 @@ hw.module @test_when_nested_Array2_AnonProductxBit_yBits2_Bit(%I_0_0_x: i1, %I_0
         sv.bpassign %5, %I_1_0_y : i2
         sv.bpassign %6, %I_1_1_x : i1
         sv.bpassign %7, %I_1_1_y : i2
+        sv.bpassign %4, %I_1_0_x : i1
+        sv.bpassign %5, %I_1_0_y : i2
+        sv.bpassign %6, %I_1_1_x : i1
+        sv.bpassign %7, %I_1_1_y : i2
         sv.if %S {
             sv.bpassign %4, %I_0_0_x : i1
             sv.bpassign %5, %I_0_0_y : i2

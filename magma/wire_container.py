@@ -169,10 +169,11 @@ class Wire:
 class Wireable:
     def __init__(self):
         self._wire = Wire(self)
-        self._when_context = get_curr_when_block()
+        self._enclosing_when_context = get_curr_when_block()
+        self._wired_when_context = None
 
-    def set_when_context(self, ctx):
-        self._when_context = ctx
+    def set_enclosing_when_context(self, ctx):
+        self._enclosing_when_context = ctx
 
     def wired(self):
         return self._wire.wired()
@@ -191,10 +192,13 @@ class Wireable:
     def driving(self):
         return self._wire.driving()
 
-    def unwire(i, o=None, debug_info=None):
+    def unwire(self, o=None, debug_info=None):
         if o is not None:
             o = o._wire
-        i._wire.unwire(o, debug_info)
+        self._wire.unwire(o, debug_info)
+        if self._wired_when_context:
+            self._wired_when_context.remove_conditional_wire(self)
+        self._wired_when_context = None
 
     def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
@@ -205,12 +209,13 @@ class Wireable:
         curr_when_block = get_curr_when_block()
         is_conditional = (
             curr_when_block is not None
-            and curr_when_block is not self._when_context
+            and curr_when_block is not self._enclosing_when_context
         )
         if not is_conditional:
             self._wire_impl(o, debug_info)
             return
         curr_when_block.add_conditional_wire(self, o)
+        self._wired_when_context = curr_when_block
 
     @debug_wire
     def rewire(self, o, debug_info=None):

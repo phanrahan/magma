@@ -42,6 +42,22 @@ class _BlockBase(contextlib.AbstractContextManager):
         self._children.append(child)
         return child
 
+    def get_conditional_wires_for_drivee(self, i):
+        return list(
+            filter(lambda x: x.drivee is i, self._conditional_wires)
+        )
+
+    def get_conditional_wires_for_driver(self, o):
+        return list(
+            filter(lambda x: x.driver is o, self._conditional_wires)
+        )
+
+    def remove_conditional_wire(self, i):
+        self._conditional_wires = list(
+            filter(lambda x: x.drivee is not i, self._conditional_wires)
+        )
+        self.root.builder.remove_drivee(i)
+
     def add_conditional_wire(self, i, o):
         self._conditional_wires.append(ConditionalWire(i, o))
         builder = self.root.builder
@@ -55,6 +71,7 @@ class _BlockBase(contextlib.AbstractContextManager):
     @property
     @abc.abstractmethod
     def root(self) -> '_WhenBlock':
+
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -364,7 +381,9 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
         all branches.
     """
     assignees, latches = set(), set()
+    print("===")
     for op in ops:
+        print(op)
         if isinstance(op, ConditionalWire):
             assignees.add(op.drivee)
             continue
@@ -394,6 +413,8 @@ def _get_assignees_and_latches(ops: Iterable[_Op]) -> Tuple[Set, Set]:
             assignees.update(then_assignees.union(else_assignees))
             continue
         raise TypeError(op)
+    print(assignees, latches)
+    print("===")
     return assignees, latches
 
 

@@ -555,7 +555,6 @@ class ModuleVisitor:
         output_to_index = {}
 
         def _visit(value, counter, value_to_index):
-            assert value not in value_to_index
             value_to_index[value] = next(counter)
 
         counter = itertools.count()

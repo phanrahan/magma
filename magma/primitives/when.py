@@ -142,6 +142,16 @@ class WhenBuilder(CircuitBuilder):
             Out,
         )
 
+    def remove_drivee(self, value: Type):
+        idx = self._output_to_index[value]
+        name = f"O{idx}"
+        self._remove_port(name)
+        del self._output_to_index[value]
+        for key, value in self._output_to_index.items():
+            if value > idx:
+                self._output_to_index[key] -= 1
+        self._output_counter = itertools.count(len(self._output_to_index))
+
     def add_driver(self, value: Type):
         self._generic_add(
             value,

@@ -123,6 +123,9 @@ class DefinitionContext(FinalizableDelegator):
     def place_instances(self, defn):
         self._placer = self._placer.finalize(defn)
         for builder in self._builders:
+            from magma.primitives.when import WhenBuilder
+            if isinstance(builder, WhenBuilder):
+                continue
             inst = builder.finalize()
             self._placer.place(inst)
 

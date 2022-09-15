@@ -120,7 +120,7 @@ def visit_value_or_value_wrapper_by_direction(
 
     def descend(v):
         if not isinstance(v, (m_Tuple, Array)):
-            raise TypeError(value)
+            raise TypeError(v)
         pre_descend(v)
         for item in v:
             visit_value_or_value_wrapper_by_direction(
