@@ -503,7 +503,7 @@ def test_internal_instantiation_complex():
             x @= 0
 
     basename = "test_when_internal_instantiation_complex"
-    m.compile(f"build/{basename}", _Test, output="mlir-verilog")
+    m.compile(f"build/{basename}", _Test, output="mlir")
     assert check_gold(__file__, f"{basename}.mlir")
 
 
@@ -644,7 +644,7 @@ def test_when_lazy_array_resolve(caplog):
         with m.otherwise():
             io.O @= m.sint(m.uint(io.I) >> 1)
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
@@ -687,7 +687,7 @@ def test_when_lazy_array_slice(caplog):
 
         io.O @= x
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
 
 
