@@ -2,20 +2,19 @@ import weakref
 from functools import reduce, lru_cache
 import operator
 from abc import ABCMeta
-from hwtypes import BitVector
-from .common import deprecated
-from .ref import AnonRef, ArrayRef
-from .t import Type, Kind, Direction, In, Out
+from hwtypes import BitVector, AbstractBitVector
+from .ref import ArrayRef
+from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import Bit
-from .bitutils import int2seq, seq2int
+from .bitutils import int2seq
 from .debug import debug_wire, get_callee_frame_info
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
-from magma.wire_container import WiringLog, Wire, Wireable
+from magma.wire_container import WiringLog, Wireable
 from magma.protocol_type import MagmaProtocol
 from magma.when import (
     get_curr_block as get_curr_when_block,
@@ -156,7 +155,6 @@ class ArrayMeta(ABCMeta, Kind):
 
     @property
     def undirected_t(cls) -> 'ArrayMeta':
-        T = cls.T
         if cls.is_concrete:
             return cls[cls.N, cls.T.qualify(Direction.Undirected)]
         else:
@@ -290,7 +288,7 @@ def _make_array_from_list(N, T, arg):
 
 def _make_array_from_array(N, arg):
     if len(arg) != N:
-        raise TypeError(f"Will not do implicit conversion of arrays")
+        raise TypeError("Will not do implicit conversion of arrays")
     return arg.ts[:]
 
 
@@ -380,6 +378,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     (requiring the logic to be implemented recursively over the children),
     otherwise the logic will treat the Array as a "bulk wired" value.
     """
+
     def __init__(self, *args, **kwargs):
         # Pass name= kwarg to Type constructor
         Type.__init__(self, **kwargs)
@@ -517,7 +516,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                     debug_info=debug_info
                 )
             else:
-                o_str = getattr(o, "debug_name", str(o))
                 _logger.error(
                     WiringLog(f"Cannot wire {{}} (type={type(o)}) to {{}} "
                               f"(type={type(self)}) because {{}} is not an "
@@ -586,7 +584,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
               for i in range(0, size_T * cls.N, size_T)]
         return cls(ts)
 
-    def concat(self, other) -> 'AbstractBitVector':
+    def concat(self, other) -> AbstractBitVector:
         return type(self)[len(self) + len(other), self.T](self.ts + other.ts)
 
     def undriven(self):
@@ -649,8 +647,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         value = self._wire.value()
         wired_when_contexts = self._wired_when_contexts
         curr_when_context = get_curr_when_block()
-        # if wired_when_contexts:
-        #     conditional_wires = wired_when_context.get_conditional_wires_for_drivee(self)
 
         default_drivers = []
         conditional_wires = []
@@ -665,7 +661,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # Update children
         for i, child in self._enumerate_children():
             if wired_when_contexts:
-                for ctx, wires, default_driver in zip(wired_when_contexts, conditional_wires, default_drivers):
+                for ctx, wires, default_driver in zip(wired_when_contexts,
+                                                      conditional_wires,
+                                                      default_drivers):
                     if default_driver:
                         set_curr_when_block(None)
                         child.wire(default_driver[i])
@@ -682,29 +680,37 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # NOTE: we need to remove drivees before doing the recursive wiring of
         # the children or else we'll trigger _resolve_bulk_wire when iterating
         # over the children
+        # TODO(leonardt): Do we need when logic for driving?
         info = {}
         for drivee in set(driving):
+            _info = {
+                "wired_when_contexts": drivee._wired_when_contexts,
+                "conditional_wires": [],
+                "default_drivers": []
+            }
             # Remove bulk wire since children will now track the wiring
-            wired_when_contexts = drivee._wired_when_contexts
-            conditional_wires = []
-            default_drivers = []
-            if wired_when_contexts:
-                for ctx in wired_when_contexts:
-                    conditional_wires.append(wired_when_context.get_conditional_wires_for_driver(self))
-                    drivers = []
+            if _info["wired_when_contexts"]:
+                for ctx in _info["wired_when_contexts"]:
+                    _info["conditional_wires"].append(
+                        ctx.get_conditional_wires_for_driver(self))
+                    default_drivers = []
                     for key, value in ctx._default_drivers.items().copy():
                         if value is self:
-                            drivers.append(key)
+                            default_drivers.append(key)
                             del ctx._default_drivers[key]
-                    default_drivers.append(drivers)
-            info[drivee] = (wired_when_contexts, conditional_wires, default_drivers)
+                    _info["default_drivers"].append(_info["default_drivers"])
             Wireable.unwire(drivee, self)
+            info[drivee] = _info
 
-        for drivee, (wired_when_contexts, conditional_wires, default_drivers) in info.items():
+        for drivee, _info in info.items():
             # Update children
             for i, child in self._enumerate_children():
-                if wired_when_contexts:
-                    for ctx, wires, defaults in zip(wired_when_contexts, conditional_wires, default_drivers):
+                if _info["wired_when_contexts"]:
+                    for ctx, wires, defaults in zip(
+                            _info["wired_when_contexts"],
+                            _info["conditional_wires"],
+                            _info["default_drivers"]
+                    ):
                         set_curr_when_block(None)
                         for value in defaults:
                             value[i].wire(child)
@@ -763,7 +769,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         default_drivers = []
         if wired_when_contexts:
             for ctx in wired_when_contexts:
-                conditional_wires.append(ctx.get_conditional_wires_for_drivee(value))
+                conditional_wires.append(
+                    ctx.get_conditional_wires_for_drivee(value))
                 default_driver = None
                 if self in ctx._default_drivers:
                     default_driver = ctx._default_drivers[self]
@@ -773,7 +780,9 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         for i in range(start, stop):
             if wired_when_contexts:
-                for ctx, wires, default_driver in zip(wired_when_contexts, conditional_wires, default_drivers):
+                for ctx, wires, default_driver in zip(wired_when_contexts,
+                                                      conditional_wires,
+                                                      default_drivers):
                     set_curr_when_block(None)
                     if default_driver:
                         self._ts[i].wire(default_driver[i - start])
