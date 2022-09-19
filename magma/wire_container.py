@@ -168,6 +168,16 @@ class Wire:
 
 class Wireable:
     def __init__(self):
+        """
+        * _enclosing_when_context: The when context active when this object was
+                                   created.  Lazily created child objects
+                                   should inherit their parent's
+                                   enclosing when context using the
+                                   `set_enclosing_when_context` API.
+        * _wired_when_contexts: A list of when contexts in which this object
+                                was conditionally wired.  Used to track the
+                                contexts that should be updated when unwiring.
+        """
         self._wire = Wire(self)
         self._enclosing_when_context = get_curr_when_block()
         self._wired_when_contexts = []
@@ -192,14 +202,16 @@ class Wireable:
     def driving(self):
         return self._wire.driving()
 
+    def _remove_from_wired_when_contexts(self):
+        for ctx in self._wired_when_contexts:
+            ctx.remove_conditional_wire(self)
+        self._wired_when_contexts = []
+
     def unwire(self, o=None, debug_info=None):
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
-        if self._wired_when_contexts:
-            for ctx in self._wired_when_contexts:
-                ctx.remove_conditional_wire(self)
-        self._wired_when_contexts = []
+        self._remove_from_wired_when_contexts()
 
     def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
