@@ -53,10 +53,10 @@ class _BlockBase(contextlib.AbstractContextManager):
         )
 
     def remove_conditional_wire(self, i):
-        if self._parent is None:
-            # Only remove from builder once
-            # TODO: We could have the root when handle removing from children
-            self._builder.remove_drivee(i)
+        # We use a "safe" remove pattern because multiple when contexts share
+        # the same builder and we only need to remove the drivee once but may
+        # need to update all the contexts
+        self.root._builder.safe_remove_drivee(i)
         self._conditional_wires = list(
             filter(lambda x: x.drivee is not i, self._conditional_wires)
         )
@@ -74,7 +74,6 @@ class _BlockBase(contextlib.AbstractContextManager):
     @property
     @abc.abstractmethod
     def root(self) -> '_WhenBlock':
-
         raise NotImplementedError()
 
     @abc.abstractmethod

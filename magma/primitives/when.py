@@ -142,7 +142,12 @@ class WhenBuilder(CircuitBuilder):
             Out,
         )
 
-    def remove_drivee(self, value: Type):
+    def safe_remove_drivee(self, value: Type):
+        """
+        Removes `value`'s output port if it exists
+        """
+        if value not in self._output_to_index:
+            return
         idx = self._output_to_index[value]
         name = f"O{idx}"
         self._remove_port(name)
