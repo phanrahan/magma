@@ -682,7 +682,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # NOTE: we need to remove drivees before doing the recursive wiring of
         # the children or else we'll trigger _resolve_bulk_wire when iterating
         # over the children
-        for drivee in driving:
+        info = {}
+        for drivee in set(driving):
             # Remove bulk wire since children will now track the wiring
             wired_when_contexts = drivee._wired_when_contexts
             conditional_wires = []
@@ -696,7 +697,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                             drivers.append(key)
                             del ctx._default_drivers[key]
                     default_drivers.append(drivers)
+            info[drivee] = (wired_when_contexts, conditional_wires, default_drivers)
             Wireable.unwire(drivee, self)
+
+        for drivee, (wired_when_contexts, conditional_wires, default_drivers) in info.items():
             # Update children
             for i, child in self._enumerate_children():
                 if wired_when_contexts:
@@ -709,12 +713,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                             wire.drivee[i].wire(child)
                     continue
                 drivee[i].wire(child)
-                # from magma.when import ConditionalWire
-                #     for wire in wired_when_context.get_conditional_wires(self):
-                #         idx = wired_when_context.root.builder.input_to_index[wire.driver]
-                #         getattr(wired_when_context.root.builder, f"I{idx}")[0]
-                    # for wire in conditional_wires:
-                    #     wired_when_context._conditional_wires.append(ConditionalWire(wire.drivee[i], child))
         set_curr_when_block(curr_when_context)
 
     def _resolve_bulk_wire(self):
