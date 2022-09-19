@@ -1130,9 +1130,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return True
 
     def set_enclosing_when_context(self, ctx):
-        # This code assumes set_enclosing_when_context is called when a child of a lazy
-        # value is created, so it should not have any children elaborated yet
-        # (and any future elaborations will inherit this context).
+        # This code assumes set_enclosing_when_context is called when a child
+        # of a lazy value is created, so it should not have any children
+        # elaborated yet (and any future elaborations will inherit this
+        # context).
         assert not self._ts
         assert not self._slices
         super().set_enclosing_when_context(ctx)
