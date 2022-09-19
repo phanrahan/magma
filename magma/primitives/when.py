@@ -150,14 +150,22 @@ class WhenBuilder(CircuitBuilder):
             return
         idx = self._output_to_index[value]
         name = f"O{idx}"
+
         self._remove_port(name)
         del self._output_to_index[value]
+
+        # Update existing outputs by subtracting one from their index and
+        # renaming their port
         for key, value in self._output_to_index.items():
             if value > idx:
                 self._output_to_index[key] -= 1
                 self._rename_port(f"O{value}", f"O{value - 1}")
-        self._output_counter = itertools.count(len(self._output_to_index))
-        self._drivee_counter = itertools.count(len(self._output_to_index))
+
+        # Update counters so future drivee additions are consistent with the
+        # updated count
+        new_n = len(self._output_to_index)
+        self._output_counter = itertools.count(new_n)
+        self._drivee_counter = itertools.count(new_n)
 
     def add_driver(self, value: Type):
         self._generic_add(
