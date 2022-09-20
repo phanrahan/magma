@@ -777,5 +777,21 @@ def test_when_lazy_array_slice_driving_resolve_2(caplog):
         io.I[0]  # triggers driving bulk wire logic
         x[-1] @= io.I[0]  # triggers driving bulk wire logic
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_slice_overlap(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice_overlap"
+        io = m.IO(I=m.In(m.Bits[4]), S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[:2] @= io.I[2:]
+            io.O[2:] @= io.I[:2]
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
