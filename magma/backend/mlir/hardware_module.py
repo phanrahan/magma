@@ -560,7 +560,7 @@ class ModuleVisitor:
             # `value` occurs as more than one input (for example, it could be
             # used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
-            # we just use the "last" index
+            # we just use the "last" index.
             value_to_index[value] = next(counter)
 
         counter = itertools.count()
