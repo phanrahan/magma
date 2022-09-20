@@ -27,7 +27,7 @@ from magma.backend.mlir.magma_common import (
     visit_magma_value_or_value_wrapper_by_direction,
 )
 from magma.backend.mlir.mlir import (
-    MlirType, MlirValue, MlirSymbol, MlirAttribute, push_block
+    MlirType, MlirValue, MlirSymbol, MlirAttribute, MlirBlock, push_block
 )
 from magma.backend.mlir.scoped_name_generator import ScopedNameGenerator
 from magma.backend.mlir.sv import sv
@@ -39,6 +39,7 @@ from magma.bitutils import clog2
 from magma.circuit import AnonymousCircuitType, CircuitKind, DefineCircuitKind
 from magma.clock import Reset, ResetN, AsyncReset, AsyncResetN
 from magma.common import filter_by_key, sort_by_value
+from magma.compile_guard import get_compile_guard_data
 from magma.digital import Digital, DigitalMeta
 from magma.inline_verilog_expression import InlineVerilogExpression
 from magma.is_definition import isdefinition
@@ -79,6 +80,14 @@ def _get_defn_or_decl_output_name(
     if ctx.opts.verilog_prefix is not None:
         name = ctx.opts.verilog_prefix + f"{name}"
     return name
+
+
+def _make_compile_guard_block(compile_guard: Mapping) -> MlirBlock:
+    if_def = sv.IfDefOp(compile_guard["condition_str"])
+    if compile_guard["type"] == "defined":
+        return if_def.then_block
+    assert compile_guard["type"] == "undefined"
+    return if_def.else_block
 
 
 @wrap_with_not_implemented_error
@@ -196,13 +205,7 @@ def make_hw_instance_op(
         attrs: Optional[Mapping] = None,
 ) -> hw.InstanceOp:
     if compile_guard is not None:
-        if_def = sv.IfDefOp(compile_guard["condition_str"])
-        block = (
-            if_def.then_block
-            if compile_guard["type"] == "defined"
-            else if_def.else_block
-        )
-        ctx = push_block(block)
+        ctx = push_block(_make_compile_guard_block(compile_guard))
     else:
         ctx = contextlib.nullcontext()
     parameters = [
@@ -816,12 +819,11 @@ class ModuleVisitor:
         if isprimitive(defn):
             return self.visit_primitive(module)
         module_type = self._ctx.parent.get_hardware_module(defn).hw_module
-        metadata = getattr(inst, "coreir_metadata", {})
         parameters = filter_by_key(
             lambda key: key not in ["name", "locl"],
             inst.kwargs
         )
-        compile_guard = metadata.get("compile_guard", None)
+        compile_guard = get_compile_guard_data(inst)
         sym = None
         attrs = {}
         if is_bound_instance(inst):
@@ -1214,7 +1216,12 @@ class HardwareModule:
         graph = build_magma_graph(
             self._magma_defn_or_decl, build_magma_graph_opts)
         visitor = ModuleVisitor(graph, self)
-        with push_block(op):
+        with contextlib.ExitStack() as exit_stack:
+            exit_stack.enter_context(push_block(op))
+            compile_guard = get_compile_guard_data(self._magma_defn_or_decl)
+            if compile_guard is not None:
+                block = _make_compile_guard_block(compile_guard)
+                exit_stack.enter_context(push_block(block))
             try:
                 visitor.visit(self._magma_defn_or_decl)
             except ModuleVisitor.VisitError:
