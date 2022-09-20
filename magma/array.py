@@ -642,14 +642,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                        for _, child in self._enumerate_children())
         return False
 
-    def _resolve_driven_bulk_wire(self):
-        # Remove bulk wire since children will now track the wiring
-        value = self._wire.value()
-        wired_when_contexts = self._wired_when_contexts
-        curr_when_context = get_curr_when_block()
-
-        default_drivers = []
+    def _get_conditional_drivee_info(self):
         conditional_wires = []
+        default_drivers = []
+        wired_when_contexts = self._wired_when_contexts
         for ctx in wired_when_contexts:
             conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
             if self in ctx._default_drivers:
@@ -657,22 +653,60 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
                 del ctx._default_drivers[self]
             else:
                 default_drivers.append(None)
-        Wireable.unwire(self, value)
-        # Update children
+        return wired_when_contexts, conditional_wires, default_drivers
+
+    def _rewire_conditional_children(self, wired_when_contexts,
+                                     conditional_wires, default_drivers):
+        """
+        * wired_when_contexts: list of contexts in which this value appears as
+                               conditionally driven.
+
+        * conditional_wires: for each ctx in `wired_when_contexts`, contains a
+                             list of conditional wire objects where `self` is a
+                             drivee.
+
+        * default_drivers: for each ctx in `wired_when_contexts`, contains the
+                           default driver (if it exists) for `self`.
+        """
+        # Save current when context since this logic children will be updating
+        # the when context so the children inherit `self`'s conditional logic.
+        curr_when_context = get_curr_when_block()
+
         for i, child in self._enumerate_children():
-            if wired_when_contexts:
-                for ctx, wires, default_driver in zip(wired_when_contexts,
-                                                      conditional_wires,
-                                                      default_drivers):
-                    if default_driver:
-                        set_curr_when_block(None)
-                        child.wire(default_driver[i])
-                    set_curr_when_block(ctx)
-                    for wire in wires:
-                        child.wire(wire.driver[i])
-                continue
-            child.wire(value[i])
+            for ctx, wires, default_driver in zip(wired_when_contexts,
+                                                  conditional_wires,
+                                                  default_drivers):
+                if default_driver:
+                    # Default driver is wired outside of a when context.
+                    set_curr_when_block(None)
+                    child.wire(default_driver[i])
+
+                # Use original wired when context.
+                set_curr_when_block(ctx)
+                for wire in wires:
+                    child.wire(wire.driver[i])
+
+        # Reset current when context
         set_curr_when_block(curr_when_context)
+
+    def _resolve_conditional_children(self, value):
+        # Save conditional wire info before unwire happens
+        info = self._get_conditional_drivee_info()
+
+        Wireable.unwire(self, value)
+
+        self._rewire_conditional_children(*info)
+
+    def _resolve_driven_bulk_wire(self):
+        # Remove bulk wire since children will now track the wiring
+        value = self._wire.value()
+
+        if self._wired_when_contexts:
+            return self._resolve_conditional_children(value)
+
+        Wireable.unwire(self, value)
+        for i, child in self._enumerate_children():
+            child.wire(value[i])
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
