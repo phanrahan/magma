@@ -1,10 +1,10 @@
 import contextlib
 import itertools
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 from magma.bits import BitsMeta
 from magma.clock import ClockTypes
-from magma.circuit import CircuitBuilder
+from magma.circuit import CircuitKind, AnonymousCircuitType, CircuitBuilder
 from magma.digital import DigitalMeta
 from magma.generator import Generator2
 from magma.interface import IO
@@ -74,10 +74,9 @@ class _CompileGuardBuilder(CircuitBuilder):
         self._system_types_added = set()
         if type not in {"defined", "undefined"}:
             raise ValueError(f"Unexpected compile guard type: {type}")
-        self._set_inst_attr(
-            "coreir_metadata",
-            {"compile_guard": {"condition_str": cond, "type": type}}
-        )
+        metadata = {"condition_str": cond, "type": type}
+        self._set_inst_attr("coreir_metadata", {"compile_guard": metadata})
+        self._set_definition_attr("_compile_guard_", metadata)
         self._num_ports = itertools.count()
 
     def add_port(self, T: Kind, name: Optional[str] = None) -> Type:
@@ -93,6 +92,21 @@ class _CompileGuardBuilder(CircuitBuilder):
 
     def _new_port_name(self) -> str:
         return f"port_{next(self._num_ports)}"
+
+
+def get_compile_guard_data(
+        inst_or_defn: Union[AnonymousCircuitType, CircuitKind]
+) -> Optional[Dict]:
+    """Returns compile guard metadata (compile guard condition string and type
+    (ifdef or ifndef)) attached to an instance or definition, or None if it is
+    not a compile guarded module.
+    """
+    if isinstance(inst_or_defn, AnonymousCircuitType):
+        coreir_metadata = getattr(inst_or_defn, "coreir_metadata", {})
+        return coreir_metadata.get("compile_guard", None)
+    if isinstance(inst_or_defn, CircuitKind):
+        return getattr(inst_or_defn, "_compile_guard_", None)
+    raise TypeError(inst_or_defn)
 
 
 def _make_builder(
@@ -112,7 +126,7 @@ def compile_guard(
         cond: str,
         defn_name: Optional[str] = None,
         inst_name: Optional[str] = None,
-        type: Optional[str] = "defined"
+        type: str = "defined",
 ):
     builder = _make_builder(cond, defn_name, inst_name, type)
     with builder.open() as f:
