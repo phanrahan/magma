@@ -43,7 +43,8 @@ class MlirCompiler(Compiler):
         # may cause array expansion (e.g. when we have an array of tuples).  If
         # we remove the flatten_all_tuples requirement, we may finalize when
         # earlier, but then we may still need this code path as an option
-        elaborate_tuples(self.main)
+        if self.opts.get("flatten_all_tuples", False):
+            elaborate_tuples(self.main)
         finalize_whens(self.main)
 
         insert_coreir_wires(self.main)
