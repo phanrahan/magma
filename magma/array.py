@@ -719,6 +719,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
         for drivee in driving:
+            # Force drivee to resolve by triggering the
+            # _resolve_driven_bulk_wire logic which occurs when referencing a
+            # child which begins the elaboration process.  Using this pattern
+            # avoids having to duplicate the logic for driving/driven
             drivee[0]
         return
 
