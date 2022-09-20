@@ -737,3 +737,45 @@ def test_when_lazy_array_protocol(caplog):
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_slice_driving_resolve(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice_driving_resolve"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        x = m.Bits[4](name="x")
+
+        with m.when(io.S):
+            x @= 2
+        with m.otherwise():
+            x @= 4
+
+        io.O @= x
+        x.value()[0]  # triggers driving bulk wire logic
+        x[0] @= 1
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_slice_driving_resolve_2(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice_driving_resolve_2"
+        io = m.IO(I=m.In(m.Bits[4]), S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        x = m.Bits[4](name="x")
+
+        with m.when(io.S):
+            x @= io.I
+        with m.otherwise():
+            x @= 4
+
+        io.O @= x
+        io.I[0]  # triggers driving bulk wire logic
+        x[-1] @= io.I[0]  # triggers driving bulk wire logic
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
+    assert check_gold(__file__, f"{_Test.name}.mlir")

@@ -704,74 +704,33 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         if self._wired_when_contexts:
             return self._resolve_conditional_children(value)
 
+        # Else, was not wired in a when context, so children should not be
+        # wired in a when context
+        curr_when = get_curr_when_block()
+        set_curr_when_block(None)
+
         Wireable.unwire(self, value)
+
         for i, child in self._enumerate_children():
             child.wire(value[i])
 
+        set_curr_when_block(curr_when)
+
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
-        curr_when_context = get_curr_when_block()
-        # NOTE: we need to remove drivees before doing the recursive wiring of
-        # the children or else we'll trigger _resolve_bulk_wire when iterating
-        # over the children
-        # TODO(leonardt): Do we need when logic for driving?
-        info = {}
-        for drivee in set(driving):
-            _info = {
-                "wired_when_contexts": drivee._wired_when_contexts,
-                "conditional_wires": [],
-                "default_drivers": []
-            }
-            # Remove bulk wire since children will now track the wiring
-            if _info["wired_when_contexts"]:
-                for ctx in _info["wired_when_contexts"]:
-                    _info["conditional_wires"].append(
-                        ctx.get_conditional_wires_for_driver(self))
-                    default_drivers = []
-                    for key, value in ctx._default_drivers.items().copy():
-                        if value is self:
-                            default_drivers.append(key)
-                            del ctx._default_drivers[key]
-                    _info["default_drivers"].append(_info["default_drivers"])
-            Wireable.unwire(drivee, self)
-            info[drivee] = _info
-
-        for drivee, _info in info.items():
-            # Update children
-            for i, child in self._enumerate_children():
-                if _info["wired_when_contexts"]:
-                    for ctx, wires, defaults in zip(
-                            _info["wired_when_contexts"],
-                            _info["conditional_wires"],
-                            _info["default_drivers"]
-                    ):
-                        set_curr_when_block(None)
-                        for value in defaults:
-                            value[i].wire(child)
-                        set_curr_when_block(ctx)
-                        for wire in wires:
-                            wire.drivee[i].wire(child)
-                    continue
-                drivee[i].wire(child)
-        set_curr_when_block(curr_when_context)
+        for drivee in driving:
+            drivee[0]
+        return
 
     def _resolve_bulk_wire(self):
         """
         If a child reference is made, we "expand" a bulk wire into the
         constiuent children to maintain consistency
         """
-        # NOTE(leonardt): Because of
-        # https://github.com/phanrahan/magma/pull/1131, we can assume that bulk
-        # wire resolution happens either when there is no when or before
-        # entering a when context, so if it happens as part of a when entrance,
-        # we should resolve in the no when context first.
-        curr_when = get_curr_when_block()
-        set_curr_when_block(None)
         if self._wire.driven():
             self._resolve_driven_bulk_wire()
         if self._wire.driving():
             self._resolve_driving_bulk_wire()
-        set_curr_when_block(curr_when)
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):

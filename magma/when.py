@@ -47,11 +47,6 @@ class _BlockBase(contextlib.AbstractContextManager):
             filter(lambda x: x.drivee is i, self._conditional_wires)
         )
 
-    def get_conditional_wires_for_driver(self, o):
-        return list(
-            filter(lambda x: x.driver is o, self._conditional_wires)
-        )
-
     def remove_conditional_wire(self, i):
         # We use a "safe" remove pattern because multiple when contexts share
         # the same builder and we only need to remove the drivee once but may
