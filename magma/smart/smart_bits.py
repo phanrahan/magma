@@ -4,6 +4,7 @@ import inspect
 import operator
 from typing import Callable, Union
 
+from magma.bit import Bit
 from magma.bits import Bits, BitsMeta, SInt, reduce as bits_reduce
 from magma.conversions import uint, bits, sint
 from magma.conversions import concat as bits_concat
@@ -396,7 +397,10 @@ class SmartBits(SmartBitsExpr, metaclass=SmartBitsMeta):
 
     @staticmethod
     def from_bits(value):
-        assert isinstance(value, Bits), type(value)
+        if isinstance(value, Bit):
+            value = bits(value)
+        if not isinstance(value, Bits):
+            raise TypeError(value)
         signed = isinstance(value, SInt)
         return SmartBits[len(value), signed](value)
 

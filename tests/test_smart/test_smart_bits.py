@@ -263,16 +263,20 @@ def test_slice():
         io = m.IO(
             I0=m.In(m.smart.SmartBits[8]),
             O0=m.Out(m.smart.SmartBits[12]),
+            O1=m.Out(m.smart.SmartBits[12]),
         )
         io.O0 @= io.I0[2:6]
+        io.O1 @= io.I0[2]
 
     class _Gold(m.Circuit):
         name = "test_slice"
         io = m.IO(
             I0=m.In(m.UInt[8]),
             O0=m.Out(m.UInt[12]),
+            O1=m.Out(m.UInt[12]),
         )
         io.O0 @= m.zext_to(io.I0[2:6], 12)
+        io.O1 @= m.zext_to(m.bits(io.I0[2]), 12)
 
     return _Test, _Gold
 
