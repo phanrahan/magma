@@ -757,38 +757,8 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # When we encounter an overlapping slice that is already bulk driven,
         # we ensure the corresponding children are updated to their current
         # values
-        if not value._wire.driven():
-            return
-        driver = value._wire.value()
-        wired_when_contexts = value._wired_when_contexts
-        curr_when_context = get_curr_when_block()
-        conditional_wires = []
-        default_drivers = []
-        if wired_when_contexts:
-            for ctx in wired_when_contexts:
-                conditional_wires.append(
-                    ctx.get_conditional_wires_for_drivee(value))
-                default_driver = None
-                if self in ctx._default_drivers:
-                    default_driver = ctx._default_drivers[self]
-                    del ctx._default_drivers[self]
-                default_drivers.append(default_driver)
-        Wireable.unwire(value, driver)
-
-        for i in range(start, stop):
-            if wired_when_contexts:
-                for ctx, wires, default_driver in zip(wired_when_contexts,
-                                                      conditional_wires,
-                                                      default_drivers):
-                    set_curr_when_block(None)
-                    if default_driver:
-                        self._ts[i].wire(default_driver[i - start])
-                    set_curr_when_block(ctx)
-                    for wire in wires:
-                        self._ts[i].wire(wire.driver[i - start])
-                continue
-            self._ts[i] @= driver[i - start]
-        set_curr_when_block(curr_when_context)
+        if value._wire.driven():
+            value._resolve_driven_bulk_wire()
 
     def _remove_slice(self, key):
         """
