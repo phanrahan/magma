@@ -99,7 +99,7 @@ def test_new_style_with_definition_method(caplog):
 
 def test_defn_wiring_error(caplog):
     class _Foo(m.Circuit):
-        io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit), O1=m.Out(m.Bits[1]))
+        io = m.IO(I=m.In(m.Bit), O=m.In(m.Bit), O1=m.Out(m.Bits[2]))
 
         m.wire(io.I, io.O)
         m.wire(io.I, io.O1)
@@ -108,13 +108,13 @@ def test_defn_wiring_error(caplog):
     assert has_error(caplog,
                      "Cannot wire _Foo.I (Out(Bit)) to _Foo.O (Out(Bit))")
     assert has_error(caplog,
-                     "Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[1]))")
+                     "Cannot wire _Foo.I (Out(Bit)) to _Foo.O1 (In(Bits[2]))")
 
 
 @wrap_with_context_manager(logging_level("DEBUG"))
 def test_inst_wiring_error(caplog):
     class _Bar(m.Circuit):
-        io = m.IO(I=m.In(m.Bits[1]), O=m.Out(m.Bits[1]))
+        io = m.IO(I=m.In(m.Bits[2]), O=m.Out(m.Bits[2]))
 
     class _Foo(m.Circuit):
         io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bit))
@@ -125,10 +125,10 @@ def test_inst_wiring_error(caplog):
 
     assert has_error(
         caplog,
-        "Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[1]))")
+        "Cannot wire _Foo.I (Out(Bit)) to _Foo._Bar_inst0.I (In(Bits[2]))")
     assert has_error(
         caplog,
-        "Cannot wire _Foo._Bar_inst0.O (Out(Bits[1])) to _Foo.O (In(Bit))")
+        "Cannot wire _Foo._Bar_inst0.O (Out(Bits[2])) to _Foo.O (In(Bit))")
     assert has_error(caplog, "_Foo.O not driven")
     assert has_error(caplog, "_Foo.O: Unconnected")
     assert has_error(caplog, "_Foo._Bar_inst0.I not driven")

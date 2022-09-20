@@ -177,6 +177,9 @@ class Kind(type):
     def is_directed(cls):
         return cls is not cls.qualify(Direction.Undirected)
 
+    def is_bits_1(self):
+        return False
+
 
 @lru_cache()
 def In(T):

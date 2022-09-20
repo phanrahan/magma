@@ -3,21 +3,18 @@ Definition of magma's Bit type
 * Subtype of the Digital type
 * Implementation of hwtypes.AbstractBit
 """
-import keyword
 import typing as tp
 import functools
 import hwtypes as ht
 from hwtypes.bit_vector_abc import AbstractBit, TypeFamily
-from .t import Direction
+from .t import Direction, Type
 from .digital import Digital, DigitalMeta
 from .digital import VCC, GND  # TODO(rsetaluri): only here for b.c.
 
 from magma.compatibility import IntegerTypes
 from magma.debug import debug_wire
 from magma.family import get_family
-from magma.interface import IO
-from magma.language_utils import primitive_to_python
-from magma.protocol_type import magma_type, MagmaProtocol
+from magma.protocol_type import magma_value
 from magma.operator_utils import output_only
 
 
@@ -113,10 +110,19 @@ class Bit(Digital, AbstractBit, metaclass=DigitalMeta):
 
     @debug_wire
     def wire(self, o, debug_info):
+        o = magma_value(o)
         # Cast to Bit here so we don't get a Digital instead
         if isinstance(o, (IntegerTypes, bool, ht.Bit)):
             o = Bit(o)
+        if type(o).is_bits_1():
+            o = o[0]
         return super().wire(o, debug_info)
+
+    @classmethod
+    def is_wireable(cls, rhs):
+        if issubclass(rhs, Type) and rhs.is_bits_1():
+            return True
+        return DigitalMeta.is_wireable(cls, rhs)
 
 
 BitIn = Bit[Direction.In]
