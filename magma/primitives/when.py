@@ -206,7 +206,6 @@ class WhenBuilder(CircuitBuilder):
         latches = find_inferred_latches(self.block)
         if latches:
             raise InferredLatchError(latches)
-        print("HELLO")
 
     @property
     def block(self) -> WhenBlock:
