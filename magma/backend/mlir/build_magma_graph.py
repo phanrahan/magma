@@ -15,7 +15,7 @@ from magma.bits import Bits
 from magma.circuit import DefineCircuitKind
 from magma.compile_exception import UnconnectedPortException
 from magma.digital import Digital
-from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef
+from magma.ref import InstRef, DefnRef, AnonRef, ArrayRef, TupleRef, LazyInstRef
 from magma.t import Type
 from magma.tuple import Tuple as m_Tuple
 
@@ -79,6 +79,7 @@ class ModuleContext:
 
 def _visit_driver(
         ctx: ModuleContext, value: Type, driver: Type, module: ModuleLike):
+    print(value, driver)
     if driver.const():
         if isinstance(driver, Digital):
             as_bool = _const_digital_to_bool(driver)
@@ -92,6 +93,7 @@ def _visit_driver(
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
+    assert not isinstance(ref, LazyInstRef) or ref._inst, ref
     if isinstance(ref, InstRef):
         info = dict(src=driver, dst=value)
         ctx.graph.add_edge(ref.inst, module, info=info)
@@ -105,6 +107,7 @@ def _visit_driver(
             T = type(driver)
             creator = MagmaArrayCreateOp(T)
             for i, element in enumerate(driver):
+                print(value[i].trace().debug_name, type(element.name))
                 creator_input = getattr(creator, f"I{i}")
                 _visit_driver(ctx, creator_input, element, creator)
             info = dict(src=creator.O, dst=value)
@@ -155,6 +158,7 @@ def _visit_driver(
 
 def _visit_input(ctx: ModuleContext, value: Type, module: ModuleLike):
     driver = value.trace()
+    print(value, driver)
     if driver is None:
         raise UnconnectedPortException(value)
     _visit_driver(ctx, value, driver, module)
@@ -174,8 +178,10 @@ def _visit_inputs(
 def build_magma_graph(
         ckt: DefineCircuitKind,
         opts: BuildMagmaGrahOpts = BuildMagmaGrahOpts()) -> Graph:
+    print(ckt)
     ctx = ModuleContext(Graph(), opts)
     _visit_inputs(ctx, ckt, opts.flatten_all_tuples)
     for inst in ckt.instances:
+        print(inst)
         _visit_inputs(ctx, inst, opts.flatten_all_tuples)
     return ctx.graph

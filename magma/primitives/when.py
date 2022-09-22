@@ -98,6 +98,8 @@ class WhenBuilder(CircuitBuilder):
         self._output_counter = itertools.count()
         self._input_to_index = {}
         self._output_to_index = {}
+        self._input_to_name = {}
+        self._output_to_name = {}
         self._default_drivers = {}
         self._set_definition_attr("primitive", True)
         self._set_definition_attr(_ISWHEN_KEY, True)
@@ -122,6 +124,7 @@ class WhenBuilder(CircuitBuilder):
             value_to_index,
             index_counter,
             name_counter,
+            value_to_name,
             name_prefix,
             type_qualifier,
     ):
@@ -132,6 +135,7 @@ class WhenBuilder(CircuitBuilder):
         self._add_port(port_name, type_qualifier(type(value).undirected_t))
         with no_when():
             wire(getattr(self, port_name), value)
+        value_to_name[value] = port_name
 
     def add_drivee(self, value: Type):
         self._generic_add(
@@ -139,6 +143,7 @@ class WhenBuilder(CircuitBuilder):
             self._output_to_index,
             self._output_counter,
             self._drivee_counter,
+            self._output_to_name,
             "O",
             Out,
         )
@@ -149,8 +154,8 @@ class WhenBuilder(CircuitBuilder):
         """
         if value not in self._output_to_index:
             return
+        name = self._output_to_name[value]
         idx = self._output_to_index[value]
-        name = f"O{idx}"
 
         self._remove_port(name)
         del self._output_to_index[value]
@@ -160,13 +165,6 @@ class WhenBuilder(CircuitBuilder):
         for key, value in self._output_to_index.items():
             if value > idx:
                 self._output_to_index[key] -= 1
-                self._rename_port(f"O{value}", f"O{value - 1}")
-
-        # Update counters so future drivee additions are consistent with the
-        # updated count
-        new_n = len(self._output_to_index)
-        self._output_counter = itertools.count(new_n)
-        self._drivee_counter = itertools.count(new_n)
 
     def add_driver(self, value: Type):
         self._generic_add(
@@ -174,6 +172,7 @@ class WhenBuilder(CircuitBuilder):
             self._input_to_index,
             self._input_counter,
             self._driver_counter,
+            self._input_to_name,
             "I",
             In,
         )
@@ -184,6 +183,7 @@ class WhenBuilder(CircuitBuilder):
             self._input_to_index,
             self._input_counter,
             self._condition_counter,
+            self._input_to_name,
             "S",
             In,
         )
@@ -206,6 +206,7 @@ class WhenBuilder(CircuitBuilder):
         latches = find_inferred_latches(self.block)
         if latches:
             raise InferredLatchError(latches)
+        print("HELLO")
 
     @property
     def block(self) -> WhenBlock:
