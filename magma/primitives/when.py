@@ -159,6 +159,7 @@ class WhenBuilder(CircuitBuilder):
 
         self._remove_port(name)
         del self._output_to_index[value]
+        del self._output_to_name[value]
 
         # Update existing outputs by subtracting one from their index and
         # renaming their port

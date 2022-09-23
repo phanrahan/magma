@@ -92,7 +92,6 @@ def _visit_driver(
             ctx.graph.add_edge(const, module, info=info)
             return
     ref = driver.name
-    assert not isinstance(ref, LazyInstRef) or ref._inst, ref
     if isinstance(ref, InstRef):
         info = dict(src=driver, dst=value)
         ctx.graph.add_edge(ref.inst, module, info=info)
