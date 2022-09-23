@@ -51,7 +51,6 @@ class _BlockBase(contextlib.AbstractContextManager):
         # We use a "safe" remove pattern because multiple when contexts share
         # the same builder and we only need to remove the drivee once but may
         # need to update all the contexts
-        self.root._builder.safe_remove_drivee(i)
         self._conditional_wires = list(
             filter(lambda x: x.drivee is not i, self._conditional_wires)
         )

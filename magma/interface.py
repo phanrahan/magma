@@ -487,11 +487,6 @@ class IO(IOInterface):
         decl = self._decl + other._decl
         return IO(**_dict_from_decl(decl))
 
-    def remove(self, name):
-        if self._bound:
-            raise RuntimeError("Can not remove from a bound IO")
-        del self._ports[name]
-
     def add(self, name, typ):
         if self._bound:
             raise RuntimeError("Can not add to a bound IO")
@@ -559,10 +554,6 @@ class SingletonInstanceIO(IO):
         inst_ref = LazyInstRef(name=name)
         inst_port = _make_port(typ, inst_ref, flip=False)
         self._inst_ports[name] = inst_port
-
-    def remove(self, name):
-        super().remove(name)
-        del self._inst_ports[name]
 
     def __add__(self, other):
         raise NotImplementedError(f"Addition operator disallowed on "
