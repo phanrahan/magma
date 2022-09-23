@@ -812,5 +812,5 @@ def test_when_lazy_array_multiple_whens(caplog):
         with m.when(~io.S):
             io.O @= io.I
 
-    m.compile(f"build/{_Test.name}", _Test, output="mlir-verilog")
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")
