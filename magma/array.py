@@ -649,11 +649,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         wired_when_contexts = self._wired_when_contexts
         for ctx in wired_when_contexts:
             conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
-            if self in ctx._default_drivers:
-                default_drivers.append(ctx._default_drivers[self])
-                del ctx._default_drivers[self]
-            else:
-                default_drivers.append(None)
+            default_drivers.append(ctx._default_drivers.pop(self, None))
         return wired_when_contexts, conditional_wires, default_drivers
 
     def _rewire_conditional_children(self, wired_when_contexts,
