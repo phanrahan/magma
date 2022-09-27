@@ -641,15 +641,6 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         return False
 
     def _get_conditional_drivee_info(self):
-        conditional_wires = []
-        default_drivers = []
-        for ctx in self._wired_when_contexts:
-            conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
-            default_drivers.append(ctx._default_drivers.pop(self, None))
-        return self._wired_when_contexts, conditional_wires, default_drivers
-
-    def _rewire_conditional_children(self, wired_when_contexts,
-                                     conditional_wires, default_drivers):
         """
         * wired_when_contexts: list of contexts in which this value appears as
                                conditionally driven.
@@ -661,6 +652,15 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         * default_drivers: for each ctx in `wired_when_contexts`, contains the
                            default driver (if it exists) for `self`.
         """
+        conditional_wires = []
+        default_drivers = []
+        for ctx in self._wired_when_contexts:
+            conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
+            default_drivers.append(ctx._default_drivers.pop(self, None))
+        return self._wired_when_contexts, conditional_wires, default_drivers
+
+    def _rewire_conditional_children(self, wired_when_contexts,
+                                     conditional_wires, default_drivers):
         for i, child in self._enumerate_children():
             for ctx, wires, default_driver in zip(wired_when_contexts,
                                                   conditional_wires,
