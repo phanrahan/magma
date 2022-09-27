@@ -16,10 +16,7 @@ from .protocol_type import magma_type, magma_value
 from magma.operator_utils import output_only
 from magma.wire_container import WiringLog, Wireable
 from magma.protocol_type import MagmaProtocol
-from magma.when import (
-    get_curr_block as get_curr_when_block,
-    set_curr_block as set_curr_when_block
-)
+from magma.when import no_when, temp_when
 
 
 _logger = root_logger()
@@ -664,26 +661,19 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         * default_drivers: for each ctx in `wired_when_contexts`, contains the
                            default driver (if it exists) for `self`.
         """
-        # Save current when context since this logic children will be updating
-        # the when context so the children inherit `self`'s conditional logic.
-        curr_when_context = get_curr_when_block()
-
         for i, child in self._enumerate_children():
             for ctx, wires, default_driver in zip(wired_when_contexts,
                                                   conditional_wires,
                                                   default_drivers):
                 if default_driver:
                     # Default driver is wired outside of a when context.
-                    set_curr_when_block(None)
-                    child.wire(default_driver[i])
+                    with no_when():
+                        child.wire(default_driver[i])
 
                 # Use original wired when context.
-                set_curr_when_block(ctx)
-                for wire in wires:
-                    child.wire(wire.driver[i])
-
-        # Reset current when context
-        set_curr_when_block(curr_when_context)
+                with temp_when(ctx):
+                    for wire in wires:
+                        child.wire(wire.driver[i])
 
     def _resolve_conditional_children(self, value):
         # Save conditional wire info before unwire happens
@@ -702,15 +692,11 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
 
         # Else, was not wired in a when context, so children should not be
         # wired in a when context
-        curr_when = get_curr_when_block()
-        set_curr_when_block(None)
+        with no_when():
+            Wireable.unwire(self, value)
 
-        Wireable.unwire(self, value)
-
-        for i, child in self._enumerate_children():
-            child.wire(value[i])
-
-        set_curr_when_block(curr_when)
+            for i, child in self._enumerate_children():
+                child.wire(value[i])
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()

@@ -274,6 +274,14 @@ def no_when():
     _set_curr_block(block)
 
 
+@contextlib.contextmanager
+def temp_when(temp_ctx):
+    block = _get_curr_block()
+    _set_curr_block(temp_ctx)
+    yield
+    _set_curr_block(block)
+
+
 def _get_curr_block() -> Optional[_BlockBase]:
     global _curr_block
     return _curr_block
@@ -303,7 +311,6 @@ def _reset_prev_block():
 
 
 get_curr_block = _get_curr_block
-set_curr_block = _set_curr_block
 
 
 def _reset_context():
