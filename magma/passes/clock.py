@@ -106,6 +106,7 @@ def get_undriven_clocks_in_value(
         value: Type, clock_type: Kind) -> Iterable[Type]:
     """Returns all undriven values of type @clock_type contained in @value."""
     if not is_clock_or_nested_clock(type(value), (clock_type, )):
+        # Avoid descening into tuple/array if possible
         return
     if isinstance(value, Tuple):
         for elem in value:
