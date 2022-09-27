@@ -9,7 +9,7 @@ from .compatibility import IntegerTypes
 from .digital import Digital
 from .bit import Bit
 from .bitutils import int2seq
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -622,14 +622,15 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
             # Perform a bulk wire
             Wireable.wire(self, o, debug_info)
 
-    @debug_wire
-    def unwire(self, o=None, debug_info=None):
+    @debug_unwire
+    def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if self._has_elaborated_children():
             for i, child in self._enumerate_children():
                 o_i = None if o is None else o[i]
-                child.unwire(o_i, debug_info=debug_info)
+                child.unwire(o_i, debug_info=debug_info,
+                             keep_wired_when_contexts=keep_wired_when_contexts)
         else:
-            Wireable.unwire(self, o, debug_info)
+            Wireable.unwire(self, o, debug_info, keep_wired_when_contexts)
 
     def iswhole(self):
         if self._has_elaborated_children():

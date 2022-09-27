@@ -60,10 +60,10 @@ class _BlockBase(contextlib.AbstractContextManager):
         builder = self.root.builder
         if i.driven() and i not in builder.output_to_index:
             driver = i.value()
-            # TODO(leonardt): we need to skip removing wired when contexts
-            # because in this case, the driver could have been wired in a
-            # different when context
-            i._wire.unwire(driver._wire)
+            # Keep wired when contexts because in this case, the driver could
+            # have been wired in a different when context (so the default value
+            # comes from the result of a previous when context)
+            i.unwire(driver, keep_wired_when_contexts=True)
             self.root.add_default_driver(i, driver)
         self.root.builder.add_drivee(i)
         self.root.builder.add_driver(o)

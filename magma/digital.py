@@ -3,7 +3,7 @@ import weakref
 from abc import ABCMeta
 import hwtypes as ht
 from .t import Kind, Direction, Type, In, Out
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
@@ -182,10 +182,6 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
             )
             return
         Wireable.wire(self, o, debug_info)
-
-    @debug_wire
-    def unwire(self, o=None, debug_info=None):
-        return Wireable.unwire(self, o, debug_info)
 
     def iswhole(self):
         return True

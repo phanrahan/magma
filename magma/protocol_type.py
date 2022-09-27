@@ -1,6 +1,6 @@
 import abc
 
-from magma.debug import debug_wire
+from magma.debug import debug_wire, debug_unwire
 
 
 class MagmaProtocolMeta(type):
@@ -116,10 +116,12 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
             other = other._get_magma_value_()
         self._get_magma_value_().wire(other, debug_info)
 
-    def unwire(self, other, debug_info=None):
+    @debug_unwire
+    def unwire(self, other, debug_info=None, keep_wired_when_contexts=False):
         if isinstance(other, MagmaProtocol):
             other = other._get_magma_value_()
-        self._get_magma_value_().unwire(other, debug_info)
+        self._get_magma_value_().unwire(other, debug_info,
+                                        keep_wired_when_contexts)
 
     def __imatmul__(self, other):
         self.wire(other)

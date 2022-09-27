@@ -18,7 +18,7 @@ from .common import deprecated
 from .ref import AnonRef, TupleRef
 from .t import Type, Kind, Direction
 from .compatibility import IntegerTypes
-from .debug import debug_wire, get_callee_frame_info
+from .debug import debug_wire, get_callee_frame_info, debug_unwire
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
@@ -309,15 +309,18 @@ class Tuple(Type, Tuple_, metaclass=TupleKind):
             o_elem = magma_value(o_elem)
             wire(o_elem, i_elem, debug_info)
 
-    @debug_wire
-    def unwire(self, o=None, debug_info=None):
+    @debug_unwire
+    def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         for k, t in self.items():
             if o is None:
-                t.unwire(debug_info=debug_info)
+                t.unwire(debug_info=debug_info,
+                         keep_wired_when_contexts=keep_wired_when_contexts)
             elif o[k].is_input():
-                o[k].unwire(t, debug_info=debug_info)
+                o[k].unwire(t, debug_info=debug_info,
+                            keep_wired_when_contexts=keep_wired_when_contexts)
             else:
-                t.unwire(o[k], debug_info=debug_info)
+                t.unwire(o[k], debug_info=debug_info,
+                         keep_wired_when_contexts=keep_wired_when_contexts)
 
     def driven(self):
         for t in self.ts:

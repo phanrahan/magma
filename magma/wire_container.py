@@ -207,11 +207,12 @@ class Wireable:
             ctx.remove_conditional_wire(self)
         self._wired_when_contexts = []
 
-    def unwire(self, o=None, debug_info=None):
+    def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if o is not None:
             o = o._wire
         self._wire.unwire(o, debug_info)
-        self._remove_from_wired_when_contexts()
+        if not keep_wired_when_contexts:
+            self._remove_from_wired_when_contexts()
 
     def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
