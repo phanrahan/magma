@@ -646,11 +646,10 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
     def _get_conditional_drivee_info(self):
         conditional_wires = []
         default_drivers = []
-        wired_when_contexts = self._wired_when_contexts
-        for ctx in wired_when_contexts:
+        for ctx in self._wired_when_contexts:
             conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
             default_drivers.append(ctx._default_drivers.pop(self, None))
-        return wired_when_contexts, conditional_wires, default_drivers
+        return self._wired_when_contexts, conditional_wires, default_drivers
 
     def _rewire_conditional_children(self, wired_when_contexts,
                                      conditional_wires, default_drivers):
