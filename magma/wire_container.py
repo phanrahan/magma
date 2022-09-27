@@ -1,7 +1,7 @@
 import logging as py_logging
 
 from magma.config import config, EnvConfig
-from magma.debug import debug_wire
+from magma.debug import debug_wire, debug_unwire
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import get_curr_block as get_curr_when_block
 
@@ -207,6 +207,7 @@ class Wireable:
             ctx.remove_conditional_wire(self)
         self._wired_when_contexts = []
 
+    @debug_unwire
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if o is not None:
             o = o._wire
