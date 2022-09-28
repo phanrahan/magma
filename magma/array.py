@@ -722,21 +722,14 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         if self._wire.driving():
             self._resolve_driving_bulk_wire()
 
-=======
->>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
-<<<<<<< HEAD
             value = self.T._to_magma_()(name=ArrayRef(self, index))
             value.set_enclosing_when_context(self._enclosing_when_context)
             return self.T._from_magma_value_(value)
         value = self.T(name=ArrayRef(self, index))
         value.set_enclosing_when_context(self._enclosing_when_context)
         return value
-=======
-            return self.T._from_magma_ref_(ArrayRef(self, index))
-        return self.T(name=ArrayRef(self, index))
->>>>>>> 9165165c (Use from ref in array)
 
     def _resolve_slice_children(self, start, stop, slice_value):
         for i in range(start, stop):
@@ -750,17 +743,8 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         # When we encounter an overlapping slice that is already bulk driven,
         # we ensure the corresponding children are updated to their current
         # values
-<<<<<<< HEAD
         if value._wire.driven():
             value._resolve_driven_bulk_wire()
-=======
-        if not value._wire.driven():
-            return
-        driver = value._wire.value()
-        AggregateWireable.unwire(value, driver)
-        for i in range(start, stop):
-            self._ts[i] @= driver[i - start]
->>>>>>> b51fd972 (Refactor shared code between array/tuple wireable)
 
     def _remove_slice(self, key):
         """
