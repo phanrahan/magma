@@ -627,7 +627,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
-            return WireableWithChildren.unwire(self, o, debug_info)
+            return AggregateWireable.unwire(self, o, debug_info)
         for i, child in self._enumerate_children():
             o_i = None if o is None else o[i]
             child.unwire(o_i, debug_info=debug_info,
@@ -683,7 +683,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         # Save conditional wire info before unwire happens
         info = self._get_conditional_drivee_info()
 
-        Wireable.unwire(self, value)
+        AggregateWireable.unwire(self, value)
 
         self._rewire_conditional_children(*info)
 
@@ -697,7 +697,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         # Else, was not wired in a when context, so children should not be
         # wired in a when context
         with no_when():
-            Wireable.unwire(self, value)
+            AggregateWireable.unwire(self, value)
 
             for i, child in self._enumerate_children():
                 child.wire(value[i])
