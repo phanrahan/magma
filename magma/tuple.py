@@ -341,7 +341,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
-            return Wireable.unwire(self, o, debug_info)
+            return AggregateWireableWireable.unwire(self, o, debug_info,
+                                                    keep_wired_when_contexts)
 
         for k, t in self.items():
             if o is None:

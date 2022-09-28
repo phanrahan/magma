@@ -136,6 +136,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def const(self):
         return self._get_magma_value_().const()
 
+    def set_enclosing_when_context(self, ctx):
+        self._get_magma_value_().set_enclosing_when_context(ctx)
+
 
 def magma_type(T):
     if issubclass(T, MagmaProtocol):
