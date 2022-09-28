@@ -5,7 +5,11 @@ import logging as py_logging
 from magma.config import config, EnvConfig
 from magma.debug import debug_wire, debug_unwire
 from magma.logging import root_logger, StagedLogRecord
-from magma.when import get_curr_block as get_curr_when_block
+from magma.when import (
+    get_curr_block as get_curr_when_block,
+    no_when,
+    temp_when
+)
 
 
 config._register(
@@ -250,28 +254,72 @@ class AggregateWireable(Wireable):
     def _enumerate_children(self):
         raise NotImplementedError()
 
-    def _resolve_driven_bulk_wire(self):
-        # Remove bulk wire since children will now track the wiring.
-        value = self._wire.value()
-        Wireable.unwire(self, value)
+    def _get_conditional_drivee_info(self):
+        """
+        * wired_when_contexts: list of contexts in which this value appears as
+                               conditionally driven.
 
-        # Update children.
+        * conditional_wires: for each ctx in `wired_when_contexts`, contains a
+                             list of conditional wire objects where `self` is a
+                             drivee.
+
+        * default_drivers: for each ctx in `wired_when_contexts`, contains the
+                           default driver (if it exists) for `self`.
+        """
+        conditional_wires = []
+        default_drivers = []
+        for ctx in self._wired_when_contexts:
+            conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
+            default_drivers.append(ctx._default_drivers.pop(self, None))
+        return self._wired_when_contexts, conditional_wires, default_drivers
+
+    def _rewire_conditional_children(self, wired_when_contexts,
+                                     conditional_wires, default_drivers):
         for i, child in self._enumerate_children():
-            child.wire(value[i])
+            for ctx, wires, default_driver in zip(wired_when_contexts,
+                                                  conditional_wires,
+                                                  default_drivers):
+                if default_driver:
+                    # Default driver is wired outside of a when context.
+                    with no_when():
+                        child.wire(default_driver[i])
+
+                # Use original wired when context.
+                with temp_when(ctx):
+                    for wire in wires:
+                        child.wire(wire.driver[i])
+
+    def _resolve_conditional_children(self, value):
+        # Save conditional wire info before unwire happens
+        info = self._get_conditional_drivee_info()
+
+        AggregateWireable.unwire(self, value)
+
+        self._rewire_conditional_children(*info)
+
+    def _resolve_driven_bulk_wire(self):
+        # Remove bulk wire since children will now track the wiring
+        value = self._wire.value()
+
+        if self._wired_when_contexts:
+            return self._resolve_conditional_children(value)
+
+        # Else, was not wired in a when context, so children should not be
+        # wired in a when context
+        with no_when():
+            AggregateWireable.unwire(self, value)
+
+            for i, child in self._enumerate_children():
+                child.wire(value[i])
 
     def _resolve_driving_bulk_wire(self):
         driving = self._wire.driving()
-        # NOTE(leonardt): we need to remove drivees before doing the recursive
-        # wiring of the children or else we'll trigger _resolve_bulk_wire when
-        # iterating over the children.
         for drivee in driving:
-            # Remove bulk wire since children will now track the wiring.
-            Wireable.unwire(drivee, self)
-
-        for drivee in driving:
-            # Update children.
-            for i, child in self._enumerate_children():
-                drivee[i].wire(child)
+            # Force drivee to resolve by triggering the
+            # _resolve_driven_bulk_wire logic which occurs when referencing a
+            # child which begins the elaboration process.  Using this pattern
+            # avoids having to duplicate the logic for driving/driven
+            next(iter(drivee))
 
     def _resolve_bulk_wire(self):
         """

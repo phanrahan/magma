@@ -15,7 +15,6 @@ from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
 from magma.protocol_type import MagmaProtocol
-from magma.when import no_when, temp_when
 from magma.wire_container import (
     WiringLog,
     AggregateWireable,
@@ -627,7 +626,8 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
-            return AggregateWireable.unwire(self, o, debug_info)
+            return AggregateWireable.unwire(self, o, debug_info,
+                                            keep_wired_when_contexts)
         for i, child in self._enumerate_children():
             o_i = None if o is None else o[i]
             child.unwire(o_i, debug_info=debug_info,
@@ -643,84 +643,6 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
             return all(child.const()
                        for _, child in self._enumerate_children())
         return False
-
-    def _get_conditional_drivee_info(self):
-        """
-        * wired_when_contexts: list of contexts in which this value appears as
-                               conditionally driven.
-
-        * conditional_wires: for each ctx in `wired_when_contexts`, contains a
-                             list of conditional wire objects where `self` is a
-                             drivee.
-
-        * default_drivers: for each ctx in `wired_when_contexts`, contains the
-                           default driver (if it exists) for `self`.
-        """
-        conditional_wires = []
-        default_drivers = []
-        for ctx in self._wired_when_contexts:
-            conditional_wires.append(ctx.get_conditional_wires_for_drivee(self))
-            default_drivers.append(ctx._default_drivers.pop(self, None))
-        return self._wired_when_contexts, conditional_wires, default_drivers
-
-    def _rewire_conditional_children(self, wired_when_contexts,
-                                     conditional_wires, default_drivers):
-        for i, child in self._enumerate_children():
-            for ctx, wires, default_driver in zip(wired_when_contexts,
-                                                  conditional_wires,
-                                                  default_drivers):
-                if default_driver:
-                    # Default driver is wired outside of a when context.
-                    with no_when():
-                        child.wire(default_driver[i])
-
-                # Use original wired when context.
-                with temp_when(ctx):
-                    for wire in wires:
-                        child.wire(wire.driver[i])
-
-    def _resolve_conditional_children(self, value):
-        # Save conditional wire info before unwire happens
-        info = self._get_conditional_drivee_info()
-
-        AggregateWireable.unwire(self, value)
-
-        self._rewire_conditional_children(*info)
-
-    def _resolve_driven_bulk_wire(self):
-        # Remove bulk wire since children will now track the wiring
-        value = self._wire.value()
-
-        if self._wired_when_contexts:
-            return self._resolve_conditional_children(value)
-
-        # Else, was not wired in a when context, so children should not be
-        # wired in a when context
-        with no_when():
-            AggregateWireable.unwire(self, value)
-
-            for i, child in self._enumerate_children():
-                child.wire(value[i])
-
-    def _resolve_driving_bulk_wire(self):
-        driving = self._wire.driving()
-        for drivee in driving:
-            # Force drivee to resolve by triggering the
-            # _resolve_driven_bulk_wire logic which occurs when referencing a
-            # child which begins the elaboration process.  Using this pattern
-            # avoids having to duplicate the logic for driving/driven
-            drivee[0]
-        return
-
-    def _resolve_bulk_wire(self):
-        """
-        If a child reference is made, we "expand" a bulk wire into the
-        constiuent children to maintain consistency
-        """
-        if self._wire.driven():
-            self._resolve_driven_bulk_wire()
-        if self._wire.driving():
-            self._resolve_driving_bulk_wire()
 
     def _make_t(self, index):
         if issubclass(self.T, MagmaProtocol):
