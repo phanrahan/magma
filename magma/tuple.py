@@ -6,11 +6,10 @@ from hwtypes.adt import (
     TupleMeta,
     Tuple as Tuple_,
     AnonymousProductMeta,
-    Product,
     ProductMeta,
 )
 from hwtypes import BitVector, Bit
-from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS
+from hwtypes.adt_meta import BoundMeta, RESERVED_SUNDERS, ReservedNameError
 from hwtypes.util import TypedProperty, OrderedFrozenDict
 from .common import deprecated
 from .ref import TupleRef
@@ -43,7 +42,8 @@ class TupleKind(TupleMeta, Kind):
     def __new__(mcs, name, bases, namespace, fields=None, **kwargs):
         for rname in RESERVED_SUNDERS:
             if rname in namespace:
-                raise ReservedNameError(f'class attribute {rname} is reserved by the type machinery')
+                raise ReservedNameError(f'class attribute {rname} is reserved '
+                                        'by the type machinery')
 
         bound_types = fields
         has_bound_base = False
@@ -68,7 +68,8 @@ class TupleKind(TupleMeta, Kind):
                                 except AttributeError:
                                     pass
                                 raise TypeError(
-                                    "Can't inherit from multiple different bound_types"
+                                    "Can't inherit from multiple different "
+                                    "bound_types"
                                 )
                 else:
                     unbound_bases.append(base)
@@ -109,7 +110,7 @@ class TupleKind(TupleMeta, Kind):
         bases = tuple(bases)
         class_name = cls._name_cb(idx)
 
-        t = mcs(class_name, bases, {'__module__' : cls.__module__}, fields=idx)
+        t = mcs(class_name, bases, {'__module__': cls.__module__}, fields=idx)
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
         mcs._class_cache[cls, idx] = t
@@ -321,7 +322,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
         if self.keys() != o.keys():
             _logger.error(
                 WiringLog(f"Cannot wire {{}} (type={type(o)}, "
-                          f"keys={list(self.keys())}) to {{}} (type={type(self)}, "
+                          f"keys={list(self.keys())}) to "
+                          f" {{}} (type={type(self)}, "
                           f"keys={list(o.keys())}) because the tuples do not "
                           f"have the same keys", o, self),
                 debug_info=debug_info
@@ -341,8 +343,8 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     @aggregate_wireable_method
     def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if not self._has_elaborated_children():
-            return AggregateWireableWireable.unwire(self, o, debug_info,
-                                                    keep_wired_when_contexts)
+            return AggregateWireable.unwire(self, o, debug_info,
+                                            keep_wired_when_contexts)
 
         for k, t in self.items():
             if o is None:
@@ -363,42 +365,6 @@ class Tuple(Type, Tuple_, AggregateWireable, metaclass=TupleKind):
     def wired(self):
         return all(t.wired() for t in self)
 
-    @staticmethod
-    def _iswhole(ts, keys):
-
-        for i in range(len(ts)):
-            if ts[i].anon():
-                return False
-
-        for i in range(len(ts)):
-            # elements must be an tuple reference
-            if not isinstance(ts[i].name, TupleRef):
-                return False
-
-        for i in range(1, len(ts)):
-            # elements must refer to the same tuple
-            if ts[i].name.tuple is not ts[i - 1].name.tuple:
-                return False
-
-        for i in range(len(ts)):
-            # elements should be numbered consecutively
-            if ts[i].name.index != list(keys)[i]:
-                return False
-
-        if len(ts) != len(ts[0].name.tuple):
-            # elements should refer to a whole tuple
-            return False
-
-        return True
-
-    def iswhole(self):
-        return Tuple._iswhole(list(self), self.keys())
-
-    @aggregate_wireable_method
-    def wired(self):
-        return all(t.wired() for t in self)
-
-    # test whether the values refer a whole tuple
     @staticmethod
     def _iswhole(ts, keys):
 
@@ -565,7 +531,7 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
         bases = tuple(bases)
         class_name = cls._name_from_idx(idx)
 
-        ns = {'__module__' : cls.__module__}
+        ns = {'__module__': cls.__module__}
         # add properties to namespace
         # build properties
         _add_properties(ns, idx)
@@ -621,19 +587,25 @@ class AnonProductKind(AnonymousProductMeta, TupleKind, Kind):
 
     def is_wireable(cls, rhs):
         rhs = magma_type(rhs)
-        if not isinstance(rhs, AnonProductKind) or len(cls.fields) != len(rhs.fields):
+        if (
+            not isinstance(rhs, AnonProductKind) or
+            len(cls.fields) != len(rhs.fields)
+        ):
             return False
         for k, v in cls.field_dict.items():
-            if not k in rhs.field_dict or not v.is_wireable(rhs.field_dict[k]):
+            if k not in rhs.field_dict or not v.is_wireable(rhs.field_dict[k]):
                 return False
         return True
 
     def is_bindable(cls, rhs):
         rhs = magma_type(rhs)
-        if not isinstance(rhs, AnonProductKind) or len(cls.fields) != len(rhs.fields):
+        if (
+            not isinstance(rhs, AnonProductKind) or
+            len(cls.fields) != len(rhs.fields)
+        ):
             return False
         for k, v in cls.field_dict.items():
-            if not k in rhs.field_dict or not v.is_bindable(rhs.field_dict[k]):
+            if k not in rhs.field_dict or not v.is_bindable(rhs.field_dict[k]):
                 return False
         return True
 
@@ -661,7 +633,7 @@ class ProductKind(ProductMeta, AnonProductKind, Kind):
     def __new__(mcs, name, bases, namespace, cache=True, **kwargs):
         return super().__new__(mcs, name, bases, namespace, cache, **kwargs)
 
-    def from_fields(cls, name, fields , cache=True):
+    def from_fields(cls, name, fields, cache=True):
         return super().from_fields(name, fields, cache)
 
     @classmethod
@@ -676,8 +648,8 @@ class ProductKind(ProductMeta, AnonProductKind, Kind):
         # this is all really gross but I don't know how to do this cleanly
         # need to build t so I can call super() in new and init
         # need to exec to get proper signatures
-        t = TupleKind.__new__(mcs, name, bases, ns, fields=tuple(fields.values()),
-                              **kwargs)
+        t = TupleKind.__new__(mcs, name, bases, ns,
+                              fields=tuple(fields.values()), **kwargs)
         if t._unbound_base_ is None:
             t._unbound_base_ = cls
 
