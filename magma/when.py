@@ -421,6 +421,7 @@ def _reset_prev_block():
 
 
 get_curr_block = _get_curr_block
+WhenBlock = _WhenBlock
 
 
 def _reset_context():
