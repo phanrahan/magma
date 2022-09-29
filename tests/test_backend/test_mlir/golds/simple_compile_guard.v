@@ -2,46 +2,41 @@
 module COND1_compile_guard(	// <stdin>:1:1
   input port_0,
         CLK);
+  reg Register_inst0;	// <stdin>:2:10
 
-  `ifdef COND1	// <stdin>:2:5
-    reg Register_inst0;	// <stdin>:3:14
-    always_ff @(posedge CLK)	// <stdin>:4:9
-      Register_inst0 <= port_0;	// <stdin>:5:13
-    initial	// <stdin>:8:9
-      Register_inst0 = 1'h0;	// <stdin>:7:14, :9:13
-  `endif
+  always_ff @(posedge CLK)	// <stdin>:3:5
+    Register_inst0 <= port_0;	// <stdin>:4:9
+  initial	// <stdin>:7:5
+    Register_inst0 = 1'h0;	// <stdin>:6:10, :8:9
 endmodule
 
-module COND2_compile_guard(	// <stdin>:14:1
-  input port_0,
-        CLK);
+module COND2_compile_guard(	// <stdin>:12:1
+  input port_0, CLK);
 
-  `ifndef COND2	// <stdin>:15:5
-    reg Register_inst0;	// <stdin>:17:14
-    always_ff @(posedge CLK)	// <stdin>:18:9
-      Register_inst0 <= port_0;	// <stdin>:19:13
-    initial	// <stdin>:22:9
-      Register_inst0 = 1'h0;	// <stdin>:21:14, :23:13
-  `endif
+  reg Register_inst0;	// <stdin>:13:10
+
+  always_ff @(posedge CLK)	// <stdin>:14:5
+    Register_inst0 <= port_0;	// <stdin>:15:9
+  initial	// <stdin>:18:5
+    Register_inst0 = 1'h0;	// <stdin>:17:10, :19:9
 endmodule
 
-module simple_compile_guard(	// <stdin>:28:1
-  input  I,
-         CLK,
+module simple_compile_guard(	// <stdin>:23:1
+  input  I, CLK,
   output O);
 
-  `ifdef COND1	// <stdin>:29:5
-    COND1_compile_guard COND1_compile_guard (	// <stdin>:30:9
+  `ifdef COND1	// <stdin>:24:5
+    COND1_compile_guard COND1_compile_guard (	// <stdin>:25:9
       .port_0 (I),
       .CLK    (CLK)
     );
   `endif
-  `ifndef COND2	// <stdin>:32:5
-    COND2_compile_guard COND2_compile_guard (	// <stdin>:34:9
+  `ifndef COND2	// <stdin>:27:5
+    COND2_compile_guard COND2_compile_guard (	// <stdin>:29:9
       .port_0 (I),
       .CLK    (CLK)
     );
   `endif
-  assign O = I;	// <stdin>:36:5
+  assign O = I;	// <stdin>:31:5
 endmodule
 

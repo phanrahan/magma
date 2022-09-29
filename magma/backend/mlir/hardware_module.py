@@ -1216,12 +1216,7 @@ class HardwareModule:
         graph = build_magma_graph(
             self._magma_defn_or_decl, build_magma_graph_opts)
         visitor = ModuleVisitor(graph, self)
-        with contextlib.ExitStack() as exit_stack:
-            exit_stack.enter_context(push_block(op))
-            compile_guard = get_compile_guard_data(self._magma_defn_or_decl)
-            if compile_guard is not None:
-                block = _make_compile_guard_block(compile_guard)
-                exit_stack.enter_context(push_block(block))
+        with push_block(op):
             try:
                 visitor.visit(self._magma_defn_or_decl)
             except ModuleVisitor.VisitError:
