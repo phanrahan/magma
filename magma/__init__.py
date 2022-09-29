@@ -122,6 +122,7 @@ import magma.math
 from magma.when import when, elsewhen, otherwise
 from magma.value_utils import fill
 from magma.bind2 import bind2, make_bind_ports
+from magma.sum_type import Sum, match, case
 
 ################################################################################
 # BEGIN ALIASES

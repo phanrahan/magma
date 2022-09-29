@@ -54,6 +54,7 @@ from magma.primitives.mux import Mux
 from magma.primitives.register import Register
 from magma.primitives.when import iswhen
 from magma.primitives.xmr import XMRSink, XMRSource
+from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta, magma_value
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
 from magma.value_utils import make_selector
@@ -1145,6 +1146,7 @@ class HardwareModule:
         return self._value_map[port]
 
     def get_or_make_mapped_value(self, port: Type, **kwargs) -> MlirValue:
+        port = magma_value(port)
         try:
             return self._value_map[port]
         except KeyError:
@@ -1153,6 +1155,7 @@ class HardwareModule:
         return value
 
     def set_mapped_value(self, port: Type, value: MlirValue):
+        port = magma_value(port)
         if port in self._value_map:
             raise ValueError(f"Port {port} already mapped")
         self._value_map[port] = value
@@ -1160,6 +1163,11 @@ class HardwareModule:
     def new_value(
             self, value_or_type: Union[Type, Kind, MlirType],
             **kwargs) -> MlirValue:
+        if isinstance(value_or_type, MagmaProtocol):
+            value_or_type = value_or_type._get_magma_value_()
+        if isinstance(value_or_type, MagmaProtocolMeta):
+            value_or_type = value_or_type._to_magma_()
+
         if isinstance(value_or_type, Type):
             mlir_type = magma_type_to_mlir_type(type(value_or_type))
         elif isinstance(value_or_type, Kind):

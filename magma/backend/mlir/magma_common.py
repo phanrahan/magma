@@ -6,6 +6,7 @@ from magma.backend.mlir.common import make_unique_name
 from magma.backend.mlir.graph_lib import Graph
 from magma.circuit import Circuit, DefineCircuitKind
 from magma.common import replace_all, Stack, SimpleCounter
+from magma.protocol_type import MagmaProtocol, MagmaProtocolMeta, magma_value
 from magma.ref import Ref, ArrayRef, TupleRef
 from magma.t import Kind, Type
 from magma.tuple import TupleMeta, Tuple as m_Tuple
@@ -35,6 +36,10 @@ def contains_tuple(T: Kind):
 
 
 def value_or_type_to_string(value_or_type: Union[Type, Kind]):
+    if isinstance(value_or_type, MagmaProtocol):
+        value_or_type = value_or_type._get_magma_value_()
+    if isinstance(value_or_type, MagmaProtocolMeta):
+        value_or_type = value_or_type._to_magma_()
     if isinstance(value_or_type, Type):
         s = value_or_type.name.qualifiedname("_")
     else:
@@ -113,6 +118,8 @@ def visit_value_or_value_wrapper_by_direction(
         input_visitor: Callable[[Type], Any],
         output_visitor: Callable[[Type], Any],
         **kwargs):
+
+    value_or_value_wrapper = magma_value(value_or_value_wrapper)
 
     pre_descend = kwargs.get("pre_descend", lambda _: None)
     post_descend = kwargs.get("post_descend", lambda _: None)
