@@ -24,6 +24,7 @@ class MlirToVerilogError(MlirCompilerError):
 @dataclasses.dataclass
 class MlirToVerilogOpts:
     location_info_style: str = "plain"
+    explicit_bitcast: bool = False
 
 
 def _circt_home() -> pathlib.Path:
@@ -52,6 +53,8 @@ def _circt_opt_cmd(
     lowering_opts = [
         f"locationInfoStyle={opts.location_info_style}",
     ]
+    if opts.explicit_bitcast:
+        lowering_opts.append("explicitBitcast")
     lowering_opts = [f"--lowering-options={','.join(lowering_opts)}"]
     return [bin_] + passes + extra_opts + lowering_opts
 
