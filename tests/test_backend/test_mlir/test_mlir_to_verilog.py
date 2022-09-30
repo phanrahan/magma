@@ -76,3 +76,31 @@ def test_location_info_style(style):
     elif style == "wrapInAtSquareBracket":
         expected += "	// @[<stdin>:1:1]"
     assert line == expected
+
+
+@pytest.mark.parametrize("explicit_bitcast", (False, True))
+def test_explicit_bitcast(explicit_bitcast):
+    _skip_if_circt_opt_binary_does_not_exist()
+    opts = {
+        "explicit_bitcast": explicit_bitcast,
+        "location_info_style": "none",
+    }
+    ir = (
+        """
+        hw.module @M(%a: i8, %b: i8) -> (y: i8) {
+          %0 = comb.add %a, %b : i8
+          hw.output %0 : i8
+        }
+        """
+    )
+    _, ostream = _run_test(ir, **opts)
+    ostream.seek(0)
+    # Skip first 5 lines (incl. header).
+    for _ in range(6):
+        ostream.readline()
+    line = ostream.readline().strip()
+    if not explicit_bitcast:
+        expected = "assign y = a + b;"
+    else:
+        expected = "assign y = 8'(a + b);"
+    assert line == expected
