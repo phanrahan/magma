@@ -64,7 +64,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
 
         self._tag_map = {}  # map from T to int id value
         for T in self._magma_Ts_.values():
-            # For now, tags map to index in _magma_Ts_ order
+            # For now, tags map to index in _magma_Ts_ order.
             self._tag_map[T.undirected_t] = len(self._tag_map)
 
         self._match_active = False  # must be True to use case
@@ -111,7 +111,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
         return self._val
 
     def check_tag(self, T):
-        # Used for when condition in a specific case
+        # Used for when condition in a specific case.
         return self._val.tag == self._tag_map[T]
 
     def __invert__(self):
