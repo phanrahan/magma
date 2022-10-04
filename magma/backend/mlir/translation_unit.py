@@ -18,7 +18,9 @@ class TranslationUnit:
         self._mlir_module = builtin.ModuleOp()
         self._hardware_modules = {}
         self._symbol_map = {}
-        self._symbol_name_generator = ScopedNameGenerator()
+        self._symbol_name_generator = ScopedNameGenerator(
+            disallow_duplicates=self._opts.disallow_duplicate_symbols,
+        )
         self._bind_files = []
         self._xmr_paths = {}
 
