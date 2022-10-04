@@ -30,7 +30,7 @@ class SumMeta(MagmaProtocolMeta):
     def __new__(mcs, name, bases, namespace):
         data_len = 0
         Ts = {}
-        # TODO: How to handle mixed direction type?
+        # TODO(leonardt/sum): How to handle mixed direction type?
         is_input, is_output = True, True
 
         for key, value in namespace.items():
@@ -123,7 +123,7 @@ class Sum(MagmaProtocol, metaclass=SumMeta):
     def __and__(self, other):
         return self._get_magma_value_() & other
 
-    # TODO: define all operators (can we metaprogram delegator to
+    # TODO(leonardt/sum): define all operators (can we metaprogram delegator to
     # self._get_magma_value_()?)
 
     def wire(self, other):
