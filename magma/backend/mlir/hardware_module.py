@@ -1113,7 +1113,7 @@ class HardwareModule:
         self._parent = parent
         self._opts = opts
         self._hw_module = None
-        self._name_gen = ScopedNameGenerator()
+        self._name_gen = ScopedNameGenerator(disallow_duplicates=False)
         self._value_map = {}
 
     @property

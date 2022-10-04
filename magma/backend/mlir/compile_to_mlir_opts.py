@@ -12,3 +12,4 @@ class CompileToMlirOpts:
     disable_initial_blocks: bool = False
     elaborate_magma_registers: bool = False
     extend_non_power_of_two_muxes: bool = False
+    disallow_duplicate_symbols: bool = False

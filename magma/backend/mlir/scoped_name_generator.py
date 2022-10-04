@@ -10,7 +10,8 @@ class ScopedNameGeneratorBase(abc.ABC):
 
 
 class ScopedNameGenerator(ScopedNameGeneratorBase):
-    def __init__(self):
+    def __init__(self, disallow_duplicates: bool):
+        self._disallow_duplicates = disallow_duplicates
         self._indices = collections.Counter()
 
     def __call__(self, name: Optional[str] = None, force: bool = False) -> str:
@@ -22,6 +23,8 @@ class ScopedNameGenerator(ScopedNameGeneratorBase):
         index = self._indices[name]
         self._indices[name] += 1
         if force:
-            assert index == 0
-            return name
+            if not self._disallow_duplicates:
+                return name
+            if index != 0:
+                raise RuntimeError(f"Found duplicate name {name}")
         return name + str(index)
