@@ -1,50 +1,57 @@
-import ast
-import astor
 import inspect
+import textwrap
 
-from magma.ast_utils import get_ast, compile_function_to_file
+import libcst as cst
 from magma.t import Type
 from magma.ref import AnonRef, NamedRef
 
 
-class DebugTransformer(ast.NodeTransformer):
+class Transformer(cst.CSTTransformer):
+    METADATA_DEPENDENCIES = (cst.metadata.PositionProvider,)
+
     def __init__(self, filename):
+        super().__init__()
         self.filename = filename
 
-    def visit_Assign(self, node):
-        if len(node.targets) > 1:
-            raise NotImplementedError()
+    def leave_Assign(
+        self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+    ) -> cst.CSTNode:
+        assert len(updated_node.targets) == 1
+        assert isinstance(updated_node.targets[0], cst.AssignTarget)
+        if not isinstance(updated_node.targets[0].target, cst.Name):
+            return updated_node
 
-        assert len(node.targets) == 1
-        if not isinstance(node.targets[0], ast.Name):
-            return node
-        node.value = ast.Call(
-            ast.Attribute(ast.Attribute(ast.Name("m", ast.Load()),
-                                        "debug_rewriter",
-                                        ast.Load()),
-                          "set_debug_info",
-                          ast.Load()),
-            [node.value, ast.Str(node.targets[0].id), ast.Str(self.filename),
-             ast.Num(node.lineno), ast.Num(node.col_offset)],
-            [],
-            lineno=node.lineno,
-            col_offset=node.col_offset
+        pos = self.get_metadata(cst.metadata.PositionProvider,
+                                original_node).start
+        value_str = cst.Module((cst.Expr(updated_node.value), )).code
+        name = updated_node.targets[0].target.value
+        tree = cst.parse_expression(
+            f"m.debug_rewriter.set_debug_info({value_str}, \"{name}\", "
+            f"\"{self.filename}\", {pos.line}, {pos.column})"
         )
-        return node
+        return updated_node.with_changes(value=tree)
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+        return True
+
+    def leave_FunctionDef(
+        self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+    ) -> cst.CSTNode:
+        return updated_node.with_changes(decorators=[])
 
 
 def debug(fn):
     filename = inspect.getfile(fn)
-    tree = get_ast(fn)
-    assert len(tree.body[0].decorator_list) == 1
-    tree.body[0].decorator_list = []
-    tree = DebugTransformer(filename).visit(tree)
-    # TODO(leonardt): gen_free_name for magma ref
-    tree.body.insert(0, ast.parse("import magma as m").body[0])
-    tree = ast.fix_missing_locations(tree)
+    indented_program_txt = inspect.getsource(fn)
+    program_txt = textwrap.dedent(indented_program_txt)
+    tree = cst.parse_module(program_txt)
+    wrapper = cst.metadata.MetadataWrapper(tree)
+    tree = wrapper.visit(Transformer(filename))
+    code = "import magma as m\n" + tree.code
+    print(code)
 
     namespace = {}
-    exec(compile(tree, filename, 'exec'), namespace)
+    exec(code, namespace)
     return namespace[fn.__name__]
 
 
