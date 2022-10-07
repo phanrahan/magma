@@ -739,8 +739,7 @@ class Array(Type, Wireable, metaclass=ArrayMeta):
         # When we encounter an overlapping slice that is already bulk driven,
         # we ensure the corresponding children are updated to their current
         # values
-        if value._wire.driven():
-            value._resolve_driven_bulk_wire()
+        value._resolve_bulk_wire()
 
     def _remove_slice(self, key):
         """
