@@ -530,7 +530,6 @@ def test_array2_driving():
 
         io.O @= y | m.zext_to(x, 8)
 
-        print(out.driving())
         for i, driving in enumerate(out.driving()):
             assert len(driving) >= 1
             assert driving[-1] is not_inst.I[i]
