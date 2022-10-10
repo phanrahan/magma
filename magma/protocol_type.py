@@ -123,8 +123,9 @@ class MagmaProtocol(metaclass=MagmaProtocolMeta):
     def unwire(self, other, debug_info=None, keep_wired_when_contexts=False):
         if isinstance(other, MagmaProtocol):
             other = other._get_magma_value_()
-        self._get_magma_value_().unwire(other, debug_info,
-                                        keep_wired_when_contexts)
+        self._get_magma_value_().unwire(
+            other, debug_info, keep_wired_when_contexts
+        )
 
     def __imatmul__(self, other):
         self.wire(other)

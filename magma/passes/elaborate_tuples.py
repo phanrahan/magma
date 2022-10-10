@@ -1,28 +1,16 @@
 from magma.passes.passes import DefinitionPass, pass_lambda
-from magma.tuple import Tuple
-from magma.array import Array
-
-
-def _is_tuple_or_nested_tuple(T):
-    if issubclass(T, Tuple):
-        return True
-    if issubclass(T, Array):
-        return _is_tuple_or_nested_tuple(T.T)
-    return False
+from magma.type_utils import contains_tuple
 
 
 def _expand(value):
-    if isinstance(value, Tuple):
-        for elem in value:
-            _expand(elem)
-    if isinstance(value, Array) and _is_tuple_or_nested_tuple(type(value)):
+    if contains_tuple(type(value)):
         for elem in value:
             _expand(elem)
 
 
 def _expand_tuple_values(values):
     for value in values:
-        if _is_tuple_or_nested_tuple(type(value)):
+        if contains_tuple(type(value)):
             _expand(value)
 
 

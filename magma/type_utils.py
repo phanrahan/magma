@@ -170,3 +170,11 @@ _TYPE_STR_SANITIZATION_MAP = {
 
 def type_to_sanitized_string(T: Kind) -> str:
     return replace_all(str(T), _TYPE_STR_SANITIZATION_MAP)
+
+
+def contains_tuple(T):
+    if issubclass(T, Tuple):
+        return True
+    if issubclass(T, Array):
+        return contains_tuple(T.T)
+    return False

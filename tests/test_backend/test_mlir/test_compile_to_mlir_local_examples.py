@@ -1,3 +1,4 @@
+import contextlib
 import itertools
 import pytest
 
@@ -122,3 +123,33 @@ def test_compile_to_mlir_extend_non_power_of_two_muxes(
         "gold_name": gold_name,
     }
     run_test_compile_to_mlir(ckt, **kwargs)
+
+
+@pytest.mark.parametrize("disallow_duplicate_symbols", (False, True))
+def test_compile_to_mlir_disallow_duplicate_symbols(
+        disallow_duplicate_symbols: bool,
+):
+
+    class _Test(m.Circuit):
+        name = "simple_duplicate_symbols"
+        io = m.IO(I=m.In(m.Bit), O=m.Out(m.Bits[2]))
+        for o in io.O:
+            x = m.Bit(name="x")
+            x @= io.I
+            o @= x
+
+    ckt = _Test
+    m.backend.coreir.insert_coreir_wires.insert_coreir_wires(ckt)
+    gold_name = f"{ckt.name}_disallow_duplicate_symbols"
+    if disallow_duplicate_symbols:
+        gold_name += "_disallow_duplicate_symbols"
+    kwargs = {
+        "disallow_duplicate_symbols": disallow_duplicate_symbols,
+        "gold_name": gold_name,
+    }
+    if disallow_duplicate_symbols:
+        ctx_mgr = pytest.raises(RuntimeError)
+    else:
+        ctx_mgr = contextlib.nullcontext()
+    with ctx_mgr:
+        run_test_compile_to_mlir(ckt, **kwargs)

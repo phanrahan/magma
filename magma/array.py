@@ -15,6 +15,7 @@ from .protocol_type import magma_type, magma_value
 
 from magma.operator_utils import output_only
 from magma.protocol_type import MagmaProtocol
+from magma.when import no_when, temp_when
 from magma.wire_container import (
     WiringLog,
     AggregateWireable,
@@ -665,8 +666,7 @@ class Array(Type, AggregateWireable, metaclass=ArrayMeta):
         # When we encounter an overlapping slice that is already bulk driven,
         # we ensure the corresponding children are updated to their current
         # values
-        if value._wire.driven():
-            value._resolve_driven_bulk_wire()
+        value._resolve_bulk_wire()
 
     def _remove_slice(self, key):
         """

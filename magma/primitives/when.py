@@ -192,3 +192,7 @@ class WhenBuilder(CircuitBuilder):
     @property
     def block(self) -> WhenBlock:
         return self._block
+
+
+def is_when_builder(builder):
+    return isinstance(builder, WhenBuilder)

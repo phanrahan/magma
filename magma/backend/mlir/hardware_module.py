@@ -555,10 +555,10 @@ class ModuleVisitor:
         output_to_index = {}
 
         def _visit(value, counter, value_to_index):
-            # NOTE: value may already be in value_to_index, in which case we
-            # update it to a new index.  This is okay and it just means that
-            # `value` occurs as more than one input (for example, it could be
-            # used as a conditional driver for multiple values).  We could
+            # NOTE(leonardt): value may already be in value_to_index, in which
+            # case we update it to a new index.  This is okay and it just means
+            # that `value` occurs as more than one input (for example, it could
+            # be used as a conditional driver for multiple values).  We could
             # optimize the logic to always share the same argument, but for now
             # we just use the "last" index.
             value_to_index[value] = next(counter)
@@ -1118,7 +1118,7 @@ class HardwareModule:
         self._parent = parent
         self._opts = opts
         self._hw_module = None
-        self._name_gen = ScopedNameGenerator()
+        self._name_gen = ScopedNameGenerator(disallow_duplicates=False)
         self._value_map = {}
 
     @property
@@ -1221,12 +1221,7 @@ class HardwareModule:
         graph = build_magma_graph(
             self._magma_defn_or_decl, build_magma_graph_opts)
         visitor = ModuleVisitor(graph, self)
-        with contextlib.ExitStack() as exit_stack:
-            exit_stack.enter_context(push_block(op))
-            compile_guard = get_compile_guard_data(self._magma_defn_or_decl)
-            if compile_guard is not None:
-                block = _make_compile_guard_block(compile_guard)
-                exit_stack.enter_context(push_block(block))
+        with push_block(op):
             try:
                 visitor.visit(self._magma_defn_or_decl)
             except ModuleVisitor.VisitError:
