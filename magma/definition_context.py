@@ -123,7 +123,7 @@ class DefinitionContext(FinalizableDelegator):
     def place_instances(self, defn):
         self._placer = self._placer.finalize(defn)
         for builder in self._builders:
-            if getattr(builder, "_is_when_builder_", False):
+            if builder.is_when_builder():
                 # Wait to finalize when primitive until compile since circuit
                 # modifications may introduce changes
                 continue
