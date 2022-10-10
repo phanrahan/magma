@@ -1,6 +1,6 @@
+from magma.array import Array
 from magma.passes.passes import DefinitionPass, pass_lambda
 from magma.tuple import Tuple
-from magma.array import Array
 
 
 def _is_tuple_or_nested_tuple(T):
