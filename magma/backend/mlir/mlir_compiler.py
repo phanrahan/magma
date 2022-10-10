@@ -39,10 +39,11 @@ class MlirCompiler(Compiler):
         return "mlir"
 
     def _run_passes(self):
-        # We elaborate_tuples before finalizing when statements because they
-        # may cause array expansion (e.g. when we have an array of tuples).  If
-        # we remove the flatten_all_tuples requirement, we may finalize when
-        # earlier, but then we may still need this code path as an option
+        # NOTE(leonardt): We elaborate tuples before finalizing when statements 
+        # because they may cause array expansion (e.g. when we have an array of 
+        # tuples).  If we remove the flatten_all_tuples requirement, we may     
+        # finalize when earlier, but then we may still need this code path as an                                                                               
+        # option.                                                               
         if self.opts.get("flatten_all_tuples", False):
             elaborate_tuples(self.main)
         finalize_whens(self.main)
