@@ -1,7 +1,7 @@
 import logging as py_logging
 
 from magma.config import config, EnvConfig
-from magma.debug import debug_wire
+from magma.debug import debug_wire, debug_unwire
 from magma.logging import root_logger, StagedLogRecord
 from magma.when import get_curr_block as get_curr_when_block
 
@@ -168,11 +168,22 @@ class Wire:
 
 class Wireable:
     def __init__(self):
+        """
+        * _enclosing_when_context: The when context active when this object was
+                                   created.  Lazily created child objects
+                                   should inherit their parent's
+                                   enclosing when context using the
+                                   `set_enclosing_when_context` API.
+        * _wired_when_contexts: A list of when contexts in which this object
+                                was conditionally wired.  Used to track the
+                                contexts that should be updated when unwiring.
+        """
         self._wire = Wire(self)
-        self._when_context = get_curr_when_block()
+        self._enclosing_when_context = get_curr_when_block()
+        self._wired_when_contexts = []
 
-    def set_when_context(self, ctx):
-        self._when_context = ctx
+    def set_enclosing_when_context(self, ctx):
+        self._enclosing_when_context = ctx
 
     def wired(self):
         return self._wire.wired()
@@ -191,10 +202,18 @@ class Wireable:
     def driving(self):
         return self._wire.driving()
 
-    def unwire(i, o=None, debug_info=None):
+    def _remove_from_wired_when_contexts(self):
+        for ctx in self._wired_when_contexts:
+            ctx.remove_conditional_wire(self)
+        self._wired_when_contexts = []
+
+    @debug_unwire
+    def unwire(self, o=None, debug_info=None, keep_wired_when_contexts=False):
         if o is not None:
             o = o._wire
-        i._wire.unwire(o, debug_info)
+        self._wire.unwire(o, debug_info)
+        if not keep_wired_when_contexts:
+            self._remove_from_wired_when_contexts()
 
     def _wire_impl(self, o, debug_info):
         self._wire.connect(o._wire, debug_info)
@@ -205,12 +224,13 @@ class Wireable:
         curr_when_block = get_curr_when_block()
         is_conditional = (
             curr_when_block is not None
-            and curr_when_block is not self._when_context
+            and curr_when_block is not self._enclosing_when_context
         )
         if not is_conditional:
             self._wire_impl(o, debug_info)
             return
         curr_when_block.add_conditional_wire(self, o)
+        self._wired_when_contexts.append(curr_when_block)
 
     @debug_wire
     def rewire(self, o, debug_info=None):

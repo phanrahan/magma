@@ -13,6 +13,8 @@ from magma.circuit import DefineCircuitKind
 from magma.common import slice_opts
 from magma.compiler import Compiler
 from magma.passes.clock import wire_clocks
+from magma.passes.elaborate_tuples import elaborate_tuples
+from magma.passes.finalize_whens import finalize_whens
 from magma.passes.raise_logs_as_exceptions import raise_logs_as_exceptions_pass
 
 
@@ -37,6 +39,15 @@ class MlirCompiler(Compiler):
         return "mlir"
 
     def _run_passes(self):
+        # NOTE(leonardt): We elaborate tuples before finalizing when statements
+        # because they may cause array expansion (e.g. when we have an array of
+        # tuples).  If we remove the flatten_all_tuples requirement, we may
+        # finalize when earlier, but then we may still need this code path as
+        # an option.
+        if self.opts.get("flatten_all_tuples", False):
+            elaborate_tuples(self.main)
+        finalize_whens(self.main)
+
         insert_coreir_wires(self.main)
         insert_wrap_casts(self.main)
         wire_clocks(self.main)

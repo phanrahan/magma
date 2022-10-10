@@ -34,3 +34,10 @@ def debug_wire(fn):
         return fn(i, o, debug_info)
     return wire
 
+
+def debug_unwire(fn):
+    def unwire(i, o=None, debug_info=None, keep_wired_when_contexts=False):
+        if get_debug_mode() and debug_info is None:
+            debug_info = get_callee_frame_info()
+        return fn(i, o, debug_info, keep_wired_when_contexts)
+    return unwire

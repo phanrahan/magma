@@ -139,7 +139,7 @@ class LazyInstRef(InstRef):
     def inst(self):
         if self._inst is not None:
             return self._inst
-        return LazyCircuit
+        return LazyCircuit()
 
     def qualifiedname(self, sep="."):
         return super().qualifiedname(sep)
@@ -168,6 +168,11 @@ class DefnRef(NamedRef):
 
 class LazyCircuit:
     name = ""
+    debug_name = ""
+
+    @property
+    def defn(self):
+        return LazyCircuit
 
 
 class LazyDefnRef(DefnRef):

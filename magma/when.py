@@ -42,12 +42,25 @@ class _BlockBase(contextlib.AbstractContextManager):
         self._children.append(child)
         return child
 
+    def get_conditional_wires_for_drivee(self, i):
+        return list(
+            filter(lambda x: x.drivee is i, self._conditional_wires)
+        )
+
+    def remove_conditional_wire(self, i):
+        self._conditional_wires = list(
+            filter(lambda x: x.drivee is not i, self._conditional_wires)
+        )
+
     def add_conditional_wire(self, i, o):
         self._conditional_wires.append(ConditionalWire(i, o))
         builder = self.root.builder
         if i.driven() and i not in builder.output_to_index:
             driver = i.value()
-            i.unwire(driver)
+            # Keep wired when contexts because in this case, the driver could
+            # have been wired in a different when context (so the default value
+            # comes from the result of a previous when context)
+            i.unwire(driver, keep_wired_when_contexts=True)
             self.root.add_default_driver(i, driver)
         self.root.builder.add_drivee(i)
         self.root.builder.add_driver(o)
@@ -261,6 +274,14 @@ def no_when():
     _set_curr_block(block)
 
 
+@contextlib.contextmanager
+def temp_when(temp_ctx):
+    block = _get_curr_block()
+    _set_curr_block(temp_ctx)
+    yield
+    _set_curr_block(block)
+
+
 def _get_curr_block() -> Optional[_BlockBase]:
     global _curr_block
     return _curr_block
@@ -290,7 +311,6 @@ def _reset_prev_block():
 
 
 get_curr_block = _get_curr_block
-set_curr_block = _set_curr_block
 
 
 def _reset_context():

@@ -98,10 +98,13 @@ class WhenBuilder(CircuitBuilder):
         self._output_counter = itertools.count()
         self._input_to_index = {}
         self._output_to_index = {}
+        self._input_to_name = {}
+        self._output_to_name = {}
         self._default_drivers = {}
         self._set_definition_attr("primitive", True)
         self._set_definition_attr(_ISWHEN_KEY, True)
         self._set_definition_attr("_builder_", self)
+        self._is_when_builder_ = True
 
     @property
     def default_drivers(self) -> Dict[Type, Type]:
@@ -121,6 +124,7 @@ class WhenBuilder(CircuitBuilder):
             value_to_index,
             index_counter,
             name_counter,
+            value_to_name,
             name_prefix,
             type_qualifier,
     ):
@@ -131,6 +135,7 @@ class WhenBuilder(CircuitBuilder):
         self._add_port(port_name, type_qualifier(type(value).undirected_t))
         with no_when():
             wire(getattr(self, port_name), value)
+        value_to_name[value] = port_name
 
     def add_drivee(self, value: Type):
         self._generic_add(
@@ -138,6 +143,7 @@ class WhenBuilder(CircuitBuilder):
             self._output_to_index,
             self._output_counter,
             self._drivee_counter,
+            self._output_to_name,
             "O",
             Out,
         )
@@ -148,6 +154,7 @@ class WhenBuilder(CircuitBuilder):
             self._input_to_index,
             self._input_counter,
             self._driver_counter,
+            self._input_to_name,
             "I",
             In,
         )
@@ -158,6 +165,7 @@ class WhenBuilder(CircuitBuilder):
             self._input_to_index,
             self._input_counter,
             self._condition_counter,
+            self._input_to_name,
             "S",
             In,
         )
@@ -184,3 +192,7 @@ class WhenBuilder(CircuitBuilder):
     @property
     def block(self) -> WhenBlock:
         return self._block
+
+
+def is_when_builder(builder):
+    return isinstance(builder, WhenBuilder)

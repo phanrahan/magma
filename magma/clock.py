@@ -2,10 +2,8 @@ from typing import Optional
 
 from .t import Direction, In
 from .digital import DigitalMeta, Digital
-from .wire import wire
 from magma.bit import Bit
 from magma.array import Array
-from magma.debug import debug_wire
 from magma.tuple import Tuple
 
 

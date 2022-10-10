@@ -534,6 +534,8 @@ def test_latch_error_simple():
         with m.when(io.S):
             io.O @= io.I[0]
 
+    m.compile("build/_Test", _Test, output="mlir")
+
 
 @_expects_error(InferredLatchError)
 def test_latch_error_elsewhen():
@@ -546,6 +548,8 @@ def test_latch_error_elsewhen():
         with m.elsewhen(io.S ^ 1):
             io.O @= 1
 
+    m.compile("build/_Test", _Test, output="mlir")
+
 
 @_expects_error(InferredLatchError)
 def test_latch_error_nested():
@@ -556,6 +560,8 @@ def test_latch_error_nested():
         with m.when(io.S[0]):
             with m.when(io.S[1]):
                 io.O @= io.I[0]
+
+    m.compile("build/_Test", _Test, output="mlir")
 
 
 def test_latch_no_error_nested():
@@ -570,6 +576,8 @@ def test_latch_no_error_nested():
         with m.otherwise():
             io.O @= 1
 
+    m.compile("build/_Test", _Test, output="mlir")
+
 
 def test_latch_no_error_nested2():
 
@@ -583,6 +591,8 @@ def test_latch_no_error_nested2():
                 io.O @= io.I[1]
         with m.otherwise():
             io.O @= 1
+
+    m.compile("build/_Test", _Test, output="mlir")
 
 
 def test_when_double_elsewhen():
@@ -724,6 +734,83 @@ def test_when_lazy_array_protocol(caplog):
             x[1] @= 1
 
         io.O @= x
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_slice_driving_resolve(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice_driving_resolve"
+        io = m.IO(S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        x = m.Bits[4](name="x")
+
+        with m.when(io.S):
+            x @= 2
+        with m.otherwise():
+            x @= 4
+
+        io.O @= x
+        x.value()[0]  # triggers driving bulk wire logic
+        x[0] @= 1
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_slice_driving_resolve_2(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice_driving_resolve_2"
+        io = m.IO(I=m.In(m.Bits[4]), S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        x = m.Bits[4](name="x")
+
+        with m.when(io.S):
+            x @= io.I
+        with m.otherwise():
+            x @= 4
+
+        io.O @= x
+        io.I[0]  # triggers driving bulk wire logic
+        x[-1] @= io.I[0]  # triggers driving bulk wire logic
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_slice_overlap(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_slice_overlap"
+        io = m.IO(I=m.In(m.Bits[4]), S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[:2] @= io.I[2:]
+            io.O[2:] @= io.I[:2]
+
+    m.compile(f"build/{_Test.name}", _Test, output="mlir")
+    assert check_gold(__file__, f"{_Test.name}.mlir")
+
+
+def test_when_lazy_array_multiple_whens(caplog):
+
+    class _Test(m.Circuit):
+        name = "test_when_lazy_array_multiple_whens"
+        io = m.IO(I=m.In(m.Bits[4]), S=m.In(m.Bit), O=m.Out(m.Bits[4]))
+
+        with m.when(io.S):
+            io.O @= io.I
+        with m.otherwise():
+            io.O[:2] @= io.I[2:]
+            io.O[2:] @= io.I[:2]
+
+        with m.when(~io.S):
+            io.O @= io.I
 
     m.compile(f"build/{_Test.name}", _Test, output="mlir")
     assert check_gold(__file__, f"{_Test.name}.mlir")

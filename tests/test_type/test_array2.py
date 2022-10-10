@@ -509,3 +509,32 @@ def test_array2_wire_bits_temp():
             io.O[i] @= tmp[i] ^ io.I[i]
 
         tmp @= io.I
+
+
+def test_array2_driving():
+    class Foo(m.Circuit):
+        T = m.Bits[8]
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        io.O @= io.I
+
+    class Top(m.Circuit):
+        T = Foo.T
+        io = m.IO(I=m.In(T), O=m.Out(T))
+        out = Foo(name="foo")(io.I)
+
+        x = out[:4] & io.I[4:]
+        and_inst = x.name.inst
+
+        y = ~out
+        not_inst = y.name.inst
+
+        io.O @= y | m.zext_to(x, 8)
+
+        for i, driving in enumerate(out.driving()):
+            assert len(driving) >= 1
+            assert driving[-1] is not_inst.I[i]
+            if i < 4:
+                assert len(driving) == 2
+                assert driving[0] is and_inst.I0[i]
+            else:
+                assert len(driving) == 1

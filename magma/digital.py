@@ -2,14 +2,13 @@ from functools import lru_cache
 import weakref
 from abc import ABCMeta
 import hwtypes as ht
-from .t import Kind, Direction, Type, In, Out
+from .t import Kind, Direction, Type
 from .debug import debug_wire, get_callee_frame_info
 from .compatibility import IntegerTypes
 from .logging import root_logger
 from .protocol_type import magma_type, magma_value
 
-from magma.ref import ArrayRef
-from magma.wire_container import Wire, WiringLog, Wireable
+from magma.wire_container import WiringLog, Wireable
 
 
 _logger = root_logger()
@@ -182,10 +181,6 @@ class Digital(Type, Wireable, metaclass=DigitalMeta):
             )
             return
         Wireable.wire(self, o, debug_info)
-
-    @debug_wire
-    def unwire(self, o=None, debug_info=None):
-        return Wireable.unwire(self, o, debug_info)
 
     def iswhole(self):
         return True
