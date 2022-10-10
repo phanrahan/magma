@@ -2,7 +2,7 @@ import contextlib
 from typing import Any, List, Mapping
 import weakref
 
-import magma as m # for is_when_builder circular import
+import magma as m  # for is_when_builder circular import
 
 from magma.common import Stack, Finalizable, FinalizableDelegator
 from magma.logging import (
