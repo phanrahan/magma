@@ -901,9 +901,6 @@ class CircuitBuilder(metaclass=_CircuitBuilderMeta):
             setattr(inst, k, v)
         return inst
 
-    def is_when_builder(self):
-        return False
-
 
 class DebugDefineCircuitKind(DefineCircuitKind):
     def __prepare__(name, bases, **kwargs):

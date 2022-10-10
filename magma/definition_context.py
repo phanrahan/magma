@@ -1,7 +1,8 @@
 import contextlib
-import logging as py_logging
 from typing import Any, List, Mapping
 import weakref
+
+import magma as m # for is_when_builder circular import
 
 from magma.common import Stack, Finalizable, FinalizableDelegator
 from magma.logging import (
@@ -123,7 +124,7 @@ class DefinitionContext(FinalizableDelegator):
     def place_instances(self, defn):
         self._placer = self._placer.finalize(defn)
         for builder in self._builders:
-            if builder.is_when_builder():
+            if m.primitives.when.is_when_builder(builder):
                 # NOTE(leonardt): We have to wait to finalize the when
                 # primitive until compilation to consider downstream circuit
                 # modifications.
