@@ -124,8 +124,9 @@ class DefinitionContext(FinalizableDelegator):
         self._placer = self._placer.finalize(defn)
         for builder in self._builders:
             if builder.is_when_builder():
-                # NOTE(leonardt): We have to wait to finalize the when primitive
-                # until compilation to consider downstream circuit modifications.
+                # NOTE(leonardt): We have to wait to finalize the when
+                # primitive until compilation to consider downstream circuit
+                # modifications.
                 continue
             inst = builder.finalize()
             self._placer.place(inst)
